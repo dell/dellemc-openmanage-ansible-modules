@@ -27,13 +27,47 @@
     api_system: "/redfish/v1/Systems/System.Embedded.1"
 
   tasks:
+    - name: Fetching Presence and Status Sensor info
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}{{ api_system }}/Oem/Dell/DellPresenceAndStatusSensors"
+        validate_certs: "{{ validate_certs }}"
+        ca_path: "{{ ca_path | default(omit) }}"
+        method: "{{ idrac_gather_facts_uri_method }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        headers: "{{ idrac_gather_facts_uri_headers }}"
+        body_format: "{{ idrac_gather_facts_uri_body_format }}"
+        status_code: "{{ idrac_gather_facts_uri_status_code }}"
+        return_content: "{{ idrac_gather_facts_uri_return_content }}"
+      no_log: true
+      register: passensor_result
+
+    - name: Set presence and status sensor facts
+      ansible.builtin.set_fact:
+        api_response: "{{ passensor_result.json.Members | ansible.utils.remove_keys(target=['@odata.context',
+         '@odata.id', '@odata.type', 'Assembly', 'Links']) }}"
+
     - name: Gather Facts for the Presence and Status Sensor
       ansible.builtin.include_role:
         name: "idrac_gather_facts"
 
-    - name: Call assertion
-      ansible.builtin.include_tasks: ../../tests/asserts/passensor_assert.yml
-      with_items: "{{ presence_and_status_sensor }}"
-      loop_control:
-        loop_var: passensor_data
-      when: presence_and_status_sensor | length > 0
+    - name: Assert Presence and Status Sensor data
+      ansible.builtin.assert:
+        that:
+          - "((api_response | length == 0) and (presence_and_status_sensor | length == 0))"
+        fail_msg: "The response from the role does not match"
+        success_msg: "The response from the role matches"
+      when: api_response | length == 0
+
+    - name: Check whether output differs
+      ansible.builtin.set_fact:
+        result_diff: "{{ presence_and_status_sensor | symmetric_difference(api_response) }}"
+      when: api_response | length > 0
+
+    - name: Assert the differences in List
+      ansible.builtin.assert:
+        fail_msg: "The response from the role does not match"
+        success_msg: "The response from the role matches"
+        that:
+          - "{{ (result_diff | length) == 0 }}"
+      when: api_response | length > 0
