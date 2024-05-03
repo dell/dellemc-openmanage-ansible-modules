@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  
+###
+# Unit tests With Code Coverage
+#
+# https://docs.ansible.com/ansible/latest/dev_guide/testing_units.html
+
+  unit:
+    name: Unit Tests With (Ansible ${{ github.event.inputs.ansible }} with Python ${{ github.event.inputs.python }})
+    runs-on: ubuntu-latest
+    steps:
+      - name: Perform unit testing with ansible-test
+        uses: ansible-community/ansible-test-gh-action@release/v1
+        with:
+          testing-type: units
+          coverage: always
+          ansible-core-version: ${{ github.event.inputs.ansible }}
+          target-python-version: ${{ github.event.inputs.python }}
