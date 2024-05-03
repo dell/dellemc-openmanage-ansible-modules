@@ -30,49 +30,11 @@
       ansible.builtin.include_role:
         name: "idrac_gather_facts"
 
-    - name: Assert power metrics dict for length
-      ansible.builtin.assert:
-        that:
-          - "{{ power_metrics | length > 0 }}"
-
-    - name: Assert thermal metrics dict for length
-      ansible.builtin.assert:
-        that:
-          - "{{ thermal_metrics | length > 0 }}"
-
-    - name: Assert memory metrics dict for length
-      ansible.builtin.assert:
-        that:
-          - "{{ memory_metrics | length > 0 }}"
-
-    - name: Get Thermal Metrics information.
-      ansible.builtin.uri:
-        url: "https://{{ hostname }}{{ api_chassis }}/ThermalSubsystem/ThermalMetrics"
-        validate_certs: "{{ validate_certs }}"
-        method: "{{ idrac_gather_facts_uri_method }}"
-        user: "{{ username }}"
-        password: "{{ password }}"
-        headers: "{{ idrac_gather_facts_uri_headers }}"
-        body_format: "{{ idrac_gather_facts_uri_body_format }}"
-        status_code: "{{ idrac_gather_facts_uri_status_code }}"
-        return_content: "{{ idrac_gather_facts_uri_return_content }}"
-      register: response_thermal_metrics
-      no_log: true
-
-    - name: Set Thermal Metrics facts
-      ansible.builtin.set_fact:
-        api_thermal_metrics: "{{ response_thermal_metrics.json |
-          ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', 'DataSourceUri', 'TemperatureReadingsCelsius@odata.count']) }}"
-
     - name: Call assertion for thermal metrics
       ansible.builtin.include_tasks: ../../tests/asserts/tmetrics_assert.yml
 
     - name: Call assertion for memory metrics
       ansible.builtin.include_tasks: ../../tests/asserts/mmetrics_assert.yml
-      with_items: "{{ memory_metrics }}"
-      loop_control:
-        loop_var: memory_data
-      when: memory_metrics | length > 0
 
     - name: Get Power Supply information.
       ansible.builtin.uri:
@@ -92,10 +54,18 @@
       ansible.builtin.set_fact:
         psu_ids: "{{ power_result.json.Members | map(attribute='Id') | list }}"
 
+    - name: Assert Power Supply Metrics metrics
+      ansible.builtin.assert:
+        that:
+          - "((psu_ids | length == 0) and (power_metrics | length == 0))"
+        fail_msg: "The response from the role does not match"
+        success_msg: "The response from the role matches"
+      when: psu_ids| length == 0
+
     - name: Call assertion for Power metrics
       ansible.builtin.include_tasks: ../../tests/asserts/psmetrics_assert.yml
       with_items: "{{ power_metrics }}"
       loop_control:
         loop_var: power_data
         index_var: index
-      when: power_metrics | length > 0
+      when: psu_ids | length > 0

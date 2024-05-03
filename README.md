@@ -25,7 +25,7 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
   * [Additional Information](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/ADDITIONAL_INFORMATION.md)
 
 ## Supported Platforms
-  * iDRAC8 based Dell PowerEdge Servers with firmware versions 2.84.84.84 and above.
+  * iDRAC8 based Dell PowerEdge Servers with firmware versions 2.85.85.85 and above.
   * iDRAC9 based Dell PowerEdge Servers with firmware versions 6.10.80.00 and above.
   * Dell OpenManage Enterprise versions 4.0.0 and 4.0.1.
   * Dell OpenManage Enterprise Modular versions 2.10.10 and above.
