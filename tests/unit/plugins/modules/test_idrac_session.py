@@ -579,7 +579,7 @@ class TestMain(FakeAnsibleModule):
                                               StringIO(json_str)))
         else:
             ome_default_args.update({"state": "absent", "session_id": "1234",
-                                    "auth_token": "token123"})
+                                    "x_auth_token": "token123"})
             mocker.patch(MODULE_PATH + "DeleteSession.get_session_url",
                          side_effect=exc_type('test'))
         result = self._run_module(ome_default_args)
