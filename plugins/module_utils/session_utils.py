@@ -34,6 +34,8 @@ import os
 from ansible.module_utils.urls import open_url
 from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
+from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
+from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
 HEADER_TYPE = "application/json"
 
@@ -177,7 +179,7 @@ class SessionAPI():
             self._headers = {
                 'Content-Type': HEADER_TYPE,
                 'Accept': HEADER_TYPE,
-                'X-Auth-Token': module_params.get("auth_token")
+                'X-Auth-Token': module_params.get("x_auth_token")
             }
 
     def _get_url(self, uri):
@@ -243,13 +245,16 @@ class SessionAPI():
 
         """
         req_header = self._headers
+        url_kwargs = {"force_basic_auth": True, "url_username": self.username, "url_password": self.password}
         if headers:
             req_header.update(headers)
+            if "x_auth_token" in req_header:
+                url_kwargs = {"force_basic_auth": False}
         if api_timeout is None:
             api_timeout = self.timeout
         if self.ca_path is None:
             self.ca_path = self._get_omam_ca_env()
-        url_kwargs = {
+        url_kwargs_2 = {
             "method": method,
             "validate_certs": self.validate_certs,
             "ca_path": self.ca_path,
@@ -258,6 +263,7 @@ class SessionAPI():
             "timeout": api_timeout,
             "follow_redirects": 'all',
         }
+        url_kwargs.update(url_kwargs_2)
         return url_kwargs
 
     def _args_session(self, method, api_timeout, headers=None):
@@ -300,12 +306,15 @@ class SessionAPI():
         :return: The response data from the request.
         :rtype: OpenURLResponse
         """
-        url_kwargs = self._args_session(method, api_timeout, headers=headers)
-        if data and dump:
-            data = json.dumps(data)
-        url = self._build_url(uri, query_param=query_param)
-        resp = open_url(url, data=data, **url_kwargs)
-        resp_data = OpenURLResponse(resp)
+        try:
+            url_kwargs = self._args_session(method, api_timeout, headers=headers)
+            if data and dump:
+                data = json.dumps(data)
+            url = self._build_url(uri, query_param=query_param)
+            resp = open_url(url, data=data, **url_kwargs)
+            resp_data = OpenURLResponse(resp)
+        except (HTTPError, URLError, SSLValidationError, ConnectionError) as err:
+            raise err
         return resp_data
 
     def _get_omam_ca_env(self):
