@@ -287,6 +287,17 @@ class TestIdracCertificates(FakeAnsibleModule):
             self.module.upload_ssl_key(f_module, {}, {}, temp_ssl.name, "res_id")
         assert "Permission denied" in ex.value.args[0]
         os.remove(temp_ssl.name)
+    
+    def test_build_generate_csr_payload(self, idrac_default_args):
+        cert_params_data = {
+            "cert_params": {
+                "subject_alt_name": ['192.198.2.1,192.198.2.2', '192.198.2.3']
+            }
+        }
+        idrac_default_args.update(cert_params_data)
+        f_module = self.get_module_mock(params=idrac_default_args)
+        payload = self.module._build_generate_csr_payload(f_module, None)
+        assert payload["AlternativeNames"] == ['192.198.2.1,192.198.2.2,192.198.2.3']
 
     @pytest.mark.parametrize("params", [{"json_data": {
         "Actions": {
