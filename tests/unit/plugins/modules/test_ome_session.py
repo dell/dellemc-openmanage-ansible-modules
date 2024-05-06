@@ -10,19 +10,10 @@
 
 from __future__ import absolute_import, division, print_function
 
-
-from io import StringIO
-import json
-
-
-from urllib.error import HTTPError, URLError
 import pytest
 from mock import MagicMock
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_session
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import AnsibleFailJSonException
-from ansible.module_utils.urls import SSLValidationError
-from ansible.module_utils._text import to_text
 
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.ome_session.'
@@ -80,8 +71,7 @@ class TestSession(FakeAnsibleModule):
         :return: The mock object for the `SessionAPI` class.
         :rtype: MagicMock
         """
-        ome_conn_mock = mocker.patch(MODULE_PATH + 'SessionAPI',
-                                       return_value=ome_session_mock)
+        ome_conn_mock = mocker.patch(MODULE_PATH + 'SessionAPI', return_value=ome_session_mock)
         ome_conn_mock.return_value.__enter__.return_value = ome_session_mock
         return ome_conn_mock
 
@@ -106,7 +96,7 @@ class TestSession(FakeAnsibleModule):
         Returns:
             None
         """
-        base_api_resp = { "SessionService" : { "@odata.id": "/api/SessionService"}}
+        base_api_resp = {"SessionService" : {"@odata.id": "/api/SessionService"}}
         mocker.patch(MODULE_PATH + "get_dynamic_uri",
                      return_value=base_api_resp)
         session_service_resp = {"Sessions@odata.navigationLink": "/api/SessionService/Sessions"}
@@ -160,8 +150,7 @@ class TestCreateSession(FakeAnsibleModule):
         Returns:
             - `ome_conn_mock` (MagicMock): The mock object of the `SessionAPI` class.
         """
-        ome_conn_mock = mocker.patch(MODULE_PATH + 'SessionAPI',
-                                       return_value=create_session_mock)
+        ome_conn_mock = mocker.patch(MODULE_PATH + 'SessionAPI', return_value=create_session_mock)
         ome_conn_mock.return_value.__enter__.return_value = create_session_mock
         return ome_conn_mock
 
@@ -347,8 +336,7 @@ class TestDeleteSession(FakeAnsibleModule):
         :return: The mocked instance of the SessionAPI class.
         :rtype: MagicMock
         """
-        ome_conn_mock = mocker.patch(MODULE_PATH + 'SessionAPI',
-                                       return_value=ome_session_mock)
+        ome_conn_mock = mocker.patch(MODULE_PATH + 'SessionAPI', return_value=ome_session_mock)
         ome_conn_mock.return_value.__enter__.return_value = ome_session_mock
         return ome_conn_mock
 
