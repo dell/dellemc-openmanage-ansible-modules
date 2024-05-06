@@ -65,10 +65,10 @@ options:
     choices: [present, absent]
     type: str
     default: present
-  auth_token:
+  x_auth_token:
     description:
      - Authentication token.
-     - I(auth_token) is required when I(state) is C(absent).
+     - I(x_auth_token) is required when I(state) is C(absent).
     type: str
   session_id:
     description:
@@ -99,7 +99,7 @@ EXAMPLES = r"""
   dellemc.openmanage.idrac_session:
     hostname: 198.162.0.1
     state: absent
-    auth_token: aed4aa802b748d2f3b31deec00a6b28a
+    x_auth_token: aed4aa802b748d2f3b31deec00a6b28a
     session_is: 2
 """
 
@@ -361,7 +361,7 @@ def main():
         argument_spec=specs,
         required_if=[
             ["state", "present", ("username", "password",)],
-            ["state", "absent", ("auth_token", "session_id",)]
+            ["state", "absent", ("x_auth_token", "session_id",)]
         ],
         supports_check_mode=True
     )
@@ -400,7 +400,7 @@ def get_argument_spec():
     - "timeout": An integer representing the timeout value. The default value is 30.
     - "state": A string representing the state. The default value is "present". The choices are
     ["present", "absent"].
-    - "auth_token": A string representing the authentication token. It is marked as not to be
+    - "x_auth_token": A string representing the authentication token. It is marked as not to be
     logged.
     - "session_id": An integer representing the session ID.
 
@@ -416,7 +416,7 @@ def get_argument_spec():
         "ca_path": {"type": "path", "default": None},
         "timeout": {"type": "int", "default": 30},
         "state": {"type": 'str', "default": "present", "choices": ["present", "absent"]},
-        "auth_token": {"type": "str", "no_log": True},
+        "x_auth_token": {"type": "str", "no_log": True},
         "session_id": {"type": "int"}
     }
 
