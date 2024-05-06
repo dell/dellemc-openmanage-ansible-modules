@@ -287,7 +287,7 @@ class TestIdracCertificates(FakeAnsibleModule):
             self.module.upload_ssl_key(f_module, {}, {}, temp_ssl.name, "res_id")
         assert "Permission denied" in ex.value.args[0]
         os.remove(temp_ssl.name)
-    
+
     def test_build_generate_csr_payload(self, idrac_default_args):
         cert_params_data = {
             "cert_params": {
