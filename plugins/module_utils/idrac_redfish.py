@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 8.0.0
-# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -41,14 +41,16 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import co
 
 idrac_auth_params = {
     "idrac_ip": {"required": True, "type": 'str'},
-    "idrac_user": {"required": True, "type": 'str', "fallback": (env_fallback, ['IDRAC_USERNAME'])},
-    "idrac_password": {"required": True, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True, "fallback": (env_fallback, ['IDRAC_PASSWORD'])},
+    "idrac_user": {"required": False, "type": 'str', "fallback": (env_fallback, ['IDRAC_USERNAME'])},
+    "idrac_password": {"required": False, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True, "fallback": (env_fallback, ['IDRAC_PASSWORD'])},
+    "x_auth_token": {"required": False, "type": 'str', "no_log": True, "fallback": (env_fallback, ['X_AUTH_TOKEN'])},
     "idrac_port": {"required": False, "default": 443, "type": 'int'},
     "validate_certs": {"type": "bool", "default": True},
     "ca_path": {"type": "path"},
     "timeout": {"type": "int", "default": 30},
-
 }
+auth_required_one_of = [["idrac_user", "x_auth_token"]]
+auth_required_together = [["idrac_user", "idrac_password"]]
 
 SESSION_RESOURCE_COLLECTION = {
     "SESSION": "/redfish/v1/Sessions",
@@ -101,6 +103,7 @@ class iDRACRedfishAPI(object):
         self.ipaddress = module_params['idrac_ip']
         self.username = module_params['idrac_user']
         self.password = module_params['idrac_password']
+        self.x_auth_token = module_params.get('x_auth_token')
         self.port = module_params['idrac_port']
         self.validate_certs = module_params.get("validate_certs", False)
         self.ca_path = module_params.get("ca_path")
@@ -180,7 +183,7 @@ class iDRACRedfishAPI(object):
 
     def __enter__(self):
         """Creates sessions by passing it to header"""
-        if self.req_session:
+        if self.req_session and not self.x_auth_token:
             payload = {'UserName': self.username,
                        'Password': self.password}
             path = SESSION_RESOURCE_COLLECTION["SESSION"]
@@ -191,6 +194,8 @@ class iDRACRedfishAPI(object):
             else:
                 msg = "Could not create the session"
                 raise ConnectionError(msg)
+        else:
+            self._headers["X-Auth-Token"] = self.x_auth_token
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
