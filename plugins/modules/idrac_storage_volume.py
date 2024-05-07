@@ -130,7 +130,7 @@ options:
     default: 900
   time_to_wait:
     description:
-      - The maximum wait time before shutdown in seconds for the SCP import operation.
+      - The maximum wait time before shutdown in seconds for the Server Configuration Profile (SCP) import operation.
       - This option is applicable when I(state) is C(create) or C(delete).
     type: int
     default: 300
