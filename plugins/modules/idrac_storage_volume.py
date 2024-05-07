@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.1.0
+# Version 9.3.0
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -21,7 +21,7 @@ version_added: "9.1.0"
 description:
   - This module is responsible for configuring the RAID attributes.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   state:
     type: str
@@ -281,7 +281,8 @@ import re
 import operator
 from urllib.error import HTTPError, URLError
 from copy import deepcopy
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (
+    iDRACRedfishAPI, idrac_auth_params, auth_required_one_of, auth_required_together)
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
@@ -896,6 +897,8 @@ def main():
     specs.update(idrac_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
+        required_one_of=auth_required_one_of,
+        required_together=auth_required_together,
         supports_check_mode=True)
     try:
         with iDRACRedfishAPI(module.params) as idrac:

@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.2.0
+# Version 9.3.0
 # Copyright (C) 2018-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -20,7 +20,7 @@ version_added: "2.1.0"
 description:
   - This module resets the iDRAC to factory default settings.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   reset_to_default:
     type: str
@@ -184,7 +184,8 @@ import os
 import json
 import time
 from urllib.error import HTTPError, URLError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (
+    iDRACRedfishAPI, idrac_auth_params, auth_required_one_of, auth_required_together)
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -536,6 +537,8 @@ def main():
     module = AnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[("custom_defaults_file", "custom_defaults_buffer")],
+        required_one_of=auth_required_one_of,
+        required_together=auth_required_together,
         supports_check_mode=True)
     try:
         with iDRACRedfishAPI(module.params) as idrac:

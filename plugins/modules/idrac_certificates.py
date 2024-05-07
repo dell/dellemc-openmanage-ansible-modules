@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.6.0
-# Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2022-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -22,7 +22,7 @@ version_added: "5.5.0"
 description:
   - This module allows to generate certificate signing request, import, and export certificates on iDRAC.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   command:
     description:
@@ -249,7 +249,8 @@ import base64
 import os
 from datetime import datetime
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (
+    iDRACRedfishAPI, idrac_auth_params, auth_required_one_of, auth_required_together)
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import reset_idrac
@@ -572,6 +573,8 @@ def main():
             ['command', 'import', ('certificate_path',)],
             ['command', 'export', ('certificate_path',)]
         ],
+        required_one_of=auth_required_one_of,
+        required_together=auth_required_together,
         supports_check_mode=True)
 
     try:

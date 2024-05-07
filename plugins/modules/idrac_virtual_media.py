@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 6.3.0
-# Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2022-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -21,7 +21,7 @@ version_added: "6.3.0"
 description:
   - This module allows to configure Remote File Share settings.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   virtual_media:
     required: true
@@ -217,7 +217,8 @@ import copy
 import time
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (
+    iDRACRedfishAPI, idrac_auth_params, auth_required_one_of, auth_required_together)
 from ansible.module_utils.basic import AnsibleModule
 
 MANAGER_BASE = "/redfish/v1/Managers/iDRAC.Embedded.1/VirtualMedia"
@@ -442,7 +443,12 @@ def main():
         "resource_id": {"required": False, "type": 'str'},
     }
     specs.update(idrac_auth_params)
-    module = AnsibleModule(argument_spec=specs, supports_check_mode=True)
+    module = AnsibleModule(
+        argument_spec=specs,
+        required_one_of=auth_required_one_of,
+        required_together=auth_required_together,
+        supports_check_mode=True
+    )
     try:
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:
             vr_media = module.params["virtual_media"]

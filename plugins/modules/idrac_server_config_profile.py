@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.4.0
-# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -22,7 +22,7 @@ description:
   - Export the Server Configuration Profile (SCP) from the iDRAC or import from a
     network share (CIFS, NFS, HTTP, HTTPS) or a local path.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   command:
     description:
@@ -528,7 +528,8 @@ import json
 from datetime import datetime
 from os.path import exists
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (
+    iDRACRedfishAPI, idrac_auth_params, auth_required_one_of, auth_required_together)
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import idrac_redfish_job_tracking, \
     strip_substr_dict
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -926,6 +927,8 @@ def main():
             ["command", "export", ["share_name"]],
             ["proxy_support", True, ["proxy_server"]]
         ],
+        required_one_of=auth_required_one_of,
+        required_together=auth_required_together,
         supports_check_mode=True)
 
     validate_input(module, module.params.get("scp_components"))

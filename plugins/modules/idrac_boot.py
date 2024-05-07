@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.0.0
-# Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2022-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -21,7 +21,7 @@ version_added: "6.1.0"
 description:
   - This module allows to configure the boot order settings.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   boot_options:
     type: list
@@ -264,7 +264,8 @@ import json
 import time
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (
+    iDRACRedfishAPI, idrac_auth_params, auth_required_one_of, auth_required_together)
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (strip_substr_dict, idrac_system_reset,
                                                                                get_system_res_id,
                                                                                wait_for_idrac_job_completion)
@@ -517,7 +518,8 @@ def main():
         argument_spec=specs,
         required_one_of=[["boot_options", "boot_order", "boot_source_override_mode",
                           "boot_source_override_enabled", "boot_source_override_target",
-                          "uefi_target_boot_source_override"]],
+                          "uefi_target_boot_source_override"]] + auth_required_one_of,
+        required_together=auth_required_together,
         mutually_exclusive=[
             ("boot_options", "boot_order"), ("boot_options", "boot_source_override_mode"),
             ("boot_options", "boot_source_override_enabled"), ("boot_options", "boot_source_override_target"),
