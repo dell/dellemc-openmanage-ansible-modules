@@ -290,9 +290,10 @@ class DeleteSession(Session):
         else:
             if session_status == 200:
                 try:
-                    session_response = self.ome.invoke_request(session_url + (f"{session_id}"), "DELETE")
+                    delete_session_url = session_url + "('" + session_id + "')"
+                    session_response = self.ome.invoke_request(delete_session_url, "DELETE")
                     status = session_response.status_code
-                    if status == 200:
+                    if status == 204:
                         self.module.exit_json(msg=DELETE_SUCCESS_MSG, changed=True)
                 except HTTPError as err:
                     filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
@@ -315,7 +316,8 @@ class DeleteSession(Session):
             code of the error is returned.
         """
         try:
-            session_status_response = self.ome.invoke_request(session_url + (f"{session_id}"), "GET")
+            view_session_url = session_url + "('" + session_id + "')"
+            session_status_response = self.ome.invoke_request(view_session_url, "GET")
             session_status = session_status_response.status_code
         except HTTPError as err:
             session_status = err.status

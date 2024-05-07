@@ -10,11 +10,17 @@
 
 from __future__ import absolute_import, division, print_function
 
+from io import StringIO
+import json
+
+from urllib.error import HTTPError, URLError
 import pytest
 from mock import MagicMock
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_session
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
-
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import AnsibleFailJSonException
+from ansible.module_utils.urls import SSLValidationError
+from ansible.module_utils._text import to_text
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.ome_session.'
 MODULE_UTILS_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.utils.'
@@ -383,3 +389,199 @@ class TestDeleteSession(FakeAnsibleModule):
         delete_session_obj.ome.invoke_request.return_value.status_code = 201
         delete_session_obj.execute()
         f_module.exit_json.assert_called_once_with(msg=NO_CHANGES_FOUND_MSG)
+
+    def test_delete_session_success(self, ome_connection_session_mock):
+        """
+        Test the successful deletion of a session.
+
+        This test function verifies the behavior of the `DeleteSession` class when a session is
+        successfully deleted. It mocks the `ome_connection_session_mock` object and sets up the
+        necessary parameters for the `f_module` object. It then creates an instance of the
+        `DeleteSession` class with the mocked `ome_connection_session_mock` and the
+        `f_module` object.
+
+        The `get_session_url` method of the `session_obj` is mocked to return a specific session
+        URL. The `invoke_request` method of the `ome` object of the `session_obj` is also mocked
+        to return a response with a status code of 200. The `exit_json` method of the `f_module`
+        object is mocked as well.
+
+        The `execute` method of the `session_obj` is called to execute the deletion of the session.
+        Finally, the `exit_json` method of the `f_module` object is asserted to have been called
+        with the expected arguments, including the success message and the changed flag set to
+        `True`.
+
+        Parameters:
+            - ome_connection_session_mock (MagicMock): A mocked object representing the
+            `ome_connection_session_mock` object.
+
+        Returns:
+            None
+        """
+        f_module = self.get_module_mock(
+            params={"session_id": "abcd", "hostname": "X.X.X.X", "x_auth_token": "token"}, check_mode=False)
+        session_obj = ome_session.DeleteSession(ome_connection_session_mock, f_module)
+        session_obj.get_session_url = MagicMock(return_value=SESSION_URL)
+        session_obj.get_session_status = MagicMock(return_value=200)
+        session_obj.ome.invoke_request.return_value.status_code = 204
+        f_module.exit_json = MagicMock()
+        session_obj.execute()
+        f_module.exit_json.assert_called_once_with(msg=DELETE_SUCCESS_MSG, changed=True)
+
+    def test_delete_session_check_mode_false_no_changes(self, ome_connection_session_mock):
+        """
+        Test the scenario where the delete session is executed in check mode with `check_mode` set
+        to False and no changes are expected.
+
+        Args:
+            ome_connection_session_mock (MagicMock): A mock object representing the ome
+            connection session.
+
+        Returns:
+            None
+
+        This function creates a mock module object with the specified parameters and
+        initializes the `DeleteSession` object with the mock ome connection and module. It sets
+        the `get_session_url` method of the session object to return a specific session URL. It
+        sets the status code of the invoke request to 201. It then asserts that the `exit_json`
+        method of the module object is called once with the `msg` parameter set to the
+        `NO_CHANGES_FOUND_MSG` constant.
+        """
+        f_module = self.get_module_mock(
+            params={"session_id": "abcd", "hostname": "X.X.X.X"}, check_mode=False)
+        session_obj = ome_session.DeleteSession(ome_connection_session_mock, f_module)
+        session_obj.get_session_url = MagicMock(return_value=SESSION_URL)
+        session_obj.ome.invoke_request.return_value.status_code = 201
+        f_module.exit_json = MagicMock()
+        session_obj.execute()
+        f_module.exit_json.assert_called_once_with(msg=NO_CHANGES_FOUND_MSG)
+
+    def test_delete_session_http_error(self, ome_connection_session_mock):
+        """
+        Test the behavior of the `DeleteSession` class when an HTTP error occurs during the
+        deletion of a session.
+
+        This test case creates a mock `f_module` object with the necessary parameters and
+        initializes a `DeleteSession` object with the mock `ome_connection_session_mock` and the
+        `f_module` object. It then sets up the necessary mock functions and side effects to
+        simulate an HTTP error during the deletion of a session. Finally, it executes the
+        `execute()` method of the `DeleteSession` object and asserts that an
+        `AnsibleFailJSonException` is raised with the expected failure message and error
+        information.
+
+        Parameters:
+            - ome_connection_session_mock (MagicMock): A mock object representing the
+            `ome_connection_session_mock` parameter.
+
+        Raises:
+            - AssertionError: If the expected failure message or error information is not present
+            in the raised exception.
+
+        Returns:
+            None
+        """
+        f_module = self.get_module_mock(
+            params={"session_id": "abcd", "hostname": "X.X.X.X"}, check_mode=False)
+        session_obj = ome_session.DeleteSession(ome_connection_session_mock, f_module)
+        session_obj.get_session_url = MagicMock(return_value=SESSION_URL)
+        session_obj.get_session_status = MagicMock(return_value=200)
+        json_str = to_text(json.dumps({"data": "out"}))
+        session_obj.ome.invoke_request.side_effect = HTTPError(HTTPS_PATH, 200,
+                                                               HTTP_ERROR,
+                                                               {"accept-type": APPLICATION_JSON},
+                                                               StringIO(json_str))
+        try:
+            session_obj.execute()
+        except AnsibleFailJSonException as ex:
+            assert ex.fail_msg == "Unable to 'delete' a session."
+            assert ex.fail_kwargs == {'error_info': {'data': 'out'}, 'failed': True}
+
+
+class TestMain(FakeAnsibleModule):
+    """
+    Class for testing the main.
+    """
+    module = ome_session
+
+    @pytest.fixture
+    def ome_session_mock(self):
+        """
+        Creates a mock object for the `ome_session` fixture.
+
+        This function uses the `MagicMock` class from the `unittest.mock` module to create a mock
+        object.
+        The mock object is then returned by the function.
+
+        Returns:
+            MagicMock: A mock object representing the `ome_session`.
+        """
+        ome_obj = MagicMock()
+        return ome_obj
+
+    @pytest.fixture
+    def ome_connection_session_mock(self, mocker, ome_session_mock):
+        """
+        Returns a mock object for the `SessionAPI` class from the `MODULE_PATH` module.
+        The mock object is initialized with the `ome_session_mock` as the return value.
+        The `__enter__` method of the mock object is also mocked to return `ome_session_mock`.
+
+        :param mocker: The pytest fixture for mocking objects.
+        :type mocker: pytest_mock.plugin.MockerFixture
+        :param ome_session_mock: The mock object for the `ome_session_mock`.
+        :type ome_session_mock: Any
+        :return: The mock object for the `SessionAPI` class.
+        :rtype: MagicMock
+        """
+        ome_conn_mock = mocker.patch(MODULE_PATH + 'SessionAPI',
+                                     return_value=ome_session_mock)
+        ome_conn_mock.return_value.__enter__.return_value = ome_session_mock
+        return ome_conn_mock
+
+    @pytest.mark.parametrize("exc_type",
+                             [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
+    def test_ome_session_main_exception_handling_case(self, exc_type, ome_default_args, mocker):
+        """
+        Test the exception handling of the `ome_session_main` module.
+
+        This function tests the exception handling of the `ome_session_main` module by mocking
+        different exceptions and verifying the expected behavior.
+
+        Parameters:
+            - exc_type (Exception): The type of exception to be raised.
+            - ome_default_args (dict): The default arguments for the module.
+            - mocker (MockerFixture): The mocker fixture for mocking functions.
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: If the expected result does not match the actual result.
+
+        Notes:
+            - The function uses the `pytest.mark.parametrize` decorator to parameterize the test
+            cases.
+            - The `exc_type` parameter represents the type of exception to be raised.
+            - The `ome_default_args` parameter contains the default arguments for the module.
+            - The `mocker` parameter is used to mock functions and simulate different exceptions.
+            - The function calls the `_run_module` method with the `ome_default_args` to execute
+            the module.
+            - The function verifies the expected result based on the raised exception type.
+
+        """
+        json_str = to_text(json.dumps({"data": "out"}))
+        if exc_type in [HTTPError, SSLValidationError]:
+            mocker.patch(MODULE_PATH + "CreateSession.get_session_url",
+                         side_effect=exc_type(HTTPS_PATH, 400,
+                                              HTTP_ERROR,
+                                              {"accept-type": APPLICATION_JSON},
+                                              StringIO(json_str)))
+        else:
+            ome_default_args.update({"state": "absent", "session_id": "abcd",
+                                    "x_auth_token": "token123"})
+            mocker.patch(MODULE_PATH + "DeleteSession.get_session_url",
+                         side_effect=exc_type('test'))
+        result = self._run_module(ome_default_args)
+        if exc_type == URLError:
+            assert result['unreachable'] is True
+        else:
+            assert result['failed'] is True
+        assert 'msg' in result
