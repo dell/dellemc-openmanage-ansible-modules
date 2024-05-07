@@ -194,7 +194,7 @@ class iDRACRedfishAPI(object):
             else:
                 msg = "Could not create the session"
                 raise ConnectionError(msg)
-        else:
+        elif self.x_auth_token is not None:
             self._headers["X-Auth-Token"] = self.x_auth_token
         return self
 
