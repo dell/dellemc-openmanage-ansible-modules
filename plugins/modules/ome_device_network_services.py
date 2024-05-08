@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2021-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -79,7 +79,7 @@ options:
         required: true
         description: Enables or disables the remote RACADM settings.
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 author:
   - "Felix Stephen (@felixs88)"
 notes:
@@ -195,7 +195,8 @@ from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
+    RestOME, ome_auth_params, auth_required_one_of, auth_required_together)
 
 DOMAIN_URI = "ManagementDomainService/Domains"
 DEVICE_URI = "DeviceService/Devices"
@@ -373,7 +374,8 @@ def main():
     module = AnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[('device_id', 'device_service_tag')],
-        required_one_of=[["snmp_settings", "ssh_settings", "remote_racadm_settings"]],
+        required_one_of=[["snmp_settings", "ssh_settings", "remote_racadm_settings"]] + auth_required_one_of,
+        required_together=auth_required_together,
         supports_check_mode=True,
     )
     if not any([module.params.get("snmp_settings"), module.params.get("ssh_settings"),

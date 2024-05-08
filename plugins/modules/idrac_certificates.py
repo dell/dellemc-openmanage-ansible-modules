@@ -113,7 +113,7 @@ options:
     type: int
     default: 300
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 author:
   - "Jagadeesh N V(@jagadeeshnv)"
   - "Rajshekar P(@rajshekarp87)"

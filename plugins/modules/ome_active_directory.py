@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2021-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -117,7 +117,7 @@ options:
       - The certificate should be a Root CA Certificate encoded in Base64 format.
       - This is applicable when I(validate_certificate) is C(true).
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 notes:
   - The module will always report change when I(validate_certificate) is C(true).
   - Run this module from a system that has direct access to OpenManage Enterprise.
@@ -244,7 +244,8 @@ from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
+    RestOME, ome_auth_params, auth_required_one_of, auth_required_together)
 from ansible.module_utils.common.dict_transformations import recursive_diff
 
 AD_URI = "AccountService/ExternalAccountProvider/ADAccountProvider"
@@ -421,7 +422,8 @@ def main():
     specs.update(ome_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
-        required_one_of=[('name', 'id')],
+        required_one_of=[('name', 'id')] + auth_required_one_of,
+        required_together=auth_required_together,
         required_if=[
             ('test_connection', True, ('domain_username', 'domain_password',)),
             ('validate_certificate', True, ('certificate_file',))],

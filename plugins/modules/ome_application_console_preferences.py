@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.1.0
+# Version 9.3.0
 # Copyright (C) 2022-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -368,7 +368,8 @@ from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
+    RestOME, ome_auth_params, auth_required_one_of, auth_required_together)
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import strip_substr_dict
 
 SUCCESS_MSG = "Successfully updated the Console Preferences settings."
@@ -636,7 +637,8 @@ def main():
                            required_one_of=[["report_row_limit", "device_health", "discovery_settings",
                                              "server_initiated_discovery", "mx7000_onboarding_preferences",
                                              "builtin_appliance_share", "email_sender_settings",
-                                             "trap_forwarding_format", "metrics_collection_settings"]],
+                                             "trap_forwarding_format", "metrics_collection_settings"]] + auth_required_one_of,
+                           required_together=auth_required_together,
                            supports_check_mode=True, )
 
     try:

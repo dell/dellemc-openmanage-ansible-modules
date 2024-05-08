@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.1.0
+# Version 9.3.0
 # Copyright (C) 2022-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -352,7 +352,8 @@ from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
+    RestOME, ome_auth_params, auth_required_one_of, auth_required_together)
 
 DOMAIN_URI = "ManagementDomainService/Domains"
 DEVICE_URI = "DeviceService/Devices"
@@ -666,6 +667,8 @@ def main():
     specs.update(ome_auth_params)
     module = AnsibleModule(argument_spec=specs,
                            mutually_exclusive=[('device_id', 'device_service_tag')],
+                           required_one_of=auth_required_one_of,
+                           required_together=auth_required_together,
                            supports_check_mode=True,)
     if module.params["quick_deploy_options"] is None:
         module.exit_json(msg="missing required arguments: quick_deploy_options", failed=True)

@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2020-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -34,7 +34,7 @@ options:
       - This option is not applicable when detaching an identity pool from a template.
     type: str
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author: "Felix Stephen (@felixs88)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
@@ -92,7 +92,8 @@ error_info:
 
 import json
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
+    RestOME, ome_auth_params, auth_required_one_of, auth_required_together)
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ssl import SSLError
@@ -160,6 +161,8 @@ def main():
     specs.update(ome_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
+        required_one_of=auth_required_one_of,
+        required_together=auth_required_together,
         supports_check_mode=True
     )
     try:

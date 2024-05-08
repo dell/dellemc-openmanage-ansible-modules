@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.1.0
-# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -109,7 +109,7 @@ options:
     version_added: 8.1.0
 
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise or OpenManage Enterprise Modular.
     - I(device_group_names) option is not applicable for OpenManage Enterprise Modular.
@@ -316,7 +316,8 @@ GROUP_ID = 6000
 import json
 import time
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
+    RestOME, ome_auth_params, auth_required_one_of, auth_required_together)
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.common.dict_transformations import recursive_diff
@@ -575,7 +576,8 @@ def main():
             ('device_ids', 'device_service_tags', 'device_group_names'),
             ('baseline_name', 'baseline_id')
         ],
-        required_one_of=[('baseline_name', 'baseline_id')],
+        required_one_of=[('baseline_name', 'baseline_id')] + auth_required_one_of,
+        required_together=auth_required_together,
         supports_check_mode=True)
 
     try:

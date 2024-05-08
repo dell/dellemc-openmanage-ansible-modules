@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2020-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -56,7 +56,7 @@ options:
       - This option is mandatory when I(enable_authentication) is true.
     type: str
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author:
     - "Sajna Shetty(@Sajna-Shetty)"
 notes:
@@ -146,7 +146,8 @@ error_info:
 import json
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
+    RestOME, ome_auth_params, auth_required_one_of, auth_required_together)
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
@@ -230,6 +231,8 @@ def main():
         argument_spec=specs,
         required_if=[['enable_proxy', True, ['ip_address', 'proxy_port']],
                      ['enable_authentication', True, ['proxy_username', 'proxy_password']], ],
+        required_one_of=auth_required_one_of,
+        required_together=auth_required_together,
         supports_check_mode=True
     )
     try:

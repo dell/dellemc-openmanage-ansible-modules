@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2021-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -71,7 +71,7 @@ options:
       - This is applicable only when I(state) is C(present).
       - This option is mutually exclusive with I(parent_group_name).
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 notes:
   - This module manages only static device groups on Dell OpenManage Enterprise.
   - If a device group with the name I(parent_group_name) does not exist, a new device group with the same name is created.
@@ -197,7 +197,8 @@ from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
+    RestOME, ome_auth_params, auth_required_one_of, auth_required_together)
 
 GROUP_URI = "GroupService/Groups"
 OP_URI = "GroupService/Actions/GroupService.{op}Group"
@@ -415,7 +416,8 @@ def main():
         mutually_exclusive=[
             ("name", "group_id"), ("parent_group_name", "parent_group_id"),
         ],
-        required_one_of=[("name", "group_id")],
+        required_one_of=[("name", "group_id")] + auth_required_one_of,
+        required_together=auth_required_together
         supports_check_mode=True
     )
 

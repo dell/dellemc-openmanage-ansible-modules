@@ -35,7 +35,7 @@ options:
       - Username of the account that is created in iDRAC local users.
       - I(username) is mutually exclusive with I(user_id)
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 author: "Husniya Hameed(@husniya_hameed)"
 notes:
     - Run this module on a system that has direct access to Dell iDRAC.

@@ -101,7 +101,7 @@ options:
       - A privacy protocol is not configured if C(None) is selected.
     choices: [None, DES, AES]
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 author: "Felix Stephen (@felixs88)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.

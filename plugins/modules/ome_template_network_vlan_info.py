@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.2.0
-# Copyright (C) 2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2023-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -136,7 +136,8 @@ from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
+    RestOME, ome_auth_params, auth_required_one_of, auth_required_together)
 
 NETWORK_HIERARCHY_VIEW = 4  # For Network hierarchy View in a Template
 TEMPLATE_ATTRIBUTE_VIEW = "TemplateService/Templates({0})/Views({1})/AttributeViewDetails"
@@ -215,6 +216,8 @@ def main():
     argument_spec.update(ome_auth_params)
     module = AnsibleModule(argument_spec=argument_spec,
                            mutually_exclusive=[('template_id', 'template_name')],
+                           required_one_of=auth_required_one_of,
+                           required_together=auth_required_together,
                            supports_check_mode=True)
     try:
         templates = []

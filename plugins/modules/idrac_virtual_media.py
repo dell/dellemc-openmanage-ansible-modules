@@ -78,7 +78,7 @@ options:
     type: str
     description: Resource id of the iDRAC, if not specified manager collection id will be used.
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author:
     - "Felix Stephen (@felixs88)"
 notes:
