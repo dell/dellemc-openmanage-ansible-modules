@@ -243,10 +243,11 @@ def main():
             resp = rest_obj.invoke_request(method, uri, headers=headers, data=payload, dump=dump)
             if resp.success:
                 if command == "generate_csr":
-                    formated_csr = format_csr_string(resp.json_data["CertificateData"])
-                    resp.json_data["CertificateData"] = formated_csr
+                    resp_copy = resp.json_data
+                    formated_csr = format_csr_string(resp_copy["CertificateData"])
+                    resp_copy["CertificateData"] = formated_csr
                     module.exit_json(msg="Successfully generated certificate signing request.",
-                                     csr_status=resp.json_data)
+                                     csr_status=resp_copy)
                 module.exit_json(msg="Successfully uploaded application certificate.", changed=True)
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
