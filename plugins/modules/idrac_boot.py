@@ -286,7 +286,7 @@ INVALID_BOOT_OPT = "{0} boot order reference provided."
 SUCCESS_MSG = "Successfully updated the boot settings."
 FAILED_MSG = "Failed to update the boot settings."
 UNSUPPORTED_MSG = "The system does not support the BootOptions feature."
-JOB_WAIT_MSG = "The boot settings job is triggered successfully."
+JOB_WAIT_MSG = "The boot settings operation is triggered/submitted successfully."
 AUTH_ERROR_MSG = "Unable to communicate with iDRAC {0}. This may be due to one of the following: " \
                  "Incorrect username or password, unreachable iDRAC IP or a failure in TLS/SSL handshake."
 
