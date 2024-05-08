@@ -136,6 +136,8 @@ def main():
     module = AnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[['template_id', 'system_query_options']],
+        required_one_of=auth_required_one_of,
+        required_together=auth_required_together,
         supports_check_mode=True
     )
     template_uri = "TemplateService/Templates"

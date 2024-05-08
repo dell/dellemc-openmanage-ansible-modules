@@ -417,7 +417,7 @@ def main():
             ("name", "group_id"), ("parent_group_name", "parent_group_id"),
         ],
         required_one_of=[("name", "group_id")] + auth_required_one_of,
-        required_together=auth_required_together
+        required_together=auth_required_together,
         supports_check_mode=True
     )
 

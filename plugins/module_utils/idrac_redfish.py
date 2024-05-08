@@ -43,7 +43,7 @@ idrac_auth_params = {
     "idrac_ip": {"required": True, "type": 'str'},
     "idrac_user": {"required": False, "type": 'str', "fallback": (env_fallback, ['IDRAC_USERNAME'])},
     "idrac_password": {"required": False, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True, "fallback": (env_fallback, ['IDRAC_PASSWORD'])},
-    "x_auth_token": {"required": False, "type": 'str', "no_log": True, "fallback": (env_fallback, ['X_AUTH_TOKEN'])},
+    "x_auth_token": {"required": False, "type": 'str', "no_log": True, "fallback": (env_fallback, ['IDRAC_X_AUTH_TOKEN'])},
     "idrac_port": {"required": False, "default": 443, "type": 'int'},
     "validate_certs": {"type": "bool", "default": True},
     "ca_path": {"type": "path"},

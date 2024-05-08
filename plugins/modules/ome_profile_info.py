@@ -353,7 +353,7 @@ def main():
                            mutually_exclusive=[('profile_id', 'profile_name', 'template_name', 'template_id',
                                                 'system_query_options')],
                            required_one_of=auth_required_one_of,
-                           required_together=auth_required_together,                     
+                           required_together=auth_required_together,
                            supports_check_mode=True)
     try:
         with RestOME(module.params, req_session=True) as rest_obj:

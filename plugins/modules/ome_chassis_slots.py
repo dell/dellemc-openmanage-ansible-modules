@@ -582,9 +582,8 @@ def main():
     specs.update(ome_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
-        required_one_of=[('slot_options', 'device_options')],
+        required_one_of=[('slot_options', 'device_options')] + auth_required_one_of,
         mutually_exclusive=[('slot_options', 'device_options')],
-        required_one_of=auth_required_one_of,
         required_together=auth_required_together,
         supports_check_mode=True
     )
