@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2020-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -24,17 +24,25 @@ options:
   username:
     description:
       - OpenManage Enterprise Modular username.
-      - If the username is not provided, then the environment variable C(OME_USERNAME) is used.
+      - If the username is not provided, then the environment variable E(OME_USERNAME) is used.
       - "Example: export OME_USERNAME=username"
     type: str
     required: true
   password:
     description:
       - OpenManage Enterprise Modular password.
-      - If the password is not provided, then the environment variable C(OME_PASSWORD) is used.
+      - If the password is not provided, then the environment variable E(OME_PASSWORD) is used.
       - "Example: export OME_PASSWORD=password"
     type: str
     required: true
+  x_auth_token:
+    description:
+     - Authentication token.
+     - If the x_auth_token is not provided, then the environment variable E(OME_X_AUTH_TOKEN) is used.
+     - "Example: export OME_X_AUTH_TOKEN=x_auth_token"
+    type: str
+    required: false
+    version_added: 9.3.0 
   port:
     description: OpenManage Enterprise Modular HTTPS port.
     type: int

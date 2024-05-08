@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 8.2.0
-# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -41,13 +41,17 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import co
 
 ome_auth_params = {
     "hostname": {"required": True, "type": "str"},
-    "username": {"required": True, "type": "str", "fallback": (env_fallback, ['OME_USERNAME'])},
-    "password": {"required": True, "type": "str", "no_log": True, "fallback": (env_fallback, ['OME_PASSWORD'])},
+    "username": {"required": False, "type": "str", "fallback": (env_fallback, ['OME_USERNAME'])},
+    "password": {"required": False, "type": "str", "no_log": True, "fallback": (env_fallback, ['OME_PASSWORD'])},
+    "x_auth_token": {"required": False, "type": "str", "no_log": True, "fallback": (env_fallback, ['OME_X_AUTH_TOKEN'])},
     "port": {"type": "int", "default": 443},
     "validate_certs": {"type": "bool", "default": True},
     "ca_path": {"type": "path"},
     "timeout": {"type": "int", "default": 30},
 }
+
+auth_required_one_of = [["username", "x_auth_token"]]
+auth_required_together = [["username", "password"]]
 
 SESSION_RESOURCE_COLLECTION = {
     "SESSION": "SessionService/Sessions",
@@ -96,6 +100,7 @@ class RestOME(object):
         self.hostname = str(self.module_params["hostname"]).strip('][')
         self.username = self.module_params["username"]
         self.password = self.module_params["password"]
+        self.x_auth_token = self.module_params.get("x_auth_token")
         self.port = self.module_params["port"]
         self.validate_certs = self.module_params.get("validate_certs", True)
         self.ca_path = self.module_params.get("ca_path")
@@ -191,18 +196,20 @@ class RestOME(object):
 
     def __enter__(self):
         """Creates sessions by passing it to header"""
-        if self.req_session:
+        if self.req_session and not self.x_auth_token:
             payload = {'UserName': self.username,
                        'Password': self.password,
                        'SessionType': 'API', }
             path = SESSION_RESOURCE_COLLECTION["SESSION"]
-            resp = self.invoke_request('POST', path, data=payload)
+            resp = self.invoke_request(path, 'POST', data=payload)
             if resp and resp.success:
                 self.session_id = resp.json_data.get("Id")
                 self._headers["X-Auth-Token"] = resp.token_header
             else:
                 msg = "Could not create the session"
                 raise ConnectionError(msg)
+        elif self.x_auth_token is not None:
+            self._headers["X-Auth-Token"] = self.x_auth_token
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
