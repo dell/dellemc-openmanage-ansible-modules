@@ -27,14 +27,14 @@ options:
       - If the username is not provided, then the environment variable E(OME_USERNAME) is used.
       - "Example: export OME_USERNAME=username"
     type: str
-    required: true
+    required: false
   password:
     description:
       - OpenManage Enterprise password.
       - If the password is not provided, then the environment variable E(OME_PASSWORD) is used.
       - "Example: export OME_PASSWORD=password"
     type: str
-    required: true
+    required: false
   x_auth_token:
     description:
      - Authentication token.
@@ -42,7 +42,7 @@ options:
      - "Example: export OME_X_AUTH_TOKEN=x_auth_token"
     type: str
     required: false
-    version_added: 9.3.0 
+    version_added: 9.3.0
   port:
     description: OpenManage Enterprise HTTPS port.
     type: int
