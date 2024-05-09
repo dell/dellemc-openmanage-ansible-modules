@@ -100,7 +100,7 @@ class Redfish(object):
         self.hostname = self.module_params["baseuri"]
         self.username = self.module_params["username"]
         self.password = self.module_params["password"]
-        self.x_auth_token = self.module_params.get["x_auth_token"]
+        self.x_auth_token = self.module_params.get("x_auth_token")
         self.validate_certs = self.module_params.get("validate_certs", True)
         self.ca_path = self.module_params.get("ca_path")
         self.timeout = self.module_params.get("timeout", 30)
