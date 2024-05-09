@@ -427,6 +427,42 @@ class TestDeleteSession(FakeAnsibleModule):
         session_obj.execute()
         f_module.exit_json.assert_called_once_with(msg=DELETE_SUCCESS_MSG, changed=True)
 
+    def test_delete_session_success_02(self, ome_connection_session_mock):
+        """
+        Test the successful deletion of a session.
+
+        This test function verifies the behavior of the `DeleteSession` class when a session is
+        successfully deleted. It mocks the `ome_connection_session_mock` object and sets up the
+        necessary parameters for the `f_module` object. It then creates an instance of the
+        `DeleteSession` class with the mocked `ome_connection_session_mock` and the
+        `f_module` object.
+
+        The `get_session_url` method of the `session_obj` is mocked to return a specific session
+        URL. The `invoke_request` method of the `ome` object of the `session_obj` is also mocked
+        to return a response with a status code of 200. The `exit_json` method of the `f_module`
+        object is mocked as well.
+
+        The `execute` method of the `session_obj` is called to execute the deletion of the session.
+        Finally, the `exit_json` method of the `f_module` object is asserted to have been called
+        with the expected arguments, including the success message and the changed flag set to
+        `True`.
+
+        Parameters:
+            - ome_connection_session_mock (MagicMock): A mocked object representing the
+            `ome_connection_session_mock` object.
+
+        Returns:
+            None
+        """
+        f_module = self.get_module_mock(
+            params={"session_id": "abcd", "hostname": "X.X.X.X", "x_auth_token": "token"}, check_mode=False)
+        session_obj = ome_session.DeleteSession(ome_connection_session_mock, f_module)
+        session_obj.get_session_url = MagicMock(return_value=SESSION_URL)
+        session_obj.get_session_status = MagicMock(return_value=200)
+        session_obj.ome.invoke_request.return_value.status_code = 400
+        obj = session_obj.execute()
+        assert not obj
+
     def test_delete_session_check_mode_false_no_changes(self, ome_connection_session_mock):
         """
         Test the scenario where the delete session is executed in check mode with `check_mode` set

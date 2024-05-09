@@ -20,25 +20,25 @@ module: ome_session
 short_description: Manage OpenManage Enterprise and OpenManage Enterprise modular sessions
 version_added: "9.3.0"
 description:
-  - This module allows the creation and deletion of sessions on OpenManage Enterprise and OpenManage Enterprise modular.
+  - This module allows you  to create and delete sessions on OpenManage Enterprise and OpenManage Enterprise Modular.
 options:
   hostname:
     description:
-      - IP address or hostname of the OME.
+      - IP address or hostname of the OpenManage Enterprise.
     type: str
   username:
     description:
-      - Username of the OME.
+      - Username of the OpenManage Enterprise.
       - I(username) is required when I(state) is C(present).
     type: str
   password:
     description:
-      - Password of the OME.
+      - Password of the OpenManage Enterprise.
       - I(password) is required when I(state) is C(present).
     type: str
   port:
     description:
-      - Port of the OME.
+      - Port of the OpenManage Enterprise.
     type: int
     default: 443
   validate_certs:
@@ -53,12 +53,12 @@ options:
     type: path
   timeout:
     description:
-     - The https socket level timeout in seconds.
+     - The HTTPS socket level timeout in seconds.
     type: int
     default: 30
   state:
     description:
-     - The state of the session in OME.
+     - The state of the session in OpenManage Enterprise.
      - C(present) creates a session.
      - C(absent) deletes a session.
      - Module will always report changes found to be applied when I(state) is C(present).
@@ -72,7 +72,7 @@ options:
     type: str
   session_id:
     description:
-     - Session ID of the OME.
+     - Session ID of the OpenManage Enterprise.
      - I(session_id) is required when I(state) is C(absent).
     type: str
 requirements:
@@ -157,6 +157,8 @@ error_info:
         }
     }
 '''
+
+
 import json
 from urllib.error import HTTPError, URLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.session_utils import SessionAPI
@@ -353,7 +355,6 @@ def main():
         ],
         supports_check_mode=True
     )
-
     try:
         ome = SessionAPI(module.params)
         session_operation = module.params.get("state")
@@ -363,7 +364,9 @@ def main():
             session_operation_obj = DeleteSession(ome, module)
         session_operation_obj.execute()
     except HTTPError as err:
-        filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
+        filter_err = {}
+        if isinstance(err, dict):
+            filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
         module.exit_json(msg=str(err), error_info=filter_err, failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
