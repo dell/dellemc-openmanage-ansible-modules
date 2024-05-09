@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.1.0
-# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -519,7 +519,8 @@ error_info:
 
 
 import json
-from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, redfish_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import (
+    Redfish, redfish_auth_params, auth_required_one_of, auth_required_together)
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import wait_for_job_completion, strip_substr_dict
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -1005,7 +1006,8 @@ def main():
     module = AnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[('attributes', 'command'), ("target", "size")],
-        required_one_of=[('attributes', 'command')],
+        required_one_of=[('attributes', 'command')] + auth_required_one_of,
+        required_together=auth_required_together,
         required_if=[
             ["command", "SetControllerKey", ["controller_id", "key", "key_id"]],
             ["command", "ReKey", ["controller_id", "mode"]], ["command", "ResetConfig", ["controller_id"]],

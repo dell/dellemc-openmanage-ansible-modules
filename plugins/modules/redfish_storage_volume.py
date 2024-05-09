@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.1.0
+# Version 9.3.0
 # Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -374,7 +374,8 @@ error_info:
 import json
 import copy
 from ssl import SSLError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, redfish_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import (
+    Redfish, redfish_auth_params, auth_required_one_of, auth_required_together)
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -951,7 +952,8 @@ def main():
     module = AnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[['state', 'command'], ['volume_type', 'raid_type']],
-        required_one_of=[['state', 'command']],
+        required_one_of=[['state', 'command']] + auth_required_one_of,
+        required_together=auth_required_together,
         required_if=[['command', 'initialize', ['volume_id']],
                      ['state', 'absent', ['volume_id']], ],
         supports_check_mode=True)

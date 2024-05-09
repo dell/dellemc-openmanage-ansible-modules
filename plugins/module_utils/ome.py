@@ -201,7 +201,7 @@ class RestOME(object):
                        'Password': self.password,
                        'SessionType': 'API', }
             path = SESSION_RESOURCE_COLLECTION["SESSION"]
-            resp = self.invoke_request(path, 'POST', data=payload)
+            resp = self.invoke_request('POST', path, data=payload)
             if resp and resp.success:
                 self.session_id = resp.json_data.get("Id")
                 self._headers["X-Auth-Token"] = resp.token_header

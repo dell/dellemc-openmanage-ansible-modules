@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 8.2.0
-# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -39,12 +39,16 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import co
 
 redfish_auth_params = {
     "baseuri": {"required": True, "type": "str"},
-    "username": {"required": True, "type": "str", "fallback": (env_fallback, ['IDRAC_USERNAME'])},
-    "password": {"required": True, "type": "str", "no_log": True, "fallback": (env_fallback, ['IDRAC_PASSWORD'])},
+    "username": {"required": False, "type": "str", "fallback": (env_fallback, ['IDRAC_USERNAME'])},
+    "password": {"required": False, "type": "str", "no_log": True, "fallback": (env_fallback, ['IDRAC_PASSWORD'])},
+    "x_auth_token": {"required": False, "type": "str", "no_log": True, "fallback": (env_fallback, ['REDFISH_X_AUTH_TOKEN'])},
     "validate_certs": {"type": "bool", "default": True},
     "ca_path": {"type": "path"},
     "timeout": {"type": "int", "default": 30},
 }
+
+auth_required_one_of = [["username", "x_auth_token"]]
+auth_required_together = [["username", "password"]]
 
 SESSION_RESOURCE_COLLECTION = {
     "SESSION": "/redfish/v1/Sessions",
@@ -96,6 +100,7 @@ class Redfish(object):
         self.hostname = self.module_params["baseuri"]
         self.username = self.module_params["username"]
         self.password = self.module_params["password"]
+        self.x_auth_token = self.module_params["x_auth_token"]
         self.validate_certs = self.module_params.get("validate_certs", True)
         self.ca_path = self.module_params.get("ca_path")
         self.timeout = self.module_params.get("timeout", 30)
@@ -191,7 +196,7 @@ class Redfish(object):
 
     def __enter__(self):
         """Creates sessions by passing it to header"""
-        if self.req_session:
+        if self.req_session and not self.x_auth_token:
             payload = {'UserName': self.username,
                        'Password': self.password}
             path = SESSION_RESOURCE_COLLECTION["SESSION"]
@@ -202,6 +207,8 @@ class Redfish(object):
             else:
                 msg = "Could not create the session"
                 raise ConnectionError(msg)
+        elif self.x_auth_token is not None:
+            self._headers["X-Auth-Token"] = self.x_auth_token
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
