@@ -137,7 +137,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
-    RestOME, ome_auth_params, auth_required_one_of, auth_required_together)
+    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_together)
 
 NETWORK_HIERARCHY_VIEW = 4  # For Network hierarchy View in a Template
 TEMPLATE_ATTRIBUTE_VIEW = "TemplateService/Templates({0})/Views({1})/AttributeViewDetails"
@@ -215,8 +215,7 @@ def main():
     }
     argument_spec.update(ome_auth_params)
     module = AnsibleModule(argument_spec=argument_spec,
-                           mutually_exclusive=[('template_id', 'template_name')],
-                           required_one_of=auth_required_one_of,
+                           mutually_exclusive=[('template_id', 'template_name')] + auth_mutually_exclusive,
                            required_together=auth_required_together,
                            supports_check_mode=True)
     try:

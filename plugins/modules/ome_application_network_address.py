@@ -428,7 +428,7 @@ import socket
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
-    RestOME, ome_auth_params, auth_required_one_of, auth_required_together)
+    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_together)
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
@@ -724,7 +724,7 @@ def main():
             ["enable_nic", True,
              ("ipv4_configuration", "ipv6_configuration", "dns_configuration", "management_vlan"), True]
         ],
-        required_one_of=auth_required_one_of,
+        mutually_exclusive=auth_mutually_exclusive,
         required_together=auth_required_together,
         supports_check_mode=True
     )

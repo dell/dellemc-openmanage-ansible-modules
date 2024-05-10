@@ -529,7 +529,7 @@ from datetime import datetime
 from os.path import exists
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (
-    iDRACRedfishAPI, idrac_auth_params, auth_required_one_of, auth_required_together)
+    iDRACRedfishAPI, idrac_auth_params, auth_required_together, auth_mutually_exclusive)
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import idrac_redfish_job_tracking, \
     strip_substr_dict
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -927,7 +927,7 @@ def main():
             ["command", "export", ["share_name"]],
             ["proxy_support", True, ["proxy_server"]]
         ],
-        required_one_of=auth_required_one_of,
+        mutually_exclusive=auth_mutually_exclusive,
         required_together=auth_required_together,
         supports_check_mode=True)
 

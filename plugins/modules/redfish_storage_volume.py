@@ -375,7 +375,7 @@ import json
 import copy
 from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import (
-    Redfish, redfish_auth_params, auth_required_one_of, auth_required_together)
+    Redfish, redfish_auth_params, auth_mutually_exclusive, auth_required_together)
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -951,8 +951,8 @@ def main():
 
     module = AnsibleModule(
         argument_spec=specs,
-        mutually_exclusive=[['state', 'command'], ['volume_type', 'raid_type']],
-        required_one_of=[['state', 'command']] + auth_required_one_of,
+        mutually_exclusive=[['state', 'command'], ['volume_type', 'raid_type']] + auth_mutually_exclusive,
+        required_one_of=[['state', 'command']],
         required_together=auth_required_together,
         required_if=[['command', 'initialize', ['volume_id']],
                      ['state', 'absent', ['volume_id']], ],

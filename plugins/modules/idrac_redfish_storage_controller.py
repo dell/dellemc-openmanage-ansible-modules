@@ -520,7 +520,7 @@ error_info:
 
 import json
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import (
-    Redfish, redfish_auth_params, auth_required_one_of, auth_required_together)
+    Redfish, redfish_auth_params, auth_mutually_exclusive, auth_required_together)
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import wait_for_job_completion, strip_substr_dict
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -1005,8 +1005,8 @@ def main():
     specs.update(redfish_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
-        mutually_exclusive=[('attributes', 'command'), ("target", "size")],
-        required_one_of=[('attributes', 'command')] + auth_required_one_of,
+        mutually_exclusive=[('attributes', 'command'), ("target", "size")] + auth_mutually_exclusive,
+        required_one_of=[('attributes', 'command')],
         required_together=auth_required_together,
         required_if=[
             ["command", "SetControllerKey", ["controller_id", "key", "key_id"]],

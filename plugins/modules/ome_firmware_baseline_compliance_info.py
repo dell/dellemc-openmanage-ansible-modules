@@ -227,7 +227,7 @@ import json
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
-    RestOME, ome_auth_params, auth_required_one_of, auth_required_together)
+    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_together)
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -395,8 +395,8 @@ def main():
     specs.update(ome_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
-        mutually_exclusive=[['baseline_name', 'device_service_tags', 'device_ids', 'device_group_names']],
-        required_one_of=[['device_ids', 'device_service_tags', 'device_group_names', 'baseline_name']] + auth_required_one_of,
+        mutually_exclusive=[['baseline_name', 'device_service_tags', 'device_ids', 'device_group_names']] + auth_mutually_exclusive,
+        required_one_of=[['device_ids', 'device_service_tags', 'device_group_names', 'baseline_name']],
         required_together=auth_required_together,
         supports_check_mode=True
     )

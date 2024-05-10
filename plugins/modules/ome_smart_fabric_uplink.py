@@ -275,7 +275,7 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.common.dict_transformations import recursive_diff
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
-    RestOME, ome_auth_params, auth_required_one_of, auth_required_together)
+    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_together)
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_item_and_list
 
 FABRIC_URI = "NetworkService/Fabrics"
@@ -511,7 +511,7 @@ def main():
                       ('new_name', 'description', 'uplink_type', 'ufd_enable',
                        'primary_switch_service_tag', 'primary_switch_ports', 'secondary_switch_service_tag',
                        'secondary_switch_ports', 'tagged_networks', 'untagged_network',), True]],
-        required_one_of=auth_required_one_of,
+        mutually_exclusive=auth_mutually_exclusive,
         required_together=[["primary_switch_service_tag", "primary_switch_ports"],
                            ["secondary_switch_service_tag", "secondary_switch_ports"]] + auth_required_together,
         supports_check_mode=True

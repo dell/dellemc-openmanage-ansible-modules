@@ -253,7 +253,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
-    RestOME, ome_auth_params, auth_required_one_of, auth_required_together)
+    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_together)
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import strip_substr_dict
 
 
@@ -351,8 +351,7 @@ def main():
     argument_spec.update(ome_auth_params)
     module = AnsibleModule(argument_spec=argument_spec,
                            mutually_exclusive=[('profile_id', 'profile_name', 'template_name', 'template_id',
-                                                'system_query_options')],
-                           required_one_of=auth_required_one_of,
+                                                'system_query_options')] + auth_mutually_exclusive,
                            required_together=auth_required_together,
                            supports_check_mode=True)
     try:

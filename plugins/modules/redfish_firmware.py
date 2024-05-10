@@ -144,7 +144,8 @@ import json
 import os
 import time
 from ssl import SSLError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, redfish_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import (
+    Redfish, redfish_auth_params, auth_mutually_exclusive, auth_required_together)
 from ansible.module_utils.basic import AnsibleModule, missing_required_lib
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -274,6 +275,8 @@ def main():
     specs.update(redfish_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
+        mutually_exclusive=auth_mutually_exclusive,
+        required_together=auth_required_together,
         supports_check_mode=False)
     if not HAS_LIB:
         module.fail_json(msg=missing_required_lib("urllib3"))

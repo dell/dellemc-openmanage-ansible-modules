@@ -279,7 +279,7 @@ import json
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
-    RestOME, ome_auth_params, auth_required_one_of, auth_required_together)
+    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_together)
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 
@@ -487,12 +487,11 @@ def main():
         required_if=(
             ["state", "present", ("device_ids", "device_service_tags", "ip_addresses"), True],
         ),
-        mutually_exclusive=(
+        mutually_exclusive=[
             ("name", "group_id"),
-            ("device_ids", "device_service_tags", "ip_addresses"),
-        ),
+            ("device_ids", "device_service_tags", "ip_addresses"),] + auth_mutually_exclusive,
         required_one_of=[("name", "group_id"),
-                         ("device_ids", "device_service_tags", "ip_addresses")] + auth_required_one_of,
+                         ("device_ids", "device_service_tags", "ip_addresses")],
         required_together=auth_required_together,
         supports_check_mode=True
     )

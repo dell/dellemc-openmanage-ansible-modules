@@ -353,7 +353,7 @@ import json
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
-    RestOME, ome_auth_params, auth_required_one_of, auth_required_together)
+    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_together)
 from ansible.module_utils.urls import ConnectionError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
@@ -654,14 +654,14 @@ def main():
     specs.update(ome_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
-        required_one_of=[["dup_file", "baseline_name"]] + auth_required_one_of,
+        required_one_of=[["dup_file", "baseline_name"]],
         required_together=auth_required_together,
         mutually_exclusive=[
             ["baseline_name", "dup_file"],
             ["device_group_names", "device_id", "devices"],
             ["device_group_names", "device_service_tag", "devices"],
             ["baseline_name", "device_group_names"],
-            ["dup_file", "components", "devices"]],
+            ["dup_file", "components", "devices"]] + auth_mutually_exclusive,
         supports_check_mode=True
     )
     validate_inputs(module)

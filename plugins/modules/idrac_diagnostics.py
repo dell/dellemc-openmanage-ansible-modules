@@ -346,7 +346,7 @@ import json
 import os
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (
-    iDRACRedfishAPI, idrac_auth_params, auth_required_one_of, auth_required_together)
+    iDRACRedfishAPI, idrac_auth_params, auth_required_together, auth_mutually_exclusive)
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
@@ -772,7 +772,8 @@ def main():
     specs.update(idrac_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
-        required_one_of=[["run", "export"]] + auth_required_one_of,
+        required_one_of=[["run", "export"]],
+        mutually_exclusive=auth_mutually_exclusive,
         required_together=auth_required_together,
         required_if=[
             ["run", True, ("reboot_type", "run_mode",)],

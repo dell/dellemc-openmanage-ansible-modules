@@ -258,7 +258,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
-    RestOME, ome_auth_params, auth_required_one_of, auth_required_together)
+    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_together)
 from ansible.module_utils.common.dict_transformations import recursive_diff
 
 DEVICE_URI = "DeviceService/Devices"
@@ -582,8 +582,8 @@ def main():
     specs.update(ome_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
-        required_one_of=[('slot_options', 'device_options')] + auth_required_one_of,
-        mutually_exclusive=[('slot_options', 'device_options')],
+        required_one_of=[('slot_options', 'device_options')],
+        mutually_exclusive=[('slot_options', 'device_options')] + auth_mutually_exclusive,
         required_together=auth_required_together,
         supports_check_mode=True
     )

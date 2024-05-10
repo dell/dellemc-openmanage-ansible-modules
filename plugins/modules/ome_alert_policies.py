@@ -481,7 +481,7 @@ import json
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_all_data_with_pagination, strip_substr_dict
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
-    RestOME, ome_auth_params, auth_required_one_of, auth_required_together)
+    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_together)
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.common.dict_transformations import recursive_diff
@@ -1092,8 +1092,7 @@ def main():
         argument_spec=specs,
         required_if=[['state', 'present', present_args, True]],
         mutually_exclusive=[('device_service_tag', 'device_group', 'any_undiscovered_devices', 'specific_undiscovered_devices', 'all_devices',),
-                            ('message_ids', 'message_file', 'category',)],
-        required_one_of=auth_required_one_of,
+                            ('message_ids', 'message_file', 'category',)] + auth_mutually_exclusive,
         required_together=auth_required_together,
         supports_check_mode=True)
     try:
