@@ -222,7 +222,7 @@ class SessionAPI():
             url += f"?{urlencode(query_param)}"
         return url
 
-    def _url_common_args_spec(self, method, api_timeout, headers=None):
+    def _url_common_args_spec(self, uri, method, api_timeout, headers=None):
         """
         Generates the common arguments for a URL request.
 
@@ -244,29 +244,27 @@ class SessionAPI():
                 - follow_redirects (str): The policy for following redirects.
 
         """
-        req_header = self._headers
-        url_kwargs = {"force_basic_auth": True, "url_username": self.username, "url_password": self.password}
-        if headers:
-            req_header.update(headers)
-            if "x_auth_token" in req_header:
-                url_kwargs = {"force_basic_auth": False}
         if api_timeout is None:
             api_timeout = self.timeout
         if self.ca_path is None:
             self.ca_path = self._get_omam_ca_env()
-        url_kwargs_2 = {
+        req_header = self._headers
+        if headers:
+            req_header.update(headers)
+        url_kwargs = {
             "method": method,
             "validate_certs": self.validate_certs,
             "ca_path": self.ca_path,
             "use_proxy": self.use_proxy,
             "headers": req_header,
             "timeout": api_timeout,
-            "follow_redirects": 'all',
+            "follow_redirects": 'all'
         }
-        url_kwargs.update(url_kwargs_2)
+        if "redfish" not in uri:
+            url_kwargs.update({"force_basic_auth": True, "url_username": self.username, "url_password": self.password})
         return url_kwargs
 
-    def _args_session(self, method, api_timeout, headers=None):
+    def _args_session(self, uri, method, api_timeout, headers=None):
         """
         Returns a dictionary containing the arguments needed to establish a session.
 
@@ -281,7 +279,7 @@ class SessionAPI():
         req_header = self._headers
         if headers:
             req_header.update(headers)
-        url_kwargs = self._url_common_args_spec(method, api_timeout, headers=headers)
+        url_kwargs = self._url_common_args_spec(uri, method, api_timeout, headers=headers)
         return url_kwargs
 
     def invoke_request(self, uri, method, data=None, query_param=None, headers=None,
@@ -307,7 +305,7 @@ class SessionAPI():
         :rtype: OpenURLResponse
         """
         try:
-            url_kwargs = self._args_session(method, api_timeout, headers=headers)
+            url_kwargs = self._args_session(uri, method, api_timeout, headers=headers)
             if data and dump:
                 data = json.dumps(data)
             url = self._build_url(uri, query_param=query_param)
