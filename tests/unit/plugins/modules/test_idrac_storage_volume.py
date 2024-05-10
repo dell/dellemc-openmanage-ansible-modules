@@ -39,6 +39,7 @@ ID_AND_LOCATION_BOTH_NOT_DEFINED = "Either id or location should be specified."
 DRIVES_NOT_DEFINED = "Drives must be defined for volume creation."
 NOT_ENOUGH_DRIVES = "Number of sufficient disks not found in Controller '{controller_id}'!"
 WAIT_TIMEOUT_MSG = "The job is not complete after {0} seconds."
+TIME_TO_WAIT_MSG = "Time to wait value is invalid. Minimum value is 300 and Maximum is 3600 seconds."
 JOB_TRIGERRED = "Successfully triggered the {0} storage volume operation."
 VOLUME_NAME_REQUIRED_FOR_DELETE = "Virtual disk name is a required parameter for remove virtual disk operations."
 VOLUME_NOT_FOUND = "Unable to find the virtual disk."
@@ -756,6 +757,27 @@ class TestStorageValidation(TestStorageBase):
         idr_obj = self.module.StorageValidation(idrac_connection_storage_volume_mock, f_module)
         idr_obj.validate_job_wait_negative_values()
 
+    def test_validate_time_to_wait(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
+        # Scenario - when time_to_wait < 300
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD,
+                     return_value=TestStorageData.storage_data)
+        idrac_default_args.update({"time_to_wait": 299})
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageValidation(idrac_connection_storage_volume_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.validate_time_to_wait()
+        assert exc.value.args[0] == TIME_TO_WAIT_MSG
+
+        # Scenario - when time_to_wait > 3600
+        idrac_default_args.update({"time_to_wait": 3601})
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageValidation(idrac_connection_storage_volume_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.validate_time_to_wait()
+        assert exc.value.args[0] == TIME_TO_WAIT_MSG
+
     @pytest.mark.parametrize("params", [
         {"span_depth": -1, "span_length": 2, "capacity": 200, "strip_size": 131072},
         {"span_depth": 1, "span_length": -1, "capacity": 200, "strip_size": 131072},
@@ -1058,6 +1080,7 @@ class TestStorageCreate(TestStorageBase):
 
     def test_validate_create(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
         mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=TestStorageData.storage_data)
+        mocker.patch(MODULE_PATH + 'StorageValidation.validate_time_to_wait', return_value=None)
         mocker.patch(MODULE_PATH + 'StorageValidation.validate_controller_exists', return_value=None)
         mocker.patch(MODULE_PATH + 'StorageValidation.validate_job_wait_negative_values', return_value=None)
         mocker.patch(MODULE_PATH + 'StorageValidation.validate_negative_values_for_volume_params', return_value=None)

@@ -309,6 +309,7 @@ ID_AND_LOCATION_BOTH_NOT_DEFINED = "Either id or location should be specified."
 DRIVES_NOT_DEFINED = "Drives must be defined for volume creation."
 NOT_ENOUGH_DRIVES = "Number of sufficient disks not found in Controller '{controller_id}'!"
 WAIT_TIMEOUT_MSG = "The job is not complete after {0} seconds."
+TIME_TO_WAIT_MSG = "Time to wait value is invalid. Minimum value is 300 and Maximum is 3600 seconds."
 JOB_TRIGERRED = "Successfully triggered the {0} storage volume operation."
 VOLUME_NAME_REQUIRED_FOR_DELETE = "Virtual disk name is a required parameter for remove virtual disk operations."
 VOLUME_NOT_FOUND = "Unable to find the virtual disk."
@@ -557,6 +558,11 @@ class StorageValidation(StorageBase):
         self.idrac_data = StorageData(idrac, module).all_storage_data()
         self.controller_id = module.params.get("controller_id")
 
+    def validate_time_to_wait(self):
+        to_wait = self.module_ext_params.get("time_to_wait")
+        if to_wait < 300 or to_wait > 3600:
+            self.module.exit_json(msg=TIME_TO_WAIT_MSG, failed=True)
+
     def validate_controller_exists(self):
         if not self.controller_id:
             self.module.exit_json(msg=CONTROLLER_NOT_DEFINED, failed=True)
@@ -726,6 +732,7 @@ class StorageCreate(StorageValidation):
 
     def validate(self):
         #  Validate upper layer input
+        self.validate_time_to_wait()
         self.validate_controller_exists()
         self.validate_job_wait_negative_values()
         #  Validate std raid validation for inner layer
@@ -774,6 +781,7 @@ class StorageDelete(StorageValidation):
 
     def validate(self):
         #  Validate upper layer input
+        self.validate_time_to_wait()
         self.validate_job_wait_negative_values()
 
         #  Validate for volume and volume_name
