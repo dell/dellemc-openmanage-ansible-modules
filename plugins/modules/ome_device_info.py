@@ -197,7 +197,7 @@ device_info:
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
-    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_together)
+    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_one_of, auth_required_together)
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_all_data_with_pagination
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -383,6 +383,7 @@ def main():
         required_if=[['fact_subset', 'detailed_inventory', ['system_query_options']],
                      ['fact_subset', 'subsystem_health', ['system_query_options']]],
         mutually_exclusive=auth_mutually_exclusive,
+        required_one_of=auth_required_one_of,
         required_together=auth_required_together,
         supports_check_mode=True)
 

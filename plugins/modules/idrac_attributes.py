@@ -263,7 +263,7 @@ import re
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (
-    iDRACRedfishAPI, idrac_auth_params, auth_required_together, auth_mutually_exclusive)
+    iDRACRedfishAPI, idrac_auth_params, auth_required_together, auth_required_one_of, auth_mutually_exclusive)
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_manager_res_id
 from ansible.module_utils.basic import AnsibleModule
 
@@ -500,7 +500,7 @@ def main():
     specs.update(idrac_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
-        required_one_of=[['idrac_attributes', 'system_attributes', 'lifecycle_controller_attributes']],
+        required_one_of=[['idrac_attributes', 'system_attributes', 'lifecycle_controller_attributes']] + auth_required_one_of,
         mutually_exclusive=auth_mutually_exclusive,
         required_together=auth_required_together,
         supports_check_mode=True

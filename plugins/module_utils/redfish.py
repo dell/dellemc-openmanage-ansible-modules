@@ -47,8 +47,9 @@ redfish_auth_params = {
     "timeout": {"type": "int", "default": 30},
 }
 
-auth_mutually_exclusive = [["username", "x_auth_token"], ["password", "x_auth_token"]]
-auth_required_together = [["username", "password"]]
+auth_mutually_exclusive = [("username", "x_auth_token"), ("password", "x_auth_token")]
+auth_required_one_of = [("username", "x_auth_token")]
+auth_required_together = [("username", "password")]
 
 SESSION_RESOURCE_COLLECTION = {
     "SESSION": "/redfish/v1/Sessions",

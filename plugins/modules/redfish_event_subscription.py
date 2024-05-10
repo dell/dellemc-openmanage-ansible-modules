@@ -198,7 +198,7 @@ import json
 import os
 from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import (
-    Redfish, redfish_auth_params, auth_mutually_exclusive, auth_required_together)
+    Redfish, redfish_auth_params, auth_mutually_exclusive, auth_required_one_of, auth_required_together)
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -297,6 +297,7 @@ def main():
     module = AnsibleModule(
         argument_spec=specs,
         mutually_exclusive=auth_mutually_exclusive,
+        required_one_of=auth_required_one_of,
         required_together=auth_required_together,
         supports_check_mode=True)
 

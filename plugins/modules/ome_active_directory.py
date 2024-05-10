@@ -245,7 +245,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
-    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_together)
+    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_one_of, auth_required_together)
 from ansible.module_utils.common.dict_transformations import recursive_diff
 
 AD_URI = "AccountService/ExternalAccountProvider/ADAccountProvider"
@@ -422,7 +422,7 @@ def main():
     specs.update(ome_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
-        required_one_of=[('name', 'id')],
+        required_one_of=[('name', 'id')] + auth_required_one_of,
         required_together=auth_required_together,
         required_if=[
             ('test_connection', True, ('domain_username', 'domain_password',)),

@@ -265,7 +265,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
-    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_together)
+    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_one_of, auth_required_together)
 
 DOMAIN_URI = "ManagementDomainService/Domains"
 DEVICE_URI = "DeviceService/Devices"
@@ -456,7 +456,7 @@ def main():
         argument_spec=specs,
         mutually_exclusive=[('device_id', 'device_service_tag')] + auth_mutually_exclusive,
         required_one_of=[["enable_kvm_access", "enable_chassis_direct_access",
-                          "chassis_power_button", "quick_sync", "lcd"]],
+                          "chassis_power_button", "quick_sync", "lcd"]] + auth_required_one_of,
         required_together=auth_required_together,
         supports_check_mode=True,
     )

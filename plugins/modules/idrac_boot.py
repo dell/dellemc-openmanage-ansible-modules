@@ -265,7 +265,7 @@ import time
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (
-    iDRACRedfishAPI, idrac_auth_params, auth_required_together, auth_mutually_exclusive)
+    iDRACRedfishAPI, idrac_auth_params, auth_required_together, auth_required_one_of, auth_mutually_exclusive)
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (strip_substr_dict, idrac_system_reset,
                                                                                get_system_res_id,
                                                                                wait_for_idrac_job_completion)
@@ -518,7 +518,7 @@ def main():
         argument_spec=specs,
         required_one_of=[["boot_options", "boot_order", "boot_source_override_mode",
                           "boot_source_override_enabled", "boot_source_override_target",
-                          "uefi_target_boot_source_override"]],
+                          "uefi_target_boot_source_override"]] + auth_required_one_of,
         required_together=auth_required_together,
         mutually_exclusive=[
             ("boot_options", "boot_order"), ("boot_options", "boot_source_override_mode"),

@@ -141,7 +141,7 @@ import json
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
-    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_together)
+    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_one_of, auth_required_together)
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
@@ -240,6 +240,7 @@ def main():
         mutually_exclusive=[['system_time', 'primary_ntp_address'],
                             ['system_time', 'secondary_ntp_address1'],
                             ['system_time', 'secondary_ntp_address2']] + auth_mutually_exclusive,
+        required_one_of=auth_required_one_of,
         required_together=auth_required_together,
         supports_check_mode=True,
     )

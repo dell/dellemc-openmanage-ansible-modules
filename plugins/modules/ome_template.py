@@ -548,7 +548,7 @@ import time
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
-    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_together)
+    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_one_of, auth_required_together)
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import apply_diff_key, job_tracking
@@ -1032,6 +1032,7 @@ def main():
             ['command', 'deploy', ['device_id', 'device_service_tag', 'device_group_names'], True],
         ],
         mutually_exclusive=[["template_id", "template_name"]] + auth_mutually_exclusive,
+        required_one_of=auth_required_one_of,
         required_together=auth_required_together,
         supports_check_mode=True)
 

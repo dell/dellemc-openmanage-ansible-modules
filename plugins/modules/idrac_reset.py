@@ -185,7 +185,7 @@ import json
 import time
 from urllib.error import HTTPError, URLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (
-    iDRACRedfishAPI, idrac_auth_params, auth_required_together, auth_mutually_exclusive)
+    iDRACRedfishAPI, idrac_auth_params, auth_required_together, auth_required_one_of, auth_mutually_exclusive)
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -537,6 +537,7 @@ def main():
     module = AnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[("custom_defaults_file", "custom_defaults_buffer")] + auth_mutually_exclusive,
+        required_one_of=auth_required_one_of,
         required_together=auth_required_together,
         supports_check_mode=True)
     try:

@@ -143,7 +143,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
-    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_together)
+    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_one_of, auth_required_together)
 from ansible.module_utils.common.dict_transformations import recursive_diff
 
 SUCCESS_MSG = "Successfully updated the SMTP settings."
@@ -241,6 +241,7 @@ def main():
         argument_spec=specs,
         required_if=[['enable_authentication', True, ['credentials']], ],
         mutually_exclusive=auth_mutually_exclusive,
+        required_one_of=auth_required_one_of,
         required_together=auth_required_together,
         supports_check_mode=True
     )

@@ -49,8 +49,9 @@ idrac_auth_params = {
     "ca_path": {"type": "path"},
     "timeout": {"type": "int", "default": 30},
 }
-auth_mutually_exclusive = [["idrac_user", "x_auth_token"], ["idrac_password", "x_auth_token"]]
-auth_required_together = [["idrac_user", "idrac_password"]]
+auth_mutually_exclusive = [("idrac_user", "x_auth_token"), ("idrac_password", "x_auth_token")]
+auth_required_one_of = [("idrac_user", "x_auth_token")]
+auth_required_together = [("idrac_user", "idrac_password")]
 
 SESSION_RESOURCE_COLLECTION = {
     "SESSION": "/redfish/v1/Sessions",

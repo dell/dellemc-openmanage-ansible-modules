@@ -269,7 +269,7 @@ import re
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
-    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_together)
+    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_one_of, auth_required_together)
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 LOG_SELECTOR = {"OS_LOGS": 1, "RAID_LOGS": 2, "DEBUG_LOGS": 3}
@@ -444,6 +444,7 @@ def main():
             ['share_type', 'CIFS', ['share_user', 'share_password']]
         ],
         required_together=auth_required_together,
+        required_one_of=auth_required_one_of,
         mutually_exclusive=[('device_ids', 'device_service_tags', 'device_group_name')] + auth_mutually_exclusive,
         supports_check_mode=True
     )

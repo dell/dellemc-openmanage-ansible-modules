@@ -646,7 +646,7 @@ import json
 import time
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
-    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_together)
+    RestOME, ome_auth_params, auth_mutually_exclusive, auth_required_one_of, auth_required_together)
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import strip_substr_dict
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -1064,7 +1064,7 @@ def main():
             ['state', 'present', ('discovery_config_targets',)],
             ['schedule', 'RunLater', ('cron',)]
         ],
-        required_one_of=[('discovery_job_name', 'discovery_id')],
+        required_one_of=[('discovery_job_name', 'discovery_id')] + auth_required_one_of,
         required_together=auth_required_together,
         mutually_exclusive=[('discovery_job_name', 'discovery_id')] + auth_mutually_exclusive,
         supports_check_mode=False
