@@ -70,6 +70,7 @@ options:
      - Authentication token.
      - I(x_auth_token) is required when I(state) is C(absent).
     type: str
+    aliases: ['auth_token']
   session_id:
     description:
      - Session ID of the OpenManage Enterprise.
@@ -93,14 +94,47 @@ EXAMPLES = r"""
     hostname: 198.162.0.1
     username: username
     password: password
+    ca_path: "/path/to/ca_cert.pem"
     state: present
 
 - name: Delete a session
   dellemc.openmanage.ome_session:
     hostname: 198.162.0.1
+    ca_path: "/path/to/ca_cert.pem"
     state: absent
     x_auth_token: aed4aa802b748d2f3b31deec00a6b28a
     session_id: 4b48e9ab-809e-4087-b7c4-201a16e0143d
+
+- name: Create a session and execute other modules
+  block:
+    - name: Create a session
+      dellemc.openmanage.ome_session:
+        hostname: 198.162.0.1
+        username: username
+        password: password
+        ca_path: "/path/to/ca_cert.pem"
+        state: present
+        register: authData
+
+    - name: Call ome_user_info module
+      dellemc.openmanage.ome_user_info:
+        hostname: 198.162.0.1
+        ca_path: "/path/to/ca_cert.pem"
+        x_auth_token: "{{ authData.x_auth_token }}"
+
+    - name: Call ome_network_vlan_info module
+      dellemc.openmanage.ome_network_vlan_info:
+        hostname: 198.162.0.1
+        ca_path: "/path/to/ca_cert.pem"
+        x_auth_token: "{{ authData.x_auth_token }}"
+  always:
+    - name: Destroy a session
+      dellemc.openmanage.ome_session:
+        hostname: 198.162.0.1
+        ca_path: "/path/to/ca_cert.pem"
+        state: absent
+        x_auth_token: "{{ authData.x_auth_token }}"
+        session_id: "{{ authData.session_data.Id }}"
 """
 
 RETURN = r'''
@@ -407,7 +441,7 @@ def get_argument_spec():
         "ca_path": {"type": "path", "default": None},
         "timeout": {"type": "int", "default": 30},
         "state": {"type": 'str', "default": "present", "choices": ["present", "absent"]},
-        "x_auth_token": {"type": "str", "no_log": True},
+        "x_auth_token": {"type": "str", "no_log": True, "aliases": ['auth_token']},
         "session_id": {"type": "str"}
     }
 

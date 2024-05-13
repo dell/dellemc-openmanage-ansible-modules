@@ -75,10 +75,12 @@ options:
      - Session ID of the iDRAC.
      - I(session_id) is required when I(state) is C(absent).
     type: int
+    aliases: ['auth_token']
 requirements:
   - "python >= 3.9.6"
 author:
   - "Rajshekar P(@rajshekarp87)"
+  - "Kritika Bhateja (@Kritika-Bhateja-03)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports IPv4 and IPv6 addresses.
@@ -93,14 +95,47 @@ EXAMPLES = r"""
     hostname: 198.162.0.1
     username: username
     password: password
+    ca_path: "/path/to/ca_cert.pem"
     state: present
 
 - name: Delete a session
   dellemc.openmanage.idrac_session:
     hostname: 198.162.0.1
+    ca_path: "/path/to/ca_cert.pem"
     state: absent
     x_auth_token: aed4aa802b748d2f3b31deec00a6b28a
-    session_is: 2
+    session_id: 2
+
+- name: Create a session and execute other modules
+  block:
+    - name: Create a session
+      dellemc.openmanage.idrac_session:
+        hostname: 198.162.0.1
+        username: username
+        password: password
+        ca_path: "/path/to/ca_cert.pem"
+        state: present
+        register: authData
+
+    - name: Call idrac_firmware_info module
+      dellemc.openmanage.idrac_firmware_info:
+        idrac_ip: 198.162.0.1
+        ca_path: "/path/to/ca_cert.pem"
+        x_auth_token: "{{ authData.x_auth_token }}"
+
+    - name: Call idrac_user_info module
+      dellemc.openmanage.idrac_user_info:
+        idrac_ip: 198.162.0.1
+        ca_path: "/path/to/ca_cert.pem"
+        x_auth_token: "{{ authData.x_auth_token }}"
+  always:
+    - name: Destroy a session
+      dellemc.openmanage.idrac_session:
+        hostname: 198.162.0.1
+        ca_path: "/path/to/ca_cert.pem"
+        state: absent
+        x_auth_token: "{{ authData.x_auth_token }}"
+        session_id: "{{ authData.session_data.Id }}"
 """
 
 RETURN = r'''
@@ -416,7 +451,7 @@ def get_argument_spec():
         "ca_path": {"type": "path", "default": None},
         "timeout": {"type": "int", "default": 30},
         "state": {"type": 'str', "default": "present", "choices": ["present", "absent"]},
-        "x_auth_token": {"type": "str", "no_log": True},
+        "x_auth_token": {"type": "str", "no_log": True, "aliases": ['auth_token']},
         "session_id": {"type": "int"}
     }
 
