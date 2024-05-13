@@ -41,7 +41,7 @@ redfish_auth_params = {
     "baseuri": {"required": True, "type": "str"},
     "username": {"required": False, "type": "str", "fallback": (env_fallback, ['IDRAC_USERNAME'])},
     "password": {"required": False, "type": "str", "no_log": True, "fallback": (env_fallback, ['IDRAC_PASSWORD'])},
-    "x_auth_token": {"required": False, "type": "str", "no_log": True, "fallback": (env_fallback, ['REDFISH_X_AUTH_TOKEN'])},
+    "x_auth_token": {"required": False, "type": "str", "no_log": True, "fallback": (env_fallback, ['IDRAC_X_AUTH_TOKEN'])},
     "validate_certs": {"type": "bool", "default": True},
     "ca_path": {"type": "path"},
     "timeout": {"type": "int", "default": 30},
