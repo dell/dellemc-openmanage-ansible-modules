@@ -38,8 +38,8 @@ options:
   x_auth_token:
     description:
      - Authentication token.
-     - If the x_auth_token is not provided, then the environment variable E(REDFISH_X_AUTH_TOKEN) is used.
-     - "Example: export REDFISH_X_AUTH_TOKEN=x_auth_token"
+     - If the x_auth_token is not provided, then the environment variable E(IDRAC_X_AUTH_TOKEN) is used.
+     - "Example: export IDRAC_X_AUTH_TOKEN=x_auth_token"
     type: str
     required: false
     version_added: 9.3.0
