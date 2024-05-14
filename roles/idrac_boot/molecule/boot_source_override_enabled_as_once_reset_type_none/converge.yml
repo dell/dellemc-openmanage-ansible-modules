@@ -92,5 +92,5 @@
     - name: Asserting TC-115432 in normal mode or idempotence mode
       ansible.builtin.assert:
         that:
-          - 'idrac_boot_out.msg == "The boot settings job is triggered successfully." or "No changes found to be applied."'
+          - 'idrac_boot_out.msg == "The boot settings operation is triggered/submitted successfully." or "No changes found to be applied."'
       when: not ansible_check_mode and not idrac_boot_out.changed
