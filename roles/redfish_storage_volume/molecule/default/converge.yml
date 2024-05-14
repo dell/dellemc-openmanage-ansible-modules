@@ -27,8 +27,8 @@
 
     - name: Asserting after performing operation.
       ansible.builtin.assert:
-        that: |-
-          "<urlopen error" in redfish_storage_volume_out.msg
+        that:
+          - '"<urlopen error [Errno 111] Connection refused>" in redfish_storage_volume_out.msg'
 
     - name: To check the behaviour of invalid credentials.
       ansible.builtin.import_role:

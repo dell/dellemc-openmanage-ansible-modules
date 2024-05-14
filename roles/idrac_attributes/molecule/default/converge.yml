@@ -13,15 +13,13 @@
         validate_certs: false
         idrac_attributes:
           SSH.1.Timeout: 1800
-      ignore_errors: true
       ignore_unreachable: true
       register: idrac_attributes_error_msg
 
     - name: Asserting after performing operation with wrong hostname
       ansible.builtin.assert:
         that:
-          - "idrac_attributes_out.msg is search('Incorrect username or password, unreachable iDRAC IP') or
-            idrac_attributes_out.msg is search('Name or service not known')"
+          - '"<urlopen error [Errno -2] Name or service not known>" in idrac_attributes_out.msg'
 
     - name: Perform update with wrong username
       ansible.builtin.import_role:
@@ -34,7 +32,6 @@
         idrac_attributes:
           SSH.1.Timeout: 1800
       ignore_errors: true
-      ignore_unreachable: true
       register: idrac_attributes_error_msg
 
     - name: Asserting after performing operation with wrong username
@@ -53,15 +50,12 @@
         idrac_attributes:
           SSH.1.Timeout: 1800
       ignore_errors: true
-      ignore_unreachable: true
       register: idrac_attributes_error_msg
 
     - name: Asserting after performing operation with wrong password
       ansible.builtin.assert:
-        that: |-
-          ('"HTTP Error 401" in idrac_attributes_out.msg')
-          or
-          ('"urlopen error timed out" in idrac_attributes_out.msg')
+        that:
+          - '"HTTP Error 401" in idrac_attributes_out.msg'
 
     - name: Perform update with invalid https_port
       ansible.builtin.import_role:
@@ -74,16 +68,16 @@
         https_port: 9999999
         idrac_attributes:
           SSH.1.Timeout: 1800
-      ignore_errors: true
       ignore_unreachable: true
       register: idrac_attributes_error_msg
 
     - name: Asserting after performing operation with invalid https_port
       ansible.builtin.assert:
         that:
-          - ('"Connection refused" in idrac_attributes_out.msg')
-            or
-            ('"urlopen error timed out" in idrac_attributes_out.msg')
+          - '"<urlopen error [Errno 111] Connection refused>" in idrac_attributes_out.msg'
+          # - ('"Connection refused" in idrac_attributes_out.msg')
+          #   or
+          #   ('"urlopen error timed out" in idrac_attributes_out.msg')
 
     - name: Perform update with invalid validate_certs
       ansible.builtin.import_role:
@@ -117,14 +111,13 @@
         validate_certs: true
         idrac_attributes:
           SSH.1.Timeout: 1800
-      ignore_errors: true
       ignore_unreachable: true
       register: idrac_attributes_error_msg
 
     - name: Asserting after performing operation with wrong ca_path
       ansible.builtin.assert:
         that:
-          - '"certificate verify failed" in idrac_attributes_out.msg'
+          - '"<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self signed certificate (_ssl.c:1129)>" in idrac_attributes_out.msg'
 
     - name: Perform update with wrong manager_id
       ansible.builtin.import_role:
@@ -144,7 +137,7 @@
     - name: Asserting after performing operation with wrong manager_id
       ansible.builtin.assert:
         that:
-          - "idrac_attributes_out.msg is search('HTTP Error')"
+          - '"HTTP Error 404: Not Found" in idrac_attributes_out.msg'
 
     - name: Perform update with read only attributes
       ansible.builtin.import_role:
