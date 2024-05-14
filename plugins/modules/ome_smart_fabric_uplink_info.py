@@ -186,10 +186,11 @@ error_info:
 
 import json
 from ssl import SSLError
-from ansible.module_utils.basic import AnsibleModule
+
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome_ansible_module import OmeAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import strip_substr_dict
 
 ALL_UPLINKS_URI = "NetworkService/Fabrics('{0}')/Uplinks?$expand=Networks,Ports"
@@ -294,8 +295,8 @@ def main():
         "uplink_id": {"type": "str"},
         "uplink_name": {"type": "str"}
     }
-    specs.update(ome_auth_params)
-    module = AnsibleModule(
+    # specs.update(ome_auth_params)
+    module = OmeAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[('fabric_id', 'fabric_name'), ('uplink_id', 'uplink_name')],
         supports_check_mode=True

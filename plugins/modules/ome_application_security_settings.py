@@ -202,8 +202,9 @@ JOB_POLL_INTERVAL = 3
 import json
 import time
 from ssl import SSLError
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome_ansible_module import OmeAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -333,9 +334,9 @@ def main():
         "job_wait": {"type": 'bool', "default": True},
         "job_wait_timeout": {"type": 'int', "default": 120}
     }
-    specs.update(ome_auth_params)
+    # specs.update(ome_auth_params)
 
-    module = AnsibleModule(
+    module = OmeAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[("fips_mode_enable", "login_lockout_policy"),
                             ("fips_mode_enable", "restrict_allowed_ip_range")],

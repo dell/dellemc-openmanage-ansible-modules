@@ -195,8 +195,9 @@ device_info:
 '''
 
 from ssl import SSLError
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome_ansible_module import OmeAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_all_data_with_pagination
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -376,8 +377,8 @@ def main():
                         "choices": ['basic_inventory', 'detailed_inventory', 'subsystem_health']},
         "system_query_options": system_query_options,
     }
-    specs.update(ome_auth_params)
-    module = AnsibleModule(
+    # specs.update(ome_auth_params)
+    module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[['fact_subset', 'detailed_inventory', ['system_query_options']],
                      ['fact_subset', 'subsystem_health', ['system_query_options']]],

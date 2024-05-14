@@ -320,7 +320,7 @@ import json
 import time
 from urllib.error import HTTPError, URLError
 
-from ansible.module_utils.basic import AnsibleModule
+
 from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (
@@ -713,8 +713,8 @@ def main():
             "job_wait": {"type": "bool", "default": True},
             "job_wait_timeout": {"type": "int", "default": 1200}
         }
-        specs.update(idrac_auth_params)
-        module = AnsibleModule(argument_spec=specs,
+        # specs.update(idrac_auth_params)
+        module = IdracAnsibleModule(argument_spec=specs,
                                mutually_exclusive=[
                                    ('network_attributes', 'oem_network_attributes')],
                                required_if=[["apply_time", "AtMaintenanceWindowStart", ("maintenance_window",)],

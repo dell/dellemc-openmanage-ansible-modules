@@ -370,10 +370,11 @@ import json
 import socket
 import copy
 from ssl import SSLError
-from ansible.module_utils.basic import AnsibleModule
+
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome_ansible_module import OmeAnsibleModule
 from ansible.module_utils.common.dict_transformations import recursive_diff
 
 DEVICE_URI = "DeviceService/Devices"
@@ -748,8 +749,8 @@ def main():
              "required_one_of": [("preferred_dns_server", "alternate_dns_server1", "alternate_dns_server2")]
              }
     }
-    specs.update(ome_auth_params)
-    module = AnsibleModule(
+    # specs.update(ome_auth_params)
+    module = OmeAnsibleModule(
         argument_spec=specs,
         required_one_of=[('device_id', 'device_service_tag')],
         mutually_exclusive=[('device_id', 'device_service_tag')],

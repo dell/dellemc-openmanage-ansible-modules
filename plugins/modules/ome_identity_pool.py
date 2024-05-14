@@ -263,8 +263,9 @@ import json
 import codecs
 import binascii
 from ssl import SSLError
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome_ansible_module import OmeAnsibleModule
 from ansible.module_utils.urls import ConnectionError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
@@ -575,8 +576,8 @@ def main():
                            "options": iscsi_specific_settings},
         "fc_settings": {"required": False, "type": "dict", "options": fc_settings},
     }
-    specs.update(ome_auth_params)
-    module = AnsibleModule(
+    # specs.update(ome_auth_params)
+    module = OmeAnsibleModule(
         argument_spec=specs,
         supports_check_mode=True
     )

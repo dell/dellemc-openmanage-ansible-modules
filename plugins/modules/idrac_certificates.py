@@ -248,8 +248,9 @@ import json
 import base64
 import os
 from datetime import datetime
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
+
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_ansible_module import IdracAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import reset_idrac
@@ -564,8 +565,8 @@ def main():
         "reset": {"type": 'bool', "default": True},
         "wait": {"type": 'int', "default": 300}
     }
-    specs.update(idrac_auth_params)
-    module = AnsibleModule(
+    # specs.update(idrac_auth_params)
+    module = IdracAnsibleModule(
         argument_spec=specs,
         required_if=[
             ['command', 'generate_csr', ('cert_params', 'certificate_path',)],

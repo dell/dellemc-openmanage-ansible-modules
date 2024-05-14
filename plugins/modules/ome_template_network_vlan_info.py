@@ -133,10 +133,11 @@ error_info:
 
 import json
 from ssl import SSLError
-from ansible.module_utils.basic import AnsibleModule
+
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome_ansible_module import OmeAnsibleModule
 
 NETWORK_HIERARCHY_VIEW = 4  # For Network hierarchy View in a Template
 TEMPLATE_ATTRIBUTE_VIEW = "TemplateService/Templates({0})/Views({1})/AttributeViewDetails"
@@ -213,7 +214,7 @@ def main():
         "template_name": {"type": 'str'}
     }
     argument_spec.update(ome_auth_params)
-    module = AnsibleModule(argument_spec=argument_spec,
+    module = OmeAnsibleModule(argument_spec=argument_spec,
                            mutually_exclusive=[('template_id', 'template_name')],
                            supports_check_mode=True)
     try:

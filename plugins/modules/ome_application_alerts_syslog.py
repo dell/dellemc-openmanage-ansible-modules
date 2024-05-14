@@ -152,10 +152,11 @@ error_info:
 
 import json
 from ssl import SSLError
-from ansible.module_utils.basic import AnsibleModule
+
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome_ansible_module import OmeAnsibleModule
 from ansible.module_utils.common.dict_transformations import recursive_diff
 from ansible.module_utils.common.dict_transformations import snake_dict_to_camel_dict
 
@@ -232,9 +233,9 @@ def main():
              "required_if": [("enabled", True, ("destination_address",))]
              }
     }
-    specs.update(ome_auth_params)
+    # specs.update(ome_auth_params)
 
-    module = AnsibleModule(
+    module = OmeAnsibleModule(
         argument_spec=specs,
         supports_check_mode=True
     )

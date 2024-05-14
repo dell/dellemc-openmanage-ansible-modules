@@ -241,10 +241,11 @@ error_info:
 import json
 import os
 from ssl import SSLError
-from ansible.module_utils.basic import AnsibleModule
+
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome_ansible_module import OmeAnsibleModule
 from ansible.module_utils.common.dict_transformations import recursive_diff
 
 AD_URI = "AccountService/ExternalAccountProvider/ADAccountProvider"
@@ -418,8 +419,8 @@ def main():
         "domain_username": {"type": 'str'},
         "domain_password": {"type": 'str', "no_log": True}
     }
-    specs.update(ome_auth_params)
-    module = AnsibleModule(
+    # specs.update(ome_auth_params)
+    module = OmeAnsibleModule(
         argument_spec=specs,
         required_one_of=[('name', 'id')],
         required_if=[

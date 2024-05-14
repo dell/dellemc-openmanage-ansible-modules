@@ -253,8 +253,9 @@ msg:
 '''
 
 import json
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome_ansible_module import OmeAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -268,7 +269,7 @@ EMPTY_ALERT_POLICY_ACTION_MSG = "No alert policies action information were found
 def main():
     """ function to retrieve the information on actions of alert policies """
     specs = ome_auth_params
-    module = AnsibleModule(
+    module = OmeAnsibleModule(
         argument_spec=specs,
         supports_check_mode=True)
     try:

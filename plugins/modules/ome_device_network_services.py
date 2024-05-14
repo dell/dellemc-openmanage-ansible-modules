@@ -192,10 +192,11 @@ error_info:
 import json
 import socket
 from ssl import SSLError
-from ansible.module_utils.basic import AnsibleModule
+
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome_ansible_module import OmeAnsibleModule
 
 DOMAIN_URI = "ManagementDomainService/Domains"
 DEVICE_URI = "DeviceService/Devices"
@@ -369,8 +370,8 @@ def main():
         "ssh_settings": {"type": "dict", "required": False, "options": ssh_options},
         "remote_racadm_settings": {"type": "dict", "required": False, "options": racadm_options},
     }
-    specs.update(ome_auth_params)
-    module = AnsibleModule(
+    # specs.update(ome_auth_params)
+    module = OmeAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[('device_id', 'device_service_tag')],
         required_one_of=[["snmp_settings", "ssh_settings", "remote_racadm_settings"]],

@@ -267,8 +267,9 @@ error_info:
 import json
 import re
 from ssl import SSLError
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome_ansible_module import OmeAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 LOG_SELECTOR = {"OS_LOGS": 1, "RAID_LOGS": 2, "DEBUG_LOGS": 3}
@@ -431,8 +432,8 @@ def main():
         "test_connection": {"required": False, "type": "bool", "default": False},
         "lead_chassis_only": {"required": False, "type": "bool", "default": False},
     }
-    specs.update(ome_auth_params)
-    module = AnsibleModule(
+    # specs.update(ome_auth_params)
+    module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[
             ['log_type', 'application', ['mask_sensitive_info']],

@@ -546,8 +546,9 @@ error_info:
 import json
 import time
 from ssl import SSLError
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome_ansible_module import OmeAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import apply_diff_key, job_tracking
@@ -1016,8 +1017,8 @@ def main():
         "job_wait": {"required": False, "type": "bool", "default": True},
         "job_wait_timeout": {"required": False, "type": "int", "default": 1200}
     }
-    specs.update(ome_auth_params)
-    module = AnsibleModule(
+    # specs.update(ome_auth_params)
+    module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[
             ['command', 'create', ['attributes']],

@@ -344,8 +344,9 @@ error_info:
 
 import json
 import os
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
+
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_ansible_module import IdracAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
@@ -768,8 +769,8 @@ class DiagnosticsType:
 
 def main():
     specs = get_argument_spec()
-    specs.update(idrac_auth_params)
-    module = AnsibleModule(
+    # specs.update(idrac_auth_params)
+    module = IdracAnsibleModule(
         argument_spec=specs,
         required_one_of=[["run", "export"]],
         required_if=[

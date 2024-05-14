@@ -94,8 +94,9 @@ boot_status:
 
 
 import os
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
-from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_ansible_module import IdracAnsibleModule
+
 try:
     from omsdk.sdkfile import FileOnShare
     from omsdk.sdkcreds import UserCredentials
@@ -149,8 +150,8 @@ def main():
         "iso_image": {"required": True, "type": 'str'},
         "expose_duration": {"required": False, "type": 'int', "default": 1080}
     }
-    specs.update(idrac_auth_params)
-    module = AnsibleModule(
+    # specs.update(idrac_auth_params)
+    module = IdracAnsibleModule(
         argument_spec=specs,
         supports_check_mode=False)
 

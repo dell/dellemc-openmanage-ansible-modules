@@ -282,7 +282,7 @@ import operator
 from urllib.error import HTTPError, URLError
 from copy import deepcopy
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
-from ansible.module_utils.basic import AnsibleModule
+
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     get_dynamic_uri, validate_and_get_first_resource_id_uri, xml_data_conversion, idrac_redfish_job_tracking, remove_key, get_idrac_firmware_version)
@@ -893,8 +893,8 @@ def main():
         "job_wait": {"type": "bool", "default": True},
         "job_wait_timeout": {"type": "int", "default": 900}
     }
-    specs.update(idrac_auth_params)
-    module = AnsibleModule(
+    # specs.update(idrac_auth_params)
+    module = IdracAnsibleModule(
         argument_spec=specs,
         supports_check_mode=True)
     try:

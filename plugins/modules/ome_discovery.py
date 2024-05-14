@@ -644,8 +644,9 @@ error_info:
 
 import json
 import time
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome_ansible_module import OmeAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import strip_substr_dict
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -1056,8 +1057,8 @@ def main():
         "email_recipient": {"type": 'str'},
         "ignore_partial_failure": {"type": 'bool', "default": False}
     }
-    specs.update(ome_auth_params)
-    module = AnsibleModule(
+    # specs.update(ome_auth_params)
+    module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[
             ['state', 'present', ('discovery_config_targets',)],

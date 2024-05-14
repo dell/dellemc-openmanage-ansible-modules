@@ -349,10 +349,11 @@ import copy
 import json
 import socket
 from ssl import SSLError
-from ansible.module_utils.basic import AnsibleModule
+
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome_ansible_module import OmeAnsibleModule
 
 DOMAIN_URI = "ManagementDomainService/Domains"
 DEVICE_URI = "DeviceService/Devices"
@@ -663,8 +664,8 @@ def main():
         "job_wait": {"type": "bool", "default": True},
         "job_wait_timeout": {"type": "int", "default": 120},
     }
-    specs.update(ome_auth_params)
-    module = AnsibleModule(argument_spec=specs,
+    # specs.update(ome_auth_params)
+    module = OmeAnsibleModule(argument_spec=specs,
                            mutually_exclusive=[('device_id', 'device_service_tag')],
                            supports_check_mode=True,)
     if module.params["quick_deploy_options"] is None:

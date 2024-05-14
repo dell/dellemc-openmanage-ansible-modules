@@ -145,8 +145,9 @@ error_info:
 
 import json
 from ssl import SSLError
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome_ansible_module import OmeAnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
@@ -225,8 +226,8 @@ def main():
         "proxy_password": {"required": False, "type": "str", "no_log": True},
         "enable_authentication": {"required": False, "type": "bool"},
     }
-    specs.update(ome_auth_params)
-    module = AnsibleModule(
+    # specs.update(ome_auth_params)
+    module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[['enable_proxy', True, ['ip_address', 'proxy_port']],
                      ['enable_authentication', True, ['proxy_username', 'proxy_password']], ],

@@ -209,8 +209,9 @@ import time
 from ssl import SSLError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
-from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_ansible_module import IdracAnsibleModule
+
 
 
 ACCOUNT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Accounts/"
@@ -412,8 +413,8 @@ def main():
         "authentication_protocol": {"required": False, "choices": ['SHA', 'MD5', 'None']},
         "privacy_protocol": {"required": False, "choices": ['AES', 'DES', 'None']},
     }
-    specs.update(idrac_auth_params)
-    module = AnsibleModule(
+    # # specs.update(idrac_auth_params)
+    module = IdracAnsibleModule(
         argument_spec=specs,
         supports_check_mode=True)
     try:

@@ -159,8 +159,9 @@ error_info:
 
 import json
 import os
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome_ansible_module import OmeAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -209,8 +210,8 @@ def main():
         "upload_file": {"required": False, "type": "str"},
         "subject_alternative_names": {"required": False, "type": "str"}
     }
-    specs.update(ome_auth_params)
-    module = AnsibleModule(
+    # specs.update(ome_auth_params)
+    module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[["command", "generate_csr", ["distinguished_name", "department_name",
                                                   "business_name", "locality", "country_state",

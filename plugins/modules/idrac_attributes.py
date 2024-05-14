@@ -262,9 +262,9 @@ import json
 import re
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_manager_res_id
-from ansible.module_utils.basic import AnsibleModule
+
 
 
 SUCCESS_MSG = "Successfully updated the attributes."
@@ -496,8 +496,8 @@ def main():
         "lifecycle_controller_attributes": {"required": False, "type": 'dict'},
         "resource_id": {"required": False, "type": 'str'}
     }
-    specs.update(idrac_auth_params)
-    module = AnsibleModule(
+    # specs.update(idrac_auth_params)
+    module = IdracAnsibleModule(
         argument_spec=specs,
         required_one_of=[('idrac_attributes', 'system_attributes', 'lifecycle_controller_attributes')],
         supports_check_mode=True

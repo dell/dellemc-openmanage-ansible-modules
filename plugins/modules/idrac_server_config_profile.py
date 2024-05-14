@@ -527,7 +527,7 @@ import os
 import json
 from datetime import datetime
 from os.path import exists
-from ansible.module_utils.basic import AnsibleModule
+
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import idrac_redfish_job_tracking, \
     strip_substr_dict
@@ -919,8 +919,8 @@ class PreviewCommand():
 
 def main():
     specs = get_argument_spec()
-    specs.update(idrac_auth_params)
-    module = AnsibleModule(
+    # specs.update(idrac_auth_params)
+    module = IdracAnsibleModule(
         argument_spec=specs,
         required_if=[
             ["command", "export", ["share_name"]],

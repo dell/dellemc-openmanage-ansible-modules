@@ -218,7 +218,7 @@ import time
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
-from ansible.module_utils.basic import AnsibleModule
+
 
 MANAGER_BASE = "/redfish/v1/Managers/iDRAC.Embedded.1/VirtualMedia"
 SYSTEM_BASE = "/redfish/v1/Systems/System.Embedded.1/VirtualMedia"
@@ -441,8 +441,8 @@ def main():
         "force": {"required": False, "type": "bool", "default": False},
         "resource_id": {"required": False, "type": 'str'},
     }
-    specs.update(idrac_auth_params)
-    module = AnsibleModule(argument_spec=specs, supports_check_mode=True)
+    # specs.update(idrac_auth_params)
+    module = IdracAnsibleModule(argument_spec=specs, supports_check_mode=True)
     try:
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:
             vr_media = module.params["virtual_media"]

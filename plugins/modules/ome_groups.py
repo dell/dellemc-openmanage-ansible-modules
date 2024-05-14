@@ -194,10 +194,11 @@ error_info:
 import json
 import time
 from ssl import SSLError
-from ansible.module_utils.basic import AnsibleModule
+
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome_ansible_module import OmeAnsibleModule
 
 GROUP_URI = "GroupService/Groups"
 OP_URI = "GroupService/Actions/GroupService.{op}Group"
@@ -406,8 +407,8 @@ def main():
         "parent_group_name": {"type": "str", "default": STATIC_ROOT},
         "parent_group_id": {"type": "int"},
     }
-    specs.update(ome_auth_params)
-    module = AnsibleModule(
+    # specs.update(ome_auth_params)
+    module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[
             ["state", "present", ("new_name", "description", "parent_group_name", "parent_group_id"), True],
