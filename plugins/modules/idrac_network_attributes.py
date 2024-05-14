@@ -323,8 +323,7 @@ from urllib.error import HTTPError, URLError
 
 from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (
-    idrac_auth_params, iDRACRedfishAPI)
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     delete_job, get_current_time, get_dynamic_uri, get_idrac_firmware_version,
     get_scheduled_job_resp, remove_key, validate_and_get_first_resource_id_uri,

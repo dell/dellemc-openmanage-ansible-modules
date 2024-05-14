@@ -237,9 +237,7 @@ import time
 from ssl import SSLError
 from xml.etree import ElementTree as ET
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_ansible_module import IdracAnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
-
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.six.moves.urllib.parse import urlparse
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError

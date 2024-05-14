@@ -264,8 +264,7 @@ import json
 import time
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_ansible_module import IdracAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (strip_substr_dict, idrac_system_reset,
                                                                                get_system_res_id,
                                                                                wait_for_idrac_job_completion)

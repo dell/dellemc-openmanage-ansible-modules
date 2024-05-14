@@ -239,8 +239,8 @@ import tempfile
 import json
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_ansible_module import IdracAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
+from ansible.module_utils.basic import AnsibleModule
 
 try:
     from omdrivers.enums.iDRAC.iDRAC import (DNSRegister_NICTypes, DNSDomainFromDHCP_NICStaticTypes,
@@ -408,8 +408,8 @@ def main():
         "static_gateway": {"required": False, "type": "str"},
         "static_net_mask": {"required": False, "type": "str"},
     }
-    # specs.update(idrac_auth_params)
-    module = IdracAnsibleModule(
+    specs.update(idrac_auth_params)
+    module = AnsibleModule(
         argument_spec=specs,
         supports_check_mode=True)
 

@@ -528,7 +528,7 @@ import json
 from datetime import datetime
 from os.path import exists
 
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import idrac_redfish_job_tracking, \
     strip_substr_dict
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError

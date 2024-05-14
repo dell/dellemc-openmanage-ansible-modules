@@ -107,8 +107,7 @@ error_info:
 
 import json
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_ansible_module import IdracAnsibleModule
-
+from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
@@ -117,7 +116,7 @@ from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 def main():
     specs = {}
     # specs.update(idrac_auth_params)
-    module = IdracAnsibleModule(
+    module = AnsibleModule(
         argument_spec=specs,
         supports_check_mode=True)
 

@@ -137,9 +137,8 @@ error_info:
 import socket
 import json
 import copy
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_ansible_module import IdracAnsibleModule
-
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
+from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 try:
@@ -203,8 +202,8 @@ def main():
         "share_password": {"required": False, "type": 'str', "aliases": ['share_pwd'], "no_log": True},
         "job_wait": {"required": False, "type": 'bool', "default": True},
     }
-    # specs.update(idrac_auth_params)
-    module = IdracAnsibleModule(
+    specs.update(idrac_auth_params)
+    module = AnsibleModule(
         argument_spec=specs,
         supports_check_mode=False)
 

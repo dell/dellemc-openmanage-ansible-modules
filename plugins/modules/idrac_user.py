@@ -209,10 +209,7 @@ import time
 from ssl import SSLError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_ansible_module import IdracAnsibleModule
-
-
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 
 ACCOUNT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Accounts/"
 ATTRIBUTE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Attributes/"

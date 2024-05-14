@@ -521,7 +521,7 @@ error_info:
 import json
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, redfish_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import wait_for_job_completion, strip_substr_dict
-
+from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -1002,7 +1002,7 @@ def main():
         "size": {"required": False, "type": "int"}
     }
     specs.update(redfish_auth_params)
-    module = IdracAnsibleModule(
+    module = AnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[('attributes', 'command'), ("target", "size")],
         required_one_of=[('attributes', 'command')],
