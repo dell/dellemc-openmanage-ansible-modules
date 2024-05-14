@@ -347,7 +347,7 @@ class TestConfigBios(FakeAnsibleModule):
             result = self._run_module(idrac_default_args)
         assert 'msg' in result
 
-    def test_manin_success(self, boot_connection_mock, redfish_response_mock, idrac_default_args, mocker):
+    def test_main_success(self, boot_connection_mock, redfish_response_mock, idrac_default_args, mocker):
         idrac_default_args.update({"boot_source_override_mode": "legacy"})
         redfish_response_mock.success = True
         mocker.patch(MODULE_PATH + 'idrac_boot.get_system_res_id', return_value=("System.Embedded.1", ""))
@@ -403,4 +403,4 @@ class TestConfigBios(FakeAnsibleModule):
         job_resp.update({"JobState": "Running"})
         # with pytest.raises(Exception) as err:
         module_return = self._run_module(idrac_default_args)
-        assert module_return["msg"] == "The boot settings job is triggered successfully."
+        assert module_return["msg"] == "The boot settings operation is triggered/submitted successfully."
