@@ -195,6 +195,21 @@ def get_san(subject_alternative_names):
     return subject_alternative_names.replace(" ", "")
 
 
+def format_csr_string(csr_string):
+    # Remove the header and footer
+    csr_string = csr_string.replace("-----BEGIN CERTIFICATE REQUEST-----", "")
+    csr_string = csr_string.replace("-----END CERTIFICATE REQUEST-----", "")
+    csr_string = csr_string.replace("\n", "")
+
+    # Format the remaining string with proper line breaks
+    formatted_csr = '\n'.join([csr_string[i:i + 64] for i in range(0, len(csr_string), 64)])
+
+    # Add the header and footer back
+    formatted_csr = "-----BEGIN CERTIFICATE REQUEST-----\n" + formatted_csr + "\n-----END CERTIFICATE REQUEST-----"
+
+    return formatted_csr
+
+
 def main():
     specs = {
         "command": {"type": "str", "required": False,
@@ -228,8 +243,11 @@ def main():
             resp = rest_obj.invoke_request(method, uri, headers=headers, data=payload, dump=dump)
             if resp.success:
                 if command == "generate_csr":
+                    resp_copy = resp.json_data
+                    formated_csr = format_csr_string(resp_copy["CertificateData"])
+                    resp_copy["CertificateData"] = formated_csr
                     module.exit_json(msg="Successfully generated certificate signing request.",
-                                     csr_status=resp.json_data)
+                                     csr_status=resp_copy)
                 module.exit_json(msg="Successfully uploaded application certificate.", changed=True)
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))

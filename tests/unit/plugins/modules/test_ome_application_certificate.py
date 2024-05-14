@@ -107,7 +107,8 @@ class TestOmeAppCSR(FakeAnsibleModule):
 
     def test_generate_csr(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
                           ome_response_mock):
-        csr_json = {"CertificateData": "--BEGIN-REQUEST--"}
+        csr_data = "-----BEGIN CERTIFICATE REQUEST-----MIIFMDCCAxgCAQAwgbAxCzAJBgNVBAYTAlVTMREwDwYDVQQIDAhWaXJnaW5pYTES-----END CERTIFICATE REQUEST-----"
+        csr_json = {"CertificateData": csr_data}
         payload = {"DistinguishedName": "hostname.com", "DepartmentName": "Remote Access Group",
                    "BusinessName": "Dell Inc.", "Locality": "Round Rock", "State": "Texas",
                    "Country": "US", "Email": EMAIL_ADDRESS, "subject_alternative_names": "XX.XX.XX.XX"}
@@ -121,4 +122,5 @@ class TestOmeAppCSR(FakeAnsibleModule):
         ome_response_mock.json_data = csr_json
         result = self.execute_module(ome_default_args)
         assert result['msg'] == "Successfully generated certificate signing request."
-        assert result['csr_status'] == {'CertificateData': '--BEGIN-REQUEST--'}
+        data = '''-----BEGIN CERTIFICATE REQUEST-----\nMIIFMDCCAxgCAQAwgbAxCzAJBgNVBAYTAlVTMREwDwYDVQQIDAhWaXJnaW5pYTES\n-----END CERTIFICATE REQUEST-----'''
+        assert result['csr_status']['CertificateData'] == data
