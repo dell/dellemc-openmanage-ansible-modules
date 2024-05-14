@@ -1,0 +1,81 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+
+- block:
+    - name: Create a new session - Check mode
+      dellemc.openmanage.idrac_session:
+      check_mode: true
+      register: create_session_check
+
+    - name: Verify - Create a new session - Check mode
+      ansible.builtin.assert:
+        that:
+          - create_session_check.changed
+          - create_session_check.msg == 'Changes found to be applied.'
+
+    - name: Create a new session - Normal mode
+      dellemc.openmanage.idrac_session:
+      register: create_session_output
+
+    - name: Verify Create a new session - Normal mode
+      ansible.builtin.assert:
+        that:
+          - create_session_output.changed
+          - create_session_output.msg == 'The session has been created successfully.'
+          - create_session_output.x_auth_token
+          - create_session_output.session_data
+
+    - name: Set auth token and session id
+      ansible.builtin.set_fact:
+        x_auth_token: "{{ create_session_output.x_auth_token }}"
+        session_id: "{{ create_session_output.session_data.Id }}"
+      when: create_session_output.changed
+
+    - name: Set expected_messages
+      ansible.builtin.set_fact:
+        expected_messages:
+          - "The resource has been created successfully."
+          - "A new resource is successfully created."
+
+    - name: Extract messages from ExtendedInfo
+      ansible.builtin.set_fact:
+        actual_messages: "{{ create_session_output.session_data['@Message.ExtendedInfo'] | map(attribute='Message') | list }}"
+
+    - name: Assert each element of actual_messages with expected_messages
+      ansible.builtin.assert:
+        that:
+          - actual_messages[item] in expected_messages[item]
+      loop: "{{ range(expected_messages | length) }}"
+
+    - name: Validate creation of session via API
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/Sessions/{{ session_id }}"
+        method: GET
+        status_code: 200
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+        body_format: json
+        return_content: true
+        headers: 'Accept=application/json'
+        force_basic_auth: true
+      register: uri_session_output
+
+  always:
+    - name: Post clean up
+      ansible.builtin.include_tasks: _delete_helper.yml
+
+  module_defaults:
+    dellemc.openmanage.idrac_session:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ idrac_ip }}"
+      port: "{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
