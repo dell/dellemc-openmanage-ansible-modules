@@ -264,8 +264,7 @@ import codecs
 import binascii
 from ssl import SSLError
 
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome_ansible_module import OmeAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
 from ansible.module_utils.urls import ConnectionError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 

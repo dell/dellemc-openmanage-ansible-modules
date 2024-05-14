@@ -274,8 +274,7 @@ from ssl import SSLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.common.dict_transformations import recursive_diff
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome_ansible_module import OmeAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_item_and_list
 
 FABRIC_URI = "NetworkService/Fabrics"

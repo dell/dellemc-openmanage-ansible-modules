@@ -368,8 +368,7 @@ from ssl import SSLError
 
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome_ansible_module import OmeAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import strip_substr_dict
 
 SUCCESS_MSG = "Successfully updated the Console Preferences settings."
