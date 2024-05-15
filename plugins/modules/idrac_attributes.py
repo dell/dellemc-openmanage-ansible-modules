@@ -22,7 +22,7 @@ version_added: "6.0.0"
 description:
   - This module allows to configure the iDRAC attributes.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   idrac_attributes:
     type: dict
