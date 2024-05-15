@@ -5,4 +5,3 @@
     state: absent
     x_auth_token: "{{ x_auth_token }}"
     session_id: "{{ session_id }}"
-  delegate_to: localhost
