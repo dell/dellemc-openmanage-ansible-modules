@@ -21,7 +21,7 @@ version_added: "6.1.0"
 description:
   - This module allows to configure the boot order settings.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   boot_options:
     type: list

@@ -22,7 +22,7 @@ version_added: "5.5.0"
 description:
   - This module allows to generate certificate signing request, import, and export certificates on iDRAC.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   command:
     description:

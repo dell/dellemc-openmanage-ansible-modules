@@ -24,7 +24,7 @@ description:
   - Edit a user account.
   - Enable or Disable a user account.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   state:
     type: str

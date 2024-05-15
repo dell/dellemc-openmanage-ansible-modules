@@ -21,7 +21,7 @@ version_added: "6.3.0"
 description:
   - This module allows to configure Remote File Share settings.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   virtual_media:
     required: true

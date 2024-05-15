@@ -22,7 +22,7 @@ description:
   - Export the Server Configuration Profile (SCP) from the iDRAC or import from a
     network share (CIFS, NFS, HTTP, HTTPS) or a local path.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   command:
     description:

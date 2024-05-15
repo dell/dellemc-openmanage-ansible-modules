@@ -23,7 +23,7 @@ description:
     - This module allows to modify the BIOS attributes. Also clears pending BIOS attributes and resets BIOS to default settings.
     - Boot sources can be enabled or disabled. Boot sequence can be configured.
 extends_documentation_fragment:
-    - dellemc.openmanage.idrac_auth_options
+    - dellemc.openmanage.idrac_x_auth_options
 options:
     share_name:
         type: str

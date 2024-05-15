@@ -25,7 +25,7 @@ description:
     - All applicable updates contained in the repository are applied to the system.
     - This feature is available only with iDRAC Enterprise License.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
     share_name:
         description: Network share path of update repository. CIFS, NFS, HTTP, HTTPS and FTP share types are supported.

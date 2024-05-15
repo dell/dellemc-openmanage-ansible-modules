@@ -22,7 +22,7 @@ version_added: "8.4.0"
 description:
   - This module allows you to configure the port and partition network attributes on the network interface cards.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   network_adapter_id:
     type: str

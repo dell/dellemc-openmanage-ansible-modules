@@ -22,7 +22,7 @@ description:
    - "This module retrieves the list and basic details of all users or details of a specific user on
    iDRAC"
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   user_id:
     description:

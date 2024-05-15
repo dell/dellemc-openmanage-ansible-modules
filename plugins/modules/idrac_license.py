@@ -22,7 +22,7 @@ version_added: "8.7.0"
 description:
   - This module allows to import, export and delete licenses on iDRAC.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   license_id:
     description:

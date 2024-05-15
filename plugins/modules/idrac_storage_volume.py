@@ -21,7 +21,7 @@ version_added: "9.1.0"
 description:
   - This module is responsible for configuring the RAID attributes.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   state:
     type: str

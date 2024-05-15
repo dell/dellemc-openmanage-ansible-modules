@@ -22,7 +22,7 @@ version_added: "9.0.0"
 description:
   - This module allows you to run and export diagnostics on iDRAC.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   run:
     description:
