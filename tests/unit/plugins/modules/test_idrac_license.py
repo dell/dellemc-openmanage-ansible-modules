@@ -736,8 +736,8 @@ class TestLicenseType(FakeAnsibleModule):
 
         # Mock the necessary functions and objects
         mocker.patch(MODULE_PATH + 'get_argument_spec', return_value={})
-        mocker.patch(MODULE_PATH + 'idrac_auth_params', {})
-        mocker.patch(MODULE_PATH + 'AnsibleModule', return_value=module_mock)
+        # mocker.patch(MODULE_PATH + 'idrac_auth_params', {})
+        mocker.patch(MODULE_PATH + 'IdracAnsibleModule', return_value=module_mock)
         mocker.patch(MODULE_PATH + 'iDRACRedfishAPI', return_value=idrac_mock)
         mocker.patch(MODULE_PATH + 'get_idrac_firmware_version', return_value='3.1')
         mocker.patch(MODULE_PATH + 'LicenseType.license_operation', return_value=license_mock)
