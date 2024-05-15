@@ -249,7 +249,6 @@ error_info:
 
 import json
 from ssl import SSLError
-
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
@@ -350,7 +349,8 @@ def main():
     # argument_spec.update(ome_auth_params)
     module = OmeAnsibleModule(argument_spec=argument_spec,
                               mutually_exclusive=[('profile_id', 'profile_name', 'template_name', 'template_id',
-                                                'system_query_options')], supports_check_mode=True)
+                                                   'system_query_options')],
+                              supports_check_mode=True)
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
             query = {}
