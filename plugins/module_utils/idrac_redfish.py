@@ -459,8 +459,14 @@ class IdracAnsibleModule(AnsibleModule):
         auth_required_one_of = [("idrac_user", "x_auth_token")]
         auth_required_together = [("idrac_user", "idrac_password")]
 
+        if mutually_exclusive is None:
+            mutually_exclusive = []
         mutually_exclusive.extend(auth_mutually_exclusive)
+        if required_together is None:
+            required_together = []
         required_together.extend(auth_required_together)
+        if required_one_of is None:
+            required_one_of = []
         required_one_of.extend(auth_required_one_of)
 
         super(IdracAnsibleModule, self).__init__(argument_spec, bypass_checks, no_log,
