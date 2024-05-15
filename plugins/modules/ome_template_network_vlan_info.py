@@ -212,7 +212,7 @@ def main():
         "template_id": {"type": 'int'},
         "template_name": {"type": 'str'}
     }
-    argument_spec.update(ome_auth_params)
+    # argument_spec.update(ome_auth_params)
     module = OmeAnsibleModule(argument_spec=argument_spec,
                            mutually_exclusive=[('template_id', 'template_name')],
                            supports_check_mode=True)
