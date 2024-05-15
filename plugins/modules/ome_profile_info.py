@@ -351,7 +351,7 @@ def main():
     module = OmeAnsibleModule(argument_spec=argument_spec,
                            mutually_exclusive=[('profile_id', 'profile_name', 'template_name', 'template_id',
                                                 'system_query_options')],
-                           supports_check_mode=True)
+                                                supports_check_mode=True)
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
             query = {}

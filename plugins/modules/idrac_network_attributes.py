@@ -717,7 +717,7 @@ def main():
                                     mutually_exclusive=[('network_attributes', 'oem_network_attributes')],
                                     required_if=[["apply_time", "AtMaintenanceWindowStart", ("maintenance_window",)],
                                                  ["apply_time", "InMaintenanceWindowOnReset", ("maintenance_window",)]],
-                               supports_check_mode=True)
+                                                 supports_check_mode=True)
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:
             if module_attribute := module.params.get('network_attributes'):
                 network_attr_obj = NetworkAttributes(idrac, module)

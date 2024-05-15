@@ -241,7 +241,7 @@ class RedfishAnsibleModule(AnsibleModule):
             "timeout": {"type": "int", "default": 30},
         }
         argument_spec.update(redfish_argument_spec)
-        
+   
         auth_mutually_exclusive = [("username", "x_auth_token"), ("password", "x_auth_token")]
         auth_required_one_of = [("username", "x_auth_token")]
         auth_required_together = [("username", "password")]
