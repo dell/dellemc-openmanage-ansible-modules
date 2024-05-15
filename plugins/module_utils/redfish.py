@@ -225,6 +225,7 @@ class Redfish(object):
         """Check if the value is set in REQUESTS_CA_BUNDLE or CURL_CA_BUNDLE or OMAM_CA_BUNDLE or returns None"""
         return os.environ.get("REQUESTS_CA_BUNDLE") or os.environ.get("CURL_CA_BUNDLE") or os.environ.get("OMAM_CA_BUNDLE")
 
+
 class RedfishAnsibleModule(AnsibleModule):
     def __init__(self, argument_spec, bypass_checks=False, no_log=False,
                  mutually_exclusive=None, required_together=None,
@@ -256,6 +257,6 @@ class RedfishAnsibleModule(AnsibleModule):
         required_one_of.extend(auth_required_one_of)
 
         super(RedfishAnsibleModule, self).__init__(argument_spec, bypass_checks, no_log,
-                 mutually_exclusive, required_together,
-                 required_one_of, add_file_common_args,
-                 supports_check_mode, required_if, required_by)
+                                                   mutually_exclusive, required_together,
+                                                   required_one_of, add_file_common_args,
+                                                   supports_check_mode, required_if, required_by)

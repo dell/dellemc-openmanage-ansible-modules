@@ -266,7 +266,6 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish i
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_manager_res_id
 
 
-
 SUCCESS_MSG = "Successfully updated the attributes."
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."

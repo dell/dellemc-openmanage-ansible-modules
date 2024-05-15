@@ -665,8 +665,8 @@ def main():
     }
     # specs.update(ome_auth_params)
     module = OmeAnsibleModule(argument_spec=specs,
-                           mutually_exclusive=[('device_id', 'device_service_tag')],
-                           supports_check_mode=True,)
+                              mutually_exclusive=[('device_id', 'device_service_tag')],
+                              supports_check_mode=True,)
     if module.params["quick_deploy_options"] is None:
         module.exit_json(msg="missing required arguments: quick_deploy_options", failed=True)
     fields = [("ipv4_subnet_mask", "IPV4"), ("ipv4_gateway", "IPV4"), ("ipv6_gateway", "IPV6")]

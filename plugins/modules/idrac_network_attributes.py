@@ -714,10 +714,9 @@ def main():
         }
         # specs.update(idrac_auth_params)
         module = IdracAnsibleModule(argument_spec=specs,
-                               mutually_exclusive=[
-                                   ('network_attributes', 'oem_network_attributes')],
-                               required_if=[["apply_time", "AtMaintenanceWindowStart", ("maintenance_window",)],
-                                            ["apply_time", "InMaintenanceWindowOnReset", ("maintenance_window",)]],
+                                    mutually_exclusive=[('network_attributes', 'oem_network_attributes')],
+                                    required_if=[["apply_time", "AtMaintenanceWindowStart", ("maintenance_window",)],
+                                                 ["apply_time", "InMaintenanceWindowOnReset", ("maintenance_window",)]],
                                supports_check_mode=True)
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:
             if module_attribute := module.params.get('network_attributes'):

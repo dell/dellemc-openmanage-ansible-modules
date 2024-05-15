@@ -214,8 +214,8 @@ def main():
     }
     # argument_spec.update(ome_auth_params)
     module = OmeAnsibleModule(argument_spec=argument_spec,
-                           mutually_exclusive=[('template_id', 'template_name')],
-                           supports_check_mode=True)
+                              mutually_exclusive=[('template_id', 'template_name')],
+                              supports_check_mode=True)
     try:
         templates = []
         with RestOME(module.params, req_session=True) as rest_obj:

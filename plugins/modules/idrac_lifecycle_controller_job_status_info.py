@@ -103,7 +103,6 @@ from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
 
-
 def main():
     specs = {
         "job_id": {"required": True, "type": 'str'}

@@ -406,6 +406,7 @@ class RestOME(object):
         """Check if the value is set in REQUESTS_CA_BUNDLE or CURL_CA_BUNDLE or OMAM_CA_BUNDLE or returns None"""
         return os.environ.get("REQUESTS_CA_BUNDLE") or os.environ.get("CURL_CA_BUNDLE") or os.environ.get("OMAM_CA_BUNDLE")
 
+
 class OmeAnsibleModule(AnsibleModule):
     def __init__(self, argument_spec, bypass_checks=False, no_log=False,
                  mutually_exclusive=None, required_together=None,
@@ -422,7 +423,7 @@ class OmeAnsibleModule(AnsibleModule):
             "timeout": {"type": "int", "default": 30},
         }
         argument_spec.update(ome_argument_spec)
-        
+
         auth_mutually_exclusive = [("username", "x_auth_token"), ("password", "x_auth_token")]
         auth_required_one_of = [("username", "x_auth_token")]
         auth_required_together = [("username", "password")]
@@ -438,6 +439,6 @@ class OmeAnsibleModule(AnsibleModule):
         required_one_of.extend(auth_required_one_of)
 
         super(OmeAnsibleModule, self).__init__(argument_spec, bypass_checks, no_log,
-                 mutually_exclusive, required_together,
-                 required_one_of, add_file_common_args,
-                 supports_check_mode, required_if, required_by)
+                                               mutually_exclusive, required_together,
+                                               required_one_of, add_file_common_args,
+                                               supports_check_mode, required_if, required_by)

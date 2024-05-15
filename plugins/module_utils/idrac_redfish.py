@@ -182,7 +182,7 @@ class iDRACRedfishAPI(object):
 
     def __enter__(self):
         """Creates sessions by passing it to header"""
-        if self.req_session  and not self.x_auth_token:
+        if self.req_session and not self.x_auth_token:
             payload = {'UserName': self.username,
                        'Password': self.password}
             path = SESSION_RESOURCE_COLLECTION["SESSION"]
@@ -438,6 +438,7 @@ class iDRACRedfishAPI(object):
         """Check if the value is set in REQUESTS_CA_BUNDLE or CURL_CA_BUNDLE or OMAM_CA_BUNDLE or returns None"""
         return os.environ.get("REQUESTS_CA_BUNDLE") or os.environ.get("CURL_CA_BUNDLE") or os.environ.get("OMAM_CA_BUNDLE")
 
+
 class IdracAnsibleModule(AnsibleModule):
     def __init__(self, argument_spec, bypass_checks=False, no_log=False,
                  mutually_exclusive=None, required_together=None,
@@ -454,7 +455,7 @@ class IdracAnsibleModule(AnsibleModule):
             "timeout": {"type": "int", "default": 30},
         }
         argument_spec.update(idrac_argument_spec)
-        
+
         auth_mutually_exclusive = [("idrac_user", "x_auth_token"), ("idrac_password", "x_auth_token")]
         auth_required_one_of = [("idrac_user", "x_auth_token")]
         auth_required_together = [("idrac_user", "idrac_password")]
@@ -470,6 +471,6 @@ class IdracAnsibleModule(AnsibleModule):
         required_one_of.extend(auth_required_one_of)
 
         super(IdracAnsibleModule, self).__init__(argument_spec, bypass_checks, no_log,
-                 mutually_exclusive, required_together,
-                 required_one_of, add_file_common_args,
-                 supports_check_mode, required_if, required_by)
+                                                 mutually_exclusive, required_together,
+                                                 required_one_of, add_file_common_args,
+                                                 supports_check_mode, required_if, required_by)

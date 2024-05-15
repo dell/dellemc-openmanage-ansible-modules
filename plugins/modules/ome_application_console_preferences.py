@@ -633,11 +633,11 @@ def main():
     }
     # specs.update(ome_auth_params)
     module = OmeAnsibleModule(argument_spec=specs,
-                           required_one_of=[["report_row_limit", "device_health", "discovery_settings",
-                                             "server_initiated_discovery", "mx7000_onboarding_preferences",
-                                             "builtin_appliance_share", "email_sender_settings",
-                                             "trap_forwarding_format", "metrics_collection_settings"]],
-                           supports_check_mode=True, )
+                              required_one_of=[["report_row_limit", "device_health", "discovery_settings",
+                                                "server_initiated_discovery", "mx7000_onboarding_preferences",
+                                                "builtin_appliance_share", "email_sender_settings",
+                                                "trap_forwarding_format", "metrics_collection_settings"]],
+                                                supports_check_mode=True)
 
     try:
         _validate_params(module)

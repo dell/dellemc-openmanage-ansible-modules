@@ -239,9 +239,9 @@ def main():
     }
     # argument_spec.update(ome_auth_params)
     module = OmeAnsibleModule(argument_spec=argument_spec,
-                           mutually_exclusive=[('device_id', 'device_service_tag')],
-                           required_one_of=[["device_id", "device_service_tag"]],
-                           supports_check_mode=True, )
+                              mutually_exclusive=[('device_id', 'device_service_tag')],
+                              required_one_of=[["device_id", "device_service_tag"]],
+                              supports_check_mode=True)
     if not any([module.params.get("device_id"), module.params.get("device_service_tag")]):
         module.fail_json(msg=CONFIG_FAIL_MSG)
     try:
