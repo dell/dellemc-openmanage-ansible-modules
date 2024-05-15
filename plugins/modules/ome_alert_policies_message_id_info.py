@@ -117,7 +117,7 @@ EMPTY_MSG = "No alert policies message id information were found."
 
 
 def main():
-    specs = ome_auth_params
+    specs = {}
     module = OmeAnsibleModule(
         argument_spec=specs,
         supports_check_mode=True

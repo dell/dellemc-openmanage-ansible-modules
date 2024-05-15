@@ -267,7 +267,7 @@ EMPTY_ALERT_POLICY_ACTION_MSG = "No alert policies action information were found
 
 def main():
     """ function to retrieve the information on actions of alert policies """
-    specs = ome_auth_params
+    specs = {}
     module = OmeAnsibleModule(
         argument_spec=specs,
         supports_check_mode=True)

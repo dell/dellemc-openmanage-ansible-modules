@@ -483,13 +483,13 @@ def main():
     # specs.update(ome_auth_params)
     module = OmeAnsibleModule(
         argument_spec=specs,
-        required_if=(
+        required_if=[
             ["state", "present", ("device_ids", "device_service_tags", "ip_addresses"), True],
-        ),
-        mutually_exclusive=(
+        ],
+        mutually_exclusive=[
             ("name", "group_id"),
             ("device_ids", "device_service_tags", "ip_addresses"),
-        ),
+        ],
         required_one_of=[("name", "group_id"),
                          ("device_ids", "device_service_tags", "ip_addresses")],
         supports_check_mode=True

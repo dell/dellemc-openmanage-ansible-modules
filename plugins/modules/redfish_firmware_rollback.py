@@ -323,8 +323,8 @@ def main():
         "reboot": {"type": "bool", "default": True},
         "reboot_timeout": {"type": "int", "default": 900},
     }
-    specs.update(redfish_auth_params)
-    module = AnsibleModule(argument_spec=specs, supports_check_mode=True)
+    # specs.update(redfish_auth_params)
+    module = RedfishAnsibleModule(argument_spec=specs, supports_check_mode=True)
     if module.params["reboot_timeout"] <= 0:
         module.fail_json(msg=NEGATIVE_TIMEOUT_MESSAGE)
     try:

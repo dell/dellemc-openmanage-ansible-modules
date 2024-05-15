@@ -182,7 +182,7 @@ class OMEAlertPolicyInfo:
             self.module.exit_json(msg=str(err), failed=True)
 
 
-def get_module_parameters() -> AnsibleModule:
+def get_module_parameters() -> OmeAnsibleModule:
     specs = {
         "policy_name": {"type": 'str'}
     }

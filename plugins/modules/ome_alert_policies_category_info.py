@@ -296,7 +296,7 @@ def get_formatted_categories(rest_obj):
 
 
 def main():
-    specs = ome_auth_params
+    specs = {}
     module = OmeAnsibleModule(
         argument_spec=specs,
         supports_check_mode=True)
