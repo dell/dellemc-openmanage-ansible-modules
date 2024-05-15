@@ -197,8 +197,7 @@ error_info:
 import json
 import os
 from ssl import SSLError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, redfish_auth_params
-from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, RedfishAnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
@@ -291,9 +290,9 @@ def main():
                               "choices": ['Event', 'MetricReport']},
         "state": {"type": "str", "default": "present", "choices": ['present', 'absent']},
     }
-    specs.update(redfish_auth_params)
+    # specs.update(redfish_auth_params)
 
-    module = AnsibleModule(
+    module = RedfishAnsibleModule(
         argument_spec=specs,
         supports_check_mode=True)
 

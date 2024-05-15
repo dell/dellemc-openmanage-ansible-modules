@@ -374,7 +374,7 @@ error_info:
 import json
 import copy
 from ssl import SSLError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, redfish_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, RedfishAnsibleModule
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -946,9 +946,9 @@ def main():
         "job_wait_timeout": {"required": False, "type": "int", "default": 1200}
     }
 
-    specs.update(redfish_auth_params)
+    # specs.update(redfish_auth_params)
 
-    module = AnsibleModule(
+    module = RedfishAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[['state', 'command'], ['volume_type', 'raid_type']],
         required_one_of=[['state', 'command']],

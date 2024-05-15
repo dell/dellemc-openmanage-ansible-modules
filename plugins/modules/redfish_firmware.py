@@ -144,7 +144,7 @@ import json
 import os
 import time
 from ssl import SSLError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, redfish_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, RedfishAnsibleModule
 from ansible.module_utils.basic import AnsibleModule, missing_required_lib
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -271,8 +271,8 @@ def main():
         "job_wait": {"required": False, "type": 'bool', "default": True},
         "job_wait_timeout": {"required": False, "type": "int", "default": 3600}
     }
-    specs.update(redfish_auth_params)
-    module = AnsibleModule(
+    # specs.update(redfish_auth_params)
+    module = RedfishAnsibleModule(
         argument_spec=specs,
         supports_check_mode=False)
     if not HAS_LIB:

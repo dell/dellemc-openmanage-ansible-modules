@@ -97,6 +97,7 @@ class RestOME(object):
         self.hostname = str(self.module_params["hostname"]).strip('][')
         self.username = self.module_params["username"]
         self.password = self.module_params["password"]
+        self.x_auth_token = self.module_params.get("x_auth_token")
         self.port = self.module_params["port"]
         self.validate_certs = self.module_params.get("validate_certs", True)
         self.ca_path = self.module_params.get("ca_path")
@@ -192,7 +193,7 @@ class RestOME(object):
 
     def __enter__(self):
         """Creates sessions by passing it to header"""
-        if self.req_session:
+        if self.req_session and not self.x_auth_token:
             payload = {'UserName': self.username,
                        'Password': self.password,
                        'SessionType': 'API', }
@@ -204,6 +205,8 @@ class RestOME(object):
             else:
                 msg = "Could not create the session"
                 raise ConnectionError(msg)
+        elif self.x_auth_token is not None:
+            self._headers["X-Auth-Token"] = self.x_auth_token
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -418,11 +421,12 @@ class OmeAnsibleModule(AnsibleModule):
             "ca_path": {"type": "path"},
             "timeout": {"type": "int", "default": 30},
         }
+        argument_spec.update(ome_argument_spec)
+        
         auth_mutually_exclusive = [("username", "x_auth_token"), ("password", "x_auth_token")]
         auth_required_one_of = [("username", "x_auth_token")]
         auth_required_together = [("username", "password")]
 
-        argument_spec.update(ome_argument_spec)
         mutually_exclusive.extend(auth_mutually_exclusive)
         required_together.extend(auth_required_together)
         required_one_of.extend(auth_required_one_of)

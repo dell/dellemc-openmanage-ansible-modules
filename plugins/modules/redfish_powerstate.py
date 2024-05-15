@@ -118,8 +118,7 @@ error_info:
 import json
 import re
 from ssl import SSLError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, redfish_auth_params
-from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, RedfishAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 
@@ -241,9 +240,9 @@ def main():
                        "choices": ['ForceOff', 'ForceOn', 'ForceRestart', 'GracefulRestart',
                                    'GracefulShutdown', 'Nmi', 'On', 'PowerCycle', 'PushPowerButton']},
     }
-    specs.update(redfish_auth_params)
+    # specs.update(redfish_auth_params)
 
-    module = AnsibleModule(
+    module = RedfishAnsibleModule(
         argument_spec=specs,
         supports_check_mode=True)
     try:
