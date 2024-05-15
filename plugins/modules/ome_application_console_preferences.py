@@ -637,7 +637,7 @@ def main():
                                                 "server_initiated_discovery", "mx7000_onboarding_preferences",
                                                 "builtin_appliance_share", "email_sender_settings",
                                                 "trap_forwarding_format", "metrics_collection_settings"]],
-                                                supports_check_mode=True, )
+                              supports_check_mode=True)
 
     try:
         _validate_params(module)

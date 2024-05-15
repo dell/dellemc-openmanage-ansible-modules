@@ -349,9 +349,8 @@ def main():
     }
     # argument_spec.update(ome_auth_params)
     module = OmeAnsibleModule(argument_spec=argument_spec,
-                           mutually_exclusive=[('profile_id', 'profile_name', 'template_name', 'template_id',
-                                                'system_query_options')],
-                                                supports_check_mode=True)
+                              mutually_exclusive=[('profile_id', 'profile_name', 'template_name', 'template_id',
+                                                'system_query_options')], supports_check_mode=True)
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
             query = {}
