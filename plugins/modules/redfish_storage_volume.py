@@ -375,7 +375,6 @@ import json
 import copy
 from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, RedfishAnsibleModule
-from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
