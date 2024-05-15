@@ -230,7 +230,7 @@ class RedfishAnsibleModule(AnsibleModule):
     def __init__(self, argument_spec, bypass_checks=False, no_log=False,
                  mutually_exclusive=None, required_together=None,
                  required_one_of=None, add_file_common_args=False,
-                 supports_check_mode=False, required_if=None, required_by=None):
+                 supports_check_mode=False, required_if=None, required_by={}):
         redfish_argument_spec = {
             "baseuri": {"required": True, "type": "str"},
             "username": {"required": False, "type": "str", "fallback": (env_fallback, ['IDRAC_USERNAME'])},
@@ -256,7 +256,7 @@ class RedfishAnsibleModule(AnsibleModule):
             required_one_of = []
         required_one_of.extend(auth_required_one_of)
 
-        super(RedfishAnsibleModule, self).__init__(argument_spec, bypass_checks, no_log,
+        super().__init__(argument_spec, bypass_checks, no_log,
                                                    mutually_exclusive, required_together,
                                                    required_one_of, add_file_common_args,
                                                    supports_check_mode, required_if, required_by)

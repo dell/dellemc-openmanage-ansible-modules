@@ -519,9 +519,8 @@ error_info:
 
 
 import json
-from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, redfish_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, RedfishAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import wait_for_job_completion, strip_substr_dict
-from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -1001,8 +1000,8 @@ def main():
         "job_wait_timeout": {"required": False, "type": "int", "default": 120},
         "size": {"required": False, "type": "int"}
     }
-    specs.update(redfish_auth_params)
-    module = AnsibleModule(
+    # specs.update(redfish_auth_params)
+    module = RedfishAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[('attributes', 'command'), ("target", "size")],
         required_one_of=[('attributes', 'command')],

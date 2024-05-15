@@ -443,7 +443,7 @@ class IdracAnsibleModule(AnsibleModule):
     def __init__(self, argument_spec, bypass_checks=False, no_log=False,
                  mutually_exclusive=None, required_together=None,
                  required_one_of=None, add_file_common_args=False,
-                 supports_check_mode=False, required_if=None, required_by=None):
+                 supports_check_mode=False, required_if=None, required_by={}):
         idrac_argument_spec = {
             "idrac_ip": {"required": True, "type": 'str'},
             "idrac_user": {"required": False, "type": 'str', "fallback": (env_fallback, ['IDRAC_USERNAME'])},
@@ -470,7 +470,7 @@ class IdracAnsibleModule(AnsibleModule):
             required_one_of = []
         required_one_of.extend(auth_required_one_of)
 
-        super(IdracAnsibleModule, self).__init__(argument_spec, bypass_checks, no_log,
-                                                 mutually_exclusive, required_together,
-                                                 required_one_of, add_file_common_args,
-                                                 supports_check_mode, required_if, required_by)
+        super().__init__(argument_spec, bypass_checks, no_log,
+                         mutually_exclusive, required_together,
+                         required_one_of, add_file_common_args,
+                         supports_check_mode, required_if, required_by)
