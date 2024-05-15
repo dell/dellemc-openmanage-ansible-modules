@@ -439,6 +439,6 @@ class OmeAnsibleModule(AnsibleModule):
         required_one_of.extend(auth_required_one_of)
 
         super().__init__(argument_spec, bypass_checks, no_log,
-                                               mutually_exclusive, required_together,
-                                               required_one_of, add_file_common_args,
-                                               supports_check_mode, required_if, required_by)
+                         mutually_exclusive, required_together,
+                         required_one_of, add_file_common_args,
+                         supports_check_mode, required_if, required_by)
