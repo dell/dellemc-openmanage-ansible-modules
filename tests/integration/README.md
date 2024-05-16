@@ -1,5 +1,5 @@
 ### Overview
-Dell OpenManage Ansible Modules integration test scripts are located under [integration](./tests/integration) directory.
+Dell OpenManage Ansible Modules integration test scripts are located under [integration](./) directory.
 
 ### Implementing the integration tests
 Any contribution must have an associated integration test. This section covers the
