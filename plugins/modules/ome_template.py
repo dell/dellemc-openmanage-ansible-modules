@@ -133,7 +133,7 @@ options:
       - This option is applicable when I(job_wait) is C(true).
     default: 1200
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author:
     - "Jagadeesh N V (@jagadeeshnv)"
     - "Husniya Hameed (@husniya_hameed)"

@@ -124,7 +124,7 @@ options:
         description: Number of MAC addresses.I(identity_count) is required to option to create FC settings.
         type: int
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author:
     - "Sajna Shetty(@Sajna-Shetty)"
     - "Deepak Joshi(@Dell-Deepak-Joshi))"

@@ -114,7 +114,7 @@ options:
     default: 600
     version_added: 3.4.0
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author:
     - "Sajna Shetty(@Sajna-Shetty)"
     - "Jagadeesh N V(@jagadeeshnv)"

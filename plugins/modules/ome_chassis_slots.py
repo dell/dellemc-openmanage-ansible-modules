@@ -72,7 +72,7 @@ options:
             description: Provide name for the slot.
             required: true
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 notes:
   - "This module initiates the refresh inventory task. It may take a minute for new names to be reflected.
   If the task exceeds 300 seconds to refresh, the task times out."

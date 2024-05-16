@@ -34,7 +34,7 @@ options:
         description: Filter records for the supported values.
         type: str
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author: "Jagadeesh N V (@jagadeeshnv)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.

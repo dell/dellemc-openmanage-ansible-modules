@@ -89,7 +89,7 @@ options:
     description: Specify the name of the VLAN to be added as untagged to the uplink.
     type: str
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author:
     - "Jagadeesh N V(@jagadeeshnv)"
 notes:

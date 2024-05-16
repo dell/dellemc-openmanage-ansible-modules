@@ -57,7 +57,7 @@ options:
         type: str
         required: true
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 notes:
   - The module will always report change when I(enable_authentication) is C(true).
   - Run this module from a system that has direct access to Dell OpenManage Enterprise

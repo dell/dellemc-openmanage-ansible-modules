@@ -75,7 +75,7 @@ options:
        to represent the entire fabric. Enable this feature only when connecting to such a solution."
     choices: ['Enabled', 'Disabled']
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author:
     - "Sajna Shetty(@Sajna-Shetty)"
 notes:

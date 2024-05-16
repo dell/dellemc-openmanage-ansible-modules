@@ -77,7 +77,7 @@ options:
         choices: ['GRID_1', 'GRID_2']
         default: GRID_1
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 author:
   - "Felix Stephen (@felixs88)"
 notes:

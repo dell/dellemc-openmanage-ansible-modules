@@ -162,7 +162,7 @@ options:
           - This is applicable when I(command) is C(assign).
         type: dict
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author: "Jagadeesh N V (@jagadeeshnv)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.

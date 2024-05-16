@@ -35,7 +35,7 @@ options:
       - I(device_service_tag) is mutually exclusive with I(device_id).
     elements: str
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 author:
   - "Felix Stephen (@felixs88)"
 notes:

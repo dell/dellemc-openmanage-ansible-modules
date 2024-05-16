@@ -71,7 +71,7 @@ options:
       - This is applicable only when I(state) is C(present).
       - This option is mutually exclusive with I(parent_group_name).
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 notes:
   - This module manages only static device groups on Dell OpenManage Enterprise.
   - If a device group with the name I(parent_group_name) does not exist, a new device group with the same name is created.

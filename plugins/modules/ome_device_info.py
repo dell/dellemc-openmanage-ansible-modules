@@ -59,7 +59,7 @@ options:
                 type: str
 
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author:
   - "Sajna Shetty (@Sajna-Shetty)"
   - "Felix Stephen (@felixs88)"

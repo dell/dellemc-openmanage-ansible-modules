@@ -4,7 +4,7 @@
 #
 # Dell OpenManage Ansible Modules
 # Version 9.3.0
-# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -50,7 +50,7 @@ options:
               I(job_wait_time) minimum or make I(job_wait)as false and retrigger."
         default: 3600
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
     - "urllib3"
 author:
     - "Felix Stephen (@felixs88)"

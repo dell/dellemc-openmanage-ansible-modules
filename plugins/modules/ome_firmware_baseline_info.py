@@ -28,7 +28,7 @@ options:
      all the available firmware baselines are returned.
     type: str
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author: "Sajna Shetty(@Sajna-Shetty)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.

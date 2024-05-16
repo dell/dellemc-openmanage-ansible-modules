@@ -42,7 +42,7 @@ options:
       - I(device_service_tag) is mutually exclusive with I(device_id).
     type: str
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 author:
   - "Felix Stephen A (@felixs88)"
   - "Kritika Bhateja (@Kritika-Bhateja)"

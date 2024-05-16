@@ -128,7 +128,7 @@ options:
       - I(lead_chassis_only) is only applicable when I(log_type) is C(application) on OpenManage Enterprise Modular.
     default: false
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 author:
   - "Felix Stephen (@felixs88)"
   - "Sachin Apagundi(@sachin-apa)"

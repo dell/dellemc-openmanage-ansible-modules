@@ -96,7 +96,6 @@ boot_status:
 import os
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
-
 try:
     from omsdk.sdkfile import FileOnShare
     from omsdk.sdkcreds import UserCredentials

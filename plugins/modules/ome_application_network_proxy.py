@@ -56,7 +56,7 @@ options:
       - This option is mandatory when I(enable_authentication) is true.
     type: str
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author:
     - "Sajna Shetty(@Sajna-Shetty)"
 notes:

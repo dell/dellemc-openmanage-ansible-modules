@@ -109,7 +109,7 @@ options:
     version_added: 8.1.0
 
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise or OpenManage Enterprise Modular.
     - I(device_group_names) option is not applicable for OpenManage Enterprise Modular.

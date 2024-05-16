@@ -229,7 +229,7 @@ options:
           - Enter the IP address of the second alternate DNS server.
         type: str
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 notes:
   - Run this module from a system that has direct access to Dell OpenManage Enterprise Modular.
   - This module supports C(check_mode).

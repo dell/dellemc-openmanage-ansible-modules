@@ -70,7 +70,7 @@ options:
        available in OpenManage Enterprise.The module reports failure only if none of the IP addresses provided in the
         list are available in OpenManage Enterprise.
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
   - "netaddr >= 0.7.19"
 author:
   - "Felix Stephen (@felixs88)"

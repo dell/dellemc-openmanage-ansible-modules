@@ -79,7 +79,7 @@ options:
         required: true
         description: Enables or disables the remote RACADM settings.
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 author:
   - "Felix Stephen (@felixs88)"
 notes:

@@ -44,7 +44,7 @@ options:
         description: The UDP port number of the syslog server.
         type: int
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 author:
   - Jagadeesh N V(@jagadeeshnv)
 notes:

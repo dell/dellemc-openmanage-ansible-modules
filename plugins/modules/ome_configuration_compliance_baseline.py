@@ -106,7 +106,7 @@ options:
     type: int
     default: 10800
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author:
     - "Sajna Shetty(@Sajna-Shetty)"
     - "Abhishek Sinha(@Abhishek-Dell)"

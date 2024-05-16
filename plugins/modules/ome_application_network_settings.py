@@ -81,7 +81,7 @@ options:
           - This is applicable only for OpenManage Enterprise Modular.
         type: int
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 notes:
   - Run this module from a system that has direct access to Dell OpenManage Enterprise
     or OpenManage Enterprise Modular.

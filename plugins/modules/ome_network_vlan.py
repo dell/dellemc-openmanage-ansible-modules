@@ -63,7 +63,7 @@ options:
               'Storage - iSCSI', 'Storage - FCoE', 'Storage - Data Replication',
               'VM Migration', 'VMWare FT Logging']
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author:
     - "Jagadeesh N V(@jagadeeshnv)"
 notes:

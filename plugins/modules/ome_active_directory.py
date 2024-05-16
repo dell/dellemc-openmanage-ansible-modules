@@ -117,7 +117,7 @@ options:
       - The certificate should be a Root CA Certificate encoded in Base64 format.
       - This is applicable when I(validate_certificate) is C(true).
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 notes:
   - The module will always report change when I(validate_certificate) is C(true).
   - Run this module from a system that has direct access to OpenManage Enterprise.

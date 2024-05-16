@@ -55,7 +55,7 @@ options:
       - This option is applicable when I(enable_ntp) is true.
     type: str
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author:
     - "Sajna Shetty(@Sajna-Shetty)"
 notes:

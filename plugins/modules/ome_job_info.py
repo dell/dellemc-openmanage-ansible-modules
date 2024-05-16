@@ -46,7 +46,7 @@ options:
     type: bool
     default: false
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 author:
   - "Jagadeesh N V (@jagadeeshnv)"
   - "Abhishek Sinha (@Abhishek-Dell)"

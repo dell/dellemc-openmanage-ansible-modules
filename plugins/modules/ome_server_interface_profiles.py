@@ -99,7 +99,7 @@ options:
     type: int
     default: 120
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author: "Jagadeesh N V (@jagadeeshnv)"
 notes:
     - This module supports C(check_mode).

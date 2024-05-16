@@ -35,7 +35,7 @@ options:
       - If a change is made to the session timeout, it will only take effect after the next log in.
     type: int
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author:
     - "Jagadeesh N V(@jagadeeshnv)"
 notes:
