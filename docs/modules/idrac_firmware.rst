@@ -132,7 +132,7 @@ Parameters
     iDRAC IP Address.
 
 
-  idrac_user (False, str, None)
+  idrac_user (True, str, None)
     iDRAC username.
 
     If the username is not provided, then the environment variable \ :envvar:`IDRAC\_USERNAME`\  is used.
@@ -140,20 +140,12 @@ Parameters
     Example: export IDRAC\_USERNAME=username
 
 
-  idrac_password (False, str, None)
+  idrac_password (True, str, None)
     iDRAC user password.
 
     If the password is not provided, then the environment variable \ :envvar:`IDRAC\_PASSWORD`\  is used.
 
     Example: export IDRAC\_PASSWORD=password
-
-
-  x_auth_token (False, str, None)
-    Authentication token.
-
-    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`IDRAC\_X\_AUTH\_TOKEN`\  is used.
-
-    Example: export IDRAC\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   idrac_port (optional, int, 443)

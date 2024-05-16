@@ -22,7 +22,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python \>= 3.8.6
+- python \>= 3.9.6
 - urllib3
 
 
