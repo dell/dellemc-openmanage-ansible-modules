@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.8.6
 
 
 
@@ -28,17 +28,17 @@ Parameters
 ----------
 
   command (optional, str, create)
-    ``create`` creates new profiles.
+    \ :literal:`create`\  creates new profiles.
 
-    ``modify`` modifies an existing profile. Only *name*, *description*, *boot_to_network_iso*, and *attributes* can be modified.
+    \ :literal:`modify`\  modifies an existing profile. Only \ :emphasis:`name`\ , \ :emphasis:`description`\ , \ :emphasis:`boot\_to\_network\_iso`\ , and \ :emphasis:`attributes`\  can be modified.
 
-    ``delete`` deletes an existing profile.
+    \ :literal:`delete`\  deletes an existing profile.
 
-    ``assign`` Deploys an existing profile on a target device and returns a task ID.
+    \ :literal:`assign`\  Deploys an existing profile on a target device and returns a task ID.
 
-    ``unassign`` unassigns a profile from a specified target and returns a task ID.
+    \ :literal:`unassign`\  unassigns a profile from a specified target and returns a task ID.
 
-    ``migrate`` migrates an existing profile and returns a task ID.
+    \ :literal:`migrate`\  migrates an existing profile and returns a task ID.
 
 
   name_prefix (optional, str, Profile)
@@ -46,7 +46,7 @@ Parameters
 
     This is applicable only for a create operation.
 
-    This option is mutually exclusive with *name*.
+    This option is mutually exclusive with \ :emphasis:`name`\ .
 
 
   name (optional, str, None)
@@ -54,21 +54,21 @@ Parameters
 
     This is applicable for modify, delete, assign, unassign, and migrate operations.
 
-    This option is mutually exclusive with *name_prefix* and *number_of_profiles*.
+    This option is mutually exclusive with \ :emphasis:`name\_prefix`\  and \ :emphasis:`number\_of\_profiles`\ .
 
 
   new_name (optional, str, None)
     New name of the profile.
 
-    Applicable when *command* is ``modify``.
+    Applicable when \ :emphasis:`command`\  is \ :literal:`modify`\ .
 
 
   number_of_profiles (optional, int, 1)
     Provide the number of profiles to be created.
 
-    This is applicable when *name_prefix* is used with ``create``.
+    This is applicable when \ :emphasis:`name\_prefix`\  is used with \ :literal:`create`\ .
 
-    This option is mutually exclusive with *name*.
+    This option is mutually exclusive with \ :emphasis:`name`\ .
 
     Openmanage Enterprise can create a maximum of 100 profiles.
 
@@ -76,25 +76,25 @@ Parameters
   template_name (optional, str, None)
     Name of the template for creating the profile(s).
 
-    This is applicable when *command* is ``create``.
+    This is applicable when \ :emphasis:`command`\  is \ :literal:`create`\ .
 
-    This option is mutually exclusive with *template_id*.
+    This option is mutually exclusive with \ :emphasis:`template\_id`\ .
 
 
   template_id (optional, int, None)
     ID of the template.
 
-    This is applicable when *command* is ``create``.
+    This is applicable when \ :emphasis:`command`\  is \ :literal:`create`\ .
 
-    This option is mutually exclusive with *template_name*.
+    This option is mutually exclusive with \ :emphasis:`template\_name`\ .
 
 
   device_id (optional, int, None)
     ID of the target device.
 
-    This is applicable when *command* is ``assign`` and ``migrate``.
+    This is applicable when \ :emphasis:`command`\  is \ :literal:`assign`\  and \ :literal:`migrate`\ .
 
-    This option is mutually exclusive with *device_service_tag*.
+    This option is mutually exclusive with \ :emphasis:`device\_service\_tag`\ .
 
 
   device_service_tag (optional, str, None)
@@ -102,11 +102,11 @@ Parameters
 
     This is typically 7 to 8 characters in length.
 
-    Applicable when *command* is ``assign``, and ``migrate``.
+    Applicable when \ :emphasis:`command`\  is \ :literal:`assign`\ , and \ :literal:`migrate`\ .
 
-    This option is mutually exclusive with *device_id*.
+    This option is mutually exclusive with \ :emphasis:`device\_id`\ .
 
-    If the device does not exist when *command* is ``assign`` then the profile is auto-deployed.
+    If the device does not exist when \ :emphasis:`command`\  is \ :literal:`assign`\  then the profile is auto-deployed.
 
 
   description (optional, str, None)
@@ -116,7 +116,7 @@ Parameters
   boot_to_network_iso (optional, dict, None)
     Details of the Share iso.
 
-    Applicable when *command* is ``create``, ``assign``, and ``modify``.
+    Applicable when \ :emphasis:`command`\  is \ :literal:`create`\ , \ :literal:`assign`\ , and \ :literal:`modify`\ .
 
 
     boot_to_network (True, bool, None)
@@ -132,15 +132,15 @@ Parameters
 
 
     share_user (optional, str, None)
-      User name when *share_type* is ``CIFS``.
+      User name when \ :emphasis:`share\_type`\  is \ :literal:`CIFS`\ .
 
 
     share_password (optional, str, None)
-      User password when *share_type* is ``CIFS``.
+      User password when \ :emphasis:`share\_type`\  is \ :literal:`CIFS`\ .
 
 
     workgroup (optional, str, None)
-      User workgroup when *share_type* is ``CIFS``.
+      User workgroup when \ :emphasis:`share\_type`\  is \ :literal:`CIFS`\ .
 
 
     iso_path (optional, str, None)
@@ -155,45 +155,45 @@ Parameters
   filters (optional, dict, None)
     Filters the profiles based on selected criteria.
 
-    This is applicable when *command* is ``delete`` or ``unassign``.
+    This is applicable when \ :emphasis:`command`\  is \ :literal:`delete`\  or \ :literal:`unassign`\ .
 
-    This supports suboption *ProfileIds* which takes a list of profile IDs.
+    This supports suboption \ :emphasis:`ProfileIds`\  which takes a list of profile IDs.
 
-    This also supports OData filter expressions with the suboption *Filters*.
+    This also supports OData filter expressions with the suboption \ :emphasis:`Filters`\ .
 
     See OpenManage Enterprise REST API guide for the filtering options available.
 
-    *WARNING* When this option is used in case of ``unassign``, task ID is not returned for any of the profiles affected.
+    \ :emphasis:`WARNING`\  When this option is used in case of \ :literal:`unassign`\ , task ID is not returned for any of the profiles affected.
 
 
   force (optional, bool, False)
     Provides the option to force the migration of a profile even if the source device cannot be contacted.
 
-    This option is applicable when *command* is ``migrate``.
+    This option is applicable when \ :emphasis:`command`\  is \ :literal:`migrate`\ .
 
 
   attributes (optional, dict, None)
-    Attributes for ``modify`` and ``assign``.
+    Attributes for \ :literal:`modify`\  and \ :literal:`assign`\ .
 
 
     Attributes (optional, list, None)
-      List of attributes to be modified, when *command* is ``modify``.
+      List of attributes to be modified, when \ :emphasis:`command`\  is \ :literal:`modify`\ .
 
-      List of attributes to be overridden when *command* is ``assign``.
+      List of attributes to be overridden when \ :emphasis:`command`\  is \ :literal:`assign`\ .
 
-      Use the *Id* If the attribute Id is available. If not, use the comma separated I (DisplayName). For more details about using the *DisplayName*, see the example provided.
+      Use the \ :emphasis:`Id`\  If the attribute Id is available. If not, use the comma separated I (DisplayName). For more details about using the \ :emphasis:`DisplayName`\ , see the example provided.
 
 
     Options (optional, dict, None)
       Provides the different shut down options.
 
-      This is applicable when *command* is ``assign``.
+      This is applicable when \ :emphasis:`command`\  is \ :literal:`assign`\ .
 
 
     Schedule (optional, dict, None)
       Schedule for profile deployment.
 
-      This is applicable when *command* is ``assign``.
+      This is applicable when \ :emphasis:`command`\  is \ :literal:`assign`\ .
 
 
 
@@ -201,12 +201,28 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -214,11 +230,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -237,8 +253,8 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
-   - This module supports ``check_mode``.
-   - ``assign`` operation on a already assigned profile will not redeploy.
+   - This module supports \ :literal:`check\_mode`\ .
+   - \ :literal:`assign`\  operation on a already assigned profile will not redeploy.
 
 
 
@@ -444,9 +460,9 @@ profile_ids (when I(command) is C(create), list, [1234, 5678])
 
 
 job_id (when I(command) is C(assign), C(migrate) or C(unassign), int, 14123)
-  Task ID created when *command* is ``assign``, ``migrate`` or ``unassign``.
+  Task ID created when \ :emphasis:`command`\  is \ :literal:`assign`\ , \ :literal:`migrate`\  or \ :literal:`unassign`\ .
 
-  ``assign`` and ``unassign`` operations do not trigger a task if a profile is auto-deployed.
+  \ :literal:`assign`\  and \ :literal:`unassign`\  operations do not trigger a task if a profile is auto-deployed.
 
 
 error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})

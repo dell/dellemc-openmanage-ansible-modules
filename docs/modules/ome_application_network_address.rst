@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.8.6
 
 
 
@@ -40,7 +40,7 @@ Parameters
   ipv4_configuration (optional, dict, None)
     IPv4 network configuration.
 
-    *Warning* Ensure that you have an alternate interface to access OpenManage Enterprise as these options can change the current IPv4 address for *hostname*.
+    \ :emphasis:`Warning`\  Ensure that you have an alternate interface to access OpenManage Enterprise as these options can change the current IPv4 address for \ :emphasis:`hostname`\ .
 
 
     enable (True, bool, None)
@@ -50,50 +50,50 @@ Parameters
     enable_dhcp (optional, bool, None)
       Enable or disable the automatic request to get an IPv4 address from the IPv4 Dynamic Host Configuration Protocol (DHCP) server
 
-      If *enable_dhcp* option is true, OpenManage Enterprise retrieves the IP configuration—IPv4 address, subnet mask, and gateway from a DHCP server on the existing network.
+      If \ :emphasis:`enable\_dhcp`\  option is true, OpenManage Enterprise retrieves the IP configuration—IPv4 address, subnet mask, and gateway from a DHCP server on the existing network.
 
 
     static_ip_address (optional, str, None)
       Static IPv4 address
 
-      This option is applicable when *enable_dhcp* is false.
+      This option is applicable when \ :emphasis:`enable\_dhcp`\  is false.
 
 
     static_subnet_mask (optional, str, None)
       Static IPv4 subnet mask address
 
-      This option is applicable when *enable_dhcp* is false.
+      This option is applicable when \ :emphasis:`enable\_dhcp`\  is false.
 
 
     static_gateway (optional, str, None)
       Static IPv4 gateway address
 
-      This option is applicable when *enable_dhcp* is false.
+      This option is applicable when \ :emphasis:`enable\_dhcp`\  is false.
 
 
     use_dhcp_for_dns_server_names (optional, bool, None)
       This option allows to automatically request and obtain a DNS server IPv4 address from the DHCP server.
 
-      This option is applicable when *enable_dhcp* is true.
+      This option is applicable when \ :emphasis:`enable\_dhcp`\  is true.
 
 
     static_preferred_dns_server (optional, str, None)
       Static IPv4 DNS preferred server
 
-      This option is applicable when *use_dhcp_for_dns_server_names* is false.
+      This option is applicable when \ :emphasis:`use\_dhcp\_for\_dns\_server\_names`\  is false.
 
 
     static_alternate_dns_server (optional, str, None)
       Static IPv4 DNS alternate server
 
-      This option is applicable when *use_dhcp_for_dns_server_names* is false.
+      This option is applicable when \ :emphasis:`use\_dhcp\_for\_dns\_server\_names`\  is false.
 
 
 
   ipv6_configuration (optional, dict, None)
     IPv6 network configuration.
 
-    *Warning* Ensure that you have an alternate interface to access OpenManage Enterprise as these options can change the current IPv6 address for *hostname*.
+    \ :emphasis:`Warning`\  Ensure that you have an alternate interface to access OpenManage Enterprise as these options can change the current IPv6 address for \ :emphasis:`hostname`\ .
 
 
     enable (True, bool, None)
@@ -103,43 +103,43 @@ Parameters
     enable_auto_configuration (optional, bool, None)
       Enable or disable the automatic request to get an IPv6 address from the IPv6 DHCP server or router advertisements(RA)
 
-      If *enable_auto_configuration* is true, OME retrieves IP configuration-IPv6 address, prefix, and gateway, from a DHCPv6 server on the existing network
+      If \ :emphasis:`enable\_auto\_configuration`\  is true, OME retrieves IP configuration-IPv6 address, prefix, and gateway, from a DHCPv6 server on the existing network
 
 
     static_ip_address (optional, str, None)
       Static IPv6 address
 
-      This option is applicable when *enable_auto_configuration* is false.
+      This option is applicable when \ :emphasis:`enable\_auto\_configuration`\  is false.
 
 
     static_prefix_length (optional, int, None)
       Static IPv6 prefix length
 
-      This option is applicable when *enable_auto_configuration* is false.
+      This option is applicable when \ :emphasis:`enable\_auto\_configuration`\  is false.
 
 
     static_gateway (optional, str, None)
       Static IPv6 gateway address
 
-      This option is applicable when *enable_auto_configuration* is false.
+      This option is applicable when \ :emphasis:`enable\_auto\_configuration`\  is false.
 
 
     use_dhcp_for_dns_server_names (optional, bool, None)
       This option allows to automatically request and obtain a DNS server IPv6 address from the DHCP server.
 
-      This option is applicable when *enable_auto_configuration* is true
+      This option is applicable when \ :emphasis:`enable\_auto\_configuration`\  is true
 
 
     static_preferred_dns_server (optional, str, None)
       Static IPv6 DNS preferred server
 
-      This option is applicable when *use_dhcp_for_dns_server_names* is false.
+      This option is applicable when \ :emphasis:`use\_dhcp\_for\_dns\_server\_names`\  is false.
 
 
     static_alternate_dns_server (optional, str, None)
       Static IPv6 DNS alternate server
 
-      This option is applicable when *use_dhcp_for_dns_server_names* is false.
+      This option is applicable when \ :emphasis:`use\_dhcp\_for\_dns\_server\_names`\  is false.
 
 
 
@@ -152,15 +152,15 @@ Parameters
     enable_vlan (True, bool, None)
       Enable or disable vLAN for management.
 
-      The vLAN configuration cannot be updated if the *register_with_dns* field under *dns_configuration* is true.
+      The vLAN configuration cannot be updated if the \ :emphasis:`register\_with\_dns`\  field under \ :emphasis:`dns\_configuration`\  is true.
 
-      *WARNING* Ensure that the network cable is plugged to the correct port after the vLAN configuration changes have been made. If not, the configuration change may not be effective.
+      \ :emphasis:`WARNING`\  Ensure that the network cable is plugged to the correct port after the vLAN configuration changes have been made. If not, the configuration change may not be effective.
 
 
     vlan_id (optional, int, None)
       vLAN ID.
 
-      This option is applicable when *enable_vlan* is true.
+      This option is applicable when \ :emphasis:`enable\_vlan`\  is true.
 
 
 
@@ -169,25 +169,25 @@ Parameters
 
 
     register_with_dns (optional, bool, None)
-      Register/Unregister *dns_name* on the DNS Server.
+      Register/Unregister \ :emphasis:`dns\_name`\  on the DNS Server.
 
       This option cannot be updated if vLAN configuration changes.
 
 
     use_dhcp_for_dns_domain_name (optional, bool, None)
-      Get the *dns_domain_name* using a DHCP server.
+      Get the \ :emphasis:`dns\_domain\_name`\  using a DHCP server.
 
 
     dns_name (optional, str, None)
-      DNS name for *hostname*
+      DNS name for \ :emphasis:`hostname`\ 
 
-      This is applicable when *register_with_dns* is true.
+      This is applicable when \ :emphasis:`register\_with\_dns`\  is true.
 
 
     dns_domain_name (optional, str, None)
       Static DNS domain name
 
-      This is applicable when *use_dhcp_for_dns_domain_name* is false.
+      This is applicable when \ :emphasis:`use\_dhcp\_for\_dns\_domain\_name`\  is false.
 
 
 
@@ -201,12 +201,28 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -214,11 +230,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -238,7 +254,7 @@ Notes
 .. note::
    - The configuration changes can only be applied to one interface at a time.
    - The system management consoles might be unreachable for some time after the configuration changes are applied.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 
@@ -370,7 +386,7 @@ network_configuration (on success, dict, {'Delay': 0, 'DnsConfiguration': {'DnsD
 
 
 job_info (on success, dict, {'Builtin': False, 'CreatedBy': 'system', 'Editable': True, 'EndTime': None, 'Id': 14902, 'JobDescription': 'Generic OME runtime task', 'JobName': 'OMERealtime_Task', 'JobStatus': {'Id': 2080, 'Name': 'New'}, 'JobType': {'Id': 207, 'Internal': True, 'Name': 'OMERealtime_Task'}, 'LastRun': None, 'LastRunStatus': {'Id': 2080, 'Name': 'New'}, 'NextRun': None, 'Params': [{'JobId': 14902, 'Key': 'Nmcli_Update', 'Value': '{"interfaceName":"eth0","profileName":"eth0","enableNIC":true, "ipv4Configuration":{"enable":true,"enableDHCP":true,"staticIPAddress":"", "staticSubnetMask":"","staticGateway":"","useDHCPForDNSServerNames":true, "staticPreferredDNSServer":"","staticAlternateDNSServer":""}, "ipv6Configuration":{"enable":false,"enableAutoConfiguration":true,"staticIPAddress":"", "staticPrefixLength":0,"staticGateway":"","useDHCPForDNSServerNames":false, "staticPreferredDNSServer":"","staticAlternateDNSServer":""}, "managementVLAN":{"enableVLAN":false,"id":0},"dnsConfiguration":{"registerWithDNS":false, "dnsName":"","useDHCPForDNSDomainName":false,"dnsDomainName":"","fqdndomainName":"", "ipv4CurrentPreferredDNSServer":"","ipv4CurrentAlternateDNSServer":"", "ipv6CurrentPreferredDNSServer":"","ipv6CurrentAlternateDNSServer":""}, "currentSettings":{"ipv4Address":[],"ipv4Gateway":"","ipv4Dns":[],"ipv4Domain":"", "ipv6Address":[],"ipv6LinkLocalAddress":"","ipv6Gateway":"","ipv6Dns":[], "ipv6Domain":""},"delay":0,"primaryInterface":true,"modifiedConfigs":{}}'}], 'Schedule': 'startnow', 'StartTime': None, 'State': 'Enabled', 'Targets': [], 'UpdatedBy': None, 'Visible': True})
-  Details of the job to update in case OME version is >= 3.3.
+  Details of the job to update in case OME version is \>= 3.3.
 
 
 error_info (on HTTP error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to update the address configuration because a dependent field is missing for  Use DHCP for DNS Domain Name, Enable DHCP for ipv4 or Enable Autoconfig for ipv6 settings for valid configuration .', 'MessageArgs': ['Use DHCP for DNS Domain Name, Enable DHCP for ipv4 or Enable Autoconfig for ipv6 settings for valid configuration'], 'MessageId': 'CAPP1304', 'RelatedProperties': [], 'Resolution': 'Make sure that all dependent fields contain valid content and retry the operation.', 'Severity': 'Critical'}], 'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.'}})

@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.8.6
 
 
 
@@ -28,31 +28,31 @@ Parameters
 ----------
 
   fact_subset (optional, str, basic_inventory)
-    ``basic_inventory`` returns the list of the devices.
+    \ :literal:`basic\_inventory`\  returns the list of the devices.
 
-    ``detailed_inventory`` returns the inventory details of specified devices.
+    \ :literal:`detailed\_inventory`\  returns the inventory details of specified devices.
 
-    ``subsystem_health`` returns the health status of specified devices.
+    \ :literal:`subsystem\_health`\  returns the health status of specified devices.
 
 
   system_query_options (optional, dict, None)
-    *system_query_options* applicable for the choices of the fact_subset. Either *device_id* or *device_service_tag* is mandatory for ``detailed_inventory`` and ``subsystem_health`` or both can be applicable.
+    \ :emphasis:`system\_query\_options`\  applicable for the choices of the fact\_subset. Either \ :emphasis:`device\_id`\  or \ :emphasis:`device\_service\_tag`\  is mandatory for \ :literal:`detailed\_inventory`\  and \ :literal:`subsystem\_health`\  or both can be applicable.
 
 
     device_id (optional, list, None)
-      A list of unique identifier is applicable for ``detailed_inventory`` and ``subsystem_health``.
+      A list of unique identifier is applicable for \ :literal:`detailed\_inventory`\  and \ :literal:`subsystem\_health`\ .
 
 
     device_service_tag (optional, list, None)
-      A list of service tags are applicable for ``detailed_inventory`` and ``subsystem_health``.
+      A list of service tags are applicable for \ :literal:`detailed\_inventory`\  and \ :literal:`subsystem\_health`\ .
 
 
     inventory_type (optional, str, None)
-      For ``detailed_inventory``, it returns details of the specified inventory type.
+      For \ :literal:`detailed\_inventory`\ , it returns details of the specified inventory type.
 
 
     filter (optional, str, None)
-      For ``basic_inventory``, it filters the collection of devices. *filter* query format should be aligned with OData standards.
+      For \ :literal:`basic\_inventory`\ , it filters the collection of devices. \ :emphasis:`filter`\  query format should be aligned with OData standards.
 
 
 
@@ -60,12 +60,28 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -73,11 +89,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -96,7 +112,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 

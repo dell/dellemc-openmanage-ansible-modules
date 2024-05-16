@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.8.6
 
 
 
@@ -28,27 +28,27 @@ Parameters
 ----------
 
   state (optional, str, present)
-    ``present`` creates a user in case the *UserName* provided inside *attributes* does not exist.
+    \ :literal:`present`\  creates a user in case the \ :emphasis:`UserName`\  provided inside \ :emphasis:`attributes`\  does not exist.
 
-    ``present`` modifies a user in case the *UserName* provided inside *attributes* exists.
+    \ :literal:`present`\  modifies a user in case the \ :emphasis:`UserName`\  provided inside \ :emphasis:`attributes`\  exists.
 
-    ``absent`` deletes an existing user.
+    \ :literal:`absent`\  deletes an existing user.
 
 
   user_id (optional, int, None)
     Unique ID of the user to be deleted.
 
-    Either *user_id* or *name* is mandatory for ``absent`` operation.
+    Either \ :emphasis:`user\_id`\  or \ :emphasis:`name`\  is mandatory for \ :literal:`absent`\  operation.
 
 
   name (optional, str, None)
     Unique Name of the user to be deleted.
 
-    Either *user_id* or *name* is mandatory for ``absent`` operation.
+    Either \ :emphasis:`user\_id`\  or \ :emphasis:`name`\  is mandatory for \ :literal:`absent`\  operation.
 
 
   attributes (optional, dict, {})
-    Payload data for the user operations. It can take the following attributes for ``present``.
+    Payload data for the user operations. It can take the following attributes for \ :literal:`present`\ .
 
     UserTypeId, DirectoryServiceId, Description, Name, Password, UserName, RoleId, Locked, Enabled.
 
@@ -61,12 +61,28 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -74,11 +90,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -97,7 +113,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
-   - This module does not support ``check_mode``.
+   - This module does not support \ :literal:`check\_mode`\ .
 
 
 
@@ -179,7 +195,7 @@ msg (always, str, Successfully created a User)
 
 
 user_status (When I(state) is C(present)., dict, {'Description': 'Test user creation', 'DirectoryServiceId': 0, 'Enabled': True, 'Id': '61546', 'IsBuiltin': False, 'Locked': False, 'Name': 'test', 'Password': None, 'PlainTextPassword': None, 'RoleId': '10', 'UserName': 'test', 'UserTypeId': 1})
-  Details of the user operation, when *state* is ``present``.
+  Details of the user operation, when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
 
 

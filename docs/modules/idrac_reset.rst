@@ -78,7 +78,7 @@ Parameters
   idrac_user (True, str, None)
     iDRAC username.
 
-    If the username is not provided, then the environment variable \ :literal:`IDRAC\_USERNAME`\  is used.
+    If the username is not provided, then the environment variable \ :envvar:`IDRAC\_USERNAME`\  is used.
 
     Example: export IDRAC\_USERNAME=username
 
@@ -86,7 +86,7 @@ Parameters
   idrac_password (True, str, None)
     iDRAC user password.
 
-    If the password is not provided, then the environment variable \ :literal:`IDRAC\_PASSWORD`\  is used.
+    If the password is not provided, then the environment variable \ :envvar:`IDRAC\_PASSWORD`\  is used.
 
     Example: export IDRAC\_PASSWORD=password
 

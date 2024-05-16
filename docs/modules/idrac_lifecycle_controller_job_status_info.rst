@@ -20,8 +20,8 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- omsdk >= 1.2.488
-- python >= 3.9.6
+- omsdk \>= 1.2.488
+- python \>= 3.9.6
 
 
 
@@ -29,7 +29,7 @@ Parameters
 ----------
 
   job_id (True, str, None)
-    JOB ID in the format "JID_123456789012".
+    JOB ID in the format "JID\_123456789012".
 
 
   idrac_ip (True, str, None)
@@ -39,9 +39,17 @@ Parameters
   idrac_user (True, str, None)
     iDRAC username.
 
+    If the username is not provided, then the environment variable \ :envvar:`IDRAC\_USERNAME`\  is used.
+
+    Example: export IDRAC\_USERNAME=username
+
 
   idrac_password (True, str, None)
     iDRAC user password.
+
+    If the password is not provided, then the environment variable \ :envvar:`IDRAC\_PASSWORD`\  is used.
+
+    Example: export IDRAC\_PASSWORD=password
 
 
   idrac_port (optional, int, 443)
@@ -49,11 +57,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -72,8 +80,8 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell iDRAC.
-   - This module supports both IPv4 and IPv6 address for *idrac_ip*.
-   - This module supports ``check_mode``.
+   - This module supports both IPv4 and IPv6 address for \ :emphasis:`idrac\_ip`\ .
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 

@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.8.6
 
 
 
@@ -28,19 +28,19 @@ Parameters
 ----------
 
   state (optional, str, present)
-    ``present`` creates a new fabric or modifies an existing fabric.
+    \ :literal:`present`\  creates a new fabric or modifies an existing fabric.
 
-    ``absent`` deletes an existing fabric.
+    \ :literal:`absent`\  deletes an existing fabric.
 
     Notes: The create, modify, or delete fabric operation takes around 15-20 minutes to complete. It is recommended not to start an another operation until the current operation is completed.
 
 
   name (True, str, None)
-    Provide the *name* of the fabric to be created, deleted or modified.
+    Provide the \ :emphasis:`name`\  of the fabric to be created, deleted or modified.
 
 
   new_name (optional, str, None)
-    Provide the *name* of the fabric to be modified.
+    Provide the \ :emphasis:`name`\  of the fabric to be modified.
 
 
   description (optional, str, None)
@@ -48,25 +48,25 @@ Parameters
 
 
   fabric_design (optional, str, None)
-    Specify the fabric topology.See the use API https://www.dell.com/support/manuals/en-in/poweredge-mx7000/omem_1_20_10_ug/smartfabric-network-topologies to know why its topology.
+    Specify the fabric topology.See the use API \ https://www.dell.com/support/manuals/en-in/poweredge-mx7000/omem_1_20_10_ug/smartfabric-network-topologies\  to know why its topology.
 
-    *fabric_design* is mandatory for fabric creation.
+    \ :emphasis:`fabric\_design`\  is mandatory for fabric creation.
 
 
   primary_switch_service_tag (optional, str, None)
     Service tag of the first switch.
 
-    *primary_switch_service_tag* is mandatory for fabric creation.
+    \ :emphasis:`primary\_switch\_service\_tag`\  is mandatory for fabric creation.
 
-    *primary_switch_service_tag* must belong to the model selected in *fabric_design*.
+    \ :emphasis:`primary\_switch\_service\_tag`\  must belong to the model selected in \ :emphasis:`fabric\_design`\ .
 
 
   secondary_switch_service_tag (optional, str, None)
     Service tag of the second switch.
 
-    *secondary_switch_service_tag* is mandatory for fabric creation.
+    \ :emphasis:`secondary\_switch\_service\_tag`\  is mandatory for fabric creation.
 
-    *secondary_switch_service_tag* must belong to the model selected in *fabric_design*.
+    \ :emphasis:`secondary\_switch\_service\_tag`\  must belong to the model selected in \ :emphasis:`fabric\_design`\ .
 
 
   override_LLDP_configuration (optional, str, None)
@@ -79,12 +79,28 @@ Parameters
     OpenManage Enterprise Modular IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise Modular username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise Modular password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -92,11 +108,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -115,7 +131,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell OpenManage Enterprise Modular.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 

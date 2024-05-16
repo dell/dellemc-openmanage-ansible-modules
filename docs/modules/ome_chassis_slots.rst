@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.8.6
 
 
 
@@ -30,19 +30,19 @@ Parameters
   device_options (optional, list, None)
     The ID or service tag of the sled in the slot and the new name for the slot.
 
-    *device_options* is mutually exclusive with *slot_options*.
+    \ :emphasis:`device\_options`\  is mutually exclusive with \ :emphasis:`slot\_options`\ .
 
 
     device_id (optional, int, None)
       Device ID of the sled in the slot.
 
-      This is mutually exclusive with *device_service_tag*.
+      This is mutually exclusive with \ :emphasis:`device\_service\_tag`\ .
 
 
     device_service_tag (optional, str, None)
       Service tag of the sled in the slot.
 
-      This is mutually exclusive with *device_id*.
+      This is mutually exclusive with \ :emphasis:`device\_id`\ .
 
 
     slot_name (True, str, None)
@@ -53,7 +53,7 @@ Parameters
   slot_options (optional, list, None)
     The service tag of the chassis, slot number of the slot to be renamed, and the new name for the slot.
 
-    *slot_options* is mutually exclusive with *device_options*.
+    \ :emphasis:`slot\_options`\  is mutually exclusive with \ :emphasis:`device\_options`\ .
 
 
     chassis_service_tag (True, str, None)
@@ -78,12 +78,28 @@ Parameters
     OpenManage Enterprise Modular IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise Modular username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise Modular password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -91,11 +107,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -115,7 +131,7 @@ Notes
 .. note::
    - This module initiates the refresh inventory task. It may take a minute for new names to be reflected. If the task exceeds 300 seconds to refresh, the task times out.
    - Run this module from a system that has direct access to Dell OpenManage Enterprise Modular.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 
@@ -195,17 +211,17 @@ msg (always, str, Successfully renamed the slot(s).)
 slot_info (if at least one slot renamed, list, [{'ChassisId': 10053, 'ChassisServiceTag': 'ABCD123', 'DeviceName': '', 'DeviceType': 1000, 'JobId': 15746, 'SlotId': '10072', 'SlotName': 'slot_op2', 'SlotNumber': '6', 'SlotType': 2000}, {'ChassisId': 10053, 'ChassisName': 'MX-ABCD123', 'ChassisServiceTag': 'ABCD123', 'DeviceType': '3000', 'JobId': 15747, 'SlotId': '10070', 'SlotName': 'slot_op2', 'SlotNumber': '4', 'SlotType': '2000'}, {'ChassisId': '10053', 'ChassisName': 'MX-PQRS123', 'ChassisServiceTag': 'PQRS123', 'DeviceId': '10054', 'DeviceServiceTag': 'XYZ5678', 'DeviceType': '1000', 'JobId': 15761, 'SlotId': '10067', 'SlotName': 'a1', 'SlotNumber': '1', 'SlotType': '2000'}])
   Information of the slots that are renamed successfully.
 
-  The ``DeviceServiceTag`` and ``DeviceId`` options are available only if *device_options* is used.
+  The \ :literal:`DeviceServiceTag`\  and \ :literal:`DeviceId`\  options are available only if \ :emphasis:`device\_options`\  is used.
 
-  ``NOTE`` Only the slots which were renamed are listed.
+  \ :literal:`NOTE`\  Only the slots which were renamed are listed.
 
 
 rename_failed_slots (if at least one slot renaming fails, list, [{'ChassisId': '12345', 'ChassisName': 'MX-ABCD123', 'ChassisServiceTag': 'ABCD123', 'DeviceType': '4000', 'JobId': 1234, 'JobStatus': 'Aborted', 'SlotId': '10061', 'SlotName': 'c2', 'SlotNumber': '1', 'SlotType': '4000'}, {'ChassisId': '10053', 'ChassisName': 'MX-PQRS123', 'ChassisServiceTag': 'PQRS123', 'DeviceType': '1000', 'JobId': 0, 'JobStatus': 'HTTP Error 400: Bad Request', 'SlotId': '10069', 'SlotName': 'b2', 'SlotNumber': '3', 'SlotType': '2000'}])
   Information of the valid slots that are not renamed.
 
-  ``JobStatus`` is shown if rename job fails.
+  \ :literal:`JobStatus`\  is shown if rename job fails.
 
-  ``NOTE`` Only slots which were not renamed are listed.
+  \ :literal:`NOTE`\  Only slots which were not renamed are listed.
 
 
 error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'CGEN1014', 'RelatedProperties': [], 'Message': 'Unable to complete the operation because an invalid value is entered for the property Invalid json type: STRING for Edm.Int64 property: Id .', 'MessageArgs': ['Invalid json type: STRING for Edm.Int64 property: Id'], 'Severity': 'Critical', 'Resolution': "Enter a valid value for the property and retry the operation. For more information about valid values, see the OpenManage Enterprise-Modular User's Guide available on the support site."}]}})

@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.8.6
 
 
 
@@ -28,83 +28,83 @@ Parameters
 ----------
 
   command (optional, str, create)
-    ``create`` creates a new template.
+    \ :literal:`create`\  creates a new template.
 
-    ``modify`` modifies an existing template.
+    \ :literal:`modify`\  modifies an existing template.
 
-    ``deploy`` creates a template-deployment job.
+    \ :literal:`deploy`\  creates a template-deployment job.
 
-    ``delete`` deletes an existing template.
+    \ :literal:`delete`\  deletes an existing template.
 
-    ``export`` exports an existing template.
+    \ :literal:`export`\  exports an existing template.
 
-    ``import`` creates a template from a specified configuration text in SCP XML format.
+    \ :literal:`import`\  creates a template from a specified configuration text in SCP XML format.
 
-    ``clone`` creates a clone of a existing template.
+    \ :literal:`clone`\  creates a clone of a existing template.
 
 
   template_id (optional, int, None)
     ID of the existing template.
 
-    This option is applicable when *command* is ``modify``, ``deploy``, ``delete``, ``clone`` and ``export``.
+    This option is applicable when \ :emphasis:`command`\  is \ :literal:`modify`\ , \ :literal:`deploy`\ , \ :literal:`delete`\ , \ :literal:`clone`\  and \ :literal:`export`\ .
 
-    This option is mutually exclusive with *template_name*.
+    This option is mutually exclusive with \ :emphasis:`template\_name`\ .
 
 
   template_name (optional, str, None)
     Name of the existing template.
 
-    This option is applicable when *command* is ``modify``, ``deploy``, ``delete``, ``clone`` and ``export``.
+    This option is applicable when \ :emphasis:`command`\  is \ :literal:`modify`\ , \ :literal:`deploy`\ , \ :literal:`delete`\ , \ :literal:`clone`\  and \ :literal:`export`\ .
 
-    This option is mutually exclusive with *template_id*.
+    This option is mutually exclusive with \ :emphasis:`template\_id`\ .
 
 
   device_id (optional, list, [])
-    Specify the list of targeted device ID(s) when *command* is ``deploy``. When I (command) is ``create``, specify the ID of a single device.
+    Specify the list of targeted device ID(s) when \ :emphasis:`command`\  is \ :literal:`deploy`\ . When I (command) is \ :literal:`create`\ , specify the ID of a single device.
 
-    Either *device_id* or *device_service_tag* is mandatory or both can be applicable.
+    Either \ :emphasis:`device\_id`\  or \ :emphasis:`device\_service\_tag`\  is mandatory or both can be applicable.
 
 
   device_service_tag (optional, list, [])
-    Specify the list of targeted device service tags when I (command) is ``deploy``. When *command* is ``create``, specify the service tag of a single device.
+    Specify the list of targeted device service tags when I (command) is \ :literal:`deploy`\ . When \ :emphasis:`command`\  is \ :literal:`create`\ , specify the service tag of a single device.
 
-    Either *device_id* or *device_service_tag* is mandatory or both can be applicable.
+    Either \ :emphasis:`device\_id`\  or \ :emphasis:`device\_service\_tag`\  is mandatory or both can be applicable.
 
 
   device_group_names (optional, list, [])
-    Specify the list of groups when I (command) is ``deploy``.
+    Specify the list of groups when I (command) is \ :literal:`deploy`\ .
 
-    Provide at least one of the mandatory options *device_id*, *device_service_tag*, or *device_group_names*.
+    Provide at least one of the mandatory options \ :emphasis:`device\_id`\ , \ :emphasis:`device\_service\_tag`\ , or \ :emphasis:`device\_group\_names`\ .
 
 
   template_view_type (optional, str, Deployment)
     Select the type of view of the OME template.
 
-    This is applicable when *command* is ``create``,``clone`` and ``import``.
+    This is applicable when \ :emphasis:`command`\  is \ :literal:`create`\ ,\ :literal:`clone`\  and \ :literal:`import`\ .
 
 
   attributes (optional, dict, None)
-    Payload data for the template operations. All the variables in this option are added as payload for ``create``, ``modify``, ``deploy``, ``import``, and ``clone`` operations. It takes the following attributes.
+    Payload data for the template operations. All the variables in this option are added as payload for \ :literal:`create`\ , \ :literal:`modify`\ , \ :literal:`deploy`\ , \ :literal:`import`\ , and \ :literal:`clone`\  operations. It takes the following attributes.
 
-    Attributes: List of dictionaries of attributes (if any) to be modified in the deployment template. This is applicable when *command* is ``deploy`` and ``modify``. Use the *Id* If the attribute Id is available. If not, use the comma separated I (DisplayName). For more details about using the *DisplayName*, see the example provided.
+    Attributes: List of dictionaries of attributes (if any) to be modified in the deployment template. This is applicable when \ :emphasis:`command`\  is \ :literal:`deploy`\  and \ :literal:`modify`\ . Use the \ :emphasis:`Id`\  If the attribute Id is available. If not, use the comma separated I (DisplayName). For more details about using the \ :emphasis:`DisplayName`\ , see the example provided.
 
-    Name: Name of the template. This is mandatory when *command* is ``create``, ``import``, ``clone``, and optional when *command* is ``modify``.
+    Name: Name of the template. This is mandatory when \ :emphasis:`command`\  is \ :literal:`create`\ , \ :literal:`import`\ , \ :literal:`clone`\ , and optional when \ :emphasis:`command`\  is \ :literal:`modify`\ .
 
-    Description: Description for the template. This is applicable when *command* is ``create`` or ``modify``.
+    Description: Description for the template. This is applicable when \ :emphasis:`command`\  is \ :literal:`create`\  or \ :literal:`modify`\ .
 
-    Fqdds: This allows to create a template using components from a specified reference server. One or more, of the following values must be specified in a comma-separated string: iDRAC, System, BIOS, NIC, LifeCycleController, RAID, and EventFilters. If none of the values are specified, the default value 'All' is selected. This is applicable when I (command) is ``create``.
+    Fqdds: This allows to create a template using components from a specified reference server. One or more, of the following values must be specified in a comma-separated string: iDRAC, System, BIOS, NIC, LifeCycleController, RAID, and EventFilters. If none of the values are specified, the default value 'All' is selected. This is applicable when I (command) is \ :literal:`create`\ .
 
-    Options: Options to control device shutdown or end power state post template deployment. This is applicable for ``deploy`` operation.
+    Options: Options to control device shutdown or end power state post template deployment. This is applicable for \ :literal:`deploy`\  operation.
 
-    Schedule: Provides options to schedule the deployment task immediately, or at a specified time. This is applicable when *command* is ``deploy``.
+    Schedule: Provides options to schedule the deployment task immediately, or at a specified time. This is applicable when \ :emphasis:`command`\  is \ :literal:`deploy`\ .
 
-    NetworkBootIsoModel: Payload to specify the ISO deployment details. This is applicable when *command* is ``deploy``.
+    NetworkBootIsoModel: Payload to specify the ISO deployment details. This is applicable when \ :emphasis:`command`\  is \ :literal:`deploy`\ .
 
-    Content: The XML content of template. This is applicable when *command* is ``import``.
+    Content: The XML content of template. This is applicable when \ :emphasis:`command`\  is \ :literal:`import`\ .
 
-    Type: Template type ID, indicating the type of device for which configuration is supported, such as chassis and servers. This is applicable when *command* is ``import``.
+    Type: Template type ID, indicating the type of device for which configuration is supported, such as chassis and servers. This is applicable when \ :emphasis:`command`\  is \ :literal:`import`\ .
 
-    TypeId: Template type ID, indicating the type of device for which configuration is supported, such as chassis and servers. This is applicable when *command* is ``create``.
+    TypeId: Template type ID, indicating the type of device for which configuration is supported, such as chassis and servers. This is applicable when \ :emphasis:`command`\  is \ :literal:`create`\ .
 
     Refer OpenManage Enterprise API Reference Guide for more details.
 
@@ -112,25 +112,41 @@ Parameters
   job_wait (optional, bool, True)
     Provides the option to wait for job completion.
 
-    This option is applicable when *command* is ``create``, or ``deploy``.
+    This option is applicable when \ :emphasis:`command`\  is \ :literal:`create`\ , or \ :literal:`deploy`\ .
 
 
   job_wait_timeout (optional, int, 1200)
-    The maximum wait time of *job_wait* in seconds. The job is tracked only for this duration.
+    The maximum wait time of \ :emphasis:`job\_wait`\  in seconds. The job is tracked only for this duration.
 
-    This option is applicable when *job_wait* is ``true``.
+    This option is applicable when \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .
 
 
   hostname (True, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -138,11 +154,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -161,7 +177,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 
@@ -523,11 +539,11 @@ msg (always, str, Successfully created a template with ID 23)
 
 
 return_id (success, when I(command) is C(create), C(modify), C(import), C(clone) and C(deploy), int, 12)
-  ID of the template for ``create``, ``modify``, ``import`` and ``clone`` or task created in case of ``deploy``.
+  ID of the template for \ :literal:`create`\ , \ :literal:`modify`\ , \ :literal:`import`\  and \ :literal:`clone`\  or task created in case of \ :literal:`deploy`\ .
 
 
 TemplateId (success, when I(command) is C(export), int, 13)
-  ID of the template for ``export``.
+  ID of the template for \ :literal:`export`\ .
 
 
 Content (success, when I(command) is C(export), str, <SystemConfiguration Model="PowerEdge R940" ServiceTag="DEFG123" TimeStamp="Tue Sep 24 09:20:57.872551 2019">

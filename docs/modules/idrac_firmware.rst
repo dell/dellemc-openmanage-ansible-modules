@@ -26,8 +26,8 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- omsdk >= 1.2.503
-- python >= 3.9.6
+- omsdk \>= 1.2.503
+- python \>= 3.9.6
 
 
 
@@ -39,7 +39,7 @@ Parameters
 
 
   share_user (optional, str, None)
-    Network share user in the format 'user@domain' or 'domain\\user' if user is part of a domain else 'user'. This option is mandatory for CIFS Network Share.
+    Network share user in the format 'user@domain' or 'domain\\\\user' if user is part of a domain else 'user'. This option is mandatory for CIFS Network Share.
 
 
   share_password (optional, str, None)
@@ -57,25 +57,25 @@ Parameters
 
 
   catalog_file_name (optional, str, Catalog.xml)
-    Catalog file name relative to the *share_name*.
+    Catalog file name relative to the \ :emphasis:`share\_name`\ .
 
 
   ignore_cert_warning (optional, bool, True)
-    Specifies if certificate warnings are ignored when HTTPS share is used. If ``true`` option is set, then the certificate warnings are ignored.
+    Specifies if certificate warnings are ignored when HTTPS share is used. If \ :literal:`true`\  option is set, then the certificate warnings are ignored.
 
 
   apply_update (optional, bool, True)
-    If *apply_update* is set to ``true``, then the packages are applied.
+    If \ :emphasis:`apply\_update`\  is set to \ :literal:`true`\ , then the packages are applied.
 
-    If *apply_update* is set to ``false``, no updates are applied, and a catalog report of packages is generated and returned.
+    If \ :emphasis:`apply\_update`\  is set to \ :literal:`false`\ , no updates are applied, and a catalog report of packages is generated and returned.
 
 
   reboot (optional, bool, False)
     Provides the option to apply the update packages immediately or in the next reboot.
 
-    If *reboot* is set to ``true``,  then the packages  are applied immediately.
+    If \ :emphasis:`reboot`\  is set to \ :literal:`true`\ ,  then the packages  are applied immediately.
 
-    If *reboot* is set to ``false``, then the packages are staged and applied in the next reboot.
+    If \ :emphasis:`reboot`\  is set to \ :literal:`false`\ , then the packages are staged and applied in the next reboot.
 
     Packages that do not require a reboot are applied immediately irrespective of I (reboot).
 
@@ -83,15 +83,15 @@ Parameters
   proxy_support (optional, str, Off)
     Specifies if a proxy should be used.
 
-    Proxy parameters are applicable on ``HTTP``, ``HTTPS``, and ``FTP`` share type of repositories.
+    Proxy parameters are applicable on \ :literal:`HTTP`\ , \ :literal:`HTTPS`\ , and \ :literal:`FTP`\  share type of repositories.
 
-    ``ParametersProxy``, sets the proxy parameters for the current firmware operation.
+    \ :literal:`ParametersProxy`\ , sets the proxy parameters for the current firmware operation.
 
-    ``DefaultProxy``, iDRAC uses the proxy values set by default.
+    \ :literal:`DefaultProxy`\ , iDRAC uses the proxy values set by default.
 
-    Default Proxy can be set in the Lifecycle Controller attributes using :ref:`dellemc.openmanage.idrac_attributes <dellemc.openmanage.idrac_attributes_module>`.
+    Default Proxy can be set in the Lifecycle Controller attributes using \ :ref:`dellemc.openmanage.idrac\_attributes <ansible_collections.dellemc.openmanage.idrac_attributes_module>`\ .
 
-    ``Off``, will not use the proxy.
+    \ :literal:`Off`\ , will not use the proxy.
 
     For iDRAC8 based servers, use proxy server with basic authentication.
 
@@ -101,21 +101,21 @@ Parameters
   proxy_server (optional, str, None)
     The IP address of the proxy server.
 
-    This IP will not be validated. The download job will be created even for invalid *proxy_server*. Please check the results of the job for error details.
+    This IP will not be validated. The download job will be created even for invalid \ :emphasis:`proxy\_server`\ . Please check the results of the job for error details.
 
-    This is required when *proxy_support* is ``ParametersProxy``.
+    This is required when \ :emphasis:`proxy\_support`\  is \ :literal:`ParametersProxy`\ .
 
 
   proxy_port (optional, int, None)
     The Port for the proxy server.
 
-    This is required when *proxy_support* is ``ParametersProxy``.
+    This is required when \ :emphasis:`proxy\_support`\  is \ :literal:`ParametersProxy`\ .
 
 
   proxy_type (optional, str, None)
     The proxy type of the proxy server.
 
-    This is required when *proxy_support* is ``ParametersProxy``.
+    This is required when \ :emphasis:`proxy\_support`\  is \ :literal:`ParametersProxy`\ .
 
     Note: SOCKS4 proxy does not support IPv6 address.
 
@@ -132,12 +132,28 @@ Parameters
     iDRAC IP Address.
 
 
-  idrac_user (True, str, None)
+  idrac_user (False, str, None)
     iDRAC username.
 
+    If the username is not provided, then the environment variable \ :envvar:`IDRAC\_USERNAME`\  is used.
 
-  idrac_password (True, str, None)
+    Example: export IDRAC\_USERNAME=username
+
+
+  idrac_password (False, str, None)
     iDRAC user password.
+
+    If the password is not provided, then the environment variable \ :envvar:`IDRAC\_PASSWORD`\  is used.
+
+    Example: export IDRAC\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`IDRAC\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export IDRAC\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   idrac_port (optional, int, 443)
@@ -145,11 +161,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -170,8 +186,8 @@ Notes
    - Run this module from a system that has direct access to Dell iDRAC.
    - Module will report success based on the iDRAC firmware update parent job status if there are no individual component jobs present.
    - For server with iDRAC firmware 5.00.00.00 and later, if the repository contains unsupported packages, then the module will return success with a proper message.
-   - This module supports both IPv4 and IPv6 address for *idrac_ip* and *share_name*.
-   - This module supports ``check_mode``.
+   - This module supports both IPv4 and IPv6 address for \ :emphasis:`idrac\_ip`\  and \ :emphasis:`share\_name`\ .
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 

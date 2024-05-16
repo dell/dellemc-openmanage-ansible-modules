@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.8.6
 
 
 
@@ -28,15 +28,15 @@ Parameters
 ----------
 
   state (optional, str, present)
-    ``present`` modifies an existing identity pool. If the provided I (pool_name) does not exist, it creates an identity pool. - ``absent`` deletes an existing identity pool.
+    \ :literal:`present`\  modifies an existing identity pool. If the provided I (pool\_name) does not exist, it creates an identity pool. - \ :literal:`absent`\  deletes an existing identity pool.
 
 
   pool_name (True, str, None)
-    This option is mandatory for *state* when creating, modifying and deleting an identity pool.
+    This option is mandatory for \ :emphasis:`state`\  when creating, modifying and deleting an identity pool.
 
 
   new_pool_name (optional, str, None)
-    After creating an identity pool, *pool_name* can be changed to *new_pool_name*.
+    After creating an identity pool, \ :emphasis:`pool\_name`\  can be changed to \ :emphasis:`new\_pool\_name`\ .
 
     This option is ignored when creating an identity pool.
 
@@ -48,7 +48,7 @@ Parameters
   ethernet_settings (optional, dict, None)
     Applicable for creating and modifying an identity pool using Ethernet settings.
 
-    *starting_mac_address* and *identity_count* are required to create an identity pool.
+    \ :emphasis:`starting\_mac\_address`\  and \ :emphasis:`identity\_count`\  are required to create an identity pool.
 
 
     starting_mac_address (optional, str, None)
@@ -63,7 +63,7 @@ Parameters
   fcoe_settings (optional, dict, None)
     Applicable for creating and modifying an identity pool using FCoE settings.
 
-    *starting_mac_address* and *identity_count* are required to create an identity pool.
+    \ :emphasis:`starting\_mac\_address`\  and \ :emphasis:`identity\_count`\  are required to create an identity pool.
 
 
     starting_mac_address (optional, str, None)
@@ -78,7 +78,7 @@ Parameters
   iscsi_settings (optional, dict, None)
     Applicable for creating and modifying an identity pool using ISCSI settings.
 
-    *starting_mac_address*, *identity_count*, *iqn_prefix*, *ip_range* and *subnet_mask* are required to create an identity pool.
+    \ :emphasis:`starting\_mac\_address`\ , \ :emphasis:`identity\_count`\ , \ :emphasis:`iqn\_prefix`\ , \ :emphasis:`ip\_range`\  and \ :emphasis:`subnet\_mask`\  are required to create an identity pool.
 
 
     starting_mac_address (optional, str, None)
@@ -107,7 +107,7 @@ Parameters
 
 
       subnet_mask (optional, str, None)
-        Subnet mask for *ip_range*.
+        Subnet mask for \ :emphasis:`ip\_range`\ .
 
 
       gateway (optional, str, None)
@@ -131,15 +131,15 @@ Parameters
 
     The value 0x2001 is beginning to the starting address for the generation of a WWPN, and 0x2000 for a WWNN.
 
-    *starting_address* and *identity_count* are required to create an identity pool.
+    \ :emphasis:`starting\_address`\  and \ :emphasis:`identity\_count`\  are required to create an identity pool.
 
 
     starting_address (optional, str, None)
-      Starting MAC Address of FC setting.*starting_address* is required to option to create FC settings.
+      Starting MAC Address of FC setting.\ :emphasis:`starting\_address`\  is required to option to create FC settings.
 
 
     identity_count (optional, int, None)
-      Number of MAC addresses.*identity_count* is required to option to create FC settings.
+      Number of MAC addresses.\ :emphasis:`identity\_count`\  is required to option to create FC settings.
 
 
 
@@ -147,12 +147,28 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -160,11 +176,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -183,7 +199,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 
@@ -291,7 +307,7 @@ msg (always, str, Successfully created an identity pool.)
 
 
 pool_status (success, dict, {'Id': 29, 'IsSuccessful': True, 'Issues': []})
-  Details of the user operation, when *state* is ``present``.
+  Details of the user operation, when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
 
 error_info (on HTTP error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to process the request because an error occurred: Ethernet-MAC Range overlap found (in this Identity Pool or in a different one) .', 'MessageArgs': ['Ethernet-MAC Range overlap found (in this Identity Pool or in a different one)"'], 'MessageId': 'CGEN6001', 'RelatedProperties': [], 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.', 'Severity': 'Critical'}], 'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.'}})

@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.8.6
 
 
 
@@ -28,71 +28,87 @@ Parameters
 ----------
 
   state (optional, str, present)
-    ``present`` allows to create or modify a device group.
+    \ :literal:`present`\  allows to create or modify a device group.
 
-    ``absent`` allows to delete a device group.
+    \ :literal:`absent`\  allows to delete a device group.
 
 
   name (optional, list, None)
     Name of the device group to be created, modified, or deleted.
 
-    If *state* is absent, multiple names can be provided.
+    If \ :emphasis:`state`\  is absent, multiple names can be provided.
 
     This option is case insensitive.
 
-    This option is mutually exclusive with *group_id*.
+    This option is mutually exclusive with \ :emphasis:`group\_id`\ .
 
 
   group_id (optional, list, None)
     ID of the device group to be created, modified, or deleted.
 
-    If *state* is absent, multiple IDs can be provided.
+    If \ :emphasis:`state`\  is absent, multiple IDs can be provided.
 
-    This option is mutually exclusive with *name*.
+    This option is mutually exclusive with \ :emphasis:`name`\ .
 
 
   new_name (optional, str, None)
     New name for the existing device group.
 
-    This is applicable only when *state* is ``present``.
+    This is applicable only when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
 
   description (optional, str, None)
     Description for the device group.
 
-    This is applicable only when *state* is ``present``.
+    This is applicable only when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
 
   parent_group_name (optional, str, Static Groups)
     Name of the parent device group under which the device group to be created or modified.
 
-    This is applicable only when *state* is ``present``.
+    This is applicable only when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
-    ``NOTE`` If device group with such a name does not exist, device group with *parent_group_name* is created.
+    \ :literal:`NOTE`\  If device group with such a name does not exist, device group with \ :emphasis:`parent\_group\_name`\  is created.
 
     This option is case insensitive.
 
-    This option is mutually exclusive with *parent_group_id*.
+    This option is mutually exclusive with \ :emphasis:`parent\_group\_id`\ .
 
 
   parent_group_id (optional, int, None)
     ID of the parent device group under which the device group to be created or modified.
 
-    This is applicable only when *state* is ``present``.
+    This is applicable only when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
-    This option is mutually exclusive with *parent_group_name*.
+    This option is mutually exclusive with \ :emphasis:`parent\_group\_name`\ .
 
 
   hostname (True, str, None)
     OpenManage Enterprise IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -100,11 +116,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -123,10 +139,10 @@ Notes
 
 .. note::
    - This module manages only static device groups on Dell OpenManage Enterprise.
-   - If a device group with the name *parent_group_name* does not exist, a new device group with the same name is created.
+   - If a device group with the name \ :emphasis:`parent\_group\_name`\  does not exist, a new device group with the same name is created.
    - Make sure the entered parent group is not the descendant of the provided group.
    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 

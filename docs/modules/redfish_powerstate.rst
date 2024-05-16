@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.8.6
 
 
 
@@ -28,55 +28,71 @@ Parameters
 ----------
 
   resource_id (False, str, None)
-    The unique identifier of the device being managed. For example- https://<*baseuri*>/redfish/v1/Systems/<*resource_id*>.
+    The unique identifier of the device being managed. For example- \ https://%3CI(baseuri\ \>/redfish/v1/Systems/\<\ :emphasis:`resource\_id`\ \>).
 
-    This option is mandatory for *base_uri* with multiple devices.
+    This option is mandatory for \ :emphasis:`base\_uri`\  with multiple devices.
 
-    To get the device details, use the API https://<*baseuri*>/redfish/v1/Systems.
+    To get the device details, use the API \ https://%3CI(baseuri\ \>/redfish/v1/Systems).
 
 
   reset_type (True, str, None)
     This option resets the device.
 
-    If ``ForceOff``, Turns off the device immediately.
+    If \ :literal:`ForceOff`\ , Turns off the device immediately.
 
-    If ``ForceOn``, Turns on the device immediately.
+    If \ :literal:`ForceOn`\ , Turns on the device immediately.
 
-    If ``ForceRestart``, Turns off the device immediately, and then restarts the device.
+    If \ :literal:`ForceRestart`\ , Turns off the device immediately, and then restarts the device.
 
-    If ``GracefulRestart``, Performs graceful shutdown of the device, and then restarts the device.
+    If \ :literal:`GracefulRestart`\ , Performs graceful shutdown of the device, and then restarts the device.
 
-    If ``GracefulShutdown``, Performs a graceful shutdown of the device, and the turns off the device.
+    If \ :literal:`GracefulShutdown`\ , Performs a graceful shutdown of the device, and the turns off the device.
 
-    If ``Nmi``, Sends a diagnostic interrupt to the device. This is usually a non-maskable interrupt (NMI) on x86 device.
+    If \ :literal:`Nmi`\ , Sends a diagnostic interrupt to the device. This is usually a non-maskable interrupt (NMI) on x86 device.
 
-    If ``On``, Turns on the device.
+    If \ :literal:`On`\ , Turns on the device.
 
-    If ``PowerCycle``, Performs power cycle on the device.
+    If \ :literal:`PowerCycle`\ , Performs power cycle on the device.
 
-    If ``PushPowerButton``, Simulates the pressing of a physical power button on the device.
+    If \ :literal:`PushPowerButton`\ , Simulates the pressing of a physical power button on the device.
 
     When a power control operation is performed, which is not supported on the device, an error message is displayed with the list of operations that can be performed.
 
 
   baseuri (True, str, None)
-    IP address of the target out-of-band controller. For example- <ipaddress>:<port>.
+    IP address of the target out-of-band controller. For example- \<ipaddress\>:\<port\>.
 
 
-  username (True, str, None)
+  username (False, str, None)
     Username of the target out-of-band controller.
 
+    If the username is not provided, then the environment variable \ :envvar:`IDRAC\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export IDRAC\_USERNAME=username
+
+
+  password (False, str, None)
     Password of the target out-of-band controller.
+
+    If the password is not provided, then the environment variable \ :envvar:`IDRAC\_PASSWORD`\  is used.
+
+    Example: export IDRAC\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`IDRAC\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export IDRAC\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -95,7 +111,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Redfish APIs.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 

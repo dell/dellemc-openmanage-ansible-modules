@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.8.6
 
 
 
@@ -30,13 +30,13 @@ Parameters
   device_service_tag (optional, str, None)
     Service tag of the device.
 
-    This option is mutually exclusive with *device_id*.
+    This option is mutually exclusive with \ :emphasis:`device\_id`\ .
 
 
   device_id (optional, int, None)
     ID of the device.
 
-    This option is mutually exclusive with *device_service_tag*.
+    This option is mutually exclusive with \ :emphasis:`device\_service\_tag`\ .
 
 
   enable_nic (optional, bool, True)
@@ -54,7 +54,7 @@ Parameters
   ipv4_configuration (optional, dict, None)
     IPv4 network configuration.
 
-    ``WARNING`` Ensure that you have an alternate interface to access OpenManage Enterprise Modular because these options can change the current IPv4 address for *hostname*.
+    \ :literal:`WARNING`\  Ensure that you have an alternate interface to access OpenManage Enterprise Modular because these options can change the current IPv4 address for \ :emphasis:`hostname`\ .
 
 
     enable_ipv4 (True, bool, None)
@@ -64,52 +64,52 @@ Parameters
     enable_dhcp (optional, bool, None)
       Enable or disable the automatic request to obtain an IPv4 address from the IPv4 Dynamic Host Configuration Protocol (DHCP) server.
 
-      ``NOTE`` If this option is ``true``, the values provided for *static_ip_address*, *static_subnet_mask*, and *static_gateway* are not applied for these fields. However, the module may report changes.
+      \ :literal:`NOTE`\  If this option is \ :literal:`true`\ , the values provided for \ :emphasis:`static\_ip\_address`\ , \ :emphasis:`static\_subnet\_mask`\ , and \ :emphasis:`static\_gateway`\  are not applied for these fields. However, the module may report changes.
 
 
     static_ip_address (optional, str, None)
       Static IPv4 address
 
-      This option is applicable when *enable_dhcp* is false.
+      This option is applicable when \ :emphasis:`enable\_dhcp`\  is false.
 
 
     static_subnet_mask (optional, str, None)
       Static IPv4 subnet mask address
 
-      This option is applicable when *enable_dhcp* is false.
+      This option is applicable when \ :emphasis:`enable\_dhcp`\  is false.
 
 
     static_gateway (optional, str, None)
       Static IPv4 gateway address
 
-      This option is applicable when *enable_dhcp* is false.
+      This option is applicable when \ :emphasis:`enable\_dhcp`\  is false.
 
 
     use_dhcp_to_obtain_dns_server_address (optional, bool, None)
       This option allows to automatically request and obtain IPv4 address for the DNS Server from the DHCP server.
 
-      This option is applicable when *enable_dhcp* is true.
+      This option is applicable when \ :emphasis:`enable\_dhcp`\  is true.
 
-      ``NOTE`` If this option is ``true``, the values provided for *static_preferred_dns_server* and *static_alternate_dns_server* are not applied for these fields. However, the module may report changes.
+      \ :literal:`NOTE`\  If this option is \ :literal:`true`\ , the values provided for \ :emphasis:`static\_preferred\_dns\_server`\  and \ :emphasis:`static\_alternate\_dns\_server`\  are not applied for these fields. However, the module may report changes.
 
 
     static_preferred_dns_server (optional, str, None)
       Static IPv4 DNS preferred server
 
-      This option is applicable when *use_dhcp_for_dns_server_names* is false.
+      This option is applicable when \ :emphasis:`use\_dhcp\_for\_dns\_server\_names`\  is false.
 
 
     static_alternate_dns_server (optional, str, None)
       Static IPv4 DNS alternate server
 
-      This option is applicable when *use_dhcp_for_dns_server_names* is false.
+      This option is applicable when \ :emphasis:`use\_dhcp\_for\_dns\_server\_names`\  is false.
 
 
 
   ipv6_configuration (optional, dict, None)
     IPv6 network configuration.
 
-    ``WARNING`` Ensure that you have an alternate interface to access OpenManage Enterprise Modular because these options can change the current IPv6 address for *hostname*.
+    \ :literal:`WARNING`\  Ensure that you have an alternate interface to access OpenManage Enterprise Modular because these options can change the current IPv6 address for \ :emphasis:`hostname`\ .
 
 
     enable_ipv6 (True, bool, None)
@@ -119,47 +119,47 @@ Parameters
     enable_auto_configuration (optional, bool, None)
       Enable or disable the automatic request to obtain an IPv6 address from the IPv6 DHCP server or router advertisements(RA)
 
-      If *enable_auto_configuration* is ``true``, OpenManage Enterprise Modular retrieves IP configuration (IPv6 address, prefix, and gateway address) from a DHCPv6 server on the existing network.
+      If \ :emphasis:`enable\_auto\_configuration`\  is \ :literal:`true`\ , OpenManage Enterprise Modular retrieves IP configuration (IPv6 address, prefix, and gateway address) from a DHCPv6 server on the existing network.
 
-      ``NOTE`` If this option is ``true``, the values provided for *static_ip_address*, *static_prefix_length*, and *static_gateway* are not applied for these fields. However, the module may report changes.
+      \ :literal:`NOTE`\  If this option is \ :literal:`true`\ , the values provided for \ :emphasis:`static\_ip\_address`\ , \ :emphasis:`static\_prefix\_length`\ , and \ :emphasis:`static\_gateway`\  are not applied for these fields. However, the module may report changes.
 
 
     static_ip_address (optional, str, None)
       Static IPv6 address
 
-      This option is applicable when *enable_auto_configuration* is false.
+      This option is applicable when \ :emphasis:`enable\_auto\_configuration`\  is false.
 
 
     static_prefix_length (optional, int, None)
       Static IPv6 prefix length
 
-      This option is applicable when *enable_auto_configuration* is false.
+      This option is applicable when \ :emphasis:`enable\_auto\_configuration`\  is false.
 
 
     static_gateway (optional, str, None)
       Static IPv6 gateway address
 
-      This option is applicable when *enable_auto_configuration* is false.
+      This option is applicable when \ :emphasis:`enable\_auto\_configuration`\  is false.
 
 
     use_dhcpv6_to_obtain_dns_server_address (optional, bool, None)
       This option allows to automatically request and obtain a IPv6 address for the DNS server from the DHCP server.
 
-      This option is applicable when *enable_auto_configuration* is true
+      This option is applicable when \ :emphasis:`enable\_auto\_configuration`\  is true
 
-      ``NOTE`` If this option is ``true``, the values provided for *static_preferred_dns_server* and *static_alternate_dns_server* are not applied for these fields. However, the module may report changes.
+      \ :literal:`NOTE`\  If this option is \ :literal:`true`\ , the values provided for \ :emphasis:`static\_preferred\_dns\_server`\  and \ :emphasis:`static\_alternate\_dns\_server`\  are not applied for these fields. However, the module may report changes.
 
 
     static_preferred_dns_server (optional, str, None)
       Static IPv6 DNS preferred server
 
-      This option is applicable when *use_dhcp_for_dns_server_names* is false.
+      This option is applicable when \ :emphasis:`use\_dhcp\_for\_dns\_server\_names`\  is false.
 
 
     static_alternate_dns_server (optional, str, None)
       Static IPv6 DNS alternate server
 
-      This option is applicable when *use_dhcp_for_dns_server_names* is false.
+      This option is applicable when \ :emphasis:`use\_dhcp\_for\_dns\_server\_names`\  is false.
 
 
 
@@ -170,9 +170,9 @@ Parameters
     enable_vlan (True, bool, None)
       Enable or disable VLAN for management.
 
-      The VLAN configuration cannot be updated if the *register_with_dns* field under *dns_configuration* is true.
+      The VLAN configuration cannot be updated if the \ :emphasis:`register\_with\_dns`\  field under \ :emphasis:`dns\_configuration`\  is true.
 
-      ``WARNING`` Ensure that the network cable is connected to the correct port after the VLAN configuration is changed. If not, the VLAN configuration changes may not be applied.
+      \ :literal:`WARNING`\  Ensure that the network cable is connected to the correct port after the VLAN configuration is changed. If not, the VLAN configuration changes may not be applied.
 
 
     vlan_id (optional, int, None)
@@ -180,7 +180,7 @@ Parameters
 
       The valid VLAN IDs are: 1 to 4000, and 4021 to 4094.
 
-      This option is applicable when *enable_vlan* is true.
+      This option is applicable when \ :emphasis:`enable\_vlan`\  is true.
 
 
 
@@ -189,33 +189,33 @@ Parameters
 
 
     register_with_dns (optional, bool, None)
-      Register/Unregister *dns_name* on the DNS Server.
+      Register/Unregister \ :emphasis:`dns\_name`\  on the DNS Server.
 
-      ``WARNING`` This option cannot be updated if VLAN configuration changes.
+      \ :literal:`WARNING`\  This option cannot be updated if VLAN configuration changes.
 
 
     use_dhcp_for_dns_domain_name (optional, bool, None)
-      Get the *dns_domain_name* using a DHCP server.
+      Get the \ :emphasis:`dns\_domain\_name`\  using a DHCP server.
 
 
     dns_name (optional, str, None)
-      DNS name for *hostname*
+      DNS name for \ :emphasis:`hostname`\ 
 
-      This is applicable when *register_with_dns* is true.
+      This is applicable when \ :emphasis:`register\_with\_dns`\  is true.
 
 
     dns_domain_name (optional, str, None)
       Static DNS domain name
 
-      This is applicable when *use_dhcp_for_dns_domain_name* is false.
+      This is applicable when \ :emphasis:`use\_dhcp\_for\_dns\_domain\_name`\  is false.
 
 
     auto_negotiation (optional, bool, None)
       Enables or disables the auto negation of the network speed.
 
-      ``NOTE``: Setting *auto_negotiation* to false and choosing a network port speed may result in the chassis loosing link to the top of rack network switch, or to the neighboring chassis in case of MCM mode. It is recommended that the *auto_negotiation* is set to ``true`` for most use cases.
+      \ :literal:`NOTE`\ : Setting \ :emphasis:`auto\_negotiation`\  to false and choosing a network port speed may result in the chassis loosing link to the top of rack network switch, or to the neighboring chassis in case of MCM mode. It is recommended that the \ :emphasis:`auto\_negotiation`\  is set to \ :literal:`true`\  for most use cases.
 
-      This is applicable when *use_dhcp_for_dns_domain_name* is false.
+      This is applicable when \ :emphasis:`use\_dhcp\_for\_dns\_domain\_name`\  is false.
 
       This is applicable only for Chassis.
 
@@ -223,11 +223,11 @@ Parameters
     network_speed (optional, str, None)
       The speed of the network port.
 
-      This is applicable when *auto_negotiation* is false.
+      This is applicable when \ :emphasis:`auto\_negotiation`\  is false.
 
-      ``10_MB`` to select network speed of 10 MB.
+      \ :literal:`10\_MB`\  to select network speed of 10 MB.
 
-      ``100_MB`` to select network speed of 100 MB.
+      \ :literal:`100\_MB`\  to select network speed of 100 MB.
 
       This is applicable only for Chassis.
 
@@ -256,12 +256,28 @@ Parameters
     OpenManage Enterprise Modular IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise Modular username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise Modular password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -269,11 +285,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -292,7 +308,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell OpenManage Enterprise Modular.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 

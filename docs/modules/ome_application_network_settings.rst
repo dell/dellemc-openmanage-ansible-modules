@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.8.6
 
 
 
@@ -38,15 +38,15 @@ Parameters
     universal_timeout (optional, float, None)
       Duration of inactivity in minutes after which all sessions end.
 
-      This is applicable when *enable_universal_timeout* is ``true``.
+      This is applicable when \ :emphasis:`enable\_universal\_timeout`\  is \ :literal:`true`\ .
 
-      This is mutually exclusive with *api_timeout*, *gui_timeout*, *ssh_timeout* and *serial_timeout*.
+      This is mutually exclusive with \ :emphasis:`api\_timeout`\ , \ :emphasis:`gui\_timeout`\ , \ :emphasis:`ssh\_timeout`\  and \ :emphasis:`serial\_timeout`\ .
 
 
     api_timeout (optional, float, None)
       Duration of inactivity in minutes after which the API session ends.
 
-      This is mutually exclusive with *universal_timeout*.
+      This is mutually exclusive with \ :emphasis:`universal\_timeout`\ .
 
 
     api_sessions (optional, int, None)
@@ -56,7 +56,7 @@ Parameters
     gui_timeout (optional, float, None)
       Duration of inactivity in minutes after which the web interface of Graphical User Interface (GUI) session ends.
 
-      This is mutually exclusive with *universal_timeout*.
+      This is mutually exclusive with \ :emphasis:`universal\_timeout`\ .
 
 
     gui_sessions (optional, int, None)
@@ -68,7 +68,7 @@ Parameters
 
       This is applicable only for OpenManage Enterprise Modular.
 
-      This is mutually exclusive with *universal_timeout*.
+      This is mutually exclusive with \ :emphasis:`universal\_timeout`\ .
 
 
     ssh_sessions (optional, int, None)
@@ -82,7 +82,7 @@ Parameters
 
       This is applicable only for OpenManage Enterprise Modular.
 
-      This is mutually exclusive with *universal_timeout*.
+      This is mutually exclusive with \ :emphasis:`universal\_timeout`\ .
 
 
     serial_sessions (optional, int, None)
@@ -96,12 +96,28 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -109,11 +125,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -133,7 +149,7 @@ Notes
 .. note::
    - Run this module from a system that has direct access to Dell OpenManage Enterprise or OpenManage Enterprise Modular.
    - To configure other network settings such as network address, web server, and so on, refer to the respective OpenManage Enterprise application network setting modules.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 

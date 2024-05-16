@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.8.6
 
 
 
@@ -32,15 +32,15 @@ Parameters
 
     This option is mandatory for generating baseline based device compliance report.
 
-    *baseline_name* is mutually exclusive with *device_ids*, *device_service_tags* and *device_group_names*.
+    \ :emphasis:`baseline\_name`\  is mutually exclusive with \ :emphasis:`device\_ids`\ , \ :emphasis:`device\_service\_tags`\  and \ :emphasis:`device\_group\_names`\ .
 
 
   device_ids (optional, list, None)
     A list of unique identifier for device based compliance report.
 
-    Either *device_ids*, *device_service_tags* or *device_group_names* is required to generate device based compliance report.
+    Either \ :emphasis:`device\_ids`\ , \ :emphasis:`device\_service\_tags`\  or \ :emphasis:`device\_group\_names`\  is required to generate device based compliance report.
 
-    *device_ids* is mutually exclusive with *device_service_tags*, *device_group_names* and *baseline_name*.
+    \ :emphasis:`device\_ids`\  is mutually exclusive with \ :emphasis:`device\_service\_tags`\ , \ :emphasis:`device\_group\_names`\  and \ :emphasis:`baseline\_name`\ .
 
     Devices without reports are ignored.
 
@@ -48,9 +48,9 @@ Parameters
   device_service_tags (optional, list, None)
     A list of service tags for device based compliance report.
 
-    Either *device_ids*, *device_service_tags* or *device_group_names* is required to generate device based compliance report.
+    Either \ :emphasis:`device\_ids`\ , \ :emphasis:`device\_service\_tags`\  or \ :emphasis:`device\_group\_names`\  is required to generate device based compliance report.
 
-    *device_service_tags* is mutually exclusive with *device_ids*, *device_group_names* and *baseline_name*.
+    \ :emphasis:`device\_service\_tags`\  is mutually exclusive with \ :emphasis:`device\_ids`\ , \ :emphasis:`device\_group\_names`\  and \ :emphasis:`baseline\_name`\ .
 
     Devices without reports are ignored.
 
@@ -58,9 +58,9 @@ Parameters
   device_group_names (optional, list, None)
     A list of group names for device based compliance report.
 
-    Either *device_ids*, *device_service_tags* or *device_group_names* is required to generate device based compliance report.
+    Either \ :emphasis:`device\_ids`\ , \ :emphasis:`device\_service\_tags`\  or \ :emphasis:`device\_group\_names`\  is required to generate device based compliance report.
 
-    *device_group_names* is mutually exclusive with *device_ids*, *device_service_tags* and *baseline_name*.
+    \ :emphasis:`device\_group\_names`\  is mutually exclusive with \ :emphasis:`device\_ids`\ , \ :emphasis:`device\_service\_tags`\  and \ :emphasis:`baseline\_name`\ .
 
     Devices without reports are ignored.
 
@@ -69,12 +69,28 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -82,11 +98,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -105,7 +121,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 

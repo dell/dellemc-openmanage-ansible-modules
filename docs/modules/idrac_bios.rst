@@ -22,8 +22,8 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- omsdk >= 1.2.490
-- python >= 3.9.6
+- omsdk \>= 1.2.490
+- python \>= 3.9.6
 
 
 
@@ -47,31 +47,31 @@ Parameters
 
 
   apply_time (optional, str, Immediate)
-    Apply time of the *attributes*.
+    Apply time of the \ :emphasis:`attributes`\ .
 
-    This is applicable only to *attributes*.
+    This is applicable only to \ :emphasis:`attributes`\ .
 
-    ``Immediate`` Allows the user to immediately reboot the host and apply the changes. *job_wait* is applicable.
+    \ :literal:`Immediate`\  Allows the user to immediately reboot the host and apply the changes. \ :emphasis:`job\_wait`\  is applicable.
 
-    ``OnReset`` Allows the user to apply the changes on the next reboot of the host server.
+    \ :literal:`OnReset`\  Allows the user to apply the changes on the next reboot of the host server.
 
-    ``AtMaintenanceWindowStart`` Allows the user to apply at the start of a maintenance window as specified in *maintenance_window*. A reboot job will be scheduled.
+    \ :literal:`AtMaintenanceWindowStart`\  Allows the user to apply at the start of a maintenance window as specified in \ :emphasis:`maintenance\_window`\ . A reboot job will be scheduled.
 
-    ``InMaintenanceWindowOnReset`` Allows to apply after a manual reset but within the maintenance window as specified in *maintenance_window*.
+    \ :literal:`InMaintenanceWindowOnReset`\  Allows to apply after a manual reset but within the maintenance window as specified in \ :emphasis:`maintenance\_window`\ .
 
 
   maintenance_window (optional, dict, None)
     Option to schedule the maintenance window.
 
-    This is required when *apply_time* is ``AtMaintenanceWindowStart`` or ``InMaintenanceWindowOnReset``.
+    This is required when \ :emphasis:`apply\_time`\  is \ :literal:`AtMaintenanceWindowStart`\  or \ :literal:`InMaintenanceWindowOnReset`\ .
 
 
     start_time (True, str, None)
       The start time for the maintenance window to be scheduled.
 
-      The format is YYYY-MM-DDThh:mm:ss<offset>
+      The format is YYYY-MM-DDThh:mm:ss\<offset\>
 
-      <offset> is the time offset from UTC that the current timezone set in iDRAC in the format: +05:30 for IST.
+      \<offset\> is the time offset from UTC that the current timezone set in iDRAC in the format: +05:30 for IST.
 
 
     duration (True, int, None)
@@ -80,33 +80,33 @@ Parameters
 
 
   attributes (optional, dict, None)
-    Dictionary of BIOS attributes and value pair. Attributes should be part of the Redfish Dell BIOS Attribute Registry. Use https://*idrac_ip*/redfish/v1/Systems/System.Embedded.1/Bios to view the Redfish URI.
+    Dictionary of BIOS attributes and value pair. Attributes should be part of the Redfish Dell BIOS Attribute Registry. Use \ https://I(idrac_ip\ /redfish/v1/Systems/System.Embedded.1/Bios) to view the Redfish URI.
 
-    This is mutually exclusive with *boot_sources*, *clear_pending*, and *reset_bios*.
+    This is mutually exclusive with \ :emphasis:`boot\_sources`\ , \ :emphasis:`clear\_pending`\ , and \ :emphasis:`reset\_bios`\ .
 
 
   boot_sources (optional, list, None)
     (deprecated)List of boot devices to set the boot sources settings.
 
-    *boot_sources* is mutually exclusive with *attributes*, *clear_pending*, and *reset_bios*.
+    \ :emphasis:`boot\_sources`\  is mutually exclusive with \ :emphasis:`attributes`\ , \ :emphasis:`clear\_pending`\ , and \ :emphasis:`reset\_bios`\ .
 
-    *job_wait* is not applicable. The module waits till the completion of this task.
+    \ :emphasis:`job\_wait`\  is not applicable. The module waits till the completion of this task.
 
-    This feature is deprecated, please use :ref:`dellemc.openmanage.idrac_boot <dellemc.openmanage.idrac_boot_module>` for configuring boot sources.
+    This feature is deprecated, please use \ :ref:`dellemc.openmanage.idrac\_boot <ansible_collections.dellemc.openmanage.idrac_boot_module>`\  for configuring boot sources.
 
 
   clear_pending (optional, bool, None)
     Allows the user to clear all pending BIOS attributes changes.
 
-    ``true`` will discard any pending changes to bios attributes or remove job if in scheduled state.
+    \ :literal:`true`\  will discard any pending changes to bios attributes or remove job if in scheduled state.
 
     This operation will not create any job.
 
-    ``false`` will not perform any operation.
+    \ :literal:`false`\  will not perform any operation.
 
-    This is mutually exclusive with *boot_sources*, *attributes*, and *reset_bios*.
+    This is mutually exclusive with \ :emphasis:`boot\_sources`\ , \ :emphasis:`attributes`\ , and \ :emphasis:`reset\_bios`\ .
 
-    ``Note`` Any BIOS job scheduled due to boot sources configuration will not be cleared.
+    \ :literal:`Note`\  Any BIOS job scheduled due to boot sources configuration will not be cleared.
 
 
   reset_bios (optional, bool, None)
@@ -116,43 +116,59 @@ Parameters
 
     This operation will not create any job.
 
-    ``false`` will not perform any operation.
+    \ :literal:`false`\  will not perform any operation.
 
-    This is mutually exclusive with *boot_sources*, *attributes*, and *clear_pending*.
+    This is mutually exclusive with \ :emphasis:`boot\_sources`\ , \ :emphasis:`attributes`\ , and \ :emphasis:`clear\_pending`\ .
 
-    When ``true``, this action will always report as changes found to be applicable.
+    When \ :literal:`true`\ , this action will always report as changes found to be applicable.
 
 
   reset_type (optional, str, graceful_restart)
-    ``force_restart`` Forcefully reboot the host system.
+    \ :literal:`force\_restart`\  Forcefully reboot the host system.
 
-    ``graceful_restart`` Gracefully reboot the host system.
+    \ :literal:`graceful\_restart`\  Gracefully reboot the host system.
 
-    This is applicable for *reset_bios*, and *attributes* when *apply_time* is ``Immediate``.
+    This is applicable for \ :emphasis:`reset\_bios`\ , and \ :emphasis:`attributes`\  when \ :emphasis:`apply\_time`\  is \ :literal:`Immediate`\ .
 
 
   job_wait (optional, bool, True)
     Provides the option to wait for job completion.
 
-    This is applicable for *attributes* when *apply_time* is ``Immediate``.
+    This is applicable for \ :emphasis:`attributes`\  when \ :emphasis:`apply\_time`\  is \ :literal:`Immediate`\ .
 
 
   job_wait_timeout (optional, int, 1200)
-    The maximum wait time of *job_wait* in seconds. The job is tracked only for this duration.
+    The maximum wait time of \ :emphasis:`job\_wait`\  in seconds. The job is tracked only for this duration.
 
-    This option is applicable when *job_wait* is ``true``.
+    This option is applicable when \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .
 
 
   idrac_ip (True, str, None)
     iDRAC IP Address.
 
 
-  idrac_user (True, str, None)
+  idrac_user (False, str, None)
     iDRAC username.
 
+    If the username is not provided, then the environment variable \ :envvar:`IDRAC\_USERNAME`\  is used.
 
-  idrac_password (True, str, None)
+    Example: export IDRAC\_USERNAME=username
+
+
+  idrac_password (False, str, None)
     iDRAC user password.
+
+    If the password is not provided, then the environment variable \ :envvar:`IDRAC\_PASSWORD`\  is used.
+
+    Example: export IDRAC\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`IDRAC\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export IDRAC\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   idrac_port (optional, int, 443)
@@ -160,11 +176,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -182,11 +198,11 @@ Notes
 -----
 
 .. note::
-   - omsdk is required to be installed only for *boot_sources* operation.
-   - This module requires 'Administrator' privilege for *idrac_user*.
+   - omsdk is required to be installed only for \ :emphasis:`boot\_sources`\  operation.
+   - This module requires 'Administrator' privilege for \ :emphasis:`idrac\_user`\ .
    - Run this module from a system that has direct access to Dell iDRAC.
-   - This module supports both IPv4 and IPv6 address for *idrac_ip*.
-   - This module supports ``check_mode``.
+   - This module supports both IPv4 and IPv6 address for \ :emphasis:`idrac\_ip`\ .
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 
@@ -312,7 +328,7 @@ status_msg (success, str, Successfully cleared pending BIOS attributes.)
 
 
 msg (success, dict, {'CompletionTime': '2020-04-20T18:50:20', 'Description': 'Job Instance', 'EndTime': None, 'Id': 'JID_873888162305', 'JobState': 'Completed', 'JobType': 'ImportConfiguration', 'Message': 'Successfully imported and applied Server Configuration Profile.', 'MessageArgs': [], 'MessageId': 'SYS053', 'Name': 'Import Configuration', 'PercentComplete': 100, 'StartTime': 'TIME_NOW', 'Status': 'Success', 'TargetSettingsURI': None, 'retval': True})
-  Status of the job for *boot_sources* or status of the action performed on bios.
+  Status of the job for \ :emphasis:`boot\_sources`\  or status of the action performed on bios.
 
 
 invalid_attributes (on invalid attributes or values., dict, {'PxeDev1VlanId': 'Not a valid integer.', 'AcPwrRcvryUserDelay': 'Integer out of valid range.', 'BootSeqRetry': 'Invalid value for Enumeration.', 'Proc1Brand': 'Read only Attribute cannot be modified.', 'AssetTag': 'Attribute does not exist.'})

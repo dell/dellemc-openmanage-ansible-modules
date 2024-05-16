@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.8.6
 
 
 
@@ -30,43 +30,43 @@ Parameters
   device_ids (optional, list, None)
     List of target device IDs.
 
-    This is applicable for ``support_assist_collection`` and ``supportassist_collection`` logs.
+    This is applicable for \ :literal:`support\_assist\_collection`\  and \ :literal:`supportassist\_collection`\  logs.
 
-    This option is mutually exclusive with *device_service_tags* and *device_group_name*.
+    This option is mutually exclusive with \ :emphasis:`device\_service\_tags`\  and \ :emphasis:`device\_group\_name`\ .
 
 
   device_service_tags (optional, list, None)
     List of target identifier.
 
-    This is applicable for ``support_assist_collection`` and ``supportassist_collection`` logs.
+    This is applicable for \ :literal:`support\_assist\_collection`\  and \ :literal:`supportassist\_collection`\  logs.
 
-    This option is mutually exclusive with *device_ids* and *device_group_name*.
+    This option is mutually exclusive with \ :emphasis:`device\_ids`\  and \ :emphasis:`device\_group\_name`\ .
 
 
   device_group_name (optional, str, None)
-    Name of the device group to export ``support_assist_collection`` or ``supportassist_collection`` logs of all devices within the group.
+    Name of the device group to export \ :literal:`support\_assist\_collection`\  or \ :literal:`supportassist\_collection`\  logs of all devices within the group.
 
-    This is applicable for ``support_assist_collection`` and ``supportassist_collection`` logs.
+    This is applicable for \ :literal:`support\_assist\_collection`\  and \ :literal:`supportassist\_collection`\  logs.
 
     This option is not applicable for OpenManage Enterprise Modular.
 
-    This option is mutually exclusive with *device_ids* and *device_service_tags*.
+    This option is mutually exclusive with \ :emphasis:`device\_ids`\  and \ :emphasis:`device\_service\_tags`\ .
 
 
   log_type (optional, str, support_assist_collection)
-    ``application`` is applicable for OpenManage Enterprise Modular to export the application log bundle.
+    \ :literal:`application`\  is applicable for OpenManage Enterprise Modular to export the application log bundle.
 
-    ``support_assist_collection`` and ``supportassist_collection`` is applicable for one or more devices to export SupportAssist logs.
+    \ :literal:`support\_assist\_collection`\  and \ :literal:`supportassist\_collection`\  is applicable for one or more devices to export SupportAssist logs.
 
-    ``support_assist_collection`` and ``supportassist_collection`` supports both OpenManage Enterprise and OpenManage Enterprise Modular.
+    \ :literal:`support\_assist\_collection`\  and \ :literal:`supportassist\_collection`\  supports both OpenManage Enterprise and OpenManage Enterprise Modular.
 
-    ``support_assist_collection`` and ``supportassist_collection`` does not support export of ``OS_LOGS`` from OpenManage Enterprise. If tried to export, the tasks will complete with errors, and the module fails.
+    \ :literal:`support\_assist\_collection`\  and \ :literal:`supportassist\_collection`\  does not support export of \ :literal:`OS\_LOGS`\  from OpenManage Enterprise. If tried to export, the tasks will complete with errors, and the module fails.
 
 
   mask_sensitive_info (optional, bool, False)
     Select this option to mask the personal identification information such as IPAddress, DNS, alert destination, email, gateway, inet6, MacAddress, netmask etc.
 
-    This option is applicable for ``application`` of *log_type*.
+    This option is applicable for \ :literal:`application`\  of \ :emphasis:`log\_type`\ .
 
 
   log_selectors (optional, list, None)
@@ -74,13 +74,13 @@ Parameters
 
     If the log types are not specified, only the hardware logs are exported.
 
-    ``OS_LOGS`` to collect OS Logs.
+    \ :literal:`OS\_LOGS`\  to collect OS Logs.
 
-    ``RAID_LOGS`` to collect RAID controller logs.
+    \ :literal:`RAID\_LOGS`\  to collect RAID controller logs.
 
-    ``DEBUG_LOGS`` to collect Debug logs.
+    \ :literal:`DEBUG\_LOGS`\  to collect Debug logs.
 
-    This option is applicable only for ``support_assist_collection`` and ``supportassist_collection`` of *log_type*.
+    This option is applicable only for \ :literal:`support\_assist\_collection`\  and \ :literal:`supportassist\_collection`\  of \ :emphasis:`log\_type`\ .
 
 
   share_address (True, str, None)
@@ -90,7 +90,7 @@ Parameters
   share_name (True, str, None)
     Network share path.
 
-    Filename is auto generated and should not be provided as part of *share_name*.
+    Filename is auto generated and should not be provided as part of \ :emphasis:`share\_name`\ .
 
 
   share_type (True, str, None)
@@ -100,55 +100,71 @@ Parameters
   share_user (optional, str, None)
     Network share username.
 
-    This option is applicable for ``CIFS`` of *share_type*.
+    This option is applicable for \ :literal:`CIFS`\  of \ :emphasis:`share\_type`\ .
 
 
   share_password (optional, str, None)
     Network share password
 
-    This option is applicable for ``CIFS`` of *share_type*.
+    This option is applicable for \ :literal:`CIFS`\  of \ :emphasis:`share\_type`\ .
 
 
   share_domain (optional, str, None)
     Network share domain name.
 
-    This option is applicable for ``CIFS`` if *share_type*.
+    This option is applicable for \ :literal:`CIFS`\  if \ :emphasis:`share\_type`\ .
 
 
   job_wait (optional, bool, True)
     Whether to wait for the Job completion or not.
 
-    The maximum wait time is *job_wait_timeout*.
+    The maximum wait time is \ :emphasis:`job\_wait\_timeout`\ .
 
 
   job_wait_timeout (optional, int, 60)
-    The maximum wait time of *job_wait* in minutes.
+    The maximum wait time of \ :emphasis:`job\_wait`\  in minutes.
 
-    This option is applicable *job_wait* is true.
+    This option is applicable \ :emphasis:`job\_wait`\  is true.
 
 
   test_connection (optional, bool, False)
     Test the availability of the network share location.
 
-    *job_wait* and *job_wait_timeout* options are not applicable for *test_connection*.
+    \ :emphasis:`job\_wait`\  and \ :emphasis:`job\_wait\_timeout`\  options are not applicable for \ :emphasis:`test\_connection`\ .
 
 
   lead_chassis_only (optional, bool, False)
     Extract the logs from Lead chassis only.
 
-    *lead_chassis_only* is only applicable when *log_type* is ``application`` on OpenManage Enterprise Modular.
+    \ :emphasis:`lead\_chassis\_only`\  is only applicable when \ :emphasis:`log\_type`\  is \ :literal:`application`\  on OpenManage Enterprise Modular.
 
 
   hostname (True, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -156,11 +172,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -180,7 +196,7 @@ Notes
 .. note::
    - Run this module from a system that has direct access to OpenManage Enterprise.
    - This module performs the test connection and device validations. It does not create a job for copying the logs in check mode and always reports as changes found.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 
