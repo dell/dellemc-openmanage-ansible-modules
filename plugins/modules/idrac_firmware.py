@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 8.4.0
 # Copyright (C) 2018-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -25,7 +25,7 @@ description:
     - All applicable updates contained in the repository are applied to the system.
     - This feature is available only with iDRAC Enterprise License.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_x_auth_options
+  - dellemc.openmanage.idrac_auth_options
 options:
     share_name:
         description: Network share path of update repository. CIFS, NFS, HTTP, HTTPS and FTP share types are supported.
@@ -236,8 +236,9 @@ import json
 import time
 from ssl import SSLError
 from xml.etree import ElementTree as ET
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
+from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.parse import urlparse
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -748,8 +749,8 @@ def main():
         "proxy_uname": {"type": 'str'},
         "proxy_passwd": {"type": 'str', "no_log": True},
     }
-    # specs.update(idrac_auth_params)
-    module = IdracAnsibleModule(
+    specs.update(idrac_auth_params)
+    module = AnsibleModule(
         argument_spec=specs,
         required_if=[
             # ['proxy_type', 'SOCKS', ('proxy_port',)],

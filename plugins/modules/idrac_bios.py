@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 7.6.0
 # Copyright (C) 2018-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -23,7 +23,7 @@ description:
     - This module allows to modify the BIOS attributes. Also clears pending BIOS attributes and resets BIOS to default settings.
     - Boot sources can be enabled or disabled. Boot sequence can be configured.
 extends_documentation_fragment:
-    - dellemc.openmanage.idrac_x_auth_options
+    - dellemc.openmanage.idrac_auth_options
 options:
     share_name:
         type: str
@@ -354,8 +354,9 @@ import time
 from ansible.module_utils.common.dict_transformations import recursive_diff
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
+from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import idrac_redfish_job_tracking, \
     strip_substr_dict
 
@@ -784,8 +785,8 @@ def main():
         "job_wait": {"type": 'bool', "default": True},
         "job_wait_timeout": {"type": 'int', "default": 1200}
     }
-    # specs.update(idrac_auth_params)
-    module = IdracAnsibleModule(
+    specs.update(idrac_auth_params)
+    module = AnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[('boot_sources', 'attributes', 'clear_pending', 'reset_bios')],
         required_one_of=[('boot_sources', 'attributes', 'clear_pending', 'reset_bios')],
