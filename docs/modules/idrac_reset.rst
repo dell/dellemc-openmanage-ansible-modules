@@ -62,7 +62,7 @@ Parameters
   job_wait_timeout (optional, int, 600)
     Time in seconds to wait for job completion.
 
-    This is applicable when \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .
+    This is applicable when \ :emphasis:`wait\_for\_idrac`\  is \ :literal:`true`\ .
 
 
   force_reset (optional, bool, False)

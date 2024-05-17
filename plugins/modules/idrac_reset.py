@@ -55,7 +55,7 @@ options:
   job_wait_timeout:
     description:
       - Time in seconds to wait for job completion.
-      - This is applicable when I(job_wait) is C(true).
+      - This is applicable when I(wait_for_idrac) is C(true).
     type: int
     default: 600
     version_added: 9.2.0
