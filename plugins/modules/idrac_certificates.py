@@ -383,7 +383,11 @@ def _build_generate_csr_payload(module, cert_type):
 
     for key, value in csr_transform.items():
         if cert_params.get(key) is not None:
-            payload[value] = cert_params.get(key)
+            if value == 'AlternativeNames':
+                forming_string = ",".join(cert_params.get(key))
+                payload[value] = [forming_string]
+            else:
+                payload[value] = cert_params.get(key)
 
     if rfish_cert_coll.get(cert_type):
         payload["CertificateCollection"] = rfish_cert_coll.get(cert_type)

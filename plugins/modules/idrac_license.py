@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.7.0
+# Version 9.3.0
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -634,15 +634,15 @@ class ExportLicense(License):
             self.module.exit_json(msg=INSUFFICIENT_DIRECTORY_PERMISSION_MSG.format(path=path), failed=True)
         license_name = self.module.params.get('share_parameters').get('file_name')
         if license_name:
-            license_file_name = f"{license_name}_iDRAC_license.txt"
+            license_file_name = f"{license_name}"
         else:
-            license_file_name = f"{self.module.params['license_id']}_iDRAC_license.txt"
+            license_file_name = f"{self.module.params['license_id']}_iDRAC_license.xml"
         license_status = self.idrac.invoke_request(export_license_url, "POST", data=payload)
         license_data = license_status.json_data
-        license_file = license_data.get("LicenseFile")
+        license_file = base64.b64decode(license_data.get("LicenseFile")).decode('utf-8')
         file_name = os.path.join(path, license_file_name)
         with open(file_name, "w") as fp:
-            fp.writelines(license_file)
+            fp.write(license_file)
         return license_status
 
     def __export_license_http(self, export_license_url):
@@ -737,7 +737,7 @@ class ExportLicense(License):
         """
         license_name = self.module.params.get('share_parameters').get('file_name')
         if license_name:
-            license_file_name = f"{license_name}_iDRAC_license.xml"
+            license_file_name = f"{license_name}"
         else:
             license_file_name = f"{self.module.params['license_id']}_iDRAC_license.xml"
         payload["FileName"] = license_file_name
