@@ -36,6 +36,7 @@ from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
 from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
+from abc import ABC, abstractmethod
 
 HEADER_TYPE = "application/json"
 
@@ -327,3 +328,50 @@ class SessionAPI():
         return (os.environ.get("REQUESTS_CA_BUNDLE") or
                 os.environ.get("CURL_CA_BUNDLE") or
                 os.environ.get("OMAM_CA_BUNDLE"))
+
+
+class Session(ABC):
+    """
+    Parent class for all session operations.
+    """
+    def __init__(self, module):
+        """
+        Initializes the object with the given instance and module parameters.
+
+        Args:
+            instance (object): The ome object.
+            module (object): The module object.
+
+        Returns:
+            None
+        """
+        self.instance = SessionAPI(module.params)
+        self.module = module
+
+    @abstractmethod
+    def create_session(self):
+        """
+        Abstract method to create a session.
+        Must be implemented by subclasses.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        pass
+
+    @abstractmethod
+    def delete_session(self):
+        """
+        Abstract method to delete a session.
+        Must be implemented by subclasses.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        pass

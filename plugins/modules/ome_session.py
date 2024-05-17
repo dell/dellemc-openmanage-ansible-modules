@@ -195,7 +195,7 @@ error_info:
 
 import json
 from urllib.error import HTTPError, URLError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.session_utils import SessionAPI
+from ansible_collections.dellemc.openmanage.plugins.module_utils.session_utils import Session
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.common.parameters import env_fallback
@@ -215,23 +215,9 @@ CHANGES_FOUND_MSG = "Changes found to be applied."
 NO_CHANGES_FOUND_MSG = "No changes found to be applied."
 
 
-class Session():
-    """
-    Parent class for all session operations.
-    """
-    def __init__(self, ome, module):
-        """
-        Initializes the object with the given ome and module parameters.
-
-        Args:
-            ome (object): The ome object.
-            module (object): The module object.
-
-        Returns:
-            None
-        """
-        self.ome = ome
-        self.module = module
+class OMESession(Session):
+    def __init__(self, module):
+        super().__init__(module)
 
     def get_session_url(self):
         """
@@ -240,18 +226,33 @@ class Session():
         Returns:
             str: The URL for the sessions endpoint, or None if not found.
         """
-        base_api_resp = get_dynamic_uri(self.ome, OME)
+        base_api_resp = get_dynamic_uri(self.instance, OME)
         session_service_url = base_api_resp.get(SESSION_SERVICE, {}).get(ODATA, {})
-        session_service_resp = get_dynamic_uri(self.ome, session_service_url)
+        session_service_resp = get_dynamic_uri(self.instance, session_service_url)
         session_url = session_service_resp.get(SESSIONS, {})
         return session_url
 
+    def get_session_status(self, session_url, session_id):
+        """
+        Retrieves the status of a session given its URL and ID.
 
-class CreateSession(Session):
-    """
-    Creates a session.
-    """
-    def execute(self):
+        Args:
+            session_url (str): The URL of the session.
+            session_id (str): The ID of the session.
+
+        Returns:
+            int: The status code of the session status response. If an HTTPError occurs, the status
+            code of the error is returned.
+        """
+        try:
+            view_session_url = session_url + "('" + session_id + "')"
+            session_status_response = self.instance.invoke_request(view_session_url, "GET")
+            session_status = session_status_response.status_code
+        except HTTPError as err:
+            session_status = err.status
+        return session_status
+
+    def create_session(self):
         """
         Executes the session creation process.
 
@@ -278,7 +279,7 @@ class CreateSession(Session):
         session_url = self.get_session_url()
         if self.module.check_mode:
             self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
-        session_response = self.ome.invoke_request(session_url, "POST", data=payload)
+        session_response = self.instance.invoke_request(session_url, "POST", data=payload)
         status = session_response.status_code
         if status == 201:
             session_details = session_response.json_data
@@ -291,15 +292,9 @@ class CreateSession(Session):
         else:
             self.module.exit_json(msg=FAILURE_MSG.format(operation="create"), failed=True)
 
-
-class DeleteSession(Session):
-    """
-    Deletes a session.
-    """
-    def execute(self):
+    def delete_session(self):
         """
         Executes the deletion of a session.
-
         This function retrieves the session ID from the module parameters and constructs the
         session URL using the `get_session_url` method. It then invokes a DELETE request to the
         session URL with the session ID appended. The response from the request is stored in the
@@ -327,7 +322,7 @@ class DeleteSession(Session):
             if session_status == 200:
                 try:
                     delete_session_url = session_url + "('" + session_id + "')"
-                    session_response = self.ome.invoke_request(delete_session_url, "DELETE")
+                    session_response = self.instance.invoke_request(delete_session_url, "DELETE")
                     status = session_response.status_code
                     if status == 204:
                         self.module.exit_json(msg=DELETE_SUCCESS_MSG, changed=True)
@@ -338,26 +333,6 @@ class DeleteSession(Session):
                                           failed=True)
             else:
                 self.module.exit_json(msg=NO_CHANGES_FOUND_MSG)
-
-    def get_session_status(self, session_url, session_id):
-        """
-        Retrieves the status of a session given its URL and ID.
-
-        Args:
-            session_url (str): The URL of the session.
-            session_id (str): The ID of the session.
-
-        Returns:
-            int: The status code of the session status response. If an HTTPError occurs, the status
-            code of the error is returned.
-        """
-        try:
-            view_session_url = session_url + "('" + session_id + "')"
-            session_status_response = self.ome.invoke_request(view_session_url, "GET")
-            session_status = session_status_response.status_code
-        except HTTPError as err:
-            session_status = err.status
-        return session_status
 
 
 def main():
@@ -390,13 +365,12 @@ def main():
         supports_check_mode=True
     )
     try:
-        ome = SessionAPI(module.params)
+        ome = OMESession(module)
         session_operation = module.params.get("state")
         if session_operation == "present":
-            session_operation_obj = CreateSession(ome, module)
+            ome.create_session()
         else:
-            session_operation_obj = DeleteSession(ome, module)
-        session_operation_obj.execute()
+            ome.delete_session()
     except HTTPError as err:
         filter_err = {}
         if isinstance(err, dict):
