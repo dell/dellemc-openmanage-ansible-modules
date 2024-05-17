@@ -167,7 +167,7 @@
           ansible.builtin.assert:
             that:
               - idrac_certificate_out.unreachable
-              - '"Unable to communicate with" in idrac_certificate_out.msg'
+              - '"<urlopen error [Errno -2] Name or service not known>" in idrac_certificate_out.msg'
 
         - name: Negative - invalid idrac user
           ansible.builtin.import_role:
