@@ -8,7 +8,7 @@
         idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
         idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
         idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
-        validate_certs: "{{ lookup('env', 'VALIDATE_CERT') }}"
+        validate_certs: false
         scp_components:
           - IDRAC
         share_name: "/root/"
@@ -26,7 +26,7 @@
             hostname: "{{ lookup('env', 'IDRAC_IP') }}"
             username: "{{ lookup('env', 'IDRAC_USER') }}"
             password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
-            validate_certs: "{{ lookup('env', 'VALIDATE_CERT') }}"
+            validate_certs: false
             job_id: JID_12345678
       rescue:
         - name: "Verifying invalid job deletion from the job queue"
@@ -44,7 +44,7 @@
             username: "{{ lookup('env', 'IDRAC_USER') }}"
             password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
             clear_job_queue: true
-            validate_certs: "{{ lookup('env', 'VALIDATE_CERT') }}"
+            validate_certs: false
 
       rescue:
         - name: "Verifying job queue clear with an invalid hostname"
@@ -63,7 +63,7 @@
             username: "invalidUsername"
             password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
             clear_job_queue: true
-            validate_certs: "{{ lookup('env', 'VALIDATE_CERT') }}"
+            validate_certs: false
 
       rescue:
         - name: "Verifying job queue clear with an invalid username"
@@ -81,7 +81,7 @@
             username: "{{ lookup('env', 'IDRAC_USER') }}"
             password: "invalidPassword"
             clear_job_queue: true
-            validate_certs: "{{ lookup('env', 'VALIDATE_CERT') }}"
+            validate_certs: false
 
       rescue:
         - name: "Verifying job queue clear with an invalid password"

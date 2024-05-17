@@ -13,6 +13,10 @@
         url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/Managers\
         /iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
 
+    - name: Initialize idrac_bios_jobs_items variable
+      ansible.builtin.set_fact:
+        idrac_bios_jobs_items: []
+
     - name: Fetch Bios Jobs Data
       loop: "{{ idrac_bios_uri_data.json.Members }}"
       when: item.JobType == 'BIOSConfiguration' and item.JobState in ['Scheduled', 'Scheduling']
