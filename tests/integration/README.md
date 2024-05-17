@@ -5,14 +5,14 @@ Dell OpenManage Ansible Modules integration test scripts are located under [inte
 Any contribution must have an associated integration test. This section covers the
  tests that need to be carried out. 
 * The integration tests are required for each new resource, bug fix, or enhancement. They must cover what is being submitted.
-* The name of the integration test playbooks should be module name and test should be placed under target folder.
+* The name of the integration test playbooks should be module name and test should be placed under targets folder.
 * If the test is for something other than modules, like workflow based integration tests, name it accordingly and place it under targets folder.
 
-For example test for module: idrac_session is made available as a directory under targets folder, the folders under target follow kind of role based structure. 
+For example test for module: idrac_session is made available as a directory under targets folder, the folders under targets follow kind of role based structure. 
 
 ### Prerequisites
 * Dell OpenManage collections - to install run `ansible-galaxy collection install dellemc.openmanage`
-* Clone the [integration](./) directory to [tests](./tests) directory.
+* Copy the [integration](./) directory to [tests](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/tests) directory.
 
 ### Executing integration tests with `ansible-test`
 * Update `inventory.networking` located at `$ANSIBLE_COLLECTIONS_PATHS/ansible_collections/dellemc/openmanage/tests/integration/`
