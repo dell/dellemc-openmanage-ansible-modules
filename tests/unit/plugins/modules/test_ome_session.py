@@ -18,12 +18,12 @@ import pytest
 from mock import MagicMock
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_session
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import AnsibleFailJSonException
 from ansible.module_utils.urls import SSLValidationError
 from ansible.module_utils._text import to_text
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.ome_session.'
 MODULE_UTILS_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.utils.'
+SESSION_UTILS_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.session_utils.'
 
 REDFISH = "/redfish/v1"
 SESSIONS = "Sessions"
@@ -74,12 +74,45 @@ class TestOMESession(FakeAnsibleModule):
         :type mocker: pytest_mock.plugin.MockerFixture
         :param ome_session_mock: The mock object for the `ome_session_mock`.
         :type ome_session_mock: Any
-        :return: The mock object for the `SessionAPI` class.
+        :return: The mock object for the `OMESession` class.
         :rtype: MagicMock
         """
-        ome_conn_mock = mocker.patch(MODULE_PATH + 'OMESession', return_value=ome_session_mock)
+        ome_conn_mock = mocker.patch(SESSION_UTILS_PATH + 'SessionAPI', return_value=ome_session_mock)
         ome_conn_mock.return_value.__enter__.return_value = ome_session_mock
         return ome_conn_mock
+
+    def test_get_session_url(self, ome_default_args, ome_connection_session_mock, mocker):
+        """
+        Test the `get_session_url` method of the `Session` class.
+
+        This test function mocks the `get_dynamic_uri` function to return a dictionary
+        containing the session URL. It then creates a `f_module` object with the
+        `ome_default_args` and `check_mode` set to `False`. It initializes a
+        `session_obj` with the `ome_connection_session_mock` and `f_module`.
+        Finally, it calls the `get_session_url` method on the `session_obj` and
+        asserts that the returned session URL is equal to the `SESSION_URL` constant.
+
+        Args:
+            self (TestGetSessionUrl): The test case object.
+            ome_default_args (dict): The default arguments for the ome connection.
+            ome_connection_session_mock (MagicMock): The mock object for the ome
+                connection session.
+            mocker (MagicMock): The mocker object for mocking functions and modules.
+
+        Returns:
+            None
+        """
+        base_api_resp = {"SessionService" : {"@odata.id": "/api/SessionService"}}
+        mocker.patch(MODULE_PATH + "get_dynamic_uri",
+                     return_value=base_api_resp)
+        session_service_resp = {"Sessions@odata.navigationLink": "/api/SessionService/Sessions"}
+        mocker.patch(MODULE_PATH + "get_dynamic_uri",
+                     return_value=session_service_resp)
+        f_module = self.get_module_mock(
+            params=ome_default_args, check_mode=False)
+        session_obj = self.module.OMESession(f_module)
+        sessions_url = session_obj.get_session_url()
+        assert sessions_url == SESSION_URL
 
     @pytest.mark.parametrize("exc_type",
                              [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
