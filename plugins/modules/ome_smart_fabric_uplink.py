@@ -503,7 +503,7 @@ def main():
         "tagged_networks": {"type": "list", "elements": "str"},
         "untagged_network": {"type": "str"}
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[['state', 'present',

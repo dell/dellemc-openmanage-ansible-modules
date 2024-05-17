@@ -1016,7 +1016,7 @@ def main():
         "job_wait": {"required": False, "type": "bool", "default": True},
         "job_wait_timeout": {"required": False, "type": "int", "default": 1200}
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[

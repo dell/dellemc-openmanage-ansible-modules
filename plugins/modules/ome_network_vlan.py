@@ -318,7 +318,7 @@ def main():
                              'Storage - iSCSI', 'Storage - FCoE', 'Storage - Data Replication', 'VM Migration',
                              'VMWare FT Logging']}
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[['state', 'present', ('new_name', 'description', 'vlan_minimum', 'vlan_maximum', 'type',), True]],

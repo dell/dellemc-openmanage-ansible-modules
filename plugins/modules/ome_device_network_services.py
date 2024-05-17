@@ -369,7 +369,7 @@ def main():
         "ssh_settings": {"type": "dict", "required": False, "options": ssh_options},
         "remote_racadm_settings": {"type": "dict", "required": False, "options": racadm_options},
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[('device_id', 'device_service_tag')],

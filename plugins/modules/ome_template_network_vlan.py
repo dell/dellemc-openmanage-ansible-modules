@@ -421,7 +421,7 @@ def main():
         "tagged_networks": {"required": False, "type": "list", "elements": "dict", "options": port_tagged_spec},
         "propagate_vlan": {"type": "bool", "default": True}
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         required_one_of=[("template_id", "template_name"),

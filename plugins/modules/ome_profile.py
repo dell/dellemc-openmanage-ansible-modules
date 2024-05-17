@@ -827,7 +827,7 @@ def main():
         "attributes": {"type": 'dict', "options": assign_spec},
         "force": {"default": False, "type": 'bool'}
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[

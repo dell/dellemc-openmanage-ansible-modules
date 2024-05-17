@@ -238,7 +238,7 @@ def main():
         "name": {"required": False, "type": 'str'},
         "attributes": {"required": False, "type": 'dict', "default": {}},
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[['user_id', 'name'], ],

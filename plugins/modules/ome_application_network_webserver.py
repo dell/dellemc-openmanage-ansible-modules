@@ -162,7 +162,7 @@ def main():
         "webserver_port": {"required": False, "type": "int"},
         "webserver_timeout": {"required": False, "type": "int"},
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         required_one_of=[["webserver_port", "webserver_timeout"]],

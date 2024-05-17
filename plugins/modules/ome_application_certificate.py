@@ -224,7 +224,7 @@ def main():
         "upload_file": {"required": False, "type": "str"},
         "subject_alternative_names": {"required": False, "type": "str"}
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[["command", "generate_csr", ["distinguished_name", "department_name",

@@ -364,7 +364,7 @@ def main():
         }},
         "fetch_execution_history": {"type": 'bool', "default": False},
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         supports_check_mode=True

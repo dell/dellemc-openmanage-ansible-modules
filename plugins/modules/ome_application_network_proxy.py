@@ -225,7 +225,7 @@ def main():
         "proxy_password": {"required": False, "type": "str", "no_log": True},
         "enable_authentication": {"required": False, "type": "bool"},
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[['enable_proxy', True, ['ip_address', 'proxy_port']],

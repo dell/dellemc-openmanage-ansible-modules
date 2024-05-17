@@ -480,7 +480,7 @@ def main():
         "device_ids": {"required": False, "type": "list", "elements": 'int'},
         "ip_addresses": {"required": False, "type": "list", "elements": 'str'},
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[

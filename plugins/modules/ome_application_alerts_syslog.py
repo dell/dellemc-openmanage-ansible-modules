@@ -232,7 +232,6 @@ def main():
              "required_if": [("enabled", True, ("destination_address",))]
              }
     }
-    # specs.update(ome_auth_params)
 
     module = OmeAnsibleModule(
         argument_spec=specs,

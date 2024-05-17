@@ -450,7 +450,7 @@ def main():
             "required": False, "type": "dict", "options": lcd_options,
         },
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[('device_id', 'device_service_tag')],

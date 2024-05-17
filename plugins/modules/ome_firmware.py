@@ -650,7 +650,7 @@ def main():
             "required_one_of": [('id', 'service_tag')]
         },
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         required_one_of=[["dup_file", "baseline_name"]],

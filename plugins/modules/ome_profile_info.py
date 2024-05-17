@@ -346,7 +346,6 @@ def main():
         "template_name": {"type": 'str'},
         "system_query_options": {"type": 'dict'}
     }
-    # argument_spec.update(ome_auth_params)
     module = OmeAnsibleModule(argument_spec=argument_spec,
                               mutually_exclusive=[('profile_id', 'profile_name', 'template_name', 'template_id',
                                                    'system_query_options')],

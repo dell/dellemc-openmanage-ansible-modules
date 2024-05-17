@@ -278,7 +278,7 @@ def main():
         "rack_slot": {"required": False, "type": "int"},
         "location": {"required": False, "type": "str"},
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[('device_id', 'device_service_tag')],

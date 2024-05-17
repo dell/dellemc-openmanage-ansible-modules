@@ -512,7 +512,7 @@ def main():
         "job_wait_timeout": {"required": False, "type": "int", "default": 900},
         "resource_id": {"required": False, "type": "str"}
     }
-    # specs.update(idrac_auth_params)
+
     module = IdracAnsibleModule(
         argument_spec=specs,
         required_one_of=[["boot_options", "boot_order", "boot_source_override_mode",

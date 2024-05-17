@@ -568,7 +568,7 @@ def main():
         "reset": {"type": 'bool', "default": True},
         "wait": {"type": 'int', "default": 300}
     }
-    # specs.update(idrac_auth_params)
+
     module = IdracAnsibleModule(
         argument_spec=specs,
         required_if=[

@@ -257,7 +257,7 @@ def main():
         "target_port": {"required": True, "type": 'str'},
         "breakout_type": {"required": True, "type": 'str'},
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         supports_check_mode=True

@@ -230,7 +230,7 @@ def main():
         "secondary_ntp_address1": {"required": False, "type": "str"},
         "secondary_ntp_address2": {"required": False, "type": "str"},
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[['enable_ntp', False, ('time_zone', 'system_time',), True],

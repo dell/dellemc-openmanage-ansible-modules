@@ -216,7 +216,7 @@ def main():
         "id": {"required": False, "type": 'int'},
         "name": {"required": False, "type": 'str'}
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[["id", "name"]],

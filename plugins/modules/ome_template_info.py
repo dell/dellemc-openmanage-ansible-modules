@@ -131,7 +131,7 @@ def main():
                                  "options": {"filter": {"type": 'str', "required": False}}
                                  },
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[['template_id', 'system_query_options']],

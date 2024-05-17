@@ -346,7 +346,7 @@ def main():
         "domain_username": {"required": False, "type": 'str'},
         "domain_password": {"required": False, "type": 'str', "no_log": True},
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[['directory_name', 'directory_id'], ],

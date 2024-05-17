@@ -290,7 +290,6 @@ def main():
                               "choices": ['Event', 'MetricReport']},
         "state": {"type": "str", "default": "present", "choices": ['present', 'absent']},
     }
-    # specs.update(redfish_auth_params)
 
     module = RedfishAnsibleModule(
         argument_spec=specs,

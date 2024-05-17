@@ -531,7 +531,7 @@ def main():
         "job_wait_timeout": {"type": 'int', "default": 600},
         "force_reset": {"type": "bool", "default": False}
     }
-    # specs.update(idrac_auth_params)
+
     module = IdracAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[("custom_defaults_file", "custom_defaults_buffer")],

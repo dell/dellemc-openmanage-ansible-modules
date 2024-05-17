@@ -716,7 +716,7 @@ def main():
              },
         "reboot_delay": {"required": False, "type": "int"}
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[

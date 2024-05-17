@@ -193,7 +193,7 @@ def main():
         "user_id": {"type": 'int'},
         "username": {"type": 'str'}
     }
-    # specs.update(idrac_auth_params)
+
     module = IdracAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[

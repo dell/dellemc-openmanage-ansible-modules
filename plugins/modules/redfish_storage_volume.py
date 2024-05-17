@@ -944,9 +944,6 @@ def main():
         "job_wait": {"required": False, "type": "bool", "default": False},
         "job_wait_timeout": {"required": False, "type": "int", "default": 1200}
     }
-
-    # specs.update(redfish_auth_params)
-
     module = RedfishAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[['state', 'command'], ['volume_type', 'raid_type']],

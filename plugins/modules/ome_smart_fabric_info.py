@@ -655,7 +655,7 @@ def main():
         "fabric_id": {"type": 'str', "required": False},
         "fabric_name": {"type": 'str', "required": False}
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[

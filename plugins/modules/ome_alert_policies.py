@@ -1083,7 +1083,7 @@ def main():
                                 }
                     }
     }
-    # specs.update(ome_auth_params)
+
     present_args = ['enable', 'new_name', 'description', 'device_service_tag', 'device_group',
                     'specific_undiscovered_devices', 'any_undiscovered_devices', 'all_devices',
                     'category', 'message_ids', 'message_file', 'date_and_time', 'severity', 'actions']

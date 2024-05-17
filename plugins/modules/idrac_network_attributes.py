@@ -712,7 +712,7 @@ def main():
             "job_wait": {"type": "bool", "default": True},
             "job_wait_timeout": {"type": "int", "default": 1200}
         }
-        # specs.update(idrac_auth_params)
+
         module = IdracAnsibleModule(argument_spec=specs,
                                     mutually_exclusive=[('network_attributes', 'oem_network_attributes')],
                                     required_if=[["apply_time", "AtMaintenanceWindowStart", ("maintenance_window",)],

@@ -391,7 +391,7 @@ def main():
         "device_ids": {"required": False, "type": "list", "elements": 'int'},
         "device_group_names": {"required": False, "type": "list", "elements": 'str'},
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[['baseline_name', 'device_service_tags', 'device_ids', 'device_group_names']],

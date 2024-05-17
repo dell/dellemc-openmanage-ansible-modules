@@ -431,7 +431,7 @@ def main():
         "test_connection": {"required": False, "type": "bool", "default": False},
         "lead_chassis_only": {"required": False, "type": "bool", "default": False},
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[

@@ -235,7 +235,7 @@ def main():
              "options": credentials_options,
              },
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[['enable_authentication', True, ['credentials']], ],

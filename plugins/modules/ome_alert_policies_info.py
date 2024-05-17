@@ -186,7 +186,7 @@ def get_module_parameters() -> OmeAnsibleModule:
     specs = {
         "policy_name": {"type": 'str'}
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(argument_spec=specs,
                               supports_check_mode=True)
     return module

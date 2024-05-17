@@ -410,7 +410,7 @@ def main():
         "job_description": {"type": "str"},
         # "job_params": {"type": "dict"}
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[],

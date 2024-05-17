@@ -893,7 +893,7 @@ def main():
         "job_wait": {"type": "bool", "default": True},
         "job_wait_timeout": {"type": "int", "default": 900}
     }
-    # specs.update(idrac_auth_params)
+
     module = IdracAnsibleModule(
         argument_spec=specs,
         supports_check_mode=True)

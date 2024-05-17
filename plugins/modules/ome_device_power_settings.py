@@ -314,7 +314,7 @@ def main():
         "hot_spare_configuration": {"type": "dict", "required": False, "options": hot_spare_options,
                                     "required_if": [["enable_hot_spare", True, ("primary_grid",)]]},
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[('device_id', 'device_service_tag')],

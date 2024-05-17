@@ -355,7 +355,6 @@ def main():
             ]
         }
     }
-    # specs.update(ome_auth_params)
 
     module = OmeAnsibleModule(
         argument_spec=specs,

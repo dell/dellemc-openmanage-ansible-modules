@@ -240,8 +240,6 @@ def main():
                        "choices": ['ForceOff', 'ForceOn', 'ForceRestart', 'GracefulRestart',
                                    'GracefulShutdown', 'Nmi', 'On', 'PowerCycle', 'PushPowerButton']},
     }
-    # specs.update(redfish_auth_params)
-
     module = RedfishAnsibleModule(
         argument_spec=specs,
         supports_check_mode=True)

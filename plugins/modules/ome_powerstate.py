@@ -251,7 +251,7 @@ def main():
         "device_service_tag": {"required": False, "type": "str"},
         "device_id": {"required": False, "type": "int"},
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         required_one_of=[["device_service_tag", "device_id"]],

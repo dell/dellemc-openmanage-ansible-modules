@@ -768,7 +768,7 @@ class DiagnosticsType:
 
 def main():
     specs = get_argument_spec()
-    # specs.update(idrac_auth_params)
+
     module = IdracAnsibleModule(
         argument_spec=specs,
         required_one_of=[["run", "export"]],

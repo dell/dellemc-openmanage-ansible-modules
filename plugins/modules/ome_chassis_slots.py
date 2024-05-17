@@ -578,7 +578,7 @@ def main():
                          },
                          },
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         required_one_of=[('slot_options', 'device_options')],

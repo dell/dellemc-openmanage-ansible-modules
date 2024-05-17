@@ -157,7 +157,7 @@ def main():
         "template_name": {"required": True, "type": "str"},
         "identity_pool_name": {"required": False, "type": "str"},
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         supports_check_mode=True

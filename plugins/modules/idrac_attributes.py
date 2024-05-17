@@ -495,7 +495,7 @@ def main():
         "lifecycle_controller_attributes": {"required": False, "type": 'dict'},
         "resource_id": {"required": False, "type": 'str'}
     }
-    # specs.update(idrac_auth_params)
+
     module = IdracAnsibleModule(
         argument_spec=specs,
         required_one_of=[('idrac_attributes', 'system_attributes', 'lifecycle_controller_attributes')],

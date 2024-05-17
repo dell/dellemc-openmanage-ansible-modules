@@ -711,7 +711,7 @@ def main():
         "secondary_switch_service_tag": {"required": False, "type": "str"},
         "override_LLDP_configuration": {"required": False, "type": "str", "choices": ['Enabled', 'Disabled']},
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[['state', 'present', ('new_name', 'description', 'fabric_design', 'primary_switch_service_tag',

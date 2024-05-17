@@ -294,7 +294,7 @@ def main():
         "uplink_id": {"type": "str"},
         "uplink_name": {"type": "str"}
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[('fabric_id', 'fabric_name'), ('uplink_id', 'uplink_name')],

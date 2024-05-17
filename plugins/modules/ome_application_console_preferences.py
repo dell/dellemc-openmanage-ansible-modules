@@ -631,7 +631,7 @@ def main():
         "trap_forwarding_format": {"required": False, "type": "str", "choices": ["Normalized", "Original"]},
         "metrics_collection_settings": {"required": False, "type": "int"},
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(argument_spec=specs,
                               required_one_of=[["report_row_limit", "device_health", "discovery_settings",
                                                 "server_initiated_discovery", "mx7000_onboarding_preferences",

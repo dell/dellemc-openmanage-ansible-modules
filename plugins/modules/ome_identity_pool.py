@@ -575,7 +575,7 @@ def main():
                            "options": iscsi_specific_settings},
         "fc_settings": {"required": False, "type": "dict", "options": fc_settings},
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         supports_check_mode=True

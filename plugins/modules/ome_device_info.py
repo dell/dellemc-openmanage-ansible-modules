@@ -376,7 +376,7 @@ def main():
                         "choices": ['basic_inventory', 'detailed_inventory', 'subsystem_health']},
         "system_query_options": system_query_options,
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[['fact_subset', 'detailed_inventory', ['system_query_options']],

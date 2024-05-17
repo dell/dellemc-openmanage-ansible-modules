@@ -998,7 +998,7 @@ def main():
         None
     """
     specs = get_argument_spec()
-    # specs.update(idrac_auth_params)
+
     module = IdracAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[("import", "export", "delete")],

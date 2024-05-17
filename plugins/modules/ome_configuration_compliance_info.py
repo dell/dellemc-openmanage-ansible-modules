@@ -222,7 +222,7 @@ def main():
         "device_id": {"required": False, "type": "int"},
         "device_service_tag": {"required": False, "type": "str"},
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[["device_id", "device_service_tag"]],

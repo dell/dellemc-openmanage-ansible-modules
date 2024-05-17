@@ -418,7 +418,7 @@ def main():
         "domain_username": {"type": 'str'},
         "domain_password": {"type": 'str', "no_log": True}
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         required_one_of=[('name', 'id')],

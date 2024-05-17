@@ -748,7 +748,7 @@ def main():
              "required_one_of": [("preferred_dns_server", "alternate_dns_server1", "alternate_dns_server2")]
              }
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         required_one_of=[('device_id', 'device_service_tag')],

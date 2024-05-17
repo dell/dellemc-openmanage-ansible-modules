@@ -568,7 +568,7 @@ def main():
         "job_wait_timeout": {"type": 'int', "default": 600},
         "filter_no_reboot_required": {"type": 'bool'}
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[

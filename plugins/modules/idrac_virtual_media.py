@@ -441,7 +441,7 @@ def main():
         "force": {"required": False, "type": "bool", "default": False},
         "resource_id": {"required": False, "type": 'str'},
     }
-    # specs.update(idrac_auth_params)
+
     module = IdracAnsibleModule(argument_spec=specs, supports_check_mode=True)
     try:
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:

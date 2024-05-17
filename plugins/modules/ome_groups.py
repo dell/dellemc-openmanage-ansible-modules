@@ -406,7 +406,7 @@ def main():
         "parent_group_name": {"type": "str", "default": STATIC_ROOT},
         "parent_group_id": {"type": "int"},
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[

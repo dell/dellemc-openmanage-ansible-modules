@@ -1056,7 +1056,7 @@ def main():
         "email_recipient": {"type": 'str'},
         "ignore_partial_failure": {"type": 'bool', "default": False}
     }
-    # specs.update(ome_auth_params)
+
     module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[
