@@ -109,5 +109,5 @@
 
     - name: Asserting TC-115433 in normal mode
       ansible.builtin.assert:
-        that: idrac_boot_out.msg == "The boot settings job is triggered successfully."
+        that: idrac_boot_out.msg == "The boot settings operation is triggered/submitted successfully."
       when: not ansible_check_mode
