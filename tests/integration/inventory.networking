@@ -1,0 +1,8 @@
+# For modules starting with idrac as prefix
+[idrac]
+iDRAC idrac_ip=xx.xx.xx.xx idrac_user=username idrac_password=password idrac_port=443 validate_certs=false
+
+[all:vars]
+ansible_host=localhost
+ansible_connection=local
+ansible_become_pass=password

@@ -1,0 +1,80 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+
+- block:
+    - name: Prerequisite - Create a new session
+      dellemc.openmanage.idrac_session:
+      delegate_to: localhost
+      register: create_session_output
+
+    - name: Set auth token and session id
+      ansible.builtin.set_fact:
+        x_auth_token: "{{ create_session_output.x_auth_token }}"
+        session_id: "{{ create_session_output.session_data.Id }}"
+      when: create_session_output.changed
+
+    - name: Negative - Missing required argument for delete operation
+      dellemc.openmanage.idrac_session:
+        state: absent
+        x_auth_token: "{{ x_auth_token }}"
+      register: invalid_missing_argument
+      ignore_errors: true
+
+    - name: Verify task status - Negative - missing required argument for delete operation
+      ansible.builtin.assert:
+        that:
+          - invalid_missing_argument.failed
+          - not invalid_missing_argument.changed
+          - 'invalid_missing_argument.msg == "state is absent but all of the following are missing: session_id"'
+
+    - name: Negative - Invalid session id
+      dellemc.openmanage.idrac_session:
+        state: absent
+        x_auth_token: "{{ x_auth_token }}"
+        session_id: invalid
+      register: invalid_session_id
+      ignore_errors: true
+
+    - ansible.builtin.set_fact:
+        invalid_session_id_expected_msg: "argument 'session_id' is of
+        type <class 'str'> and we were unable to convert to int: <class 'str'> cannot be converted to an int"
+
+    - name: Verify task status - Negative - Invalid session id
+      ansible.builtin.assert:
+        that:
+          - invalid_session_id.failed
+          - not invalid_session_id.changed
+          - invalid_session_id.msg == invalid_session_id_expected_msg
+
+    - name: Negative - Negative session id
+      dellemc.openmanage.idrac_session:
+        state: absent
+        x_auth_token: "{{ x_auth_token }}"
+        session_id: -1
+      register: negative_session_id
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Negative session id
+      ansible.builtin.assert:
+        that:
+          - not negative_session_id.changed
+          - negative_session_id.msg == "No changes found to be applied."
+
+  always:
+    - name: Post clean up
+      ansible.builtin.include_tasks: _delete_helper.yml
+
+  module_defaults:
+    dellemc.openmanage.idrac_session:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ idrac_ip }}"
+      port: "{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
