@@ -1,0 +1,7 @@
+- name: Delete a session
+  dellemc.openmanage.idrac_session:
+    validate_certs: "{{ validate_certs }}"
+    hostname: "{{ idrac_ip }}"
+    state: absent
+    x_auth_token: "{{ x_auth_token }}"
+    session_id: "{{ session_id }}"
