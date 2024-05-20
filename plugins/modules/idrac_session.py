@@ -30,7 +30,7 @@ options:
     description:
       - Username of the iDRAC. If the username is not provided, then
         the environment variable C(IDRAC_USERNAME) is used.
-      - I(username) is required when I(state) is C(present). 
+      - I(username) is required when I(state) is C(present).
     type: str
   password:
     description:
