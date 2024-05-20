@@ -28,12 +28,14 @@ options:
     type: str
   username:
     description:
-      - Username of the iDRAC.
-      - I(username) is required when I(state) is C(present).
+      - Username of the iDRAC. If the username is not provided, then
+        the environment variable C(IDRAC_USERNAME) is used.
+      - I(username) is required when I(state) is C(present). 
     type: str
   password:
     description:
-      - Password of the iDRAC.
+      - Password of the iDRAC. If the password is not provided, then
+        the environment variable C(IDRAC_PASSWORD) is used.
       - I(password) is required when I(state) is C(present).
     type: str
   port:

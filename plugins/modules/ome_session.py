@@ -28,12 +28,14 @@ options:
     type: str
   username:
     description:
-      - Username of the OpenManage Enterprise.
+      - Username of the OpenManage Enterprise. If the username is not provided, then
+        the environment variable C(OME_USERNAME) is used.
       - I(username) is required when I(state) is C(present).
     type: str
   password:
     description:
-      - Password of the OpenManage Enterprise.
+      - Password of the OpenManage Enterprise. If the password is not provided, then
+        the environment variable C(OME_PASSWORD) is used.
       - I(password) is required when I(state) is C(present).
     type: str
   port:
