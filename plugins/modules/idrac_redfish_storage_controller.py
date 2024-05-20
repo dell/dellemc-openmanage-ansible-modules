@@ -1000,7 +1000,6 @@ def main():
         "job_wait_timeout": {"required": False, "type": "int", "default": 120},
         "size": {"required": False, "type": "int"}
     }
-    # specs.update(redfish_auth_params)
     module = RedfishAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[('attributes', 'command'), ("target", "size")],

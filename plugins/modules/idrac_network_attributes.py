@@ -319,8 +319,6 @@ error_info:
 import json
 import time
 from urllib.error import HTTPError, URLError
-
-
 from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
