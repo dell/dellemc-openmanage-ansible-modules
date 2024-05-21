@@ -478,7 +478,6 @@ error_info:
 import csv
 import os
 import json
-
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_all_data_with_pagination, strip_substr_dict
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError

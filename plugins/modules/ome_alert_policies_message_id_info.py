@@ -105,7 +105,6 @@ error_info:
 
 import json
 from ssl import SSLError
-
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key, get_all_data_with_pagination
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
