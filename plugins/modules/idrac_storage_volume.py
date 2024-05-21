@@ -128,6 +128,12 @@ options:
       - This option is applicable when I(job_wait) is C(true).
     type: int
     default: 900
+  time_to_wait:
+    description:
+      - The maximum wait time before shutdown in seconds for the Server Configuration Profile (SCP) import operation.
+      - This option is applicable when I(state) is C(create) or C(delete).
+    type: int
+    default: 300
 
 requirements:
   - "python >= 3.9.6"
@@ -302,6 +308,7 @@ ID_AND_LOCATION_BOTH_NOT_DEFINED = "Either id or location should be specified."
 DRIVES_NOT_DEFINED = "Drives must be defined for volume creation."
 NOT_ENOUGH_DRIVES = "Number of sufficient disks not found in Controller '{controller_id}'!"
 WAIT_TIMEOUT_MSG = "The job is not complete after {0} seconds."
+TIME_TO_WAIT_MSG = "Time to wait value is invalid. Minimum value is 300 and Maximum is 3600 seconds."
 JOB_TRIGERRED = "Successfully triggered the {0} storage volume operation."
 VOLUME_NAME_REQUIRED_FOR_DELETE = "Virtual disk name is a required parameter for remove virtual disk operations."
 VOLUME_NOT_FOUND = "Unable to find the virtual disk."
@@ -550,6 +557,11 @@ class StorageValidation(StorageBase):
         self.idrac_data = StorageData(idrac, module).all_storage_data()
         self.controller_id = module.params.get("controller_id")
 
+    def validate_time_to_wait(self):
+        to_wait = self.module_ext_params.get("time_to_wait")
+        if to_wait < 300 or to_wait > 3600:
+            self.module.exit_json(msg=TIME_TO_WAIT_MSG, failed=True)
+
     def validate_controller_exists(self):
         if not self.controller_id:
             self.module.exit_json(msg=CONTROLLER_NOT_DEFINED, failed=True)
@@ -719,6 +731,7 @@ class StorageCreate(StorageValidation):
 
     def validate(self):
         #  Validate upper layer input
+        self.validate_time_to_wait()
         self.validate_controller_exists()
         self.validate_job_wait_negative_values()
         #  Validate std raid validation for inner layer
@@ -740,7 +753,7 @@ class StorageCreate(StorageValidation):
         parent_payload = """<SystemConfiguration>{0}</SystemConfiguration>"""
         payload = self.constuct_payload(name_id_mapping)
         parent_payload = parent_payload.format(payload)
-        resp = self.idrac.import_scp(import_buffer=parent_payload, target="RAID", job_wait=False)
+        resp = self.idrac.import_scp(import_buffer=parent_payload, target="RAID", job_wait=False, time_to_wait=self.module.params.get('time_to_wait'))
         job_dict = self.wait_for_job_completion(resp)
         return job_dict
 
@@ -767,6 +780,7 @@ class StorageDelete(StorageValidation):
 
     def validate(self):
         #  Validate upper layer input
+        self.validate_time_to_wait()
         self.validate_job_wait_negative_values()
 
         #  Validate for volume and volume_name
@@ -802,7 +816,7 @@ class StorageDelete(StorageValidation):
         self.validate_volume_exists_in_server(set(volume_name_input_list))
         cntrl_id_vd_id_mapping = self.get_vd_id_based_on_controller_id_vd_name(set(volume_name_input_list))
         payload = self.construct_payload_for_delete(cntrl_id_vd_id_mapping)
-        resp = self.idrac.import_scp(import_buffer=payload, target="RAID", job_wait=False)
+        resp = self.idrac.import_scp(import_buffer=payload, target="RAID", job_wait=False, time_to_wait=self.module.params.get('time_to_wait'))
         job_dict = self.wait_for_job_completion(resp)
         return job_dict
 
@@ -890,7 +904,8 @@ def main():
         "raid_reset_config": {"choices": ['true', 'false'], "default": 'false'},
         "raid_init_operation": {"choices": ['None', 'Fast']},
         "job_wait": {"type": "bool", "default": True},
-        "job_wait_timeout": {"type": "int", "default": 900}
+        "job_wait_timeout": {"type": "int", "default": 900},
+        "time_to_wait": {"type": "int", "default": 300}
     }
 
     module = IdracAnsibleModule(
