@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.9.6
+- python \>= 3.9.6
 
 
 
@@ -40,17 +40,17 @@ Parameters
 
 
   network_attributes (optional, dict, None)
-    Dictionary of network attributes and value. To view the list of attributes and its structure, see the below API https://*idrac_ip*/redfish/v1/Systems/System.Embedded.1/NetworkAdapters/<network_id>/NetworkDeviceFunctions/ <network_port_id>/Settings and https://<idrac_ip>/redfish/v1/Schemas/NetworkDeviceFunction.v1_8_0.json.
+    Dictionary of network attributes and value. To view the list of attributes and its structure, see the below API \ https://I(idrac_ip\ /redfish/v1/Systems/System.Embedded.1/NetworkAdapters/\<network\_adapter\_id\>/NetworkDeviceFunctions/ \<network\_device\_function\_id\>/Settings) and \ https://%3Cidrac_ip%3E/redfish/v1/Schemas/NetworkDeviceFunction.v1_8_0.json\ .
 
-    *network_attributes* is mutually exclusive with *oem_network_attributes*.
+    \ :emphasis:`network\_attributes`\  is mutually exclusive with \ :emphasis:`oem\_network\_attributes`\ .
 
 
   oem_network_attributes (optional, dict, None)
-    The attributes must be part of the Integrated Dell Remote Access Controller Attribute Registry. To view the list of attributes in Attribute Registry for iDRAC9 and newer versions. For more information, see, https://*idrac_ip*/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/<network_id>/NetworkDeviceFunctions/ <network_port_id>/Oem/Dell/DellNetworkAttributes/<network_port_id> and https://*idrac_ip*/redfish/v1/Registries/NetworkAttributesRegistry_<network_port_id>/ NetworkAttributesRegistry_network_port_id.json.
+    The attributes must be part of the Integrated Dell Remote Access Controller Attribute Registry. To view the list of attributes in Attribute Registry for iDRAC9 and newer versions. For more information, see, \ https://I(idrac_ip\ /redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/\<network\_adapter\_id\>/NetworkDeviceFunctions/ \<network\_device\_function\_id\>/Oem/Dell/DellNetworkAttributes/\<network\_device\_function\_id\>) and \ https://I(idrac_ip\ /redfish/v1/Registries/NetworkAttributesRegistry\_\<network\_device\_function\_id\>/ NetworkAttributesRegistry\_network\_port\_id.json).
 
     For iDRAC8 based servers, derive the network attribute name from Server Configuration Profile.
 
-    *oem_network_attributes* is mutually exclusive with *network_attributes*.
+    \ :emphasis:`oem\_network\_attributes`\  is mutually exclusive with \ :emphasis:`network\_attributes`\ .
 
 
   resource_id (optional, str, None)
@@ -62,43 +62,43 @@ Parameters
   clear_pending (optional, bool, False)
     This parameter allows you to clear all the pending OEM network attributes changes.
 
-    ``false`` does not perform any operation.
+    \ :literal:`false`\  does not perform any operation.
 
-    ``true`` discards any pending changes to network attributes, or if a job is in scheduled state, removes the job.
+    \ :literal:`true`\  discards any pending changes to network attributes, or if a job is in scheduled state, removes the job.
 
-    *apply_time* value will be ignored and will not have any impact for *clear_pending* operation.
+    \ :emphasis:`apply\_time`\  value will be ignored and will not have any impact for \ :emphasis:`clear\_pending`\  operation.
 
     This operation is not supported for iDRAC8.
 
 
   apply_time (True, str, None)
-    Apply time of the *network_attributes* and *oem_network_attributes*.
+    Apply time of the \ :emphasis:`network\_attributes`\  and \ :emphasis:`oem\_network\_attributes`\ .
 
-    This is applicable only to *network_attributes* and *oem_network_attributes*.
+    This is applicable only to \ :emphasis:`network\_attributes`\  and \ :emphasis:`oem\_network\_attributes`\ .
 
-    ``Immediate`` allows the user to immediately reboot the host and apply the changes. *job_wait* is applicable. This is applicable for *oem_network_attributes* and *job_wait*.
+    \ :literal:`Immediate`\  allows the user to immediately reboot the host and apply the changes. \ :emphasis:`job\_wait`\  is applicable. This is applicable for \ :emphasis:`oem\_network\_attributes`\  and \ :emphasis:`job\_wait`\ .
 
-    ``OnReset`` allows the user to apply the changes on the next reboot of the host server.
+    \ :literal:`OnReset`\  allows the user to apply the changes on the next reboot of the host server.
 
-    ``AtMaintenanceWindowStart`` allows the user to apply at the start of a maintenance window as specified in *maintenance_window*. A reboot job is scheduled.
+    \ :literal:`AtMaintenanceWindowStart`\  allows the user to apply at the start of a maintenance window as specified in \ :emphasis:`maintenance\_window`\ . A reboot job is scheduled.
 
-    ``InMaintenanceWindowOnReset`` allows to apply after a manual reset but within the maintenance window as specified in *maintenance_window*.
+    \ :literal:`InMaintenanceWindowOnReset`\  allows to apply after a manual reset but within the maintenance window as specified in \ :emphasis:`maintenance\_window`\ .
 
-    This is not applicable for iDRAC8 and value will be ignored and will not have any impact for configuring *oem_network_attributes*.
+    This is not applicable for iDRAC8 and value will be ignored and will not have any impact for configuring \ :emphasis:`oem\_network\_attributes`\ .
 
 
   maintenance_window (optional, dict, None)
     This option allows you to schedule the maintenance window.
 
-    This is required when *apply_time* is ``AtMaintenanceWindowStart`` or ``InMaintenanceWindowOnReset``.
+    This is required when \ :emphasis:`apply\_time`\  is \ :literal:`AtMaintenanceWindowStart`\  or \ :literal:`InMaintenanceWindowOnReset`\ .
 
 
     start_time (True, str, None)
       The start time for the maintenance window to be scheduled.
 
-      The format is YYYY-MM-DDThh:mm:ss<offset>
+      The format is YYYY-MM-DDThh:mm:ss\<offset\>
 
-      <offset> is the time offset from UTC that the current timezone set in iDRAC in the format: +05:30 for IST.
+      \<offset\> is the time offset from UTC that the current timezone set in iDRAC in the format: +05:30 for IST.
 
 
     duration (True, int, None)
@@ -109,13 +109,13 @@ Parameters
   job_wait (optional, bool, True)
     Provides the option to wait for job completion.
 
-    This is applicable when *apply_time* is ``Immediate`` for *oem_network_attributes*.
+    This is applicable when \ :emphasis:`apply\_time`\  is \ :literal:`Immediate`\  for \ :emphasis:`oem\_network\_attributes`\ .
 
 
   job_wait_timeout (optional, int, 1200)
-    The maximum wait time of *job_wait* in seconds. The job is tracked only for this duration.
+    The maximum wait time of \ :emphasis:`job\_wait`\  in seconds. The job is tracked only for this duration.
 
-    This option is applicable when *job_wait* is ``true``.
+    This option is applicable when \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .
 
 
   idrac_ip (True, str, None)
@@ -125,9 +125,17 @@ Parameters
   idrac_user (True, str, None)
     iDRAC username.
 
+    If the username is not provided, then the environment variable \ :literal:`IDRAC\_USERNAME`\  is used.
+
+    Example: export IDRAC\_USERNAME=username
+
 
   idrac_password (True, str, None)
     iDRAC user password.
+
+    If the password is not provided, then the environment variable \ :literal:`IDRAC\_PASSWORD`\  is used.
+
+    Example: export IDRAC\_PASSWORD=password
 
 
   idrac_port (optional, int, 443)
@@ -135,11 +143,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -159,7 +167,7 @@ Notes
 .. note::
    - Run this module from a system that has direct access to Dell iDRAC.
    - This module supports both IPv4 and IPv6 address.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 
@@ -176,8 +184,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: "NIC.Integrated.1"
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: "NIC.Integrated.1"
+        network_device_function_id: "NIC.Integrated.1-1-1"
         apply_time: "Immediate"
         oem_network_attributes:
           BannerMessageTimeout: "4"
@@ -187,8 +195,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         oem_network_attributes:
           BannerMessageTimeout: "4"
         apply_time: OnReset
@@ -198,8 +206,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         oem_network_attributes:
           BannerMessageTimeout: "4"
         apply_time: AtMaintenanceWindowStart
@@ -212,8 +220,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         apply_time: "Immediate"
         clear_pending: true
 
@@ -222,8 +230,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         apply_time: "Immediate"
         clear_pending: true
         oem_network_attributes:
@@ -234,8 +242,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         apply_time: "Immediate"
         oem_network_attributes:
           LnkSpeed: "10MbpsHalf"
@@ -249,8 +257,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         apply_time: OnReset
         network_attributes:
           Ethernet:
@@ -262,8 +270,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         network_attributes:
           Ethernet:
             VLAN:
@@ -275,8 +283,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         network_attributes:
           iSCSIBoot:
             InitiatorIPAddress: 1.0.0.1
@@ -290,8 +298,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         network_attributes:
           Ethernet:
             VLAN:
