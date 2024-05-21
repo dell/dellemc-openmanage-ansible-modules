@@ -125,6 +125,12 @@ Parameters
     This option is applicable when \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .
 
 
+  time_to_wait (optional, int, 300)
+    The maximum wait time before shutdown in seconds for the Server Configuration Profile (SCP) import operation.
+
+    This option is applicable when \ :emphasis:`state`\  is \ :literal:`create`\  or \ :literal:`delete`\ .
+
+
   idrac_ip (True, str, None)
     iDRAC IP Address.
 
