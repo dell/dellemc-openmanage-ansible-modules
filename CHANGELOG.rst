@@ -4,6 +4,47 @@ Dell OpenManage Ansible Modules Release Notes
 
 .. contents:: Topics
 
+v9.3.0
+======
+
+Release Summary
+---------------
+
+- The ``ome_session`` module is added to allow you to create and delete the sessions on OpenManage Enterprise and OpenManage Modular.
+- Added supports to use session id for authentication of iDRAC, OpenManage Enterprise and OpenManage Modular modules. - Added time_to_wait option in ``idrac_storage_volume`` module. - Python 3.12 supports added for OMSDK.
+
+Major Changes
+-------------
+
+- Added supports for use one session ID for authentication in iDRAC, OpenManage Enterprise and OpenManage Modular.
+- ome_session - This module allows you to create and delete the sessions on OpenManage Enterprise and OpenManage Modular.
+
+Minor Changes
+-------------
+
+- Added time_to_wait option in ``idrac_storage_volume`` module.
+- Python 3.12 supports added for OMSDK.
+
+Bugfixes
+--------
+
+- Fixed issue in ``idrac_certificates`` module as subject_alt_name was taking only first item in list. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/584)
+- Fixed issue in ``idrac_virtual_media`` module for authorization header was presented in the request. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/612)
+- Fixed issue in ``ome_application_certificate`` module for padding error in CSR generated file. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/370)
+
+Known Issues
+------------
+
+- idrac_diagnostics - Issue(285322) - This module doesn't support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
+- idrac_firmware - Issue(279282) - This module does not support firmware update using HTTP, HTTPS, and FTP shares with authentication on iDRAC8.
+- idrac_storage_volume - Issue(290766) - The module will report success instead of showing failure for new virtual creation on the BOSS-N1 controller if a virtual disk is already present on the same controller.
+- ome_diagnostics - Issue(279193) - Export of SupportAssist collection logs to the share location fails on OME version 4.0.0.
+- ome_smart_fabric_uplink - Issue(186024) - The module supported by OpenManage Enterprise Modular, however it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, then the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.ome_session - Allows you to create and delete the sessions on OME.
 
 v9.2.0
 ======
@@ -493,7 +534,6 @@ Release Summary
 - Role to support the Import server configuration profile, Manage iDRAC power states, Manage iDRAC certificate,
   Gather facts from iDRAC and Deploy operating system is added.
 - Plugin OME inventory is enhanced to support the environment variables for the input parameters.
-
 
 Known Issues
 ------------
