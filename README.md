@@ -44,7 +44,7 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
 ## Installation
 
 * From [galaxy](https://galaxy.ansible.com/dellemc/openmanage) or [automationhub](https://console.redhat.com/ansible/automation-hub/repo/published/dellemc/openmanage):  
-Install the latest collection from the ansible galaxy or automation hub 
+Install the latest collection from the Ansible Galaxy or Automation hub 
 ```ansible-galaxy collection install dellemc.openmanage```
 
 * From [github](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections):  
@@ -52,7 +52,7 @@ Install the collection from the github repository using the latest commit on the
 ```ansible-galaxy collection install git+https://github.com/dell/dellemc-openmanage-ansible-modules.git,collections```
 
 * To Upgrade:  
-Update the collection to the latest version available from the [galaxy](https://galaxy.ansible.com/dellemc/openmanage) and [automationhub](https://console.redhat.com/ansible/automation-hub/repo/published/dellemc/openmanage)
+Update the collection to the latest version available on [galaxy](https://galaxy.ansible.com/dellemc/openmanage) and [automationhub](https://console.redhat.com/ansible/automation-hub/repo/published/dellemc/openmanage)
 ```ansible-galaxy collection install dellemc.openmanage --upgrade```
 
 * Specific Version:  
