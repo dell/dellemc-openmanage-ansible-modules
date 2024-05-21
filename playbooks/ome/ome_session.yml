@@ -29,19 +29,19 @@
             password: password
             ca_path: "/path/to/ca_cert.pem"
             state: present
-          register: authData
+          register: authdata
 
         - name: Call ome_user_info module
           dellemc.openmanage.ome_user_info:
             hostname: 198.162.0.1
             ca_path: "/path/to/ca_cert.pem"
-            x_auth_token: "{{ authData.x_auth_token }}"
+            x_auth_token: "{{ authdata.x_auth_token }}"
 
         - name: Call ome_network_vlan_info module
           dellemc.openmanage.ome_network_vlan_info:
             hostname: 198.162.0.1
             ca_path: "/path/to/ca_cert.pem"
-            x_auth_token: "{{ authData.x_auth_token }}"
+            x_auth_token: "{{ authdata.x_auth_token }}"
       always:
         - name: Destroy a session
           dellemc.openmanage.ome_session:
