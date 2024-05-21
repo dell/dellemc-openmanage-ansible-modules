@@ -11,28 +11,28 @@ Release Summary
 ---------------
 
 - The ``ome_session`` module is added to allow you to create and delete the sessions on OpenManage Enterprise and OpenManage Enterprise Modular.
-- Added supports to use session id for authentication of iDRAC, OpenManage Enterprise and OpenManage Enterprise Modular modules.
+- Added support to use session ID for authentication of iDRAC, OpenManage Enterprise and OpenManage Enterprise Modular modules.
 - Added time_to_wait option in ``idrac_storage_volume`` module.
-- Python 3.12 supports added for OMSDK.
+- Added support for Python 3.12.
 
 Major Changes
 -------------
 
-- Added supports for use one session ID for authentication in iDRAC, OpenManage Enterprise and OpenManage Enterprise Modular.
+- Added support to use session ID for authentication of iDRAC, OpenManage Enterprise and OpenManage Enterprise Modular.
 - ome_session - This module allows you to create and delete the sessions on OpenManage Enterprise and OpenManage Enterprise Modular.
 
 Minor Changes
 -------------
 
+- Added support for Python 3.12.
 - Added time_to_wait option in ``idrac_storage_volume`` module.
-- Python 3.12 supports added for OMSDK.
 
 Bugfixes
 --------
 
-- Fixed issue in ``idrac_certificates`` module as subject_alt_name was taking only first item in list. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/584)
-- Fixed issue in ``idrac_virtual_media`` module for authorization header was presented in the request. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/612)
-- Fixed issue in ``ome_application_certificate`` module for padding error in CSR generated file. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/370)
+- Resolved the issue in ``idrac_certificates`` module where subject_alt_name parameter was only accepting first item in list. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/584)
+- Resolved the issue in ``idrac_virtual_media`` module where the Authorization request header was included in the request. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/612)
+- Resolved the issue in ``ome_application_certificate`` module related to a padding error in generated CSR file. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/370)
 
 Known Issues
 ------------
@@ -46,7 +46,7 @@ Known Issues
 New Modules
 -----------
 
-- dellemc.openmanage.ome_session - Allows you to create and delete the sessions on OpenManage Enterprise and OpenManage Enterprise Modular.
+- dellemc.openmanage.ome_session - This module allows you to create and delete sessions on OpenManage Enterprise and OpenManage Enterprise Modular.
 
 v9.2.0
 ======
