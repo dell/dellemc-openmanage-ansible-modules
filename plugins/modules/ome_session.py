@@ -201,12 +201,9 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.session_utils i
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.common.parameters import env_fallback
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    get_dynamic_uri, remove_key)
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key
 
-OME = "/api"
-SESSION_SERVICE = "SessionService"
-SESSIONS = "Sessions@odata.navigationLink"
+SESSION_URL = "/api/SessionService/Sessions"
 ODATA = "@odata.id"
 ODATA_REGEX = "(.*?)@odata"
 
@@ -220,19 +217,9 @@ NO_CHANGES_FOUND_MSG = "No changes found to be applied."
 class OMESession(Session):
     def __init__(self, module):
         super().__init__(module)
-
-    def get_session_url(self):
-        """
-        Retrieves the URL for the sessions endpoint from the Redfish API.
-
-        Returns:
-            str: The URL for the sessions endpoint, or None if not found.
-        """
-        base_api_resp = get_dynamic_uri(self.instance, OME)
-        session_service_url = base_api_resp.get(SESSION_SERVICE, {}).get(ODATA, {})
-        session_service_resp = get_dynamic_uri(self.instance, session_service_url)
-        session_url = session_service_resp.get(SESSIONS, {})
-        return session_url
+        self.url_kwrags = {"force_basic_auth": True,
+                           "url_username": self.module.params.get("username"),
+                           "url_password": self.module.params.get("password")}
 
     def get_session_status(self, session_url, session_id):
         """
@@ -247,11 +234,12 @@ class OMESession(Session):
             code of the error is returned.
         """
         try:
-            view_session_url = session_url + "('" + session_id + "')"
-            session_status_response = self.instance.invoke_request(view_session_url, "GET")
-            session_status = session_status_response.status_code
+            session_status_response = self.instance.invoke_request(SESSION_URL, "GET")
+            sessions_data = session_status_response.json_data
+            session_ids = [session_id["@odata.id"].split("'")[1] for session_id in sessions_data["value"]]
+            session_status = session_id in session_ids
         except HTTPError as err:
-            session_status = err.status
+            raise err
         return session_status
 
     def create_session(self):
@@ -278,10 +266,9 @@ class OMESession(Session):
         """
         payload = {"UserName": self.module.params.get("username"),
                    "Password": self.module.params.get("password")}
-        session_url = self.get_session_url()
         if self.module.check_mode:
             self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
-        session_response = self.instance.invoke_request(session_url, "POST", data=payload)
+        session_response = self.instance.invoke_request(SESSION_URL, "POST", data=payload, url_kwargs=self.url_kwrags)
         status = session_response.status_code
         if status == 201:
             session_details = session_response.json_data
@@ -297,10 +284,9 @@ class OMESession(Session):
     def delete_session(self):
         """
         Executes the deletion of a session.
-        This function retrieves the session ID from the module parameters and constructs the
-        session URL using the `get_session_url` method. It then invokes a DELETE request to the
-        session URL with the session ID appended. The response from the request is stored in the
-        `session_response` variable.
+        This function retrieves the session ID from the module parameters.It then invokes a
+        DELETE request to the session URL with the session ID appended. The response from
+        the request is stored in the `session_response` variable.
 
         If the response status code is 200, indicating a successful deletion, the function exits
         the module with a success message and sets the `changed` parameter to True. Otherwise, it
@@ -313,17 +299,16 @@ class OMESession(Session):
             None
         """
         session_id = self.module.params.get("session_id")
-        session_url = self.get_session_url()
-        session_status = self.get_session_status(session_url, session_id)
+        session_status = self.get_session_status(SESSION_URL, session_id)
         if self.module.check_mode:
-            if session_status == 200:
+            if session_status:
                 self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
             else:
                 self.module.exit_json(msg=NO_CHANGES_FOUND_MSG)
         else:
-            if session_status == 200:
+            if session_status:
                 try:
-                    delete_session_url = session_url + "('" + session_id + "')"
+                    delete_session_url = SESSION_URL + "('" + session_id + "')"
                     session_response = self.instance.invoke_request(delete_session_url, "DELETE")
                     status = session_response.status_code
                     if status == 204:
