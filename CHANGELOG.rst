@@ -11,7 +11,9 @@ Release Summary
 ---------------
 
 - The ``ome_session`` module is added to allow you to create and delete the sessions on OpenManage Enterprise and OpenManage Enterprise Modular.
-- Added supports to use session id for authentication of iDRAC, OpenManage Enterprise and OpenManage Enterprise Modular modules. - Added time_to_wait option in ``idrac_storage_volume`` module. - Python 3.12 supports added for OMSDK.
+- Added supports to use session id for authentication of iDRAC, OpenManage Enterprise and OpenManage Enterprise Modular modules.
+- Added time_to_wait option in ``idrac_storage_volume`` module.
+- Python 3.12 supports added for OMSDK.
 
 Major Changes
 -------------
