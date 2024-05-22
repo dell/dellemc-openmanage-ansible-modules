@@ -192,8 +192,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: "NIC.Integrated.1"
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: "NIC.Integrated.1"
+        network_device_function_id: "NIC.Integrated.1-1-1"
         apply_time: "Immediate"
         oem_network_attributes:
           BannerMessageTimeout: "4"
@@ -203,8 +203,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         oem_network_attributes:
           BannerMessageTimeout: "4"
         apply_time: OnReset
@@ -214,8 +214,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         oem_network_attributes:
           BannerMessageTimeout: "4"
         apply_time: AtMaintenanceWindowStart
@@ -228,8 +228,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         apply_time: "Immediate"
         clear_pending: true
 
@@ -238,8 +238,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         apply_time: "Immediate"
         clear_pending: true
         oem_network_attributes:
@@ -250,8 +250,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         apply_time: "Immediate"
         oem_network_attributes:
           LnkSpeed: "10MbpsHalf"
@@ -265,8 +265,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         apply_time: OnReset
         network_attributes:
           Ethernet:
@@ -278,8 +278,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         network_attributes:
           Ethernet:
             VLAN:
@@ -291,8 +291,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         network_attributes:
           iSCSIBoot:
             InitiatorIPAddress: 1.0.0.1
@@ -306,8 +306,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         network_attributes:
           Ethernet:
             VLAN:
