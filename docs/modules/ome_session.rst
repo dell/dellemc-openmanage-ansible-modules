@@ -1,8 +1,8 @@
-.. _idrac_session_module:
+.. _ome_session_module:
 
 
-idrac_session -- Manage iDRAC sessions
-======================================
+ome_session -- Manage OpenManage Enterprise and OpenManage Enterprise modular sessions
+======================================================================================
 
 .. contents::
    :local:
@@ -12,7 +12,7 @@ idrac_session -- Manage iDRAC sessions
 Synopsis
 --------
 
-This module allows the creation and deletion of sessions on iDRAC.
+This module allows you  to create and delete sessions on OpenManage Enterprise and OpenManage Enterprise Modular.
 
 
 
@@ -28,23 +28,23 @@ Parameters
 ----------
 
   hostname (optional, str, None)
-    IP address or hostname of the iDRAC.
+    IP address or hostname of the OpenManage Enterprise.
 
 
   username (optional, str, None)
-    Username of the iDRAC. If the username is not provided, then the environment variable \ :envvar:`IDRAC\_USERNAME`\  is used.
+    Username of the OpenManage Enterprise. If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
     \ :emphasis:`username`\  is required when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
 
   password (optional, str, None)
-    Password of the iDRAC. If the password is not provided, then the environment variable \ :envvar:`IDRAC\_PASSWORD`\  is used.
+    Password of the OpenManage Enterprise. If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
 
     \ :emphasis:`password`\  is required when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
 
   port (optional, int, 443)
-    Port of the iDRAC.
+    Port of the OpenManage Enterprise.
 
 
   validate_certs (optional, bool, True)
@@ -58,11 +58,11 @@ Parameters
 
 
   timeout (optional, int, 30)
-    The https socket level timeout in seconds.
+    The HTTPS socket level timeout in seconds.
 
 
   state (optional, str, present)
-    The state of the session in an iDRAC.
+    The state of the session in OpenManage Enterprise.
 
     \ :literal:`present`\  creates a session.
 
@@ -77,8 +77,8 @@ Parameters
     \ :emphasis:`x\_auth\_token`\  is required when \ :emphasis:`state`\  is \ :literal:`absent`\ .
 
 
-  session_id (optional, int, None)
-    Session ID of the iDRAC.
+  session_id (optional, str, None)
+    Session ID of the OpenManage Enterprise.
 
     \ :emphasis:`session\_id`\  is required when \ :emphasis:`state`\  is \ :literal:`absent`\ .
 
@@ -90,7 +90,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to Dell iDRAC.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise.
    - This module supports IPv4 and IPv6 addresses.
    - This module supports \ :literal:`check\_mode`\ .
    - This module will always report changes found to be applied when \ :emphasis:`state`\  is \ :literal:`present`\ .
@@ -106,7 +106,7 @@ Examples
     
     ---
     - name: Create a session
-      dellemc.openmanage.idrac_session:
+      dellemc.openmanage.ome_session:
         hostname: 198.162.0.1
         username: username
         password: password
@@ -114,17 +114,17 @@ Examples
         state: present
 
     - name: Delete a session
-      dellemc.openmanage.idrac_session:
+      dellemc.openmanage.ome_session:
         hostname: 198.162.0.1
         ca_path: "/path/to/ca_cert.pem"
         state: absent
         x_auth_token: aed4aa802b748d2f3b31deec00a6b28a
-        session_id: 2
+        session_id: 4b48e9ab-809e-4087-b7c4-201a16e0143d
 
     - name: Create a session and execute other modules
       block:
         - name: Create a session
-          dellemc.openmanage.idrac_session:
+          dellemc.openmanage.ome_session:
             hostname: 198.162.0.1
             username: username
             password: password
@@ -132,20 +132,20 @@ Examples
             state: present
             register: authData
 
-        - name: Call idrac_firmware_info module
-          dellemc.openmanage.idrac_firmware_info:
-            idrac_ip: 198.162.0.1
+        - name: Call ome_user_info module
+          dellemc.openmanage.ome_user_info:
+            hostname: 198.162.0.1
             ca_path: "/path/to/ca_cert.pem"
             x_auth_token: "{{ authData.x_auth_token }}"
 
-        - name: Call idrac_user_info module
-          dellemc.openmanage.idrac_user_info:
-            idrac_ip: 198.162.0.1
+        - name: Call ome_network_vlan_info module
+          dellemc.openmanage.ome_network_vlan_info:
+            hostname: 198.162.0.1
             ca_path: "/path/to/ca_cert.pem"
             x_auth_token: "{{ authData.x_auth_token }}"
       always:
         - name: Destroy a session
-          dellemc.openmanage.idrac_session:
+          dellemc.openmanage.ome_session:
             hostname: 198.162.0.1
             ca_path: "/path/to/ca_cert.pem"
             state: absent
@@ -161,7 +161,7 @@ msg (always, str, The session has been created successfully.)
   Status of the session operation.
 
 
-session_data (For session creation operation, dict, {'@Message.ExtendedInfo': [{'Message': 'The resource has been created successfully.', 'MessageArgs': [], 'MessageId': 'Base.1.12.Created', 'RelatedProperties': [], 'Resolution': 'None.', 'Severity': 'OK'}, {'Message': 'A new resource is successfully created.', 'MessageArgs': [], 'MessageId': 'IDRAC.2.9.SYS414', 'RelatedProperties': [], 'Resolution': 'No response action is required.', 'Severity': 'Informational'}], 'ClientOriginIPAddress': '100.96.37.58', 'CreatedTime': '2024-04-05T01:14:01-05:00', 'Description': 'User Session', 'Id': '74', 'Name': 'User Session', 'Password': None, 'SessionType': 'Redfish', 'UserName': 'root'})
+session_data (For session creation operation, dict, {'Id': 'd5c28d8e-1084-4055-9c01-e1051cfee2dd', 'Description': 'admin', 'Name': 'API', 'UserName': 'admin', 'UserId': 10078, 'Password': None, 'Roles': ['BACKUP_ADMINISTRATOR'], 'IpAddress': '100.198.162.0', 'StartTimeStamp': '2023-07-03 07:22:43.683', 'LastAccessedTimeStamp': '2023-07-03 07:22:43.683', 'DirectoryGroup': []})
   The session details.
 
 
@@ -169,7 +169,7 @@ x_auth_token (For session creation operation, str, d15f17f01cd627c30173b15826424
   Authentication token.
 
 
-error_info (On HTTP error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to complete the operation because an invalid username and/or password is entered, and therefore authentication failed.', 'MessageArgs': [], 'MessageId': 'IDRAC.2.9.SYS415', 'RelatedProperties': [], 'Resolution': 'Enter valid user name and password and retry the operation.', 'Severity': 'Warning'}], 'code': 'Base.1.12.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information'}})
+error_info (On HTTP error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to complete the operation because an invalid username and/or password is entered, and therefore authentication failed.', 'MessageArgs': [], 'MessageArgs@odata.count': 0, 'MessageId': 'IDRAC.2.7.SYS415', 'RelatedProperties': [], 'RelatedProperties@odata.count': 0, 'Resolution': 'Enter valid user name and password and retry the operation.', 'Severity': 'Warning'}], 'code': 'Base.1.12.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information'}})
   Details of the HTTP Error.
 
 
@@ -186,6 +186,5 @@ Status
 Authors
 ~~~~~~~
 
-- Rajshekar P(@rajshekarp87)
 - Kritika Bhateja (@Kritika-Bhateja-03)
 

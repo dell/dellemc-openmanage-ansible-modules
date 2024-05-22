@@ -2,7 +2,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.2.0
+# Version 9.3.0
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -579,7 +579,7 @@ class TestMain(FakeAnsibleModule):
                                               StringIO(json_str)))
         else:
             ome_default_args.update({"state": "absent", "session_id": "1234",
-                                    "auth_token": "token123"})
+                                    "x_auth_token": "token123"})
             mocker.patch(MODULE_PATH + "DeleteSession.get_session_url",
                          side_effect=exc_type('test'))
         result = self._run_module(ome_default_args)
