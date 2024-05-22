@@ -1,6 +1,6 @@
 ### Overview
 Dell OpenManage Ansible Modules unit test scripts are located under
- [unit](./tests/unit) directory.
+ [unit](./unit) directory.
 
 ### Implementing the unit tests
 Any contribution must have an associated unit test. This section covers the
