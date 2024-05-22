@@ -16,31 +16,31 @@ __metaclass__ = type
 
 DOCUMENTATION = r"""
 ---
-module: idrac_session
-short_description: Manage iDRAC sessions
-version_added: "9.2.0"
+module: ome_session
+short_description: Manage OpenManage Enterprise and OpenManage Enterprise modular sessions
+version_added: "9.3.0"
 description:
-  - This module allows the creation and deletion of sessions on iDRAC.
+  - This module allows you  to create and delete sessions on OpenManage Enterprise and OpenManage Enterprise Modular.
 options:
   hostname:
     description:
-      - IP address or hostname of the iDRAC.
+      - IP address or hostname of the OpenManage Enterprise.
     type: str
   username:
     description:
-      - Username of the iDRAC. If the username is not provided, then
-        the environment variable E(IDRAC_USERNAME) is used.
+      - Username of the OpenManage Enterprise. If the username is not provided, then
+        the environment variable E(OME_USERNAME) is used.
       - I(username) is required when I(state) is C(present).
     type: str
   password:
     description:
-      - Password of the iDRAC. If the password is not provided, then
-        the environment variable E(IDRAC_PASSWORD) is used.
+      - Password of the OpenManage Enterprise. If the password is not provided, then
+        the environment variable E(OME_PASSWORD) is used.
       - I(password) is required when I(state) is C(present).
     type: str
   port:
     description:
-      - Port of the iDRAC.
+      - Port of the OpenManage Enterprise.
     type: int
     default: 443
   validate_certs:
@@ -55,12 +55,12 @@ options:
     type: path
   timeout:
     description:
-     - The https socket level timeout in seconds.
+     - The HTTPS socket level timeout in seconds.
     type: int
     default: 30
   state:
     description:
-     - The state of the session in an iDRAC.
+     - The state of the session in OpenManage Enterprise.
      - C(present) creates a session.
      - C(absent) deletes a session.
      - Module will always report changes found to be applied when I(state) is C(present).
@@ -72,19 +72,18 @@ options:
      - Authentication token.
      - I(x_auth_token) is required when I(state) is C(absent).
     type: str
+    aliases: ['auth_token']
   session_id:
     description:
-     - Session ID of the iDRAC.
+     - Session ID of the OpenManage Enterprise.
      - I(session_id) is required when I(state) is C(absent).
-    type: int
-    aliases: ['auth_token']
+    type: str
 requirements:
   - "python >= 3.9.6"
 author:
-  - "Rajshekar P(@rajshekarp87)"
   - "Kritika Bhateja (@Kritika-Bhateja-03)"
 notes:
-    - Run this module from a system that has direct access to Dell iDRAC.
+    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module supports IPv4 and IPv6 addresses.
     - This module supports C(check_mode).
     - This module will always report changes found to be applied when I(state) is C(present).
@@ -93,7 +92,7 @@ notes:
 EXAMPLES = r"""
 ---
 - name: Create a session
-  dellemc.openmanage.idrac_session:
+  dellemc.openmanage.ome_session:
     hostname: 198.162.0.1
     username: username
     password: password
@@ -101,17 +100,17 @@ EXAMPLES = r"""
     state: present
 
 - name: Delete a session
-  dellemc.openmanage.idrac_session:
+  dellemc.openmanage.ome_session:
     hostname: 198.162.0.1
     ca_path: "/path/to/ca_cert.pem"
     state: absent
     x_auth_token: aed4aa802b748d2f3b31deec00a6b28a
-    session_id: 2
+    session_id: 4b48e9ab-809e-4087-b7c4-201a16e0143d
 
 - name: Create a session and execute other modules
   block:
     - name: Create a session
-      dellemc.openmanage.idrac_session:
+      dellemc.openmanage.ome_session:
         hostname: 198.162.0.1
         username: username
         password: password
@@ -119,20 +118,20 @@ EXAMPLES = r"""
         state: present
         register: authData
 
-    - name: Call idrac_firmware_info module
-      dellemc.openmanage.idrac_firmware_info:
-        idrac_ip: 198.162.0.1
+    - name: Call ome_user_info module
+      dellemc.openmanage.ome_user_info:
+        hostname: 198.162.0.1
         ca_path: "/path/to/ca_cert.pem"
         x_auth_token: "{{ authData.x_auth_token }}"
 
-    - name: Call idrac_user_info module
-      dellemc.openmanage.idrac_user_info:
-        idrac_ip: 198.162.0.1
+    - name: Call ome_network_vlan_info module
+      dellemc.openmanage.ome_network_vlan_info:
+        hostname: 198.162.0.1
         ca_path: "/path/to/ca_cert.pem"
         x_auth_token: "{{ authData.x_auth_token }}"
   always:
     - name: Destroy a session
-      dellemc.openmanage.idrac_session:
+      dellemc.openmanage.ome_session:
         hostname: 198.162.0.1
         ca_path: "/path/to/ca_cert.pem"
         state: absent
@@ -152,33 +151,20 @@ session_data:
     returned: For session creation operation
     type: dict
     sample: {
-        "@Message.ExtendedInfo": [
-                {
-                    "Message": "The resource has been created successfully.",
-                    "MessageArgs": [],
-                    "MessageId": "Base.1.12.Created",
-                    "RelatedProperties": [],
-                    "Resolution": "None.",
-                    "Severity": "OK"
-                },
-                {
-                    "Message": "A new resource is successfully created.",
-                    "MessageArgs": [],
-                    "MessageId": "IDRAC.2.9.SYS414",
-                    "RelatedProperties": [],
-                    "Resolution": "No response action is required.",
-                    "Severity": "Informational"
-                }
-            ],
-            "ClientOriginIPAddress": "100.96.37.58",
-            "CreatedTime": "2024-04-05T01:14:01-05:00",
-            "Description": "User Session",
-            "Id": "74",
-            "Name": "User Session",
-            "Password": null,
-            "SessionType": "Redfish",
-            "UserName": "root"
-        }
+        "Id": "d5c28d8e-1084-4055-9c01-e1051cfee2dd",
+        "Description": "admin",
+        "Name": "API",
+        "UserName": "admin",
+        "UserId": 10078,
+        "Password": null,
+        "Roles": [
+            "BACKUP_ADMINISTRATOR"
+        ],
+        "IpAddress": "100.198.162.0",
+        "StartTimeStamp": "2023-07-03 07:22:43.683",
+        "LastAccessedTimeStamp": "2023-07-03 07:22:43.683",
+        "DirectoryGroup": []
+            }
 x_auth_token:
     description: Authentication token.
     returned: For session creation operation
@@ -189,36 +175,35 @@ error_info:
     returned: On HTTP error
     type: dict
     sample: {
-            "error": {
-                "@Message.ExtendedInfo": [
-                    {
-                        "Message": "Unable to complete the operation because an invalid username
-                        and/or password is entered, and therefore authentication failed.",
-                        "MessageArgs": [],
-                        "MessageId": "IDRAC.2.9.SYS415",
-                        "RelatedProperties": [],
-                        "Resolution": "Enter valid user name and password and retry the operation.",
-                        "Severity": "Warning"
-                    }
-                ],
-                "code": "Base.1.12.GeneralError",
-                "message": "A general error has occurred. See ExtendedInfo for more information"
-            }
+        "error": {
+            "@Message.ExtendedInfo": [
+                {
+                    "Message": "Unable to complete the operation because an invalid username and/or password is entered, and therefore authentication failed.",
+                    "MessageArgs": [],
+                    "MessageArgs@odata.count": 0,
+                    "MessageId": "IDRAC.2.7.SYS415",
+                    "RelatedProperties": [],
+                    "RelatedProperties@odata.count": 0,
+                    "Resolution": "Enter valid user name and password and retry the operation.",
+                    "Severity": "Warning"
+                }
+            ],
+            "code": "Base.1.12.GeneralError",
+            "message": "A general error has occurred. See ExtendedInfo for more information"
         }
+    }
 '''
 
 
 import json
 from urllib.error import HTTPError, URLError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.session_utils import SessionAPI
+from ansible_collections.dellemc.openmanage.plugins.module_utils.session_utils import Session
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.common.parameters import env_fallback
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    get_dynamic_uri, remove_key)
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key
 
-REDFISH = "/redfish/v1"
-SESSIONS = "Sessions"
+SESSION_URL = "/api/SessionService/Sessions"
 ODATA = "@odata.id"
 ODATA_REGEX = "(.*?)@odata"
 
@@ -229,41 +214,35 @@ CHANGES_FOUND_MSG = "Changes found to be applied."
 NO_CHANGES_FOUND_MSG = "No changes found to be applied."
 
 
-class Session():
-    """
-    Parent class for all session operations.
-    """
-    def __init__(self, idrac, module):
+class OMESession(Session):
+    def __init__(self, module):
+        super().__init__(module)
+        self.url_kwrags = {"force_basic_auth": True,
+                           "url_username": self.module.params.get("username"),
+                           "url_password": self.module.params.get("password")}
+
+    def get_session_status(self, session_url, session_id):
         """
-        Initializes the object with the given idrac and module parameters.
+        Retrieves the status of a session given its URL and ID.
 
         Args:
-            idrac (object): The idrac object.
-            module (object): The module object.
+            session_url (str): The URL of the session.
+            session_id (str): The ID of the session.
 
         Returns:
-            None
+            int: The status code of the session status response. If an HTTPError occurs, the status
+            code of the error is returned.
         """
-        self.idrac = idrac
-        self.module = module
+        try:
+            session_status_response = self.instance.invoke_request(SESSION_URL, "GET")
+            sessions_data = session_status_response.json_data
+            session_ids = [session_id["@odata.id"].split("'")[1] for session_id in sessions_data["value"]]
+            session_status = session_id in session_ids
+        except HTTPError as err:
+            raise err
+        return session_status
 
-    def get_session_url(self):
-        """
-        Retrieves the URL for the sessions endpoint from the Redfish API.
-
-        Returns:
-            str: The URL for the sessions endpoint, or None if not found.
-        """
-        v1_resp = get_dynamic_uri(self.idrac, REDFISH)
-        sessions_url = v1_resp.get('Links', {}).get(SESSIONS, {}).get(ODATA, {})
-        return sessions_url
-
-
-class CreateSession(Session):
-    """
-    Creates a session.
-    """
-    def execute(self):
+    def create_session(self):
         """
         Executes the session creation process.
 
@@ -287,10 +266,9 @@ class CreateSession(Session):
         """
         payload = {"UserName": self.module.params.get("username"),
                    "Password": self.module.params.get("password")}
-        session_url = self.get_session_url()
         if self.module.check_mode:
             self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
-        session_response = self.idrac.invoke_request(session_url, "POST", data=payload)
+        session_response = self.instance.invoke_request(SESSION_URL, "POST", data=payload, url_kwargs=self.url_kwrags)
         status = session_response.status_code
         if status == 201:
             session_details = session_response.json_data
@@ -303,19 +281,12 @@ class CreateSession(Session):
         else:
             self.module.exit_json(msg=FAILURE_MSG.format(operation="create"), failed=True)
 
-
-class DeleteSession(Session):
-    """
-    Deletes a session.
-    """
-    def execute(self):
+    def delete_session(self):
         """
         Executes the deletion of a session.
-
-        This function retrieves the session ID from the module parameters and constructs the
-        session URL using the `get_session_url` method. It then invokes a DELETE request to the
-        session URL with the session ID appended. The response from the request is stored in the
-        `session_response` variable.
+        This function retrieves the session ID from the module parameters.It then invokes a
+        DELETE request to the session URL with the session ID appended. The response from
+        the request is stored in the `session_response` variable.
 
         If the response status code is 200, indicating a successful deletion, the function exits
         the module with a success message and sets the `changed` parameter to True. Otherwise, it
@@ -328,20 +299,19 @@ class DeleteSession(Session):
             None
         """
         session_id = self.module.params.get("session_id")
-        session_url = self.get_session_url()
-        session_status = self.get_session_status(session_url, session_id)
+        session_status = self.get_session_status(SESSION_URL, session_id)
         if self.module.check_mode:
-            if session_status == 200:
+            if session_status:
                 self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
             else:
                 self.module.exit_json(msg=NO_CHANGES_FOUND_MSG)
         else:
-            if session_status == 200:
+            if session_status:
                 try:
-                    session_response = self.idrac.invoke_request(session_url + f"/{session_id}",
-                                                                 "DELETE")
+                    delete_session_url = SESSION_URL + "('" + session_id + "')"
+                    session_response = self.instance.invoke_request(delete_session_url, "DELETE")
                     status = session_response.status_code
-                    if status == 200:
+                    if status == 204:
                         self.module.exit_json(msg=DELETE_SUCCESS_MSG, changed=True)
                 except HTTPError as err:
                     filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
@@ -350,27 +320,6 @@ class DeleteSession(Session):
                                           failed=True)
             else:
                 self.module.exit_json(msg=NO_CHANGES_FOUND_MSG)
-
-    def get_session_status(self, session_url, session_id):
-        """
-        Retrieves the status of a session given its URL and ID.
-
-        Args:
-            session_url (str): The URL of the session.
-            session_id (str): The ID of the session.
-
-
-        Returns:
-            int: The status code of the session status response. If an HTTPError occurs, the status
-            code of the error is returned.
-        """
-        try:
-            session_status_response = self.idrac.invoke_request(session_url + f"/{session_id}",
-                                                                "GET")
-            session_status = session_status_response.status_code
-        except HTTPError as err:
-            session_status = err.status
-        return session_status
 
 
 def main():
@@ -402,17 +351,17 @@ def main():
         ],
         supports_check_mode=True
     )
-
     try:
-        idrac = SessionAPI(module.params)
+        ome = OMESession(module)
         session_operation = module.params.get("state")
         if session_operation == "present":
-            session_operation_obj = CreateSession(idrac, module)
+            ome.create_session()
         else:
-            session_operation_obj = DeleteSession(idrac, module)
-        session_operation_obj.execute()
+            ome.delete_session()
     except HTTPError as err:
-        filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
+        filter_err = {}
+        if isinstance(err, dict):
+            filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
         module.exit_json(msg=str(err), error_info=filter_err, failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
@@ -439,22 +388,22 @@ def get_argument_spec():
     ["present", "absent"].
     - "x_auth_token": A string representing the authentication token. It is marked as not to be
     logged.
-    - "session_id": An integer representing the session ID.
+    - "session_id": A string representing the session ID.
 
     Returns:
         A dictionary representing the argument specification.
     """
     return {
         "hostname": {"type": "str"},
-        "username": {"type": "str", "fallback": (env_fallback, ['IDRAC_USERNAME'])},
-        "password": {"type": "str", "no_log": True, "fallback": (env_fallback, ['IDRAC_PASSWORD'])},
+        "username": {"type": "str", "fallback": (env_fallback, ['OME_USERNAME'])},
+        "password": {"type": "str", "no_log": True, "fallback": (env_fallback, ['OME_PASSWORD'])},
         "port": {"type": "int", "default": 443},
         "validate_certs": {"type": "bool", "default": True},
         "ca_path": {"type": "path", "default": None},
         "timeout": {"type": "int", "default": 30},
         "state": {"type": 'str', "default": "present", "choices": ["present", "absent"]},
         "x_auth_token": {"type": "str", "no_log": True, "aliases": ['auth_token']},
-        "session_id": {"type": "int"}
+        "session_id": {"type": "str"}
     }
 
 
