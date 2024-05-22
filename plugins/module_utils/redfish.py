@@ -193,7 +193,7 @@ class Redfish(object):
 
     def __enter__(self):
         """Creates sessions by passing it to header"""
-        if self.req_session:
+        if self.req_session and not self.x_auth_token:
             payload = {'UserName': self.username,
                        'Password': self.password}
             path = SESSION_RESOURCE_COLLECTION["SESSION"]
@@ -204,6 +204,8 @@ class Redfish(object):
             else:
                 msg = "Could not create the session"
                 raise ConnectionError(msg)
+        elif self.x_auth_token is not None:
+            self._headers["X-Auth-Token"] = self.x_auth_token
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
