@@ -1854,7 +1854,7 @@ releases:
         - Added time_to_wait option in ``idrac_storage_volume`` module.
         - Added support for Python 3.12.
       bugfixes:
-        - Resolved the issue in ``idrac_virtual_media`` module where the Authorization request header was included 
+        - Resolved the issue in ``idrac_virtual_media`` module where the Authorization request header was included
           in the request. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/612)
         - Resolved the issue in ``idrac_certificates`` module where subject_alt_name parameter was only accepting
           first item in list. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/584)
