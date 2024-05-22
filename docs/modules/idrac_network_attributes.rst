@@ -40,13 +40,13 @@ Parameters
 
 
   network_attributes (optional, dict, None)
-    Dictionary of network attributes and value. To view the list of attributes and its structure, see the below API \ https://I(idrac_ip\ /redfish/v1/Systems/System.Embedded.1/NetworkAdapters/\<network\_adapter\_id\>/NetworkDeviceFunctions/ \<network\_device\_function\_id\>/Settings) and \ https://%3Cidrac_ip%3E/redfish/v1/Schemas/NetworkDeviceFunction.v1_8_0.json\ .
+    Dictionary of network attributes and value. To view the list of attributes and its structure, see the below API \ https://I(idrac_ip\ /redfish/v1/Systems/System.Embedded.1/NetworkAdapters/\<network\_id\>/NetworkDeviceFunctions/ \<network\_port\_id\>/Settings) and \ https://%3Cidrac_ip%3E/redfish/v1/Schemas/NetworkDeviceFunction.v1_8_0.json\ .
 
     \ :emphasis:`network\_attributes`\  is mutually exclusive with \ :emphasis:`oem\_network\_attributes`\ .
 
 
   oem_network_attributes (optional, dict, None)
-    The attributes must be part of the Integrated Dell Remote Access Controller Attribute Registry. To view the list of attributes in Attribute Registry for iDRAC9 and newer versions. For more information, see, \ https://I(idrac_ip\ /redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/\<network\_adapter\_id\>/NetworkDeviceFunctions/ \<network\_device\_function\_id\>/Oem/Dell/DellNetworkAttributes/\<network\_device\_function\_id\>) and \ https://I(idrac_ip\ /redfish/v1/Registries/NetworkAttributesRegistry\_\<network\_device\_function\_id\>/ NetworkAttributesRegistry\_network\_port\_id.json).
+    The attributes must be part of the Integrated Dell Remote Access Controller Attribute Registry. To view the list of attributes in Attribute Registry for iDRAC9 and newer versions. For more information, see, \ https://I(idrac_ip\ /redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/\<network\_id\>/NetworkDeviceFunctions/ \<network\_port\_id\>/Oem/Dell/DellNetworkAttributes/\<network\_port\_id\>) and \ https://I(idrac_ip\ /redfish/v1/Registries/NetworkAttributesRegistry\_\<network\_port\_id\>/ NetworkAttributesRegistry\_network\_port\_id.json).
 
     For iDRAC8 based servers, derive the network attribute name from Server Configuration Profile.
 
@@ -122,20 +122,28 @@ Parameters
     iDRAC IP Address.
 
 
-  idrac_user (True, str, None)
+  idrac_user (False, str, None)
     iDRAC username.
 
-    If the username is not provided, then the environment variable \ :literal:`IDRAC\_USERNAME`\  is used.
+    If the username is not provided, then the environment variable \ :envvar:`IDRAC\_USERNAME`\  is used.
 
     Example: export IDRAC\_USERNAME=username
 
 
-  idrac_password (True, str, None)
+  idrac_password (False, str, None)
     iDRAC user password.
 
-    If the password is not provided, then the environment variable \ :literal:`IDRAC\_PASSWORD`\  is used.
+    If the password is not provided, then the environment variable \ :envvar:`IDRAC\_PASSWORD`\  is used.
 
     Example: export IDRAC\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`IDRAC\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export IDRAC\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   idrac_port (optional, int, 443)

@@ -26,7 +26,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.9.6
 
 
 
@@ -34,37 +34,37 @@ Parameters
 ----------
 
   state (optional, str, present)
-    Select ``present`` to create or modify a user account.
+    Select \ :literal:`present`\  to create or modify a user account.
 
-    Select ``absent`` to remove a user account.
+    Select \ :literal:`absent`\  to remove a user account.
 
 
   user_name (True, str, None)
-    Provide the *user_name* of the account to be created, deleted or modified.
+    Provide the \ :emphasis:`user\_name`\  of the account to be created, deleted or modified.
 
 
   user_password (optional, str, None)
     Provide the password for the user account. The password can be changed when the user account is modified.
 
-    To ensure security, the *user_password* must be at least eight characters long and must contain lowercase and upper-case characters, numbers, and special characters.
+    To ensure security, the \ :emphasis:`user\_password`\  must be at least eight characters long and must contain lowercase and upper-case characters, numbers, and special characters.
 
 
   new_user_name (optional, str, None)
-    Provide the *user_name* for the account to be modified.
+    Provide the \ :emphasis:`user\_name`\  for the account to be modified.
 
 
   privilege (optional, str, None)
     Following are the role-based privileges.
 
-    A user with ``Administrator`` privilege can log in to iDRAC, and then configure iDRAC, configure users, clear logs, control and configure system, access virtual console, access virtual media, test alerts, and execute debug commands.
+    A user with \ :literal:`Administrator`\  privilege can log in to iDRAC, and then configure iDRAC, configure users, clear logs, control and configure system, access virtual console, access virtual media, test alerts, and execute debug commands.
 
-    A user with ``Operator`` privilege can log in to iDRAC, and then configure iDRAC, control and configure system, access virtual console, access virtual media, and execute debug commands.
+    A user with \ :literal:`Operator`\  privilege can log in to iDRAC, and then configure iDRAC, control and configure system, access virtual console, access virtual media, and execute debug commands.
 
-    A user with ``ReadOnly`` privilege can only log in to iDRAC.
+    A user with \ :literal:`ReadOnly`\  privilege can only log in to iDRAC.
 
-    A user with ``None``, no privileges assigned.
+    A user with \ :literal:`None`\ , no privileges assigned.
 
-    Will be ignored, if custom_privilege parameter is provided.
+    Will be ignored, if custom\_privilege parameter is provided.
 
 
   custom_privilege (optional, int, None)
@@ -96,33 +96,49 @@ Parameters
   authentication_protocol (optional, str, None)
     This option allows to configure one of the following authentication protocol types to authenticate the iDRAC user.
 
-    Secure Hash Algorithm ``SHA``.
+    Secure Hash Algorithm \ :literal:`SHA`\ .
 
-    Message Digest 5 ``MD5``.
+    Message Digest 5 \ :literal:`MD5`\ .
 
-    An authentication protocol is not configured if ``None`` is selected.
+    An authentication protocol is not configured if \ :literal:`None`\  is selected.
 
 
   privacy_protocol (optional, str, None)
     This option allows to configure one of the following privacy encryption protocols for the iDRAC user.
 
-    Data Encryption Standard ``DES``.
+    Data Encryption Standard \ :literal:`DES`\ .
 
-    Advanced Encryption Standard ``AES``.
+    Advanced Encryption Standard \ :literal:`AES`\ .
 
-    A privacy protocol is not configured if ``None`` is selected.
+    A privacy protocol is not configured if \ :literal:`None`\  is selected.
 
 
   idrac_ip (True, str, None)
     iDRAC IP Address.
 
 
-  idrac_user (True, str, None)
+  idrac_user (False, str, None)
     iDRAC username.
 
+    If the username is not provided, then the environment variable \ :envvar:`IDRAC\_USERNAME`\  is used.
 
-  idrac_password (True, str, None)
+    Example: export IDRAC\_USERNAME=username
+
+
+  idrac_password (False, str, None)
     iDRAC user password.
+
+    If the password is not provided, then the environment variable \ :envvar:`IDRAC\_PASSWORD`\  is used.
+
+    Example: export IDRAC\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`IDRAC\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export IDRAC\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   idrac_port (optional, int, 443)
@@ -130,11 +146,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -153,7 +169,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell iDRAC.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 

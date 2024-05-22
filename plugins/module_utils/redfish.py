@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 8.2.0
-# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -36,6 +36,7 @@ from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible.module_utils.common.parameters import env_fallback
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
+from ansible.module_utils.basic import AnsibleModule
 
 redfish_auth_params = {
     "baseuri": {"required": True, "type": "str"},
@@ -96,6 +97,7 @@ class Redfish(object):
         self.hostname = self.module_params["baseuri"]
         self.username = self.module_params["username"]
         self.password = self.module_params["password"]
+        self.x_auth_token = self.module_params.get("x_auth_token")
         self.validate_certs = self.module_params.get("validate_certs", True)
         self.ca_path = self.module_params.get("ca_path")
         self.timeout = self.module_params.get("timeout", 30)
@@ -222,3 +224,41 @@ class Redfish(object):
     def _get_omam_ca_env(self):
         """Check if the value is set in REQUESTS_CA_BUNDLE or CURL_CA_BUNDLE or OMAM_CA_BUNDLE or returns None"""
         return os.environ.get("REQUESTS_CA_BUNDLE") or os.environ.get("CURL_CA_BUNDLE") or os.environ.get("OMAM_CA_BUNDLE")
+
+
+class RedfishAnsibleModule(AnsibleModule):
+    def __init__(self, argument_spec, bypass_checks=False, no_log=False,
+                 mutually_exclusive=None, required_together=None,
+                 required_one_of=None, add_file_common_args=False,
+                 supports_check_mode=False, required_if=None, required_by=None):
+        redfish_argument_spec = {
+            "baseuri": {"required": True, "type": "str"},
+            "username": {"required": False, "type": "str", "fallback": (env_fallback, ['IDRAC_USERNAME'])},
+            "password": {"required": False, "type": "str", "no_log": True, "fallback": (env_fallback, ['IDRAC_PASSWORD'])},
+            "x_auth_token": {"required": False, "type": "str", "no_log": True, "fallback": (env_fallback, ['IDRAC_X_AUTH_TOKEN'])},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
+        }
+        argument_spec.update(redfish_argument_spec)
+
+        auth_mutually_exclusive = [("username", "x_auth_token"), ("password", "x_auth_token")]
+        auth_required_one_of = [("username", "x_auth_token")]
+        auth_required_together = [("username", "password")]
+
+        if mutually_exclusive is None:
+            mutually_exclusive = []
+        mutually_exclusive.extend(auth_mutually_exclusive)
+        if required_together is None:
+            required_together = []
+        required_together.extend(auth_required_together)
+        if required_one_of is None:
+            required_one_of = []
+        required_one_of.extend(auth_required_one_of)
+        if required_by is None:
+            required_by = {}
+
+        super().__init__(argument_spec, bypass_checks, no_log,
+                         mutually_exclusive, required_together,
+                         required_one_of, add_file_common_args,
+                         supports_check_mode, required_if, required_by)

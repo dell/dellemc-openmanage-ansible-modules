@@ -21,7 +21,7 @@ version_added: "9.1.0"
 description:
   - This module is responsible for configuring the RAID attributes.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   state:
     type: str
@@ -287,8 +287,7 @@ import re
 import operator
 from urllib.error import HTTPError, URLError
 from copy import deepcopy
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
-from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     get_dynamic_uri, validate_and_get_first_resource_id_uri, xml_data_conversion, idrac_redfish_job_tracking, remove_key, get_idrac_firmware_version)
@@ -908,8 +907,8 @@ def main():
         "job_wait_timeout": {"type": "int", "default": 900},
         "time_to_wait": {"type": "int", "default": 300}
     }
-    specs.update(idrac_auth_params)
-    module = AnsibleModule(
+
+    module = IdracAnsibleModule(
         argument_spec=specs,
         supports_check_mode=True)
     try:

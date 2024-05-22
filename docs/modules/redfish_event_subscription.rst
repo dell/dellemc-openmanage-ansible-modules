@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.9.6
 
 
 
@@ -36,43 +36,59 @@ Parameters
   event_type (optional, str, Alert)
     Specifies the event type to be subscribed.
 
-    ``Alert`` used to subscribe for alert.
+    \ :literal:`Alert`\  used to subscribe for alert.
 
-    ``MetricReport`` used to subscribe for the metrics report.
+    \ :literal:`MetricReport`\  used to subscribe for the metrics report.
 
 
   event_format_type (optional, str, Event)
     Specifies the format type of the event to be subscribed.
 
-    ``Event`` used to subscribe for Event format type.
+    \ :literal:`Event`\  used to subscribe for Event format type.
 
-    ``MetricReport`` used to subscribe for the metrics report format type.
+    \ :literal:`MetricReport`\  used to subscribe for the metrics report format type.
 
 
   state (optional, str, present)
-    ``present`` adds new event subscription.
+    \ :literal:`present`\  adds new event subscription.
 
-    ``absent`` deletes event subscription with the specified *destination*.
+    \ :literal:`absent`\  deletes event subscription with the specified \ :emphasis:`destination`\ .
 
 
   baseuri (True, str, None)
-    IP address of the target out-of-band controller. For example- <ipaddress>:<port>.
+    IP address of the target out-of-band controller. For example- \<ipaddress\>:\<port\>.
 
 
-  username (True, str, None)
+  username (False, str, None)
     Username of the target out-of-band controller.
 
+    If the username is not provided, then the environment variable \ :envvar:`IDRAC\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export IDRAC\_USERNAME=username
+
+
+  password (False, str, None)
     Password of the target out-of-band controller.
+
+    If the password is not provided, then the environment variable \ :envvar:`IDRAC\_PASSWORD`\  is used.
+
+    Example: export IDRAC\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`IDRAC\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export IDRAC\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -90,11 +106,11 @@ Notes
 -----
 
 .. note::
-   - *event_type* needs to be ``MetricReport`` and *event_format_type* needs to be ``MetricReport`` for metrics subscription.
-   - *event_type* needs to be ``Alert`` and *event_format_type* needs to be ``Event`` for event subscription.
+   - \ :emphasis:`event\_type`\  needs to be \ :literal:`MetricReport`\  and \ :emphasis:`event\_format\_type`\  needs to be \ :literal:`MetricReport`\  for metrics subscription.
+   - \ :emphasis:`event\_type`\  needs to be \ :literal:`Alert`\  and \ :emphasis:`event\_format\_type`\  needs to be \ :literal:`Event`\  for event subscription.
    - Modifying a subscription is not supported.
    - Context is always set to RedfishEvent.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 

@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.1.0
-# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -519,9 +519,8 @@ error_info:
 
 
 import json
-from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, redfish_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, RedfishAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import wait_for_job_completion, strip_substr_dict
-from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -1001,8 +1000,7 @@ def main():
         "job_wait_timeout": {"required": False, "type": "int", "default": 120},
         "size": {"required": False, "type": "int"}
     }
-    specs.update(redfish_auth_params)
-    module = AnsibleModule(
+    module = RedfishAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[('attributes', 'command'), ("target", "size")],
         required_one_of=[('attributes', 'command')],

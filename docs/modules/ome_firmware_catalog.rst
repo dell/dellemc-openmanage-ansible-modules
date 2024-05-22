@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.9.6
 
 
 
@@ -28,17 +28,17 @@ Parameters
 ----------
 
   state (optional, str, present)
-    ``present`` creates or modifies a catalog.
+    \ :literal:`present`\  creates or modifies a catalog.
 
-    ``absent`` deletes an existing catalog.
+    \ :literal:`absent`\  deletes an existing catalog.
 
 
   catalog_name (optional, list, None)
     Name of the firmware catalog to be created.
 
-    This option is mutually exclusive with *catalog_id*.
+    This option is mutually exclusive with \ :emphasis:`catalog\_id`\ .
 
-    Provide the list of firmware catalog names that are supported when *state* is ``absent``.
+    Provide the list of firmware catalog names that are supported when \ :emphasis:`state`\  is \ :literal:`absent`\ .
 
 
   new_catalog_name (optional, str, None)
@@ -48,9 +48,9 @@ Parameters
   catalog_id (optional, list, None)
     ID of the catalog.
 
-    This option is mutually exclusive with *catalog_name*.
+    This option is mutually exclusive with \ :emphasis:`catalog\_name`\ .
 
-    Provide the list of firmware catalog IDs that are supported when *state* is ``absent``.
+    Provide the list of firmware catalog IDs that are supported when \ :emphasis:`state`\  is \ :literal:`absent`\ .
 
 
   catalog_description (optional, str, None)
@@ -60,75 +60,91 @@ Parameters
   source (optional, str, None)
     The IP address of the system where the firmware catalog is stored on the local network.
 
-    By default, this option is set to downloads.dell.com when *repository_type* is ``DELL_ONLINE``.
+    By default, this option is set to downloads.dell.com when \ :emphasis:`repository\_type`\  is \ :literal:`DELL\_ONLINE`\ .
 
 
   source_path (optional, str, None)
     Specify the complete path of the catalog file location without the file name.
 
-    This is option ignored when *repository_type* is ``DELL_ONLINE``.
+    This is option ignored when \ :emphasis:`repository\_type`\  is \ :literal:`DELL\_ONLINE`\ .
 
 
   file_name (optional, str, None)
-    Catalog file name associated with the *source_path*.
+    Catalog file name associated with the \ :emphasis:`source\_path`\ .
 
-    This option is ignored when *repository_type* is ``DELL_ONLINE``.
+    This option is ignored when \ :emphasis:`repository\_type`\  is \ :literal:`DELL\_ONLINE`\ .
 
 
   repository_type (optional, str, None)
-    Type of repository. The supported types are NFS, CIFS, HTTP, HTTPS,and DELL_ONLINE.
+    Type of repository. The supported types are NFS, CIFS, HTTP, HTTPS,and DELL\_ONLINE.
 
 
   repository_username (optional, str, None)
     User name of the repository where the catalog is stored.
 
-    This option is mandatory when *repository_type* is CIFS.
+    This option is mandatory when \ :emphasis:`repository\_type`\  is CIFS.
 
-    This option is ignored when *repository_type* is ``DELL_ONLINE``.
+    This option is ignored when \ :emphasis:`repository\_type`\  is \ :literal:`DELL\_ONLINE`\ .
 
 
   repository_password (optional, str, None)
     Password to access the repository.
 
-    This option is mandatory when *repository_type* is CIFS.
+    This option is mandatory when \ :emphasis:`repository\_type`\  is CIFS.
 
-    This option is ignored when *repository_type* is ``DELL_ONLINE``.
+    This option is ignored when \ :emphasis:`repository\_type`\  is \ :literal:`DELL\_ONLINE`\ .
 
-    ``NOTE`` The module always reports the changed status, when this is provided.
+    \ :literal:`NOTE`\  The module always reports the changed status, when this is provided.
 
 
   repository_domain (optional, str, None)
     Domain name of the repository.
 
-    This option is ignored when *repository_type* is ``DELL_ONLINE``.
+    This option is ignored when \ :emphasis:`repository\_type`\  is \ :literal:`DELL\_ONLINE`\ .
 
 
   check_certificate (optional, bool, False)
-    The certificate warnings are ignored when *repository_type* is HTTPS. If ``true``. If not, certificate warnings are not ignored.
+    The certificate warnings are ignored when \ :emphasis:`repository\_type`\  is HTTPS. If \ :literal:`true`\ . If not, certificate warnings are not ignored.
 
 
   job_wait (optional, bool, True)
     Provides the option to wait for job completion.
 
-    This option is applicable when *state* is ``present``.
+    This option is applicable when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
 
   job_wait_timeout (optional, int, 600)
-    The maximum wait time of *job_wait* in seconds. The job is tracked only for this duration.
+    The maximum wait time of \ :emphasis:`job\_wait`\  in seconds. The job is tracked only for this duration.
 
-    This option is applicable when *job_wait* is ``true``.
+    This option is applicable when \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .
 
 
   hostname (True, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -136,11 +152,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -158,10 +174,10 @@ Notes
 -----
 
 .. note::
-   - If *repository_password* is provided, then the module always reports the changed status.
+   - If \ :emphasis:`repository\_password`\  is provided, then the module always reports the changed status.
    - Run this module from a system that has direct access to Dell OpenManage Enterprise or OpenManage Enterprise Modular.
    - This module supports IPv4 and IPv6 addresses.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 
@@ -294,7 +310,7 @@ msg (always, str, Successfully triggered the job to create a catalog with Task I
   Overall status of the firmware catalog operation.
 
 
-catalog_status (When I(state) is C(present), dict, {'AssociatedBaselines': [], 'BaseLocation': None, 'BundlesCount': 0, 'Filename': 'catalog.gz', 'Id': 0, 'LastUpdated': None, 'ManifestIdentifier': None, 'ManifestVersion': None, 'NextUpdate': None, 'PredecessorIdentifier': None, 'ReleaseDate': None, 'ReleaseIdentifier': None, 'Repository': {'CheckCertificate': True, 'Description': 'HTTPS Desc', 'DomainName': None, 'Id': None, 'Name': 'catalog4', 'Password': None, 'RepositoryType': 'HTTPS', 'Source': 'company.com', 'Username': None}, 'Schedule': None, 'SourcePath': 'catalog', 'Status': None, 'TaskId': 10094})
+catalog_status (When I(state) is C(present), dict, {'AssociatedBaselines': [], 'BaseLocation': None, 'BundlesCount': 0, 'Filename': 'catalog.gz', 'Id': 12, 'LastUpdated': None, 'ManifestIdentifier': None, 'ManifestVersion': None, 'NextUpdate': None, 'PredecessorIdentifier': None, 'ReleaseDate': None, 'ReleaseIdentifier': None, 'Repository': {'CheckCertificate': True, 'Description': 'HTTPS Desc', 'DomainName': None, 'Id': None, 'Name': 'catalog4', 'Password': None, 'RepositoryType': 'HTTPS', 'Source': 'company.com', 'Username': None}, 'Schedule': None, 'SourcePath': 'catalog', 'Status': None, 'TaskId': 10094})
   Details of the catalog operation.
 
 

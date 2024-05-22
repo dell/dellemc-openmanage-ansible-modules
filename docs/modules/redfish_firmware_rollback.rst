@@ -22,7 +22,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.9.6
+- python \>= 3.9.6
 
 
 
@@ -36,11 +36,11 @@ Parameters
   reboot (optional, bool, True)
     Reboot the server to apply the previous version of the firmware.
 
-    ``true`` reboots the server to rollback the firmware to the available version.
+    \ :literal:`true`\  reboots the server to rollback the firmware to the available version.
 
-    ``false`` schedules the rollback of firmware until the next restart.
+    \ :literal:`false`\  schedules the rollback of firmware until the next restart.
 
-    When *reboot* is ``false``, some components update immediately, and the server may reboot. So, the module must wait till the server is accessible.
+    When \ :emphasis:`reboot`\  is \ :literal:`false`\ , some components update immediately, and the server may reboot. So, the module must wait till the server is accessible.
 
 
   reboot_timeout (optional, int, 900)
@@ -48,23 +48,39 @@ Parameters
 
 
   baseuri (True, str, None)
-    IP address of the target out-of-band controller. For example- <ipaddress>:<port>.
+    IP address of the target out-of-band controller. For example- \<ipaddress\>:\<port\>.
 
 
-  username (True, str, None)
+  username (False, str, None)
     Username of the target out-of-band controller.
 
+    If the username is not provided, then the environment variable \ :envvar:`IDRAC\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export IDRAC\_USERNAME=username
+
+
+  password (False, str, None)
     Password of the target out-of-band controller.
+
+    If the password is not provided, then the environment variable \ :envvar:`IDRAC\_PASSWORD`\  is used.
+
+    Example: export IDRAC\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`IDRAC\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export IDRAC\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -83,9 +99,9 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Redfish APIs.
-   - For components that do not require a reboot, firmware rollback proceeds irrespective of *reboot* is ``true`` or ``false``.
+   - For components that do not require a reboot, firmware rollback proceeds irrespective of \ :emphasis:`reboot`\  is \ :literal:`true`\  or \ :literal:`false`\ .
    - This module supports IPv4 and IPv6 addresses.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 
