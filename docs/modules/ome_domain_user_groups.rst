@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.9.6
+- python \>= 3.9.6
 
 
 
@@ -28,9 +28,9 @@ Parameters
 ----------
 
   state (optional, str, present)
-    ``present`` imports or modifies the Active Directory/LDAP user group.
+    \ :literal:`present`\  imports or modifies the Active Directory/LDAP user group.
 
-    ``absent`` deletes an existing Active Directory/LDAP user group.
+    \ :literal:`absent`\  deletes an existing Active Directory/LDAP user group.
 
 
   group_name (True, str, None)
@@ -38,7 +38,7 @@ Parameters
 
     Examples for user group name: Administrator or Account Operators or Access Control Assistance Operator.
 
-    *group_name* value is case insensitive.
+    \ :emphasis:`group\_name`\  value is case insensitive.
 
 
   role (optional, str, None)
@@ -48,13 +48,13 @@ Parameters
 
     OpenManage Enterprise Roles: ADMINISTRATOR, DEVICE MANAGER, VIEWER.
 
-    *role* value is case insensitive.
+    \ :emphasis:`role`\  value is case insensitive.
 
 
   directory_name (optional, str, None)
     The directory name set while adding the Active Directory/LDAP.
 
-    *directory_name* is mutually exclusive with *directory_id*.
+    \ :emphasis:`directory\_name`\  is mutually exclusive with \ :emphasis:`directory\_id`\ .
 
 
   directory_type (optional, str, AD)
@@ -64,13 +64,13 @@ Parameters
   directory_id (optional, int, None)
     The ID of the Active Directory/LDAP.
 
-    *directory_id* is mutually exclusive with *directory_name*.
+    \ :emphasis:`directory\_id`\  is mutually exclusive with \ :emphasis:`directory\_name`\ .
 
 
   domain_username (optional, str, None)
     Active Directory/LDAP domain username.
 
-    Example: username@domain or domain\username.
+    Example: username@domain or domain\\username.
 
 
   domain_password (optional, str, None)
@@ -81,12 +81,28 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -94,11 +110,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -116,7 +132,7 @@ Notes
 -----
 
 .. note::
-   - This module supports ``check_mode`` and idempotency.
+   - This module supports \ :literal:`check\_mode`\  and idempotency.
    - Run this module from a system that has direct access to OpenManage Enterprise or OpenManage Enterprise Modular.
 
 
@@ -194,7 +210,7 @@ msg (always, str, Successfully imported the Active Directory/LDAP user group.)
 
 
 domain_user_status (When I(state) is C(present)., dict, {'Description': None, 'DirectoryServiceId': 16097, 'Enabled': True, 'Id': '16617', 'IsBuiltin': False, 'IsVisible': True, 'Locked': False, 'Name': 'Account Operators', 'ObjectGuid': 'a491859c-031e-42a3-ae5e-0ab148ecf1d6', 'ObjectSid': None, 'Oem': None, 'Password': None, 'PlainTextPassword': None, 'RoleId': '16', 'UserName': 'Account Operators', 'UserTypeId': 2})
-  Details of the domain user operation, when *state* is ``present``.
+  Details of the domain user operation, when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
 
 error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})

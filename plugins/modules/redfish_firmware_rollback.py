@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.2.0
-# Copyright (C) 2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2023-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -144,11 +144,10 @@ import json
 import re
 import time
 from ssl import SSLError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, redfish_auth_params, \
+from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, RedfishAnsibleModule, \
     SESSION_RESOURCE_COLLECTION
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import wait_for_redfish_reboot_job, \
     wait_for_redfish_job_complete, strip_substr_dict, MANAGER_JOB_ID_URI, RESET_UNTRACK, MANAGERS_URI, RESET_SUCCESS
-from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
@@ -324,8 +323,8 @@ def main():
         "reboot": {"type": "bool", "default": True},
         "reboot_timeout": {"type": "int", "default": 900},
     }
-    specs.update(redfish_auth_params)
-    module = AnsibleModule(argument_spec=specs, supports_check_mode=True)
+
+    module = RedfishAnsibleModule(argument_spec=specs, supports_check_mode=True)
     if module.params["reboot_timeout"] <= 0:
         module.fail_json(msg=NEGATIVE_TIMEOUT_MESSAGE)
     try:

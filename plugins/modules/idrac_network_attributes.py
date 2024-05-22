@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.4.0
-# Copyright (C) 2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2023-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -22,7 +22,7 @@ version_added: "8.4.0"
 description:
   - This module allows you to configure the port and partition network attributes on the network interface cards.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   network_adapter_id:
     type: str
@@ -319,12 +319,9 @@ error_info:
 import json
 import time
 from urllib.error import HTTPError, URLError
-
-from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (
-    idrac_auth_params, iDRACRedfishAPI)
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     delete_job, get_current_time, get_dynamic_uri, get_idrac_firmware_version,
     get_scheduled_job_resp, remove_key, validate_and_get_first_resource_id_uri,
@@ -713,13 +710,12 @@ def main():
             "job_wait": {"type": "bool", "default": True},
             "job_wait_timeout": {"type": "int", "default": 1200}
         }
-        specs.update(idrac_auth_params)
-        module = AnsibleModule(argument_spec=specs,
-                               mutually_exclusive=[
-                                   ('network_attributes', 'oem_network_attributes')],
-                               required_if=[["apply_time", "AtMaintenanceWindowStart", ("maintenance_window",)],
-                                            ["apply_time", "InMaintenanceWindowOnReset", ("maintenance_window",)]],
-                               supports_check_mode=True)
+
+        module = IdracAnsibleModule(argument_spec=specs,
+                                    mutually_exclusive=[('network_attributes', 'oem_network_attributes')],
+                                    required_if=[["apply_time", "AtMaintenanceWindowStart", ("maintenance_window",)],
+                                                 ["apply_time", "InMaintenanceWindowOnReset", ("maintenance_window",)]],
+                                    supports_check_mode=True)
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:
             if module_attribute := module.params.get('network_attributes'):
                 network_attr_obj = NetworkAttributes(idrac, module)

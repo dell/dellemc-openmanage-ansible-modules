@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -34,7 +34,7 @@ options:
         description: Filter records for the supported values.
         type: str
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author: "Jagadeesh N V (@jagadeeshnv)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
@@ -98,8 +98,7 @@ user_info:
 
 import json
 from ssl import SSLError
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -124,8 +123,8 @@ def main():
             "filter": {"type": 'str', "required": False},
         }},
     }
-    specs.update(ome_auth_params)
-    module = AnsibleModule(
+
+    module = OmeAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[
             ('account_id', 'system_query_options')

@@ -85,12 +85,28 @@ Parameters
     OpenManage Enterprise IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)

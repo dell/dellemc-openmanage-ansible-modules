@@ -38,6 +38,7 @@ from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible.module_utils.common.parameters import env_fallback
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
+from ansible.module_utils.basic import AnsibleModule
 
 idrac_auth_params = {
     "idrac_ip": {"required": True, "type": 'str'},
@@ -101,6 +102,7 @@ class iDRACRedfishAPI(object):
         self.ipaddress = module_params['idrac_ip']
         self.username = module_params['idrac_user']
         self.password = module_params['idrac_password']
+        self.x_auth_token = module_params.get('x_auth_token')
         self.port = module_params['idrac_port']
         self.validate_certs = module_params.get("validate_certs", False)
         self.ca_path = module_params.get("ca_path")
@@ -180,7 +182,7 @@ class iDRACRedfishAPI(object):
 
     def __enter__(self):
         """Creates sessions by passing it to header"""
-        if self.req_session:
+        if self.req_session and not self.x_auth_token:
             payload = {'UserName': self.username,
                        'Password': self.password}
             path = SESSION_RESOURCE_COLLECTION["SESSION"]
@@ -191,6 +193,8 @@ class iDRACRedfishAPI(object):
             else:
                 msg = "Could not create the session"
                 raise ConnectionError(msg)
+        elif self.x_auth_token is not None:
+            self._headers["X-Auth-Token"] = self.x_auth_token
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -433,3 +437,42 @@ class iDRACRedfishAPI(object):
     def _get_omam_ca_env(self):
         """Check if the value is set in REQUESTS_CA_BUNDLE or CURL_CA_BUNDLE or OMAM_CA_BUNDLE or returns None"""
         return os.environ.get("REQUESTS_CA_BUNDLE") or os.environ.get("CURL_CA_BUNDLE") or os.environ.get("OMAM_CA_BUNDLE")
+
+
+class IdracAnsibleModule(AnsibleModule):
+    def __init__(self, argument_spec, bypass_checks=False, no_log=False,
+                 mutually_exclusive=None, required_together=None,
+                 required_one_of=None, add_file_common_args=False,
+                 supports_check_mode=False, required_if=None, required_by=None):
+        idrac_argument_spec = {
+            "idrac_ip": {"required": True, "type": 'str'},
+            "idrac_user": {"required": False, "type": 'str', "fallback": (env_fallback, ['IDRAC_USERNAME'])},
+            "idrac_password": {"required": False, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True, "fallback": (env_fallback, ['IDRAC_PASSWORD'])},
+            "x_auth_token": {"required": False, "type": 'str', "no_log": True, "fallback": (env_fallback, ['IDRAC_X_AUTH_TOKEN'])},
+            "idrac_port": {"required": False, "default": 443, "type": 'int'},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
+        }
+        argument_spec.update(idrac_argument_spec)
+
+        auth_mutually_exclusive = [("idrac_user", "x_auth_token"), ("idrac_password", "x_auth_token")]
+        auth_required_one_of = [("idrac_user", "x_auth_token")]
+        auth_required_together = [("idrac_user", "idrac_password")]
+
+        if mutually_exclusive is None:
+            mutually_exclusive = []
+        mutually_exclusive.extend(auth_mutually_exclusive)
+        if required_together is None:
+            required_together = []
+        required_together.extend(auth_required_together)
+        if required_one_of is None:
+            required_one_of = []
+        required_one_of.extend(auth_required_one_of)
+        if required_by is None:
+            required_by = {}
+
+        super().__init__(argument_spec, bypass_checks, no_log,
+                         mutually_exclusive, required_together,
+                         required_one_of, add_file_common_args,
+                         supports_check_mode, required_if, required_by)

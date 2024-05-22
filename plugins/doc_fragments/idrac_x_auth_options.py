@@ -3,7 +3,7 @@
 #
 # Dell OpenManage Ansible Modules
 # Version 9.3.0
-# Copyright (C) 2020-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -17,35 +17,36 @@ class ModuleDocFragment(object):
 
     DOCUMENTATION = r'''
 options:
-  hostname:
-    description: OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
-    type: str
+  idrac_ip:
     required: true
-  username:
-    description:
-      - OpenManage Enterprise or OpenManage Enterprise Modular username.
-      - If the username is not provided, then the environment variable E(OME_USERNAME) is used.
-      - "Example: export OME_USERNAME=username"
     type: str
+    description: iDRAC IP Address.
+  idrac_user:
     required: false
-  password:
-    description:
-      - OpenManage Enterprise or OpenManage Enterprise Modular password.
-      - If the password is not provided, then the environment variable E(OME_PASSWORD) is used.
-      - "Example: export OME_PASSWORD=password"
     type: str
+    description:
+      - iDRAC username.
+      - If the username is not provided, then the environment variable E(IDRAC_USERNAME) is used.
+      - "Example: export IDRAC_USERNAME=username"
+  idrac_password:
     required: false
+    type: str
+    description:
+      - iDRAC user password.
+      - If the password is not provided, then the environment variable E(IDRAC_PASSWORD) is used.
+      - "Example: export IDRAC_PASSWORD=password"
+    aliases: ['idrac_pwd']
   x_auth_token:
     description:
      - Authentication token.
-     - If the x_auth_token is not provided, then the environment variable E(OME_X_AUTH_TOKEN) is used.
-     - "Example: export OME_X_AUTH_TOKEN=x_auth_token"
+     - If the x_auth_token is not provided, then the environment variable E(IDRAC_X_AUTH_TOKEN) is used.
+     - "Example: export IDRAC_X_AUTH_TOKEN=x_auth_token"
     type: str
     required: false
     version_added: 9.3.0
-  port:
-    description: OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port.
+  idrac_port:
     type: int
+    description: iDRAC port.
     default: 443
   validate_certs:
     description:

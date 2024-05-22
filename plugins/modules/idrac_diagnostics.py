@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.0.0
+# Version 9.3.0
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -22,7 +22,7 @@ version_added: "9.0.0"
 description:
   - This module allows you to run and export diagnostics on iDRAC.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   run:
     description:
@@ -344,8 +344,7 @@ error_info:
 
 import json
 import os
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
@@ -768,8 +767,8 @@ class DiagnosticsType:
 
 def main():
     specs = get_argument_spec()
-    specs.update(idrac_auth_params)
-    module = AnsibleModule(
+
+    module = IdracAnsibleModule(
         argument_spec=specs,
         required_one_of=[["run", "export"]],
         required_if=[

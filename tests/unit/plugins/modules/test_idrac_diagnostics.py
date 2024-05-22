@@ -2,7 +2,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.0.0
+# Version 9.3.0
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -1045,10 +1045,8 @@ class TestDiagnosticsType(FakeAnsibleModule):
         idrac_mock = mocker.MagicMock()
         diagnostics_mock = mocker.MagicMock()
         diagnostics_mock.execute.return_value = (None, None, None)
-
         mocker.patch(MODULE_PATH + 'get_argument_spec', return_value={})
-        mocker.patch(MODULE_PATH + 'idrac_auth_params', {})
-        mocker.patch(MODULE_PATH + 'AnsibleModule', return_value=module_mock)
+        mocker.patch(MODULE_PATH + 'IdracAnsibleModule', return_value=module_mock)
         mocker.patch(MODULE_PATH + 'iDRACRedfishAPI', return_value=idrac_mock)
         mocker.patch(MODULE_PATH + 'DiagnosticsType.diagnostics_operation', return_value=diagnostics_mock)
         main()
