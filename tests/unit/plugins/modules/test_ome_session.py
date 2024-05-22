@@ -393,9 +393,8 @@ class TestOMESession(FakeAnsibleModule):
         f_module = self.get_module_mock(
             params=params, check_mode=False)
         session_obj = self.module.OMESession(f_module)
-        json_str = to_text(json.dumps({"data": "out"}))
         session_obj.instance.invoke_request.side_effect = HTTPError(HTTPS_PATH, 400, '', {}, None)
-        with pytest.raises(HTTPError) as ex:
+        with pytest.raises(HTTPError):
             session_obj.get_session_status(SESSION_URL, params["session_id"])
 
     @pytest.mark.parametrize("exc_type",

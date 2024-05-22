@@ -14,7 +14,7 @@
         validate_certs: false
         state: present
         volume_type: "NonRedundant"
-        name: "VD" # noqa: var-naming[no-reserved]
+        name: "VD"  # noqa: var-naming[no-reserved]
         controller_id: ""
         drives: ""
         capacity_bytes: 214748364800
@@ -40,7 +40,7 @@
         validate_certs: false
         state: present
         volume_type: "NonRedundant"
-        name: "VD" # noqa: var-naming[no-reserved]
+        name: "VD"  # noqa: var-naming[no-reserved]
         controller_id: ""
         drives: ""
         capacity_bytes: 214748364800
@@ -65,7 +65,7 @@
         validate_certs: false
         state: invalid
         volume_type: "SpannedStripesWithParity"
-        name: "VD" # noqa: var-naming[no-reserved]
+        name: "VD"  # noqa: var-naming[no-reserved]
         controller_id: ""
         drives: ""
         capacity_bytes: 214748364800
@@ -92,7 +92,7 @@
         ca_path: "/tmp/invalid_ca_path.pem"
         state: present
         volume_type: "SpannedStripesWithParity"
-        name: "VD" # noqa: var-naming[no-reserved]
+        name: "VD"  # noqa: var-naming[no-reserved]
         controller_id: ""
         drives: ""
         capacity_bytes: 214748364800
@@ -118,7 +118,7 @@
         validate_certs: false
         state: present
         raid_type: "Invalid"
-        name: "VD" # noqa: var-naming[no-reserved]
+        name: "VD"  # noqa: var-naming[no-reserved]
         controller_id: ""
         drives: ""
         capacity_bytes: 214748364800
@@ -144,7 +144,7 @@
         validate_certs: false
         state: present
         raid_type: "RAID0"
-        name: "VD" # noqa: var-naming[no-reserved]
+        name: "VD"  # noqa: var-naming[no-reserved]
         controller_id: "invalid"
         capacity_bytes: 214748364800
         optimum_io_size_bytes: 65536
