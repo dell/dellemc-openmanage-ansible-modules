@@ -40,13 +40,13 @@ Parameters
 
 
   network_attributes (optional, dict, None)
-    Dictionary of network attributes and value. To view the list of attributes and its structure, see the below API \ https://I(idrac_ip\ /redfish/v1/Systems/System.Embedded.1/NetworkAdapters/\<network\_id\>/NetworkDeviceFunctions/ \<network\_port\_id\>/Settings) and \ https://%3Cidrac_ip%3E/redfish/v1/Schemas/NetworkDeviceFunction.v1_8_0.json\ .
+    Dictionary of network attributes and value. To view the list of attributes and its structure, see the below API \ https://I(idrac_ip\ /redfish/v1/Systems/System.Embedded.1/NetworkAdapters/\<network\_adapter\_id\>/NetworkDeviceFunctions/ \<network\_device\_function\_id\>/Settings) and \ https://%3Cidrac_ip%3E/redfish/v1/Schemas/NetworkDeviceFunction.v1_8_0.json\ .
 
     \ :emphasis:`network\_attributes`\  is mutually exclusive with \ :emphasis:`oem\_network\_attributes`\ .
 
 
   oem_network_attributes (optional, dict, None)
-    The attributes must be part of the Integrated Dell Remote Access Controller Attribute Registry. To view the list of attributes in Attribute Registry for iDRAC9 and newer versions. For more information, see, \ https://I(idrac_ip\ /redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/\<network\_id\>/NetworkDeviceFunctions/ \<network\_port\_id\>/Oem/Dell/DellNetworkAttributes/\<network\_port\_id\>) and \ https://I(idrac_ip\ /redfish/v1/Registries/NetworkAttributesRegistry\_\<network\_port\_id\>/ NetworkAttributesRegistry\_network\_port\_id.json).
+    The attributes must be part of the Integrated Dell Remote Access Controller Attribute Registry. To view the list of attributes in Attribute Registry for iDRAC9 and newer versions. For more information, see, \ https://I(idrac_ip\ /redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/\<network\_adapter\_id\>/NetworkDeviceFunctions/ \<network\_device\_function\_id\>/Oem/Dell/DellNetworkAttributes/\<network\_device\_function\_id\>) and \ https://I(idrac_ip\ /redfish/v1/Registries/NetworkAttributesRegistry\_\<network\_device\_function\_id\>/ NetworkAttributesRegistry\_network\_port\_id.json).
 
     For iDRAC8 based servers, derive the network attribute name from Server Configuration Profile.
 
