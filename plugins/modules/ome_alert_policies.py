@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.3.0
-# Copyright (C) 2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2023-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -478,9 +478,8 @@ error_info:
 import csv
 import os
 import json
-from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_all_data_with_pagination, strip_substr_dict
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.common.dict_transformations import recursive_diff
@@ -1083,11 +1082,11 @@ def main():
                                 }
                     }
     }
-    specs.update(ome_auth_params)
+
     present_args = ['enable', 'new_name', 'description', 'device_service_tag', 'device_group',
                     'specific_undiscovered_devices', 'any_undiscovered_devices', 'all_devices',
                     'category', 'message_ids', 'message_file', 'date_and_time', 'severity', 'actions']
-    module = AnsibleModule(
+    module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[['state', 'present', present_args, True]],
         mutually_exclusive=[('device_service_tag', 'device_group', 'any_undiscovered_devices', 'specific_undiscovered_devices', 'all_devices',),

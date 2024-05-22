@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.9.6
 
 
 
@@ -32,9 +32,9 @@ Parameters
 
 
     insert (True, bool, None)
-      ``true`` connects the remote image file.
+      \ :literal:`true`\  connects the remote image file.
 
-      ``false`` ejects the remote image file if connected.
+      \ :literal:`false`\  ejects the remote image file if connected.
 
 
     image (optional, path, None)
@@ -42,9 +42,9 @@ Parameters
 
       The file name with .img extension is redirected as a virtual floppy and a file name with .iso extension is redirected as a virtual CDROM.
 
-      This option is required when *insert* is ``true``.
+      This option is required when \ :emphasis:`insert`\  is \ :literal:`true`\ .
 
-      The following are the examples of the share location: CIFS share: //192.168.0.1/file_path/image_name.iso, NFS share: 192.168.0.2:/file_path/image_name.img, HTTP share: http://192.168.0.3/file_path/image_name.iso, HTTPS share: https://192.168.0.4/file_path/image_name.img
+      The following are the examples of the share location: CIFS share: //192.168.0.1/file\_path/image\_name.iso, NFS share: 192.168.0.2:/file\_path/image\_name.img, HTTP share: http://192.168.0.3/file\_path/image\_name.iso, HTTPS share: https://192.168.0.4/file\_path/image\_name.img
 
       CIFS share is not supported by iDRAC8.
 
@@ -52,7 +52,7 @@ Parameters
 
 
     index (optional, int, None)
-      Index of the Remote File Share. For example, to specify the Remote File Share 1, the value of *index* should be 1. If *index* is not specified, the order of *virtual_media* list will be considered.
+      Index of the Remote File Share. For example, to specify the Remote File Share 1, the value of \ :emphasis:`index`\  should be 1. If \ :emphasis:`index`\  is not specified, the order of \ :emphasis:`virtual\_media`\  list will be considered.
 
 
     domain (optional, str, None)
@@ -66,16 +66,16 @@ Parameters
     password (optional, str, None)
       Network share password. This option is applicable for CIFS and HTTPS share.
 
-      This module always reports as the changes found when *password* is provided.
+      This module always reports as the changes found when \ :emphasis:`password`\  is provided.
 
 
     media_type (optional, str, None)
-      Type of the image file. This is applicable when *insert* is ``true``.
+      Type of the image file. This is applicable when \ :emphasis:`insert`\  is \ :literal:`true`\ .
 
 
 
   force (optional, bool, False)
-    ``true`` ejects the image file if already connected and inserts the file provided in *image*. This is applicable when *insert* is ``true``.
+    \ :literal:`true`\  ejects the image file if already connected and inserts the file provided in \ :emphasis:`image`\ . This is applicable when \ :emphasis:`insert`\  is \ :literal:`true`\ .
 
 
   resource_id (optional, str, None)
@@ -86,12 +86,28 @@ Parameters
     iDRAC IP Address.
 
 
-  idrac_user (True, str, None)
+  idrac_user (False, str, None)
     iDRAC username.
 
+    If the username is not provided, then the environment variable \ :envvar:`IDRAC\_USERNAME`\  is used.
 
-  idrac_password (True, str, None)
+    Example: export IDRAC\_USERNAME=username
+
+
+  idrac_password (False, str, None)
     iDRAC user password.
+
+    If the password is not provided, then the environment variable \ :envvar:`IDRAC\_PASSWORD`\  is used.
+
+    Example: export IDRAC\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`IDRAC\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export IDRAC\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   idrac_port (optional, int, 443)
@@ -99,11 +115,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -122,7 +138,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell iDRAC.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 

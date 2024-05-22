@@ -20,8 +20,8 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
-- netaddr >= 0.7.19
+- python \>= 3.9.6
+- netaddr \>= 0.7.19
 
 
 
@@ -29,39 +29,39 @@ Parameters
 ----------
 
   state (optional, str, present)
-    ``present`` allows to add the device(s) to a static device group.
+    \ :literal:`present`\  allows to add the device(s) to a static device group.
 
-    ``absent`` allows to remove the device(s) from a static device group.
+    \ :literal:`absent`\  allows to remove the device(s) from a static device group.
 
 
   name (optional, str, None)
     Name of the static group.
 
-    *name* is mutually exclusive with *group_id*.
+    \ :emphasis:`name`\  is mutually exclusive with \ :emphasis:`group\_id`\ .
 
 
   group_id (optional, int, None)
     ID of the static device.
 
-    *group_id* is mutually exclusive with *name*.
+    \ :emphasis:`group\_id`\  is mutually exclusive with \ :emphasis:`name`\ .
 
 
   device_ids (optional, list, None)
     List of ID(s) of the device(s) to be added or removed from the device group.
 
-    *device_ids* is mutually exclusive with *device_service_tags* and *ip_addresses*.
+    \ :emphasis:`device\_ids`\  is mutually exclusive with \ :emphasis:`device\_service\_tags`\  and \ :emphasis:`ip\_addresses`\ .
 
 
   device_service_tags (optional, list, None)
     List of service tag(s) of the device(s) to be added or removed from the device group.
 
-    *device_service_tags* is mutually exclusive with *device_ids* and *ip_addresses*.
+    \ :emphasis:`device\_service\_tags`\  is mutually exclusive with \ :emphasis:`device\_ids`\  and \ :emphasis:`ip\_addresses`\ .
 
 
   ip_addresses (optional, list, None)
     List of IPs of the device(s) to be added or removed from the device group.
 
-    *ip_addresses* is mutually exclusive with *device_ids* and *device_service_tags*.
+    \ :emphasis:`ip\_addresses`\  is mutually exclusive with \ :emphasis:`device\_ids`\  and \ :emphasis:`device\_service\_tags`\ .
 
     Supported  IP address range formats:
 
@@ -77,23 +77,39 @@ Parameters
 
         - fe80::ffff:ffff:ffff:1111-fe80::ffff:ffff:ffff:ffff
 
-    ``NOTE`` Hostname is not supported.
+    \ :literal:`NOTE`\  Hostname is not supported.
 
-    ``NOTE`` *ip_addresses* requires python's netaddr packages to work on IP Addresses.
+    \ :literal:`NOTE`\  \ :emphasis:`ip\_addresses`\  requires python's netaddr packages to work on IP Addresses.
 
-    ``NOTE`` This module reports success even if one of the IP addresses provided in the *ip_addresses* list is available in OpenManage Enterprise.The module reports failure only if none of the IP addresses provided in the list are available in OpenManage Enterprise.
+    \ :literal:`NOTE`\  This module reports success even if one of the IP addresses provided in the \ :emphasis:`ip\_addresses`\  list is available in OpenManage Enterprise.The module reports failure only if none of the IP addresses provided in the list are available in OpenManage Enterprise.
 
 
   hostname (True, str, None)
     OpenManage Enterprise IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -101,11 +117,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -124,7 +140,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 

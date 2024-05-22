@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.9.6
+- python \>= 3.9.6
 
 
 
@@ -30,35 +30,35 @@ Parameters
   device_service_tag (optional, list, None)
     List of service tags of the targeted devices.
 
-    Either *device_id* or *device_service_tag* can be used individually or together.
+    Either \ :emphasis:`device\_id`\  or \ :emphasis:`device\_service\_tag`\  can be used individually or together.
 
-    This option is mutually exclusive with *device_group_names* and *devices*.
+    This option is mutually exclusive with \ :emphasis:`device\_group\_names`\  and \ :emphasis:`devices`\ .
 
 
   device_id (optional, list, None)
     List of ids of the targeted device.
 
-    Either *device_id* or *device_service_tag* can be used individually or together.
+    Either \ :emphasis:`device\_id`\  or \ :emphasis:`device\_service\_tag`\  can be used individually or together.
 
-    This option is mutually exclusive with *device_group_names* and *devices*.
+    This option is mutually exclusive with \ :emphasis:`device\_group\_names`\  and \ :emphasis:`devices`\ .
 
 
   device_group_names (optional, list, None)
     Enter the name of the device group that contains the devices on which firmware needs to be updated.
 
-    This option is mutually exclusive with *device_id* and *device_service_tag*.
+    This option is mutually exclusive with \ :emphasis:`device\_id`\  and \ :emphasis:`device\_service\_tag`\ .
 
 
   dup_file (optional, path, None)
     The path of the Dell Update Package (DUP) file that contains the firmware or drivers required to update the target system device or individual device components.
 
-    This is mutually exclusive with *baseline_name*, *components*, and *devices*.
+    This is mutually exclusive with \ :emphasis:`baseline\_name`\ , \ :emphasis:`components`\ , and \ :emphasis:`devices`\ .
 
 
   baseline_name (optional, str, None)
     Enter the baseline name to update the firmware of all devices or list of devices that are not complaint.
 
-    This option is mutually exclusive with *dup_file* and *device_group_names*.
+    This option is mutually exclusive with \ :emphasis:`dup\_file`\  and \ :emphasis:`device\_group\_names`\ .
 
 
   components (optional, list, [])
@@ -68,25 +68,25 @@ Parameters
 
     This option is case sensitive.
 
-    This is applicable to *device_service_tag*, *device_id*, and *baseline_name*.
+    This is applicable to \ :emphasis:`device\_service\_tag`\ , \ :emphasis:`device\_id`\ , and \ :emphasis:`baseline\_name`\ .
 
 
   devices (optional, list, None)
     This option allows to select components on each device for firmware update.
 
-    This option is mutually exclusive with *dup_file*, *device_group_names*, *device_id*, and *device_service_tag*.
+    This option is mutually exclusive with \ :emphasis:`dup\_file`\ , \ :emphasis:`device\_group\_names`\ , \ :emphasis:`device\_id`\ , and \ :emphasis:`device\_service\_tag`\ .
 
 
     id (optional, int, None)
       The id of the target device to be updated.
 
-      This option is mutually exclusive with *service_tag*.
+      This option is mutually exclusive with \ :emphasis:`service\_tag`\ .
 
 
     service_tag (optional, str, None)
       The service tag of the target device to be updated.
 
-      This option is mutually exclusive with *id*.
+      This option is mutually exclusive with \ :emphasis:`id`\ .
 
 
     components (optional, list, [])
@@ -97,33 +97,49 @@ Parameters
   schedule (optional, str, RebootNow)
     Select the schedule for the firmware update.
 
-    if ``StageForNextReboot`` is chosen, the firmware will be staged and updated during the next reboot of the target device.
+    if \ :literal:`StageForNextReboot`\  is chosen, the firmware will be staged and updated during the next reboot of the target device.
 
-    if ``RebootNow`` will apply the firmware updates immediately.
+    if \ :literal:`RebootNow`\  will apply the firmware updates immediately.
 
 
   reboot_type (optional, str, GracefulRebootForce)
     This option provides the choices to reboot the server immediately after the firmware update.
 
-    This is applicable when *schedule* is ``RebootNow``.
+    This is applicable when \ :emphasis:`schedule`\  is \ :literal:`RebootNow`\ .
 
-    ``GracefulRebootForce`` performs a graceful reboot with forced shutdown.
+    \ :literal:`GracefulRebootForce`\  performs a graceful reboot with forced shutdown.
 
-    ``GracefulReboot`` performs a graceful reboot without forced shutdown.
+    \ :literal:`GracefulReboot`\  performs a graceful reboot without forced shutdown.
 
-    ``PowerCycle`` performs a power cycle for a hard reset on the device.
+    \ :literal:`PowerCycle`\  performs a power cycle for a hard reset on the device.
 
 
   hostname (True, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -131,11 +147,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -154,7 +170,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 

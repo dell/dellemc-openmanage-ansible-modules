@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.2.0
-# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -50,7 +50,7 @@ options:
               I(job_wait_time) minimum or make I(job_wait)as false and retrigger."
         default: 3600
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
     - "urllib3"
 author:
     - "Felix Stephen (@felixs88)"
@@ -144,8 +144,8 @@ import json
 import os
 import time
 from ssl import SSLError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, redfish_auth_params
-from ansible.module_utils.basic import AnsibleModule, missing_required_lib
+from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, RedfishAnsibleModule
+from ansible.module_utils.basic import missing_required_lib
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
@@ -271,8 +271,8 @@ def main():
         "job_wait": {"required": False, "type": 'bool', "default": True},
         "job_wait_timeout": {"required": False, "type": "int", "default": 3600}
     }
-    specs.update(redfish_auth_params)
-    module = AnsibleModule(
+
+    module = RedfishAnsibleModule(
         argument_spec=specs,
         supports_check_mode=False)
     if not HAS_LIB:

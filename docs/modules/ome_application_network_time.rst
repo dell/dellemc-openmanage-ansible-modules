@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.9.6
 
 
 
@@ -30,13 +30,13 @@ Parameters
   enable_ntp (True, bool, None)
     Enables or disables Network Time Protocol(NTP).
 
-    If *enable_ntp* is false, then the NTP addresses reset to their default values.
+    If \ :emphasis:`enable\_ntp`\  is false, then the NTP addresses reset to their default values.
 
 
   system_time (optional, str, None)
     Time in the current system.
 
-    This option is only applicable when *enable_ntp* is false.
+    This option is only applicable when \ :emphasis:`enable\_ntp`\  is false.
 
     This option must be provided in following format 'yyyy-mm-dd hh:mm:ss'.
 
@@ -50,31 +50,47 @@ Parameters
   primary_ntp_address (optional, str, None)
     The primary NTP address.
 
-    This option is applicable when *enable_ntp* is true.
+    This option is applicable when \ :emphasis:`enable\_ntp`\  is true.
 
 
   secondary_ntp_address1 (optional, str, None)
     The first secondary NTP address.
 
-    This option is applicable when *enable_ntp* is true.
+    This option is applicable when \ :emphasis:`enable\_ntp`\  is true.
 
 
   secondary_ntp_address2 (optional, str, None)
     The second secondary NTP address.
 
-    This option is applicable when *enable_ntp* is true.
+    This option is applicable when \ :emphasis:`enable\_ntp`\  is true.
 
 
   hostname (True, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -82,11 +98,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -105,7 +121,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 

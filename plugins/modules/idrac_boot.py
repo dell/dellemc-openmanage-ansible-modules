@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.0.0
-# Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2022-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -21,7 +21,7 @@ version_added: "6.1.0"
 description:
   - This module allows to configure the boot order settings.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   boot_options:
     type: list
@@ -121,7 +121,7 @@ options:
     type: str
     description: Redfish ID of the resource.
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author:
     - "Felix Stephen (@felixs88)"
 notes:
@@ -264,11 +264,11 @@ import json
 import time
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (strip_substr_dict, idrac_system_reset,
                                                                                get_system_res_id,
                                                                                wait_for_idrac_job_completion)
-from ansible.module_utils.basic import AnsibleModule
+
 
 SYSTEM_URI = "/redfish/v1/Systems"
 BOOT_OPTIONS_URI = "/redfish/v1/Systems/{0}/BootOptions?$expand=*($levels=1)"
@@ -512,8 +512,8 @@ def main():
         "job_wait_timeout": {"required": False, "type": "int", "default": 900},
         "resource_id": {"required": False, "type": "str"}
     }
-    specs.update(idrac_auth_params)
-    module = AnsibleModule(
+
+    module = IdracAnsibleModule(
         argument_spec=specs,
         required_one_of=[["boot_options", "boot_order", "boot_source_override_mode",
                           "boot_source_override_enabled", "boot_source_override_target",

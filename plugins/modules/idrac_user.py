@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.1.0
-# Copyright (C) 2018-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2018-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -24,7 +24,7 @@ description:
   - Edit a user account.
   - Enable or Disable a user account.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   state:
     type: str
@@ -101,7 +101,7 @@ options:
       - A privacy protocol is not configured if C(None) is selected.
     choices: [None, DES, AES]
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 author: "Felix Stephen (@felixs88)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
@@ -209,9 +209,7 @@ import time
 from ssl import SSLError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
-from ansible.module_utils.basic import AnsibleModule
-
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 
 ACCOUNT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Accounts/"
 ATTRIBUTE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Attributes/"
@@ -412,8 +410,7 @@ def main():
         "authentication_protocol": {"required": False, "choices": ['SHA', 'MD5', 'None']},
         "privacy_protocol": {"required": False, "choices": ['AES', 'DES', 'None']},
     }
-    specs.update(idrac_auth_params)
-    module = AnsibleModule(
+    module = IdracAnsibleModule(
         argument_spec=specs,
         supports_check_mode=True)
     try:

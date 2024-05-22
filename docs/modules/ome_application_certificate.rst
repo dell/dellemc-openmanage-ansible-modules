@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.9.6
+- python \>= 3.9.6
 
 
 
@@ -28,35 +28,35 @@ Parameters
 ----------
 
   command (optional, str, generate_csr)
-    ``generate_csr`` allows the generation of a CSR and ``upload`` uploads the certificate.
+    \ :literal:`generate\_csr`\  allows the generation of a CSR and \ :literal:`upload`\  uploads the certificate.
 
 
   distinguished_name (optional, str, None)
-    Name of the certificate issuer. This option is applicable for ``generate_csr``.
+    Name of the certificate issuer. This option is applicable for \ :literal:`generate\_csr`\ .
 
 
   department_name (optional, str, None)
-    Name of the department that issued the certificate. This option is applicable for ``generate_csr``.
+    Name of the department that issued the certificate. This option is applicable for \ :literal:`generate\_csr`\ .
 
 
   business_name (optional, str, None)
-    Name of the business that issued the certificate. This option is applicable for ``generate_csr``.
+    Name of the business that issued the certificate. This option is applicable for \ :literal:`generate\_csr`\ .
 
 
   locality (optional, str, None)
-    Local address of the issuer of the certificate. This option is applicable for ``generate_csr``.
+    Local address of the issuer of the certificate. This option is applicable for \ :literal:`generate\_csr`\ .
 
 
   country_state (optional, str, None)
-    State in which the issuer resides. This option is applicable for ``generate_csr``.
+    State in which the issuer resides. This option is applicable for \ :literal:`generate\_csr`\ .
 
 
   country (optional, str, None)
-    Country in which the issuer resides. This option is applicable for ``generate_csr``.
+    Country in which the issuer resides. This option is applicable for \ :literal:`generate\_csr`\ .
 
 
   email (optional, str, None)
-    Email associated with the issuer. This option is applicable for ``generate_csr``.
+    Email associated with the issuer. This option is applicable for \ :literal:`generate\_csr`\ .
 
 
   subject_alternative_names (optional, str, None)
@@ -66,19 +66,35 @@ Parameters
 
 
   upload_file (optional, str, None)
-    Local path of the certificate file to be uploaded. This option is applicable for ``upload``. Once the certificate is uploaded, OpenManage Enterprise cannot be accessed for a few seconds.
+    Local path of the certificate file to be uploaded. This option is applicable for \ :literal:`upload`\ . Once the certificate is uploaded, OpenManage Enterprise cannot be accessed for a few seconds.
 
 
   hostname (True, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -86,11 +102,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -109,7 +125,7 @@ Notes
 
 .. note::
    - If a certificate is uploaded, which is identical to an already existing certificate, it is accepted by the module.
-   - This module does not support ``check_mode``.
+   - This module does not support \ :literal:`check\_mode`\ .
 
 
 

@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.9.6
 
 
 
@@ -30,9 +30,9 @@ Parameters
   domain_server (optional, list, None)
     Enter the domain name or FQDN or IP address of the domain controller.
 
-    If *domain_controller_lookup* is ``DNS``, enter the domain name to query DNS for the domain controllers.
+    If \ :emphasis:`domain\_controller\_lookup`\  is \ :literal:`DNS`\ , enter the domain name to query DNS for the domain controllers.
 
-    If *domain_controller_lookup* is ``MANUAL``, enter the FQDN or the IP address of the domain controller. The maximum number of Active Directory servers that can be added is three.
+    If \ :emphasis:`domain\_controller\_lookup`\  is \ :literal:`MANUAL`\ , enter the FQDN or the IP address of the domain controller. The maximum number of Active Directory servers that can be added is three.
 
 
   domain_controller_lookup (optional, str, DNS)
@@ -46,11 +46,11 @@ Parameters
 
     For the Domain Controller Access, enter 636 as the port number.
 
-    ``NOTE``, Only LDAPS ports are supported.
+    \ :literal:`NOTE`\ , Only LDAPS ports are supported.
 
 
   group_domain (optional, str, None)
-    Provide the group domain in the format ``example.com`` or ``ou=org, dc=example, dc=com``.
+    Provide the group domain in the format \ :literal:`example.com`\  or \ :literal:`ou=org, dc=example, dc=com`\ .
 
 
   id (optional, int, None)
@@ -58,7 +58,7 @@ Parameters
 
     This is applicable for modification and deletion.
 
-    This is mutually exclusive with *name*.
+    This is mutually exclusive with \ :emphasis:`name`\ .
 
 
   name (optional, str, None)
@@ -66,7 +66,7 @@ Parameters
 
     This is applicable for creation and deletion.
 
-    This is mutually exclusive with *name*.
+    This is mutually exclusive with \ :emphasis:`name`\ .
 
 
   network_timeout (optional, int, 120)
@@ -82,9 +82,9 @@ Parameters
 
 
   state (optional, str, present)
-    ``present`` allows to create or modify an Active Directory service.
+    \ :literal:`present`\  allows to create or modify an Active Directory service.
 
-    ``absent`` allows to delete a Active Directory service.
+    \ :literal:`absent`\  allows to delete a Active Directory service.
 
 
   test_connection (optional, bool, False)
@@ -94,25 +94,25 @@ Parameters
 
     If test fails, module will error out.
 
-    If ``true``, *domain_username* and *domain_password* has to be provided.
+    If \ :literal:`true`\ , \ :emphasis:`domain\_username`\  and \ :emphasis:`domain\_password`\  has to be provided.
 
 
   domain_password (optional, str, None)
     Provide the domain password.
 
-    This is applicable when *test_connection* is ``true``.
+    This is applicable when \ :emphasis:`test\_connection`\  is \ :literal:`true`\ .
 
 
   domain_username (optional, str, None)
-    Provide the domain username either in the UPN (username@domain) or NetBIOS (domain\\username) format.
+    Provide the domain username either in the UPN (username@domain) or NetBIOS (domain\\\\username) format.
 
-    This is applicable when *test_connection* is ``true``.
+    This is applicable when \ :emphasis:`test\_connection`\  is \ :literal:`true`\ .
 
 
   validate_certificate (optional, bool, False)
     Enables validation of SSL certificate of the domain controller.
 
-    The module will always report change when this is ``true``.
+    The module will always report change when this is \ :literal:`true`\ .
 
 
   certificate_file (optional, path, None)
@@ -120,19 +120,35 @@ Parameters
 
     The certificate should be a Root CA Certificate encoded in Base64 format.
 
-    This is applicable when *validate_certificate* is ``true``.
+    This is applicable when \ :emphasis:`validate\_certificate`\  is \ :literal:`true`\ .
 
 
   hostname (True, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -140,11 +156,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -162,9 +178,9 @@ Notes
 -----
 
 .. note::
-   - The module will always report change when *validate_certificate* is ``true``.
+   - The module will always report change when \ :emphasis:`validate\_certificate`\  is \ :literal:`true`\ .
    - Run this module from a system that has direct access to OpenManage Enterprise.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 

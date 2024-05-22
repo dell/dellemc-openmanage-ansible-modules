@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.9.6
 
 
 
@@ -28,21 +28,21 @@ Parameters
 ----------
 
   state (optional, str, present)
-    ``present`` creates or modifies a baseline.
+    \ :literal:`present`\  creates or modifies a baseline.
 
-    ``absent`` deletes an existing baseline.
+    \ :literal:`absent`\  deletes an existing baseline.
 
 
   baseline_name (optional, str, None)
     Name of the the baseline.
 
-    This option is mutually exclusive with *baseline_id*.
+    This option is mutually exclusive with \ :emphasis:`baseline\_id`\ .
 
 
   baseline_id (optional, int, None)
     ID of the existing baseline.
 
-    This option is mutually exclusive with *baseline_name*.
+    This option is mutually exclusive with \ :emphasis:`baseline\_name`\ .
 
 
   new_baseline_name (optional, str, None)
@@ -60,43 +60,43 @@ Parameters
   downgrade_enabled (optional, bool, None)
     Indicates whether firmware downgrade is allowed for the devices in the baseline.
 
-    This value will be set to ``true`` by default, if not provided during baseline creation.
+    This value will be set to \ :literal:`true`\  by default, if not provided during baseline creation.
 
 
   is_64_bit (optional, bool, None)
     Indicates if the repository contains 64-bit DUPs.
 
-    This value will be set to ``true`` by default, if not provided during baseline creation.
+    This value will be set to \ :literal:`true`\  by default, if not provided during baseline creation.
 
 
   device_ids (optional, list, None)
     List of device IDs.
 
-    This option is mutually exclusive with *device_service_tags* and *device_group_names*.
+    This option is mutually exclusive with \ :emphasis:`device\_service\_tags`\  and \ :emphasis:`device\_group\_names`\ .
 
 
   device_service_tags (optional, list, None)
     List of device service tags.
 
-    This option is mutually exclusive with *device_ids* and *device_group_names*.
+    This option is mutually exclusive with \ :emphasis:`device\_ids`\  and \ :emphasis:`device\_group\_names`\ .
 
 
   device_group_names (optional, list, None)
     List of group names.
 
-    This option is mutually exclusive with *device_ids* and *device_service_tags*.
+    This option is mutually exclusive with \ :emphasis:`device\_ids`\  and \ :emphasis:`device\_service\_tags`\ .
 
 
   job_wait (optional, bool, True)
     Provides the option to wait for job completion.
 
-    This option is applicable when *state* is ``present``.
+    This option is applicable when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
 
   job_wait_timeout (optional, int, 600)
-    The maximum wait time of *job_wait* in seconds. The job is tracked only for this duration.
+    The maximum wait time of \ :emphasis:`job\_wait`\  in seconds. The job is tracked only for this duration.
 
-    This option is applicable when *job_wait* is ``true``.
+    This option is applicable when \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .
 
 
   filter_no_reboot_required (optional, bool, None)
@@ -107,12 +107,28 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -120,11 +136,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -143,8 +159,8 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell OpenManage Enterprise or OpenManage Enterprise Modular.
-   - *device_group_names* option is not applicable for OpenManage Enterprise Modular.
-   - This module supports ``check_mode``.
+   - \ :emphasis:`device\_group\_names`\  option is not applicable for OpenManage Enterprise Modular.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 

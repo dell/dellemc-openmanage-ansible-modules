@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.9.6
 
 
 
@@ -28,23 +28,23 @@ Parameters
 ----------
 
   state (optional, str, present)
-    ``present`` - Creates a new uplink with the provided *name*. - Modifies an existing uplink with the provided *name*.
+    \ :literal:`present`\  - Creates a new uplink with the provided \ :emphasis:`name`\ . - Modifies an existing uplink with the provided \ :emphasis:`name`\ .
 
-    ``absent`` – Deletes the uplink with the provided *name*.
+    \ :literal:`absent`\  – Deletes the uplink with the provided \ :emphasis:`name`\ .
 
-    *WARNING* Delete operation can impact the network infrastructure.
+    \ :emphasis:`WARNING`\  Delete operation can impact the network infrastructure.
 
 
   fabric_name (True, str, None)
-    Provide the *fabric_name* of the fabric for which the uplink is to be configured.
+    Provide the \ :emphasis:`fabric\_name`\  of the fabric for which the uplink is to be configured.
 
 
   name (True, str, None)
-    Provide the *name* of the uplink to be created, modified or deleted.
+    Provide the \ :emphasis:`name`\  of the uplink to be created, modified or deleted.
 
 
   new_name (optional, str, None)
-    Provide the new *new_name* for the uplink.
+    Provide the new \ :emphasis:`new\_name`\  for the uplink.
 
 
   description (optional, str, None)
@@ -54,13 +54,13 @@ Parameters
   uplink_type (optional, str, None)
     Specify the uplink type.
 
-    *NOTE* The uplink type cannot be changed for an existing uplink.
+    \ :emphasis:`NOTE`\  The uplink type cannot be changed for an existing uplink.
 
 
   ufd_enable (optional, str, None)
     Add or Remove the uplink to the Uplink Failure Detection (UFD) group. The UFD group identifies the loss of connectivity to the upstream switch and notifies the servers that are connected to the switch. During an uplink failure, the switch disables the corresponding downstream server ports. The downstream servers can then select alternate connectivity routes, if available.
 
-    *WARNING* The firmware version of the I/O Module running the Fabric Manager must support this configuration feature. If not, uplink creation will be successful with an appropriate error message in response.
+    \ :emphasis:`WARNING`\  The firmware version of the I/O Module running the Fabric Manager must support this configuration feature. If not, uplink creation will be successful with an appropriate error message in response.
 
 
   primary_switch_service_tag (optional, str, None)
@@ -70,7 +70,7 @@ Parameters
   primary_switch_ports (optional, list, None)
     The IOM slots to be connected to the primary switch.
 
-    *primary_switch_service_tag* is mandatory for this option.
+    \ :emphasis:`primary\_switch\_service\_tag`\  is mandatory for this option.
 
 
   secondary_switch_service_tag (optional, str, None)
@@ -80,11 +80,11 @@ Parameters
   secondary_switch_ports (optional, list, None)
     The IOM slots to be connected to the secondary switch.
 
-    *secondary_switch_service_tag* is mandatory for this option.
+    \ :emphasis:`secondary\_switch\_service\_tag`\  is mandatory for this option.
 
 
   tagged_networks (optional, list, None)
-    VLANs to be associated with the uplink *name*.
+    VLANs to be associated with the uplink \ :emphasis:`name`\ .
 
 
   untagged_network (optional, str, None)
@@ -95,12 +95,28 @@ Parameters
     OpenManage Enterprise Modular IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise Modular username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise Modular password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -108,11 +124,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -131,7 +147,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell OpenManage Enterprise Modular.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 

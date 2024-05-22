@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.9.6
 
 
 
@@ -28,27 +28,27 @@ Parameters
 ----------
 
   state (optional, str, present)
-    ``present`` creates a discovery job or modifies an existing discovery job.
+    \ :literal:`present`\  creates a discovery job or modifies an existing discovery job.
 
-    *discovery_job_name* is mandatory for the creation of a new discovery job.
+    \ :emphasis:`discovery\_job\_name`\  is mandatory for the creation of a new discovery job.
 
-    If multiple discoveries of the same *discovery_job_name* exist, then the new discovery job will not be created.
+    If multiple discoveries of the same \ :emphasis:`discovery\_job\_name`\  exist, then the new discovery job will not be created.
 
-    ``absent`` deletes an existing discovery job(s) with the specified *discovery_job_name*.
+    \ :literal:`absent`\  deletes an existing discovery job(s) with the specified \ :emphasis:`discovery\_job\_name`\ .
 
 
   discovery_job_name (optional, str, None)
     Name of the discovery configuration job.
 
-    It is mutually exclusive with *discovery_id*.
+    It is mutually exclusive with \ :emphasis:`discovery\_id`\ .
 
 
   discovery_id (optional, int, None)
     ID of the discovery configuration group.
 
-    This value is DiscoveryConfigGroupId in the return values under discovery_status.
+    This value is DiscoveryConfigGroupId in the return values under discovery\_status.
 
-    It is mutually exclusive with *discovery_job_name*.
+    It is mutually exclusive with \ :emphasis:`discovery\_job\_name`\ .
 
 
   new_name (optional, str, None)
@@ -58,7 +58,7 @@ Parameters
   schedule (optional, str, RunNow)
     Provides the option to schedule the discovery job.
 
-    If ``RunLater`` is selected, then *cron* must be specified.
+    If \ :literal:`RunLater`\  is selected, then \ :emphasis:`cron`\  must be specified.
 
 
   cron (optional, str, None)
@@ -82,33 +82,33 @@ Parameters
   job_wait (optional, bool, True)
     Provides the option to wait for job completion.
 
-    This option is applicable when *state* is ``present``.
+    This option is applicable when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
 
   job_wait_timeout (optional, int, 10800)
-    The maximum wait time of *job_wait* in seconds. The job is tracked only for this duration.
+    The maximum wait time of \ :emphasis:`job\_wait`\  in seconds. The job is tracked only for this duration.
 
-    This option is applicable when *job_wait* is ``true``.
+    This option is applicable when \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .
 
 
   ignore_partial_failure (optional, bool, False)
     Provides the option to ignore partial failures. Partial failures occur when there is a combination of both discovered and undiscovered IPs.
 
-    If ``false``, then the partial failure is not ignored, and the module will error out.
+    If \ :literal:`false`\ , then the partial failure is not ignored, and the module will error out.
 
-    If ``true``, then the partial failure is ignored.
+    If \ :literal:`true`\ , then the partial failure is ignored.
 
-    This option is only applicable if *job_wait* is ``true``.
+    This option is only applicable if \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .
 
 
   discovery_config_targets (optional, list, None)
     Provide the list of discovery targets.
 
-    Each discovery target is a set of *network_address_detail*, *device_types*, and one or more protocol credentials.
+    Each discovery target is a set of \ :emphasis:`network\_address\_detail`\ , \ :emphasis:`device\_types`\ , and one or more protocol credentials.
 
-    This is mandatory when *state* is ``present``.
+    This is mandatory when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
-    ``WARNING`` Modification of this field is not supported, this field is overwritten every time. Ensure to provide all the required details for this field.
+    \ :literal:`WARNING`\  Modification of this field is not supported, this field is overwritten every time. Ensure to provide all the required details for this field.
 
 
     network_address_detail (True, list, None)
@@ -134,15 +134,15 @@ Parameters
 
       Sample Invalid IP Range Formats
 
-         192.35.0.*
+         192.35.0.\*
 
          192.36.0.0-255
 
          192.35.0.0/255.255.255.0
 
-      ``NOTE`` The range size for the number of IP addresses is limited to 16,385 (0x4001).
+      \ :literal:`NOTE`\  The range size for the number of IP addresses is limited to 16,385 (0x4001).
 
-      ``NOTE`` Both IPv6 and IPv6 CIDR formats are supported.
+      \ :literal:`NOTE`\  Both IPv6 and IPv6 CIDR formats are supported.
 
 
     device_types (True, list, None)
@@ -154,13 +154,13 @@ Parameters
 
       Supported protocols for each device type are:
 
-      SERVER - *wsman*, *redfish*, *snmp*, *ipmi*, *ssh*, and *vmware*.
+      SERVER - \ :emphasis:`wsman`\ , \ :emphasis:`redfish`\ , \ :emphasis:`snmp`\ , \ :emphasis:`ipmi`\ , \ :emphasis:`ssh`\ , and \ :emphasis:`vmware`\ .
 
-      CHASSIS - *wsman*, and *redfish*.
+      CHASSIS - \ :emphasis:`wsman`\ , and \ :emphasis:`redfish`\ .
 
-      NETWORK SWITCH - *snmp*.
+      NETWORK SWITCH - \ :emphasis:`snmp`\ .
 
-      STORAGE - *storage*, and *snmp*.
+      STORAGE - \ :emphasis:`storage`\ , and \ :emphasis:`snmp`\ .
 
 
     wsman (optional, dict, None)
@@ -411,12 +411,28 @@ Parameters
     OpenManage Enterprise IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -424,11 +440,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -447,8 +463,8 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
-   - This module does not support ``check_mode``.
-   - If *state* is ``present``, then Idempotency is not supported.
+   - This module does not support \ :literal:`check\_mode`\ .
+   - If \ :emphasis:`state`\  is \ :literal:`present`\ , then Idempotency is not supported.
 
 
 
@@ -636,7 +652,7 @@ msg (always, str, Successfully deleted 1 discovery job(s).)
 discovery_status (when I(state) is C(present), dict, {'Completed': ['192.168.24.17', '192.168.24.20', '192.168.24.22'], 'Failed': ['192.168.24.15', '192.168.24.16', '192.168.24.18', '192.168.24.19', '192.168.24.21', 'host123'], 'DiscoveredDevicesByType': [{'Count': 3, 'DeviceType': 'SERVER'}], 'DiscoveryConfigDiscoveredDeviceCount': 3, 'DiscoveryConfigEmailRecipient': 'myemail@dell.com', 'DiscoveryConfigExpectedDeviceCount': 9, 'DiscoveryConfigGroupId': 125, 'JobDescription': 'D1', 'JobEnabled': True, 'JobEndTime': '2021-01-01 06:27:29.99', 'JobId': 12666, 'JobName': 'D1', 'JobNextRun': None, 'JobProgress': '100', 'JobSchedule': 'startnow', 'JobStartTime': '2021-01-01 06:24:10.071', 'JobStatusId': 2090, 'LastUpdateTime': '2021-01-01 06:27:30.001', 'UpdatedBy': 'admin'})
   Details of the discovery job created or modified.
 
-  If *job_wait* is true, Completed and Failed IPs are also listed.
+  If \ :emphasis:`job\_wait`\  is true, Completed and Failed IPs are also listed.
 
 
 discovery_ids (when discoveries with duplicate name exist for I(state) is C(present), list, [1234, 5678])

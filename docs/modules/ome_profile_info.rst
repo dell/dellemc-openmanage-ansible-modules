@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.9.6
+- python \>= 3.9.6
 
 
 
@@ -30,25 +30,25 @@ Parameters
   profile_id (optional, int, None)
     Id of the profile.
 
-    This is mutually exclusive with *profile_name*, *system_query_options*, *template_id*, and *template_name*.
+    This is mutually exclusive with \ :emphasis:`profile\_name`\ , \ :emphasis:`system\_query\_options`\ , \ :emphasis:`template\_id`\ , and \ :emphasis:`template\_name`\ .
 
 
   profile_name (optional, str, None)
     Name of the profile.
 
-    This is mutually exclusive with *template_id*, *profile_id*, *system_query_options*, and *template_name*.
+    This is mutually exclusive with \ :emphasis:`template\_id`\ , \ :emphasis:`profile\_id`\ , \ :emphasis:`system\_query\_options`\ , and \ :emphasis:`template\_name`\ .
 
 
   template_id (optional, int, None)
     Provide the ID of the template to retrieve the list of profile(s) linked to it.
 
-    This is mutually exclusive with *profile_name*, *profile_id*, *system_query_options*, and *template_name*.
+    This is mutually exclusive with \ :emphasis:`profile\_name`\ , \ :emphasis:`profile\_id`\ , \ :emphasis:`system\_query\_options`\ , and \ :emphasis:`template\_name`\ .
 
 
   template_name (optional, str, None)
     Provide the name of the template to retrieve the list of profile(s) linked to it.
 
-    This is mutually exclusive with *profile_name*, *profile_id*, *template_id*, and *system_query_options*.
+    This is mutually exclusive with \ :emphasis:`profile\_name`\ , \ :emphasis:`profile\_id`\ , \ :emphasis:`template\_id`\ , and \ :emphasis:`system\_query\_options`\ .
 
 
   system_query_options (optional, dict, None)
@@ -56,21 +56,37 @@ Parameters
 
     The profile list can be fetched and sorted based on ProfileName, TemplateName, TargetTypeId, TargetName, ChassisName, ProfileState, LastRunStatus, or ProfileModified.
 
-    This is mutually exclusive with *profile_name*, *profile_id*, *template_id*, and *template_name*.
+    This is mutually exclusive with \ :emphasis:`profile\_name`\ , \ :emphasis:`profile\_id`\ , \ :emphasis:`template\_id`\ , and \ :emphasis:`template\_name`\ .
 
-    ``Note`` If *profile_name*, *profile_id*, *template_id*, or *template_name* option is not provided, the module retrieves all the profiles.
+    \ :literal:`Note`\  If \ :emphasis:`profile\_name`\ , \ :emphasis:`profile\_id`\ , \ :emphasis:`template\_id`\ , or \ :emphasis:`template\_name`\  option is not provided, the module retrieves all the profiles.
 
 
   hostname (True, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -78,11 +94,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -101,7 +117,7 @@ Notes
 
 .. note::
    - Run this module on a system that has direct access to Dell OpenManage Enterprise.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 

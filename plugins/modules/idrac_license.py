@@ -22,7 +22,7 @@ version_added: "8.7.0"
 description:
   - This module allows to import, export and delete licenses on iDRAC.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   license_id:
     description:
@@ -390,8 +390,7 @@ import json
 import os
 import base64
 from urllib.error import HTTPError, URLError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
-from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.compat.version import LooseVersion
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
@@ -999,8 +998,8 @@ def main():
         None
     """
     specs = get_argument_spec()
-    specs.update(idrac_auth_params)
-    module = AnsibleModule(
+
+    module = IdracAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[("import", "export", "delete")],
         required_if=[

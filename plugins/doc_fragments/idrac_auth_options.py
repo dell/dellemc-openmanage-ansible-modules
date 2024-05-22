@@ -26,14 +26,14 @@ options:
     type: str
     description:
       - iDRAC username.
-      - If the username is not provided, then the environment variable C(IDRAC_USERNAME) is used.
+      - If the username is not provided, then the environment variable E(IDRAC_USERNAME) is used.
       - "Example: export IDRAC_USERNAME=username"
   idrac_password:
     required: true
     type: str
     description:
       - iDRAC user password.
-      - If the password is not provided, then the environment variable C(IDRAC_PASSWORD) is used.
+      - If the password is not provided, then the environment variable E(IDRAC_PASSWORD) is used.
       - "Example: export IDRAC_PASSWORD=password"
     aliases: ['idrac_pwd']
   idrac_port:

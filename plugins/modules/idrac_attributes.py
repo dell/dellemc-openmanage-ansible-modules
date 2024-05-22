@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.1.0
-# Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2022-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -22,7 +22,7 @@ version_added: "6.0.0"
 description:
   - This module allows to configure the iDRAC attributes.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   idrac_attributes:
     type: dict
@@ -62,7 +62,7 @@ options:
     type: str
     description: Redfish ID of the resource.
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 author:
   - Husniya Abdul Hameed (@husniya-hameed)
   - Felix Stephen (@felixs88)
@@ -262,9 +262,8 @@ import json
 import re
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_manager_res_id
-from ansible.module_utils.basic import AnsibleModule
 
 
 SUCCESS_MSG = "Successfully updated the attributes."
@@ -496,8 +495,8 @@ def main():
         "lifecycle_controller_attributes": {"required": False, "type": 'dict'},
         "resource_id": {"required": False, "type": 'str'}
     }
-    specs.update(idrac_auth_params)
-    module = AnsibleModule(
+
+    module = IdracAnsibleModule(
         argument_spec=specs,
         required_one_of=[('idrac_attributes', 'system_attributes', 'lifecycle_controller_attributes')],
         supports_check_mode=True

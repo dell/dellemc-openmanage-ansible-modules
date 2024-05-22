@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2022-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -22,7 +22,7 @@ description:
    - "This module retrieves the list and basic details of all users or details of a specific user on
    iDRAC"
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   user_id:
     description:
@@ -35,7 +35,7 @@ options:
       - Username of the account that is created in iDRAC local users.
       - I(username) is mutually exclusive with I(user_id)
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 author: "Husniya Hameed(@husniya_hameed)"
 notes:
     - Run this module on a system that has direct access to Dell iDRAC.
@@ -116,8 +116,7 @@ import json
 from ssl import SSLError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
-from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import strip_substr_dict
 
 
@@ -193,8 +192,8 @@ def main():
         "user_id": {"type": 'int'},
         "username": {"type": 'str'}
     }
-    specs.update(idrac_auth_params)
-    module = AnsibleModule(
+
+    module = IdracAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[
             ('user_id', 'username')
