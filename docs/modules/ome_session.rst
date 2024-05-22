@@ -32,13 +32,13 @@ Parameters
 
 
   username (optional, str, None)
-    Username of the OpenManage Enterprise. If the username is not provided, then the environment variable \ :literal:`OME\_USERNAME`\  is used.
+    Username of the OpenManage Enterprise. If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
     \ :emphasis:`username`\  is required when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
 
   password (optional, str, None)
-    Password of the OpenManage Enterprise. If the password is not provided, then the environment variable \ :literal:`OME\_PASSWORD`\  is used.
+    Password of the OpenManage Enterprise. If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
 
     \ :emphasis:`password`\  is required when \ :emphasis:`state`\  is \ :literal:`present`\ .
 

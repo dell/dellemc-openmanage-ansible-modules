@@ -261,11 +261,9 @@ class SessionAPI():
             "timeout": api_timeout,
             "follow_redirects": 'all'
         }
-        if url_kwargs is None:
-            return url_params
-        else:
-            url_kwargs.update(url_params)
-            return url_kwargs
+        if url_kwargs:
+            url_params.update(url_kwargs)
+        return url_params
 
     def _args_session(self, method, api_timeout, headers=None, url_kwargs=None):
         """

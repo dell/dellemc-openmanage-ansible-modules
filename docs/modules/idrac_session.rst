@@ -32,13 +32,13 @@ Parameters
 
 
   username (optional, str, None)
-    Username of the iDRAC.
+    Username of the iDRAC. If the username is not provided, then the environment variable \ :envvar:`IDRAC\_USERNAME`\  is used.
 
     \ :emphasis:`username`\  is required when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
 
   password (optional, str, None)
-    Password of the iDRAC.
+    Password of the iDRAC. If the password is not provided, then the environment variable \ :envvar:`IDRAC\_PASSWORD`\  is used.
 
     \ :emphasis:`password`\  is required when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
@@ -71,10 +71,10 @@ Parameters
     Module will always report changes found to be applied when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
 
-  auth_token (optional, str, None)
+  x_auth_token (optional, str, None)
     Authentication token.
 
-    \ :emphasis:`auth\_token`\  is required when \ :emphasis:`state`\  is \ :literal:`absent`\ .
+    \ :emphasis:`x\_auth\_token`\  is required when \ :emphasis:`state`\  is \ :literal:`absent`\ .
 
 
   session_id (optional, int, None)
@@ -110,14 +110,47 @@ Examples
         hostname: 198.162.0.1
         username: username
         password: password
+        ca_path: "/path/to/ca_cert.pem"
         state: present
 
     - name: Delete a session
       dellemc.openmanage.idrac_session:
         hostname: 198.162.0.1
+        ca_path: "/path/to/ca_cert.pem"
         state: absent
-        auth_token: aed4aa802b748d2f3b31deec00a6b28a
-        session_is: 2
+        x_auth_token: aed4aa802b748d2f3b31deec00a6b28a
+        session_id: 2
+
+    - name: Create a session and execute other modules
+      block:
+        - name: Create a session
+          dellemc.openmanage.idrac_session:
+            hostname: 198.162.0.1
+            username: username
+            password: password
+            ca_path: "/path/to/ca_cert.pem"
+            state: present
+            register: authData
+
+        - name: Call idrac_firmware_info module
+          dellemc.openmanage.idrac_firmware_info:
+            idrac_ip: 198.162.0.1
+            ca_path: "/path/to/ca_cert.pem"
+            x_auth_token: "{{ authData.x_auth_token }}"
+
+        - name: Call idrac_user_info module
+          dellemc.openmanage.idrac_user_info:
+            idrac_ip: 198.162.0.1
+            ca_path: "/path/to/ca_cert.pem"
+            x_auth_token: "{{ authData.x_auth_token }}"
+      always:
+        - name: Destroy a session
+          dellemc.openmanage.idrac_session:
+            hostname: 198.162.0.1
+            ca_path: "/path/to/ca_cert.pem"
+            state: absent
+            x_auth_token: "{{ authData.x_auth_token }}"
+            session_id: "{{ authData.session_data.Id }}"
 
 
 
@@ -154,4 +187,5 @@ Authors
 ~~~~~~~
 
 - Rajshekar P(@rajshekarp87)
+- Kritika Bhateja (@Kritika-Bhateja-03)
 
