@@ -27,31 +27,73 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
 ## Supported Platforms
   * iDRAC8 based Dell PowerEdge Servers with firmware versions 2.85.85.85 and above.
   * iDRAC9 based Dell PowerEdge Servers with firmware versions 6.10.80.00 and above.
-  * Dell OpenManage Enterprise versions 4.0.0 and 4.0.1.
+  * Dell OpenManage Enterprise versions 3.10 and 4.1.
   * Dell OpenManage Enterprise Modular versions 2.10.10 and above.
 
-## Prerequisites
-  * [Ansible Core >= 2.16.4 and 2.15.9](https://github.com/ansible/ansible)
+## Requirements
+  * [Ansible Core >= 2.16.6 and 2.15.11](https://github.com/ansible/ansible)
   * Python >= 3.9.6
   * To run the iDRAC modules, install OpenManage Python Software Development Kit (OMSDK) 
   using either ```pip install omsdk --upgrade``` or ```pip install -r requirements.txt```. 
   OMSDK can also be installed from [Dell OpenManage Python SDK](https://github.com/dell/omsdk)
   * Operating System
-    * Red Hat Enterprise Linux (RHEL) 9.3 and 8.9
+    * Red Hat Enterprise Linux (RHEL) 9.4 and 8.9
     * SUSE Linux Enterprise Server (SLES) 15 SP5 and 15 SP4
-    * Ubuntu 22.04.4 and 22.04.3
+    * Ubuntu 24.04 and 22.04.4
 
 ## Installation
 
-* From [galaxy](https://galaxy.ansible.com/dellemc/openmanage):  
-```ansible-galaxy collection install dellemc.openmanage```
+* From [Galaxy](https://galaxy.ansible.com/dellemc/openmanage) or [Automation Hub](https://console.redhat.com/ansible/automation-hub/repo/published/dellemc/openmanage):  
+Install the latest Ansible collection from the Ansible Galaxy or Automation hub 
+  ```
+  ansible-galaxy collection install dellemc.openmanage
+  ```
 
-    - For offline installation on the Ansible control machine, download the required tar archive version of the collection from [Dell OpenManage collection](https://galaxy.ansible.com/dellemc/openmanage) and run the command given below:  
-      ```ansible-galaxy collection install dellemc-openmanage-<version>.tar.gz```
+* From [GitHub](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections):  
+Install the Ansible collection from the GitHub repository using the latest commit with the branch name 'collections'  
+  ```
+  ansible-galaxy collection install git+https://github.com/dell/dellemc-openmanage-ansible-modules.git,collections
+  ```
 
-* From [github](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections):  
-Install the collection from the github repository using the latest commit on the branch 'collections'  
-```ansible-galaxy collection install git+https://github.com/dell/dellemc-openmanage-ansible-modules.git,collections```
+* To Upgrade:
+Update the `dellemc.openmanage` collection to the latest version available on [Galaxy](https://galaxy.ansible.com/dellemc/openmanage) and [Automation Hub](https://console.redhat.com/ansible/automation-hub/repo/published/dellemc/openmanage)
+  ```
+  ansible-galaxy collection install dellemc.openmanage --upgrade
+  ```
 
-## About
+* To specific version:  
+Install a specifc version of the collection from the [Galaxy](https://galaxy.ansible.com/dellemc/openmanage) and [Automation Hub](https://console.redhat.com/ansible/automation-hub/repo/published/dellemc/openmanage)
+  ```
+  ansible-galaxy collection install dellemc.openmanage:==<version>
+  ```
+
+* Offline Installation:  
+For offline installation on the Ansible control machine, download the required tar archive version of the collection from [Dell OpenManage collection](https://galaxy.ansible.com/dellemc/openmanage) and run the command given below:  
+    ```
+    ansible-galaxy collection install dellemc-openmanage-<version>.tar.gz
+    ```
+
+For more details, see [Using Ansible collections](https://docs.ansible.com/ansible/devel/user_guide/collections_using.html)
+
+## Use Cases
+For more information about how to use the collection, refer to [OME modules](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/playbooks/ome), [iDRAC modules](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/playbooks/idrac), [Redfish modules](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/playbooks/redfish) and [roles](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/playbooks/roles). 
+
+## Testing
+
+For more information about Unit testing, see [Unit testing](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/tests/README.md).
+
+For more information about Integration testing, see [Intergation testing](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/tests/integrations/README.md).
+
+## Support
+
+For support, see [SUPPORT.md](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/SUPPORT.md).
+
+## Release Notes
+
+For release notes, see [CHANGELOG.rst](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/CHANGELOG.rst).
+
+## Related Information
+Refer the [Table of Contents](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/README.md#table-of-contents) for any other information on the Dell OpenManage Ansible Modules documentations.
+
+## License Information
 Dell OpenManage Ansible Modules is 100% open source and community-driven. All components are available under [GPL-3.0-only](https://www.gnu.org/licenses/gpl-3.0.html) on GitHub.

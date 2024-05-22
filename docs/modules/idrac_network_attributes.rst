@@ -40,13 +40,13 @@ Parameters
 
 
   network_attributes (optional, dict, None)
-    Dictionary of network attributes and value. To view the list of attributes and its structure, see the below API \ https://I(idrac_ip\ /redfish/v1/Systems/System.Embedded.1/NetworkAdapters/\<network\_id\>/NetworkDeviceFunctions/ \<network\_port\_id\>/Settings) and \ https://%3Cidrac_ip%3E/redfish/v1/Schemas/NetworkDeviceFunction.v1_8_0.json\ .
+    Dictionary of network attributes and value. To view the list of attributes and its structure, see the below API \ https://I(idrac_ip\ /redfish/v1/Systems/System.Embedded.1/NetworkAdapters/\<network\_adapter\_id\>/NetworkDeviceFunctions/ \<network\_device\_function\_id\>/Settings) and \ https://%3Cidrac_ip%3E/redfish/v1/Schemas/NetworkDeviceFunction.v1_8_0.json\ .
 
     \ :emphasis:`network\_attributes`\  is mutually exclusive with \ :emphasis:`oem\_network\_attributes`\ .
 
 
   oem_network_attributes (optional, dict, None)
-    The attributes must be part of the Integrated Dell Remote Access Controller Attribute Registry. To view the list of attributes in Attribute Registry for iDRAC9 and newer versions. For more information, see, \ https://I(idrac_ip\ /redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/\<network\_id\>/NetworkDeviceFunctions/ \<network\_port\_id\>/Oem/Dell/DellNetworkAttributes/\<network\_port\_id\>) and \ https://I(idrac_ip\ /redfish/v1/Registries/NetworkAttributesRegistry\_\<network\_port\_id\>/ NetworkAttributesRegistry\_network\_port\_id.json).
+    The attributes must be part of the Integrated Dell Remote Access Controller Attribute Registry. To view the list of attributes in Attribute Registry for iDRAC9 and newer versions. For more information, see, \ https://I(idrac_ip\ /redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/\<network\_adapter\_id\>/NetworkDeviceFunctions/ \<network\_device\_function\_id\>/Oem/Dell/DellNetworkAttributes/\<network\_device\_function\_id\>) and \ https://I(idrac_ip\ /redfish/v1/Registries/NetworkAttributesRegistry\_\<network\_device\_function\_id\>/ NetworkAttributesRegistry\_network\_port\_id.json).
 
     For iDRAC8 based servers, derive the network attribute name from Server Configuration Profile.
 
@@ -192,8 +192,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: "NIC.Integrated.1"
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: "NIC.Integrated.1"
+        network_device_function_id: "NIC.Integrated.1-1-1"
         apply_time: "Immediate"
         oem_network_attributes:
           BannerMessageTimeout: "4"
@@ -203,8 +203,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         oem_network_attributes:
           BannerMessageTimeout: "4"
         apply_time: OnReset
@@ -214,8 +214,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         oem_network_attributes:
           BannerMessageTimeout: "4"
         apply_time: AtMaintenanceWindowStart
@@ -228,8 +228,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         apply_time: "Immediate"
         clear_pending: true
 
@@ -238,8 +238,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         apply_time: "Immediate"
         clear_pending: true
         oem_network_attributes:
@@ -250,8 +250,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         apply_time: "Immediate"
         oem_network_attributes:
           LnkSpeed: "10MbpsHalf"
@@ -265,8 +265,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         apply_time: OnReset
         network_attributes:
           Ethernet:
@@ -278,8 +278,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         network_attributes:
           Ethernet:
             VLAN:
@@ -291,8 +291,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         network_attributes:
           iSCSIBoot:
             InitiatorIPAddress: 1.0.0.1
@@ -306,8 +306,8 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         network_attributes:
           Ethernet:
             VLAN:
