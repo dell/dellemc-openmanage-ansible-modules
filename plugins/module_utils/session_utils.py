@@ -305,15 +305,12 @@ class SessionAPI():
         :return: The response data from the request.
         :rtype: OpenURLResponse
         """
-        try:
-            url_kwargs = self._args_session(method, api_timeout, headers=headers, url_kwargs=url_kwargs)
-            if data and dump:
-                data = json.dumps(data)
-            url = self._build_url(uri, query_param=query_param)
-            resp = open_url(url, data=data, **url_kwargs)
-            resp_data = OpenURLResponse(resp)
-        except (HTTPError, URLError, SSLValidationError, ConnectionError) as err:
-            raise err
+        url_kwargs = self._args_session(method, api_timeout, headers=headers, url_kwargs=url_kwargs)
+        if data and dump:
+            data = json.dumps(data)
+        url = self._build_url(uri, query_param=query_param)
+        resp = open_url(url, data=data, **url_kwargs)
+        resp_data = OpenURLResponse(resp)
         return resp_data
 
     def _get_omam_ca_env(self):

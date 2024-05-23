@@ -18,7 +18,8 @@
   ansible.builtin.set_fact:
     api_thermal_metrics: "{{ response_thermal_metrics.json |
       ansible.utils.remove_keys(target=['@odata.context', '@odata.type',
-      '@odata.id', 'DataSourceUri', 'TemperatureReadingsCelsius@odata.count']) }}"
+      '@odata.id', 'DataSourceUri',
+      'TemperatureReadingsCelsius@odata.count']) }}"
   when: response_thermal_metrics is defined
 
 - name: Assert thermal metrics

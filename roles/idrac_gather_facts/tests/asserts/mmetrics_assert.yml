@@ -28,8 +28,9 @@
 
 - name: Set Memory Metrics facts
   ansible.builtin.set_fact:
-    api_memory_metrics: "{{ response_memory_metrics.results | selectattr('json', 'defined') |
-      map(attribute='json') | flatten | ansible.utils.remove_keys(target=['@odata.context',
+    api_memory_metrics: "{{ response_memory_metrics.results |
+      selectattr('json', 'defined') | map(attribute='json') |
+      flatten | ansible.utils.remove_keys(target=['@odata.context',
       '@odata.type', '@odata.id', 'DataSourceUri']) }}"
   when: response_memory_metrics.results is defined
 
