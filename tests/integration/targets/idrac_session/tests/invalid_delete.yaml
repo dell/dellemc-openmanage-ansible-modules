@@ -7,9 +7,9 @@
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
     msg: 'Please define the following variables: idrac_ip, idrac_user and
-    idrac_password.'
+     idrac_password.'
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
-  is not defined'
+   is not defined'
 
 - block:
     - name: Prerequisite - Create a new session
@@ -36,7 +36,7 @@
           - invalid_missing_argument.failed
           - not invalid_missing_argument.changed
           - 'invalid_missing_argument.msg == "state is absent but all of the
-          following are missing: session_id"'
+           following are missing: session_id"'
 
     - name: Negative - Invalid session id
       dellemc.openmanage.idrac_session:
@@ -48,8 +48,8 @@
 
     - ansible.builtin.set_fact:
         invalid_session_id_expected_msg: "argument 'session_id' is of type
-        <class 'str'> and we were unable to convert to int: <class 'str'>
-        cannot be converted to an int"
+         <class 'str'> and we were unable to convert to int: <class 'str'>
+         cannot be converted to an int"
 
     - name: Verify task status - Negative - Invalid session id
       ansible.builtin.assert:

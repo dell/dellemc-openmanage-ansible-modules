@@ -7,9 +7,9 @@
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
     msg: 'Please define the following variables: idrac_ip, idrac_user and
-    idrac_password.'
+     idrac_password.'
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
-  is not defined'
+   is not defined'
 
 - block:
     - name: Prerequisite - Create a new session
@@ -53,7 +53,7 @@
         that:
           - delete_session_output.changed
           - 'delete_session_output.msg == "The session has been deleted
-          successfully."'
+           successfully."'
 
     - name: Delete session with deleted session
       dellemc.openmanage.idrac_session:
@@ -67,7 +67,7 @@
           - delete_session_with_deleted_session.failed
           - not delete_session_with_deleted_session.changed
           - 'delete_session_with_deleted_session.msg == "HTTP Error 401:
-          Unauthorized"'
+           Unauthorized"'
 
     - name: Prerequisite - Create another new session
       dellemc.openmanage.idrac_session:

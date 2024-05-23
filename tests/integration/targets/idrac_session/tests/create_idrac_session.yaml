@@ -7,9 +7,9 @@
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
     msg: 'Please define the following variables: idrac_ip, idrac_user and
-    idrac_password.'
+     idrac_password.'
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
-  is not defined'
+   is not defined'
 
 - block:
     - name: Create a new session - Check mode
@@ -32,7 +32,7 @@
         that:
           - create_session_output.changed
           - 'create_session_output.msg == "The session has been created
-          successfully."'
+           successfully."'
           - create_session_output.x_auth_token
           - create_session_output.session_data
 
@@ -51,7 +51,7 @@
     - name: Extract messages from ExtendedInfo
       ansible.builtin.set_fact:
         actual_messages: "{{ create_session_output.session_data
-        ['@Message.ExtendedInfo'] | map(attribute='Message') | list }}"
+         ['@Message.ExtendedInfo'] | map(attribute='Message') | list }}"
 
     - name: Assert each element of actual_messages with expected_messages
       ansible.builtin.assert:
@@ -62,7 +62,7 @@
     - name: Validate creation of session via API
       ansible.builtin.uri:
         url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
-        /redfish/v1/Sessions/{{ session_id }}"
+         /redfish/v1/Sessions/{{ session_id }}"
         method: GET
         status_code: 200
         user: "{{ idrac_user }}"
