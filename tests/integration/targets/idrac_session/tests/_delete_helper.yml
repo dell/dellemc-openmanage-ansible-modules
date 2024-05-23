@@ -1,3 +1,4 @@
+---
 - name: Delete a session
   dellemc.openmanage.idrac_session:
     validate_certs: "{{ validate_certs }}"

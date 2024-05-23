@@ -1,12 +1,15 @@
 # Dell OpenManage Ansible modules
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
-  fail:
-    msg: 'Please define the following variables: idrac_ip, idrac_user and idrac_password.'
-  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+    idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+  is not defined'
 
 - block:
     - name: Negative - Invalid value for state
@@ -19,7 +22,8 @@
       ansible.builtin.assert:
         that:
           - invalid_state.failed
-          - 'invalid_state.msg == "value of state must be one of: present, absent, got: invalid"'
+          - 'invalid_state.msg == "value of state must be one of: present,
+          absent, got: invalid"'
 
     - name: Negative - unreachable host
       dellemc.openmanage.idrac_session:
@@ -32,7 +36,8 @@
         that:
           - invalid_unreachable.unreachable
           - not invalid_unreachable.changed
-          - 'invalid_unreachable.msg == "<urlopen error [Errno -2] Name or service not known>"'
+          - 'invalid_unreachable.msg == "<urlopen error [Errno -2] Name or
+          service not known>"'
 
     - name: Negative - Invalid username
       dellemc.openmanage.idrac_session:
@@ -45,7 +50,8 @@
         that:
           - invalid_username.failed
           - not invalid_username.changed
-          - 'invalid_username.msg == "HTTP Error 401: Unauthorized" or invalid_username.msg == "<urlopen error timed out>"'
+          - 'invalid_username.msg == "HTTP Error 401: Unauthorized" or
+          invalid_username.msg == "<urlopen error timed out>"'
 
     - name: Negative - Invalid password
       dellemc.openmanage.idrac_session:
@@ -58,7 +64,8 @@
         that:
           - invalid_password.failed
           - not invalid_password.changed
-          - 'invalid_password.msg == "HTTP Error 401: Unauthorized" or invalid_password.msg == "<urlopen error timed out>"'
+          - 'invalid_password.msg == "HTTP Error 401: Unauthorized" or
+          invalid_password.msg == "<urlopen error timed out>"'
 
     - name: Negative - Invalid port
       dellemc.openmanage.idrac_session:
@@ -71,7 +78,8 @@
         that:
           - invalid_port.unreachable
           - not invalid_port.changed
-          - 'invalid_port.msg == "<urlopen error [Errno 111] Connection refused>"'
+          - 'invalid_port.msg == "<urlopen error [Errno 111] Connection
+          refused>"'
 
     - name: Negative - Invalid validate_certs
       dellemc.openmanage.idrac_session:
@@ -80,8 +88,9 @@
       ignore_errors: true
 
     - ansible.builtin.set_fact:
-        invalid_validate_certs_expected_msg: "argument 'validate_certs' is of type <class 'str'> and we were unable to convert to bool: The value 'invalid' is
-        not a valid boolean.  Valid booleans include: "
+        invalid_validate_certs_expected_msg: "argument 'validate_certs' is of
+        type <class 'str'> and we were unable to convert to bool: The value
+        'invalid' is not a valid boolean.  Valid booleans include: "
 
     - name: Verify task status - Negative - Invalid validate_certs
       ansible.builtin.assert:
@@ -101,7 +110,8 @@
         that:
           - invalid_ca_path.failed
           - not invalid_ca_path.changed
-          - 'invalid_ca_path.msg == "[Errno 2] No such file or directory: b''/invalid/path''"'
+          - 'invalid_ca_path.msg == "[Errno 2] No such file or directory:
+          b''/invalid/path''"'
 
     - name: Negative - Invalid timeout type
       dellemc.openmanage.idrac_session:
@@ -114,8 +124,9 @@
         that:
           - invalid_timeout_type.failed
           - not invalid_timeout_type.changed
-          - 'invalid_timeout_type.msg == "argument ''timeout'' is of type <class ''str''> and we were unable to convert to int: <class ''str''> cannot be
-          converted to an int"'
+          - 'invalid_timeout_type.msg == "argument ''timeout'' is of type
+          <class ''str''> and we were unable to convert to int: <class ''str''>
+          cannot be converted to an int"'
 
     - name: Negative - Invalid timeout value
       dellemc.openmanage.idrac_session:
@@ -141,8 +152,11 @@
         that:
           - invalid_unsupported_argument.failed
           - not invalid_unsupported_argument.changed
-          - 'invalid_unsupported_argument.msg =="Unsupported parameters for (dellemc.openmanage.idrac_session) module: unsupported_argument. Supported
-          parameters include: ca_path, hostname, password, port, session_id, state, timeout, username, validate_certs, x_auth_token (auth_token)."'
+          - 'invalid_unsupported_argument.msg =="Unsupported parameters for
+          (dellemc.openmanage.idrac_session) module: unsupported_argument.
+          Supported parameters include: ca_path, hostname, password, port,
+          session_id, state, timeout, username, validate_certs, x_auth_token
+          (auth_token)."'
 
   module_defaults:
     dellemc.openmanage.idrac_session:
