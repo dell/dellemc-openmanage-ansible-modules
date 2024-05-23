@@ -43,7 +43,8 @@
 
     - name: Get all storage controller ids.
       ansible.builtin.set_fact:
-        storage_ids_list: "{{ idrac_gather_facts_controllers_result.json.Members |
+        storage_ids_list:
+          "{{ idrac_gather_facts_controllers_result.json.Members |
           map('dict2items') | flatten | map(attribute='value') }}"
       when: idrac_gather_facts_controllers_result.json.Members is defined
 
