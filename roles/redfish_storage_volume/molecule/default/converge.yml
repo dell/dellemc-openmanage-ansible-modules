@@ -27,8 +27,9 @@
 
     - name: Asserting after performing operation.
       ansible.builtin.assert:
-        that:
-          - '"<urlopen error [Errno 111] Connection refused>" in redfish_storage_volume_out.msg'
+        that: >-
+          '"<urlopen error [Errno 111] Connection refused>" in
+           redfish_storage_volume_out.msg'
 
     - name: To check the behaviour of invalid credentials.
       ansible.builtin.import_role:
@@ -77,8 +78,9 @@
 
     - name: Asserting after performing operation for invalid span count.
       ansible.builtin.assert:
-        that: |-
-          redfish_storage_volume_out.msg == "value of state must be one of: present, absent, got: invalid"
+        that: >-
+          redfish_storage_volume_out.msg == "value of state must be one of:
+          present, absent, got: invalid"
       when: not ansible_check_mode
 
     - name: To check the behaviour of invalid certificate path.
@@ -105,8 +107,9 @@
 
     - name: Asserting after performing operation for invalid certificate path.
       ansible.builtin.assert:
-        that: |-
-          "[Errno 2] No such file or directory" in redfish_storage_volume_out.msg
+        that: >-
+          "[Errno 2] No such file or directory" in
+           redfish_storage_volume_out.msg
 
     - name: To check the behaviour of invalid raid type.
       ansible.builtin.import_role:
@@ -130,9 +133,10 @@
 
     - name: Asserting after performing operation for invalid raid type.
       ansible.builtin.assert:
-        that: >
-          redfish_storage_volume_out.msg == "value of raid_type must be one of: RAID0, RAID1, RAID5, RAID6, RAID10,
-          RAID50, RAID60, got: Invalid"
+        that: >-
+          "value of raid_type must be one of: RAID0, RAID1, RAID5, RAID6,
+          RAID10, RAID50, RAID60, got: Invalid" in
+          redfish_storage_volume_out.msg
 
     - name: To check the behaviour of invalid controller_id.
       ansible.builtin.import_role:
@@ -156,6 +160,7 @@
 
     - name: Asserting after performing operation for invalid controller_id.
       ansible.builtin.assert:
-        that: >
-          redfish_storage_volume_out.msg == "Specified Controller invalid does not exist in the System."
+        that: >-
+          "Specified Controller invalid does not exist in the System." in
+           redfish_storage_volume_out.msg
       when: redfish_storage_volume_out.failed
