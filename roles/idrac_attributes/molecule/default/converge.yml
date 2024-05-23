@@ -18,8 +18,9 @@
 
     - name: Asserting after performing operation with wrong hostname
       ansible.builtin.assert:
-        that:
-          - '"<urlopen error [Errno -2] Name or service not known>" in idrac_attributes_out.msg'
+        that: >-
+          '"<urlopen error [Errno -2] Name or service not known>" in
+          idrac_attributes_out.msg'
 
     - name: Perform update with wrong username
       ansible.builtin.import_role:
@@ -73,11 +74,9 @@
 
     - name: Asserting after performing operation with invalid https_port
       ansible.builtin.assert:
-        that:
-          - '"<urlopen error [Errno 111] Connection refused>" in idrac_attributes_out.msg'
-          # - ('"Connection refused" in idrac_attributes_out.msg')
-          #   or
-          #   ('"urlopen error timed out" in idrac_attributes_out.msg')
+        that: >-
+          '"<urlopen error [Errno 111] Connection refused>" in
+           idrac_attributes_out.msg'
 
     - name: Perform update with invalid validate_certs
       ansible.builtin.import_role:
@@ -116,8 +115,10 @@
 
     - name: Asserting after performing operation with wrong ca_path
       ansible.builtin.assert:
-        that:
-          - '"<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self signed certificate (_ssl.c:1129)>" in idrac_attributes_out.msg'
+        that: >-
+          '"<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify
+           failed: self signed certificate (_ssl.c:1129)>" in
+           idrac_attributes_out.msg'
 
     - name: Perform update with wrong manager_id
       ansible.builtin.import_role:

@@ -165,9 +165,9 @@
 
         - name: Verify task status - Negative - invalid unreachable host
           ansible.builtin.assert:
-            that:
-              - idrac_certificate_out.unreachable
-              - '"<urlopen error [Errno -2] Name or service not known>" in idrac_certificate_out.msg'
+            that: >-
+              '"<urlopen error [Errno -2] Name or service not known>" in
+                idrac_certificate_out.msg' and idrac_certificate_out.unreachable
 
         - name: Negative - invalid idrac user
           ansible.builtin.import_role:

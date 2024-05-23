@@ -233,13 +233,10 @@ class OMESession(Session):
             int: The status code of the session status response. If an HTTPError occurs, the status
             code of the error is returned.
         """
-        try:
-            session_status_response = self.instance.invoke_request(SESSION_URL, "GET")
-            sessions_data = session_status_response.json_data
-            session_ids = [session_id["@odata.id"].split("'")[1] for session_id in sessions_data["value"]]
-            session_status = session_id in session_ids
-        except HTTPError as err:
-            raise err
+        session_status_response = self.instance.invoke_request(SESSION_URL, "GET")
+        sessions_data = session_status_response.json_data
+        session_ids = [session_id["@odata.id"].split("'")[1] for session_id in sessions_data["value"]]
+        session_status = session_id in session_ids
         return session_status
 
     def create_session(self):

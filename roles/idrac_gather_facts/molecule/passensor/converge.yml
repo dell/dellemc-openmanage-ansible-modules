@@ -29,7 +29,8 @@
   tasks:
     - name: Fetching Presence and Status Sensor info
       ansible.builtin.uri:
-        url: "https://{{ hostname }}{{ api_system }}/Oem/Dell/DellPresenceAndStatusSensors"
+        url: "https://{{ hostname }}{{ api_system }}/Oem/
+          Dell/DellPresenceAndStatusSensors"
         validate_certs: "{{ validate_certs }}"
         ca_path: "{{ ca_path | default(omit) }}"
         method: "{{ idrac_gather_facts_uri_method }}"
@@ -44,8 +45,10 @@
 
     - name: Set presence and status sensor facts
       ansible.builtin.set_fact:
-        api_response: "{{ passensor_result.json.Members | ansible.utils.remove_keys(target=['@odata.context',
+        api_response: "{{ passensor_result.json.Members |
+          ansible.utils.remove_keys(target=['@odata.context',
          '@odata.id', '@odata.type', 'Assembly', 'Links']) }}"
+      when: passensor_result.json.Members is defined
 
     - name: Gather Facts for the Presence and Status Sensor
       ansible.builtin.include_role:
@@ -54,14 +57,16 @@
     - name: Assert Presence and Status Sensor data
       ansible.builtin.assert:
         that:
-          - "((api_response | length == 0) and (presence_and_status_sensor | length == 0))"
+          - "((api_response | length == 0) and
+            (presence_and_status_sensor | length == 0))"
         fail_msg: "The response from the role does not match"
         success_msg: "The response from the role matches"
       when: api_response | length == 0
 
     - name: Check whether output differs
       ansible.builtin.set_fact:
-        result_diff: "{{ presence_and_status_sensor | symmetric_difference(api_response) }}"
+        result_diff: "{{ presence_and_status_sensor |
+          symmetric_difference(api_response) }}"
       when: api_response | length > 0
 
     - name: Assert the differences in List

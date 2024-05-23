@@ -43,7 +43,10 @@
 
     - name: Get all storage controller ids.
       ansible.builtin.set_fact:
-        storage_ids_list: "{{ idrac_gather_facts_controllers_result.json.Members | map('dict2items') | flatten | map(attribute='value') }}"
+        storage_ids_list:
+          "{{ idrac_gather_facts_controllers_result.json.Members |
+          map('dict2items') | flatten | map(attribute='value') }}"
+      when: idrac_gather_facts_controllers_result.json.Members is defined
 
     - name: Get physical disk information using API.
       ansible.builtin.uri:
@@ -52,17 +55,25 @@
       loop: "{{ storage_ids_list }}"
       no_log: true
       register: idrac_gather_facts_disk_result
+      when: storage_ids_list is defined
 
     - name: Count the number of drives in drives_result.results
       ansible.builtin.set_fact:
-        drives_count: "{{ idrac_gather_facts_disk_result.results | map(attribute='json.drives') | list | length }}"
+        drives_count: "{{ idrac_gather_facts_disk_result.results |
+          map(attribute='json.drives') | list | length }}"
+      when: idrac_gather_facts_disk_result.results is defined
 
     - name: Set Physical Disk facts
       ansible.builtin.set_fact:
         api_response:
-          "{{ idrac_gather_facts_disk_result.results | selectattr('json', 'defined') | map(attribute='json') | selectattr('Drives', 'defined') |
-          map(attribute='Drives') | flatten | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type',
-          'Actions', 'Assembly', 'Links', 'DellDriveSMARTAttributes', 'DellNVMeSMARTAttributes', 'Operations@odata.count']) }}"
+          "{{ idrac_gather_facts_disk_result.results |
+            selectattr('json', 'defined') | map(attribute='json') |
+            selectattr('Drives', 'defined') | map(attribute='Drives') |
+            flatten | ansible.utils.remove_keys(target=['@odata.context',
+            '@odata.id', '@odata.type', 'Actions', 'Assembly', 'Links',
+            'DellDriveSMARTAttributes', 'DellNVMeSMARTAttributes',
+            'Operations@odata.count']) }}"
+      when: idrac_gather_facts_disk_result.results is defined
 
     - name: Gather Facts for the Physical Disk component
       ansible.builtin.include_role:

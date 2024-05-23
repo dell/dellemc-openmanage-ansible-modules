@@ -1,3 +1,4 @@
+---
 scenario:
   test_sequence:
     - dependency
