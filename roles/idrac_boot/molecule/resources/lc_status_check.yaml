@@ -1,12 +1,23 @@
 ---
 - name: Fetching lifecycle controller status info
-  dellemc.openmanage.idrac_lifecycle_controller_status_info::
-    idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
-    idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
-    idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
-    validate_certs: false
+  ansible.builtin.uri:
+    url: "https://{{ hostname | ansible.utils.ipwrap }}:{{ https_port }}/redfish/v1/Dell/Managers/iDRAC.Embedded.1/DellLCService/Actions/DellLCService.GetRemoteServicesAPIStatus"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    headers:
+      Accept: "application/json"
+      Content-Type: "application/json"
+      OData-Version: "4.0"
+    body_format: "json"
+    method: POST
+    body: {}
+    return_content: true
+    force_basic_auth: true
+    timeout: "{{ https_timeout }}"
   check_mode: false
-  until: lc_status_result['lc_status_info']['LCStatus'] == "Ready"
+  register: result
+  until: result.json.LCStatus == "Ready"
   retries: 240
   delay: 15
-  register: lc_status_result

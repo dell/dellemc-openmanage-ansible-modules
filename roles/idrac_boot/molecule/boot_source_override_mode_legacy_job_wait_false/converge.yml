@@ -32,7 +32,6 @@
     - name: Checking for LCStatus before running pre-requisite
       ansible.builtin.include_tasks:
         file: ../resources/lc_status_check.yaml
-      check_mode: false
 
     - name: Pre-requisite - Making sure boot mode is uefi
       check_mode: false
@@ -45,7 +44,6 @@
     - name: Checking for LCStatus after running pre-requisite
       ansible.builtin.include_tasks:
         file: ../resources/lc_status_check.yaml
-      check_mode: false
 
     - name: TC-115429 - Validate boot_source_override_mode as legacy with job_wait false
       ansible.builtin.include_role:
@@ -71,7 +69,6 @@
     - name: Checking for LCStatus after performing operation
       ansible.builtin.include_tasks:
         file: ../resources/lc_status_check.yaml
-      check_mode: false
 
     - name: Asserting TC-115429 in check mode
       ansible.builtin.assert:

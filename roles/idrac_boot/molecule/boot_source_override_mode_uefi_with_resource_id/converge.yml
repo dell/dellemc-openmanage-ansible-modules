@@ -46,7 +46,6 @@
     - name: Checking for LCStatus before running pre-requisite
       ansible.builtin.include_tasks:
         file: ../resources/lc_status_check.yaml
-      check_mode: false
       tags: molecule-idempotence-notest
 
     - name: Pre-requisite - Making sure boot mode is legacy
@@ -60,7 +59,6 @@
     - name: Checking for LCStatus after running pre-requisite
       ansible.builtin.include_tasks:
         file: ../resources/lc_status_check.yaml
-      check_mode: false
 
     - name: TC-115430 - Validate boot_source_override_mode as uefi with resource_id
       ansible.builtin.include_role:
@@ -86,7 +84,6 @@
     - name: Checking for LCStatus after performing operation
       ansible.builtin.include_tasks:
         file: ../resources/lc_status_check.yaml
-      check_mode: false
       when: idrac_boot_out.changed # noqa: no-handler
       tags: molecule-idempotence-notest
 
