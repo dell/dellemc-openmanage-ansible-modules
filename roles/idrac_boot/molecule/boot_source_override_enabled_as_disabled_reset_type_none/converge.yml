@@ -29,17 +29,8 @@
       no_log: true
 
     - name: Checking for LCStatus before running pre-requisite
-      ansible.builtin.uri:
-        <<: *uri_input
-        url: "{{ lc_uri }}"
-        method: POST
-        body: {}
-      register: lc_status_result
-      check_mode: false
-      until: lc_status_result.json.LCStatus == "Ready"
-      retries: "{{ retry_count }}"
-      delay: "{{ delay_count }}"
-      no_log: true
+      ansible.builtin.include_tasks:
+        file: ../resources/lc_status_check.yaml
 
     - name: Pre-requisite - Making sure boot_source_override_enabled is continuous
       check_mode: false
@@ -50,18 +41,8 @@
       tags: molecule-idempotence-notest
 
     - name: Checking for LCStatus after running pre-requisite
-      ansible.builtin.uri:
-        <<: *uri_input
-        url: "{{ lc_uri }}"
-        method: POST
-        body: {}
-      register: lc_status_result
-      check_mode: false
-      when: idrac_boot_out.changed # noqa: no-handler
-      until: lc_status_result.json.LCStatus == "Ready"
-      retries: "{{ retry_count }}"
-      delay: "{{ delay_count }}"
-      no_log: true
+      ansible.builtin.include_tasks:
+        file: ../resources/lc_status_check.yaml
 
     - name: TC-115431 - Validate boot_source_override_enabled as disabled
       ansible.builtin.include_role:
@@ -71,18 +52,8 @@
         reset_type: none
 
     - name: Checking for LCStatus after performing operation
-      ansible.builtin.uri:
-        <<: *uri_input
-        url: "{{ lc_uri }}"
-        method: POST
-        body: {}
-      register: lc_status_result
-      check_mode: false
-      when: idrac_boot_out.changed # noqa: no-handler
-      until: lc_status_result.json.LCStatus == "Ready"
-      retries: "{{ retry_count }}"
-      delay: "{{ delay_count }}"
-      no_log: true
+      ansible.builtin.include_tasks:
+        file: ../resources/lc_status_check.yaml
 
     - name: Asserting TC-115431 in check mode
       ansible.builtin.assert:

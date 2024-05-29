@@ -44,17 +44,9 @@
         resource_id_data: "{{ result_data.json.Members[0]['@odata.id'] | split('/') | last }}"
 
     - name: Checking for LCStatus before running pre-requisite
-      ansible.builtin.uri:
-        <<: *uri_input
-        url: "{{ lc_uri }}"
-        method: POST
-        body: {}
-      register: lc_status_result
+      ansible.builtin.include_tasks:
+        file: ../resources/lc_status_check.yaml
       check_mode: false
-      until: lc_status_result.json.LCStatus == "Ready"
-      retries: "{{ retry_count }}"
-      delay: "{{ delay_count }}"
-      no_log: true
       tags: molecule-idempotence-notest
 
     - name: Pre-requisite - Making sure boot mode is legacy
@@ -66,17 +58,9 @@
       tags: molecule-idempotence-notest
 
     - name: Checking for LCStatus after running pre-requisite
-      ansible.builtin.uri:
-        <<: *uri_input
-        url: "{{ lc_uri }}"
-        method: POST
-        body: {}
-      register: lc_status_result
+      ansible.builtin.include_tasks:
+        file: ../resources/lc_status_check.yaml
       check_mode: false
-      until: lc_status_result.json.LCStatus == "Ready"
-      retries: "{{ retry_count }}"
-      delay: "{{ delay_count }}"
-      no_log: true
 
     - name: TC-115430 - Validate boot_source_override_mode as uefi with resource_id
       ansible.builtin.include_role:
@@ -100,18 +84,10 @@
       tags: molecule-idempotence-notest
 
     - name: Checking for LCStatus after performing operation
-      ansible.builtin.uri:
-        <<: *uri_input
-        url: "{{ lc_uri }}"
-        method: POST
-        body: {}
-      register: lc_status_result
+      ansible.builtin.include_tasks:
+        file: ../resources/lc_status_check.yaml
       check_mode: false
       when: idrac_boot_out.changed # noqa: no-handler
-      until: lc_status_result.json.LCStatus == "Ready"
-      retries: "{{ retry_count }}"
-      delay: "{{ delay_count }}"
-      no_log: true
       tags: molecule-idempotence-notest
 
     - name: Asserting TC-115430 in check mode

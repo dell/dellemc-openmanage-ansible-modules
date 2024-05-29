@@ -8,9 +8,6 @@
     password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
     validate_certs: false
     boot_option_uri: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Systems/System.Embedded.1/BootOptions?$expand=*($levels=1)"
-    lc_uri: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Dell/Managers/iDRAC.Embedded.1/DellLCService/Actions/DellLCService.GetRemoteServicesAPIStatus"
-    retry_count: 60
-    delay_count: 30
   tasks:
     - name: Preparing set_fact for uri
       ansible.builtin.set_fact:
@@ -43,17 +40,8 @@
         data: "{{ result_data.json.Members[0].BootOptionReference }}"
 
     - name: Checking for LCStatus before running pre-requisite
-      ansible.builtin.uri:
-        <<: *uri_input
-        url: "{{ lc_uri }}"
-        method: POST
-        body: {}
-      register: lc_status_result
-      check_mode: false
-      until: lc_status_result.json.LCStatus == "Ready"
-      retries: "{{ retry_count }}"
-      delay: "{{ delay_count }}"
-      no_log: true
+      ansible.builtin.include_tasks:
+        file: ../resources/lc_status_check.yaml
 
     - name: Waiting for the iDRAC to be available
       ansible.builtin.wait_for:
@@ -79,18 +67,8 @@
             enabled: true
 
     - name: Checking for LCStatus after performing operation
-      ansible.builtin.uri:
-        <<: *uri_input
-        url: "{{ lc_uri }}"
-        method: POST
-        body: {}
-      register: lc_status_result
-      check_mode: false
-      when: idrac_boot_out.changed # noqa: no-handler
-      until: lc_status_result.json.LCStatus == "Ready"
-      retries: "{{ retry_count }}"
-      delay: "{{ delay_count }}"
-      no_log: true
+      ansible.builtin.include_tasks:
+        file: ../resources/lc_status_check.yaml
 
     - name: Waiting for the iDRAC to be available
       ansible.builtin.wait_for:

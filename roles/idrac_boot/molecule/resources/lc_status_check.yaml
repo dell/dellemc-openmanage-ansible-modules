@@ -1,0 +1,12 @@
+---
+- name: Fetching lifecycle controller status info
+  dellemc.openmanage.idrac_lifecycle_controller_status_info::
+    idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+    idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+    idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+  check_mode: false
+  until: lc_status_result['lc_status_info']['LCStatus'] == "Ready"
+  retries: 240
+  delay: 15
+  register: lc_status_result
