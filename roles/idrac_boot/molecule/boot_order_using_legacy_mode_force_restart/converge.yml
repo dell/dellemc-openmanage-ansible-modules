@@ -31,7 +31,7 @@
 
     - name: Checking for LCStatus before running pre-requisite
       ansible.builtin.include_tasks:
-        file: ../resources/lc_status_check.yaml
+        file: ../__lc_status_check.yaml
       tags: molecule-idempotence-notest
 
     - name: Waiting for the iDRAC to be available
@@ -67,7 +67,7 @@
 
     - name: Checking for LCStatus after running pre-requisite
       ansible.builtin.include_tasks:
-        file: ../resources/lc_status_check.yaml
+        file: ../__lc_status_check.yaml
       tags: molecule-idempotence-notest
 
     - name: Waiting for the iDRAC to be available
@@ -84,7 +84,7 @@
 
     - name: Checking for LCStatus after performing operation
       ansible.builtin.include_tasks:
-        file: ../resources/lc_status_check.yaml
+        file: ../__lc_status_check.yaml
       tags: molecule-idempotence-notest
 
     - name: Waiting for the iDRAC to be available

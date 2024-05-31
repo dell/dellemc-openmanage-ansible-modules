@@ -1,7 +1,9 @@
 ---
 - name: Fetching lifecycle controller status info
   ansible.builtin.uri:
-    url: "https://{{ hostname | ansible.utils.ipwrap }}:{{ https_port }}/redfish/v1/Dell/Managers/iDRAC.Embedded.1/DellLCService/Actions/DellLCService.GetRemoteServicesAPIStatus"
+    url: "https://{{ hostname | ansible.utils.ipwrap }}:{{ https_port }}/redfish
+      /v1/Dell/Managers/iDRAC.Embedded.1/DellLCService/Actions
+      /DellLCService.GetRemoteServicesAPIStatus"
     user: "{{ username }}"
     password: "{{ password }}"
     validate_certs: "{{ validate_certs }}"
@@ -21,3 +23,9 @@
   until: result.json.LCStatus == "Ready"
   retries: 240
   delay: 15
+
+- name: Waiting for 1 min even after LCStatus is Ready before proceeding
+  ansible.builtin.wait_for:
+    timeout: 60
+  when: result.json.LCStatus == "Ready"
+  check_mode: false
