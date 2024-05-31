@@ -1,0 +1,54 @@
+---
+- name: Fetching data from iDRAC
+  ansible.builtin.uri:
+    url:
+      "https://{{ lookup('env', 'IDRAC_IP')
+       }}/redfish/v1/Systems/System.Embedded.1/Storage?$expand=*($levels=1)"
+    user: "{{ lookup('env', 'IDRAC_USER') }}"
+    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    method: GET
+    timeout: 30
+    body: {}
+    validate_certs: false
+    force_basic_auth: true
+    body_format: json
+    return_content: true
+    status_code: 200
+    headers: 'Accept=application/json'
+  register: idrac_storage_controller_fetched_output
+  check_mode: false
+
+- name: Intializing set_fact variable
+  ansible.builtin.set_fact:
+    idrac_storage_controller_controller_id: ""
+    idrac_storage_controller_drive_list: []
+    raid_type: "RAID0"
+
+- name: Extracting Controller id
+  ansible.builtin.set_fact:
+    idrac_storage_controller_controller_id: "{{ item.Id }}"
+    idrac_storage_controller_drive_list_odata: "{{ item.Drives }}"
+    supported_raid_type: "{{ item.StorageControllers[0].SupportedRAIDTypes }}"
+  when:
+    - item.Id != "CPU.1"
+    - item.StorageControllers[0] is defined
+    - item.Drives is defined and item.Drives != []
+    - item.StorageControllers[0].SupportedRAIDTypes != []
+    - 'raid_type is defined and
+      raid_type in item.StorageControllers[0].SupportedRAIDTypes'
+  loop: "{{ idrac_storage_controller_fetched_output.json.Members }}"
+
+- name: Validate if RAID0 is supported or not
+  ansible.builtin.fail:
+    msg: "{{ raid_type }} is not supported."
+  when:
+    - supported_raid_type is defined
+    - raid_type not in supported_raid_type
+
+- name: Extracting Drives id
+  ansible.builtin.set_fact:
+    idrac_storage_controller_drive_list:
+      "{{ idrac_storage_controller_drive_list + [item['@odata.id'] |
+       ansible.builtin.split('/') | last] }}"
+  loop: "{{ idrac_storage_controller_drive_list_odata }}"
+  when: idrac_storage_controller_drive_list_odata is defined
