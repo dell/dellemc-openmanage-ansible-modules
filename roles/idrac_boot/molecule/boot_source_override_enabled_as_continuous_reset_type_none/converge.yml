@@ -31,12 +31,6 @@
     - name: Checking for LCStatus before running pre-requisite
       ansible.builtin.include_tasks:
         file: ../__lc_status_check.yaml
-      tags: molecule-idempotence-notest
-
-    - name: Wait for 60 seconds
-      ansible.builtin.wait_for:
-        timeout: 60
-      tags: molecule-idempotence-notest
 
     - name: Pre-requisite - Making sure boot_source_override_enabled is disabled
       check_mode: false
@@ -49,12 +43,6 @@
     - name: Checking for LCStatus after running pre-requisite
       ansible.builtin.include_tasks:
         file: ../__lc_status_check.yaml
-      tags: molecule-idempotence-notest
-
-    - name: Wait for 60 seconds
-      ansible.builtin.wait_for:
-        timeout: 60
-      tags: molecule-idempotence-notest
 
     - name: TC-115433 - Validate boot_source_override_enabled as continuous
       ansible.builtin.include_role:
@@ -66,12 +54,6 @@
     - name: Checking for LCStatus after performing operation
       ansible.builtin.include_tasks:
         file: ../__lc_status_check.yaml
-      tags: molecule-idempotence-notest
-
-    - name: Wait for 60 seconds
-      ansible.builtin.wait_for:
-        timeout: 60
-      tags: molecule-idempotence-notest
 
     - name: Asserting TC-115433 in check mode
       ansible.builtin.assert:

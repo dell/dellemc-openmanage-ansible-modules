@@ -1,14 +1,14 @@
 ---
 - name: Constructing url
   ansible.builtin.set_fact:
-    ls_url_1: "https://{{ hostname | ansible.utils.ipwrap }}:"
-    ls_url_2: "{{ https_port }}/redfish/v1/Dell/Managers/"
-    ls_url_3: "iDRAC.Embedded.1/DellLCService/Actions"
-    ls_url_4: "/DellLCService.GetRemoteServicesAPIStatus"
+    url_1: "https://{{ hostname | ansible.utils.ipwrap }}:"
+    url_2: "{{ https_port }}/redfish/v1/Dell/Managers/"
+    url_3: "iDRAC.Embedded.1/DellLCService/Actions"
+    url_4: "/DellLCService.GetRemoteServicesAPIStatus"
 
 - name: Final url
   ansible.builtin.set_fact:
-    lc_status_url: "{{ ls_url_1 }}{{ ls_url_2 }}{{ ls_url_3 }}{{ ls_url_4 }}"
+    lc_status_url: "{{ url_1 }}{{ url_2 }}{{ url_3 }}{{ url_4 }}"
 
 - name: Fetching lifecycle controller status info
   ansible.builtin.uri:

@@ -29,12 +29,6 @@
     - name: Checking for LCStatus before running pre-requisite
       ansible.builtin.include_tasks:
         file: ../__lc_status_check.yaml
-      tags: molecule-idempotence-notest
-
-    - name: Wait for 60 seconds
-      ansible.builtin.wait_for:
-        timeout: 60
-      tags: molecule-idempotence-notest
 
     - name: Pre-requisite - Making sure boot mode is uefi
       check_mode: false
@@ -65,12 +59,6 @@
     - name: Checking for LCStatus after running pre-requisite
       ansible.builtin.include_tasks:
         file: ../__lc_status_check.yaml
-      tags: molecule-idempotence-notest
-
-    - name: Wait for 60 seconds
-      ansible.builtin.wait_for:
-        timeout: 60
-      tags: molecule-idempotence-notest
 
     - name: TC-115428 - Validate boot_order with uefi mode with graceful_restart
       ansible.builtin.include_role:
@@ -82,7 +70,6 @@
     - name: Checking for LCStatus after performing operation
       ansible.builtin.include_tasks:
         file: ../__lc_status_check.yaml
-      tags: molecule-idempotence-notest
 
     - name: Asserting TC-115428 in check mode
       ansible.builtin.assert:
