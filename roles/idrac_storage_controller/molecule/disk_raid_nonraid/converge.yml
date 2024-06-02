@@ -5,21 +5,11 @@
 - name: Converge
   hosts: all
   gather_facts: false
-  vars:
-    controller_id: "{{ lookup('env', 'CONTROLLER_ID') }}"
   tasks:
-    - include_tasks: ../__helper.yml
-
-    - name: Pre-check - fail if enough disk not found to create VD on RAID 1
-      fail:
-        msg: 'Physical disks are not sufficient to proceed the test case need more than 2 and found {{ physicaldisks | length}}'
-      when: "{{ physicaldisks | length}} < 2"
-
-
     - name: Block for disk conversion to Raid
       block:
-      # Creating the VD on raid1 and making offline the target disk as prereq
-        - include_tasks: ../__helper.yml
+        - name: Pre-Req - Making the target disk as nonraid
+          ansible.builtin.include_tasks: ../__helper.yml
           vars:
             reset_trigger: 1
             target: "{{ physicaldisks[0] }}"
@@ -27,12 +17,12 @@
             command: "ConvertToNonRAID"
 
         - name: Create a list of dictionaries of dictionaries
-          set_fact:
+          ansible.builtin.set_fact:
             my_list:
-              - id: physicaldisks[0]
-              - raid_state: raid
-        
-        - name: Validate the disk status change to online
+              id: "{{ physicaldisks[0] }}"
+              raid_state: raid
+
+        - name: Validate the disk conversion to RAID
           ansible.builtin.import_role:
             name: idrac_storage_controller
           vars:
@@ -42,36 +32,38 @@
             validate_certs: false
             job_wait: true
             job_wait_timeout: 1200
-            controller_id: "{{ controller_id }}"
-            disks: my_list
+            controller_id: "{{ controller_name }}"
+            disks: "{{ my_list }}"
 
-        # creating Vd to check if disk is converted in Raid mode (Expect pass to create the Vd)
-        - include_tasks: _helper.yml
+        - name: creating Vd to check if disk is converted in Raid mode (Expect pass to create the Vd)
+          ansible.builtin.include_tasks: ../__helper.yml
           vars:
             volume_type: "RAID 0"
             span_length: 1
-            id: [ "{{ physicaldisks[0] }}" ]
+            id: ["{{ physicaldisks[0] }}"]
             vd_trigger: 1
           when: not ansible_check_mode
 
-        - set_fact:
+        - name: Check if VD is created
+          ansible.builtin.set_fact:
             virtualdisk: true
-            loop: "{{ lookup('dict', result_post_check.storage_status.Message.Controller[ controller_name ], wantlist=True)}}"
-            when: "'VirtualDisk' in item.value"
-          when: not ansible_check_mode
+            loop: "{{ lookup('dict',
+             result_post_check.storage_status.Message.Controller[controller_name], wantlist=True) }}"
+          when: not ansible_check_mode and "'VirtualDisk' in item.value"
 
-        - set_fact:
+        - name: Store boolean value in a variable
+          ansible.builtin.set_fact:
             is_vd_exist_first_check: "{{ virtualdisk }}"
           when: not ansible_check_mode
 
-        - name: Verifying disk status change to online in check mode
+        - name: Verifying disk conversion to raid in check mode
           ansible.builtin.assert:
             that:
               - raid_state_out.msg == "Changes found to be applied."
               - raid_state_out.changed
           when: ansible_check_mode
 
-        - name: Verifying disk status change to online in normal mode
+        - name: Verifying disk conversion to raid in normal mode
           ansible.builtin.assert:
             that:
               - raid_state_out.msg == "Successfully performed the 'ConvertToRAID' operation."
@@ -79,18 +71,22 @@
               - is_vd_exist_first_check
           when: not ansible_check_mode and raid_state_out.changed
 
-        - name: Verifying disk status change to online in idempotence mode
+        - name: Verifying disk conversion to raid in idempotence mode
           ansible.builtin.assert:
             that:
               - raid_state_out.msg == "No changes found to be applied."
               - not raid_state_out.changed
           when: not ansible_check_mode and not raid_state_out.changed
-
-
+      always:
+        - name: Deleting the volume.
+          ansible.builtin.include_tasks:
+            file: ../__delete_virtual_drive.yml
+          when: is_vd_exist_first_check
 
     - name: Block for disk conversion to Non-Raid
       block:
-        - include_tasks: ../__helper.yml
+        - name: Pre-Req - Making the target disk as raid
+          ansible.builtin.include_tasks: ../__helper.yml
           vars:
             reset_trigger: 1
             target: "{{ physicaldisks[0] }}"
@@ -98,12 +94,12 @@
             command: "ConvertToRAID"
 
         - name: Create a list of dictionaries of dictionaries
-          set_fact:
+          ansible.builtin.set_fact:
             my_list:
-              - id: physicaldisks[0]
-              - raid_state: nonraid
-        
-        - name: Validate the disk status change to online
+              id: "{{ physicaldisks[0] }}"
+              raid_state: nonraid
+ 
+        - name: Validate the disk conversion to NON-RAID
           ansible.builtin.import_role:
             name: idrac_storage_controller
           vars:
@@ -113,43 +109,46 @@
             validate_certs: false
             job_wait: true
             job_wait_timeout: 1200
-            controller_id: "{{ controller_id }}"
-            disks: my_list
+            controller_id: "{{ controller_name }}"
+            disks: "{{ my_list }}"
 
-        - include_role: name=prepare_lifecycle_controller_job
+        - name: Check for the lC status to be ready
+          ansible.builtin.include_role: name=prepare_lifecycle_controller_job
           vars:
-            job_id: "{{result_offline.status.Id}}"
-          when: result_offline.msg == "Successfully submitted the job that performs the 'ConvertToNonRAID' operation."
+            job_id: "{{raid_state_out.status.Id}}"
+          when: raid_state_out.msg == "Successfully submitted the job that performs the 'ConvertToNonRAID' operation."
           ignore_errors: true
 
-        # creating Vd to check if disk is converted in non-Raid mode (Expecting fail to create the VD)
-        - include_tasks: _helper.yml
+        - name: Creating Vd to check if disk is converted in non-Raid mode (Expecting fail to create the VD)
+          ansible.builtin.include_tasks: ../__helper.yml
           vars:
             volume_type: "RAID 0"
             span_length: 1
-            id: [ "{{ physicaldisks[0] }}" ]
+            id: ["{{ physicaldisks[0] }}"]
             ignore_errors_val: true
             vd_trigger: 1
           when: not ansible_check_mode
 
-        - set_fact:
+        - name: Check if VD is created
+          ansible.builtin.set_fact:
             virtualdisk: false
-            loop: "{{ lookup('dict', result_post_check.storage_status.Message.Controller[ controller_name ], wantlist=True)}}"
+            loop: "{{ lookup('dict', result_post_check.storage_status.Message.Controller[ controller_name ], wantlist=True) }}"
             when: "not 'VirtualDisk' in item.value"
           when: not ansible_check_mode
 
-        - set_fact:
+        - name: Store boolean value in a variable
+          ansible.builtin.set_fact:
             is_vd_exist_second_check: "{{ virtualdisk }}"
           when: not ansible_check_mode
 
-        - name: Verifying disk status change to online in check mode
+        - name: Verifying disk conversion to nonraid in check mode
           ansible.builtin.assert:
             that:
               - raid_state_out.msg == "Changes found to be applied."
               - raid_state_out.changed
           when: ansible_check_mode
 
-        - name: Verifying disk status change to online in normal mode
+        - name: Verifying disk conversion to nonraid in normal mode
           ansible.builtin.assert:
             that:
               - raid_state_out.msg == "Successfully submitted the job that performs the 'ConvertToNonRAID' operation."
@@ -157,14 +156,15 @@
               - not is_vd_exist_second_check
           when: not ansible_check_mode and raid_state_out.changed
 
-        - name: Verifying disk status change to online in idempotence mode
+        - name: Verifying disk conversion to nonraid in idempotence mode
           ansible.builtin.assert:
             that:
               - raid_state_out.msg == "No changes found to be applied."
               - not raid_state_out.changed
           when: not ansible_check_mode and not raid_state_out.changed
       always:
-        - include_tasks: ../__helper.yml
+        - name: Perform the disk conversion to RAID as a cleanup
+          ansible.builtin.include_tasks: ../__helper.yml
           vars:
             target_raid_disk: "{{ physicaldisks[0] }}"
             command: "ConvertToRAID"

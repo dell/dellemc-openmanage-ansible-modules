@@ -1,0 +1,34 @@
+- name: Pre_req - View all volumes
+  dellemc.openmanage.idrac_storage_volume:
+    idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+    idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+    idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+    state: "view"
+  register: result
+  when: run_trigger is not defined
+  # no_log: true
+
+- ansible.builtin.set_fact:
+    enclosers: "{{ item.value.Enclosure }}"
+    controller_name: "{{ item.key }}"
+  loop: "{{ lookup('dict', result.storage_status.Message.Controller)}}"
+  when: not post_op and 'Enclosure' in item.value
+  ignore_errors: true
+  # no_log: true
+
+- ansible.builtin.set_fact:
+    physicaldisks: "{{ item.value.PhysicalDisk }}"
+  loop: "{{ lookup('dict',
+         result.storage_status.Message.Controller[ controller_name ].Enclosure,
+         wantlist=True)}}"
+  when: not post_op and "{{ controller_name }}" in item.key
+  ignore_errors: true
+
+- ansible.builtin.set_fact:
+    virtualdisk: "{{ item.key }}"
+  loop: "{{ lookup('dict',
+       result.storage_status.Message.Controller[ controller_name ].VirtualDisk,
+       wantlist=True)}}"
+  when: post_op and "{{ controller_name }}" in item.key
+  ignore_errors: true
