@@ -1,0 +1,18 @@
+---
+- name: Delete single volume
+  dellemc.openmanage.idrac_storage_volume:
+    idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+    idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+    idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+    state: "delete"
+    volumes:
+      - name: "{{ virtualdisk }}"
+  when: virtualdisk
+  register: redfish_storage_volume_out
+  check_mode: false
+
+- name: Waiting for iDRAC to be in ready state
+  ansible.builtin.include_tasks:
+    file: ../__lc_status.yml
+  when: redfish_storage_volume_out.changed
