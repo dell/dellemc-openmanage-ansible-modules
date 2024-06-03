@@ -324,7 +324,7 @@ class FactoryReset():
                                       skipped=True)
         if self.module.check_mode:
             self.check_mode_output(is_idrac9)
-        if is_idrac9 and not self.force_reset and self.reset_to_default is not None:
+        if is_idrac9 and self.reset_to_default and not self.force_reset:
             self.check_lcstatus(post_op=False)
         reset_status_mapping = {key: self.reset_to_default_mapped for key in ['Default', 'All', 'ResetAllWithRootDefaults']}
         reset_status_mapping.update({
@@ -332,7 +332,7 @@ class FactoryReset():
             'None': self.graceful_restart
         })
         msg_res, job_res = reset_status_mapping[str(self.reset_to_default)]()
-        if is_idrac9 and self.wait_for_idrac and self.reset_to_default is not None:
+        if is_idrac9 and self.wait_for_idrac and self.reset_to_default:
             self.check_lcstatus()
         return msg_res, job_res
 
@@ -537,7 +537,8 @@ def main():
     module = IdracAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[("custom_defaults_file", "custom_defaults_buffer")],
-        required_together=[('username', 'password')],
+        required_if=[('reset_to_default', 'All', ('username', 'password')),
+                     ('reset_to_default', 'ResetAllWithRootDefaults', ('username', 'password'))],
         supports_check_mode=True)
     try:
         with iDRACRedfishAPI(module.params) as idrac:
