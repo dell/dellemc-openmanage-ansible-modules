@@ -358,7 +358,8 @@ class FactoryReset():
 
     def check_lcstatus(self, post_op=True):
         if self.reset_to_default in PASSWORD_CHANGE_OPTIONS and post_op and self.staus_code_after_wait == 401:
-            return
+            self.idrac.username = self.module.params.get('username')
+            self.idrac.password = self.module.params.get('password')
         lc_status_dict = {}
         lc_status_dict['LCStatus'] = ""
         retry_count = 1
