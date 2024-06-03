@@ -57,7 +57,7 @@
 
     - name: Asserting TC-115431 in check mode
       ansible.builtin.assert:
-        that: idrac_boot_out.msg == "Changes found to be applied."
+        that: idrac_boot_out.msg == "No changes found to be applied."
       when: ansible_check_mode
       tags: molecule-idempotence-notest
 
