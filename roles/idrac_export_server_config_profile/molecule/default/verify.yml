@@ -33,14 +33,26 @@
       delegate_to: localhost
       register: local_file
 
-    - name: Mounting NFS volume to localhost
-      ansible.posix.mount:
-        src: "{{ nfs_url }}"
+    - name: Create a NFS mount point/directory
+      ansible.builtin.file:
         path: "{{ nfs_mount_path }}"
-        state: mounted
-        fstype: nfs
+        state: directory
+        mode: "0755"
+      delegate_to: localhost
+
+    - name: Create a CIFS mount point/directory
+      ansible.builtin.file:
+        path: "{{ cifs_mount_path }}"
+        state: directory
+        mode: "0755"
+      delegate_to: localhost
+
+    - name: Mounting NFS volume to localhost
+      ansible.builtin.command: # noqa: command-instead-of-module
+        cmd: "mount -t nfs {{ nfs_url }} {{ nfs_mount_path }}"
       delegate_to: localhost
       register: nfs_mount
+      changed_when: nfs_mount.rc == 0
 
     - name: Checking file exists in NFS mount localhost
       ansible.builtin.stat:
@@ -49,15 +61,12 @@
       register: nfs_file
 
     - name: Mounting CIFS volume to localhost
-      ansible.posix.mount:
-        src: "{{ cifs_url }}"
-        path: "{{ cifs_mount_path }}"
-        opts: "username={{ cifs_username }},password={{ cifs_password }}"
-        state: mounted
-        fstype: cifs
+      ansible.builtin.command: # noqa: command-instead-of-module
+        cmd: "mount -t cifs '{{ cifs_url }}' {{ cifs_mount_path }}
+         -o username={{ cifs_username }},password={{ cifs_password }}"
       delegate_to: localhost
       register: cifs_mount
-      no_log: true
+      changed_when: cifs_mount.rc == 0
 
     - name: Checking file exists in CIFS mount localhost
       ansible.builtin.stat:
@@ -76,7 +85,6 @@
         mode: '0755'
       delegate_to: localhost
       register: http_file_download
-      no_log: true
       changed_when: false
 
     - name: Checking file exists in current location
@@ -96,7 +104,6 @@
         mode: '0755'
       delegate_to: localhost
       register: https_file_download
-      no_log: true
       changed_when: false
 
     - name: Checking file exists in current location
