@@ -48,7 +48,7 @@
       delegate_to: localhost
 
     - name: Mounting NFS volume to localhost
-      ansible.builtin.command: # noqa: command-instead-of-module
+      ansible.builtin.command:  # noqa: command-instead-of-module
         cmd: "mount -t nfs {{ nfs_url }} {{ nfs_mount_path }}"
       delegate_to: localhost
       register: nfs_mount
@@ -61,7 +61,7 @@
       register: nfs_file
 
     - name: Mounting CIFS volume to localhost
-      ansible.builtin.command: # noqa: command-instead-of-module
+      ansible.builtin.command:  # noqa: command-instead-of-module
         cmd: "mount -t cifs '{{ cifs_url }}' {{ cifs_mount_path }}
          -o username={{ cifs_username }},password={{ cifs_password }}"
       delegate_to: localhost
