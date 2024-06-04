@@ -347,6 +347,35 @@ class TestFactoryReset(FakeAnsibleModule):
             reset_obj.check_mode_output(True)
         assert exc.value.args[0] == CHANGES_NOT_FOUND
 
+    def test_check_lcstatus(self, idrac_default_args, idrac_connection_reset_mock, mocker):
+        allowed_values = ["All", "Default", "ResetAllWithRootDefaults", "CustomDefaults"]
+
+        def mock_get_dynamic_uri_request(*args, **kwargs):
+            if len(args) > 2 and args[2] == 'Links':
+                return {"Oem": {"Dell": {"DellLCService": {}}}}
+        mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri",
+                     return_value=(IDRAC_URI, ''))
+        mocker.patch(MODULE_PATH + "get_dynamic_uri",
+                     side_effect=mock_get_dynamic_uri_request)
+        # Scenario: When default_username and default_password is not given
+        idrac_default_args.update({"reset_to_default": 'All'})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        reset_obj = self.module.FactoryReset(idrac_connection_reset_mock, f_module, allowed_choices=allowed_values)
+        reset_obj.status_code_after_wait = 401
+        data = reset_obj.check_lcstatus()
+        assert data is None
+
+        # Scneario: When default_username and default_password is given
+        idrac_default_args.update({"reset_to_default": 'All',
+                                   "default_username": "admin",
+                                   "default_password": "12345"})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        reset_obj = self.module.FactoryReset(idrac_connection_reset_mock, f_module, allowed_choices=allowed_values)
+        reset_obj.status_code_after_wait = 401
+        with pytest.raises(Exception) as exc:
+            reset_obj.check_lcstatus()
+        assert exc.value.args[0] == UNSUPPORTED_LC_STATUS_MSG
+
     def test_execute(self, idrac_default_args, idrac_connection_reset_mock, mocker):
         allowed_values = ["All", "Default", "ResetAllWithRootDefaults", "CustomDefaults"]
         allowed_values_without_cd = ["All", "Default", "ResetAllWithRootDefaults"]

@@ -374,7 +374,7 @@ class FactoryReset():
             return True
 
     def check_lcstatus(self, post_op=True):
-        if self.reset_to_default in PASSWORD_CHANGE_OPTIONS and post_op and self.staus_code_after_wait == 401:
+        if self.reset_to_default in PASSWORD_CHANGE_OPTIONS and post_op and self.status_code_after_wait == 401:
             if (default_username := self.module.params.get('default_username')) and (default_password := self.module.params.get('default_password')):
                 self.idrac.username = default_username
                 self.idrac.password = default_password
@@ -415,11 +415,11 @@ class FactoryReset():
         result['idracreset']['Data'] = {'StatusCode': status}
         result['idracreset']['StatusCode'] = status
         track_failed, wait_msg = None, None
-        self.staus_code_after_wait = 202
+        self.status_code_after_wait = 202
         if status in STATUS_SUCCESS:
             if self.wait_for_idrac:
                 track_failed, status_code, wait_msg = self.wait_for_port_open()
-                self.staus_code_after_wait = status_code
+                self.status_code_after_wait = status_code
                 if track_failed:
                     self.module.exit_json(msg=wait_msg, changed=True)
             tmp_res['msg'] = IDRAC_RESET_SUCCESS_MSG if self.wait_for_idrac else IDRAC_RESET_RESET_TRIGGER_MSG
