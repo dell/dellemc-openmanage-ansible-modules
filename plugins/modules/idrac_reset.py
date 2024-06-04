@@ -66,6 +66,21 @@ options:
     type: bool
     default: false
     version_added: 9.2.0
+  default_username:
+    description:
+      - This parameter is only applied when I(reset_to_default) is C(All) or C(ResetAllWithRootDefaults).
+      - This option is needed to tracking LCStatus post reset operation.
+      - If this option is not sent it will skip LCStatus post reset operation.
+    type: str
+    version_added: 9.4.0
+  default_password:
+    description:
+      - This parameter is only applied when I(reset_to_default) is C(All) or C(ResetAllWithRootDefaults).
+      - This option is needed to tracking LCStatus post reset operation.
+      - If this option is not sent it will skip LCStatus post reset operation.
+    type: str
+    version_added: 9.4.0
+
 
 requirements:
   - "python >= 3.9.6"
@@ -358,8 +373,11 @@ class FactoryReset():
 
     def check_lcstatus(self, post_op=True):
         if self.reset_to_default in PASSWORD_CHANGE_OPTIONS and post_op and self.staus_code_after_wait == 401:
-            self.idrac.username = self.module.params.get('username')
-            self.idrac.password = self.module.params.get('password')
+            if (default_username := self.module.params.get('default_username')) and (default_password := self.module.params.get('default_password')):
+                self.idrac.default_username = default_username
+                self.idrac.default_password = default_password
+            else:
+                return
         lc_status_dict = {}
         lc_status_dict['LCStatus'] = ""
         retry_count = 1
@@ -531,15 +549,13 @@ def main():
         "wait_for_idrac": {"type": "bool", "default": True},
         "job_wait_timeout": {"type": 'int', "default": 600},
         "force_reset": {"type": "bool", "default": False},
-        "username": {"type": "str"},
-        "password": {"type": "str", "no_log": True}
+        "default_username": {"type": "str"},
+        "default_password": {"type": "str", "no_log": True}
     }
 
     module = IdracAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[("custom_defaults_file", "custom_defaults_buffer")],
-        required_if=[('reset_to_default', 'All', ('username', 'password')),
-                     ('reset_to_default', 'ResetAllWithRootDefaults', ('username', 'password'))],
         supports_check_mode=True)
     try:
         with iDRACRedfishAPI(module.params) as idrac:
