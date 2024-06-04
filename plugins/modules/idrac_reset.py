@@ -374,8 +374,8 @@ class FactoryReset():
     def check_lcstatus(self, post_op=True):
         if self.reset_to_default in PASSWORD_CHANGE_OPTIONS and post_op and self.staus_code_after_wait == 401:
             if (default_username := self.module.params.get('default_username')) and (default_password := self.module.params.get('default_password')):
-                self.idrac.default_username = default_username
-                self.idrac.default_password = default_password
+                self.idrac.username = default_username
+                self.idrac.password = default_password
             else:
                 return
         lc_status_dict = {}
