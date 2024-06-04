@@ -8,12 +8,15 @@
 
 - name: Setting PERC controller_id
   ansible.builtin.set_fact:
-    redfish_storage_volume_perc_raid_controller_id: "{{ redfish_storage_volume_controller_id }}"
+    redfish_storage_volume_perc_raid_controller_id: >-
+      "{{ redfish_storage_volume_controller_id }}"
   when: redfish_storage_volume_controller_id != ""
 
 - name: "Checking minimum number of drives for RAID0"
   ansible.builtin.debug:
-    msg: "Minimum number of required drives: {{ 1 }}, current: {{ redfish_storage_volume_drive_list | length }}"
+    msg: >-
+      Minimum number of required drives: 1, current:
+      {{ redfish_storage_volume_drive_list | length }}
   when: redfish_storage_volume_drive_list | length < 1
 
 - name: Pre-req Create a volume.
