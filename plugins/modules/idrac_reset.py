@@ -69,15 +69,17 @@ options:
   default_username:
     description:
       - This parameter is only applied when I(reset_to_default) is C(All) or C(ResetAllWithRootDefaults).
-      - This option is needed to tracking LCStatus post reset operation.
-      - If this option is not sent it will skip LCStatus post reset operation.
+      - This parameter is required to track LifeCycle status of the server after the reset operation is
+        performed. If this parameter is not provided, then the LifeCycle status is not tracked after the
+        reset operation.
     type: str
     version_added: 9.4.0
   default_password:
     description:
       - This parameter is only applied when I(reset_to_default) is C(All) or C(ResetAllWithRootDefaults).
-      - This option is needed to tracking LCStatus post reset operation.
-      - If this option is not sent it will skip LCStatus post reset operation.
+      - This parameter is required to track LifeCycle status of the server after the reset operation is
+        performed. If this parameter is not provided, then the LifeCycle status is not tracked after the
+        reset operation.
     type: str
     version_added: 9.4.0
 
@@ -556,6 +558,7 @@ def main():
     module = IdracAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[("custom_defaults_file", "custom_defaults_buffer")],
+        required_together= [('default_username', 'default_password')],
         supports_check_mode=True)
     try:
         with iDRACRedfishAPI(module.params) as idrac:

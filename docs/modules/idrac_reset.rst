@@ -71,6 +71,18 @@ Parameters
     This option is applicable only for iDRAC9.
 
 
+  default_username (optional, str, None)
+    This parameter is only applied when \ :emphasis:`reset\_to\_default`\  is \ :literal:`All`\  or \ :literal:`ResetAllWithRootDefaults`\ .
+
+    This parameter is required to track LifeCycle status of the server after the reset operation is performed. If this parameter is not provided, then the LifeCycle status is not tracked after the reset operation.
+
+
+  default_password (optional, str, None)
+    This parameter is only applied when \ :emphasis:`reset\_to\_default`\  is \ :literal:`All`\  or \ :literal:`ResetAllWithRootDefaults`\ .
+
+    This parameter is required to track LifeCycle status of the server after the reset operation is performed. If this parameter is not provided, then the LifeCycle status is not tracked after the reset operation.
+
+
   idrac_ip (True, str, None)
     iDRAC IP Address.
 
