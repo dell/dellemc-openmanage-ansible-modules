@@ -558,7 +558,7 @@ def main():
     module = IdracAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[("custom_defaults_file", "custom_defaults_buffer")],
-        required_together= [('default_username', 'default_password')],
+        required_together=[('default_username', 'default_password')],
         supports_check_mode=True)
     try:
         with iDRACRedfishAPI(module.params) as idrac:
