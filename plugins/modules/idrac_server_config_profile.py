@@ -29,8 +29,11 @@ options:
       - If C(import), the module performs SCP import operation.
       - If C(export), the module performs SCP export operation.
       - If C(preview), the module performs SCP preview operation.
+      - If C(import_custom_defaults) to allow the user to import custom default iDRAC settings.
+      - If C(export_custom_defaults) to allow the user to export custom default iDRAC settings.
+      - C(import_custom_defaults) and C(export_custom_defaults) is supported only on iDRAC9 with firmware 7.00.00.00 and above.
     type: str
-    choices: ['import', 'export', 'preview']
+    choices: ['import', 'export', 'preview', 'import_custom_defaults', 'export_custom_defaults']
     default: 'export'
   job_wait:
     description: Whether to wait for job completion or not.
@@ -41,6 +44,7 @@ options:
       - Network share or local path.
       - CIFS, NFS, HTTP, and HTTPS network share types are supported.
       - I(share_name) is mutually exclusive with I(import_buffer).
+      - Only "local" is supported when the I(command) is C(import_custom_defaults) or C(export_custom_defaults).
     type: str
   share_user:
     description: Network share user in the format 'user@domain' or 'domain\\user' if user is
@@ -53,7 +57,8 @@ options:
   scp_file:
     description:
       - Name of the server configuration profile (SCP) file.
-      - This option is mandatory if I(command) is C(import).
+      - This option is mandatory if I(command) is C(import) or C(import_custom_defaults).
+      - Only xml file is supported when I(command) is C(import) or C(import_custom_defaults) or C(export_custom_defaults).
       - The default format <idrac_ip>_YYmmdd_HHMMSS_scp is used if this option is not specified for C(import).
       - I(export_format) is used if the valid extension file is not provided for C(import).
     type: str
@@ -98,7 +103,9 @@ options:
     choices: ['On' ,'Off']
     default: 'On'
   export_format:
-    description: Specify the output file format. This option is applicable for C(export) command.
+    description:
+      - Specify the output file format. This option is applicable for C(export) command.
+      - This is always set to "XML" when the  I(command) is C(export_custom_defaults).
     type: str
     choices: ['JSON',  'XML']
     default: 'XML'
@@ -139,6 +146,7 @@ options:
   import_buffer:
     description:
       - Used to import the buffer input of xml or json into the iDRAC.
+      - When the  I(command) is C(import_custom_defaults), only input of xml is supported.
       - This option is applicable when I(command) is C(import) and C(preview).
       - I(import_buffer) is mutually exclusive with I(share_name).
     type: str
@@ -473,6 +481,36 @@ EXAMPLES = r'''
     job_wait: true
     import_buffer: "{\"SystemConfiguration\": {\"Components\": [{\"FQDD\": \"iDRAC.Embedded.1\",\"Attributes\":
       [{\"Name\": \"SNMP.1#AgentCommunity\",\"Value\": \"public1\"}]}]}}"
+
+- name: Export custom default
+  dellemc.openmanage.idrac_server_config_profile:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    share_name: "/scp_folder"
+    command: export_custom_defaults
+    scp_file: example_file
+
+- name: Import custom default
+  dellemc.openmanage.idrac_server_config_profile:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    share_name: "/scp_folder"
+    command: import_custom_defaults
+    scp_file: example_file.xml
+
+- name: Import custom default using buffer
+  dellemc.openmanage.idrac_server_config_profile:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: import_custom_defaults
+    import_buffer: "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'>Disabled</Attribute>
+                  </Component></SystemConfiguration>"
 '''
 
 RETURN = r'''
@@ -527,9 +565,10 @@ import os
 import json
 from datetime import datetime
 from os.path import exists
+from ansible.module_utils.compat.version import LooseVersion
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import idrac_redfish_job_tracking, \
-    strip_substr_dict
+    strip_substr_dict, get_idrac_firmware_version, get_dynamic_uri
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.parse import urlparse
@@ -537,13 +576,19 @@ from ansible.module_utils.six.moves.urllib.parse import urlparse
 
 REDFISH_SCP_BASE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
 CHANGES_FOUND = "Changes found to be applied."
+INVALID_SHARE_NAME = "{share_name} is not a valid share name for {command} operation. Only 'local' share is supported"
+ERR_STATUS_CODE = [400, 404]
 NO_CHANGES_FOUND = "No changes found to be applied."
 INVALID_FILE = "Invalid file path provided."
+INVALID_FILE_FORMAT = "Invalid file format provided. Only '.xml' format is supported."
+CUSTOM_ERROR = "{command} is not supported on this firmware version of iDRAC. \
+Enter the valid values and retry the operation."
 JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{job_id}"
 IGNORE_WARNING = {"ignore": "Enabled", "showerror": "Disabled"}
 IN_EXPORTS = {"default": "Default", "readonly": "IncludeReadOnly", "passwordhashvalues": "IncludePasswordHashValues",
               "customtelemetry": "IncludeCustomTelemetry"}
 SCP_ALL_ERR_MSG = "The option ALL cannot be used with options IDRAC, BIOS, NIC, or RAID."
+MINIMUM_SUPPORTED_FIRMWARE_VERSION = "7.00.00"
 MUTUALLY_EXCLUSIVE = "import_buffer is mutually exclusive with {0}."
 PROXY_ERR_MSG = "proxy_support is enabled but all of the following are missing: proxy_server"
 iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
@@ -712,7 +757,7 @@ def get_scp_share_details(module):
             share["file_name"] = scp_file_name_format
     else:
         share = {"share_type": "LOCAL", "share_name": share_name}
-        if command == "export":
+        if command in ["export"]:
             share["file_name"] = scp_file_name_format
     return share, scp_file_name_format
 
@@ -784,7 +829,7 @@ def preview_scp_redfish(module, idrac, http_share, import_job_wait=False):
 def exit_on_failure(module, scp_response, command):
     if isinstance(scp_response, dict) and (scp_response.get("TaskStatus") == "Critical" or
                                            scp_response.get("JobState") in ("Failed", "CompletedWithErrors")):
-        module.fail_json(msg=FAIL_MSG.format(command), scp_status=scp_response)
+        module.exit_json(msg=FAIL_MSG.format(command), scp_status=scp_response, failed=True)
 
 
 def get_buffer_text(module, share):
@@ -835,6 +880,14 @@ def wait_for_job_tracking_redfish(module, idrac, scp_response):
     return scp_response
 
 
+def validate_share_name(module):
+    share_name = module.params.get("share_name")
+    command = module.params.get("command")
+    if share_name:
+        if ":/" in share_name or "\\" in share_name:
+            module.exit_json(msg=INVALID_SHARE_NAME.format(share_name=share_name, command=command), failed=True)
+
+
 def validate_input(module, scp_components):
     if len(scp_components) != 1 and "ALL" in scp_components:
         module.fail_json(msg=SCP_ALL_ERR_MSG)
@@ -844,6 +897,23 @@ def validate_input(module, scp_components):
                 module.fail_json(msg=MUTUALLY_EXCLUSIVE.format("scp_file"))
             if module.params.get("share_name") is not None:
                 module.fail_json(msg=MUTUALLY_EXCLUSIVE.format("share_name"))
+
+
+def validate_customdefault_input(module, command):
+    scp_file = module.params.get("scp_file")
+    validate_share_name(module)
+    if scp_file:
+        if command == "import_custom_defaults":
+            if module.params.get("import_buffer") is not None:
+                if module.params.get("scp_file") is not None:
+                    module.fail_json(msg=MUTUALLY_EXCLUSIVE.format("scp_file"))
+                if module.params.get("share_name") is not None:
+                    module.fail_json(msg=MUTUALLY_EXCLUSIVE.format("share_name"))
+            if not str(scp_file.lower()).endswith(('.xml')):
+                module.exit_json(msg=INVALID_FILE_FORMAT, failed=True)
+        else:
+            if '.' in scp_file and not str(scp_file.lower()).endswith(('.xml')):
+                module.exit_json(msg=INVALID_FILE_FORMAT, failed=True)
 
 
 def validate_scp_components(module, idrac):
@@ -864,6 +934,65 @@ def validate_scp_components(module, idrac):
             if invalid_comp:
                 msg = TARGET_INVALID_MSG.format(command=command, invalid_targets=invalid_comp, valid_targets=allowable)
                 module.exit_json(msg=msg, failed=True)
+
+
+def is_check_idrac_latest(firmware_version):
+    if LooseVersion(firmware_version) >= MINIMUM_SUPPORTED_FIRMWARE_VERSION:
+        return True
+# def validate_custom_option(module, idrac):
+#         url = None
+#         result = None
+#         resp = get_dynamic_uri(idrac, REDFISH_SCP_BASE_URI, "Oem")
+#         if resp:
+#             url = resp.get("Dell", {}).get('CustomDefaultsDownloadURI', {})
+#         try:
+#             if url:
+#                 result  = idrac.invoke_request(url, "GET")
+#             return result
+#         except HTTPError as err:
+#             if err.code in ERR_STATUS_CODE:
+#                 module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default=reset_to_default, supported_values=allowed_choices), skipped=True)
+
+
+def import_custom_defaults(module, idrac):
+    import_buffer = module.params.get("import_buffer")
+    command = module.params["command"]
+    # perform_check_mode(module, idrac, http_share)
+    share = {}
+    if not import_buffer:
+        share, _scp_file_name_format = get_scp_share_details(module)
+        share["file_name"] = module.params.get("scp_file")
+        buffer_text = get_buffer_text(module, share)
+    else:
+        buffer_text = import_buffer
+    payload = {"CustomDefaults": buffer_text}
+    job_wait = module.params.get('job_wait')
+    url = None
+    resp = get_dynamic_uri(idrac, REDFISH_SCP_BASE_URI, "Actions")
+    if resp:
+        url = resp.get("Oem", {}).get('#DellManager.SetCustomDefaults', {}).get('target', {})
+    job_resp = idrac.invoke_request(url, "POST", data=payload)
+    scp_response = wait_for_job_tracking_redfish(module, idrac, job_resp)
+    scp_response = response_format_change(scp_response, module.params, share.get("file_name"))
+    exit_on_failure(module, scp_response, command)
+    return scp_response
+
+
+class ImportCustomDefaultCommand():
+    def __init__(self, idrac, module):
+        self.idrac = idrac
+        self.module = module
+        self.idrac_firmware_version = get_idrac_firmware_version(self.idrac)
+
+    def execute(self):
+        changed = True
+        command = self.module.params["command"]
+        if not is_check_idrac_latest(self.idrac_firmware_version):
+            self.module.exit_json(msg=CUSTOM_ERROR.format(command=command,
+                                                          skipped=True))
+        validate_customdefault_input(self.module, command)
+        scp_status = import_custom_defaults(self.module, self.idrac)
+        return scp_status, changed
 
 
 class ImportCommand():
@@ -889,6 +1018,22 @@ class ImportCommand():
             elif "SYS069" in scp_status.get("MessageId", ""):
                 changed = False
         return scp_status, changed
+
+
+class ExportCustomDefaultCommand():
+    def __init__(self, idrac, module):
+        self.idrac = idrac
+        self.module = module
+        self.idrac_firmware_version = get_idrac_firmware_version(self.idrac)
+
+    def execute(self):
+        command = self.module.params["command"]
+        if not is_check_idrac_latest(self.idrac_firmware_version):
+            self.module.exit_json(msg=CUSTOM_ERROR.format(command=command,
+                                                          skipped=True))
+        validate_customdefault_input(self.module, command)
+        scp_status = export_scp_redfish(self.module, self.idrac)
+        return scp_status, False
 
 
 class ExportCommand():
@@ -922,7 +1067,7 @@ def main():
     module = IdracAnsibleModule(
         argument_spec=specs,
         required_if=[
-            ["command", "export", ["share_name"]],
+            ["command", ["export", "export_custom_defaults"], ["share_name"]],
             ["proxy_support", True, ["proxy_server"]]
         ],
         supports_check_mode=True)
@@ -930,15 +1075,18 @@ def main():
     validate_input(module, module.params.get("scp_components"))
     try:
         http_share = False
+        command = module.params.get("command")
         if module.params.get("share_name") is not None:
             http_share = module.params["share_name"].lower().startswith(('http://', 'https://'))
         with iDRACRedfishAPI(module.params) as idrac:
-            validate_scp_components(module, idrac)
-            command = module.params['command']
+            if command in ["import", "export", "preview"]:
+                validate_scp_components(module, idrac)
             if command == 'import':
                 command_obj = ImportCommand(idrac, http_share, module)
             elif command == 'export':
                 command_obj = ExportCommand(idrac, http_share, module)
+            elif command == 'import_custom_defaults':
+                command_obj = ImportCustomDefaultCommand(idrac, module)
             else:
                 command_obj = PreviewCommand(idrac, http_share, module)
             scp_status, changed = command_obj.execute()
@@ -946,9 +1094,15 @@ def main():
         if module.params.get('job_wait'):
             scp_status = strip_substr_dict(scp_status)
             msg = "Successfully {0}ed the Server Configuration Profile."
+            if command not in ["import", "export", "preview"]:
+                command = command.split("_")[0]
+                msg = "Successfully {0}ed the custom defaults Server Configuration Profile."
             module.exit_json(changed=changed, msg=msg.format(command), scp_status=scp_status)
         else:
             msg = "Successfully triggered the job to {0} the Server Configuration Profile."
+            if command not in ["import", "export", "preview"]:
+                command = command.split("_")[0]
+                msg = "Successfully triggered the job to {0} the custom defaults Server Configuration Profile ."
             module.exit_json(msg=msg.format(command), scp_status=scp_status)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
@@ -962,7 +1116,7 @@ def main():
 def get_argument_spec():
     return {
         "command": {"required": False, "type": 'str',
-                    "choices": ['export', 'import', 'preview'], "default": 'export'},
+                    "choices": ['export', 'import', 'preview', 'import_custom_defaults', 'export_custom_defaults'], "default": 'export'},
         "job_wait": {"required": True, "type": 'bool'},
         "share_name": {"required": False, "type": 'str'},
         "share_user": {"required": False, "type": 'str'},
