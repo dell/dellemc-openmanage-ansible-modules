@@ -924,17 +924,23 @@ class TestOmeConfigCompBaseline(FakeAnsibleModule):
 
     @pytest.mark.parametrize("val", ["3.4.1", "3.4.5", "3.4.0", "3.4", "3.3", "3.3.0", "3.0.0", "2.1"])
     def test_create_remediate_payload_case01_for_old_releases(self, val, mocker, ome_connection_mock_for_compliance):
+        f_module = self.get_module_mock(
+            params={"run_later": True, "cron": "0 00 11 14 02 ? 2033"}
+        )
         mocker.patch(MODULE_PATH + 'get_ome_version',
                      return_value=val)
-        payload = self.module.create_remediate_payload([Constants.device_id1], baseline_output,
+        payload = self.module.create_remediate_payload(f_module, [Constants.device_id1], baseline_output,
                                                        ome_connection_mock_for_compliance)
         assert "TargetIds" in payload
 
     @pytest.mark.parametrize("val", ["3.5.1", "3.5.5", "3.5.0", "3.5"])
     def test_create_remediate_payload_case01_for_new_releases(self, val, mocker, ome_connection_mock_for_compliance):
+        f_module = self.get_module_mock(
+            params={"staged_at_reboot": True}
+        )
         mocker.patch(MODULE_PATH + 'get_ome_version',
                      return_value=val)
-        payload = self.module.create_remediate_payload([Constants.device_id1], baseline_output,
+        payload = self.module.create_remediate_payload(f_module, [Constants.device_id1], baseline_output,
                                                        ome_connection_mock_for_compliance)
         assert "DeviceIds" in payload
 

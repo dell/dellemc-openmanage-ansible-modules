@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.4.0
 # Copyright (C) 2021-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -93,6 +93,20 @@ options:
       - Description of the compliance baseline.
       - This option is applicable when I(command) is C(create), or C(modify).
     type: str
+  run_later:
+    description:
+      - Indicates whether template is to be assigned immediately or in the future.
+      - If I(run_later) is C(true), then I(staged_at_reboot) is ignored.
+    type: bool
+  cron:
+    description:
+      - Provide a cron expression based on Quartz cron format.
+      - If I(run_later) is C(true), then I(cron) must be specified.
+    type: str
+  staged_at_reboot:
+    description:
+      - Indicates whether template has to be executed on next reboot.
+    type: bool
   job_wait:
     description:
       - Provides the option to wait for job completion.
@@ -110,6 +124,7 @@ requirements:
 author:
     - "Sajna Shetty(@Sajna-Shetty)"
     - "Abhishek Sinha(@Abhishek-Dell)"
+    - "Shivam Sharma(@ShivamSh3)"
 notes:
     - This module supports C(check_mode).
     - Ensure that the devices have the required licenses to perform the baseline compliance operations.
@@ -214,6 +229,32 @@ EXAMPLES = r'''
     ca_path: "/path/to/ca_cert.pem"
     command: "remediate"
     names: "baseline1"
+
+- name: Remediate specific non-compliant devices to a configuration compliance baseline using device IDs at scheduled time
+  dellemc.openmanage.ome_configuration_compliance_baseline:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "remediate"
+    names: "baseline1"
+    device_ids:
+      - 1111
+    run_later: true
+    cron: "0 00 11 14 02 ? 2032" # Feb 14,2032 4:30:00 PM
+
+- name: Remediate specific non-compliant devices to a configuration compliance baseline using device service tags on next reboot
+  dellemc.openmanage.ome_configuration_compliance_baseline:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "remediate"
+    names: "baseline1"
+    device_service_tags:
+      - "SVCTAG1"
+      - "SVCTAG2"
+    staged_at_reboot: true
 '''
 
 RETURN = r'''
@@ -736,7 +777,7 @@ def validate_remediate_idempotency(module, rest_obj):
     return noncomplaint_devices, baseline_info
 
 
-def create_remediate_payload(noncomplaint_devices, baseline_info, rest_obj):
+def create_remediate_payload(module, noncomplaint_devices, baseline_info, rest_obj):
     ome_version = get_ome_version(rest_obj)
     payload = {
         "Id": baseline_info["Id"],
@@ -745,6 +786,22 @@ def create_remediate_payload(noncomplaint_devices, baseline_info, rest_obj):
             "RunLater": False
         }
     }
+    if module.params.get("run_later"):
+        payload = {
+            "Id": baseline_info["Id"],
+            "Schedule": {
+                "RunNow": False,
+                "RunLater": True,
+                "Cron": module.params.get("cron")
+            }
+        }
+    elif module.params.get("staged_at_reboot"):
+        payload = {
+            "Id": baseline_info["Id"],
+            "IsStaged": True,
+            "Schedule": {
+            }
+        }
     if LooseVersion(ome_version) >= "3.5":
         payload["DeviceIds"] = noncomplaint_devices
     else:
@@ -754,7 +811,7 @@ def create_remediate_payload(noncomplaint_devices, baseline_info, rest_obj):
 
 def remediate_baseline(module, rest_obj):
     noncomplaint_devices, baseline_info = validate_remediate_idempotency(module, rest_obj)
-    remediate_payload = create_remediate_payload(noncomplaint_devices, baseline_info, rest_obj)
+    remediate_payload = create_remediate_payload(module, noncomplaint_devices, baseline_info, rest_obj)
     resp = rest_obj.invoke_request('POST', REMEDIATE_BASELINE, data=remediate_payload)
     job_id = resp.json_data
     if module.params.get("job_wait"):
@@ -806,6 +863,9 @@ def main():
         "device_service_tags": {"required": False, "type": 'list', "elements": 'str'},
         "device_group_names": {"required": False, "type": 'list', "elements": 'str'},
         "description": {"type": 'str'},
+        "run_later": {"required": False, "type": 'bool'},
+        "cron": {"type": 'str'},
+        "staged_at_reboot": {"required": False, "type": 'bool'},
         "job_wait": {"required": False, "type": 'bool', "default": True},
         "job_wait_timeout": {"required": False, "type": 'int', "default": 10800},
         "new_name": {"type": 'str'},
@@ -820,6 +880,7 @@ def main():
              ['new_name', 'description', 'template_name', 'template_id', 'device_ids', 'device_service_tags',
               'device_group_names'], True],
         ],
+        required_together=[('run_later', 'cron')],
         mutually_exclusive=[
             ('device_ids', 'device_service_tags'),
             ('device_ids', 'device_group_names'),

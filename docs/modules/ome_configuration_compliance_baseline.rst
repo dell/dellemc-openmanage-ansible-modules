@@ -93,6 +93,22 @@ Parameters
     This option is applicable when \ :emphasis:`command`\  is \ :literal:`create`\ , or \ :literal:`modify`\ .
 
 
+  run_later (optional, bool, None)
+    Indicates whether template is to be assigned immediately or in the future.
+
+    If \ :emphasis:`run\_later`\  is \ :literal:`true`\ , then \ :emphasis:`staged\_at\_reboot`\  is ignored.
+
+
+  cron (optional, str, None)
+    Provide a cron expression based on Quartz cron format.
+
+    If \ :emphasis:`run\_later`\  is \ :literal:`true`\ , then \ :emphasis:`cron`\  must be specified.
+
+
+  staged_at_reboot (optional, bool, None)
+    Indicates whether template has to be executed on next reboot.
+
+
   job_wait (optional, bool, True)
     Provides the option to wait for job completion.
 
@@ -271,6 +287,32 @@ Examples
         command: "remediate"
         names: "baseline1"
 
+    - name: Remediate specific non-compliant devices to a configuration compliance baseline using device IDs at scheduled time
+      dellemc.openmanage.ome_configuration_compliance_baseline:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "remediate"
+        names: "baseline1"
+        device_ids:
+          - 1111
+        run_later: true
+        cron: "0 00 11 14 02 ? 2032" # Feb 14,2032 4:30:00 PM
+
+    - name: Remediate specific non-compliant devices to a configuration compliance baseline using device service tags on next reboot
+      dellemc.openmanage.ome_configuration_compliance_baseline:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "remediate"
+        names: "baseline1"
+        device_service_tags:
+          - "SVCTAG1"
+          - "SVCTAG2"
+        staged_at_reboot: true
+
 
 
 Return Values
@@ -311,4 +353,5 @@ Authors
 
 - Sajna Shetty(@Sajna-Shetty)
 - Abhishek Sinha(@Abhishek-Dell)
+- Shivam Sharma(@ShivamSh3)
 
