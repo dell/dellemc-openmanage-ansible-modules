@@ -382,9 +382,9 @@ class FactoryReset():
             return True
 
     def check_lcstatus(self, post_op=True):
-        if self.reset_to_default in PASSWORD_CHANGE_OPTIONS and post_op and self.status_code_after_wait == 401:
-            if not self.update_credentials_for_post_lc_statuc_check():
-                return
+        if self.reset_to_default in PASSWORD_CHANGE_OPTIONS and post_op and self.status_code_after_wait == 401 and not self.update_credentials_for_post_lc_statuc_check():
+            return
+
         lc_status_dict = {}
         lc_status_dict['LCStatus'] = ""
         retry_count = 1
