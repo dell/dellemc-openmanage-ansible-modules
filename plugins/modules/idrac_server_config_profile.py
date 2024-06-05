@@ -562,9 +562,11 @@ error_info:
 '''
 
 import os
+import re
 import json
 from datetime import datetime
 from os.path import exists
+import xml.etree.ElementTree as ET
 from ansible.module_utils.compat.version import LooseVersion
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import idrac_redfish_job_tracking, \
@@ -581,6 +583,7 @@ ERR_STATUS_CODE = [400, 404]
 NO_CHANGES_FOUND = "No changes found to be applied."
 INVALID_FILE = "Invalid file path provided."
 INVALID_FILE_FORMAT = "Invalid file format provided. Only '.xml' format is supported."
+INVALID_XML_CONTENT = "Invalid XML content. Please provide valid XML custom defaults."
 CUSTOM_ERROR = "{command} is not supported on this firmware version of iDRAC. \
 Enter the valid values and retry the operation."
 JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{job_id}"
@@ -843,6 +846,72 @@ def get_buffer_text(module, share):
     return buffer_text
 
 
+def get_xml_content(xml_content):
+    idrac_content = None
+    root = ET.fromstring(xml_content)
+    # components = root.findall('.//Component')
+    # for component in components:
+    #     if component.get('FQDD') == 'iDRAC.Embedded.1':
+    #         idrac_content = ET.tostring(component).decode('utf-8')
+    component = next((c for c in root.iter('Component') if c.get('FQDD') == 'iDRAC.Embedded.1'), None)
+    if component:
+        idrac_content = ET.tostring(component).decode('utf-8')
+    return idrac_content
+
+
+def compare_custom_default_configs(module, idrac):
+    diff = True
+    scp_file = module.params.get("scp_file")
+    buffer_text = module.params.get("import_buffer")
+    idrac_cds = idrac_custom_option(idrac)
+    if idrac_cds is None:
+        return diff
+    if scp_file:
+        share, _scp_file_name_format = get_scp_share_details(module)
+        share["file_name"] = module.params.get("scp_file")
+        buffer_text = get_buffer_text(module, share)
+    buffer_text = re.sub(r'\n|\r', '', buffer_text)
+    buffer_text = re.sub(r'>\s+<', '><', buffer_text)
+    if isinstance(idrac_cds, bytes):
+        idrac_cds = idrac_cds.decode('utf-8')
+    idrac_cds = re.sub(r'\n|\r', '', idrac_cds)
+    idrac_cds = re.sub(r'>\s+<', '><', idrac_cds)
+    imported_cds = get_xml_content(buffer_text)
+    idrac_cds_data = get_xml_content(idrac_cds)
+    if imported_cds == idrac_cds_data:
+        diff = False
+    return diff
+
+
+def is_valid_xml(content):
+    pattern = r'^<\?xml.*?\?>.*?<\S[^>]*>.*?</\S.*>$'
+    return bool(re.match(pattern, content, re.DOTALL | re.IGNORECASE))
+
+
+def idrac_custom_option(idrac):
+    url = None
+    result = None
+    idrac_cds = None
+    resp = get_dynamic_uri(idrac, REDFISH_SCP_BASE_URI, "Oem")
+    if resp:
+        url = resp.get("Dell", {}).get('CustomDefaultsDownloadURI', {})
+    try:
+        if url:
+            result = idrac.invoke_request(url, "GET")
+            idrac_cds = result.body
+        return idrac_cds
+    except HTTPError as err:
+        if err.code in ERR_STATUS_CODE:
+            return idrac_cds
+
+
+def check_mode_custom_defaults(module, idrac, content_diff):
+    if module.check_mode:
+        if content_diff:
+            module.exit_json(msg=CHANGES_FOUND, changed=True)
+        return module.exit_json(msg=NO_CHANGES_FOUND, changed=False)
+
+
 def import_scp_redfish(module, idrac, http_share):
     import_buffer = module.params.get("import_buffer")
     command = module.params["command"]
@@ -906,9 +975,9 @@ def validate_customdefault_input(module, command):
         if command == "import_custom_defaults":
             if module.params.get("import_buffer") is not None:
                 if module.params.get("scp_file") is not None:
-                    module.fail_json(msg=MUTUALLY_EXCLUSIVE.format("scp_file"))
+                    module.exit_json(msg=MUTUALLY_EXCLUSIVE.format("scp_file"), failed=True)
                 if module.params.get("share_name") is not None:
-                    module.fail_json(msg=MUTUALLY_EXCLUSIVE.format("share_name"))
+                    module.exit_json(msg=MUTUALLY_EXCLUSIVE.format("share_name"), failed=True)
             if not str(scp_file.lower()).endswith(('.xml')):
                 module.exit_json(msg=INVALID_FILE_FORMAT, failed=True)
         else:
@@ -939,25 +1008,15 @@ def validate_scp_components(module, idrac):
 def is_check_idrac_latest(firmware_version):
     if LooseVersion(firmware_version) >= MINIMUM_SUPPORTED_FIRMWARE_VERSION:
         return True
-# def validate_custom_option(module, idrac):
-#         url = None
-#         result = None
-#         resp = get_dynamic_uri(idrac, REDFISH_SCP_BASE_URI, "Oem")
-#         if resp:
-#             url = resp.get("Dell", {}).get('CustomDefaultsDownloadURI', {})
-#         try:
-#             if url:
-#                 result  = idrac.invoke_request(url, "GET")
-#             return result
-#         except HTTPError as err:
-#             if err.code in ERR_STATUS_CODE:
-#                 module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default=reset_to_default, supported_values=allowed_choices), skipped=True)
 
 
 def import_custom_defaults(module, idrac):
     import_buffer = module.params.get("import_buffer")
     command = module.params["command"]
-    # perform_check_mode(module, idrac, http_share)
+    cds_diff = compare_custom_default_configs(module, idrac)
+    check_mode_custom_defaults(module, idrac, cds_diff)
+    if not cds_diff:
+        module.exit_json(NO_CHANGES_FOUND, changed=False)
     share = {}
     if not import_buffer:
         share, _scp_file_name_format = get_scp_share_details(module)
@@ -965,6 +1024,8 @@ def import_custom_defaults(module, idrac):
         buffer_text = get_buffer_text(module, share)
     else:
         buffer_text = import_buffer
+    if not is_valid_xml(buffer_text):
+        module.exit_json(msg=INVALID_XML_CONTENT, failed=True)
     payload = {"CustomDefaults": buffer_text}
     job_wait = module.params.get('job_wait')
     url = None
@@ -1070,6 +1131,7 @@ def main():
             ["command", ["export", "export_custom_defaults"], ["share_name"]],
             ["proxy_support", True, ["proxy_server"]]
         ],
+        # mutually_exclusive=[("share_name", "import_buffer"),("scp_file", "import_buffer")],
         supports_check_mode=True)
 
     validate_input(module, module.params.get("scp_components"))
