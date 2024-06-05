@@ -368,7 +368,7 @@ class TestFactoryReset(FakeAnsibleModule):
         # Scneario: When default_username and default_password is given
         idrac_default_args.update({"reset_to_default": 'All',
                                    "default_username": "admin",
-                                   "default_password": "12345"})
+                                   "default_password": "XXXXX"})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         reset_obj = self.module.FactoryReset(idrac_connection_reset_mock, f_module, allowed_choices=allowed_values)
         reset_obj.status_code_after_wait = 401

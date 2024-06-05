@@ -373,12 +373,17 @@ class FactoryReset():
         if LooseVersion(self.idrac_firmware_version) >= '3.0':
             return True
 
+    def update_credentials_for_post_lc_statuc_check(self):
+        if (default_username := self.module.params.get("default_username")) and (
+            default_password := self.module.params.get("default_password")
+        ):
+            self.idrac.username = default_username
+            self.idrac.password = default_password
+            return True
+
     def check_lcstatus(self, post_op=True):
         if self.reset_to_default in PASSWORD_CHANGE_OPTIONS and post_op and self.status_code_after_wait == 401:
-            if (default_username := self.module.params.get('default_username')) and (default_password := self.module.params.get('default_password')):
-                self.idrac.username = default_username
-                self.idrac.password = default_password
-            else:
+            if not self.update_credentials_for_post_lc_statuc_check():
                 return
         lc_status_dict = {}
         lc_status_dict['LCStatus'] = ""
