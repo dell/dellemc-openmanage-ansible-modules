@@ -171,6 +171,17 @@ Examples
        reset_to_default: "Default"
        wait_for_idrac: false
 
+    - name: Reset the iDRAC to All and wait for lifecycle controller status to be ready.
+      dellemc.openmanage.idrac_reset:
+       idrac_ip: "192.168.0.1"
+       idrac_user: "user_name"
+       idrac_password: "user_password"
+       ca_path: "/path/to/ca_cert.pem"
+       reset_to_default: "All"
+       wait_for_idrac: true
+       default_username: "user_name"
+       default_password: "user_password"
+
     - name: Force reset the iDRAC to default.
       dellemc.openmanage.idrac_reset:
        idrac_ip: "192.168.0.1"
