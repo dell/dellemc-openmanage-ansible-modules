@@ -241,7 +241,7 @@ EXAMPLES = r'''
     device_ids:
       - 1111
     run_later: true
-    cron: "0 00 11 14 02 ? 2032" # Feb 14,2032 4:30:00 PM
+    cron: "0 00 11 14 02 ? 2032"  # Feb 14,2032 4:30:00 PM
 
 - name: Remediate specific non-compliant devices to a configuration compliance baseline using device service tags on next reboot
   dellemc.openmanage.ome_configuration_compliance_baseline:

@@ -122,7 +122,8 @@
         names: "baseline1"
       delegate_to: localhost
 
-    - name: Remediate specific non-compliant devices to a configuration compliance baseline using device IDs at scheduled time
+    - name: Remediate specific non-compliant devices to a configuration
+       compliance baseline using device IDs at scheduled time
       dellemc.openmanage.ome_configuration_compliance_baseline:
         hostname: "192.168.0.1"
         username: "username"
@@ -133,10 +134,11 @@
         device_ids:
           - 1111
         run_later: true
-        cron: "0 00 11 14 02 ? 2032" # Feb 14,2032 4:30:00 PM
+        cron: "0 00 11 14 02 ? 2032"  # Feb 14,2032 4:30:00 PM
       delegate_to: localhost
 
-    - name: Remediate specific non-compliant devices to a configuration compliance baseline using device service tags on next reboot
+    - name: Remediate specific non-compliant devices to a configuration
+       compliance baseline using device service tags on next reboot
       dellemc.openmanage.ome_configuration_compliance_baseline:
         hostname: "192.168.0.1"
         username: "username"
