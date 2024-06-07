@@ -98,6 +98,8 @@ Parameters
 
     If \ :emphasis:`run\_later`\  is \ :literal:`true`\ , then \ :emphasis:`staged\_at\_reboot`\  is ignored.
 
+    If \ :emphasis:`run\_later`\  is \ :literal:`true`\ , then \ :emphasis:`job\_wait`\  is not applicable.
+
 
   cron (optional, str, None)
     Provide a cron expression based on Quartz cron format.
@@ -298,7 +300,7 @@ Examples
         device_ids:
           - 1111
         run_later: true
-        cron: "0 00 11 14 02 ? 2032" # Feb 14,2032 4:30:00 PM
+        cron: "0 00 11 14 02 ? 2032"  # Feb 14,2032 4:30:00 PM
 
     - name: Remediate specific non-compliant devices to a configuration compliance baseline using device service tags on next reboot
       dellemc.openmanage.ome_configuration_compliance_baseline:

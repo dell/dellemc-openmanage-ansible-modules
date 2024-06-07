@@ -97,6 +97,7 @@ options:
     description:
       - Indicates whether template is to be assigned immediately or in the future.
       - If I(run_later) is C(true), then I(staged_at_reboot) is ignored.
+      - If I(run_later) is C(true), then I(job_wait) is not applicable.
     type: bool
   cron:
     description:
@@ -331,6 +332,7 @@ error_info:
 
 import json
 import time
+import re
 from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -365,8 +367,14 @@ INVALID_COMPLIANCE_IDENTIFIER = "Unable to complete the operation because the en
                                 " is not associated or complaint with the baseline '{2}'."
 INVALID_TIME = "job_wait_timeout {0} is not valid."
 REMEDIATE_MSG = "Successfully completed the remediate operation."
+REMEDIATE_SCHEDULE_MSG = "Successfully scheduled the remediate operation."
+REMEDIATE_SCHEDULE_FAIL_MSG = "Failed to schedule the remediate operation."
+REMEDIATE_STAGED_AT_REBOOT_MSG = "Successfully staged the remediate operation at next reboot."
 JOB_FAILURE_PROGRESS_MSG = "The initiated task for the configuration compliance baseline has failed."
 NO_CAPABLE_DEVICES = "Target {0} contains devices which cannot be used for a baseline compliance operation."
+CRON_REGEX = r'(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5,7})'
+INVALID_CRON_TIME_MSG = "Invalid cron time format."
+JOB_URI = "JobService/Jobs({job_id})"
 
 
 def validate_identifiers(available_values, requested_values, identifier_types, module):
@@ -787,6 +795,8 @@ def create_remediate_payload(module, noncomplaint_devices, baseline_info, rest_o
         }
     }
     if module.params.get("run_later"):
+        if validate_cron(module.params.get("cron")) is False:
+            module.exit_json(msg=INVALID_CRON_TIME_MSG, failed=True)
         payload = {
             "Id": baseline_info["Id"],
             "Schedule": {
@@ -809,16 +819,37 @@ def create_remediate_payload(module, noncomplaint_devices, baseline_info, rest_o
     return payload
 
 
+def validate_cron(cron_string):
+    cron_pattern = CRON_REGEX
+    if re.match(cron_pattern, cron_string) is not None:
+        return True
+    else:
+        return False
+
+
 def remediate_baseline(module, rest_obj):
     noncomplaint_devices, baseline_info = validate_remediate_idempotency(module, rest_obj)
     remediate_payload = create_remediate_payload(module, noncomplaint_devices, baseline_info, rest_obj)
     resp = rest_obj.invoke_request('POST', REMEDIATE_BASELINE, data=remediate_payload)
     job_id = resp.json_data
+    if module.params.get("run_later"):
+        time.sleep(5)
+        job_url = JOB_URI.format(job_id=job_id)
+        job_resp = rest_obj.invoke_request('GET', job_url)
+        job_dict = job_resp.json_data
+        job_status = job_dict['JobStatus']['Name']
+        if job_status == "New":
+            module.exit_json(msg=REMEDIATE_SCHEDULE_FAIL_MSG, job_id=job_id, failed=True)
+        if job_status == "Scheduled":
+            module.exit_json(msg=REMEDIATE_SCHEDULE_MSG, job_id=job_id, changed=True)
     if module.params.get("job_wait"):
         job_failed, message = rest_obj.job_tracking(job_id, job_wait_sec=module.params["job_wait_timeout"])
         if job_failed is True:
-            module.fail_json(msg=message, job_id=job_id, changed=False)
+            detailed_output = rest_obj.get_job_execution_details(job_id)
+            module.exit_json(msg=message, job_id=job_id, job_details=detailed_output, failed=True)
         else:
+            if "successfully" in message and module.params.get("staged_at_reboot"):
+                module.exit_json(msg=REMEDIATE_STAGED_AT_REBOOT_MSG, job_id=job_id, changed=True)
             if "successfully" in message:
                 module.exit_json(msg=REMEDIATE_MSG, job_id=job_id, changed=True)
             else:
