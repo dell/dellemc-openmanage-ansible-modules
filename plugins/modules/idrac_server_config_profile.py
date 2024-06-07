@@ -954,10 +954,9 @@ def validate_share_name(module):
     share_name = module.params.get("share_name")
     command = module.params.get("command")
     import_buffer = module.params.get("import_buffer")
-    if share_name is None:
-        if import_buffer is None:
-            module.exit_json(msg=SHARE_NAME_REQUIRED, skipped=True)
-    else:
+    if share_name is None and not import_buffer:
+        module.exit_json(msg=SHARE_NAME_REQUIRED, skipped=True)
+    elif share_name is not None:
         if ":/" in share_name or "\\" in share_name:
             module.exit_json(msg=INVALID_SHARE_NAME.format(share_name=share_name, command=command), skipped=True)
 
@@ -980,13 +979,12 @@ def validate_customdefault_input(module, command):
     if command == "export_custom_defaults" and export_format:
         if export_format.lower() != 'xml':
             module.exit_json(msg=INVALID_FILE_FORMAT.format(export_format=export_format), failed=True)
-    if scp_file:
-        if command == "import_custom_defaults":
-            if module.params.get("import_buffer") is not None:
-                if module.params.get("scp_file") is not None:
-                    module.exit_json(msg=MUTUALLY_EXCLUSIVE.format("scp_file"), failed=True)
-                if module.params.get("share_name") is not None:
-                    module.exit_json(msg=MUTUALLY_EXCLUSIVE.format("share_name"), failed=True)
+    if command == "import_custom_defaults":
+        if module.params.get("import_buffer") is not None:
+            if module.params.get("scp_file") is not None:
+                module.exit_json(msg=MUTUALLY_EXCLUSIVE.format("scp_file"), failed=True)
+            if module.params.get("share_name") is not None:
+                module.exit_json(msg=MUTUALLY_EXCLUSIVE.format("share_name"), failed=True)
 
 
 def validate_scp_components(module, idrac):
@@ -1012,6 +1010,7 @@ def validate_scp_components(module, idrac):
 def is_check_idrac_latest(firmware_version):
     if LooseVersion(firmware_version) >= MINIMUM_SUPPORTED_FIRMWARE_VERSION:
         return True
+    return False
 
 
 def import_custom_defaults(module, idrac):
@@ -1184,7 +1183,7 @@ def main():
             msg = "Successfully triggered the job to {0} the Server Configuration Profile."
             if command not in ["import", "export", "preview"]:
                 command = command.split("_")[0]
-                msg = "Successfully triggered the job to {0} the custom defaults Server Configuration Profile ."
+                msg = "Successfully triggered the job to {0} the custom defaults Server Configuration Profile."
             module.exit_json(msg=msg.format(command), scp_status=scp_status)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)

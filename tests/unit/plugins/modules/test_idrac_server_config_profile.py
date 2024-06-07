@@ -16,13 +16,33 @@ import mock
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_server_config_profile
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from mock import MagicMock
+
+
+MODULE_UTILS_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.utils.'
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+MODULE_PATH_COMP = 'ansible_collections.dellemc.openmanage.plugins.modules.idrac_server_config_profile.'
 SUCCESS_MSG = 'Successfully {0}ed the Server Configuration Profile'
+SUCCESS_MSG_CD = 'Successfully {0}ed the custom defaults Server Configuration Profile.'
+IMPORT_TRIGGERED_SUCCESS_MSG = "Successfully triggered the job to {0} the custom defaults Server Configuration Profile."
 JOB_SUCCESS_MSG = 'Successfully triggered the job to {0} the Server Configuration Profile'
 PREVIEW_SUCCESS_MSG = 'Successfully previewed the Server Configuration Profile'
 CHANGES_FOUND = "Changes found to be applied."
 NO_CHANGES_FOUND = "No changes found to be applied."
+GET_FIRMWARE_VERSION = "get_idrac_firmware_version"
+CHECK_IDRAC_VERSION = "is_check_idrac_latest"
+EXECUTE_KEY_IMPORT = "ImportCustomDefaultCommand.execute"
 REDFISH_JOB_TRACKING = "idrac_server_config_profile.idrac_redfish_job_tracking"
+INVALID_SHARE_NAME = "Unable to perform the {command} operation because an invalid Share name is entered. \
+Only 'local' share name is supported. Enter the valid Share name and retry the operation."
+ERR_STATUS_CODE = [400, 404]
+CUSTOM_DEFAULTS_NOT_FOUND = "Custom defaults is not available on the iDRAC."
+SHARE_NAME_REQUIRED = "Share name is required. Enter the valid Share name and retry the operation."
+NO_CHANGES_FOUND = "No changes found to be applied."
+INVALID_FILE = "Invalid file path provided."
+INVALID_FILE_FORMAT = "An invalid export format is selected. File format '.xml' is supported. Select a valid file format and retry the operation."
+INVALID_XML_CONTENT = "An invalid XML content is provided. Provide custom default content in a valid XML format."
+CUSTOM_ERROR = "{command} is not supported on this firmware version of iDRAC. \
+Enter the valid values and retry the operation."
 
 
 class TestServerConfigProfile(FakeAnsibleModule):
@@ -207,3 +227,279 @@ class TestServerConfigProfile(FakeAnsibleModule):
         with pytest.raises(Exception) as ex:
             self._run_module(idrac_default_args)
         assert params['message'] in ex.value.args[0]['msg']
+
+
+class TestImportCustomDefaultCommand(FakeAnsibleModule):
+    module = idrac_server_config_profile
+    validate_allowed_values = {
+        "Oem": {
+            "Dell": {
+                "CustomDefaultsDownloadURI": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/CustomDefaultsDownloadURI"
+            }
+        }
+    }
+
+    share_details = {
+        "share_type": "LOCAL",
+        "share_name": ""
+    }
+    custom_default_content = "<SystemConfiguration Model=\"\" ServiceTag=\"\">\n<Component FQDD=\"iDRAC.Embedded.1\">\n \
+    <Attribute Name=\"IPMILan.1#Enable\">Disabled</Attribute>\n </Component>\n\n</SystemConfiguration>"
+
+    custom_default_content_enabled = "<SystemConfiguration Model=\"\" ServiceTag=\"\">\n<Component FQDD=\"iDRAC.Embedded.1\">\n \
+    <Attribute Name=\"IPMILan.1#Enable\">Enabled</Attribute>\n </Component>\n\n</SystemConfiguration>"
+
+    res_msg = {
+        "Data": {
+            "StatusCode": 202,
+            "jobid": "JID_176997459424",
+            "next_uri": "base_uri/Jobs/JID_176997459424"
+        },
+        "Job": {
+            "JobId": "JID_176997459424",
+            "ResourceURI": "base_uri/JID_176997459424"
+        },
+        "Return": "JobCreated",
+        "Status": "Success",
+        "Message": "none",
+        "StatusCode": 202,
+        "file": "/share/scp_file3.xml",
+        "retval": True
+    }
+    res_with_job_wait = {
+        "ActualRunningStartTime": "star_time",
+        "ActualRunningStopTime": "end_time",
+        "CompletionTime": "completion_time",
+        "Id": "JID_177002621612",
+        "JobState": "Completed",
+        "JobType": "UploadCustomDefaults",
+        "Message": "The Custom Defaults file is successfully uploaded to iDRAC.",
+        "MessageArgs": [],
+        "MessageId": "SYS332",
+        "PercentComplete": 100,
+        "TargetSettingsURI": "NULL",
+        "file": "/root/collections/xyz.xml",
+        "retval": True}
+
+    @pytest.fixture
+    def idrac_server_config_profile_mock(self):
+        idrac_obj = MagicMock()
+        return idrac_obj
+
+    @pytest.fixture
+    def idrac_connection_server_config_profile_mock(self, mocker, idrac_server_config_profile_mock):
+        idrac_conn_mock = mocker.patch(MODULE_PATH_COMP + 'iDRACRedfishAPI',
+                                       return_value=idrac_server_config_profile_mock)
+        idrac_conn_mock.return_value.__enter__.return_value = idrac_server_config_profile_mock
+        return idrac_conn_mock
+
+    def test_execute_one(self, idrac_default_args, idrac_connection_server_config_profile_mock, mocker):
+        # Scenario - When 'Custom defaults' is not supported and iDRAC8
+        idrac_default_args.update({"command": "import_custom_defaults"})
+        mocker.patch(MODULE_UTILS_PATH + GET_FIRMWARE_VERSION, return_value="2.81.81")
+        mocker.patch(MODULE_PATH_COMP + CHECK_IDRAC_VERSION, return_value=False)
+        idrac_default_args.update({})
+        f_module = self.get_module_mock(params=idrac_default_args)
+        scp_obj = self.module.ImportCustomDefaultCommand(idrac_connection_server_config_profile_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            scp_obj.execute()
+        assert exc.value.args[0] == "import_custom_defaults is not supported on this firmware version of iDRAC. Enter the valid values and retry the operation."
+
+        # Scenario - when both share_name and import_buffer are None and command is import_custom_defaults
+        idrac_default_args.update({"command": "import_custom_defaults"})
+        mocker.patch(MODULE_UTILS_PATH + GET_FIRMWARE_VERSION, return_value="7.00.00")
+        mocker.patch(MODULE_PATH_COMP + CHECK_IDRAC_VERSION, return_value=True)
+        f_module = self.get_module_mock(params=idrac_default_args)
+        scp_obj = self.module.ImportCustomDefaultCommand(idrac_connection_server_config_profile_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            scp_obj.execute()
+        assert exc.value.args[0] == "Share name is required. Enter the valid Share name and retry the operation."
+
+        # Scenario - when both import_buffer and share_name are passed
+        idrac_default_args.update({})
+        idrac_default_args.update({"share_name": "root/cd"})
+        idrac_default_args.update({"import_buffer": self.custom_default_content})
+        idrac_default_args.update({"command": "import_custom_defaults"})
+        mocker.patch(MODULE_UTILS_PATH + GET_FIRMWARE_VERSION, return_value="7.00.00")
+        mocker.patch(MODULE_PATH_COMP + CHECK_IDRAC_VERSION, return_value=True)
+        mocker.patch(MODULE_PATH_COMP + "validate_share_name", return_value=None)
+        f_module = self.get_module_mock(params=idrac_default_args)
+        scp_obj = self.module.ImportCustomDefaultCommand(idrac_connection_server_config_profile_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            scp_obj.execute()
+        assert exc.value.args[0] == "import_buffer is mutually exclusive with share_name."
+
+        # Scenario - when both share_name is not 'local' and command is import_custom_defaults
+        idrac_default_args.clear()
+        idrac_default_args.update({})
+        idrac_default_args.update({"scp_file": "xyz.xml"})
+        idrac_default_args.update({"job_wait": False})
+        idrac_default_args.update({"share_name": "http://abc"})
+        idrac_default_args.update({"command": "import_custom_defaults"})
+        mocker.patch(MODULE_UTILS_PATH + GET_FIRMWARE_VERSION, return_value="7.00.00")
+        mocker.patch(MODULE_PATH_COMP + CHECK_IDRAC_VERSION, return_value=True)
+        f_module = self.get_module_mock(params=idrac_default_args)
+        scp_obj = self.module.ImportCustomDefaultCommand(idrac_connection_server_config_profile_mock, f_module)
+        # with pytest.raises(Exception) as exc:
+        #     scp_obj.execute()
+        # assert exc.value.args[0] == INVALID_SHARE_NAME.format(command="import_custom_defaults")
+
+        # Scenario - when both import_buffer and scp_file are passed
+        idrac_default_args.clear()
+        idrac_default_args.update({})
+        idrac_default_args.update({"scp_file": "xyz.xml"})
+        idrac_default_args.update({"share_name": "root/cd"})
+        idrac_default_args.update({"import_buffer": self.custom_default_content})
+        idrac_default_args.update({"command": "import_custom_defaults"})
+        mocker.patch(MODULE_UTILS_PATH + GET_FIRMWARE_VERSION, return_value="7.00.00")
+        mocker.patch(MODULE_PATH_COMP + CHECK_IDRAC_VERSION, return_value=True)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
+        scp_obj = self.module.ImportCustomDefaultCommand(idrac_connection_server_config_profile_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            scp_obj.execute()
+        assert exc.value.args[0] == "import_buffer is mutually exclusive with scp_file."
+
+        # Scenario - when command is import_custom_defaults and check mode with same custom defaults
+        idrac_default_args.clear()
+        idrac_default_args.update({})
+        idrac_default_args.update({"share_name": "share/"})
+        idrac_default_args.update({"job_wait": False})
+        idrac_default_args.update({"scp_file": "scp_file.xml"})
+        idrac_default_args.update({"command": "import_custom_defaults"})
+        mocker.patch(MODULE_UTILS_PATH + GET_FIRMWARE_VERSION, return_value="7.00.00")
+        mocker.patch(MODULE_PATH_COMP + CHECK_IDRAC_VERSION, return_value=True)
+        mocker.patch(MODULE_PATH_COMP + "validate_customdefault_input", return_value=None)
+        mocker.patch(MODULE_PATH_COMP + "compare_custom_default_configs", return_value=False)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
+        scp_obj = self.module.ImportCustomDefaultCommand(idrac_connection_server_config_profile_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            scp_obj.execute()
+        assert exc.value.args[0] == NO_CHANGES_FOUND
+
+        # Scenario - when command is import_custom_defaults and check mode with different custom defaults
+        idrac_default_args.clear()
+        idrac_default_args.update({})
+        idrac_default_args.update({"share_name": "share/"})
+        idrac_default_args.update({"job_wait": False})
+        idrac_default_args.update({"scp_file": "scp_file.xml"})
+        idrac_default_args.update({"command": "import_custom_defaults"})
+        mocker.patch(MODULE_UTILS_PATH + GET_FIRMWARE_VERSION, return_value="7.00.00")
+        mocker.patch(MODULE_PATH_COMP + CHECK_IDRAC_VERSION, return_value=True)
+        mocker.patch(MODULE_PATH_COMP + "validate_customdefault_input", return_value=None)
+        mocker.patch(MODULE_PATH_COMP + "compare_custom_default_configs", return_value=True)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
+        scp_obj = self.module.ImportCustomDefaultCommand(idrac_connection_server_config_profile_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            scp_obj.execute()
+        assert exc.value.args[0] == CHANGES_FOUND
+
+        # Scenario - [Idempotency] vwhen command is import_custom_defaults and normal mode with same custom defaults
+        idrac_default_args.clear()
+        idrac_default_args.update({})
+        idrac_default_args.update({"share_name": "share/"})
+        idrac_default_args.update({"job_wait": False})
+        idrac_default_args.update({"scp_file": "scp_file.xml"})
+        idrac_default_args.update({"command": "import_custom_defaults"})
+        mocker.patch(MODULE_UTILS_PATH + GET_FIRMWARE_VERSION, return_value="7.00.00")
+        mocker.patch(MODULE_PATH_COMP + CHECK_IDRAC_VERSION, return_value=True)
+        mocker.patch(MODULE_PATH_COMP + "validate_customdefault_input", return_value=None)
+        mocker.patch(MODULE_PATH_COMP + "compare_custom_default_configs", return_value=False)
+        f_module = self.get_module_mock(params=idrac_default_args)
+        scp_obj = self.module.ImportCustomDefaultCommand(idrac_connection_server_config_profile_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            scp_obj.execute()
+        assert exc.value.args[0] == NO_CHANGES_FOUND
+
+    def test_execute_two(self, idrac_default_args, idrac_connection_server_config_profile_mock, mocker):
+        # Scenario - when scp_file content is in invalid XML format
+        obj = MagicMock()
+        obj.body = self.custom_default_content
+        idrac_default_args.clear()
+        idrac_default_args.update({})
+        idrac_default_args.update({"job_wait": False})
+        idrac_default_args.update({"import_buffer": "{'key':'value'}"})
+        idrac_default_args.update({"command": "import_custom_defaults"})
+        mocker.patch(MODULE_UTILS_PATH + GET_FIRMWARE_VERSION, return_value="7.00.00")
+        mocker.patch(MODULE_PATH_COMP + CHECK_IDRAC_VERSION, return_value=True)
+        mocker.patch(MODULE_PATH_COMP + "validate_customdefault_input", return_value=None)
+        mocker.patch(MODULE_PATH_COMP + "idrac_custom_option", return_value=obj)
+        mocker.patch(MODULE_PATH_COMP + "get_buffer_text", return_value={'key': 'value'})
+        f_module = self.get_module_mock(params=idrac_default_args)
+        scp_obj = self.module.ImportCustomDefaultCommand(idrac_connection_server_config_profile_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            scp_obj.execute()
+        assert exc.value.args[0] == INVALID_XML_CONTENT
+
+    def test_execute_three(self, idrac_default_args, idrac_connection_server_config_profile_mock, mocker):
+        # Scenario - when scp_file and share_name are passed for import_custom_defaults with job_wait false
+        idrac_default_args.clear()
+        idrac_default_args.update({})
+        obj1 = MagicMock()
+        obj1.body = self.custom_default_content_enabled
+        idrac_default_args.update({"job_wait": False})
+        idrac_default_args.update({"import_buffer": self.custom_default_content})
+        idrac_default_args.update({"command": "import_custom_defaults"})
+        mocker.patch(MODULE_UTILS_PATH + GET_FIRMWARE_VERSION, return_value="7.00.00")
+        mocker.patch(MODULE_PATH_COMP + CHECK_IDRAC_VERSION, return_value=True)
+        mocker.patch(MODULE_PATH_COMP + "validate_share_name", return_value=None)
+        mocker.patch(MODULE_PATH_COMP + "exit_on_failure", return_value=None)
+        mocker.patch(MODULE_PATH_COMP + "wait_for_job_tracking_redfish", return_value=self.res_msg)
+        mocker.patch(MODULE_PATH_COMP + "response_format_change", return_value=self.res_msg)
+        mocker.patch(MODULE_PATH_COMP + "get_buffer_text", return_value=self.custom_default_content)
+        mocker.patch(MODULE_PATH_COMP + "get_scp_share_details", return_value=({}, "100.XX.XX.XX_202466_82617_scp.xml"))
+        mocker.patch(MODULE_UTILS_PATH + "get_dynamic_uri", return_value=self.validate_allowed_values)
+        mocker.patch(MODULE_PATH_COMP + "iDRACRedfishAPI.invoke_request", return_value=obj1)
+        mocker.patch(MODULE_PATH_COMP + "exists", return_value=True)
+        mocker.patch("builtins.open", mocker.mock_open(read_data=self.custom_default_content))
+        f_module = self.get_module_mock(params=idrac_default_args)
+        scp_obj = self.module.ImportCustomDefaultCommand(idrac_connection_server_config_profile_mock, f_module)
+        msg_resp, resp = scp_obj.execute()
+        assert msg_resp == self.res_msg
+
+        # Scenario - when scp_file and share_name are passed for import_custom_defaults with job_wait true
+        obj = MagicMock()
+        obj.body = self.custom_default_content_enabled
+        self.share_details["share_name"] = "share/"
+        idrac_default_args.clear()
+        idrac_default_args.update({})
+        idrac_default_args.update({"share_name": "share/"})
+        idrac_default_args.update({"job_wait": True})
+        idrac_default_args.update({"scp_file": "scp_file.xml"})
+        idrac_default_args.update({"command": "import_custom_defaults"})
+        mocker.patch(MODULE_UTILS_PATH + GET_FIRMWARE_VERSION, return_value="7.00.00")
+        mocker.patch(MODULE_PATH_COMP + CHECK_IDRAC_VERSION, return_value=True)
+        mocker.patch(MODULE_PATH_COMP + "validate_share_name", return_value=None)
+        mocker.patch(MODULE_PATH_COMP + "exit_on_failure", return_value=None)
+        mocker.patch(MODULE_PATH_COMP + "wait_for_job_tracking_redfish", return_value=self.res_with_job_wait)
+        mocker.patch(MODULE_PATH_COMP + "get_scp_share_details", return_value=(self.share_details, "scp_file.xml"))
+        mocker.patch(MODULE_PATH_COMP + "response_format_change", return_value=self.res_with_job_wait)
+        mocker.patch(MODULE_PATH_COMP + "get_buffer_text", return_value=self.custom_default_content)
+        mocker.patch(MODULE_UTILS_PATH + "get_dynamic_uri", return_value=self.validate_allowed_values)
+        mocker.patch(MODULE_PATH_COMP + "iDRACRedfishAPI.invoke_request", return_value=obj)
+        mocker.patch(MODULE_PATH_COMP + "exists", return_value=True)
+        mocker.patch("builtins.open", mocker.mock_open(read_data=self.custom_default_content))
+        f_module = self.get_module_mock(params=idrac_default_args)
+        scp_obj = self.module.ImportCustomDefaultCommand(idrac_connection_server_config_profile_mock, f_module)
+        msg_resp, resp = scp_obj.execute()
+        assert msg_resp == self.res_with_job_wait
+        assert msg_resp['Message'] == "The Custom Defaults file is successfully uploaded to iDRAC."
+
+    def test_idrac_reset_main_positive_case(self, idrac_default_args,
+                                            idrac_connection_server_config_profile_mock, mocker):
+        # Scenario - When command 'import_custom_defaults' and job_wait is true
+        idrac_default_args.update({"command": "import_custom_defaults"})
+        idrac_default_args.update({"job_wait": True})
+        msg_resp = {'msg': SUCCESS_MSG_CD.format("import"), 'scp_status': self.res_with_job_wait, 'changed': True}
+        mocker.patch(MODULE_PATH_COMP + GET_FIRMWARE_VERSION, return_value="7.10.05")
+        mocker.patch(MODULE_PATH_COMP + EXECUTE_KEY_IMPORT, return_value=(self.res_with_job_wait, True))
+        data = self._run_module(idrac_default_args)
+        assert data['msg'] == SUCCESS_MSG_CD.format("import")
+        assert data['scp_status'] == self.res_with_job_wait
+
+        # Scenario - When command 'import_custom_defaults' and job_wait is false
+        idrac_default_args.update({"job_wait": False})
+        msg_resp = {'msg': IMPORT_TRIGGERED_SUCCESS_MSG.format("import"), 'scp_status': self.res_msg, 'changed': True}
+        mocker.patch(MODULE_PATH_COMP + GET_FIRMWARE_VERSION, return_value="7.10.05")
+        mocker.patch(MODULE_PATH_COMP + EXECUTE_KEY_IMPORT, return_value=(msg_resp, {}))
+        data = self._run_module(idrac_default_args)
+        assert data['msg'] == IMPORT_TRIGGERED_SUCCESS_MSG.format("import")
