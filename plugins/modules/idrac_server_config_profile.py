@@ -58,8 +58,8 @@ options:
     description:
       - Name of the server configuration profile (SCP) file.
       - Only xml file is supported when I(command) is C(import) or C(import_custom_defaults) or C(export_custom_defaults).
-      - The default format <idrac_ip>_YYmmdd_HHMMSS_scp is used if this option is not specified for C(import).
-      - I(export_format) is used if the valid extension file is not provided for C(import).
+      - The default format <idrac_ip>_YYmmdd_HHMMSS_scp is used if this option is not specified for C(export) or C(export_custom_defaults).
+      - I(export_format) is used if the valid extension file is not provided for C(export).
     type: str
   scp_components:
     description:
@@ -747,26 +747,26 @@ def get_scp_share_details(module):
     scp_file_name_format = get_scp_file_format(module)
     share = {}
     if share_name:
-        if ":/" in share_name:
-            nfs_split = share_name.split(":/", 1)
-            share = {"share_ip": nfs_split[0], "share_name": "/{0}".format(nfs_split[1]), "share_type": "NFS"}
-            if command == "export":
-                share["file_name"] = scp_file_name_format
-        elif "\\" in share_name:
-            cifs_share = share_name.split("\\", 3)
-            share_ip = cifs_share[2]
-            share_path_name = cifs_share[-1]
-            if not any(domain in module.params.get("share_user") for domain in DOMAIN_LIST):
-                module.params["share_user"] = ".\\{0}".format(module.params.get("share_user"))
-            share = {"share_ip": share_ip, "share_name": share_path_name, "share_type": "CIFS",
-                     "username": module.params.get("share_user"), "password": module.params.get("share_password")}
-            if command == "export":
-                share["file_name"] = scp_file_name_format
-        else:
-            share = {"share_type": "LOCAL", "share_name": share_name}
-            if command in ["export", "export_custom_defaults"]:
-                share["file_name"] = scp_file_name_format
+        share = parse_share_name(module, share_name)
+        if command in ["export", "export_custom_defaults"]:
+            share["file_name"] = scp_file_name_format
     return share, scp_file_name_format
+
+
+def parse_share_name(module, share_name):
+    if ":/" in share_name:
+        nfs_split = share_name.split(":/", 1)
+        return {"share_ip": nfs_split[0], "share_name": "/{0}".format(nfs_split[1]), "share_type": "NFS"}
+    elif "\\" in share_name:
+        cifs_share = share_name.split("\\", 3)
+        share_ip = cifs_share[2]
+        share_path_name = cifs_share[-1]
+        if not any(domain in module.params.get("share_user") for domain in DOMAIN_LIST):
+            module.params["share_user"] = ".\\{0}".format(module.params.get("share_user"))
+        return {"share_ip": share_ip, "share_name": share_path_name, "share_type": "CIFS",
+                "username": module.params.get("share_user"), "password": module.params.get("share_password")}
+    else:
+        return {"share_type": "LOCAL", "share_name": share_name}
 
 
 def export_scp_redfish(module, idrac):
@@ -790,8 +790,6 @@ def export_scp_redfish(module, idrac):
 
 def wait_for_response(scp_resp, module, share, idrac):
     task_uri = scp_resp.headers["Location"]
-    job_id = task_uri.split("/")[-1]
-    job_uri = JOB_URI.format(job_id=job_id)
     wait_resp = idrac.wait_for_job_complete(task_uri, job_wait=True)
     with open("{0}/{1}".format(share["share_name"], share["file_name"]), "w") as file_obj:
         if module.params["export_format"] == "JSON":
@@ -876,7 +874,7 @@ def compare_custom_default_configs(module, idrac):
     if idrac_cds is None:
         return diff
     idrac_cds = idrac_cds.body
-    if scp_file:
+    if scp_file is not None:
         share, _scp_file_name_format = get_scp_share_details(module)
         share["file_name"] = module.params.get("scp_file")
         buffer_text = get_buffer_text(module, share)
@@ -906,7 +904,7 @@ def idrac_custom_option(idrac):
             return result
 
 
-def check_mode_custom_defaults(module, idrac, content_diff):
+def check_mode_custom_defaults(module, content_diff):
     if module.check_mode:
         if content_diff:
             module.exit_json(msg=CHANGES_FOUND, changed=True)
@@ -956,9 +954,8 @@ def validate_share_name(module):
     import_buffer = module.params.get("import_buffer")
     if share_name is None and not import_buffer:
         module.exit_json(msg=SHARE_NAME_REQUIRED, skipped=True)
-    elif share_name is not None:
-        if ":/" in share_name or "\\" in share_name:
-            module.exit_json(msg=INVALID_SHARE_NAME.format(share_name=share_name, command=command), skipped=True)
+    elif share_name and (":/" in share_name or "\\" in share_name):
+        module.exit_json(msg=INVALID_SHARE_NAME.format(share_name=share_name, command=command), skipped=True)
 
 
 def validate_input(module, scp_components):
@@ -973,7 +970,6 @@ def validate_input(module, scp_components):
 
 
 def validate_customdefault_input(module, command):
-    scp_file = module.params.get("scp_file")
     export_format = module.params.get("export_format")
     validate_share_name(module)
     if command == "export_custom_defaults" and export_format:
@@ -1017,7 +1013,7 @@ def import_custom_defaults(module, idrac):
     import_buffer = module.params.get("import_buffer")
     command = module.params["command"]
     cds_diff = compare_custom_default_configs(module, idrac)
-    check_mode_custom_defaults(module, idrac, cds_diff)
+    check_mode_custom_defaults(module, cds_diff)
     if not cds_diff:
         module.exit_json(msg=NO_CHANGES_FOUND, changed=False)
     share = {}
@@ -1028,7 +1024,6 @@ def import_custom_defaults(module, idrac):
     else:
         buffer_text = import_buffer
     payload = {"CustomDefaults": buffer_text}
-    job_wait = module.params.get('job_wait')
     url = None
     resp = get_dynamic_uri(idrac, REDFISH_SCP_BASE_URI, "Actions")
     if resp:
@@ -1044,6 +1039,7 @@ def export_custom_defaults(module, idrac):
     share, _scp_file_name_format = get_scp_share_details(module)
     idrac_resp_cds = idrac_custom_option(idrac)
     idrac_resp_cds = idrac_resp_cds.body
+    res = {}
     if idrac_resp_cds is None:
         module.exit_json(msg=CUSTOM_DEFAULTS_NOT_FOUND, changed=False)
     if share["share_type"] == "LOCAL":
@@ -1051,8 +1047,7 @@ def export_custom_defaults(module, idrac):
             idrac_resp_cds = idrac_resp_cds.decode('utf-8')
         with open("{0}/{1}".format(share["share_name"], share["file_name"]), "w") as file_obj:
             file_obj.write(idrac_resp_cds)
-    # scp_response = response_format_change(scp_response, module.params, scp_file_name_format)
-    return None
+    return res
 
 
 class ImportCustomDefaultCommand():
@@ -1159,16 +1154,18 @@ def main():
         with iDRACRedfishAPI(module.params) as idrac:
             if command in ["import", "export", "preview"]:
                 validate_scp_components(module, idrac)
-            if command == 'import':
-                command_obj = ImportCommand(idrac, http_share, module)
-            elif command == 'export':
-                command_obj = ExportCommand(idrac, http_share, module)
-            elif command == 'import_custom_defaults':
-                command_obj = ImportCustomDefaultCommand(idrac, module)
-            elif command == 'export_custom_defaults':
-                command_obj = ExportCustomDefaultCommand(idrac, module)
+            command_map = {
+                "import": (ImportCommand, True),
+                "export": (ExportCommand, True),
+                "import_custom_defaults": (ImportCustomDefaultCommand, False),
+                "export_custom_defaults": (ExportCustomDefaultCommand, False),
+                "preview": (PreviewCommand, True)
+            }
+            command_obj_class, http_share_req = command_map.get(command)
+            if http_share_req:
+                command_obj = command_obj_class(idrac, http_share, module)
             else:
-                command_obj = PreviewCommand(idrac, http_share, module)
+                command_obj = command_obj_class(idrac, module)
             scp_status, changed = command_obj.execute()
 
         if module.params.get('job_wait'):
@@ -1190,7 +1187,7 @@ def main():
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (ImportError, ValueError, RuntimeError, SSLValidationError,
-            ConnectionError, KeyError, TypeError, IndexError) as e:
+            ConnectionError, KeyError, TypeError, IndexError, FileNotFoundError) as e:
         module.fail_json(msg=str(e))
 
 

@@ -68,9 +68,9 @@ Parameters
 
     Only xml file is supported when \ :emphasis:`command`\  is \ :literal:`import`\  or \ :literal:`import\_custom\_defaults`\  or \ :literal:`export\_custom\_defaults`\ .
 
-    The default format \<idrac\_ip\>\_YYmmdd\_HHMMSS\_scp is used if this option is not specified for \ :literal:`import`\ .
+    The default format \<idrac\_ip\>\_YYmmdd\_HHMMSS\_scp is used if this option is not specified for \ :literal:`export`\  or \ :literal:`export\_custom\_defaults`\ .
 
-    \ :emphasis:`export\_format`\  is used if the valid extension file is not provided for \ :literal:`import`\ .
+    \ :emphasis:`export\_format`\  is used if the valid extension file is not provided for \ :literal:`export`\ .
 
 
   scp_components (optional, list, ALL)
