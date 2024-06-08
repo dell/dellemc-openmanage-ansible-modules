@@ -11,8 +11,12 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
+import json
 import pytest
 import mock
+from io import StringIO
+from ansible.module_utils._text import to_text
+from urllib.error import HTTPError
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_server_config_profile
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from mock import MagicMock
@@ -32,6 +36,8 @@ GET_FIRMWARE_VERSION = "get_idrac_firmware_version"
 CHECK_IDRAC_VERSION = "is_check_idrac_latest"
 OPEN_KEY = "builtins.open"
 FILE_NAME = "scp_file.xml"
+HTTP_ERROR_MSG = "http error message"
+RETURN_TYPE = "application/json"
 EXECUTE_KEY_IMPORT = "ImportCustomDefaultCommand.execute"
 REDFISH_JOB_TRACKING = "idrac_server_config_profile.idrac_redfish_job_tracking"
 INVALID_SHARE_NAME = "Unable to perform the {command} operation because an invalid Share name is entered. \
@@ -231,6 +237,50 @@ class TestServerConfigProfile(FakeAnsibleModule):
         with pytest.raises(Exception) as ex:
             self._run_module(idrac_default_args)
         assert params['message'] in ex.value.args[0]['msg']
+
+    @pytest.mark.parametrize("params", [
+        {"mparams": {"share_name": "share/", "job_wait": False,
+                     "scp_file": "scp_file.xml"}}
+    ])
+    def test_compare_custom_default_configs(self, params, idrac_scp_redfish_mock, idrac_default_args, mocker):
+        share_details = {
+            "share_type": "LOCAL",
+            "share_name": "share/"
+        }
+        obj = MagicMock()
+        obj.body = "<SystemConfiguration Model=\"\" ServiceTag=\"\">\n<Component FQDD=\"iDRAC.Embedded.1\">\n \
+                    <Attribute Name=\"IPMILan.1#Enable\">Disabled</Attribute>\n </Component>\n\n</SystemConfiguration>"
+        idrac_default_args.update({"command": "import_custom_defaults"})
+        idrac_default_args.update(params['mparams'])
+        mocker.patch(MODULE_PATH_COMP + "idrac_custom_option", return_value=obj)
+        mocker.patch(MODULE_PATH_COMP + "get_scp_share_details", return_value=(share_details, "scp_file.xml"))
+        mocker.patch(MODULE_PATH_COMP + "get_buffer_text", return_value=obj.body)
+        f_module = self.get_module_mock(params=idrac_default_args)
+        res = self.module.compare_custom_default_configs(f_module, idrac_scp_redfish_mock)
+        assert res is False
+
+    @pytest.mark.parametrize("params", [
+        {"api_res": {
+            "Dell": {
+                "CustomDefaultsDownloadURI": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/CustomDefaultsDownloadURI"
+            }},
+         "mparams": {"share_name": "share/", "job_wait": False,
+                     "scp_file": "scp_file.xml"}}
+    ])
+    def test_idrac_custom_options(self, params, idrac_scp_redfish_mock, idrac_default_args, mocker):
+        share_details = {
+            "share_type": "LOCAL",
+            "share_name": "share/"
+        }
+        json_str = to_text(json.dumps({"data": "out"}))
+        idrac_default_args.update({"command": "import_custom_defaults"})
+        idrac_default_args.update(params['mparams'])
+        mocker.patch(MODULE_UTILS_PATH + "get_dynamic_uri", return_value=params['api_res'])
+        mocker.patch(MODULE_PATH_COMP + "get_scp_share_details", return_value=(share_details, "scp_file.xml"))
+        mocker.patch(MODULE_PATH_COMP + "iDRACRedfishAPI.invoke_request", side_effect=HTTPError("https://test.com", 404, HTTP_ERROR_MSG,
+                                                                                                {"accept-type": RETURN_TYPE}, StringIO(json_str)))
+        res = self.module.idrac_custom_option(idrac_scp_redfish_mock)
+        assert res is None
 
     @pytest.mark.parametrize("firmware_version, expected_result", [
         ("7.00.00", True),
@@ -602,7 +652,6 @@ class TestExportCustomDefaultCommand(FakeAnsibleModule):
         assert msg_resp == {}
 
         # Scenario - Export Custom Defaults operation is successfull but not available
-        obj = MagicMock()
         obj.body = None
         self.share_details["share_name"] = "share/"
         self.share_details["file_name"] = FILE_NAME
