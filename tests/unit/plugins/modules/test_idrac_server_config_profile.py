@@ -16,7 +16,8 @@ import pytest
 import mock
 from io import StringIO
 from ansible.module_utils._text import to_text
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_server_config_profile
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from mock import MagicMock
@@ -291,6 +292,31 @@ class TestServerConfigProfile(FakeAnsibleModule):
     ])
     def test_is_check_idrac_latest(self, firmware_version, expected_result):
         assert idrac_server_config_profile.is_check_idrac_latest(firmware_version) == expected_result
+
+    @pytest.mark.parametrize("exc_type",
+                             [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
+    def test_idrac_reset_main_exception_handling_case(self, exc_type, idrac_default_args,
+                                                      idrac_scp_redfish_mock, mocker):
+        json_str = to_text(json.dumps({"data": "out"}))
+        idrac_default_args.update({"command": "import_custom_defaults"})
+        idrac_default_args.update({"share_name": LOCAL_SHARE_NAME})
+        idrac_default_args.update({"job_wait": False})
+        if exc_type in [HTTPError, SSLValidationError]:
+            mocker.patch(MODULE_UTILS_PATH + GET_FIRMWARE_VERSION, return_value="7.00.00")
+            mocker.patch(MODULE_PATH_COMP + EXECUTE_KEY_IMPORT,
+                         side_effect=exc_type('https://testhost.com', 400,
+                                              HTTP_ERROR_MSG,
+                                              {"accept-type": RETURN_TYPE},
+                                              StringIO(json_str)))
+        else:
+            mocker.patch(MODULE_PATH_COMP + GET_FIRMWARE_VERSION,
+                         side_effect=exc_type('test'))
+        result = self._run_module(idrac_default_args)
+        if exc_type == URLError:
+            assert result['unreachable'] is True
+        else:
+            assert result['failed'] is True
+        assert 'msg' in result
 
 
 class TestImportCustomDefaultCommand(FakeAnsibleModule):
