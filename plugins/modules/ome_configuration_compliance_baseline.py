@@ -788,17 +788,17 @@ def validate_remediate_idempotency(module, rest_obj):
 def create_remediate_payload(module, noncomplaint_devices, baseline_info, rest_obj):
     ome_version = get_ome_version(rest_obj)
     payload = {
-        "Id": baseline_info["Id"],
+        "Id": baseline_info.get("Id"),
         "Schedule": {
             "RunNow": True,
             "RunLater": False
         }
     }
     if module.params.get("run_later"):
-        if validate_cron(module.params.get("cron")) is False:
+        if not validate_cron(module.params.get("cron")):
             module.exit_json(msg=INVALID_CRON_TIME_MSG, failed=True)
         payload = {
-            "Id": baseline_info["Id"],
+            "Id": baseline_info.get("Id"),
             "Schedule": {
                 "RunNow": False,
                 "RunLater": True,
@@ -807,7 +807,7 @@ def create_remediate_payload(module, noncomplaint_devices, baseline_info, rest_o
         }
     elif module.params.get("staged_at_reboot"):
         payload = {
-            "Id": baseline_info["Id"],
+            "Id": baseline_info.get("Id"),
             "IsStaged": True,
             "Schedule": {
             }
@@ -821,10 +821,7 @@ def create_remediate_payload(module, noncomplaint_devices, baseline_info, rest_o
 
 def validate_cron(cron_string):
     cron_pattern = CRON_REGEX
-    if re.match(cron_pattern, cron_string) is not None:
-        return True
-    else:
-        return False
+    return bool(re.match(cron_pattern, cron_string))
 
 
 def remediate_baseline(module, rest_obj):
@@ -833,15 +830,7 @@ def remediate_baseline(module, rest_obj):
     resp = rest_obj.invoke_request('POST', REMEDIATE_BASELINE, data=remediate_payload)
     job_id = resp.json_data
     if module.params.get("run_later"):
-        time.sleep(5)
-        job_url = JOB_URI.format(job_id=job_id)
-        job_resp = rest_obj.invoke_request('GET', job_url)
-        job_dict = job_resp.json_data
-        job_status = job_dict['JobStatus']['Name']
-        if job_status == "New":
-            module.exit_json(msg=REMEDIATE_SCHEDULE_FAIL_MSG, job_id=job_id, failed=True)
-        if job_status == "Scheduled":
-            module.exit_json(msg=REMEDIATE_SCHEDULE_MSG, job_id=job_id, changed=True)
+        schedule_job(module, rest_obj, job_id)
     if module.params.get("job_wait"):
         job_failed, message = rest_obj.job_tracking(job_id, job_wait_sec=module.params["job_wait_timeout"])
         if job_failed is True:
@@ -856,6 +845,18 @@ def remediate_baseline(module, rest_obj):
                 module.exit_json(msg=message, job_id=job_id, changed=False)
     else:
         module.exit_json(msg=TASK_PROGRESS_MSG, job_id=job_id, changed=True)
+
+
+def schedule_job(module, rest_obj, job_id):
+    time.sleep(5)
+    job_url = JOB_URI.format(job_id=job_id)
+    job_resp = rest_obj.invoke_request('GET', job_url)
+    job_dict = job_resp.json_data
+    job_status = job_dict['JobStatus']['Name']
+    if job_status == "New":
+        module.exit_json(msg=REMEDIATE_SCHEDULE_FAIL_MSG, job_id=job_id, failed=True)
+    if job_status == "Scheduled":
+        module.exit_json(msg=REMEDIATE_SCHEDULE_MSG, job_id=job_id, changed=True)
 
 
 def validate_job_time(command, module):
