@@ -1188,7 +1188,7 @@ def main():
         module.exit_json(msg=str(err), unreachable=True)
     except (ImportError, ValueError, RuntimeError, SSLValidationError,
             ConnectionError, KeyError, TypeError, IndexError, FileNotFoundError) as e:
-        module.fail_json(msg=str(e))
+        module.exit_json(msg=str(e), failed=True)
 
 
 def get_argument_spec():
