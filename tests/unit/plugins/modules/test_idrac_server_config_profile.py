@@ -38,6 +38,8 @@ OPEN_KEY = "builtins.open"
 FILE_NAME = "scp_file.xml"
 HTTP_ERROR_MSG = "http error message"
 RETURN_TYPE = "application/json"
+INVOKE_REQ_KEY = "iDRACRedfishAPI.invoke_request"
+LOCAL_SHARE_NAME = "share/"
 EXECUTE_KEY_IMPORT = "ImportCustomDefaultCommand.execute"
 REDFISH_JOB_TRACKING = "idrac_server_config_profile.idrac_redfish_job_tracking"
 INVALID_SHARE_NAME = "Unable to perform the {command} operation because an invalid Share name is entered. \
@@ -239,13 +241,13 @@ class TestServerConfigProfile(FakeAnsibleModule):
         assert params['message'] in ex.value.args[0]['msg']
 
     @pytest.mark.parametrize("params", [
-        {"mparams": {"share_name": "share/", "job_wait": False,
-                     "scp_file": "scp_file.xml"}}
+        {"mparams": {"share_name": LOCAL_SHARE_NAME, "job_wait": False,
+                     "scp_file": FILE_NAME}}
     ])
     def test_compare_custom_default_configs(self, params, idrac_scp_redfish_mock, idrac_default_args, mocker):
         share_details = {
             "share_type": "LOCAL",
-            "share_name": "share/"
+            "share_name": LOCAL_SHARE_NAME
         }
         obj = MagicMock()
         obj.body = "<SystemConfiguration Model=\"\" ServiceTag=\"\">\n<Component FQDD=\"iDRAC.Embedded.1\">\n \
@@ -253,7 +255,7 @@ class TestServerConfigProfile(FakeAnsibleModule):
         idrac_default_args.update({"command": "import_custom_defaults"})
         idrac_default_args.update(params['mparams'])
         mocker.patch(MODULE_PATH_COMP + "idrac_custom_option", return_value=obj)
-        mocker.patch(MODULE_PATH_COMP + "get_scp_share_details", return_value=(share_details, "scp_file.xml"))
+        mocker.patch(MODULE_PATH_COMP + "get_scp_share_details", return_value=(share_details, FILE_NAME))
         mocker.patch(MODULE_PATH_COMP + "get_buffer_text", return_value=obj.body)
         f_module = self.get_module_mock(params=idrac_default_args)
         res = self.module.compare_custom_default_configs(f_module, idrac_scp_redfish_mock)
@@ -264,21 +266,21 @@ class TestServerConfigProfile(FakeAnsibleModule):
             "Dell": {
                 "CustomDefaultsDownloadURI": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/CustomDefaultsDownloadURI"
             }},
-         "mparams": {"share_name": "share/", "job_wait": False,
-                     "scp_file": "scp_file.xml"}}
+         "mparams": {"share_name": LOCAL_SHARE_NAME, "job_wait": False,
+                     "scp_file": FILE_NAME}}
     ])
     def test_idrac_custom_options(self, params, idrac_scp_redfish_mock, idrac_default_args, mocker):
         share_details = {
             "share_type": "LOCAL",
-            "share_name": "share/"
+            "share_name": LOCAL_SHARE_NAME
         }
         json_str = to_text(json.dumps({"data": "out"}))
         idrac_default_args.update({"command": "import_custom_defaults"})
         idrac_default_args.update(params['mparams'])
         mocker.patch(MODULE_UTILS_PATH + "get_dynamic_uri", return_value=params['api_res'])
-        mocker.patch(MODULE_PATH_COMP + "get_scp_share_details", return_value=(share_details, "scp_file.xml"))
-        mocker.patch(MODULE_PATH_COMP + "iDRACRedfishAPI.invoke_request", side_effect=HTTPError("https://test.com", 404, HTTP_ERROR_MSG,
-                                                                                                {"accept-type": RETURN_TYPE}, StringIO(json_str)))
+        mocker.patch(MODULE_PATH_COMP + "get_scp_share_details", return_value=(share_details, FILE_NAME))
+        mocker.patch(MODULE_PATH_COMP + INVOKE_REQ_KEY, side_effect=HTTPError("https://test.com", 404, HTTP_ERROR_MSG,
+                                                                              {"accept-type": RETURN_TYPE}, StringIO(json_str)))
         res = self.module.idrac_custom_option(idrac_scp_redfish_mock)
         assert res is None
 
@@ -409,7 +411,7 @@ class TestImportCustomDefaultCommand(FakeAnsibleModule):
         # Scenario - when command is import_custom_defaults and check mode with same custom defaults
         idrac_default_args.clear()
         idrac_default_args.update({})
-        idrac_default_args.update({"share_name": "share/"})
+        idrac_default_args.update({"share_name": LOCAL_SHARE_NAME})
         idrac_default_args.update({"job_wait": False})
         idrac_default_args.update({"scp_file": FILE_NAME})
         idrac_default_args.update({"command": "import_custom_defaults"})
@@ -426,7 +428,7 @@ class TestImportCustomDefaultCommand(FakeAnsibleModule):
         # Scenario - when command is import_custom_defaults and check mode with different custom defaults
         idrac_default_args.clear()
         idrac_default_args.update({})
-        idrac_default_args.update({"share_name": "share/"})
+        idrac_default_args.update({"share_name": LOCAL_SHARE_NAME})
         idrac_default_args.update({"job_wait": False})
         idrac_default_args.update({"scp_file": FILE_NAME})
         idrac_default_args.update({"command": "import_custom_defaults"})
@@ -443,10 +445,10 @@ class TestImportCustomDefaultCommand(FakeAnsibleModule):
         # Scenario - [Idempotency] vwhen command is import_custom_defaults and normal mode with same custom defaults
         obj = MagicMock()
         obj.body = self.custom_default_content
-        self.share_details["share_name"] = "share/"
+        self.share_details["share_name"] = LOCAL_SHARE_NAME
         idrac_default_args.clear()
         idrac_default_args.update({})
-        idrac_default_args.update({"share_name": "share/"})
+        idrac_default_args.update({"share_name": LOCAL_SHARE_NAME})
         idrac_default_args.update({"job_wait": False})
         idrac_default_args.update({"scp_file": FILE_NAME})
         idrac_default_args.update({"command": "import_custom_defaults"})
@@ -501,7 +503,7 @@ class TestImportCustomDefaultCommand(FakeAnsibleModule):
         mocker.patch(MODULE_PATH_COMP + "get_buffer_text", return_value=self.custom_default_content)
         mocker.patch(MODULE_PATH_COMP + "get_scp_share_details", return_value=({}, "100.XX.XX.XX_202466_82617_scp.xml"))
         mocker.patch(MODULE_UTILS_PATH + "get_dynamic_uri", return_value=self.validate_allowed_values)
-        mocker.patch(MODULE_PATH_COMP + "iDRACRedfishAPI.invoke_request", return_value=obj1)
+        mocker.patch(MODULE_PATH_COMP + INVOKE_REQ_KEY, return_value=obj1)
         mocker.patch(MODULE_PATH_COMP + "exists", return_value=True)
         mocker.patch(OPEN_KEY, mocker.mock_open(read_data=self.custom_default_content))
         f_module = self.get_module_mock(params=idrac_default_args)
@@ -512,10 +514,10 @@ class TestImportCustomDefaultCommand(FakeAnsibleModule):
         # Scenario - when scp_file and share_name are passed for import_custom_defaults with job_wait true
         obj = MagicMock()
         obj.body = self.custom_default_content_enabled
-        self.share_details["share_name"] = "share/"
+        self.share_details["share_name"] = LOCAL_SHARE_NAME
         idrac_default_args.clear()
         idrac_default_args.update({})
-        idrac_default_args.update({"share_name": "share/"})
+        idrac_default_args.update({"share_name": LOCAL_SHARE_NAME})
         idrac_default_args.update({"job_wait": True})
         idrac_default_args.update({"scp_file": FILE_NAME})
         idrac_default_args.update({"command": "import_custom_defaults"})
@@ -528,7 +530,7 @@ class TestImportCustomDefaultCommand(FakeAnsibleModule):
         mocker.patch(MODULE_PATH_COMP + "response_format_change", return_value=self.res_with_job_wait)
         mocker.patch(MODULE_PATH_COMP + "get_buffer_text", return_value=self.custom_default_content)
         mocker.patch(MODULE_UTILS_PATH + "get_dynamic_uri", return_value=self.validate_allowed_values)
-        mocker.patch(MODULE_PATH_COMP + "iDRACRedfishAPI.invoke_request", return_value=obj)
+        mocker.patch(MODULE_PATH_COMP + INVOKE_REQ_KEY, return_value=obj)
         mocker.patch(MODULE_PATH_COMP + "exists", return_value=True)
         mocker.patch(OPEN_KEY, mocker.mock_open(read_data=self.custom_default_content))
         f_module = self.get_module_mock(params=idrac_default_args)
@@ -606,7 +608,7 @@ class TestExportCustomDefaultCommand(FakeAnsibleModule):
     def test_execute_one(self, idrac_default_args, idrac_connection_server_config_profile_mock, mocker):
         # Scenario - When 'Custom defaults' is not supported and iDRAC8
         idrac_default_args.update({"command": "export_custom_defaults"})
-        idrac_default_args.update({"share_name": "share/"})
+        idrac_default_args.update({"share_name": LOCAL_SHARE_NAME})
         mocker.patch(MODULE_UTILS_PATH + GET_FIRMWARE_VERSION, return_value="2.81.81")
         mocker.patch(MODULE_PATH_COMP + CHECK_IDRAC_VERSION, return_value=False)
         f_module = self.get_module_mock(params=idrac_default_args)
@@ -620,7 +622,7 @@ class TestExportCustomDefaultCommand(FakeAnsibleModule):
         idrac_default_args.update({})
         idrac_default_args.update({"command": "export_custom_defaults"})
         idrac_default_args.update({"export_format": "JSON"})
-        idrac_default_args.update({"share_name": "share/"})
+        idrac_default_args.update({"share_name": LOCAL_SHARE_NAME})
         mocker.patch(MODULE_UTILS_PATH + GET_FIRMWARE_VERSION, return_value="7.00.00")
         mocker.patch(MODULE_PATH_COMP + CHECK_IDRAC_VERSION, return_value=True)
         f_module = self.get_module_mock(params=idrac_default_args)
@@ -632,11 +634,11 @@ class TestExportCustomDefaultCommand(FakeAnsibleModule):
         # Scenario - Export Custom Defaults is successfull
         obj = MagicMock()
         obj.body = self.custom_default_content_enabled
-        self.share_details["share_name"] = "share/"
+        self.share_details["share_name"] = LOCAL_SHARE_NAME
         self.share_details["file_name"] = FILE_NAME
         idrac_default_args.clear()
         idrac_default_args.update({})
-        idrac_default_args.update({"share_name": "share/"})
+        idrac_default_args.update({"share_name": LOCAL_SHARE_NAME})
         idrac_default_args.update({"scp_file": FILE_NAME})
         idrac_default_args.update({"command": "export_custom_defaults"})
         mocker.patch(MODULE_UTILS_PATH + GET_FIRMWARE_VERSION, return_value="7.00.00")
@@ -653,13 +655,6 @@ class TestExportCustomDefaultCommand(FakeAnsibleModule):
 
         # Scenario - Export Custom Defaults operation is successfull but not available
         obj.body = None
-        self.share_details["share_name"] = "share/"
-        self.share_details["file_name"] = FILE_NAME
-        idrac_default_args.clear()
-        idrac_default_args.update({})
-        idrac_default_args.update({"share_name": "share/"})
-        idrac_default_args.update({"scp_file": FILE_NAME})
-        idrac_default_args.update({"command": "export_custom_defaults"})
         mocker.patch(MODULE_UTILS_PATH + GET_FIRMWARE_VERSION, return_value="7.00.00")
         mocker.patch(MODULE_PATH_COMP + CHECK_IDRAC_VERSION, return_value=True)
         mocker.patch(MODULE_PATH_COMP + "validate_customdefault_input", return_value=None)
