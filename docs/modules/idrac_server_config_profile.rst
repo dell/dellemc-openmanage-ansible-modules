@@ -34,9 +34,9 @@ Parameters
 
     If \ :literal:`preview`\ , the module performs SCP preview operation.
 
-    If \ :literal:`import\_custom\_defaults`\  to allow the user to import custom default iDRAC settings.
+    \ :literal:`import\_custom\_defaults`\  allows you to import custom default iDRAC settings.
 
-    If \ :literal:`export\_custom\_defaults`\  to allow the user to export custom default iDRAC settings.
+    \ :literal:`export\_custom\_defaults`\  allows you to export custom default iDRAC settings.
 
     \ :literal:`import\_custom\_defaults`\  and \ :literal:`export\_custom\_defaults`\  is supported only on iDRAC9 with firmware 7.00.00.00 and above.
 
@@ -66,7 +66,7 @@ Parameters
   scp_file (optional, str, None)
     Name of the server configuration profile (SCP) file.
 
-    Only xml file is supported when \ :emphasis:`command`\  is \ :literal:`import`\  or \ :literal:`import\_custom\_defaults`\  or \ :literal:`export\_custom\_defaults`\ .
+    Only XML file format is supported when \ :emphasis:`command`\  is \ :literal:`import`\  or \ :literal:`import\_custom\_defaults`\  or \ :literal:`export\_custom\_defaults`\ .
 
     The default format \<idrac\_ip\>\_YYmmdd\_HHMMSS\_scp is used if this option is not specified for \ :literal:`export`\  or \ :literal:`export\_custom\_defaults`\ .
 
@@ -124,7 +124,7 @@ Parameters
   export_format (optional, str, XML)
     Specify the output file format. This option is applicable for \ :literal:`export`\  command.
 
-    This is always set to "XML" when the  \ :emphasis:`command`\  is \ :literal:`export\_custom\_defaults`\ .
+    The default export file format is always XML when the  \ :emphasis:`command`\  is \ :literal:`export\_custom\_defaults`\ .
 
 
   export_use (optional, str, Default)
@@ -162,7 +162,7 @@ Parameters
   import_buffer (optional, str, None)
     Used to import the buffer input of xml or json into the iDRAC.
 
-    When the  \ :emphasis:`command`\  is \ :literal:`import\_custom\_defaults`\ , only input of xml is supported.
+    When the  \ :emphasis:`command`\  is \ :literal:`import\_custom\_defaults`\ , only XML file format is supported.
 
     This option is applicable when \ :emphasis:`command`\  is \ :literal:`import`\  or \ :literal:`preview`\  or \ :literal:`import\_custom\_defaults`\ .
 
