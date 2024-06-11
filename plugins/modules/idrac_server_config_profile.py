@@ -29,8 +29,8 @@ options:
       - If C(import), the module performs SCP import operation.
       - If C(export), the module performs SCP export operation.
       - If C(preview), the module performs SCP preview operation.
-      - If C(import_custom_defaults) to allow the user to import custom default iDRAC settings.
-      - If C(export_custom_defaults) to allow the user to export custom default iDRAC settings.
+      - C(import_custom_defaults) allows you to import custom default iDRAC settings.
+      - C(export_custom_defaults) allows you to export custom default iDRAC settings.
       - C(import_custom_defaults) and C(export_custom_defaults) is supported only on iDRAC9 with firmware 7.00.00.00 and above.
     type: str
     choices: ['import', 'export', 'preview', 'import_custom_defaults', 'export_custom_defaults']
@@ -57,7 +57,7 @@ options:
   scp_file:
     description:
       - Name of the server configuration profile (SCP) file.
-      - Only xml file is supported when I(command) is C(import) or C(import_custom_defaults) or C(export_custom_defaults).
+      - Only XML file format is supported when I(command) is C(import) or C(import_custom_defaults) or C(export_custom_defaults).
       - The default format <idrac_ip>_YYmmdd_HHMMSS_scp is used if this option is not specified for C(export) or C(export_custom_defaults).
       - I(export_format) is used if the valid extension file is not provided for C(export).
     type: str
@@ -104,7 +104,7 @@ options:
   export_format:
     description:
       - Specify the output file format. This option is applicable for C(export) command.
-      - This is always set to "XML" when the  I(command) is C(export_custom_defaults).
+      - The default export file format is always XML when the  I(command) is C(export_custom_defaults).
     type: str
     choices: ['JSON',  'XML']
     default: 'XML'
@@ -145,7 +145,7 @@ options:
   import_buffer:
     description:
       - Used to import the buffer input of xml or json into the iDRAC.
-      - When the  I(command) is C(import_custom_defaults), only input of xml is supported.
+      - When the  I(command) is C(import_custom_defaults), only XML file format is supported.
       - This option is applicable when I(command) is C(import) or C(preview) or C(import_custom_defaults).
       - I(import_buffer) is mutually exclusive with I(share_name).
     type: str
