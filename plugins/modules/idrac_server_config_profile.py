@@ -201,6 +201,7 @@ author:
   - "Felix Stephen (@felixs88)"
   - "Jennifer John (@Jennifer-John)"
   - "Shivam Sharma (@ShivamSh3)"
+  - "Lovepreet Singh (@singh-lovepreet1)"
 notes:
     - This module requires 'Administrator' privilege for I(idrac_user).
     - Run this module from a system that has direct access to Dell iDRAC.
