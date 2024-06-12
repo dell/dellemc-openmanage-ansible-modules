@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.4.0
 # Copyright (C) 2018-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -90,6 +90,7 @@ author:
   - "Felix Stephen (@felixs88)"
   - "Anooja Vardhineni (@anooja-vardhineni)"
   - "Lovepreet Singh (@singh-lovepreet1)"
+  - "Abhishek Sinha (@ABHISHEK-SINHA10)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
@@ -100,14 +101,6 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: Reset the iDRAC to all and wait till the iDRAC is accessible.
-  dellemc.openmanage.idrac_reset:
-   idrac_ip: "192.168.0.1"
-   idrac_user: "user_name"
-   idrac_password: "user_password"
-   ca_path: "/path/to/ca_cert.pem"
-   reset_to_default: "All"
-
 - name: Reset the iDRAC to default and do not wait till the iDRAC is accessible.
   dellemc.openmanage.idrac_reset:
    idrac_ip: "192.168.0.1"
@@ -393,7 +386,7 @@ class FactoryReset():
             return True
 
     def check_lcstatus(self, post_op=True):
-        if self.reset_to_default in PASSWORD_CHANGE_OPTIONS and post_op and self.status_code_after_wait == 401 and \
+        if self.reset_to_default in PASSWORD_CHANGE_OPTIONS and post_op and \
            not self.update_credentials_for_post_lc_statuc_check():
             return
 
@@ -432,11 +425,9 @@ class FactoryReset():
         result['idracreset']['Data'] = {'StatusCode': status}
         result['idracreset']['StatusCode'] = status
         track_failed, wait_msg = None, None
-        self.status_code_after_wait = 202
         if status in STATUS_SUCCESS:
             if self.wait_for_idrac:
                 track_failed, status_code, wait_msg = self.wait_for_port_open()
-                self.status_code_after_wait = status_code
                 if track_failed:
                     self.module.exit_json(msg=wait_msg, changed=True)
             tmp_res['msg'] = IDRAC_RESET_SUCCESS_MSG if self.wait_for_idrac else IDRAC_RESET_RESET_TRIGGER_MSG
