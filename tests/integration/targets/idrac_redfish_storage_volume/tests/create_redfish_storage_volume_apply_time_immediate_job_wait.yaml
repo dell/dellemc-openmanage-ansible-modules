@@ -1,0 +1,85 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Set prerequisite facts
+  ansible.builtin.set_fact:
+    raid_type: "{{ raid_type_0 }}"
+
+- name: Set prerequisite
+  ansible.builtin.include_tasks: _helper.yml
+
+- name: Prerequisite - fail if not enough disk is found to create a volume
+  ansible.builtin.fail:
+    msg: 'Physical disks are not sufficient to proceed with test case
+      execution. Needs a minimum 1, but found {{ physical_disks | length }}'
+  when: "{{ physical_disks | length }} < 1"
+
+- block:
+    - name: create_redfish_storage_volume_apply_time_immediate check_mode
+      register: result
+      check_mode: true
+      dellemc.openmanage.redfish_storage_volume: &module_params
+        state: "{{ state_present }}"
+        name: "{{ raid_0_vol }}"
+        controller_id: "{{ controller_name }}"
+        raid_type: "{{ raid_type }}"
+        drives: "{{ physical_disks_0_list }}"
+        apply_time: "{{ apply_time_immediate }}"
+        job_wait: "{{ b_true }}"
+
+    - name: create_redfish_storage_volume_apply_time_immediate assert
+        check_mode
+      ansible.builtin.assert:
+        that:
+          - result.changed is true
+          - changes_found in result.msg
+
+    - name: create_redfish_storage_volume_apply_time_immediate normal_mode
+      register: result
+      dellemc.openmanage.redfish_storage_volume:
+        <<: *module_params
+
+    - name: Fetch volume details
+      ansible.builtin.include_tasks: _get_volume_details.yml
+
+    - name: create_redfish_storage_volume_apply_time_immediate assert
+        normal_mode
+      ansible.builtin.assert:
+        that:
+          - result.changed is true
+          - changes_applied in result.msg
+          - uri_data.DisplayName == "{{ raid_0_vol }}"
+          - uri_data.RAIDType == "{{ raid_type_0 }}"
+
+    - name: create_redfish_storage_volume_apply_time_immediate idempotency_mode
+      register: result
+      dellemc.openmanage.redfish_storage_volume:
+        <<: *module_params
+
+    - name: create_redfish_storage_volume_apply_time_immediate assert
+        idempotency_mode
+      ansible.builtin.assert:
+        that:
+          - result.changed is false
+          - no_changes in result.msg
+
+  always:
+    - name: Post clean up
+      ansible.builtin.include_tasks: _cleanup.yml
+
+  module_defaults:
+    dellemc.openmanage.redfish_storage_volume:
+      baseuri: "{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
