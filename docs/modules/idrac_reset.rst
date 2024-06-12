@@ -154,14 +154,6 @@ Examples
 
     
     ---
-    - name: Reset the iDRAC to all and wait till the iDRAC is accessible.
-      dellemc.openmanage.idrac_reset:
-       idrac_ip: "192.168.0.1"
-       idrac_user: "user_name"
-       idrac_password: "user_password"
-       ca_path: "/path/to/ca_cert.pem"
-       reset_to_default: "All"
-
     - name: Reset the iDRAC to default and do not wait till the iDRAC is accessible.
       dellemc.openmanage.idrac_reset:
        idrac_ip: "192.168.0.1"
@@ -250,4 +242,5 @@ Authors
 - Felix Stephen (@felixs88)
 - Anooja Vardhineni (@anooja-vardhineni)
 - Lovepreet Singh (@singh-lovepreet1)
+- Abhishek Sinha (@ABHISHEK-SINHA10)
 
