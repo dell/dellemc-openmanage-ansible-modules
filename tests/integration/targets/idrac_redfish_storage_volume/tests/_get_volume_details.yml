@@ -1,0 +1,49 @@
+# Fetch volume details from iDRAC
+- block:
+    - name: Fetch storage details
+      dellemc.openmanage.dellemc_idrac_storage_volume:
+        state: "view"
+      register: result_storage
+
+    - name: Fetch volume details
+      ansible.builtin.set_fact:
+        virtual_disk: "{{ item.key }}"
+      loop: "{{ lookup('dict', result_storage.storage_status.Message.Controller
+        [ controller_name ].VirtualDisk, wantlist=True)}}"
+      when: "'{{ controller_name }}' in item.key"
+
+    - name: Set url path
+      ansible.builtin.set_fact:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/
+          redfish/v1/Systems/System.Embedded.1/Storage/{{ controller_name }}/
+          Volumes/{{ virtual_disk }}"
+
+    - name: Get data using uri
+      ansible.builtin.uri:
+        url: "{{ url }}"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        method: GET
+        body: {}
+        validate_certs: false
+        force_basic_auth: true
+        body_format: json
+        return_content: true
+        status_code: 200
+        headers: 'Accept=application/json'
+      until: uri_res.status == 200
+      retries: 12
+      delay: 5
+      register: uri_res
+
+    - name: Extract data from uri response
+      ansible.builtin.set_fact:
+        uri_data: "{{ uri_res.content }}"
+
+  module_defaults:
+    dellemc.openmanage.dellemc_idrac_storage_volume:
+      idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
+      idrac_port: "{{ idrac_port }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

@@ -1,0 +1,4 @@
+dependencies:
+  - prepare_lifecycle_contoller_job_queue
+  - prepare_idrac_lifecycle_controller_status
+  - prepare_lifecycle_controller_job

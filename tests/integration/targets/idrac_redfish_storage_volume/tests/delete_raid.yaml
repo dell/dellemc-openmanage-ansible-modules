@@ -1,0 +1,197 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Set prerequisite facts
+  ansible.builtin.set_fact:
+    raid_type: "{{ raid_type_0 }}"
+
+- name: Set prerequisite
+  ansible.builtin.include_tasks: _helper.yml
+
+- name: Prerequisite - fail if not enough disk is found to create a volume
+  ansible.builtin.fail:
+    msg: 'Physical disks are not sufficient to proceed with test case
+      execution. Needs a minimum 1, but found {{ physical_disks | length }}'
+  when: "{{ physical_disks | length }} < 1"
+
+- block:
+    - name: Create a RAID0 volume
+      dellemc.openmanage.redfish_storage_volume:
+        state: present
+        volume_type: NonRedundant
+        name: RAID0_Volume
+        controller_id: "{{ controller_name }}"
+        drives:
+          - "{{ physical_disks[0] }}"
+      register: result_volume
+
+    - name: Track the job
+      ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{ result_volume.task.id }}"
+      when: result_volume.msg == "Successfully submitted create volume task."
+
+    - name: Set job id for assertion
+      ansible.builtin.set_fact:
+        job_id: "{{ result_volume.task.id }}"
+
+    - name: Verify task status - Create a RAID0 volume
+      ansible.builtin.assert:
+        that:
+          - result_volume.changed
+          - 'result_volume.msg == "Successfully submitted create volume task."'
+
+    - name: Fetch volume details
+      ansible.builtin.include_tasks: _get_volume_details.yml
+
+    - name: Delete a RAID0 volume (Check mode - Changes expected)
+      dellemc.openmanage.redfish_storage_volume: &delete_raid
+        state: absent
+        volume_id: "{{ uri_data.Id }}"
+      register: cm_result_delete_volume
+      check_mode: true
+
+    - name: Verify task status - Delete a RAID0 volume (Check mode - Changes
+        expected)
+      ansible.builtin.assert:
+        that:
+          - cm_result_delete_volume.changed
+          - 'cm_result_delete_volume.msg == "Changes found to be applied."'
+
+    - name: Delete a RAID0 volume
+      dellemc.openmanage.redfish_storage_volume:
+        <<: *delete_raid
+      register: result_delete_volume
+
+    - name: Track the job
+      ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{ result_delete_volume.task.id }}"
+      when: result_delete_volume.msg == "Successfully submitted delete volume
+        task."
+
+    - name: Set job id for assertion
+      ansible.builtin.set_fact:
+        job_id: "{{ result_delete_volume.task.id }}"
+
+    - name: Verify task status - Delete a RAID0 volume
+      ansible.builtin.assert:
+        that:
+          - result_delete_volume.changed
+          - 'result_delete_volume.msg == "Successfully submitted delete volume
+            task."'
+          - result_delete_volume.task.id
+          - 'result_delete_volume.task.uri == "/redfish/v1/Managers/
+            iDRAC.Embedded.1/Jobs/{{ job_id }}"'
+
+    - name: Delete a RAID0 volume (Idempotence)
+      dellemc.openmanage.redfish_storage_volume:
+        <<: *delete_raid
+      register: idempotence_result_delete_volume
+      ignore_errors: true
+
+    - name: Verify task status - Delete a RAID0 volume (Idempotence)
+      ansible.builtin.assert:
+        that:
+          - not idempotence_result_delete_volume.changed
+          - 'idempotence_result_delete_volume.msg == "Specified Volume
+            Id {{ uri_data.Id }} does not exist in the System."'
+
+  module_defaults:
+    dellemc.openmanage.redfish_storage_volume:
+      baseuri: "{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+- block:
+    # Below block for delete volume task with job_wait as true
+    - name: Create a RAID0 volume
+      dellemc.openmanage.redfish_storage_volume:
+        state: present
+        volume_type: NonRedundant
+        name: RAID0_Volume
+        controller_id: "{{ controller_name }}"
+        drives:
+          - "{{ physical_disks[0] }}"
+      register: result_volume
+
+    - name: Track the job
+      ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{ result_volume.task.id }}"
+      when: result_volume.msg == "Successfully submitted create volume task."
+
+    - name: Set job id for assertion
+      ansible.builtin.set_fact:
+        job_id: "{{ result_volume.task.id }}"
+
+    - name: Verify task status - Create a RAID0 volume
+      ansible.builtin.assert:
+        that:
+          - result_volume.changed
+          - 'result_volume.msg == "Successfully submitted create volume task."'
+
+    - name: Fetch volume details
+      ansible.builtin.include_tasks: _get_volume_details.yml
+
+    - name: Delete a RAID0 volume with job_wait (Check mode - Changes expected)
+      dellemc.openmanage.redfish_storage_volume: &delete_raid_job_wait
+        state: absent
+        volume_id: "{{ uri_data.Id }}"
+        job_wait: "{{ b_true }}"
+      register: cm_result_delete_volume
+      check_mode: true
+
+    - name: Verify task status - Delete a RAID0 volume with job_wait
+        (Check mode - Changes expected)
+      ansible.builtin.assert:
+        that:
+          - cm_result_delete_volume.changed
+          - 'cm_result_delete_volume.msg == "Changes found to be applied."'
+
+    - name: Delete a RAID0 volume with job_wait(Normal mode)
+      dellemc.openmanage.redfish_storage_volume:
+        <<: *delete_raid_job_wait
+      register: result_delete_volume
+
+    - name: Verify task status - Delete a RAID0 volume with job_wait
+        (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - result_delete_volume.changed
+          - changes_applied in result_delete_volume.msg
+          - result_delete_volume.task.id
+          - 'result_delete_volume.task.uri == "/redfish/v1/Managers/
+            iDRAC.Embedded.1/Jobs/{{ result_delete_volume.task.id }}"'
+
+    - name: Delete a RAID0 volume with job_wait (Idempotence)
+      dellemc.openmanage.redfish_storage_volume:
+        <<: *delete_raid_job_wait
+      register: idempotence_result_delete_volume
+      ignore_errors: true
+
+    - name: Verify task status - Delete a RAID0 volume with job_wait
+        (Idempotence)
+      ansible.builtin.assert:
+        that:
+          - not idempotence_result_delete_volume.changed
+          - 'idempotence_result_delete_volume.msg == "Specified Volume
+            Id {{ uri_data.Id }} does not exist in the System."'
+
+  module_defaults:
+    dellemc.openmanage.redfish_storage_volume:
+      baseuri: "{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

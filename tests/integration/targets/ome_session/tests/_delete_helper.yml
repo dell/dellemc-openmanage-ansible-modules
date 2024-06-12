@@ -1,3 +1,4 @@
+---
 - name: Delete a session
   dellemc.openmanage.ome_session:
     validate_certs: "{{ validate_certs }}"

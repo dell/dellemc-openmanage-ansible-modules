@@ -1,0 +1,14 @@
+- name: Perform force restart of the device
+  dellemc.openmanage.redfish_powerstate:
+    baseuri: "{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}"
+    username: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    validate_certs: "{{ validate_certs }}"
+    reset_type: ForceRestart
+  when: reboot_server is defined and reboot_server is true
+
+- name: Track the job
+  ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+
+- name: Wait for iDRAC lifecycle controller readiness
+  ansible.builtin.include_role: name=prepare_idrac_lifecycle_controller_status
