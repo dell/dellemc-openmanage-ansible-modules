@@ -677,17 +677,16 @@ class TestExportCustomDefaultCommand(FakeAnsibleModule):
         f_module = self.get_module_mock(params=idrac_default_args)
         scp_obj = self.module.ExportCustomDefaultCommand(idrac_connection_server_config_profile_mock, f_module)
         msg_resp, resp = scp_obj.execute()
-        assert msg_resp == {}
+        assert msg_resp == {'file': 'share//scp_file.xml'}
 
         # Scenario - Export Custom Defaults operation is successfull but not available
-        obj.body = None
         mocker.patch(MODULE_UTILS_PATH + GET_FIRMWARE_VERSION, return_value="7.00.00")
         mocker.patch(MODULE_PATH_COMP + CHECK_IDRAC_VERSION, return_value=True)
         mocker.patch(MODULE_PATH_COMP + "validate_customdefault_input", return_value=None)
         mocker.patch(MODULE_PATH_COMP + "get_scp_share_details", return_value=(self.share_details, FILE_NAME))
         mocker.patch(MODULE_UTILS_PATH + "get_dynamic_uri", return_value=self.validate_allowed_values)
         mocker.patch(MODULE_PATH_COMP + "get_buffer_text", return_value=self.custom_default_content)
-        mocker.patch(MODULE_PATH_COMP + "idrac_custom_option", return_value=obj)
+        mocker.patch(MODULE_PATH_COMP + "idrac_custom_option", return_value=None)
         mocker.patch(OPEN_KEY, mocker.mock_open())
         f_module = self.get_module_mock(params=idrac_default_args)
         scp_obj = self.module.ExportCustomDefaultCommand(idrac_connection_server_config_profile_mock, f_module)
