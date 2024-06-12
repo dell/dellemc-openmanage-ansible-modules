@@ -8,5 +8,5 @@ provisioner:
     cifs_filename: 'exported_scp_cifs.xml'
     https_filename: "exported_scp_https.json"
     http_filename: "exported_scp_http.xml"
-    nfs_mount_path: "/tmp/nfs"
-    cifs_mount_path: "/tmp/cifs"
+    nfs_mount_path: "/tmp/nfs_idrac_export"
+    cifs_mount_path: "/tmp/cifs_idrac_export"
