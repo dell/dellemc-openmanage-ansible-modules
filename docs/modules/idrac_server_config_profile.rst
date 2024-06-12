@@ -555,6 +555,7 @@ Examples
         idrac_user: "user_name"
         idrac_password: "user_password"
         ca_path: "/path/to/ca_cert.pem"
+        job_wait: true
         share_name: "/scp_folder"
         command: export_custom_defaults
         scp_file: example_file
@@ -565,6 +566,7 @@ Examples
         idrac_user: "user_name"
         idrac_password: "user_password"
         ca_path: "/path/to/ca_cert.pem"
+        job_wait: true
         share_name: "/scp_folder"
         command: import_custom_defaults
         scp_file: example_file.xml
@@ -575,6 +577,7 @@ Examples
         idrac_user: "user_name"
         idrac_password: "user_password"
         ca_path: "/path/to/ca_cert.pem"
+        job_wait: true
         command: import_custom_defaults
         import_buffer: "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'>Disabled</Attribute>
                       </Component></SystemConfiguration>"
