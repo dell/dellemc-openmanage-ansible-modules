@@ -1042,15 +1042,16 @@ def import_custom_defaults(module, idrac):
 def export_custom_defaults(module, idrac):
     share, _scp_file_name_format = get_scp_share_details(module)
     idrac_resp_cds = idrac_custom_option(idrac)
-    idrac_resp_cds = idrac_resp_cds.body
-    res = {}
     if idrac_resp_cds is None:
         module.exit_json(msg=CUSTOM_DEFAULTS_NOT_FOUND, changed=False)
+    idrac_resp_cds = idrac_resp_cds.body
+    res = {}
     if share["share_type"] == "LOCAL":
         if isinstance(idrac_resp_cds, bytes):
             idrac_resp_cds = idrac_resp_cds.decode('utf-8')
         with open("{0}/{1}".format(share["share_name"], share["file_name"]), "w") as file_obj:
             file_obj.write(idrac_resp_cds)
+    res = get_file(module.params, res, _scp_file_name_format)
     return res
 
 
