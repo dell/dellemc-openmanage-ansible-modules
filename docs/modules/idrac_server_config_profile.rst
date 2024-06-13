@@ -122,7 +122,7 @@ Parameters
 
 
   export_format (optional, str, XML)
-    Specify the output file format. This option is applicable for \ :literal:`export`\  command.
+    Specify the output file format. This option is applicable for \ :literal:`export`\  or \ :literal:`export\_custom\_defaults`\  command.
 
     The default export file format is always XML when the  \ :emphasis:`command`\  is \ :literal:`export\_custom\_defaults`\ .
 
