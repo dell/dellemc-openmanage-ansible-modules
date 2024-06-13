@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.4.0
 # Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -103,7 +103,7 @@ options:
     default: 'On'
   export_format:
     description:
-      - Specify the output file format. This option is applicable for C(export) command.
+      - Specify the output file format. This option is applicable for C(export) or C(export_custom_defaults) command.
       - The default export file format is always XML when the  I(command) is C(export_custom_defaults).
     type: str
     choices: ['JSON',  'XML']
