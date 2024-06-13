@@ -338,5 +338,7 @@
         ca_path: "/path/to/ca_cert.pem"
         job_wait: true
         command: import_custom_defaults
-        import_buffer: "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'>Disabled</Attribute>
+        import_buffer: "<SystemConfiguration><Component
+                       FQDD='iDRAC.Embedded.1'><Attribute
+                       Name='IPMILan.1#Enable'>Disabled</Attribute>
                       </Component></SystemConfiguration>"
