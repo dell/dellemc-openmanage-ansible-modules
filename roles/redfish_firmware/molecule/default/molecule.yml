@@ -6,7 +6,6 @@ provisioner:
     cleanup: ../resources/cleanup.yml
 scenario:
   test_sequence:
-    - dependency
     - cleanup
     - destroy
     - syntax
