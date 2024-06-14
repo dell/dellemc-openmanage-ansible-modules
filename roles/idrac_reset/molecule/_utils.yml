@@ -20,7 +20,8 @@
         new_user_name: "{{ idrac_user }}"
         user_password: "{{ idrac_password }}"
       when:
-        - reset_operation is defined and reset_operation in ['All', 'ResetAllWithRootDefaults']
+        - reset_operation is defined and reset_operation in
+         ['All', 'ResetAllWithRootDefaults']
         - operation is defined and operation == 'update_password'
         - idrac_password != default_password
 
@@ -36,7 +37,8 @@
           - ALL
         job_wait: true
       when:
-        - reset_operation is defined and reset_operation in ['All', 'ResetAllWithRootDefaults']
+        - reset_operation is defined and reset_operation
+         in ['All', 'ResetAllWithRootDefaults']
         - operation is defined and operation == 'export'
       register: scp_export_before_reset
 
@@ -53,6 +55,7 @@
         job_wait: true
         command: import
       when:
-        - reset_operation is defined and reset_operation in ['All', 'ResetAllWithRootDefaults']
+        - reset_operation is defined and reset_operation
+         in ['All', 'ResetAllWithRootDefaults']
         - operation is defined and operation == 'import'
       register: scp_import_after_reset

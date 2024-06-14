@@ -48,14 +48,16 @@
             reset_to_default: "{{ reset_operation }}"
           when: it_is_idrac9
 
-        - name: Updating password in iDRAC after reset in ALL and ResetAllWithRootDefaults
+        - name: Updating password in iDRAC after reset in ALL
+           and ResetAllWithRootDefaults
           ansible.builtin.include_tasks:
             file: ../_utils.yaml
           vars:
             operation: update_password
           when: it_is_iDRAC9 is defined and it_is_iDRAC9
 
-        - name: Performing iDRAC reset without reset to default default on iDRAC8.
+        - name: Performing iDRAC reset without reset to default
+           default on iDRAC8.
           ansible.builtin.import_role:
             name: dellemc.openmanage.idrac_reset
           vars:
@@ -75,14 +77,16 @@
         - name: Asserting after iDRAC reset on iDRAC9
           ansible.builtin.assert:
             that:
-              - idrac_reset_out.msg == "iDRAC reset operation completed successfully"
+              - idrac_reset_out.msg |
+                == "iDRAC reset operation completed successfully"
               - idrac_has_default_settings
           when: it_is_idrac9
 
         - name: Asserting after iDRAC reset on iDRAC8
           ansible.builtin.assert:
             that:
-              - idrac_reset_result is not skipped and idrac_reset_result is defined
+              - idrac_reset_result is not skipped and
+                idrac_reset_result is defined
               - idrac_reset_result.status is defined
               - idrac_reset_result.status == 405
           when: not it_is_idrac9
