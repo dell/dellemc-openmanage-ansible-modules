@@ -53,9 +53,9 @@
     - name: Set fact for redfish event settings retry interval
       ansible.builtin.set_fact:
         redfish_event_settings_retry_interval:
-         "{{ current_settings.json.DeliveryRetryIntervalSeconds }}"
+          "{{ current_settings.json.DeliveryRetryIntervalSeconds }}"
         idrac_has_default_settings: "{{ true if
-         current_settings.json.DeliveryRetryIntervalSeconds == 5 else false }}"
+          current_settings.json.DeliveryRetryIntervalSeconds == 5 else false }}"
         service_tag: "{{ service_tag.json.SKU }}"
         model: "{{ service_tag.json.Model }}"
       when: operation is defined and operation in
