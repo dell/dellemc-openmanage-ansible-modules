@@ -589,7 +589,7 @@ def validate_create_baseline_idempotency(module, rest_obj):
     name = module.params["names"][0]
     baseline_info = get_baseline_compliance_info(rest_obj, name, attribute="Name")
     if any(baseline_info):
-        module.exit_json(msg=BASELINE_CHECK_MODE_CHANGE_MSG.format(name=name), changed=False)
+        module.exit_json(msg=BASELINE_CHECK_MODE_CHANGE_MSG.format(name=name), compliance_status=baseline_info, changed=False)
     if not any(baseline_info) and module.check_mode:
         module.exit_json(msg=CHECK_MODE_CHANGES_MSG, changed=True)
 
