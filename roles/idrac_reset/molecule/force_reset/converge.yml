@@ -6,6 +6,8 @@
     idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
     idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
     idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    idrac8_success_msg: "iDRAC restart operation completed successfully"
+    idrac9_success_msg: "iDRAC reset operation completed successfully"
     validate_certs: false
 
   tasks:
@@ -62,16 +64,14 @@
         - name: Asserting after iDRAC reset on iDRAC9
           ansible.builtin.assert:
             that:
-              - idrac_reset_out.msg |
-                == "iDRAC reset operation completed successfully"
+              - idrac_reset_out.msg == "{{ idrac9_success_msg }}"
               - idrac_has_default_settings
           when: it_is_idrac9
 
         - name: Asserting after iDRAC reset on iDRAC8
           ansible.builtin.assert:
             that:
-              - idrac_reset_out.msg |
-                == "iDRAC restart operation completed successfully"
+              - idrac_reset_out.msg == "{{ idrac8_success_msg }}"
           when: not it_is_idrac9
 
       always:

@@ -8,6 +8,7 @@
     idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
     validate_certs: false
     reset_operation: "All"
+    reset_msg: "iDRAC reset operation completed successfully"
 
   tasks:
     - name: Performing reset_to_default_all operation
@@ -76,8 +77,7 @@
         - name: Asserting after iDRAC reset on iDRAC9
           ansible.builtin.assert:
             that:
-              - idrac_reset_out.msg |
-                == "iDRAC reset operation completed successfully"
+              - idrac_reset_out.msg == {{ reset_msg }}
               - idrac_has_default_settings
           when: it_is_idrac9
 

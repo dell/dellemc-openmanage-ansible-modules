@@ -10,10 +10,46 @@
 
 - name: Get or update settings block
   block:
+    - name: Constructing event url
+      ansible.builtin.set_fact:
+        url_1: "https://{{ idrac_ip | ansible.utils.ipwrap }}:"
+        url_2: "{{ https_port }}/redfish/v1/EventService/"
+
+    - name: Final event url
+      ansible.builtin.set_fact:
+        event_url: "{{ url_1 }}{{ url_2 }}"
+
+    - name: Constructing systems url
+      ansible.builtin.set_fact:
+        url_1: "https://{{ idrac_ip | ansible.utils.ipwrap }}:"
+        url_2: "{{ https_port }}/redfish/v1/Systems/System.Embedded.1/"
+
+    - name: Final systems url
+      ansible.builtin.set_fact:
+        systems_url: "{{ url_1 }}{{ url_2 }}"
+
+    - name: Constructing firmware url
+      ansible.builtin.set_fact:
+        url_1: "https://{{ idrac_ip | ansible.utils.ipwrap }}:"
+        url_2: "{{ https_port }}/redfish/v1/Managers/iDRAC.Embedded.1/"
+        url_3: "?$select=FirmwareVersion"
+
+    - name: Final firmware url
+      ansible.builtin.set_fact:
+        firmware_url: "{{ url_1 }}{{ url_2 }}{{ url_3 }}"
+
+    - name: Constructing managers url
+      ansible.builtin.set_fact:
+        url_1: "https://{{ idrac_ip | ansible.utils.ipwrap }}:"
+        url_2: "{{ https_port }}/redfish/v1/Managers/iDRAC.Embedded.1/"
+
+    - name: Final managers url
+      ansible.builtin.set_fact:
+        managers_url: "{{ url_1 }}{{ url_2 }}"
+
     - name: Update current settings to non-default
       ansible.builtin.uri: &uri_input
-        url: "https://{{ idrac_ip |
-         ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/EventService"
+        url: "{{ event_url }}"
         user: "{{ idrac_user }}"
         password: "{{ idrac_password }}"
         force_basic_auth: true
@@ -40,8 +76,7 @@
     - name: Fetch the service tag details from the device
       ansible.builtin.uri:
         <<: *uri_input
-        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:
-         {{ idrac_port }}/redfish/v1/Systems/System.Embedded.1"
+        url: "{{ systems_url }}"
         method: GET
         body: "{{ body | default(omit) }}"
         status_code: 200
@@ -63,14 +98,13 @@
 
     - name: Get iDRAC firmware version
       ansible.builtin.uri:
-        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
-         /redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
+        url: "{{ firmware_url }}"
         <<: *uri_input
         method: GET
         body: "{{ body | default(omit) }}"
       register: firmware_version
       when: operation is defined and operation == 'check_firmware_version'
-      no_log: true
+      no_log: false
 
     - name: Set fact to check iDRAC version and custom_default supported
       ansible.builtin.set_fact:
@@ -82,8 +116,7 @@
 
     - name: Fetch allowable values from iDRAC for reset
       ansible.builtin.uri:
-        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:
-         {{ idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1"
+        url: "{{ managers_url }}"
         <<: *uri_input
         method: GET
         body: "{{ body | default(omit) }}"
