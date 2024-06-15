@@ -1,0 +1,32 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Reset iDRAC.
+      idrac_reset:
+        wait_for_idrac: true
+      register: result
+
+    - name: verify idrac reset output
+      assert:
+        that:
+          - result.changed
+          - result.reset_status.idracreset.Status == "Success"
+          - result.msg == "Successfully performed iDRAC reset."
+
+  module_defaults:
+    dellemc.openmanage.idrac_reset:
+      idrac_ip: "{{idrac_ip}}"
+      idrac_user: "{{idrac_user}}"
+      idrac_password: "{{idrac_password}}"
+      validate_certs: "{{validate_certs}}"
