@@ -42,17 +42,16 @@
         operation: fetch_settings
 
     - name: Adding Model and ServiceTag in import_buffer_value
+      vars:
+        attr_name: 'RedfishEventing.1#DeliveryRetryIntervalInSeconds'
       ansible.builtin.set_fact:
-        import_buffer_value: >
-          <SystemConfiguration Model="{{ Model }}"
-             ServiceTag="{{ ServiceTag }}">
-            <Component FQDD="iDRAC.Embedded.1">
-              <Attribute 
-                Name="RedfishEventing.1#DeliveryRetryIntervalInSeconds">
-                  15
-              </Attribute>
+        import_buffer_value:
+          "<SystemConfiguration Model='{{ Model }}'
+           ServiceTag='{{ ServiceTag }}'>
+            <Component FQDD='iDRAC.Embedded.1'>
+              <Attribute Name='{{ attr_name }}'>15</Attribute>
             </Component>
-          </SystemConfiguration>
+          </SystemConfiguration>"
 
     - name: Creating temprory file for custom_defaults_buffer
       ansible.builtin.copy:
