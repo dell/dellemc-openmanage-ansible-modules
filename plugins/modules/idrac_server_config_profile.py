@@ -1065,8 +1065,8 @@ class ImportCustomDefaultCommand():
         changed = True
         command = self.module.params["command"]
         if not is_check_idrac_latest(self.idrac_firmware_version):
-            self.module.exit_json(msg=CUSTOM_ERROR.format(command=command,
-                                                          skipped=True))
+            self.module.exit_json(msg=CUSTOM_ERROR.format(command=command),
+                                  skipped=True)
         validate_customdefault_input(self.module, command)
         scp_status = import_custom_defaults(self.module, self.idrac)
         return scp_status, changed
@@ -1106,8 +1106,8 @@ class ExportCustomDefaultCommand():
     def execute(self):
         command = self.module.params["command"]
         if not is_check_idrac_latest(self.idrac_firmware_version):
-            self.module.exit_json(msg=CUSTOM_ERROR.format(command=command,
-                                                          skipped=True))
+            self.module.exit_json(msg=CUSTOM_ERROR.format(command=command),
+                                  skipped=True)
         validate_customdefault_input(self.module, command)
         scp_status = export_custom_defaults(self.module, self.idrac)
         return scp_status, False
