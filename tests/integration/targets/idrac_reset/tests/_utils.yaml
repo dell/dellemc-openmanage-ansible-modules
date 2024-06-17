@@ -44,12 +44,12 @@
 
   module_defaults:
     dellemc.openmanage.idrac_user:
-      idrac_ip: "{{idrac_ip}}"
+      idrac_ip: "{{ idrac_ip }}"
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"
     dellemc.openmanage.idrac_server_config_profile:
-      idrac_ip: "{{idrac_ip}}"
+      idrac_ip: "{{ idrac_ip }}"
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"

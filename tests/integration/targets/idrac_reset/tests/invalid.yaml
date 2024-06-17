@@ -19,7 +19,7 @@
         operation: check_firmware_version
 
     - name: Reset iDRAC (Negative - unreachable host)
-      idrac_reset:
+      dellemc.openmanage.idrac_reset:
         idrac_ip: "999.999.999.999"
       ignore_unreachable: true
       register: invalid_unreachable_host
@@ -32,7 +32,7 @@
              or service not known>"
 
     - name: Reset iDRAC (Negative - invalid user)
-      idrac_reset:
+      dellemc.openmanage.idrac_reset:
         idrac_user: "invalid_user"
       ignore_errors: true
       register: invalid_user
@@ -44,7 +44,7 @@
           - invalid_user.msg == ""HTTP Error 401: Unauthorized"
 
     - name: Reset iDRAC (Negative - invalid password)
-      idrac_reset:
+      dellemc.openmanage.idrac_reset:
         idrac_password: "invalid_pass"
       ignore_errors: true
       register: invalid_password
@@ -56,7 +56,7 @@
           - invalid_password.msg == ""HTTP Error 401: Unauthorized"
 
     - name: Reset iDRAC (Negative - invalid ca_path)
-      idrac_reset:
+      dellemc.openmanage.idrac_reset:
         ca_path: "invalid"
       ignore_errors: true
       register: invalid_ca_path
@@ -68,7 +68,7 @@
           - invalid_ca_path.msg == ""HTTP Error 401: Unauthorized"
 
     - name: Reset iDRAC (Negative - invalid job_wait_timeout)
-      idrac_reset:
+      dellemc.openmanage.idrac_reset:
         job_wait_timeout: -1
       ignore_errors: true
       register: invalid_timeout
@@ -82,7 +82,7 @@
             the operation."
 
     - name: Reset iDRAC (Negative - invalid reset_to_default)
-      idrac_reset:
+      dellemc.openmanage.idrac_reset:
         reset_to_default: "invalid"
       ignore_errors: true
       register: invalid_reset_to_default
@@ -96,7 +96,7 @@
              CustomDefaults, got: invalid"'
 
     - name: Reset iDRAC (Negative - invalid wait_for_idrac)
-      idrac_reset:
+      dellemc.openmanage.idrac_reset:
         wait_for_idrac: "invalid"
       ignore_errors: true
       register: invalid_wait_for_idrac
@@ -111,7 +111,7 @@
             invalid_wait_for_idrac.msg"
 
     - name: Reset iDRAC (Negative - invalid force_reset)
-      idrac_reset:
+      dellemc.openmanage.idrac_reset:
         force_reset: "invalid"
       ignore_errors: true
       register: invalid_force_reset
@@ -126,7 +126,7 @@
             invalid_force_reset.msg"
 
     - name: Reset iDRAC (Negative - invalid custom_defaults_file)
-      idrac_reset:
+      dellemc.openmanage.idrac_reset:
         reset_to_default: "CustomDefaults"
         custom_defaults_file: "invalid"
       ignore_errors: true
@@ -160,7 +160,7 @@
       when: not it_is_iDRAC9
 
     - name: Reset iDRAC (Negative - invalid custom_defaults_buffer)
-      idrac_reset:
+      dellemc.openmanage.idrac_reset:
         reset_to_default: "CustomDefaults"
         custom_defaults_buffer: "invalid"
       ignore_errors: true
@@ -194,7 +194,7 @@
 
     - name: Reset iDRAC (Negative - Checking whether custom_defaults_buffer
             is mutually exclusive with custom_defaults_file)
-      idrac_reset:
+      dellemc.openmanage.idrac_reset:
         reset_to_default: "CustomDefaults"
         custom_defaults_file: "invalid"
         custom_defaults_buffer: "invalid"
@@ -255,7 +255,7 @@
 
   module_defaults:
     dellemc.openmanage.idrac_reset:
-      idrac_ip: "{{idrac_ip}}"
-      idrac_user: "{{idrac_user}}"
-      idrac_password: "{{idrac_password}}"
-      validate_certs: "{{validate_certs}}"
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
