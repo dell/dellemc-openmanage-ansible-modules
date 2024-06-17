@@ -44,9 +44,13 @@
     - name: Adding Model and ServiceTag in import_buffer_value
       ansible.builtin.set_fact:
         import_buffer_value: >
-          <SystemConfiguration Model="{{ Model }}" ServiceTag="{{ ServiceTag }}">
+          <SystemConfiguration Model="{{ Model }}"
+             ServiceTag="{{ ServiceTag }}">
             <Component FQDD="iDRAC.Embedded.1">
-              <Attribute Name="RedfishEventing.1#DeliveryRetryIntervalInSeconds">15</Attribute>
+              <Attribute 
+                Name="RedfishEventing.1#DeliveryRetryIntervalInSeconds">
+                  15
+              </Attribute>
             </Component>
           </SystemConfiguration>
 

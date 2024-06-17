@@ -43,9 +43,13 @@
     - name: Adding Model and ServiceTag in import_buffer_value
       ansible.builtin.set_fact:
         import_buffer_value: >
-          <SystemConfiguration Model="{{ Model }}" ServiceTag="{{ ServiceTag }}">
+          <SystemConfiguration Model="{{ Model }}" 
+            ServiceTag="{{ ServiceTag }}">
             <Component FQDD="iDRAC.Embedded.1">
-              <Attribute Name="RedfishEventing.1#DeliveryRetryIntervalInSeconds">15</Attribute>
+              <Attribute 
+                Name="RedfishEventing.1#DeliveryRetryIntervalInSeconds">
+                  15
+              </Attribute>
             </Component>
           </SystemConfiguration>
 
@@ -62,14 +66,17 @@
           - idrac_reset_out_check_mode.changed
           - idrac_reset_out_check_mode.msg == 'Changes found to commit!'
           - not iDRAC_has_default_settings
-      when: (it_is_iDRAC9 is defined and it_is_iDRAC9) or custom_default_supported
+      when: (it_is_iDRAC9 is defined and it_is_iDRAC9) or
+             custom_default_supported
 
-    - name: Assertion for check mode for iDRAC8 or custom_defaults is not supported in iDRAC9
+    - name: Assertion for check mode for iDRAC8 or custom_defaults is
+            not supported in iDRAC9
       ansible.builtin.assert:
         that:
           - not idrac_reset_out_check_mode.changed
           - idrac_reset_out_check_mode.msg == 'No changes found to commit!'
-      when: (it_is_iDRAC9 is defined and not it_is_iDRAC9) or not custom_default_supported
+      when: (it_is_iDRAC9 is defined and not it_is_iDRAC9) or
+         not custom_default_supported
 
     - name: Performing reset to default in normal mode
       dellemc.openmanage.idrac_reset:
@@ -77,7 +84,8 @@
         custom_defaults_buffer: "{{ import_buffer_value }}"
       register: idrac_reset_out_normal_mode
 
-    - name: Updating password in iDRAC after reset in ALL and ResetAllWithRootDefaults
+    - name: Updating password in iDRAC after reset in ALL and
+       ResetAllWithRootDefaults
       ansible.builtin.include_tasks:
         file: ../_utils.yaml
       vars:
@@ -94,28 +102,34 @@
       ansible.builtin.assert:
         that:
           - idrac_reset_out_normal_mode.changed
-          - idrac_reset_out_normal_mode.msg == 'Successfully performed iDRAC reset.'
+          - idrac_reset_out_normal_mode.msg == 'Successfully performed
+             iDRAC reset.'
           - redfish_event_settings_retry_interval == '15'
           - "'reset_status' not in idrac_reset_out_normal_mode.keys()"
-      when: (it_is_iDRAC9 is defined and it_is_iDRAC9) and custom_default_supported
+      when: (it_is_iDRAC9 is defined and it_is_iDRAC9) and
+         custom_default_supported
 
-    - name: Assertion for normal mode - when custom_defaults is not supported in iDRAC9
+    - name: Assertion for normal mode - when custom_defaults is
+       not supported in iDRAC9
       ansible.builtin.assert:
         that:
           - not idrac_reset_out_normal_mode.changed
           - idrac_reset_out_normal_mode.skipped
           - >
-            "{{ reset_operation }} is not supported on this firmware version of iDRAC.
-             The supported values are {{ allowable_values }}.
-             Enter the valid values and retry the operation. == idrac_reset_out_normal_mode.msg"
-      when: (it_is_iDRAC9 is defined and it_is_iDRAC9) and not custom_default_supported
+            "{{ reset_operation }} is not supported on this firmware
+             version of iDRAC. The supported values are {{ allowable_values }}.
+             Enter the valid values and retry the
+             operation. == idrac_reset_out_normal_mode.msg"
+      when: (it_is_iDRAC9 is defined and it_is_iDRAC9) and
+         not custom_default_supported
 
     - name: Assertion for normal mode - iDRAC8
       ansible.builtin.assert:
         that:
           - not idrac_reset_out_normal_mode.changed
           - idrac_reset_out_normal_mode.skipped
-          - "'{{ reset_operation }} is not supported.' == idrac_reset_out_normal_mode.msg"
+          - "'{{ reset_operation }} is not
+             supported.' == idrac_reset_out_normal_mode.msg"
       when: it_is_iDRAC9 is defined and not it_is_iDRAC9
 
   always:
