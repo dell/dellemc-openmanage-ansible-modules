@@ -53,6 +53,9 @@ jobs:
           - stable-2.16
           - stable-2.17
           - devel
+        exclude:
+          - ansible: devel
+            python: '3.10'
     runs-on: ubuntu-latest
 
     steps:
@@ -80,6 +83,9 @@ jobs:
           - stable-2.16
           - stable-2.17
           - devel
+        exclude:
+          - ansible: devel
+            python: '3.10'
     runs-on: ubuntu-latest
     steps:
       - name: Perform sanity testing
@@ -100,6 +106,9 @@ jobs:
       matrix:
         python-version: ['3.10', '3.11']
         ansible-version: [stable-2.15, stable-2.16, stable-2.17, devel]
+        exclude:
+          - ansible: devel
+            python: '3.10'
     steps:
       # Important: This sets up your GITHUB_WORKSPACE environment variable
       - name: Checkout the source code
