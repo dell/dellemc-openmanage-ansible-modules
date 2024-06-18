@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.4.0
 # Copyright (C) 2018-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -66,6 +66,23 @@ options:
     type: bool
     default: false
     version_added: 9.2.0
+  default_username:
+    description:
+      - This parameter is only applied when I(reset_to_default) is C(All) or C(ResetAllWithRootDefaults).
+      - This parameter is required to track LifeCycle status of the server after the reset operation is
+        performed. If this parameter is not provided, then the LifeCycle status is not tracked after the
+        reset operation.
+    type: str
+    version_added: 9.4.0
+  default_password:
+    description:
+      - This parameter is only applied when I(reset_to_default) is C(All) or C(ResetAllWithRootDefaults).
+      - This parameter is required to track LifeCycle status of the server after the reset operation is
+        performed. If this parameter is not provided, then the LifeCycle status is not tracked after the
+        reset operation.
+    type: str
+    version_added: 9.4.0
+
 
 requirements:
   - "python >= 3.9.6"
@@ -73,6 +90,7 @@ author:
   - "Felix Stephen (@felixs88)"
   - "Anooja Vardhineni (@anooja-vardhineni)"
   - "Lovepreet Singh (@singh-lovepreet1)"
+  - "Abhishek Sinha (@ABHISHEK-SINHA10)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
@@ -83,14 +101,6 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: Reset the iDRAC to all and wait till the iDRAC is accessible.
-  dellemc.openmanage.idrac_reset:
-   idrac_ip: "192.168.0.1"
-   idrac_user: "user_name"
-   idrac_password: "user_password"
-   ca_path: "/path/to/ca_cert.pem"
-   reset_to_default: "All"
-
 - name: Reset the iDRAC to default and do not wait till the iDRAC is accessible.
   dellemc.openmanage.idrac_reset:
    idrac_ip: "192.168.0.1"
@@ -99,6 +109,17 @@ EXAMPLES = r'''
    ca_path: "/path/to/ca_cert.pem"
    reset_to_default: "Default"
    wait_for_idrac: false
+
+- name: Reset the iDRAC to All and wait for lifecycle controller status to be ready.
+  dellemc.openmanage.idrac_reset:
+   idrac_ip: "192.168.0.1"
+   idrac_user: "user_name"
+   idrac_password: "user_password"
+   ca_path: "/path/to/ca_cert.pem"
+   reset_to_default: "All"
+   wait_for_idrac: true
+   default_username: "user_name"
+   default_password: "user_password"
 
 - name: Force reset the iDRAC to default.
   dellemc.openmanage.idrac_reset:
@@ -324,7 +345,7 @@ class FactoryReset():
                                       skipped=True)
         if self.module.check_mode:
             self.check_mode_output(is_idrac9)
-        if is_idrac9 and not self.force_reset:
+        if is_idrac9 and self.reset_to_default and not self.force_reset:
             self.check_lcstatus(post_op=False)
         reset_status_mapping = {key: self.reset_to_default_mapped for key in ['Default', 'All', 'ResetAllWithRootDefaults']}
         reset_status_mapping.update({
@@ -332,7 +353,7 @@ class FactoryReset():
             'None': self.graceful_restart
         })
         msg_res, job_res = reset_status_mapping[str(self.reset_to_default)]()
-        if is_idrac9 and self.wait_for_idrac:
+        if is_idrac9 and self.wait_for_idrac and self.reset_to_default:
             self.check_lcstatus()
         return msg_res, job_res
 
@@ -356,9 +377,19 @@ class FactoryReset():
         if LooseVersion(self.idrac_firmware_version) >= '3.0':
             return True
 
+    def update_credentials_for_post_lc_statuc_check(self):
+        if (default_username := self.module.params.get("default_username")) and (
+            default_password := self.module.params.get("default_password")
+        ):
+            self.idrac.username = default_username
+            self.idrac.password = default_password
+            return True
+
     def check_lcstatus(self, post_op=True):
-        if self.reset_to_default in PASSWORD_CHANGE_OPTIONS and post_op and self.staus_code_after_wait == 401:
+        if self.reset_to_default in PASSWORD_CHANGE_OPTIONS and post_op and \
+           not self.update_credentials_for_post_lc_statuc_check():
             return
+
         lc_status_dict = {}
         lc_status_dict['LCStatus'] = ""
         retry_count = 1
@@ -394,11 +425,9 @@ class FactoryReset():
         result['idracreset']['Data'] = {'StatusCode': status}
         result['idracreset']['StatusCode'] = status
         track_failed, wait_msg = None, None
-        self.staus_code_after_wait = 202
         if status in STATUS_SUCCESS:
             if self.wait_for_idrac:
                 track_failed, status_code, wait_msg = self.wait_for_port_open()
-                self.staus_code_after_wait = status_code
                 if track_failed:
                     self.module.exit_json(msg=wait_msg, changed=True)
             tmp_res['msg'] = IDRAC_RESET_SUCCESS_MSG if self.wait_for_idrac else IDRAC_RESET_RESET_TRIGGER_MSG
@@ -529,12 +558,15 @@ def main():
         "custom_defaults_buffer": {"type": "str"},
         "wait_for_idrac": {"type": "bool", "default": True},
         "job_wait_timeout": {"type": 'int', "default": 600},
-        "force_reset": {"type": "bool", "default": False}
+        "force_reset": {"type": "bool", "default": False},
+        "default_username": {"type": "str"},
+        "default_password": {"type": "str", "no_log": True}
     }
 
     module = IdracAnsibleModule(
         argument_spec=specs,
         mutually_exclusive=[("custom_defaults_file", "custom_defaults_buffer")],
+        required_together=[('default_username', 'default_password')],
         supports_check_mode=True)
     try:
         with iDRACRedfishAPI(module.params) as idrac:
