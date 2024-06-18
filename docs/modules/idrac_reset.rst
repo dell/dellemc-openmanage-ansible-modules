@@ -71,6 +71,18 @@ Parameters
     This option is applicable only for iDRAC9.
 
 
+  default_username (optional, str, None)
+    This parameter is only applied when \ :emphasis:`reset\_to\_default`\  is \ :literal:`All`\  or \ :literal:`ResetAllWithRootDefaults`\ .
+
+    This parameter is required to track LifeCycle status of the server after the reset operation is performed. If this parameter is not provided, then the LifeCycle status is not tracked after the reset operation.
+
+
+  default_password (optional, str, None)
+    This parameter is only applied when \ :emphasis:`reset\_to\_default`\  is \ :literal:`All`\  or \ :literal:`ResetAllWithRootDefaults`\ .
+
+    This parameter is required to track LifeCycle status of the server after the reset operation is performed. If this parameter is not provided, then the LifeCycle status is not tracked after the reset operation.
+
+
   idrac_ip (True, str, None)
     iDRAC IP Address.
 
@@ -142,14 +154,6 @@ Examples
 
     
     ---
-    - name: Reset the iDRAC to all and wait till the iDRAC is accessible.
-      dellemc.openmanage.idrac_reset:
-       idrac_ip: "192.168.0.1"
-       idrac_user: "user_name"
-       idrac_password: "user_password"
-       ca_path: "/path/to/ca_cert.pem"
-       reset_to_default: "All"
-
     - name: Reset the iDRAC to default and do not wait till the iDRAC is accessible.
       dellemc.openmanage.idrac_reset:
        idrac_ip: "192.168.0.1"
@@ -158,6 +162,17 @@ Examples
        ca_path: "/path/to/ca_cert.pem"
        reset_to_default: "Default"
        wait_for_idrac: false
+
+    - name: Reset the iDRAC to All and wait for lifecycle controller status to be ready.
+      dellemc.openmanage.idrac_reset:
+       idrac_ip: "192.168.0.1"
+       idrac_user: "user_name"
+       idrac_password: "user_password"
+       ca_path: "/path/to/ca_cert.pem"
+       reset_to_default: "All"
+       wait_for_idrac: true
+       default_username: "user_name"
+       default_password: "user_password"
 
     - name: Force reset the iDRAC to default.
       dellemc.openmanage.idrac_reset:
@@ -227,4 +242,5 @@ Authors
 - Felix Stephen (@felixs88)
 - Anooja Vardhineni (@anooja-vardhineni)
 - Lovepreet Singh (@singh-lovepreet1)
+- Abhishek Sinha (@ABHISHEK-SINHA10)
 
