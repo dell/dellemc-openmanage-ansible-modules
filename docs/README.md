@@ -99,6 +99,7 @@ You may obtain a copy of the License at
 | [ome_profile_info](modules/ome_profile_info.rst)                                           |
 | [ome_server_interface_profile_info](modules/ome_server_interface_profile_info.rst)         |
 | [ome_server_interface_profiles](modules/ome_server_interface_profiles.rst)                 |
+| [ome_session](modules/ome_session.rst)                                                     |
 | [ome_smart_fabric_info](modules/ome_smart_fabric_info.rst)                                 |
 | [ome_smart_fabric](modules/ome_smart_fabric.rst)                                           |
 | [ome_smart_fabric_uplink_info](modules/ome_smart_fabric_uplink_info.rst)                   |
