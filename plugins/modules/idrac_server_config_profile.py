@@ -580,6 +580,7 @@ from ansible.module_utils.six.moves.urllib.parse import urlparse
 
 
 REDFISH_SCP_BASE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
+MANAGER_ID = 'iDRAC.Embedded.1'
 CHANGES_FOUND = "Changes found to be applied."
 INVALID_SHARE_NAME = "Unable to perform the {command} operation because an invalid Share name is entered. \
 Only 'local' share name is supported. Enter the valid Share name and retry the operation."
@@ -856,7 +857,7 @@ def get_xml_content(module, xml_content):
     idrac_content = None
     try:
         root = ET.fromstring(xml_content)
-        component = next((c for c in root.iter('Component') if c.get('FQDD') == 'iDRAC.Embedded.1'), None)
+        component = next((c for c in root.iter('Component') if c.get('FQDD') == MANAGER_ID), None)
         if component:
             idrac_content = ET.tostring(component).decode('utf-8')
         return idrac_content
@@ -1153,6 +1154,7 @@ def main():
     validate_input(module, module.params.get("scp_components"))
     try:
         http_share = False
+        msg = None
         command = module.params.get("command")
         if module.params.get("share_name") is not None:
             http_share = module.params["share_name"].lower().startswith(('http://', 'https://'))
@@ -1176,14 +1178,16 @@ def main():
         if module.params.get('job_wait'):
             if command != "export_custom_defaults":
                 scp_status = strip_substr_dict(scp_status)
-            msg = "Successfully {0}ed the Server Configuration Profile."
-            if command not in ["import", "export", "preview"]:
+            if command in ["import", "export", "preview"]:
+                msg = "Successfully {0}ed the Server Configuration Profile."
+            else:
                 command = command.split("_")[0]
                 msg = "Successfully {0}ed the custom defaults Server Configuration Profile."
             module.exit_json(changed=changed, msg=msg.format(command), scp_status=scp_status)
         else:
-            msg = "Successfully triggered the job to {0} the Server Configuration Profile."
-            if command not in ["import", "export", "preview"]:
+            if command in ["import", "export", "preview"]:
+                msg = "Successfully triggered the job to {0} the Server Configuration Profile."
+            else:
                 command = command.split("_")[0]
                 msg = "Successfully triggered the job to {0} the custom defaults Server Configuration Profile."
             module.exit_json(msg=msg.format(command), scp_status=scp_status)
