@@ -333,6 +333,7 @@ error_info:
 import json
 import time
 import re
+import datetime
 from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -375,6 +376,8 @@ NO_CAPABLE_DEVICES = "Target {0} contains devices which cannot be used for a bas
 CRON_REGEX = r'(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5,7})'
 INVALID_CRON_TIME_MSG = "Invalid cron time format."
 JOB_URI = "JobService/Jobs({job_id})"
+TIME_URI = "ApplicationService/Network/TimeConfiguration"
+PAST_TIME_MSG = "The specified time occurs in the past, provide a future time to schedule the job."
 
 
 def validate_identifiers(available_values, requested_values, identifier_types, module):
@@ -797,21 +800,13 @@ def create_remediate_payload(module, noncomplaint_devices, baseline_info, rest_o
     if module.params.get("run_later"):
         if not validate_cron(module.params.get("cron")):
             module.exit_json(msg=INVALID_CRON_TIME_MSG, failed=True)
-        payload = {
-            "Id": baseline_info.get("Id"),
-            "Schedule": {
-                "RunNow": False,
-                "RunLater": True,
-                "Cron": module.params.get("cron")
-            }
-        }
+        validate_time(module, rest_obj)
+        payload['Schedule']['Cron'] = module.params.get("cron")
+        payload['Schedule']['RunNow'] = False
+        payload['Schedule']['RunLater'] = True
     elif module.params.get("staged_at_reboot"):
-        payload = {
-            "Id": baseline_info.get("Id"),
-            "IsStaged": True,
-            "Schedule": {
-            }
-        }
+        payload['IsStaged'] = True
+        payload['Schedule'] = {}
     if LooseVersion(ome_version) >= "3.5":
         payload["DeviceIds"] = noncomplaint_devices
     else:
@@ -822,6 +817,20 @@ def create_remediate_payload(module, noncomplaint_devices, baseline_info, rest_o
 def validate_cron(cron_string):
     cron_pattern = CRON_REGEX
     return bool(re.match(cron_pattern, cron_string))
+
+
+def validate_time(module, rest_obj):
+    cron_string = module.params.get("cron")
+    try:
+        cron_dt = datetime.datetime.strptime(cron_string, "%S %M %H %d %m ? %Y")
+    except ValueError:
+        module.exit_json(msg=INVALID_CRON_TIME_MSG, failed=True)
+    job_resp = rest_obj.invoke_request('GET', TIME_URI)
+    job_dict = job_resp.json_data
+    time_string = job_dict['SystemTime']
+    provided_time_dt = datetime.datetime.strptime(time_string, '%Y-%m-%d %H:%M:%S.%f')
+    if provided_time_dt > cron_dt:
+        module.exit_json(msg=PAST_TIME_MSG, failed=True)
 
 
 def remediate_baseline(module, rest_obj):

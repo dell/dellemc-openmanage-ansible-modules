@@ -927,8 +927,11 @@ class TestOmeConfigCompBaseline(FakeAnsibleModule):
         f_module = self.get_module_mock(
             params={"run_later": True, "cron": "0 00 11 14 02 ? 2033"}
         )
+        time_string = "2024-06-18 16:23:02.628"
         mocker.patch(MODULE_PATH + 'get_ome_version',
                      return_value=val)
+        mocker.patch(MODULE_PATH + 'validate_time',
+                     return_value=time_string)
         payload = self.module.create_remediate_payload(f_module, [Constants.device_id1], baseline_output,
                                                        ome_connection_mock_for_compliance)
         assert "TargetIds" in payload
