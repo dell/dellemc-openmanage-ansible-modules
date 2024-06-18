@@ -14,9 +14,15 @@
 
     - name: Set url path
       ansible.builtin.set_fact:
-        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/
-          redfish/v1/Systems/System.Embedded.1/Storage/{{ controller_name }}/
-          Volumes/{{ virtual_disk }}"
+        url: >-
+          {{ "https://" +
+          (idrac_ip | ansible.utils.ipwrap) +
+          ":" +
+          (idrac_port | string) +
+          "/redfish/v1/Systems/System.Embedded.1/Storage/" +
+          controller_name +
+          "/Volumes/" +
+          virtual_disk }}
 
     - name: Get data using uri
       ansible.builtin.uri:
