@@ -79,18 +79,18 @@
       delegate_to: localhost
       when: https_file.stat.exists
 
-    - name: Unmounting NFS volume from localhost
-      ansible.posix.mount:
-        src: "{{ nfs_url }}"
-        path: "{{ nfs_mount_path }}"
-        state: unmounted
-        fstype: nfs
+    - name: Unmount NFS volume from localhost and delete the directory
+      ansible.builtin.command: "umount '{{ nfs_mount_path }}' &&
+       rm -rf '{{ nfs_mount_path }}'"
       delegate_to: localhost
+      register: unmount_nfs
+      changed_when: unmount_nfs.rc == 0
+      failed_when: false
 
-    - name: Unmounting CIFS volume from localhost
-      ansible.posix.mount:
-        src: "{{ cifs_url }}"
-        path: "{{ cifs_mount_path }}"
-        state: unmounted
-        fstype: nfs
+    - name: Unmount CIFS volume from localhost and delete the directory
+      ansible.builtin.command: "umount '{{ cifs_mount_path }}'
+       && rm -rf '{{ cifs_mount_path }}'"
       delegate_to: localhost
+      register: unmount_cifs
+      changed_when: unmount_cifs.rc == 0
+      failed_when: false

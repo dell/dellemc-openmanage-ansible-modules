@@ -1,0 +1,40 @@
+---
+- name: Constructing url
+  ansible.builtin.set_fact:
+    url_1: "https://{{ hostname | ansible.utils.ipwrap }}:"
+    url_2: "{{ https_port }}/redfish/v1/Dell/Managers/"
+    url_3: "iDRAC.Embedded.1/DellLCService/Actions"
+    url_4: "/DellLCService.GetRemoteServicesAPIStatus"
+
+- name: Final url
+  ansible.builtin.set_fact:
+    lc_status_url: "{{ url_1 }}{{ url_2 }}{{ url_3 }}{{ url_4 }}"
+
+- name: Fetching lifecycle controller status info
+  ansible.builtin.uri:
+    url: "{{ lc_status_url }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    headers:
+      Accept: "application/json"
+      Content-Type: "application/json"
+      OData-Version: "4.0"
+    body_format: "json"
+    method: POST
+    body: {}
+    return_content: true
+    force_basic_auth: true
+    timeout: "{{ https_timeout }}"
+  check_mode: false
+  register: result
+  until: result.json.LCStatus == "Ready"
+  retries: 240
+  delay: 15
+
+- name: Waiting for 1 min even after LCStatus is Ready before proceeding
+  ansible.builtin.wait_for:
+    timeout: 60
+  when: result.json.LCStatus == "Ready"
+  check_mode: false
