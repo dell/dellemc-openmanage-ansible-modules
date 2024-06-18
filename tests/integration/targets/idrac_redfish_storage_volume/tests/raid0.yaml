@@ -22,7 +22,8 @@
   ansible.builtin.fail:
     msg: 'Physical disks are not sufficient to proceed with test case
       execution. Needs a minimum 2, but found {{ physical_disks | length }}'
-  when: "{{ physical_disks | length }} < 2"
+  when:
+    - physical_disks | length < 2
 
 - block:
     - name: Create a RAID0 volume using the raid_type parameter with the
@@ -55,11 +56,17 @@
       register: result_raid
 
     - name: Wait for iDRAC lifecycle controller readiness
-      ansible.builtin.include_role: name=
-        prepare_idrac_lifecycle_controller_status
+      ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
 
     - name: Fetch volume details
       ansible.builtin.include_tasks: _get_volume_details.yml
+
+    - name: Construct expected URI for assertion
+      ansible.builtin.set_fact:
+        result_raid_expected_uri: >-
+          {{ "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/" +
+          result_raid.task.id }}
 
     - name: Verify task status - Create a RAID0 volume using the raid_type
         parameter with the minimum number of disks (Normal mode)
@@ -68,8 +75,7 @@
           - result_raid.changed
           - changes_applied in result_raid.msg
           - result_raid.task.id
-          - 'result_raid.task.uri == "/redfish/v1/Managers/iDRAC.Embedded.1/
-            Jobs/{{ result_raid.task.id }}"'
+          - result_raid.task.uri == result_raid_expected_uri
           # Verify volume details
           - uri_data.DisplayName == "RAID0_Volume"
           - uri_data.RAIDType == "RAID0"
@@ -121,11 +127,17 @@
       register: result_volume
 
     - name: Wait for iDRAC lifecycle controller readiness
-      ansible.builtin.include_role: name=
-        prepare_idrac_lifecycle_controller_status
+      ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
 
     - name: Fetch volume details
       ansible.builtin.include_tasks: _get_volume_details.yml
+
+    - name: Construct expected URI for assertion
+      ansible.builtin.set_fact:
+        result_volume_expected_uri: >-
+          {{ "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/" +
+          result_volume.task.id }}
 
     - name: Verify task status - Create a RAID0 volume using the volume_type
         parameter with more than the minimum number of disks (Normal mode)
@@ -134,8 +146,7 @@
           - result_volume.changed
           - changes_applied in result_volume.msg
           - result_volume.task.id
-          - 'result_volume.task.uri == "/redfish/v1/Managers/iDRAC.Embedded.1/
-            Jobs/{{ result_volume.task.id }}"'
+          - result_volume.task.uri == result_volume_expected_uri
           # Verify volume details
           - uri_data.DisplayName == "RAID0_Volume"
           - uri_data.RAIDType == "RAID0"

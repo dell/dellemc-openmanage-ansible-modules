@@ -22,7 +22,8 @@
   ansible.builtin.fail:
     msg: 'Physical disks are not sufficient to proceed with test case
       execution. Needs a minimum 2, but found {{ physical_disks | length }}'
-  when: "{{ physical_disks | length }} < 5"
+  when:
+    - physical_disks | length < 5
 
 - block:
     - name: Create a RAID5 volume using the raid_type parameter with the
@@ -61,16 +62,18 @@
         job_id: "{{ result_raid.task.id }}"
       when: result_raid.msg == "Successfully submitted create volume task."
 
-    - name: Set job id for assertion
-      ansible.builtin.set_fact:
-        job_id: "{{ result_raid.task.id }}"
-
     - name: Wait for iDRAC lifecycle controller readiness
-      ansible.builtin.include_role: name=
-        prepare_idrac_lifecycle_controller_status
+      ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
 
     - name: Fetch volume details
       ansible.builtin.include_tasks: _get_volume_details.yml
+
+    - name: Construct expected URI for assertion
+      ansible.builtin.set_fact:
+        result_raid_expected_uri: >-
+          {{ "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/" +
+          result_raid.task.id }}
 
     - name: Verify task status - Create a RAID5 volume using the raid_type
         parameter with the minimum number of disks (Normal mode)
@@ -79,8 +82,7 @@
           - result_raid.changed
           - 'result_raid.msg == "Successfully submitted create volume task."'
           - result_raid.task.id
-          - 'result_raid.task.uri == "/redfish/v1/Managers/iDRAC.Embedded.1/
-            Jobs/{{ job_id }}"'
+          - result_raid.task.uri == result_raid_expected_uri
           # Verify volume details
           - uri_data.DisplayName == "RAID5_Volume"
           - uri_data.RAIDType == "RAID5"
@@ -139,16 +141,18 @@
         job_id: "{{ result_volume.task.id }}"
       when: result_volume.msg == "Successfully submitted create volume task."
 
-    - name: Set job id for assertion
-      ansible.builtin.set_fact:
-        job_id: "{{ result_volume.task.id }}"
-
     - name: Wait for iDRAC lifecycle controller readiness
-      ansible.builtin.include_role: name=
-        prepare_idrac_lifecycle_controller_status
+      ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
 
     - name: Fetch volume details
       ansible.builtin.include_tasks: _get_volume_details.yml
+
+    - name: Construct expected URI for assertion
+      ansible.builtin.set_fact:
+        result_volume_expected_uri: >-
+          {{ "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/" +
+          result_volume.task.id }}
 
     - name: Verify task status - Create a RAID5 volume using the volume_type
         parameter with more than the minimum number of disks (Normal mode)
@@ -157,8 +161,7 @@
           - result_volume.changed
           - 'result_volume.msg == "Successfully submitted create volume task."'
           - result_volume.task.id
-          - 'result_volume.task.uri == "/redfish/v1/Managers/iDRAC.Embedded.1/
-            Jobs/{{ job_id }}"'
+          - result_volume.task.uri == result_volume_expected_uri
           # Verify volume details
           - uri_data.DisplayName == "RAID5_Volume"
           - uri_data.RAIDType == "RAID5"

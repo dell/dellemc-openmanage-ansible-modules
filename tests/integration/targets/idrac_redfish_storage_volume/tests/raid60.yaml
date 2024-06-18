@@ -20,11 +20,14 @@
 
 - name: Prerequisite - fail if not enough disk is found to create a volume
   ansible.builtin.fail:
-    msg: 'Physical disks are not sufficient to proceed with test case execution. Needs a minimum 10, but found {{ physical_disks | length }}'
-  when: "{{ physical_disks | length }} < 10"
+    msg: 'Physical disks are not sufficient to proceed with test case
+      execution. Needs a minimum 10, but found {{ physical_disks | length }}'
+  when:
+    - physical_disks | length < 10
 
 - block:
-    - name: Create a RAID60 volume using the raid_type parameter with the minimum number of disks (Check mode - Changes expected)
+    - name: Create a RAID60 volume using the raid_type parameter with the
+        minimum number of disks (Check mode - Changes expected)
       dellemc.openmanage.redfish_storage_volume: &raid60_task_min_disk
         state: present
         raid_type: "{{ raid_type }}"
@@ -44,13 +47,16 @@
       register: cm_result_raid
       check_mode: true
 
-    - name: Verify task status - Create a RAID60 volume using the raid_type parameter with the minimum number of disks (Check mode - Changes expected)
+    - name: Verify task status - Create a RAID60 volume using the raid_type
+        parameter with the minimum number of disks (Check mode - Changes
+        expected)
       ansible.builtin.assert:
         that:
           - cm_result_raid.changed
           - 'cm_result_raid.msg == "Changes found to be applied."'
 
-    - name: Create a RAID60 volume using the raid_type parameter with the minimum number of disks (Normal mode)
+    - name: Create a RAID60 volume using the raid_type parameter with the
+        minimum number of disks (Normal mode)
       dellemc.openmanage.redfish_storage_volume:
         <<: *raid60_task_min_disk
       register: result_raid
@@ -61,23 +67,27 @@
         job_id: "{{ result_raid.task.id }}"
       when: result_raid.msg == "Successfully submitted create volume task."
 
-    - name: Set job id for assertion
-      ansible.builtin.set_fact:
-        job_id: "{{ result_raid.task.id }}"
-
     - name: Wait for iDRAC lifecycle controller readiness
-      ansible.builtin.include_role: name=prepare_idrac_lifecycle_controller_status
+      ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
 
     - name: Fetch volume details
       ansible.builtin.include_tasks: _get_volume_details.yml
 
-    - name: Verify task status - Create a RAID60 volume using the raid_type parameter with the minimum number of disks (Normal mode)
+    - name: Construct expected URI for assertion
+      ansible.builtin.set_fact:
+        result_raid_expected_uri: >-
+          {{ "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/" +
+          result_raid.task.id }}
+
+    - name: Verify task status - Create a RAID60 volume using the raid_type
+        parameter with the minimum number of disks (Normal mode)
       ansible.builtin.assert:
         that:
           - result_raid.changed
           - 'result_raid.msg == "Successfully submitted create volume task."'
           - result_raid.task.id
-          - 'result_raid.task.uri == "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{{ job_id }}"'
+          - result_raid.task.uri == result_raid_expected_uri
           # Verify volume details
           - uri_data.DisplayName == "RAID60_Volume"
           - uri_data.RAIDType == "RAID60"
@@ -85,12 +95,14 @@
           - uri_data.BlockSizeBytes == 512
           - uri_data.CapacityBytes == 322122547200
 
-    - name: Create a RAID60 volume using the raid_type parameter with the minimum number of disks (Idempotence)
+    - name: Create a RAID60 volume using the raid_type parameter with the
+        minimum number of disks (Idempotence)
       dellemc.openmanage.redfish_storage_volume:
         <<: *raid60_task_min_disk
       register: idempotence_result_raid
 
-    - name: Verify task status - Create a RAID60 volume using the raid_type parameter with the minimum number of disks (Idempotence)
+    - name: Verify task status - Create a RAID60 volume using the raid_type
+        parameter with the minimum number of disks (Idempotence)
       ansible.builtin.assert:
         that:
           - not idempotence_result_raid.changed
@@ -99,7 +111,8 @@
     - name: Set prerequisite
       ansible.builtin.include_tasks: _helper.yml
 
-    - name: Create a RAID60 volume using the raid_type parameter with more than the minimum number of disks (Check mode - Changes expected)
+    - name: Create a RAID60 volume using the raid_type parameter with more
+        than the minimum number of disks (Check mode - Changes expected)
       dellemc.openmanage.redfish_storage_volume: &raid60_task_more_disk
         state: present
         raid_type: "{{ raid_type }}"
@@ -119,13 +132,16 @@
       register: cm_result_volume
       check_mode: true
 
-    - name: Verify task - Create a RAID60 volume using the raid_type parameter with more than the minimum number of disks (Check mode - Changes expected)
+    - name: Verify task - Create a RAID60 volume using the raid_type parameter
+        with more than the minimum number of disks (Check mode - Changes
+        expected)
       ansible.builtin.assert:
         that:
           - cm_result_volume.changed
           - 'cm_result_volume.msg == "Changes found to be applied."'
 
-    - name: Create a RAID60 volume using the raid_type parameter with more than the minimum number of disks (Normal mode)
+    - name: Create a RAID60 volume using the raid_type parameter with more than
+        the minimum number of disks (Normal mode)
       dellemc.openmanage.redfish_storage_volume:
         <<: *raid60_task_more_disk
       register: result_volume
@@ -136,39 +152,46 @@
         job_id: "{{ result_volume.task.id }}"
       when: result_volume.msg == "Successfully submitted create volume task."
 
-    - name: Set job id for assertion
-      ansible.builtin.set_fact:
-        job_id: "{{ result_volume.task.id }}"
-
     - name: Wait for iDRAC lifecycle controller readiness
-      ansible.builtin.include_role: name=prepare_idrac_lifecycle_controller_status
+      ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
 
     - name: Fetch volume details
       ansible.builtin.include_tasks: _get_volume_details.yml
 
-    - name: Verify task status - Create a RAID60 volume using the raid_type parameter with more than the minimum number of disks (Normal mode)
+    - name: Construct expected URI for assertion
+      ansible.builtin.set_fact:
+        result_volume_expected_uri: >-
+          {{ "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/" +
+          result_volume.task.id }}
+
+    - name: Verify task status - Create a RAID60 volume using the raid_type
+        parameter with more than the minimum number of disks (Normal mode)
       ansible.builtin.assert:
         that:
           - result_volume.changed
           - 'result_volume.msg == "Successfully submitted create volume task."'
           - result_volume.task.id
-          - 'result_volume.task.uri == "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{{ job_id }}"'
+          - result_volume.task.uri == result_volume_expected_uri
           # Verify volume details
           - uri_data.DisplayName == "RAID60_Volume"
           - uri_data.RAIDType == "RAID60"
           - uri_data.OptimumIOSizeBytes == 65536
           - uri_data.BlockSizeBytes == 512
 
-    - name: Create a RAID60 volume using the raid_type parameter with more than the minimum number of disks (Idempotence)
+    - name: Create a RAID60 volume using the raid_type parameter with more than
+        the minimum number of disks (Idempotence)
       dellemc.openmanage.redfish_storage_volume:
         <<: *raid60_task_more_disk
       register: idempotence_result_volume
 
-    - name: Verify task status - Create a RAID60 volume using the raid_type parameter with more than the minimum number of disks (Idempotence)
+    - name: Verify task status - Create a RAID60 volume using the raid_type
+        parameter with more than the minimum number of disks (Idempotence)
       ansible.builtin.assert:
         that:
           - not idempotence_result_volume.changed
-          - 'idempotence_result_volume.msg == "No changes found to be applied."'
+          - 'idempotence_result_volume.msg == "No changes found to be
+            applied."'
 
   always:
     - name: Post clean up

@@ -1,8 +1,8 @@
 - block:
     - name: Fetching data from iDRAC
       ansible.builtin.uri:
-        url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}/
-          redfish/v1/Systems/System.Embedded.1/Storage?$expand=*($levels=1)"
+        url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}
+          /redfish/v1/Systems/System.Embedded.1/Storage?$expand=*($levels=1)"
         user: "{{ idrac_user }}"
         password: "{{ idrac_password }}"
         method: GET
