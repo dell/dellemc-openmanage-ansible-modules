@@ -1021,12 +1021,12 @@ def import_custom_defaults(module, idrac):
     if not cds_diff:
         module.exit_json(msg=NO_CHANGES_FOUND, changed=False)
     share = {}
-    if not import_buffer:
+    if import_buffer:
+        buffer_text = import_buffer
+    else:
         share, _scp_file_name_format = get_scp_share_details(module)
         share["file_name"] = module.params.get("scp_file")
         buffer_text = get_buffer_text(module, share)
-    else:
-        buffer_text = import_buffer
     payload = {"CustomDefaults": buffer_text}
     url = None
     resp = get_dynamic_uri(idrac, REDFISH_SCP_BASE_URI, "Actions")
