@@ -1176,8 +1176,7 @@ def main():
             scp_status, changed = command_obj.execute()
 
         if module.params.get('job_wait'):
-            if command != "export_custom_defaults":
-                scp_status = strip_substr_dict(scp_status)
+            scp_status = strip_substr_dict(scp_status)
             if command in ["import", "export", "preview"]:
                 msg = "Successfully {0}ed the Server Configuration Profile."
             else:
