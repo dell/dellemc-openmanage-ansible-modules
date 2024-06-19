@@ -1,0 +1,77 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: hostname, username
+         and password.'
+  when: hostname is not defined or username is not defined or password
+         is not defined
+
+- block:
+    - name: Create a new session - Check mode
+      dellemc.openmanage.ome_session:
+      check_mode: true
+      register: create_session_check
+
+    - name: Verify creation of session - Check mode
+      ansible.builtin.assert:
+        that:
+          - create_session_check.changed
+          - create_session_check.msg == 'Changes found to be applied.'
+
+    - name: Create a new session - Normal mode
+      dellemc.openmanage.ome_session:
+      register: create_session_output
+
+    - name: Verify creation of session - Normal mode
+      ansible.builtin.assert:
+        that:
+          - create_session_output.changed
+          - create_session_output.msg == 'The session has been
+             created successfully.'
+          - create_session_output.x_auth_token
+          - create_session_output.session_data
+
+    - name: Set auth token and session id
+      ansible.builtin.set_fact:
+        x_auth_token: "{{ create_session_output.x_auth_token }}"
+        session_id: "{{ create_session_output.session_data.Id }}"
+      when: create_session_output.changed
+
+    - name: Validate creation of session via API
+      ansible.builtin.uri:
+        url: "https://{{ hostname | ansible.utils.ipwrap }}:{{ port }}
+         /api/SessionService/Sessions('{{ session_id }}')"
+        method: GET
+        status_code: 200
+        user: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        body_format: json
+        return_content: true
+        headers: 'Accept=application/json'
+        force_basic_auth: true
+      register: uri_session_output
+
+    - name: Verify creation of session via API
+      ansible.builtin.assert:
+        that:
+          - not uri_session_output.changed
+          - "'OK' in uri_session_output.msg"
+          - uri_session_output.status == 200
+
+  always:
+    - name: Perform Cleanup - Delete the session
+      ansible.builtin.include_tasks: _delete_helper.yml
+
+  module_defaults:
+    dellemc.openmanage.ome_session:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      port: "{{ port }}"
+      username: "{{ username }}"
+      password: "{{ password }}"

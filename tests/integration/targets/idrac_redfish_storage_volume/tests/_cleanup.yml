@@ -1,0 +1,17 @@
+---
+- block:
+    - name: Delete RAID volume
+      dellemc.openmanage.redfish_storage_volume:
+        state: absent
+        volume_id: "{{ uri_data.Id }}"
+        reboot_server: "{{ reboot_server }}"
+        job_wait: "{{ b_true }}"
+      when: uri_data is defined
+      register: result_delete_volume
+
+  module_defaults:
+    dellemc.openmanage.redfish_storage_volume:
+      baseuri: "{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
