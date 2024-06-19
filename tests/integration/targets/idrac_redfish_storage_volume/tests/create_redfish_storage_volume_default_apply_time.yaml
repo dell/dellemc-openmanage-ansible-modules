@@ -164,7 +164,8 @@
       dellemc.openmanage.redfish_storage_volume:
         <<: *module_params1
 
-    - name: create_redfish_storage_volume_apply_time_on_reset assert idempotency_mode
+    - name: create_redfish_storage_volume_apply_time_on_reset assert
+        idempotency_mode
       ansible.builtin.assert:
         that:
           - result.changed is false

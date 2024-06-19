@@ -1,3 +1,4 @@
+---
 - name: Perform force restart of the device
   dellemc.openmanage.redfish_powerstate:
     baseuri: "{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}"

@@ -1,4 +1,5 @@
 # Fetch volume details from iDRAC
+---
 - block:
     - name: Fetch storage details
       dellemc.openmanage.dellemc_idrac_storage_volume:

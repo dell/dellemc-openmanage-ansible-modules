@@ -35,8 +35,8 @@
         controller_id: "{{ controller_name }}"
         drives:
           - "{{ physical_disks[0] }}"
-        optimum_io_size_bytes: 65536 # 64KB=(64*1024)
-        capacity_bytes: 104857600 # 100MB
+        optimum_io_size_bytes: 65536  # 64KB=(64*1024)
+        capacity_bytes: 104857600  # 100MB
         job_wait: "{{ b_true }}"
       register: cm_result_raid
       check_mode: true

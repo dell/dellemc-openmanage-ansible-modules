@@ -94,8 +94,7 @@
           - not invalid_name_special_char.changed
           - 'invalid_name_special_char.msg == "HTTP Error 400: Bad Request"'
 
-    - name: Negative - invalid name - more characters # Supported string length
-        # is 1 to 15
+    - name: Negative - invalid name - more characters
       dellemc.openmanage.redfish_storage_volume:
         state: present
         name: more_character_a

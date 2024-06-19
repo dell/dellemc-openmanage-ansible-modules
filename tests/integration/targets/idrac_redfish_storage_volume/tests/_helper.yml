@@ -1,3 +1,4 @@
+---
 - block:
     - name: Fetching data from iDRAC
       ansible.builtin.uri:
