@@ -95,18 +95,22 @@ options:
     type: str
   run_later:
     description:
-      - Indicates whether template is to be assigned immediately or in the future.
+      - Indicates whether to remediate immediately or in the future.
+      - This is applicable when I(command) is C(remediate).
       - If I(run_later) is C(true), then I(staged_at_reboot) is ignored.
       - If I(run_later) is C(true), then I(job_wait) is not applicable.
+      - If I(run_later) is C(true), then I(cron) must be specified.
     type: bool
   cron:
     description:
       - Provide a cron expression based on Quartz cron format.
-      - If I(run_later) is C(true), then I(cron) must be specified.
+      - Time format is "%S %M %H %d %m ? %Y".
+      - This is applicable when I(run_later) is C(true).
     type: str
   staged_at_reboot:
     description:
-      - Indicates whether template has to be executed on next reboot.
+      - Indicates whether remediate has to be executed on next reboot.
+      - If I(staged_at_reboot) is C(true), then remediation will occur during the next reboot.
     type: bool
   job_wait:
     description:
@@ -242,7 +246,7 @@ EXAMPLES = r'''
     device_ids:
       - 1111
     run_later: true
-    cron: "0 00 11 14 02 ? 2032"  # Feb 14,2032 4:30:00 PM
+    cron: "0 10 11 14 02 ? 2032"  # Feb 14,2032 11:10:00
 
 - name: Remediate specific non-compliant devices to a configuration compliance baseline using device service tags on next reboot
   dellemc.openmanage.ome_configuration_compliance_baseline:
@@ -308,6 +312,27 @@ job_id:
   returned: when I(command) is C(remediate)
   type: int
   sample: 14123
+"job_details":
+    description: Details of the failed job.
+    returned: on job failure
+    type: list
+    sample: [
+        {
+            "ElapsedTime": "00:22:17",
+            "EndTime": "2024-06-19 13:42:41.285",
+            "ExecutionHistoryId": 797320,
+            "Id": 14123,
+            "IdBaseEntity": 19559,
+            "JobStatus": {
+                "Id": 2070,
+                "Name": "Failed"
+            },
+            "Key": "7D0K7Y3",
+            "Progress": "100",
+            "StartTime": "2024-06-19 13:20:23.495",
+            "Value": "Starting Pre-checks....LC status is : InUse, wait for 30 seconds and retry ...(1)"
+        }
+    ]
 error_info:
   description: Details of the HTTP Error.
   returned: on HTTP error
