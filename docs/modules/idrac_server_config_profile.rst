@@ -34,6 +34,12 @@ Parameters
 
     If \ :literal:`preview`\ , the module performs SCP preview operation.
 
+    \ :literal:`import\_custom\_defaults`\  allows you to import custom default iDRAC settings.
+
+    \ :literal:`export\_custom\_defaults`\  allows you to export custom default iDRAC settings.
+
+    \ :literal:`import\_custom\_defaults`\  and \ :literal:`export\_custom\_defaults`\  is supported only on iDRAC9 with firmware 7.00.00.00 and above.
+
 
   job_wait (True, bool, None)
     Whether to wait for job completion or not.
@@ -45,6 +51,8 @@ Parameters
     CIFS, NFS, HTTP, and HTTPS network share types are supported.
 
     \ :emphasis:`share\_name`\  is mutually exclusive with \ :emphasis:`import\_buffer`\ .
+
+    Only "local" is supported when the \ :emphasis:`command`\  is \ :literal:`import\_custom\_defaults`\  or \ :literal:`export\_custom\_defaults`\ .
 
 
   share_user (optional, str, None)
@@ -58,11 +66,11 @@ Parameters
   scp_file (optional, str, None)
     Name of the server configuration profile (SCP) file.
 
-    This option is mandatory if \ :emphasis:`command`\  is \ :literal:`import`\ .
+    Only XML file format is supported when \ :emphasis:`command`\  is \ :literal:`import`\  or \ :literal:`import\_custom\_defaults`\  or \ :literal:`export\_custom\_defaults`\ .
 
-    The default format \<idrac\_ip\>\_YYmmdd\_HHMMSS\_scp is used if this option is not specified for \ :literal:`import`\ .
+    The default format \<idrac\_ip\>\_YYmmdd\_HHMMSS\_scp is used if this option is not specified for \ :literal:`export`\  or \ :literal:`export\_custom\_defaults`\ .
 
-    \ :emphasis:`export\_format`\  is used if the valid extension file is not provided for \ :literal:`import`\ .
+    \ :emphasis:`export\_format`\  is used if the valid extension file is not provided for \ :literal:`export`\ .
 
 
   scp_components (optional, list, ALL)
@@ -114,7 +122,9 @@ Parameters
 
 
   export_format (optional, str, XML)
-    Specify the output file format. This option is applicable for \ :literal:`export`\  command.
+    Specify the output file format. This option is applicable for \ :literal:`export`\  or \ :literal:`export\_custom\_defaults`\  command.
+
+    The default export file format is always XML when the  \ :emphasis:`command`\  is \ :literal:`export\_custom\_defaults`\ .
 
 
   export_use (optional, str, Default)
@@ -152,7 +162,9 @@ Parameters
   import_buffer (optional, str, None)
     Used to import the buffer input of xml or json into the iDRAC.
 
-    This option is applicable when \ :emphasis:`command`\  is \ :literal:`import`\  and \ :literal:`preview`\ .
+    When the  \ :emphasis:`command`\  is \ :literal:`import\_custom\_defaults`\ , only XML file format is supported.
+
+    This option is applicable when \ :emphasis:`command`\  is \ :literal:`import`\  or \ :literal:`preview`\  or \ :literal:`import\_custom\_defaults`\ .
 
     \ :emphasis:`import\_buffer`\  is mutually exclusive with \ :emphasis:`share\_name`\ .
 
@@ -537,6 +549,39 @@ Examples
         import_buffer: "{\"SystemConfiguration\": {\"Components\": [{\"FQDD\": \"iDRAC.Embedded.1\",\"Attributes\":
           [{\"Name\": \"SNMP.1#AgentCommunity\",\"Value\": \"public1\"}]}]}}"
 
+    - name: Export custom default
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        job_wait: true
+        share_name: "/scp_folder"
+        command: export_custom_defaults
+        scp_file: example_file
+
+    - name: Import custom default
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        job_wait: true
+        share_name: "/scp_folder"
+        command: import_custom_defaults
+        scp_file: example_file.xml
+
+    - name: Import custom default using buffer
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        job_wait: true
+        command: import_custom_defaults
+        import_buffer: "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'>Disabled</Attribute>
+                      </Component></SystemConfiguration>"
+
 
 
 Return Values
@@ -571,4 +616,5 @@ Authors
 - Felix Stephen (@felixs88)
 - Jennifer John (@Jennifer-John)
 - Shivam Sharma (@ShivamSh3)
+- Lovepreet Singh (@singh-lovepreet1)
 
