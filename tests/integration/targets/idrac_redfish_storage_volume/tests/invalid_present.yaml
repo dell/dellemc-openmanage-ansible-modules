@@ -120,14 +120,18 @@
       register: invalid_drives
       ignore_errors: true
 
+    - name: Set expected message for assertion
+      ansible.builtin.set_fact:
+        invalid_drives_expected_msg: "Following Drive(s)
+          Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1- are not attached to
+          the specified Controller Id: {{ controller_name }}."
+
     - name: Verify task status - Negative - invalid drives
       ansible.builtin.assert:
         that:
           - invalid_drives.failed
           - not invalid_drives.changed
-          - 'invalid_drives.msg == "Following Drive(s)
-            Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1- are not attached to
-            the specified Controller Id: {{ controller_name }}."'
+          - invalid_drives.msg == invalid_drives_expected_msg
 
     - name: Negative - invalid volume id
       dellemc.openmanage.redfish_storage_volume:

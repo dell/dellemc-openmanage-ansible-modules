@@ -22,7 +22,8 @@
   ansible.builtin.fail:
     msg: 'Physical disks are not sufficient to proceed with test case
       execution. Needs a minimum 1, but found {{ physical_disks | length }}'
-  when: "{{ physical_disks | length }} < 1"
+  when:
+    - physical_disks | length < 1
 
 - block:
     - name: create_redfish_storage_volume_apply_time_immediate check_mode
@@ -52,14 +53,19 @@
     - name: Fetch volume details
       ansible.builtin.include_tasks: _get_volume_details.yml
 
+    - name: Set expected message for assertion
+      ansible.builtin.set_fact:
+        display_name_expected_msg: "{{ raid_0_vol }}"
+        raid_type_expected_msg: "{{ raid_type_0 }}"
+
     - name: create_redfish_storage_volume_apply_time_immediate assert
         normal_mode
       ansible.builtin.assert:
         that:
           - result.changed is true
           - changes_applied in result.msg
-          - uri_data.DisplayName == "{{ raid_0_vol }}"
-          - uri_data.RAIDType == "{{ raid_type_0 }}"
+          - uri_data.DisplayName == display_name_expected_msg
+          - uri_data.RAIDType == raid_type_expected_msg
 
     - name: create_redfish_storage_volume_apply_time_immediate idempotency_mode
       register: result

@@ -22,7 +22,8 @@
   ansible.builtin.fail:
     msg: 'Physical disks are not sufficient to proceed with test case
       execution. Needs a minimum 1, but found {{ physical_disks | length }}'
-  when: "{{ physical_disks | length }} < 1"
+  when:
+    - physical_disks | length < 1
 
 - name: Set facts
   ansible.builtin.set_fact:

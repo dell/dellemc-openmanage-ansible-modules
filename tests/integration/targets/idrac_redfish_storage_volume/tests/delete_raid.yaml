@@ -22,7 +22,8 @@
   ansible.builtin.fail:
     msg: 'Physical disks are not sufficient to proceed with test case
       execution. Needs a minimum 1, but found {{ physical_disks | length }}'
-  when: "{{ physical_disks | length }} < 1"
+  when:
+    - physical_disks | length < 1
 
 - block:
     - name: Create a RAID0 volume
@@ -80,9 +81,11 @@
       when: result_delete_volume.msg == "Successfully submitted delete volume
         task."
 
-    - name: Set job id for assertion
+    - name: Construct expected URI for assertion
       ansible.builtin.set_fact:
-        job_id: "{{ result_delete_volume.task.id }}"
+        result_delete_volume_expected_uri: >-
+          {{ "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/" +
+          result_delete_volume.task.id }}
 
     - name: Verify task status - Delete a RAID0 volume
       ansible.builtin.assert:
@@ -91,8 +94,7 @@
           - 'result_delete_volume.msg == "Successfully submitted delete volume
             task."'
           - result_delete_volume.task.id
-          - 'result_delete_volume.task.uri == "/redfish/v1/Managers/
-            iDRAC.Embedded.1/Jobs/{{ job_id }}"'
+          - result_delete_volume.task.uri == result_delete_volume_expected_uri
 
     - name: Delete a RAID0 volume (Idempotence)
       dellemc.openmanage.redfish_storage_volume:
@@ -100,12 +102,16 @@
       register: idempotence_result_delete_volume
       ignore_errors: true
 
+    - name: Set expected message for assertion
+      ansible.builtin.set_fact:
+        expected_msg: "Specified Volume Id {{ uri_data.Id }} does not exist in
+          the System."
+
     - name: Verify task status - Delete a RAID0 volume (Idempotence)
       ansible.builtin.assert:
         that:
           - not idempotence_result_delete_volume.changed
-          - 'idempotence_result_delete_volume.msg == "Specified Volume
-            Id {{ uri_data.Id }} does not exist in the System."'
+          - idempotence_result_delete_volume.msg == expected_msg
 
   module_defaults:
     dellemc.openmanage.redfish_storage_volume:
@@ -165,6 +171,12 @@
         <<: *delete_raid_job_wait
       register: result_delete_volume
 
+    - name: Construct expected URI for assertion
+      ansible.builtin.set_fact:
+        result_delete_volume_expected_uri: >-
+          {{ "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/" +
+          result_delete_volume.task.id }}
+
     - name: Verify task status - Delete a RAID0 volume with job_wait
         (Normal mode)
       ansible.builtin.assert:
@@ -172,8 +184,7 @@
           - result_delete_volume.changed
           - changes_applied in result_delete_volume.msg
           - result_delete_volume.task.id
-          - 'result_delete_volume.task.uri == "/redfish/v1/Managers/
-            iDRAC.Embedded.1/Jobs/{{ result_delete_volume.task.id }}"'
+          - result_delete_volume.task.uri == result_delete_volume_expected_uri
 
     - name: Delete a RAID0 volume with job_wait (Idempotence)
       dellemc.openmanage.redfish_storage_volume:
@@ -181,13 +192,17 @@
       register: idempotence_result_delete_volume
       ignore_errors: true
 
+    - name: Set expected message for assertion
+      ansible.builtin.set_fact:
+        expected_msg: "Specified Volume Id {{ uri_data.Id }} does not exist in
+          the System."
+
     - name: Verify task status - Delete a RAID0 volume with job_wait
         (Idempotence)
       ansible.builtin.assert:
         that:
           - not idempotence_result_delete_volume.changed
-          - 'idempotence_result_delete_volume.msg == "Specified Volume
-            Id {{ uri_data.Id }} does not exist in the System."'
+          - idempotence_result_delete_volume.msg == expected_msg
 
   module_defaults:
     dellemc.openmanage.redfish_storage_volume:
