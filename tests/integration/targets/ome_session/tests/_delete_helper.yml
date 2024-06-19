@@ -1,0 +1,8 @@
+---
+- name: Delete a session
+  dellemc.openmanage.ome_session:
+    validate_certs: "{{ validate_certs }}"
+    hostname: "{{ hostname }}"
+    state: absent
+    auth_token: "{{ x_auth_token }}"
+    session_id: "{{ session_id }}"
