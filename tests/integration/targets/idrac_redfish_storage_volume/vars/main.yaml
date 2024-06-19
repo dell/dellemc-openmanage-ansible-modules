@@ -1,0 +1,22 @@
+---
+raid_0_vol: RAID0_VOLUME
+raid_1_vol: RAID1_VOLUME
+raid_type_0: RAID0
+raid_type_1: RAID1
+physical_disks_0_list:
+  - "{{ physical_disks[0] }}"
+physical_disks_1_list:
+  - "{{ physical_disks[0] }}"
+  - "{{ physical_disks[1] }}"
+b_false: false
+b_true: true
+search_in_name: PERC
+state_present: present
+changes_found: Changes found to be applied
+job_submitted: Successfully submitted create volume task
+no_changes: No changes found to be applied
+apply_time_immediate: Immediate
+changes_applied: The job is successfully completed
+apply_time_onreset: OnReset
+reboot_server: false
+apply_time_notsupported: "Apply time Immediate is not supported."
