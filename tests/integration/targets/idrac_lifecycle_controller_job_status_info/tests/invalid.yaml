@@ -1,0 +1,73 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Negative - unreachable host
+      dellemc.openmanage.idrac_lifecycle_controller_job_status_info:
+        idrac_ip: "999.999.999.999"
+        job_id: "1234"
+      ignore_errors: true
+      register: invalid_unreachable
+
+    - name: Verify task status - Negative - unreachable host
+      ansible.builtin.assert:
+        that:
+          - invalid_unreachable.failed
+          - 'invalid_unreachable.msg == "Unable to communicate with iDRAC
+           999.999.999.999. This may be due to one of the following:
+           Incorrect username or password, unreachable iDRAC IP or a
+           failure in TLS/SSL handshake."'
+
+    - name: Negative - invalid user
+      dellemc.openmanage.idrac_lifecycle_controller_job_status_info:
+        idrac_user: "invalid_user"
+      ignore_errors: true
+      register: invalid_user
+
+    - name: Verify task status - Negative - Invalid user
+      ansible.builtin.assert:
+        that:
+          - invalid_user.failed
+          - invalid_user.msg == ""HTTP Error 401: Unauthorized"
+
+    - name: Negative - invalid password
+      dellemc.openmanage.idrac_lifecycle_controller_job_status_info:
+        idrac_password: "invalid_pass"
+      ignore_errors: true
+      register: invalid_password
+
+    - name: Verify task status - Negative - Invalid password
+      ansible.builtin.assert:
+        that:
+          - invalid_password.failed
+          - invalid_password.msg == ""HTTP Error 401: Unauthorized"
+
+    - name: Negative - invalid ca_path
+      dellemc.openmanage.idrac_lifecycle_controller_job_status_info:
+        ca_path: "invalid"
+        validate_certs: true
+      ignore_errors: true
+      register: invalid_ca_path
+
+    - name: Verify task status - Negative - Invalid ca_path path
+      ansible.builtin.assert:
+        that:
+          - invalid_ca_path.failed
+          - invalid_ca_path.msg == ""HTTP Error 401: Unauthorized"
+
+  module_defaults:
+    dellemc.openmanage.idrac_lifecycle_controller_job_status_info:
+      idrac_ip: "{{idrac_ip}}"
+      idrac_user: "{{idrac_user}}"
+      idrac_password: "{{idrac_password}}"
+      validate_certs: "{{validate_certs}}"
