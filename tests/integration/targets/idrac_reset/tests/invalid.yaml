@@ -14,7 +14,7 @@
 - block:
     - name: Checking iDRAC version
       ansible.builtin.include_tasks:
-        file: ../_get_or_update_settings.yaml
+        file: ../_get_or_update_settings.yml
       vars:
         operation: check_firmware_version
 
