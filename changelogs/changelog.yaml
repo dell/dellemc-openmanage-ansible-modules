@@ -1889,3 +1889,46 @@ releases:
         name: ome_session
         namespace: ''
     release_date: '2024-05-31'
+
+  9.4.0:
+    changes:
+      release_summary: '- The ``idrac_server_config_profile`` module is
+          enhanced to allow you to export and import custom defaults on iDRAC.
+
+        - The ``ome_configuration_compliance_baseline`` module is enhanced to
+          schedule the remediation job and stage the reboot.
+
+        - The ``idrac_reset`` module is enhanced to provide default username
+          and defaut password for the reset operation.'
+
+      major_changes:
+        - idrac_server_config_profile - This module is enhanced to allow you to
+          export and import custom defaults on iDRAC.
+        - ome_configuration_compliance_baseline - This module is enhanced to
+          schedule the remediation job and stage the reboot.
+      minor_changes:
+        - idrac_reset - This module is enhanced to provide default username and
+          defaut password for the reset operation.
+      bugfixes:
+        - Resolved the issue in ``idrac_reset`` module where it
+          fails when iDRAC is in busy state.
+          (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/652)
+      known_issues:
+        - idrac_storage_volume - Issue(290766) - The module will report success
+          instead of showing failure for new virtual creation on the BOSS-N1
+          controller if a virtual disk is already present on the same
+          controller.
+        - idrac_diagnostics - Issue(285322) - This module doesn't support
+          export of diagnostics file to HTTP and HTTPS share via SOCKS
+          proxy.
+        - idrac_firmware - Issue(279282) - This module does not support
+          firmware update using HTTP, HTTPS, and FTP shares with
+          authentication on iDRAC8.
+        - ome_diagnostics - Issue(279193) - Export of SupportAssist
+          collection logs to the share location fails on OME version 4.0.0.
+        - ome_smart_fabric_uplink - Issue(186024) - The module supported by
+          OpenManage Enterprise Modular, however it does not allow the
+          creation of multiple uplinks of the same name. If an uplink is
+          created using the same name as an existing uplink, then the existing
+          uplink is modified.
+    release_date: '2024-06-28'
