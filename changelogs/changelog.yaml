@@ -1907,8 +1907,8 @@ releases:
         - ome_configuration_compliance_baseline - This module is enhanced to
           schedule the remediation job and stage the reboot.
       minor_changes:
-        - The ``idrac_reset`` is enhanced to provide default username and
-          defaut password for the reset operation.'
+        - idrac_reset - This module is enhanced to provide default username and
+          defaut password for the reset operation.
       bugfixes:
         - Resolved the issue in ``idrac_reset`` module where it
           fails when iDRAC is in busy state.
