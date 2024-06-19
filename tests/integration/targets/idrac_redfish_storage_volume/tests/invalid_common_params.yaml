@@ -1,0 +1,190 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Negative - missing required argument
+      dellemc.openmanage.redfish_storage_volume:
+      register: invalid_missing_argument
+      ignore_errors: true
+
+    - name: Verify task status - Negative - missing required argument
+      ansible.builtin.assert:
+        that:
+          - invalid_missing_argument.failed
+          - not invalid_missing_argument.changed
+          - 'invalid_missing_argument.msg == "one of the following is required:
+            state, command"'
+
+    - name: Negative - unsupported argument
+      dellemc.openmanage.redfish_storage_volume:
+        unsupported_argument: unsupported
+        state: absent
+        volume_id: Disk.Virtual.1:RAID.Integrated.1-1
+      register: invalid_unsupported_argument
+      ignore_errors: true
+
+    - name: Verify task status - Negative - unsupported argument
+      ansible.builtin.assert:
+        that:
+          - invalid_unsupported_argument.failed
+          - not invalid_unsupported_argument.changed
+          - 'invalid_unsupported_argument.msg == "Unsupported parameters for
+            (dellemc.openmanage.redfish_storage_volume) module:
+            unsupported_argument. Supported parameters include: apply_time,
+            baseuri, block_size_bytes, ca_path, capacity_bytes, command,
+            controller_id, drives, encrypted, encryption_types, force_reboot,
+            initialize_type, job_wait, job_wait_timeout, name, oem,
+            optimum_io_size_bytes, password, raid_type, reboot_server, state,
+            timeout, username, validate_certs, volume_id, volume_type,
+            x_auth_token (volume_name)."'
+
+    - name: Negative - unreachable host
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: 999.999.999.999
+        state: absent
+        volume_id: Disk.Virtual.1:RAID.Integrated.1-1
+      register: invalid_unreachable
+      ignore_unreachable: true
+
+    - name: Verify task status - Negative - unreachable host
+      ansible.builtin.assert:
+        that:
+          - invalid_unreachable.unreachable
+          - not invalid_unreachable.changed
+          - 'invalid_unreachable.msg == "<urlopen error Unable to resolve
+            hostname or IP 999.999.999.999.>" or
+            invalid_unreachable.msg == "<urlopen error [Errno -2] Name or
+            service not known>"'
+
+    - name: Negative - invalid port
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: "{{ idrac_ip|ansible.utils.ipwrap }}:65536"
+        state: absent
+        volume_id: Disk.Virtual.1:RAID.Integrated.1-1
+      register: invalid_port
+      ignore_unreachable: true
+
+    - name: Verify task status - Negative - invalid port
+      ansible.builtin.assert:
+        that:
+          - invalid_port.unreachable
+          - not invalid_port.changed
+          - ('invalid_port.msg == "<urlopen error [Errno 111] Connection
+            refused>"') or ('invalid_port.msg == "<urlopen error timed out>"')
+
+    - name: Negative - invalid username
+      dellemc.openmanage.redfish_storage_volume:
+        username: invalid
+        state: absent
+        volume_id: Disk.Virtual.1:RAID.Integrated.1-1
+      register: invalid_username
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid username
+      ansible.builtin.assert:
+        that:
+          - invalid_username.failed
+          - not invalid_username.changed
+          - 'invalid_username.msg == "HTTP Error 401: Unauthorized" or
+            invalid_username.msg == "<urlopen error timed out>"'
+
+    - name: Negative - invalid password
+      dellemc.openmanage.redfish_storage_volume:
+        password: invalid
+        state: absent
+        volume_id: Disk.Virtual.1:RAID.Integrated.1-1
+      register: invalid_password
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid password
+      ansible.builtin.assert:
+        that:
+          - invalid_password.failed
+          - not invalid_password.changed
+          - 'invalid_password.msg == "HTTP Error 401: Unauthorized" or
+            invalid_password.msg == "<urlopen error timed out>"'
+
+    - name: Negative - invalid validate_certs
+      dellemc.openmanage.redfish_storage_volume:
+        validate_certs: invalid
+        state: absent
+        volume_id: Disk.Virtual.1:RAID.Integrated.1-1
+      register: invalid_validate_certs
+      ignore_errors: true
+
+    - ansible.builtin.set_fact:
+        invalid_validate_certs_expected_msg: "argument 'validate_certs' is of
+          type <class 'str'> and we were unable to convert to bool: The value
+          'invalid' is not a valid boolean.  Valid booleans include: "
+
+    - name: Verify task status - Negative - invalid validate_certs
+      ansible.builtin.assert:
+        that:
+          - invalid_validate_certs.failed
+          - not invalid_validate_certs.changed
+          - invalid_validate_certs_expected_msg in invalid_validate_certs.msg
+
+    - name: Negative - invalid ca_path path
+      dellemc.openmanage.redfish_storage_volume:
+        ca_path: /invalid/path
+        state: absent
+        volume_id: Disk.Virtual.1:RAID.Integrated.1-1
+      register: invalid_ca_path
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid ca_path path
+      ansible.builtin.assert:
+        that:
+          - invalid_ca_path.failed
+          - not invalid_ca_path.changed
+          - 'invalid_ca_path.msg == "[Errno 2] No such file or directory:
+            b''/invalid/path''"'
+
+    - name: Negative - invalid timeout type
+      dellemc.openmanage.redfish_storage_volume:
+        timeout: invalid
+        state: absent
+        volume_id: Disk.Virtual.1:RAID.Integrated.1-1
+      register: invalid_timeout_type
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid timeout type
+      ansible.builtin.assert:
+        that:
+          - invalid_timeout_type.failed
+          - not invalid_timeout_type.changed
+          - 'invalid_timeout_type.msg == "argument ''timeout'' is of type
+            <class ''str''> and we were unable to convert to int:
+            <class ''str''> cannot be converted to an int"'
+
+    - name: Negative - invalid timeout value
+      dellemc.openmanage.redfish_storage_volume:
+        timeout: -1
+        state: absent
+        volume_id: Disk.Virtual.1:RAID.Integrated.1-1
+      register: invalid_timeout_value
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid timeout value
+      ansible.builtin.assert:
+        that:
+          - invalid_timeout_value.failed
+          - not invalid_timeout_value.changed
+          - 'invalid_timeout_value.msg == "Timeout value out of range"'
+
+  module_defaults:
+    dellemc.openmanage.redfish_storage_volume:
+      baseuri: "{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
