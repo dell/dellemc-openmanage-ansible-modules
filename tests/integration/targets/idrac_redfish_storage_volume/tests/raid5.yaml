@@ -37,8 +37,8 @@
           - "{{ physical_disks[0] }}"
           - "{{ physical_disks[1] }}"
           - "{{ physical_disks[2] }}"
-        optimum_io_size_bytes: 262144 # 256KB=(256*1024)
-        capacity_bytes: 53687091200 # 50GB
+        optimum_io_size_bytes: 262144  # 256KB=(256*1024)
+        capacity_bytes: 53687091200  # 50GB
       register: cm_result_raid
       check_mode: true
 

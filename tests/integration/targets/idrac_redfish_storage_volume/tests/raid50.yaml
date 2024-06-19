@@ -40,8 +40,8 @@
           - "{{ physical_disks[3] }}"
           - "{{ physical_disks[4] }}"
           - "{{ physical_disks[5] }}"
-        optimum_io_size_bytes: 1048576 # 1MB=(1*1024*1024)
-        capacity_bytes: 1099511627776 # 1TB
+        optimum_io_size_bytes: 1048576  # 1MB=(1*1024*1024)
+        capacity_bytes: 1099511627776  # 1TB
       register: cm_result_raid
       check_mode: true
 

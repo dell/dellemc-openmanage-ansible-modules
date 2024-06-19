@@ -114,7 +114,8 @@
       check_mode: true
 
     - name: Verify task - Create a RAID0 volume using the volume_type parameter
-        with more than the minimum number of disks (Check mode - Changes expected)
+        with more than the minimum number of disks (Check mode - Changes
+        expected)
       ansible.builtin.assert:
         that:
           - cm_result_volume.changed
