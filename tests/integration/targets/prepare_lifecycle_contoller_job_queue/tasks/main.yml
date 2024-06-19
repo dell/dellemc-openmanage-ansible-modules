@@ -1,0 +1,13 @@
+- block:
+    - name: Delete LC Job Queue
+      dellemc.openmanage.idrac_lifecycle_controller_jobs:
+      register: job_queue
+      changed_when: "'Failed to delete the Job' in job_queue.msg"
+
+  module_defaults:
+    dellemc.openmanage.idrac_lifecycle_controller_jobs:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_port: "{{ idrac_port }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

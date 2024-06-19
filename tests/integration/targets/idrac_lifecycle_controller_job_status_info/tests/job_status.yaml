@@ -1,0 +1,39 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+
+- block:
+    - name: Export SCP to a local path and wait for this job to get completed.
+      idrac_server_config_profile:
+        share_name: "{{role_path}}/files"
+        job_wait: true
+      register: result_export_scp
+
+    - name: Get Lifecycle Controller Job Status.
+      idrac_lifecycle_controller_job_status_info:
+        job_id:  "{{result_export_scp.scp_status.Id}}"
+      register: result
+
+    - name: Verify the status of tasks
+      assert:
+        that:
+          - not result.changed
+          - result.job_info.InstanceID == result_export_scp.scp_status.Id
+
+  module_defaults:
+    dellemc.openmanage.idrac_lifecycle_controller_job_status_info:
+      idrac_ip: "{{idrac_ip}}"
+      idrac_user: "{{idrac_user}}"
+      idrac_password: "{{idrac_password}}"
+      validate_certs: "{{validate_certs}}"
+    dellemc.openmanage.idrac_server_config_profile:
+      idrac_ip: "{{idrac_ip}}"
+      idrac_user: "{{idrac_user}}"
+      idrac_password: "{{idrac_password}}"
+      validate_certs: "{{validate_certs}}"
