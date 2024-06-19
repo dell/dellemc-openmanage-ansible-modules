@@ -12,7 +12,6 @@
    is not defined'
 
 - block:
-
     - name: Negative - missing required argument
       dellemc.openmanage.redfish_storage_volume:
       register: invalid_missing_argument
@@ -23,7 +22,8 @@
         that:
           - invalid_missing_argument.failed
           - not invalid_missing_argument.changed
-          - 'invalid_missing_argument.msg == "one of the following is required: state, command"'
+          - 'invalid_missing_argument.msg == "one of the following is required:
+            state, command"'
 
     - name: Negative - unsupported argument
       dellemc.openmanage.redfish_storage_volume:
@@ -45,8 +45,8 @@
             controller_id, drives, encrypted, encryption_types, force_reboot,
             initialize_type, job_wait, job_wait_timeout, name, oem,
             optimum_io_size_bytes, password, raid_type, reboot_server, state,
-            timeout, username, validate_certs, volume_id, volume_type
-            (volume_name)."'
+            timeout, username, validate_certs, volume_id, volume_type,
+            x_auth_token (volume_name)."'
 
     - name: Negative - unreachable host
       dellemc.openmanage.redfish_storage_volume:
@@ -147,8 +147,8 @@
         that:
           - invalid_ca_path.failed
           - not invalid_ca_path.changed
-          - 'invalid_ca_path.msg == "[Errno 2] No such file or directory: b''/
-            invalid/path''"'
+          - 'invalid_ca_path.msg == "[Errno 2] No such file or directory:
+            b''/invalid/path''"'
 
     - name: Negative - invalid timeout type
       dellemc.openmanage.redfish_storage_volume:
