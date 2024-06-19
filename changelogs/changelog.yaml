@@ -1892,24 +1892,26 @@ releases:
 
   9.4.0:
     changes:
-      release_summary: '- Added support for scheduling or staging a job in
-          ``ome_configuration_compliance_baseline`` module.
+      release_summary: '- The ``idrac_server_config_profile`` module is
+          enhanced to allow you to export and import custom defaults on iDRAC.
 
-        - Added default_username and default_password in ``idrac_reset`` module.
+        - The ``ome_configuration_compliance_baseline`` is enhanced to schedule
+          the remediation job and stage the reboot.
 
-        - The ``idrac_server_config_profile`` module is enhanced to allow you to
-          export and import custom defaults on iDRAC.'
+        - The ``idrac_reset`` is enhanced to provide default username and
+          defaut password for the reset operation.'
 
       major_changes:
         - idrac_server_config_profile - This module is enhanced to allow you to
           export and import custom defaults on iDRAC.
-        - ome_configuration_compliance_baseline - Added support for scheduling
-          or staging a job.
+        - ome_configuration_compliance_baseline - This module is enhanced to
+          schedule the remediation job and stage the reboot.
       minor_changes:
-        - Added default_username and default_password in ``idrac_reset`` module.
+        - The ``idrac_reset`` is enhanced to provide default username and
+          defaut password for the reset operation.'
       bugfixes:
         - Resolved the issue in ``idrac_reset`` module where it
-          fails when iDRAC is inUse state.
+          fails when iDRAC is in busy state.
           (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/652)
       known_issues:
         - idrac_storage_volume - Issue(290766) - The module will report success
@@ -1929,4 +1931,4 @@ releases:
           creation of multiple uplinks of the same name. If an uplink is
           created using the same name as an existing uplink, then the existing
           uplink is modified.
-    release_date: '2024-06-30'
+    release_date: '2024-06-28'

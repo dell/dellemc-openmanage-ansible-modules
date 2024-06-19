@@ -10,25 +10,25 @@ v9.4.0
 Release Summary
 ---------------
 
-- Added support for scheduling or staging a job in ``ome_configuration_compliance_baseline`` module.
-- Added default_username and default_password in ``idrac_reset`` module.
 - The ``idrac_server_config_profile`` module is enhanced to allow you to export and import custom defaults on iDRAC.
+- The ``ome_configuration_compliance_baseline`` is enhanced to schedule the remediation job and stage the reboot.
+- The ``idrac_reset`` is enhanced to provide default username and defaut password for the reset operation.
 
 Major Changes
 -------------
 
 - idrac_server_config_profile - This module is enhanced to allow you to export and import custom defaults on iDRAC.
-- ome_configuration_compliance_baseline - Added support for scheduling or staging a job.
+- ome_configuration_compliance_baseline - This module is enhanced to schedule the remediation job and stage the reboot.
 
 Minor Changes
 -------------
 
-- Added default_username and default_password in ``idrac_reset`` module.
+- The ``idrac_reset`` is enhanced to provide default username and defaut password for the reset operation.'
 
 Bugfixes
 --------
 
-- Resolved the issue in ``idrac_reset`` module where it fails when iDRAC is inUse state. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/652)
+- Resolved the issue in ``idrac_reset`` module where it fails when iDRAC is in busy state. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/652)
 
 Known Issues
 ------------
