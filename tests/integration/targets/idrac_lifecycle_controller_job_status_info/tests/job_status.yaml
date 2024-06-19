@@ -20,7 +20,7 @@
 
     - name: Get Lifecycle Controller Job Status.
       idrac_lifecycle_controller_job_status_info:
-        job_id: "{{result_export_scp.scp_status.Id}}"
+        job_id: "{{ result_export_scp.scp_status.Id }}"
       register: result
 
     - name: Verify the status of tasks
