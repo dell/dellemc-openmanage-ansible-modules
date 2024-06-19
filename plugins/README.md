@@ -96,6 +96,7 @@ Here are the list of modules and module_utils supported by Dell.
     ├── ome_profile_info.py
     ├── ome_server_interface_profile_info.py
     ├── ome_server_interface_profiles.py
+    ├── ome_session.py
     ├── ome_smart_fabric_info.py
     ├── ome_smart_fabric.py
     ├── ome_smart_fabric_uplink_info.py
