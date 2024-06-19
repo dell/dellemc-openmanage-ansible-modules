@@ -14,7 +14,7 @@
 - block:
     - name: Export SCP to a local path and wait for this job to get completed.
       idrac_server_config_profile:
-        share_name: "{{role_path}}/files"
+        share_name: "{{ role_path }}/files"
         job_wait: true
       register: result_export_scp
 
