@@ -2,7 +2,7 @@
 ---
 - block:
     - name: Fetch storage details
-      dellemc.openmanage.dellemc_idrac_storage_volume:
+      dellemc.openmanage.idrac_storage_volume:
         state: "view"
       register: result_storage
 
@@ -48,7 +48,7 @@
         uri_data: "{{ uri_res.content }}"
 
   module_defaults:
-    dellemc.openmanage.dellemc_idrac_storage_volume:
+    dellemc.openmanage.idrac_storage_volume:
       idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
       idrac_port: "{{ idrac_port }}"
       idrac_user: "{{ idrac_user }}"
