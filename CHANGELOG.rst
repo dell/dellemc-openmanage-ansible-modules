@@ -23,7 +23,7 @@ Major Changes
 Minor Changes
 -------------
 
-- The ``idrac_reset`` is enhanced to provide default username and defaut password for the reset operation.'
+- idrac_reset - This module is enhanced to provide default username and defaut password for the reset operation.
 
 Bugfixes
 --------
