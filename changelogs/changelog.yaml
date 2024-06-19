@@ -1892,7 +1892,7 @@ releases:
 
   9.4.0:
     changes:
-      release_summary: '- Added support for scheduling or staging a job in 
+      release_summary: '- Added support for scheduling or staging a job in
           ``ome_configuration_compliance_baseline`` module.
 
         - Added default_username and default_password in ``idrac_reset`` module.
