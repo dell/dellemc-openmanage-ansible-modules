@@ -11,8 +11,8 @@ Release Summary
 ---------------
 
 - The ``idrac_server_config_profile`` module is enhanced to allow you to export and import custom defaults on iDRAC.
-- The ``ome_configuration_compliance_baseline`` is enhanced to schedule the remediation job and stage the reboot.
-- The ``idrac_reset`` is enhanced to provide default username and defaut password for the reset operation.
+- The ``ome_configuration_compliance_baseline`` module is enhanced to schedule the remediation job and stage the reboot.
+- The ``idrac_reset`` module is enhanced to provide default username and defaut password for the reset operation.
 
 Major Changes
 -------------
