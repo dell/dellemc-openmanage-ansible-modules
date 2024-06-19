@@ -1,0 +1,126 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- vars:
+    reset_operation: 'All'
+    default_username: "{{ idrac_reset_default_username }}"
+    default_password: "{{ idrac_reset_default_password }}"
+  block:
+    - name: Pre-requisite - Checking if iDRAC supports reset_to_default
+      ansible.builtin.include_tasks:
+        file: ../_get_or_update_settings.yml
+      vars:
+        operation: check_firmware_version
+
+    - name: Adding tasks for export iDRAC settings before reset
+      ansible.builtin.include_tasks:
+        file: ../_utils.yml
+      vars:
+        operation: export
+      when: it_is_iDRAC9 is defined and it_is_iDRAC9
+
+    - name: Pre-requisite - Updating settings to non-default before reset
+      ansible.builtin.include_tasks:
+        file: ../_get_or_update_settings.yml
+      vars:
+        operation: update_settings
+      when: it_is_iDRAC9 is defined and it_is_iDRAC9
+
+    - name: Performing reset to default in check_mode
+      dellemc.openmanage.idrac_reset:
+        reset_to_default: "{{ reset_operation }}"
+        default_username: "{{ default_username }}"
+        default_password: "{{ default_password }}"
+      check_mode: true
+      register: idrac_reset_out_check_mode
+
+    - name: Assertion for check mode for iDRAC9
+      ansible.builtin.assert:
+        that:
+          - idrac_reset_out_check_mode.changed
+          - idrac_reset_out_check_mode.msg == 'Changes found to commit!'
+          - not iDRAC_has_default_settings
+      when: it_is_iDRAC9 is defined and it_is_iDRAC9
+
+    - name: Assertion for check mode for iDRAC8
+      ansible.builtin.assert:
+        that:
+          - not idrac_reset_out_check_mode.changed
+          - idrac_reset_out_check_mode.msg == 'No changes found to commit!'
+      when: it_is_iDRAC9 is defined and not it_is_iDRAC9
+
+    - name: Performing reset to default in normal mode
+      dellemc.openmanage.idrac_reset:
+        reset_to_default: "{{ reset_operation }}"
+        default_username: "{{ default_username }}"
+        default_password: "{{ default_password }}"
+      register: idrac_reset_out_normal_mode
+
+    - name: Updating password in iDRAC after reset in ALL and
+             ResetAllWithRootDefaults
+      ansible.builtin.include_tasks:
+        file: ../_utils.yml
+      vars:
+        operation: update_password
+      when: it_is_iDRAC9 is defined and it_is_iDRAC9
+
+    - name: Fetching setttings from iDRAC after reset
+      ansible.builtin.include_tasks:
+        file: ../_get_or_update_settings.yml
+      vars:
+        operation: fetch_settings
+
+    - name: Assertion for normal mode for iDRAC9
+      ansible.builtin.assert:
+        that:
+          - idrac_reset_out_normal_mode.changed
+          - idrac_reset_out_normal_mode.msg == 'Successfully
+             performed iDRAC reset.'
+          - iDRAC_has_default_settings
+          - "'reset_status' not in idrac_reset_out_normal_mode.keys()"
+      when: it_is_iDRAC9 is defined and it_is_iDRAC9
+
+    - name: Assertion for normal mode for iDRAC8
+      ansible.builtin.assert:
+        that:
+          - not idrac_reset_out_normal_mode.changed
+          - idrac_reset_out_normal_mode.skipped
+          - "'{{ reset_operation }} is not
+             supported.' == idrac_reset_out_normal_mode.msg"
+      when: it_is_iDRAC9 is defined and not it_is_iDRAC9
+
+    - name: Wait for 150 seconds
+      ansible.builtin.pause:
+        seconds: 150
+
+  always:
+    - name: Adding tasks for import operation
+      ansible.builtin.include_tasks:
+        file: ../_utils.yml
+      vars:
+        operation: import
+      when:
+        - it_is_iDRAC9 is defined and it_is_iDRAC9
+      ignore_errors: true
+
+  module_defaults:
+    dellemc.openmanage.idrac_reset:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+    dellemc.openmanage.idrac_lifecycle_controller_status_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
