@@ -1,0 +1,328 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - ansible.builtin.set_fact:
+        raid_type: "RAID0"
+
+    - ansible.builtin.include_tasks: _helper.yml
+
+    - name: Negative - missing required argument
+      dellemc.openmanage.redfish_storage_volume:
+        state: present
+      register: invalid_missing_argument
+      ignore_errors: true
+
+    - name: Verify task status - Negative - missing required argument
+      ansible.builtin.assert:
+        that:
+          - invalid_missing_argument.failed
+          - not invalid_missing_argument.changed
+          - 'invalid_missing_argument.msg == "When state is present, either
+            controller_id or volume_id must be specified to perform further
+            actions."'
+
+    - name: Negative - invalid state value
+      dellemc.openmanage.redfish_storage_volume:
+        state: invalid
+      register: invalid_state_value
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid state value
+      ansible.builtin.assert:
+        that:
+          - invalid_state_value.failed
+          - not invalid_state_value.changed
+          - 'invalid_state_value.msg == "value of state must be one of:
+            present, absent, got: invalid"'
+
+    - name: Negative - invalid volume type
+      dellemc.openmanage.redfish_storage_volume:
+        state: present
+        volume_type: invalid
+      register: invalid_volume_type
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid volume type
+      ansible.builtin.assert:
+        that:
+          - invalid_volume_type.failed
+          - not invalid_volume_type.changed
+          - 'invalid_volume_type.msg == "value of volume_type must be one of:
+            NonRedundant, Mirrored, StripedWithParity, SpannedMirrors,
+            SpannedStripesWithParity, got: invalid"'
+
+    - name: Negative - invalid controller id
+      dellemc.openmanage.redfish_storage_volume:
+        state: present
+        controller_id: RAIDSlot.1-1
+      register: invalid_controller_id
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid controller id
+      ansible.builtin.assert:
+        that:
+          - invalid_controller_id.failed
+          - not invalid_controller_id.changed
+          - 'invalid_controller_id.msg == "Specified Controller RAIDSlot.1-1
+            does not exist in the System."'
+
+    - name: Negative - invalid name - special character
+      dellemc.openmanage.redfish_storage_volume:
+        state: present
+        name: special_char-#%
+        volume_type: NonRedundant
+        controller_id: "{{ controller_name }}"
+        drives: "{{ physical_disks[-1] }}"
+      register: invalid_name_special_char
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid name - special character
+      ansible.builtin.assert:
+        that:
+          - invalid_name_special_char.failed
+          - not invalid_name_special_char.changed
+          - 'invalid_name_special_char.msg == "HTTP Error 400: Bad Request"'
+
+    - name: Negative - invalid name - more characters
+      dellemc.openmanage.redfish_storage_volume:
+        state: present
+        name: more_character_a
+        volume_type: NonRedundant
+        controller_id: "{{ controller_name }}"
+        drives: "{{ physical_disks[-1] }}"
+      register: invalid_name_more_char
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid name - more characters
+      ansible.builtin.assert:
+        that:
+          - invalid_name_more_char.failed
+          - not invalid_name_more_char.changed
+          - 'invalid_name_more_char.msg == "HTTP Error 400: Bad Request"'
+
+    - name: Negative - invalid drives
+      dellemc.openmanage.redfish_storage_volume:
+        state: present
+        controller_id: "{{ controller_name }}"
+        drives: Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-
+      register: invalid_drives
+      ignore_errors: true
+
+    - name: Set expected message for assertion
+      ansible.builtin.set_fact:
+        invalid_drives_expected_msg: "Following Drive(s)
+          Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1- are not attached to
+          the specified Controller Id: {{ controller_name }}."
+
+    - name: Verify task status - Negative - invalid drives
+      ansible.builtin.assert:
+        that:
+          - invalid_drives.failed
+          - not invalid_drives.changed
+          - invalid_drives.msg == invalid_drives_expected_msg
+
+    - name: Negative - invalid volume id
+      dellemc.openmanage.redfish_storage_volume:
+        state: present
+        volume_id: DiskVirtual.0:RAID.Slot.1-1
+      register: invalid_volume_id
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid volume id
+      ansible.builtin.assert:
+        that:
+          - invalid_volume_id.failed
+          - not invalid_volume_id.changed
+          - 'invalid_volume_id.msg == "Specified Volume Id
+            DiskVirtual.0:RAID.Slot.1-1 does not exist in the System."'
+
+    - name: Negative - invalid block_size_bytes
+      dellemc.openmanage.redfish_storage_volume:
+        state: present
+        volume_type: NonRedundant
+        controller_id: "{{ controller_name }}"
+        block_size_bytes: 65535
+        drives: "{{ physical_disks[-1] }}"
+      register: invalid_block_size_bytes
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid block_size_bytes
+      ansible.builtin.assert:
+        that:
+          - invalid_block_size_bytes.failed
+          - not invalid_block_size_bytes.changed
+          - 'invalid_block_size_bytes.msg == "HTTP Error 400: Bad Request"'
+
+    - name: Negative - invalid capacity_bytes
+      dellemc.openmanage.redfish_storage_volume:
+        state: present
+        volume_type: NonRedundant
+        controller_id: "{{ controller_name }}"
+        capacity_bytes: 103809024
+        drives: "{{ physical_disks[-1] }}"
+      register: invalid_capacity_bytes
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid capacity_bytes
+      ansible.builtin.assert:
+        that:
+          - invalid_capacity_bytes.failed
+          - not invalid_capacity_bytes.changed
+          - 'invalid_capacity_bytes.msg == "HTTP Error 400: Bad Request"'
+
+    - name: Negative - invalid optimum_io_size_bytes
+      dellemc.openmanage.redfish_storage_volume:
+        state: present
+        volume_type: NonRedundant
+        controller_id: "{{ controller_name }}"
+        optimum_io_size_bytes: 65535
+        drives: "{{ physical_disks[-1] }}"
+      register: invalid_optimum_io_size_bytes
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid optimum_io_size_bytes
+      ansible.builtin.assert:
+        that:
+          - invalid_optimum_io_size_bytes.failed
+          - not invalid_optimum_io_size_bytes.changed
+          - 'invalid_optimum_io_size_bytes.msg == "HTTP Error 400: Bad
+            Request"'
+
+    - name: Negative - invalid encryption_types
+      dellemc.openmanage.redfish_storage_volume:
+        state: present
+        volume_type: NonRedundant
+        controller_id: "{{ controller_name }}"
+        drives: "{{ physical_disks[-1] }}"
+        encryption_types: invalid
+      register: invalid_encryption_types
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid encryption_types
+      ansible.builtin.assert:
+        that:
+          - invalid_encryption_types.failed
+          - not invalid_encryption_types.changed
+          - 'invalid_encryption_types.msg == "value of encryption_types must be
+            one of: NativeDriveEncryption, ControllerAssisted,
+            SoftwareAssisted, got: invalid"'
+
+    - ansible.builtin.set_fact:
+        invalid_encrypted_expected_msg: "argument 'encrypted' is of type
+          <class 'str'> and we were unable to convert to bool: The value
+          'invalid' is not a valid boolean.  Valid booleans include: "
+
+    - name: Negative - invalid encrypted value
+      dellemc.openmanage.redfish_storage_volume:
+        state: present
+        volume_type: NonRedundant
+        controller_id: "{{ controller_name }}"
+        drives: "{{ physical_disks[-1] }}"
+        encrypted: invalid
+      register: invalid_encrypted
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid encrypted value
+      ansible.builtin.assert:
+        that:
+          - invalid_encrypted.failed
+          - not invalid_encrypted.changed
+          - invalid_encrypted_expected_msg in invalid_encrypted.msg
+
+    - name: Negative - invalid drive count for volume_type
+      dellemc.openmanage.redfish_storage_volume:
+        state: present
+        volume_type: Mirrored
+        controller_id: "{{ controller_name }}"
+        drives:
+          - "{{ physical_disks[-1] }}"
+      register: invalid_drive_count
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid drive count for volume_type
+      ansible.builtin.assert:
+        that:
+          - invalid_drive_count.failed
+          - not invalid_drive_count.changed
+          - 'invalid_drive_count.msg == "HTTP Error 400: Bad Request"'
+
+    - name: Negative - invalid apply_time value
+      dellemc.openmanage.redfish_storage_volume:
+        apply_time: "invalid"
+        state: present
+      register: invalid_applytime
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid apply_time value
+      ansible.builtin.assert:
+        that:
+          - invalid_applytime.failed
+          - 'invalid_applytime.msg == "value of apply_time must be one of:
+            Immediate, OnReset, got: invalid"'
+
+    - name: Negative - invalid job_wait_timeout value
+      dellemc.openmanage.redfish_storage_volume:
+        apply_time: "{{ apply_time_immediate }}"
+        controller_id: "{{ controller_name }}"
+        job_wait: "true"
+        job_wait_timeout: "-1"
+        state: present
+      register: invalid_jobwaittime
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid job_wait_timeout value
+      ansible.builtin.assert:
+        that:
+          - invalid_jobwaittime.failed
+          - 'invalid_jobwaittime.msg == "The parameter job_wait_timeout value
+            cannot be negative or zero."'
+
+  module_defaults:
+    dellemc.openmanage.redfish_storage_volume:
+      baseuri: "{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+- block:
+    - ansible.builtin.set_fact:
+        search_in_name: "BOSS"
+        raid_type: "RAID1"
+
+    - name: Set prerequisite
+      ansible.builtin.include_tasks: _helper.yml
+
+    - name: create_redfish_storage_volume_invalid_apply_time
+      register: result
+      dellemc.openmanage.redfish_storage_volume:
+        state: "{{ state_present }}"
+        name: "{{ raid_1_vol }}"
+        controller_id: "{{ controller_name }}"
+        raid_type: "{{ raid_type }}"
+        apply_time: "{{ apply_time_immediate }}"
+        drives: "{{ physical_disks_0_list[-1] }}"
+        job_wait: "{{ b_false }}"
+      ignore_errors: true
+
+    - name: create_redfish_storage_volume_invalid_apply_time assert
+      ansible.builtin.assert:
+        that:
+          - apply_time_notsupported in result.msg
+
+  module_defaults:
+    dellemc.openmanage.redfish_storage_volume:
+      baseuri: "{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
