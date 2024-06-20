@@ -1,0 +1,261 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Checking iDRAC version
+      ansible.builtin.include_tasks:
+        file: ../_get_or_update_settings.yml
+      vars:
+        operation: check_firmware_version
+
+    - name: Reset iDRAC (Negative - unreachable host)
+      dellemc.openmanage.idrac_reset:
+        idrac_ip: "999.999.999.999"
+      ignore_unreachable: true
+      register: invalid_unreachable_host
+
+    - name: Verify status of tasks
+      assert:
+        that:
+          - invalid_unreachable_host.unreachable
+          - invalid_unreachable_host.msg == "<urlopen error [Errno -2] Name
+             or service not known>"
+
+    - name: Reset iDRAC (Negative - invalid user)
+      dellemc.openmanage.idrac_reset:
+        idrac_user: "invalid_user"
+      ignore_errors: true
+      register: invalid_user
+
+    - name: Verify status of tasks
+      assert:
+        that:
+          - invalid_user.failed
+          - invalid_user.msg == ""HTTP Error 401: Unauthorized"
+
+    - name: Reset iDRAC (Negative - invalid password)
+      dellemc.openmanage.idrac_reset:
+        idrac_password: "invalid_pass"
+      ignore_errors: true
+      register: invalid_password
+
+    - name: Verify status of tasks
+      assert:
+        that:
+          - invalid_password.failed
+          - invalid_password.msg == ""HTTP Error 401: Unauthorized"
+
+    - name: Reset iDRAC (Negative - invalid ca_path)
+      dellemc.openmanage.idrac_reset:
+        ca_path: "invalid"
+      ignore_errors: true
+      register: invalid_ca_path
+
+    - name: Verify status of tasks
+      assert:
+        that:
+          - invalid_ca_path.failed
+          - invalid_ca_path.msg == ""HTTP Error 401: Unauthorized"
+
+    - name: Reset iDRAC (Negative - invalid job_wait_timeout)
+      dellemc.openmanage.idrac_reset:
+        job_wait_timeout: -1
+      ignore_errors: true
+      register: invalid_timeout
+
+    - name: Verify status of tasks
+      assert:
+        that:
+          - invalid_timeout.failed
+          - invalid_timeout.msg == "The value of `job_wait_timeout` parameter
+            cannot be negative or zero. Enter the valid value and retry
+            the operation."
+
+    - name: Reset iDRAC (Negative - invalid reset_to_default)
+      dellemc.openmanage.idrac_reset:
+        reset_to_default: "invalid"
+      ignore_errors: true
+      register: invalid_reset_to_default
+
+    - name: Verify invalid reset_to_default
+      ansible.builtin.assert:
+        that:
+          - invalid_reset_to_default.failed
+          - 'invalid_reset_to_default.msg == "value of reset_to_default must
+             be one of: All, ResetAllWithRootDefaults, Default,
+             CustomDefaults, got: invalid"'
+
+    - name: Reset iDRAC (Negative - invalid wait_for_idrac)
+      dellemc.openmanage.idrac_reset:
+        wait_for_idrac: "invalid"
+      ignore_errors: true
+      register: invalid_wait_for_idrac
+
+    - name: Verify invalid wait_for_idrac
+      ansible.builtin.assert:
+        that:
+          - invalid_wait_for_idrac.failed
+          - "'argument \\'wait_for_idrac\\' is of type <class \\'str\\'> and we
+            were unable to convert to bool: The value \\'invalid\\' is
+            not a valid boolean.  Valid booleans include:' in
+            invalid_wait_for_idrac.msg"
+
+    - name: Reset iDRAC (Negative - invalid force_reset)
+      dellemc.openmanage.idrac_reset:
+        force_reset: "invalid"
+      ignore_errors: true
+      register: invalid_force_reset
+
+    - name: Verify invalid force_reset
+      ansible.builtin.assert:
+        that:
+          - invalid_force_reset.failed
+          - "'argument \\'force_reset\\' is of type <class \\'str\\'> and we
+            were unable to convert to bool: The value \\'invalid\\' is
+            not a valid boolean.  Valid booleans include:' in
+            invalid_force_reset.msg"
+
+    - name: Reset iDRAC (Negative - invalid custom_defaults_file)
+      dellemc.openmanage.idrac_reset:
+        reset_to_default: "CustomDefaults"
+        custom_defaults_file: "invalid"
+      ignore_errors: true
+      register: invalid_custom_defaults_file
+
+    - name: Verify invalid custom_defaults_file for iDRAC9
+      ansible.builtin.assert:
+        that:
+          - invalid_custom_defaults_file.failed
+          - invalid_custom_defaults_file.msg == "Provided directory path
+            'invalid' is invalid."
+      when: it_is_iDRAC9 and custom_default_supported
+
+    - name: Verify invalid custom_defaults_file for iDRAC9 having firmware
+             version less than 7.00
+      ansible.builtin.assert:
+        that:
+          - invalid_custom_defaults_file.skipped
+          - invalid_custom_defaults_file.msg == "CustomDefaults is not
+            supported on this firmware version of iDRAC. The supported
+            values are ['All', 'ResetAllWithRootDefaults', 'Default']. Enter
+            the valid values and retry the operation."
+      when: it_is_iDRAC9 and not custom_default_supported
+
+    - name: Verify invalid custom_defaults_file for iDRAC8
+      ansible.builtin.assert:
+        that:
+          - invalid_custom_defaults_file.skipped
+          - invalid_custom_defaults_file.msg == "CustomDefaults is not
+            supported."
+      when: not it_is_iDRAC9
+
+    - name: Reset iDRAC (Negative - invalid custom_defaults_buffer)
+      dellemc.openmanage.idrac_reset:
+        reset_to_default: "CustomDefaults"
+        custom_defaults_buffer: "invalid"
+      ignore_errors: true
+      register: invalid_custom_defaults_buffer
+
+    - name: Verify invalid custom_defaults_buffer for iDRAC9
+      ansible.builtin.assert:
+        that:
+          - invalid_custom_defaults_buffer.failed
+          - invalid_custom_defaults_buffer.msg == "HTTP Error 400: Bad Request"
+      when: it_is_iDRAC9 and custom_default_supported
+
+    - name: Verify invalid custom_defaults_buffer for iDRAC9 having firmware
+             version less than 7.00
+      ansible.builtin.assert:
+        that:
+          - invalid_custom_defaults_buffer.skipped
+          - invalid_custom_defaults_buffer.msg == "CustomDefaults is not
+            supported on this firmware version of iDRAC. The supported values
+            are ['All', 'ResetAllWithRootDefaults', 'Default']. Enter the valid
+            values and retry the operation."
+      when: it_is_iDRAC9 and not custom_default_supported
+
+    - name: Verify invalid custom_defaults_buffer for iDRAC8
+      ansible.builtin.assert:
+        that:
+          - invalid_custom_defaults_buffer.skipped
+          - invalid_custom_defaults_buffer.msg == "CustomDefaults is not
+             supported."
+      when: not it_is_iDRAC9
+
+    - name: Reset iDRAC (Negative - Checking whether custom_defaults_buffer
+            is mutually exclusive with custom_defaults_file)
+      dellemc.openmanage.idrac_reset:
+        reset_to_default: "CustomDefaults"
+        custom_defaults_file: "invalid"
+        custom_defaults_buffer: "invalid"
+      ignore_errors: true
+      register: invalid_mutually_exclusive
+
+    - name: Verify mutually exclusive case
+      ansible.builtin.assert:
+        that:
+          - invalid_mutually_exclusive.failed
+          - 'invalid_mutually_exclusive.msg == "parameters are mutually
+            exclusive: custom_defaults_file|custom_defaults_buffer"'
+
+    - name: Reset iDRAC (Negative - When only default_username is passed)
+      dellemc.openmanage.idrac_reset:
+        reset_to_default: "All"
+        default_username: "user"
+      ignore_errors: true
+      register: only_default_username
+
+    - name: Verify Negative - When only default_username is passed
+      ansible.builtin.assert:
+        that:
+          - only_default_username.failed
+          - 'only_default_username.msg == "parameters are required
+             together: default_username, default_password"'
+
+    - name: Reset iDRAC (Negative - When only default_password is passed)
+      dellemc.openmanage.idrac_reset:
+        reset_to_default: "All"
+        default_password: "password"
+      ignore_errors: true
+      register: only_default_password
+
+    - name: Verify Negative - When only default_password is passed
+      ansible.builtin.assert:
+        that:
+          - only_default_password.failed
+          - 'only_default_password.msg == "parameters are required
+             together: default_username, default_********" or
+             only_default_password.msg == "parameters are required
+             together: default_username, default_password"'
+
+    - name: Reset iDRAC (Negative - When default credentials are incorrect)
+      dellemc.openmanage.idrac_reset:
+        reset_to_default: "All"
+        default_username: "root"
+        default_password: "incorrect_pwd"
+      ignore_errors: true
+      register: only_default_incorrect_credentials
+
+    - name: Verify Negative - When default credentials are incorrect
+      ansible.builtin.assert:
+        that:
+          - only_default_incorrect_credentials.failed
+          - 'only_default_incorrect_credentials.msg == "HTTP Error
+            401: Unauthorized"'
+
+  module_defaults:
+    dellemc.openmanage.idrac_reset:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

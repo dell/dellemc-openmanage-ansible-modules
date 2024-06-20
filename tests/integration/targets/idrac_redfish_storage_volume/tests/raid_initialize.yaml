@@ -1,0 +1,185 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Set prerequisite facts
+  ansible.builtin.set_fact:
+    raid_type: "RAID0"
+
+- name: Set prerequisite
+  ansible.builtin.include_tasks: _helper.yml
+
+- name: Prerequisite - fail if not enough disk is found to create a volume
+  ansible.builtin.fail:
+    msg: 'Physical disks are not sufficient to proceed with test case
+      execution. Needs a minimum 1, but found {{ physical_disks | length }}'
+  when:
+    - physical_disks | length < 1
+
+- name: Set facts
+  ansible.builtin.set_fact:
+    controller_id: "{{ controller_name }}"
+    physical_disk: "{{ physical_disks[0] }}"
+
+- block:
+    - name: Pre-requisite task to create virtial disk.
+      dellemc.openmanage.redfish_storage_volume:
+        state: present
+        raid_type: "{{ raid_type }}"
+        name: RAID0_Volume
+        controller_id: "{{ controller_id }}"
+        drives:
+          - "{{ physical_disk }}"
+        optimum_io_size_bytes: 65536
+        capacity_bytes: 104857600
+      register: create_virtual_disk
+
+    - name: Verify task status - Create virtual disk.
+      ansible.builtin.assert:
+        that:
+          - create_virtual_disk.changed
+          - create_virtual_disk.msg == "Successfully submitted create volume
+            task."
+
+    - name: Track the job
+      ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{ create_virtual_disk.task.id }}"
+      when: create_virtual_disk.msg == "Successfully submitted create volume
+        task."
+
+    - name: Fetch volume details
+      ansible.builtin.include_tasks: _get_volume_details.yml
+
+    - name: Initialize the virtual disk.
+      dellemc.openmanage.redfish_storage_volume:
+        command: initialize
+        volume_id: "{{ uri_data.Id }}"
+        initialize_type: "Slow"
+      register: initialize_task
+
+    - name: Verify task status - Initialize virtual disk.
+      ansible.builtin.assert:
+        that:
+          - initialize_task.changed
+          - initialize_task.msg == "Successfully submitted initialize volume
+            task."
+
+    - name: Track the job
+      ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{ initialize_task.task.id }}"
+      when: initialize_task.msg == "Successfully submitted initialize volume
+        task."
+
+    - name: Initialize the virtual disk.
+      dellemc.openmanage.redfish_storage_volume:
+        command: initialize
+        volume_id: "{{ uri_data.Id }}"
+        initialize_type: "Fast"
+      register: initialize_task_fast
+
+    - name: Verify task status - Initialize virtual disk.
+      ansible.builtin.assert:
+        that:
+          - initialize_task_fast.changed
+          - initialize_task_fast.msg == "Successfully submitted initialize
+            volume task."
+
+    - name: Track the job
+      ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{ initialize_task_fast.task.id }}"
+      when: initialize_task_fast.msg == "Successfully submitted initialize
+        volume task."
+
+  always:
+    - name: Post clean up
+      ansible.builtin.include_tasks: _cleanup.yml
+
+  module_defaults:
+    dellemc.openmanage.redfish_storage_volume:
+      baseuri: "{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+- block:
+    - name: Pre-requisite task to create virtial disk.
+      dellemc.openmanage.redfish_storage_volume:
+        state: present
+        raid_type: "{{ raid_type }}"
+        name: RAID0_Volume
+        controller_id: "{{ controller_id }}"
+        drives:
+          - "{{ physical_disk }}"
+        optimum_io_size_bytes: 65536
+        capacity_bytes: 104857600
+      register: create_virtual_disk
+
+    - name: Verify task status - Create virtual disk.
+      ansible.builtin.assert:
+        that:
+          - create_virtual_disk.changed
+          - create_virtual_disk.msg == "Successfully submitted create volume
+            task."
+
+    - name: Track the job
+      ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{ create_virtual_disk.task.id }}"
+      when: create_virtual_disk.msg == "Successfully submitted create volume
+        task."
+
+    - name: Fetch volume details
+      ansible.builtin.include_tasks: _get_volume_details.yml
+
+    - name: Initialize the virtual disk with job_wait (normal mode).
+      dellemc.openmanage.redfish_storage_volume:
+        command: initialize
+        volume_id: "{{ uri_data.Id }}"
+        initialize_type: "Slow"
+        job_wait: true
+      register: initialize_task
+
+    - name: Verify task status - Initialize virtual disk with job_wait
+        (normal mode).
+      ansible.builtin.assert:
+        that:
+          - initialize_task.changed
+          - changes_applied in initialize_task.msg
+
+    - name: Initialize the virtual disk with job_wait.
+      dellemc.openmanage.redfish_storage_volume:
+        command: initialize
+        volume_id: "{{ uri_data.Id }}"
+        initialize_type: "Fast"
+        job_wait: true
+      register: initialize_task_fast
+
+    - name: Verify task status - Initialize virtual disk with job_wait
+        (normal mode).
+      ansible.builtin.assert:
+        that:
+          - initialize_task_fast.changed
+          - changes_applied in initialize_task_fast.msg
+
+  always:
+    - name: Post clean up
+      ansible.builtin.include_tasks: _cleanup.yml
+
+  module_defaults:
+    dellemc.openmanage.redfish_storage_volume:
+      baseuri: "{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
