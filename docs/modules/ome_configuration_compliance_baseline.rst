@@ -93,6 +93,32 @@ Parameters
     This option is applicable when \ :emphasis:`command`\  is \ :literal:`create`\ , or \ :literal:`modify`\ .
 
 
+  run_later (optional, bool, None)
+    Indicates whether to remediate immediately or in the future.
+
+    This is applicable when \ :emphasis:`command`\  is \ :literal:`remediate`\ .
+
+    If \ :emphasis:`run\_later`\  is \ :literal:`true`\ , then \ :emphasis:`staged\_at\_reboot`\  is ignored.
+
+    If \ :emphasis:`run\_later`\  is \ :literal:`true`\ , then \ :emphasis:`job\_wait`\  is not applicable.
+
+    If \ :emphasis:`run\_later`\  is \ :literal:`true`\ , then \ :emphasis:`cron`\  must be specified.
+
+
+  cron (optional, str, None)
+    Provide a cron expression based on Quartz cron format.
+
+    Time format is "%S %M %H %d %m ? %Y".
+
+    This is applicable when \ :emphasis:`run\_later`\  is \ :literal:`true`\ .
+
+
+  staged_at_reboot (optional, bool, None)
+    Indicates whether remediate has to be executed on next reboot.
+
+    If \ :emphasis:`staged\_at\_reboot`\  is \ :literal:`true`\ , then remediation will occur during the next reboot.
+
+
   job_wait (optional, bool, True)
     Provides the option to wait for job completion.
 
@@ -271,6 +297,32 @@ Examples
         command: "remediate"
         names: "baseline1"
 
+    - name: Remediate specific non-compliant devices to a configuration compliance baseline using device IDs at scheduled time
+      dellemc.openmanage.ome_configuration_compliance_baseline:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "remediate"
+        names: "baseline1"
+        device_ids:
+          - 1111
+        run_later: true
+        cron: "0 10 11 14 02 ? 2032"  # Feb 14,2032 11:10:00
+
+    - name: Remediate specific non-compliant devices to a configuration compliance baseline using device service tags on next reboot
+      dellemc.openmanage.ome_configuration_compliance_baseline:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "remediate"
+        names: "baseline1"
+        device_service_tags:
+          - "SVCTAG1"
+          - "SVCTAG2"
+        staged_at_reboot: true
+
 
 
 Return Values
@@ -292,6 +344,10 @@ job_id (when I(command) is C(remediate), int, 14123)
   Task ID created when \ :emphasis:`command`\  is \ :literal:`remediate`\ .
 
 
+job_details (on job failure, list, [{'ElapsedTime': '00:22:17', 'EndTime': '2024-06-19 13:42:41.285', 'ExecutionHistoryId': 797320, 'Id': 14123, 'IdBaseEntity': 19559, 'JobStatus': {'Id': 2070, 'Name': 'Failed'}, 'Key': 'SVCTAG1', 'Progress': '100', 'StartTime': '2024-06-19 13:20:23.495', 'Value': 'Starting Pre-checks....LC status is : InUse, wait for 30 seconds and retry ...(1)'}])
+  Details of the failed job.
+
+
 error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
   Details of the HTTP Error.
 
@@ -311,4 +367,5 @@ Authors
 
 - Sajna Shetty(@Sajna-Shetty)
 - Abhishek Sinha(@Abhishek-Dell)
+- Shivam Sharma(@ShivamSh3)
 
