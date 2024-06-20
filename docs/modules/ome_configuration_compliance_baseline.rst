@@ -344,7 +344,7 @@ job_id (when I(command) is C(remediate), int, 14123)
   Task ID created when \ :emphasis:`command`\  is \ :literal:`remediate`\ .
 
 
-job_details (on job failure, list, [{'ElapsedTime': '00:22:17', 'EndTime': '2024-06-19 13:42:41.285', 'ExecutionHistoryId': 797320, 'Id': 14123, 'IdBaseEntity': 19559, 'JobStatus': {'Id': 2070, 'Name': 'Failed'}, 'Key': '7D0K7Y3', 'Progress': '100', 'StartTime': '2024-06-19 13:20:23.495', 'Value': 'Starting Pre-checks....LC status is : InUse, wait for 30 seconds and retry ...(1)'}])
+job_details (on job failure, list, [{'ElapsedTime': '00:22:17', 'EndTime': '2024-06-19 13:42:41.285', 'ExecutionHistoryId': 797320, 'Id': 14123, 'IdBaseEntity': 19559, 'JobStatus': {'Id': 2070, 'Name': 'Failed'}, 'Key': 'SVCTAG1', 'Progress': '100', 'StartTime': '2024-06-19 13:20:23.495', 'Value': 'Starting Pre-checks....LC status is : InUse, wait for 30 seconds and retry ...(1)'}])
   Details of the failed job.
 
 
