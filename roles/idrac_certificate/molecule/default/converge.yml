@@ -5,7 +5,7 @@
   vars:
     ca_cert_path: "{{ lookup('env', 'ca_cert_path') }}"
     cert_export_path: "{{ lookup('env', 'certificate_path') }}"
-    import_cert_path: "{{ lookup('env', 'path_for_import_cert') }}"
+    import_cert_path: "../files/"
     custom_cert_name: "{{ lookup('env', 'custom_cert_name') }}"
     cust_crt_name_pass: "{{ lookup('env', 'custom_cert_name_pass') }}"
     csc_pass_cert: "{{ lookup('env', 'csc_passphrase_certificate') }}"
@@ -91,7 +91,7 @@
             ca_path: "{{ ca_cert_path }}"
             command: "import"
             certificate_type: "CLIENT_TRUST_CERTIFICATE"
-            certificate_path: "{{ lookup('env', 'invalid_certificate') }}"
+            certificate_path: "{{ lookup('env', '../files/xyz.pem') }}"
             idrac_certificate_delegate: "{{ cert_delegate_to }}"
           ignore_errors: true
           register: idrac_certificate_res_err1
@@ -113,7 +113,7 @@
             ca_path: "{{ ca_cert_path }}"
             command: "import"
             certificate_type: "CLIENT_TRUST_CERTIFICATE"
-            certificate_path: "{{ lookup('env', 'invalid_certificate') }}"
+            certificate_path: "{{ lookup('env', '../files/xyz.pem') }}"
             idrac_certificate_delegate: "{{ cert_delegate_to }}"
           ignore_errors: true
           register: idrac_certificate_res_err2

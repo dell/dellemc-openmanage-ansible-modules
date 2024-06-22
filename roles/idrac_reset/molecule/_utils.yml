@@ -4,7 +4,7 @@
     idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
     idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
     idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
-    idrac_port: "{{ lookup('env', 'IDRAC_PORT') }}"
+    idrac_port: "{{ lookup('env', 'https_port') }}"
     dir: "../files"
     validate_certs: false
     default_password: "calvin"

@@ -4,7 +4,17 @@
   gather_facts: false
   vars:
     idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
-    idrac_port: "{{ lookup('env', 'IDRAC_PORT') }}"
+    idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+    idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    idrac_port: "{{ lookup('env', 'https_port') }}"
+    validate_certs: false
+  roles:
+    - name: dellemc.openmanage.idrac_server_powerstate
+      vars:
+        hostname: "{{ idrac_ip }}"
+        username: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
   tasks:
     - name: Fetch IDRAC Data
       ansible.builtin.include_tasks:

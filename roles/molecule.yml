@@ -22,10 +22,10 @@ verifier:
   name: ansible
 scenario:
   test_sequence:
-    - cleanup
     - destroy
     - syntax
     - create
+    - cleanup
     - prepare
     - check
     - converge

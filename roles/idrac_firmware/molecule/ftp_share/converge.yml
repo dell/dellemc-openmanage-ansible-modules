@@ -12,8 +12,8 @@
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         share_name: "{{ lookup('env', 'ftpshare') }}"
-        share_user: "{{ lookup('env', 'shareuser') }}"
-        share_password: "{{ lookup('env', 'sharepassword') }}"
+        share_user: "{{ lookup('env', 'https_username') }}"
+        share_password: "{{ lookup('env', 'https_password') }}"
         catalog_file_name: "Catalog.xml"
         reboot: true
         job_wait: true

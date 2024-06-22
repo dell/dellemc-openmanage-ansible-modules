@@ -4,7 +4,7 @@
   gather_facts: false
   vars:
     idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
-    idrac_port: "{{ lookup('env', 'IDRAC_PORT') }}"
+    idrac_port: "{{ lookup('env', 'https_port') }}"
   tasks:
     - name: Read file content for set_boot_mode variable
       ansible.builtin.command: cat /tmp/boot_mode.txt

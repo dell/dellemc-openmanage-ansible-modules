@@ -4,7 +4,7 @@
   gather_facts: false
   vars:
     idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
-    idrac_port: "{{ lookup('env', 'IDRAC_PORT') }}"
+    idrac_port: "{{ lookup('env', 'https_port') }}"
   tasks:
     - name: Fetch Jobs Data
       ansible.builtin.include_tasks:

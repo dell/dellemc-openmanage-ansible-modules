@@ -1,4 +1,10 @@
 ---
+---
+provisioner:
+  name: ansible
+  playbooks:
+    prepare: ../__power_on_idrac.yaml
+    cleanup: ../__clear_all_job.yaml
 scenario:
   test_sequence:
     - create

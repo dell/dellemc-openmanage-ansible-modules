@@ -10,7 +10,7 @@
         hostname: "invalidHostname"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
-        share_name: "{{ lookup('env', 'httpshare') }}"
+        share_name: "{{ lookup('env', http_url) }}"
         catalog_file_name: "Catalog.xml"
         reboot: true
         job_wait: true
@@ -28,7 +28,7 @@
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "invalidUsername"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
-        share_name: "{{ lookup('env', 'httpshare') }}"
+        share_name: "{{ lookup('env', http_url) }}"
         catalog_file_name: "Catalog.xml"
         reboot: true
         job_wait: true
@@ -89,7 +89,7 @@
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
-        share_name: "{{ lookup('env', 'httpshare') }}"
+        share_name: "{{ lookup('env', http_url) }}"
         reboot: true
         job_wait: true
         apply_update: true
@@ -112,7 +112,7 @@
         validate_certs: false
         share_name: "{{ lookup('env', 'httpsshare') }}"
         share_user: "invalidUser"
-        share_password: "{{ lookup('env', 'sharepassword') }}"
+        share_password: "{{ lookup('env', 'https_password') }}"
         reboot: true
         job_wait: true
         apply_update: true
@@ -136,7 +136,7 @@
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         share_name: "{{ lookup('env', 'httpsshare') }}"
-        share_user: "{{ lookup('env', 'shareuser') }}"
+        share_user: "{{ lookup('env', 'https_username') }}"
         share_password: "invalidPassword"
         reboot: true
         job_wait: true
@@ -161,13 +161,13 @@
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         share_name: "{{ lookup('env', 'httpsshare') }}"
-        share_user: "{{ lookup('env', 'shareuser') }}"
-        share_password: "{{ lookup('env', 'sharepassword') }}"
+        share_user: "{{ lookup('env', 'https_username') }}"
+        share_password: "{{ lookup('env', 'https_password') }}"
         reboot: true
         job_wait: true
         apply_update: true
         proxy_support: "ParametersProxy"
-        proxy_server: "{{ lookup('env', 'proxyserver') }}"
+        proxy_server: "{{ lookup('env', 'proxy_server') }}"
         proxy_type: "HTTP"
         proxy_port: "{{ lookup('env', 'proxyport') }}"
         proxy_uname: "{{ lookup('env', 'proxy_username') }}"
@@ -189,13 +189,13 @@
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         share_name: "{{ lookup('env', 'httpsshare') }}"
-        share_user: "{{ lookup('env', 'shareuser') }}"
-        share_password: "{{ lookup('env', 'sharepassword') }}"
+        share_user: "{{ lookup('env', 'https_username') }}"
+        share_password: "{{ lookup('env', 'https_password') }}"
         reboot: true
         job_wait: true
         apply_update: true
         proxy_support: "ParametersProxy"
-        proxy_server: "{{ lookup('env', 'proxyserver') }}"
+        proxy_server: "{{ lookup('env', 'proxy_server') }}"
         proxy_type: "HTTP"
         proxy_port: "{{ lookup('env', 'proxyport') }}"
         proxy_uname: "{{ lookup('env', 'proxy_username') }}"

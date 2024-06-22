@@ -7,7 +7,7 @@
     ca_cert_path: "{{ lookup('env', 'ca_cert_path') }}"
     custom_cert_name: "{{ lookup('env', 'custom_cert_name') }}"
     cust_crt_name_pass: "{{ lookup('env', 'custom_cert_name_pass') }}"
-    import_cert_path: "{{ lookup('env', 'path_for_import_cert') }}"
+    import_cert_path: "../files/"
     idrac_delegate_to: "{{ lookup('env', 'idrac_certificate_delegate_to') }}"
 
   tasks:
