@@ -1,3 +1,4 @@
+---
 - name: Pre_req - View all volumes
   dellemc.openmanage.idrac_storage_volume:
     idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
@@ -7,17 +8,21 @@
     state: "view"
   register: result
   when: run_trigger is not defined
-  # no_log: true
+  no_log: true
 
-- ansible.builtin.set_fact:
+- name: Fetch the enclosures and controller name
+  ansible.builtin.set_fact:
+    cacheable: true
     enclosers: "{{ item.value.Enclosure }}"
     controller_name: "{{ item.key }}"
   loop: "{{ lookup('dict', result.storage_status.Message.Controller)}}"
   when: not post_op and 'Enclosure' in item.value
   ignore_errors: true
-  # no_log: true
+  no_log: true
 
-- ansible.builtin.set_fact:
+- name: Fetch the physical disks available in the controller
+  ansible.builtin.set_fact:
+    cacheable: yes
     physicaldisks: "{{ item.value.PhysicalDisk }}"
   loop: "{{ lookup('dict',
          result.storage_status.Message.Controller[ controller_name ].Enclosure,
@@ -25,7 +30,9 @@
   when: not post_op and "{{ controller_name }}" in item.key
   ignore_errors: true
 
-- ansible.builtin.set_fact:
+- name: Fetch the virtual disks after creation
+  ansible.builtin.set_fact:
+    cacheable: yes
     virtualdisk: "{{ item.key }}"
   loop: "{{ lookup('dict',
        result.storage_status.Message.Controller[ controller_name ].VirtualDisk,

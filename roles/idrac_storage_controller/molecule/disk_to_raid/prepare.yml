@@ -1,0 +1,23 @@
+---
+- name: Converge file to update attributes with apply time as Immediate
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Include the helper file
+      ansible.builtin.include_tasks: ../__helper.yml
+      vars:
+        initial_state: True
+
+    - name: Pre-check - fail if enough disk not found to create VD on RAID 0
+      ansible.builtin.fail:
+        msg: 'Physical disks are not sufficient to proceed the test case need
+             more than 1 and found {{ physicaldisks | length }}'
+      when: "{{physicaldisks | length}} < 1"
+
+    - name: Pre-Req - Making the target disk as nonraid
+      ansible.builtin.include_tasks: ../__helper.yml
+      vars:
+        reset_trigger: 1
+        target: "{{ physicaldisks[0] }}"
+        target_raid_disk: "{{ physicaldisks[0] }}"
+        command: "ConvertToNonRAID"
