@@ -1,3 +1,4 @@
+---
 - name: Helper File
   block:
     - name: Waiting for iDRAC to be in ready state
@@ -8,6 +9,7 @@
       ansible.builtin.include_tasks: ../__fetch_volumes.yml
       vars:
         post_op: false
+      when: initial_state is defined
 
     - name: Pre-req -  Reset controller configuration
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -17,8 +19,8 @@
         validate_certs: false
         command: "ResetConfig"
         controller_id: "{{ controller_name }}"
-#        job_wait: true
-#        job_wait_timeout: 1200
+        job_wait: true
+        job_wait_timeout: 1200
       register: result_reset_controller
       ignore_errors: true
       when: reset_trigger is defined
@@ -70,8 +72,8 @@
       ansible.builtin.include_tasks: ../__fetch_volumes.yml
       vars:
         post_op: true
-      when: result_create_vd.msg == "Successfully completed the create storage
-       volume operation."
+      when: vd_trigger is defined and result_create_vd.msg == "Successfully
+       completed the create storage volume operation."
       ignore_errors: true
 
     - name: Pre-Req - Change physical disk state to offline/online.
@@ -82,9 +84,9 @@
         validate_certs: false
         command: "{{ command }}"
         target: "{{ target_disk }}"
-        # job_wait: true
-        # job_wait_timeout: 180
-      register: result_offline_online
+        job_wait: true
+        job_wait_timeout: 120
+      register: res_status
       when: change_disk_state is defined
       check_mode: false
 
@@ -104,8 +106,8 @@
     - name: Waiting for iDRAC to be in ready state
       ansible.builtin.include_tasks:
         file: ../__lc_status.yml
-      when: result_offline_online.msg == "Successfully submitted the job that
-           performs the 'ChangePDStateToOffline' operation." or
-           result_offline_online.msg == "Successfully submitted the job that
-           performs the 'ChangePDStateToOnline' operation."
+      when: res_status is defined and (res_status.msg ==
+           "Successfully performed the 'ChangePDStateToOffline' operation." or res_status.msg ==
+           "Successfully performed the 'ChangePDStateToOnline' operation.")
       ignore_errors: true
+      no_log: true
