@@ -38,7 +38,7 @@
           - "{{ cpu | length > 0 }}"
 
     - name: Call assertion
-      ansible.builtin.include_tasks: ../resources/idrac_gather_facts/asserts/cpu_assert.yml
+      ansible.builtin.include_tasks: ../helper/idrac_gather_facts/asserts/cpu_assert.yml
       with_items: "{{ cpu }}"
       loop_control:
         loop_var: cpu_data

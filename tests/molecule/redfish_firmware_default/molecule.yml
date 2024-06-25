@@ -2,8 +2,8 @@
 provisioner:
   name: ansible
   playbooks:
-    prepare: ../resources/redfish_firmware/prepare.yml
-    cleanup: ../resources/redfish_firmware/cleanup.yml
+    prepare: ../helper/redfish_firmware/prepare.yml
+    cleanup: ../helper/redfish_firmware/cleanup.yml
 scenario:
   test_sequence:
     - cleanup

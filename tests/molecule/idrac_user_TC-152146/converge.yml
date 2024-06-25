@@ -25,7 +25,7 @@
 
     - name: Fetching user info in normal mode
       ansible.builtin.include_tasks:
-        file: ../resources/idrac_user/get_user_info.yml
+        file: ../helper/idrac_user/get_user_info.yml
       when: not ansible_check_mode and idrac_user_out.changed
       tags: molecule-idempotence-notest
 

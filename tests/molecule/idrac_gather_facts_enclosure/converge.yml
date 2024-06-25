@@ -37,7 +37,7 @@
           - "{{ enclosure | length > 0 }}"
 
     - name: Call assertion
-      ansible.builtin.include_tasks: ../resources/idrac_gather_facts/asserts/enclosure_assert.yml
+      ansible.builtin.include_tasks: ../helper/idrac_gather_facts/asserts/enclosure_assert.yml
       with_items: "{{ enclosure }}"
       loop_control:
         loop_var: enclosure_data

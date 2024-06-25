@@ -20,7 +20,7 @@
   tasks:
     - name: Fetching user info in normal mode
       ansible.builtin.include_tasks:
-        file: ../resources/idrac_user/get_user_info.yml
+        file: ../helper/idrac_user/get_user_info.yml
 
     - name: Asserting user creation in normal mode
       ansible.builtin.assert:

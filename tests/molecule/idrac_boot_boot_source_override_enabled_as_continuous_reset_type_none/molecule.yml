@@ -3,8 +3,8 @@
 provisioner:
   name: ansible
   playbooks:
-    prepare: ../resources/idrac_boot/__power_on_idrac.yaml
-    cleanup: ../resources/idrac_boot/__clear_all_job.yaml
+    prepare: ../helper/idrac_boot/__power_on_idrac.yaml
+    cleanup: ../helper/idrac_boot/__clear_all_job.yaml
 scenario:
   test_sequence:
     - create

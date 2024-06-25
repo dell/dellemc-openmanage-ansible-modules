@@ -15,20 +15,20 @@
       block:
         - name: Checking iDRAC version
           ansible.builtin.include_tasks:
-            file: ../resources/idrac_reset/_get_or_update_settings.yml
+            file: ../helper/idrac_reset/_get_or_update_settings.yml
           vars:
             operation: check_firmware_version
 
         - name: Adding tasks to export settings before iDRAC reset
           ansible.builtin.include_tasks:
-            file: ../resources/idrac_reset/_utils.yml
+            file: ../helper/idrac_reset/_utils.yml
           vars:
             operation: export
           when: it_is_idrac9
 
         - name: Pre-requisite - updating settings before iDRAC reset
           ansible.builtin.include_tasks:
-            file: ../resources/idrac_reset/_get_or_update_settings.yml
+            file: ../helper/idrac_reset/_get_or_update_settings.yml
           vars:
             operation: update_settings
           when: it_is_idrac9
@@ -56,7 +56,7 @@
 
         - name: Fetching settings from iDRAC post reset
           ansible.builtin.include_tasks:
-            file: ../resources/idrac_reset/_get_or_update_settings.yml
+            file: ../helper/idrac_reset/_get_or_update_settings.yml
           vars:
             operation: fetch_settings
           when: it_is_idrac9
@@ -77,6 +77,6 @@
       always:
         - name: Deleting tasks to export settings before iDRAC reset
           ansible.builtin.include_tasks:
-            file: ../resources/idrac_reset/_utils.yml
+            file: ../helper/idrac_reset/_utils.yml
           vars:
             operation: import

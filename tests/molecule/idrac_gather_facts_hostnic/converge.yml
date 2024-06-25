@@ -36,7 +36,7 @@
           - "{{ hostnic | length > 0 }}"
 
     - name: Call assertion
-      ansible.builtin.include_tasks: ../resources/idrac_gather_facts/asserts/hostnic_assert.yml
+      ansible.builtin.include_tasks: ../helper/idrac_gather_facts/asserts/hostnic_assert.yml
       with_items: "{{ hostnic }}"
       loop_control:
         loop_var: hostnic_data

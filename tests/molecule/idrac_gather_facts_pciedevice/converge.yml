@@ -36,7 +36,7 @@
           - "{{ pcie_device | length > 0 }}"
 
     - name: Call assertion
-      ansible.builtin.include_tasks: ../resources/idrac_gather_facts/asserts/pciedevice_assert.yml
+      ansible.builtin.include_tasks: ../helper/idrac_gather_facts/asserts/pciedevice_assert.yml
       with_items: "{{ pcie_device }}"
       loop_control:
         loop_var: pci_data

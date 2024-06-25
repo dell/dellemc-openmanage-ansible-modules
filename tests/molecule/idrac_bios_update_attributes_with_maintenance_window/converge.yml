@@ -30,7 +30,7 @@
 
     - name: Fetch IDRAC time offset
       ansible.builtin.include_tasks:
-        file: ../resources/idrac_bios/__get_data.yml
+        file: ../helper/idrac_bios/__get_data.yml
       vars:
         url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1\
         /Managers/iDRAC.Embedded.1"

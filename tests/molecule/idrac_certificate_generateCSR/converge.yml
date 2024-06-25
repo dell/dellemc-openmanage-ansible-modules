@@ -10,7 +10,7 @@
   tasks:
     - name: Setting up directory
       ansible.builtin.include_tasks:
-        file: ../resources/idrac_certificate/__get_helper.yml
+        file: ../helper/idrac_certificate/__get_helper.yml
 
     - name: Generate HTTPS CSR signing request
       ansible.builtin.import_role:
@@ -53,4 +53,4 @@
 
     - name: Deleting the directory
       ansible.builtin.include_tasks:
-        file: ../resources/idrac_certificate/__delete_directory.yml
+        file: ../helper/idrac_certificate/__delete_directory.yml

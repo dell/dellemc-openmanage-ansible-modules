@@ -9,7 +9,7 @@
     idrac_port: "{{ lookup('env', 'https_port') }}"
     validate_certs: false
   roles:
-    - name: dellemc.openmanage.idrac_server_powerstate
+    - role: dellemc.openmanage.idrac_server_powerstate
       vars:
         hostname: "{{ idrac_ip }}"
         username: "{{ idrac_user }}"
@@ -18,7 +18,7 @@
   tasks:
     - name: Fetch IDRAC Data
       ansible.builtin.include_tasks:
-        file: ../resources/idrac_bios/__get_data.yml
+        file: ../helper/idrac_bios/__get_data.yml
       vars:
         url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/\
         Systems/System.Embedded.1/Bios"

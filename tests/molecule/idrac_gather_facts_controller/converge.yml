@@ -37,4 +37,4 @@
           - "{{ controller | length > 0 }}"
 
     - name: Call assertion
-      ansible.builtin.include_tasks: ../resources/idrac_gather_facts/asserts/controller_assert.yml
+      ansible.builtin.include_tasks: ../helper/idrac_gather_facts/asserts/controller_assert.yml

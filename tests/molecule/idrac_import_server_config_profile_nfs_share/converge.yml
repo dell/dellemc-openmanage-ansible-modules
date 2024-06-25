@@ -9,7 +9,7 @@
   tasks:
     - name: "Pre-requisites"
       ansible.builtin.include_tasks:
-        file: "../resources/idrac_import_server_config_profile/export.yml"
+        file: "../helper/idrac_import_server_config_profile/export.yml"
       vars:
         _share_parameters:
           <<: *share_input

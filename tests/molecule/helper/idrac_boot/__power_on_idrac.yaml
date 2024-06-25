@@ -10,7 +10,7 @@
     https_timeout: 30
     validate_certs: false
   roles:
-    - name: dellemc.openmanage.idrac_server_powerstate
+    - role: dellemc.openmanage.idrac_server_powerstate
       vars:
         hostname: "{{ hostname }}"
         username: "{{ username }}"

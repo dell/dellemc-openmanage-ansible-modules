@@ -4,4 +4,4 @@
   gather_facts: false
   tasks:
     - name: Cleanup config
-      ansible.builtin.include_tasks: ../resources/idrac_import_server_config_profile/prepare.yml
+      ansible.builtin.include_tasks: ../helper/idrac_import_server_config_profile/prepare.yml

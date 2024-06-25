@@ -2,4 +2,4 @@
 provisioner:
   name: ansible
   playbooks:
-    cleanup: ../resources/idrac_import_server_config_profile/cleanup.yml
+    cleanup: ../helper/idrac_import_server_config_profile/cleanup.yml

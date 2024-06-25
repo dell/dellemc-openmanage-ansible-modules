@@ -26,7 +26,7 @@
       block:
         - name: Pre-req Create a volume.
           ansible.builtin.include_tasks:
-            file: ../resources/redfish_storage_volume/__create_virtual_drive.yml
+            file: ../helper/redfish_storage_volume/__create_virtual_drive.yml
 
         - name: To check the behaviour of Initialization type Fast.
           ansible.builtin.import_role:
@@ -47,7 +47,7 @@
 
         - name: Track the initialization job
           ansible.builtin.include_tasks:
-            file: ../resources/redfish_storage_volume/__job_track.yml
+            file: ../helper/redfish_storage_volume/__job_track.yml
           vars:
             job_id: "{{ redfish_storage_volume_out.job_status.Id }}"
 
@@ -71,7 +71,7 @@
       always:
         - name: Deleting VD
           ansible.builtin.include_tasks:
-            file: ../resources/redfish_storage_volume/__delete_virtual_drive.yml
+            file: ../helper/redfish_storage_volume/__delete_virtual_drive.yml
           when:
             - not ansible_check_mode
             - redfish_storage_volume_id is defined

@@ -11,7 +11,7 @@
   tasks:
     - name: Fetching firmware version for IDRAC
       ansible.builtin.include_tasks:
-        file: ../resources/idrac_certificate/__extract_firmware_version.yml
+        file: ../helper/idrac_certificate/__extract_firmware_version.yml
       vars:
         idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
         idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -27,12 +27,12 @@
       block:
         - name: Create directory
           ansible.builtin.include_tasks:
-            file: ../resources/idrac_certificate/__get_helper.yml
+            file: ../helper/idrac_certificate/__get_helper.yml
 
         - name: Create SSL Key ans self-signed certificate
           when: idrac_certificate_check_file_created.stat.exists
           ansible.builtin.include_tasks:
-            file: ../resources/idrac_certificate/__get_ssl_key.yml
+            file: ../helper/idrac_certificate/__get_ssl_key.yml
 
         - name: Importing HTTPS certificate using ssl_key
           ansible.builtin.import_role:
@@ -85,7 +85,7 @@
       always:
         - name: Deleting the directory
           ansible.builtin.include_tasks:
-            file: ../resources/idrac_certificate/__delete_directory.yml
+            file: ../helper/idrac_certificate/__delete_directory.yml
 
     - name: Collecting failure
       ansible.builtin.debug:
