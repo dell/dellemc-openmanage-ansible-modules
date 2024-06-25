@@ -6,13 +6,13 @@
     - name: Include the helper file
       ansible.builtin.include_tasks: ../__helper.yml
       vars:
-        initial_state: True
+        initial_state: true
 
     - name: Pre-check - fail if enough disk not found to create VD on RAID 1
       ansible.builtin.fail:
         msg: 'Physical disks are not sufficient to proceed the test case need
              more than 2 and found {{ physicaldisks | length }}'
-      when: " {{physicaldisks | length}} < 2"
+      when: physicaldisks is defined and physicaldisks | length < 2
 
     - name: Removing if disks are assigned as hotspare and resetting the
             controller

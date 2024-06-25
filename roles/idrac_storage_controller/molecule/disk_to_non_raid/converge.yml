@@ -24,12 +24,18 @@
             disks: "{{ my_list }}"
 
         - name: Waiting for iDRAC to be in ready state
+          ignore_errors: true
+          register: raid_state_out_lc
           ansible.builtin.include_tasks:
             file: ../__lc_status.yml
           when: raid_state_out is defined and raid_state_out.msg ==
              "Successfully submitted the job that performs the
              'ConvertToNonRAID' operation."
-          ignore_errors: true
+
+        - name: Wait for 120 seconds
+          ansible.builtin.pause:
+            seconds: 120
+          when: not ansible_check_mode and raid_state_out.status is defined
 
         - name: Creating Vd to check if disk is converted in non-Raid mode
                (Expecting fail to create the VD)
@@ -57,11 +63,6 @@
           when: vd_check is defined and raid_state_out.msg ==
              "Successfully submitted the job that performs the
              'ConvertToNonRAID' operation."
-
-        - name: Wait for 120 seconds
-          ansible.builtin.pause:
-            seconds: 120
-          when: not ansible_check_mode and raid_state_out.status is defined
 
         - name: Verifying disk conversion to non-raid in check mode
           ansible.builtin.assert:

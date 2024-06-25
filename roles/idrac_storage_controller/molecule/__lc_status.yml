@@ -1,5 +1,9 @@
 ---
 - name: Waiting for iDRAC to be in ready state
+  vars:
+    url1: "https://{{ lookup('env', 'IDRAC_IP') }}"
+    url2: "/redfish/v1/Dell/Managers/iDRAC.Embedded.1"
+    url3: "/DellLCService/Actions/DellLCService.GetRemoteServicesAPIStatus"
   ansible.builtin.uri:
     url_username: "{{ lookup('env', 'IDRAC_USER') }}"
     url_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
@@ -13,7 +17,7 @@
       Accept: "application/json"
       OData-Version: "4.0"
     url:
-      "https://{{ lookup('env', 'IDRAC_IP')}}/redfish/v1/Dell/Managers/iDRAC.Embedded.1/DellLCService/Actions/DellLCService.GetRemoteServicesAPIStatus"
+      "{{ url1 }}{{ url2 }}{{ url3 }}"
     method: POST
     body: {}
   until: status_result.json.Status == "Ready"
@@ -21,4 +25,4 @@
   check_mode: false
   retries: 120
   delay: 30
-  no_log: true
+  # no_log: true
