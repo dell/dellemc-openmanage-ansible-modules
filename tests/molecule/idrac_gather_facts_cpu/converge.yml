@@ -30,7 +30,7 @@
   tasks:
     - name: Gather Facts for the CPU component
       ansible.builtin.include_role:
-        name: "idrac_gather_facts"
+        name: dellemc.openmanage.idrac_gather_facts
 
     - name: Assert cpu dict for length
       ansible.builtin.assert:
@@ -38,7 +38,7 @@
           - "{{ cpu | length > 0 }}"
 
     - name: Call assertion
-      ansible.builtin.include_tasks: ../resources/idrac_gather_facts/assert/cpu_assert.yml
+      ansible.builtin.include_tasks: ../resources/idrac_gather_facts/asserts/cpu_assert.yml
       with_items: "{{ cpu }}"
       loop_control:
         loop_var: cpu_data

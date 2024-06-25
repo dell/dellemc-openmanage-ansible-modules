@@ -17,5 +17,4 @@
         password: "{{ password }}"
         validate_certs: "{{ validate_certs }}"
         https_port: "{{ https_port }}"
-        https_timeout: "{{ https_timeout }}"  
-      
+        https_timeout: "{{ https_timeout }}"

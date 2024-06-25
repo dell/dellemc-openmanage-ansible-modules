@@ -32,7 +32,7 @@
         name: "idrac_gather_facts"
 
     - name: Call assertion
-      ansible.builtin.include_tasks: ../resources/idrac_gather_facts/assert/virtualdisk_assert.yml
+      ansible.builtin.include_tasks: ../resources/idrac_gather_facts/asserts/virtualdisk_assert.yml
       with_items: "{{ virtual_disk }}"
       loop_control:
         loop_var: virtualdisk_data

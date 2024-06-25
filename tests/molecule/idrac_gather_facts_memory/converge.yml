@@ -37,7 +37,7 @@
           - "{{ memory | length > 0 }}"
 
     - name: Call assertion
-      ansible.builtin.include_tasks: ../resources/idrac_gather_facts/assert/memory_assert.yml
+      ansible.builtin.include_tasks: ../resources/idrac_gather_facts/asserts/memory_assert.yml
       with_items: "{{ memory }}"
       loop_control:
         loop_var: memory_data

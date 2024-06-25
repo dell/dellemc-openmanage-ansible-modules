@@ -37,4 +37,4 @@
           - "{{ secure_boot | length > 0 }}"
 
     - name: Call assertion
-      ansible.builtin.include_tasks: ../resources/idrac_gather_facts/assert/secureboot_assert.yml
+      ansible.builtin.include_tasks: ../resources/idrac_gather_facts/asserts/secureboot_assert.yml

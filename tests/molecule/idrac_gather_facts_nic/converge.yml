@@ -37,7 +37,7 @@
           - "{{ nic | length > 0 }}"
 
     - name: Call assertion
-      ansible.builtin.include_tasks: ../resources/idrac_gather_facts/assert/nic_assert.yml
+      ansible.builtin.include_tasks: ../resources/idrac_gather_facts/asserts/nic_assert.yml
       with_items: "{{ nic }}"
       loop_control:
         loop_var: nic_data

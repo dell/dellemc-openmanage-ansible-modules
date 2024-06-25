@@ -57,7 +57,7 @@
           '@odata.id', '@odata.type']) }}"
 
     - name: Call assertion
-      ansible.builtin.include_tasks: ../resources/idrac_gather_facts/assert/sensorsvoltage_assert.yml
+      ansible.builtin.include_tasks: ../resources/idrac_gather_facts/asserts/sensorsvoltage_assert.yml
       with_items: "{{ voltages }}"
       loop_control:
         loop_var: sensorsvoltage_data

@@ -31,7 +31,7 @@
         name: "idrac_gather_facts"
 
     - name: Call assertion
-      ansible.builtin.include_tasks: ../resources/idrac_gather_facts/assert/enclosureemm_assert.yml
+      ansible.builtin.include_tasks: ../resources/idrac_gather_facts/asserts/enclosureemm_assert.yml
       with_items: "{{ enclosure_emm }}"
       loop_control:
         loop_var: enclosureemm_data
