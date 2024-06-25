@@ -173,3 +173,5 @@ roles/idrac_storage_controller/molecule/reset_controller/converge.yml var-naming
 roles/idrac_storage_controller/molecule/reset_controller/molecule.yml var-naming[no-role-prefix]
 roles/idrac_storage_controller/molecule/reset_controller/prepare.yml var-naming[no-role-prefix]
 roles/idrac_storage_controller/molecule/reset_controller/cleanup.yml var-naming[no-role-prefix]
+roles/idrac_storage_controller/molecule/default/converge.yml var-naming[no-role-prefix]
+roles/idrac_storage_controller/molecule/default/molecule.yml var-naming[no-role-prefix]

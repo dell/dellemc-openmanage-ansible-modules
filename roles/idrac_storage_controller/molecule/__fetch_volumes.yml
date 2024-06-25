@@ -15,27 +15,24 @@
     cacheable: true
     enclosers: "{{ item.value.Enclosure }}"
     controller_name: "{{ item.key }}"
-  loop: "{{ lookup('dict', result.storage_status.Message.Controller)}}"
+  loop: "{{ lookup('dict', result.storage_status.Message.Controller) }}"
   when: not post_op and 'Enclosure' in item.value
-  ignore_errors: true
   no_log: true
 
 - name: Fetch the physical disks available in the controller
   ansible.builtin.set_fact:
-    cacheable: yes
+    cacheable: true
     physicaldisks: "{{ item.value.PhysicalDisk }}"
   loop: "{{ lookup('dict',
-         result.storage_status.Message.Controller[ controller_name ].Enclosure,
-         wantlist=True)}}"
-  when: not post_op and "{{ controller_name }}" in item.key
-  ignore_errors: true
+         result.storage_status.Message.Controller[controller_name].Enclosure,
+         wantlist=True) }}"
+  when: not post_op and controller_name in item.key
 
 - name: Fetch the virtual disks after creation
   ansible.builtin.set_fact:
-    cacheable: yes
+    cacheable: true
     virtualdisk: "{{ item.key }}"
   loop: "{{ lookup('dict',
-       result.storage_status.Message.Controller[ controller_name ].VirtualDisk,
-       wantlist=True)}}"
-  when: post_op and "{{ controller_name }}" in item.key
-  ignore_errors: true
+       result.storage_status.Message.Controller[controller_name].VirtualDisk,
+       wantlist=True) }}"
+  when: post_op and controller_name in item.key

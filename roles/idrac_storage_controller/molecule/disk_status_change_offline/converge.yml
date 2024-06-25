@@ -25,11 +25,12 @@
             disks: "{{ my_list }}"
 
         - name: Waiting for iDRAC to be in ready state
+          ignore_errors: true
+          register: pd_state_out_lc
           ansible.builtin.include_tasks:
             file: ../__lc_status.yml
           when: pd_state_out.msg == "Successfully performed the
                'ChangePDStateToOffline' operation."
-          ignore_errors: true
 
         - name: Verifying disk status change to offline in check mode
           ansible.builtin.assert:

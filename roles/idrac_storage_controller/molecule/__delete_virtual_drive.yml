@@ -18,4 +18,5 @@
 - name: Waiting for iDRAC to be in ready state
   ansible.builtin.include_tasks:
     file: ../__lc_status.yml
-  when: redfish_storage_volume_out is defined and redfish_storage_volume_out.changed
+  when: redfish_storage_volume_out is defined and
+        redfish_storage_volume_out.changed

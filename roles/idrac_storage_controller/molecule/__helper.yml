@@ -69,12 +69,13 @@
       # no_log: true
 
     - name: Pre-req - Fetch volumes after creating the VD
+      ignore_errors: true
+      register: result_create_vd
       ansible.builtin.include_tasks: ../__fetch_volumes.yml
       vars:
         post_op: true
       when: vd_trigger is defined and result_create_vd.msg == "Successfully
        completed the create storage volume operation."
-      ignore_errors: true
 
     - name: Pre-Req - Change physical disk state to offline/online.
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -104,10 +105,11 @@
       check_mode: false
 
     - name: Waiting for iDRAC to be in ready state
+      ignore_errors: true
+      register: res_status
       ansible.builtin.include_tasks:
         file: ../__lc_status.yml
       when: res_status is defined and (res_status.msg ==
            "Successfully performed the 'ChangePDStateToOffline' operation." or res_status.msg ==
            "Successfully performed the 'ChangePDStateToOnline' operation.")
-      ignore_errors: true
       no_log: true
