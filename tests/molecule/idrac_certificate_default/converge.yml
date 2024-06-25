@@ -22,7 +22,7 @@
 
         - name: Create directory and fetch certificates
           ansible.builtin.include_tasks:
-            file: ../__get_helper.yml
+            file: ../resources/idrac_certificate/__get_helper.yml
           vars:
             idrac_cert_name:
               - "{{ custom_cert_name }}"
@@ -33,7 +33,7 @@
           when: idrac_certificate_check_file_created is defined and
                 idrac_certificate_check_file_created.stat.exists
           ansible.builtin.include_tasks:
-            file: ../__get_ssl_key.yml
+            file: ../resources/idrac_certificate/__get_ssl_key.yml
 
         - name: Export a Client Trust Certificate
           ansible.builtin.import_role:
@@ -378,4 +378,4 @@
       always:
         - name: Deleting the directory
           ansible.builtin.include_tasks:
-            file: ../__delete_directory.yml
+            file: ../resources/idrac_certificate/__delete_directory.yml

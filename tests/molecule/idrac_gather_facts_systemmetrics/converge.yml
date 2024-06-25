@@ -31,10 +31,10 @@
         name: "idrac_gather_facts"
 
     - name: Call assertion for thermal metrics
-      ansible.builtin.include_tasks: ../../tests/asserts/tmetrics_assert.yml
+      ansible.builtin.include_tasks: ../resources/idrac_gather_facts/assert/tmetrics_assert.yml
 
     - name: Call assertion for memory metrics
-      ansible.builtin.include_tasks: ../../tests/asserts/mmetrics_assert.yml
+      ansible.builtin.include_tasks: ../resources/idrac_gather_facts/assert/mmetrics_assert.yml
 
     - name: Get Power Supply information.
       ansible.builtin.uri:
@@ -63,7 +63,7 @@
       when: psu_ids| length == 0
 
     - name: Call assertion for Power metrics
-      ansible.builtin.include_tasks: ../../tests/asserts/psmetrics_assert.yml
+      ansible.builtin.include_tasks: ../resources/idrac_gather_facts/assert/psmetrics_assert.yml
       with_items: "{{ power_metrics }}"
       loop_control:
         loop_var: power_data

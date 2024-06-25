@@ -18,7 +18,7 @@
   tasks:
     - name: Fetch IDRAC Data
       ansible.builtin.include_tasks:
-        file: ../__get_data.yml
+        file: ../resources/idrac_bios/__get_data.yml
       vars:
         url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/\
         Systems/System.Embedded.1/Bios"

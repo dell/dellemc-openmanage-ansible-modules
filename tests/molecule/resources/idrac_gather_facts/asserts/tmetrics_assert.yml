@@ -1,0 +1,46 @@
+---
+- name: Get Thermal Metrics information.
+  ansible.builtin.uri:
+    url:
+      "https://{{ hostname }}{{ api_chassis }}/ThermalSubsystem/ThermalMetrics"
+    validate_certs: "{{ validate_certs }}"
+    method: "{{ idrac_gather_facts_uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    headers: "{{ idrac_gather_facts_uri_headers }}"
+    body_format: "{{ idrac_gather_facts_uri_body_format }}"
+    status_code: "{{ idrac_gather_facts_uri_status_code }}"
+    return_content: "{{ idrac_gather_facts_uri_return_content }}"
+  register: response_thermal_metrics
+  no_log: true
+
+- name: Set Thermal Metrics facts
+  ansible.builtin.set_fact:
+    api_thermal_metrics: "{{ response_thermal_metrics.json |
+      ansible.utils.remove_keys(target=['@odata.context', '@odata.type',
+      '@odata.id', 'DataSourceUri',
+      'TemperatureReadingsCelsius@odata.count']) }}"
+  when: response_thermal_metrics is defined
+
+- name: Assert thermal metrics
+  ansible.builtin.assert:
+    that:
+      - "((api_thermal_metrics | length == 0) and
+        (thermal_metrics | length == 0))"
+    fail_msg: "The response from the role does not match"
+    success_msg: "The response from the role matches"
+  when: api_thermal_metrics| length == 0
+
+- name: Check whether output differs
+  ansible.builtin.set_fact:
+    result_diff: "{{ thermal_metrics |
+      symmetric_difference(api_thermal_metrics) }}"
+  when: api_thermal_metrics | length > 0
+
+- name: Assert the differences in List
+  ansible.builtin.assert:
+    fail_msg: "The response from the role does not match"
+    success_msg: "The response from the role matches"
+    that:
+      - "{{ (result_diff | length) == 0 }}"
+  when: api_thermal_metrics | length > 0

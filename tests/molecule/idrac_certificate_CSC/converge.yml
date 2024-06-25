@@ -13,7 +13,7 @@
   tasks:
     - name: Fetching CSC certificates from share
       ansible.builtin.include_tasks:
-        file: ../__get_helper.yml
+        file: ../resources/idrac_certificate/__get_helper.yml
       vars:
         idrac_cert_name:
           - "{{ csc_cert_name }}"
@@ -89,7 +89,7 @@
 
     - name: Fetching CSC certificates from share
       ansible.builtin.include_tasks:
-        file: ../__get_helper.yml
+        file: ../resources/idrac_certificate/__get_helper.yml
       vars:
         idrac_cert_name:
           - "{{ csc_cert_pass_name }}"
@@ -165,4 +165,4 @@
 
     - name: Deleting the directory
       ansible.builtin.include_tasks:
-        file: ../__delete_directory.yml
+        file: ../resources/idrac_certificate/__delete_directory.yml

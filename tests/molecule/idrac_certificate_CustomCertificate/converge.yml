@@ -13,7 +13,7 @@
   tasks:
     - name: Fetching firmware version for IDRAC
       ansible.builtin.include_tasks:
-        file: ../__extract_firmware_version.yml
+        file: ../resources/idrac_certificate/__extract_firmware_version.yml
       vars:
         idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
         idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -31,7 +31,7 @@
       block:
         - name: Fetching Custom certificate from share
           ansible.builtin.include_tasks:
-            file: ../__get_helper.yml
+            file: ../resources/idrac_certificate/__get_helper.yml
           vars:
             idrac_cert_name:
               - "{{ custom_cert_name }}"
@@ -81,7 +81,7 @@
       always:
         - name: Deleting the directory
           ansible.builtin.include_tasks:
-            file: ../__delete_directory.yml
+            file: ../resources/idrac_certificate/__delete_directory.yml
 
     - name: Export CUSTOMCERTIFICATE
       when:
@@ -91,7 +91,7 @@
       block:
         - name: Fetching Custom certificate from share
           ansible.builtin.include_tasks:
-            file: ../__get_helper.yml
+            file: ../resources/idrac_certificate/__get_helper.yml
 
         - name: Export a custom certificate
           ansible.builtin.import_role:
@@ -138,7 +138,7 @@
       always:
         - name: Deleting the directory
           ansible.builtin.include_tasks:
-            file: ../__delete_directory.yml
+            file: ../resources/idrac_certificate/__delete_directory.yml
 
     - name: Import CUSTOMCERTIFICATE with passphrase
       when: idrac_certificate_firmware_version is defined and
@@ -147,7 +147,7 @@
       block:
         - name: Fetching Custom certificate from share
           ansible.builtin.include_tasks:
-            file: ../__get_helper.yml
+            file: ../resources/idrac_certificate/__get_helper.yml
           vars:
             idrac_cert_name:
               - "{{ cust_crt_name_pass }}"
@@ -198,7 +198,7 @@
       always:
         - name: Deleting the directory
           ansible.builtin.include_tasks:
-            file: ../__delete_directory.yml
+            file: ../resources/idrac_certificate/__delete_directory.yml
 
     - name: Collecting failure
       ansible.builtin.debug:

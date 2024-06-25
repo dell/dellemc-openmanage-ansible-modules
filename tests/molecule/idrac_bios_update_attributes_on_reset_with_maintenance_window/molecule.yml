@@ -2,8 +2,8 @@
 provisioner:
   name: ansible
   playbooks:
-    prepare: ../resources/prepare.yml
-    cleanup: ../resources/cleanup.yml
+    prepare: ../resources/idrac_bios/prepare.yml
+    cleanup: ../resources/idrac_bios/cleanup.yml
 scenario:
   test_sequence:
     - create

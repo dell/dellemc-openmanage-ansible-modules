@@ -10,7 +10,7 @@
   tasks:
     - name: Fetching data from iDRAC for PERC
       ansible.builtin.include_tasks:
-        file: ../__extract_storage.yml
+        file: ../resources/redfish_storage_volume/__extract_storage.yml
       vars:
         redfish_storage_volume_search_in_name: 'PERC'
 
@@ -67,7 +67,7 @@
       always:
         - name: Deleting VD
           ansible.builtin.include_tasks:
-            file: ../__delete_virtual_drive.yml
+            file: ../resources/redfish_storage_volume/__delete_virtual_drive.yml
           when:
             - not ansible_check_mode
             - redfish_storage_volume_out is defined
@@ -75,7 +75,7 @@
 
     - name: Fetching data from iDRAC for BOSS
       ansible.builtin.include_tasks:
-        file: ../__extract_storage.yml
+        file: ../resources/redfish_storage_volume/__extract_storage.yml
       vars:
         redfish_storage_volume_search_in_name: 'BOSS'
 
@@ -115,7 +115,7 @@
 
         - name: Waiting for idrac reset and LC tracking.
           ansible.builtin.include_tasks:
-            file: ../__idrac_reset.yml
+            file: ../resources/redfish_storage_volume/__idrac_reset.yml
           when: not ansible_check_mode and redfish_storage_volume_out.changed
 
         - name: Asserting operation with normal mode.
@@ -137,7 +137,7 @@
       always:
         - name: Deleting VD
           ansible.builtin.include_tasks:
-            file: ../__delete_virtual_drive.yml
+            file: ../resources/redfish_storage_volume/__delete_virtual_drive.yml
           when:
             - not ansible_check_mode
             - redfish_storage_volume_out is defined

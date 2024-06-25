@@ -1,0 +1,70 @@
+---
+- name: Fetching Controller info
+  ansible.builtin.uri: &uri_params
+    url: "https://{{ hostname }}{{ api_system }}/Storage"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    method: "{{ idrac_gather_facts_uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    headers: "{{ idrac_gather_facts_uri_headers }}"
+    body_format: "{{ idrac_gather_facts_uri_body_format }}"
+    status_code: "{{ idrac_gather_facts_uri_status_code }}"
+    return_content: "{{ idrac_gather_facts_uri_return_content }}"
+  register: idrac_gather_facts_storage_entity
+  no_log: true
+
+- name: Get storage entities
+  ansible.builtin.set_fact:
+    collected_storage_entity:
+      "{{ (collected_storage_entity | default([])) + [item['@odata.id']] }}"
+  loop: "{{ idrac_gather_facts_storage_entity.json.Members }}"
+
+- name: Get Controllers URL information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}{{ item }}"
+    <<: *uri_params
+  loop: "{{ collected_storage_entity }}"
+  register: idrac_gather_facts_controllers_url
+
+- name: Pick Controllers key value in one list
+  ansible.builtin.set_fact:
+    controllers_list:
+      "{{ controllers_list | default([]) +
+       [item.json.Controllers | default(omit)] }}"
+  loop: "{{ idrac_gather_facts_controllers_url.results }}"
+
+- name: Select list of controller values from dictionary
+  ansible.builtin.set_fact:
+    collected_values:
+      "{{ (collected_values | default([])) +
+       [item['@odata.id'] | default(omit)] }}"
+  loop: "{{ controllers_list }}"
+
+- name: Get Controllers information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}{{ item }}?$expand=*($levels=1)"
+    <<: *uri_params
+  loop: "{{ collected_values | reject('match', '__omit_place_holder__.*') }}"
+  register: idrac_gather_facts_result
+
+- name: Set All Controllers facts
+  ansible.builtin.set_fact:
+    api_response:
+      "{{ idrac_gather_facts_result.results | selectattr('json', 'defined') |
+        map(attribute='json') |
+        selectattr('Members', 'defined') |
+        map(attribute='Members') | flatten |
+        ansible.utils.remove_keys(target=['^.*@odata.*$'],
+        matching_parameter='regex') }}"
+
+- name: Check whether output differs
+  ansible.builtin.set_fact:
+    result_diff: "{{ controller | symmetric_difference(api_response) }}"
+
+- name: Assert the differences in List
+  ansible.builtin.assert:
+    that:
+      - "{{ (result_diff | length) == 0 }}"
+    fail_msg: "The response from the role does not match"
+    success_msg: "The response from the role matches"
