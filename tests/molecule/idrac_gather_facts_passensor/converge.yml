@@ -52,7 +52,7 @@
 
     - name: Gather Facts for the Presence and Status Sensor
       ansible.builtin.include_role:
-        name: "idrac_gather_facts"
+        name: dellemc.openmanage.idrac_gather_facts
 
     - name: Assert Presence and Status Sensor data
       ansible.builtin.assert:

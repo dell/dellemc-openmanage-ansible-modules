@@ -46,7 +46,7 @@
 
     - name: Gather Facts for the PCIeSSDBackPlane component
       ansible.builtin.include_role:
-        name: "idrac_gather_facts"
+        name: dellemc.openmanage.idrac_gather_facts
 
     - name: Assert backplane data
       ansible.builtin.assert:

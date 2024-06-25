@@ -28,7 +28,7 @@
   tasks:
     - name: Gather Facts for the Sensors Intrusion component
       ansible.builtin.include_role:
-        name: "idrac_gather_facts"
+        name: dellemc.openmanage.idrac_gather_facts
 
     - name: Assert sensor battery dict for length
       ansible.builtin.assert:

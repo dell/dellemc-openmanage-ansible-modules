@@ -8,7 +8,7 @@
   tasks:
     - name: Reset HTTPS certificate
       ansible.builtin.import_role:
-        name: idrac_certificate
+        name: dellemc.openmanage.idrac_certificate
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"

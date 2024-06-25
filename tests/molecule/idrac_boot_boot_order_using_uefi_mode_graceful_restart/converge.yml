@@ -33,7 +33,7 @@
     - name: Pre-requisite - Making sure boot mode is uefi
       check_mode: false
       ansible.builtin.import_role:
-        name: "idrac_boot"
+        name: dellemc.openmanage.idrac_boot
       vars:
         boot_source_override_mode: uefi
       tags: molecule-idempotence-notest
@@ -62,7 +62,7 @@
 
     - name: TC-115428 - Validate boot_order with uefi mode with graceful_restart
       ansible.builtin.include_role:
-        name: "idrac_boot"
+        name: dellemc.openmanage.idrac_boot
       vars:
         boot_order: "{{ reverse_boot_order | default(data) }}"
         reset_type: graceful_restart

@@ -5,7 +5,7 @@
   tasks:
     - name: Update firmware from repository on a HTTPS via parameter proxy Share
       ansible.builtin.import_role:
-        name: "idrac_firmware"
+        name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -46,7 +46,7 @@
 
     - name: Update firmware from repository on a HTTPS via default proxy Share
       ansible.builtin.import_role:
-        name: "idrac_firmware"
+        name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -79,7 +79,7 @@
 
     - name: Update firmware from repository on a HTTPS via parameter proxy Share with proxy_type as SOCKS
       ansible.builtin.import_role:
-        name: "idrac_firmware"
+        name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"

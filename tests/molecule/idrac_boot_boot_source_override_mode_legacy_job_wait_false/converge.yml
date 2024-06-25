@@ -36,7 +36,7 @@
     - name: Pre-requisite - Making sure boot mode is uefi
       check_mode: false
       ansible.builtin.import_role:
-        name: "idrac_boot"
+        name: dellemc.openmanage.idrac_boot
       vars:
         boot_source_override_mode: uefi
       tags: molecule-idempotence-notest
@@ -47,7 +47,7 @@
 
     - name: TC-115429 - Validate boot_source_override_mode as legacy with job_wait false
       ansible.builtin.include_role:
-        name: "idrac_boot"
+        name: dellemc.openmanage.idrac_boot
       vars:
         boot_source_override_mode: legacy
         job_wait: false

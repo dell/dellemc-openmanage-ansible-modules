@@ -29,7 +29,7 @@
   tasks:
     - name: Gather Facts for the Controller component
       ansible.builtin.include_role:
-        name: "idrac_gather_facts"
+        name: dellemc.openmanage.idrac_gather_facts
 
     - name: Assert controller dict for length
       ansible.builtin.assert:

@@ -30,7 +30,7 @@
 
     - name: TC - 001 - Provide valid HTTP image_uri with default transfer_protocol with auto reboot
       ansible.builtin.import_role:
-        name: redfish_firmware
+        name: dellemc.openmanage.redfish_firmware
       vars:
         <<: *idrac_input
         image_uri: "{{ redfish_firmware_image_url_without_reboot }}"
@@ -44,7 +44,7 @@
 
     - name: TC - 002 - Provide valid local image_uri firmware to schedule job with job_wait_timeout 60 secs
       ansible.builtin.import_role:
-        name: redfish_firmware
+        name: dellemc.openmanage.redfish_firmware
       vars:
         <<: *idrac_input
         image_uri: "{{ redfish_firmware_image_url_need_reboot }}"

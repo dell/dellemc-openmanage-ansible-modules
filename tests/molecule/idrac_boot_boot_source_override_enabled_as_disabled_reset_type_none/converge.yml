@@ -35,7 +35,7 @@
     - name: Pre-requisite - Making sure boot_source_override_enabled is continuous
       check_mode: false
       ansible.builtin.import_role:
-        name: "idrac_boot"
+        name: dellemc.openmanage.idrac_boot
       vars:
         boot_source_override_enabled: continuous
       tags: molecule-idempotence-notest
@@ -46,7 +46,7 @@
 
     - name: TC-115431 - Validate boot_source_override_enabled as disabled
       ansible.builtin.include_role:
-        name: "idrac_boot"
+        name: dellemc.openmanage.idrac_boot
       vars:
         boot_source_override_enabled: disabled
         reset_type: none

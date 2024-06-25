@@ -5,7 +5,7 @@
   tasks:
     - name: To check for wrong hostname
       ansible.builtin.import_role:
-        name: idrac_gather_facts
+        name: dellemc.openmanage.idrac_gather_facts
       vars:
         hostname: "randomHostname"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -22,7 +22,7 @@
 
     - name: To check for wrong username
       ansible.builtin.import_role:
-        name: idrac_gather_facts
+        name: dellemc.openmanage.idrac_gather_facts
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "randomUsername"
@@ -40,7 +40,7 @@
 
     - name: To check for wrong password
       ansible.builtin.import_role:
-        name: idrac_gather_facts
+        name: dellemc.openmanage.idrac_gather_facts
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -62,7 +62,7 @@
 
     - name: To check for wrong system id
       ansible.builtin.import_role:
-        name: idrac_gather_facts
+        name: dellemc.openmanage.idrac_gather_facts
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -80,7 +80,7 @@
 
     - name: To check for wrong manager id
       ansible.builtin.import_role:
-        name: idrac_gather_facts
+        name: dellemc.openmanage.idrac_gather_facts
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"

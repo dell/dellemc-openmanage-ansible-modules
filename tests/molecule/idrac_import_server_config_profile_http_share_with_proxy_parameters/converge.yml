@@ -25,7 +25,7 @@
 
     - name: "Importing SCP from HTTP with proxy parameters"
       ansible.builtin.import_role:
-        name: "idrac_import_server_config_profile"
+        name: dellemc.openmanage.idrac_import_server_config_profile
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"

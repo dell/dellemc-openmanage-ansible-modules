@@ -5,7 +5,7 @@
   tasks:
     - name: Play 1 - TC-115436 - Ansible - Role - idrac_boot - Providing wrong hostname
       ansible.builtin.import_role:
-        name: idrac_boot
+        name: dellemc.openmanage.idrac_boot
       vars:
         hostname: "WrongHostname"
         username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
@@ -21,7 +21,7 @@
 
     - name: TC-115437 - Ansible - Role - idrac_boot - Providing wrong username
       ansible.builtin.import_role:
-        name: idrac_boot
+        name: dellemc.openmanage.idrac_boot
       vars:
         hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
         username: "wrongUsername"
@@ -38,7 +38,7 @@
 
     - name: TC-115438 - Ansible - Role - idrac_boot - Providing wrong password
       ansible.builtin.import_role:
-        name: idrac_boot
+        name: dellemc.openmanage.idrac_boot
       vars:
         hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
         username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
@@ -60,7 +60,7 @@
   tasks:
     - name: TC-115439 - Ansible - Role - idrac_boot - Providing invalid https_port
       ansible.builtin.import_role:
-        name: idrac_boot
+        name: dellemc.openmanage.idrac_boot
       vars:
         hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
         username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
@@ -81,7 +81,7 @@
   tasks:
     - name: TC-115440 - Ansible - Role - idrac_boot - Providing wrong resource_id
       ansible.builtin.import_role:
-        name: idrac_boot
+        name: dellemc.openmanage.idrac_boot
       vars:
         hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
         username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
@@ -103,7 +103,7 @@
   tasks:
     - name: TC-115441 - Ansible - Role - idrac_boot - Providing wrong ca_path
       ansible.builtin.import_role:
-        name: idrac_boot
+        name: dellemc.openmanage.idrac_boot
       vars:
         hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
         username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
@@ -125,7 +125,7 @@
   tasks:
     - name: TC-115442 - Ansible - Role - idrac_boot - Providing invalid https_timeout
       ansible.builtin.import_role:
-        name: idrac_boot
+        name: dellemc.openmanage.idrac_boot
       vars:
         hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
         username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"

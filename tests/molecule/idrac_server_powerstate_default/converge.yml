@@ -5,7 +5,7 @@
   tasks:
     - name: Performing operation on the iDRAC device using default reset_type
       ansible.builtin.import_role:
-        name: idrac_server_powerstate
+        name: dellemc.openmanage.idrac_server_powerstate
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -22,7 +22,7 @@
 
     - name: Performing operation On the iDRAC with invalid resource_id
       ansible.builtin.import_role:
-        name: idrac_server_powerstate
+        name: dellemc.openmanage.idrac_server_powerstate
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -40,7 +40,7 @@
 
     - name: Performing operation 'On' with invalid hostname
       ansible.builtin.import_role:
-        name: idrac_server_powerstate
+        name: dellemc.openmanage.idrac_server_powerstate
       vars:
         hostname: "randomHostname"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -59,7 +59,7 @@
 
     - name: Performing operation 'On' with invalid username
       ansible.builtin.import_role:
-        name: idrac_server_powerstate
+        name: dellemc.openmanage.idrac_server_powerstate
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "WrongUsername123"
@@ -77,7 +77,7 @@
 
     - name: Performing operation 'On' with invalid password
       ansible.builtin.import_role:
-        name: idrac_server_powerstate
+        name: dellemc.openmanage.idrac_server_powerstate
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -97,7 +97,7 @@
 
     - name: Performing operation 'On' with invalid validate_certs
       ansible.builtin.import_role:
-        name: idrac_server_powerstate
+        name: dellemc.openmanage.idrac_server_powerstate
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -115,7 +115,7 @@
 
     - name: Performing operation 'ForceOn' on iDRAC server
       ansible.builtin.import_role:
-        name: idrac_server_powerstate
+        name: dellemc.openmanage.idrac_server_powerstate
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -152,7 +152,7 @@
 
     - name: Performing Operation 'On' without resource_id when iDRAC has secondary resource_id
       ansible.builtin.import_role:
-        name: idrac_server_powerstate
+        name: dellemc.openmanage.idrac_server_powerstate
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -169,7 +169,7 @@
 
     - name: Performing Operation 'On' with valid secondary resource_id
       ansible.builtin.import_role:
-        name: idrac_server_powerstate
+        name: dellemc.openmanage.idrac_server_powerstate
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"

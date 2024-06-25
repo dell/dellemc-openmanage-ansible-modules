@@ -6,7 +6,7 @@
   tasks:
     - name: To check the behaviour of Initialization type Fast.
       ansible.builtin.import_role:
-        name: redfish_storage_volume
+        name: dellemc.openmanage.redfish_storage_volume
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"

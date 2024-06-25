@@ -46,7 +46,7 @@
     - name: Pre-requisite - Making sure enabled is true for fisrt display_name
       check_mode: false
       ansible.builtin.import_role:
-        name: "idrac_boot"
+        name: dellemc.openmanage.idrac_boot
       vars:
         boot_options:
           - display_name: "{{ data | default('') }}"
@@ -59,7 +59,7 @@
 
     - name: TC-115426 - Validate boot_options using display_name and enabled false
       ansible.builtin.include_role:
-        name: "idrac_boot"
+        name: dellemc.openmanage.idrac_boot
       vars:
         boot_options:
           - display_name: "{{ data | default('') }}"

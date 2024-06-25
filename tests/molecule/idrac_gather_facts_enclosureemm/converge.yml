@@ -28,7 +28,7 @@
   tasks:
     - name: Gather Facts for the EnclosureEMM component
       ansible.builtin.include_role:
-        name: "idrac_gather_facts"
+        name: dellemc.openmanage.idrac_gather_facts
 
     - name: Call assertion
       ansible.builtin.include_tasks: ../helper/idrac_gather_facts/asserts/enclosureemm_assert.yml

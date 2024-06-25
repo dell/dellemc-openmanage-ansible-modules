@@ -9,7 +9,7 @@
 
     - name: Cleanup when target is ['ALL'] or ['IDRAC']
       ansible.builtin.import_role:
-        name: idrac_attributes
+        name: dellemc.openmanage.idrac_attributes
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"

@@ -51,7 +51,7 @@
     - name: Pre-requisite - Making sure enabled is false on first boot_option_reference
       check_mode: false
       ansible.builtin.import_role:
-        name: "idrac_boot"
+        name: dellemc.openmanage.idrac_boot
       vars:
         boot_options:
           - boot_option_reference: "{{ data | default('') }}"
@@ -60,7 +60,7 @@
 
     - name: TC-115424 - Validate boot_options using boot_option_reference and default enabled
       ansible.builtin.include_role:
-        name: "idrac_boot"
+        name: dellemc.openmanage.idrac_boot
       vars:
         boot_options:
           - boot_option_reference: "{{ data | default('') }}"

@@ -5,7 +5,7 @@
   tasks:
     - name: Perform update with wrong hostname
       ansible.builtin.import_role:
-        name: idrac_attributes
+        name: dellemc.openmanage.idrac_attributes
       vars:
         hostname: "randomHostname"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -24,7 +24,7 @@
 
     - name: Perform update with wrong username
       ansible.builtin.import_role:
-        name: idrac_attributes
+        name: dellemc.openmanage.idrac_attributes
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "WrongUsername123"
@@ -42,7 +42,7 @@
 
     - name: Perform update with wrong password
       ansible.builtin.import_role:
-        name: idrac_attributes
+        name: dellemc.openmanage.idrac_attributes
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -60,7 +60,7 @@
 
     - name: Perform update with invalid https_port
       ansible.builtin.import_role:
-        name: idrac_attributes
+        name: dellemc.openmanage.idrac_attributes
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -80,7 +80,7 @@
 
     - name: Perform update with invalid validate_certs
       ansible.builtin.import_role:
-        name: idrac_attributes
+        name: dellemc.openmanage.idrac_attributes
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -100,7 +100,7 @@
 
     - name: Perform update with wrong ca_path
       ansible.builtin.import_role:
-        name: idrac_attributes
+        name: dellemc.openmanage.idrac_attributes
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -122,7 +122,7 @@
 
     - name: Perform update with wrong manager_id
       ansible.builtin.import_role:
-        name: idrac_attributes
+        name: dellemc.openmanage.idrac_attributes
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -142,7 +142,7 @@
 
     - name: Perform update with read only attributes
       ansible.builtin.import_role:
-        name: idrac_attributes
+        name: dellemc.openmanage.idrac_attributes
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -162,7 +162,7 @@
 
     - name: Perform idrac_attributes update with invalid attributes
       ansible.builtin.import_role:
-        name: idrac_attributes
+        name: dellemc.openmanage.idrac_attributes
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -183,7 +183,7 @@
     - name: Perform idrac_attributes update with
              valid attributes and invalid values
       ansible.builtin.import_role:
-        name: idrac_attributes
+        name: dellemc.openmanage.idrac_attributes
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -204,7 +204,7 @@
 
     - name: Perform system_attributes update with invalid attributes
       ansible.builtin.import_role:
-        name: idrac_attributes
+        name: dellemc.openmanage.idrac_attributes
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -227,7 +227,7 @@
     - name: Perform system_attributes update with
              valid attributes and invalid values
       ansible.builtin.import_role:
-        name: idrac_attributes
+        name: dellemc.openmanage.idrac_attributes
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -250,7 +250,7 @@
     - name: Perform lifecycle_controller_attributes update
              with invalid attributes
       ansible.builtin.import_role:
-        name: idrac_attributes
+        name: dellemc.openmanage.idrac_attributes
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -274,7 +274,7 @@
     - name: Perform lifecycle_controller_attributes update with
              valid attributes and invalid values
       ansible.builtin.import_role:
-        name: idrac_attributes
+        name: dellemc.openmanage.idrac_attributes
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"

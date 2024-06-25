@@ -26,7 +26,7 @@
   tasks:
     - name: Exporting SCP local path with all components
       ansible.builtin.import_role:
-        name: idrac_export_server_config_profile
+        name: dellemc.openmanage.idrac_export_server_config_profile
       vars:
         idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
         idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -39,7 +39,7 @@
 
     - name: "Exporting SCP to NFS with iDRAC components"
       ansible.builtin.import_role:
-        name: "idrac_export_server_config_profile"
+        name: dellemc.openmanage.idrac_export_server_config_profile
       vars:
         idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
         idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -53,7 +53,7 @@
 
     - name: "Exporting SCP to CIFS with BIOS components"
       ansible.builtin.import_role:
-        name: "idrac_export_server_config_profile"
+        name: dellemc.openmanage.idrac_export_server_config_profile
       vars:
         idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
         idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -69,7 +69,7 @@
 
     - name: "Exporting SCP to HTTPS with RAID components"
       ansible.builtin.import_role:
-        name: "idrac_export_server_config_profile"
+        name: dellemc.openmanage.idrac_export_server_config_profile
       vars:
         idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
         idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -85,7 +85,7 @@
 
     - name: "Exporting SCP to HTTP with NIC components"
       ansible.builtin.import_role:
-        name: "idrac_export_server_config_profile"
+        name: dellemc.openmanage.idrac_export_server_config_profile
       vars:
         idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
         idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"

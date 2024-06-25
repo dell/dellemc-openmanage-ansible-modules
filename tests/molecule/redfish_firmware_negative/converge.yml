@@ -21,7 +21,7 @@
 
     - name: TC - 003 - Provide wrong hostname
       ansible.builtin.import_role:
-        name: redfish_firmware
+        name: dellemc.openmanage.redfish_firmware
       vars:
         hostname: "randomHostname"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -41,7 +41,7 @@
 
     - name: TC - 004 - Provide wrong username
       ansible.builtin.import_role:
-        name: redfish_firmware
+        name: dellemc.openmanage.redfish_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "WrongUsername123"
@@ -60,7 +60,7 @@
 
     - name: TC - 005 - Provide wrong password
       ansible.builtin.import_role:
-        name: redfish_firmware
+        name: dellemc.openmanage.redfish_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -81,7 +81,7 @@
 
     - name: TC - 006 - Providing invalid validate_certs
       ansible.builtin.import_role:
-        name: redfish_firmware
+        name: dellemc.openmanage.redfish_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -100,7 +100,7 @@
 
     - name: TC - 007 - Providing invalid local path in image_uri
       ansible.builtin.import_role:
-        name: redfish_firmware
+        name: dellemc.openmanage.redfish_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -118,7 +118,7 @@
 
     - name: TC - 008 - Providing invalid HTTP in image_uri
       ansible.builtin.import_role:
-        name: redfish_firmware
+        name: dellemc.openmanage.redfish_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -137,7 +137,7 @@
 
     - name: TC - 009 - Providing job_wait_timeout as -100 with auto reboot firmware component
       ansible.builtin.import_role:
-        name: redfish_firmware
+        name: dellemc.openmanage.redfish_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"

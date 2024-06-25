@@ -14,7 +14,7 @@
 
     - name: Creating job which configures iDRAC attributes
       ansible.builtin.include_role:
-        name: idrac_import_server_config_profile
+        name: dellemc.openmanage.idrac_import_server_config_profile
       vars:
         <<: *input
         target: ["NIC"]
@@ -24,7 +24,7 @@
 
     - name: Delete a job from the job queue
       ansible.builtin.include_role:
-        name: "idrac_job_queue"
+        name: dellemc.openmanage.idrac_job_queue
       vars:
         <<: *input
         job_id: "{{ idrac_import_server_config_profile_out.scp_status.Id }}"

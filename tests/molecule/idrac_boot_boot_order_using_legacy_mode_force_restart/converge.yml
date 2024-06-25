@@ -41,7 +41,7 @@
     - name: Pre-requisite - Making sure boot mode is legacy
       check_mode: false
       ansible.builtin.import_role:
-        name: "idrac_boot"
+        name: dellemc.openmanage.idrac_boot
       vars:
         boot_source_override_mode: legacy
       tags: molecule-idempotence-notest
@@ -75,7 +75,7 @@
 
     - name: TC-115427 - Validate boot_order with legacy mode with force_restart
       ansible.builtin.include_role:
-        name: "idrac_boot"
+        name: dellemc.openmanage.idrac_boot
       vars:
         boot_order: "{{ reverse_boot_order | default(data) }}"
         reset_type: force_restart

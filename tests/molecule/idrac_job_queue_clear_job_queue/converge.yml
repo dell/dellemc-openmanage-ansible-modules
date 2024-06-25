@@ -14,7 +14,7 @@
 
     - name: Creating a job to which configures iDRAC attributes
       ansible.builtin.include_role:
-        name: idrac_import_server_config_profile
+        name: dellemc.openmanage.idrac_import_server_config_profile
       vars:
         <<: *input
         target: ["NIC"]
@@ -24,7 +24,7 @@
 
     - name: Clear the job queue
       ansible.builtin.include_role:
-        name: "idrac_job_queue"
+        name: dellemc.openmanage.idrac_job_queue
       vars:
         <<: *input
         clear_job_queue: true
@@ -40,7 +40,7 @@
 
     - name: Creating a job which configures iDRAC attributes
       ansible.builtin.include_role:
-        name: idrac_import_server_config_profile
+        name: dellemc.openmanage.idrac_import_server_config_profile
       vars:
         <<: *input
         target: ["NIC"]
@@ -50,7 +50,7 @@
 
     - name: Force clear the job queue
       ansible.builtin.include_role:
-        name: "idrac_job_queue"
+        name: dellemc.openmanage.idrac_job_queue
       vars:
         <<: *input
         clear_job_queue: true

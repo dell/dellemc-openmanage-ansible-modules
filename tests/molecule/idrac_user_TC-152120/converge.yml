@@ -7,7 +7,7 @@
   tasks:
     - name: Configure a new iDRAC user with all parameters except user_password
       ansible.builtin.import_role:
-        name: idrac_user
+        name: dellemc.openmanage.idrac_user
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"

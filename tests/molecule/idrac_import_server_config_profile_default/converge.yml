@@ -5,7 +5,7 @@
   tasks:
     - name: "Importing SCP without share_name"
       ansible.builtin.import_role:
-        name: "idrac_import_server_config_profile"
+        name: dellemc.openmanage.idrac_import_server_config_profile
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -26,7 +26,7 @@
 
     - name: "Importing SCP without scp_file"
       ansible.builtin.import_role:
-        name: "idrac_import_server_config_profile"
+        name: dellemc.openmanage.idrac_import_server_config_profile
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -48,7 +48,7 @@
 
     - name: "Importing SCP from CIFS with ALL components with invalid file"
       ansible.builtin.import_role:
-        name: "idrac_import_server_config_profile"
+        name: dellemc.openmanage.idrac_import_server_config_profile
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -74,7 +74,7 @@
 
     - name: "Importing SCP from CIFS with ALL components with invalid share"
       ansible.builtin.import_role:
-        name: "idrac_import_server_config_profile"
+        name: dellemc.openmanage.idrac_import_server_config_profile
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -96,7 +96,7 @@
 
     - name: "Importing SCP with invalid hostname"
       ansible.builtin.import_role:
-        name: "idrac_import_server_config_profile"
+        name: dellemc.openmanage.idrac_import_server_config_profile
       vars:
         hostname: "randomHostname"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -119,7 +119,7 @@
 
     - name: "Importing SCP with invalid username"
       ansible.builtin.import_role:
-        name: "idrac_import_server_config_profile"
+        name: dellemc.openmanage.idrac_import_server_config_profile
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "WrongUsername123"
@@ -141,7 +141,7 @@
 
     - name: "Importing SCP with invalid password"
       ansible.builtin.import_role:
-        name: "idrac_import_server_config_profile"
+        name: dellemc.openmanage.idrac_import_server_config_profile
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -163,7 +163,7 @@
 
     - name: "Importing SCP with invalid target"
       ansible.builtin.import_role:
-        name: "idrac_import_server_config_profile"
+        name: dellemc.openmanage.idrac_import_server_config_profile
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -239,7 +239,7 @@
 
     - name: "Importing SCP with share_name as None"
       ansible.builtin.import_role:
-        name: "idrac_import_server_config_profile"
+        name: dellemc.openmanage.idrac_import_server_config_profile
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -261,7 +261,7 @@
 
     - name: "Importing SCP with proxy_ssupport enabled but no other proxy parameters"
       ansible.builtin.import_role:
-        name: "idrac_import_server_config_profile"
+        name: dellemc.openmanage.idrac_import_server_config_profile
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
