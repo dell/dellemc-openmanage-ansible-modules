@@ -21,7 +21,7 @@
         volume_type: "RAID 5"
         span_length: 3
         id: ["{{ physicaldisks[0] }}", "{{ physicaldisks[1] }}",
-            "{{ physicaldisks[2] }}"]
+             "{{ physicaldisks[2] }}"]
         reset_trigger: 1
         ignore_errors_val: true
 
