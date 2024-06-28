@@ -1,0 +1,9 @@
+---
+- name: Cleanup - Reset the controller and delete the VD
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Deleting the volume.
+      ansible.builtin.include_tasks:
+        file: ../__delete_virtual_drive.yml
+      when: virtualdisk is defined
