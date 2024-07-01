@@ -11,6 +11,7 @@
     volume_id: "{{ idrac_storage_controller_volume_id }}"
     reboot_server: true
     job_wait: true
+    apply_time: "{{ idrac_storage_controller_apply_time }}"
   when: idrac_storage_controller_volume_id is defined
 
 - name: Waiting for iDRAC to be in ready state

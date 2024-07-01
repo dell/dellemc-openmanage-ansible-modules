@@ -62,7 +62,7 @@
         status_code: [204]
         <<: *uri_inputs
       register: idrac_storage_controller_result
-      delegate_to: "{{ idrac_storage_controller_task_delegate }}"
+      delegate_to: localhost
       when:
         - idrac_storage_controller_apply_time == "OnReset"
 
@@ -70,13 +70,13 @@
       ansible.builtin.wait_for:
         host: "{{ lookup('env', 'IDRAC_IP') }}"
         port: "{{ lookup('env', 'IDRAC_PORT') }}"
-        delay: "{{ idrac_storage_controller_delay_for_idrac_connection }}"
-        timeout: "{{ idrac_storage_controller_wait_for_idrac_reachable }}"
-        connect_timeout: "{{ idrac_storage_controller_connect_timeout }}"
-        sleep: "{{ idrac_storage_controller_sleep_interval }}"
+        delay: 60
+        timeout: 300
+        connect_timeout: 10
+        sleep: 10
         active_connection_states:
           - "ESTABLISHED"
-      delegate_to: "{{ idrac_storage_controller_task_delegate }}"
+      delegate_to: localhost
       register: idrac_storage_controller_connection_status
       ignore_errors: true
       when: idrac_storage_controller_result.status == 204
@@ -85,6 +85,7 @@
       ansible.builtin.include_tasks:
         file: ../__lc_status.yml
       when: idrac_storage_controller_result.status == 204
+
     - name: Fetching Volume_id from iDRAC
       ansible.builtin.uri:
         url:
@@ -97,8 +98,8 @@
     - name: Extracting volume_id
       ansible.builtin.set_fact:
         idrac_storage_controller_volume_id:
-          "{{ (idrac_storage_controller_fetched_output.json.Members |
-           last)['@odata.id'] | ansible.builtin.split('/') | last }}"
+          "{{ (idrac_storage_controller_fetched_output.json.Members
+            | last)['@odata.id'] | ansible.builtin.split('/') | last }}"
       when:
         - redfish_storage_volume_out.changed
         - idrac_storage_controller_fetched_output.json.Members is defined
@@ -118,10 +119,3 @@
         idrac_storage_controller_capacity_bytes:
           "{{ idrac_storage_controller_volume_output.json['CapacityBytes'] }}"
       when: idrac_storage_controller_volume_output is defined
-
-    - name: Set expansion size
-      ansible.builtin.set_fact:
-        expansion_size:
-          "{{ ((idrac_storage_controller_capacity_bytes |
-           int) // (1024 * 1024)) + 200 }}"
-      when: idrac_storage_controller_capacity_bytes is defined

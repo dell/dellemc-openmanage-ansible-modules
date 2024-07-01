@@ -145,3 +145,5 @@ roles/idrac_storage_controller/molecule/__lc_status.yml var-naming[no-role-prefi
 roles/idrac_storage_controller/molecule/_extract_storage.yml var-naming[no-role-prefix]
 roles/idrac_storage_controller/molecule/expansion_via_size/converge.yml var-naming[no-role-prefix]
 roles/idrac_storage_controller/molecule/expansion_via_size/molecule.yml var-naming[no-role-prefix]
+roles/idrac_storage_controller/molecule/expansion_via_disk/converge.yml var-naming[no-role-prefix]
+roles/idrac_storage_controller/molecule/expansion_via_disk/molecule.yml var-naming[no-role-prefix]

@@ -30,13 +30,10 @@
                 username: "{{ lookup('env', 'IDRAC_USER') }}"
                 password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
                 validate_certs: false
-                controller_id: "{{ lookup('env', 'CONTROLLER_ID') }}"
-                # controller_id: "RAID.SL.1-1"
+                controller_id: "{{ idrac_storage_controller_controller_id }}"
                 volumes:
                   id: "{{ idrac_storage_controller_volume_id }}"
                   expand_capacity_size: 50000
-                  # id: "Disk.Virtual.0:RAID.SL.1-1"
-                  # expand_capacity_size: "{{ expansion_size }}"
               when:
                 - idrac_storage_controller_volume_id is defined
                   and expansion_size is defined
@@ -78,10 +75,6 @@
                 method: GET
                 body: {}
               register: idrac_storage_controller_virtual_disk_info
-
-            # - name: Validate virtual disk size
-            #   ansible.builtin.assert:
-            #     that: idrac_storage_controller_virtual_disk_info.json["CapacityBytes"]|int == expansion_size*(1024 * 1024)
 
             - name: Asserting operation with idempotence.
               ansible.builtin.assert:
