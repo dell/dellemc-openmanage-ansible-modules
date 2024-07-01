@@ -1,0 +1,119 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Checking iDRAC version
+      ansible.builtin.include_tasks:
+        file: ../_get_or_update_settings.yml
+      vars:
+        operation: check_firmware_version
+
+    - name: Adding tasks to export settings before iDRAC reset
+      ansible.builtin.include_tasks:
+        file: ../_utils.yml
+      vars:
+        operation: export
+      when: it_is_iDRAC9
+
+    - name: Pre-requisite - updating settings before iDRAC reset
+      ansible.builtin.include_tasks:
+        file: ../_get_or_update_settings.yml
+      vars:
+        operation: update_settings
+      when: it_is_iDRAC9
+
+    - name: Performing iDRAC reset with wait in check mode for iDRAC9
+      dellemc.openmanage.idrac_reset:
+        reset_to_default: "Default"
+        wait_for_idrac: true
+      check_mode: true
+      register: idrac_reset_out_cm9
+      when: it_is_iDRAC9
+
+    - name: Performing iDRAC reset without wait in check mode for iDRAC8
+      dellemc.openmanage.idrac_reset:
+        wait_for_idrac: false
+      check_mode: true
+      register: idrac_reset_out_cm8
+      when: not it_is_iDRAC9
+
+    - name: Asserting CheckMode behavior for iDRAC9
+      ansible.builtin.assert:
+        that:
+          - idrac_reset_out_cm9.changed
+          - idrac_reset_out_cm9.msg == "Changes found to commit!"
+          - not iDRAC_has_default_settings
+      when: it_is_iDRAC9
+
+    - name: Asserting CheckMode behavior for iDRAC8
+      ansible.builtin.assert:
+        that:
+          - idrac_reset_out_cm8.changed
+          - idrac_reset_out_cm8.msg == "Changes found to commit!"
+      when: not it_is_iDRAC9
+
+    - name: Performing iDRAC reset with wait in normal mode for iDRAC9
+      dellemc.openmanage.idrac_reset:
+        reset_to_default: "Default"
+        wait_for_idrac: true
+      register: idrac_reset_out9
+      when: it_is_iDRAC9
+
+    - name: Performing iDRAC reset without wait in normal mode for iDRAC8
+      dellemc.openmanage.idrac_reset:
+        wait_for_idrac: false
+      register: idrac_reset_out8
+      when: not it_is_iDRAC9
+
+    - name: Fetching settings from iDRAC post reset
+      ansible.builtin.include_tasks:
+        file: ../_get_or_update_settings.yml
+      vars:
+        operation: fetch_settings
+      when: it_is_iDRAC9
+
+    - name: Asserting Normal behavior for iDRAC9
+      ansible.builtin.assert:
+        that:
+          - idrac_reset_out9.changed
+          - idrac_reset_out9.msg == "Successfully performed iDRAC reset."
+          - iDRAC_has_default_settings
+      when: it_is_iDRAC9
+
+    - name: Asserting Normal behavior for iDRAC8
+      ansible.builtin.assert:
+        that:
+          - idrac_reset_out8.changed
+          - idrac_reset_out8.msg == "Successfully performed iDRAC reset."
+          - idrac_reset_out8.reset_status.idracreset.Message == "iDRAC restart
+             operation triggered successfully."
+      when: not it_is_iDRAC9
+
+  always:
+    - name: Deleting tasks to export settings before iDRAC reset
+      ansible.builtin.include_tasks:
+        file: ../_utils.yml
+      vars:
+        operation: import
+
+  module_defaults:
+    dellemc.openmanage.idrac_reset:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+    dellemc.openmanage.idrac_lifecycle_controller_status_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

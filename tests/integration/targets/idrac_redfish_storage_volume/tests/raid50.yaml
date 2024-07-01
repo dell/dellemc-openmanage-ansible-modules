@@ -1,0 +1,202 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Set prerequisite facts
+  ansible.builtin.set_fact:
+    raid_type: "RAID50"
+
+- name: Set prerequisite
+  ansible.builtin.include_tasks: _helper.yml
+
+- name: Prerequisite - fail if not enough disk is found to create a volume
+  ansible.builtin.fail:
+    msg: 'Physical disks are not sufficient to proceed with test case
+      execution. Needs a minimum 2, but found {{ physical_disks | length }}'
+  when:
+    - physical_disks | length < 8
+
+- block:
+    - name: Create a RAID50 volume using the raid_type parameter with the
+        minimum number of disks (Check mode - Changes expected)
+      dellemc.openmanage.redfish_storage_volume: &raid50_task_min_disk
+        state: present
+        raid_type: "{{ raid_type }}"
+        name: RAID50_Volume
+        controller_id: "{{ controller_name }}"
+        drives:
+          - "{{ physical_disks[0] }}"
+          - "{{ physical_disks[1] }}"
+          - "{{ physical_disks[2] }}"
+          - "{{ physical_disks[3] }}"
+          - "{{ physical_disks[4] }}"
+          - "{{ physical_disks[5] }}"
+        optimum_io_size_bytes: 1048576  # 1MB=(1*1024*1024)
+        capacity_bytes: 1099511627776  # 1TB
+      register: cm_result_raid
+      check_mode: true
+
+    - name: Verify task status - Create a RAID50 volume using the raid_type
+        parameter with the minimum number of disks (Check mode - Changes
+        expected)
+      ansible.builtin.assert:
+        that:
+          - cm_result_raid.changed
+          - 'cm_result_raid.msg == "Changes found to be applied."'
+
+    - name: Create a RAID50 volume using the raid_type parameter with the
+        minimum number of disks (Normal mode)
+      dellemc.openmanage.redfish_storage_volume:
+        <<: *raid50_task_min_disk
+      register: result_raid
+
+    - name: Track the job
+      ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{ result_raid.task.id }}"
+      when: result_raid.msg == "Successfully submitted create volume task."
+
+    - name: Wait for iDRAC lifecycle controller readiness
+      ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
+
+    - name: Fetch volume details
+      ansible.builtin.include_tasks: _get_volume_details.yml
+
+    - name: Construct expected URI for assertion
+      ansible.builtin.set_fact:
+        result_raid_expected_uri: >-
+          {{ "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/" +
+          result_raid.task.id }}
+
+    - name: Verify task status - Create a RAID50 volume using the raid_type
+        parameter with the minimum number of disks (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - result_raid.changed
+          - 'result_raid.msg == "Successfully submitted create volume task."'
+          - result_raid.task.id
+          - result_raid.task.uri == result_raid_expected_uri
+          # Verify volume details
+          - uri_data.DisplayName == "RAID50_Volume"
+          - uri_data.RAIDType == "RAID50"
+          - uri_data.OptimumIOSizeBytes == 1048576
+          - uri_data.BlockSizeBytes == 512
+          - uri_data.CapacityBytes == 1099511627776
+
+    - name: Create a RAID50 volume using the raid_type parameter with the
+        minimum number of disks (Idempotence)
+      dellemc.openmanage.redfish_storage_volume:
+        <<: *raid50_task_min_disk
+      register: idempotence_result_raid
+
+    - name: Verify task status - Create a RAID50 volume using the raid_type
+        parameter with the minimum number of disks (Idempotence)
+      ansible.builtin.assert:
+        that:
+          - not idempotence_result_raid.changed
+          - 'idempotence_result_raid.msg == "No changes found to be applied."'
+
+    - name: Set prerequisite
+      ansible.builtin.include_tasks: _helper.yml
+
+    - name: Create a RAID50 volume using the volume_type parameter with more
+        than the minimum number of disks (Check mode - Changes expected)
+      dellemc.openmanage.redfish_storage_volume: &raid50_task_more_disk
+        state: present
+        volume_type: SpannedStripesWithParity
+        name: RAID50_Volume
+        controller_id: "{{ controller_name }}"
+        drives:
+          - "{{ physical_disks[0] }}"
+          - "{{ physical_disks[1] }}"
+          - "{{ physical_disks[2] }}"
+          - "{{ physical_disks[3] }}"
+          - "{{ physical_disks[4] }}"
+          - "{{ physical_disks[5] }}"
+          - "{{ physical_disks[6] }}"
+          - "{{ physical_disks[7] }}"
+      register: cm_result_volume
+      check_mode: true
+
+    - name: Verify task - Create a RAID50 volume using the volume_type
+        parameter with more than the minimum number of disks (Check
+        mode - Changes expected)
+      ansible.builtin.assert:
+        that:
+          - cm_result_volume.changed
+          - 'cm_result_volume.msg == "Changes found to be applied."'
+
+    - name: Create a RAID50 volume using the volume_type parameter
+        (Normal mode)
+      dellemc.openmanage.redfish_storage_volume:
+        <<: *raid50_task_more_disk
+      register: result_volume
+
+    - name: Track the job
+      ansible.builtin.include_role:
+        name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{ result_volume.task.id }}"
+      when: result_volume.msg == "Successfully submitted create volume task."
+
+    - name: Wait for iDRAC lifecycle controller readiness
+      ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
+
+    - name: Fetch volume details
+      ansible.builtin.include_tasks: _get_volume_details.yml
+
+    - name: Construct expected URI for assertion
+      ansible.builtin.set_fact:
+        result_volume_expected_uri: >-
+          {{ "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/" +
+          result_volume.task.id }}
+
+    - name: Verify task status - Create a RAID50 volume using the volume_type
+        parameter with more than the minimum number of disks (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - result_volume.changed
+          - 'result_volume.msg == "Successfully submitted create volume task."'
+          - result_volume.task.id
+          - result_volume.task.uri == result_volume_expected_uri
+          # Verify volume details
+          - uri_data.DisplayName == "RAID50_Volume"
+          - uri_data.RAIDType == "RAID50"
+          - uri_data.OptimumIOSizeBytes == 65536
+          - uri_data.BlockSizeBytes == 512
+
+    - name: Create a RAID50 volume using the volume_type parameter with more
+        than the minimum number of disks (Idempotence)
+      dellemc.openmanage.redfish_storage_volume:
+        <<: *raid50_task_more_disk
+      register: idempotence_result_volume
+
+    - name: Verify task status - Create a RAID50 volume using the volume_type
+        parameter with more than the minimum number of disks (Idempotence)
+      ansible.builtin.assert:
+        that:
+          - not idempotence_result_volume.changed
+          - 'idempotence_result_volume.msg == "No changes found to be
+            applied."'
+
+  always:
+    - name: Post clean up
+      ansible.builtin.include_tasks: _cleanup.yml
+
+  module_defaults:
+    dellemc.openmanage.redfish_storage_volume:
+      baseuri: "{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
