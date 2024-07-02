@@ -51,9 +51,13 @@ options:
       - C(ChangePDStateToOffline) - To set the disk status to offline. I(target) is required for this operation.
       - C(LockVirtualDisk) - To encrypt the virtual disk. I(volume_id) is required for this operation.
       - C(OnlineCapacityExpansion) - To expand the size of virtual disk. I(volume_id), and I(target) or I(size) is required for this operation.
+      - C(SecureErase) - To securely delete all the data on the physical disk. This option is only available
+        for Self-Encrypting Drives (SED), Instant Scramble Erase (ISE) drives and PCIe SSD devices (drives and cards)
+        only. The drives must be in Ready state . I(controller_id) and I(target) is required for this operation,
+        I(target) should be a single physical disk id.
     choices: [ResetConfig, AssignSpare, SetControllerKey, RemoveControllerKey, ReKey, UnassignSpare,
       EnableControllerEncryption, BlinkTarget, UnBlinkTarget, ConvertToRAID, ConvertToNonRAID,
-      ChangePDStateToOnline, ChangePDStateToOffline, LockVirtualDisk, OnlineCapacityExpansion]
+      ChangePDStateToOnline, ChangePDStateToOffline, LockVirtualDisk, OnlineCapacityExpansion, SecureErase]
     type: str
   target:
     description:
@@ -519,12 +523,15 @@ error_info:
 
 
 import json
+from ansible.module_utils.compat.version import LooseVersion
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, RedfishAnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import wait_for_job_completion, strip_substr_dict
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import wait_for_job_completion, strip_substr_dict, \
+get_dynamic_uri, validate_and_get_first_resource_id_uri, get_idrac_firmware_version
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
 
+SYSTEMS_URI = "/redfish/v1/Systems/"
 SYSTEM_ID = "System.Embedded.1"
 MANAGER_ID = "iDRAC.Embedded.1"
 RAID_ACTION_URI = "/redfish/v1/Systems/{system_id}/Oem/Dell/DellRaidService/Actions/DellRaidService.{action}"
@@ -542,6 +549,7 @@ JOB_COMPLETION = "Successfully performed the '{0}' operation."
 CHANGES_FOUND = "Changes found to be applied."
 NO_CHANGES_FOUND = "No changes found to be applied."
 TARGET_ERR_MSG = "The Fully Qualified Device Descriptor (FQDD) of the target {0} must be only one."
+CNTRL_ERROR_MSG = "Unable to locate the storage controller with the ID: {0}"
 PD_ERROR_MSG = "Unable to locate the physical disk with the ID: {0}"
 VD_ERROR_MSG = "Unable to locate the virtual disk with the ID: {0}"
 ENCRYPT_ERR_MSG = "The storage controller '{0}' does not support encryption."
@@ -847,6 +855,39 @@ def online_capacity_expansion(module, redfish_obj):
         err = json.load(err).get("error").get("@Message.ExtendedInfo", [{}])[0].get("Message")
         module.exit_json(msg=err, failed=True)
 
+def match_id_in_list(id, member_list):
+    for each_dict in member_list:
+        url = each_dict["@odata.id"]
+        if id in url:
+            return url
+
+
+def secure_erase(module, redfish_obj):
+    drive = module.params.get("target")
+    controller_id = module.params.get("controller_id")
+    uri, err_msg = validate_and_get_first_resource_id_uri(module, redfish_obj, SYSTEMS_URI)
+    if err_msg:
+        module.exit_json(msg=err_msg, failed=True)
+    storage_uri = get_dynamic_uri(redfish_obj, uri, "Storage")['@odata.id']
+    idrac_firmware_version = get_idrac_firmware_version(redfish_obj)
+    if LooseVersion(idrac_firmware_version) > '3.0':
+      storage_member_list = get_dynamic_uri(redfish_obj, storage_uri, "Members")
+      controller_uri = match_id_in_list(controller_id, storage_member_list)
+      if controller_uri is None:
+          module.exit_json(msg=CNTRL_ERROR_MSG.format(controller_id), failed=True)
+    else:
+        controller_uri = storage_uri
+    drives_list = get_dynamic_uri(redfish_obj, controller_uri, 'Drives')
+    drive_uri = match_id_in_list(drive[0], drives_list)
+    if drive_uri is None:
+        module.exit_json(msg=PD_ERROR_MSG.format(drive[0]), failed=True)
+    action_uri = get_dynamic_uri(redfish_obj, drive_uri, "Actions")
+    secure_erase_uri = action_uri.get("#Drive.SecureErase").get("target")
+    resp = redfish_obj.invoke_request("POST", secure_erase_uri, data="{}", dump=False)
+    job_uri = resp.headers.get("Location")
+    job_id = job_uri.split("/")[-1]
+    return resp, job_uri, job_id
+
 
 def validate_inputs(module):
     module_params = module.params
@@ -871,7 +912,7 @@ def validate_inputs(module):
             module.fail_json(msg=TARGET_ERR_MSG.format("physical disk"))
         if volume is not None and not 1 >= len(volume):
             module.fail_json(msg=TARGET_ERR_MSG.format("virtual drive"))
-    elif command in ["ChangePDStateToOnline", "ChangePDStateToOffline"]:
+    elif command in ["ChangePDStateToOnline", "ChangePDStateToOffline", "SecureErase"]:
         target = module.params.get("target")
         if target is not None and not 1 >= len(target):
             module.fail_json(msg=TARGET_ERR_MSG.format("physical disk"))
@@ -983,7 +1024,7 @@ def main():
                     "choices": ["ResetConfig", "AssignSpare", "SetControllerKey", "RemoveControllerKey",
                                 "ReKey", "UnassignSpare", "EnableControllerEncryption", "BlinkTarget",
                                 "UnBlinkTarget", "ConvertToRAID", "ConvertToNonRAID", "ChangePDStateToOnline",
-                                "ChangePDStateToOffline", "LockVirtualDisk", "OnlineCapacityExpansion"]},
+                                "ChangePDStateToOffline", "LockVirtualDisk", "OnlineCapacityExpansion", "SecureErase"]},
         "controller_id": {"required": False, "type": "str"},
         "volume_id": {"required": False, "type": "list", "elements": "str"},
         "target": {"required": False, "type": "list", "elements": "str", "aliases": ["drive_id"]},
@@ -1016,6 +1057,7 @@ def main():
             ["command", "LockVirtualDisk", ["volume_id"]], ["command", "OnlineCapacityExpansion", ["volume_id"]],
             ["command", "OnlineCapacityExpansion", ["target", "size"], True],
             ["command", "LockVirtualDisk", ["volume_id"]],
+            ["command", "SecureErase", ["controller_id", "target"]],
             ["apply_time", "AtMaintenanceWindowStart", ("maintenance_window",)],
             ["apply_time", "InMaintenanceWindowOnReset", ("maintenance_window",)]
         ],
@@ -1027,23 +1069,25 @@ def main():
         with Redfish(module.params, req_session=True) as redfish_obj:
             if command == "ResetConfig":
                 resp, job_uri, job_id = ctrl_reset_config(module, redfish_obj)
-            elif command == "SetControllerKey" or command == "ReKey" or \
-                    command == "RemoveControllerKey" or command == "EnableControllerEncryption":
+            elif command in ["SetControllerKey", "ReKey", "RemoveControllerKey",
+                             "EnableControllerEncryption"]:
                 resp, job_uri, job_id = ctrl_key(module, redfish_obj)
-            elif command == "AssignSpare" or command == "UnassignSpare":
+            elif command in ["AssignSpare", "UnassignSpare"]:
                 resp, job_uri, job_id = hot_spare_config(module, redfish_obj)
-            elif command == "BlinkTarget" or command == "UnBlinkTarget":
+            elif command in ["BlinkTarget", "UnBlinkTarget"]:
                 resp = target_identify_pattern(module, redfish_obj)
                 if resp.success and resp.status_code == 200:
                     module.exit_json(msg=JOB_COMPLETION.format(command), changed=True)
-            elif command == "ConvertToRAID" or command == "ConvertToNonRAID":
+            elif command in ["ConvertToRAID", "ConvertToNonRAID"]:
                 resp, job_uri, job_id = convert_raid_status(module, redfish_obj)
-            elif command == "ChangePDStateToOnline" or command == "ChangePDStateToOffline":
+            elif command in ["ChangePDStateToOnline", "ChangePDStateToOffline"]:
                 resp, job_uri, job_id = change_pd_status(module, redfish_obj)
             elif command == "LockVirtualDisk":
                 resp, job_uri, job_id = lock_virtual_disk(module, redfish_obj)
             elif command == "OnlineCapacityExpansion":
                 resp, job_uri, job_id = online_capacity_expansion(module, redfish_obj)
+            elif command == "SecureErase":
+                resp, job_uri, job_id = secure_erase(module, redfish_obj)
 
             if module.params["attributes"]:
                 controller_id = module.params["controller_id"]
