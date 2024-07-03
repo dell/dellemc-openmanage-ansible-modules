@@ -94,8 +94,8 @@ EXAMPLES = r'''
        ca_path: "/path/to/ca_cert.pem"
        oem_reset_type:
             dell:
-                final_power_state: "On"
-                reset_type: "PowerCycle"
+                 final_power_state: "On"
+                 reset_type: "PowerCycle"
 
 - name: Perform AC Power Cycle
   dellemc.openmanage.redfish_powerstate:
@@ -105,8 +105,8 @@ EXAMPLES = r'''
        ca_path: "/path/to/ca_cert.pem"
        oem_reset_type:
             dell:
-                final_power_state: "Off"
-                reset_type: "PowerCycle"
+                 final_power_state: "Off"
+                 reset_type: "PowerCycle"
 '''
 
 RETURN = r'''
@@ -272,7 +272,7 @@ def is_valid_reset_type(reset_type, allowable_enum, module):
             error_msg = INAVALID_RESET_TYPE.format(lw_reset_type, ", ".join(allowable_enum))
         else:
             error_msg = INAVALID_RESET_TYPE_OEM.format(option=lw_reset_type,
-                                                    supported_oem_reset_type_values= ", ".join(allowable_enum))
+                                                       supported_oem_reset_type_values=", ".join(allowable_enum))
         module.exit_json(msg=error_msg, failed=True)
 
 
@@ -365,8 +365,8 @@ def run_change_ac_power_cycle(redfish_session_obj, module):
     except HTTPError as err:
         err_message = json.load(err)
         if err_message["error"]["@Message.ExtendedInfo"][0]["MessageId"] == "IDRAC.2.9.PSU507":
-            error_msg =err_message["error"]["@Message.ExtendedInfo"][0]["Message"]
-            module.exit_json(msg= error_msg, failed=True)
+            error_msg = err_message["error"]["@Message.ExtendedInfo"][0]["Message"]
+            module.exit_json(msg=error_msg, failed=True)
 
 
 def main():
