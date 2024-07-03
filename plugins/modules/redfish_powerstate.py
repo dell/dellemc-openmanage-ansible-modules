@@ -96,7 +96,7 @@ EXAMPLES = r'''
          dell:
            final_power_state: "On"
            reset_type: "PowerCycle"
- 
+
 - name: Perform AC Power Cycle
   dellemc.openmanage.redfish_powerstate:
        baseuri: "192.168.0.1"
@@ -148,34 +148,56 @@ error_info:
 import json
 import re
 from ssl import SSLError
+from ansible.module_utils.compat.version import LooseVersion
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, RedfishAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 
-powerstate_map = {}
 
+VENDOR = 'dell'
 CHANGES_FOUND = "Changes found to be applied."
 NO_CHANGES_FOUND = "No changes found to be applied."
-RESET_TYPE_NOT_SUPPORTED = "{option} is not supported. The supported values are {supported_oem_reset_type_values}. Enter the valid values and retry the operation."
-TARGET_DEVICE_NOT_SUPPORTED = "The target device does not support the system reset feature" \
-                         " using Redfish API."
+FIRM_VER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
+INAVALID_RESET_TYPE_OEM = "{option} is not supported. The supported values" \
+    "are {supported_oem_reset_type_values}. Enter the valid values and retry" \
+    "the operation."
+TARGET_DEVICE_NOT_SUPPORTED = "The target device does not support the system" \
+    "reset feature using Redfish API."
 INVALID_DEVICE_ID = "Invalid device Id '{0}' is provided"
+MINIMUM_SUPPORTED_FIRMWARE_VERSION = "7.00.60"
+UNSUPPORTED_FIRMWARE_MSG = "Unable to perform the Virtual AC power-cycle" \
+    "operation because the firmware version is not supported. The minimum" \
+    "supported firmware version is {minimum_supported_firmware_version}."
+INITIAL_DESIRED_STATE_ERROR = "Unable to perform the Virtual AC power-cycle" \
+    "operation because the server is powered on."
+VENDOR_NOT_SUPPORTED = "The vendor is not supported. The supported vendors" \
+    "are {supported_vendors}. Enter the valid vendor and retry the operation."
+SUCCESS_AC_MSG = "Successfully performed the full virtual server a/c power" \
+    "cycle operation."
+INAVALID_RESET_TYPE = "The target device does not support a {0} operation." \
+    "The acceptable values for device reset types are {1}."
+OEM_RESET_KEY = '#DellOemChassis.ExtendedReset'
+
+powerstate_map = {}
+
 
 def fetch_powerstate_details(system_res_data, action_data):
-        current_state = system_res_data["PowerState"]
-        power_uri = action_data['#ComputerSystem.Reset']['target']
-        allowable_enums = action_data['#ComputerSystem.Reset']['ResetType@Redfish.AllowableValues']
-        powerstate_map.update(
-            {'power_uri': power_uri, 'allowable_enums': allowable_enums, 'current_state': current_state})
+    current_state = system_res_data["PowerState"]
+    power_uri = action_data['#ComputerSystem.Reset']['target']
+    allowable_enums = action_data['#ComputerSystem.Reset']['ResetType@Redfish.AllowableValues']
+    powerstate_map.update(
+        {'power_uri': power_uri, 'allowable_enums': allowable_enums, 'current_state': current_state})
+
 
 def fetch_ac_powerstate_details(system_id_res_data, action_id_res):
-        current_state = system_id_res_data["PowerState"]
-        power_uri = action_id_res['Oem']['#DellOemChassis.ExtendedReset']['target']
-        allowable_enums = action_id_res['Oem']['#DellOemChassis.ExtendedReset']['ResetType@Redfish.AllowableValues']
-        allowable_final_power_state = action_id_res['Oem']['#DellOemChassis.ExtendedReset']['FinalPowerState@Redfish.AllowableValues']
-        powerstate_map.update(
-            {'power_uri': power_uri, 'allowable_enums': allowable_enums,
-                'current_state': current_state, 'allowable_power_state': allowable_final_power_state})
+    current_state = system_id_res_data["PowerState"]
+    power_uri = action_id_res['Oem'][OEM_RESET_KEY]['target']
+    allowable_enums = action_id_res['Oem'][OEM_RESET_KEY]['ResetType@Redfish.AllowableValues']
+    allowable_final_power_state = action_id_res['Oem'][OEM_RESET_KEY]['FinalPowerState@Redfish.AllowableValues']
+    powerstate_map.update(
+        {'power_uri': power_uri, 'allowable_enums': allowable_enums,
+            'current_state': current_state, 'allowable_power_state': allowable_final_power_state})
+
 
 def fetch_power_uri_resource(module, session_obj, reset_type_map=None):
     try:
@@ -184,7 +206,6 @@ def fetch_power_uri_resource(module, session_obj, reset_type_map=None):
         static_resource_id_resource = None
         if resource_id:
             static_resource_id_resource = "{0}{1}{2}".format(session_obj.root_uri, reset_type_map + "/", resource_id)
-        
         system_uri = "{0}{1}".format(session_obj.root_uri, reset_type_map)
         system_resp = session_obj.invoke_request("GET", system_uri)
         system_members = system_resp.json_data.get("Members")
@@ -214,6 +235,7 @@ def fetch_power_uri_resource(module, session_obj, reset_type_map=None):
                              error_info=json.load(err))
         raise err
 
+
 def is_change_applicable_for_power_state(current_power_state, apply_power_state):
     """ checks if changes are applicable or not for current system state
         :param current_power_state: Current power state
@@ -241,24 +263,51 @@ def is_change_applicable_for_power_state(current_power_state, apply_power_state)
 
 
 def is_valid_reset_type(reset_type, allowable_enum, module):
+    reset_type_param = module.params.get('reset_type')
     if reset_type not in allowable_enum:
         res_list = re.findall('[A-Z][^A-Z]*', reset_type)
         lw_reset_type = " ".join([word.lower() for word in res_list])
-        error_msg = "The target device does not support a" \
-                    " {0} operation.The acceptable values for device reset types" \
-                    " are {1}.".format(lw_reset_type, ", ".join(allowable_enum))
-        module.fail_json(msg=error_msg)
+        if reset_type_param:
+            error_msg = INAVALID_RESET_TYPE.format(lw_reset_type, ", ".join(allowable_enum))
+            module.exit_json(msg=error_msg, failed=True)
+        else:
+            error_msg = INAVALID_RESET_TYPE_OEM.format(reset_type, ", ".join(allowable_enum))
+            module.exit_json(msg=error_msg, failed=True)
+
 
 def is_valid_final_pwr_state(final_pwr_state, allowed_final_pwr_state, module):
-    if final_pwr_state not in allowed_final_pwr_state:
+    if final_pwr_state.capitalize() not in allowed_final_pwr_state:
         error_msg = "The target device does not support a" \
                     " {0} operation.The acceptable values for device final power states" \
                     " are {1}.".format(final_pwr_state, ", ".join(allowed_final_pwr_state))
         module.exit_josn(msg=error_msg, failed=True)
-def is_valid_initial_pwr_state(initial_pwr_state, module):
-    if initial_pwr_state.lower() != 'off':
-        error_msg = "Unable to perform the Virtual AC power-cycle operation because the server is powered on."
-        module.exit_josn(msg=error_msg, failed=True)
+
+
+def is_valid_vendor(redfish_session_obj, module, vendor):
+    system_resp = redfish_session_obj.invoke_request("GET", "/redfish/v1/")
+    system_vendor = system_resp.json_data.get("Vendor")
+    if system_vendor.lower() != vendor:
+        module.exit_json(msg=VENDOR_NOT_SUPPORTED.format(supported_vendors=system_vendor), failed=True)
+
+
+def check_firmware_version(module, redfish_session_obj):
+    resp = redfish_session_obj.invoke_request("GET", FIRM_VER_URI)
+    redfish_firmware_version = resp.json_data.get('FirmwareVersion', '')
+    if LooseVersion(redfish_firmware_version) <= MINIMUM_SUPPORTED_FIRMWARE_VERSION:
+        module.exit_json(msg=UNSUPPORTED_FIRMWARE_MSG.format(
+            MINIMUM_SUPPORTED_FIRMWARE_VERSION), failed=True)
+
+
+def prepare_payload(module):
+    payload = {}
+    final_power_state = module.params['oem_reset_type'].get(VENDOR).get("final_power_state").capitalize()
+    reset_type = module.params['oem_reset_type'].get(VENDOR).get("reset_type")
+    if final_power_state:
+        payload["FinalPowerState"] = final_power_state
+    if reset_type:
+        payload["ResetType"] = reset_type
+    return payload
+
 
 def run_change_power_state(redfish_session_obj, module):
     """
@@ -274,9 +323,9 @@ def run_change_power_state(redfish_session_obj, module):
     reset_flag = is_change_applicable_for_power_state(current_power_state, apply_reset_type)
     if module.check_mode is True:
         if reset_flag is True:
-            module.exit_json(msg="Changes found to be applied.", changed=True)
+            module.exit_json(msg=CHANGES_FOUND, changed=True)
         else:
-            module.exit_json(msg="No Changes found to be applied.", changed=False)
+            module.exit_json(msg=NO_CHANGES_FOUND, changed=False)
 
     if reset_flag is True:
         payload = {"ResetType": apply_reset_type}
@@ -290,37 +339,33 @@ def run_change_power_state(redfish_session_obj, module):
                              changed=False)
     else:
         module.exit_json(msg="The device is already powered {0}.".format(current_power_state.lower()), changed=False)
+
 
 def run_change_ac_power_cycle(redfish_session_obj, module):
-    """
-    Apply reset type to system
-    Keyword arguments:
-    redfish_session_obj  -- session handle
-    module -- Ansible module obj
-    """
-    apply_reset_type = module.params["reset_type"]
-    fetch_power_uri_resource(module, redfish_session_obj)
+    check_firmware_version(module, redfish_session_obj)
+    oem_reset_type = module.params["oem_reset_type"]
+    current_vendor = next(iter(oem_reset_type), None)
+    is_valid_vendor(redfish_session_obj, module, current_vendor)
+    apply_reset_type = module.params["oem_reset_type"][VENDOR]['reset_type']
+    final_pwr_state = module.params["oem_reset_type"][VENDOR]["final_power_state"]
+    fetch_power_uri_resource(module, redfish_session_obj, "Chassis")
     is_valid_reset_type(apply_reset_type, powerstate_map["allowable_enums"], module)
+    if final_pwr_state is not None:
+        is_valid_final_pwr_state(final_pwr_state, powerstate_map["allowable_power_state"], module)
     current_power_state = powerstate_map["current_state"]
-    reset_flag = is_change_applicable_for_power_state(current_power_state, apply_reset_type)
-    if module.check_mode is True:
-        if reset_flag is True:
-            module.exit_json(msg="Changes found to be applied.", changed=True)
-        else:
-            module.exit_json(msg="No Changes found to be applied.", changed=False)
-
-    if reset_flag is True:
-        payload = {"ResetType": apply_reset_type}
-        power_uri = powerstate_map["power_uri"]
-        reset_resp = redfish_session_obj.invoke_request("POST", power_uri, data=payload)
-        if reset_resp.success:
-            module.exit_json(msg="Successfully performed the reset type operation"
-                                 " '{0}'.".format(apply_reset_type), changed=True)
-        else:
-            module.exit_json(msg="Unable to perform the reset type operation '{0}'.".format(apply_reset_type),
-                             changed=False)
+    if current_power_state.lower() != 'off':
+        module.exit_json(msg=INITIAL_DESIRED_STATE_ERROR)
+    # reset_flag = is_change_applicable_for_power_state(current_power_state, apply_reset_type)
+    if module.check_mode:
+        module.exit_json(msg="Changes found to be applied.", changed=True)
+    payload = prepare_payload(module)
+    power_uri = powerstate_map["power_uri"]
+    reset_resp = redfish_session_obj.invoke_request("POST", power_uri, data=payload)
+    if reset_resp.success:
+        module.exit_json(msg=SUCCESS_AC_MSG, changed=True)
     else:
-        module.exit_json(msg="The device is already powered {0}.".format(current_power_state.lower()), changed=False)
+        module.exit_json(msg="Unable to perform the reset type operation '{0}'.".format(apply_reset_type),
+                         changed=False)
 
 
 def main():
@@ -329,7 +374,7 @@ def main():
         "reset_type": {"required": False, "type": "str",
                        "choices": ['ForceOff', 'ForceOn', 'ForceRestart', 'GracefulRestart',
                                    'GracefulShutdown', 'Nmi', 'On', 'PowerCycle', 'PushPowerButton']},
-        "oem_reset_type": {"required:": False, "type": "dict"},
+        "oem_reset_type": {"required": False, "type": "dict"},
     }
     module = RedfishAnsibleModule(
         argument_spec=specs,
