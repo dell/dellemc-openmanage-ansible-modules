@@ -526,7 +526,7 @@ import json
 from ansible.module_utils.compat.version import LooseVersion
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, RedfishAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import wait_for_job_completion, strip_substr_dict, \
-get_dynamic_uri, validate_and_get_first_resource_id_uri, get_idrac_firmware_version, get_scheduled_job_resp
+    get_dynamic_uri, validate_and_get_first_resource_id_uri, get_idrac_firmware_version, get_scheduled_job_resp
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -866,6 +866,7 @@ def match_id_in_list(id, member_list):
         if id in url:
             return url
 
+
 def validate_secure_erase(module, redfish_obj):
     job_type, drive_uri = None, None
     drive = module.params.get("target")
@@ -894,7 +895,7 @@ def validate_secure_erase(module, redfish_obj):
         except Exception:
             dell_disk = dell_oem.get("DellPCIeSSD", {})
         drive_ready = dell_disk.get("RaidStatus", {})
-        capable = dell_disk.get("SystemEraseCapability", {})    
+        capable = dell_disk.get("SystemEraseCapability", {})
         if drive_ready != "Ready":
             module.exit_json(msg=DRIVE_NOT_READY.format(drive_id), skipped=True)
         if capable != "CryptographicErasePD":

@@ -901,7 +901,7 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
                 return common_data_in_mock_dynamic_request(args)
             return {"Oem": {"Dell": {"DellPhysicalDisk": {"RaidStatus": "Ready",
                                                           "SystemEraseCapability": "NotSupported"}}}}
-        
+
         redfish_default_args.update({"controller_id": "RAID.Integrated.1-1",
                                      "target": drive_id_1})
         mocker.patch(MODULE_PATH + module + "get_dynamic_uri",
