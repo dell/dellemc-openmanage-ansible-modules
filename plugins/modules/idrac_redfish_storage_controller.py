@@ -526,7 +526,7 @@ import json
 from ansible.module_utils.compat.version import LooseVersion
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, RedfishAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import wait_for_job_completion, strip_substr_dict, \
-get_dynamic_uri, validate_and_get_first_resource_id_uri, get_idrac_firmware_version
+get_dynamic_uri, validate_and_get_first_resource_id_uri, get_idrac_firmware_version, get_scheduled_job_resp
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -546,6 +546,8 @@ OCE_MIN_PD_RAID_MAPPING = {'RAID0': 1, 'RAID5': 1, 'RAID6': 1, 'RAID10': 2}
 
 JOB_SUBMISSION = "Successfully submitted the job that performs the '{0}' operation."
 JOB_COMPLETION = "Successfully performed the '{0}' operation."
+JOB_EXISTS = "Unable to complete the request because the {0} job type already " \
+             "exists. Wait for the pending job to complete."
 CHANGES_FOUND = "Changes found to be applied."
 NO_CHANGES_FOUND = "No changes found to be applied."
 TARGET_ERR_MSG = "The Fully Qualified Device Descriptor (FQDD) of the target {0} must be only one."
@@ -554,6 +556,7 @@ PD_ERROR_MSG = "Unable to locate the physical disk with the ID: {0}"
 VD_ERROR_MSG = "Unable to locate the virtual disk with the ID: {0}"
 ENCRYPT_ERR_MSG = "The storage controller '{0}' does not support encryption."
 PHYSICAL_DISK_ERR = "Volume is not encryption capable."
+DRIVE_NOT_SECURE_ERASE_CAPABALE = "Drive is not secure erase capable."
 OCE_RAID_TYPE_ERR = "Online Capacity Expansion is not supported for {0} virtual disks."
 OCE_SIZE_100MB = "Minimum Online Capacity Expansion size must be greater than 100 MB of the current size {0}."
 OCE_TARGET_EMPTY = "Provided list of targets is empty."
@@ -855,32 +858,52 @@ def online_capacity_expansion(module, redfish_obj):
         err = json.load(err).get("error").get("@Message.ExtendedInfo", [{}])[0].get("Message")
         module.exit_json(msg=err, failed=True)
 
+
 def match_id_in_list(id, member_list):
     for each_dict in member_list:
         url = each_dict["@odata.id"]
         if id in url:
             return url
 
-
-def secure_erase(module, redfish_obj):
+def validate_secure_erase(module, redfish_obj):
+    job_type, drive_uri = None, None
     drive = module.params.get("target")
     controller_id = module.params.get("controller_id")
     uri, err_msg = validate_and_get_first_resource_id_uri(module, redfish_obj, SYSTEMS_URI)
     if err_msg:
         module.exit_json(msg=err_msg, failed=True)
     storage_uri = get_dynamic_uri(redfish_obj, uri, "Storage")['@odata.id']
-    idrac_firmware_version = get_idrac_firmware_version(redfish_obj)
-    if LooseVersion(idrac_firmware_version) > '3.0':
-      storage_member_list = get_dynamic_uri(redfish_obj, storage_uri, "Members")
-      controller_uri = match_id_in_list(controller_id, storage_member_list)
-      if controller_uri is None:
-          module.exit_json(msg=CNTRL_ERROR_MSG.format(controller_id), failed=True)
-    else:
-        controller_uri = storage_uri
+    job_type = "RealTimeNoRebootConfiguration"
+    storage_member_list = get_dynamic_uri(redfish_obj, storage_uri, "Members")
+    controller_uri = match_id_in_list(controller_id, storage_member_list)
+    if controller_uri is None:
+        module.exit_json(msg=CNTRL_ERROR_MSG.format(controller_id), failed=True)
     drives_list = get_dynamic_uri(redfish_obj, controller_uri, 'Drives')
     drive_uri = match_id_in_list(drive[0], drives_list)
     if drive_uri is None:
         module.exit_json(msg=PD_ERROR_MSG.format(drive[0]), failed=True)
+    drive_detail = get_dynamic_uri(redfish_obj, drive_uri)
+    firm_ver = get_idrac_firmware_version(redfish_obj)
+    if LooseVersion(firm_ver) > '3.0':
+        dell_oem = drive_detail.get("Oem", {}).get("Dell", {})
+        try:
+            dell_disk = dell_oem.get("DellPhysicalDisk", {})
+        except Exception:
+            dell_disk = dell_oem.get("DellPCIeSSD", {})
+        capable = dell_disk.get("SystemEraseCapability")
+
+    else:
+        capable = drive_detail.get("SystemEraseCapability")
+    if capable != "CryptographicErasePD":
+        module.exit_json(msg=DRIVE_NOT_SECURE_ERASE_CAPABALE, failed=True)
+    return drive_uri, job_type
+
+
+def secure_erase(module, redfish_obj):
+    drive_uri, job_type = validate_secure_erase(module, redfish_obj)
+    scheduled_job = get_scheduled_job_resp(redfish_obj, job_type)
+    if scheduled_job:
+        module.exit_json(msg=JOB_EXISTS.format(job_type), changed=False)
     action_uri = get_dynamic_uri(redfish_obj, drive_uri, "Actions")
     secure_erase_uri = action_uri.get("#Drive.SecureErase").get("target")
     resp = redfish_obj.invoke_request("POST", secure_erase_uri, data="{}", dump=False)
