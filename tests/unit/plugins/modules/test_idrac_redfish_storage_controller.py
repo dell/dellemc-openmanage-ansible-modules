@@ -14,6 +14,7 @@ __metaclass__ = type
 
 import pytest
 import json
+from mock import MagicMock
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_redfish_storage_controller
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
@@ -830,6 +831,115 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         with pytest.raises(Exception):
             result = self.module.set_attributes(f_module, redfish_str_controller_conn)
             assert result['msg'] == "Other attributes cannot be updated when ControllerMode is provided as input."
+
+    def test_secure_erase(self, redfish_str_controller_conn, redfish_response_mock, redfish_default_args, mocker):
+        param = {"baseuri": "XX.XX.XX.XX", "username": "username", "password": "password", "command": "SecureErase"}
+        module = 'idrac_redfish_storage_controller.'
+        redfish_default_args.update(param)
+        drive_id_1 = "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Integrated.1-1"
+
+        def common_data_in_mock_dynamic_request(args):
+            odata = "@odata.id"
+            storage_uri = "/redfish/v1/Systems/System.Embedded.1/Storage"
+            drive_uri = storage_uri + "/RAID.Integrated.1-1/Drives/" + drive_id_1
+            if args[2] == "Storage":
+                return {odata: storage_uri}
+            elif args[2] == "Members":
+                return [{odata: storage_uri + "/RAID.Integrated.1-1"},
+                        {odata: storage_uri + "/AHCI.Embedded.2-1"}]
+            elif args[2] == "Drives":
+                return [{odata: storage_uri + drive_uri},
+                        {odata: storage_uri + "/RAID.Integrated.1-1/Drives/Disk.Bay.1:Enclosure.Internal.0-1:RAID.Integrated.1-1"}]
+            elif args[2] == "Actions":
+                return {"#Drive.SecureErase": {"target": drive_uri + "/Actions/Drive.SecureErase"}}
+
+        def mock_get_dynamic_uri_request_1(*args, **kwargs):
+            if len(args) > 2:
+                return common_data_in_mock_dynamic_request(args)
+            return {"Oem": {"Dell": {"DellPhysicalDisk": {"RaidStatus": "Online",
+                                                          "SystemEraseCapability": "NotSupported"}}}}
+
+        mocker.patch(MODULE_PATH + module + "get_dynamic_uri", side_effect=mock_get_dynamic_uri_request_1)
+        mocker.patch(MODULE_PATH + module + "validate_and_get_first_resource_id_uri",
+                     return_value=("/redfish/v1/Systems", None))
+
+        # Scenario 1: When command is set to SecureErase but controller_id and target is not provided
+        with pytest.raises(Exception) as ex:
+            self._run_module(redfish_default_args)
+        assert ex.value.args[0]["msg"] == "command is SecureErase but all of the following are missing: controller_id, target"
+
+        # Scenario 2: When command is set to SecureErase and only controller_id is provided
+        redfish_default_args.update({"controller_id": "RAID.Integrated.1-1"})
+        with pytest.raises(Exception) as ex:
+            self._run_module(redfish_default_args)
+        assert ex.value.args[0]["msg"] == "command is SecureErase but all of the following are missing: target"
+
+        # Scenario 3: When command is set to SecureErase and wrong controller_id is provided
+        redfish_default_args.update({"controller_id": "xyz",
+                                     "target": "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Integrated.1-1"})
+        result = self._run_module(redfish_default_args)
+        assert result["msg"] == "Unable to locate the storage controller with the ID: xyz"
+
+        # Scenario 4: When command is set to SecureErase and wrong target is provided
+        redfish_default_args.update({"controller_id": "RAID.Integrated.1-1",
+                                     "target": "target"})
+        result = self._run_module(redfish_default_args)
+        assert result["msg"] == "Unable to locate the physical disk with the ID: target"
+
+        # Scenario 5: When drive is not ready, in Online state
+        redfish_default_args.update({"controller_id": "RAID.Integrated.1-1",
+                                     "target": drive_id_1})
+        mocker.patch(MODULE_PATH + module + "get_idrac_firmware_version", return_value='7.10')
+        mocker.patch(MODULE_PATH + module + "get_dynamic_uri",
+                     side_effect=mock_get_dynamic_uri_request_1)
+        result = self._run_module(redfish_default_args)
+        assert result["msg"] == "Drive {0} is not in ready state.".format(drive_id_1)
+
+        # Scneario 6: When drive is ready but not support secure erase
+        def mock_get_dynamic_uri_request_2(*args, **kwargs):
+            if len(args) > 2:
+                return common_data_in_mock_dynamic_request(args)
+            return {"Oem": {"Dell": {"DellPhysicalDisk": {"RaidStatus": "Ready",
+                                                          "SystemEraseCapability": "NotSupported"}}}}
+        
+        redfish_default_args.update({"controller_id": "RAID.Integrated.1-1",
+                                     "target": drive_id_1})
+        mocker.patch(MODULE_PATH + module + "get_dynamic_uri",
+                     side_effect=mock_get_dynamic_uri_request_2)
+        result = self._run_module(redfish_default_args)
+        assert result["msg"] == "Drive {0} is not secure erase capable.".format(drive_id_1)
+
+        # Scenario 7: When drive is ready and support secure erase, job_wait is false
+        def mock_get_dynamic_uri_request_3(*args, **kwargs):
+            if len(args) > 2:
+                return common_data_in_mock_dynamic_request(args)
+            return {"Oem": {"Dell": {"DellPhysicalDisk": {"RaidStatus": "Ready",
+                                                          "SystemEraseCapability": "CryptographicErasePD"}}}}
+        redfish_default_args.update({"controller_id": "RAID.Integrated.1-1",
+                                     "target": drive_id_1,
+                                     "job_wait": False})
+        mocker.patch(MODULE_PATH + module + "get_dynamic_uri",
+                     side_effect=mock_get_dynamic_uri_request_3)
+        result = self._run_module(redfish_default_args)
+        assert result["msg"] == "Successfully submitted the job that performs the 'SecureErase' operation."
+
+        # Scenario 8: When drive is ready and support secure erase, job_wait is true
+        redfish_default_args.update({"controller_id": "RAID.Integrated.1-1",
+                                     "target": drive_id_1,
+                                     "job_wait": True,
+                                     "job_wait_timeout": 2})
+        obj = MagicMock()
+        obj.json_data = {'JobState': 'Completed'}
+        mocker.patch(MODULE_PATH + module + "wait_for_job_completion", return_value=(obj, ''))
+        result = self._run_module(redfish_default_args)
+        assert result["msg"] == "Successfully performed the 'SecureErase' operation."
+
+        # Scenario 9: When one Job is already running, and another trigger
+        redfish_default_args.update({"controller_id": "RAID.Integrated.1-1",
+                                     "target": drive_id_1})
+        mocker.patch(MODULE_PATH + module + "get_scheduled_job_resp", return_value=True)
+        result = self._run_module(redfish_default_args)
+        assert result["msg"] == "Unable to complete the request because another job already exists. Wait for the pending job to complete."
 
     def test_main_success_attributes(self, redfish_str_controller_conn, redfish_response_mock, redfish_default_args, mocker):
         param = {"baseuri": "XX.XX.XX.XX", "username": "username", "password": "password",

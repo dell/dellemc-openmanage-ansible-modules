@@ -556,7 +556,7 @@ PD_ERROR_MSG = "Unable to locate the physical disk with the ID: {0}"
 VD_ERROR_MSG = "Unable to locate the virtual disk with the ID: {0}"
 ENCRYPT_ERR_MSG = "The storage controller '{0}' does not support encryption."
 PHYSICAL_DISK_ERR = "Volume is not encryption capable."
-DRIVE_NOT_SECURE_ERASE_CAPABALE = "Drive {0} is not secure erase capable."
+DRIVE_NOT_SECURE_ERASE = "Drive {0} is not secure erase capable."
 DRIVE_NOT_READY = "Drive {0} is not in ready state."
 OCE_RAID_TYPE_ERR = "Online Capacity Expansion is not supported for {0} virtual disks."
 OCE_SIZE_100MB = "Minimum Online Capacity Expansion size must be greater than 100 MB of the current size {0}."
@@ -871,7 +871,8 @@ def validate_secure_erase(module, redfish_obj):
     drive = module.params.get("target")
     drive_id = drive[0]
     controller_id = module.params.get("controller_id")
-    uri, err_msg = validate_and_get_first_resource_id_uri(module, redfish_obj, SYSTEMS_URI)
+    uri, err_msg = validate_and_get_first_resource_id_uri(module, redfish_obj,
+                                                          SYSTEMS_URI)
     if err_msg:
         module.exit_json(msg=err_msg, failed=True)
     storage_uri = get_dynamic_uri(redfish_obj, uri, "Storage")['@odata.id']
@@ -893,11 +894,12 @@ def validate_secure_erase(module, redfish_obj):
         except Exception:
             dell_disk = dell_oem.get("DellPCIeSSD", {})
         drive_ready = dell_disk.get("RaidStatus", {})
-        capable = drive_detail.get("SystemEraseCapability", {})    
+        capable = dell_disk.get("SystemEraseCapability", {})    
         if drive_ready != "Ready":
             module.exit_json(msg=DRIVE_NOT_READY.format(drive_id), skipped=True)
         if capable != "CryptographicErasePD":
-            module.exit_json(msg=DRIVE_NOT_SECURE_ERASE_CAPABALE.format(drive_id), skipped=True)
+            module.exit_json(msg=DRIVE_NOT_SECURE_ERASE.format(drive_id),
+                             skipped=True)
     return drive_uri, job_type
 
 
@@ -905,10 +907,11 @@ def secure_erase(module, redfish_obj):
     drive_uri, job_type = validate_secure_erase(module, redfish_obj)
     scheduled_job = get_scheduled_job_resp(redfish_obj, job_type)
     if scheduled_job:
-        module.exit_json(msg=JOB_EXISTS.format(job_type), changed=False)
+        module.exit_json(msg=JOB_EXISTS, changed=False)
     action_uri = get_dynamic_uri(redfish_obj, drive_uri, "Actions")
     secure_erase_uri = action_uri.get("#Drive.SecureErase").get("target")
-    resp = redfish_obj.invoke_request("POST", secure_erase_uri, data="{}", dump=False)
+    resp = redfish_obj.invoke_request("POST", secure_erase_uri, data="{}",
+                                      dump=False)
     job_uri = resp.headers.get("Location")
     job_id = job_uri.split("/")[-1]
     return resp, job_uri, job_id
