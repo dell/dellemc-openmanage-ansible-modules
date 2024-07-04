@@ -35,7 +35,7 @@ Parameters
     To get the device details, use the API \ https://%3CI(baseuri\ \>/redfish/v1/Systems).
 
 
-  reset_type (True, str, None)
+  reset_type (False, str, None)
     This option resets the device.
 
     If \ :literal:`ForceOff`\ , Turns off the device immediately.
@@ -56,7 +56,17 @@ Parameters
 
     If \ :literal:`PushPowerButton`\ , Simulates the pressing of a physical power button on the device.
 
+    \ :emphasis:`reset\_type`\  is mutually exclusive with \ :emphasis:`oem\_reset\_type`\ .
+
     When a power control operation is performed, which is not supported on the device, an error message is displayed with the list of operations that can be performed.
+
+
+  oem_reset_type (False, dict, None)
+    This parameter initiates a complete Alternate Current (AC) power cycle of the server which is equivalent to disconnecting power cables using OEM API.
+
+    \ :emphasis:`oem\_reset\_type`\  is mutually exclusive with \ :emphasis:`reset\_type`\ .
+
+    If the value of 'final\_power\_state' is not provided, the default value is 'Off'.
 
 
   baseuri (True, str, None)
@@ -140,6 +150,28 @@ Examples
            reset_type: "ForceOff"
            resource_id: "System.Embedded.1"
 
+    - name: Perform AC Power Cycle
+      dellemc.openmanage.redfish_powerstate:
+           baseuri: "192.168.0.1"
+           username: "username"
+           password: "password"
+           ca_path: "/path/to/ca_cert.pem"
+           oem_reset_type:
+                dell:
+                     final_power_state: "On"
+                     reset_type: "PowerCycle"
+
+    - name: Perform AC Power Cycle
+      dellemc.openmanage.redfish_powerstate:
+           baseuri: "192.168.0.1"
+           username: "username"
+           password: "password"
+           ca_path: "/path/to/ca_cert.pem"
+           oem_reset_type:
+                dell:
+                     final_power_state: "Off"
+                     reset_type: "PowerCycle"
+
 
 
 Return Values
@@ -167,4 +199,5 @@ Authors
 ~~~~~~~
 
 - Sajna Shetty(@Sajna-Shetty)
+- Lovepreet Singh (@singh-lovepreet1)
 

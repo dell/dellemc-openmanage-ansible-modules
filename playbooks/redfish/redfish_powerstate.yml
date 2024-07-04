@@ -22,3 +22,25 @@
         reset_type: "ForceOff"
         resource_id: "System.Embedded.1"
       delegate_to: localhost
+    
+    - name: Perform AC Power Cycle
+      dellemc.openmanage.redfish_powerstate:
+          baseuri: "192.168.0.1"
+          username: "username"
+          password: "password"
+          ca_path: "/path/to/ca_cert.pem"
+          oem_reset_type:
+                dell:
+                    final_power_state: "On"
+                    reset_type: "PowerCycle"
+
+    - name: Perform AC Power Cycle
+      dellemc.openmanage.redfish_powerstate:
+          baseuri: "192.168.0.1"
+          username: "username"
+          password: "password"
+          ca_path: "/path/to/ca_cert.pem"
+          oem_reset_type:
+                dell:
+                    final_power_state: "Off"
+                    reset_type: "PowerCycle"
