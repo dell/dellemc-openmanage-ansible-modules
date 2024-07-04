@@ -38,10 +38,13 @@ def redfish_connection_mock_for_powerstate(mocker, redfish_response_mock):
 class TestRedfishPowerstate(FakeAnsibleModule):
     module = redfish_powerstate
 
-    def test_fetch_powerstate_resource_success_case_01(self, redfish_connection_mock_for_powerstate,
+    arg_list1 = [{"resource_id": "System.Embedded.1", "reset_type": "ForceOff"}]
+
+    def test_fetch_powerstate_resource_success_case_01(self, mocker, redfish_connection_mock_for_powerstate, redfish_default_args,
                                                        redfish_response_mock):
         """dynamically fetch the computer system id if one member exists in system"""
-        f_module = self.get_module_mock()
+        f_module = self.get_module_mock(params={"reset_type": "ForceOff"})
+
         redfish_response_mock.json_data = {
             "Systems": {
                 "@odata.id": "/redfish/v1/Systems"
@@ -68,7 +71,8 @@ class TestRedfishPowerstate(FakeAnsibleModule):
             "PowerState": "On"
         }
         redfish_connection_mock_for_powerstate.root_uri = "/redfish/v1/"
-        self.module.fetch_power_uri_resource(f_module, redfish_connection_mock_for_powerstate)
+        self.module.fetch_power_uri_resource(f_module, redfish_connection_mock_for_powerstate, "Systems")
+        # self.module.fetch_powerstate_details(f_module, redfish_connection_mock_for_powerstate)
         assert self.module.powerstate_map["allowable_enums"] == [
             "On",
             "ForceOff",
@@ -86,7 +90,7 @@ class TestRedfishPowerstate(FakeAnsibleModule):
                                                                       redfish_connection_mock_for_powerstate,
                                                                       redfish_response_mock):
         """case when system id is explicitly provided"""
-        f_module = self.get_module_mock(params={"resource_id": "System.Embedded.2"})
+        f_module = self.get_module_mock(params={"resource_id": "System.Embedded.1", "reset_type": "ForceOff"})
         redfish_response_mock.json_data = {
             "Systems": {
                 "@odata.id": "/redfish/v1/Systems"
@@ -116,7 +120,7 @@ class TestRedfishPowerstate(FakeAnsibleModule):
             "PowerState": "On"
         }
         redfish_connection_mock_for_powerstate.root_uri = "/redfish/v1/"
-        self.module.fetch_power_uri_resource(f_module, redfish_connection_mock_for_powerstate)
+        self.module.fetch_power_uri_resource(f_module, redfish_connection_mock_for_powerstate, "Systems")
         assert self.module.powerstate_map["allowable_enums"] == [
             "On",
             "ForceOff",
@@ -134,7 +138,7 @@ class TestRedfishPowerstate(FakeAnsibleModule):
                                                                           redfish_connection_mock_for_powerstate,
                                                                           redfish_response_mock):
         """case when system id not provided but multipble resource exists"""
-        f_module = self.get_module_mock()
+        f_module = self.get_module_mock(params={"reset_type": "ForceOff"})
         redfish_response_mock.json_data = {
             "Systems": {
                 "@odata.id": "/redfish/v1/Systems"
@@ -172,7 +176,7 @@ class TestRedfishPowerstate(FakeAnsibleModule):
                                                                         redfish_connection_mock_for_powerstate,
                                                                         redfish_response_mock):
         """failure case when system id is explicitly provided but which is not valid"""
-        f_module = self.get_module_mock(params={"resource_id": "System.Embedded.3"})
+        f_module = self.get_module_mock(params={"resource_id": "System.Embedded.3", "reset_type": "ForceOff"})
         redfish_response_mock.json_data = {
             "Systems": {
                 "@odata.id": "/redfish/v1/Systems"
@@ -204,7 +208,7 @@ class TestRedfishPowerstate(FakeAnsibleModule):
         }
         redfish_connection_mock_for_powerstate.root_uri = "/redfish/v1/"
         with pytest.raises(Exception) as exc:
-            self.module.fetch_power_uri_resource(f_module, redfish_connection_mock_for_powerstate)
+            self.module.fetch_power_uri_resource(f_module, redfish_connection_mock_for_powerstate, "Systems")
         assert exc.value.args[0] == "Invalid device Id 'System.Embedded.3' is provided"
 
     def test_fetch_powerstate_resource_error_case_01(self, redfish_connection_mock_for_powerstate,
@@ -347,7 +351,7 @@ class TestRedfishPowerstate(FakeAnsibleModule):
         assert res is result
 
     def test_is_valid_reset_type(self):
-        f_module = self.get_module_mock()
+        f_module = self.get_module_mock({"reset_type": "ForceOn"})
         reset_type = "GracefulRestart"
         allowable_enum = [
             "On",
@@ -366,7 +370,7 @@ class TestRedfishPowerstate(FakeAnsibleModule):
         assert exc.value.args[0] == error_msg
 
     def test_is_valid_reset_type_case2(self):
-        f_module = self.get_module_mock()
+        f_module = self.get_module_mock({"reset_type": "On"})
         reset_type = "ForceOff"
         allowable_enum = [
             "On",

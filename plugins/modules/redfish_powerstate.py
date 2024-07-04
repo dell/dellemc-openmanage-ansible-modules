@@ -156,7 +156,7 @@ from ansible.module_utils.urls import ConnectionError
 
 
 CHANGES_FOUND = "Changes found to be applied."
-NO_CHANGES_FOUND = "No changes found to be applied."
+NO_CHANGES_FOUND = "No Changes found to be applied."
 FIRM_VER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
 INVALID_RESET_TYPE_OEM = "'{option}' is not supported. The supported values" \
     " are {supported_oem_reset_type_values}. Enter the valid values and retry" \
@@ -172,8 +172,8 @@ VENDOR_NOT_SUPPORTED = "The vendor is not supported. The supported vendors" \
     " are '{supported_vendors}'. Enter the valid vendor and retry the operation."
 SUCCESS_AC_MSG = "Successfully performed the full virtual server AC power-cycle operation."
 SUCCESS_AC_MSG_ON = "Successfully performed the full virtual server AC power-cycle operation." \
-    "Please wait a few minutes, the server will automatically power on."
-INVALID_RESET_TYPE = "The target device does not support a {0} operation. The acceptable values for device reset types are {1}."
+    " Please wait a few minutes, the server will automatically power on."
+INVALID_RESET_TYPE = "The target device does not support a {0} operation.The acceptable values for device reset types are {1}."
 OEM_RESET_KEY = '#DellOemChassis.ExtendedReset'
 INVALID_PWR_ERROR = "The target device does not support '{0}' operation. The valid values of final power states for device are '{1}'."
 VENDOR_NOT_SPECIFIED = "The vendor is not specified. Enter the valid vendor and retry the operation."
