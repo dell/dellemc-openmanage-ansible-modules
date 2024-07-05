@@ -902,8 +902,8 @@ def validate_secure_erase(module, redfish_obj):
 
     capable = drive_detail.get("SystemEraseCapability", {})
     if capable != "CryptographicErasePD":
-            module.exit_json(msg=DRIVE_NOT_SECURE_ERASE.format(drive_id),
-                             skipped=True)
+        module.exit_json(msg=DRIVE_NOT_SECURE_ERASE.format(drive_id),
+                         skipped=True)
     return drive_uri, job_type
 
 
