@@ -295,7 +295,7 @@ def check_firmware_version(module, redfish_session_obj):
     redfish_firmware_version = resp.json_data.get('FirmwareVersion', '')
     if LooseVersion(redfish_firmware_version) <= MINIMUM_SUPPORTED_FIRMWARE_VERSION:
         module.exit_json(msg=UNSUPPORTED_FIRMWARE_MSG.format(
-            minimum_supported_firmware_version=MINIMUM_SUPPORTED_FIRMWARE_VERSION), failed=True)
+            minimum_supported_firmware_version=MINIMUM_SUPPORTED_FIRMWARE_VERSION), skipped=True)
 
 
 def prepare_payload(current_vendor_dict):
@@ -370,12 +370,12 @@ def run_change_ac_power_cycle(redfish_session_obj, module):
     try:
         reset_resp = redfish_session_obj.invoke_request("POST", power_uri, data=payload)
         if reset_resp.status_code == 204:
-            if final_pwr_state.lower() == "on":
+            if final_pwr_state and final_pwr_state.lower() == "on":
                 module.exit_json(msg=SUCCESS_AC_MSG_ON, changed=True)
             module.exit_json(msg=SUCCESS_AC_MSG, changed=True)
     except HTTPError as err:
         err_message = json.load(err)
-        if err_message["error"]["@Message.ExtendedInfo"][0]["MessageId"] == "IDRAC.2.9.PSU507":
+        if err.code == 409 and err_message["error"]["@Message.ExtendedInfo"][0]["MessageId"] == "IDRAC.2.9.PSU507":
             error_msg = err_message["error"]["@Message.ExtendedInfo"][0]["Message"]
             module.exit_json(msg=error_msg, failed=True)
 
