@@ -907,7 +907,7 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + module + "get_dynamic_uri",
                      side_effect=mock_get_dynamic_uri_request_2)
         result = self._run_module(redfish_default_args)
-        assert result["msg"] == "Drive {0} is not secure erase capable.".format(drive_id_1)
+        assert result["msg"] == "Drive {0} does not support secure erase operation.".format(drive_id_1)
 
         # Scenario 7: When drive is ready and support secure erase, job_wait is false
         def mock_get_dynamic_uri_request_3(*args, **kwargs):
@@ -939,7 +939,8 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
                                      "target": drive_id_1})
         mocker.patch(MODULE_PATH + module + "get_scheduled_job_resp", return_value=True)
         result = self._run_module(redfish_default_args)
-        assert result["msg"] == "Unable to complete the request because another job already exists. Wait for the pending job to complete."
+        assert result["msg"] == "Unable to complete the oepration because another job already exists." + \
+            " Wait for the pending job to complete and retry the operation."
 
     def test_main_success_attributes(self, redfish_str_controller_conn, redfish_response_mock, redfish_default_args, mocker):
         param = {"baseuri": "XX.XX.XX.XX", "username": "username", "password": "password",

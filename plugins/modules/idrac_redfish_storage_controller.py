@@ -51,10 +51,10 @@ options:
       - C(ChangePDStateToOffline) - To set the disk status to offline. I(target) is required for this operation.
       - C(LockVirtualDisk) - To encrypt the virtual disk. I(volume_id) is required for this operation.
       - C(OnlineCapacityExpansion) - To expand the size of virtual disk. I(volume_id), and I(target) or I(size) is required for this operation.
-      - C(SecureErase) - To securely delete all the data on the physical disk. This option is only available
-        for Self-Encrypting Drives (SED), Instant Scramble Erase (ISE) drives and PCIe SSD devices (drives and cards)
-        only. The drives must be in Ready state . I(controller_id) and I(target) is required for this operation,
-        I(target) should be a single physical disk id.
+      - C(SecureErase) - To delete all the data on the physical disk securely. This option is available for
+        Self-Encrypting Drives (SED), Instant Scramble Erase (ISE) drives, and PCIe SSD devices (drives and cards).
+        The drives must be in a ready state . I(controller_id) and I(target) are required for this operation,
+        I(target) must be a single physical disk ID.
     choices: [ResetConfig, AssignSpare, SetControllerKey, RemoveControllerKey, ReKey, UnassignSpare,
       EnableControllerEncryption, BlinkTarget, UnBlinkTarget, ConvertToRAID, ConvertToNonRAID,
       ChangePDStateToOnline, ChangePDStateToOffline, LockVirtualDisk, OnlineCapacityExpansion, SecureErase]
@@ -458,6 +458,16 @@ EXAMPLES = r'''
     maintenance_window:
       start_time: "2022-09-30T05:15:40-05:00"
       duration: 1200
+
+- name: Perform Secure Erase operation on SED drive
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    baseuri: "192.168.0.1:443"
+    username: "user_name"
+    password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    controller_id: "RAID.Slot.1-1"
+    command: "SecureErase"
+    target: "Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1"
 '''
 
 RETURN = r'''
@@ -546,8 +556,8 @@ OCE_MIN_PD_RAID_MAPPING = {'RAID0': 1, 'RAID5': 1, 'RAID6': 1, 'RAID10': 2}
 
 JOB_SUBMISSION = "Successfully submitted the job that performs the '{0}' operation."
 JOB_COMPLETION = "Successfully performed the '{0}' operation."
-JOB_EXISTS = "Unable to complete the request because another job already " \
-             "exists. Wait for the pending job to complete."
+JOB_EXISTS = "Unable to complete the oepration because another job already " \
+             "exists. Wait for the pending job to complete and retry the operation."
 CHANGES_FOUND = "Changes found to be applied."
 NO_CHANGES_FOUND = "No changes found to be applied."
 TARGET_ERR_MSG = "The Fully Qualified Device Descriptor (FQDD) of the target {0} must be only one."
@@ -556,7 +566,7 @@ PD_ERROR_MSG = "Unable to locate the physical disk with the ID: {0}"
 VD_ERROR_MSG = "Unable to locate the virtual disk with the ID: {0}"
 ENCRYPT_ERR_MSG = "The storage controller '{0}' does not support encryption."
 PHYSICAL_DISK_ERR = "Volume is not encryption capable."
-DRIVE_NOT_SECURE_ERASE = "Drive {0} is not secure erase capable."
+DRIVE_NOT_SECURE_ERASE = "Drive {0} does not support secure erase operation."
 DRIVE_NOT_READY = "Drive {0} is not in ready state."
 OCE_RAID_TYPE_ERR = "Online Capacity Expansion is not supported for {0} virtual disks."
 OCE_SIZE_100MB = "Minimum Online Capacity Expansion size must be greater than 100 MB of the current size {0}."

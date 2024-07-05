@@ -60,6 +60,8 @@ Parameters
 
     \ :literal:`OnlineCapacityExpansion`\  - To expand the size of virtual disk. \ :emphasis:`volume\_id`\ , and \ :emphasis:`target`\  or \ :emphasis:`size`\  is required for this operation.
 
+    \ :literal:`SecureErase`\  - To delete all the data on the physical disk securely. This option is available for Self-Encrypting Drives (SED), Instant Scramble Erase (ISE) drives, and PCIe SSD devices (drives and cards). The drives must be in a ready state . \ :emphasis:`controller\_id`\  and \ :emphasis:`target`\  are required for this operation, \ :emphasis:`target`\  must be a single physical disk ID.
+
 
   target (optional, list, None)
     Fully Qualified Device Descriptor (FQDD) of the target physical drive.
@@ -520,6 +522,16 @@ Examples
         maintenance_window:
           start_time: "2022-09-30T05:15:40-05:00"
           duration: 1200
+
+    - name: Perform Secure Erase operation on SED drive
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "192.168.0.1:443"
+        username: "user_name"
+        password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        controller_id: "RAID.Slot.1-1"
+        command: "SecureErase"
+        target: "Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1"
 
 
 
