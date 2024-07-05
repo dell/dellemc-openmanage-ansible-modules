@@ -277,7 +277,7 @@ def get_payload(module):
                    "timeout", "update_password"]
     remove_unwanted_keys(remove_keys, backup_params)
     payload = dict([(proxy_payload_map[key], val) for key, val in backup_params.items() if val
-                      is not None])
+                    is not None])
     if backup_params.get("proxy_exclusion_list") or backup_params.get("proxy_exclusion_list") == []:
         temp_proxy_exclusion_list = backup_params.get("proxy_exclusion_list")
         converted_proxy_exclusion_list = ",".join(temp_proxy_exclusion_list)
@@ -300,7 +300,7 @@ def get_updated_payload(rest_obj, module, payload):
     current_setting = {}
     if not any(payload):
         module.fail_json(msg="Unable to configure the proxy because proxy configuration settings"
-                          " are not provided.")
+                         " are not provided.")
     else:
         params = module.params
         if params.get("update_password"):
@@ -320,7 +320,7 @@ def get_updated_payload(rest_obj, module, payload):
         current_setting = resp.json_data
         remove_unwanted_keys(remove_keys, current_setting)
         diff = any(key in current_setting and val != current_setting[key] for key, val in
-                    payload.items())
+                   payload.items())
         validate_check_mode_for_network_proxy(diff, module)
         if not diff:
             module.exit_json(msg="No changes made to proxy configuration as entered values are "
