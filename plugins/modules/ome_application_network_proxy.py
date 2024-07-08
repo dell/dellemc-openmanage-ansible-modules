@@ -210,7 +210,6 @@ error_info:
 
 
 import json
-from ssl import SSLError
 from urllib.error import HTTPError, URLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -361,16 +360,20 @@ def main():
             payload = get_payload(module)
             updated_payload = get_updated_payload(rest_obj, module, payload)
             resp = rest_obj.invoke_request("PUT", PROXY_CONFIG, data=updated_payload)
+            response_data = resp.json_data
+            proxy_configuration_details = response_data.copy()
+            proxy_exclusion_list_str = response_data.get("ProxyExclusionList", "")
+            proxy_exclusion_list_list = proxy_exclusion_list_str.strip('[]').strip(']').split(',')
+            proxy_configuration_details["ProxyExclusionList"] = proxy_exclusion_list_list
             module.exit_json(msg="Successfully updated network proxy configuration.",
-                             proxy_configuration=resp.json_data,
+                             proxy_configuration=proxy_configuration_details,
                              changed=True)
     except HTTPError as err:
         filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
         module.exit_json(msg=str(err), error_info=filter_err, failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, SSLValidationError,
-            OSError) as err:
+    except (ValueError, TypeError, ConnectionError, SSLValidationError, OSError) as err:
         module.exit_json(msg=str(err), failed=True)
 
 
