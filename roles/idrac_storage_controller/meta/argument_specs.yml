@@ -106,6 +106,12 @@ argument_specs:
               - Assigns a global hot spare or unassigns a hot spare.
               - C(true) assigns the disk as a global hot spare.
               - C(false) unassigns the disk as a hot spare.
+          erase:
+            type: bool
+            description:
+              - Securely erase a device.
+              - C(true) securely erase the disk.
+              - C(false) skips the secure erase operation.
       reset_config:
         type: bool
         description: To reset the controller.

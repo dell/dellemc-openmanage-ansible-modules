@@ -209,6 +209,14 @@ dellemc.openmanage
     <td>- Assigns a global hot spare or unassigns a hot spare.<br>- C(true) assigns the disk as a global hot spare.<br>- C(false) unassigns the disk as a hot spare.</td>
   </tr>
   <tr>
+    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;erase</td>
+    <td>false</td>
+    <td></td>
+    <td></td>
+    <td>bool</td>
+    <td>- Securely erase a device. <br>- C(true) securely erase the disk.<br>- C(false) skips the secure erase operation.</td>
+  </tr>
+  <tr>
     <td>reset_config</td>
     <td>false</td>
     <td></td>
@@ -675,8 +683,25 @@ dellemc.openmanage
     apply_time: Immediate
 ```
 
+```
+- name: Perform secure erase on physical disk.
+    ansible.builtin.include_role:
+    name: idrac_storage_controller
+  vars:
+    hostname: 192.168.0.1
+    username: username
+    password: password
+    validate_certs: false
+    controller_id: RAID.Slot.1-1
+    disks:
+      id: Disk.Bay.3:Enclosure.Internal.0-1:RAID.Slot.1-1
+      erase: true
+```
+
 ## Author Information
 ------------------
 
 Dell Technologies <br>
-Felix Stephen Anthuvan (felix_s@dell.com) 2023
+Felix Stephen Anthuvan (felix_s@dell.com) 2023 <br>
+Abhishek Sinha
+(Abhishek.Sinha10@dell.com) 2024

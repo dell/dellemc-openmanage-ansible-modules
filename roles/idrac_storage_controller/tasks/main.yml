@@ -92,6 +92,18 @@
   when:
     set_controller_key is true and key is defined and key_id is defined and mode is defined
 
+- name: Performing secure erase on a physical disk.
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    <<: *idrac_inputs
+    command: "SecureErase"
+    controller_id: "{{ controller_id }}"
+    target: "{{ disks.id }}"
+    job_wait: "{{ job_wait }}"
+    job_wait_timeout: "{{ job_wait_timeout }}"
+  register: erase_state_out
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
+  when: disks.erase is defined and disks.erase is true
+
 - name: Change physical disk state.
   dellemc.openmanage.idrac_redfish_storage_controller:
     <<: *idrac_inputs
