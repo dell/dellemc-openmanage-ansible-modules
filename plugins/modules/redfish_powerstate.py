@@ -25,8 +25,7 @@ extends_documentation_fragment:
 options:
   resource_id:
     description:
-      - The unique identifier of the device being managed.
-       For example- U(https://<I(baseuri)>/redfish/v1/Systems/<I(resource_id)>).
+      - This option is the unique identifier of the device being managed. For example, U(https://<I(baseuri)>/redfish/v1/Systems/<I(resource_id)>).
       - This option is mandatory for I(base_uri) with multiple devices.
       - To get the device details, use the API U(https://<I(baseuri)>/redfish/v1/Systems).
     required:  false
@@ -34,16 +33,15 @@ options:
   reset_type:
     description:
       - This option resets the device.
-      - If C(ForceOff), Turns off the device immediately.
-      - If C(ForceOn), Turns on the device immediately.
-      - If C(ForceRestart), Turns off the device immediately, and then restarts the device.
-      - If C(GracefulRestart), Performs graceful shutdown of the device, and then restarts the device.
-      - If C(GracefulShutdown), Performs a graceful shutdown of the device, and the turns off the device.
-      - If C(Nmi), Sends a diagnostic interrupt to the device. This is usually a non-maskable interrupt
-       (NMI) on x86 device.
-      - If C(On), Turns on the device.
-      - If C(PowerCycle), Performs power cycle on the device.
-      - If C(PushPowerButton), Simulates the pressing of a physical power button on the device.
+      - C(ForceOff) turns off the device immediately.
+      - C(ForceOn) turns on the device immediately.
+      - C(ForceRestart) turns off the device immediately, and then restarts the server.
+      - C(GracefulRestart) performs graceful shutdown of the device, and then restarts the device.
+      - C(GracefulShutdown) performs a graceful shutdown of the device, and then turns off the device.
+      - C(Nmi) sends a diagnostic interrupt to the device. This option is usually a nonmaskable interrupt (NMI) on x86 systems.
+      - C(On) turns on the device.
+      - C(PowerCycle) performs a power cycle on the device.
+      - C(PushPowerButton) simulates the pressing of a physical power button on the device.
       - I(reset_type) is mutually exclusive with I(oem_reset_type).
       - When a power control operation is performed, which is not supported on the device, an error message is displayed
        with the list of operations that can be performed.

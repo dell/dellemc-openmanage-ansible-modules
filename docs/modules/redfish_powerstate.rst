@@ -28,7 +28,7 @@ Parameters
 ----------
 
   resource_id (False, str, None)
-    The unique identifier of the device being managed. For example- \ https://%3CI(baseuri\ \>/redfish/v1/Systems/\<\ :emphasis:`resource\_id`\ \>).
+    This option is the unique identifier of the device being managed. For example, \ https://%3CI(baseuri\ \>/redfish/v1/Systems/\<\ :emphasis:`resource\_id`\ \>).
 
     This option is mandatory for \ :emphasis:`base\_uri`\  with multiple devices.
 
@@ -38,23 +38,23 @@ Parameters
   reset_type (False, str, None)
     This option resets the device.
 
-    If \ :literal:`ForceOff`\ , Turns off the device immediately.
+    \ :literal:`ForceOff`\  turns off the device immediately.
 
-    If \ :literal:`ForceOn`\ , Turns on the device immediately.
+    \ :literal:`ForceOn`\  turns on the device immediately.
 
-    If \ :literal:`ForceRestart`\ , Turns off the device immediately, and then restarts the device.
+    \ :literal:`ForceRestart`\  turns off the device immediately, and then restarts the server.
 
-    If \ :literal:`GracefulRestart`\ , Performs graceful shutdown of the device, and then restarts the device.
+    \ :literal:`GracefulRestart`\  performs graceful shutdown of the device, and then restarts the device.
 
-    If \ :literal:`GracefulShutdown`\ , Performs a graceful shutdown of the device, and the turns off the device.
+    \ :literal:`GracefulShutdown`\  performs a graceful shutdown of the device, and then turns off the device.
 
-    If \ :literal:`Nmi`\ , Sends a diagnostic interrupt to the device. This is usually a non-maskable interrupt (NMI) on x86 device.
+    \ :literal:`Nmi`\  sends a diagnostic interrupt to the device. This option is usually a nonmaskable interrupt (NMI) on x86 systems.
 
-    If \ :literal:`On`\ , Turns on the device.
+    \ :literal:`On`\  turns on the device.
 
-    If \ :literal:`PowerCycle`\ , Performs power cycle on the device.
+    \ :literal:`PowerCycle`\  performs a power cycle on the device.
 
-    If \ :literal:`PushPowerButton`\ , Simulates the pressing of a physical power button on the device.
+    \ :literal:`PushPowerButton`\  simulates the pressing of a physical power button on the device.
 
     \ :emphasis:`reset\_type`\  is mutually exclusive with \ :emphasis:`oem\_reset\_type`\ .
 
