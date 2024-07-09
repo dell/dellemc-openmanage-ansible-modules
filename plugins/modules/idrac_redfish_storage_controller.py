@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.5.0
 # Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -911,7 +911,7 @@ def validate_secure_erase(module, redfish_obj):
         capable = dell_disk.get("SystemEraseCapability", {})
         if capable != "CryptographicErasePD":
             module.exit_json(msg=DRIVE_NOT_SECURE_ERASE.format(drive_id),
-                            skipped=True)
+                             skipped=True)
     return drive_uri, job_type
 
 
