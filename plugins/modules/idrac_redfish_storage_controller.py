@@ -902,18 +902,16 @@ def validate_secure_erase(module, redfish_obj):
         dell_oem = drive_detail.get("Oem", {}).get("Dell", {})
         try:
             dell_disk = dell_oem["DellPhysicalDisk"]
-        except Exception:
+        except KeyError:
             dell_disk = dell_oem.get("DellPCIeSSD", {})
         drive_ready = dell_disk.get("RaidStatus", {})
         if drive_ready != "Ready":
             module.exit_json(msg=DRIVE_NOT_READY.format(drive_id),
                              skipped=True)
-        drive_detail = dell_disk
-
-    capable = drive_detail.get("SystemEraseCapability", {})
-    if capable != "CryptographicErasePD":
-        module.exit_json(msg=DRIVE_NOT_SECURE_ERASE.format(drive_id),
-                         skipped=True)
+        capable = dell_disk.get("SystemEraseCapability", {})
+        if capable != "CryptographicErasePD":
+            module.exit_json(msg=DRIVE_NOT_SECURE_ERASE.format(drive_id),
+                            skipped=True)
     return drive_uri, job_type
 
 

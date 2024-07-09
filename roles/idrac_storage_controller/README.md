@@ -323,6 +323,147 @@ dellemc.openmanage
 </tbody>
 </table>
 
+## Fact variables
+
+<table>
+<thead>
+  <tr>
+    <th>Name</th>
+    <th>Sample</th>
+    <th>Description</th>
+  </tr>
+</thead>
+  <tbody>
+    <tr>
+      <td>idrac_storage_controller_out</td>
+      <td>
+      <pre>
+        <code class="json">
+        {
+            "assign_dedicated_spare": {
+                "changed": false,
+                "false_condition": "volumes.id is defined and volumes.dedicated_hot_spare is defined",
+                "skip_reason": "Conditional result was False",
+                "skipped": true
+            },
+            "assign_global_spare": {
+                "changed": false,
+                "false_condition": "disks.id is defined and disks.global_hot_spare is true",
+                "skip_reason": "Conditional result was False",
+                "skipped": true
+            },
+            "blink_pd": {
+                "changed": false,
+                "false_condition": "disks.blink is defined",
+                "skip_reason": "Conditional result was False",
+                "skipped": true
+            },
+            "blink_vd": {
+                "changed": false,
+                "false_condition": "volumes.blink is defined",
+                "skip_reason": "Conditional result was False",
+                "skipped": true
+            },
+            "controller_attributes_config": {
+                "changed": false,
+                "false_condition": "attributes is defined",
+                "skip_reason": "Conditional result was False",
+                "skipped": true
+            },
+            "controller_rekey": {
+                "changed": false,
+                "false_condition": "rekey is true",
+                "skip_reason": "Conditional result was False",
+                "skipped": true
+            },
+            "controller_reset_config": {
+                "changed": false,
+                "false_condition": "reset_config is true",
+                "skip_reason": "Conditional result was False",
+                "skipped": true
+            },
+            "enable_encryption": {
+                "changed": false,
+                "false_condition": "set_controller_key is true and key is defined and key_id is defined and mode is defined",
+                "skip_reason": "Conditional result was False",
+                "skipped": true
+            },
+            "lock_vd": {
+                "changed": false,
+                "false_condition": "volumes.encrypted is true",
+                "skip_reason": "Conditional result was False",
+                "skipped": true
+            },
+            "oce_vd": {
+                "changed": false,
+                "false_condition": "volumes.expand_capacity_disk is defined or volumes.expand_capacity_size is defined",
+                "skip_reason": "Conditional result was False",
+                "skipped": true
+            },
+            "physical_disk_raid_state": {
+                "changed": false,
+                "false_condition": "disks.raid_state is defined",
+                "skip_reason": "Conditional result was False",
+                "skipped": true
+            },
+            "physical_disk_state": {
+                "changed": false,
+                "false_condition": "disks.status is defined",
+                "skip_reason": "Conditional result was False",
+                "skipped": true
+            },
+            "remove_controller_key": {
+                "changed": false,
+                "false_condition": "remove_key is true",
+                "skip_reason": "Conditional result was False",
+                "skipped": true
+            },
+            "secure_erase": {
+                "changed": false,
+                "failed": false,
+                "msg": "Successfully submitted the job that performs the 'SecureErase' operation.",
+                "status": {
+                    "ActualRunningStartTime": null,
+                    "ActualRunningStopTime": null,
+                    "CompletionTime": null,
+                    "Description": "Job Instance",
+                    "EndTime": "TIME_NA",
+                    "Id": "JID_XXXXXXXXXXX",
+                    "JobState": "ReadyForExecution",
+                    "JobType": "RealTimeNoRebootConfiguration",
+                    "Message": "New",
+                    "MessageArgs": [],
+                    "MessageId": "JCP000",
+                    "Name": "Configure: RAID.Integrated.1-1",
+                    "PercentComplete": 0,
+                    "StartTime": "2024-07-09T01:35:18",
+                    "TargetSettingsURI": null
+                },
+                "task": {
+                    "id": "JID_XXXXXXXXXXX",
+                    "uri": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/JID_XXXXXXXXXXX"
+                }
+            },
+            "set_controller_key": {
+                "changed": false,
+                "false_condition": "set_controller_key is true and key is defined and key_id is defined and mode is undefined",
+                "skip_reason": "Conditional result was False",
+                "skipped": true
+            },
+            "unassign_hotspare": {
+                "changed": false,
+                "false_condition": "disks.global_hot_spare is false and disks.id is defined",
+                "skip_reason": "Conditional result was False",
+                "skipped": true
+            }
+        }
+      </code>
+    </pre>
+    </td>
+<td>Returns the output of the idrac_storage_controller</td>
+</tbody>
+</table>
+
 ## Example Playbook
 
 ```
