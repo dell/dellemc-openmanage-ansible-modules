@@ -362,8 +362,11 @@ def main():
             resp = rest_obj.invoke_request("PUT", PROXY_CONFIG, data=updated_payload)
             response_data = resp.json_data
             proxy_configuration_details = response_data.copy()
-            proxy_exclusion_list_str = response_data.get("ProxyExclusionList", "")
-            proxy_exclusion_list_list = proxy_exclusion_list_str.strip('[]').strip(']').split(',')
+            if not response_data.get("ProxyExclusionList"):
+                proxy_exclusion_list_list = []
+            else:
+                proxy_exclusion_list_str = response_data.get("ProxyExclusionList")
+                proxy_exclusion_list_list = proxy_exclusion_list_str.strip('[]').strip(']').split(',')
             proxy_configuration_details["ProxyExclusionList"] = proxy_exclusion_list_list
             module.exit_json(msg="Successfully updated network proxy configuration.",
                              proxy_configuration=proxy_configuration_details,

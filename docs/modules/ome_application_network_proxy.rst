@@ -65,32 +65,38 @@ Parameters
     This option is mandatory when \ :emphasis:`enable\_authentication`\  is true.
 
 
+  ignore_certificate_validation (optional, bool, False)
+    This option will ignore the built-in certificate checks like those used for the warranty and catalog updates.
+
+    \ :literal:`true`\  will ignore the certificate validation.
+
+    \ :literal:`false`\  will not ignore the certificate validation.
+
+
+  proxy_exclusion_list (optional, list, None)
+    The list of IPv4 addresses, IPv6 addresses or the domain names of the devices that can bypass the proxy server to directly access the appliance.
+
+
+  update_password (optional, bool, False)
+    This flag is used to update the \ :emphasis:`proxy\_password`\ .
+
+    This is applicable only when \ :emphasis:`enable\_authentication`\  is \ :literal:`true`\ .
+
+    \ :literal:`true`\  will update the \ :emphasis:`proxy\_password`\ .
+
+    \ :literal:`false`\  will not update the \ :emphasis:`proxy\_password`\ .
+
+
   hostname (True, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
 
 
-  username (False, str, None)
+  username (True, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular username.
 
-    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-    Example: export OME\_USERNAME=username
-
-
-  password (False, str, None)
+  password (True, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular password.
-
-    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
-
-    Example: export OME\_PASSWORD=password
-
-
-  x_auth_token (False, str, None)
-    Authentication token.
-
-    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
-
-    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -121,7 +127,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
-   - This module does not support \ :literal:`check\_mode`\ .
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 
@@ -165,6 +171,44 @@ Examples
         ca_path: "/path/to/ca_cert.pem"
         enable_proxy: false
 
+    - name: Add IPv4, IPv6 and domain names of devices in proxy exclusion list
+      dellemc.openmanage.ome_application_network_proxy:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        enable_proxy: true
+        ip_address: "192.168.0.2"
+        proxy_port: 444
+        enable_authentication: false
+        proxy_exclusion_list:
+          - 192.168.1.0
+          - 191.187.2.0
+          - www.*.com
+          - 191.1.168.1/24
+
+    - name: Clear the proxy exclusion list
+      dellemc.openmanage.ome_application_network_proxy:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        enable_proxy: true
+        ip_address: "192.168.0.2"
+        proxy_port: 444
+        proxy_exclusion_list: []
+
+    - name: Ignore the certificate validation
+      dellemc.openmanage.ome_application_network_proxy:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        enable_proxy: true
+        ip_address: "192.168.0.2"
+        proxy_port: 444
+        ignore_certificate_validation: true
+
 
 
 Return Values
@@ -174,11 +218,11 @@ msg (always, str, Successfully updated network proxy configuration.)
   Overall status of the network proxy configuration change.
 
 
-proxy_configuration (success, dict, {'EnableAuthentication': True, 'EnableProxy': True, 'IpAddress': '192.168.0.2', 'Password': None, 'PortNumber': 444, 'Username': 'root'})
+proxy_configuration (On successful configuration of network proxy settings, dict, {'EnableAuthentication': True, 'EnableProxy': True, 'IpAddress': '192.168.0.2', 'Password': None, 'PortNumber': 444, 'ProxyExclusionList': ['192.168.0.1', 'www.*.com', '172.1.1.1/24'], 'SslCheckDisabled': False, 'Username': 'root'})
   Updated application network proxy configuration.
 
 
-error_info (on HTTP error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to complete the request because the input value for  PortNumber  is missing or an invalid value is entered.', 'MessageArgs': ['PortNumber'], 'MessageId': 'CGEN6002', 'RelatedProperties': [], 'Resolution': 'Enter a valid value and retry the operation.', 'Severity': 'Critical'}], 'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.'}})
+error_info (On HTTP error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to complete the request because the input value for  PortNumber  is missing or an invalid value is entered.', 'MessageArgs': ['PortNumber'], 'MessageId': 'CGEN6002', 'RelatedProperties': [], 'Resolution': 'Enter a valid value and retry the operation.', 'Severity': 'Critical'}], 'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.'}})
   Details of the HTTP error.
 
 
@@ -196,4 +240,5 @@ Authors
 ~~~~~~~
 
 - Sajna Shetty(@Sajna-Shetty)
+- Rajshekar P(@rajshekarp87)
 
