@@ -1,0 +1,51 @@
+- ansible.builtin.wait_for: timeout=60
+
+- name: Power state - {{power.reset_type}} (Check mode - changes expected)
+  dellemc.openmanage.redfish_powerstate:
+    reset_type: "{{power.reset_type}}"
+  register: cm_changes
+  check_mode: True
+
+- name: Power state - {{power.reset_type}} (Normal mode)
+  dellemc.openmanage.redfish_powerstate:
+    reset_type: "{{power.reset_type}}"
+  register: result
+
+- ansible.builtin.wait_for: timeout=60
+
+- ansible.builtin.include_tasks: _wait_for_powerstate.yml
+  vars:
+    expected_state: "{{ power.expected_state }}"
+
+- include_role: name=prepare_idrac_lifecycle_controller_status
+
+- name: Verify status of tasks for reset type - {{ power.reset_type }}
+  ansible.builtin.assert:
+    that:
+      - cm_changes.changed
+      - cm_changes.msg == "Changes found to be applied."
+      - result.changed
+      - result.msg == "Successfully performed the reset type operation '{{ power.reset_type }}'."
+
+- block:
+    - name: Power state - {{ power.reset_type }} Check mode-no changes expected
+      dellemc.openmanage.redfish_powerstate:
+        reset_type: "{{power.reset_type}}"
+      register: cm_no_changes
+      check_mode: True
+
+    - name: Power state - {{ power.reset_type }} (Idempotence mode)
+      dellemc.openmanage.redfish_powerstate:
+        reset_type: "{{power.reset_type}}"
+      register: idempotence
+
+    - name: Verify status of tasks for reset type - {{ power.reset_type }}
+      ansible.builtin.assert:
+        that:
+          - not cm_no_changes.changed
+          - cm_no_changes.msg == "No Changes found to be applied."
+          - not idempotence.changed
+          - idempotence.msg == "The device is already powered
+           {{ power.expected_state | lower }}."
+  when: '"{{ power.reset_type }}" not in ["ForceRestart",
+   "PushPowerButton","PowerCycle"]'

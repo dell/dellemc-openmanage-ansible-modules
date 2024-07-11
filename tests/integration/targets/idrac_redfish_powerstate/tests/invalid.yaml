@@ -1,0 +1,99 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+
+- block:
+    - name: Negative - unreachable host
+      dellemc.openmanage.redfish_powerstate:
+        baseuri: "999.999.999.999"
+        reset_type: "On"
+      ignore_unreachable: true
+      register: invalid_unreachable_host
+
+    - name: Verify status of tasks
+      assert:
+        that:
+          - invalid_unreachable_host.unreachable
+          - invalid_unreachable_host.msg == "<urlopen error [Errno -2] Name
+             or service not known>"
+
+    - name: Negative - invalid user
+      dellemc.openmanage.redfish_powerstate:
+        idrac_user: "invalid_user"
+        reset_type: "On"
+      ignore_errors: true
+      register: invalid_user
+
+    - name: Verify status of tasks
+      assert:
+        that:
+          - invalid_user.failed
+          - invalid_user.msg == ""HTTP Error 401: Unauthorized"
+
+    - name: Negative - invalid password
+      dellemc.openmanage.redfish_powerstate:
+        idrac_password: "invalid_pass"
+        reset_type: "On"
+      ignore_errors: true
+      register: invalid_password
+
+    - name: Verify status of tasks
+      assert:
+        that:
+          - invalid_password.failed
+          - invalid_password.msg == ""HTTP Error 401: Unauthorized"
+
+    - name: Negative - invalid ca_path
+      dellemc.openmanage.redfish_powerstate:
+        ca_path: "invalid"
+        reset_type: "On"
+      ignore_errors: true
+      register: invalid_ca_path
+
+    - name: Verify status of tasks
+      assert:
+        that:
+          - invalid_ca_path.failed
+          - invalid_ca_path.msg == ""HTTP Error 401: Unauthorized"
+
+    - name: Negative - invalid resource id
+      dellemc.openmanage.redfish_powerstate:
+        reset_type: "On"
+        resource_id: "invalid"
+      ignore_errors: true
+      register: invalid_resrouce_id
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_resrouce_id.failed
+          - invalid_resrouce_id.msg == "Invalid device Id 'invalid'
+           is provided"
+
+    - name: Negative - non applicable reset type
+      dellemc.openmanage.redfish_powerstate:
+        reset_type: "ForceOn"
+      ignore_errors: true
+      register: invalid_reset_type
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_reset_type.failed
+          - invalid_reset_type.msg == "The target device does not support a
+           force on operation.The acceptable values for device reset types
+           are On, ForceOff, ForceRestart, GracefulRestart, GracefulShutdown,
+           PushPowerButton, Nmi, PowerCycle."
+
+  module_defaults:
+    dellemc.openmanage.redfish_powerstate:
+      baseuri: "{{ idrac_ip }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
