@@ -553,6 +553,7 @@ CONTROLLERS_URI = "/redfish/v1/Systems/{system_id}/Storage/{controller_id}/Contr
 MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
 SETTINGS_URI = "/redfish/v1/Systems/{system_id}/Storage/{controller_id}/Controllers/{controller_id}/Settings"
 OCE_MIN_PD_RAID_MAPPING = {'RAID0': 1, 'RAID5': 1, 'RAID6': 1, 'RAID10': 2}
+ODATA_ID = "@odata.id"
 
 JOB_SUBMISSION = "Successfully submitted the job that performs the '{0}' operation."
 JOB_COMPLETION = "Successfully performed the '{0}' operation."
@@ -786,7 +787,7 @@ def lock_virtual_disk(module, redfish_obj):
         links = volume_resp.json_data.get("Links")
         if links:
             for disk in volume_resp.json_data.get("Links").get("Drives"):
-                drive_link = disk["@odata.id"]
+                drive_link = disk[ODATA_ID]
                 drive_resp = redfish_obj.invoke_request("GET", drive_link)
                 encryption_ability = drive_resp.json_data.get("EncryptionAbility")
                 if encryption_ability != "SelfEncryptingDrive":
@@ -843,7 +844,7 @@ def online_capacity_expansion(module, redfish_obj):
             links = volume_resp.json_data.get("Links")
             if links:
                 for disk in volume_resp.json_data.get("Links").get("Drives"):
-                    drive = disk["@odata.id"].split('/')[-1]
+                    drive = disk[ODATA_ID].split('/')[-1]
                     current_pd.append(drive)
             drives_to_add = [each_drive for each_drive in target if each_drive not in current_pd]
             if module.check_mode and drives_to_add and len(drives_to_add) % OCE_MIN_PD_RAID_MAPPING[raid_type] == 0:
@@ -872,7 +873,7 @@ def online_capacity_expansion(module, redfish_obj):
 
 def match_id_in_list(id, member_list):
     for each_dict in member_list:
-        url = each_dict["@odata.id"]
+        url = each_dict[ODATA_ID]
         if id in url:
             return url
 
