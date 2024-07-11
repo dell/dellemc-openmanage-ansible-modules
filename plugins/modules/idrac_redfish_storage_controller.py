@@ -556,7 +556,7 @@ OCE_MIN_PD_RAID_MAPPING = {'RAID0': 1, 'RAID5': 1, 'RAID6': 1, 'RAID10': 2}
 
 JOB_SUBMISSION = "Successfully submitted the job that performs the '{0}' operation."
 JOB_COMPLETION = "Successfully performed the '{0}' operation."
-JOB_EXISTS = "Unable to complete the oepration because another job already " \
+JOB_EXISTS = "Unable to complete the operation because another job already " \
              "exists. Wait for the pending job to complete and retry the operation."
 CHANGES_FOUND = "Changes found to be applied."
 NO_CHANGES_FOUND = "No changes found to be applied."
