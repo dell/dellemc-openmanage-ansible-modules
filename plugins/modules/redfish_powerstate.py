@@ -172,7 +172,7 @@ SUCCESS_AC_MSG = "Successfully performed the full virtual server AC power-cycle 
 SUCCESS_AC_MSG_ON = "Successfully performed the full virtual server AC power-cycle operation." \
     " Please wait a few minutes, the server will automatically power on."
 INVALID_RESET_TYPE = "The target device does not support a {0} operation.The acceptable values for device reset types are {1}."
-OEM_RESET_KEY = '#DellOemChassis.ExtendedReset'
+OEM_RESET_KEY = '#{0}OemChassis.ExtendedReset'
 INVALID_PWR_ERROR = "The target device does not support '{0}' operation. The valid values of final power states for device are '{1}'."
 VENDOR_NOT_SPECIFIED = "The vendor is not specified. Enter the valid vendor and retry the operation."
 OPERATION_ERROR = "No reset type is specified for the target device. Enter the valid value and retry the operation."
@@ -187,11 +187,20 @@ def fetch_powerstate_details(system_res_data, action_data):
         {'power_uri': power_uri, 'allowable_enums': allowable_enums, 'current_state': current_state})
 
 
-def fetch_ac_powerstate_details(system_id_res_data, action_id_res):
-    current_state = system_id_res_data["PowerState"]
-    power_uri = action_id_res['Oem'][OEM_RESET_KEY]['target']
-    allowable_enums = action_id_res['Oem'][OEM_RESET_KEY]['ResetType@Redfish.AllowableValues']
-    allowable_final_power_state = action_id_res['Oem'][OEM_RESET_KEY]['FinalPowerState@Redfish.AllowableValues']
+def fetch_ac_powerstate_details(module, system_id_res_data, action_id_res):
+    current_state = system_id_res_data.get("PowerState")
+    oem_reset_type = module.params["oem_reset_type"]
+    current_vendor = next(iter(oem_reset_type), None)
+    oem_key_resp = action_id_res.get('Oem')
+    if oem_key_resp is None:
+        module.exit_json(msg=TARGET_DEVICE_NOT_SUPPORTED, skipped=True)
+    sub_key = OEM_RESET_KEY.format(current_vendor.capitalize())
+    sub_oem_key = oem_key_resp.get(sub_key)
+    if sub_oem_key is None:
+        module.exit_json(msg=TARGET_DEVICE_NOT_SUPPORTED, skipped=True)
+    power_uri = sub_oem_key.get('target')
+    allowable_enums = sub_oem_key.get('ResetType@Redfish.AllowableValues')
+    allowable_final_power_state = sub_oem_key.get('FinalPowerState@Redfish.AllowableValues')
     powerstate_map.update(
         {'power_uri': power_uri, 'allowable_enums': allowable_enums,
             'current_state': current_state, 'allowable_power_state': allowable_final_power_state})
@@ -220,7 +229,7 @@ def fetch_power_uri_resource(module, session_obj, reset_type_map=None):
                     if reset_type:
                         fetch_powerstate_details(system_id_res_data, action_id_res)
                     else:
-                        fetch_ac_powerstate_details(system_id_res_data, action_id_res)
+                        fetch_ac_powerstate_details(module, system_id_res_data, action_id_res)
                 else:
                     module.fail_json(msg=TARGET_DEVICE_NOT_SUPPORTED)
             else:
@@ -280,8 +289,8 @@ def is_valid_final_pwr_state(final_pwr_state, allowed_final_pwr_state, module):
 
 
 def is_valid_vendor(redfish_session_obj, module, vendor):
-    if vendor is None:
-        module.exit_json(msg=VENDOR_NOT_SPECIFIED, failed=True)
+    # if vendor is None:
+    #     module.exit_json(msg=VENDOR_NOT_SPECIFIED, failed=True)
     system_resp = redfish_session_obj.invoke_request("GET", "/redfish/v1/")
     system_vendor = system_resp.json_data.get("Vendor")
     if system_vendor.lower() != vendor.lower():

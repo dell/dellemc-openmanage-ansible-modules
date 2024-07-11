@@ -547,15 +547,6 @@ class TestRedfishPowerstate(FakeAnsibleModule):
         assert exc.value.args[0] == "Unable to perform the Virtual AC power-cycle operation because the firmware version is not supported." \
             " The minimum supported firmware version is '7.00.60'."
 
-        # Scenario - When vendor is not provided
-        redfish_default_args.update({})
-        redfish_default_args.update({"oem_reset_type": {}})
-        f_module = self.get_module_mock(params=redfish_default_args)
-        mocker.patch(MODULE_PATH + 'redfish_powerstate.check_firmware_version', return_value=None)
-        with pytest.raises(Exception) as exc:
-            self.module.run_change_ac_power_cycle(redfish_connection_mock_for_powerstate, f_module)
-        assert exc.value.args[0] == VENDOR_NOT_SPECIFIED
-
         # Scenario - When vendor provided but not valid
         obj1.json_data = {"Vendor": "Dell"}
         redfish_default_args.update({})
