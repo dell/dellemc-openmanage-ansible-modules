@@ -4,7 +4,7 @@
   dellemc.openmanage.redfish_powerstate:
     reset_type: "{{power.reset_type}}"
   register: cm_changes
-  check_mode: True
+  check_mode: true
 
 - name: Power state - {{power.reset_type}} (Normal mode)
   dellemc.openmanage.redfish_powerstate:
@@ -32,7 +32,7 @@
       dellemc.openmanage.redfish_powerstate:
         reset_type: "{{power.reset_type}}"
       register: cm_no_changes
-      check_mode: True
+      check_mode: true
 
     - name: Power state - {{ power.reset_type }} (Idempotence mode)
       dellemc.openmanage.redfish_powerstate:
