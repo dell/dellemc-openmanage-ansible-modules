@@ -1108,27 +1108,30 @@ def main():
     try:
         command = module.params["command"]
         with Redfish(module.params, req_session=True) as redfish_obj:
-            if command == "ResetConfig":
-                resp, job_uri, job_id = ctrl_reset_config(module, redfish_obj)
-            elif command in ["SetControllerKey", "ReKey", "RemoveControllerKey",
-                             "EnableControllerEncryption"]:
-                resp, job_uri, job_id = ctrl_key(module, redfish_obj)
-            elif command in ["AssignSpare", "UnassignSpare"]:
-                resp, job_uri, job_id = hot_spare_config(module, redfish_obj)
-            elif command in ["BlinkTarget", "UnBlinkTarget"]:
+            command_function_mapping = {
+                "ResetConfig": ctrl_reset_config,
+                "SetControllerKey": ctrl_key,
+                "ReKey": ctrl_key,
+                "RemoveControllerKey": ctrl_key,
+                "EnableControllerEncryption": ctrl_key,
+                "AssignSpare": hot_spare_config,
+                "UnassignSpare": hot_spare_config,
+                "ConvertToRAID": convert_raid_status,
+                "ConvertToNonRAID": convert_raid_status,
+                "ChangePDStateToOnline": change_pd_status,
+                "ChangePDStateToOffline": change_pd_status,
+                "LockVirtualDisk": lock_virtual_disk,
+                "OnlineCapacityExpansion": online_capacity_expansion,
+                "SecureErase": secure_erase
+            }
+
+            if command in ["BlinkTarget", "UnBlinkTarget"]:
                 resp = target_identify_pattern(module, redfish_obj)
                 if resp.success and resp.status_code == 200:
                     module.exit_json(msg=JOB_COMPLETION.format(command), changed=True)
-            elif command in ["ConvertToRAID", "ConvertToNonRAID"]:
-                resp, job_uri, job_id = convert_raid_status(module, redfish_obj)
-            elif command in ["ChangePDStateToOnline", "ChangePDStateToOffline"]:
-                resp, job_uri, job_id = change_pd_status(module, redfish_obj)
-            elif command == "LockVirtualDisk":
-                resp, job_uri, job_id = lock_virtual_disk(module, redfish_obj)
-            elif command == "OnlineCapacityExpansion":
-                resp, job_uri, job_id = online_capacity_expansion(module, redfish_obj)
-            elif command == "SecureErase":
-                resp, job_uri, job_id = secure_erase(module, redfish_obj)
+            elif command:
+                func = command_function_mapping[command]
+                resp, job_uri, job_id = func(module, redfish_obj)
 
             if module.params["attributes"]:
                 controller_id = module.params["controller_id"]
