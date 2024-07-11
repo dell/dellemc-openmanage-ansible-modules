@@ -188,7 +188,7 @@ author:
   - "Jagadeesh N V (@jagadeeshnv)"
   - "Felix Stephen (@felixs88)"
   - "Husniya Hameed (@husniya_hameed)"
-  - "Abhishek Sinha (@Abhishek-Dell)"
+  - "Abhishek Sinha (@ABHISHEK_SINHA10)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module is supported on iDRAC9.

@@ -570,5 +570,5 @@ Authors
 - Jagadeesh N V (@jagadeeshnv)
 - Felix Stephen (@felixs88)
 - Husniya Hameed (@husniya_hameed)
-- Abhishek Sinha (@Abhishek-Dell)
+- Abhishek Sinha (@ABHISHEK_SINHA10)
 
