@@ -64,7 +64,7 @@ class TestOmeTemplate(FakeAnsibleModule):
                                                                                      "Username": "username",
                                                                                      "Password": "password",
                                                                                      "EnableAuthentication": True,
-                                                                                     "ProxyExclusionList": [""]}
+                                                                                     "ProxyExclusionList": []}
         assert result["msg"] == "Successfully updated network proxy configuration."
 
     sub_param1 = {"param": {"enable_proxy": True, "ip_address": "255.0.0.0"},
