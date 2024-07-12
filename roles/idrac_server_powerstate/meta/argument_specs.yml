@@ -55,7 +55,7 @@ argument_specs:
           - C(PushPowerButton) simulates the pressing of a physical power button on the device.
           - I(reset_type) is mutually exclusive with I(oem_reset_type).
           - When a power control operation is performed, which is not supported on the device, an error message is displayed
-          with the list of operations that can be performed.
+            with the list of operations that can be performed.
         required: false
         type: str
         choices:
@@ -72,7 +72,8 @@ argument_specs:
           ]
       oem_reset_type:
         description:
-          - This parameter initiates a complete Alternate Current (AC) power cycle of the server which is equivalent to disconnecting power cables using OEM API.
+          - This parameter initiates a complete Alternate Current (AC) power cycle of the server which is equivalent to disconnecting power
+            cables using OEM API.
           - I(oem_reset_type) is mutually exclusive with I(reset_type).
           - If the value of 'final_power_state' is not provided, the default value is 'Off'.
         required: false
