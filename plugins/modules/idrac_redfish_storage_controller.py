@@ -934,29 +934,31 @@ def validate_inputs(module):
     module_params = module.params
     command = module_params.get("command")
     mode = module_params.get("mode")
+    key = module_params.get("key")
+    key_id = module_params.get("key_id")
+    old_key = module_params.get("old_key")
+    target = module_params.get("target")
+    volume = module_params.get("volume_id")
+    command_need_target_validation = ["AssignSpare", "UnassignSpare", "BlinkTarget", "UnBlinkTarget",
+                                      "LockVirtualDisk", "ChangePDStateToOnline", "ChangePDStateToOffline",
+                                      "SecureErase"]
+    command_need_volume_validation = ["AssignSpare", "UnassignSpare", "BlinkTarget", "UnBlinkTarget",
+                                      "LockVirtualDisk"]
+
     if command == "ReKey" and mode == "LKM":
-        key = module_params.get("key")
-        key_id = module_params.get("key_id")
-        old_key = module_params.get("old_key")
         if not all([key, key_id, old_key]):
             module.fail_json(msg="All of the following: key, key_id and old_key are "
                                  "required for '{0}' operation.".format(command))
+
     elif command == "EnableControllerEncryption" and mode == "LKM":
-        key = module_params.get("key")
-        key_id = module_params.get("key_id")
         if not all([key, key_id]):
             module.fail_json(msg="All of the following: key, key_id are "
                                  "required for '{0}' operation.".format(command))
-    elif command in ["AssignSpare", "UnassignSpare", "BlinkTarget", "UnBlinkTarget", "LockVirtualDisk"]:
-        target, volume = module_params.get("target"), module_params.get("volume_id")
-        if target is not None and not 1 >= len(target):
-            module.fail_json(msg=TARGET_ERR_MSG.format("physical disk"))
-        if volume is not None and not 1 >= len(volume):
-            module.fail_json(msg=TARGET_ERR_MSG.format("virtual drive"))
-    elif command in ["ChangePDStateToOnline", "ChangePDStateToOffline", "SecureErase"]:
-        target = module.params.get("target")
-        if target is not None and not 1 >= len(target):
-            module.fail_json(msg=TARGET_ERR_MSG.format("physical disk"))
+
+    elif command in command_need_target_validation and target is not None and len(target) != 1:
+        module.fail_json(msg=TARGET_ERR_MSG.format("physical disk"))
+    elif command in command_need_volume_validation and volume is not None and len(volume) != 1:
+        module.fail_json(msg=TARGET_ERR_MSG.format("virtual drive"))
 
 
 def get_current_time(redfish_obj):
