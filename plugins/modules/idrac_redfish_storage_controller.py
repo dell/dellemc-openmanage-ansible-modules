@@ -1059,6 +1059,28 @@ def set_attributes(module, redfish_obj):
     job_id, time_set = apply_attributes(module, redfish_obj, pending, time_settings)
     return job_id, time_set
 
+def job_condition_check(module, redfish_obj, job_id, job_uri,
+                        job_completion_msg, job_submission_msg,
+                        condition=True):
+    job_wait = module.params.get("job_wait")
+    job_data, changed, failed = None, None, None
+    if condition and job_wait:
+        resp, msg = wait_for_job_completion(redfish_obj, job_uri, job_wait=job_wait,
+                                            wait_timeout=module.params["job_wait_timeout"])
+        job_data = strip_substr_dict(resp.json_data)
+        if job_data["JobState"] == "Failed":
+            changed, failed = False, True
+        else:
+            changed, failed = True, False
+        module.exit_json(msg=job_completion_msg, changed=changed, failed=failed,
+                         task={"id": job_id, "uri": job_uri}, status= job_data)
+    else:
+        resp, msg = wait_for_job_completion(redfish_obj, job_uri, job_wait=job_wait,
+                                            wait_timeout=module.params["job_wait_timeout"])
+        job_data = strip_substr_dict(resp.json_data)
+        module.exit_json(msg=job_submission_msg, task={"id": job_id, "uri": job_uri},
+                         status= job_data)
+
 
 def main():
     specs = {
@@ -1142,41 +1164,15 @@ def main():
                 check_id_exists(module, redfish_obj, "controller_id", controller_id, CONTROLLER_URI)
                 job_id, time_set = set_attributes(module, redfish_obj)
                 job_uri = JOB_URI_OEM.format(job_id=job_id)
-                if time_set["ApplyTime"] == "Immediate" and module.params["job_wait"]:
-                    resp, msg = wait_for_job_completion(redfish_obj, job_uri, job_wait=module.params["job_wait"],
-                                                        wait_timeout=module.params["job_wait_timeout"])
-                    job_data = strip_substr_dict(resp.json_data)
-                    if job_data["JobState"] == "Failed":
-                        changed, failed = False, True
-                    else:
-                        changed, failed = True, False
-                    module.exit_json(msg=JOB_COMPLETION_ATTRIBUTES, task={"id": job_id, "uri": job_uri},
-                                     status=job_data, changed=changed, failed=failed)
-                else:
-                    resp, msg = wait_for_job_completion(redfish_obj, job_uri, job_wait=False,
-                                                        wait_timeout=module.params["job_wait_timeout"])
-                    job_data = strip_substr_dict(resp.json_data)
-                module.exit_json(msg=JOB_SUBMISSION_ATTRIBUTES, task={"id": job_id, "uri": job_uri},
-                                 status=job_data)
-
+                job_condition_check(module, redfish_obj, job_id,
+                                    job_uri, JOB_COMPLETION_ATTRIBUTES,
+                                    JOB_SUBMISSION_ATTRIBUTES,
+                                    time_set["ApplyTime"] == "Immediate")
             oem_job_url = JOB_URI_OEM.format(job_id=job_id)
-            job_wait = module.params["job_wait"]
-            if job_wait:
-                resp, msg = wait_for_job_completion(redfish_obj, oem_job_url, job_wait=job_wait,
-                                                    wait_timeout=module.params["job_wait_timeout"])
-                job_data = strip_substr_dict(resp.json_data)
-                if job_data["JobState"] == "Failed":
-                    changed, failed = False, True
-                else:
-                    changed, failed = True, False
-                module.exit_json(msg=JOB_COMPLETION.format(command), task={"id": job_id, "uri": oem_job_url},
-                                 status=job_data, changed=changed, failed=failed)
-            else:
-                resp, msg = wait_for_job_completion(redfish_obj, oem_job_url, job_wait=job_wait,
-                                                    wait_timeout=module.params["job_wait_timeout"])
-                job_data = strip_substr_dict(resp.json_data)
-            module.exit_json(msg=JOB_SUBMISSION.format(command), task={"id": job_id, "uri": oem_job_url},
-                             status=job_data)
+            job_condition_check(module, redfish_obj, job_id, oem_job_url,
+                                JOB_COMPLETION.format(command),
+                                JOB_SUBMISSION.format(command),
+                                True)
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
