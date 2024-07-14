@@ -1059,6 +1059,7 @@ def set_attributes(module, redfish_obj):
     job_id, time_set = apply_attributes(module, redfish_obj, pending, time_settings)
     return job_id, time_set
 
+
 def job_condition_check(module, redfish_obj, job_id, job_uri,
                         job_completion_msg, job_submission_msg,
                         condition=True):
@@ -1072,13 +1073,13 @@ def job_condition_check(module, redfish_obj, job_id, job_uri,
         else:
             changed, failed = True, False
         module.exit_json(msg=job_completion_msg, changed=changed, failed=failed,
-                         task={"id": job_id, "uri": job_uri}, status= job_data)
+                         task={"id": job_id, "uri": job_uri}, status=job_data)
     else:
         resp, msg = wait_for_job_completion(redfish_obj, job_uri, job_wait=job_wait,
                                             wait_timeout=module.params["job_wait_timeout"])
         job_data = strip_substr_dict(resp.json_data)
         module.exit_json(msg=job_submission_msg, task={"id": job_id, "uri": job_uri},
-                         status= job_data)
+                         status=job_data)
 
 
 def main():

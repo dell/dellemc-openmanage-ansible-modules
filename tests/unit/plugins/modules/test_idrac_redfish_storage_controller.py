@@ -1061,13 +1061,13 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         elif exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + 'idrac_redfish_storage_controller.ctrl_reset_config',
                          side_effect=exc_type('exception message'))
-            result = self._run_module_with_fail_json(redfish_default_args)
+            result = self._run_module(redfish_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'idrac_redfish_storage_controller.ctrl_reset_config',
                          side_effect=exc_type(HTTPS_ADDRESS, 400, HTTP_ERROR_MSG,
                                               {"accept-type": "application/json"}, StringIO(json_str)))
-            result = self._run_module_with_fail_json(redfish_default_args)
+            result = self._run_module(redfish_default_args)
             assert result['failed'] is True
         assert 'msg' in result
 
