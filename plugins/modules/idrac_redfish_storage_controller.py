@@ -1063,7 +1063,6 @@ def job_condition_check(module, redfish_obj, job_id, job_uri,
                         job_completion_msg, job_submission_msg,
                         condition=True):
     job_wait = module.params.get("job_wait")
-    job_data, changed, failed = None, None, None
     if condition and job_wait:
         resp, msg = wait_for_job_completion(redfish_obj, job_uri, job_wait=job_wait,
                                             wait_timeout=module.params["job_wait_timeout"])
@@ -1171,8 +1170,7 @@ def main():
             oem_job_url = JOB_URI_OEM.format(job_id=job_id)
             job_condition_check(module, redfish_obj, job_id, oem_job_url,
                                 JOB_COMPLETION.format(command),
-                                JOB_SUBMISSION.format(command),
-                                True)
+                                JOB_SUBMISSION.format(command))
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
