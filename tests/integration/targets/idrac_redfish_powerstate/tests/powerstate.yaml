@@ -12,7 +12,7 @@
    is not defined'
 
 - block:
-    # System BIOS halts when Nmi is tried, 
+    # System BIOS halts when Nmi is tried,
     # hence it is not tried in the below tests.
     - name: pre-req - Power state - On
       dellemc.openmanage.redfish_powerstate:
