@@ -1,0 +1,86 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- ansible.builtin.include_tasks: _get_server_generation.yml
+
+- block:
+    - ansible.builtin.include_tasks: _enable_telemetry.yml
+
+    - name: Delete Redfish subscription with a specified destination
+      dellemc.openmanage.redfish_event_subscription:
+        destination: "https://192.168.1.10:8188"
+        state: absent
+
+    - name: Add Redfish metric subscription
+      dellemc.openmanage.redfish_event_subscription: &metric
+        destination: "https://192.168.1.10:8188"
+        event_type: MetricReport
+        event_format_type: MetricReport
+      register: result
+
+    - name: Add Redfish metric subscription (Idempotence)
+      dellemc.openmanage.redfish_event_subscription:
+        <<: *metric
+      register: idempotence
+
+    - name: Verify status of tasks for metric reports
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Successfully added the subscription."
+          - not idempotence.changed
+          - idempotence.msg == "No changes found to be applied."
+
+    - name: Delete Redfish subscription with a specified destination
+      dellemc.openmanage.redfish_event_subscription:
+        destination: "https://server01.example.co:8188"
+        state: absent
+
+    - name: Add Redfish alert subscription
+      dellemc.openmanage.redfish_event_subscription: &alert
+        destination: "https://server01.example.co:8188"
+        event_type: Alert
+        event_format_type: Event
+      register: result
+
+    - name: Add Redfish alert subscription (Idempotence)
+      dellemc.openmanage.redfish_event_subscription:
+        <<: *alert
+      register: idempotence
+
+    - name: Verify status of tasks for alert subscription
+      assert:
+        that:
+          - result.changed
+          - result.msg == "Successfully added the subscription."
+          - not idempotence.changed
+          - idempotence.msg == "No changes found to be applied."
+
+  when: generation | int >= 14
+  always:
+    - name: Delete Redfish subscription with a specified destination
+      dellemc.openmanage.redfish_event_subscription:
+        destination: "https://192.168.1.10:8188"
+        state: absent
+
+    - name: Delete Redfish subscription with a specified destination
+      dellemc.openmanage.redfish_event_subscription:
+        destination: "https://server01.example.co:8188"
+        state: absent
+
+  module_defaults:
+    dellemc.openmanage.redfish_event_subscription:
+      baseuri: "{{ idrac_ip }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
