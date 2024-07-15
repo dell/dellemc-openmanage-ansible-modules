@@ -125,7 +125,7 @@
 
     - name: Rollback all components firmware except bios with reboot
        as false (Check mode - changes expected)
-      redfish_firmware_rollback: &redfish_firmware_rollback_2
+      dellemc.openmanage.redfish_firmware_rollback: &redfish_firmware_rollback_2
         name: "(?!BIOS).*"
         reboot: false
         timeout: 300
@@ -141,7 +141,7 @@
 
     - name: Rollback all components firmware except bios with reboot as
        false (Normal mode)
-      redfish_firmware_rollback:
+      dellemc.openmanage.redfish_firmware_rollback:
         <<: *redfish_firmware_rollback_2
       register: result
 
@@ -184,7 +184,6 @@
           - installed_version == idrac_rollback_to_version
           - job_status_dict['Network'] == 'Scheduled'
           - '"BIOS" not in job_status_dict_keys'
-
 
   module_defaults:
     dellemc.openmanage.redfish_firmware_rollback:

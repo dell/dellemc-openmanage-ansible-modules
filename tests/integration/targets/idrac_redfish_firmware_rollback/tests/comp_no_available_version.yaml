@@ -25,17 +25,16 @@
   when: "'System CPLD' in rollback_component_list"
 
 - block:
-
     - name: Validate firmware rollback for component that doesn't have
        available version (Check mode - No changes expected)
-      redfish_firmware_rollback:
+      dellemc.openmanage.redfish_firmware_rollback:
         name: "System CPLD"
       register: result_cm
       check_mode: true
 
     - name: Validate firmware rollback for component that doesn't have
        available version (Normal mode - No changes expected)
-      redfish_firmware_rollback:
+      dellemc.openmanage.redfish_firmware_rollback:
         name: "System CPLD"
       register: result
       check_mode: true

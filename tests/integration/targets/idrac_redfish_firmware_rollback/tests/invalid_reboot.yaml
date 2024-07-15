@@ -21,7 +21,7 @@
          int: <class 'str'> cannot be converted to an int"
 
     - name: Negative - invalid reboot
-      redfish_firmware_rollback:
+      dellemc.openmanage.redfish_firmware_rollback:
         name: BIOS
         reboot: None
       register: invalid_reboot
@@ -35,7 +35,7 @@
           - invalid_reboot_expected_msg in invalid_reboot.msg
 
     - name: Negative - reboot_timeout as zero
-      redfish_firmware_rollback:
+      dellemc.openmanage.redfish_firmware_rollback:
         name: BIOS
         reboot: true
         reboot_timeout: 0
@@ -49,7 +49,7 @@
           - not zero_reboot_timeout.changed
 
     - name: Negative - reboot_timeout as negative value
-      redfish_firmware_rollback:
+      dellemc.openmanage.redfish_firmware_rollback:
         name: BIOS
         reboot: true
         reboot_timeout: -100
@@ -63,7 +63,7 @@
           - not negative_reboot_timeout.changed
 
     - name: Negative - reboot_timeout as string
-      redfish_firmware_rollback:
+      dellemc.openmanage.redfish_firmware_rollback:
         name: BIOS
         reboot: true
         reboot_timeout: fifty
@@ -78,7 +78,7 @@
           - string_reboot_timeout.msg == string_reboot_timeout_msg
 
     - name: Negative - invalid regular expression
-      redfish_firmware_rollback:
+      dellemc.openmanage.redfish_firmware_rollback:
         name: "[BIOS/s"
         reboot: true
       register: invalid_regular_expression

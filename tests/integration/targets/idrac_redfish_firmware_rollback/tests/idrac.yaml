@@ -50,7 +50,7 @@
 
     - name: Rollback an idrac component firmware with reboot as true
        (Normal mode)
-      redfish_firmware_rollback:
+      dellemc.openmanage.redfish_firmware_rollback:
         <<: *redfish_firmware_rollback_1
       register: result
 
@@ -83,7 +83,7 @@
 
     - name: Rollback an idrac component firmware with reboot as true
        (Check mode again - changes expected)
-      redfish_firmware_rollback:
+      dellemc.openmanage.redfish_firmware_rollback:
         <<: *redfish_firmware_rollback_1
       register: result
       check_mode: true
@@ -102,7 +102,7 @@
 
     - name: Rollback an idrac component firmware with reboot as
        true (Idempotence mode - changes expected)
-      redfish_firmware_rollback:
+      dellemc.openmanage.redfish_firmware_rollback:
         <<: *redfish_firmware_rollback_1
       register: result
 
@@ -156,7 +156,7 @@
 
     - name: Rollback an idrac component firmware with reboot as false
        (Normal mode)
-      redfish_firmware_rollback:
+      dellemc.openmanage.redfish_firmware_rollback:
         <<: *redfish_firmware_rollback_2
       register: result
 

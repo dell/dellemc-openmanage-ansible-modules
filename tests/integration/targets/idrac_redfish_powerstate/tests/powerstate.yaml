@@ -22,8 +22,8 @@
       vars:
         expected_state: "On"
 
-    - ansible.builtin.include_role: name=
-       prepare_idrac_lifecycle_controller_status
+    - ansible.builtin.include_role:
+        name: prepare_idrac_lifecycle_controller_status
 
     - ansible.builtin.include_tasks: _helper.yml
       loop:

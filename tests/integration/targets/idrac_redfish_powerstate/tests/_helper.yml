@@ -18,7 +18,7 @@
   vars:
     expected_state: "{{ power.expected_state }}"
 
-- include_role: name=prepare_idrac_lifecycle_controller_status
+- ansible.builtin.include_role: name=prepare_idrac_lifecycle_controller_status
 
 - name: Verify status of tasks for reset type - {{ power.reset_type }}
   ansible.builtin.assert:

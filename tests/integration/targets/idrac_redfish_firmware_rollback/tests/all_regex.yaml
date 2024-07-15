@@ -49,7 +49,6 @@
      'BIOS' component"
   when: "'BIOS' not in rollback_component_list"
 
-
 - block:
     - ansible.builtin.include_tasks: _get_firmware_inventory.yml
       vars:
@@ -76,7 +75,7 @@
           - result.msg == "Changes found to be applied."
 
     - name: Rollback all components firmware with reboot as true (Normal mode)
-      redfish_firmware_rollback:
+      dellemc.openmanage.redfish_firmware_rollback:
         <<: *redfish_firmware_rollback_1
       register: result
 
@@ -137,7 +136,7 @@
           - result.msg == "Changes found to be applied."
 
     - name: Rollback all components firmware with reboot as false (Normal mode)
-      redfish_firmware_rollback:
+      dellemc.openmanage.redfish_firmware_rollback:
         <<: *redfish_firmware_rollback_2
       register: result
 
