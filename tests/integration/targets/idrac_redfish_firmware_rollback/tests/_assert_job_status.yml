@@ -1,0 +1,12 @@
+- block:
+    - name: Compare job_detailed_status from task and uri
+      ansible.utils.fact_diff:
+        before: "{{ uri_job_status }}"
+        after: "{{ module_job_status }}"
+      register: diff_result
+
+    - name: Verify task status - Compare job_status from task and uri
+      ansible.builtin.assert:
+        that:
+          - not diff_result.changed
+          - not diff_result.diff_lines
