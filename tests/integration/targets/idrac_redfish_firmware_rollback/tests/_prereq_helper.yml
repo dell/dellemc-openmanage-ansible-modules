@@ -1,3 +1,4 @@
+---
 - block:
     - ansible.builtin.set_fact:
         image_uri: "{{ bios_firmware_uri if (comp == 'BIOS') else

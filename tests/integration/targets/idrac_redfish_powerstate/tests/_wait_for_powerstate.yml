@@ -1,3 +1,4 @@
+---
 - name: Wait for power state to be - {{ expected_state }}.
   ansible.builtin.uri:
     url: "{{ powerstate_uri }}"

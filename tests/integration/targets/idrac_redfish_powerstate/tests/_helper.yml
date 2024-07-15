@@ -1,3 +1,4 @@
+---
 - ansible.builtin.wait_for: timeout=60
 
 - name: Power state - {{power.reset_type}} (Check mode - changes expected)
@@ -25,7 +26,8 @@
       - cm_changes.changed
       - cm_changes.msg == "Changes found to be applied."
       - result.changed
-      - result.msg == "Successfully performed the reset type operation '{{ power.reset_type }}'."
+      - result.msg == "Successfully performed the reset type operation
+       '{{ power.reset_type }}'."
 
 - block:
     - name: Power state - {{ power.reset_type }} Check mode-no changes expected

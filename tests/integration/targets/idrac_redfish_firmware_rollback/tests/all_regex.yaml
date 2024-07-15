@@ -149,7 +149,8 @@
     - ansible.builtin.set_fact:
         job_list: "{{ job_list + [item.Id] }}"
         job_status_dict: "{{ job_status_dict |
-         combine({item.Name.split('Firmware Rollback:')[1] | trim: item.JobState}) }}"
+         combine({item.Name.split('Firmware Rollback:')[1] |
+         trim: item.JobState}) }}"
       loop: "{{ result.job_status }}"
 
     - ansible.builtin.include_tasks: _get_job_details.yml

@@ -1,3 +1,4 @@
+---
 - ansible.builtin.set_fact:
     idrac_fw_info: "{{ uri_data.Members | json_query(query) }}"
   vars:

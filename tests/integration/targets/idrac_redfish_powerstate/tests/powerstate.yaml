@@ -12,7 +12,8 @@
    is not defined'
 
 - block:
-    # System BIOS halts when Nmi is tried, hence it is not tried in the below tests.
+    # System BIOS halts when Nmi is tried, 
+    # hence it is not tried in the below tests.
     - name: pre-req - Power state - On
       dellemc.openmanage.redfish_powerstate:
         reset_type: "On"
@@ -21,16 +22,17 @@
       vars:
         expected_state: "On"
 
-    - ansible.builtin.include_role: name=prepare_idrac_lifecycle_controller_status
+    - ansible.builtin.include_role: name=
+       prepare_idrac_lifecycle_controller_status
 
     - ansible.builtin.include_tasks: _helper.yml
       loop:
-        - { reset_type: 'ForceRestart', expected_state: 'On'}
-        - { reset_type: 'ForceOff', expected_state: 'Off'}
-        - { reset_type: 'On', expected_state: 'On'}
-        - { reset_type: 'PowerCycle', expected_state: 'On'}
-        - { reset_type: 'GracefulShutdown', expected_state: 'Off'}
-        - { reset_type: 'PushPowerButton', expected_state: 'On'}
+        - {reset_type: 'ForceRestart', expected_state: 'On'}
+        - {reset_type: 'ForceOff', expected_state: 'Off'}
+        - {reset_type: 'On', expected_state: 'On'}
+        - {reset_type: 'PowerCycle', expected_state: 'On'}
+        - {reset_type: 'GracefulShutdown', expected_state: 'Off'}
+        - {reset_type: 'PushPowerButton', expected_state: 'On'}
       loop_control:
         loop_var: power
 

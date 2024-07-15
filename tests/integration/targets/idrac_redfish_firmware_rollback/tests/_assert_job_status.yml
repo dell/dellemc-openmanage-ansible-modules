@@ -1,3 +1,4 @@
+---
 - block:
     - name: Compare job_detailed_status from task and uri
       ansible.utils.fact_diff:
