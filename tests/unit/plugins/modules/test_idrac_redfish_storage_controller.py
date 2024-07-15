@@ -882,11 +882,23 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         result = self._run_module(redfish_default_args)
         assert result["msg"] == "Unable to locate the storage controller with the ID: xyz"
 
+        # Scenario 3A: When command is set to SecureErase and partial controller_id is provided
+        redfish_default_args.update({"controller_id": "RAID.Integrated",
+                                     "target": "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Integrated.1-1"})
+        result = self._run_module(redfish_default_args)
+        assert result["msg"] == "Unable to locate the storage controller with the ID: RAID.Integrated"
+
         # Scenario 4: When command is set to SecureErase and wrong target is provided
         redfish_default_args.update({"controller_id": RAID_INTEGRATED_1_1,
                                      "target": "target"})
         result = self._run_module(redfish_default_args)
         assert result["msg"] == "Unable to locate the physical disk with the ID: target"
+
+        # Scenario 4A: When command is set to SecureErase and partial target is provided
+        redfish_default_args.update({"controller_id": RAID_INTEGRATED_1_1,
+                                     "target": "Disk.Bay"})
+        result = self._run_module(redfish_default_args)
+        assert result["msg"] == "Unable to locate the physical disk with the ID: Disk.Bay"
 
         # Scenario 5: When drive is not ready, in Online state
         redfish_default_args.update({"controller_id": RAID_INTEGRATED_1_1,

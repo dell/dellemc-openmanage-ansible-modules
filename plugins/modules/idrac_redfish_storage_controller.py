@@ -874,7 +874,8 @@ def online_capacity_expansion(module, redfish_obj):
 def match_id_in_list(id, member_list):
     for each_dict in member_list:
         url = each_dict[ODATA_ID]
-        if id in url:
+        _id = url.split("/")[-1]
+        if id == _id:
             return url
 
 
