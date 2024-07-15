@@ -85,7 +85,7 @@
 
     - name: Rollback an network component firmware with reboot as true
        (Normal mode)
-      redfish_firmware_rollback:
+      dellemc.openmanage.redfish_firmware_rollback:
         <<: *redfish_firmware_rollback_1
       register: result
 
@@ -107,7 +107,7 @@
     - ansible.builtin.set_fact:
         module_job_status: "{{ result.job_status }}"
 
-    - include_tasks: _assert_job_status.yml
+    - ansible.builtin.include_tasks: _assert_job_status.yml
 
     - name: Verify task status - Rollback an network component firmware
        with reboot as true (Normal mode)

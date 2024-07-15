@@ -20,7 +20,7 @@
       register: invalid_unreachable_host
 
     - name: Verify status of tasks
-      assert:
+      ansible.builtin.assert:
         that:
           - invalid_unreachable_host.unreachable
           - invalid_unreachable_host.msg == "<urlopen error [Errno -2] Name
@@ -34,7 +34,7 @@
       register: invalid_user
 
     - name: Verify status of tasks
-      assert:
+      ansible.builtin.assert:
         that:
           - invalid_user.failed
           - invalid_user.msg == ""HTTP Error 401: Unauthorized"
@@ -47,7 +47,7 @@
       register: invalid_password
 
     - name: Verify status of tasks
-      assert:
+      ansible.builtin.assert:
         that:
           - invalid_password.failed
           - invalid_password.msg == ""HTTP Error 401: Unauthorized"
@@ -60,7 +60,7 @@
       register: invalid_ca_path
 
     - name: Verify status of tasks
-      assert:
+      ansible.builtin.assert:
         that:
           - invalid_ca_path.failed
           - invalid_ca_path.msg == ""HTTP Error 401: Unauthorized"
