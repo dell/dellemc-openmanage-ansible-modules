@@ -94,6 +94,72 @@
            are On, ForceOff, ForceRestart, GracefulRestart, GracefulShutdown,
            PushPowerButton, Nmi, PowerCycle."
 
+    - name: Negative - reset_type and oem_reset_type is mutually exclusive
+      dellemc.openmanage.redfish_powerstate:
+        reset_type: "On"
+        oem_reset_type:
+          dell:
+           final_power_state: "On"
+           reset_type: "PowerCycle"
+      ignore_errors: true
+      register: mutually_exclusive_reset_type_oem_reset_type
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - mutually_exclusive_reset_type_oem_reset_type.failed
+          - "mutually_exclusive_reset_type_oem_reset_type.msg == 'parameters are
+           mutually exclusive: oem_reset_type|reset_type'"
+
+    - name: Negative - Provide invalid Oem
+      dellemc.openmanage.redfish_powerstate:
+        oem_reset_type:
+          xyz:
+           final_power_state: "On"
+           reset_type: "PowerCycle"
+      ignore_errors: true
+      register: invalid_oem
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_oem.failed
+          - invalid_oem.msg == "The vendor is not supported. The supported
+           vendors are 'Dell'. Enter the valid vendor and retry the operation."
+
+    - name: Negative - Provide wrong options to valid Oem
+      dellemc.openmanage.redfish_powerstate:
+        oem_reset_type:
+          dell:
+           final_power_state: "On"
+           xyz: "PowerCycle"
+      ignore_errors: true
+      register: invalid_oem_options
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_oem_options.skipped
+          - invalid_oem_options.msg == "No reset type is specified for the
+           target device. Enter the valid value and retry the operation."
+
+    - name: Negative - Provide wrong values to valid Oem and options
+      dellemc.openmanage.redfish_powerstate:
+        resource_id:
+        oem_reset_type:
+          dell:
+           final_power_state: "On"
+           reset_type: "PowerCycle"
+      ignore_errors: true
+      register: invalid_oem_and_options
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_oem_and_options.skipped
+          - invalid_oem_and_options.msg == "No reset type is specified for the
+           target device. Enter the valid value and retry the operation."
+
   module_defaults:
     dellemc.openmanage.redfish_powerstate:
       baseuri: "{{ idrac_ip }}:{{ idrac_port }}"
