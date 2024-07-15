@@ -1,3 +1,4 @@
+---
 - ansible.builtin.set_fact:
     url: "https://{{idrac_ip}}:{{idrac_port}}
      /redfish/v1/UpdateService/FirmwareInventory?$expand=*($levels=1)"

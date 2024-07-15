@@ -1,3 +1,4 @@
+---
 - name: Get System Inventory
   dellemc.openmanage.idrac_system_info:
     idrac_ip: "{{ idrac_ip }}"

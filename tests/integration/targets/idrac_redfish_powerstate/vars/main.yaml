@@ -1,2 +1,3 @@
+---
 powerstate_uri: "https://{{ idrac_ip }}:{{ idrac_port }}
  /redfish/v1/Systems/System.Embedded.1"
