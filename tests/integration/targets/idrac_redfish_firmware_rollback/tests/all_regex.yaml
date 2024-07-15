@@ -1,0 +1,185 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Check whether idrac IP is IPv4 or IPv6.
+  ansible.builtin.set_fact:
+    is_ipv4: "{{ idrac_ip is ansible.utils.ipv4 }}"
+    is_ipv6: "{{ idrac_ip is ansible.utils.ipv6 }}"
+
+- ansible.builtin.include_tasks: _get_system_info.yml
+
+- name: Prerequisite - Check if network components available.
+  ansible.builtin.fail:
+    msg: "Prerequisite not met. Network component is not available"
+  when: network_components | length < 1
+
+- ansible.builtin.include_tasks: _get_firmware_inventory.yml
+
+- ansible.builtin.set_fact:
+    network_components_rollback: "{{ rollback_component_list |
+     intersect(network_components) }}"
+
+- name: Prerequisite - Check if rollback version available for network
+   components.
+  ansible.builtin.fail:
+    msg: "Prerequisite not met. Rollback version not available for
+     network components"
+  when: network_components_rollback | length < 1
+
+- name: Prerequisite - Check if rollback version available for idrac.
+  ansible.builtin.fail:
+    msg: "Prerequisite not met. Rollback version not available for
+     'Integrated Dell Remote Access Controller' component"
+  when: "'Integrated Dell Remote Access Controller' not in
+   rollback_component_list"
+
+- name: Prerequisite - Check if rollback version available for bios.
+  ansible.builtin.fail:
+    msg: "Prerequisite not met. Rollback version not available for
+     'BIOS' component"
+  when: "'BIOS' not in rollback_component_list"
+
+
+- block:
+    - ansible.builtin.include_tasks: _get_firmware_inventory.yml
+      vars:
+        components_list: "{{ rollback_component_list }}"
+
+    - ansible.builtin.set_fact:
+        rollback_to_version_list: "{{ previous_versions }}"
+
+    - name: Rollback all components firmware with reboot as true
+       (Check mode - changes expected)
+      redfish_firmware_rollback: &redfish_firmware_rollback_1
+        name: ".*"
+        reboot: true
+        reboot_timeout: 5400
+        timeout: 300
+      register: result
+      check_mode: true
+
+    - name: Verify task status - Rollback all components firmware with
+       reboot as true (Check mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Changes found to be applied."
+
+    - name: Rollback all components firmware with reboot as true (Normal mode)
+      redfish_firmware_rollback:
+        <<: *redfish_firmware_rollback_1
+      register: result
+
+    - ansible.builtin.set_fact:
+        job_list: []
+        uri_job_status: []
+
+    - ansible.builtin.set_fact:
+        job_list: "{{ job_list + [item.Id] }}"
+      loop: "{{ result.job_status }}"
+
+    - ansible.builtin.include_tasks: _get_job_details.yml
+      vars:
+        job_id: "{{ item }}"
+      with_items: "{{ job_list }}"
+
+    - ansible.builtin.set_fact:
+        module_job_status: "{{ result.job_status }}"
+
+    - ansible.builtin.include_tasks: _assert_job_status.yml
+
+    - ansible.builtin.include_tasks: _get_firmware_inventory.yml
+      vars:
+        components_list: "{{ rollback_component_list }}"
+
+    - name: Verify task status -  Rollback all components firmware with
+       reboot as true (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Successfully completed the job for firmware
+           rollback."
+          - installed_versions | sort == rollback_to_version_list | sort
+
+    - ansible.builtin.wait_for: timeout=30
+
+    - ansible.builtin.include_tasks: _get_firmware_inventory.yml
+      vars:
+        component: 'Integrated Dell Remote Access Controller'
+
+    - ansible.builtin.set_fact:
+        idrac_rollback_to_version: "{{ previous_version }}"
+
+    - name: Rollback all components firmware with reboot as false
+       (Check mode - changes expected)
+      redfish_firmware_rollback: &redfish_firmware_rollback_2
+        name: ".*"
+        reboot: false
+        timeout: 300
+      register: result
+      check_mode: true
+
+    - name: Verify task status - Rollback all components firmware with
+       reboot as false (Check mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Changes found to be applied."
+
+    - name: Rollback all components firmware with reboot as false (Normal mode)
+      redfish_firmware_rollback:
+        <<: *redfish_firmware_rollback_2
+      register: result
+
+    - ansible.builtin.set_fact:
+        job_list: []
+        uri_job_status: []
+        job_status_dict: {}
+
+    - ansible.builtin.set_fact:
+        job_list: "{{ job_list + [item.Id] }}"
+        job_status_dict: "{{ job_status_dict |
+         combine({item.Name.split('Firmware Rollback:')[1] | trim: item.JobState}) }}"
+      loop: "{{ result.job_status }}"
+
+    - ansible.builtin.include_tasks: _get_job_details.yml
+      vars:
+        job_id: "{{ item }}"
+      with_items: "{{ job_list }}"
+
+    - ansible.builtin.set_fact:
+        module_job_status: "{{ result.job_status }}"
+
+    - ansible.builtin.include_tasks: _assert_job_status.yml
+
+    - ansible.builtin.include_tasks: _get_firmware_inventory.yml
+      vars:
+        component: 'Integrated Dell Remote Access Controller'
+
+    - name: Verify task status -  Rollback all components firmware
+       with reboot as false (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Successfully scheduled the job for firmware
+           rollback."
+          - installed_version == idrac_rollback_to_version
+          - job_status_dict['BIOS'] == job_status_dict['Network'] ==
+           'Scheduled'
+
+  module_defaults:
+    dellemc.openmanage.redfish_firmware_rollback:
+      baseuri: "{{ idrac_ip }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

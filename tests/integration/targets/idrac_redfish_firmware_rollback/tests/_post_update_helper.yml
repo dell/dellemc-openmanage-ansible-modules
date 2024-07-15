@@ -1,0 +1,33 @@
+- ansible.builtin.set_fact:
+    track_job: "{{ job_id }}"
+
+- block:
+    - ansible.builtin.include_role:
+        name: prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{ track_job }}"
+  ignore_errors: true
+
+- block:
+    - ansible.builtin.include_role: name=prepare_idrac_
+        lifecycle_controller_status
+  ignore_errors: true
+
+- name: Wait for {{ idrac_port }} to become open on the host,
+    don't start checking for 50 seconds
+  ansible.builtin.wait_for:
+    host: "{{ idrac_ip }}"
+    port: "{{ idrac_port }}"
+    delay: 50
+    connect_timeout: 10
+    timeout: 500
+  retries: 3
+
+- ansible.builtin.include_role: name=prepare_idrac_lifecycle_controller_status
+
+- ansible.builtin.wait_for: timeout=30
+
+- ansible.builtin.include_role:
+    name: prepare_lifecycle_controller_job
+  vars:
+    job_id: "{{ track_job }}"
