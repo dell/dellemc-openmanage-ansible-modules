@@ -1,0 +1,123 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Negative - unreachable host
+      dellemc.openmanage.redfish_event_subscription:
+        baseuri: "999.999.999.999:443"
+        destination: "https://server01.example.co:8188"
+        event_type: Alert
+        event_format_type: Event
+      ignore_unreachable: true
+      register: invalid_unreachable
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_unreachable.unreachable
+          - not invalid_unreachable.changed
+          - invalid_unreachable.msg == "<urlopen error [Errno -2]
+           Name or service not known>"
+
+    - name: Negative - invalid username
+      dellemc.openmanage.redfish_event_subscription:
+        username: invalid
+        destination: "https://server01.example.co:8188"
+      register: invalid_username
+      ignore_errors: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_username.failed
+          - not invalid_username.changed
+
+    - name: Negative - invalid password
+      dellemc.openmanage.redfish_event_subscription:
+        password: invalid
+        destination: "https://server01.example.co:8188"
+      register: invalid_password
+      ignore_errors: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_password.failed
+          - not invalid_password.changed
+
+    - name: Negative - invalid validate_certs
+      dellemc.openmanage.redfish_event_subscription:
+        validate_certs: invalid
+        destination: "https://server01.example.co:8188"
+      register: invalid_validate_certs
+      ignore_errors: true
+
+    - ansible.builtin.set_fact:
+        invalid_validate_certs_expected_msg: "argument 'validate_certs' is
+         of type <class 'str'> and we were unable to convert to bool: The
+         value 'invalid' is not a valid boolean.  Valid booleans include: "
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_validate_certs.failed
+          - not invalid_validate_certs.changed
+          - invalid_validate_certs_expected_msg in invalid_validate_certs.msg
+
+    - name: Negative - HTTP destination
+      dellemc.openmanage.redfish_event_subscription:
+        destination: "http://server01.example.co:8188"
+        event_type: Alert
+        event_format_type: Event
+      ignore_errors: true
+      register: invalid_dest
+
+    - name: Negative - invalid combination of event format type and event type
+      dellemc.openmanage.redfish_event_subscription:
+        destination: "https://server01.example.co:8188"
+        event_type: MetricReport
+        event_format_type: Event
+      ignore_errors: true
+      register: invalid_combination
+
+    - name: Negative - invalid event format type
+      dellemc.openmanage.redfish_event_subscription:
+        destination: "https://server01.example.co:8188"
+        event_type: Alert
+        event_format_type: invalid
+      ignore_errors: true
+      register: invalid_event_format_type
+
+    - name: Negative - invalid event type
+      dellemc.openmanage.redfish_event_subscription:
+        destination: "https://server01.example.co:8188"
+        event_type: invalid
+        event_format_type: Event
+      ignore_errors: true
+      register: invalid_event_type
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_dest.failed
+          - invalid_combination.failed
+          - invalid_event_format_type.failed
+          - invalid_event_type.failed
+          - invalid_unreachable.unreachable
+
+  module_defaults:
+    dellemc.openmanage.redfish_event_subscription:
+      baseuri: "{{ idrac_ip }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

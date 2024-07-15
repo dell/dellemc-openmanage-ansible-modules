@@ -1,0 +1,23 @@
+---
+- name: Collect all test cases
+  ansible.builtin.find:
+    paths: '{{ role_path }}/tests'
+    patterns: '{{ testcase }}.yaml'
+    use_regex: true
+  register: test_cases
+  delegate_to: localhost
+
+- name: Set test_items
+  ansible.builtin.set_fact:
+    test_items: "{{ test_cases.files | map(attribute='path') | list }}"
+
+- name: Fail if no test cases are found as per pattern.
+  ansible.builtin.fail:
+    msg: "Could not find test cases to run!!!"
+  when: not test_items|length > 0
+
+- name: Run test case
+  ansible.builtin.include_tasks: '{{ test_case_to_run }}'
+  with_items: '{{ test_items }}'
+  loop_control:
+    loop_var: test_case_to_run
