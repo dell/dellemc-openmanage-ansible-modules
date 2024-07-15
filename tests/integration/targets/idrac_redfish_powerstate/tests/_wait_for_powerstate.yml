@@ -1,0 +1,12 @@
+---
+- name: Wait for power state to be - {{ expected_state }}.
+  ansible.builtin.uri:
+    url: "{{ powerstate_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    validate_certs: false
+    headers: 'Accept=application/json'
+  register: current_powerstate
+  until: current_powerstate.json.PowerState == "{{ expected_state }}"
+  retries: 20
+  delay: 30
