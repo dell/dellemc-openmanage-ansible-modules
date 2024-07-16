@@ -8,3 +8,7 @@ ansible_connection=local
 ansible_become_pass=password
 idrac_reset_default_username=default_username
 idrac_reset_default_password=default_password
+http_share=
+http_share_dir_path=
+idrac_firmware_dup_file=
+bios_firmware_dup_file=
