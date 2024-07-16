@@ -1,8 +1,8 @@
 ---
 idrac_firmware_uri:
- "http://{{ http_share }}/omam/firmwares/{{ idrac_firmware_dup_file }}"
+ "http://{{ http_share }}{{ http_share_dir_path }}{{ idrac_firmware_dup_file }}"
 bios_firmware_uri:
- "http://{{ http_share }}/omam/firmwares/{{ bios_firmware_dup_file }}"
+ "http://{{ http_share }}{{ http_share_dir_path }}{{ bios_firmware_dup_file }}"
 powerstate_uri:
  "https://{{ idrac_ip }}/redfish/v1/Systems/System.Embedded.1"
 powerstate_uri_ipv6:
