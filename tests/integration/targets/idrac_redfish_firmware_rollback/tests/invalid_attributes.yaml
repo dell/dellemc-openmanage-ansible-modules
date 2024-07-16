@@ -53,8 +53,8 @@
           - invalid_unsupported_argument.failed
           - not invalid_unsupported_argument.changed
           - 'invalid_unsupported_argument.msg == "Unsupported parameters
-           for (redfish_firmware_rollback) module: version. Supported
-           parameters include: baseuri, ca_path, name, password,
+           for (dellemc.openmanage.redfish_firmware_rollback) module: version.
+           Supported parameters include: baseuri, ca_path, name, password,
            reboot, reboot_timeout, timeout, username, validate_certs,
            x_auth_token."'
 
