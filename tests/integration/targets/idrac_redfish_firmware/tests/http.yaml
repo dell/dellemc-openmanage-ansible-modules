@@ -49,7 +49,8 @@
           - uri_data.Message ==  "Job completed successfully."
 
     - name: Update a firmware from a single executable file from HTTP share
-       with job_wait as "true" and job_wait_timeout as non default value in seconds
+       with job_wait as "true" and job_wait_timeout as non default value in
+       seconds
       dellemc.openmanage.redfish_firmware:
         image_uri: "{{ idrac_firmware_uri }}"
         transfer_protocol: "HTTP"
