@@ -173,7 +173,8 @@ options:
   job_wait:
     description:
       - Provides the option if the module has to wait for the job to be completed.
-      - This is applicable for I(attributes) when I(apply_time) is C(Immediate).
+      - This is applicable for I(attributes) when I(apply_time) is C(Immediate)
+       and when I(command) is C(SecureErase).
     type: bool
     default: false
   job_wait_timeout:
@@ -880,7 +881,7 @@ def match_id_in_list(id, member_list):
 
 
 def validate_secure_erase(module, redfish_obj):
-    job_type, drive_uri = None, None
+    drive_uri = None
     drive = module.params.get("target")
     drive_id = drive[0]
     controller_id = module.params.get("controller_id")
@@ -889,7 +890,6 @@ def validate_secure_erase(module, redfish_obj):
     if err_msg:
         module.exit_json(msg=err_msg, failed=True)
     storage_uri = get_dynamic_uri(redfish_obj, uri, "Storage")['@odata.id']
-    job_type = "RealTimeNoRebootConfiguration"
     storage_member_list = get_dynamic_uri(redfish_obj, storage_uri, "Members")
     controller_uri = match_id_in_list(controller_id, storage_member_list)
     if controller_uri is None:
@@ -914,14 +914,18 @@ def validate_secure_erase(module, redfish_obj):
         if capable != "CryptographicErasePD":
             module.exit_json(msg=DRIVE_NOT_SECURE_ERASE.format(drive_id),
                              skipped=True)
-    return drive_uri, job_type
+    return drive_uri
 
 
 def secure_erase(module, redfish_obj):
-    drive_uri, job_type = validate_secure_erase(module, redfish_obj)
-    scheduled_job = get_scheduled_job_resp(redfish_obj, job_type)
+    drive_uri = validate_secure_erase(module, redfish_obj)
+    job_type_list = ["RAIDConfiguration", "RealTimeNoRebootConfiguration"]
+    scheduled_job = get_scheduled_job_resp(redfish_obj, job_type_list)
     if scheduled_job:
-        module.exit_json(msg=JOB_EXISTS, changed=False)
+        job_id = scheduled_job.get("Id")
+        job_uri = JOB_URI_OEM.format(job_id=job_id)
+        module.exit_json(msg=JOB_EXISTS, status=scheduled_job, changed=False,
+                         task={"id": job_id, "uri": job_uri})
     action_uri = get_dynamic_uri(redfish_obj, drive_uri, "Actions")
     secure_erase_uri = action_uri.get("#Drive.SecureErase").get("target")
     resp = redfish_obj.invoke_request("POST", secure_erase_uri, data="{}",
@@ -1068,6 +1072,9 @@ def job_condition_check(module, redfish_obj, job_id, job_uri,
     if condition and job_wait:
         resp, msg = wait_for_job_completion(redfish_obj, job_uri, job_wait=job_wait,
                                             wait_timeout=module.params["job_wait_timeout"])
+        if not resp:
+            job_completion_msg = msg
+            resp = redfish_obj.invoke_request("GET", job_uri)
         job_data = strip_substr_dict(resp.json_data)
         if job_data["JobState"] == "Failed":
             changed, failed = False, True

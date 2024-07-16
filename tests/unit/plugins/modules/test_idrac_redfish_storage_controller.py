@@ -878,13 +878,13 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
 
         # Scenario 3: When command is set to SecureErase and wrong controller_id is provided
         redfish_default_args.update({"controller_id": "xyz",
-                                     "target": "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Integrated.1-1"})
+                                     "target": drive_id_1})
         result = self._run_module(redfish_default_args)
         assert result["msg"] == "Unable to locate the storage controller with the ID: xyz"
 
         # Scenario 3A: When command is set to SecureErase and partial controller_id is provided
         redfish_default_args.update({"controller_id": "RAID.Integrated",
-                                     "target": "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Integrated.1-1"})
+                                     "target": drive_id_1})
         result = self._run_module(redfish_default_args)
         assert result["msg"] == "Unable to locate the storage controller with the ID: RAID.Integrated"
 
@@ -951,7 +951,7 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         # Scenario 9: When one Job is already running, and another trigger
         redfish_default_args.update({"controller_id": RAID_INTEGRATED_1_1,
                                      "target": drive_id_1})
-        mocker.patch(MODULE_PATH + module + "get_scheduled_job_resp", return_value=True)
+        mocker.patch(MODULE_PATH + module + "get_scheduled_job_resp", return_value={"Id": 'JOB_XXXX'})
         result = self._run_module(redfish_default_args)
         assert result["msg"] == "Unable to complete the operation because another job already exists." + \
             " Wait for the pending job to complete and retry the operation."

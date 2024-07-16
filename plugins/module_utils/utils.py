@@ -487,16 +487,15 @@ def get_dynamic_uri(idrac_obj, base_uri, search_label=''):
 
 
 def get_scheduled_job_resp(idrac_obj, job_type):
-    # job_type can be like 'NICConfiguration' or 'BIOSConfiguration'
-    job_resp = {}
+    job_state = {"Scheduled", "New", "Running"}
     args = getfullargspec(idrac_obj.invoke_request)[0]
     data = {'uri': MANAGER_JOB_URI} if 'uri' in args else {'path': MANAGER_JOB_URI}
     job_list = idrac_obj.invoke_request(method="GET", **data).json_data.get('Members', [])
-    for each_job in job_list:
-        if each_job.get("JobType") == job_type and each_job.get("JobState") in ["Scheduled", "Running", "Starting"]:
-            job_resp = each_job
-            break
-    return job_resp
+    if isinstance(job_type, str):
+        job_resp = next((j for j in job_list if (j.get("JobState") in job_state) and (j.get("JobType") == job_type)), None)
+    elif isinstance(job_type, list):
+        job_resp = next((j for j in job_list if (j.get("JobState") in job_state) and (j.get("JobType") in job_type)), None)
+    return remove_key(job_resp, regex_pattern='(.*?)@odata')
 
 
 def delete_job(idrac_obj, job_id):
