@@ -250,6 +250,31 @@
           firmware version is '7.00.60'."
       when: firmware_ver < '7.00.60'
 
+    - name: Making sure server is powered On
+      dellemc.openmanage.redfish_powerstate:
+        reset_type: "On"
+
+    - name: Negative - Performing oem_reset_type when server is powered On
+      dellemc.openmanage.redfish_powerstate:
+        resource_id: "{{ resource_id }}"
+        oem_reset_type:
+          dell:
+            reset_type: "PowerCycle"
+            final_power_state: "Off"
+      ignore_errors: true
+      register: powering_off_when_on
+      when: firmware_ver >= '7.00.60'
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - powering_off_when_on.failed
+          - error_msg == powering_off_when_on.msg
+      vars:
+        error_msg: "Unable to perform the Virtual AC power-cycle operation
+          because the server is powered on."
+      when: firmware_ver >= '7.00.60'
+
   module_defaults:
     dellemc.openmanage.redfish_powerstate:
       baseuri: "{{ idrac_ip }}:{{ idrac_port }}"
