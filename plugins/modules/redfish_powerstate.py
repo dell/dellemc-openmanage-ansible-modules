@@ -71,42 +71,42 @@ EXAMPLES = r'''
 ---
 - name: Manage power state of the first device
   dellemc.openmanage.redfish_powerstate:
-       baseuri: "192.168.0.1"
-       username: "username"
-       password: "password"
-       ca_path: "/path/to/ca_cert.pem"
-       reset_type: "On"
+    baseuri: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    reset_type: "On"
 
 - name: Manage power state of a specified device
   dellemc.openmanage.redfish_powerstate:
-       baseuri: "192.168.0.1"
-       username: "username"
-       password: "password"
-       ca_path: "/path/to/ca_cert.pem"
-       reset_type: "ForceOff"
-       resource_id: "System.Embedded.1"
+    baseuri: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    reset_type: "ForceOff"
+    resource_id: "System.Embedded.1"
 
 - name: Perform AC Power Cycle
   dellemc.openmanage.redfish_powerstate:
-       baseuri: "192.168.0.1"
-       username: "username"
-       password: "password"
-       ca_path: "/path/to/ca_cert.pem"
-       oem_reset_type:
-            dell:
-                 final_power_state: "On"
-                 reset_type: "PowerCycle"
+    baseuri: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    oem_reset_type:
+      dell:
+        final_power_state: "On"
+        reset_type: "PowerCycle"
 
 - name: Perform AC Power Cycle
   dellemc.openmanage.redfish_powerstate:
-       baseuri: "192.168.0.1"
-       username: "username"
-       password: "password"
-       ca_path: "/path/to/ca_cert.pem"
-       oem_reset_type:
-            dell:
-                 final_power_state: "Off"
-                 reset_type: "PowerCycle"
+    baseuri: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    oem_reset_type:
+      dell:
+        final_power_state: "Off"
+        reset_type: "PowerCycle"
 '''
 
 RETURN = r'''
@@ -290,8 +290,6 @@ def is_valid_final_pwr_state(final_pwr_state, allowed_final_pwr_state, module):
 
 
 def is_valid_vendor(redfish_session_obj, module, vendor):
-    # if vendor is None:
-    #     module.exit_json(msg=VENDOR_NOT_SPECIFIED, failed=True)
     system_resp = redfish_session_obj.invoke_request("GET", "/redfish/v1/")
     system_vendor = system_resp.json_data.get("Vendor")
     if system_vendor.lower() != vendor.lower():
