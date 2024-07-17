@@ -1,0 +1,223 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: hostname, username
+         and password.'
+  when: hostname is not defined or username is not defined or password
+         is not defined
+
+- block:
+    - name: Negative - Invalid hostname
+      dellemc.openmanage.ome_application_network_proxy:
+        hostname: "invalid"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        enable_proxy: true
+        ip_address: "192.168.0.2"
+        proxy_port: 444
+        enable_authentication: true
+        proxy_username: "root"
+        proxy_password: "proxy_password"
+      ignore_unreachable: true
+      register: invalid_hostname
+
+    - name: Verify task status- Negative - Invalid hostname
+      ansible.builtin.assert:
+        that:
+          - invalid_hostname.unreachable
+          - not invalid_hostname.changed
+          - invalid_hostname.msg == "<urlopen error [Errno -2]
+            Name or service not known>"
+
+    - name: Negative - Invalid user
+      dellemc.openmanage.ome_application_network_proxy:
+        hostname: "{{ hostname }}"
+        username: invalid
+        password: "{{ password }}"
+        enable_proxy: true
+        ip_address: "192.168.0.2"
+        proxy_port: 444
+        enable_authentication: true
+        proxy_username: "root"
+        proxy_password: "proxy_password"
+      ignore_errors: true
+      register: invalid_user
+
+    - name: Verify task status - Negative - Invalid user
+      ansible.builtin.assert:
+        that:
+          - invalid_user.failed
+          - not invalid_user.changed
+          - 'invalid_user.msg == "HTTP Error 401: 401" or
+           "HTTP Error 400: 400"'
+
+    - name: Negative - Invalid password
+      dellemc.openmanage.ome_application_network_proxy:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: invalid
+        enable_proxy: true
+        ip_address: "192.168.0.2"
+        proxy_port: 444
+        enable_authentication: true
+        proxy_username: "root"
+        proxy_password: "proxy_password"
+      ignore_errors: true
+      register: invalid_password
+
+    - name: Verify task status - Negative - Invalid password
+      ansible.builtin.assert:
+        that:
+          - invalid_password.failed
+          - not invalid_password.changed
+          - 'invalid_password.msg == "HTTP Error 401: 401"'
+
+    - name: Negative - Invalid ca_path
+      dellemc.openmanage.ome_application_network_proxy:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: invalid
+        enable_proxy: true
+        ip_address: "192.168.0.2"
+        proxy_port: 444
+        enable_authentication: true
+        proxy_username: "root"
+        proxy_password: "proxy_password"
+      ignore_errors: true
+      register: invalid_ca_path
+
+    - name: Verify task status - Negative - Invalid ca_path
+      ansible.builtin.assert:
+        that:
+          - invalid_ca_path.failed
+          - not invalid_ca_path.changed
+          - 'invalid_ca_path.msg == "[Errno 2] No such file or
+            directory: b''invalid''"'
+
+    - name: Negative - Invalid update_password
+      dellemc.openmanage.ome_application_network_proxy:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        enable_proxy: true
+        ip_address: "192.168.0.2"
+        proxy_port: 444
+        enable_authentication: true
+        update_password: abc
+        proxy_username: "root"
+        proxy_password: "proxy_password"
+      ignore_errors: true
+      register: invalid_update_password
+
+    - name: Set fact for invalid update_password Message
+      ansible.builtin.set_fact:
+        invalid_msg: "argument 'update_password' is of type <class 'str'>
+         and we were unable to convert to bool: The value 'abc' is
+          not a valid boolean.  Valid booleans include: "
+
+    - name: Verify task status - Negative - Invalid update_password
+      ansible.builtin.assert:
+        that:
+          - invalid_update_password.failed
+          - not invalid_update_password.changed
+          - invalid_msg in invalid_update_password.msg
+
+    - name: Negative - invalid ignore_certificate_validation
+      dellemc.openmanage.ome_application_network_proxy:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        enable_proxy: true
+        ip_address: "192.168.0.2"
+        proxy_port: 444
+        enable_authentication: true
+        proxy_username: "root"
+        proxy_password: "proxy_password"
+        ignore_certificate_validation: abc
+      ignore_errors: true
+      register: invalid_ignore_certificate_validation
+
+    - name: Set fact for invalid ignore_certificate_validation Message
+      ansible.builtin.set_fact:
+        invalid_msg: "argument 'ignore_certificate_validation' is of type
+         <class 'str'> and we were unable to convert to bool: The value 'abc'
+         is not a valid boolean.  Valid booleans include: "
+
+    - name: Verify task status - Negative - Invalid ignore_certificate_validation
+      ansible.builtin.assert:
+        that:
+          - invalid_ignore_certificate_validation.failed
+          - not invalid_ignore_certificate_validation.changed
+          - invalid_msg in invalid_ignore_certificate_validation.msg
+
+    - name: Negative - invalid proxy port
+      dellemc.openmanage.ome_application_network_proxy:
+        enable_proxy: true
+        ip_address: "999.999.999.999"
+        proxy_port: 9999999
+        enable_authentication: false
+      ignore_errors: true
+      register: invalid_proxy_port
+
+    - name: Verify task status - Negative - Invalid proxy_port
+      ansible.builtin.assert:
+        that:
+          - invalid_proxy_port.failed
+          - not invalid_proxy_port.changed
+          - 'invalid_proxy_port.msg == "HTTP Error 400: 400"'
+
+    - name: Negative - invalid proxy ip
+      dellemc.openmanage.ome_application_network_proxy:
+        enable_proxy: true
+        ip_address: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadddddddddaddddd
+          ddddddddddddddddddddddddddddddddddddddddddddddaaacccccccccccccccccc
+          ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccaaa
+          aaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        proxy_port: 444
+        enable_authentication: false
+      ignore_errors: true
+      register: invalid_proxy_ip
+
+    - name: Verify task status - Negative - Invalid proxy ip
+      ansible.builtin.assert:
+        that:
+          - invalid_proxy_ip.failed
+          - not invalid_proxy_ip.changed
+          - 'invalid_proxy_ip.msg == "HTTP Error 400: 400"'
+
+    - name: Negative - invalid option
+      dellemc.openmanage.ome_application_network_proxy:
+        enable_proxy: false
+        invalid: true
+        proxy_port: 443
+      ignore_errors: true
+      register: invalid_option
+
+    - name: Verify task status - Negative - Invalid option
+      ansible.builtin.assert:
+        that:
+          - invalid_option.failed
+          - not invalid_option.changed
+          - 'invalid_option.msg == "Unsupported parameters for
+           (dellemc.openmanage.ome_application_network_proxy)
+           module: invalid. Supported parameters include: ca_path,
+           enable_authentication, enable_proxy, hostname,
+           ignore_certificate_validation, ip_address, password, port,
+           proxy_exclusion_list, proxy_password, proxy_port,
+           proxy_username, timeout, update_password, username,
+           validate_certs, x_auth_token (ssl_check_disabled)."'
+
+  module_defaults:
+    dellemc.openmanage.ome_application_network_proxy:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"
