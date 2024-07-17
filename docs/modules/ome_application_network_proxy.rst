@@ -66,11 +66,11 @@ Parameters
 
 
   ignore_certificate_validation (optional, bool, False)
-    This option will ignore the built-in certificate checks like those used for the warranty and catalog updates.
+    This option will ignore the integrated certificate checks like those used for the warranty and catalog updates.
 
-    \ :literal:`true`\  will ignore the certificate validation.
+    \ :literal:`true`\  ignores the certificate validation.
 
-    \ :literal:`false`\  will not ignore the certificate validation.
+    \ :literal:`false`\  does not ignore the certificate validation.
 
 
   proxy_exclusion_list (optional, list, None)
@@ -128,6 +128,7 @@ Notes
 .. note::
    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
    - This module supports \ :literal:`check\_mode`\ .
+   - This module supports IPv4 and IPv6 addresses.
 
 
 

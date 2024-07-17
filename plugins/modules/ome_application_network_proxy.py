@@ -57,9 +57,9 @@ options:
     type: str
   ignore_certificate_validation:
     description:
-      - This option will ignore the built-in certificate checks like those used for the warranty and catalog updates.
-      - C(true) will ignore the certificate validation.
-      - C(false) will not ignore the certificate validation.
+      - This option will ignore the integrated certificate checks like those used for the warranty and catalog updates.
+      - C(true) ignores the certificate validation.
+      - C(false) does not ignore the certificate validation.
     type: bool
     default: false
     aliases: [ssl_check_disabled]
@@ -87,6 +87,7 @@ author:
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module supports C(check_mode).
+    - This module supports IPv4 and IPv6 addresses.
 '''
 
 EXAMPLES = r'''
