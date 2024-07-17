@@ -150,7 +150,8 @@
          <class 'str'> and we were unable to convert to bool: The value 'abc'
          is not a valid boolean.  Valid booleans include: "
 
-    - name: Verify task status - Negative - Invalid ignore_certificate_validation
+    - name: Verify task status - Negative - Invalid
+       ignore_certificate_validation
       ansible.builtin.assert:
         that:
           - invalid_ignore_certificate_validation.failed

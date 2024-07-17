@@ -17,8 +17,10 @@
       dellemc.openmanage.ome_application_network_proxy:
         enable_proxy: false
 
-    - name: Update proxy exclusion list. (check mode - changes expected)
-      dellemc.openmanage.ome_application_network_proxy: &configure_network_proxy
+    - name: Update proxy exclusion list.
+       (check mode - changes expected)
+      dellemc.openmanage.ome_application_network_proxy:
+        &configure_network_proxy
         enable_proxy: true
         ip_address: "192.168.0.2"
         proxy_port: 444
@@ -30,7 +32,8 @@
       register: cm_changes
       check_mode: true
 
-    - name: Verify Update proxy exclusion list. (check mode - changes expected)
+    - name: Verify Update proxy exclusion list.
+       (check mode - changes expected)
       ansible.builtin.assert:
         that:
           - cm_changes.changed
@@ -45,46 +48,50 @@
       ansible.builtin.assert:
         that:
           - configure_network_proxy.changed
-          - configure_network_proxy.msg == "Successfully updated network proxy configuration."
+          - configure_network_proxy.msg ==
+           "Successfully updated network proxy configuration."
 
     - name: Get application network time details by uri.
-      uri:
-        url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port }}/api/ApplicationService/Network/ProxyConfiguration
+      ansible.builtin.uri:
+        url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
+         }}/api/ApplicationService/Network/ProxyConfiguration
         user: "{{ username }}"
         password: "{{ password }}"
         validate_certs: false
         status_code: 200
       register: uri_proxy
 
-    - name: Convert ProxyExclusionList format
-      set_fact:
-        transformed_data:
+    - name: Convert ProxyExclusionList format from uri
+      ansible.builtin.set_fact:
+        transformed_list:
           ProxyExclusionList: ["{{ uri_proxy.json.ProxyExclusionList }}"]
 
     - name: Verify - Get application network time details by uri
       ansible.builtin.assert:
         that:
           - configure_network_proxy.changed
-          - transformed_data.ProxyExclusionList ==
-           configure_network_proxy.proxy_configuration.ProxyExclusionList
-          - uri_proxy.json.IpAddress ==
-           configure_network_proxy.proxy_configuration.IpAddress
-          - uri_proxy.json.PortNumber ==
-           configure_network_proxy.proxy_configuration.PortNumber
-          - configure_network_proxy.proxy_configuration.EnableAuthentication ==
-           uri_proxy.json.EnableAuthentication
-          - configure_network_proxy.proxy_configuration.EnableProxy ==
-           uri_proxy.json.EnableProxy
-          - uri_proxy.json.Username ==
-           configure_network_proxy.proxy_configuration.Username
+          - configure_network_proxy.proxy_configuration.ProxyExclusionList
+           == transformed_list.ProxyExclusionList
+          - configure_network_proxy.proxy_configuration.IpAddress
+           == uri_proxy.json.IpAddress
+          - configure_network_proxy.proxy_configuration.PortNumber
+           == uri_proxy.json.PortNumber
+          - configure_network_proxy.proxy_configuration.EnableAuthentication
+           == uri_proxy.json.EnableAuthentication
+          - configure_network_proxy.proxy_configuration.EnableProxy
+           == uri_proxy.json.EnableProxy
+          - configure_network_proxy.proxy_configuration.Username
+           == uri_proxy.json.Username
 
-    - name: Verify Update proxy exclusion list. (check mode - no changes expected)
+    - name: Verify Update proxy exclusion list.
+       (check mode - no changes expected)
       dellemc.openmanage.ome_application_network_proxy:
         <<: *configure_network_proxy
       register: cm_no_changes
       check_mode: true
 
-    - name: Verify Update proxy exclusion list. (check mode - no changes expected)
+    - name: Verify Update proxy exclusion list.
+       (check mode - no changes expected)
       ansible.builtin.assert:
         that:
           - not cm_no_changes.changed
@@ -116,6 +123,7 @@
       ansible.builtin.assert:
         that:
           - reset_network_proxy_authentication.changed
+          - configure_network_proxy.proxy_configuration.ProxyExclusionList | length == 1
 
     - name: Reset proxy configuration.
       dellemc.openmanage.ome_application_network_proxy:
