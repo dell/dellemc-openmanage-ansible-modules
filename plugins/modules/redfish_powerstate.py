@@ -27,7 +27,8 @@ options:
     description:
       - This option is the unique identifier of the device being managed. For example, U(https://<I(baseuri)>/redfish/v1/Systems/<I(resource_id)>).
       - This option is mandatory for I(base_uri) with multiple devices.
-      - To get the device details, use the API U(https://<I(baseuri)>/redfish/v1/Systems).
+      - To get the device details, use the API U(https://<I(baseuri)>/redfish/v1/Systems) for reset_type operation and
+        U(https://<I(baseuri)>/redfish/v1/Chassis) for oem_reset_type operation.
     required:  false
     type: str
   reset_type:
@@ -217,7 +218,7 @@ def fetch_power_uri_resource(module, session_obj, reset_type_map=None):
         system_resp = session_obj.invoke_request("GET", system_uri)
         system_members = system_resp.json_data.get("Members")
         if len(system_members) > 1 and static_resource_id_resource is None:
-            module.fail_json(msg="Multiple devices exists in the system, but option 'resource_id' is not specified.")
+            module.exit_json(msg="Multiple devices exists in the system, but option 'resource_id' is not specified.", failed=True)
         if system_members:
             resource_id_list = [system_id["@odata.id"] for system_id in system_members if "@odata.id" in system_id]
             system_id_res = static_resource_id_resource or resource_id_list[0]
@@ -231,15 +232,15 @@ def fetch_power_uri_resource(module, session_obj, reset_type_map=None):
                     else:
                         fetch_ac_powerstate_details(module, system_id_res_data, action_id_res)
                 else:
-                    module.fail_json(msg=TARGET_DEVICE_NOT_SUPPORTED)
+                    module.exit_json(msg=TARGET_DEVICE_NOT_SUPPORTED, skipped=True)
             else:
-                module.fail_json(msg=INVALID_DEVICE_ID.format(resource_id))
+                module.exit_json(msg=INVALID_DEVICE_ID.format(resource_id), skipped=True)
         else:
-            module.fail_json(msg=TARGET_DEVICE_NOT_SUPPORTED)
+            module.exit_json(msg=TARGET_DEVICE_NOT_SUPPORTED, skipped=True)
     except HTTPError as err:
         if err.code in [404, 405]:
-            module.fail_json(msg=TARGET_DEVICE_NOT_SUPPORTED,
-                             error_info=json.load(err))
+            module.exit_json(msg=TARGET_DEVICE_NOT_SUPPORTED,
+                             error_info=json.load(err), failed=True)
         raise err
 
 
@@ -410,13 +411,13 @@ def main():
             else:
                 module.exit_json(msg=OPERATION_ERROR, skipped=True)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLError, TypeError, ConnectionError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
     except Exception as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':

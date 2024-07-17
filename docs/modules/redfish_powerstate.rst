@@ -32,7 +32,7 @@ Parameters
 
     This option is mandatory for \ :emphasis:`base\_uri`\  with multiple devices.
 
-    To get the device details, use the API \ https://%3CI(baseuri\ \>/redfish/v1/Systems).
+    To get the device details, use the API \ https://%3CI(baseuri\ \>/redfish/v1/Systems) for reset\_type operation and \ https://%3CI(baseuri\ \>/redfish/v1/Chassis) for oem\_reset\_type operation.
 
 
   reset_type (False, str, None)
