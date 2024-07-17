@@ -29,7 +29,8 @@
       register: cm_changes
       check_mode: true
 
-    - name: Verify Update ignore_certificate_validation. (check mode - changes expected)
+    - name: Verify Update ignore_certificate_validation.
+       (check mode - changes expected)
       ansible.builtin.assert:
         that:
           - cm_changes.changed
