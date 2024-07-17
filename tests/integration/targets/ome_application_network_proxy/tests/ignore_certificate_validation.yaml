@@ -1,0 +1,150 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: hostname, username
+         and password.'
+  when: hostname is not defined or username is not defined or password
+         is not defined
+
+- block:
+    # PRE REQ - CONFIGURE NETWORK PROXY
+    - name: Reset proxy configuration.
+      dellemc.openmanage.ome_application_network_proxy:
+        enable_proxy: false
+
+    - name: Update ignore_certificate_validation. (check mode - changes expected)
+      dellemc.openmanage.ome_application_network_proxy: &configure_network_proxy
+        enable_proxy: true
+        ip_address: "192.168.0.2"
+        proxy_port: 444
+        enable_authentication: true
+        proxy_username: "proxy_username"
+        proxy_password: "proxy_password"
+        ignore_certificate_validation: false
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify Update ignore_certificate_validation. (check mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == 'Changes found to be applied.'
+
+    # CONFIGURE NETWORK PROXY
+    - name: Update ignore_certificate_validation (normal mode)
+      dellemc.openmanage.ome_application_network_proxy:
+        <<: *configure_network_proxy
+      register: configure_network_proxy
+
+    - name: Verify Update ignore_certificate_validation (normal mode)
+      ansible.builtin.assert:
+        that:
+          - configure_network_proxy.changed
+          - configure_network_proxy.msg == "Successfully updated network proxy configuration."
+
+    - name: Get application network time details by uri.
+      uri:
+        url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port }}/api/ApplicationService/Network/ProxyConfiguration
+        user: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        status_code: 200
+      register: uri_proxy
+
+    - name: Verify - Get application network time details by uri
+      ansible.builtin.assert:
+        that:
+          - configure_network_proxy.changed
+          - configure_network_proxy.proxy_configuration.SslCheckDisabled ==
+           uri_proxy.json.SslCheckDisabled
+          - uri_proxy.json.IpAddress ==
+           configure_network_proxy.proxy_configuration.IpAddress
+          - uri_proxy.json.PortNumber ==
+           configure_network_proxy.proxy_configuration.PortNumber
+          - uri_proxy.json.EnableAuthentication
+          - uri_proxy.json.EnableProxy
+          - uri_proxy.json.Username ==
+           configure_network_proxy.proxy_configuration.Username
+
+    - name: Update ignore_certificate_validation. (check mode - no changes expected)
+      dellemc.openmanage.ome_application_network_proxy:
+        <<: *configure_network_proxy
+      register: cm_no_changes
+      check_mode: true
+
+    - name: Verify Update ignore_certificate_validation. (check mode - no changes expected)
+      ansible.builtin.assert:
+        that:
+          - not cm_no_changes.changed
+          - cm_no_changes.msg == "No Changes found to be applied."
+
+    - name: Update ignore_certificate_validation.
+      dellemc.openmanage.ome_application_network_proxy:
+        <<: *configure_network_proxy
+      register: configure_network_proxy_idempotent
+
+    - name: Verify Update ignore_certificate_validation. (idempotent mode)
+      ansible.builtin.assert:
+        that:
+          - not configure_network_proxy_idempotent.changed
+          - configure_network_proxy_idempotent.msg == "No changes made to
+           proxy configuration as entered values are the same as current
+           configuration values."
+
+    - name: Reset proxy authentication and ignore_certificate_validation.
+      dellemc.openmanage.ome_application_network_proxy:
+        enable_proxy: true
+        ip_address: "192.168.0.2"
+        proxy_port: 444
+        enable_authentication: false
+        ignore_certificate_validation: false
+      register: reset_network_proxy_authentication
+
+    - name: Verify Reset proxy authentication and ignore_certificate_validation.
+      ansible.builtin.assert:
+        that:
+          - reset_network_proxy_authentication.changed
+          - reset_network_proxy_authentication.proxy_configuration.SslCheckDisabled == false
+
+    - name: Reset proxy configuration.
+      dellemc.openmanage.ome_application_network_proxy:
+        enable_proxy: false
+      register: reset_network_proxy_config
+
+    - name: Verify Reset proxy configuration.
+      ansible.builtin.assert:
+        that:
+          - reset_network_proxy_config.changed
+
+    # - name: Verify the status of tasks for enable_ntp and set addresses
+    #   assert:
+    #     that:
+    #       - configure_network_proxy.changed
+    #       # - cm_changes.changed
+    #       - not cm_no_changes.changed
+    #       - configure_network_proxy.msg == "Successfully updated network proxy configuration."
+    #       # - cm_changes.msg == "Changes found to be applied."
+    #       - cm_no_changes.msg == "No Changes found to be applied."
+    #       - not configure_network_proxy_idempotent.changed
+    #       - configure_network_proxy_idempotent.msg == "No changes made to proxy configuration as entered values are the same as current configuration values."
+    #       - reset_network_proxy_authentication.changed
+    #       - reset_network_proxy_config.changed
+    #       - uri_proxy.json.IpAddress == configure_network_proxy.proxy_configuration.IpAddress
+    #       - uri_proxy.json.PortNumber == configure_network_proxy.proxy_configuration.PortNumber
+    #       - uri_proxy.json.EnableAuthentication
+    #       - uri_proxy.json.EnableProxy
+    #       - uri_proxy.json.Username == configure_network_proxy.proxy_configuration.Username
+    #       - configure_network_proxy.proxy_configuration.SslCheckDisabled == uri_proxy.json.SslCheckDisabled
+
+  module_defaults:
+    dellemc.openmanage.ome_application_network_proxy:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"
