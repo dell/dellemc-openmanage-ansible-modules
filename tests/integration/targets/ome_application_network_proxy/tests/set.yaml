@@ -114,14 +114,10 @@
         enable_authentication: false
       register: reset_network_proxy_authentication
 
-    - name: Verify update proxy configuration and enable authentication.
-       (idempotent mode)
+    - name: Verify Reset proxy authentication.
       ansible.builtin.assert:
         that:
-          - not configure_network_proxy_idempotent.changed
-          - configure_network_proxy_idempotent.msg ==
-           "No changes made to proxy configuration
-           as entered values are the same as current configuration values."
+          - reset_network_proxy_authentication.changed
 
     - name: Reset proxy configuration.
       dellemc.openmanage.ome_application_network_proxy:
@@ -131,7 +127,6 @@
     - name: Verify Reset proxy configuration.
       ansible.builtin.assert:
         that:
-          - reset_network_proxy_authentication.changed
           - reset_network_proxy_config.changed
 
   module_defaults:
