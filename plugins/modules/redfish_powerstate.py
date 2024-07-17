@@ -383,7 +383,7 @@ def run_change_ac_power_cycle(redfish_session_obj, module):
         err_message = json.load(err)
         if err.code == 409 and err_message["error"]["@Message.ExtendedInfo"][0]["MessageId"] == "IDRAC.2.9.PSU507":
             error_msg = err_message["error"]["@Message.ExtendedInfo"][0]["Message"]
-            module.exit_json(msg=error_msg, failed=True)
+            module.exit_json(msg=error_msg, skipped=True)
 
 
 def main():

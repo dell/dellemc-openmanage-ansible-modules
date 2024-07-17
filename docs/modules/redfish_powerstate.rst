@@ -135,42 +135,42 @@ Examples
     ---
     - name: Manage power state of the first device
       dellemc.openmanage.redfish_powerstate:
-           baseuri: "192.168.0.1"
-           username: "username"
-           password: "password"
-           ca_path: "/path/to/ca_cert.pem"
-           reset_type: "On"
+        baseuri: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        reset_type: "On"
 
     - name: Manage power state of a specified device
       dellemc.openmanage.redfish_powerstate:
-           baseuri: "192.168.0.1"
-           username: "username"
-           password: "password"
-           ca_path: "/path/to/ca_cert.pem"
-           reset_type: "ForceOff"
-           resource_id: "System.Embedded.1"
+        baseuri: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        reset_type: "ForceOff"
+        resource_id: "System.Embedded.1"
 
     - name: Perform AC Power Cycle
       dellemc.openmanage.redfish_powerstate:
-           baseuri: "192.168.0.1"
-           username: "username"
-           password: "password"
-           ca_path: "/path/to/ca_cert.pem"
-           oem_reset_type:
-                dell:
-                     final_power_state: "On"
-                     reset_type: "PowerCycle"
+        baseuri: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        oem_reset_type:
+          dell:
+            final_power_state: "On"
+            reset_type: "PowerCycle"
 
     - name: Perform AC Power Cycle
       dellemc.openmanage.redfish_powerstate:
-           baseuri: "192.168.0.1"
-           username: "username"
-           password: "password"
-           ca_path: "/path/to/ca_cert.pem"
-           oem_reset_type:
-                dell:
-                     final_power_state: "Off"
-                     reset_type: "PowerCycle"
+        baseuri: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        oem_reset_type:
+          dell:
+            final_power_state: "Off"
+            reset_type: "PowerCycle"
 
 
 
