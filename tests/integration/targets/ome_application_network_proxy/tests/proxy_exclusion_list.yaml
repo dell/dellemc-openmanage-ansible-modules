@@ -123,7 +123,8 @@
       ansible.builtin.assert:
         that:
           - reset_network_proxy_authentication.changed
-          - configure_network_proxy.proxy_configuration.ProxyExclusionList | length == 1
+          - configure_network_proxy.proxy_configuration.
+            ProxyExclusionList | length == 1
 
     - name: Reset proxy configuration.
       dellemc.openmanage.ome_application_network_proxy:
