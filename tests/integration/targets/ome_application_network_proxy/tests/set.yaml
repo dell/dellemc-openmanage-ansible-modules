@@ -37,8 +37,8 @@
     - name: Get application network time details by uri.
       uri:
         url: https://{{ hostname | ansible.utils.ipwrap }}:{{port}}/api/ApplicationService/Network/ProxyConfiguration
-        user: "{{username}}"
-        password: "{{password}}"
+        user: "{{ username }}"
+        password: "{{ password }}"
         validate_certs: false
         status_code: 200
       register: uri_proxy
