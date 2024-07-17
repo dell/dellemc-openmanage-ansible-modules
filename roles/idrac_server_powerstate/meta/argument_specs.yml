@@ -38,7 +38,8 @@ argument_specs:
         description:
           - This option is the unique identifier of the device being managed. For example, U(https://<I(baseuri)>/redfish/v1/Systems/<I(resource_id)>).
           - This option is mandatory for I(base_uri) with multiple devices.
-          - To get the device details, use the API U(https://<I(baseuri)>/redfish/v1/Systems).
+          - To get the device details, use the API U(https://<I(baseuri)>/redfish/v1/Systems) for reset_type operation and
+            U(https://<I(baseuri)>/redfish/v1/Chassis) for oem_reset_type operation.
         required: false
         type: str
       reset_type:
@@ -78,3 +79,4 @@ argument_specs:
           - If the value of 'final_power_state' is not provided, the default value is 'Off'.
         required: false
         type: dict
+        version_added: 9.5.0

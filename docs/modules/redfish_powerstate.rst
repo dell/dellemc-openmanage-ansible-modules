@@ -150,7 +150,7 @@ Examples
         reset_type: "ForceOff"
         resource_id: "System.Embedded.1"
 
-    - name: Perform AC Power Cycle
+    - name: Perform AC Power Cycle with final power state On
       dellemc.openmanage.redfish_powerstate:
         baseuri: "192.168.0.1"
         username: "username"
@@ -161,7 +161,7 @@ Examples
             final_power_state: "On"
             reset_type: "PowerCycle"
 
-    - name: Perform AC Power Cycle
+    - name: Perform AC Power Cycle  with final power state Off
       dellemc.openmanage.redfish_powerstate:
         baseuri: "192.168.0.1"
         username: "username"
