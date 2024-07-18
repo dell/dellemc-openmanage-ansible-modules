@@ -11,13 +11,15 @@
   when: "idrac_ip is not defined or idrac_user is not defined or idrac_password
     is not defined"
 
-- block:
+- vars:
+    wait_time: 180
+  block:
     - name: pre-req - Power state - Off
       dellemc.openmanage.redfish_powerstate:
         reset_type: "GracefulShutdown"
 
     - name: Fetching resource_id from iDRAC
-      ansible.builtin.include_tasks: _fetch_uri.yml
+      ansible.builtin.import_tasks: _fetch_uri.yml
       vars:
         uri: "/redfish/v1/Chassis/"
 
@@ -26,9 +28,12 @@
         resource_id: "{{ idrac_output.json.Members[0]['@odata.id'] | split('/') | last }}"
 
     - name: Fetch the iDRAC firmware version
-      ansible.builtin.include_tasks: _fetch_uri.yml
+      ansible.builtin.import_tasks: _fetch_uri.yml
       vars:
         uri: "/redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
+      until: idrac_output.json.PowerState == "On"
+      retries: 10
+      delay: 30
 
     - name: Set fact for firmware version
       ansible.builtin.set_fact:
@@ -45,14 +50,17 @@
       register: powered_off
       when: firmware_ver >= '7.00.60'
 
+    - name: "Waiting for {{ wait_time }} seconds"
+      ansible.builtin.wait_for: timeout={{ wait_time }}
+      when: powered_off.changed
+
     - name: Fetching power state of iDRAC
-      ansible.builtin.include_tasks: _fetch_uri.yml
+      ansible.builtin.import_tasks: _fetch_uri.yml
       vars:
         uri: "/redfish/v1/Chassis/System.Embedded.1?$select=PowerState"
-
-    - name: Waiting for 1 minutes
-      ansible.builtin.wait_for: timeout=60
-      when: powered_off.changed
+      until: idrac_output.json.PowerState == "Off"
+      retries: 10
+      delay: 30
 
     - name: Verify status of tasks
       ansible.builtin.assert:
@@ -76,14 +84,17 @@
       register: powered_on
       when: firmware_ver >= '7.00.60'
 
-    - name: Waiting for 5 minutes
-      ansible.builtin.wait_for: timeout=300
+    - name: "Waiting for {{ wait_time }} seconds"
+      ansible.builtin.wait_for: timeout={{ wait_time }}
       when: powered_on.changed
 
     - name: Fetching power state of iDRAC
-      ansible.builtin.include_tasks: _fetch_uri.yml
+      ansible.builtin.import_tasks: _fetch_uri.yml
       vars:
         uri: "/redfish/v1/Chassis/System.Embedded.1?$select=PowerState"
+      until: idrac_output.json.PowerState == "On"
+      retries: 10
+      delay: 30
 
     - name: Verify status of tasks
       ansible.builtin.assert:
