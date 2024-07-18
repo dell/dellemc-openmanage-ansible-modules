@@ -75,7 +75,7 @@
     - name: Verify status of tasks
       ansible.builtin.assert:
         that:
-          - invalid_resrouce_id.failed
+          - invalid_resrouce_id.skipped
           - invalid_resrouce_id.msg == "Invalid device Id 'invalid'
             is provided"
 
@@ -269,7 +269,7 @@
     - name: Verify status of tasks
       ansible.builtin.assert:
         that:
-          - powering_off_when_on.failed
+          - powering_off_when_on.skipped
           - error_msg == powering_off_when_on.msg
       vars:
         error_msg: "Unable to perform the Virtual AC power-cycle operation
