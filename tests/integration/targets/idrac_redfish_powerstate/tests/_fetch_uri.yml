@@ -2,7 +2,8 @@
 - block:
     - name: Fetching data from iDRAC
       ansible.builtin.uri:
-        url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}{{ uri }}"
+        url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}
+         {{ uri }}"
         user: "{{ idrac_user }}"
         password: "{{ idrac_password }}"
         method: GET

@@ -25,7 +25,8 @@
 
     - name: Set fact for resource_id
       ansible.builtin.set_fact:
-        resource_id: "{{ idrac_output.json.Members[0]['@odata.id'] | split('/') | last }}"
+        resource_id: "{{ idrac_output.json.Members[0]['@odata.id'] | split('/')
+         | last }}"
 
     - name: Fetch the iDRAC firmware version
       ansible.builtin.import_tasks: _fetch_uri.yml
