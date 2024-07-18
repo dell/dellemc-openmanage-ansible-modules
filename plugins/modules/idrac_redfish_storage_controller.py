@@ -54,7 +54,7 @@ options:
       - C(SecureErase) - To delete all the data on the physical disk securely. This option is available for
         Self-Encrypting Drives (SED), Instant Scramble Erase (ISE) drives, and PCIe SSD devices (drives and cards).
         The drives must be in a ready state. I(controller_id) and I(target) are required for this operation,
-        I(target) must be a single physical disk ID. If a firmware update needs a reboot,
+        I(target) must be a single physical disk ID. If a secure erase needs a reboot,
         the job will get scheduled and waits for no of seconds specfied in I(job_wait_time),
         to reduce the wait time either give I(job_wait_time) minimum or make I(job_wait)
         as false.
@@ -184,7 +184,7 @@ options:
     description:
       - The maximum wait time of job completion in seconds before the job tracking is stopped.
       - This option is applicable when I(job_wait) is C(true).
-      - "Note: When I(command) is C(SecureErase), If a firmware update needs a reboot,
+      - "Note: When I(command) is C(SecureErase), If a secure erase needs a reboot,
         the job will get scheduled and waits for no of seconds specfied in I(job_wait_time),
         to reduce the wait time either give I(job_wait_time) minimum or make I(job_wait)
         as false."

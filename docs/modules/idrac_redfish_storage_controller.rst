@@ -60,7 +60,7 @@ Parameters
 
     \ :literal:`OnlineCapacityExpansion`\  - To expand the size of virtual disk. \ :emphasis:`volume\_id`\ , and \ :emphasis:`target`\  or \ :emphasis:`size`\  is required for this operation.
 
-    \ :literal:`SecureErase`\  - To delete all the data on the physical disk securely. This option is available for Self-Encrypting Drives (SED), Instant Scramble Erase (ISE) drives, and PCIe SSD devices (drives and cards). The drives must be in a ready state . \ :emphasis:`controller\_id`\  and \ :emphasis:`target`\  are required for this operation, \ :emphasis:`target`\  must be a single physical disk ID. If a firmware update needs a reboot, the job will get scheduled and waits for no of seconds specfied in \ :emphasis:`job\_wait\_time`\ , to reduce the wait time either give \ :emphasis:`job\_wait\_time`\  minimum or make \ :emphasis:`job\_wait`\  as false.
+    \ :literal:`SecureErase`\  - To delete all the data on the physical disk securely. This option is available for Self-Encrypting Drives (SED), Instant Scramble Erase (ISE) drives, and PCIe SSD devices (drives and cards). The drives must be in a ready state. \ :emphasis:`controller\_id`\  and \ :emphasis:`target`\  are required for this operation, \ :emphasis:`target`\  must be a single physical disk ID. If a secure erase needs a reboot, the job will get scheduled and waits for no of seconds specfied in \ :emphasis:`job\_wait\_time`\ , to reduce the wait time either give \ :emphasis:`job\_wait\_time`\  minimum or make \ :emphasis:`job\_wait`\  as false.
 
 
   target (optional, list, None)
@@ -195,7 +195,7 @@ Parameters
 
     This option is applicable when \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .
 
-    Note: When \ :emphasis:`command`\  is \ :literal:`SecureErase`\ , If a firmware update needs a reboot, the job will get scheduled and waits for no of seconds specfied in \ :emphasis:`job\_wait\_time`\ , to reduce the wait time either give \ :emphasis:`job\_wait\_time`\  minimum or make \ :emphasis:`job\_wait`\  as false.
+    Note: When \ :emphasis:`command`\  is \ :literal:`SecureErase`\ , If a secure erase needs a reboot, the job will get scheduled and waits for no of seconds specfied in \ :emphasis:`job\_wait\_time`\ , to reduce the wait time either give \ :emphasis:`job\_wait\_time`\  minimum or make \ :emphasis:`job\_wait`\  as false.
 
 
   baseuri (True, str, None)
