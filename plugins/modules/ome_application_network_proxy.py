@@ -219,6 +219,10 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import re
 PROXY_CONFIG = "ApplicationService/Network/ProxyConfiguration"
 CHECK_MODE_CHANGE_FOUND_MSG = "Changes found to be applied."
 CHECK_MODE_CHANGE_NOT_FOUND_MSG = "No Changes found to be applied."
+N0_PROXY_CONFIGURATION = "Unable to configure the proxy because proxy configuration settings " \
+                         "are not provided."
+NO_CHANGE_IN_CONFIGURATION = "No changes made to proxy configuration as entered values are the " \
+                             "same as current configuration values"
 ODATA_REGEX = "(.*?)@odata"
 
 
@@ -280,7 +284,7 @@ def get_payload(module):
                     is not None])
     if backup_params.get("proxy_exclusion_list") or backup_params.get("proxy_exclusion_list") == []:
         temp_proxy_exclusion_list = backup_params.get("proxy_exclusion_list")
-        converted_proxy_exclusion_list = ",".join(temp_proxy_exclusion_list)
+        converted_proxy_exclusion_list = ";".join(temp_proxy_exclusion_list)
         payload["ProxyExclusionList"] = converted_proxy_exclusion_list
     return payload
 
@@ -299,8 +303,7 @@ def get_updated_payload(rest_obj, module, payload):
     """
     current_setting = {}
     if not any(payload):
-        module.fail_json(msg="Unable to configure the proxy because proxy configuration settings"
-                         " are not provided.")
+        module.fail_json(msg=N0_PROXY_CONFIGURATION)
     else:
         params = module.params
         if params.get("update_password"):
@@ -323,8 +326,7 @@ def get_updated_payload(rest_obj, module, payload):
                    payload.items())
         validate_check_mode_for_network_proxy(diff, module)
         if not diff:
-            module.exit_json(msg="No changes made to proxy configuration as entered values are "
-                             "the same as current configuration values.")
+            module.exit_json(msg=NO_CHANGE_IN_CONFIGURATION)
         else:
             current_setting.update(payload)
     return current_setting
@@ -367,7 +369,7 @@ def main():
                 proxy_exclusion_list_list = []
             else:
                 proxy_exclusion_list_str = response_data.get("ProxyExclusionList")
-                proxy_exclusion_list_list = proxy_exclusion_list_str.strip('[]').strip(']').split(',')
+                proxy_exclusion_list_list = proxy_exclusion_list_str.split(';')
             proxy_configuration_details["ProxyExclusionList"] = proxy_exclusion_list_list
             module.exit_json(msg="Successfully updated network proxy configuration.",
                              proxy_configuration=proxy_configuration_details,

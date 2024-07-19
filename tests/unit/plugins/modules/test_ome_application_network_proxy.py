@@ -26,6 +26,10 @@ from ansible_collections.dellemc.openmanage.plugins.modules.ome_application_netw
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 CHECK_MODE_CHANGE_FOUND_MSG = "Changes found to be applied."
 CHECK_MODE_CHANGE_NOT_FOUND_MSG = "No Changes found to be applied."
+N0_PROXY_CONFIGURATION = "Unable to configure the proxy because proxy configuration settings " \
+                         "are not provided."
+NO_CHANGE_IN_CONFIGURATION = "No changes made to proxy configuration as entered values are the " \
+                             "same as current configuration values"
 
 
 @pytest.fixture
@@ -236,8 +240,7 @@ class TestOmeTemplate(FakeAnsibleModule):
                    "Username": "username", "Password": "password"}
         f_module = self.get_module_mock(params=ome_default_args)
         ome_response_mock.json_data = current_setting
-        error_message = "No changes made to proxy configuration as entered values are the same as current " \
-                        "configuration values."
+        error_message = NO_CHANGE_IN_CONFIGURATION
         mocker.patch(MODULE_PATH + "ome_application_network_proxy.validate_check_mode_for_network_proxy",
                      return_value=None)
         with pytest.raises(Exception, match=error_message) as err:
@@ -256,8 +259,7 @@ class TestOmeTemplate(FakeAnsibleModule):
                    "Username": "username", "Password": "password2"}
         f_module = self.get_module_mock(params=ome_default_args)
         ome_response_mock.json_data = current_setting
-        error_message = "No changes made to proxy configuration as entered values are the same as current " \
-                        "configuration values."
+        error_message = NO_CHANGE_IN_CONFIGURATION
         mocker.patch(MODULE_PATH + "ome_application_network_proxy.validate_check_mode_for_network_proxy",
                      return_value=None)
         with pytest.raises(Exception, match=error_message) as err:
@@ -274,7 +276,7 @@ class TestOmeTemplate(FakeAnsibleModule):
         payload = {}
         f_module = self.get_module_mock(params=ome_default_args)
         ome_response_mock.json_data = current_setting
-        error_message = "Unable to configure the proxy because proxy configuration settings are not provided."
+        error_message = N0_PROXY_CONFIGURATION
         mocker.patch(MODULE_PATH + "ome_application_network_proxy.validate_check_mode_for_network_proxy",
                      return_value=None)
         with pytest.raises(Exception, match=error_message) as err:
