@@ -2,4 +2,5 @@
 # defaults file for idrac_server_powerstate
 validate_certs: true
 https_timeout: 30
+reset_type: "On"
 https_port: 443
