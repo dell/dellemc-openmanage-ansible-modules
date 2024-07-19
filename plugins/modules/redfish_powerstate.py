@@ -218,9 +218,7 @@ def fetch_power_uri_resource(module, session_obj, reset_type_map=None):
         system_uri = "{0}{1}".format(session_obj.root_uri, reset_type_map)
         system_resp = session_obj.invoke_request("GET", system_uri)
         system_members = system_resp.json_data.get("Members")
-        if len(system_members) > 1 and static_resource_id_resource is None:
-            module.exit_json(msg="Multiple devices exists in the system, but option 'resource_id' is not specified.", failed=True)
-        if system_members:
+        if system_members and len(system_members) > 0:
             resource_id_list = [system_id["@odata.id"] for system_id in system_members if "@odata.id" in system_id]
             system_id_res = static_resource_id_resource or resource_id_list[0]
             if system_id_res in resource_id_list:
@@ -294,7 +292,7 @@ def is_valid_vendor(redfish_session_obj, module, vendor):
     system_resp = redfish_session_obj.invoke_request("GET", "/redfish/v1/")
     system_vendor = system_resp.json_data.get("Vendor")
     if system_vendor.lower() != vendor.lower():
-        module.exit_json(msg=VENDOR_NOT_SUPPORTED.format(supported_vendors=system_vendor), failed=True)
+        module.exit_json(msg=VENDOR_NOT_SUPPORTED.format(supported_vendors=system_vendor), skipped=True)
 
 
 def check_firmware_version(module, redfish_session_obj):

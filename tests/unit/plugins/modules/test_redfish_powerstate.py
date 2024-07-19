@@ -151,7 +151,7 @@ class TestRedfishPowerstate(FakeAnsibleModule):
             ],
             "Actions": {
                 "#ComputerSystem.Reset": {
-                    "target": "/redfish/v1/Systems/System.Embedded.2/Actions/ComputerSystem.Reset",
+                    "target": "/redfish/v1/Systems/System.Embedded.1/Actions/ComputerSystem.Reset",
                     "ResetType@Redfish.AllowableValues": [
                         "On",
                         "ForceOff",
@@ -176,11 +176,11 @@ class TestRedfishPowerstate(FakeAnsibleModule):
             "Nmi",
             "PowerCycle"
         ]
-        assert self.module.powerstate_map['power_uri'] == '/redfish/v1/Systems/System.Embedded.2/Actions' \
+        assert self.module.powerstate_map['power_uri'] == '/redfish/v1/Systems/System.Embedded.1/Actions' \
                                                           '/ComputerSystem.Reset'
         assert self.module.powerstate_map['current_state'] == 'On'
 
-    def test_fetch_powerstate_resource_resource_id_not_given_failure_case(self,
+    def test_fetch_powerstate_resource_resource_id_not_given_success_case(self,
                                                                           redfish_connection_mock_for_powerstate,
                                                                           redfish_response_mock):
         """case when system id not provided but multipble resource exists"""
@@ -199,7 +199,7 @@ class TestRedfishPowerstate(FakeAnsibleModule):
             ],
             "Actions": {
                 "#ComputerSystem.Reset": {
-                    "target": "/redfish/v1/Systems/System.Embedded.2/Actions/ComputerSystem.Reset",
+                    "target": "/redfish/v1/Systems/System.Embedded.1/Actions/ComputerSystem.Reset",
                     "ResetType@Redfish.AllowableValues": [
                         "On",
                         "ForceOff",
@@ -214,9 +214,19 @@ class TestRedfishPowerstate(FakeAnsibleModule):
             "PowerState": "On"
         }
         redfish_connection_mock_for_powerstate.root_uri = "/redfish/v1/"
-        with pytest.raises(Exception) as exc:
-            self.module.fetch_power_uri_resource(f_module, redfish_connection_mock_for_powerstate)
-        assert exc.value.args[0] == "Multiple devices exists in the system, but option 'resource_id' is not specified."
+        self.module.fetch_power_uri_resource(f_module, redfish_connection_mock_for_powerstate, "Systems")
+        assert self.module.powerstate_map["allowable_enums"] == [
+            "On",
+            "ForceOff",
+            "ForceRestart",
+            "GracefulShutdown",
+            "PushPowerButton",
+            "Nmi",
+            "PowerCycle"
+        ]
+        assert self.module.powerstate_map['power_uri'] == '/redfish/v1/Systems/System.Embedded.1/Actions' \
+                                                          '/ComputerSystem.Reset'
+        assert self.module.powerstate_map['current_state'] == 'On'
 
     def test_fetch_powerstate_resource_resource_id_invalid_failure_case(self,
                                                                         redfish_connection_mock_for_powerstate,
