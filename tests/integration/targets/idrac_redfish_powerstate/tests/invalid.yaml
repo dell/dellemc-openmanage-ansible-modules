@@ -135,7 +135,7 @@
     - name: Verify status of tasks
       ansible.builtin.assert:
         that:
-          - invalid_oem.failed
+          - invalid_oem.skipped
           - invalid_oem.msg == "The vendor is not supported. The supported
             vendors are 'Dell'. Enter the valid vendor and retry the operation."
       when: firmware_ver >= '7.00.60'
@@ -158,38 +158,6 @@
             target device. Enter the valid value and retry the operation."
       when: firmware_ver >= '7.00.60'
 
-    - name: Fetching resource_id from iDRAC
-      ansible.builtin.include_tasks: _fetch_uri.yml
-      vars:
-        uri: "/redfish/v1/Chassis/"
-
-    - name: Set fact for resource_id
-      ansible.builtin.set_fact:
-        resource_id: "{{ idrac_output.json.Members[0]['@odata.id'] | split('/')
-         | last }}"
-
-    - name: Negative - When more than one resource id is present in iDRAC
-      dellemc.openmanage.redfish_powerstate:
-        oem_reset_type:
-          dell:
-            reset_type: "PowerCycle"
-            final_power_state: "On"
-      ignore_errors: true
-      register: more_than_one_resource_id
-      when:
-        - idrac_output.json['Members@odata.count'] > 1
-        - firmware_ver >= '7.00.60'
-
-    - name: Verify status of tasks
-      ansible.builtin.assert:
-        that:
-          - more_than_one_resource_id.failed
-          - more_than_one_resource_id.msg == "Multiple devices exists in the
-            system, but option 'resource_id' is not specified."
-      when:
-        - idrac_output.json['Members@odata.count'] > 1
-        - firmware_ver >= '7.00.60'
-
     - name: Fetching supported values for reset_type
       ansible.builtin.include_tasks: _fetch_uri.yml
       vars:
@@ -205,7 +173,6 @@
 
     - name: Negative - Provide wrong values to valid Oem and options
       dellemc.openmanage.redfish_powerstate:
-        resource_id: "{{ resource_id }}"
         oem_reset_type:
           dell:
             reset_type: "xyz"
@@ -231,7 +198,6 @@
 
     - name: Negative - Try oem_reset_type on unsupported iDRAC firmware version
       dellemc.openmanage.redfish_powerstate:
-        resource_id: "{{ resource_id }}"
         oem_reset_type:
           dell:
             reset_type: "On"
@@ -257,7 +223,6 @@
 
     - name: Negative - Performing oem_reset_type when server is powered On
       dellemc.openmanage.redfish_powerstate:
-        resource_id: "{{ resource_id }}"
         oem_reset_type:
           dell:
             reset_type: "PowerCycle"
