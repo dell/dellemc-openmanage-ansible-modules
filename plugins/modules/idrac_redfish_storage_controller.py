@@ -200,6 +200,7 @@ author:
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module is supported on iDRAC9.
+    - This module supports IPv4 and IPv6 addresses.
     - This module always reports as changes found when I(command) is C(ReKey), C(BlinkTarget), and C(UnBlinkTarget).
     - This module supports C(check_mode).
 '''
