@@ -186,7 +186,7 @@ options:
       - This option is applicable when I(job_wait) is C(true).
       - "Note: When I(command) is C(SecureErase), If a secure erase needs a reboot,
         the job will get scheduled and waits for no of seconds specfied in I(job_wait_time),
-        to reduce the wait time either give I(job_wait_time) minimum or make I(job_wait)
+        to reduce the wait time either give I(job_wait_time) a lesser value or make I(job_wait)
         as false."
     type: int
     default: 120
