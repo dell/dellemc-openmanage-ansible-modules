@@ -195,7 +195,7 @@ Parameters
 
     This option is applicable when \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .
 
-    Note: When \ :emphasis:`command`\  is \ :literal:`SecureErase`\ , If a secure erase needs a reboot, the job will get scheduled and waits for no of seconds specfied in \ :emphasis:`job\_wait\_time`\ , to reduce the wait time either give \ :emphasis:`job\_wait\_time`\  minimum or make \ :emphasis:`job\_wait`\  as false.
+    Note: When \ :emphasis:`command`\  is \ :literal:`SecureErase`\ , If a secure erase needs a reboot, the job will get scheduled and waits for no of seconds specfied in \ :emphasis:`job\_wait\_time`\ , to reduce the wait time either give \ :emphasis:`job\_wait\_time`\  a lesser value or make \ :emphasis:`job\_wait`\  as false.
 
 
   baseuri (True, str, None)
@@ -251,6 +251,7 @@ Notes
 .. note::
    - Run this module from a system that has direct access to Dell iDRAC.
    - This module is supported on iDRAC9.
+   - This module supports IPv4 and IPv6 addresses.
    - This module always reports as changes found when \ :emphasis:`command`\  is \ :literal:`ReKey`\ , \ :literal:`BlinkTarget`\ , and \ :literal:`UnBlinkTarget`\ .
    - This module supports \ :literal:`check\_mode`\ .
 
