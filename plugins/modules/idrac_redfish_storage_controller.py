@@ -905,7 +905,7 @@ def validate_secure_erase(module, redfish_obj):
     drives_list = get_dynamic_uri(redfish_obj, controller_uri, 'Drives')
     drive_uri = match_id_in_list(drive_id, drives_list)
     if drive_uri is None:
-        module.exit_json(msg=PD_ERROR_MSG.format(drive_id, skipped=True))
+        module.exit_json(msg=PD_ERROR_MSG.format(drive_id), skipped=True)
     drive_detail = get_dynamic_uri(redfish_obj, drive_uri)
     firm_ver = get_idrac_firmware_version(redfish_obj)
     if LooseVersion(firm_ver) >= '3.0':
@@ -936,6 +936,8 @@ def secure_erase(module, redfish_obj):
                          task={"id": job_id, "uri": job_uri})
     action_uri = get_dynamic_uri(redfish_obj, drive_uri, "Actions")
     secure_erase_uri = action_uri.get("#Drive.SecureErase").get("target")
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
     resp = redfish_obj.invoke_request("POST", secure_erase_uri, data="{}",
                                       dump=False)
     job_uri = resp.headers.get("Location")
