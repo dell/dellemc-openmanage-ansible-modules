@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 9.1.0
+# Version 9.5.0
 # Copyright (C) 2022-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -50,6 +50,7 @@ HOSTNAME_REGEX = r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Z
 
 import time
 from datetime import datetime
+from inspect import getfullargspec
 import re
 from ansible.module_utils.six.moves.urllib.error import HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -475,7 +476,9 @@ def wait_for_redfish_job_complete(redfish_obj, job_uri, job_wait=True, wait_time
 
 
 def get_dynamic_uri(idrac_obj, base_uri, search_label=''):
-    resp = idrac_obj.invoke_request(method='GET', uri=base_uri).json_data
+    args = getfullargspec(idrac_obj.invoke_request)[0]
+    data = {'uri': base_uri} if 'uri' in args else {'path': base_uri}
+    resp = idrac_obj.invoke_request(method='GET', **data).json_data
     if search_label:
         if search_label in resp:
             return resp[search_label]
@@ -484,15 +487,15 @@ def get_dynamic_uri(idrac_obj, base_uri, search_label=''):
 
 
 def get_scheduled_job_resp(idrac_obj, job_type):
-    # job_type can be like 'NICConfiguration' or 'BIOSConfiguration'
-    job_resp = {}
-    job_list = idrac_obj.invoke_request(
-        MANAGER_JOB_URI, "GET").json_data.get('Members', [])
-    for each_job in job_list:
-        if each_job.get("JobType") == job_type and each_job.get("JobState") in ["Scheduled", "Running", "Starting"]:
-            job_resp = each_job
-            break
-    return job_resp
+    job_state = {"Scheduled", "New", "Running"}
+    args = getfullargspec(idrac_obj.invoke_request)[0]
+    data = {'uri': MANAGER_JOB_URI} if 'uri' in args else {'path': MANAGER_JOB_URI}
+    job_list = idrac_obj.invoke_request(method="GET", **data).json_data.get('Members', [])
+    if isinstance(job_type, str):
+        job_resp = next((j for j in job_list if (j.get("JobState") in job_state) and (j.get("JobType") == job_type)), None)
+    elif isinstance(job_type, list):
+        job_resp = next((j for j in job_list if (j.get("JobState") in job_state) and (j.get("JobType") in job_type)), None)
+    return remove_key(job_resp, regex_pattern='(.*?)@odata')
 
 
 def delete_job(idrac_obj, job_id):
@@ -540,5 +543,7 @@ def validate_and_get_first_resource_id_uri(module, idrac, base_uri):
 
 
 def get_idrac_firmware_version(idrac):
-    firm_version = idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_VER_URI)
+    args = getfullargspec(idrac.invoke_request)[0]
+    data = {'uri': GET_IDRAC_FIRMWARE_VER_URI} if 'uri' in args else {'path': GET_IDRAC_FIRMWARE_VER_URI}
+    firm_version = idrac.invoke_request(method='GET', **data)
     return firm_version.json_data.get('FirmwareVersion', '')

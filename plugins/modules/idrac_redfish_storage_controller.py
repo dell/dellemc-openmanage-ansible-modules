@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.5.0
 # Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -51,9 +51,16 @@ options:
       - C(ChangePDStateToOffline) - To set the disk status to offline. I(target) is required for this operation.
       - C(LockVirtualDisk) - To encrypt the virtual disk. I(volume_id) is required for this operation.
       - C(OnlineCapacityExpansion) - To expand the size of virtual disk. I(volume_id), and I(target) or I(size) is required for this operation.
+      - C(SecureErase) - To delete all the data on the physical disk securely. This option is available for
+        Self-Encrypting Drives (SED), Instant Scramble Erase (ISE) drives, and PCIe SSD devices (drives and cards).
+        The drives must be in a ready state. I(controller_id) and I(target) are required for this operation,
+        I(target) must be a single physical disk ID. If a secure erase needs a reboot,
+        the job will get scheduled and waits for no of seconds specfied in I(job_wait_time),
+        to reduce the wait time either give I(job_wait_time) minimum or make I(job_wait)
+        as false.
     choices: [ResetConfig, AssignSpare, SetControllerKey, RemoveControllerKey, ReKey, UnassignSpare,
       EnableControllerEncryption, BlinkTarget, UnBlinkTarget, ConvertToRAID, ConvertToNonRAID,
-      ChangePDStateToOnline, ChangePDStateToOffline, LockVirtualDisk, OnlineCapacityExpansion]
+      ChangePDStateToOnline, ChangePDStateToOffline, LockVirtualDisk, OnlineCapacityExpansion, SecureErase]
     type: str
   target:
     description:
@@ -169,13 +176,18 @@ options:
   job_wait:
     description:
       - Provides the option if the module has to wait for the job to be completed.
-      - This is applicable for I(attributes) when I(apply_time) is C(Immediate).
+      - This is applicable for I(attributes) when I(apply_time) is C(Immediate)
+       and when I(command) is C(SecureErase).
     type: bool
     default: false
   job_wait_timeout:
     description:
       - The maximum wait time of job completion in seconds before the job tracking is stopped.
       - This option is applicable when I(job_wait) is C(true).
+      - "Note: When I(command) is C(SecureErase), If a secure erase needs a reboot,
+        the job will get scheduled and waits for no of seconds specfied in I(job_wait_time),
+        to reduce the wait time either give I(job_wait_time) a lesser value or make I(job_wait)
+        as false."
     type: int
     default: 120
 requirements:
@@ -184,10 +196,11 @@ author:
   - "Jagadeesh N V (@jagadeeshnv)"
   - "Felix Stephen (@felixs88)"
   - "Husniya Hameed (@husniya_hameed)"
-  - "Abhishek Sinha (@Abhishek-Dell)"
+  - "Abhishek Sinha (@ABHISHEK-SINHA10)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module is supported on iDRAC9.
+    - This module supports IPv4 and IPv6 addresses.
     - This module always reports as changes found when I(command) is C(ReKey), C(BlinkTarget), and C(UnBlinkTarget).
     - This module supports C(check_mode).
 '''
@@ -454,6 +467,16 @@ EXAMPLES = r'''
     maintenance_window:
       start_time: "2022-09-30T05:15:40-05:00"
       duration: 1200
+
+- name: Perform Secure Erase operation on SED drive
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    baseuri: "192.168.0.1:443"
+    username: "user_name"
+    password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    controller_id: "RAID.Slot.1-1"
+    command: "SecureErase"
+    target: "Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1"
 '''
 
 RETURN = r'''
@@ -519,12 +542,15 @@ error_info:
 
 
 import json
+from ansible.module_utils.compat.version import LooseVersion
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, RedfishAnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import wait_for_job_completion, strip_substr_dict
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import wait_for_job_completion, strip_substr_dict, \
+    get_dynamic_uri, validate_and_get_first_resource_id_uri, get_idrac_firmware_version, get_scheduled_job_resp
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
 
+SYSTEMS_URI = "/redfish/v1/Systems/"
 SYSTEM_ID = "System.Embedded.1"
 MANAGER_ID = "iDRAC.Embedded.1"
 RAID_ACTION_URI = "/redfish/v1/Systems/{system_id}/Oem/Dell/DellRaidService/Actions/DellRaidService.{action}"
@@ -536,16 +562,22 @@ CONTROLLERS_URI = "/redfish/v1/Systems/{system_id}/Storage/{controller_id}/Contr
 MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
 SETTINGS_URI = "/redfish/v1/Systems/{system_id}/Storage/{controller_id}/Controllers/{controller_id}/Settings"
 OCE_MIN_PD_RAID_MAPPING = {'RAID0': 1, 'RAID5': 1, 'RAID6': 1, 'RAID10': 2}
+ODATA_ID = "@odata.id"
 
 JOB_SUBMISSION = "Successfully submitted the job that performs the '{0}' operation."
 JOB_COMPLETION = "Successfully performed the '{0}' operation."
+JOB_EXISTS = "Unable to complete the operation because another job already " \
+             "exists. Wait for the pending job to complete and retry the operation."
 CHANGES_FOUND = "Changes found to be applied."
 NO_CHANGES_FOUND = "No changes found to be applied."
 TARGET_ERR_MSG = "The Fully Qualified Device Descriptor (FQDD) of the target {0} must be only one."
+CNTRL_ERROR_MSG = "Unable to locate the storage controller with the ID: {0}"
 PD_ERROR_MSG = "Unable to locate the physical disk with the ID: {0}"
 VD_ERROR_MSG = "Unable to locate the virtual disk with the ID: {0}"
 ENCRYPT_ERR_MSG = "The storage controller '{0}' does not support encryption."
 PHYSICAL_DISK_ERR = "Volume is not encryption capable."
+DRIVE_NOT_SECURE_ERASE = "Drive {0} does not support secure erase operation."
+DRIVE_NOT_READY = "Drive {0} is not in ready state."
 OCE_RAID_TYPE_ERR = "Online Capacity Expansion is not supported for {0} virtual disks."
 OCE_SIZE_100MB = "Minimum Online Capacity Expansion size must be greater than 100 MB of the current size {0}."
 OCE_TARGET_EMPTY = "Provided list of targets is empty."
@@ -764,7 +796,7 @@ def lock_virtual_disk(module, redfish_obj):
         links = volume_resp.json_data.get("Links")
         if links:
             for disk in volume_resp.json_data.get("Links").get("Drives"):
-                drive_link = disk["@odata.id"]
+                drive_link = disk[ODATA_ID]
                 drive_resp = redfish_obj.invoke_request("GET", drive_link)
                 encryption_ability = drive_resp.json_data.get("EncryptionAbility")
                 if encryption_ability != "SelfEncryptingDrive":
@@ -821,7 +853,7 @@ def online_capacity_expansion(module, redfish_obj):
             links = volume_resp.json_data.get("Links")
             if links:
                 for disk in volume_resp.json_data.get("Links").get("Drives"):
-                    drive = disk["@odata.id"].split('/')[-1]
+                    drive = disk[ODATA_ID].split('/')[-1]
                     current_pd.append(drive)
             drives_to_add = [each_drive for each_drive in target if each_drive not in current_pd]
             if module.check_mode and drives_to_add and len(drives_to_add) % OCE_MIN_PD_RAID_MAPPING[raid_type] == 0:
@@ -848,33 +880,100 @@ def online_capacity_expansion(module, redfish_obj):
         module.exit_json(msg=err, failed=True)
 
 
+def match_id_in_list(id, member_list):
+    for each_dict in member_list:
+        url = each_dict[ODATA_ID]
+        _id = url.split("/")[-1]
+        if id == _id:
+            return url
+
+
+def validate_secure_erase(module, redfish_obj):
+    drive_uri = None
+    drive = module.params.get("target")
+    drive_id = drive[0]
+    controller_id = module.params.get("controller_id")
+    uri, err_msg = validate_and_get_first_resource_id_uri(module, redfish_obj,
+                                                          SYSTEMS_URI)
+    if err_msg:
+        module.exit_json(msg=err_msg, failed=True)
+    storage_uri = get_dynamic_uri(redfish_obj, uri, "Storage")['@odata.id']
+    storage_member_list = get_dynamic_uri(redfish_obj, storage_uri, "Members")
+    controller_uri = match_id_in_list(controller_id, storage_member_list)
+    if controller_uri is None:
+        module.exit_json(msg=CNTRL_ERROR_MSG.format(controller_id), skipped=True)
+    drives_list = get_dynamic_uri(redfish_obj, controller_uri, 'Drives')
+    drive_uri = match_id_in_list(drive_id, drives_list)
+    if drive_uri is None:
+        module.exit_json(msg=PD_ERROR_MSG.format(drive_id), skipped=True)
+    drive_detail = get_dynamic_uri(redfish_obj, drive_uri)
+    firm_ver = get_idrac_firmware_version(redfish_obj)
+    if LooseVersion(firm_ver) >= '3.0':
+        dell_oem = drive_detail.get("Oem", {}).get("Dell", {})
+        try:
+            dell_disk = dell_oem["DellPhysicalDisk"]
+        except KeyError:
+            dell_disk = dell_oem.get("DellPCIeSSD", {})
+        drive_ready = dell_disk.get("RaidStatus", {})
+        if drive_ready != "Ready":
+            module.exit_json(msg=DRIVE_NOT_READY.format(drive_id),
+                             skipped=True)
+        capable = dell_disk.get("SystemEraseCapability", {})
+        if capable != "CryptographicErasePD":
+            module.exit_json(msg=DRIVE_NOT_SECURE_ERASE.format(drive_id),
+                             skipped=True)
+    return drive_uri
+
+
+def secure_erase(module, redfish_obj):
+    drive_uri = validate_secure_erase(module, redfish_obj)
+    job_type_list = ["RAIDConfiguration", "RealTimeNoRebootConfiguration"]
+    scheduled_job = get_scheduled_job_resp(redfish_obj, job_type_list)
+    if scheduled_job:
+        job_id = scheduled_job.get("Id")
+        job_uri = JOB_URI_OEM.format(job_id=job_id)
+        module.exit_json(msg=JOB_EXISTS, status=scheduled_job, changed=False,
+                         task={"id": job_id, "uri": job_uri})
+    action_uri = get_dynamic_uri(redfish_obj, drive_uri, "Actions")
+    secure_erase_uri = action_uri.get("#Drive.SecureErase").get("target")
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
+    resp = redfish_obj.invoke_request("POST", secure_erase_uri, data="{}",
+                                      dump=False)
+    job_uri = resp.headers.get("Location")
+    job_id = job_uri.split("/")[-1]
+    return resp, job_uri, job_id
+
+
 def validate_inputs(module):
     module_params = module.params
     command = module_params.get("command")
     mode = module_params.get("mode")
+    key = module_params.get("key")
+    key_id = module_params.get("key_id")
+    old_key = module_params.get("old_key")
+    target = module_params.get("target")
+    volume = module_params.get("volume_id")
+    command_need_target_validation = ["AssignSpare", "UnassignSpare", "BlinkTarget", "UnBlinkTarget",
+                                      "LockVirtualDisk", "ChangePDStateToOnline", "ChangePDStateToOffline",
+                                      "SecureErase"]
+    command_need_volume_validation = ["AssignSpare", "UnassignSpare", "BlinkTarget", "UnBlinkTarget",
+                                      "LockVirtualDisk"]
+
     if command == "ReKey" and mode == "LKM":
-        key = module_params.get("key")
-        key_id = module_params.get("key_id")
-        old_key = module_params.get("old_key")
         if not all([key, key_id, old_key]):
             module.fail_json(msg="All of the following: key, key_id and old_key are "
                                  "required for '{0}' operation.".format(command))
+
     elif command == "EnableControllerEncryption" and mode == "LKM":
-        key = module_params.get("key")
-        key_id = module_params.get("key_id")
         if not all([key, key_id]):
             module.fail_json(msg="All of the following: key, key_id are "
                                  "required for '{0}' operation.".format(command))
-    elif command in ["AssignSpare", "UnassignSpare", "BlinkTarget", "UnBlinkTarget", "LockVirtualDisk"]:
-        target, volume = module_params.get("target"), module_params.get("volume_id")
-        if target is not None and not 1 >= len(target):
-            module.fail_json(msg=TARGET_ERR_MSG.format("physical disk"))
-        if volume is not None and not 1 >= len(volume):
-            module.fail_json(msg=TARGET_ERR_MSG.format("virtual drive"))
-    elif command in ["ChangePDStateToOnline", "ChangePDStateToOffline"]:
-        target = module.params.get("target")
-        if target is not None and not 1 >= len(target):
-            module.fail_json(msg=TARGET_ERR_MSG.format("physical disk"))
+
+    elif command in command_need_target_validation and target is not None and len(target) != 1:
+        module.fail_json(msg=TARGET_ERR_MSG.format("physical disk"))
+    elif command in command_need_volume_validation and volume is not None and len(volume) != 1:
+        module.fail_json(msg=TARGET_ERR_MSG.format("virtual drive"))
 
 
 def get_current_time(redfish_obj):
@@ -976,6 +1075,31 @@ def set_attributes(module, redfish_obj):
     return job_id, time_set
 
 
+def job_condition_check(module, redfish_obj, job_id, job_uri,
+                        job_completion_msg, job_submission_msg,
+                        condition=True):
+    job_wait = module.params.get("job_wait")
+    if condition and job_wait:
+        resp, msg = wait_for_job_completion(redfish_obj, job_uri, job_wait=job_wait,
+                                            wait_timeout=module.params["job_wait_timeout"])
+        if not resp:
+            job_completion_msg = msg
+            resp = redfish_obj.invoke_request("GET", job_uri)
+        job_data = strip_substr_dict(resp.json_data)
+        if job_data["JobState"] == "Failed":
+            changed, failed = False, True
+        else:
+            changed, failed = True, False
+        module.exit_json(msg=job_completion_msg, changed=changed, failed=failed,
+                         task={"id": job_id, "uri": job_uri}, status=job_data)
+    else:
+        resp, msg = wait_for_job_completion(redfish_obj, job_uri, job_wait=job_wait,
+                                            wait_timeout=module.params["job_wait_timeout"])
+        job_data = strip_substr_dict(resp.json_data)
+        module.exit_json(msg=job_submission_msg, task={"id": job_id, "uri": job_uri},
+                         status=job_data)
+
+
 def main():
     specs = {
         "attributes": {"type": 'dict'},
@@ -983,7 +1107,7 @@ def main():
                     "choices": ["ResetConfig", "AssignSpare", "SetControllerKey", "RemoveControllerKey",
                                 "ReKey", "UnassignSpare", "EnableControllerEncryption", "BlinkTarget",
                                 "UnBlinkTarget", "ConvertToRAID", "ConvertToNonRAID", "ChangePDStateToOnline",
-                                "ChangePDStateToOffline", "LockVirtualDisk", "OnlineCapacityExpansion"]},
+                                "ChangePDStateToOffline", "LockVirtualDisk", "OnlineCapacityExpansion", "SecureErase"]},
         "controller_id": {"required": False, "type": "str"},
         "volume_id": {"required": False, "type": "list", "elements": "str"},
         "target": {"required": False, "type": "list", "elements": "str", "aliases": ["drive_id"]},
@@ -1016,6 +1140,7 @@ def main():
             ["command", "LockVirtualDisk", ["volume_id"]], ["command", "OnlineCapacityExpansion", ["volume_id"]],
             ["command", "OnlineCapacityExpansion", ["target", "size"], True],
             ["command", "LockVirtualDisk", ["volume_id"]],
+            ["command", "SecureErase", ["controller_id", "target"]],
             ["apply_time", "AtMaintenanceWindowStart", ("maintenance_window",)],
             ["apply_time", "InMaintenanceWindowOnReset", ("maintenance_window",)]
         ],
@@ -1025,25 +1150,30 @@ def main():
     try:
         command = module.params["command"]
         with Redfish(module.params, req_session=True) as redfish_obj:
-            if command == "ResetConfig":
-                resp, job_uri, job_id = ctrl_reset_config(module, redfish_obj)
-            elif command == "SetControllerKey" or command == "ReKey" or \
-                    command == "RemoveControllerKey" or command == "EnableControllerEncryption":
-                resp, job_uri, job_id = ctrl_key(module, redfish_obj)
-            elif command == "AssignSpare" or command == "UnassignSpare":
-                resp, job_uri, job_id = hot_spare_config(module, redfish_obj)
-            elif command == "BlinkTarget" or command == "UnBlinkTarget":
+            command_function_mapping = {
+                "ResetConfig": ctrl_reset_config,
+                "SetControllerKey": ctrl_key,
+                "ReKey": ctrl_key,
+                "RemoveControllerKey": ctrl_key,
+                "EnableControllerEncryption": ctrl_key,
+                "AssignSpare": hot_spare_config,
+                "UnassignSpare": hot_spare_config,
+                "ConvertToRAID": convert_raid_status,
+                "ConvertToNonRAID": convert_raid_status,
+                "ChangePDStateToOnline": change_pd_status,
+                "ChangePDStateToOffline": change_pd_status,
+                "LockVirtualDisk": lock_virtual_disk,
+                "OnlineCapacityExpansion": online_capacity_expansion,
+                "SecureErase": secure_erase
+            }
+
+            if command in ["BlinkTarget", "UnBlinkTarget"]:
                 resp = target_identify_pattern(module, redfish_obj)
                 if resp.success and resp.status_code == 200:
                     module.exit_json(msg=JOB_COMPLETION.format(command), changed=True)
-            elif command == "ConvertToRAID" or command == "ConvertToNonRAID":
-                resp, job_uri, job_id = convert_raid_status(module, redfish_obj)
-            elif command == "ChangePDStateToOnline" or command == "ChangePDStateToOffline":
-                resp, job_uri, job_id = change_pd_status(module, redfish_obj)
-            elif command == "LockVirtualDisk":
-                resp, job_uri, job_id = lock_virtual_disk(module, redfish_obj)
-            elif command == "OnlineCapacityExpansion":
-                resp, job_uri, job_id = online_capacity_expansion(module, redfish_obj)
+            elif command:
+                func = command_function_mapping[command]
+                resp, job_uri, job_id = func(module, redfish_obj)
 
             if module.params["attributes"]:
                 controller_id = module.params["controller_id"]
@@ -1052,48 +1182,21 @@ def main():
                 check_id_exists(module, redfish_obj, "controller_id", controller_id, CONTROLLER_URI)
                 job_id, time_set = set_attributes(module, redfish_obj)
                 job_uri = JOB_URI_OEM.format(job_id=job_id)
-                if time_set["ApplyTime"] == "Immediate" and module.params["job_wait"]:
-                    resp, msg = wait_for_job_completion(redfish_obj, job_uri, job_wait=module.params["job_wait"],
-                                                        wait_timeout=module.params["job_wait_timeout"])
-                    job_data = strip_substr_dict(resp.json_data)
-                    if job_data["JobState"] == "Failed":
-                        changed, failed = False, True
-                    else:
-                        changed, failed = True, False
-                    module.exit_json(msg=JOB_COMPLETION_ATTRIBUTES, task={"id": job_id, "uri": job_uri},
-                                     status=job_data, changed=changed, failed=failed)
-                else:
-                    resp, msg = wait_for_job_completion(redfish_obj, job_uri, job_wait=False,
-                                                        wait_timeout=module.params["job_wait_timeout"])
-                    job_data = strip_substr_dict(resp.json_data)
-                module.exit_json(msg=JOB_SUBMISSION_ATTRIBUTES, task={"id": job_id, "uri": job_uri},
-                                 status=job_data)
-
+                job_condition_check(module, redfish_obj, job_id,
+                                    job_uri, JOB_COMPLETION_ATTRIBUTES,
+                                    JOB_SUBMISSION_ATTRIBUTES,
+                                    time_set["ApplyTime"] == "Immediate")
             oem_job_url = JOB_URI_OEM.format(job_id=job_id)
-            job_wait = module.params["job_wait"]
-            if job_wait:
-                resp, msg = wait_for_job_completion(redfish_obj, oem_job_url, job_wait=job_wait,
-                                                    wait_timeout=module.params["job_wait_timeout"])
-                job_data = strip_substr_dict(resp.json_data)
-                if job_data["JobState"] == "Failed":
-                    changed, failed = False, True
-                else:
-                    changed, failed = True, False
-                module.exit_json(msg=JOB_COMPLETION.format(command), task={"id": job_id, "uri": oem_job_url},
-                                 status=job_data, changed=changed, failed=failed)
-            else:
-                resp, msg = wait_for_job_completion(redfish_obj, oem_job_url, job_wait=job_wait,
-                                                    wait_timeout=module.params["job_wait_timeout"])
-                job_data = strip_substr_dict(resp.json_data)
-            module.exit_json(msg=JOB_SUBMISSION.format(command), task={"id": job_id, "uri": oem_job_url},
-                             status=job_data)
+            job_condition_check(module, redfish_obj, job_id, oem_job_url,
+                                JOB_COMPLETION.format(command),
+                                JOB_SUBMISSION.format(command))
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (RuntimeError, SSLValidationError, ConnectionError, KeyError,
             ImportError, ValueError, TypeError, AttributeError) as e:
-        module.fail_json(msg=str(e))
+        module.exit_json(msg=str(e), failed=True)
 
 
 if __name__ == '__main__':
