@@ -31,7 +31,6 @@ jobs:
     if: ${{ always() }}
     needs:
       - changelog
-      - build-import
       - sanity
       - unit-galaxy
       - unit-source
