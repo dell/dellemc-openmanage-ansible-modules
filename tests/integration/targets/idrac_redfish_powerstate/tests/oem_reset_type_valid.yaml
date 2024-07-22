@@ -1,0 +1,105 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: idrac_ip, idrac_user and
+      idrac_password."
+  when: "idrac_ip is not defined or idrac_user is not defined or idrac_password
+    is not defined"
+
+- vars:
+    wait_time: 180
+  block:
+    - name: pre-req - Power state - Off
+      dellemc.openmanage.redfish_powerstate:
+        reset_type: "GracefulShutdown"
+
+    - name: Fetch the iDRAC firmware version
+      ansible.builtin.import_tasks: _fetch_uri.yml
+      vars:
+        uri: "/redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
+      until: idrac_output.json.PowerState == "On"
+      retries: 10
+      delay: 30
+
+    - name: Set fact for firmware version
+      ansible.builtin.set_fact:
+        firmware_ver: "{{ idrac_output.json.FirmwareVersion }}"
+
+    - name: Performing oem_reset_type when server is powered Off
+      dellemc.openmanage.redfish_powerstate:
+        oem_reset_type:
+          dell:
+            reset_type: "PowerCycle"
+            final_power_state: "Off"
+      ignore_errors: true
+      register: powered_off
+      when: firmware_ver >= '7.00.60'
+
+    - name: "Waiting for {{ wait_time }} seconds"
+      ansible.builtin.wait_for: timeout={{ wait_time }}
+      when: powered_off.changed
+
+    - name: Fetching power state of iDRAC
+      ansible.builtin.import_tasks: _fetch_uri.yml
+      vars:
+        uri: "/redfish/v1/Chassis/System.Embedded.1?$select=PowerState"
+      until: idrac_output.json.PowerState == "Off"
+      retries: 10
+      delay: 30
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - powered_off.changed
+          - valid_msg == powered_off.msg
+          - idrac_output.json.PowerState == 'Off'
+      vars:
+        valid_msg: "Successfully performed the full virtual server AC
+          power-cycle operation."
+      when: firmware_ver >= '7.00.60'
+
+    - name: Performing oem_reset_type when server is powered On
+      dellemc.openmanage.redfish_powerstate:
+        oem_reset_type:
+          dell:
+            reset_type: "PowerCycle"
+            final_power_state: "On"
+      ignore_errors: true
+      register: powered_on
+      when: firmware_ver >= '7.00.60'
+
+    - name: "Waiting for {{ wait_time }} seconds"
+      ansible.builtin.wait_for: timeout={{ wait_time }}
+      when: powered_on.changed
+
+    - name: Fetching power state of iDRAC
+      ansible.builtin.import_tasks: _fetch_uri.yml
+      vars:
+        uri: "/redfish/v1/Chassis/System.Embedded.1?$select=PowerState"
+      until: idrac_output.json.PowerState == "On"
+      retries: 10
+      delay: 30
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - powered_on.changed
+          - valid_msg == powered_on.msg
+          - idrac_output.json.PowerState == 'On'
+      vars:
+        valid_msg: "Successfully performed the full virtual server AC
+          power-cycle operation. Please wait a few minutes, the server
+          will automatically power on."
+      when: firmware_ver >= '7.00.60'
+
+  module_defaults:
+    dellemc.openmanage.redfish_powerstate:
+      baseuri: "{{ idrac_ip }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
