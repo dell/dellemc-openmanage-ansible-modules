@@ -1943,7 +1943,7 @@ releases:
           the Proxy Exclusion List and Certificate Validation.
 
         - The ``idrac_redfish_powerstate`` module is enhanced to support
-          for full virtual A/C power cycle.'
+          full virtual A/C power cycle.'
 
       minor_changes:
         - idrac_redfish_storage_controller - This module is enhanced to

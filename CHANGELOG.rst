@@ -12,7 +12,7 @@ Release Summary
 
 - The ``idrac_redfish_storage_controller`` module is enhanced to support secure and/or cryptographic erase of the physical disk.
 - The ``ome_application_network_proxy`` module is enhanced to manage the Proxy Exclusion List and Certificate Validation.
-- The ``idrac_redfish_powerstate`` module is enhanced to support for full virtual A/C power cycle.
+- The ``idrac_redfish_powerstate`` module is enhanced to support full virtual A/C power cycle.
 
 Minor Changes
 -------------
