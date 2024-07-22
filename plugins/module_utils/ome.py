@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.4.0
 # Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -38,6 +38,7 @@ from ansible.module_utils.common.parameters import env_fallback
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import strip_substr_dict
 from ansible.module_utils.basic import AnsibleModule
 
 ome_auth_params = {
@@ -58,6 +59,7 @@ SESSION_RESOURCE_COLLECTION = {
 JOB_URI = "JobService/Jobs({job_id})"
 JOB_SERVICE_URI = "JobService/Jobs"
 HOST_UNRESOLVED_MSG = "Unable to resolve hostname or IP {0}."
+JOB_EXEC_HISTORY = "JobService/Jobs({job_id})/ExecutionHistories"
 
 
 class OpenURLResponse(object):
@@ -405,6 +407,24 @@ class RestOME(object):
     def _get_omam_ca_env(self):
         """Check if the value is set in REQUESTS_CA_BUNDLE or CURL_CA_BUNDLE or OMAM_CA_BUNDLE or returns None"""
         return os.environ.get("REQUESTS_CA_BUNDLE") or os.environ.get("CURL_CA_BUNDLE") or os.environ.get("OMAM_CA_BUNDLE")
+
+    def get_job_execution_details(self, job_id):
+        try:
+            job_detail_status = []
+            resp = self.invoke_request('GET', JOB_EXEC_HISTORY.format(job_id=job_id))
+            ex_hist = resp.json_data.get('value')
+            # Sorting based on startTime and to get latest execution instance.
+            tmp_dict = dict((x["StartTime"], x["Id"]) for x in ex_hist)
+            sorted_dates = sorted(tmp_dict.keys())
+            ex_url = JOB_EXEC_HISTORY.format(job_id=job_id) + "({0})/ExecutionHistoryDetails".format(tmp_dict[sorted_dates[-1]])
+            all_exec = self.get_all_items_with_pagination(ex_url)
+            for jb_ip in all_exec.get('value'):
+                jb_ip = strip_substr_dict(jb_ip)
+                jb_ip.get('JobStatus', {}).pop('@odata.type', None)
+                job_detail_status.append(jb_ip)
+        except Exception:
+            pass
+        return job_detail_status
 
 
 class OmeAnsibleModule(AnsibleModule):

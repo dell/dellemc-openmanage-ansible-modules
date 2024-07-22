@@ -92,6 +92,18 @@
   when:
     set_controller_key is true and key is defined and key_id is defined and mode is defined
 
+- name: Performing secure erase on a physical disk.
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    <<: *idrac_inputs
+    command: "SecureErase"
+    controller_id: "{{ controller_id }}"
+    target: "{{ disks.id }}"
+    job_wait: "{{ job_wait }}"
+    job_wait_timeout: "{{ job_wait_timeout }}"
+  register: erase_state_out
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
+  when: disks.erase is defined and disks.erase is true
+
 - name: Change physical disk state.
   dellemc.openmanage.idrac_redfish_storage_controller:
     <<: *idrac_inputs
@@ -198,3 +210,23 @@
   register: blink_pd_out
   delegate_to: "{{ idrac_storage_controller_task_delegate }}"
   when: disks.blink is defined
+
+- name: Collecting all the registers
+  ansible.builtin.set_fact:
+    idrac_storage_controller_out:
+      controller_reset_config: "{{ reset_config_out }}"
+      controller_attributes_config: "{{ attributes_config_out }}"
+      controller_rekey: "{{ storage_controller_rekey }}"
+      enable_encryption: "{{ enable_encryption_out }}"
+      set_controller_key: "{{ set_controller_key_out }}"
+      remove_controller_key: "{{ remove_controller_key_out }}"
+      physical_disk_state: "{{ pd_state_out }}"
+      physical_disk_raid_state: "{{ raid_state_out }}"
+      assign_dedicated_spare: "{{ assign_dedicated_spare_out }}"
+      assign_global_spare: "{{ assign_global_spare_out }}"
+      unassign_hotspare: "{{ unassign_hotspare_out }}"
+      lock_vd: "{{ lock_vd_out }}"
+      oce_vd: "{{ oce_vd_out }}"
+      blink_vd: "{{ blink_vd_out }}"
+      blink_pd: "{{ blink_pd_out }}"
+      secure_erase: "{{ erase_state_out }}"

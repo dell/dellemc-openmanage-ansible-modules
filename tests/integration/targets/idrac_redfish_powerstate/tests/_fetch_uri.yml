@@ -1,0 +1,16 @@
+---
+- block:
+    - name: Fetching data from iDRAC
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}
+         {{ uri }}"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        method: GET
+        validate_certs: false
+        force_basic_auth: true
+        return_content: true
+        status_code: 200
+        headers: 'Accept=application/json'
+      register: idrac_output
+      when: uri is defined

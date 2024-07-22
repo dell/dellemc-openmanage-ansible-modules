@@ -55,6 +55,10 @@ objects:
         settings
       name: idrac_storage_controller
       version_added: 7.6.0
+    idrac_user:
+      description: Role to manage local users for iDRAC.
+      name: idrac_user
+      version_added: 9.0.0
     redfish_firmware:
       description: Update a component firmware using the image file available on the
         local or remote system
@@ -99,7 +103,7 @@ plugins:
       description: Configures the RAID configuration attributes
       name: dellemc_idrac_storage_volume
       namespace: ''
-      version_added: 2.0.0
+      version_added: 9.1.0
     dellemc_system_lockdown_mode:
       description: Configures system lockdown mode for iDRAC
       name: dellemc_system_lockdown_mode
@@ -126,6 +130,11 @@ plugins:
       name: idrac_certificates
       namespace: ''
       version_added: 5.5.0
+    idrac_diagnostics:
+      description: Run and Export iDRAC diagnostics
+      name: idrac_diagnostics
+      namespace: ''
+      version_added: 9.0.0
     idrac_firmware:
       description: Firmware update from a repository on a network share (CIFS, NFS,
         HTTP, HTTPS, FTP)
@@ -137,6 +146,11 @@ plugins:
       name: idrac_firmware_info
       namespace: ''
       version_added: 3.0.0
+    idrac_license:
+      description: Configure iDRAC licenses
+      name: idrac_license
+      namespace: ''
+      version_added: 8.7.0
     idrac_lifecycle_controller_job_status_info:
       description: Get the status of a Lifecycle Controller job
       name: idrac_lifecycle_controller_job_status_info
@@ -179,7 +193,7 @@ plugins:
       namespace: ''
       version_added: 2.1.0
     idrac_reset:
-      description: Reset iDRAC
+      description: Factory reset the iDRACs
       name: idrac_reset
       namespace: ''
       version_added: 2.1.0
@@ -188,6 +202,16 @@ plugins:
       name: idrac_server_config_profile
       namespace: ''
       version_added: 2.1.0
+    idrac_session:
+      description: Manage iDRAC sessions
+      name: idrac_session
+      namespace: ''
+      version_added: 9.2.0
+    idrac_storage_volume:
+      description: Configures the RAID configuration attributes
+      name: idrac_storage_volume
+      namespace: ''
+      version_added: 9.1.0
     idrac_syslog:
       description: Enable or disable the syslog on iDRAC
       name: idrac_syslog
@@ -469,6 +493,12 @@ plugins:
       name: ome_server_interface_profiles
       namespace: ''
       version_added: 5.1.0
+    ome_session:
+      description: Manage OpenManage Enterprise and OpenManage Enterprise modular
+        sessions
+      name: ome_session
+      namespace: ''
+      version_added: 9.3.0
     ome_smart_fabric:
       description: Create, modify or delete a fabric on OpenManage Enterprise Modular
       name: ome_smart_fabric
@@ -561,4 +591,4 @@ plugins:
   strategy: {}
   test: {}
   vars: {}
-version: 8.5.0
+version: 9.5.0
