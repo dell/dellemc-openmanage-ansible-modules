@@ -214,10 +214,26 @@ def fetch_ac_powerstate_details(module, system_id_res_data, action_id_res):
             'current_state': current_state, 'allowable_power_state': allowable_final_power_state})
 
 
+def perform_uri_fetch(session_obj, module, system_id_res, resource_id_list, resource_id):
+    reset_type = module.params.get("reset_type")
+    if system_id_res in resource_id_list:
+        system_id_res_resp = session_obj.invoke_request("GET", system_id_res)
+        system_id_res_data = system_id_res_resp.json_data
+        action_id_res = system_id_res_data.get("Actions")
+        if action_id_res:
+            if reset_type:
+                fetch_powerstate_details(system_id_res_data, action_id_res)
+            else:
+                fetch_ac_powerstate_details(module, system_id_res_data, action_id_res)
+        else:
+            module.exit_json(msg=TARGET_DEVICE_NOT_SUPPORTED, skipped=True)
+    else:
+        module.exit_json(msg=INVALID_DEVICE_ID.format(resource_id), skipped=True)
+
+
 def fetch_power_uri_resource(module, session_obj, reset_type_map=None):
     try:
         resource_id = module.params.get("resource_id")
-        reset_type = module.params.get("reset_type")
         static_resource_id_resource = None
         if resource_id:
             static_resource_id_resource = "{0}{1}{2}".format(session_obj.root_uri, reset_type_map + "/", resource_id)
@@ -227,19 +243,7 @@ def fetch_power_uri_resource(module, session_obj, reset_type_map=None):
         if system_members and len(system_members) > 0:
             resource_id_list = [system_id["@odata.id"] for system_id in system_members if "@odata.id" in system_id]
             system_id_res = static_resource_id_resource or resource_id_list[0]
-            if system_id_res in resource_id_list:
-                system_id_res_resp = session_obj.invoke_request("GET", system_id_res)
-                system_id_res_data = system_id_res_resp.json_data
-                action_id_res = system_id_res_data.get("Actions")
-                if action_id_res:
-                    if reset_type:
-                        fetch_powerstate_details(system_id_res_data, action_id_res)
-                    else:
-                        fetch_ac_powerstate_details(module, system_id_res_data, action_id_res)
-                else:
-                    module.exit_json(msg=TARGET_DEVICE_NOT_SUPPORTED, skipped=True)
-            else:
-                module.exit_json(msg=INVALID_DEVICE_ID.format(resource_id), skipped=True)
+            perform_uri_fetch(session_obj, module, system_id_res, resource_id_list, resource_id)
         else:
             module.exit_json(msg=TARGET_DEVICE_NOT_SUPPORTED, skipped=True)
     except HTTPError as err:
