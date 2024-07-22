@@ -22,18 +22,12 @@ jobs:
     uses: ansible/ansible-content-actions/.github/workflows/sanity.yaml@main
   unit-galaxy:
     uses: ansible/ansible-content-actions/.github/workflows/unit.yaml@main
-  unit-source:
-    uses: ansible-network/github_actions/.github/workflows/unit_source.yml@main
-    with:
-      collection_pre_install: >-
-        git+https://github.com/sachin-apa/dellemc-openmanage-ansible-modules.git
   all_green:
     if: ${{ always() }}
     needs:
       - changelog
       - sanity
       - unit-galaxy
-      - unit-source
       - ansible-lint
     runs-on: ubuntu-latest
     steps:
