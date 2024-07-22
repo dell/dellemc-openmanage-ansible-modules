@@ -57,9 +57,19 @@
     - ansible.builtin.pause: seconds=10
       when: prereq_result_set_attrs.changed
 
+    - name: Constructing url
+      ansible.builtin.set_fact:
+        url_1: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/"
+        url_2: "Systems/System.Embedded.1/Storage/{{ controller_name }}/"
+        url_3: "Controllers/{{ controller_name }}"
+
+    - name: Final url
+      ansible.builtin.set_fact:
+        job_url: "{{ url_1 }}{{ url_2 }}{{ url_3 }}"
+
     - ansible.builtin.include_tasks: get_data.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/System.Embedded.1/Storage/{{controller_name}}/Controllers/{{controller_name}}
+        url: "{{ job_url }}"
 
     - name: Verify prerequisite - Change Storage controller attribute
        'ControllerMode' to RAID
@@ -113,7 +123,7 @@
 
     - ansible.builtin.include_tasks: get_data.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/System.Embedded.1/Storage/{{controller_name}}/Controllers/{{controller_name}}
+        url: "{{ job_url }}"
 
     - name: Verify prerequisite is set
       ansible.builtin.assert:
@@ -132,9 +142,18 @@
         fail_msg: "Prerequisite is not set"
         success_msg: "Prerequisite is set successfully"
 
+    - name: Constructing url
+      ansible.builtin.set_fact:
+        url_1: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/"
+        url_2: "Managers/iDRAC.Embedded.1"
+
+    - name: Final url
+      ansible.builtin.set_fact:
+        date_time_url: "{{ url_1 }}{{ url_2 }}{{ url_3 }}"
+
     - ansible.builtin.include_tasks: get_updated_datetime.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1
+        url: "{{ date_time_url }}"
         add_minutes: '3'
 
 
@@ -191,7 +210,7 @@
 
     - ansible.builtin.include_tasks: get_data.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/System.Embedded.1/Storage/{{controller_name}}/Controllers/{{controller_name}}
+        url: "{{ job_url }}"
 
     - name: Verify task status - Configure Storage controller attributes at
        apply_time:AtMaintenanceWindowStart (Normal mode)
