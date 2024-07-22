@@ -102,9 +102,9 @@
       ansible.builtin.assert:
         that:
           - not configure_network_proxy_idempotent.changed
-          - configure_network_proxy_idempotent.msg ==
-           "No changes made to proxy configuration
-           as entered values are the same as current configuration values."
+          - configure_network_proxy_idempotent.msg == "No changes made to
+            proxy configuration as entered values are the same as current
+            configuration values"
 
     - name: Reset proxy authentication.
       dellemc.openmanage.ome_application_network_proxy:
