@@ -1,6 +1,6 @@
 omsdk
 pytest
-pytest-xdist==2.5.
+pytest-xdist==2.5.0
 mock
 pytest-mock
 pytest-cov
