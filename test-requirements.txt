@@ -1,0 +1,10 @@
+omsdk
+pytest
+mock
+pytest-mock
+pytest-cov
+coverage
+netaddr>=0.7.19
+pytest-ansible
+pytest-xdist
+molecule
