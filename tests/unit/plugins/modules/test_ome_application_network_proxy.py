@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.5.0
+# Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -15,17 +15,21 @@ __metaclass__ = type
 import json
 
 import pytest
-from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
+from urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from io import StringIO
 from ansible.module_utils._text import to_text
-from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_application_network_proxy
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_proxy import main
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 CHECK_MODE_CHANGE_FOUND_MSG = "Changes found to be applied."
 CHECK_MODE_CHANGE_NOT_FOUND_MSG = "No Changes found to be applied."
+N0_PROXY_CONFIGURATION = "Unable to configure the proxy because proxy configuration settings " \
+                         "are not provided."
+NO_CHANGE_IN_CONFIGURATION = "No changes made to proxy configuration as entered values are the " \
+                             "same as current configuration values"
 
 
 @pytest.fixture
@@ -42,7 +46,8 @@ class TestOmeTemplate(FakeAnsibleModule):
 
     sub_param1 = {"enable_proxy": True, "ip_address": "255.0.0.0", "proxy_port": 443, "proxy_username": "username",
                   "proxy_password": "password",
-                  "enable_authentication": True}
+                  "enable_authentication": True,
+                  "proxy_exclusion_list": []}
     sub_param2 = {"enable_proxy": False}
 
     @pytest.mark.parametrize("sub_param", [sub_param1, sub_param2])
@@ -54,7 +59,7 @@ class TestOmeTemplate(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "ome_application_network_proxy.get_updated_payload", return_value={"key": "val"})
         ome_response_mock.json_data = {"EnableProxy": True, "IpAddress": "255.0.0.0", "PortNumber": 443,
                                        "Username": "username", "Password": "password", "EnableAuthentication": True}
-        result = self.execute_module(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result['changed'] is True
         assert "msg" in result
         assert "proxy_configuration" in result and result["proxy_configuration"] == {"EnableProxy": True,
@@ -62,7 +67,8 @@ class TestOmeTemplate(FakeAnsibleModule):
                                                                                      "PortNumber": 443,
                                                                                      "Username": "username",
                                                                                      "Password": "password",
-                                                                                     "EnableAuthentication": True}
+                                                                                     "EnableAuthentication": True,
+                                                                                     "ProxyExclusionList": []}
         assert result["msg"] == "Successfully updated network proxy configuration."
 
     sub_param1 = {"param": {"enable_proxy": True, "ip_address": "255.0.0.0"},
@@ -110,7 +116,7 @@ class TestOmeTemplate(FakeAnsibleModule):
         assert result["failed"] is True
 
     @pytest.mark.parametrize("exc_type",
-                             [IOError, ValueError, SSLError, TypeError, ConnectionError, HTTPError, URLError])
+                             [ValueError, TypeError, ConnectionError, HTTPError, URLError])
     def test_ome_application_network_proxy_main_success_failure_case3(self, exc_type, mocker, ome_default_args,
                                                                       ome_connection_mock_for_application_network_proxy,
                                                                       ome_response_mock):
@@ -124,7 +130,7 @@ class TestOmeTemplate(FakeAnsibleModule):
         elif exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + 'ome_application_network_proxy.get_payload',
                          side_effect=exc_type("exception message"))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'ome_application_network_proxy.get_payload',
@@ -132,7 +138,7 @@ class TestOmeTemplate(FakeAnsibleModule):
                                               'http error message',
                                               {"accept-type": "application/json"},
                                               StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'proxy_configuration' not in result
         assert 'msg' in result
@@ -234,8 +240,7 @@ class TestOmeTemplate(FakeAnsibleModule):
                    "Username": "username", "Password": "password"}
         f_module = self.get_module_mock(params=ome_default_args)
         ome_response_mock.json_data = current_setting
-        error_message = "No changes made to proxy configuration as entered values are the same as current " \
-                        "configuration values."
+        error_message = NO_CHANGE_IN_CONFIGURATION
         mocker.patch(MODULE_PATH + "ome_application_network_proxy.validate_check_mode_for_network_proxy",
                      return_value=None)
         with pytest.raises(Exception, match=error_message) as err:
@@ -254,8 +259,7 @@ class TestOmeTemplate(FakeAnsibleModule):
                    "Username": "username", "Password": "password2"}
         f_module = self.get_module_mock(params=ome_default_args)
         ome_response_mock.json_data = current_setting
-        error_message = "No changes made to proxy configuration as entered values are the same as current " \
-                        "configuration values."
+        error_message = NO_CHANGE_IN_CONFIGURATION
         mocker.patch(MODULE_PATH + "ome_application_network_proxy.validate_check_mode_for_network_proxy",
                      return_value=None)
         with pytest.raises(Exception, match=error_message) as err:
@@ -272,26 +276,32 @@ class TestOmeTemplate(FakeAnsibleModule):
         payload = {}
         f_module = self.get_module_mock(params=ome_default_args)
         ome_response_mock.json_data = current_setting
-        error_message = "Unable to configure the proxy because proxy configuration settings are not provided."
+        error_message = N0_PROXY_CONFIGURATION
         mocker.patch(MODULE_PATH + "ome_application_network_proxy.validate_check_mode_for_network_proxy",
                      return_value=None)
         with pytest.raises(Exception, match=error_message) as err:
             self.module.get_updated_payload(ome_connection_mock_for_application_network_proxy, f_module, payload)
 
-    def test_validate_check_mode_for_network_proxy_case01(self, ome_default_args):
+    def test_validate_check_mode_for_network_proxy_case01(self):
         f_module = self.get_module_mock(params={}, check_mode=True)
         with pytest.raises(Exception, match=CHECK_MODE_CHANGE_FOUND_MSG):
             self.module.validate_check_mode_for_network_proxy(True, f_module)
 
-    def test_validate_check_mode_for_network_proxy_case02(self, ome_default_args):
+    def test_validate_check_mode_for_network_proxy_case02(self):
         f_module = self.get_module_mock(params={}, check_mode=True)
         with pytest.raises(Exception, match=CHECK_MODE_CHANGE_NOT_FOUND_MSG):
             self.module.validate_check_mode_for_network_proxy(False, f_module)
 
-    def test_validate_check_mode_for_network_proxy_case03(self, ome_default_args):
+    def test_validate_check_mode_for_network_proxy_case03(self):
         f_module = self.get_module_mock(params={}, check_mode=False)
         self.module.validate_check_mode_for_network_proxy(True, f_module)
 
-    def test_validate_check_mode_for_network_proxy_case04(self, ome_default_args):
+    def test_validate_check_mode_for_network_proxy_case04(self):
         f_module = self.get_module_mock(params={}, check_mode=False)
         self.module.validate_check_mode_for_network_proxy(False, f_module)
+
+    def test_main(self, mocker):
+        module_mock = mocker.MagicMock()
+
+        mocker.patch(MODULE_PATH + "ome_application_network_proxy.OmeAnsibleModule", return_value=module_mock)
+        main()
