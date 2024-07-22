@@ -82,7 +82,7 @@ For more information about how to use the collection, refer to [OME modules](htt
 
 For more information about Unit testing, see [Unit testing](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/tests/README.md).
 
-For more information about Integration testing, see [Integration testing](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/tests/integration).
+For more information about Integration testing, see [Integration testing](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/tests/integration/README.md).
 
 ## Support
 
