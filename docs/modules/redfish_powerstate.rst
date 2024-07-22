@@ -28,35 +28,45 @@ Parameters
 ----------
 
   resource_id (False, str, None)
-    The unique identifier of the device being managed. For example- \ https://%3CI(baseuri\ \>/redfish/v1/Systems/\<\ :emphasis:`resource\_id`\ \>).
+    This option is the unique identifier of the device being managed. For example, \ https://%3CI(baseuri\ \>/redfish/v1/Systems/\<\ :emphasis:`resource\_id`\ \>).
 
     This option is mandatory for \ :emphasis:`base\_uri`\  with multiple devices.
 
-    To get the device details, use the API \ https://%3CI(baseuri\ \>/redfish/v1/Systems).
+    To get the device details, use the API \ https://%3CI(baseuri\ \>/redfish/v1/Systems) for reset\_type operation and \ https://%3CI(baseuri\ \>/redfish/v1/Chassis) for oem\_reset\_type operation.
 
 
-  reset_type (True, str, None)
+  reset_type (False, str, None)
     This option resets the device.
 
-    If \ :literal:`ForceOff`\ , Turns off the device immediately.
+    \ :literal:`ForceOff`\  turns off the device immediately.
 
-    If \ :literal:`ForceOn`\ , Turns on the device immediately.
+    \ :literal:`ForceOn`\  turns on the device immediately.
 
-    If \ :literal:`ForceRestart`\ , Turns off the device immediately, and then restarts the device.
+    \ :literal:`ForceRestart`\  turns off the device immediately, and then restarts the server.
 
-    If \ :literal:`GracefulRestart`\ , Performs graceful shutdown of the device, and then restarts the device.
+    \ :literal:`GracefulRestart`\  performs graceful shutdown of the device, and then restarts the device.
 
-    If \ :literal:`GracefulShutdown`\ , Performs a graceful shutdown of the device, and the turns off the device.
+    \ :literal:`GracefulShutdown`\  performs a graceful shutdown of the device, and then turns off the device.
 
-    If \ :literal:`Nmi`\ , Sends a diagnostic interrupt to the device. This is usually a non-maskable interrupt (NMI) on x86 device.
+    \ :literal:`Nmi`\  sends a diagnostic interrupt to the device. This option is usually a nonmaskable interrupt (NMI) on x86 systems.
 
-    If \ :literal:`On`\ , Turns on the device.
+    \ :literal:`On`\  turns on the device.
 
-    If \ :literal:`PowerCycle`\ , Performs power cycle on the device.
+    \ :literal:`PowerCycle`\  performs a power cycle on the device.
 
-    If \ :literal:`PushPowerButton`\ , Simulates the pressing of a physical power button on the device.
+    \ :literal:`PushPowerButton`\  simulates the pressing of a physical power button on the device.
+
+    \ :emphasis:`reset\_type`\  is mutually exclusive with \ :emphasis:`oem\_reset\_type`\ .
 
     When a power control operation is performed, which is not supported on the device, an error message is displayed with the list of operations that can be performed.
+
+
+  oem_reset_type (False, dict, None)
+    This parameter initiates a complete Alternate Current (AC) power cycle of the server which is equivalent to disconnecting power cables using OEM API.
+
+    \ :emphasis:`oem\_reset\_type`\  is mutually exclusive with \ :emphasis:`reset\_type`\ .
+
+    If the value of 'final\_power\_state' is not provided, the default value is 'Off'.
 
 
   baseuri (True, str, None)
@@ -125,20 +135,42 @@ Examples
     ---
     - name: Manage power state of the first device
       dellemc.openmanage.redfish_powerstate:
-           baseuri: "192.168.0.1"
-           username: "username"
-           password: "password"
-           ca_path: "/path/to/ca_cert.pem"
-           reset_type: "On"
+        baseuri: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        reset_type: "On"
 
     - name: Manage power state of a specified device
       dellemc.openmanage.redfish_powerstate:
-           baseuri: "192.168.0.1"
-           username: "username"
-           password: "password"
-           ca_path: "/path/to/ca_cert.pem"
-           reset_type: "ForceOff"
-           resource_id: "System.Embedded.1"
+        baseuri: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        reset_type: "ForceOff"
+        resource_id: "System.Embedded.1"
+
+    - name: Perform AC Power Cycle with final power state On
+      dellemc.openmanage.redfish_powerstate:
+        baseuri: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        oem_reset_type:
+          dell:
+            final_power_state: "On"
+            reset_type: "PowerCycle"
+
+    - name: Perform AC Power Cycle  with final power state Off
+      dellemc.openmanage.redfish_powerstate:
+        baseuri: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        oem_reset_type:
+          dell:
+            final_power_state: "Off"
+            reset_type: "PowerCycle"
 
 
 
@@ -167,4 +199,5 @@ Authors
 ~~~~~~~
 
 - Sajna Shetty(@Sajna-Shetty)
+- Lovepreet Singh (@singh-lovepreet1)
 
