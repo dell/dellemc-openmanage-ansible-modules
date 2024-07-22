@@ -26,7 +26,7 @@ jobs:
     uses: ansible-network/github_actions/.github/workflows/unit_source.yml@main
     with:
       collection_pre_install: >-
-        git+https://github.com/ansible-collections/ansible.utils.git
+        git+https://github.com/sachin-apa/dellemc-openmanage-ansible-modules.git
   all_green:
     if: ${{ always() }}
     needs:
