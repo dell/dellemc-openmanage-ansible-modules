@@ -1,0 +1,30 @@
+---
+- block:
+    - ansible.builtin.set_fact:
+        image_uri: "{{ bios_firmware_uri if (comp == 'BIOS') else
+         idrac_firmware_uri }}"
+
+    - name: Update a firmware from HTTP share.
+      dellemc.openmanage.redfish_firmware:
+        baseuri: "{{ idrac_ip }}:{{ idrac_port }}"
+        username: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        image_uri: "{{ image_uri }}"
+        transfer_protocol: "HTTP"
+        timeout: 300
+      register: fw_update
+
+    - ansible.builtin.include_tasks: _post_update_helper.yml
+      vars:
+        job_id: "{{ fw_update.task.id }}"
+
+    - ansible.builtin.include_tasks: _get_firmware_inventory.yml
+
+    - name: Prerequisite - Check if rollback version available for component.
+      ansible.builtin.fail:
+        msg: "Prerequisite not met. Rollback version not available for
+         component : {{ comp }}"
+      when: 'comp not in rollback_component_list'
+
+  when: 'comp not in rollback_component_list'

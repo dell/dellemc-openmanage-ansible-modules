@@ -1,0 +1,51 @@
+---
+- ansible.builtin.set_fact:
+    url: "https://{{idrac_ip}}:{{idrac_port}}
+     /redfish/v1/UpdateService/FirmwareInventory?$expand=*($levels=1)"
+  when: is_ipv4
+
+- ansible.builtin.set_fact:
+    url: "https://[{{idrac_ip}}]:{{idrac_port}}
+     /redfish/v1/UpdateService/FirmwareInventory?$expand=*($levels=1)"
+  when: is_ipv6
+
+- name: Get data using uri
+  ansible.builtin.uri:
+    url: "{{ url }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    body: {}
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+    headers: 'Accept=application/json'
+  until: uri_res.status == 200
+  retries: 12
+  delay: 5
+  register: uri_res
+
+- name: Extracting data from uri response
+  ansible.builtin.set_fact:
+    uri_data: "{{ uri_res.content }}"
+
+- ansible.builtin.set_fact:
+    rollback_component_list:
+      "{{ uri_data.Members | to_json | from_json | json_query(query) }}"
+  vars:
+    query: "[?starts_with(Id,'Previous')].Name"
+
+- ansible.builtin.include_tasks: _loop_block_helper.yml
+  when: component is defined
+
+- block:
+    - ansible.builtin.set_fact:
+        previous_versions: []
+        installed_versions: []
+
+    - ansible.builtin.include_tasks: _loop_block_helper.yml
+      vars:
+        component: "{{ item }}"
+      with_items: "{{ components_list }}"
+  when: components_list is defined

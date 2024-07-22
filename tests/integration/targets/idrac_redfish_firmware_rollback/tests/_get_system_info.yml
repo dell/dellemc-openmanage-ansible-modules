@@ -1,0 +1,30 @@
+---
+- name: Get System Inventory
+  dellemc.openmanage.idrac_system_info:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    validate_certs: "{{ validate_certs }}"
+  register: sys_inv_result
+
+- name: create the empty list
+  ansible.builtin.set_fact:
+    nic_comps: []
+    fc_comps: []
+
+- ansible.builtin.set_fact:
+    sys_components: "{{sys_inv_result.system_info.keys()}}"
+
+- ansible.builtin.set_fact:
+    nic_comps: "{{ nic_comps +  [item.ProductName] }}"
+  loop: "{{sys_inv_result.system_info.NIC}}"
+  when: "'NIC' in sys_components"
+
+
+- ansible.builtin.set_fact:
+    fc_comps: "{{ fc_comps + [item.DeviceName] }}"
+  loop: "{{ sys_inv_result.system_info.FC }}"
+  when: "'FC' in sys_components"
+
+- ansible.builtin.set_fact:
+    network_components: "{{ nic_comps + fc_comps }}"
