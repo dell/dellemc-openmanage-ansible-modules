@@ -4,6 +4,33 @@ Dell OpenManage Ansible Modules Release Notes
 
 .. contents:: Topics
 
+v9.5.0
+======
+
+Release Summary
+---------------
+
+- The ``idrac_redfish_storage_controller`` module is enhanced to support secure and/or cryptographic erase of the physical disk.
+- The ``ome_application_network_proxy`` module is enhanced to allow you to manage the Proxy Exclusion List in the Proxy Configuration.
+- The ``idrac_redfish_powerstate`` module is enhanced to add support for full virtual A/C power cycle in server powercycle module.
+- The ``dellemc_configure_idrac_eventing``, ``dellemc_configure_idrac_services``, ``dellemc_idrac_lc_attributes``, ``dellemc_system_lockdown_mode``, ``idrac_network``, and ``idrac_timezone_ntp`` modules have been removed/tombstoned from the collections.
+
+Minor Changes
+-------------
+
+- idrac_redfish_powerstate - This module is enhanced to add support for full virtual A/C power cycle option in server powercycle module.
+- idrac_redfish_storage_controller - This module is enhanced to allow you to add support for secure and/or cryptographic erase of the physical disk.
+- ome_application_network_proxy - This module is enhanced to allow you to manage the Proxy Exclusion List in the Proxy Configuration.
+
+Known Issues
+------------
+
+- idrac_diagnostics - Issue(285322) - This module doesn't support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
+- idrac_firmware - Issue(279282) - This module does not support firmware update using HTTP, HTTPS, and FTP shares with authentication on iDRAC8.
+- idrac_storage_volume - Issue(290766) - The module will report success instead of showing failure for new virtual creation on the BOSS-N1 controller if a virtual disk is already present on the same controller.
+- ome_diagnostics - Issue(279193) - Export of SupportAssist collection logs to the share location fails on OME version 4.0.0.
+- ome_smart_fabric_uplink - Issue(186024) - The module supported by OpenManage Enterprise Modular, however it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, then the existing uplink is modified.
+
 v9.4.0
 ======
 
@@ -12,7 +39,7 @@ Release Summary
 
 - The ``idrac_server_config_profile`` module is enhanced to allow you to export and import custom defaults on iDRAC.
 - The ``ome_configuration_compliance_baseline`` module is enhanced to schedule the remediation job and stage the reboot.
-- The ``idrac_reset`` module is enhanced to provide default username and defaut password for the reset operation.
+- The ``idrac_reset`` module is enhanced to provide default username and default password for the reset operation.
 
 Major Changes
 -------------
