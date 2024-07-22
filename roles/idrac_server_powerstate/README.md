@@ -101,15 +101,24 @@ dellemc.openmanage
     <td></td>
     <td></td>
     <td>str</td>
-    <td>- The unique identifier of the device being managed.For example- U(https://<I(baseuri)>/redfish/v1/Systems/<I(resource_id)>).<br>- This option is mandatory for I(base_uri) with multiple devices.<br>- To get the device details, use the API U(https://<I(baseuri)>/redfish/v1/Systems).</td>
+    <td>- This option is the unique identifier of the device being managed. For example, U(https://<I(baseuri)>/redfish/v1/Systems/<I(resource_id)>).<br>- This option is mandatory for I(base_uri) with multiple devices.<br>- To get the device details, use the API U(https://<I(baseuri)>/redfish/v1/Systems) for reset_type operation and
+    U(https://<I(baseuri)>/redfish/v1/Chassis) for oem_reset_type operation.</td>
   </tr>
   <tr>
     <td>reset_type</td>
     <td>false</td>
-    <td>'On'</td>
+    <td></td>
     <td>["ForceOff", "ForceOn", "ForceRestart", "GracefulRestart", "GracefulShutdown", "Nmi", "On", "PowerCycle", "PushPowerButton"]</td>
     <td>str</td>
-    <td>- This option resets the device.<br>- If C(ForceOff), Turns off the device immediately.<br>- If C(ForceOn), Turns on the device immediately.<br>- If C(ForceRestart), Turns off the device immediately, and then restarts the device.<br>- If C(GracefulRestart), Performs graceful shutdown of the device, and then restarts the device.<br>- If C(GracefulShutdown), Performs a graceful shutdown of the device, and the turns off the device.<br>- If C(Nmi), Sends a diagnostic interrupt to the device. This is usually a non-maskable interrupt (NMI) on x86 device.<br>- If C(On), Turns on the device.<br>- If C(PowerCycle), Performs power cycle on the device.<br>- If C(PushPowerButton), Simulates the pressing of a physical power button on the device.<br>- When a power control operation is performed, which is not supported on the device, an error message is displayed with the list of operations that can be performed.</td>
+    <td>- This option resets the device.<br>- C(ForceOff) turns off the device immediately.<br>- C(ForceOn) turns on the device immediately.<br>- C(ForceRestart) turns off the device immediately, and then restarts the server.<br>- C(GracefulRestart) performs graceful shutdown of the device, and then restarts the device.<br>- C(GracefulShutdown) performs a graceful shutdown of the device, and then turns off the device.<br>- C(Nmi) sends a diagnostic interrupt to the device. This option is usually a nonmaskable interrupt (NMI) on x86 systems.<br>- C(On) turns on the device.<br>- C(PowerCycle) performs a power cycle on the device.<br>- C(PushPowerButton) simulates the pressing of a physical power button on the device.<br>- I(reset_type) is mutually exclusive with I(oem_reset_type).<br>- When a power control operation is performed, which is not supported on the device, an error message is displayed with the list of operations that can be performed.</td>
+  </tr>
+  <tr>
+    <td>oem_reset_type</td>
+    <td>false</td>
+    <td></td>
+    <td></td>
+    <td>dict</td>
+    <td>- This parameter initiates a complete Alternate Current (AC) power cycle of the server which is equivalent to disconnecting power cables using OEM API.<br>- I(oem_reset_type) is mutually exclusive with I(reset_type).<br>- If the value of 'final_power_state' is not provided, the default value is 'Off'.</td>
   </tr>
 </tbody>
 </table>
@@ -208,10 +217,37 @@ dellemc.openmanage
     password: "password"
     ca_path: "/path/to/ca_cert.pem"
     reset_type: "ForceRestart"
+
+- name: "Performing AC Power Cycle operation with final power state On"
+  ansible.builtin.include_role:
+    name: idrac_server_powerstate
+  vars:
+    hostname: "192.1.2.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    oem_reset_type:
+      dell:
+        final_power_state: "On"
+        reset_type: "PowerCycle"
+
+- name: "Performing AC Power Cycle operation with final power state Off"
+  ansible.builtin.include_role:
+    name: idrac_server_powerstate
+  vars:
+    hostname: "192.1.2.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    oem_reset_type:
+      dell:
+        final_power_state: "Off"
+        reset_type: "PowerCycle"
 ```
 
 ## Author Information
 ------------------
 
 Dell Technologies <br>
-Kritika Bhateja (Kritika.Bhateja@Dell.com)  2023
+Kritika Bhateja (Kritika.Bhateja@Dell.com)  2023 <br>
+Lovepreet Singh (lovepreet.singh1@dell.com)  2024
