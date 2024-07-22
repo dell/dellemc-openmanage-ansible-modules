@@ -19,7 +19,7 @@ module: idrac_timezone_ntp
 short_description: Configures time zone and NTP on iDRAC
 version_added: "2.1.0"
 deprecated:
-  removed_at_date: "2024-07-31"
+  removed_at_date: "2024-12-31"
   why: Replaced with M(dellemc.openmanage.idrac_attributes).
   alternative: Use M(dellemc.openmanage.idrac_attributes) instead.
   removed_from_collection: dellemc.openmanage
