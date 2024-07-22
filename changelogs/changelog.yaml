@@ -1908,7 +1908,7 @@ releases:
           schedule the remediation job and stage the reboot.
       minor_changes:
         - idrac_reset - This module is enhanced to provide default username and
-          defaut password for the reset operation.
+          default password for the reset operation.
       bugfixes:
         - Resolved the issue in ``idrac_reset`` module where it
           fails when iDRAC is in busy state.
@@ -1932,3 +1932,38 @@ releases:
           created using the same name as an existing uplink, then the existing
           uplink is modified.
     release_date: '2024-06-28'
+
+  9.5.0:
+    changes:
+      release_summary: '- The ``idrac_redfish_storage_controller`` module is
+          enhanced to support secure and/or cryptographic erase of the
+          physical disk.
+
+        - The ``ome_application_network_proxy`` module is enhanced to manage
+          the Proxy Exclusion List and Certificate Validation.
+
+        - The ``idrac_redfish_powerstate`` module is enhanced to support
+          full virtual A/C power cycle.'
+
+      minor_changes:
+        - idrac_redfish_storage_controller - This module is enhanced to
+          support secure and/or cryptographic erase of the physical disk.
+        - ome_application_network_proxy - This module is enhanced to manage
+          the Proxy Exclusion List and Certificate Validation.
+        - idrac_redfish_powerstate - This module is enhanced to support
+          full virtual A/C power cycle.
+      known_issues:
+        - idrac_diagnostics - Issue(285322) - This module doesn't support export of
+          diagnostics file to HTTP and HTTPS share via SOCKS proxy.
+        - idrac_firmware - Issue(279282) - This module does not support firmware update
+          using HTTP, HTTPS, and FTP shares with authentication on iDRAC8.
+        - idrac_storage_volume - Issue(290766) - The module will report success instead
+          of showing failure for new virtual creation on the BOSS-N1 controller if a
+          virtual disk is already present on the same controller.
+        - ome_diagnostics - Issue(279193) - Export of SupportAssist collection logs
+          to the share location fails on OME version 4.0.0.
+        - ome_smart_fabric_uplink - Issue(186024) - The module supported by OpenManage
+          Enterprise Modular, however it does not allow the creation of multiple uplinks
+          of the same name. If an uplink is created using the same name as an existing
+          uplink, then the existing uplink is modified.
+    release_date: '2024-07-31'
