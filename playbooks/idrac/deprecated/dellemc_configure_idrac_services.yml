@@ -1,0 +1,44 @@
+---
+- name: Configure the iDRAC services attributes
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Setup iDRAC Webserver
+      dellemc.openmanage.dellemc_configure_idrac_services:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        ssl_encryption: "T_168_Bit_or_higher"
+        tls_protocol: "TLS_1_0_and_Higher"
+      delegate_to: localhost
+      tags:
+        - idrac_webserver
+
+    - name: Setup iDRAC SNMP
+      dellemc.openmanage.dellemc_configure_idrac_services:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        snmp_enable: "Enabled"
+        snmp_protocol: "All"
+      delegate_to: localhost
+
+      tags:
+        - idrac_snmp
+
+    - name: Setup iDRAC SNMP settings
+      dellemc.openmanage.dellemc_configure_idrac_services:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        ipmi_lan:
+          community_name: public
+        alert_port: 161
+        trap_format: SNMPv3
+      delegate_to: localhost
+      tags:
+        - idrac-snmp-settings

@@ -1,0 +1,14 @@
+---
+- name: Configure System lockdown mode
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Configure System lockdown mode
+      dellemc.openmanage.dellemc_system_lockdown_mode:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        lockdown_mode: "Disabled"
+      delegate_to: localhost

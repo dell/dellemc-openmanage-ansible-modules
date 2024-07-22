@@ -1,0 +1,20 @@
+---
+- name: Configure the iDRAC timezone attributes
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Setup iDRAC Timezone
+      dellemc.openmanage.idrac_timezone_ntp:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        setup_idrac_timezone: "Singapore"
+        enable_ntp: "Disabled"
+        ntp_server_1: "100.100.25.1"
+        ntp_server_2: "100.100.26.2"
+        ntp_server_3: "100.100.27.3"
+      delegate_to: localhost
+      tags:
+        - idrac_timezone
