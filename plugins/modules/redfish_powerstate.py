@@ -197,10 +197,12 @@ def fetch_ac_powerstate_details(module, system_id_res_data, action_id_res):
     if oem_key_resp is None:
         module.exit_json(msg=TARGET_DEVICE_NOT_SUPPORTED, skipped=True)
     sub_key = OEM_RESET_KEY.format(current_vendor.capitalize())
-    sub_oem_key = oem_key_resp.get(sub_key)
+    sub_oem_key = None
+    if oem_key_resp is not None:
+        sub_oem_key = oem_key_resp.get(sub_key)
     if sub_oem_key is None:
         module.exit_json(msg=TARGET_DEVICE_NOT_SUPPORTED, skipped=True)
-    power_uri = sub_oem_key.get('target')
+    power_uri = sub_oem_key['target']
     allowable_enums = sub_oem_key.get('ResetType@Redfish.AllowableValues')
     allowable_final_power_state = sub_oem_key.get('FinalPowerState@Redfish.AllowableValues')
     powerstate_map.update(
