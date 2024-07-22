@@ -59,37 +59,41 @@ class TestRedfishPowerstate(FakeAnsibleModule):
     module = redfish_powerstate
 
     arg_list1 = [{"resource_id": "System.Embedded.1", "reset_type": "ForceOff"}]
+    resource_uri_output = {
+        "Systems": {
+            ODATA_KEY: RESOURCE_URI
+        },
+        "Members": [
+            {
+                ODATA_KEY: SPECIFIC_RESOURCE_URI_ONE
+            },
+            {
+                ODATA_KEY: SPECIFIC_RESOURCE_URI_TWO
+            }
+        ],
+        "Actions": {
+            "#ComputerSystem.Reset": {
+                "target": RESET_URI,
+                RESET_ALLOWED_KEY: [
+                    "On",
+                    "ForceOff",
+                    "ForceRestart",
+                    "GracefulShutdown",
+                    "PushPowerButton",
+                    "Nmi",
+                    "PowerCycle"
+                ]
+            }
+        },
+        "PowerState": "On"
+    }
 
     def test_fetch_powerstate_resource_success_case_01(self, mocker, redfish_connection_mock_for_powerstate, redfish_default_args,
                                                        redfish_response_mock):
         """dynamically fetch the computer system id if one member exists in system"""
         f_module = self.get_module_mock(params={"reset_type": "ForceOff"})
 
-        redfish_response_mock.json_data = {
-            "Systems": {
-                ODATA_KEY: RESOURCE_URI
-            },
-            "Members": [
-                {
-                    ODATA_KEY: SPECIFIC_RESOURCE_URI_ONE
-                }
-            ],
-            "Actions": {
-                "#ComputerSystem.Reset": {
-                    "target": RESET_URI,
-                    RESET_ALLOWED_KEY: [
-                        "On",
-                        "ForceOff",
-                        "ForceRestart",
-                        "GracefulShutdown",
-                        "PushPowerButton",
-                        "Nmi",
-                        "PowerCycle"
-                    ]
-                }
-            },
-            "PowerState": "On"
-        }
+        redfish_response_mock.json_data = self.resource_uri_output
         redfish_connection_mock_for_powerstate.root_uri = ROOT_URI
         self.module.fetch_power_uri_resource(f_module, redfish_connection_mock_for_powerstate, "Systems")
         # self.module.fetch_powerstate_details(f_module, redfish_connection_mock_for_powerstate)
@@ -149,34 +153,7 @@ class TestRedfishPowerstate(FakeAnsibleModule):
                                                                       redfish_response_mock):
         """case when system id is explicitly provided"""
         f_module = self.get_module_mock(params={"resource_id": "System.Embedded.1", "reset_type": "ForceOff"})
-        redfish_response_mock.json_data = {
-            "Systems": {
-                ODATA_KEY: RESOURCE_URI
-            },
-            "Members": [
-                {
-                    ODATA_KEY: SPECIFIC_RESOURCE_URI_ONE
-                },
-                {
-                    ODATA_KEY: SPECIFIC_RESOURCE_URI_TWO
-                }
-            ],
-            "Actions": {
-                "#ComputerSystem.Reset": {
-                    "target": RESET_URI,
-                    RESET_ALLOWED_KEY: [
-                        "On",
-                        "ForceOff",
-                        "ForceRestart",
-                        "GracefulShutdown",
-                        "PushPowerButton",
-                        "Nmi",
-                        "PowerCycle"
-                    ]
-                }
-            },
-            "PowerState": "On"
-        }
+        redfish_response_mock.json_data = self.resource_uri_output
         redfish_connection_mock_for_powerstate.root_uri = ROOT_URI
         self.module.fetch_power_uri_resource(f_module, redfish_connection_mock_for_powerstate, "Systems")
         assert self.module.powerstate_map["allowable_enums"] == [
@@ -196,34 +173,7 @@ class TestRedfishPowerstate(FakeAnsibleModule):
                                                                           redfish_response_mock):
         """case when system id not provided but multipble resource exists"""
         f_module = self.get_module_mock(params={"reset_type": "ForceOff"})
-        redfish_response_mock.json_data = {
-            "Systems": {
-                ODATA_KEY: RESOURCE_URI
-            },
-            "Members": [
-                {
-                    ODATA_KEY: SPECIFIC_RESOURCE_URI_ONE
-                },
-                {
-                    ODATA_KEY: SPECIFIC_RESOURCE_URI_TWO
-                }
-            ],
-            "Actions": {
-                "#ComputerSystem.Reset": {
-                    "target": RESET_URI,
-                    RESET_ALLOWED_KEY: [
-                        "On",
-                        "ForceOff",
-                        "ForceRestart",
-                        "GracefulShutdown",
-                        "PushPowerButton",
-                        "Nmi",
-                        "PowerCycle"
-                    ]
-                }
-            },
-            "PowerState": "On"
-        }
+        redfish_response_mock.json_data = self.resource_uri_output
         redfish_connection_mock_for_powerstate.root_uri = ROOT_URI
         self.module.fetch_power_uri_resource(f_module, redfish_connection_mock_for_powerstate, "Systems")
         assert self.module.powerstate_map["allowable_enums"] == [
