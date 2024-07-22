@@ -13,7 +13,6 @@ Release Summary
 - The ``idrac_redfish_storage_controller`` module is enhanced to support secure and/or cryptographic erase of the physical disk.
 - The ``ome_application_network_proxy`` module is enhanced to allow you to manage the Proxy Exclusion List in the Proxy Configuration.
 - The ``idrac_redfish_powerstate`` module is enhanced to add support for full virtual A/C power cycle in server powercycle module.
-- The ``dellemc_configure_idrac_eventing``, ``dellemc_configure_idrac_services``, ``dellemc_idrac_lc_attributes``, ``dellemc_system_lockdown_mode``, ``idrac_network``, and ``idrac_timezone_ntp`` modules have been removed/tombstoned from the collections.
 
 Minor Changes
 -------------
@@ -39,7 +38,7 @@ Release Summary
 
 - The ``idrac_server_config_profile`` module is enhanced to allow you to export and import custom defaults on iDRAC.
 - The ``ome_configuration_compliance_baseline`` module is enhanced to schedule the remediation job and stage the reboot.
-- The ``idrac_reset`` module is enhanced to provide default username and default password for the reset operation.
+- The ``idrac_reset`` module is enhanced to provide default username and defaut password for the reset operation.
 
 Major Changes
 -------------
@@ -50,7 +49,7 @@ Major Changes
 Minor Changes
 -------------
 
-- idrac_reset - This module is enhanced to provide default username and defaut password for the reset operation.
+- idrac_reset - This module is enhanced to provide default username and default password for the reset operation.
 
 Bugfixes
 --------
