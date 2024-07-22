@@ -1,0 +1,110 @@
+---
+- block:
+    - name: Pre_req - View all volumes
+      dellemc.openmanage.idrac_storage_volume:
+        state: "view"
+      register: result_pre_req
+      when: run_trigger is not defined
+
+    - ansible.builtin.set_fact:
+        enclosers: "{{ item.value.Enclosure }}"
+        controller_name: "{{ item.key }}"
+      loop:
+        "{{ lookup('dict', result_pre_req.storage_status.Message.Controller) }}"
+      when: "'Enclosure' in item.value"
+      ignore_errors: true
+
+    - ansible.builtin.set_fact:
+        physicaldisks: "{{ item.value.PhysicalDisk }}"
+      loop:
+        "{{ lookup('dict', result_pre_req.storage_status.Message.Controller
+       [ controller_name ].Enclosure, wantlist=True)}}"
+      # when: "'controller_name' in item.key"
+      ignore_errors: true
+
+    - name: Pre-req -  Reset controller configuration
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "ResetConfig"
+        controller_id: "{{ controller_name }}"
+#        job_wait: true
+#        job_wait_timeout: 1200
+      register: result_reset_controller
+      ignore_errors: true
+      when: reset_trigger is defined
+
+    - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{ result_reset_controller.status.Id }}"
+      when: result_reset_controller.msg == "Successfully submitted the job
+       that performs the 'ResetConfig' operation."
+      ignore_errors: true
+
+    - name: Pre-Req - Unassigned hot spare
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "UnassignSpare"
+        target: "{{ target }}"
+        job_wait: true
+        job_wait_timeout: 1200
+      register: prereq_result
+      ignore_errors: true
+      when: target is defined
+
+    - name: Pre-req - Create VD
+      dellemc.openmanage.idrac_storage_volume:
+        state: "create"
+        controller_id: "{{ controller_name }}"
+        volume_type: "{{ volume_type }}"
+        span_length: "{{ span_length }}"
+        volumes:
+          - name: "ansible_test"
+            drives:
+              id: "{{ id }}"
+      register: result_create_vd
+      ignore_errors: "{{ ignore_errors_val }}"
+      when: vd_trigger is defined
+
+    - name: Post_check - View all volumes
+      dellemc.openmanage.idrac_storage_volume:
+        state: "view"
+      register: result_post_check
+
+    - ansible.builtin.set_fact:
+        virtualdisk: "{{ item.key }}"
+      loop: "{{ lookup('dict', result_post_check.storage_status.Message.
+       Controller[ controller_name ].VirtualDisk, wantlist=True)}}"
+      # when: "'controller_name' in item.key"
+      ignore_errors: true
+
+    - name: Pre-Req - Change physical disk state to offline/online.
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "{{ command }}"
+        target: "{{ target_disk }}"
+      register: result_offline_online
+      when: change_disk_state is defined
+
+    - name: Pre-Req - Convert physical disk to non-RAID/Raid
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "{{command}}"
+        target: "{{ target_raid_disk}}"
+        job_wait: true
+        job_wait_timeout: 1200
+      when: target_raid_disk is defined
+
+    - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{ result_offline_online.status.Id }}"
+      when: result_offline_online.msg == "Successfully submitted the job
+       that performs the 'ChangePDStateToOffline' operation."
+      ignore_errors: true
+
+  module_defaults:
+    dellemc.openmanage.idrac_storage_volume:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+    dellemc.openmanage.idrac_redfish_storage_controller:
+      baseuri: "{{ idrac_ip }}:443"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

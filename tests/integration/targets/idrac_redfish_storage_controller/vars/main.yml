@@ -1,0 +1,4 @@
+---
+volume_type: "RAID 0"
+span_length: 1
+ignore_errors_val: false
