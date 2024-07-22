@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 8.0.0
-# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -38,6 +38,7 @@ from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible.module_utils.common.parameters import env_fallback
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
+from ansible.module_utils.basic import AnsibleModule
 
 idrac_auth_params = {
     "idrac_ip": {"required": True, "type": 'str'},
@@ -101,6 +102,7 @@ class iDRACRedfishAPI(object):
         self.ipaddress = module_params['idrac_ip']
         self.username = module_params['idrac_user']
         self.password = module_params['idrac_password']
+        self.x_auth_token = module_params.get('x_auth_token')
         self.port = module_params['idrac_port']
         self.validate_certs = module_params.get("validate_certs", False)
         self.ca_path = module_params.get("ca_path")
@@ -180,7 +182,7 @@ class iDRACRedfishAPI(object):
 
     def __enter__(self):
         """Creates sessions by passing it to header"""
-        if self.req_session:
+        if self.req_session and not self.x_auth_token:
             payload = {'UserName': self.username,
                        'Password': self.password}
             path = SESSION_RESOURCE_COLLECTION["SESSION"]
@@ -191,6 +193,8 @@ class iDRACRedfishAPI(object):
             else:
                 msg = "Could not create the session"
                 raise ConnectionError(msg)
+        elif self.x_auth_token is not None:
+            self._headers["X-Auth-Token"] = self.x_auth_token
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -300,7 +304,7 @@ class iDRACRedfishAPI(object):
         return response
 
     def import_scp_share(self, shutdown_type=None, host_powerstate=None, job_wait=True,
-                         target=None, import_buffer=None, share=None):
+                         target=None, import_buffer=None, share=None, time_to_wait=300):
         """
         This method imports system configuration using share.
         :param shutdown_type: graceful
@@ -312,7 +316,7 @@ class iDRACRedfishAPI(object):
         :return: json response
         """
         payload = {"ShutdownType": shutdown_type, "EndHostPowerState": host_powerstate,
-                   "ShareParameters": {"Target": target}}
+                   "ShareParameters": {"Target": target}, "TimeToWait": time_to_wait}
         if import_buffer is not None:
             payload["ImportBuffer"] = import_buffer
         if share is None:
@@ -384,7 +388,7 @@ class iDRACRedfishAPI(object):
             response = self.wait_for_job_complete(task_uri, job_wait=job_wait)
         return response
 
-    def import_scp(self, import_buffer=None, target=None, job_wait=False):
+    def import_scp(self, import_buffer=None, target=None, job_wait=False, time_to_wait=300):
         """
         This method imports system configuration details to the system.
         :param import_buffer: import buffer payload content xml or json format
@@ -392,7 +396,7 @@ class iDRACRedfishAPI(object):
         :param job_wait: True or False decide whether to wait till the job completion.
         :return: json response
         """
-        payload = {"ImportBuffer": import_buffer, "ShareParameters": {"Target": target}}
+        payload = {"ImportBuffer": import_buffer, "ShareParameters": {"Target": target}, "TimeToWait": time_to_wait}
         response = self.invoke_request(IMPORT_URI, "POST", data=payload)
         if response.status_code == 202 and job_wait:
             task_uri = response.headers["Location"]
@@ -433,3 +437,42 @@ class iDRACRedfishAPI(object):
     def _get_omam_ca_env(self):
         """Check if the value is set in REQUESTS_CA_BUNDLE or CURL_CA_BUNDLE or OMAM_CA_BUNDLE or returns None"""
         return os.environ.get("REQUESTS_CA_BUNDLE") or os.environ.get("CURL_CA_BUNDLE") or os.environ.get("OMAM_CA_BUNDLE")
+
+
+class IdracAnsibleModule(AnsibleModule):
+    def __init__(self, argument_spec, bypass_checks=False, no_log=False,
+                 mutually_exclusive=None, required_together=None,
+                 required_one_of=None, add_file_common_args=False,
+                 supports_check_mode=False, required_if=None, required_by=None):
+        idrac_argument_spec = {
+            "idrac_ip": {"required": True, "type": 'str'},
+            "idrac_user": {"required": False, "type": 'str', "fallback": (env_fallback, ['IDRAC_USERNAME'])},
+            "idrac_password": {"required": False, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True, "fallback": (env_fallback, ['IDRAC_PASSWORD'])},
+            "x_auth_token": {"required": False, "type": 'str', "no_log": True, "fallback": (env_fallback, ['IDRAC_X_AUTH_TOKEN'])},
+            "idrac_port": {"required": False, "default": 443, "type": 'int'},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
+        }
+        argument_spec.update(idrac_argument_spec)
+
+        auth_mutually_exclusive = [("idrac_user", "x_auth_token"), ("idrac_password", "x_auth_token")]
+        auth_required_one_of = [("idrac_user", "x_auth_token")]
+        auth_required_together = [("idrac_user", "idrac_password")]
+
+        if mutually_exclusive is None:
+            mutually_exclusive = []
+        mutually_exclusive.extend(auth_mutually_exclusive)
+        if required_together is None:
+            required_together = []
+        required_together.extend(auth_required_together)
+        if required_one_of is None:
+            required_one_of = []
+        required_one_of.extend(auth_required_one_of)
+        if required_by is None:
+            required_by = {}
+
+        super().__init__(argument_spec, bypass_checks, no_log,
+                         mutually_exclusive, required_together,
+                         required_one_of, add_file_common_args,
+                         supports_check_mode, required_if, required_by)

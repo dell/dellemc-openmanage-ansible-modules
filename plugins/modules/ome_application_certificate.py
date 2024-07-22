@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.3.0
-# Copyright (C) 2020-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2020-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -159,8 +159,7 @@ error_info:
 
 import json
 import os
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -195,6 +194,21 @@ def get_san(subject_alternative_names):
     return subject_alternative_names.replace(" ", "")
 
 
+def format_csr_string(csr_string):
+    # Remove the header and footer
+    csr_string = csr_string.replace("-----BEGIN CERTIFICATE REQUEST-----", "")
+    csr_string = csr_string.replace("-----END CERTIFICATE REQUEST-----", "")
+    csr_string = csr_string.replace("\n", "")
+
+    # Format the remaining string with proper line breaks
+    formatted_csr = '\n'.join([csr_string[i:i + 64] for i in range(0, len(csr_string), 64)])
+
+    # Add the header and footer back
+    formatted_csr = "-----BEGIN CERTIFICATE REQUEST-----\n" + formatted_csr + "\n-----END CERTIFICATE REQUEST-----"
+
+    return formatted_csr
+
+
 def main():
     specs = {
         "command": {"type": "str", "required": False,
@@ -209,8 +223,8 @@ def main():
         "upload_file": {"required": False, "type": "str"},
         "subject_alternative_names": {"required": False, "type": "str"}
     }
-    specs.update(ome_auth_params)
-    module = AnsibleModule(
+
+    module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[["command", "generate_csr", ["distinguished_name", "department_name",
                                                   "business_name", "locality", "country_state",
@@ -228,8 +242,11 @@ def main():
             resp = rest_obj.invoke_request(method, uri, headers=headers, data=payload, dump=dump)
             if resp.success:
                 if command == "generate_csr":
+                    resp_copy = resp.json_data
+                    formated_csr = format_csr_string(resp_copy["CertificateData"])
+                    resp_copy["CertificateData"] = formated_csr
                     module.exit_json(msg="Successfully generated certificate signing request.",
-                                     csr_status=resp.json_data)
+                                     csr_status=resp_copy)
                 module.exit_json(msg="Successfully uploaded application certificate.", changed=True)
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))

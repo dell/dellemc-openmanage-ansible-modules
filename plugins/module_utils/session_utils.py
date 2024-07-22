@@ -34,6 +34,8 @@ import os
 from ansible.module_utils.urls import open_url
 from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
+from ansible.module_utils.urls import open_url
+from abc import ABC, abstractmethod
 
 HEADER_TYPE = "application/json"
 
@@ -177,7 +179,7 @@ class SessionAPI():
             self._headers = {
                 'Content-Type': HEADER_TYPE,
                 'Accept': HEADER_TYPE,
-                'X-Auth-Token': module_params.get("auth_token")
+                'X-Auth-Token': module_params.get("x_auth_token")
             }
 
     def _get_url(self, uri):
@@ -220,7 +222,7 @@ class SessionAPI():
             url += f"?{urlencode(query_param)}"
         return url
 
-    def _url_common_args_spec(self, method, api_timeout, headers=None):
+    def _url_common_args_spec(self, method, api_timeout, headers=None, url_kwargs=None):
         """
         Generates the common arguments for a URL request.
 
@@ -242,25 +244,27 @@ class SessionAPI():
                 - follow_redirects (str): The policy for following redirects.
 
         """
-        req_header = self._headers
-        if headers:
-            req_header.update(headers)
         if api_timeout is None:
             api_timeout = self.timeout
         if self.ca_path is None:
             self.ca_path = self._get_omam_ca_env()
-        url_kwargs = {
+        req_header = self._headers
+        if headers:
+            req_header.update(headers)
+        url_params = {
             "method": method,
             "validate_certs": self.validate_certs,
             "ca_path": self.ca_path,
             "use_proxy": self.use_proxy,
             "headers": req_header,
             "timeout": api_timeout,
-            "follow_redirects": 'all',
+            "follow_redirects": 'all'
         }
-        return url_kwargs
+        if url_kwargs:
+            url_params.update(url_kwargs)
+        return url_params
 
-    def _args_session(self, method, api_timeout, headers=None):
+    def _args_session(self, method, api_timeout, headers=None, url_kwargs=None):
         """
         Returns a dictionary containing the arguments needed to establish a session.
 
@@ -275,11 +279,11 @@ class SessionAPI():
         req_header = self._headers
         if headers:
             req_header.update(headers)
-        url_kwargs = self._url_common_args_spec(method, api_timeout, headers=headers)
+        url_kwargs = self._url_common_args_spec(method, api_timeout, headers=headers, url_kwargs=url_kwargs)
         return url_kwargs
 
     def invoke_request(self, uri, method, data=None, query_param=None, headers=None,
-                       api_timeout=None, dump=True):
+                       api_timeout=None, dump=True, url_kwargs=None):
         """
         Invokes a request to the specified URI using the given method and optional parameters.
 
@@ -300,7 +304,7 @@ class SessionAPI():
         :return: The response data from the request.
         :rtype: OpenURLResponse
         """
-        url_kwargs = self._args_session(method, api_timeout, headers=headers)
+        url_kwargs = self._args_session(method, api_timeout, headers=headers, url_kwargs=url_kwargs)
         if data and dump:
             data = json.dumps(data)
         url = self._build_url(uri, query_param=query_param)
@@ -320,3 +324,50 @@ class SessionAPI():
         return (os.environ.get("REQUESTS_CA_BUNDLE") or
                 os.environ.get("CURL_CA_BUNDLE") or
                 os.environ.get("OMAM_CA_BUNDLE"))
+
+
+class Session(ABC):
+    """
+    Parent class for all session operations.
+    """
+    def __init__(self, module):
+        """
+        Initializes the object with the given instance and module parameters.
+
+        Args:
+            instance (object): The ome object.
+            module (object): The module object.
+
+        Returns:
+            None
+        """
+        self.instance = SessionAPI(module.params)
+        self.module = module
+
+    @abstractmethod
+    def create_session(self):
+        """
+        Abstract method to create a session.
+        Must be implemented by subclasses.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        pass
+
+    @abstractmethod
+    def delete_session(self):
+        """
+        Abstract method to delete a session.
+        Must be implemented by subclasses.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        pass

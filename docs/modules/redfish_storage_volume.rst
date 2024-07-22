@@ -193,12 +193,28 @@ Parameters
     IP address of the target out-of-band controller. For example- \<ipaddress\>:\<port\>.
 
 
-  username (True, str, None)
+  username (False, str, None)
     Username of the target out-of-band controller.
 
+    If the username is not provided, then the environment variable \ :envvar:`IDRAC\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export IDRAC\_USERNAME=username
+
+
+  password (False, str, None)
     Password of the target out-of-band controller.
+
+    If the password is not provided, then the environment variable \ :envvar:`IDRAC\_PASSWORD`\  is used.
+
+    Example: export IDRAC\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`IDRAC\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export IDRAC\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   validate_certs (optional, bool, True)

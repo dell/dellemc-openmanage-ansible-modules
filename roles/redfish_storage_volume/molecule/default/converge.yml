@@ -14,9 +14,9 @@
         validate_certs: false
         state: present
         volume_type: "NonRedundant"
-        name: "VD" # noqa: var-naming[no-reserved]
-        controller_id: "{{ lookup('env', 'CONTROLLER_ID') }}"
-        drives: "{{ lookup('env', 'PHYSICAL_DISK') }}"
+        name: "VD"  # noqa: var-naming[no-reserved]
+        controller_id: ""
+        drives: ""
         capacity_bytes: 214748364800
         optimum_io_size_bytes: 65536
         encrypted: false
@@ -27,8 +27,9 @@
 
     - name: Asserting after performing operation.
       ansible.builtin.assert:
-        that: |-
-          redfish_storage_volume_out.msg == "<urlopen error [Errno -2] Name or service not known>"
+        that: >-
+          '"<urlopen error [Errno 111] Connection refused>" in
+           redfish_storage_volume_out.msg'
 
     - name: To check the behaviour of invalid credentials.
       ansible.builtin.import_role:
@@ -40,9 +41,9 @@
         validate_certs: false
         state: present
         volume_type: "NonRedundant"
-        name: "VD" # noqa: var-naming[no-reserved]
-        controller_id: "{{ lookup('env', 'CONTROLLER_ID') }}"
-        drives: "{{ lookup('env', 'PHYSICAL_DISK') }}"
+        name: "VD"  # noqa: var-naming[no-reserved]
+        controller_id: ""
+        drives: ""
         capacity_bytes: 214748364800
         optimum_io_size_bytes: 65536
         encrypted: false
@@ -55,7 +56,7 @@
         that: |-
           redfish_storage_volume_out.msg == "HTTP Error 401: Unauthorized"
 
-    - name: To check the behaviour of invalid span count.
+    - name: To check the behaviour of invalid state.
       ansible.builtin.import_role:
         name: redfish_storage_volume
       vars:
@@ -63,11 +64,11 @@
         username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
-        state: present
+        state: invalid
         volume_type: "SpannedStripesWithParity"
-        name: "VD" # noqa: var-naming[no-reserved]
-        controller_id: "{{ lookup('env', 'CONTROLLER_ID') }}"
-        drives: "{{ lookup('env', 'PHYSICAL_DISK') }}"
+        name: "VD"  # noqa: var-naming[no-reserved]
+        controller_id: ""
+        drives: ""
         capacity_bytes: 214748364800
         optimum_io_size_bytes: 65536
         encrypted: false
@@ -77,8 +78,9 @@
 
     - name: Asserting after performing operation for invalid span count.
       ansible.builtin.assert:
-        that: |-
-          redfish_storage_volume_out.msg == "HTTP Error 400: Bad Request"
+        that: >-
+          redfish_storage_volume_out.msg == "value of state must be one of:
+          present, absent, got: invalid"
       when: not ansible_check_mode
 
     - name: To check the behaviour of invalid certificate path.
@@ -92,9 +94,9 @@
         ca_path: "/tmp/invalid_ca_path.pem"
         state: present
         volume_type: "SpannedStripesWithParity"
-        name: "VD" # noqa: var-naming[no-reserved]
-        controller_id: "{{ lookup('env', 'CONTROLLER_ID') }}"
-        drives: "{{ lookup('env', 'PHYSICAL_DISK') }}"
+        name: "VD"  # noqa: var-naming[no-reserved]
+        controller_id: ""
+        drives: ""
         capacity_bytes: 214748364800
         optimum_io_size_bytes: 65536
         encrypted: false
@@ -105,10 +107,11 @@
 
     - name: Asserting after performing operation for invalid certificate path.
       ansible.builtin.assert:
-        that: |-
-          "certificate verify failed" in redfish_storage_volume_out.msg
+        that: >-
+          "[Errno 2] No such file or directory" in
+           redfish_storage_volume_out.msg
 
-    - name: To check the behaviour of invalid volume type.
+    - name: To check the behaviour of invalid raid type.
       ansible.builtin.import_role:
         name: redfish_storage_volume
       vars:
@@ -117,10 +120,10 @@
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         state: present
-        volume_type: "InvalidMirrored"
-        name: "VD" # noqa: var-naming[no-reserved]
-        controller_id: "{{ lookup('env', 'CONTROLLER_ID') }}"
-        drives: "{{ lookup('env', 'PHYSICAL_DISK') }}"
+        raid_type: "Invalid"
+        name: "VD"  # noqa: var-naming[no-reserved]
+        controller_id: ""
+        drives: ""
         capacity_bytes: 214748364800
         optimum_io_size_bytes: 65536
         encrypted: false
@@ -128,8 +131,36 @@
       ignore_errors: true
       register: redfish_storage_volume_result
 
-    - name: Asserting after performing operation for invalid volume type.
+    - name: Asserting after performing operation for invalid raid type.
       ansible.builtin.assert:
-        that: >
-          redfish_storage_volume_out.msg == "value of volume_type must be one of: NonRedundant, Mirrored,
-          StripedWithParity, SpannedMirrors, SpannedStripesWithParity, got: InvalidMirrored"
+        that: >-
+          "value of raid_type must be one of: RAID0, RAID1, RAID5, RAID6,
+          RAID10, RAID50, RAID60, got: Invalid" in
+          redfish_storage_volume_out.msg
+
+    - name: To check the behaviour of invalid controller_id.
+      ansible.builtin.import_role:
+        name: redfish_storage_volume
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        state: present
+        raid_type: "RAID0"
+        name: "VD"  # noqa: var-naming[no-reserved]
+        controller_id: "invalid"
+        capacity_bytes: 214748364800
+        optimum_io_size_bytes: 65536
+        encrypted: false
+        job_wait: false
+      ignore_errors: true
+      ignore_unreachable: true
+      register: redfish_storage_volume_result
+
+    - name: Asserting after performing operation for invalid controller_id.
+      ansible.builtin.assert:
+        that: >-
+          "Specified Controller invalid does not exist in the System." in
+           redfish_storage_volume_out.msg
+      when: redfish_storage_volume_out.failed

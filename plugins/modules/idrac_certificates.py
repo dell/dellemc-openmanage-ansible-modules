@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.6.0
-# Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2022-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -22,7 +22,7 @@ version_added: "5.5.0"
 description:
   - This module allows to generate certificate signing request, import, and export certificates on iDRAC.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   command:
     description:
@@ -113,7 +113,7 @@ options:
     type: int
     default: 300
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 author:
   - "Jagadeesh N V(@jagadeeshnv)"
   - "Rajshekar P(@rajshekarp87)"
@@ -248,8 +248,7 @@ import json
 import base64
 import os
 from datetime import datetime
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import reset_idrac
@@ -383,7 +382,11 @@ def _build_generate_csr_payload(module, cert_type):
 
     for key, value in csr_transform.items():
         if cert_params.get(key) is not None:
-            payload[value] = cert_params.get(key)
+            if value == 'AlternativeNames':
+                forming_string = ",".join(cert_params.get(key))
+                payload[value] = [forming_string]
+            else:
+                payload[value] = cert_params.get(key)
 
     if rfish_cert_coll.get(cert_type):
         payload["CertificateCollection"] = rfish_cert_coll.get(cert_type)
@@ -564,8 +567,8 @@ def main():
         "reset": {"type": 'bool', "default": True},
         "wait": {"type": 'int', "default": 300}
     }
-    specs.update(idrac_auth_params)
-    module = AnsibleModule(
+
+    module = IdracAnsibleModule(
         argument_spec=specs,
         required_if=[
             ['command', 'generate_csr', ('cert_params', 'certificate_path',)],

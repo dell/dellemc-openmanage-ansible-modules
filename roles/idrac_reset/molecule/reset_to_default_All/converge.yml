@@ -1,0 +1,105 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  vars:
+    idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+    idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+    idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+    reset_operation: "All"
+    reset_msg: "iDRAC reset operation completed successfully"
+
+  tasks:
+    - name: Performing reset_to_default_all operation
+      block:
+        - name: Pre-requisite - Checking if iDRAC supports reset_to_default
+          ansible.builtin.include_tasks:
+            file: ../_get_or_update_settings.yml
+          vars:
+            operation: check_firmware_version
+
+        - name: Pre-requisite - Creating directory for file export
+          ansible.builtin.include_tasks:
+            file: ../_helper.yml
+          vars:
+            operation: create
+
+        - name: Adding tasks for export iDRAC settings before reset
+          ansible.builtin.include_tasks:
+            file: ../_utils.yml
+          vars:
+            operation: export
+          when: it_is_idrac9 is defined and it_is_idrac9
+
+        - name: Pre-requisite - Updating settings to non-default before reset
+          ansible.builtin.include_tasks:
+            file: ../_get_or_update_settings.yml
+          vars:
+            operation: update_settings
+          when: it_is_idrac9 is defined and it_is_idrac9
+
+        - name: Performing iDRAC reset with reset to default all on iDRAC9.
+          ansible.builtin.import_role:
+            name: dellemc.openmanage.idrac_reset
+          vars:
+            hostname: "{{ idrac_ip }}"
+            username: "{{ idrac_user }}"
+            password: "{{ idrac_password }}"
+            reset_to_default: "{{ reset_operation }}"
+          when: it_is_idrac9
+
+        - name: Updating password in iDRAC after reset in ALL and
+           ResetAllWithRootDefaults
+          ansible.builtin.include_tasks:
+            file: ../_utils.yaml
+          vars:
+            operation: update_password
+          when: it_is_iDRAC9 is defined and it_is_iDRAC9
+
+        - name: Performing iDRAC reset without reset to default all on iDRAC8.
+          ansible.builtin.import_role:
+            name: dellemc.openmanage.idrac_reset
+          vars:
+            hostname: "{{ idrac_ip }}"
+            username: "{{ idrac_user }}"
+            password: "{{ idrac_password }}"
+            reset_to_default: "{{ reset_operation }}"
+          when: not it_is_idrac9
+
+        - name: Fetching settings from iDRAC post reset
+          ansible.builtin.include_tasks:
+            file: ../_get_or_update_settings.yml
+          vars:
+            operation: fetch_settings
+          when: it_is_idrac9
+
+        - name: Asserting after iDRAC reset on iDRAC9
+          ansible.builtin.assert:
+            that:
+              - idrac_reset_out.msg == {{ reset_msg }}
+              - idrac_has_default_settings
+          when: it_is_idrac9
+
+        - name: Asserting after iDRAC reset on iDRAC8
+          ansible.builtin.assert:
+            that:
+              - idrac_reset_result is not skipped and
+                idrac_reset_result is defined
+              - idrac_reset_result.status is defined
+              - idrac_reset_result.status == 405
+          when: not it_is_idrac9
+
+      always:
+        - name: Adding tasks for import operation
+          ansible.builtin.include_tasks:
+            file: ../_utils.yml
+          vars:
+            operation: import
+          when: it_is_idrac9 is defined and it_is_idrac9
+
+        - name: Deleting directory for file export
+          ansible.builtin.include_tasks:
+            file: ../_helper.yml
+          vars:
+            operation: delete

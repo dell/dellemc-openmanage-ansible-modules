@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.6.0
-# Copyright (C) 2021-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.4.0
+# Copyright (C) 2021-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -93,6 +93,25 @@ options:
       - Description of the compliance baseline.
       - This option is applicable when I(command) is C(create), or C(modify).
     type: str
+  run_later:
+    description:
+      - Indicates whether to remediate immediately or in the future.
+      - This is applicable when I(command) is C(remediate).
+      - If I(run_later) is C(true), then I(staged_at_reboot) is ignored.
+      - If I(run_later) is C(true), then I(job_wait) is not applicable.
+      - If I(run_later) is C(true), then I(cron) must be specified.
+    type: bool
+  cron:
+    description:
+      - Provide a cron expression based on Quartz cron format.
+      - Time format is "%S %M %H %d %m ? %Y".
+      - This is applicable when I(run_later) is C(true).
+    type: str
+  staged_at_reboot:
+    description:
+      - Indicates whether remediate has to be executed on next reboot.
+      - If I(staged_at_reboot) is C(true), then remediation will occur during the next reboot.
+    type: bool
   job_wait:
     description:
       - Provides the option to wait for job completion.
@@ -106,10 +125,11 @@ options:
     type: int
     default: 10800
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author:
     - "Sajna Shetty(@Sajna-Shetty)"
     - "Abhishek Sinha(@Abhishek-Dell)"
+    - "Shivam Sharma(@ShivamSh3)"
 notes:
     - This module supports C(check_mode).
     - Ensure that the devices have the required licenses to perform the baseline compliance operations.
@@ -214,6 +234,32 @@ EXAMPLES = r'''
     ca_path: "/path/to/ca_cert.pem"
     command: "remediate"
     names: "baseline1"
+
+- name: Remediate specific non-compliant devices to a configuration compliance baseline using device IDs at scheduled time
+  dellemc.openmanage.ome_configuration_compliance_baseline:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "remediate"
+    names: "baseline1"
+    device_ids:
+      - 1111
+    run_later: true
+    cron: "0 10 11 14 02 ? 2032"  # Feb 14,2032 11:10:00
+
+- name: Remediate specific non-compliant devices to a configuration compliance baseline using device service tags on next reboot
+  dellemc.openmanage.ome_configuration_compliance_baseline:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "remediate"
+    names: "baseline1"
+    device_service_tags:
+      - "SVCTAG1"
+      - "SVCTAG2"
+    staged_at_reboot: true
 '''
 
 RETURN = r'''
@@ -266,6 +312,27 @@ job_id:
   returned: when I(command) is C(remediate)
   type: int
   sample: 14123
+"job_details":
+    description: Details of the failed job.
+    returned: on job failure
+    type: list
+    sample: [
+        {
+            "ElapsedTime": "00:22:17",
+            "EndTime": "2024-06-19 13:42:41.285",
+            "ExecutionHistoryId": 797320,
+            "Id": 14123,
+            "IdBaseEntity": 19559,
+            "JobStatus": {
+                "Id": 2070,
+                "Name": "Failed"
+            },
+            "Key": "SVCTAG1",
+            "Progress": "100",
+            "StartTime": "2024-06-19 13:20:23.495",
+            "Value": "Starting Pre-checks....LC status is : InUse, wait for 30 seconds and retry ...(1)"
+        }
+    ]
 error_info:
   description: Details of the HTTP Error.
   returned: on HTTP error
@@ -290,9 +357,10 @@ error_info:
 
 import json
 import time
+import re
+import datetime
 from ssl import SSLError
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.compat.version import LooseVersion
@@ -325,8 +393,16 @@ INVALID_COMPLIANCE_IDENTIFIER = "Unable to complete the operation because the en
                                 " is not associated or complaint with the baseline '{2}'."
 INVALID_TIME = "job_wait_timeout {0} is not valid."
 REMEDIATE_MSG = "Successfully completed the remediate operation."
+REMEDIATE_SCHEDULE_MSG = "Successfully scheduled the remediate operation."
+REMEDIATE_SCHEDULE_FAIL_MSG = "Failed to schedule the remediate operation."
+REMEDIATE_STAGED_AT_REBOOT_MSG = "Successfully staged the remediate operation at next reboot."
 JOB_FAILURE_PROGRESS_MSG = "The initiated task for the configuration compliance baseline has failed."
 NO_CAPABLE_DEVICES = "Target {0} contains devices which cannot be used for a baseline compliance operation."
+CRON_REGEX = r'(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5,7})'
+INVALID_CRON_TIME_MSG = "Invalid cron time format."
+JOB_URI = "JobService/Jobs({job_id})"
+TIME_URI = "ApplicationService/Network/TimeConfiguration"
+PAST_TIME_MSG = "The specified time occurs in the past, provide a future time to schedule the job."
 
 
 def validate_identifiers(available_values, requested_values, identifier_types, module):
@@ -541,7 +617,7 @@ def validate_create_baseline_idempotency(module, rest_obj):
     name = module.params["names"][0]
     baseline_info = get_baseline_compliance_info(rest_obj, name, attribute="Name")
     if any(baseline_info):
-        module.exit_json(msg=BASELINE_CHECK_MODE_CHANGE_MSG.format(name=name), changed=False)
+        module.exit_json(msg=BASELINE_CHECK_MODE_CHANGE_MSG.format(name=name), compliance_status=baseline_info, changed=False)
     if not any(baseline_info) and module.check_mode:
         module.exit_json(msg=CHECK_MODE_CHANGES_MSG, changed=True)
 
@@ -737,15 +813,25 @@ def validate_remediate_idempotency(module, rest_obj):
     return noncomplaint_devices, baseline_info
 
 
-def create_remediate_payload(noncomplaint_devices, baseline_info, rest_obj):
+def create_remediate_payload(module, noncomplaint_devices, baseline_info, rest_obj):
     ome_version = get_ome_version(rest_obj)
     payload = {
-        "Id": baseline_info["Id"],
+        "Id": baseline_info.get("Id"),
         "Schedule": {
             "RunNow": True,
             "RunLater": False
         }
     }
+    if module.params.get("run_later"):
+        if not validate_cron(module.params.get("cron")):
+            module.exit_json(msg=INVALID_CRON_TIME_MSG, failed=True)
+        validate_time(module, rest_obj)
+        payload['Schedule']['Cron'] = module.params.get("cron")
+        payload['Schedule']['RunNow'] = False
+        payload['Schedule']['RunLater'] = True
+    elif module.params.get("staged_at_reboot"):
+        payload['IsStaged'] = True
+        payload['Schedule'] = {}
     if LooseVersion(ome_version) >= "3.5":
         payload["DeviceIds"] = noncomplaint_devices
     else:
@@ -753,22 +839,58 @@ def create_remediate_payload(noncomplaint_devices, baseline_info, rest_obj):
     return payload
 
 
+def validate_cron(cron_string):
+    cron_pattern = CRON_REGEX
+    return bool(re.match(cron_pattern, cron_string))
+
+
+def validate_time(module, rest_obj):
+    cron_string = module.params.get("cron")
+    try:
+        cron_dt = datetime.datetime.strptime(cron_string, "%S %M %H %d %m ? %Y")
+    except ValueError:
+        module.exit_json(msg=INVALID_CRON_TIME_MSG, failed=True)
+    job_resp = rest_obj.invoke_request('GET', TIME_URI)
+    job_dict = job_resp.json_data
+    time_string = job_dict['SystemTime']
+    provided_time_dt = datetime.datetime.strptime(time_string, '%Y-%m-%d %H:%M:%S.%f')
+    if provided_time_dt > cron_dt:
+        module.exit_json(msg=PAST_TIME_MSG, failed=True)
+
+
 def remediate_baseline(module, rest_obj):
     noncomplaint_devices, baseline_info = validate_remediate_idempotency(module, rest_obj)
-    remediate_payload = create_remediate_payload(noncomplaint_devices, baseline_info, rest_obj)
+    remediate_payload = create_remediate_payload(module, noncomplaint_devices, baseline_info, rest_obj)
     resp = rest_obj.invoke_request('POST', REMEDIATE_BASELINE, data=remediate_payload)
     job_id = resp.json_data
+    if module.params.get("run_later"):
+        schedule_job(module, rest_obj, job_id)
     if module.params.get("job_wait"):
         job_failed, message = rest_obj.job_tracking(job_id, job_wait_sec=module.params["job_wait_timeout"])
         if job_failed is True:
-            module.fail_json(msg=message, job_id=job_id, changed=False)
+            detailed_output = rest_obj.get_job_execution_details(job_id)
+            module.exit_json(msg=message, job_id=job_id, job_details=detailed_output, failed=True)
         else:
+            if "successfully" in message and module.params.get("staged_at_reboot"):
+                module.exit_json(msg=REMEDIATE_STAGED_AT_REBOOT_MSG, job_id=job_id, changed=True)
             if "successfully" in message:
                 module.exit_json(msg=REMEDIATE_MSG, job_id=job_id, changed=True)
             else:
                 module.exit_json(msg=message, job_id=job_id, changed=False)
     else:
         module.exit_json(msg=TASK_PROGRESS_MSG, job_id=job_id, changed=True)
+
+
+def schedule_job(module, rest_obj, job_id):
+    time.sleep(5)
+    job_url = JOB_URI.format(job_id=job_id)
+    job_resp = rest_obj.invoke_request('GET', job_url)
+    job_dict = job_resp.json_data
+    job_status = job_dict['JobStatus']['Name']
+    if job_status == "New":
+        module.exit_json(msg=REMEDIATE_SCHEDULE_FAIL_MSG, job_id=job_id, failed=True)
+    if job_status == "Scheduled":
+        module.exit_json(msg=REMEDIATE_SCHEDULE_MSG, job_id=job_id, changed=True)
 
 
 def validate_job_time(command, module):
@@ -807,12 +929,15 @@ def main():
         "device_service_tags": {"required": False, "type": 'list', "elements": 'str'},
         "device_group_names": {"required": False, "type": 'list', "elements": 'str'},
         "description": {"type": 'str'},
+        "run_later": {"required": False, "type": 'bool'},
+        "cron": {"type": 'str'},
+        "staged_at_reboot": {"required": False, "type": 'bool'},
         "job_wait": {"required": False, "type": 'bool', "default": True},
         "job_wait_timeout": {"required": False, "type": 'int', "default": 10800},
         "new_name": {"type": 'str'},
     }
-    specs.update(ome_auth_params)
-    module = AnsibleModule(
+
+    module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[
             ['command', 'create', ['template_name', 'template_id'], True],
@@ -821,6 +946,7 @@ def main():
              ['new_name', 'description', 'template_name', 'template_id', 'device_ids', 'device_service_tags',
               'device_group_names'], True],
         ],
+        required_together=[('run_later', 'cron')],
         mutually_exclusive=[
             ('device_ids', 'device_service_tags'),
             ('device_ids', 'device_group_names'),

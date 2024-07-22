@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.2.0
+# Version 9.5.0
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -26,16 +26,21 @@ options:
     description:
       - IP address or hostname of the iDRAC.
     type: str
+    aliases: [idrac_ip]
   username:
     description:
-      - Username of the iDRAC.
+      - Username of the iDRAC. If the username is not provided, then
+        the environment variable E(IDRAC_USERNAME) is used.
       - I(username) is required when I(state) is C(present).
     type: str
+    aliases: [idrac_user]
   password:
     description:
-      - Password of the iDRAC.
+      - Password of the iDRAC. If the password is not provided, then
+        the environment variable E(IDRAC_PASSWORD) is used.
       - I(password) is required when I(state) is C(present).
     type: str
+    aliases: [idrac_password]
   port:
     description:
       - Port of the iDRAC.
@@ -65,20 +70,22 @@ options:
     choices: [present, absent]
     type: str
     default: present
-  auth_token:
+  x_auth_token:
     description:
      - Authentication token.
-     - I(auth_token) is required when I(state) is C(absent).
+     - I(x_auth_token) is required when I(state) is C(absent).
     type: str
   session_id:
     description:
      - Session ID of the iDRAC.
      - I(session_id) is required when I(state) is C(absent).
     type: int
+    aliases: ['auth_token']
 requirements:
   - "python >= 3.9.6"
 author:
   - "Rajshekar P(@rajshekarp87)"
+  - "Kritika Bhateja (@Kritika-Bhateja-03)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports IPv4 and IPv6 addresses.
@@ -93,14 +100,47 @@ EXAMPLES = r"""
     hostname: 198.162.0.1
     username: username
     password: password
+    ca_path: "/path/to/ca_cert.pem"
     state: present
 
 - name: Delete a session
   dellemc.openmanage.idrac_session:
     hostname: 198.162.0.1
+    ca_path: "/path/to/ca_cert.pem"
     state: absent
-    auth_token: aed4aa802b748d2f3b31deec00a6b28a
-    session_is: 2
+    x_auth_token: aed4aa802b748d2f3b31deec00a6b28a
+    session_id: 2
+
+- name: Create a session and execute other modules
+  block:
+    - name: Create a session
+      dellemc.openmanage.idrac_session:
+        hostname: 198.162.0.1
+        username: username
+        password: password
+        ca_path: "/path/to/ca_cert.pem"
+        state: present
+        register: authData
+
+    - name: Call idrac_firmware_info module
+      dellemc.openmanage.idrac_firmware_info:
+        idrac_ip: 198.162.0.1
+        ca_path: "/path/to/ca_cert.pem"
+        x_auth_token: "{{ authData.x_auth_token }}"
+
+    - name: Call idrac_user_info module
+      dellemc.openmanage.idrac_user_info:
+        idrac_ip: 198.162.0.1
+        ca_path: "/path/to/ca_cert.pem"
+        x_auth_token: "{{ authData.x_auth_token }}"
+  always:
+    - name: Destroy a session
+      dellemc.openmanage.idrac_session:
+        hostname: 198.162.0.1
+        ca_path: "/path/to/ca_cert.pem"
+        state: absent
+        x_auth_token: "{{ authData.x_auth_token }}"
+        session_id: "{{ authData.session_data.Id }}"
 """
 
 RETURN = r'''
@@ -361,7 +401,7 @@ def main():
         argument_spec=specs,
         required_if=[
             ["state", "present", ("username", "password",)],
-            ["state", "absent", ("auth_token", "session_id",)]
+            ["state", "absent", ("x_auth_token", "session_id",)]
         ],
         supports_check_mode=True
     )
@@ -400,7 +440,7 @@ def get_argument_spec():
     - "timeout": An integer representing the timeout value. The default value is 30.
     - "state": A string representing the state. The default value is "present". The choices are
     ["present", "absent"].
-    - "auth_token": A string representing the authentication token. It is marked as not to be
+    - "x_auth_token": A string representing the authentication token. It is marked as not to be
     logged.
     - "session_id": An integer representing the session ID.
 
@@ -408,15 +448,17 @@ def get_argument_spec():
         A dictionary representing the argument specification.
     """
     return {
-        "hostname": {"type": "str"},
-        "username": {"type": "str", "fallback": (env_fallback, ['IDRAC_USERNAME'])},
-        "password": {"type": "str", "no_log": True, "fallback": (env_fallback, ['IDRAC_PASSWORD'])},
+        "hostname": {"type": "str", "aliases": ["idrac_ip"]},
+        "username": {"type": "str", "aliases": ["idrac_user"],
+                     "fallback": (env_fallback, ['IDRAC_USERNAME'])},
+        "password": {"type": "str", "aliases": ["idrac_password"], "no_log": True,
+                     "fallback": (env_fallback, ['IDRAC_PASSWORD'])},
         "port": {"type": "int", "default": 443},
         "validate_certs": {"type": "bool", "default": True},
         "ca_path": {"type": "path", "default": None},
         "timeout": {"type": "int", "default": 30},
         "state": {"type": 'str', "default": "present", "choices": ["present", "absent"]},
-        "auth_token": {"type": "str", "no_log": True},
+        "x_auth_token": {"type": "str", "no_log": True, "aliases": ['auth_token']},
         "session_id": {"type": "int"}
     }
 

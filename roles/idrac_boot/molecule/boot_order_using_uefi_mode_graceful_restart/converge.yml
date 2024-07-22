@@ -8,9 +8,6 @@
     password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
     validate_certs: false
     boot_order_uri: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Systems/System.Embedded.1/"
-    lc_uri: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Dell/Managers/iDRAC.Embedded.1/DellLCService/Actions/DellLCService.GetRemoteServicesAPIStatus"
-    retry_count: 60
-    delay_count: 30
   tasks:
     - name: Preparing set_fact for uri
       ansible.builtin.set_fact:
@@ -30,23 +27,8 @@
       no_log: true
 
     - name: Checking for LCStatus before running pre-requisite
-      ansible.builtin.uri:
-        <<: *uri_input
-        url: "{{ lc_uri }}"
-        method: POST
-        body: {}
-      register: lc_status_result
-      check_mode: false
-      until: lc_status_result.json.LCStatus == "Ready"
-      retries: "{{ retry_count }}"
-      delay: "{{ delay_count }}"
-      no_log: true
-      tags: molecule-idempotence-notest
-
-    - name: Wait for 60 seconds
-      ansible.builtin.wait_for:
-        timeout: 60
-      tags: molecule-idempotence-notest
+      ansible.builtin.include_tasks:
+        file: ../__lc_status_check.yaml
 
     - name: Pre-requisite - Making sure boot mode is uefi
       check_mode: false
@@ -75,23 +57,8 @@
       tags: molecule-idempotence-notest
 
     - name: Checking for LCStatus after running pre-requisite
-      ansible.builtin.uri:
-        <<: *uri_input
-        url: "{{ lc_uri }}"
-        method: POST
-        body: {}
-      register: lc_status_result
-      check_mode: false
-      until: lc_status_result.json.LCStatus == "Ready"
-      retries: "{{ retry_count }}"
-      delay: "{{ delay_count }}"
-      no_log: true
-      tags: molecule-idempotence-notest
-
-    - name: Wait for 60 seconds
-      ansible.builtin.wait_for:
-        timeout: 60
-      tags: molecule-idempotence-notest
+      ansible.builtin.include_tasks:
+        file: ../__lc_status_check.yaml
 
     - name: TC-115428 - Validate boot_order with uefi mode with graceful_restart
       ansible.builtin.include_role:
@@ -101,18 +68,8 @@
         reset_type: graceful_restart
 
     - name: Checking for LCStatus after performing operation
-      ansible.builtin.uri:
-        <<: *uri_input
-        url: "{{ lc_uri }}"
-        method: POST
-        body: {}
-      register: lc_status_result
-      check_mode: false
-      until: lc_status_result.json.LCStatus == "Ready"
-      retries: "{{ retry_count }}"
-      delay: "{{ delay_count }}"
-      no_log: true
-      tags: molecule-idempotence-notest
+      ansible.builtin.include_tasks:
+        file: ../__lc_status_check.yaml
 
     - name: Asserting TC-115428 in check mode
       ansible.builtin.assert:

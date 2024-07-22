@@ -62,7 +62,7 @@ Parameters
   job_wait_timeout (optional, int, 600)
     Time in seconds to wait for job completion.
 
-    This is applicable when \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .
+    This is applicable when \ :emphasis:`wait\_for\_idrac`\  is \ :literal:`true`\ .
 
 
   force_reset (optional, bool, False)
@@ -71,24 +71,44 @@ Parameters
     This option is applicable only for iDRAC9.
 
 
+  default_username (optional, str, None)
+    This parameter is only applied when \ :emphasis:`reset\_to\_default`\  is \ :literal:`All`\  or \ :literal:`ResetAllWithRootDefaults`\ .
+
+    This parameter is required to track LifeCycle status of the server after the reset operation is performed. If this parameter is not provided, then the LifeCycle status is not tracked after the reset operation.
+
+
+  default_password (optional, str, None)
+    This parameter is only applied when \ :emphasis:`reset\_to\_default`\  is \ :literal:`All`\  or \ :literal:`ResetAllWithRootDefaults`\ .
+
+    This parameter is required to track LifeCycle status of the server after the reset operation is performed. If this parameter is not provided, then the LifeCycle status is not tracked after the reset operation.
+
+
   idrac_ip (True, str, None)
     iDRAC IP Address.
 
 
-  idrac_user (True, str, None)
+  idrac_user (False, str, None)
     iDRAC username.
 
-    If the username is not provided, then the environment variable \ :literal:`IDRAC\_USERNAME`\  is used.
+    If the username is not provided, then the environment variable \ :envvar:`IDRAC\_USERNAME`\  is used.
 
     Example: export IDRAC\_USERNAME=username
 
 
-  idrac_password (True, str, None)
+  idrac_password (False, str, None)
     iDRAC user password.
 
-    If the password is not provided, then the environment variable \ :literal:`IDRAC\_PASSWORD`\  is used.
+    If the password is not provided, then the environment variable \ :envvar:`IDRAC\_PASSWORD`\  is used.
 
     Example: export IDRAC\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`IDRAC\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export IDRAC\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   idrac_port (optional, int, 443)
@@ -134,14 +154,6 @@ Examples
 
     
     ---
-    - name: Reset the iDRAC to all and wait till the iDRAC is accessible.
-      dellemc.openmanage.idrac_reset:
-       idrac_ip: "192.168.0.1"
-       idrac_user: "user_name"
-       idrac_password: "user_password"
-       ca_path: "/path/to/ca_cert.pem"
-       reset_to_default: "All"
-
     - name: Reset the iDRAC to default and do not wait till the iDRAC is accessible.
       dellemc.openmanage.idrac_reset:
        idrac_ip: "192.168.0.1"
@@ -150,6 +162,17 @@ Examples
        ca_path: "/path/to/ca_cert.pem"
        reset_to_default: "Default"
        wait_for_idrac: false
+
+    - name: Reset the iDRAC to All and wait for lifecycle controller status to be ready.
+      dellemc.openmanage.idrac_reset:
+       idrac_ip: "192.168.0.1"
+       idrac_user: "user_name"
+       idrac_password: "user_password"
+       ca_path: "/path/to/ca_cert.pem"
+       reset_to_default: "All"
+       wait_for_idrac: true
+       default_username: "user_name"
+       default_password: "user_password"
 
     - name: Force reset the iDRAC to default.
       dellemc.openmanage.idrac_reset:
@@ -219,4 +242,5 @@ Authors
 - Felix Stephen (@felixs88)
 - Anooja Vardhineni (@anooja-vardhineni)
 - Lovepreet Singh (@singh-lovepreet1)
+- Abhishek Sinha (@ABHISHEK-SINHA10)
 

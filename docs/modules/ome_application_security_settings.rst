@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.9.6
 
 
 
@@ -30,9 +30,9 @@ Parameters
   restrict_allowed_ip_range (optional, dict, None)
     Restrict to allow inbound connections only from the specified IP address range.
 
-    This is mutually exclusive with *fips_mode_enable*.
+    This is mutually exclusive with \ :emphasis:`fips\_mode\_enable`\ .
 
-    ``NOTE`` When *restrict_allowed_ip_range* is configured on the appliance, any inbound connection to the appliance, such as alert reception, firmware update, and network identities are blocked from the devices that are outside the specified IP address range. However, any outbound connection from the appliance will work on all devices.
+    \ :literal:`NOTE`\  When \ :emphasis:`restrict\_allowed\_ip\_range`\  is configured on the appliance, any inbound connection to the appliance, such as alert reception, firmware update, and network identities are blocked from the devices that are outside the specified IP address range. However, any outbound connection from the appliance will work on all devices.
 
 
     enable_ip_range (True, bool, None)
@@ -47,7 +47,7 @@ Parameters
   login_lockout_policy (optional, dict, None)
     Locks the application after multiple unsuccessful login attempts.
 
-    This is mutually exclusive with *fips_mode_enable*.
+    This is mutually exclusive with \ :emphasis:`fips\_mode\_enable`\ .
 
 
     by_user_name (optional, bool, None)
@@ -76,9 +76,9 @@ Parameters
 
 
   job_wait_timeout (optional, int, 120)
-    The maximum wait time of *job_wait* in seconds. The job is tracked only for this duration.
+    The maximum wait time of \ :emphasis:`job\_wait`\  in seconds. The job is tracked only for this duration.
 
-    This option is applicable when *job_wait* is ``true``.
+    This option is applicable when \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .
 
 
   fips_mode_enable (optional, bool, None)
@@ -86,25 +86,41 @@ Parameters
 
     This is applicable only for OpenManage Enterprise Modular only
 
-    This is mutually exclusive with *restrict_allowed_ip_range* and *login_lockout_policy*.
+    This is mutually exclusive with \ :emphasis:`restrict\_allowed\_ip\_range`\  and \ :emphasis:`login\_lockout\_policy`\ .
 
-    ``WARNING`` Enabling or Disabling this option resets your chassis to default settings. This may cause change in IP settings and loss of network connectivity.
+    \ :literal:`WARNING`\  Enabling or Disabling this option resets your chassis to default settings. This may cause change in IP settings and loss of network connectivity.
 
-    ``WARNING`` The FIPS mode cannot be enabled on a lead chassis in a multi-chassis management configuration. To toggle enable FIPS on a lead chassis, delete the chassis group, enable FIPS and recreate the group.
+    \ :literal:`WARNING`\  The FIPS mode cannot be enabled on a lead chassis in a multi-chassis management configuration. To toggle enable FIPS on a lead chassis, delete the chassis group, enable FIPS and recreate the group.
 
-    ``WARNING`` For a Standalone or member chassis, enabling the FIPS mode deletes any fabrics created. This may cause loss of network connectivity and data paths to the compute sleds.
+    \ :literal:`WARNING`\  For a Standalone or member chassis, enabling the FIPS mode deletes any fabrics created. This may cause loss of network connectivity and data paths to the compute sleds.
 
 
   hostname (True, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
 
 
-  username (True, str, None)
+  username (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular username.
 
+    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export OME\_USERNAME=username
+
+
+  password (False, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular password.
+
+    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   port (optional, int, 443)
@@ -112,11 +128,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -135,7 +151,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell OpenManage Enterprise or OpenManage Enterprise Modular.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 

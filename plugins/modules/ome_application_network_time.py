@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries.  All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2020-2024 Dell Inc. or its subsidiaries.  All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -55,7 +55,7 @@ options:
       - This option is applicable when I(enable_ntp) is true.
     type: str
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author:
     - "Sajna Shetty(@Sajna-Shetty)"
 notes:
@@ -139,8 +139,7 @@ error_info:
 
 import json
 from ssl import SSLError
-from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
@@ -230,8 +229,8 @@ def main():
         "secondary_ntp_address1": {"required": False, "type": "str"},
         "secondary_ntp_address2": {"required": False, "type": "str"},
     }
-    specs.update(ome_auth_params)
-    module = AnsibleModule(
+
+    module = OmeAnsibleModule(
         argument_spec=specs,
         required_if=[['enable_ntp', False, ('time_zone', 'system_time',), True],
                      ['enable_ntp', True, ('time_zone', 'primary_ntp_address',

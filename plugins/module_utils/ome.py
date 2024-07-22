@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 8.2.0
-# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.4.0
+# Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -38,6 +38,8 @@ from ansible.module_utils.common.parameters import env_fallback
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import strip_substr_dict
+from ansible.module_utils.basic import AnsibleModule
 
 ome_auth_params = {
     "hostname": {"required": True, "type": "str"},
@@ -57,6 +59,7 @@ SESSION_RESOURCE_COLLECTION = {
 JOB_URI = "JobService/Jobs({job_id})"
 JOB_SERVICE_URI = "JobService/Jobs"
 HOST_UNRESOLVED_MSG = "Unable to resolve hostname or IP {0}."
+JOB_EXEC_HISTORY = "JobService/Jobs({job_id})/ExecutionHistories"
 
 
 class OpenURLResponse(object):
@@ -96,6 +99,7 @@ class RestOME(object):
         self.hostname = str(self.module_params["hostname"]).strip('][')
         self.username = self.module_params["username"]
         self.password = self.module_params["password"]
+        self.x_auth_token = self.module_params.get("x_auth_token")
         self.port = self.module_params["port"]
         self.validate_certs = self.module_params.get("validate_certs", True)
         self.ca_path = self.module_params.get("ca_path")
@@ -191,7 +195,7 @@ class RestOME(object):
 
     def __enter__(self):
         """Creates sessions by passing it to header"""
-        if self.req_session:
+        if self.req_session and not self.x_auth_token:
             payload = {'UserName': self.username,
                        'Password': self.password,
                        'SessionType': 'API', }
@@ -203,6 +207,8 @@ class RestOME(object):
             else:
                 msg = "Could not create the session"
                 raise ConnectionError(msg)
+        elif self.x_auth_token is not None:
+            self._headers["X-Auth-Token"] = self.x_auth_token
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -401,3 +407,60 @@ class RestOME(object):
     def _get_omam_ca_env(self):
         """Check if the value is set in REQUESTS_CA_BUNDLE or CURL_CA_BUNDLE or OMAM_CA_BUNDLE or returns None"""
         return os.environ.get("REQUESTS_CA_BUNDLE") or os.environ.get("CURL_CA_BUNDLE") or os.environ.get("OMAM_CA_BUNDLE")
+
+    def get_job_execution_details(self, job_id):
+        try:
+            job_detail_status = []
+            resp = self.invoke_request('GET', JOB_EXEC_HISTORY.format(job_id=job_id))
+            ex_hist = resp.json_data.get('value')
+            # Sorting based on startTime and to get latest execution instance.
+            tmp_dict = dict((x["StartTime"], x["Id"]) for x in ex_hist)
+            sorted_dates = sorted(tmp_dict.keys())
+            ex_url = JOB_EXEC_HISTORY.format(job_id=job_id) + "({0})/ExecutionHistoryDetails".format(tmp_dict[sorted_dates[-1]])
+            all_exec = self.get_all_items_with_pagination(ex_url)
+            for jb_ip in all_exec.get('value'):
+                jb_ip = strip_substr_dict(jb_ip)
+                jb_ip.get('JobStatus', {}).pop('@odata.type', None)
+                job_detail_status.append(jb_ip)
+        except Exception:
+            pass
+        return job_detail_status
+
+
+class OmeAnsibleModule(AnsibleModule):
+    def __init__(self, argument_spec, bypass_checks=False, no_log=False,
+                 mutually_exclusive=None, required_together=None,
+                 required_one_of=None, add_file_common_args=False,
+                 supports_check_mode=False, required_if=None, required_by=None):
+        ome_argument_spec = {
+            "hostname": {"required": True, "type": "str"},
+            "username": {"required": False, "type": "str", "fallback": (env_fallback, ['OME_USERNAME'])},
+            "password": {"required": False, "type": "str", "no_log": True, "fallback": (env_fallback, ['OME_PASSWORD'])},
+            "x_auth_token": {"required": False, "type": "str", "no_log": True, "fallback": (env_fallback, ['OME_X_AUTH_TOKEN'])},
+            "port": {"type": "int", "default": 443},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
+        }
+        argument_spec.update(ome_argument_spec)
+
+        auth_mutually_exclusive = [("username", "x_auth_token"), ("password", "x_auth_token")]
+        auth_required_one_of = [("username", "x_auth_token")]
+        auth_required_together = [("username", "password")]
+
+        if mutually_exclusive is None:
+            mutually_exclusive = []
+        mutually_exclusive.extend(auth_mutually_exclusive)
+        if required_together is None:
+            required_together = []
+        required_together.extend(auth_required_together)
+        if required_one_of is None:
+            required_one_of = []
+        required_one_of.extend(auth_required_one_of)
+        if required_by is None:
+            required_by = {}
+
+        super().__init__(argument_spec, bypass_checks, no_log,
+                         mutually_exclusive, required_together,
+                         required_one_of, add_file_common_args,
+                         supports_check_mode, required_if, required_by)

@@ -1,0 +1,99 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Prerequisite - Create a new session
+      dellemc.openmanage.idrac_session: &create_session
+        validate_certs: "{{ validate_certs }}"
+        hostname: "{{ idrac_ip }}"
+        port: "{{ idrac_port }}"
+        username: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+      register: create_session_output
+
+    - name: Set auth token and session id
+      ansible.builtin.set_fact:
+        x_auth_token: "{{ create_session_output.x_auth_token }}"
+        session_id: "{{ create_session_output.session_data.Id }}"
+      when: create_session_output.changed
+
+    - name: Delete a session - Check mode
+      dellemc.openmanage.idrac_session: &delete_sesssion
+        validate_certs: "{{ validate_certs }}"
+        hostname: "{{ idrac_ip }}"
+        state: absent
+        x_auth_token: "{{ x_auth_token }}"
+        session_id: "{{ session_id }}"
+      check_mode: true
+      register: delete_session_check
+
+    - name: Verify - Delete a session - Check mode
+      assert:
+        that:
+          - delete_session_check.changed
+          - delete_session_check.msg == 'Changes found to be applied.'
+
+    - name: Delete a session - Normal mode
+      dellemc.openmanage.idrac_session:
+        <<: *delete_sesssion
+      register: delete_session_output
+
+    - name: Verify - Delete a session - Normal mode
+      ansible.builtin.assert:
+        that:
+          - delete_session_output.changed
+          - 'delete_session_output.msg == "The session has been deleted
+           successfully."'
+
+    - name: Delete session with deleted session
+      dellemc.openmanage.idrac_session:
+        <<: *delete_sesssion
+      register: delete_session_with_deleted_session
+      ignore_errors: true
+
+    - name: Verify - Delete session with deleted session
+      ansible.builtin.assert:
+        that:
+          - delete_session_with_deleted_session.failed
+          - not delete_session_with_deleted_session.changed
+          - 'delete_session_with_deleted_session.msg == "HTTP Error 401:
+           Unauthorized"'
+
+    - name: Prerequisite - Create another new session
+      dellemc.openmanage.idrac_session:
+        <<: *create_session
+      register: create_session_output
+
+    - name: Set auth token and session id
+      ansible.builtin.set_fact:
+        new_auth_token: "{{ create_session_output.x_auth_token }}"
+
+    - name: Delete a session - Idempotence Mode
+      dellemc.openmanage.idrac_session:
+        <<: *delete_sesssion
+        x_auth_token: "{{ new_auth_token }}"
+      register: delete_session_output
+
+    - name: Verify - Delete a session - Idempotence Mode
+      ansible.builtin.assert:
+        that:
+          - not delete_session_output.changed
+          - delete_session_output.msg == 'No changes found to be applied.'
+
+  always:
+    - name: Post clean up
+      ansible.builtin.set_fact:
+        x_auth_token: "{{ create_session_output.x_auth_token }}"
+        session_id: "{{ create_session_output.session_data.Id }}"
+    - name: Delete the sessions
+      ansible.builtin.include_tasks: _delete_helper.yml

@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.9.14
+- python \>= 3.9.14
 
 
 
@@ -28,11 +28,17 @@ Parameters
 ----------
 
   command (optional, str, export)
-    If ``import``, the module performs SCP import operation.
+    If \ :literal:`import`\ , the module performs SCP import operation.
 
-    If ``export``, the module performs SCP export operation.
+    If \ :literal:`export`\ , the module performs SCP export operation.
 
-    If ``preview``, the module performs SCP preview operation.
+    If \ :literal:`preview`\ , the module performs SCP preview operation.
+
+    \ :literal:`import\_custom\_defaults`\  allows you to import custom default iDRAC settings.
+
+    \ :literal:`export\_custom\_defaults`\  allows you to export custom default iDRAC settings.
+
+    \ :literal:`import\_custom\_defaults`\  and \ :literal:`export\_custom\_defaults`\  is supported only on iDRAC9 with firmware 7.00.00.00 and above.
 
 
   job_wait (True, bool, None)
@@ -44,11 +50,13 @@ Parameters
 
     CIFS, NFS, HTTP, and HTTPS network share types are supported.
 
-    *share_name* is mutually exclusive with *import_buffer*.
+    \ :emphasis:`share\_name`\  is mutually exclusive with \ :emphasis:`import\_buffer`\ .
+
+    Only "local" is supported when the \ :emphasis:`command`\  is \ :literal:`import\_custom\_defaults`\  or \ :literal:`export\_custom\_defaults`\ .
 
 
   share_user (optional, str, None)
-    Network share user in the format 'user@domain' or 'domain\\user' if user is part of a domain else 'user'. This option is mandatory for CIFS Network Share.
+    Network share user in the format 'user@domain' or 'domain\\\\user' if user is part of a domain else 'user'. This option is mandatory for CIFS Network Share.
 
 
   share_password (optional, str, None)
@@ -58,155 +66,175 @@ Parameters
   scp_file (optional, str, None)
     Name of the server configuration profile (SCP) file.
 
-    This option is mandatory if *command* is ``import``.
+    Only XML file format is supported when \ :emphasis:`command`\  is \ :literal:`import`\  or \ :literal:`import\_custom\_defaults`\  or \ :literal:`export\_custom\_defaults`\ .
 
-    The default format <idrac_ip>_YYmmdd_HHMMSS_scp is used if this option is not specified for ``import``.
+    The default format \<idrac\_ip\>\_YYmmdd\_HHMMSS\_scp is used if this option is not specified for \ :literal:`export`\  or \ :literal:`export\_custom\_defaults`\ .
 
-    *export_format* is used if the valid extension file is not provided for ``import``.
+    \ :emphasis:`export\_format`\  is used if the valid extension file is not provided for \ :literal:`export`\ .
 
 
   scp_components (optional, list, ALL)
-    If ``ALL``, this option exports or imports all components configurations from the SCP file.
+    If \ :literal:`ALL`\ , this option exports or imports all components configurations from the SCP file.
 
-    If ``IDRAC``, this option exports or imports iDRAC configuration from the SCP file.
+    If \ :literal:`IDRAC`\ , this option exports or imports iDRAC configuration from the SCP file.
 
-    If ``BIOS``, this option exports or imports BIOS configuration from the SCP file.
+    If \ :literal:`BIOS`\ , this option exports or imports BIOS configuration from the SCP file.
 
-    If ``NIC``, this option exports or imports NIC configuration from the SCP file.
+    If \ :literal:`NIC`\ , this option exports or imports NIC configuration from the SCP file.
 
-    If ``RAID``, this option exports or imports RAID configuration from the SCP file.
+    If \ :literal:`RAID`\ , this option exports or imports RAID configuration from the SCP file.
 
-    If ``FC``, this option exports or imports FiberChannel configurations from the SCP file.
+    If \ :literal:`FC`\ , this option exports or imports FiberChannel configurations from the SCP file.
 
-    If ``InfiniBand``, this option exports or imports InfiniBand configuration from the SCP file.
+    If \ :literal:`InfiniBand`\ , this option exports or imports InfiniBand configuration from the SCP file.
 
-    If ``SupportAssist``, this option exports or imports SupportAssist configuration from the SCP file.
+    If \ :literal:`SupportAssist`\ , this option exports or imports SupportAssist configuration from the SCP file.
 
-    If ``EventFilters``, this option exports or imports EventFilters configuration from the SCP file.
+    If \ :literal:`EventFilters`\ , this option exports or imports EventFilters configuration from the SCP file.
 
-    If ``System``, this option exports or imports System configuration from the SCP file.
+    If \ :literal:`System`\ , this option exports or imports System configuration from the SCP file.
 
-    If ``LifecycleController``, this option exports or imports SupportAssist configuration from the SCP file.
+    If \ :literal:`LifecycleController`\ , this option exports or imports SupportAssist configuration from the SCP file.
 
-    If ``AHCI``, this option exports or imports EventFilters configuration from the SCP file.
+    If \ :literal:`AHCI`\ , this option exports or imports EventFilters configuration from the SCP file.
 
-    If ``PCIeSSD``, this option exports or imports PCIeSSD configuration from the SCP file.
+    If \ :literal:`PCIeSSD`\ , this option exports or imports PCIeSSD configuration from the SCP file.
 
-    When *command* is ``export`` or ``import`` *target* with multiple components is supported only on iDRAC9 with firmware 6.10.00.00 and above.
+    When \ :emphasis:`command`\  is \ :literal:`export`\  or \ :literal:`import`\  \ :emphasis:`target`\  with multiple components is supported only on iDRAC9 with firmware 6.10.00.00 and above.
 
 
   shutdown_type (optional, str, Graceful)
-    This option is applicable for ``import`` command.
+    This option is applicable for \ :literal:`import`\  command.
 
-    If ``Graceful``, the job gracefully shuts down the operating system and turns off the server.
+    If \ :literal:`Graceful`\ , the job gracefully shuts down the operating system and turns off the server.
 
-    If ``Forced``, it forcefully shuts down the server.
+    If \ :literal:`Forced`\ , it forcefully shuts down the server.
 
-    If ``NoReboot``, the job that applies the SCP will pause until you manually reboot the server.
+    If \ :literal:`NoReboot`\ , the job that applies the SCP will pause until you manually reboot the server.
 
 
   end_host_power_state (optional, str, On)
-    This option is applicable for ``import`` command.
+    This option is applicable for \ :literal:`import`\  command.
 
-    If ``On``, End host power state is on.
+    If \ :literal:`On`\ , End host power state is on.
 
-    If ``Off``, End host power state is off.
+    If \ :literal:`Off`\ , End host power state is off.
 
 
   export_format (optional, str, XML)
-    Specify the output file format. This option is applicable for ``export`` command.
+    Specify the output file format. This option is applicable for \ :literal:`export`\  or \ :literal:`export\_custom\_defaults`\  command.
+
+    The default export file format is always XML when the  \ :emphasis:`command`\  is \ :literal:`export\_custom\_defaults`\ .
 
 
   export_use (optional, str, Default)
     Specify the type of Server Configuration Profile (SCP) to be exported.
 
-    This option is applicable when *command* is ``export``.
+    This option is applicable when \ :emphasis:`command`\  is \ :literal:`export`\ .
 
-    ``Default`` Creates a non-destructive snapshot of the configuration.
+    \ :literal:`Default`\  Creates a non-destructive snapshot of the configuration.
 
-    ``Replace`` Replaces a server with another or restores the servers settings to a known baseline.
+    \ :literal:`Replace`\  Replaces a server with another or restores the servers settings to a known baseline.
 
-    ``Clone`` Clones settings from one server to another server with the identical hardware setup. All settings except I/O identity are updated (e.g. will reset RAID). The settings in this export will be destructive when uploaded to another system.
+    \ :literal:`Clone`\  Clones settings from one server to another server with the identical hardware setup. All settings except I/O identity are updated (e.g. will reset RAID). The settings in this export will be destructive when uploaded to another system.
 
 
   ignore_certificate_warning (optional, str, ignore)
-    If ``ignore``, it ignores the certificate warnings.
+    If \ :literal:`ignore`\ , it ignores the certificate warnings.
 
-    If ``showerror``, it shows the certificate warnings.
+    If \ :literal:`showerror`\ , it shows the certificate warnings.
 
-    *ignore_certificate_warning* is considered only when *share_name* is of type HTTPS and is supported only on iDRAC9.
+    \ :emphasis:`ignore\_certificate\_warning`\  is considered only when \ :emphasis:`share\_name`\  is of type HTTPS and is supported only on iDRAC9.
 
 
   include_in_export (optional, str, default)
-    This option is applicable when *command* is ``export``.
+    This option is applicable when \ :emphasis:`command`\  is \ :literal:`export`\ .
 
-    If ``default``, it exports the default Server Configuration Profile.
+    If \ :literal:`default`\ , it exports the default Server Configuration Profile.
 
-    If ``readonly``, it exports the SCP with readonly attributes.
+    If \ :literal:`readonly`\ , it exports the SCP with readonly attributes.
 
-    If ``passwordhashvalues``, it exports the SCP with password hash values.
+    If \ :literal:`passwordhashvalues`\ , it exports the SCP with password hash values.
 
-    If ``customtelemetry``, exports the SCP with custom telemetry attributes supported only in the iDRAC9.
+    If \ :literal:`customtelemetry`\ , exports the SCP with custom telemetry attributes supported only in the iDRAC9.
 
 
   import_buffer (optional, str, None)
     Used to import the buffer input of xml or json into the iDRAC.
 
-    This option is applicable when *command* is ``import`` and ``preview``.
+    When the  \ :emphasis:`command`\  is \ :literal:`import\_custom\_defaults`\ , only XML file format is supported.
 
-    *import_buffer* is mutually exclusive with *share_name*.
+    This option is applicable when \ :emphasis:`command`\  is \ :literal:`import`\  or \ :literal:`preview`\  or \ :literal:`import\_custom\_defaults`\ .
+
+    \ :emphasis:`import\_buffer`\  is mutually exclusive with \ :emphasis:`share\_name`\ .
 
 
   proxy_support (optional, bool, False)
     Proxy to be enabled or disabled.
 
-    *proxy_support* is considered only when *share_name* is of type HTTP or HTTPS and is supported only on iDRAC9.
+    \ :emphasis:`proxy\_support`\  is considered only when \ :emphasis:`share\_name`\  is of type HTTP or HTTPS and is supported only on iDRAC9.
 
 
   proxy_type (optional, str, http)
-    ``http`` to select HTTP type proxy.
+    \ :literal:`http`\  to select HTTP type proxy.
 
-    ``socks4`` to select SOCKS4 type proxy.
+    \ :literal:`socks4`\  to select SOCKS4 type proxy.
 
-    *proxy_type* is considered only when *share_name* is of type HTTP or HTTPS and is supported only on iDRAC9.
+    \ :emphasis:`proxy\_type`\  is considered only when \ :emphasis:`share\_name`\  is of type HTTP or HTTPS and is supported only on iDRAC9.
 
 
   proxy_server (optional, str, None)
-    *proxy_server* is required when *share_name* is of type HTTPS or HTTP and *proxy_support* is ``true``.
+    \ :emphasis:`proxy\_server`\  is required when \ :emphasis:`share\_name`\  is of type HTTPS or HTTP and \ :emphasis:`proxy\_support`\  is \ :literal:`true`\ .
 
-    *proxy_server* is considered only when *share_name* is of type HTTP or HTTPS and is supported only on iDRAC9.
+    \ :emphasis:`proxy\_server`\  is considered only when \ :emphasis:`share\_name`\  is of type HTTP or HTTPS and is supported only on iDRAC9.
 
 
   proxy_port (optional, str, 80)
     Proxy port to authenticate.
 
-    *proxy_port* is required when *share_name* is of type HTTPS or HTTP and *proxy_support* is ``true``.
+    \ :emphasis:`proxy\_port`\  is required when \ :emphasis:`share\_name`\  is of type HTTPS or HTTP and \ :emphasis:`proxy\_support`\  is \ :literal:`true`\ .
 
-    *proxy_port* is considered only when *share_name* is of type HTTP or HTTPS and is supported only on iDRAC9.
+    \ :emphasis:`proxy\_port`\  is considered only when \ :emphasis:`share\_name`\  is of type HTTP or HTTPS and is supported only on iDRAC9.
 
 
   proxy_username (optional, str, None)
     Proxy username to authenticate.
 
-    *proxy_username* is considered only when *share_name* is of type HTTP or HTTPS and is supported only on iDRAC9.
+    \ :emphasis:`proxy\_username`\  is considered only when \ :emphasis:`share\_name`\  is of type HTTP or HTTPS and is supported only on iDRAC9.
 
 
   proxy_password (optional, str, None)
     Proxy password to authenticate.
 
-    *proxy_password* is considered only when *share_name* is of type HTTP or HTTPS and is supported only on iDRAC9.
+    \ :emphasis:`proxy\_password`\  is considered only when \ :emphasis:`share\_name`\  is of type HTTP or HTTPS and is supported only on iDRAC9.
 
 
   idrac_ip (True, str, None)
     iDRAC IP Address.
 
 
-  idrac_user (True, str, None)
+  idrac_user (False, str, None)
     iDRAC username.
 
+    If the username is not provided, then the environment variable \ :envvar:`IDRAC\_USERNAME`\  is used.
 
-  idrac_password (True, str, None)
+    Example: export IDRAC\_USERNAME=username
+
+
+  idrac_password (False, str, None)
     iDRAC user password.
+
+    If the password is not provided, then the environment variable \ :envvar:`IDRAC\_PASSWORD`\  is used.
+
+    Example: export IDRAC\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`IDRAC\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export IDRAC\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   idrac_port (optional, int, 443)
@@ -214,11 +242,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -236,11 +264,11 @@ Notes
 -----
 
 .. note::
-   - This module requires 'Administrator' privilege for *idrac_user*.
+   - This module requires 'Administrator' privilege for \ :emphasis:`idrac\_user`\ .
    - Run this module from a system that has direct access to Dell iDRAC.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
    - To import Server Configuration Profile (SCP) on the iDRAC8-based servers, the servers must have iDRAC Enterprise license or later.
-   - For ``import`` operation, ``check_mode`` is supported only when *target* is ``ALL``.
+   - For \ :literal:`import`\  operation, \ :literal:`check\_mode`\  is supported only when \ :emphasis:`target`\  is \ :literal:`ALL`\ .
    - This module supports IPv4 and IPv6 addresses.
 
 
@@ -521,6 +549,39 @@ Examples
         import_buffer: "{\"SystemConfiguration\": {\"Components\": [{\"FQDD\": \"iDRAC.Embedded.1\",\"Attributes\":
           [{\"Name\": \"SNMP.1#AgentCommunity\",\"Value\": \"public1\"}]}]}}"
 
+    - name: Export custom default
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        job_wait: true
+        share_name: "/scp_folder"
+        command: export_custom_defaults
+        scp_file: example_file
+
+    - name: Import custom default
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        job_wait: true
+        share_name: "/scp_folder"
+        command: import_custom_defaults
+        scp_file: example_file.xml
+
+    - name: Import custom default using buffer
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        job_wait: true
+        command: import_custom_defaults
+        import_buffer: "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'>Disabled</Attribute>
+                      </Component></SystemConfiguration>"
+
 
 
 Return Values
@@ -555,4 +616,5 @@ Authors
 - Felix Stephen (@felixs88)
 - Jennifer John (@Jennifer-John)
 - Shivam Sharma (@ShivamSh3)
+- Lovepreet Singh (@singh-lovepreet1)
 

@@ -29,23 +29,8 @@
       no_log: true
 
     - name: Checking for LCStatus before running pre-requisite
-      ansible.builtin.uri:
-        <<: *uri_input
-        url: "{{ lc_uri }}"
-        method: POST
-        body: {}
-      register: lc_status_result
-      check_mode: false
-      until: lc_status_result.json.LCStatus == "Ready"
-      retries: "{{ retry_count }}"
-      delay: "{{ delay_count }}"
-      no_log: true
-      tags: molecule-idempotence-notest
-
-    - name: Wait for 60 seconds
-      ansible.builtin.wait_for:
-        timeout: 60
-      tags: molecule-idempotence-notest
+      ansible.builtin.include_tasks:
+        file: ../__lc_status_check.yaml
 
     - name: Pre-requisite - Making sure boot_source_override_enabled is disabled
       check_mode: false
@@ -56,23 +41,8 @@
       tags: molecule-idempotence-notest
 
     - name: Checking for LCStatus after running pre-requisite
-      ansible.builtin.uri:
-        <<: *uri_input
-        url: "{{ lc_uri }}"
-        method: POST
-        body: {}
-      register: lc_status_result
-      check_mode: false
-      until: lc_status_result.json.LCStatus == "Ready"
-      retries: "{{ retry_count }}"
-      delay: "{{ delay_count }}"
-      no_log: true
-      tags: molecule-idempotence-notest
-
-    - name: Wait for 60 seconds
-      ansible.builtin.wait_for:
-        timeout: 60
-      tags: molecule-idempotence-notest
+      ansible.builtin.include_tasks:
+        file: ../__lc_status_check.yaml
 
     - name: TC-115433 - Validate boot_source_override_enabled as continuous
       ansible.builtin.include_role:
@@ -82,24 +52,8 @@
         reset_type: none
 
     - name: Checking for LCStatus after performing operation
-      ansible.builtin.uri:
-        <<: *uri_input
-        url: "{{ lc_uri }}"
-        method: POST
-        body: {}
-      register: lc_status_result
-      check_mode: false
-      when: idrac_boot_out.changed # noqa: no-handler
-      until: lc_status_result.json.LCStatus == "Ready"
-      retries: "{{ retry_count }}"
-      delay: "{{ delay_count }}"
-      no_log: true
-      tags: molecule-idempotence-notest
-
-    - name: Wait for 60 seconds
-      ansible.builtin.wait_for:
-        timeout: 60
-      tags: molecule-idempotence-notest
+      ansible.builtin.include_tasks:
+        file: ../__lc_status_check.yaml
 
     - name: Asserting TC-115433 in check mode
       ansible.builtin.assert:
@@ -109,5 +63,7 @@
 
     - name: Asserting TC-115433 in normal mode
       ansible.builtin.assert:
-        that: idrac_boot_out.msg == "The boot settings job is triggered successfully."
+        that: >-
+          "The boot settings operation is triggered/submitted successfully." in
+          idrac_boot_out.msg
       when: not ansible_check_mode

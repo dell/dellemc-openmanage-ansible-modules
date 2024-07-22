@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2021-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -72,7 +72,7 @@ options:
             description: Provide name for the slot.
             required: true
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 notes:
   - "This module initiates the refresh inventory task. It may take a minute for new names to be reflected.
   If the task exceeds 300 seconds to refresh, the task times out."
@@ -254,10 +254,9 @@ error_info:
 import json
 import time
 from ssl import SSLError
-from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
 from ansible.module_utils.common.dict_transformations import recursive_diff
 
 DEVICE_URI = "DeviceService/Devices"
@@ -578,8 +577,8 @@ def main():
                          },
                          },
     }
-    specs.update(ome_auth_params)
-    module = AnsibleModule(
+
+    module = OmeAnsibleModule(
         argument_spec=specs,
         required_one_of=[('slot_options', 'device_options')],
         mutually_exclusive=[('slot_options', 'device_options')],

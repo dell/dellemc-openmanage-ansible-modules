@@ -1,0 +1,114 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: hostname, username
+         and password.'
+  when: hostname is not defined or username is not defined or password
+       is not defined
+
+- block:
+    - name: Prerequisite - Create a new session
+      environment:
+        OME_USERNAME: "{{ username }}"
+        OME_PASSWORD: "{{ password }}"
+      dellemc.openmanage.ome_session: &create_session
+        validate_certs: "{{ validate_certs }}"
+        hostname: "{{ hostname }}"
+        port: "{{ port }}"
+      register: create_session_output
+      no_log: true
+
+    - name: Set auth token and session id
+      ansible.builtin.set_fact:
+        x_auth_token: "{{ create_session_output.x_auth_token }}"
+        session_id: "{{ create_session_output.session_data.Id }}"
+      when: create_session_output.changed
+      no_log: true
+
+    - name: Delete a session - Check mode
+      dellemc.openmanage.ome_session: &delete_sesssion
+        validate_certs: "{{ validate_certs }}"
+        hostname: "{{ hostname }}"
+        state: absent
+        x_auth_token: "{{ x_auth_token }}"
+        session_id: "{{ session_id }}"
+      check_mode: true
+      register: delete_session_check
+
+    - name: Verify deletion of session - Check mode
+      ansible.builtin.assert:
+        that:
+          - delete_session_check.changed
+          - delete_session_check.msg == 'Changes found to be applied.'
+
+    - name: Delete a session - Normal mode
+      dellemc.openmanage.ome_session:
+        <<: *delete_sesssion
+      register: delete_session_output
+
+    - name: Verify deletion of session - Normal mode
+      ansible.builtin.assert:
+        that:
+          - delete_session_output.changed
+          - delete_session_output.msg == 'The session has been
+             deleted successfully.'
+
+    - name: Validate - Delete session with deleted session
+      dellemc.openmanage.ome_session:
+        <<: *delete_sesssion
+      register: delete_session_with_deleted_session
+      ignore_errors: true
+
+    - name: Verify - Delete session with deleted session
+      ansible.builtin.assert:
+        that:
+          - not delete_session_with_deleted_session.changed
+          - delete_session_with_deleted_session.failed
+          - 'delete_session_with_deleted_session.msg == "HTTP Error 401: 401"'
+
+    - name: Prerequisite - Create another new session for Idempotence
+      environment:
+        OME_USERNAME: "{{ username }}"
+        OME_PASSWORD: "{{ password }}"
+      dellemc.openmanage.ome_session:
+        <<: *create_session
+      register: create_session_output
+
+    - name: Verify creation of session for Idempotence
+      ansible.builtin.assert:
+        that:
+          - create_session_output.changed
+          - create_session_output.msg == 'The session has been
+             created successfully.'
+          - create_session_output.x_auth_token
+          - create_session_output.session_data
+
+    - name: Set auth token and session id
+      ansible.builtin.set_fact:
+        new_auth_token: "{{ create_session_output.x_auth_token }}"
+        new_session_id: "{{ create_session_output.session_data.Id }}"
+      no_log: true
+
+    - name: Delete a session - Idempotence Mode
+      dellemc.openmanage.ome_session:
+        <<: *delete_sesssion
+        x_auth_token: "{{ new_auth_token }}"
+      register: delete_session_output
+
+    - name: Verify deletion of session - Idempotence Mode
+      ansible.builtin.assert:
+        that:
+          - not delete_session_output.changed
+          - delete_session_output.msg == 'No changes found to be applied.'
+
+  always:
+    - name: Perform Cleanup - Delete the session
+      ansible.builtin.include_tasks: _delete_helper.yml
+      vars:
+        session_id: "{{ new_session_id }}"
+        x_auth_token: "{{ new_auth_token }}"

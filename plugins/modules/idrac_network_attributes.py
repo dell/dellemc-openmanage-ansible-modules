@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.4.0
-# Copyright (C) 2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.3.0
+# Copyright (C) 2023-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -22,7 +22,7 @@ version_added: "8.4.0"
 description:
   - This module allows you to configure the port and partition network attributes on the network interface cards.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
   network_adapter_id:
     type: str
@@ -40,17 +40,17 @@ options:
     type: dict
     description:
       - "Dictionary of network attributes and value. To view the list of attributes and its structure, see the below API
-        U(https://I(idrac_ip)/redfish/v1/Systems/System.Embedded.1/NetworkAdapters/<network_id>/NetworkDeviceFunctions/
-        <network_port_id>/Settings) and U(https://<idrac_ip>/redfish/v1/Schemas/NetworkDeviceFunction.v1_8_0.json)."
+        U(https://I(idrac_ip)/redfish/v1/Systems/System.Embedded.1/NetworkAdapters/<network_adapter_id>/NetworkDeviceFunctions/
+        <network_device_function_id>/Settings) and U(https://<idrac_ip>/redfish/v1/Schemas/NetworkDeviceFunction.v1_8_0.json)."
       - I(network_attributes) is mutually exclusive with I(oem_network_attributes).
   oem_network_attributes:
     type: dict
     description:
       - "The attributes must be part of the Integrated Dell Remote Access Controller Attribute Registry.
         To view the list of attributes in Attribute Registry for iDRAC9 and newer versions. For more information,
-        see, U(https://I(idrac_ip)/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/<network_id>/NetworkDeviceFunctions/
-        <network_port_id>/Oem/Dell/DellNetworkAttributes/<network_port_id>)
-        and U(https://I(idrac_ip)/redfish/v1/Registries/NetworkAttributesRegistry_<network_port_id>/
+        see, U(https://I(idrac_ip)/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/<network_adapter_id>/NetworkDeviceFunctions/
+        <network_device_function_id>/Oem/Dell/DellNetworkAttributes/<network_device_function_id>)
+        and U(https://I(idrac_ip)/redfish/v1/Registries/NetworkAttributesRegistry_<network_device_function_id>/
         NetworkAttributesRegistry_network_port_id.json)."
       - For iDRAC8 based servers, derive the network attribute name from Server Configuration Profile.
       - I(oem_network_attributes) is mutually exclusive with I(network_attributes).
@@ -131,8 +131,8 @@ EXAMPLES = """
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
-    network_id: "NIC.Integrated.1"
-    network_port_id: "NIC.Integrated.1-1-1"
+    network_adapter_id: "NIC.Integrated.1"
+    network_device_function_id: "NIC.Integrated.1-1-1"
     apply_time: "Immediate"
     oem_network_attributes:
       BannerMessageTimeout: "4"
@@ -142,8 +142,8 @@ EXAMPLES = """
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
-    network_id: NIC.Integrated.1
-    network_port_id: "NIC.Integrated.1-1-1"
+    network_adapter_id: NIC.Integrated.1
+    network_device_function_id: "NIC.Integrated.1-1-1"
     oem_network_attributes:
       BannerMessageTimeout: "4"
     apply_time: OnReset
@@ -153,8 +153,8 @@ EXAMPLES = """
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
-    network_id: NIC.Integrated.1
-    network_port_id: "NIC.Integrated.1-1-1"
+    network_adapter_id: NIC.Integrated.1
+    network_device_function_id: "NIC.Integrated.1-1-1"
     oem_network_attributes:
       BannerMessageTimeout: "4"
     apply_time: AtMaintenanceWindowStart
@@ -167,8 +167,8 @@ EXAMPLES = """
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
-    network_id: NIC.Integrated.1
-    network_port_id: "NIC.Integrated.1-1-1"
+    network_adapter_id: NIC.Integrated.1
+    network_device_function_id: "NIC.Integrated.1-1-1"
     apply_time: "Immediate"
     clear_pending: true
 
@@ -177,8 +177,8 @@ EXAMPLES = """
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
-    network_id: NIC.Integrated.1
-    network_port_id: "NIC.Integrated.1-1-1"
+    network_adapter_id: NIC.Integrated.1
+    network_device_function_id: "NIC.Integrated.1-1-1"
     apply_time: "Immediate"
     clear_pending: true
     oem_network_attributes:
@@ -189,8 +189,8 @@ EXAMPLES = """
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
-    network_id: NIC.Integrated.1
-    network_port_id: "NIC.Integrated.1-1-1"
+    network_adapter_id: NIC.Integrated.1
+    network_device_function_id: "NIC.Integrated.1-1-1"
     apply_time: "Immediate"
     oem_network_attributes:
       LnkSpeed: "10MbpsHalf"
@@ -204,8 +204,8 @@ EXAMPLES = """
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
-    network_id: NIC.Integrated.1
-    network_port_id: "NIC.Integrated.1-1-1"
+    network_adapter_id: NIC.Integrated.1
+    network_device_function_id: "NIC.Integrated.1-1-1"
     apply_time: OnReset
     network_attributes:
       Ethernet:
@@ -217,8 +217,8 @@ EXAMPLES = """
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
-    network_id: NIC.Integrated.1
-    network_port_id: "NIC.Integrated.1-1-1"
+    network_adapter_id: NIC.Integrated.1
+    network_device_function_id: "NIC.Integrated.1-1-1"
     network_attributes:
       Ethernet:
         VLAN:
@@ -230,8 +230,8 @@ EXAMPLES = """
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
-    network_id: NIC.Integrated.1
-    network_port_id: "NIC.Integrated.1-1-1"
+    network_adapter_id: NIC.Integrated.1
+    network_device_function_id: "NIC.Integrated.1-1-1"
     network_attributes:
       iSCSIBoot:
         InitiatorIPAddress: 1.0.0.1
@@ -245,8 +245,8 @@ EXAMPLES = """
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
-    network_id: NIC.Integrated.1
-    network_port_id: "NIC.Integrated.1-1-1"
+    network_adapter_id: NIC.Integrated.1
+    network_device_function_id: "NIC.Integrated.1-1-1"
     network_attributes:
       Ethernet:
         VLAN:
@@ -319,12 +319,9 @@ error_info:
 import json
 import time
 from urllib.error import HTTPError, URLError
-
-from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (
-    idrac_auth_params, iDRACRedfishAPI)
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     delete_job, get_current_time, get_dynamic_uri, get_idrac_firmware_version,
     get_scheduled_job_resp, remove_key, validate_and_get_first_resource_id_uri,
@@ -713,13 +710,12 @@ def main():
             "job_wait": {"type": "bool", "default": True},
             "job_wait_timeout": {"type": "int", "default": 1200}
         }
-        specs.update(idrac_auth_params)
-        module = AnsibleModule(argument_spec=specs,
-                               mutually_exclusive=[
-                                   ('network_attributes', 'oem_network_attributes')],
-                               required_if=[["apply_time", "AtMaintenanceWindowStart", ("maintenance_window",)],
-                                            ["apply_time", "InMaintenanceWindowOnReset", ("maintenance_window",)]],
-                               supports_check_mode=True)
+
+        module = IdracAnsibleModule(argument_spec=specs,
+                                    mutually_exclusive=[('network_attributes', 'oem_network_attributes')],
+                                    required_if=[["apply_time", "AtMaintenanceWindowStart", ("maintenance_window",)],
+                                                 ["apply_time", "InMaintenanceWindowOnReset", ("maintenance_window",)]],
+                                    supports_check_mode=True)
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:
             if module_attribute := module.params.get('network_attributes'):
                 network_attr_obj = NetworkAttributes(idrac, module)

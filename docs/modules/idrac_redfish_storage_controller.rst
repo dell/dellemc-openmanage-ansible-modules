@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.9.6
+- python \>= 3.9.6
 
 
 
@@ -30,55 +30,55 @@ Parameters
   command (optional, str, None)
     These actions may require a system reset, depending on the capabilities of the controller.
 
-    ``ResetConfig`` - Deletes all the virtual disks and unassigns all hot spares on physical disks. *controller_id* is required for this operation.
+    \ :literal:`ResetConfig`\  - Deletes all the virtual disks and unassigns all hot spares on physical disks. \ :emphasis:`controller\_id`\  is required for this operation.
 
-    ``AssignSpare`` - Assigns a physical disk as a dedicated or global hot spare for a virtual disk. *target* is required for this operation.
+    \ :literal:`AssignSpare`\  - Assigns a physical disk as a dedicated or global hot spare for a virtual disk. \ :emphasis:`target`\  is required for this operation.
 
-    ``SetControllerKey`` - Sets the key on controllers, which is used to encrypt the drives in Local Key Management(LKM). *controller_id*, *key*, and *key_id* are required for this operation.
+    \ :literal:`SetControllerKey`\  - Sets the key on controllers, which is used to encrypt the drives in Local Key Management(LKM). \ :emphasis:`controller\_id`\ , \ :emphasis:`key`\ , and \ :emphasis:`key\_id`\  are required for this operation.
 
-    ``RemoveControllerKey`` - Deletes the encryption key on the controller. *controller_id* is required for this operation.
+    \ :literal:`RemoveControllerKey`\  - Deletes the encryption key on the controller. \ :emphasis:`controller\_id`\  is required for this operation.
 
-    ``ReKey`` - Resets the key on the controller and it always reports as changes found when check mode is enabled. *controller_id*, *old_key*, *key_id*, and *key* is required for this operation.
+    \ :literal:`ReKey`\  - Resets the key on the controller and it always reports as changes found when check mode is enabled. \ :emphasis:`controller\_id`\ , \ :emphasis:`old\_key`\ , \ :emphasis:`key\_id`\ , and \ :emphasis:`key`\  is required for this operation.
 
-    ``UnassignSpare`` - To unassign the Global or Dedicated hot spare. *target* is required for this operation.
+    \ :literal:`UnassignSpare`\  - To unassign the Global or Dedicated hot spare. \ :emphasis:`target`\  is required for this operation.
 
-    ``EnableControllerEncryption`` - To enable Local Key Management (LKM) or Secure Enterprise Key Manager (SEKM) on controllers that support encryption of the drives. *controller_id*, *key*, and *key_id* are required for this operation.
+    \ :literal:`EnableControllerEncryption`\  - To enable Local Key Management (LKM) or Secure Enterprise Key Manager (SEKM) on controllers that support encryption of the drives. \ :emphasis:`controller\_id`\ , \ :emphasis:`key`\ , and \ :emphasis:`key\_id`\  are required for this operation.
 
-    ``BlinkTarget`` - Blinks the target virtual drive or physical disk and it always reports as changes found when check mode is enabled. *target* or *volume_id* is required for this operation.
+    \ :literal:`BlinkTarget`\  - Blinks the target virtual drive or physical disk and it always reports as changes found when check mode is enabled. \ :emphasis:`target`\  or \ :emphasis:`volume\_id`\  is required for this operation.
 
-    ``UnBlinkTarget`` - Unblink the target virtual drive or physical disk and and it always reports as changes found when check mode is enabled. *target* or *volume_id* is required for this operation.
+    \ :literal:`UnBlinkTarget`\  - Unblink the target virtual drive or physical disk and and it always reports as changes found when check mode is enabled. \ :emphasis:`target`\  or \ :emphasis:`volume\_id`\  is required for this operation.
 
-    ``ConvertToRAID`` - Converts the disk form non-Raid to Raid. *target* is required for this operation.
+    \ :literal:`ConvertToRAID`\  - Converts the disk form non-Raid to Raid. \ :emphasis:`target`\  is required for this operation.
 
-    ``ConvertToNonRAID`` - Converts the disk form Raid to non-Raid. *target* is required for this operation.
+    \ :literal:`ConvertToNonRAID`\  - Converts the disk form Raid to non-Raid. \ :emphasis:`target`\  is required for this operation.
 
-    ``ChangePDStateToOnline`` - To set the disk status to online. *target* is required for this operation.
+    \ :literal:`ChangePDStateToOnline`\  - To set the disk status to online. \ :emphasis:`target`\  is required for this operation.
 
-    ``ChangePDStateToOffline`` - To set the disk status to offline. *target* is required for this operation.
+    \ :literal:`ChangePDStateToOffline`\  - To set the disk status to offline. \ :emphasis:`target`\  is required for this operation.
 
-    ``LockVirtualDisk`` - To encrypt the virtual disk. *volume_id* is required for this operation.
+    \ :literal:`LockVirtualDisk`\  - To encrypt the virtual disk. \ :emphasis:`volume\_id`\  is required for this operation.
 
-    ``OnlineCapacityExpansion`` - To expand the size of virtual disk. *volume_id*, and *target* or *size* is required for this operation.
+    \ :literal:`OnlineCapacityExpansion`\  - To expand the size of virtual disk. \ :emphasis:`volume\_id`\ , and \ :emphasis:`target`\  or \ :emphasis:`size`\  is required for this operation.
 
 
   target (optional, list, None)
     Fully Qualified Device Descriptor (FQDD) of the target physical drive.
 
-    This is mandatory when *command* is ``AssignSpare``, ``UnassisgnSpare``, ``ChangePDStateToOnline``, ``ChangePDStateToOffline``, ``ConvertToRAID``, or ``ConvertToNonRAID``.
+    This is mandatory when \ :emphasis:`command`\  is \ :literal:`AssignSpare`\ , \ :literal:`UnassisgnSpare`\ , \ :literal:`ChangePDStateToOnline`\ , \ :literal:`ChangePDStateToOffline`\ , \ :literal:`ConvertToRAID`\ , or \ :literal:`ConvertToNonRAID`\ .
 
-    If *volume_id* is not specified or empty, this physical drive will be assigned as a global hot spare when *command* is ``AssignSpare``.
+    If \ :emphasis:`volume\_id`\  is not specified or empty, this physical drive will be assigned as a global hot spare when \ :emphasis:`command`\  is \ :literal:`AssignSpare`\ .
 
-    When *command* is ``OnlineCapacityExpansion``, then *target* is mutually exclusive with *size*.
+    When \ :emphasis:`command`\  is \ :literal:`OnlineCapacityExpansion`\ , then \ :emphasis:`target`\  is mutually exclusive with \ :emphasis:`size`\ .
 
-    Notes: Global or Dedicated hot spare can be assigned only once for a physical disk, Re-assign cannot be done when *command* is ``AssignSpare``.
+    Notes: Global or Dedicated hot spare can be assigned only once for a physical disk, Re-assign cannot be done when \ :emphasis:`command`\  is \ :literal:`AssignSpare`\ .
 
 
   volume_id (optional, list, None)
     Fully Qualified Device Descriptor (FQDD) of the volume.
 
-    Applicable if *command* is ``AssignSpare``, ``BlinkTarget``, ``UnBlinkTarget`` or ``LockVirtualDisk``.
+    Applicable if \ :emphasis:`command`\  is \ :literal:`AssignSpare`\ , \ :literal:`BlinkTarget`\ , \ :literal:`UnBlinkTarget`\  or \ :literal:`LockVirtualDisk`\ .
 
-    *volume_id* or *target* is required when the *command* is ``BlinkTarget`` or ``UnBlinkTarget``, if both are specified *target* is considered.
+    \ :emphasis:`volume\_id`\  or \ :emphasis:`target`\  is required when the \ :emphasis:`command`\  is \ :literal:`BlinkTarget`\  or \ :literal:`UnBlinkTarget`\ , if both are specified \ :emphasis:`target`\  is considered.
 
     To know the number of volumes to which a hot spare can be assigned, refer iDRAC Redfish API documentation.
 
@@ -86,15 +86,15 @@ Parameters
   controller_id (optional, str, None)
     Fully Qualified Device Descriptor (FQDD) of the storage controller. For example-'RAID.Slot.1-1'.
 
-    This option is mandatory when *command* is ``ResetConfig``, ``SetControllerKey``, ``RemoveControllerKey``, ``ReKey``, or ``EnableControllerEncryption``.
+    This option is mandatory when \ :emphasis:`command`\  is \ :literal:`ResetConfig`\ , \ :literal:`SetControllerKey`\ , \ :literal:`RemoveControllerKey`\ , \ :literal:`ReKey`\ , or \ :literal:`EnableControllerEncryption`\ .
 
-    This option is mandatory for *attributes*.
+    This option is mandatory for \ :emphasis:`attributes`\ .
 
 
   key (optional, str, None)
     A new security key passphrase that the encryption-capable controller uses to create the encryption key. The controller uses the encryption key to lock or unlock access to the Self-Encrypting Drive (SED). Only one encryption key can be created for each controller.
 
-    This is mandatory when *command* is ``SetControllerKey``, ``ReKey``, or ``EnableControllerEncryption`` and when *mode* is ``LKM``.
+    This is mandatory when \ :emphasis:`command`\  is \ :literal:`SetControllerKey`\ , \ :literal:`ReKey`\ , or \ :literal:`EnableControllerEncryption`\  and when \ :emphasis:`mode`\  is \ :literal:`LKM`\ .
 
     The length of the key can be a maximum of 32 characters in length, where the expanded form of the special character is counted as a single character.
 
@@ -104,35 +104,35 @@ Parameters
   key_id (optional, str, None)
     This is a user supplied text label associated with the passphrase.
 
-    This is mandatory when *command* is ``SetControllerKey``, ``ReKey``, or ``EnableControllerEncryption`` and when *mode* is ``LKM``.
+    This is mandatory when \ :emphasis:`command`\  is \ :literal:`SetControllerKey`\ , \ :literal:`ReKey`\ , or \ :literal:`EnableControllerEncryption`\  and when \ :emphasis:`mode`\  is \ :literal:`LKM`\ .
 
-    The length of *key_id* can be a maximum of 32 characters in length and should not have any spaces.
+    The length of \ :emphasis:`key\_id`\  can be a maximum of 32 characters in length and should not have any spaces.
 
 
   old_key (optional, str, None)
     Security key passphrase used by the encryption-capable controller.
 
-    This option is mandatory when *command* is ``ReKey`` and *mode* is ``LKM``.
+    This option is mandatory when \ :emphasis:`command`\  is \ :literal:`ReKey`\  and \ :emphasis:`mode`\  is \ :literal:`LKM`\ .
 
 
   mode (optional, str, LKM)
     Encryption mode of the encryption capable controller.
 
-    This option is applicable only when *command* is ``ReKey`` or ``EnableControllerEncryption``.
+    This option is applicable only when \ :emphasis:`command`\  is \ :literal:`ReKey`\  or \ :literal:`EnableControllerEncryption`\ .
 
-    ``SEKM`` requires secure enterprise key manager license on the iDRAC.
+    \ :literal:`SEKM`\  requires secure enterprise key manager license on the iDRAC.
 
-    ``LKM`` to choose mode as local key mode.
+    \ :literal:`LKM`\  to choose mode as local key mode.
 
 
   size (optional, int, None)
     Capacity of the virtual disk to be expanded in MB.
 
-    Check mode and Idempotency is not supported for *size*.
+    Check mode and Idempotency is not supported for \ :emphasis:`size`\ .
 
     Minimum Online Capacity Expansion size must be greater than 100 MB of the current size.
 
-    When *command* is ``OnlineCapacityExpansion``, then *size* is mutually exclusive with *target*.
+    When \ :emphasis:`command`\  is \ :literal:`OnlineCapacityExpansion`\ , then \ :emphasis:`size`\  is mutually exclusive with \ :emphasis:`target`\ .
 
 
   attributes (optional, dict, None)
@@ -140,41 +140,41 @@ Parameters
 
     This feature is only supported for iDRAC9 with firmware version 6.00.00.00 and above
 
-    *controller_id* is required for this operation.
+    \ :emphasis:`controller\_id`\  is required for this operation.
 
-    *apply_time* and *maintenance_window* is applicable for *attributes*.
+    \ :emphasis:`apply\_time`\  and \ :emphasis:`maintenance\_window`\  is applicable for \ :emphasis:`attributes`\ .
 
-    *attributes* is mutually exclusive with *command*.
+    \ :emphasis:`attributes`\  is mutually exclusive with \ :emphasis:`command`\ .
 
-    Use https://*idrac_ip*/redfish/v1/Schemas/DellOemStorageController.json to view the attributes.
+    Use \ https://I(idrac_ip\ /redfish/v1/Schemas/DellOemStorageController.json) to view the attributes.
 
 
   apply_time (optional, str, Immediate)
-    Apply time of the *attributes*.
+    Apply time of the \ :emphasis:`attributes`\ .
 
-    This is applicable only to *attributes*.
+    This is applicable only to \ :emphasis:`attributes`\ .
 
-    ``Immediate`` Allows the user to immediately reboot the host and apply the changes. *job_wait* is applicable.
+    \ :literal:`Immediate`\  Allows the user to immediately reboot the host and apply the changes. \ :emphasis:`job\_wait`\  is applicable.
 
-    ``OnReset`` Allows the user to apply the changes on the next reboot of the host server.
+    \ :literal:`OnReset`\  Allows the user to apply the changes on the next reboot of the host server.
 
-    ``AtMaintenanceWindowStart`` Allows the user to apply at the start of a maintenance window as specified in *maintenance_window*.
+    \ :literal:`AtMaintenanceWindowStart`\  Allows the user to apply at the start of a maintenance window as specified in \ :emphasis:`maintenance\_window`\ .
 
-    ``InMaintenanceWindowOnReset`` Allows to apply after a manual reset but within the maintenance window as specified in *maintenance_window*.
+    \ :literal:`InMaintenanceWindowOnReset`\  Allows to apply after a manual reset but within the maintenance window as specified in \ :emphasis:`maintenance\_window`\ .
 
 
   maintenance_window (optional, dict, None)
     Option to schedule the maintenance window.
 
-    This is required when *apply_time* is ``AtMaintenanceWindowStart`` or ``InMaintenanceWindowOnReset``.
+    This is required when \ :emphasis:`apply\_time`\  is \ :literal:`AtMaintenanceWindowStart`\  or \ :literal:`InMaintenanceWindowOnReset`\ .
 
 
     start_time (True, str, None)
       The start time for the maintenance window to be scheduled.
 
-      The format is YYYY-MM-DDThh:mm:ss<offset>
+      The format is YYYY-MM-DDThh:mm:ss\<offset\>
 
-      <offset> is the time offset from UTC that the current timezone set in iDRAC in the format: +05:30 for IST.
+      \<offset\> is the time offset from UTC that the current timezone set in iDRAC in the format: +05:30 for IST.
 
 
     duration (optional, int, 900)
@@ -185,33 +185,49 @@ Parameters
   job_wait (optional, bool, False)
     Provides the option if the module has to wait for the job to be completed.
 
-    This is applicable for *attributes* when *apply_time* is ``Immediate``.
+    This is applicable for \ :emphasis:`attributes`\  when \ :emphasis:`apply\_time`\  is \ :literal:`Immediate`\ .
 
 
   job_wait_timeout (optional, int, 120)
     The maximum wait time of job completion in seconds before the job tracking is stopped.
 
-    This option is applicable when *job_wait* is ``true``.
+    This option is applicable when \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .
 
 
   baseuri (True, str, None)
-    IP address of the target out-of-band controller. For example- <ipaddress>:<port>.
+    IP address of the target out-of-band controller. For example- \<ipaddress\>:\<port\>.
 
 
-  username (True, str, None)
+  username (False, str, None)
     Username of the target out-of-band controller.
 
+    If the username is not provided, then the environment variable \ :envvar:`IDRAC\_USERNAME`\  is used.
 
-  password (True, str, None)
+    Example: export IDRAC\_USERNAME=username
+
+
+  password (False, str, None)
     Password of the target out-of-band controller.
+
+    If the password is not provided, then the environment variable \ :envvar:`IDRAC\_PASSWORD`\  is used.
+
+    Example: export IDRAC\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`IDRAC\_X\_AUTH\_TOKEN`\  is used.
+
+    Example: export IDRAC\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -231,8 +247,8 @@ Notes
 .. note::
    - Run this module from a system that has direct access to Dell iDRAC.
    - This module is supported on iDRAC9.
-   - This module always reports as changes found when *command* is ``ReKey``, ``BlinkTarget``, and ``UnBlinkTarget``.
-   - This module supports ``check_mode``.
+   - This module always reports as changes found when \ :emphasis:`command`\  is \ :literal:`ReKey`\ , \ :literal:`BlinkTarget`\ , and \ :literal:`UnBlinkTarget`\ .
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 
