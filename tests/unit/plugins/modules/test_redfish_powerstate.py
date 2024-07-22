@@ -42,6 +42,9 @@ RESET_URI = '/redfish/v1/Systems/System.Embedded.1/Actions/ComputerSystem.Reset'
 ROOT_URI = "/redfish/v1/"
 RESET_ALLOWED_KEY = "ResetType@Redfish.AllowableValues"
 ODATA_KEY = "@odata.id"
+RESOURCE_URI = "/redfish/v1/Systems"
+SPECIFIC_RESOURCE_URI_ONE = "/redfish/v1/Systems/System.Embedded.1"
+SPECIFIC_RESOURCE_URI_TWO = "/redfish/v1/Systems/System.Embedded.2"
 
 
 @pytest.fixture
@@ -64,11 +67,11 @@ class TestRedfishPowerstate(FakeAnsibleModule):
 
         redfish_response_mock.json_data = {
             "Systems": {
-                ODATA_KEY: "/redfish/v1/Systems"
+                ODATA_KEY: RESOURCE_URI
             },
             "Members": [
                 {
-                    ODATA_KEY: "/redfish/v1/Systems/System.Embedded.1"
+                    ODATA_KEY: SPECIFIC_RESOURCE_URI_ONE
                 }
             ],
             "Actions": {
@@ -148,14 +151,14 @@ class TestRedfishPowerstate(FakeAnsibleModule):
         f_module = self.get_module_mock(params={"resource_id": "System.Embedded.1", "reset_type": "ForceOff"})
         redfish_response_mock.json_data = {
             "Systems": {
-                ODATA_KEY: "/redfish/v1/Systems"
+                ODATA_KEY: RESOURCE_URI
             },
             "Members": [
                 {
-                    ODATA_KEY: "/redfish/v1/Systems/System.Embedded.1"
+                    ODATA_KEY: SPECIFIC_RESOURCE_URI_ONE
                 },
                 {
-                    ODATA_KEY: "/redfish/v1/Systems/System.Embedded.2"
+                    ODATA_KEY: SPECIFIC_RESOURCE_URI_TWO
                 }
             ],
             "Actions": {
@@ -195,14 +198,14 @@ class TestRedfishPowerstate(FakeAnsibleModule):
         f_module = self.get_module_mock(params={"reset_type": "ForceOff"})
         redfish_response_mock.json_data = {
             "Systems": {
-                ODATA_KEY: "/redfish/v1/Systems"
+                ODATA_KEY: RESOURCE_URI
             },
             "Members": [
                 {
-                    ODATA_KEY: "/redfish/v1/Systems/System.Embedded.1"
+                    ODATA_KEY: SPECIFIC_RESOURCE_URI_ONE
                 },
                 {
-                    ODATA_KEY: "/redfish/v1/Systems/System.Embedded.2"
+                    ODATA_KEY: SPECIFIC_RESOURCE_URI_TWO
                 }
             ],
             "Actions": {
@@ -242,15 +245,15 @@ class TestRedfishPowerstate(FakeAnsibleModule):
         f_module = self.get_module_mock(params={"resource_id": "System.Embedded.3", "reset_type": "ForceOff"})
         redfish_response_mock.json_data = {
             "Systems": {
-                ODATA_KEY: "/redfish/v1/Systems"
+                ODATA_KEY: RESOURCE_URI
             },
             "Members":
             [
                 {
-                    ODATA_KEY: "/redfish/v1/Systems/System.Embedded.1"
+                    ODATA_KEY: SPECIFIC_RESOURCE_URI_ONE
                 },
                 {
-                    ODATA_KEY: "/redfish/v1/Systems/System.Embedded.2"
+                    ODATA_KEY: SPECIFIC_RESOURCE_URI_TWO
                 }
             ],
             "Actions": {
@@ -279,7 +282,7 @@ class TestRedfishPowerstate(FakeAnsibleModule):
         """failure case when system does not supports redfish computer system in schema"""
         f_module = self.get_module_mock()
         redfish_response_mock.json_data = {
-            ODATA_KEY: "/redfish/v1/Systems",
+            ODATA_KEY: RESOURCE_URI,
             "Members": [
             ],
         }
@@ -295,11 +298,11 @@ class TestRedfishPowerstate(FakeAnsibleModule):
         f_module = self.get_module_mock()
         redfish_response_mock.json_data = {
             "Systems": {
-                ODATA_KEY: "/redfish/v1/Systems"
+                ODATA_KEY: RESOURCE_URI
             },
             "Members": [
                 {
-                    ODATA_KEY: "/redfish/v1/Systems/System.Embedded.1"
+                    ODATA_KEY: SPECIFIC_RESOURCE_URI_ONE
                 }
             ],
             "Actions": {
@@ -347,7 +350,7 @@ class TestRedfishPowerstate(FakeAnsibleModule):
         f_module = self.get_module_mock()
         redfish_response_mock.json_data = {
             "Systems": {
-                ODATA_KEY: "/redfish/v1/Systems"
+                ODATA_KEY: RESOURCE_URI
             },
             "Members": [
             ],
