@@ -2,6 +2,7 @@ name: CI
 
 on:
   # Run CI against all pushes (direct commits, also merged PRs), Pull Requests
+  workflow_dispatch:
   push:
   pull_request:
   # Runs CI on every day (at 06:00 UTC)
@@ -43,7 +44,7 @@ jobs:
 # https://docs.ansible.com/ansible/latest/dev_guide/testing_units.html
 
   unit:
-    name: Unit Tests (Ⓐ${{ matrix.ansible }} with ${{ matrix.python }})
+    name: Unit Tests - ( Ansible ${{ matrix.ansible }} and ${{ matrix.python }})
     needs: [build]
     strategy:
       matrix:
@@ -63,9 +64,11 @@ jobs:
         uses: ansible-community/ansible-test-gh-action@release/v1
         with:
           testing-type: units
-          coverage: always
+          coverage: ${{ (matrix.python == '3.11' && matrix.ansible == 'stable-2.17') && 'always' ||  'never' }}
           ansible-core-version: ${{ matrix.ansible }}
           target-python-version: ${{ matrix.python }}
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
 ###
 # Sanity tests (REQUIRED)
@@ -73,7 +76,7 @@ jobs:
 # https://docs.ansible.com/ansible/latest/dev_guide/testing_sanity.html
 
   sanity:
-    name: Sanity (Ⓐ${{ matrix.ansible }} with ${{ matrix.python }})
+    name: Sanity - (Ansible ${{ matrix.ansible }} and ${{ matrix.python }})
     needs: [build]
     strategy:
       matrix:
