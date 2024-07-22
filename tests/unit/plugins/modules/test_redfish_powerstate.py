@@ -554,6 +554,13 @@ class TestRedfishPowerstate(FakeAnsibleModule):
             self.module.run_change_ac_power_cycle(redfish_connection_mock_for_powerstate, f_module)
         assert exc.value.args[0] == "The target device does not support 'Invalid' operation. The valid values of final power states for device are 'On, Off'."
 
+    def setup_mocker(self, mocker):
+        mocker.patch(MODULE_PATH + CHECK_FIRMWARE_VERSION, return_value=None)
+        mocker.patch(MODULE_PATH + VALIDATE_VENDOR, return_value=None)
+        mocker.patch(MODULE_PATH + VALIDATE_RESET_TYPE, return_value=None)
+        mocker.patch(MODULE_PATH + VALIDATE_FINAL_PWR_STATE, return_value=None)
+        mocker.patch(MODULE_PATH + FETCH_PWR_URI, return_value=None)
+
     def test_run_change_ac_power_cycle_case02(self, redfish_default_args, redfish_connection_mock_for_powerstate, mocker):
         # Scenario - Check Mode when server is powered off
         redfish_default_args.update({})
@@ -563,28 +570,15 @@ class TestRedfishPowerstate(FakeAnsibleModule):
         self.module.powerstate_map["allowable_power_state"] = ["On", "Off"]
         redfish_default_args.update({"oem_reset_type": {"Dell": {"final_power_state": "On", "reset_type": "PowerCycle"}}})
         f_module = self.get_module_mock(params=redfish_default_args, check_mode=True)
-        mocker.patch(MODULE_PATH + CHECK_FIRMWARE_VERSION, return_value=None)
-        mocker.patch(MODULE_PATH + VALIDATE_VENDOR, return_value=None)
-        mocker.patch(MODULE_PATH + VALIDATE_RESET_TYPE, return_value=None)
-        mocker.patch(MODULE_PATH + VALIDATE_FINAL_PWR_STATE, return_value=None)
-        mocker.patch(MODULE_PATH + FETCH_PWR_URI, return_value=None)
+        self.setup_mocker(mocker)
         with pytest.raises(Exception) as exc:
             self.module.run_change_ac_power_cycle(redfish_connection_mock_for_powerstate, f_module)
         assert exc.value.args[0] == "Changes found to be applied."
 
         # Scenario - Check Mode when server is powered On
-        redfish_default_args.update({})
-        self.module.powerstate_map["allowable_enums"] = ["PowerCycle"]
-        self.module.powerstate_map["power_uri"] = TARGET_URI
         self.module.powerstate_map["current_state"] = "On"
-        self.module.powerstate_map["allowable_power_state"] = ["On", "Off"]
-        redfish_default_args.update({"oem_reset_type": {"Dell": {"final_power_state": "On", "reset_type": "PowerCycle"}}})
         f_module = self.get_module_mock(params=redfish_default_args, check_mode=True)
-        mocker.patch(MODULE_PATH + CHECK_FIRMWARE_VERSION, return_value=None)
-        mocker.patch(MODULE_PATH + VALIDATE_VENDOR, return_value=None)
-        mocker.patch(MODULE_PATH + VALIDATE_RESET_TYPE, return_value=None)
-        mocker.patch(MODULE_PATH + VALIDATE_FINAL_PWR_STATE, return_value=None)
-        mocker.patch(MODULE_PATH + FETCH_PWR_URI, return_value=None)
+        self.setup_mocker(mocker)
         with pytest.raises(Exception) as exc:
             self.module.run_change_ac_power_cycle(redfish_connection_mock_for_powerstate, f_module)
         assert exc.value.args[0] == "No changes found to be applied because system is in power ON state."
@@ -593,18 +587,11 @@ class TestRedfishPowerstate(FakeAnsibleModule):
         redfish_default_args.update({})
         obj = MagicMock()
         obj.status_code = 204
-        self.module.powerstate_map["allowable_enums"] = ["PowerCycle"]
-        self.module.powerstate_map["power_uri"] = TARGET_URI
         self.module.powerstate_map["current_state"] = "Off"
-        self.module.powerstate_map["allowable_power_state"] = ["On", "Off"]
         redfish_default_args.update({"oem_reset_type": {"Dell": {"final_power_state": "On", "reset_type": "PowerCycle"}}})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_connection_mock_for_powerstate.invoke_request.return_value = obj
-        mocker.patch(MODULE_PATH + CHECK_FIRMWARE_VERSION, return_value=None)
-        mocker.patch(MODULE_PATH + VALIDATE_VENDOR, return_value=None)
-        mocker.patch(MODULE_PATH + VALIDATE_RESET_TYPE, return_value=None)
-        mocker.patch(MODULE_PATH + VALIDATE_FINAL_PWR_STATE, return_value=None)
-        mocker.patch(MODULE_PATH + FETCH_PWR_URI, return_value=None)
+        self.setup_mocker(mocker)
         with pytest.raises(Exception) as exc:
             self.module.run_change_ac_power_cycle(redfish_connection_mock_for_powerstate, f_module)
         assert exc.value.args[0] == "Successfully performed the full virtual server AC power-cycle operation."\
@@ -614,18 +601,11 @@ class TestRedfishPowerstate(FakeAnsibleModule):
         redfish_default_args.update({})
         obj = MagicMock()
         obj.status_code = 204
-        self.module.powerstate_map["allowable_enums"] = ["PowerCycle"]
-        self.module.powerstate_map["power_uri"] = TARGET_URI
         self.module.powerstate_map["current_state"] = "Off"
-        self.module.powerstate_map["allowable_power_state"] = ["On", "Off"]
         redfish_default_args.update({"oem_reset_type": {"Dell": {"reset_type": "PowerCycle"}}})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_connection_mock_for_powerstate.invoke_request.return_value = obj
-        mocker.patch(MODULE_PATH + CHECK_FIRMWARE_VERSION, return_value=None)
-        mocker.patch(MODULE_PATH + VALIDATE_VENDOR, return_value=None)
-        mocker.patch(MODULE_PATH + VALIDATE_RESET_TYPE, return_value=None)
-        mocker.patch(MODULE_PATH + VALIDATE_FINAL_PWR_STATE, return_value=None)
-        mocker.patch(MODULE_PATH + FETCH_PWR_URI, return_value=None)
+        self.setup_mocker(mocker)
         with pytest.raises(Exception) as exc:
             self.module.run_change_ac_power_cycle(redfish_connection_mock_for_powerstate, f_module)
         assert exc.value.args[0] == "Successfully performed the full virtual server AC power-cycle operation."
@@ -646,20 +626,13 @@ class TestRedfishPowerstate(FakeAnsibleModule):
                 }
         }
         json_str = to_text(json.dumps(obj_str))
-        self.module.powerstate_map["allowable_enums"] = ["PowerCycle"]
-        self.module.powerstate_map["power_uri"] = TARGET_URI
         self.module.powerstate_map["current_state"] = "Off"
-        self.module.powerstate_map["allowable_power_state"] = ["On", "Off"]
         redfish_default_args.update({"oem_reset_type": {"Dell": {"reset_type": "PowerCycle"}}})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_connection_mock_for_powerstate.invoke_request.side_effect = HTTPError("https://test.com",
                                                                                       409, "obj", {"accept-type": "application/json"},
                                                                                       StringIO(json_str))
-        mocker.patch(MODULE_PATH + CHECK_FIRMWARE_VERSION, return_value=None)
-        mocker.patch(MODULE_PATH + VALIDATE_VENDOR, return_value=None)
-        mocker.patch(MODULE_PATH + VALIDATE_RESET_TYPE, return_value=None)
-        mocker.patch(MODULE_PATH + VALIDATE_FINAL_PWR_STATE, return_value=None)
-        mocker.patch(MODULE_PATH + FETCH_PWR_URI, return_value=None)
+        self.setup_mocker(mocker)
         with pytest.raises(Exception) as exc:
             self.module.run_change_ac_power_cycle(redfish_connection_mock_for_powerstate, f_module)
         assert exc.value.args[0] == "Unable to perform the Virtual AC power-cycle operation because the server is powered on."
