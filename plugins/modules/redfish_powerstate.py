@@ -357,6 +357,14 @@ def run_change_power_state(redfish_session_obj, module):
         module.exit_json(msg="The device is already powered {0}.".format(current_power_state.lower()), changed=False)
 
 
+def power_cycle_check_mode(module):
+    current_power_state = powerstate_map["current_state"]
+    if module.check_mode:
+        if current_power_state.lower() != 'off':
+            module.exit_json(msg=INITIAL_DESIRED_STATE_ERROR)
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
+
+
 def run_change_ac_power_cycle(redfish_session_obj, module):
     check_firmware_version(module, redfish_session_obj)
     oem_reset_type = module.params["oem_reset_type"]
@@ -375,11 +383,7 @@ def run_change_ac_power_cycle(redfish_session_obj, module):
     is_valid_reset_type(apply_reset_type, powerstate_map["allowable_enums"], module)
     if final_pwr_state:
         is_valid_final_pwr_state(final_pwr_state, powerstate_map["allowable_power_state"], module)
-    current_power_state = powerstate_map["current_state"]
-    if module.check_mode:
-        if current_power_state.lower() != 'off':
-            module.exit_json(msg=INITIAL_DESIRED_STATE_ERROR)
-        module.exit_json(msg=CHANGES_FOUND, changed=True)
+    power_cycle_check_mode(module)
     payload = prepare_payload(current_vendor_dict)
     power_uri = powerstate_map["power_uri"]
     try:
