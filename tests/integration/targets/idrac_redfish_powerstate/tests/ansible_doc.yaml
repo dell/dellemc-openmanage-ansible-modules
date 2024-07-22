@@ -7,7 +7,7 @@
 - block:
     - name: ansible-doc
       ansible.builtin.command: ansible-doc
-        dellemc.openmanage.redfish_storage_volume
+        dellemc.openmanage.redfish_powerstate
       register: ansible_doc_hash
 
     - name: Get ansible-doc output
