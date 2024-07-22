@@ -1,0 +1,52 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- ansible.builtin.include_tasks: _get_server_generation.yml
+
+- block:
+    - ansible.builtin.include_tasks: _enable_telemetry.yml
+
+    - name: Add Redfish metric subscription
+      redfish_event_subscription:
+        destination: "https://server01.example.co:8188"
+        event_type: MetricReport
+        event_format_type: MetricReport
+
+    - name: Delete Redfish subscription with a specified destination
+      dellemc.openmanage.redfish_event_subscription: &delete
+        destination: "https://server01.example.co:8188"
+        state: absent
+      register: result
+
+    - name: Delete Redfish subscription with a specified destination
+       (Idempotence)
+      dellemc.openmanage.redfish_event_subscription:
+        <<: *delete
+      register: idempotence
+
+    - name: Verify status of tasks for deleting subscriptions
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Successfully deleted the subscription."
+          - not idempotence.changed
+          - idempotence.msg == "No changes found to be applied."
+
+  when: generation | int >= 14
+
+  module_defaults:
+    dellemc.openmanage.redfish_event_subscription:
+      baseuri: "{{ idrac_ip }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

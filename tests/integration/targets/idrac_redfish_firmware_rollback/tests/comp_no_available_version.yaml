@@ -1,0 +1,55 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Check whether idrac IP is IPv4 or IPv6.
+  ansible.builtin.set_fact:
+    is_ipv4: "{{ idrac_ip is ansible.utils.ipv4 }}"
+    is_ipv6: "{{ idrac_ip is ansible.utils.ipv6 }}"
+
+- ansible.builtin.include_tasks: _get_firmware_inventory.yml
+
+- name: Prerequisite - component with no available version
+  ansible.builtin.fail:
+    msg: "Prerequisite not met. Rollback version available for component
+     'System CPLD'."
+  when: "'System CPLD' in rollback_component_list"
+
+- block:
+    - name: Validate firmware rollback for component that doesn't have
+       available version (Check mode - No changes expected)
+      dellemc.openmanage.redfish_firmware_rollback:
+        name: "System CPLD"
+      register: result_cm
+      check_mode: true
+
+    - name: Validate firmware rollback for component that doesn't have
+       available version (Normal mode - No changes expected)
+      dellemc.openmanage.redfish_firmware_rollback:
+        name: "System CPLD"
+      register: result
+      check_mode: true
+
+    - name: Verify task status - Validate firmware rollback for component
+       that doesn't have available version
+      ansible.builtin.assert:
+        that:
+          - not result_cm.changed
+          - not result.changed
+          - result_cm.msg == result.msg == "No changes found to be applied."
+
+  module_defaults:
+    dellemc.openmanage.redfish_firmware_rollback:
+      baseuri: "{{ idrac_ip }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

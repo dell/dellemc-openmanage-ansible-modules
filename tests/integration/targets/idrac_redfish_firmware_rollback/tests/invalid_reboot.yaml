@@ -1,0 +1,97 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - ansible.builtin.set_fact:
+        invalid_reboot_expected_msg: "argument 'reboot' is of type
+         <class 'str'> and we were unable to convert to bool: The
+         value 'None' is not a valid boolean.  Valid booleans include: "
+        string_reboot_timeout_msg: "argument 'reboot_timeout' is of
+         type <class 'str'> and we were unable to convert to
+         int: <class 'str'> cannot be converted to an int"
+
+    - name: Negative - invalid reboot
+      dellemc.openmanage.redfish_firmware_rollback:
+        name: BIOS
+        reboot: None
+      register: invalid_reboot
+      ignore_errors: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_reboot.failed
+          - not invalid_reboot.changed
+          - invalid_reboot_expected_msg in invalid_reboot.msg
+
+    - name: Negative - reboot_timeout as zero
+      dellemc.openmanage.redfish_firmware_rollback:
+        name: BIOS
+        reboot: true
+        reboot_timeout: 0
+      register: zero_reboot_timeout
+      ignore_errors: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - zero_reboot_timeout.failed
+          - not zero_reboot_timeout.changed
+
+    - name: Negative - reboot_timeout as negative value
+      dellemc.openmanage.redfish_firmware_rollback:
+        name: BIOS
+        reboot: true
+        reboot_timeout: -100
+      register: negative_reboot_timeout
+      ignore_errors: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - negative_reboot_timeout.failed
+          - not negative_reboot_timeout.changed
+
+    - name: Negative - reboot_timeout as string
+      dellemc.openmanage.redfish_firmware_rollback:
+        name: BIOS
+        reboot: true
+        reboot_timeout: fifty
+      register: string_reboot_timeout
+      ignore_errors: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - string_reboot_timeout.failed
+          - not string_reboot_timeout.changed
+          - string_reboot_timeout.msg == string_reboot_timeout_msg
+
+    - name: Negative - invalid regular expression
+      dellemc.openmanage.redfish_firmware_rollback:
+        name: "[BIOS/s"
+        reboot: true
+      register: invalid_regular_expression
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - not invalid_regular_expression.changed
+          - invalid_regular_expression.msg == "No changes found to be applied."
+
+  module_defaults:
+    dellemc.openmanage.redfish_firmware_rollback:
+      baseuri: "{{ idrac_ip }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
