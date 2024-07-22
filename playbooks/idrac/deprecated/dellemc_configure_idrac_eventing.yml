@@ -1,0 +1,58 @@
+---
+- name: Configure the iDRAC eventing attributes
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Setup iDRAC SMTP
+      dellemc.openmanage.dellemc_configure_idrac_eventing:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        smtp_ip_address: "0.0.0.0"
+        authentication: "Enabled"
+        username: "test"
+        password: "test"
+      delegate_to: localhost
+      tags:
+        - idrac_smtp
+
+    - name: Setup iDRAC SNMP Trap
+      dellemc.openmanage.dellemc_configure_idrac_eventing:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        snmp_trap_state: "Enabled"
+        destination_number: "2"
+        snmp_v3_username: "None"
+        destination: "1.1.1.1"
+      delegate_to: localhost
+      tags:
+        - idrac_snmptrap
+
+    - name: Setup iDRAC Email Alerts
+      dellemc.openmanage.dellemc_configure_idrac_eventing:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        email_alert_state: "Disabled"
+        address: "test@test.com"
+        alert_number: "1"
+        custom_message: "test"
+      delegate_to: localhost
+      tags:
+        - idrac_email_alerts
+
+    - name: Setup iDRAC Alerts
+      dellemc.openmanage.dellemc_configure_idrac_eventing:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        enable_alerts: "Disabled"
+      delegate_to: localhost
+      tags:
+        - idrac_alerts
