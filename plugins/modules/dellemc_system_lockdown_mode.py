@@ -20,7 +20,7 @@ module: dellemc_system_lockdown_mode
 short_description: Configures system lockdown mode for iDRAC
 version_added: "1.0.0"
 deprecated:
-  removed_at_date: "2024-07-31"
+  removed_at_date: "2024-12-31"
   why: Replaced with M(dellemc.openmanage.idrac_attributes).
   alternative: Use M(dellemc.openmanage.idrac_attributes) instead.
   removed_from_collection: dellemc.openmanage
