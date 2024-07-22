@@ -19,15 +19,12 @@
       loop:
         "{{ lookup('dict', result_pre_req.storage_status.Message.Controller
        [ controller_name ].Enclosure, wantlist=True)}}"
-      # when: "'controller_name' in item.key"
       ignore_errors: true
 
     - name: Pre-req -  Reset controller configuration
       dellemc.openmanage.idrac_redfish_storage_controller:
         command: "ResetConfig"
         controller_id: "{{ controller_name }}"
-#        job_wait: true
-#        job_wait_timeout: 1200
       register: result_reset_controller
       ignore_errors: true
       when: reset_trigger is defined
@@ -72,7 +69,6 @@
         virtualdisk: "{{ item.key }}"
       loop: "{{ lookup('dict', result_post_check.storage_status.Message.
        Controller[ controller_name ].VirtualDisk, wantlist=True)}}"
-      # when: "'controller_name' in item.key"
       ignore_errors: true
 
     - name: Pre-Req - Change physical disk state to offline/online.

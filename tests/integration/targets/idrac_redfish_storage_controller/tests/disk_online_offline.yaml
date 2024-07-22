@@ -26,12 +26,12 @@
         reset_trigger: 1
         target: "{{ physicaldisks[0] }}"
 
-  # removing if disks are assigned as hotspare
+    # removing if disks are assigned as hotspare
     - ansible.builtin.include_tasks: _helper.yml
       vars:
         target: "{{ physicaldisks[1] }}"
 
-  # Creating the VD on raid1 and making online the target disk as prereq
+    # Creating the VD on raid1 and making online the target disk as prereq
     - ansible.builtin.include_tasks: _helper.yml
       vars:
         volume_type: "RAID 1"
@@ -97,8 +97,7 @@
           - not no_cm_result_online.changed
           - no_cm_result_online.msg == "No changes found to be applied."
 
-########################## Disk Offline ################################
-# making one disk online if offline
+    # making one disk online if offline
     - ansible.builtin.include_tasks: _helper.yml
       vars:
         command: "ChangePDStateToOnline"
@@ -106,7 +105,8 @@
         change_disk_state: 1
         run_trigger: 1
 
-    - name: Change physical disk state to offline. - check mode - (Change expected)
+    - name: Change physical disk state to offline. - check mode -
+       (Change expected)
       idrac_redfish_storage_controller:
         command: "ChangePDStateToOffline"
         target: "{{ physicaldisks[0] }}"

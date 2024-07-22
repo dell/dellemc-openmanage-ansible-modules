@@ -128,8 +128,6 @@
           - configure_attributes_output_idempotency.msg == "No
            changes found to be applied."
 
-############## Repeat above task when job_wait is true ##############
-
     - name: Prerequisite - Change Storage controller attributes
       idrac_redfish_storage_controller:
         <<: *idrac_redfish_storage_controller_1

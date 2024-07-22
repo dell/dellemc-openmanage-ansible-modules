@@ -99,7 +99,6 @@
         that:
           - is_vd_exist_first_check
 
-############################# Non-Raid mode #############################
     # Resetting the controller and converting disk to raid if in non raid mode
     - ansible.builtin.include_tasks: _helper.yml
       vars:
