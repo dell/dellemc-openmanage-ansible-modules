@@ -222,7 +222,7 @@ CHECK_MODE_CHANGE_NOT_FOUND_MSG = "No Changes found to be applied."
 N0_PROXY_CONFIGURATION = "Unable to configure the proxy because proxy configuration settings " \
                          "are not provided."
 NO_CHANGE_IN_CONFIGURATION = "No changes made to proxy configuration as entered values are the " \
-                             "same as current configuration values"
+                             "same as current configuration values."
 ODATA_REGEX = "(.*?)@odata"
 
 
