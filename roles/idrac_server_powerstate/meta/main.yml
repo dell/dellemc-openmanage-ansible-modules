@@ -1,5 +1,7 @@
 galaxy_info:
-  author: Kritika-Bhateja
+  author: |
+    - Kritika-Bhateja
+    - Lovepreet Singh ('singh-lovepreet1')
   description: The role helps to manage the different power states of the specified device.
   company: Dell Technologies
 
