@@ -288,3 +288,14 @@
           start_time: "2022-09-30T05:15:40-05:00"
           duration: 1200
       delegate_to: localhost
+
+    - name: Perform Secure Erase operation on SED drive
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "192.168.0.1:443"
+        username: "user_name"
+        password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        controller_id: "RAID.Slot.1-1"
+        command: "SecureErase"
+        target: "Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1"
+      delegate_to: localhost

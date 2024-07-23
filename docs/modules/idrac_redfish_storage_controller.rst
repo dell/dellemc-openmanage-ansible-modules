@@ -60,6 +60,8 @@ Parameters
 
     \ :literal:`OnlineCapacityExpansion`\  - To expand the size of virtual disk. \ :emphasis:`volume\_id`\ , and \ :emphasis:`target`\  or \ :emphasis:`size`\  is required for this operation.
 
+    \ :literal:`SecureErase`\  - To delete all the data on the physical disk securely. This option is available for Self-Encrypting Drives (SED), Instant Scramble Erase (ISE) drives, and PCIe SSD devices (drives and cards). The drives must be in a ready state. \ :emphasis:`controller\_id`\  and \ :emphasis:`target`\  are required for this operation, \ :emphasis:`target`\  must be a single physical disk ID. If a secure erase needs a reboot, the job will get scheduled and waits for no of seconds specfied in \ :emphasis:`job\_wait\_time`\ , to reduce the wait time either give \ :emphasis:`job\_wait\_time`\  minimum or make \ :emphasis:`job\_wait`\  as false.
+
 
   target (optional, list, None)
     Fully Qualified Device Descriptor (FQDD) of the target physical drive.
@@ -185,13 +187,15 @@ Parameters
   job_wait (optional, bool, False)
     Provides the option if the module has to wait for the job to be completed.
 
-    This is applicable for \ :emphasis:`attributes`\  when \ :emphasis:`apply\_time`\  is \ :literal:`Immediate`\ .
+    This is applicable for \ :emphasis:`attributes`\  when \ :emphasis:`apply\_time`\  is \ :literal:`Immediate`\  and when \ :emphasis:`command`\  is \ :literal:`SecureErase`\ .
 
 
   job_wait_timeout (optional, int, 120)
     The maximum wait time of job completion in seconds before the job tracking is stopped.
 
     This option is applicable when \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .
+
+    Note: When \ :emphasis:`command`\  is \ :literal:`SecureErase`\ , If a secure erase needs a reboot, the job will get scheduled and waits for no of seconds specfied in \ :emphasis:`job\_wait\_time`\ , to reduce the wait time either give \ :emphasis:`job\_wait\_time`\  a lesser value or make \ :emphasis:`job\_wait`\  as false.
 
 
   baseuri (True, str, None)
@@ -247,6 +251,7 @@ Notes
 .. note::
    - Run this module from a system that has direct access to Dell iDRAC.
    - This module is supported on iDRAC9.
+   - This module supports IPv4 and IPv6 addresses.
    - This module always reports as changes found when \ :emphasis:`command`\  is \ :literal:`ReKey`\ , \ :literal:`BlinkTarget`\ , and \ :literal:`UnBlinkTarget`\ .
    - This module supports \ :literal:`check\_mode`\ .
 
@@ -521,6 +526,16 @@ Examples
           start_time: "2022-09-30T05:15:40-05:00"
           duration: 1200
 
+    - name: Perform Secure Erase operation on SED drive
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "192.168.0.1:443"
+        username: "user_name"
+        password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        controller_id: "RAID.Slot.1-1"
+        command: "SecureErase"
+        target: "Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1"
+
 
 
 Return Values
@@ -558,5 +573,5 @@ Authors
 - Jagadeesh N V (@jagadeeshnv)
 - Felix Stephen (@felixs88)
 - Husniya Hameed (@husniya_hameed)
-- Abhishek Sinha (@Abhishek-Dell)
+- Abhishek Sinha (@ABHISHEK-SINHA10)
 
