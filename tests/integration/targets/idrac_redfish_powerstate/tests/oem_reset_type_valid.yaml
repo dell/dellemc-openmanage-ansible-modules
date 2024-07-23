@@ -30,13 +30,28 @@
       ansible.builtin.set_fact:
         firmware_ver: "{{ idrac_output.json.FirmwareVersion }}"
 
-    - name: Performing oem_reset_type when server is powered Off
-      dellemc.openmanage.redfish_powerstate:
+    - name: Performing oem_reset_type when server is powered Off - Check Mode
+      dellemc.openmanage.redfish_powerstate: &oem_reset_type_off
         oem_reset_type:
           dell:
             reset_type: "PowerCycle"
             final_power_state: "Off"
-      ignore_errors: true
+      check_mode: true
+      register: cm_powered_off
+      when: firmware_ver >= '7.00.60'
+
+    - name: Verify status of tasks - Check Mode
+      ansible.builtin.assert:
+        that:
+          - cm_powered_off.changed
+          - valid_msg == cm_powered_off.msg
+      vars:
+        valid_msg: "Changes found to be applied."
+      when: firmware_ver >= '7.00.60'
+
+    - name: Performing oem_reset_type when server is powered Off - Normal Mode
+      dellemc.openmanage.redfish_powerstate:
+        <<: *oem_reset_type_off
       register: powered_off
       when: firmware_ver >= '7.00.60'
 
@@ -52,7 +67,7 @@
       retries: 10
       delay: 30
 
-    - name: Verify status of tasks
+    - name: Verify status of tasks - Normal Mode
       ansible.builtin.assert:
         that:
           - powered_off.changed
@@ -63,13 +78,28 @@
           power-cycle operation."
       when: firmware_ver >= '7.00.60'
 
-    - name: Performing oem_reset_type when server is powered On
-      dellemc.openmanage.redfish_powerstate:
+    - name: Performing oem_reset_type when server is powered On - Check Mode
+      dellemc.openmanage.redfish_powerstate: &oem_reset_type_on
         oem_reset_type:
           dell:
             reset_type: "PowerCycle"
             final_power_state: "On"
-      ignore_errors: true
+      check_mode: true
+      register: cm_powered_on
+      when: firmware_ver >= '7.00.60'
+
+    - name: Verify status of tasks - Check Mode
+      ansible.builtin.assert:
+        that:
+          - cm_powered_on.changed
+          - valid_msg == cm_powered_on.msg
+      vars:
+        valid_msg: "Changes found to be applied."
+      when: firmware_ver >= '7.00.60'
+
+    - name: Performing oem_reset_type when server is powered On - Normal Mode
+      dellemc.openmanage.redfish_powerstate:
+        <<: *oem_reset_type_on
       register: powered_on
       when: firmware_ver >= '7.00.60'
 
