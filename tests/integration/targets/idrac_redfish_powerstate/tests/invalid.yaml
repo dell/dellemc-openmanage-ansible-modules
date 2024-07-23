@@ -221,17 +221,36 @@
       dellemc.openmanage.redfish_powerstate:
         reset_type: "On"
 
-    - name: Negative - Performing oem_reset_type when server is powered On
+    - name: Performing oem_reset_type when server is powered On - Check Mode
       dellemc.openmanage.redfish_powerstate:
         oem_reset_type:
           dell:
             reset_type: "PowerCycle"
             final_power_state: "Off"
-      ignore_errors: true
+      check_mode: true
+      register: cm_powering_off_when_on
+      when: firmware_ver >= '7.00.60'
+
+    - name: Verify status of tasks - Check Mode
+      ansible.builtin.assert:
+        that:
+          - not cm_powering_off_when_on.changed
+          - error_msg == cm_powering_off_when_on.msg
+      vars:
+        error_msg: "No changes found to be applied because system is in power
+         ON state."
+      when: firmware_ver >= '7.00.60'
+
+    - name: Performing oem_reset_type when server is powered On - Normal Mode
+      dellemc.openmanage.redfish_powerstate:
+        oem_reset_type:
+          dell:
+            reset_type: "PowerCycle"
+            final_power_state: "Off"
       register: powering_off_when_on
       when: firmware_ver >= '7.00.60'
 
-    - name: Verify status of tasks
+    - name: Verify status of tasks - Normal Mode
       ansible.builtin.assert:
         that:
           - powering_off_when_on.skipped
