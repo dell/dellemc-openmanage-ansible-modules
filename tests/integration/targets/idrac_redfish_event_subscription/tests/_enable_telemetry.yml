@@ -1,0 +1,12 @@
+---
+- name: Enable Telemetry service.
+  ansible.builtin.uri:
+    url: https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/TelemetryService
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: PATCH
+    body: '{ "ServiceEnabled":true }'
+    body_format: json
+    validate_certs: false
+    headers: 'Accept=application/json'
+  register: enable_telemetry

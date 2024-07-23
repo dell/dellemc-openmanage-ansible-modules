@@ -1,0 +1,133 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Negative - unreachable host
+      dellemc.openmanage.redfish_firmware_rollback:
+        baseuri: 999.999.999.999
+        name: BIOS
+      register: invalid_unreachable
+      ignore_unreachable: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_unreachable.unreachable
+          - not invalid_unreachable.changed
+          - invalid_unreachable.msg == "<urlopen error [Errno -2]
+           Name or service not known>"
+
+    - name: Negative - missing required argument
+      dellemc.openmanage.redfish_firmware_rollback:
+      register: invalid_missing_argument
+      ignore_errors: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_missing_argument.failed
+          - not invalid_missing_argument.changed
+          - 'invalid_missing_argument.msg == "missing required arguments:
+           name"'
+
+    - name: Negative - unsupported argument
+      dellemc.openmanage.redfish_firmware_rollback:
+        name: BIOS
+        version: 2.12.2
+      register: invalid_unsupported_argument
+      ignore_errors: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_unsupported_argument.failed
+          - not invalid_unsupported_argument.changed
+          - 'invalid_unsupported_argument.msg == "Unsupported parameters
+           for (dellemc.openmanage.redfish_firmware_rollback) module: version.
+           Supported parameters include: baseuri, ca_path, name, password,
+           reboot, reboot_timeout, timeout, username, validate_certs,
+           x_auth_token."'
+
+    - name: Negative - invalid component name
+      dellemc.openmanage.redfish_firmware_rollback:
+        name: BIOS-1234567
+      register: invalid_name_1
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - not invalid_name_1.changed
+          - invalid_name_1.msg == "No changes found to be applied."
+
+    - name: Negative - invalid component name (case sensitive)
+      dellemc.openmanage.redfish_firmware_rollback:
+        name: bios
+      register: invalid_name_2
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - not invalid_name_2.changed
+          - invalid_name_2.msg == "No changes found to be applied."
+
+    - name: Negative - invalid username
+      dellemc.openmanage.redfish_firmware_rollback:
+        username: invalid
+        name: "Integrated Dell Remote Access Controller"
+      register: invalid_username
+      ignore_errors: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_username.failed
+          - not invalid_username.changed
+
+    - name: Negative - invalid password
+      dellemc.openmanage.redfish_firmware_rollback:
+        password: invalid
+        name: BIOS
+      register: invalid_password
+      ignore_errors: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_password.failed
+          - not invalid_password.changed
+
+    - name: Negative - invalid validate_certs
+      dellemc.openmanage.redfish_firmware_rollback:
+        validate_certs: invalid
+        name: "Integrated Dell Remote Access Controller"
+      register: invalid_validate_certs
+      ignore_errors: true
+
+    - ansible.builtin.set_fact:
+        invalid_validate_certs_expected_msg: "argument 'validate_certs' is
+         of type <class 'str'> and we were unable to convert to bool: The
+         value 'invalid' is not a valid boolean.  Valid booleans include: "
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_validate_certs.failed
+          - not invalid_validate_certs.changed
+          - invalid_validate_certs_expected_msg in invalid_validate_certs.msg
+
+  module_defaults:
+    dellemc.openmanage.redfish_firmware_rollback:
+      baseuri: "{{ idrac_ip }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

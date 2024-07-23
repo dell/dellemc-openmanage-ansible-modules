@@ -1,0 +1,24 @@
+---
+- ansible.builtin.set_fact:
+    idrac_fw_info: "{{ uri_data.Members | json_query(query) }}"
+  vars:
+    query: "[?Name == '{{ component }}']"
+
+- ansible.builtin.set_fact:
+    previous_version: "{{ idrac_fw_info | to_json | from_json |
+     json_query(query) | first }}"
+  vars:
+    query: "[?starts_with(Id,'Previous')].Version"
+  when: idrac_fw_info
+
+- ansible.builtin.set_fact:
+    installed_version: "{{ idrac_fw_info | to_json | from_json |
+     json_query(query) | first }}"
+  vars:
+    query: "[?starts_with(Id,'Installed')].Version"
+  when: idrac_fw_info
+
+- ansible.builtin.set_fact:
+    previous_versions: "{{ previous_versions + [previous_version] }}"
+    installed_versions: "{{ installed_versions + [installed_version] }}"
+  when: components_list is defined
