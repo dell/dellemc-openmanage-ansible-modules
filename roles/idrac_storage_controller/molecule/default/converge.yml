@@ -21,6 +21,7 @@
         reset_config: true
       ignore_errors: true
       ignore_unreachable: true
+      register: tmp
 
     - name: "Verifying operation on the iDRAC device using default
              reset_type with invalid hostname"
@@ -44,6 +45,7 @@
         controller_id: "{{ controller_name }}"
       ignore_errors: true
       ignore_unreachable: true
+      register: tmp
 
     - name: "Verifying operation on the iDRAC device using default
              reset_type with invalid username"
@@ -64,6 +66,7 @@
         reset_config: true
       ignore_errors: true
       ignore_unreachable: true
+      register: tmp
 
     - name: "Verifying operation on the iDRAC device using default
              reset_type with invalid password"
@@ -84,6 +87,7 @@
         reset_config: true
       ignore_errors: true
       ignore_unreachable: true
+      register: tmp
 
     - name: "Verifying operation on the iDRAC device using default
              reset_type without controller ID"
@@ -108,6 +112,7 @@
           PatrolReadMode: Disabled
         apply_time: Immediate
       ignore_errors: true
+      register: tmp
 
     - name: Verifying set controller attributes with Job wait by providing
             a invalid value for attribute
@@ -135,6 +140,7 @@
           start_time: "2026-09-14T06:59:35-05:00"
           duration: "180"
       ignore_errors: true
+      register: tmp
 
     - name: Verifying disk status change to online in Normal mode
       ansible.builtin.assert:
@@ -163,6 +169,7 @@
           start_time: "Invalid_start_time"
           duration: "180"
       ignore_errors: true
+      register: tmp
 
     - name: Verifying disk status change to online in Normal mode
       ansible.builtin.assert:
@@ -185,6 +192,7 @@
         key: "PassPhrase@123"
         key_id: "mykeyid123456789ooowalcowlskgjnsfnjnjogfwegnwfnwogjnewgneengo"
       ignore_errors: true
+      register: tmp
 
     - name: Verifying set controller attributes with Job wait by providing
             a key_id with length greater than 32
@@ -207,6 +215,7 @@
         key: "PassPhrase@123"
         key_id: "Mykeyid_12 34"
       ignore_errors: true
+      register: tmp
 
     - name: Verifying set controller attributes with Job wait by providing
             a key_id with space
@@ -229,6 +238,7 @@
         key_id: "PassPhrase@123"
         key: "mykeyid123456789ooowalcowlskgjnsfnjnjogfwegnwfnwogjnewgneengo"
       ignore_errors: true
+      register: tmp
 
     - name: Verifying set controller attributes with Job wait by providing
             a key with length greater than 32
@@ -250,6 +260,7 @@
         job_wait: "invalid"
         remove_key: true
       ignore_errors: true
+      register: tmp
 
     - name: Verifying set controller attributes with Job wait and key_id
             is missing
@@ -272,6 +283,7 @@
         rekey: true
         key_id: "PassPhrase@123"
       ignore_errors: true
+      register: tmp
 
     - name: Verifying set controller attributes with Job wait by providing
             a key with length greater than 32
@@ -296,11 +308,12 @@
         old_key: "old_key"
         mode: LKM
       ignore_errors: true
+      register: tmp
 
     - name: Verifying set controller attributes with Job wait by providing
             a key with length greater than 32
       ansible.builtin.assert:
-        that: 
+        that:
           - "'All of the following: key, key_id and ******** are required for
             \\'ReKey\\' operation.' in storage_controller_rekey.msg"
           - storage_controller_rekey.failed
@@ -321,6 +334,7 @@
         old_key: "old_key"
         mode: "invalid_mode"
       ignore_errors: true
+      register: tmp
 
     - name: Verifying set controller attributes with Job wait by providing
             a key with length greater than 32
@@ -350,6 +364,7 @@
           start_time: "2026-09-14T06:59:35-05:00"
           duration: "180"
       ignore_errors: true
+      register: tmp
 
     - name: Verifying disk status change to online in Normal mode
       ansible.builtin.assert:
@@ -378,6 +393,7 @@
         volumes: "{{ vol_details }}"
         job_wait: true
       ignore_errors: true
+      register: tmp
 
     - name: Verifying disk status change to online in Normal mode
       ansible.builtin.assert:
@@ -405,6 +421,7 @@
         volumes: "{{ vol_details }}"
         job_wait: true
       ignore_errors: true
+      register: tmp
 
     - name: Verifying disk status change to online in Normal mode
       ansible.builtin.assert:
