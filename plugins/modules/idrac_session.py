@@ -75,7 +75,7 @@ options:
      - Authentication token.
      - I(x_auth_token) is required when I(state) is C(absent).
     type: str
-    aliases: [auth_token]
+    aliases: ['auth_token']
   session_id:
     description:
      - Session ID of the iDRAC.
