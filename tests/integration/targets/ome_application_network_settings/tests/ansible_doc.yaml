@@ -1,0 +1,12 @@
+- name: ansible-doc
+  command: ansible-doc dellemc.openmanage.ome_application_network_settings
+  register: ansible_doc_hash
+
+- local_action: copy content={{ansible_doc_hash.stdout_lines[2:] | to_nice_yaml}} dest={{ role_path }}/files/ansible_doc.txt
+  register: ansible_doc
+  check_mode: true
+  diff: true
+
+- name: Verify if doc changed
+  assert:
+    that: not ansible_doc.changed
