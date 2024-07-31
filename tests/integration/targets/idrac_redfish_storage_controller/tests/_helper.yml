@@ -99,8 +99,9 @@
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"
+
     dellemc.openmanage.idrac_redfish_storage_controller:
-      baseuri: "{{ idrac_ip }}:443"
+      baseuri: "{{ idrac_ip }}:{{ idrac_port }}"
       username: "{{ idrac_user }}"
       password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"
