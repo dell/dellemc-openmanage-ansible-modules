@@ -1,0 +1,118 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: hostname, username
+         and password.'
+  when: hostname is not defined or username is not defined or password
+         is not defined
+
+- block:
+    # PRE REQ - DISABLE UNIVERSAL TIMEOUT
+    - name: Reset OMEM configuration.
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          enable_universal_timeout: false
+
+    - name: Update Session Inactivity Timeout Configuration
+       (check mode - changes expected)
+      dellemc.openmanage.ome_application_network_settings:
+        &configure_session_inactivity
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          enable_universal_timeout: true
+          universal_timeout: 100
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify Update Session Inactivity Timeout Configuration
+       (check mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == 'Changes found to be applied.'
+
+    - name: Update Session Inactivity Timeout Configuration (normal mode)
+      dellemc.openmanage.ome_application_network_settings:
+        <<: *configure_session_inactivity
+      register: configure_session_inactivity
+
+    - name: Verify Update Session Inactivity Timeout Configuration
+       (normal mode)
+      ansible.builtin.assert:
+        that:
+          - configure_session_inactivity.changed
+          - configure_session_inactivity.msg == "Successfully updated the
+           session timeout settings."
+
+    - name: Get Session Inactivity Timeout Configuration details by uri.
+      ansible.builtin.uri:
+        url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
+         }}/api/SessionService/SessionConfiguration
+        user: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        status_code: 200
+      register: uri_resp
+
+    - name: Remove odata from uri response
+      ansible.builtin.set_fact:
+        job_data_uri: "{{ uri_resp.json.value | ansible.utils.remove_keys
+          (target= ['@odata.type']) }}"
+
+    - name: Compare response from module and uri
+      ansible.utils.fact_diff:
+        before: "{{ job_data_uri }}"
+        after: "{{ configure_session_inactivity.session_inactivity_setting }}"
+      register: diff_result
+
+    - name: Verify Get Session Inactivity Timeout Configuration details by uri.
+      ansible.builtin.assert:
+        that:
+          - not diff_result.changed
+          - not diff_result.diff_lines
+
+    - name: Update Session Inactivity Timeout Configuration
+       (check mode - no changes expected)
+      dellemc.openmanage.ome_application_network_settings:
+        <<: *configure_session_inactivity
+      register: cm_no_changes
+      check_mode: true
+
+    - name: Update Session Inactivity Timeout Configuration
+       (check mode - no changes expected)
+      ansible.builtin.assert:
+        that:
+          - not cm_no_changes.changed
+          - cm_no_changes.msg == "No changes found to be applied."
+
+    - name: Update Session Inactivity Timeout Configuration (idempotent mode)
+      dellemc.openmanage.ome_application_network_settings:
+        <<: *configure_session_inactivity
+      register: configure_session_inactivity_idempotent
+
+    - name: Update Session Inactivity Timeout Configuration (idempotent mode)
+      ansible.builtin.assert:
+        that:
+          - not configure_session_inactivity_idempotent.changed
+          - configure_session_inactivity_idempotent.msg == "No changes found
+           to be applied."
+
+  module_defaults:
+    dellemc.openmanage.ome_application_network_proxy:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"
