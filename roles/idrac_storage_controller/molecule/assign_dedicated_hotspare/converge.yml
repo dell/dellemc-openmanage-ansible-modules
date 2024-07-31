@@ -22,14 +22,14 @@
         volumes: "{{ vol_details }}"
         controller_id: "{{ controller_name }}"
 
-    - name: Verifying disk status change to offline in check mode
+    - name: Verifying - assign dedicated hot spare in check mode
       ansible.builtin.assert:
         that:
           - assign_dedicated_spare_out.msg == "Changes found to be applied."
           - assign_dedicated_spare_out.changed
       when: ansible_check_mode
 
-    - name: Verifying disk status change to offline in normal mode
+    - name: Verifying - assign dedicated hot spare in normal mode
       ansible.builtin.assert:
         that:
           - assign_dedicated_spare_out.msg == "Successfully performed the
@@ -38,7 +38,7 @@
       when: not ansible_check_mode and
             assign_dedicated_spare_out.status is defined
 
-    - name: Verifying disk status change to offline in idempotence mode
+    - name: Verifying - assign dedicated hot spare in idempotence mode
       ansible.builtin.assert:
         that:
           - assign_dedicated_spare_out.msg == "No changes found to be applied."

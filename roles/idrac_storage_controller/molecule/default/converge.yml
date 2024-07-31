@@ -285,8 +285,8 @@
       ignore_errors: true
       register: tmp
 
-    - name: Verifying set controller attributes with Job wait by providing
-            a key with length greater than 32
+    - name: Verifying set controller attributes with Job wait when key
+            is missing
       ansible.builtin.assert:
         that:
           - "'All of the following: key, key_id and old_key are required for
@@ -310,11 +310,36 @@
       ignore_errors: true
       register: tmp
 
-    - name: Verifying set controller attributes with Job wait by providing
-            a key with length greater than 32
+    - name: Verifying set controller attributes with Job wait when
+            key_id is missing
       ansible.builtin.assert:
         that:
           - "'All of the following: key, key_id and ******** are required for
+            \\'ReKey\\' operation.' in storage_controller_rekey.msg"
+          - storage_controller_rekey.failed
+
+    - name: Playbook to set controller attributes with Job wait when
+            old_key is missing
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        controller_id: "{{ controller_name }}"
+        rekey: true
+        key: "PassPhrase@123"
+        key_id: "PassPhrase@123"
+        mode: LKM
+      ignore_errors: true
+      register: tmp
+
+    - name: Verifying set controller attributes with Job wait when
+            key_id is missing
+      ansible.builtin.assert:
+        that:
+          - "'All of the following: key, key_id and old_key are required for
             \\'ReKey\\' operation.' in storage_controller_rekey.msg"
           - storage_controller_rekey.failed
 
@@ -336,8 +361,8 @@
       ignore_errors: true
       register: tmp
 
-    - name: Verifying set controller attributes with Job wait by providing
-            a key with length greater than 32
+    - name: Verifying set controller attributes with Job wait and invalid
+            value for mode
       ansible.builtin.assert:
         that:
           - "storage_controller_rekey.msg == 'value of mode must be one
@@ -408,7 +433,7 @@
                      'expand_capacity_disk': -1}) }}"
 
     - name: Playbook to expand size of disk by target with Job wait with "volume_id"
-            as Invalid expand_capacity_disk
+            and Invalid expand_capacity_disk
       ansible.builtin.import_role:
         name: idrac_storage_controller
       vars:
@@ -423,7 +448,74 @@
       ignore_errors: true
       register: tmp
 
-    - name: Verifying disk status change to online in Normal mode
+    - name: Verifying size expansion of disk by target with Job wait with "volume_id"
+            and Invalid expand_capacity_disk
       ansible.builtin.assert:
         that:
           - oce_vd_out.failed
+
+    - name: Create a list of dictionaries of dictionaries
+      ansible.builtin.set_fact:
+        disk_details:
+          status: "online"
+
+    - name: Playbook to change disk status when target is missing
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        controller_id: "{{ controller_name }}"
+        disks: "{{ disk_details }}"
+      ignore_errors: true
+      register: tmp
+
+    - name: Update the value of the id key
+      ansible.builtin.set_fact:
+        disk_details: "{{ disk_details | combine({'id': 'Invalid'}) }}"
+
+    - name: Playbook to change disk status when target Id is invalid
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        controller_id: "{{ controller_name }}"
+        disks: "{{ disk_details }}"
+      ignore_errors: true
+      register: tmp
+
+    - name: Verifying change disk status when target Id is invalid
+      ansible.builtin.assert:
+        that:
+          - "'Unable to locate the physical disk with the ID: Invalid' in pd_state_out.msg"
+          - pd_state_out.failed
+
+    - name: Create a dictionary for dedicated hotspare
+      ansible.builtin.set_fact:
+        volume_details:
+          id: "{{ physicaldisks[0] }}"
+          dedicated_hot_spare: "Invalid"
+
+    - name: Playbook to ssign dedicated hot spare
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        controller_id: "{{ controller_name }}"
+        volumes: "{{ volume_details }}"
+      ignore_errors: true
+      register: tmp
+
+    - name: Verifying - Assign dedicated hot spare
+      ansible.builtin.assert:
+        that:
+          - "'Unable to locate the physical disk with the ID: Invalid' in assign_dedicated_spare_out.msg"
+          - assign_dedicated_spare_out.failed
