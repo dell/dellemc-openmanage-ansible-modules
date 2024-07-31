@@ -267,7 +267,8 @@
       ansible.builtin.assert:
         that:
           - "'we were unable to convert to bool: The value
-           \\'invalid\\' is not a valid boolean.' in remove_controller_key_out.msg"
+           \\'invalid\\' is not a valid boolean.' in
+           remove_controller_key_out.msg"
           - remove_controller_key_out.failed
 
     - name: Playbook to set controller attributes with Job wait when key
@@ -432,8 +433,8 @@
         vol_details: "{{ vol_details | combine({'id': physicaldisks[0],
                      'expand_capacity_disk': -1}) }}"
 
-    - name: Playbook to expand size of disk by target with Job wait with "volume_id"
-            and Invalid expand_capacity_disk
+    - name: Playbook to expand size of disk by target with Job wait with
+           "volume_id" and Invalid expand_capacity_disk
       ansible.builtin.import_role:
         name: idrac_storage_controller
       vars:
@@ -448,8 +449,8 @@
       ignore_errors: true
       register: tmp
 
-    - name: Verifying size expansion of disk by target with Job wait with "volume_id"
-            and Invalid expand_capacity_disk
+    - name: Verifying size expansion of disk by target with Job wait with
+           "volume_id" and Invalid expand_capacity_disk
       ansible.builtin.assert:
         that:
           - oce_vd_out.failed
@@ -492,7 +493,8 @@
     - name: Verifying change disk status when target Id is invalid
       ansible.builtin.assert:
         that:
-          - "'Unable to locate the physical disk with the ID: Invalid' in pd_state_out.msg"
+          - "'Unable to locate the physical disk with the ID: Invalid'
+            in pd_state_out.msg"
           - pd_state_out.failed
 
     - name: Create a dictionary for dedicated hotspare
@@ -517,5 +519,6 @@
     - name: Verifying - Assign dedicated hot spare
       ansible.builtin.assert:
         that:
-          - "'Unable to locate the physical disk with the ID: Invalid' in assign_dedicated_spare_out.msg"
+          - "'Unable to locate the physical disk with the ID: Invalid'
+            in assign_dedicated_spare_out.msg"
           - assign_dedicated_spare_out.failed

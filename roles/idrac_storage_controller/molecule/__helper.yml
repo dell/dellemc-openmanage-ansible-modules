@@ -110,6 +110,7 @@
       ansible.builtin.include_tasks:
         file: ../__lc_status.yml
       when: res_status is defined and (res_status.msg ==
-           "Successfully performed the 'ChangePDStateToOffline' operation." or res_status.msg ==
-           "Successfully performed the 'ChangePDStateToOnline' operation.")
+           "Successfully performed the 'ChangePDStateToOffline' operation." or
+           res_status.msg == "Successfully performed the
+           'ChangePDStateToOnline' operation.")
       no_log: true
