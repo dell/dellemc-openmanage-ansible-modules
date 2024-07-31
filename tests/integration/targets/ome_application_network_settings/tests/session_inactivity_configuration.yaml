@@ -57,7 +57,7 @@
 
     - name: Get Session Inactivity Timeout Configuration details by uri.
       ansible.builtin.uri:
-        url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
+        url: https://{{ hostname }}:{{ port
          }}/api/SessionService/SessionConfiguration
         user: "{{ username }}"
         password: "{{ password }}"
@@ -67,8 +67,8 @@
 
     - name: Remove odata from uri response
       ansible.builtin.set_fact:
-        job_data_uri: "{{ uri_resp.json.value | ansible.utils.remove_keys(target=
-         ['@odata.type']) }}"
+        job_data_uri: "{{ uri_resp.json.value | ansible.utils.remove_keys
+          (target= ['@odata.type']) }}"
 
     - name: Compare response from module and uri
       ansible.utils.fact_diff:
@@ -111,7 +111,7 @@
   module_defaults:
     dellemc.openmanage.ome_application_network_proxy:
       validate_certs: "{{ validate_certs }}"
-      hostname: "{{ hostname }}"
+      hostname: "{{ hostname | ansible.utils.ipwrap }}"
       username: "{{ username }}"
       password: "{{ password }}"
       port: "{{ port }}"

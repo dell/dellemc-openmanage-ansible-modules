@@ -58,7 +58,7 @@
 
     - name: Get Session Inactivity Timeout Configuration details by uri.
       ansible.builtin.uri:
-        url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
+        url: https://{{ hostname }}:{{ port
          }}/api/SessionService/SessionConfiguration
         user: "{{ username }}"
         password: "{{ password }}"
@@ -112,7 +112,7 @@
   module_defaults:
     dellemc.openmanage.ome_application_network_proxy:
       validate_certs: "{{ validate_certs }}"
-      hostname: "{{ hostname }}"
+      hostname: "{{ hostname | ansible.utils.ipwrap }}"
       username: "{{ username }}"
       password: "{{ password }}"
       port: "{{ port }}"
