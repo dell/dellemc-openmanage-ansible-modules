@@ -444,7 +444,8 @@ class StorageBase:
         job_wait = self.module_ext_params.get('job_wait')
         job_wait_timeout = self.module_ext_params.get('job_wait_timeout')
         job_dict = {}
-        if (job_tracking_uri := job_resp.headers.get("Location")):
+        job_tracking_uri = job_resp.headers.get("Location")
+        if (job_tracking_uri):
             job_id = job_tracking_uri.split("/")[-1]
             job_uri = iDRAC_JOB_URI.format(job_id=job_id)
             if job_wait:
@@ -784,7 +785,8 @@ class StorageDelete(StorageValidation):
         self.validate_job_wait_negative_values()
 
         #  Validate for volume and volume_name
-        if (not (volumes := self.module.params.get('volumes'))) or (volumes and not all("name" in each for each in volumes)):
+        volumes = self.module.params.get('volumes')
+        if (not (volumes)) or (volumes and not all("name" in each for each in volumes)):
             self.module.exit_json(msg=VOLUME_NAME_REQUIRED_FOR_DELETE, failed=True)
 
     def construct_payload_for_delete(self, cntrl_id_vd_id_mapping):

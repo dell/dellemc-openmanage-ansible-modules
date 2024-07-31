@@ -5,11 +5,11 @@
   tasks:
     - name: Create a list of dictionaries of dictionaries
       ansible.builtin.set_fact:
-        vol_details:
-          id: "{{ physicaldisks[3] }}"
+        disk_details:
+          id: "{{ physicaldisks[0] }}"
           global_hot_spare: false
 
-    - name: UnAssign dedicated hot spare
+    - name: Unassign global hot spare
       ansible.builtin.import_role:
         name: idrac_storage_controller
       vars:
@@ -17,34 +17,31 @@
         username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
-        job_wait: false
-        disks: "{{ vol_details }}"
+        job_wait: true
+        job_wait_timeout: 300
+        disks: "{{ disk_details }}"
         controller_id: "{{ controller_name }}"
 
-    - name: Wait for 120 seconds
-      ansible.builtin.pause:
-        seconds: 120
-      when: not ansible_check_mode and unassign_hotspare_out.status is defined
-
-    - name: Verifying - unassign dedicated hot spare in check mode
+    - name: Verifying - assign global hot spare in check mode
       ansible.builtin.assert:
         that:
           - unassign_hotspare_out.msg == "Changes found to be applied."
           - unassign_hotspare_out.changed
       when: ansible_check_mode
 
-    - name: Verifying - unassign dedicated hot spare in normal mode
+    - name: Verifying - assign global hot spare in normal mode
       ansible.builtin.assert:
         that:
-          - unassign_hotspare_out.msg == "Successfully submitted the job that
-            performs the 'UnassignSpare' operation."
-          - unassign_hotspare_out.task is defined
-      when: not ansible_check_mode and unassign_hotspare_out.status is defined
+          - unassign_hotspare_out.msg == "Successfully performed the
+           'UnassignSpare' operation."
+          - unassign_hotspare_out.changed
+      when: not ansible_check_mode and
+            unassign_hotspare_out.status is defined
 
-    - name: Verifying - unassign dedicated hot spare in idempotence mode
+    - name: Verifying - assign global hot spare in idempotence mode
       ansible.builtin.assert:
         that:
           - unassign_hotspare_out.msg == "No changes found to be applied."
           - not unassign_hotspare_out.changed
-      when: not ansible_check_mode and unassign_hotspare_out.status is not
-            defined
+      when: not ansible_check_mode and
+            unassign_hotspare_out.status is not defined
