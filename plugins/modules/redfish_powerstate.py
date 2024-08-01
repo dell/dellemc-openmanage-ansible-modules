@@ -197,21 +197,43 @@ def fetch_ac_powerstate_details(module, system_id_res_data, action_id_res):
     if oem_key_resp is None:
         module.exit_json(msg=TARGET_DEVICE_NOT_SUPPORTED, skipped=True)
     sub_key = OEM_RESET_KEY.format(current_vendor.capitalize())
-    sub_oem_key = oem_key_resp.get(sub_key)
+    sub_oem_key = None
+    if oem_key_resp is not None:
+        sub_oem_key = oem_key_resp.get(sub_key)
     if sub_oem_key is None:
         module.exit_json(msg=TARGET_DEVICE_NOT_SUPPORTED, skipped=True)
-    power_uri = sub_oem_key.get('target')
-    allowable_enums = sub_oem_key.get('ResetType@Redfish.AllowableValues')
-    allowable_final_power_state = sub_oem_key.get('FinalPowerState@Redfish.AllowableValues')
+    power_uri = None
+    allowable_enums = None
+    allowable_final_power_state = None
+    if sub_oem_key is not None:
+        power_uri = sub_oem_key.get('target')
+        allowable_enums = sub_oem_key.get('ResetType@Redfish.AllowableValues')
+        allowable_final_power_state = sub_oem_key.get('FinalPowerState@Redfish.AllowableValues')
     powerstate_map.update(
         {'power_uri': power_uri, 'allowable_enums': allowable_enums,
             'current_state': current_state, 'allowable_power_state': allowable_final_power_state})
 
 
+def perform_uri_fetch(session_obj, module, system_id_res, resource_id_list, resource_id):
+    reset_type = module.params.get("reset_type")
+    if system_id_res in resource_id_list:
+        system_id_res_resp = session_obj.invoke_request("GET", system_id_res)
+        system_id_res_data = system_id_res_resp.json_data
+        action_id_res = system_id_res_data.get("Actions")
+        if action_id_res:
+            if reset_type:
+                fetch_powerstate_details(system_id_res_data, action_id_res)
+            else:
+                fetch_ac_powerstate_details(module, system_id_res_data, action_id_res)
+        else:
+            module.exit_json(msg=TARGET_DEVICE_NOT_SUPPORTED, skipped=True)
+    else:
+        module.exit_json(msg=INVALID_DEVICE_ID.format(resource_id), skipped=True)
+
+
 def fetch_power_uri_resource(module, session_obj, reset_type_map=None):
     try:
         resource_id = module.params.get("resource_id")
-        reset_type = module.params.get("reset_type")
         static_resource_id_resource = None
         if resource_id:
             static_resource_id_resource = "{0}{1}{2}".format(session_obj.root_uri, reset_type_map + "/", resource_id)
@@ -221,19 +243,7 @@ def fetch_power_uri_resource(module, session_obj, reset_type_map=None):
         if system_members and len(system_members) > 0:
             resource_id_list = [system_id["@odata.id"] for system_id in system_members if "@odata.id" in system_id]
             system_id_res = static_resource_id_resource or resource_id_list[0]
-            if system_id_res in resource_id_list:
-                system_id_res_resp = session_obj.invoke_request("GET", system_id_res)
-                system_id_res_data = system_id_res_resp.json_data
-                action_id_res = system_id_res_data.get("Actions")
-                if action_id_res:
-                    if reset_type:
-                        fetch_powerstate_details(system_id_res_data, action_id_res)
-                    else:
-                        fetch_ac_powerstate_details(module, system_id_res_data, action_id_res)
-                else:
-                    module.exit_json(msg=TARGET_DEVICE_NOT_SUPPORTED, skipped=True)
-            else:
-                module.exit_json(msg=INVALID_DEVICE_ID.format(resource_id), skipped=True)
+            perform_uri_fetch(session_obj, module, system_id_res, resource_id_list, resource_id)
         else:
             module.exit_json(msg=TARGET_DEVICE_NOT_SUPPORTED, skipped=True)
     except HTTPError as err:
@@ -347,6 +357,14 @@ def run_change_power_state(redfish_session_obj, module):
         module.exit_json(msg="The device is already powered {0}.".format(current_power_state.lower()), changed=False)
 
 
+def power_cycle_check_mode(module):
+    current_power_state = powerstate_map["current_state"]
+    if module.check_mode:
+        if current_power_state.lower() != 'off':
+            module.exit_json(msg=INITIAL_DESIRED_STATE_ERROR)
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
+
+
 def run_change_ac_power_cycle(redfish_session_obj, module):
     check_firmware_version(module, redfish_session_obj)
     oem_reset_type = module.params["oem_reset_type"]
@@ -365,11 +383,7 @@ def run_change_ac_power_cycle(redfish_session_obj, module):
     is_valid_reset_type(apply_reset_type, powerstate_map["allowable_enums"], module)
     if final_pwr_state:
         is_valid_final_pwr_state(final_pwr_state, powerstate_map["allowable_power_state"], module)
-    current_power_state = powerstate_map["current_state"]
-    if module.check_mode:
-        if current_power_state.lower() != 'off':
-            module.exit_json(msg=INITIAL_DESIRED_STATE_ERROR)
-        module.exit_json(msg=CHANGES_FOUND, changed=True)
+    power_cycle_check_mode(module)
     payload = prepare_payload(current_vendor_dict)
     power_uri = powerstate_map["power_uri"]
     try:
