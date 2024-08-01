@@ -11,7 +11,8 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
-- ansible.builtin.include_tasks: _helper.yml
+- name: Prerequisite for the testcase
+  ansible.builtin.include_tasks: _helper.yml
   vars:
     reset_trigger: 1
 
@@ -77,15 +78,16 @@
         mode - Verify status of tasks
       ansible.builtin.assert:
         that:
-          - secure_erase_job_wait.msg == "Successfully performed the 'SecureErase'
-           operation."
+          - secure_erase_job_wait.msg == "Successfully performed the
+            'SecureErase' operation."
           - secure_erase_job_wait.changed
           - not secure_erase_job_wait.failed
           - secure_erase_job_wait.task.id
           - secure_erase_job_wait.task.uri == erase_job_wait_expected_uri
 
     - name: Secure erase the physical disk with job_wait as false - Check mode
-      dellemc.openmanage.idrac_redfish_storage_controller: &secure_erase_no_job_wait
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        &secure_erase_no_job_wait
         command: "SecureErase"
         controller_id: "{{ controller_name }}"
         target: "{{ physicaldisks[0] }}"
@@ -158,7 +160,7 @@
 
   module_defaults:
     dellemc.openmanage.idrac_redfish_storage_controller:
-      baseuri: "{{ idrac_ip }}:{{ idrac_port }}"
+      baseuri: "{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
       username: "{{ idrac_user }}"
       password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"
