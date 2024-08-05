@@ -271,8 +271,8 @@ Examples
         ca_path: "path/to/ca_file"
         data_collector: ["debug_logs", "hardware_data", "os_app_data", "storage_logs"]
         share_parameters:
-            share_type: "local"
-            share_path: "/opt/local/support_assist_collections/"
+          share_type: "local"
+          share_path: "/opt/local/support_assist_collections/"
 
     - name: Run the SupportAssist Collection with with custom data_to_collect with filter_data
       dellemc.openmanage.idrac_support_assist:
@@ -292,10 +292,10 @@ Examples
         ca_path: "path/to/ca_file"
         data_collector: ["hardware_data"]
         share_parameters:
-            share_type: "HTTPS"
-            ignore_certificate_warning: "on"
-            share_name: "/share_path/support_assist_collections"
-            ip_address: "192.168.0.2"
+          share_type: "HTTPS"
+          ignore_certificate_warning: "on"
+          share_name: "/share_path/support_assist_collections"
+          ip_address: "192.168.0.2"
 
     - name: Run and export the SupportAssist Collection to NFS share
       dellemc.openmanage.idrac_support_assist:
@@ -305,9 +305,9 @@ Examples
         ca_path: "path/to/ca_file"
         data_collector: ["debug_logs"]
         share_parameters:
-            share_type: "NFS"
-            share_name: "nfsshare/support_assist_collections/"
-            ip_address: "192.168.0.3"
+          share_type: "NFS"
+          share_name: "nfsshare/support_assist_collections/"
+          ip_address: "192.168.0.3"
 
     - name: Export the last SupportAssist Collection to CIFS share
       dellemc.openmanage.idrac_support_assist:
@@ -317,9 +317,9 @@ Examples
         ca_path: "path/to/ca_file"
         run: false
         share_parameters:
-            share_type: "NFS"
-            share_name: "/cifsshare/support_assist_collections/"
-            ip_address: "192.168.0.4"
+          share_type: "NFS"
+          share_name: "/cifsshare/support_assist_collections/"
+          ip_address: "192.168.0.4"
 
     - name: Export the last SupportAssist Collection to HTTPS share via proxy
       dellemc.openmanage.idrac_support_assist:
@@ -329,16 +329,16 @@ Examples
         ca_path: "path/to/ca_file"
         run: false
         share_parameters:
-            share_type: "HTTPS"
-            share_name: "/share_path/support_assist_collections"
-            ignore_certificate_warning: "on"
-            ip_address: "192.168.0.2"
-            proxy_support: parameters_proxy
-            proxy_type: http
-            proxy_server: "192.168.0.5"
-            proxy_port: 1080
-            proxy_username: "proxy_user"
-            proxy_password: "proxy_password"
+          share_type: "HTTPS"
+          share_name: "/share_path/support_assist_collections"
+          ignore_certificate_warning: "on"
+          ip_address: "192.168.0.2"
+          proxy_support: parameters_proxy
+          proxy_type: http
+          proxy_server: "192.168.0.5"
+          proxy_port: 1080
+          proxy_username: "proxy_user"
+          proxy_password: "proxy_password"
 
 
 
