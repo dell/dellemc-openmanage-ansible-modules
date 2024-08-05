@@ -15,7 +15,7 @@ __metaclass__ = type
 import json
 
 import pytest
-from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
+from urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from io import StringIO
 from ansible.module_utils._text import to_text
@@ -104,6 +104,52 @@ class TestOmeAppCSR(FakeAnsibleModule):
         ome_response_mock.success = True
         result = self.execute_module(ome_default_args)
         assert result['msg'] == "Successfully uploaded application certificate."
+
+    def test_upload_cert_chain_fail01(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
+                                      ome_response_mock):
+        args = {"command": "upload_cert_chain", "upload_file": "/path/certificate_chain.cer"}
+        f_module = self.get_module_mock(params=args)
+        with pytest.raises(Exception) as exc:
+            self.module.get_resource_parameters(f_module)
+        assert exc.value.args[0] == "No such file or directory."
+
+    def test_upload_cert_chain_success(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
+                                       ome_response_mock):
+        payload = "--BEGIN-REQUEST--"
+        mocker.patch(MODULE_PATH + 'ome_application_certificate.get_resource_parameters',
+                     return_value=("POST", "ApplicationService/Actions/ApplicationService.UploadCertChain", payload))
+        mocker.patch(MODULE_PATH + 'ome_application_certificate.get_ome_version',
+                     return_value=("4.1.0"))
+        ome_default_args.update({"command": "upload_cert_chain", "upload_file": "/path/certificate_chain.cer"})
+        ome_response_mock.success = True
+        result = self.execute_module(ome_default_args)
+        assert result['msg'] == "Successfully uploaded application certificate."
+
+    def test_ome_version_low(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
+                             ome_response_mock):
+        ome_response_mock.json_data = {
+            "Name": "OM Enterprise",
+            "Description": "OpenManage Enterprise",
+            "Vendor": "Dell, Inc.",
+            "ProductType": 1,
+            "Version": "3.1",
+            "BuildNumber": "24"
+        }
+        version = self.module.get_ome_version(ome_connection_mock_for_application_certificate)
+        assert version == "3.1"
+
+    def test_get_ome_version(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
+                             ome_response_mock):
+        ome_response_mock.json_data = {
+            "Name": "OM Enterprise",
+            "Description": "OpenManage Enterprise",
+            "Vendor": "Dell, Inc.",
+            "ProductType": 1,
+            "Version": "4.1",
+            "BuildNumber": "24"
+        }
+        version = self.module.get_ome_version(ome_connection_mock_for_application_certificate)
+        assert version == "4.1"
 
     def test_generate_csr(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
                           ome_response_mock):
