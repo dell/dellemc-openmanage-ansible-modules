@@ -31,6 +31,7 @@ SUCCESS_RUN_MSG = "Successfully ran the support assist collections."
 SUCCESS_RUN_AND_EXPORT_MSG = "Successfully ran and exported the support assist collections."
 RUNNING_RUN_MSG = "Successfully triggered the job to run support assist collections."
 ALREADY_RUN_MSG = "The support assist collections job is already present."
+EULA_ACCEPTED_MSG = "The SupportAssist End User License Agreement (EULA) is accepted by iDRAC user root via iDRAC interface REDFISH."
 INVALID_DIRECTORY_MSG = "Provided directory path '{path}' is not valid."
 NO_OPERATION_SKIP_MSG = "The operation is skipped."
 INSUFFICIENT_DIRECTORY_PERMISSION_MSG = "Provided directory path '{path}' is not writable. " \
@@ -43,6 +44,7 @@ CHANGES_NOT_FOUND_MSG = "No changes found to be applied."
 ALLOWED_VALUES_MSG = "Enter a valid value from the list of allowable values: {0}"
 PROXY_SERVER = "proxy.example.com"
 PAYLOAD_FUNC = "SupportAssist.get_payload_details"
+EULA_STATUS_FUNC = "AcceptEULA.eula_status"
 VALIDATE_TIME_FUNC = "RunSupportAssist._RunSupportAssist__validate_time"
 EXPORT_FUNC = "ExportSupportAssist._ExportSupportAssist__export_support_assist"
 RUN_EXEC_FUNC = "RunSupportAssist.execute"
@@ -105,9 +107,9 @@ class TestAcceptEULA(FakeAnsibleModule):
         # Scenario 1: run and accept_eula both as true
         obj.status_code = 200
         obj.json_data = {
-            "@Message.ExtendedInfo": [
+            MESSAGE_EXTENDED: [
                 {
-                    "Message": "The SupportAssist End User License Agreement (EULA) is accepted by iDRAC user root via iDRAC interface REDFISH.",
+                    "Message": EULA_ACCEPTED_MSG,
                     "MessageId": "IDRAC.2.8.SRV074"
                 },
                 {
@@ -118,33 +120,33 @@ class TestAcceptEULA(FakeAnsibleModule):
         }
         mocker.patch(MODULE_PATH + "AcceptEULA._AcceptEULA__get_eula_status_url", return_value=None)
         mocker.patch(MODULE_PATH + "AcceptEULA._AcceptEULA__get_eula_accept_url", return_value=None)
-        mocker.patch(MODULE_PATH + "AcceptEULA.eula_status", return_value=obj)
+        mocker.patch(MODULE_PATH + EULA_STATUS_FUNC, return_value=obj)
         idrac_default_args.update({'run': True, 'accept_eula': True, 'export': False})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         support_assist_obj = self.module.AcceptEULA(idrac_connection_support_assist_mock, f_module)
         msg = support_assist_obj.execute()
-        assert msg == "The SupportAssist End User License Agreement (EULA) is accepted by iDRAC user root via iDRAC interface REDFISH."
+        assert msg == EULA_ACCEPTED_MSG
 
         # Scenario 2: Only accept_eula as true when eula is not accepted
         obj2 = MagicMock()
         obj2.status_code = 200
         obj2.json_data = {
-            "@Message.ExtendedInfo": [
+            MESSAGE_EXTENDED: [
                 {
-                    "Message": "The SupportAssist End User License Agreement (EULA) is accepted by iDRAC user root via iDRAC interface REDFISH.",
+                    "Message": EULA_ACCEPTED_MSG,
                     "MessageId": "IDRAC.2.8.SRV074",
                 }
             ]
         }
         mocker.patch(MODULE_PATH + "AcceptEULA._AcceptEULA__get_eula_status_url", return_value=None)
         mocker.patch(MODULE_PATH + "AcceptEULA._AcceptEULA__get_eula_accept_url", return_value=None)
-        mocker.patch(MODULE_PATH + "AcceptEULA.eula_status", return_value=obj)
+        mocker.patch(MODULE_PATH + EULA_STATUS_FUNC, return_value=obj)
         mocker.patch(MODULE_PATH + "AcceptEULA.accept_eula", return_value=obj2)
         idrac_default_args.update({'run': False, 'accept_eula': True, 'export': False})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         support_assist_obj = self.module.AcceptEULA(idrac_connection_support_assist_mock, f_module)
         msg = support_assist_obj.execute()
-        assert msg == "The SupportAssist End User License Agreement (EULA) is accepted by iDRAC user root via iDRAC interface REDFISH."
+        assert msg == EULA_ACCEPTED_MSG
 
     def test_get_eula_status_url(self, idrac_default_args, idrac_connection_support_assist_mock, mocker):
         mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri",
@@ -217,13 +219,13 @@ class TestAcceptEULA(FakeAnsibleModule):
     def test_perform_check_mode(self, idrac_default_args, idrac_connection_support_assist_mock, mocker):
         obj = MagicMock()
         obj.status_code = 200
-        mocker.patch(MODULE_PATH + "AcceptEULA.eula_status", return_value=obj)
+        mocker.patch(MODULE_PATH + EULA_STATUS_FUNC, return_value=obj)
         idrac_default_args.update({"accept_eula": True})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         cm_obj = self.module.AcceptEULA(idrac_connection_support_assist_mock, f_module)
         # Scenario 1: When EULA is not accepted
         obj.json_data = {
-            "@Message.ExtendedInfo": [
+            MESSAGE_EXTENDED: [
                 {
                     "Message": "The SupportAssist End User License Agreement (EULA) is not accepted.",
                     "MessageId": "IDRAC.2.8.SRV104",
@@ -236,9 +238,9 @@ class TestAcceptEULA(FakeAnsibleModule):
 
         # Scenario 2: When EULA is accepted
         obj.json_data = {
-            "@Message.ExtendedInfo": [
+            MESSAGE_EXTENDED: [
                 {
-                    "Message": "The SupportAssist End User License Agreement (EULA) is accepted by iDRAC user root via iDRAC interface REDFISH.",
+                    "Message": EULA_ACCEPTED_MSG,
                     "MessageId": "IDRAC.2.8.SRV074",
                 }
             ]

@@ -4,20 +4,23 @@
   gather_facts: false
 
   tasks:
-    - name: Accept the EULA and run and export the SupportAssist Collection to local path
+    - name: Accept the EULA and run and export the SupportAssist
+       Collection to local path
       dellemc.openmanage.idrac_support_assist:
         idrac_ip: "192.168.0.1"
         idrac_user: "idrac_user"
         idrac_password: "idrac_password"
         accept_eula: true
         ca_path: "path/to/ca_file"
-        data_collector: ["debug_logs", "hardware_data", "os_app_data", "storage_logs"]
+        data_collector: ["debug_logs", "hardware_data", "os_app_data",
+                         "storage_logs"]
         share_parameters:
           share_type: "local"
           share_path: "/opt/local/support_assist_collections/"
       delegate_to: localhost
 
-    - name: Run the SupportAssist Collection with with custom data_to_collect with filter_data
+    - name: Run the SupportAssist Collection with with custom
+       data_to_collect with filter_data
       dellemc.openmanage.idrac_support_assist:
         idrac_ip: "192.168.0.1"
         idrac_user: "idrac_user"
