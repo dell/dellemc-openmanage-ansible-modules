@@ -176,6 +176,8 @@ notes:
     - This module supports only iDRAC9 and above.
     - This module supports IPv4 and IPv6 addresses.
     - This module supports C(check_mode).
+    - C(local) for I(share_type) is applicable only when I(run) and I(export) is C(true).
+    - When I(share_type) is C(local) for I(run) and (export) operation, then job_wait is not applicable.
 """
 
 EXAMPLES = r"""
@@ -311,8 +313,9 @@ error_info:
     }
   }
 '''
-
 import json
+import os
+from datetime import datetime
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -339,13 +342,13 @@ MESSAGE_EXTENDED_INFO = "@Message.ExtendedInfo"
 SUCCESS_EXPORT_MSG = "Successfully exported the support assist collections."
 SUCCESS_RUN_MSG = "Successfully ran the support assist collections."
 SUCCESS_RUN_AND_EXPORT_MSG = "Successfully ran and exported the support assist collections."
-EULA_ACCEPTED_MSG = "The SupportAssist End User License Agreement (EULA) is successfully accepted."
-EULA_ALREADY_ACCEPTED_MSG = "The SupportAssist End User License Agreement (EULA) is already accepted."
 RUNNING_RUN_MSG = "Successfully triggered the job to run support assist collections."
 RUNNING_EXPORT_MSG = "Successfully triggered the job to export support assist collections."
+RUNNING_RUN_AND_EXPORT_MSG = "Successfully triggered the job to run and export support assist collections."
 ALREADY_RUN_MSG = "The support assist collections job is already present."
 INVALID_DIRECTORY_MSG = "Provided directory path '{path}' is not valid."
 NO_OPERATION_SKIP_MSG = "The operation is skipped."
+OPERATION_NOT_ALLOWED_MSG = "Export to local is only supported when both run and export is set to true."
 INSUFFICIENT_DIRECTORY_PERMISSION_MSG = "Provided directory path '{path}' is not writable. " \
                                         "Please check if the directory has appropriate permissions"
 UNSUPPORTED_FIRMWARE_MSG = "iDRAC firmware version is not supported."
@@ -356,8 +359,10 @@ CHANGES_NOT_FOUND_MSG = "No changes found to be applied."
 ALLOWED_VALUES_MSG = "Enter a valid value from the list of allowable values: {0}"
 NO_VALUE_MSG = "data_collector can't be empty. Enter a value."
 NO_FILE = "The support assist collections log does not exist."
+TIME_FORMAT = "%Y%m%d_%H%M%S"
 
-PROXY_SUPPORT = {"off": "Off", "default_proxy": "DefaultProxy", "parameters_proxy": "ParametersProxy"}
+PROXY_SUPPORT = {"off": "Off", "default_proxy": "DefaultProxy",
+                 "parameters_proxy": "ParametersProxy"}
 STATUS_SUCCESS = [200, 202]
 
 
@@ -373,6 +378,74 @@ class SupportAssist:
     def execute(self):
         # To be overridden by the subclasses
         pass
+
+    def get_payload_details(self):
+        payload = {}
+        payload["ShareType"] = self.module.params.get(
+            'share_parameters').get('share_type').upper()
+        payload["IPAddress"] = self.module.params.get(
+            'share_parameters').get('ip_address')
+        payload["ShareName"] = self.module.params.get(
+            'share_parameters').get('share_name')
+        payload["UserName"] = self.module.params.get(
+            'share_parameters').get('username')
+        payload["Password"] = self.module.params.get(
+            'share_parameters').get('password')
+        payload["IgnoreCertWarning"] = self.module.params.get(
+            'share_parameters').get('ignore_certificate_warning').capitalize()
+        if self.module.params.get('share_parameters').get('proxy_support') == "parameters_proxy":
+            payload["ProxySupport"] = PROXY_SUPPORT[self.module.params.get(
+                'share_parameters').get('proxy_support')]
+            payload["ProxyType"] = self.module.params.get(
+                'share_parameters').get('proxy_type').upper()
+            payload["ProxyServer"] = self.module.params.get(
+                'share_parameters').get('proxy_server')
+            payload["ProxyPort"] = str(self.module.params.get(
+                'share_parameters').get('proxy_port'))
+            if self.module.params.get('share_parameters').get('proxy_username') and self.module.params.get('share_parameters').get('proxy_password'):
+                payload["ProxyUname"] = self.module.params.get(
+                    'share_parameters').get('proxy_username')
+                payload["ProxyPasswd"] = self.module.params.get(
+                    'share_parameters').get('proxy_password')
+        return payload
+
+    def test_network_share(self):
+        payload = self.get_payload_details()
+        payload = {key: value for key,
+                   value in payload.items() if value is not None}
+        if payload.get("ShareType") == "LOCAL":
+            path = payload.get("ShareName")
+            if not (os.path.exists(path)):
+                self.module.exit_json(
+                    msg=INVALID_DIRECTORY_MSG.format(path=path), failed=True)
+            if not os.access(path, os.W_OK):
+                self.module.exit_json(
+                    msg=INSUFFICIENT_DIRECTORY_PERMISSION_MSG.format(path=path), failed=True)
+        else:
+            try:
+                test_url = self.get_test_network_share_url()
+                self.idrac.invoke_request(test_url, "POST", data=payload)
+            except HTTPError as err:
+                filter_err = remove_key(
+                    json.load(err), regex_pattern=ODATA_REGEX)
+                message_details = filter_err.get(
+                    'error').get(MESSAGE_EXTENDED_INFO)[0]
+                message = message_details.get('Message')
+                self.module.exit_json(
+                    msg=message, error_info=filter_err, failed=True)
+
+    def get_test_network_share_url(self):
+        uri, error_msg = validate_and_get_first_resource_id_uri(
+            self.module, self.idrac, MANAGERS_URI)
+        if error_msg:
+            self.module.exit_json(msg=error_msg, failed=True)
+        resp = get_dynamic_uri(self.idrac, uri)
+        url = resp.get('Links', {}).get(OEM, {}).get(
+            MANUFACTURER, {}).get(LC_SERVICE, {}).get(ODATA, {})
+        action_resp = get_dynamic_uri(self.idrac, url)
+        url = action_resp.get(ACTIONS, {}).get(
+            TEST_SHARE, {}).get('target', {})
+        return url
 
 
 class AcceptEULA(SupportAssist):
@@ -413,10 +486,12 @@ class AcceptEULA(SupportAssist):
         if error_msg:
             self.module.exit_json(msg=error_msg, failed=True)
         resp = get_dynamic_uri(self.idrac, uri)
-        url = resp.get('Links', {}).get(OEM, {}).get(MANUFACTURER, {}).get(LC_SERVICE, {}).get(ODATA, {})
+        url = resp.get('Links', {}).get(OEM, {}).get(
+            MANUFACTURER, {}).get(LC_SERVICE, {}).get(ODATA, {})
         if url:
             action_resp = get_dynamic_uri(self.idrac, url)
-            eula_status_url = action_resp.get(ACTIONS, {}).get(EULA_STATUS, {}).get('target', {})
+            eula_status_url = action_resp.get(ACTIONS, {}).get(
+                EULA_STATUS, {}).get('target', {})
             self.eula_status_url = eula_status_url
         else:
             self.module.exit_json(msg=UNSUPPORTED_FIRMWARE_MSG, failed=True)
@@ -427,20 +502,24 @@ class AcceptEULA(SupportAssist):
         if error_msg:
             self.module.exit_json(msg=error_msg, failed=True)
         resp = get_dynamic_uri(self.idrac, uri)
-        url = resp.get('Links', {}).get(OEM, {}).get(MANUFACTURER, {}).get(LC_SERVICE, {}).get(ODATA, {})
+        url = resp.get('Links', {}).get(OEM, {}).get(
+            MANUFACTURER, {}).get(LC_SERVICE, {}).get(ODATA, {})
         if url:
             action_resp = get_dynamic_uri(self.idrac, url)
-            eula_accept_url = action_resp.get(ACTIONS, {}).get(ACCEPT_EULA, {}).get('target', {})
+            eula_accept_url = action_resp.get(ACTIONS, {}).get(
+                ACCEPT_EULA, {}).get('target', {})
             self.eula_accept_url = eula_accept_url
         else:
             self.module.exit_json(msg=UNSUPPORTED_FIRMWARE_MSG, failed=True)
 
     def eula_status(self):
-        eula_status = self.idrac.invoke_request(self.eula_status_url, "POST", data="{}", dump=False)
+        eula_status = self.idrac.invoke_request(
+            self.eula_status_url, "POST", data="{}", dump=False)
         return eula_status
 
     def accept_eula(self):
-        eula_accept_status = self.idrac.invoke_request(self.eula_accept_url, "POST", data="{}", dump=False)
+        eula_accept_status = self.idrac.invoke_request(
+            self.eula_accept_url, "POST", data="{}", dump=False)
         return eula_accept_status
 
     def perform_check_mode(self):
@@ -452,18 +531,21 @@ class AcceptEULA(SupportAssist):
             actions = {
                 'SRV104': {
                     True: (CHANGES_FOUND_MSG, True),
-                    False: (CHANGES_NOT_FOUND_MSG, False)
+                    False: (CHANGES_NOT_FOUND_MSG, False),
+                    None: (CHANGES_NOT_FOUND_MSG, False)
                 },
                 'SRV074': {
                     True: (CHANGES_NOT_FOUND_MSG, False),
-                    False: (CHANGES_FOUND_MSG, True)
+                    False: (CHANGES_FOUND_MSG, True),
+                    None: (CHANGES_FOUND_MSG, True)
                 }
             }
             # Iterate over message IDs and determine the action
             for string in message_ids:
                 for key, value in actions.items():
                     if key in string:
-                        msg, changed = value[self.module.params.get("accept_eula")]
+                        msg, changed = value[self.module.params.get(
+                            "accept_eula")]
                         self.module.exit_json(msg=msg, changed=changed)
 
 
@@ -479,9 +561,13 @@ class RunSupportAssist(SupportAssist):
         status = run_support_assist_status.status_code
         if status in STATUS_SUCCESS and job_status.get('JobState') in ["Completed", "CompletedWithErrors"]:
             msg = SUCCESS_RUN_MSG
+            if self.module.params.get('run') and self.module.params.get('export'):
+                msg = SUCCESS_RUN_AND_EXPORT_MSG
             job_details = job_status
         if status in STATUS_SUCCESS and job_status.get('JobState') in ["Scheduled", "Scheduling", "Running", "New"]:
             msg = RUNNING_RUN_MSG
+            if self.module.params.get('run') and self.module.params.get('export'):
+                msg = RUNNING_RUN_AND_EXPORT_MSG
             job_details = job_status
         return msg, job_details
 
@@ -503,7 +589,12 @@ class RunSupportAssist(SupportAssist):
         payload["DataSelectorArrayIn"] = data
         if self.module.params.get('filter_data'):
             payload["Filter"] = "Yes"
-        run_support_assist_status = self.idrac.invoke_request(self.run_url, "POST", data=payload)
+        if self.module.params.get('export'):
+            share_payload_obj = ExportSupportAssist(self.idrac, self.module)
+            share_payload = share_payload_obj.execute()
+            payload.update(share_payload)
+        run_support_assist_status = self.idrac.invoke_request(
+            self.run_url, "POST", data=payload)
         return run_support_assist_status
 
     def __validate_input(self, data_selected, data_selector):
@@ -512,14 +603,19 @@ class RunSupportAssist(SupportAssist):
         if error_msg:
             self.module.exit_json(msg=error_msg, failed=True)
         resp = get_dynamic_uri(self.idrac, uri)
-        url = resp.get('Links', {}).get(OEM, {}).get(MANUFACTURER, {}).get(LC_SERVICE, {}).get(ODATA, {})
+        url = resp.get('Links', {}).get(OEM, {}).get(
+            MANUFACTURER, {}).get(LC_SERVICE, {}).get(ODATA, {})
         allowable_values_response = self.idrac.invoke_request(url, "GET")
         allowable_values = allowable_values_response.json_data[ACTIONS][RUN][DATA_SELECTOR]
-        invalid_values = [item for item in data_selected if item not in allowable_values]
+        invalid_values = [
+            item for item in data_selected if item not in allowable_values]
         if invalid_values:
-            allowed_keys = [key for key, value in data_selector.items() if value not in invalid_values]
-            allowed_values = [key for key, value in data_selector.items() if key in allowed_keys]
-            self.module.exit_json(msg=ALLOWED_VALUES_MSG.format(allowed_values), skipped=True)
+            allowed_keys = [
+                key for key, value in data_selector.items() if value not in invalid_values]
+            allowed_values = [
+                key for key, value in data_selector.items() if key in allowed_keys]
+            self.module.exit_json(msg=ALLOWED_VALUES_MSG.format(
+                allowed_values), skipped=True)
 
     def __get_run_support_assist_url(self):
         uri, error_msg = validate_and_get_first_resource_id_uri(
@@ -527,28 +623,34 @@ class RunSupportAssist(SupportAssist):
         if error_msg:
             self.module.exit_json(msg=error_msg, failed=True)
         resp = get_dynamic_uri(self.idrac, uri)
-        url = resp.get('Links', {}).get(OEM, {}).get(MANUFACTURER, {}).get(LC_SERVICE, {}).get(ODATA, {})
+        url = resp.get('Links', {}).get(OEM, {}).get(
+            MANUFACTURER, {}).get(LC_SERVICE, {}).get(ODATA, {})
         if url:
             action_resp = get_dynamic_uri(self.idrac, url)
-            run_url = action_resp.get(ACTIONS, {}).get(RUN, {}).get('target', {})
+            run_url = action_resp.get(ACTIONS, {}).get(
+                RUN, {}).get('target', {})
             self.run_url = run_url
         else:
             self.module.exit_json(msg=UNSUPPORTED_FIRMWARE_MSG, failed=True)
 
     def __validate_job_timeout(self):
         if self.module.params.get("job_wait") and self.module.params.get("job_wait_timeout") <= 0:
-            self.module.exit_json(msg=TIMEOUT_NEGATIVE_OR_ZERO_MSG, failed=True)
+            self.module.exit_json(
+                msg=TIMEOUT_NEGATIVE_OR_ZERO_MSG, failed=True)
 
     def __perform_job_wait(self, run_support_assist_status):
         job_dict = {}
         job_wait = self.module.params.get('job_wait')
+        share_params = self.module.params.get('share_parameters') or {}
+        local_share = share_params.get('share_type') or False
         job_wait_timeout = self.module.params.get('job_wait_timeout')
         job_tracking_uri = run_support_assist_status.headers.get("Location")
         if job_tracking_uri:
             job_id = job_tracking_uri.split("/")[-1]
-            res_uri = validate_and_get_first_resource_id_uri(self.module, self.idrac, MANAGERS_URI)
+            res_uri = validate_and_get_first_resource_id_uri(
+                self.module, self.idrac, MANAGERS_URI)
             job_uri = f"{res_uri[0]}/{OEM}/{MANUFACTURER}/{JOBS}/{job_id}"
-            if job_wait:
+            if job_wait or local_share == 'local':
                 job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, job_uri,
                                                                                   max_job_wait_sec=job_wait_timeout,
                                                                                   sleep_interval_secs=1)
@@ -563,10 +665,40 @@ class RunSupportAssist(SupportAssist):
                 job_resp = self.idrac.invoke_request(job_uri, 'GET')
                 job_dict = job_resp.json_data
                 job_dict = remove_key(job_dict, regex_pattern=ODATA_REGEX)
+        self.file_download(job_tracking_uri, local_share)
         return job_dict
 
+    def file_download(self, job_tracking_uri, local_share):
+        if job_tracking_uri and local_share == 'local':
+            file_path = self.module.params.get(
+                'share_parameters').get('share_name')
+            now = datetime.now()
+            hostname = self.module.params.get('idrac_ip')
+            hostname = self.expand_ipv6(hostname)
+            hostname = hostname.replace(":", ".")
+            sa_file_name = f"{hostname}_{now.strftime(TIME_FORMAT)}.zip"
+            file_name = (os.path.join(file_path, sa_file_name))
+            file_dict = self.idrac.invoke_request(job_tracking_uri, "GET")
+            file_dnld = self.idrac.invoke_request(file_dict.headers.get(
+                "Location"), "GET", headers={"Content-Type": "application/x-tar"})
+            if file_dnld.status_code == 200:
+                with open(file_name, "wb") as file:
+                    file.write(file_dnld.body)
+
+    def expand_ipv6(self, ip):
+        sections = ip.split(':')
+        num_sections = len(sections)
+        double_colon_index = sections.index('') if '' in sections else -1
+        if double_colon_index != -1:
+            missing_sections = 8 - num_sections + 1
+            sections[double_colon_index:double_colon_index + 1] = ['0000'] * missing_sections
+        sections = [section.zfill(4) for section in sections]
+        expanded_ip = ':'.join(sections)
+        return expanded_ip
+
     def check_support_assist_jobs(self):
-        res_uri = validate_and_get_first_resource_id_uri(self.module, self.idrac, MANAGERS_URI)
+        res_uri = validate_and_get_first_resource_id_uri(
+            self.module, self.idrac, MANAGERS_URI)
         job_uri = f"{res_uri[0]}/{OEM}/{MANUFACTURER}/{JOBS}{JOBS_EXPAND}"
         job_resp = self.idrac.invoke_request(job_uri, "GET")
         job_list = job_resp.json_data.get('Members', [])
@@ -578,18 +710,115 @@ class RunSupportAssist(SupportAssist):
                 job_dict = remove_key(jb, regex_pattern=ODATA_REGEX)
                 break
         if self.module.check_mode and job_id:
-            self.module.exit_json(msg=ALREADY_RUN_MSG, job_details=job_dict, skipped=True)
+            self.module.exit_json(msg=ALREADY_RUN_MSG,
+                                  job_details=job_dict, skipped=True)
         if self.module.check_mode and not job_id:
             eula_status_obj = AcceptEULA(self.idrac, self.module)
             eula_status_obj.execute()
         if job_id:
-            self.module.exit_json(msg=ALREADY_RUN_MSG, job_details=job_dict, skipped=True)
+            self.module.exit_json(msg=ALREADY_RUN_MSG,
+                                  job_details=job_dict, skipped=True)
+
+
+class ExportSupportAssist(SupportAssist):
+
+    def execute(self):
+        RunSupportAssist.check_support_assist_jobs(self)
+        self.test_network_share()
+        self.__get_export_support_assist_url()
+        if self.module.check_mode:
+            self.perform_check_mode()
+        job_status = {}
+        share_type = self.module.params.get(
+            'share_parameters').get('share_type')
+        share_type_methods = {
+            "local": self.__export_support_assist_local,
+            "http": self.__export_support_assist_http,
+            "https": self.__export_support_assist_http,
+            "cifs": self.__export_support_assist_cifs,
+            "nfs": self.__export_support_assist_nfs
+        }
+        payload = share_type_methods[share_type]()
+        if share_type == "local":
+            if self.module.params.get('run') and self.module.params.get('export'):
+                return payload
+            else:
+                self.module.exit_json(
+                    msg=OPERATION_NOT_ALLOWED_MSG, skipped=True)
+        if self.module.params.get('run'):
+            return payload
+        export_support_assist_status = self.__export_support_assist(payload)
+        job_status = self.get_job_status(export_support_assist_status)
+        status = export_support_assist_status.status_code
+        if status in STATUS_SUCCESS:
+            msg = SUCCESS_EXPORT_MSG
+            job_details = job_status
+            return msg, job_details
+
+    def __export_support_assist_local(self):
+        payload = {}
+        payload["ShareType"] = "Local"
+        return payload
+
+    def __export_support_assist_http(self):
+        payload = self.get_payload_details()
+        return payload
+
+    def __export_support_assist_cifs(self):
+        payload = self.get_payload_details()
+        if self.module.params.get('share_parameters').get('workgroup'):
+            payload["Workgroup"] = self.module.params.get(
+                'share_parameters').get('workgroup')
+        return payload
+
+    def __export_support_assist_nfs(self):
+        payload = self.get_payload_details()
+        del payload["UserName"], payload["Password"]
+        return payload
+
+    def __get_export_support_assist_url(self):
+        uri, error_msg = validate_and_get_first_resource_id_uri(
+            self.module, self.idrac, MANAGERS_URI)
+        if error_msg:
+            self.module.exit_json(msg=error_msg, failed=True)
+        resp = get_dynamic_uri(self.idrac, uri)
+        url = resp.get('Links', {}).get(OEM, {}).get(
+            MANUFACTURER, {}).get(LC_SERVICE, {}).get(ODATA, {})
+        if url:
+            action_resp = get_dynamic_uri(self.idrac, url)
+            export_url = action_resp.get(ACTIONS, {}).get(
+                EXPORT, {}).get('target', {})
+            self.export_url = export_url
+        else:
+            self.module.exit_json(msg=UNSUPPORTED_FIRMWARE_MSG, failed=True)
+
+    def __export_support_assist(self, payload):
+        if self.module.params.get('run') or self.module.params.get('share_parameters').get('share_type') == "local":
+            return payload
+        export_support_assist_status = self.idrac.invoke_request(
+            self.export_url, "POST", data=payload)
+        return export_support_assist_status
+
+    def get_job_status(self, export_support_assist_status):
+        res_uri = validate_and_get_first_resource_id_uri(
+            self.module, self.idrac, MANAGERS_URI)
+        job_tracking_uri = export_support_assist_status.headers.get("Location")
+        job_id = job_tracking_uri.split("/")[-1]
+        job_uri = f"{res_uri[0]}/{OEM}/{MANUFACTURER}/{JOBS}/{job_id}"
+        job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(
+            self.idrac, job_uri)
+        job_dict = remove_key(job_dict, regex_pattern=ODATA_REGEX)
+        if job_failed:
+            self.module.exit_json(msg=job_dict.get(
+                'Message'), failed=True, job_details=job_dict)
+        return job_dict
 
 
 class SupportAssistType:
     _support_assist_classes = {
+        "accept_eula": AcceptEULA,
         "run": RunSupportAssist,
-        "accept_eula": AcceptEULA
+        "export": ExportSupportAssist
     }
 
     @staticmethod
@@ -597,8 +826,11 @@ class SupportAssistType:
         class_type = None
         if module.params.get("run"):
             class_type = "run"
+        elif module.params.get("export"):
+            class_type = "export"
         if class_type:
-            support_assist_class = SupportAssistType._support_assist_classes.get(class_type)
+            support_assist_class = SupportAssistType._support_assist_classes.get(
+                class_type)
             return support_assist_class(idrac, module)
         else:
             if not module.params.get("accept_eula"):
@@ -623,8 +855,9 @@ def main():
             if module.params.get("accept_eula"):
                 accept_eula_obj = AcceptEULA(idrac, module)
                 msg = accept_eula_obj.execute()
-            support_assist_obj = SupportAssistType.support_assist_operation(idrac, module)
-            if support_assist_obj is None and msg == EULA_ACCEPTED_MSG:
+            support_assist_obj = SupportAssistType.support_assist_operation(
+                idrac, module)
+            if support_assist_obj is None:
                 module.exit_json(msg=msg, changed=True)
             msg, job_status = support_assist_obj.execute()
             module.exit_json(msg=msg, changed=True, job_details=job_status)
@@ -637,6 +870,8 @@ def main():
         if 'SRV085' in message_id:
             module.exit_json(msg=message_details.get('Message'), skipped=True)
         if 'LIC501' in message_id:
+            module.exit_json(msg=message_details.get('Message'), skipped=True)
+        if 'SRV113' in message_id:
             module.exit_json(msg=message_details.get('Message'), skipped=True)
         module.exit_json(msg=str(err), error_info=filter_err, failed=True)
     except URLError as err:
@@ -698,7 +933,8 @@ def get_argument_spec():
             "required_if": [
                 ["share_type", "local", ["share_name"]],
                 ["share_type", "nfs", ["ip_address", "share_name"]],
-                ["share_type", "cifs", ["ip_address", "share_name", "username", "password"]],
+                ["share_type", "cifs", ["ip_address",
+                                        "share_name", "username", "password"]],
                 ["share_type", "http", ["ip_address", "share_name"]],
                 ["share_type", "https", ["ip_address", "share_name"]],
                 ["proxy_support", "parameters_proxy", ["proxy_server"]]
