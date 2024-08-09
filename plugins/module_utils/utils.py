@@ -547,3 +547,12 @@ def get_idrac_firmware_version(idrac):
     data = {'uri': GET_IDRAC_FIRMWARE_VER_URI} if 'uri' in args else {'path': GET_IDRAC_FIRMWARE_VER_URI}
     firm_version = idrac.invoke_request(method='GET', **data)
     return firm_version.json_data.get('FirmwareVersion', '')
+
+def trigger_restart_operation(module, idrac, restart_type="GracefulRestart"):
+        uri, error_msg = validate_and_get_first_resource_id_uri(module, idrac, SYSTEMS_URI)
+        if error_msg:
+            return ({}, error_msg)
+        actions_uri = get_dynamic_uri(idrac, uri, 'Actions').get("#ComputerSystem.Reset", {}).get("target", '')
+        payload = {"ResetType": restart_type}
+        resp = idrac.invoke_action(method='POST', uri=actions_uri, data=payload)
+        return (resp.json_data, '') if resp else (None, '')
