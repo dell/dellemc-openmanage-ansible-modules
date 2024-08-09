@@ -318,8 +318,6 @@ class TestAcceptEULA(FakeAnsibleModule):
             ]
         }
         mocker.patch(
-            MODULE_PATH + "AcceptEULA._AcceptEULA__get_eula_status_url", return_value=None)
-        mocker.patch(
             MODULE_PATH + EULA_STATUS_URL, return_value=None)
         mocker.patch(MODULE_PATH + EULA_STATUS_FUNC, return_value=obj)
         mocker.patch(MODULE_PATH + "AcceptEULA.accept_eula", return_value=obj2)
@@ -343,8 +341,6 @@ class TestAcceptEULA(FakeAnsibleModule):
                 }
             ]
         }
-        mocker.patch(
-            MODULE_PATH + "AcceptEULA._AcceptEULA__get_eula_status_url", return_value=None)
         mocker.patch(
             MODULE_PATH + EULA_STATUS_URL, return_value=None)
         mocker.patch(MODULE_PATH + EULA_STATUS_FUNC, return_value=obj)
