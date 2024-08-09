@@ -48,6 +48,7 @@ OPERATION_NOT_ALLOWED_MSG = "Export to local is only supported when both run and
 PROXY_SERVER = "proxy.example.com"
 PAYLOAD_FUNC = "SupportAssist.get_payload_details"
 EULA_STATUS_FUNC = "AcceptEULA.eula_status"
+EULA_STATUS_URL = "AcceptEULA._AcceptEULA__get_eula_status_url"
 VALIDATE_TIME_FUNC = "RunSupportAssist._RunSupportAssist__validate_time"
 EXPORT_FUNC = "ExportSupportAssist._ExportSupportAssist__export_support_assist"
 RUN_EXEC_FUNC = "RunSupportAssist.execute"
@@ -292,7 +293,7 @@ class TestAcceptEULA(FakeAnsibleModule):
             ]
         }
         mocker.patch(
-            MODULE_PATH + "AcceptEULA._AcceptEULA__get_eula_status_url", return_value=None)
+            MODULE_PATH + EULA_STATUS_URL, return_value=None)
         mocker.patch(
             MODULE_PATH + "AcceptEULA._AcceptEULA__get_eula_accept_url", return_value=None)
         mocker.patch(MODULE_PATH + EULA_STATUS_FUNC, return_value=obj)
@@ -319,7 +320,7 @@ class TestAcceptEULA(FakeAnsibleModule):
         mocker.patch(
             MODULE_PATH + "AcceptEULA._AcceptEULA__get_eula_status_url", return_value=None)
         mocker.patch(
-            MODULE_PATH + "AcceptEULA._AcceptEULA__get_eula_accept_url", return_value=None)
+            MODULE_PATH + EULA_STATUS_URL, return_value=None)
         mocker.patch(MODULE_PATH + EULA_STATUS_FUNC, return_value=obj)
         mocker.patch(MODULE_PATH + "AcceptEULA.accept_eula", return_value=obj2)
         idrac_default_args.update(
@@ -345,7 +346,7 @@ class TestAcceptEULA(FakeAnsibleModule):
         mocker.patch(
             MODULE_PATH + "AcceptEULA._AcceptEULA__get_eula_status_url", return_value=None)
         mocker.patch(
-            MODULE_PATH + "AcceptEULA._AcceptEULA__get_eula_accept_url", return_value=None)
+            MODULE_PATH + EULA_STATUS_URL, return_value=None)
         mocker.patch(MODULE_PATH + EULA_STATUS_FUNC, return_value=obj)
         mocker.patch(MODULE_PATH + "AcceptEULA.accept_eula", return_value=obj2)
         idrac_default_args.update(
