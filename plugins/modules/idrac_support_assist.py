@@ -850,6 +850,7 @@ def main():
         supports_check_mode=True
     )
 
+    msg = None
     try:
         with iDRACRedfishAPI(module.params) as idrac:
             if module.params.get("accept_eula"):
