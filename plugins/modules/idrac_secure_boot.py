@@ -167,16 +167,12 @@ error_info:
 
 import json
 import os
-import base64
-import time
 from urllib.error import HTTPError, URLError
-from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    delete_job, get_current_time, get_dynamic_uri, get_idrac_firmware_version,
-    get_scheduled_job_resp, remove_key, validate_and_get_first_resource_id_uri,
-    idrac_redfish_job_tracking, xml_data_conversion, trigger_restart_operation)
+    get_dynamic_uri, remove_key, validate_and_get_first_resource_id_uri,
+    trigger_restart_operation, wait_for_LCStatus)
 
 SYSTEMS_URI = "/redfish/v1/Systems"
 iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
@@ -283,23 +279,34 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
         """
         Perform operation
         """
-        # self.filter_invalid_paths()
-        # self.validate_job_wait()
-        # payload_values = self.construct_payload()
-        # if not payload_values:
-        #     return False
-        # uri = self.mapping_secure_boot_database_uri()
-        # for each_label in payload_values:
-        #     payload = {"CertificateString": payload_values[each_label],
-        #                "CertificateType": "PEM"}
-        #     certificates_uri = get_dynamic_uri(self.idrac, uri[each_label], 'Certificates')[odata]
-        #     self.idrac.invoke_request(method='POST', uri=certificates_uri, data=payload)
+        restart_triggered = False
+        self.filter_invalid_paths()
+        self.validate_job_wait()
+        payload_values = self.construct_payload()
+        if not payload_values:
+            self.module.exit_json(msg="No valid absolute path found for certificate(s) ", failed=True)
+        uri = self.mapping_secure_boot_database_uri()
+        for each_label in payload_values:
+            payload = {"CertificateString": payload_values[each_label],
+                       "CertificateType": "PEM"}
+            certificates_uri = get_dynamic_uri(self.idrac, uri[each_label], 'Certificates')[odata]
+            self.idrac.invoke_request(method='POST', uri=certificates_uri, data=payload)
         if self.module.params.get('restart'):
-          restart_triggered, msg = trigger_restart_operation(self.module, self.idrac,
-                                                             self.module.params.get('restart_type'))
-          if not restart_triggered and msg != '':
-            self.module.exit_json(msg=msg, failed=True)
-          self.module.exit_json(msg=restart_triggered)
+            resp, err_msg = trigger_restart_operation(self.module, self.idrac,
+            self.module.params.get('restart_type'))
+            if err_msg:
+                self.module.exit_json(msg=err_msg, failed=True)
+            elif resp.success:
+                restart_triggered = True
+        if restart_triggered:
+            if self.module.params.get('job_wait'):
+                  lc_completed, error_msg = wait_for_LCStatus(self.module, self.idrac)
+                  if lc_completed:
+                      self.module.exit_json(msg='Secure Boot certificates imported successfully')
+                  else:
+                      self.module.exit_json(msg=error_msg)
+            else:
+                self.module.exit_json(msg='Secure Boot certificates import triggered successfully')
 
 
 def main():

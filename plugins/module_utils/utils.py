@@ -36,6 +36,8 @@ RESET_SUCCESS = "iDRAC has been reset successfully."
 RESET_FAIL = "Unable to reset the iDRAC. For changes to reflect, manually reset the iDRAC."
 INVALID_ID_MSG = "Unable to complete the operation because " + \
                  "the value `{0}` for the input  `{1}` parameter is invalid."
+UNSUPPORTED_LC_STATUS_MSG = "Lifecycle controller status check is not supported."
+LC_STATUS_MSG = "Lifecycle controller status check is {lc_status} after {retries} number of retries, Exiting.."
 SYSTEM_ID = "System.Embedded.1"
 MANAGER_ID = "iDRAC.Embedded.1"
 SYSTEMS_URI = "/redfish/v1/Systems"
@@ -549,10 +551,48 @@ def get_idrac_firmware_version(idrac):
     return firm_version.json_data.get('FirmwareVersion', '')
 
 def trigger_restart_operation(module, idrac, restart_type="GracefulRestart"):
+        resp, error_msg = {}, {}
         uri, error_msg = validate_and_get_first_resource_id_uri(module, idrac, SYSTEMS_URI)
         if error_msg:
-            return ({}, error_msg)
+            return resp, error_msg
         actions_uri = get_dynamic_uri(idrac, uri, 'Actions').get("#ComputerSystem.Reset", {}).get("target", '')
         payload = {"ResetType": restart_type}
-        resp = idrac.invoke_action(method='POST', uri=actions_uri, data=payload)
-        return (resp.json_data, '') if resp else (None, '')
+        resp = idrac.invoke_request(method='POST', uri=actions_uri, data=payload)
+        return resp, error_msg
+
+def wait_for_LCStatus(module, idrac, sleep_time_seconds=10):
+    lc_status_completed, error_msg = False, ''
+    lcstatus = ""
+    retry_count = 1
+    # LCStatus remain 'Ready' even after triggering restart
+    # so waiting few seconds before loop
+    time.sleep(3*sleep_time_seconds)
+    max_idrac_reset_try = ((module.params.get('job_wait_timeout', 300) - 3*sleep_time_seconds) // sleep_time_seconds)
+    uri, error_msg = validate_and_get_first_resource_id_uri(module, idrac, MANAGERS_URI)
+    if error_msg:
+        return lc_status_completed, error_msg
+    resp = get_dynamic_uri(idrac, uri, "Links")
+    url = resp.get("Oem", {}).get("Dell", {}).get('DellLCService', {}).get("@odata.id", {})
+    if url:
+        action_resp = get_dynamic_uri(idrac, url)
+        lc_url = action_resp.get('Actions', {}).get('#DellLCService.GetRemoteServicesAPIStatus', {}).get('target', {})
+    else:
+        return lc_status_completed, UNSUPPORTED_LC_STATUS_MSG
+    while retry_count < max_idrac_reset_try:
+        try:
+            lc_resp = idrac.invoke_request(lc_url, "POST", data="{}", dump=False)
+            lcstatus = lc_resp.json_data.get('LCStatus')
+            if lcstatus == 'Ready':
+                lc_status_completed = True
+                break
+            time.sleep(sleep_time_seconds)
+            retry_count = retry_count + 1
+        except URLError:
+            time.sleep(sleep_time_seconds)
+            retry_count = retry_count + 1
+            if retry_count == max_idrac_reset_try:
+                error_msg = LC_STATUS_MSG.format(lc_status='unreachable', retries=max_idrac_reset_try)
+                break
+    if retry_count == max_idrac_reset_try and lcstatus != "Ready":
+        error_msg = LC_STATUS_MSG.format(lc_status=lcstatus, retries=retry_count)
+    return lc_status_completed, error_msg
