@@ -1,0 +1,131 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- ansible.builtin.include_tasks: _get_server_generation.yml
+
+- block:
+    - name: Update a firmware from a single executable file from HTTP
+       share with default value of job_wait and job_wait_timeout
+      dellemc.openmanage.redfish_firmware:
+        image_uri: "{{ idrac_firmware_uri }}"
+        transfer_protocol: "HTTP"
+        timeout: 300
+      register: result
+
+    - ansible.builtin.include_tasks: _post_update_helper.yml
+
+    - name: Constructing url
+      ansible.builtin.set_fact:
+        url_1: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/"
+        url_2: "Managers/iDRAC.Embedded.1/Jobs/{{ result.task.id }}"
+
+    - name: Final url
+      ansible.builtin.set_fact:
+        job_url: "{{ url_1 }}{{ url_2 }}"
+
+    - ansible.builtin.include_tasks: get_data.yml
+      vars:
+        url: "{{ job_url }}"
+
+    - name: Verify task status - Update a firmware from a single executable
+       file from HTTP share with default value of job_wait and job_wait_timeout
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg ==  "Successfully updated the firmware."
+          - uri_data.JobState == "Completed"
+          - 'uri_data.Name == "Firmware Update: iDRAC with Lifecycle
+           Controller"'
+          - uri_data.Message ==  "Job completed successfully."
+
+    - name: Update a firmware from a single executable file from HTTP share
+       with job_wait as "true" and job_wait_timeout as non default value in
+       seconds
+      dellemc.openmanage.redfish_firmware:
+        image_uri: "{{ idrac_firmware_uri }}"
+        transfer_protocol: "HTTP"
+        timeout: 300
+        job_wait: true
+        job_wait_timeout: 3900
+      register: result
+
+    - ansible.builtin.include_tasks: _post_update_helper.yml
+
+    - name: Constructing url
+      ansible.builtin.set_fact:
+        url_1: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/"
+        url_2: "Managers/iDRAC.Embedded.1/Jobs/{{ result.task.id }}"
+
+    - name: Final url
+      ansible.builtin.set_fact:
+        job_url: "{{ url_1 }}{{ url_2 }}"
+
+    - ansible.builtin.include_tasks: get_data.yml
+      vars:
+        url: "{{ job_url }}"
+
+    - name: Verify task status - Update a firmware from a single executable
+       file from HTTP share with job_wait as "true" and job_wait_timeout as
+       non default value in seconds
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg ==  "Successfully updated the firmware."
+          - uri_data.JobState == "Completed"
+          - 'uri_data.Name == "Firmware Update: iDRAC with Lifecycle
+           Controller"'
+          - uri_data.Message ==  "Job completed successfully."
+
+    - name: Update a firmware from a single executable file from HTTP
+       share with job_wait as "false"
+      dellemc.openmanage.redfish_firmware:
+        image_uri: "{{ idrac_firmware_uri }}"
+        transfer_protocol: "HTTP"
+        timeout: 300
+        job_wait: false
+      register: result
+
+    - ansible.builtin.include_tasks: _post_update_helper.yml
+
+    - name: Constructing url
+      ansible.builtin.set_fact:
+        url_1: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/"
+        url_2: "Managers/iDRAC.Embedded.1/Jobs/{{ result.task.id }}"
+
+    - name: Final url
+      ansible.builtin.set_fact:
+        job_url: "{{ url_1 }}{{ url_2 }}"
+
+    - ansible.builtin.include_tasks: get_data.yml
+      vars:
+        url: "{{ job_url }}"
+
+    - name: Verify task status - Update a firmware from a single executable
+       file from HTTP share with job_wait as "false"
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg ==  "Successfully submitted the firmware update task."
+          - uri_data.JobState == "Completed"
+          - 'uri_data.Name == "Firmware Update: iDRAC with Lifecycle
+           Controller"'
+          - uri_data.Message ==  "Job completed successfully."
+
+  when: generation | int >= 14
+
+  module_defaults:
+    dellemc.openmanage.redfish_firmware:
+      baseuri: "{{ idrac_ip }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
