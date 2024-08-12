@@ -49,6 +49,7 @@ MANAGER_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs?$expand=*($levels=
 MANAGER_JOB_ID_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{0}"
 GET_IDRAC_FIRMWARE_VER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
 HOSTNAME_REGEX = r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
+ODATA_ID = "@odata.id"
 
 import time
 from datetime import datetime
@@ -321,7 +322,7 @@ def get_manager_res_id(idrac):
     try:
         resp = idrac.invoke_request(MANAGERS_URI, "GET")
         membs = resp.json_data.get("Members")
-        res_uri = membs[0].get('@odata.id')
+        res_uri = membs[0].get(ODATA_ID)
         res_id = res_uri.split("/")[-1]
     except HTTPError:
         res_id = MANAGER_ID
@@ -386,7 +387,7 @@ def get_system_res_id(idrac):
                     "does not exist or is not implemented."
     else:
         member = resp.json_data.get("Members")
-        res_uri = member[0].get('@odata.id')
+        res_uri = member[0].get(ODATA_ID)
         res_id = res_uri.split("/")[-1]
     return res_id, error_msg
 
@@ -525,22 +526,22 @@ def xml_data_conversion(attr_dict, fqdd=None, custom_payload_to_add=None):
     return root
 
 
-def validate_and_get_first_resource_id_uri(module, idrac, base_uri):
-    odata = '@odata.id'
+def validate_and_get_first_resource_id_uri(resource_id, idrac, base_uri):
     found = False
     res_id_uri = None
-    res_id_input = module.params.get('resource_id')
+    if resource_id and not isinstance(resource_id, str):
+        resource_id = resource_id.params.get('resource_id')
     res_id_members = get_dynamic_uri(idrac, base_uri, 'Members')
     for each in res_id_members:
-        if res_id_input and res_id_input == each[odata].split('/')[-1]:
-            res_id_uri = each[odata]
+        if resource_id and resource_id == each[ODATA_ID].split('/')[-1]:
+            res_id_uri = each[ODATA_ID]
             found = True
             break
-    if not found and res_id_input:
+    if not found and resource_id:
         return res_id_uri, INVALID_ID_MSG.format(
-            res_id_input, 'resource_id')
-    elif res_id_input is None:
-        res_id_uri = res_id_members[0][odata]
+            resource_id, 'resource_id')
+    elif resource_id is None:
+        res_id_uri = res_id_members[0][ODATA_ID]
     return res_id_uri, ''
 
 
@@ -550,9 +551,9 @@ def get_idrac_firmware_version(idrac):
     firm_version = idrac.invoke_request(method='GET', **data)
     return firm_version.json_data.get('FirmwareVersion', '')
 
-def trigger_restart_operation(module, idrac, restart_type="GracefulRestart"):
+def trigger_restart_operation(idrac, restart_type="GracefulRestart", resource_id=None):
         resp, error_msg = {}, {}
-        uri, error_msg = validate_and_get_first_resource_id_uri(module, idrac, SYSTEMS_URI)
+        uri, error_msg = validate_and_get_first_resource_id_uri(resource_id, idrac, SYSTEMS_URI)
         if error_msg:
             return resp, error_msg
         actions_uri = get_dynamic_uri(idrac, uri, 'Actions').get("#ComputerSystem.Reset", {}).get("target", '')
@@ -560,19 +561,19 @@ def trigger_restart_operation(module, idrac, restart_type="GracefulRestart"):
         resp = idrac.invoke_request(method='POST', uri=actions_uri, data=payload)
         return resp, error_msg
 
-def wait_for_LCStatus(module, idrac, sleep_time_seconds=10):
+def wait_for_LCStatus(idrac, job_wait_timeout=300, resource_id=None, interval=10):
     lc_status_completed, error_msg = False, ''
     lcstatus = ""
     retry_count = 1
     # LCStatus remain 'Ready' even after triggering restart
     # so waiting few seconds before loop
-    time.sleep(3*sleep_time_seconds)
-    max_idrac_reset_try = ((module.params.get('job_wait_timeout', 300) - 3*sleep_time_seconds) // sleep_time_seconds)
-    uri, error_msg = validate_and_get_first_resource_id_uri(module, idrac, MANAGERS_URI)
+    time.sleep(3*interval)
+    max_idrac_reset_try = ((job_wait_timeout - 3*interval) // interval)
+    uri, error_msg = validate_and_get_first_resource_id_uri(resource_id, idrac, MANAGERS_URI)
     if error_msg:
         return lc_status_completed, error_msg
     resp = get_dynamic_uri(idrac, uri, "Links")
-    url = resp.get("Oem", {}).get("Dell", {}).get('DellLCService', {}).get("@odata.id", {})
+    url = resp.get("Oem", {}).get("Dell", {}).get('DellLCService', {}).get(ODATA_ID, {})
     if url:
         action_resp = get_dynamic_uri(idrac, url)
         lc_url = action_resp.get('Actions', {}).get('#DellLCService.GetRemoteServicesAPIStatus', {}).get('target', {})
@@ -585,10 +586,10 @@ def wait_for_LCStatus(module, idrac, sleep_time_seconds=10):
             if lcstatus == 'Ready':
                 lc_status_completed = True
                 break
-            time.sleep(sleep_time_seconds)
+            time.sleep(interval)
             retry_count = retry_count + 1
         except URLError:
-            time.sleep(sleep_time_seconds)
+            time.sleep(interval)
             retry_count = retry_count + 1
             if retry_count == max_idrac_reset_try:
                 error_msg = LC_STATUS_MSG.format(lc_status='unreachable', retries=max_idrac_reset_try)
@@ -596,3 +597,35 @@ def wait_for_LCStatus(module, idrac, sleep_time_seconds=10):
     if retry_count == max_idrac_reset_try and lcstatus != "Ready":
         error_msg = LC_STATUS_MSG.format(lc_status=lcstatus, retries=retry_count)
     return lc_status_completed, error_msg
+
+def get_lc_log_or_current_log_time(idrac, curr_time=None, lc_log_ids_list=None, resource_id=None):
+    lc_log_found = False
+    msg = "No LC log found."
+    uri, error_msg = validate_and_get_first_resource_id_uri(resource_id, idrac, MANAGERS_URI)
+    if error_msg:
+        return lc_log_found, error_msg
+    log_services_uri = get_dynamic_uri(idrac, uri, "LogServices").get(ODATA_ID, {})
+    log_svc_member = get_dynamic_uri(idrac, log_services_uri, "Members")
+    log_lc_uri = [each[ODATA_ID] for each in log_svc_member if each[ODATA_ID].split('/')[-1] == 'Lclog'][0]
+    log_entries_uri = get_dynamic_uri(idrac, log_lc_uri, "Entries").get(ODATA_ID, {})
+    try:
+        if not curr_time:
+            resp = idrac.invoke_request(log_lc_uri, "GET")
+            curr_time = resp.json_data.get('DateTime')
+            if not lc_log_ids_list:
+                return curr_time
+        fltr = "?$filter=Created%20ge%20'{0}'".format(curr_time)
+        fltr_uri = "{0}{1}".format(log_entries_uri, fltr)
+        resp = idrac.invoke_request(fltr_uri, "GET")
+        logs_list = resp.json_data.get("Members")
+        for log in logs_list:
+            for err_id in lc_log_ids_list:
+                if err_id in log.get('MessageId'):
+                    lc_log_found = True
+                    msg = log.get('Message')
+                    break
+            if lc_log_found:
+                break
+    except Exception:
+        msg = "No LC log found."
+    return lc_log_found, msg

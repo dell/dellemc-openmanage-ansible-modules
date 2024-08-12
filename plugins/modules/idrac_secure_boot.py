@@ -95,54 +95,25 @@ EXAMPLES = """
 - name: Import a SecureBoot certificate.
   dellemc.openmanage.idrac_secureboot:
     import: true
-    platform_key: /user/name/certificates/pk.crt
+    platform_key: /user/name/certificates/pk.pem
     key_exchange_key:
-      - /user/name/certificates/kek1.crt
-      - /user/name/certificates/kek2.crt  
+      - /user/name/certificates/kek1.pem
+      - /user/name/certificates/kek2.pem
     database:
-      - /user/name/certificates/db1.crt
-      - /user/name/certificates/db2.crt
+      - /user/name/certificates/db1.pem
+      - /user/name/certificates/db2.pem
     disallow_database:
-      - /user/name/certificates/dbx1.crt
-      - /user/name/certificates/dbx2.crt
+      - /user/name/certificates/dbx1.pem
+      - /user/name/certificates/dbx2.pem
 """
 
 RETURN = r'''
 ---
 msg:
-  description: Status of the attribute update operation.
-  returned: when network attributes is applied
+  description: Status of the secure boot operation.
+  returned: always
   type: str
-  sample: "Successfully updated the network attributes."
-invalid_attributes:
-    description: Dictionary of invalid attributes provided that cannot be applied.
-    returned: On invalid attributes or values
-    type: dict
-    sample: {
-        "IscsiInitiatorIpAddr": "Attribute is not valid.",
-        "IscsiInitiatorSubnet": "Attribute is not valid."
-    }
-job_status:
-    description: Returns the output for status of the job.
-    returned: always
-    type: dict
-    sample: {
-        "ActualRunningStartTime": null,
-        "ActualRunningStopTime": null,
-        "CompletionTime": null,
-        "Description": "Job Instance",
-        "EndTime": "TIME_NA",
-        "Id": "JID_XXXXXXXXX",
-        "JobState": "Scheduled",
-        "JobType": "NICConfiguration",
-        "Message": "Task successfully scheduled.",
-        "MessageArgs": [],
-        "MessageId": "JCP001",
-        "Name": "Configure: NIC.Integrated.1-1-1",
-        "PercentComplete": 0,
-        "StartTime": "2023-08-07T06:21:24",
-        "TargetSettingsURI": null
-    }
+  sample: "The Secure Boot Certificate Import operation has completed successfully."
 error_info:
   description: Details of the HTTP Error.
   returned: on HTTP error
@@ -172,11 +143,16 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     get_dynamic_uri, remove_key, validate_and_get_first_resource_id_uri,
-    trigger_restart_operation, wait_for_LCStatus)
+    trigger_restart_operation, wait_for_LCStatus, get_lc_log_or_current_log_time)
 
 SYSTEMS_URI = "/redfish/v1/Systems"
-iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
-TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the `job_wait_timeout` parameter cannot be negative or zero."
+TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be negative or zero."
+SUCCESS_MSG = "The Secure Boot Certificate Import operation has completed successfully."
+NO_OPERATION_SKIP = "Task is skipped as import is 'false'."
+PROVIDE_ABSOLUTE_PATH = "Please provide absolute path of the certificate file {path}"
+NO_READ_PERMISSION_PATH = "Unable to read the certificate file {path}."
+NO_VALID_PATHS = "No valid absolute path found for certificate(s)."
+CHANGES_FOUND = 'Changes found to be applied.'
 odata = '@odata.id'
 
 class IDRACSecureBoot:
@@ -237,13 +213,13 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
         invalid_paths = set()
         for path in paths:
             if path and not os.path.isabs(path):
-                self.module.warn(f"Please provide absolute path of the certificate file {path}.")
+                self.module.warn(PROVIDE_ABSOLUTE_PATH.format(path=path))
                 invalid_paths.add(path)
             if path and not os.path.isfile(path):
-                self.module.warn(f"Unable to read the certificate file {path}.")
+                self.module.warn(NO_READ_PERMISSION_PATH.format(path=path))
                 invalid_paths.add(path)
         return list(set(paths) - invalid_paths)
-    
+
     def filter_invalid_paths(self):
         """
         Filter invalid paths
@@ -252,11 +228,11 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
         self.key_exchange_key = self.validate_certificate_paths(self.key_exchange_key)
         self.database = self.validate_certificate_paths(self.database)
         self.disallow_database = self.validate_certificate_paths(self.disallow_database)
-    
+
     def read_certificate_file(self, path):
         with open(path, 'r') as f:
             return f.read()
-  
+
     def construct_payload(self):
         """
         Construct payload
@@ -279,34 +255,33 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
         """
         Perform operation
         """
-        restart_triggered = False
+        SUCCESS_CODE = ["SWC9010", "UEFI0286"]
+        current_time = get_lc_log_or_current_log_time(self.idrac)
         self.filter_invalid_paths()
         self.validate_job_wait()
         payload_values = self.construct_payload()
         if not payload_values:
-            self.module.exit_json(msg="No valid absolute path found for certificate(s) ", failed=True)
+            self.module.exit_json(msg=NO_VALID_PATHS, skipped=True)
+        if self.module.check_mode:
+            self.module.exit_json(msg=CHANGES_FOUND, changed=True)
         uri = self.mapping_secure_boot_database_uri()
         for each_label in payload_values:
             payload = {"CertificateString": payload_values[each_label],
                        "CertificateType": "PEM"}
             certificates_uri = get_dynamic_uri(self.idrac, uri[each_label], 'Certificates')[odata]
             self.idrac.invoke_request(method='POST', uri=certificates_uri, data=payload)
+        lc_log, msg = get_lc_log_or_current_log_time(self.idrac, current_time, SUCCESS_CODE)
         if self.module.params.get('restart'):
-            resp, err_msg = trigger_restart_operation(self.module, self.idrac,
-            self.module.params.get('restart_type'))
-            if err_msg:
-                self.module.exit_json(msg=err_msg, failed=True)
-            elif resp.success:
-                restart_triggered = True
-        if restart_triggered:
-            if self.module.params.get('job_wait'):
-                  lc_completed, error_msg = wait_for_LCStatus(self.module, self.idrac)
-                  if lc_completed:
-                      self.module.exit_json(msg='Secure Boot certificates imported successfully')
-                  else:
-                      self.module.exit_json(msg=error_msg)
-            else:
-                self.module.exit_json(msg='Secure Boot certificates import triggered successfully')
+            resp, err_msg = trigger_restart_operation(self.idrac, self.module.params.get('restart_type'))
+            if resp.success:
+                if self.module.params.get('job_wait'):
+                    lc_completed, error_msg = wait_for_LCStatus(self.idrac, self.module.params.get('job_wait_timeout'))
+                    if lc_completed:
+                        lc_log, msg = get_lc_log_or_current_log_time(self.idrac, current_time, SUCCESS_CODE)
+                        self.module.exit_json(msg=SUCCESS_MSG, changed=True)
+                    else:
+                        self.module.exit_json(msg=error_msg, failed=True)
+        self.module.exit_json(msg=msg)
 
 
 def main():
@@ -330,6 +305,8 @@ def main():
             obj = None
             if module.params.get('import_certificates'):
                 obj = IDRACImportSecureBoot(idrac, module)
+            else:
+                module.exit_json(msg=NO_OPERATION_SKIP, skipped=True)
             obj.perform_operation()
     except HTTPError as err:
         filter_err = remove_key(json.load(err), regex_pattern='(.*?)@odata')

@@ -1,0 +1,24 @@
+---
+- name: iDRAC SecureBoot
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Import a SecureBoot certificate.
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "192.168.1.2"
+        idrac_user: "user"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        import_certificates: true
+        platform_key: "/root/Downloads/invalid_secure_boot.pem"
+        key_exchange_key:
+          - /user/name/certificates/kek1.pem
+          - /user/name/certificates/kek2.pem
+        database:
+          - /user/name/certificates/db1.pem
+          - /user/name/certificates/db2.pem
+        disallow_database:
+          - /user/name/certificates/dbx1.pem
+          - /user/name/certificates/dbx2.pem
+      delegate_to: localhost
