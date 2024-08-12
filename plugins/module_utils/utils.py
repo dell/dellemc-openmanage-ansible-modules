@@ -614,15 +614,17 @@ def get_lc_log_or_current_log_time(idrac, curr_time=None, lc_log_ids_list=None, 
             curr_time = resp.json_data.get('DateTime')
             if not lc_log_ids_list:
                 return curr_time
-        fltr = "?$filter=Created%20ge%20'{0}'".format(curr_time)
-        fltr_uri = "{0}{1}".format(log_entries_uri, fltr)
-        resp = idrac.invoke_request(fltr_uri, "GET")
+        resp = idrac.invoke_request(log_entries_uri, "GET")
         logs_list = resp.json_data.get("Members")
         for log in logs_list:
             for err_id in lc_log_ids_list:
-                if err_id in log.get('MessageId'):
-                    lc_log_found = True
-                    msg = log.get('Message')
+                log_time = log.get("Created")
+                if log_time >= curr_time:
+                    if err_id in log.get('MessageId'):
+                        lc_log_found = True
+                        msg = log.get('Message')
+                        break
+                else:
                     break
             if lc_log_found:
                 break

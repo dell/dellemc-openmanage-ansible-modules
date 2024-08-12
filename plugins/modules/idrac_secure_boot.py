@@ -153,6 +153,8 @@ PROVIDE_ABSOLUTE_PATH = "Please provide absolute path of the certificate file {p
 NO_READ_PERMISSION_PATH = "Unable to read the certificate file {path}."
 NO_VALID_PATHS = "No valid absolute path found for certificate(s)."
 CHANGES_FOUND = 'Changes found to be applied.'
+FAILED_IMPORT = "Failed to import certificate file {path}."
+NO_IMPORT_SUCCESS = "The Secure Boot Certificate Import operation was not successful."
 odata = '@odata.id'
 
 class IDRACSecureBoot:
@@ -233,22 +235,27 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
         with open(path, 'r') as f:
             return f.read()
 
+    def create_dictionary_payload(self, paths):
+        result = []
+        for each_path in paths:
+            tmp = {'cert_data': self.read_certificate_file(each_path),
+                   'path': each_path}
+            result.append(tmp)
+        return result
+
     def construct_payload(self):
         """
         Construct payload
         """
         payload = {}
         if self.platform_key:
-            payload['platform_key'] = self.read_certificate_file(self.platform_key[0])
+            payload['platform_key'] = self.create_dictionary_payload(self.platform_key)
         if self.key_exchange_key:
-            payload['key_exchange_key'] = [self.read_certificate_file(path) for path in self.key_exchange_key]
-            payload['key_exchange_key'] = "".join(payload['key_exchange_key'])
+            payload['key_exchange_key'] = self.create_dictionary_payload(self.key_exchange_key)
         if self.database:
-            payload['database'] = [str(self.read_certificate_file(path)) for path in self.database]
-            payload['database'] = "".join(payload['database'])
+            payload['database'] = self.create_dictionary_payload(self.database)
         if self.disallow_database:
-            payload['disallow_database'] = [str(self.read_certificate_file(path)) for path in self.disallow_database]
-            payload['disallow_database'] = "".join(payload['disallow_database'])
+            payload['disallow_database'] = self.create_dictionary_payload(self.disallow_database)
         return payload
 
     def perform_operation(self):
@@ -265,12 +272,19 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
         if self.module.check_mode:
             self.module.exit_json(msg=CHANGES_FOUND, changed=True)
         uri = self.mapping_secure_boot_database_uri()
-        for each_label in payload_values:
-            payload = {"CertificateString": payload_values[each_label],
-                       "CertificateType": "PEM"}
-            certificates_uri = get_dynamic_uri(self.idrac, uri[each_label], 'Certificates')[odata]
-            self.idrac.invoke_request(method='POST', uri=certificates_uri, data=payload)
+        for parameter, payload_list in payload_values.items():
+            for each_payload in payload_list:
+                payload = {"CertificateString": each_payload['cert_data'],
+                           "CertificateType": "PEM"}
+                certificates_uri = get_dynamic_uri(self.idrac, uri[parameter], 'Certificates')[odata]
+                try:
+                    self.idrac.invoke_request(method='POST', uri=certificates_uri, data=payload)
+                except HTTPError:
+                    self.module.warn(FAILED_IMPORT.format(parameter=parameter,
+                                                          path=each_payload['path']))
         lc_log, msg = get_lc_log_or_current_log_time(self.idrac, current_time, SUCCESS_CODE)
+        if not lc_log:
+            self.module.exit_json(msg=NO_IMPORT_SUCCESS, skipped=True)
         if self.module.params.get('restart'):
             resp, err_msg = trigger_restart_operation(self.idrac, self.module.params.get('restart_type'))
             if resp.success:
