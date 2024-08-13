@@ -28,45 +28,45 @@ Parameters
 ----------
 
   run (optional, bool, True)
-    Run the SupportAssist job based on the different type of logs in the collection on iDRAC.
+    Run the SupportAssist job based on the different types of logs in the collection on iDRAC.
 
 
   export (optional, bool, True)
-    Exports the SupportAssist collection to the given share.
+    Exports the SupportAssist collection to the given network share.
 
     This operation requires \ :emphasis:`share\_parameters`\ .
 
 
   accept_eula (optional, bool, None)
-    This accepts the EULA terms and conditions is required for SupportAssist registration.
+    This parameter accepts the EULA terms and conditions that are required for SupportAssist registration.
 
-    If EULA is not accepted then, SupportAssist collection cannot be run or exported.
+    If EULA terms and conditions are not accepted, then the SupportAssist collection cannot be run or exported.
 
 
   filter_data (optional, bool, False)
-    This option provides the option to filter data for privacy and will not include host names, mac addresses, thermal data, logs or registry contents.
+    This option provides the choice to filter data for privacy. It does not include hostname, MAC address, thermal data, logs, or registry content.
 
 
   data_collector (optional, list, None)
     This option provides the choice of data to keep in SupportAssist collection.
 
-    System Information will be available in collection by default.
+    System Information is available in on the SupportAssist collection by default.
 
-    \ :literal:`hardware\_data`\  The SupportAssist collection will include data related to hardware.
+    \ :literal:`hardware\_data`\ , SupportAssist collection includes data that are related to hardware.
 
-    \ :literal:`storage\_logs`\  The SupportAssist collection will include logs related to storage devices.
+    \ :literal:`storage\_logs`\ , SupportAssist collection includes logs that are related to storage devices.
 
-    \ :literal:`os\_and\_app\_data`\  The SupportAssist collection will include data related to operating system and applications.
+    \ :literal:`os\_app\_data`\ , SupportAssist collection includes data that is related to the operating system and applications.
 
-    \ :literal:`debug\_logs`\  The SupportAssist collection will include logs related to debug.
+    \ :literal:`debug\_logs`\ , SupportAssist collection includes logs that are related to debugging.
 
-    \ :literal:`telemetry\_reports`\  The SupportAssist collection will include reports related to telemetry.
+    \ :literal:`telemetry\_reports`\ , SupportAssist collection includes reports that are related to telemetry.
 
-    \ :literal:`gpu\_logs`\  The SupportAssist collection will include logs related to GPUs.
+    \ :literal:`gpu\_logs`\ , SupportAssist collection includes logs that are related to GPUs.
 
 
   job_wait (optional, bool, True)
-    Provides the option to wait for job completion.
+    This option determines whether to wait for the job completion or not.
 
 
   job_wait_timeout (optional, int, 3600)
@@ -76,7 +76,7 @@ Parameters
 
 
   share_parameters (optional, dict, None)
-    Parameters that are required for the export operation of support assist collection.
+    Parameters that are required for the export operation of SupportAssist collection.
 
     \ :emphasis:`share\_parameters`\  is required when \ :emphasis:`export`\  is \ :literal:`true`\ .
 
@@ -100,7 +100,7 @@ Parameters
     ip_address (optional, str, None)
       IP address of the network share.
 
-      \ :emphasis:`ip\_address`\  is required when \ :emphasis:`share\_type`\  is \ :literal:`nfs`\ , \ :literal:`cifs`\ , \ :literal:`http`\  or \ :literal:`https`\ .
+      \ :emphasis:`ip\_address`\  is required when \ :emphasis:`share\_type`\  is \ :literal:`nfs`\ , \ :literal:`cifs`\ , \ :literal:`http`\ , or \ :literal:`https`\ .
 
       \ :emphasis:`ip\_address`\  is not required when \ :emphasis:`share\_type`\  is \ :literal:`local`\ .
 
@@ -130,7 +130,7 @@ Parameters
 
 
     ignore_certificate_warning (optional, str, off)
-      Ignores the certificate warning while connecting to Share and is only applicable when \ :emphasis:`share\_type`\  is \ :literal:`https`\ .
+      Ignores the certificate warning when connecting to the network share and is only applicable when \ :emphasis:`share\_type`\  is \ :literal:`https`\ .
 
       \ :literal:`off`\  ignores the certificate warning.
 
@@ -189,7 +189,7 @@ Parameters
   resource_id (optional, str, None)
     Id of the resource.
 
-    If the value for resource ID is not provided, the module picks the first resource ID available from the list of system resources returned by the iDRAC.
+    If the value for resource ID is not provided, the module picks the first resource ID available from the list of system resources that are returned by the iDRAC.
 
 
   idrac_ip (True, str, None)
