@@ -551,15 +551,17 @@ def get_idrac_firmware_version(idrac):
     firm_version = idrac.invoke_request(method='GET', **data)
     return firm_version.json_data.get('FirmwareVersion', '')
 
+
 def trigger_restart_operation(idrac, restart_type="GracefulRestart", resource_id=None):
-        resp, error_msg = {}, {}
-        uri, error_msg = validate_and_get_first_resource_id_uri(resource_id, idrac, SYSTEMS_URI)
-        if error_msg:
-            return resp, error_msg
-        actions_uri = get_dynamic_uri(idrac, uri, 'Actions').get("#ComputerSystem.Reset", {}).get("target", '')
-        payload = {"ResetType": restart_type}
-        resp = idrac.invoke_request(method='POST', uri=actions_uri, data=payload)
+    resp, error_msg = {}, {}
+    uri, error_msg = validate_and_get_first_resource_id_uri(resource_id, idrac, SYSTEMS_URI)
+    if error_msg:
         return resp, error_msg
+    actions_uri = get_dynamic_uri(idrac, uri, 'Actions').get("#ComputerSystem.Reset", {}).get("target", '')
+    payload = {"ResetType": restart_type}
+    resp = idrac.invoke_request(method='POST', uri=actions_uri, data=payload)
+    return resp, error_msg
+
 
 def wait_for_LCStatus(idrac, job_wait_timeout=300, resource_id=None, interval=10):
     lc_status_completed, error_msg = False, ''
@@ -568,7 +570,7 @@ def wait_for_LCStatus(idrac, job_wait_timeout=300, resource_id=None, interval=10
     # LCStatus remain 'Ready' even after triggering restart
     # so waiting few seconds before loop
     time.sleep(3*interval)
-    max_idrac_reset_try = ((job_wait_timeout - 3*interval) // interval)
+    max_idrac_reset_try = ((job_wait_timeout - 3 * interval) // interval)
     uri, error_msg = validate_and_get_first_resource_id_uri(resource_id, idrac, MANAGERS_URI)
     if error_msg:
         return lc_status_completed, error_msg
@@ -597,6 +599,7 @@ def wait_for_LCStatus(idrac, job_wait_timeout=300, resource_id=None, interval=10
     if retry_count == max_idrac_reset_try and lcstatus != "Ready":
         error_msg = LC_STATUS_MSG.format(lc_status=lcstatus, retries=retry_count)
     return lc_status_completed, error_msg
+
 
 def get_lc_log_or_current_log_time(idrac, curr_time=None, lc_log_ids_list=None, resource_id=None):
     lc_log_found = False

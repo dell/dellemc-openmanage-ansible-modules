@@ -157,6 +157,7 @@ FAILED_IMPORT = "Failed to import certificate file {path}."
 NO_IMPORT_SUCCESS = "The Secure Boot Certificate Import operation was not successful."
 odata = '@odata.id'
 
+
 class IDRACSecureBoot:
 
     def __init__(self, idrac, module):
@@ -203,7 +204,7 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
     def __init__(self, idrac, module):
         super().__init__(idrac, module)
         plt_key = self.module.params.get('platform_key')
-        self.platform_key = [plt_key] if plt_key else [] 
+        self.platform_key = [plt_key] if plt_key else []
         self.key_exchange_key = self.module.params.get('key_exchange_key') or []
         self.database = self.module.params.get('database') or []
         self.disallow_database = self.module.params.get('disallow_database') or []
