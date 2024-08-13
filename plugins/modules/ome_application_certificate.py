@@ -63,8 +63,8 @@ options:
   upload_file:
     type: str
     description: Local path of the certificate file to be uploaded. This option is applicable for C(upload) and C(upload_cert_chain).
-        Once the certificate is uploaded, OpenManage Enterprise cannot be accessed for a few seconds. The formats can be in .crt, .cer,
-        .ca-bundle, .p7b, .der, and .pem format.
+        Once the certificate is uploaded, OpenManage Enterprise cannot be accessed for a few seconds. The formats can be .crt, .cer,
+        .ca-bundle, .p7b, .der, and .pem.
 requirements:
     - "python >= 3.9.6"
 author:
@@ -175,8 +175,31 @@ from urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.compat.version import LooseVersion
 
-OME_INFO = "ApplicationService/Info"
-LOW_OME = "OME version low"
+UNSUPPORTED_OME = "This operation is not supported on OpenManage Enterprise version {ome_version}"
+CERT_SIGN = "Successfully generated certificate signing request."
+CERT_UPLOAD = "Successfully uploaded application certificate."
+
+
+def generate_csr_payload(module):
+    return {
+        "DistinguishedName": module.params["distinguished_name"],
+        "DepartmentName": module.params["department_name"],
+        "BusinessName": module.params["business_name"],
+        "Locality": module.params["locality"],
+        "State": module.params["country_state"],
+        "Country": module.params["country"],
+        "Email": module.params["email"],
+        "San": get_san(module.params["subject_alternative_names"])
+    }
+
+
+def read_file_payload(module):
+    file_path = module.params["upload_file"]
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as file:
+            return file.read()
+    else:
+        module.fail_json(msg="No such file or directory.")
 
 
 def get_resource_parameters(module):
@@ -185,41 +208,40 @@ def get_resource_parameters(module):
     method = "POST"
     payload = None
 
-    if command == "generate_csr":
-        uri = csr_uri.format("GenerateCSR")
-        payload = {
-            "DistinguishedName": module.params["distinguished_name"],
-            "DepartmentName": module.params["department_name"],
-            "BusinessName": module.params["business_name"],
-            "Locality": module.params["locality"],
-            "State": module.params["country_state"],
-            "Country": module.params["country"],
-            "Email": module.params["email"],
-            "San": get_san(module.params["subject_alternative_names"])
+    # Mapping of command to their respective actions
+    command_map = {
+        "generate_csr": {
+            "uri": csr_uri.format("GenerateCSR"),
+            "payload_func": generate_csr_payload
+        },
+        "upload": {
+            "uri": csr_uri.format("UploadCertificate"),
+            "payload_func": read_file_payload
+        },
+        "upload_cert_chain": {
+            "uri": csr_uri.format("UploadCertChain"),
+            "payload_func": read_file_payload
         }
+    }
 
-    elif command == "upload":
-        file_path = module.params["upload_file"]
-        uri = csr_uri.format("UploadCertificate")
-        if os.path.exists(file_path):
-            with open(file_path, 'rb') as file:
-                payload = file.read()
-        else:
-            module.fail_json(msg="No such file or directory.")
+    command_details = command_map.get(command)
+    if not command_details:
+        module.fail_json(msg=f"Unknown command: {command}")
 
-    elif command == "upload_cert_chain":
-        file_path = module.params["upload_file"]
-        uri = csr_uri.format("UploadCertChain")
-        if os.path.exists(file_path):
-            with open(file_path, 'rb') as file:
-                payload = file.read()
-        else:
-            module.fail_json(msg="No such file or directory.")
-
-    else:
-        module.fail_json(msg="Invalid command provided.")
+    uri = command_details["uri"]
+    payload = command_details["payload_func"](module)
 
     return method, uri, payload
+
+
+def read_file(module):
+    """Reads the file content for 'upload' and 'upload_cert_chain' commands."""
+    file_path = module.params["upload_file"]
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as file:
+            return file.read()
+    else:
+        module.fail_json(msg="No such file or directory.")
 
 
 def get_san(subject_alternative_names):
@@ -241,12 +263,6 @@ def format_csr_string(csr_string):
     formatted_csr = "-----BEGIN CERTIFICATE REQUEST-----\n" + formatted_csr + "\n-----END CERTIFICATE REQUEST-----"
 
     return formatted_csr
-
-
-def get_ome_version(rest_obj):
-    resp = rest_obj.invoke_request('GET', OME_INFO)
-    data = resp.json_data
-    return data["Version"]
 
 
 def main():
@@ -279,9 +295,9 @@ def main():
         with RestOME(module.params, req_session=False) as rest_obj:
             command = module.params.get("command")
             if command == "upload_cert_chain":
-                ome_version = get_ome_version(rest_obj)
+                ome_version = rest_obj.get_ome_version()
                 if LooseVersion(ome_version) < "3.10":
-                    module.exit_json(msg=LOW_OME, skipped=True)
+                    module.exit_json(msg=UNSUPPORTED_OME.format(ome_version=ome_version), skipped=True)
 
             method, uri, payload = get_resource_parameters(module)
             dump = False if command in ["upload", "upload_cert_chain"] else True
@@ -292,10 +308,10 @@ def main():
                     resp_copy = resp.json_data
                     formatted_csr = format_csr_string(resp_copy["CertificateData"])
                     resp_copy["CertificateData"] = formatted_csr
-                    module.exit_json(msg="Successfully generated certificate signing request.",
+                    module.exit_json(msg=CERT_SIGN,
                                      csr_status=resp_copy)
                 else:
-                    module.exit_json(msg="Successfully uploaded application certificate.", changed=True)
+                    module.exit_json(msg=CERT_UPLOAD, changed=True)
             else:
                 module.fail_json(msg="Request failed", error_info=resp.json_data)
     except HTTPError as err:
