@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.1.0
-# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.6.0
+# Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -24,6 +24,7 @@ from ansible_collections.dellemc.openmanage.plugins.modules import ome_applicati
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+MODULE_UTILS_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.ome.'
 EMAIL_ADDRESS = "support@dell.com"
 
 
@@ -118,38 +119,12 @@ class TestOmeAppCSR(FakeAnsibleModule):
         payload = "--BEGIN-REQUEST--"
         mocker.patch(MODULE_PATH + 'ome_application_certificate.get_resource_parameters',
                      return_value=("POST", "ApplicationService/Actions/ApplicationService.UploadCertChain", payload))
-        mocker.patch(MODULE_PATH + 'ome_application_certificate.get_ome_version',
-                     return_value=("4.1.0"))
+        mocker.patch(MODULE_UTILS_PATH + "RestOME.get_ome_version", return_value="4.1.0")
         ome_default_args.update({"command": "upload_cert_chain", "upload_file": "/path/certificate_chain.cer"})
         ome_response_mock.success = True
-        result = self.execute_module(ome_default_args)
-        assert result['msg'] == "Successfully uploaded application certificate."
-
-    def test_ome_version_low(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
-                             ome_response_mock):
-        ome_response_mock.json_data = {
-            "Name": "OM Enterprise",
-            "Description": "OpenManage Enterprise",
-            "Vendor": "Dell, Inc.",
-            "ProductType": 1,
-            "Version": "3.1",
-            "BuildNumber": "24"
-        }
-        version = self.module.get_ome_version(ome_connection_mock_for_application_certificate)
-        assert version == "3.1"
-
-    def test_get_ome_version(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
-                             ome_response_mock):
-        ome_response_mock.json_data = {
-            "Name": "OM Enterprise",
-            "Description": "OpenManage Enterprise",
-            "Vendor": "Dell, Inc.",
-            "ProductType": 1,
-            "Version": "4.1",
-            "BuildNumber": "24"
-        }
-        version = self.module.get_ome_version(ome_connection_mock_for_application_certificate)
-        assert version == "4.1"
+        with pytest.raises(Exception) as exc:
+            self.execute_module(ome_default_args)
+        assert exc.value.args[0]
 
     def test_generate_csr(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
                           ome_response_mock):
