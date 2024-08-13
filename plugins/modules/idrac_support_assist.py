@@ -26,41 +26,41 @@ extends_documentation_fragment:
 options:
   run:
     description:
-      - Run the SupportAssist job based on the different type of logs in the collection on iDRAC.
+      - Run the SupportAssist job based on the different types of logs in the collection on iDRAC.
     type: bool
     default: true
   export:
     description:
-      - Exports the SupportAssist collection to the given share.
+      - Exports the SupportAssist collection to the given network share.
       - This operation requires I(share_parameters).
     type: bool
     default: true
   accept_eula:
     description:
-      - This accepts the EULA terms and conditions is required for SupportAssist registration.
-      - If EULA is not accepted then, SupportAssist collection cannot be run or exported.
+      - This parameter accepts the EULA terms and conditions that are required for SupportAssist registration.
+      - If EULA terms and conditions are not accepted, then the SupportAssist collection cannot be run or exported.
     type: bool
   filter_data:
     description:
-      - This option provides the option to filter data for privacy and will not include host names, mac addresses, thermal data, logs or registry contents.
+      - This option provides the choice to filter data for privacy. It does not include hostname, MAC address, thermal data, logs, or registry content.
     type: bool
     default: false
   data_collector:
     description:
       - This option provides the choice of data to keep in SupportAssist collection.
-      - System Information will be available in collection by default.
-      - C(hardware_data) The SupportAssist collection will include data related to hardware.
-      - C(storage_logs) The SupportAssist collection will include logs related to storage devices.
-      - C(os_and_app_data) The SupportAssist collection will include data related to operating system and applications.
-      - C(debug_logs) The SupportAssist collection will include logs related to debug.
-      - C(telemetry_reports) The SupportAssist collection will include reports related to telemetry.
-      - C(gpu_logs) The SupportAssist collection will include logs related to GPUs.
+      - System Information is available in on the SupportAssist collection by default.
+      - C(hardware_data), SupportAssist collection includes data that are related to hardware.
+      - C(storage_logs), SupportAssist collection includes logs that are related to storage devices.
+      - C(os_app_data), SupportAssist collection includes data that is related to the operating system and applications.
+      - C(debug_logs), SupportAssist collection includes logs that are related to debugging.
+      - C(telemetry_reports), SupportAssist collection includes reports that are related to telemetry.
+      - C(gpu_logs), SupportAssist collection includes logs that are related to GPUs.
     type: list
     elements: str
     choices: [hardware_data, storage_logs, os_app_data, debug_logs, telemetry_reports, gpu_logs]
   job_wait:
     description:
-      - Provides the option to wait for job completion.
+      - This option determines whether to wait for the job completion or not.
     type: bool
     default: true
   job_wait_timeout:
@@ -71,7 +71,7 @@ options:
     default: 3600
   share_parameters:
     description:
-      - Parameters that are required for the export operation of support assist collection.
+      - Parameters that are required for the export operation of SupportAssist collection.
       - I(share_parameters) is required when I(export) is C(true).
     type: dict
     suboptions:
@@ -90,7 +90,7 @@ options:
       ip_address:
         description:
           - IP address of the network share.
-          - I(ip_address) is required when I(share_type) is C(nfs), C(cifs), C(http) or C(https).
+          - I(ip_address) is required when I(share_type) is C(nfs), C(cifs), C(http), or C(https).
           - I(ip_address) is not required when I(share_type) is C(local).
         type: str
       share_name:
@@ -115,7 +115,7 @@ options:
         type: str
       ignore_certificate_warning:
         description:
-          - Ignores the certificate warning while connecting to Share and is only applicable when I(share_type) is C(https).
+          - Ignores the certificate warning when connecting to the network share and is only applicable when I(share_type) is C(https).
           - C(off) ignores the certificate warning.
           - C(on) does not ignore the certificate warning.
         type: str
@@ -166,7 +166,8 @@ options:
     type: str
     description:
       - Id of the resource.
-      - If the value for resource ID is not provided, the module picks the first resource ID available from the list of system resources returned by the iDRAC.
+      - If the value for resource ID is not provided, the module picks the first resource ID available from the list of system resources that
+        are returned by the iDRAC.
 requirements:
   - "python >= 3.9.6"
 author:

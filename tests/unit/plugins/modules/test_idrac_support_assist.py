@@ -521,6 +521,32 @@ class TestRunSupportAssist(FakeAnsibleModule):
         assert msg == RUNNING_RUN_MSG
         assert job_status == job
 
+        # Scenario 3: JobState is scheduled and run and export both are true
+        job = {"JobState": "Scheduled"}
+        idrac_default_args.update(
+            {'data_collector': ['gpu_logs'], 'run': True, 'export': True, 'share_parameters': {'share_type': 'nfs', 'share_name': 'share', 'ip_address': IP}})
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        run_support_assist_obj = self.module.RunSupportAssist(
+            idrac_connection_support_assist_mock, f_module)
+        msg, job_status = run_support_assist_obj.execute()
+        assert msg == RUNNING_RUN_AND_EXPORT_MSG
+        assert job_status == job
+
+        # Scenario 4: JobState is scheduled and run and export both are true
+        job = {"JobState": "Completed"}
+        mocker.patch(
+            MODULE_PATH + "RunSupportAssist._RunSupportAssist__perform_job_wait", return_value=job)
+        idrac_default_args.update(
+            {'data_collector': ['gpu_logs'], 'run': True, 'export': True, 'share_parameters': {'share_type': 'nfs', 'share_name': 'share', 'ip_address': IP}})
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        run_support_assist_obj = self.module.RunSupportAssist(
+            idrac_connection_support_assist_mock, f_module)
+        msg, job_status = run_support_assist_obj.execute()
+        assert msg == SUCCESS_RUN_AND_EXPORT_MSG
+        assert job_status == job
+
     def test_run_support_assist(self, idrac_default_args, idrac_connection_support_assist_mock, mocker):
         obj = MagicMock()
         obj.status_code = 200
@@ -565,6 +591,27 @@ class TestRunSupportAssist(FakeAnsibleModule):
             params=idrac_default_args, check_mode=False)
         run_support_assist_obj = self.module.RunSupportAssist(
             idrac_connection_support_assist_mock, f_module)
+        status = run_support_assist_obj._RunSupportAssist__run_support_assist()
+        assert status == obj
+
+        # Scenario 4: With run and export both as true
+        run_params = {
+            'data_collector': ['storage_logs'],
+            'filter_data': True,
+            'share_parameters': {'share_type': 'nfs', 'share_name': 'share', 'ip_address': IP, 'ignore_certificate_warning': 'off'},
+            'run': True,
+            'export': True
+        }
+        idrac_default_args.update(run_params)
+        mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri",
+                     return_value=(REDFISH, None))
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        run_support_assist_obj = self.module.RunSupportAssist(
+            idrac_connection_support_assist_mock, f_module)
+        export_support_assist_obj = self.module.ExportSupportAssist(
+            idrac_connection_support_assist_mock, f_module)
+        export_support_assist_obj.execute()
         status = run_support_assist_obj._RunSupportAssist__run_support_assist()
         assert status == obj
 
@@ -659,14 +706,32 @@ class TestRunSupportAssist(FakeAnsibleModule):
             run_support_assist_obj.check_support_assist_jobs()
         assert exc.value.args[0] == ALREADY_RUN_MSG
 
-        # # Scenario 2: Check mode without job id
-        # temp_list = {"Members": [{"Id": "", "JobType": "Test", "JobState": "New"}]}
-        # obj.json_data = temp_list
-        # mocker.patch(MODULE_PATH + API_INVOKE_MOCKER, return_value=obj)
-        # f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
-        # run_support_assist_obj = self.run_module(idrac_connection_support_assist_mock, f_module)
-        # resp = run_support_assist_obj.check_support_assist_jobs()
-        # assert resp is None
+        # Scenario 2: Check mode without job id
+        temp_list = {"Members": [{"Id": "", "JobType": "Test", "JobState": "New"}]}
+        obj.json_data = temp_list
+        obj.status_code = 200
+        mocker.patch(
+            MODULE_PATH + EULA_STATUS_URL, return_value=None)
+        mocker.patch(
+            MODULE_PATH + "AcceptEULA._AcceptEULA__get_eula_accept_url", return_value=None)
+        mocker.patch(MODULE_PATH + API_INVOKE_MOCKER, return_value=obj)
+        obj2 = MagicMock()
+        obj2.status_code = 200
+        obj2.json_data = {
+            MESSAGE_EXTENDED: [
+                {
+                    "Message": "The SupportAssist End User License Agreement (EULA) is not accepted.",
+                    "MessageId": "IDRAC.2.8.SRV104",
+                }
+            ]
+        }
+        mocker.patch(MODULE_PATH + EULA_STATUS_FUNC, return_value=obj2)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
+        run_support_assist_obj = self.module.RunSupportAssist(
+            idrac_connection_support_assist_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            run_support_assist_obj.check_support_assist_jobs()
+        assert exc.value.args[0] == CHANGES_NOT_FOUND_MSG
 
         # Scenario 3: Normal mode with job id
         temp_list = {"Members": [
@@ -802,6 +867,40 @@ class TestRunSupportAssist(FakeAnsibleModule):
         job_dict = run_support_assist_obj._RunSupportAssist__perform_job_wait(
             obj)
         assert job_dict == {}
+
+    def test_file_download(self, idrac_default_args, idrac_connection_support_assist_mock, mocker):
+        obj = MagicMock()
+        obj.headers = {'Location': REDFISH_BASE_API, 'Content-Type': 'application/x-tar'}
+        obj.json_data = {'JobState': 'Completed'}
+        obj.status_code = 200
+        obj.body = b'Hello, world!'
+        idrac_default_args.update(
+            {'job_wait': True, 'share_parameters': {'share_name': tempfile.gettempdir()}})
+        job_tracking_uri = REDFISH_BASE_API
+        local_share = 'local'
+        mocker.patch(MODULE_PATH + API_INVOKE_MOCKER, return_value=obj)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        run_support_assist_obj = self.module.RunSupportAssist(
+            idrac_connection_support_assist_mock, f_module)
+        job_dict = run_support_assist_obj.file_download(job_tracking_uri, local_share)
+        assert job_dict is None
+
+    def test_expand_ipv6(self, idrac_default_args, idrac_connection_support_assist_mock, mocker):
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        run_support_assist_obj = self.module.RunSupportAssist(
+            idrac_connection_support_assist_mock, f_module)
+        ip = "XX:XX:XX:XX:XX:XX"
+        expanded_ip = "00XX:00XX:00XX:00XX:00XX:00XX"
+        expanded_ip_obj = run_support_assist_obj.expand_ipv6(ip)
+        assert expanded_ip_obj == expanded_ip
+
+        # Scenario 2: When ip is ipv6 with groups of zeros
+        ip = "XXXX:XXXX::XXXX:XXXX"
+        expanded_ip = "XXXX:XXXX:0000:0000:0000:0000:XXXX:XXXX"
+        expanded_ip_obj = run_support_assist_obj.expand_ipv6(ip)
+        assert expanded_ip_obj == expanded_ip
 
 
 class TestExportSupportAssist(FakeAnsibleModule):
