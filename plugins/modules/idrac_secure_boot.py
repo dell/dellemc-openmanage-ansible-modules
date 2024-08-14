@@ -149,8 +149,9 @@ SYSTEMS_URI = "/redfish/v1/Systems"
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be negative or zero."
 SUCCESS_MSG = "The Secure Boot Certificate Import operation has completed successfully."
 NO_OPERATION_SKIP = "Task is skipped as import is 'false'."
-PROVIDE_ABSOLUTE_PATH = "Please provide absolute path of the certificate file {path}"
+PROVIDE_ABSOLUTE_PATH = "Please provide absolute path of the certificate file {path}."
 NO_READ_PERMISSION_PATH = "Unable to read the certificate file {path}."
+NO_FILE_FOUND = "Unable to find the certificate file {path}."
 NO_VALID_PATHS = "No valid absolute path found for certificate(s)."
 CHANGES_FOUND = 'Changes found to be applied.'
 FAILED_IMPORT = "Failed to import certificate file {path}."
@@ -218,8 +219,11 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
             if path and not os.path.isabs(path):
                 self.module.warn(PROVIDE_ABSOLUTE_PATH.format(path=path))
                 invalid_paths.add(path)
-            if path and not os.path.isfile(path):
+            if path and not os.access(path=path, mode=os.R_OK):
                 self.module.warn(NO_READ_PERMISSION_PATH.format(path=path))
+                invalid_paths.add(path)
+            if path and not os.path.isfile(path):
+                self.module.warn(NO_FILE_FOUND.format(path=path))
                 invalid_paths.add(path)
         return list(set(paths) - invalid_paths)
 
@@ -264,7 +268,6 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
         Perform operation
         """
         SUCCESS_CODE = ["SWC9010", "UEFI0286"]
-        current_time = get_lc_log_or_current_log_time(self.idrac)
         self.filter_invalid_paths()
         self.validate_job_wait()
         payload_values = self.construct_payload()
@@ -273,6 +276,7 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
         if self.module.check_mode:
             self.module.exit_json(msg=CHANGES_FOUND, changed=True)
         uri = self.mapping_secure_boot_database_uri()
+        current_time = get_lc_log_or_current_log_time(self.idrac)
         for parameter, payload_list in payload_values.items():
             for each_payload in payload_list:
                 payload = {"CertificateString": each_payload['cert_data'],
@@ -304,7 +308,7 @@ def main():
         specs = {
             "import_certificates": {"type": 'bool'},
             "platform_key": {"type": 'path'},
-            "key_exchange_key": {"type": 'list', "elements": 'path'},
+            "key_exchange_key": {"type": 'list', "elements": 'path', "no_log": True},
             "database": {"type": 'list', "elements": 'path'},
             "disallow_database": {"type": 'list', "elements": 'path'},
             "restart": {"type": 'bool', "default": False},
