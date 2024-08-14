@@ -93,8 +93,8 @@ notes:
 EXAMPLES = """
 ---
 - name: Import a SecureBoot certificate.
-  dellemc.openmanage.idrac_secureboot:
-    import: true
+  dellemc.openmanage.idrac_secure_boot:
+    import_certificates: true
     platform_key: /user/name/certificates/pk.pem
     key_exchange_key:
       - /user/name/certificates/kek1.pem
@@ -173,8 +173,8 @@ class IDRACSecureBoot:
         """
         Validates job_wait and job_wait_timeout parameters.
         """
-        if self.module.params.get('job_wait') and self.module.params.get('job_wait_timeout') == 0:
-            self.module.exit_json(msg=TIMEOUT_NEGATIVE_OR_ZERO_MSG)
+        if self.module.params.get('job_wait') and self.module.params.get('job_wait_timeout') <= 0:
+            self.module.exit_json(msg=TIMEOUT_NEGATIVE_OR_ZERO_MSG, failed=True)
 
     def get_dynamic_secure_boot_database_uri(self):
         uri, error_msg = validate_and_get_first_resource_id_uri(

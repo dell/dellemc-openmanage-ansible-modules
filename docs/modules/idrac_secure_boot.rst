@@ -156,8 +156,8 @@ Examples
     
     ---
     - name: Import a SecureBoot certificate.
-      dellemc.openmanage.idrac_secureboot:
-        import: true
+      dellemc.openmanage.idrac_secure_boot:
+        import_certificates: true
         platform_key: /user/name/certificates/pk.pem
         key_exchange_key:
           - /user/name/certificates/kek1.pem
