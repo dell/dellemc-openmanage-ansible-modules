@@ -12,13 +12,10 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from ast import arg
 import json
 from io import StringIO
 
 import pytest
-import tempfile
-import os
 from ansible.module_utils._text import to_text
 from urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -113,20 +110,20 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         idrac_default_args.update({'import_certificates': False})
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == NO_OPERATION_SKIP
-        assert resp['skipped'] == True
+        assert resp['skipped'] is True
 
         # Scenario 2: When import_certificates is True, other parameters is empty
         idrac_default_args.update({'import_certificates': True})
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == NO_VALID_PATHS
-        assert resp['skipped'] == True
+        assert resp['skipped'] is True
 
         # Scenario 3: When import_certificates is True, invalid path is given
         idrac_default_args.update({'import_certificates': True,
                                    'database': ['/tmp/invalid_path.pem']})
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == NO_VALID_PATHS
-        assert resp['skipped'] == True
+        assert resp['skipped'] is True
 
         # Scenaro 4: When import_certificates is True, path doesn't have read permission
         mocker.patch(MODULE_PATH + "idrac_secure_boot.get_lc_log_or_current_log_time",
@@ -137,7 +134,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
                                     'database': ['/tmp/invalid_path.pem']})
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == NO_VALID_PATHS
-        assert resp['changed'] == False
+        assert resp['changed'] is False
 
         # # Scenaro 5: When import_certificates is True, valid path is given
         # mocker.patch(MODULE_PATH + "idrac_secure_boot.get_lc_log_or_current_log_time",
@@ -151,38 +148,27 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         # assert resp['msg'] == SCHEDULE_MSG
         # assert resp['changed'] == False
 
-    # @pytest.mark.parametrize("exc_type",
-    #                          [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
-    # def test_idrac_secure_boot_main_exception_handling_case(self, exc_type, mocker, idrac_default_args,
-    #                                                                idrac_connection_secure_boot, idrac_secure_boot_mock):
-    #     obj = MagicMock()
-    #     obj.perform_validation_for_network_adapter_id.return_value = None
-    #     obj.perform_validation_for_network_device_function_id.return_value = None
-    #     obj.get_diff_between_current_and_module_input.return_value = (
-    #         None, None)
-    #     obj.validate_job_timeout.return_value = None
-    #     obj.clear_pending.return_value = None
-    #     idrac_default_args.update({'apply_time': "Immediate",
-    #                                'network_adapter_id': 'Some_adapter_id',
-    #                                'network_device_function_id': 'some_device_id',
-    #                                'clear_pending': True if exec == 'URLError' else False})
-    #     json_str = to_text(json.dumps({"data": "out"}))
-    #     if exc_type in [HTTPError, SSLValidationError]:
-    #         tmp = {'network_attributes': {'VlanId': 10}}
-    #         mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACNetworkAttributes.set_dynamic_base_uri_and_validate_ids",
-    #                      side_effect=exc_type('https://testhost.com', 400,
-    #                                           'http error message',
-    #                                           {"accept-type": "application/json"},
-    #                                           StringIO(json_str)))
-    #     else:
-
-    #         tmp = {'oem_network_attributes': {'VlanId': 10}}
-    #         mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACNetworkAttributes.set_dynamic_base_uri_and_validate_ids",
-    #                      side_effect=exc_type('test'))
-    #     idrac_default_args.update(tmp)
-    #     result = self._run_module(idrac_default_args)
-    #     if exc_type == URLError:
-    #         assert result['unreachable'] is True
-    #     else:
-    #         assert result['failed'] is True
-    #     assert 'msg' in result
+    @pytest.mark.parametrize("exc_type",
+                             [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
+    def test_idrac_secure_boot_main_exception_handling_case(self, exc_type, mocker, idrac_default_args,
+                                                                   idrac_connection_secure_boot, idrac_secure_boot_mock):
+        obj = MagicMock()
+        obj.perform_operation.return_value = None
+        obj.validate_job_timeout.return_value = None
+        idrac_default_args.update({'import_certificates': True})
+        json_str = to_text(json.dumps({"data": "out"}))
+        if exc_type in [HTTPError, SSLValidationError]:
+            mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACImportSecureBoot.perform_operation",
+                         side_effect=exc_type('https://testhost.com', 400,
+                                              'http error message',
+                                              {"accept-type": "application/json"},
+                                              StringIO(json_str)))
+        else:
+            mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACImportSecureBoot.perform_operation",
+                         side_effect=exc_type('test'))
+        result = self._run_module(idrac_default_args)
+        if exc_type == URLError:
+            assert result['unreachable'] is True
+        else:
+            assert result['failed'] is True
+        assert 'msg' in result
