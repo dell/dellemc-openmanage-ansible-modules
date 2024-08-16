@@ -136,14 +136,14 @@ error_info:
   }
 '''
 
-import json
-import os
-from urllib.error import HTTPError, URLError
-from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     get_dynamic_uri, remove_key, validate_and_get_first_resource_id_uri,
-    trigger_restart_operation, wait_for_LCStatus, get_lc_log_or_current_log_time)
+    trigger_restart_operation, wait_for_lc_status, get_lc_log_or_current_log_time)
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from urllib.error import HTTPError, URLError
+import os
+import json
 
 SYSTEMS_URI = "/redfish/v1/Systems"
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be negative or zero."
@@ -174,7 +174,8 @@ class IDRACSecureBoot:
         Validates job_wait and job_wait_timeout parameters.
         """
         if self.module.params.get('job_wait') and self.module.params.get('job_wait_timeout') <= 0:
-            self.module.exit_json(msg=TIMEOUT_NEGATIVE_OR_ZERO_MSG, failed=True)
+            self.module.exit_json(
+                msg=TIMEOUT_NEGATIVE_OR_ZERO_MSG, failed=True)
 
     def get_dynamic_secure_boot_database_uri(self):
         uri, error_msg = validate_and_get_first_resource_id_uri(
@@ -190,7 +191,8 @@ class IDRACSecureBoot:
     def mapping_secure_boot_database_uri(self):
         mapped_value = {}
         secure_boot_database_uri = self.get_dynamic_secure_boot_database_uri()
-        secure_boot_database_members = get_dynamic_uri(self.idrac, secure_boot_database_uri, 'Members')
+        secure_boot_database_members = get_dynamic_uri(
+            self.idrac, secure_boot_database_uri, 'Members')
         for each_member in secure_boot_database_members:
             for label, last_uri_leaf in self.uri_mapping.items():
                 uri = each_member.get(odata)
@@ -206,9 +208,11 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
         super().__init__(idrac, module)
         plt_key = self.module.params.get('platform_key')
         self.platform_key = [plt_key] if plt_key else []
-        self.key_exchange_key = self.module.params.get('key_exchange_key') or []
+        self.key_exchange_key = self.module.params.get(
+            'key_exchange_key') or []
         self.database = self.module.params.get('database') or []
-        self.disallow_database = self.module.params.get('disallow_database') or []
+        self.disallow_database = self.module.params.get(
+            'disallow_database') or []
 
     def validate_certificate_paths(self, paths):
         """
@@ -232,9 +236,11 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
         Filter invalid paths
         """
         self.platform_key = self.validate_certificate_paths(self.platform_key)
-        self.key_exchange_key = self.validate_certificate_paths(self.key_exchange_key)
+        self.key_exchange_key = self.validate_certificate_paths(
+            self.key_exchange_key)
         self.database = self.validate_certificate_paths(self.database)
-        self.disallow_database = self.validate_certificate_paths(self.disallow_database)
+        self.disallow_database = self.validate_certificate_paths(
+            self.disallow_database)
 
     def read_certificate_file(self, path):
         with open(path, 'r') as f:
@@ -254,13 +260,16 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
         """
         payload = {}
         if self.platform_key:
-            payload['platform_key'] = self.create_dictionary_payload(self.platform_key)
+            payload['platform_key'] = self.create_dictionary_payload(
+                self.platform_key)
         if self.key_exchange_key:
-            payload['key_exchange_key'] = self.create_dictionary_payload(self.key_exchange_key)
+            payload['key_exchange_key'] = self.create_dictionary_payload(
+                self.key_exchange_key)
         if self.database:
             payload['database'] = self.create_dictionary_payload(self.database)
         if self.disallow_database:
-            payload['disallow_database'] = self.create_dictionary_payload(self.disallow_database)
+            payload['disallow_database'] = self.create_dictionary_payload(
+                self.disallow_database)
         return payload
 
     def perform_operation(self):
@@ -281,22 +290,28 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
             for each_payload in payload_list:
                 payload = {"CertificateString": each_payload['cert_data'],
                            "CertificateType": "PEM"}
-                certificates_uri = get_dynamic_uri(self.idrac, uri[parameter], 'Certificates')[odata]
+                certificates_uri = get_dynamic_uri(
+                    self.idrac, uri[parameter], 'Certificates')[odata]
                 try:
-                    self.idrac.invoke_request(method='POST', uri=certificates_uri, data=payload)
+                    self.idrac.invoke_request(
+                        method='POST', uri=certificates_uri, data=payload)
                 except HTTPError:
                     self.module.warn(FAILED_IMPORT.format(parameter=parameter,
                                                           path=each_payload['path']))
-        lc_log, msg = get_lc_log_or_current_log_time(self.idrac, current_time, SUCCESS_CODE)
+        lc_log, msg = get_lc_log_or_current_log_time(
+            self.idrac, current_time, SUCCESS_CODE)
         if not lc_log:
             self.module.exit_json(msg=NO_IMPORT_SUCCESS, skipped=True)
         if self.module.params.get('restart'):
-            resp, err_msg = trigger_restart_operation(self.idrac, self.module.params.get('restart_type'))
+            resp, err_msg = trigger_restart_operation(
+                self.idrac, self.module.params.get('restart_type'))
             if resp.success:
                 if self.module.params.get('job_wait'):
-                    lc_completed, error_msg = wait_for_LCStatus(self.idrac, self.module.params.get('job_wait_timeout'))
+                    lc_completed, error_msg = wait_for_lc_status(
+                        self.idrac, self.module.params.get('job_wait_timeout'))
                     if lc_completed:
-                        lc_log, msg = get_lc_log_or_current_log_time(self.idrac, current_time, SUCCESS_CODE)
+                        lc_log, msg = get_lc_log_or_current_log_time(
+                            self.idrac, current_time, SUCCESS_CODE)
                         self.module.exit_json(msg=SUCCESS_MSG, changed=True)
                     else:
                         self.module.exit_json(msg=error_msg, failed=True)

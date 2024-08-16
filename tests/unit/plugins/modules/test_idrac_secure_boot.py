@@ -38,6 +38,7 @@ CHANGES_FOUND = 'Changes found to be applied.'
 FAILED_IMPORT = "Failed to import certificate file {path}."
 NO_IMPORT_SUCCESS = "The Secure Boot Certificate Import operation was not successful."
 odata = '@odata.id'
+get_log_function = "idrac_secure_boot.get_lc_log_or_current_log_time"
 
 
 class TestIDRACSecureBoot(FakeAnsibleModule):
@@ -59,17 +60,18 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
     def test_import_secure_boot(self, idrac_default_args, idrac_connection_secure_boot,
                                 idrac_secure_boot_mock, mocker):
         secure_boot = {
-            "@odata.id": "/redfish/v1/Systems/System.Embedded.1/SecureBoot"}
+            odata: "/redfish/v1/Systems/System.Embedded.1/SecureBoot"}
         secure_boot_databases = {
-            "@odata.id": "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases"}
-        secure_boot_database_members = [{"@odata.id": "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/db"},
-                                        {"@odata.id": "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/dbx"},
-                                        {"@odata.id": "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/KEK"},
-                                        {"@odata.id": "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/PK"}
+            odata: "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases"}
+        secure_boot_database_members = [{odata: "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/db"},
+                                        {odata: "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/dbx"},
+                                        {odata: "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/KEK"},
+                                        {odata: "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/PK"}
                                         ]
         certificates = {
-            "@odata.id": "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/db/Certificates"}
+            odata: "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/db/Certificates"}
         curr_time = "2024-08-13T17:15:06-05:00"
+        invalid_pem_file_path = '/XX/YY/ZZ.pem'
 
         def mock_get_dynamic_uri_request(*args, **kwargs):
             if args[2] == 'SecureBoot':
@@ -117,24 +119,24 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
 
         # Scenario 3: When import_certificates is True, invalid path is given
         idrac_default_args.update({'import_certificates': True,
-                                   'database': ['/tmp/invalid_path.pem']})
+                                   'database': [invalid_pem_file_path]})
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == NO_VALID_PATHS
         assert resp['skipped'] is True
 
         # Scenaro 4: When import_certificates is True, path doesn't have read permission
-        mocker.patch(MODULE_PATH + "idrac_secure_boot.get_lc_log_or_current_log_time",
+        mocker.patch(MODULE_PATH + get_log_function,
                      side_effect=mock_get_lc_log_scheduled)
         mocker.patch("os.path.isabs", return_value=False)
         mocker.patch("os.access", return_value=False)
         idrac_default_args.update({'import_certificates': True,
-                                   'database': ['/tmp/invalid_path.pem']})
+                                   'database': [invalid_pem_file_path]})
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == NO_VALID_PATHS
         assert resp['changed'] is False
 
         # Scenario 5: When No LC log found after import operation
-        mocker.patch(MODULE_PATH + "idrac_secure_boot.get_lc_log_or_current_log_time",
+        mocker.patch(MODULE_PATH + get_log_function,
                      side_effect=mock_get_no_lc_log)
         mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACImportSecureBoot.read_certificate_file",
                      return_value='some data in file')
@@ -142,16 +144,16 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         mocker.patch("os.access", return_value=True)
         mocker.patch("os.path.isfile", return_value=True)
         idrac_default_args.update({'import_certificates': True,
-                                   'platform_key': '/tmp/invalid_path.pem',
-                                   'key_exchange_key': ['/tmp/invalid_path.pem'],
-                                   'database': ['/tmp/invalid_path.pem'],
-                                   'disallow_database': ['/tmp/invalid_path.pem']})
+                                   'platform_key': invalid_pem_file_path,
+                                   'key_exchange_key': [invalid_pem_file_path],
+                                   'database': [invalid_pem_file_path],
+                                   'disallow_database': [invalid_pem_file_path]})
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == NO_IMPORT_SUCCESS
         assert resp['skipped'] is True
 
         # Scenario 6: When import_certificates is True, valid path is given
-        mocker.patch(MODULE_PATH + "idrac_secure_boot.get_lc_log_or_current_log_time",
+        mocker.patch(MODULE_PATH + get_log_function,
                      side_effect=mock_get_lc_log_scheduled)
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == SCHEDULE_MSG
@@ -164,7 +166,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
 
         # Scenario 8: When job_wait_timeout is negative
         idrac_default_args.update({'import_certificates': True,
-                                   'database': ['/tmp/invalid_path.pem'],
+                                   'database': [invalid_pem_file_path],
                                    'job_wait_timeout': -11})
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == TIMEOUT_NEGATIVE_OR_ZERO_MSG
@@ -175,12 +177,12 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         obj.success = 'OK'
         mocker.patch(MODULE_PATH + "idrac_secure_boot.trigger_restart_operation",
                      return_value=(obj, 'Error in triggering restart'))
-        mocker.patch(MODULE_PATH + "idrac_secure_boot.wait_for_LCStatus",
+        mocker.patch(MODULE_PATH + "idrac_secure_boot.wait_for_lc_status",
                      return_value=(True, 'some msg'))
-        mocker.patch(MODULE_PATH + "idrac_secure_boot.get_lc_log_or_current_log_time",
+        mocker.patch(MODULE_PATH + get_log_function,
                      side_effect=mock_get_lc_log_success)
         idrac_default_args.update({'import_certificates': True,
-                                   'database': ['/tmp/invalid_path.pem'],
+                                   'database': [invalid_pem_file_path],
                                    'restart': True,
                                    'job_wait_timeout': 300})
         resp = self._run_module(idrac_default_args)
@@ -189,7 +191,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
 
         # Sceneario 10: When got error during LC status waiting
         error_msg = 'Timeout during LC status'
-        mocker.patch(MODULE_PATH + "idrac_secure_boot.wait_for_LCStatus",
+        mocker.patch(MODULE_PATH + "idrac_secure_boot.wait_for_lc_status",
                      return_value=(False, error_msg))
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == error_msg
@@ -203,7 +205,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
                                                                       'http error message',
                                                                       {"accept-type": "application/json"},
                                                                       StringIO('HTTP 400: Bad Request'))
-        mocker.patch(MODULE_PATH + "idrac_secure_boot.get_lc_log_or_current_log_time",
+        mocker.patch(MODULE_PATH + get_log_function,
                      side_effect=mock_get_lc_log_scheduled)
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == SCHEDULE_MSG

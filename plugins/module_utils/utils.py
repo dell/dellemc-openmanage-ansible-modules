@@ -563,7 +563,7 @@ def trigger_restart_operation(idrac, restart_type="GracefulRestart", resource_id
     return resp, error_msg
 
 
-def wait_for_LCStatus(idrac, job_wait_timeout=300, resource_id=None, interval=10):
+def wait_for_lc_status(idrac, job_wait_timeout=300, resource_id=None, interval=10):
     lc_status_completed, error_msg = False, ''
     lcstatus = ""
     retry_count = 1
