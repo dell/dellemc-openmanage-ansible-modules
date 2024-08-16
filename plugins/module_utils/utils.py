@@ -604,33 +604,47 @@ def wait_for_lc_status(idrac, job_wait_timeout=300, resource_id=None, interval=1
 def get_lc_log_or_current_log_time(idrac, curr_time=None, lc_log_ids_list=None, resource_id=None):
     lc_log_found = False
     msg = "No LC log found."
-    uri, error_msg = validate_and_get_first_resource_id_uri(resource_id, idrac, MANAGERS_URI)
+
+    uri, error_msg = validate_and_get_first_resource_id_uri(
+        resource_id, idrac, MANAGERS_URI
+    )
     if error_msg:
         return lc_log_found, error_msg
-    log_services_uri = get_dynamic_uri(idrac, uri, "LogServices").get(ODATA_ID, {})
+
+    log_services_uri = get_dynamic_uri(idrac, uri, "LogServices").get(
+        ODATA_ID, {}
+    )
     log_svc_member = get_dynamic_uri(idrac, log_services_uri, "Members")
-    log_lc_uri = [each[ODATA_ID] for each in log_svc_member if each[ODATA_ID].split('/')[-1] == 'Lclog'][0]
-    log_entries_uri = get_dynamic_uri(idrac, log_lc_uri, "Entries").get(ODATA_ID, {})
+    log_lc_uri = [
+        each[ODATA_ID]
+        for each in log_svc_member
+        if each[ODATA_ID].split("/")[-1] == "Lclog"
+    ][0]
+    log_entries_uri = get_dynamic_uri(
+        idrac, log_lc_uri, "Entries"
+    ).get(ODATA_ID, {})
+
     try:
+        resp = idrac.invoke_request(log_lc_uri, "GET")
+        logs_list = idrac.invoke_request(log_entries_uri, "GET").json_data.get(
+            "Members"
+        )
+
         if not curr_time:
-            resp = idrac.invoke_request(log_lc_uri, "GET")
-            curr_time = resp.json_data.get('DateTime')
-            if not lc_log_ids_list:
-                return curr_time
-        resp = idrac.invoke_request(log_entries_uri, "GET")
-        logs_list = resp.json_data.get("Members")
+            curr_time = resp.json_data.get("DateTime")
+
+        if not lc_log_ids_list:
+            return curr_time
+
         for log in logs_list:
-            for err_id in lc_log_ids_list:
-                log_time = log.get("Created")
-                if log_time >= curr_time:
-                    if err_id in log.get('MessageId'):
+            if log.get("Created") >= curr_time:
+                for err_id in lc_log_ids_list:
+                    if err_id in log.get("MessageId"):
                         lc_log_found = True
-                        msg = log.get('Message')
+                        msg = log.get("Message")
                         break
-                else:
-                    break
-            if lc_log_found:
-                break
+
     except Exception:
         msg = "No LC log found."
+
     return lc_log_found, msg

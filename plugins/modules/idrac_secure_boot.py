@@ -276,45 +276,56 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
         """
         Perform operation
         """
-        SUCCESS_CODE = ["SWC9010", "UEFI0286"]
+        success_codes = ["SWC9010", "UEFI0286"]
         self.filter_invalid_paths()
         self.validate_job_wait()
         payload_values = self.construct_payload()
         if not payload_values:
             self.module.exit_json(msg=NO_VALID_PATHS, skipped=True)
+
         if self.module.check_mode:
             self.module.exit_json(msg=CHANGES_FOUND, changed=True)
+
         uri = self.mapping_secure_boot_database_uri()
         current_time = get_lc_log_or_current_log_time(self.idrac)
+
         for parameter, payload_list in payload_values.items():
             for each_payload in payload_list:
                 payload = {"CertificateString": each_payload['cert_data'],
                            "CertificateType": "PEM"}
-                certificates_uri = get_dynamic_uri(
+                cert_uri = get_dynamic_uri(
                     self.idrac, uri[parameter], 'Certificates')[odata]
+
                 try:
                     self.idrac.invoke_request(
-                        method='POST', uri=certificates_uri, data=payload)
+                        method='POST', uri=cert_uri, data=payload)
                 except HTTPError:
-                    self.module.warn(FAILED_IMPORT.format(parameter=parameter,
-                                                          path=each_payload['path']))
+                    self.module.warn(FAILED_IMPORT.format(
+                        parameter=parameter, path=each_payload['path']))
+
         lc_log, msg = get_lc_log_or_current_log_time(
-            self.idrac, current_time, SUCCESS_CODE)
+            self.idrac, current_time, success_codes)
+
         if not lc_log:
             self.module.exit_json(msg=NO_IMPORT_SUCCESS, skipped=True)
+
         if self.module.params.get('restart'):
             resp, err_msg = trigger_restart_operation(
                 self.idrac, self.module.params.get('restart_type'))
+
             if resp.success:
                 if self.module.params.get('job_wait'):
                     lc_completed, error_msg = wait_for_lc_status(
                         self.idrac, self.module.params.get('job_wait_timeout'))
+
                     if lc_completed:
                         lc_log, msg = get_lc_log_or_current_log_time(
-                            self.idrac, current_time, SUCCESS_CODE)
+                            self.idrac, current_time, success_codes)
+
                         self.module.exit_json(msg=SUCCESS_MSG, changed=True)
                     else:
                         self.module.exit_json(msg=error_msg, failed=True)
+
         self.module.exit_json(msg=msg)
 
 
