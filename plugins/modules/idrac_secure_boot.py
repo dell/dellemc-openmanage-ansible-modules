@@ -328,12 +328,8 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
                         self.module.exit_json(msg=SUCCESS_MSG, changed=True)
                     else:
                         self.module.exit_json(msg=error_msg, failed=True)
-                else:
-                    pass
             else:
-                pass
-        else:
-            pass
+                self.module.exit_json(msg=err_msg)
         self.module.exit_json(msg=msg)
 
 
