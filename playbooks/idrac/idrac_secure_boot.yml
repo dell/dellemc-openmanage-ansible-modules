@@ -11,7 +11,7 @@
         idrac_password: "password"
         ca_path: "/path/to/ca_cert.pem"
         import_certificates: true
-        platform_key: "/root/Downloads/invalid_secure_boot.pem"
+        platform_key: /user/name/certificates/pk.pem
         key_exchange_key:
           - /user/name/certificates/kek1.pem
           - /user/name/certificates/kek2.pem
