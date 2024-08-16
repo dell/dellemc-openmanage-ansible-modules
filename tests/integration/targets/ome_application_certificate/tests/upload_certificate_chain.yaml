@@ -1,0 +1,47 @@
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: hostname, username
+         and password.'
+  when: hostname is not defined or username is not defined or password
+         is not defined
+
+- name: Ensure directory exists
+  ansible.builtin.file:
+    path: "{{ base_path }}"
+    state: directory
+
+- ansible.builtin.include_tasks: _download_certificates.yml
+
+- name: Upload the certificate chain
+  dellemc.openmanage.ome_application_certificate:
+    hostname: "{{ hostname }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    validate_certs: "{{ validate_certs }}"
+    command: "upload_cert_chain"
+    upload_file: "{{ base_path }}/{{ certificate_chain }}"
+  register: upload_result
+
+- name: Verify upload of the certificate chain
+  ansible.builtin.assert:
+    that:
+      - upload_result.changed
+      - upload_result.msg == "Successfully uploaded application certificate."
+
+- name: Delete created directory
+  ansible.builtin.file:
+    path: "{{ base_path }}"
+    state: absent
+
+  module_defaults:
+    dellemc.openmanage.ome_application_certificate:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"

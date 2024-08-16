@@ -1,0 +1,148 @@
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: hostname, username
+         and password.'
+  when: hostname is not defined or username is not defined or password
+         is not defined
+
+- block:
+    - name: Negative - Invalid subject_alternative_names.
+      dellemc.openmanage.ome_application_certificate:
+        distinguished_name: "hostname.com"
+        subject_alternative_names: "-1"
+        department_name: "Remote Access Group"
+        business_name: "Dell Inc."
+        locality: "Round Rock"
+        country_state: "Texas"
+        country: "US"
+        email: "support@dell.com"
+      register: invalid_san_n
+      ignore_errors: true
+
+    - name: Verify the status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_san_n.failed
+          - not invalid_san_n.changed
+          - 'invalid_san_n.msg == "HTTP Error 400: 400"'
+          - invalid_san_n.error_info.error['@Message.ExtendedInfo'][0]
+            .Message == "Unable to complete the request because the input
+            value for Subject Alternative Name(s) is missing or an invalid
+            value is entered."
+
+    - name: Negative - More than quaternary subject_alternative_names.
+      dellemc.openmanage.ome_application_certificate:
+        distinguished_name: "hostname.com"
+        subject_alternative_names: "hostname1.chassis.com,
+         hostname2.chassis.com,hostname3.chassis.com,
+         hostname4.chassis.com,hostname5.chassis.com"
+        department_name: "Remote Access Group"
+        business_name: "Dell Inc."
+        locality: "Round Rock"
+        country_state: "Texas"
+        country: "US"
+        email: "support@dell.com"
+      register: invalid_san
+      ignore_errors: true
+
+    - name: Verify the status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_san.failed
+          - not invalid_san.changed
+          - 'invalid_san.msg == "HTTP Error 400: 400"'
+          - invalid_san.error_info.error['@Message.ExtendedInfo'][0]
+            .Message == "Unable to complete the request because the
+            input value for SAN is missing or an invalid value is entered."
+
+    - name: Negative - Input as list in subject_alternative_names.
+      dellemc.openmanage.ome_application_certificate:
+        distinguished_name: "hostname.com"
+        subject_alternative_names:
+          "[hostname1.chassis.com,hostname2.chassis.com]"
+        department_name: "Remote Access Group"
+        business_name: "Dell Inc."
+        locality: "Round Rock"
+        country_state: "Texas"
+        country: "US"
+        email: "support@dell.com"
+      register: invalid_san_m
+      ignore_errors: true
+
+    - name: Verify the status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_san_m.failed
+          - not invalid_san_m.changed
+          - 'invalid_san_m.msg == "HTTP Error 400: 400"'
+          - invalid_san_m.error_info.error['@Message.ExtendedInfo'][0]
+            .Message == "Unable to complete the request because the
+            input value for Subject Alternative Name(s) is missing or
+            an invalid value is entered."
+
+    - name: Negative - Input with more than 64 characters in subject_alternative_name.
+      dellemc.openmanage.ome_application_certificate:
+        distinguished_name: "hostname.com"
+        subject_alternative_names: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        department_name: "Remote Access Group"
+        business_name: "Dell Inc."
+        locality: "Round Rock"
+        country_state: "Texas"
+        country: "US"
+        email: "support@dell.com"
+      register: invalid_san_m_char
+      ignore_errors: true
+
+    - name: Verify the status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_san_m_char.failed
+          - not invalid_san_m_char.changed
+          - 'invalid_san_m_char.msg == "HTTP Error 400: 400"'
+          - invalid_san_m_char.error_info.error['@Message.ExtendedInfo'][0]
+            .Message == "Unable to complete the request because the input
+            value for Subject Alternative Name(s) is missing or an invalid
+            value is entered."
+
+    #   TITLE: Defect- JIT-277402 - Ansible(8.3.0)-[Latent]
+    #   [ome_application_certificate]
+    #   Task is not failing when invalid Subject Alternative Name is provided
+    #   DESCRIPTION: : Module should show proper error message
+    # - name: Negative - Input with a single character in each segment in
+    #   subject_alternative_name.
+    #   dellemc.openmanage.ome_application_certificate:
+    #     distinguished_name: "hostname.com"
+    #     subject_alternative_names: "test.dell.i"
+    #     department_name: "Remote Access Group"
+    #     business_name: "Dell Inc."
+    #     locality: "Round Rock"
+    #     country_state: "Texas"
+    #     country: "US"
+    #     email: "support@dell.com"
+    #   register: invalid_san_m_char_segment
+    #   ignore_errors: true
+
+    # - name: Verify the status of tasks
+    #   ansible.builtin.assert:
+    #     that:
+    #       - invalid_san_m_char_segment.failed
+    #       - not invalid_san_m_char_segment.changed
+    #       - 'invalid_san_m_char_segment.msg == "HTTP Error 400: 400"'
+    #       - invalid_san_m_char_segment.error_info.error
+    #         ['@Message.ExtendedInfo'][0]
+    #         .Message == "Unable to complete the request because the
+    #         input value for Subject Alternative Name(s) is missing
+    #         or an invalid value is entered."
+
+  module_defaults:
+    dellemc.openmanage.ome_application_certificate:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"

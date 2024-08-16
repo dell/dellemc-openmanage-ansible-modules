@@ -1,0 +1,66 @@
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: hostname, username
+         and password.'
+  when: hostname is not defined or username is not defined or password
+         is not defined
+
+- name: Verify CSR
+  vars:
+    commonName: "commonhostname.com"
+    countryName: "US"
+    emailAddress: "support@dell.com"
+    localityName: "Round Rock"
+    organizationName: "Dell Inc."
+    organizationalUnitName: "Remote Access Group"
+    stateOrProvinceName: "Texas"
+  block:
+    - name: Generate a certificate signing request.
+      dellemc.openmanage.ome_application_certificate:
+        distinguished_name: "{{ commonName }}"
+        department_name: "{{ organizationalUnitName }}"
+        business_name: "{{ organizationName }}"
+        locality: "{{ localityName }}"
+        country_state: "{{ stateOrProvinceName }}"
+        country: "{{ countryName }}"
+        email: "{{ emailAddress }}"
+      register: generate
+
+    - name: Verify the status of tasks
+      ansible.builtin.assert:
+        that:
+          - not generate.changed
+          - generate.csr_status.CertificateData.startswith
+           ("-----BEGIN CERTIFICATE REQUEST-----\n")
+          - generate.csr_status.CertificateData.endswith
+           ("\n-----END CERTIFICATE REQUEST-----")
+
+    - name: Get CSR info
+      community.crypto.openssl_csr_info:
+        content: "{{ generate.csr_status.CertificateData }}"
+      register: csr_content
+
+    - name: Verify CSR info
+      ansible.builtin.assert:
+        that:
+          - csr_content.subject.commonName == commonName
+          - csr_content.subject.organizationalUnitName ==
+           organizationalUnitName
+          - csr_content.subject.organizationName == organizationName
+          - csr_content.subject.localityName == localityName
+          - csr_content.subject.stateOrProvinceName == stateOrProvinceName
+          - csr_content.subject.countryName == countryName
+          - csr_content.subject.emailAddress == emailAddress
+
+  module_defaults:
+    dellemc.openmanage.ome_application_certificate:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"
