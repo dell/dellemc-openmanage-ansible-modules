@@ -11,6 +11,14 @@
 
 
 from __future__ import absolute_import, division, print_function
+import json
+import os
+from urllib.error import HTTPError, URLError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
+    get_dynamic_uri, remove_key, validate_and_get_first_resource_id_uri,
+    trigger_restart_operation, wait_for_lc_status, get_lc_log_or_current_log_time)
 
 __metaclass__ = type
 
@@ -136,14 +144,6 @@ error_info:
   }
 '''
 
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    get_dynamic_uri, remove_key, validate_and_get_first_resource_id_uri,
-    trigger_restart_operation, wait_for_lc_status, get_lc_log_or_current_log_time)
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
-from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from urllib.error import HTTPError, URLError
-import os
-import json
 
 SYSTEMS_URI = "/redfish/v1/Systems"
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be negative or zero."
@@ -272,6 +272,21 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
                 self.disallow_database)
         return payload
 
+    def looping_over_parameters(self, payload_values, uri):
+        for parameter, payload_list in payload_values.items():
+            for each_payload in payload_list:
+                payload = {"CertificateString": each_payload['cert_data'],
+                           "CertificateType": "PEM"}
+                cert_uri = get_dynamic_uri(
+                    self.idrac, uri[parameter], 'Certificates')[odata]
+
+                try:
+                    self.idrac.invoke_request(
+                        method='POST', uri=cert_uri, data=payload)
+                except HTTPError:
+                    self.module.warn(FAILED_IMPORT.format(
+                        parameter=parameter, path=each_payload['path']))
+
     def perform_operation(self):
         """
         Perform operation
@@ -289,19 +304,7 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
         uri = self.mapping_secure_boot_database_uri()
         current_time = get_lc_log_or_current_log_time(self.idrac)
 
-        for parameter, payload_list in payload_values.items():
-            for each_payload in payload_list:
-                payload = {"CertificateString": each_payload['cert_data'],
-                           "CertificateType": "PEM"}
-                cert_uri = get_dynamic_uri(
-                    self.idrac, uri[parameter], 'Certificates')[odata]
-
-                try:
-                    self.idrac.invoke_request(
-                        method='POST', uri=cert_uri, data=payload)
-                except HTTPError:
-                    self.module.warn(FAILED_IMPORT.format(
-                        parameter=parameter, path=each_payload['path']))
+        self.looping_over_parameters(payload_values, uri)
 
         lc_log, msg = get_lc_log_or_current_log_time(
             self.idrac, current_time, success_codes)
@@ -325,7 +328,12 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
                         self.module.exit_json(msg=SUCCESS_MSG, changed=True)
                     else:
                         self.module.exit_json(msg=error_msg, failed=True)
-
+                else:
+                    pass
+            else:
+                pass
+        else:
+            pass
         self.module.exit_json(msg=msg)
 
 
