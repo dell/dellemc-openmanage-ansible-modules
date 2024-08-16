@@ -11,14 +11,6 @@
 
 
 from __future__ import absolute_import, division, print_function
-import json
-import os
-from urllib.error import HTTPError, URLError
-from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    get_dynamic_uri, remove_key, validate_and_get_first_resource_id_uri,
-    trigger_restart_operation, wait_for_lc_status, get_lc_log_or_current_log_time)
 
 __metaclass__ = type
 
@@ -144,6 +136,14 @@ error_info:
   }
 '''
 
+import json
+import os
+from urllib.error import HTTPError, URLError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
+    get_dynamic_uri, remove_key, validate_and_get_first_resource_id_uri,
+    trigger_restart_operation, wait_for_lc_status, get_lc_log_or_current_log_time)
 
 SYSTEMS_URI = "/redfish/v1/Systems"
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be negative or zero."
@@ -329,7 +329,7 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
                     else:
                         self.module.exit_json(msg=error_msg, failed=True)
             else:
-                self.module.exit_json(msg=err_msg)
+                self.module.exit_json(msg=msg)
         self.module.exit_json(msg=msg)
 
 
