@@ -37,6 +37,8 @@ NO_VALID_PATHS = "No valid absolute path found for certificate(s)."
 CHANGES_FOUND = 'Changes found to be applied.'
 FAILED_IMPORT = "Failed to import certificate file {path}."
 NO_IMPORT_SUCCESS = "The Secure Boot Certificate Import operation was not successful."
+IMPORT_REQUIRED_IF = "import_certificates is True but any of the following are missing: \
+platform_key, key_exchange_key, database, disallow_database"
 odata = '@odata.id'
 get_log_function = "idrac_secure_boot.get_lc_log_or_current_log_time"
 
@@ -113,9 +115,10 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
 
         # Scenario 2: When import_certificates is True, other parameters is empty
         idrac_default_args.update({'import_certificates': True})
-        resp = self._run_module(idrac_default_args)
-        assert resp['msg'] == NO_VALID_PATHS
-        assert resp['skipped'] is True
+        with pytest.raises(Exception) as ex:
+            self._run_module(idrac_default_args)
+        assert ex.value.args[0]["msg"] == IMPORT_REQUIRED_IF
+        assert ex.value.args[0]["failed"] is True
 
         # Scenario 3: When import_certificates is True, invalid path is given
         idrac_default_args.update({'import_certificates': True,
@@ -216,9 +219,14 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
     def test_idrac_secure_boot_main_exception_handling_case(self, exc_type, mocker, idrac_default_args,
                                                             idrac_connection_secure_boot, idrac_secure_boot_mock):
         obj = MagicMock()
+        invalid_pem_file_path = '/XX/YY/ZZ.pem'
         obj.perform_operation.return_value = None
         obj.validate_job_timeout.return_value = None
-        idrac_default_args.update({'import_certificates': True})
+        mocker.patch("os.path.isabs", return_value=True)
+        mocker.patch("os.access", return_value=True)
+        mocker.patch("os.path.isfile", return_value=True)
+        idrac_default_args.update({'import_certificates': True,
+                                   'database': [invalid_pem_file_path]})
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACImportSecureBoot.perform_operation",

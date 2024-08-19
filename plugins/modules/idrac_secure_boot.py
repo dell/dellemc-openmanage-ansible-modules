@@ -347,8 +347,11 @@ def main():
             "job_wait": {"type": 'bool', "default": True},
             "job_wait_timeout": {"type": 'int', "default": 1200},
         }
+        required_if_val = [("import_certificates", True, ("platform_key", "key_exchange_key",
+                            "database", "disallow_database"), True)]
 
         module = IdracAnsibleModule(argument_spec=specs,
+                                    required_if=required_if_val,
                                     supports_check_mode=True)
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:
             obj = None
