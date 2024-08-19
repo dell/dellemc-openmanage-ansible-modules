@@ -12,7 +12,7 @@ idrac_secure_boot -- Configures the iDRAC secure boot
 Synopsis
 --------
 
-This module allows you to configure the secure boot.
+This module allows you to configure the iDRAC secure boot.
 
 
 
@@ -36,41 +36,39 @@ Parameters
   platform_key (optional, path, None)
     Platform Key policy certificate path for UEFI Secure Boot.
 
-    Absolute path of the certificate file \ :emphasis:`import\_certificates`\  is \ :literal:`true`\ .
+    The absolute path of the certificate file if \ :emphasis:`import\_certificates`\  is \ :literal:`true`\ .
 
 
   key_exchange_key (optional, list, None)
     Key exchange key policy certificate paths for UEFI Secure Boot.
 
-    Absolute path of the certificate file if \ :emphasis:`import\_certificates`\  is \ :literal:`import`\ .
+    The absolute path of the certificate file if \ :emphasis:`import\_certificates`\  is \ :literal:`import`\ .
 
 
   database (optional, list, None)
-    Databases certificate paths for UEFI Secure Boot.
+    Paths of database certificate files for UEFI secure boot.
 
-    Absolute path of the certificate file if \ :emphasis:`import\_certificates`\  is \ :literal:`import`\ .
+    The absolute path of the certificate file if \ :emphasis:`import\_certificates`\  is \ :literal:`import`\ .
 
 
   disallow_database (optional, list, None)
     Disallow database certificate paths for UEFI Secure Boot.
 
-    Absolute path of the certificate file if \ :emphasis:`import\_certificates`\  is \ :literal:`import`\ .
+    The absolute path of the certificate file if \ :emphasis:`import\_certificates`\  is \ :literal:`import`\ .
 
 
   restart (optional, bool, False)
     Restart the server to apply the secure boot settings.
 
-    \ :emphasis:`restart`\  will be ignored only when \ :emphasis:`export\_certificates`\  is \ :literal:`true`\ .
+    \ :emphasis:`restart`\  is ignored if \ :emphasis:`export\_certificates`\  is \ :literal:`true`\ .
 
 
   restart_type (optional, str, GracefulRestart)
     Reset type
 
-    \ :literal:`ForceRestart`\  Forcefully reboot the host system.
+    \ :literal:`ForceRestart`\  forcefully reboots the host system.
 
-    \ :literal:`GracefulRestart`\  Gracefully reboot the host system.
-
-    \ :literal:`GracefulRestart`\  Gracefully reboot the host system.
+    \ :literal:`GracefulRestart`\  gracefully reboots the host system.
 
     \ :emphasis:`restart\_type`\  is applicable when i(restart) is \ :literal:`true`\ .
 
@@ -140,9 +138,9 @@ Notes
 -----
 
 .. note::
-   - This module reports changes found when ran in check\_mode for \ :emphasis:`import\_certificates`\ .
+   - When this module runs in check\_mode for \ :emphasis:`import\_certificates`\ , it reports the list of changes found.
    - This module does not support idempotency when \ :emphasis:`import\_certificates`\  is provided.
-   - This module supports both IPv4 and IPv6 address.
+   - This module supports IPv4 and IPv6 addresses.
    - This module supports \ :literal:`check\_mode`\ .
 
 

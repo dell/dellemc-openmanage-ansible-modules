@@ -20,7 +20,7 @@ module: idrac_secure_boot
 short_description: Configures the iDRAC secure boot
 version_added: "9.6.0"
 description:
-  - This module allows you to configure the secure boot.
+  - This module allows you to configure the iDRAC secure boot.
 extends_documentation_fragment:
   - dellemc.openmanage.idrac_x_auth_options
 options:
@@ -33,40 +33,39 @@ options:
     type: path
     description:
       - Platform Key policy certificate path for UEFI Secure Boot.
-      - Absolute path of the certificate file I(import_certificates) is C(true).
+      - The absolute path of the certificate file if I(import_certificates) is C(true).
   key_exchange_key:
     type: list
     elements: path
     description:
       - Key exchange key policy certificate paths for UEFI Secure Boot.
-      - Absolute path of the certificate file if I(import_certificates) is C(import).
+      - The absolute path of the certificate file if I(import_certificates) is C(import).
   database:
     type: list
     elements: path
     description:
-      - Databases certificate paths for UEFI Secure Boot.
-      - Absolute path of the certificate file if I(import_certificates) is C(import).
+      - Paths of database certificate files for UEFI secure boot.
+      - The absolute path of the certificate file if I(import_certificates) is C(import).
   disallow_database:
     type: list
     elements: path
     description:
       - Disallow database certificate paths for UEFI Secure Boot.
-      - Absolute path of the certificate file if I(import_certificates) is C(import).
+      - The absolute path of the certificate file if I(import_certificates) is C(import).
   restart:
     type: bool
     default: false
     description:
       -  Restart the server to apply the secure boot settings.
-      - I(restart) will be ignored only when I(export_certificates) is C(true).
+      - I(restart) is ignored if I(export_certificates) is C(true).
   restart_type:
     type: str
     default: GracefulRestart
     choices: [GracefulRestart, ForceRestart]
     description:
       - Reset type
-      - C(ForceRestart) Forcefully reboot the host system.
-      - C(GracefulRestart) Gracefully reboot the host system.
-      - C(GracefulRestart) Gracefully reboot the host system.
+      - C(ForceRestart) forcefully reboots the host system.
+      - C(GracefulRestart) gracefully reboots the host system.
       - I(restart_type) is applicable when i(restart) is C(true).
   job_wait:
     type: bool
@@ -84,9 +83,9 @@ requirements:
 author:
     - "Abhishek Sinha(@ABHISHEK-SINHA10)"
 notes:
-    - This module reports changes found when ran in check_mode for I(import_certificates).
+    - When this module runs in check_mode for I(import_certificates), it reports the list of changes found.
     - This module does not support idempotency when I(import_certificates) is provided.
-    - This module supports both IPv4 and IPv6 address.
+    - This module supports IPv4 and IPv6 addresses.
     - This module supports C(check_mode).
 """
 
