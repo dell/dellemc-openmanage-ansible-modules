@@ -41,6 +41,8 @@ IMPORT_REQUIRED_IF = "import_certificates is True but any of the following are m
 platform_key, key_exchange_key, database, disallow_database"
 odata = '@odata.id'
 get_log_function = "idrac_secure_boot.get_lc_log_or_current_log_time"
+OS_ABS_FN = "os.path.isabs"
+OS_ACCESS_FN = "os.access"
 
 
 class TestIDRACSecureBoot(FakeAnsibleModule):
@@ -130,8 +132,8 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         # Scenaro 4: When import_certificates is True, path doesn't have read permission
         mocker.patch(MODULE_PATH + get_log_function,
                      side_effect=mock_get_lc_log_scheduled)
-        mocker.patch("os.path.isabs", return_value=False)
-        mocker.patch("os.access", return_value=False)
+        mocker.patch(OS_ABS_FN, return_value=False)
+        mocker.patch(OS_ACCESS_FN, return_value=False)
         idrac_default_args.update({'import_certificates': True,
                                    'database': [invalid_pem_file_path]})
         resp = self._run_module(idrac_default_args)
@@ -143,8 +145,8 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
                      side_effect=mock_get_no_lc_log)
         mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACImportSecureBoot.read_certificate_file",
                      return_value='some data in file')
-        mocker.patch("os.path.isabs", return_value=True)
-        mocker.patch("os.access", return_value=True)
+        mocker.patch(OS_ABS_FN, return_value=True)
+        mocker.patch(OS_ACCESS_FN, return_value=True)
         mocker.patch("os.path.isfile", return_value=True)
         idrac_default_args.update({'import_certificates': True,
                                    'platform_key': invalid_pem_file_path,
@@ -222,8 +224,8 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         invalid_pem_file_path = '/XX/YY/ZZ.pem'
         obj.perform_operation.return_value = None
         obj.validate_job_timeout.return_value = None
-        mocker.patch("os.path.isabs", return_value=True)
-        mocker.patch("os.access", return_value=True)
+        mocker.patch(OS_ABS_FN, return_value=True)
+        mocker.patch(OS_ACCESS_FN, return_value=True)
         mocker.patch("os.path.isfile", return_value=True)
         idrac_default_args.update({'import_certificates': True,
                                    'database': [invalid_pem_file_path]})
