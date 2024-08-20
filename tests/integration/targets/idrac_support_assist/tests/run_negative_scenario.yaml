@@ -11,13 +11,13 @@
   when: "idrac_ip is not defined or idrac_user is not defined or idrac_password
     is not defined"
 
-# - name: Pre-requisite - Checking if LC status is ready
-#   ansible.builtin.include_tasks:
-#     file: ../__lc_status.yml
+- name: Pre-requisite - Checking if LC status is ready
+  ansible.builtin.include_tasks:
+    file: ../__lc_status.yml
 
-# - name: Pre-requisite - Checking if iDRAC is powered on and clear job_queue
-#   ansible.builtin.include_tasks:
-#     file: ../_helper.yml
+- name: Pre-requisite - Checking if iDRAC is powered on and clear job_queue
+  ansible.builtin.include_tasks:
+    file: ../_helper.yml
 
 - block:
     - name: Export the SupportAssist Collection passing invalid run input

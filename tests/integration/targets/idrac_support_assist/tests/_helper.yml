@@ -64,7 +64,7 @@
         body: '{ "JobID" : "JID_CLEARALL_FORCE"}'
         status_code: 200
       register: powerstate
-      # no_log: true
+      no_log: true
 
     - name: Wait for IDRAC to be up
       ansible.builtin.pause:
