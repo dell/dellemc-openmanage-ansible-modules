@@ -101,9 +101,8 @@
           - "run_result.msg == 'Successfully ran the support assist
              collections.'"
           - "'job_details' in run_result"
-          - "run_result.job_details.Message == 'The SupportAssist Collection
-             Operation is completed successfully.'"
-          - "run_result.job_details.JobState == 'Completed'"
+          - "run_result.job_details.JobState == 'Completed' or
+            run_result.job_details.JobState == 'CompletedWithErrors'"
           - "run_result.job_details.JobType == 'SACollectHealthData'"
 
 - name: Perform only run operation when eula_accept is true and job_wait

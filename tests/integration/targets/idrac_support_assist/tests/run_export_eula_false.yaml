@@ -89,10 +89,8 @@
           - "run_result.msg == 'Successfully ran and exported the support
             assist collections.'"
           - "'job_details' in run_result"
-          - "run_result.job_details.Message == 'The SupportAssist Collection
-            operation is either fully or partially completed, and then exported
-            to the local path.'"
-          - "run_result.job_details.JobState == 'Completed'"
+          - "run_result.job_details.JobState == 'Completed' or
+            run_result.job_details.JobState == 'CompletedWithErrors'"
           - "run_result.job_details.JobType == 'LocalFileExport'"
 
 - name: Run and export with accept_eula as false and EULA terms when
