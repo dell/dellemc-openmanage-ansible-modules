@@ -33,11 +33,16 @@
         eula_status: true
       when: result is defined
 
+    - name: Set first EULA
+      ansible.builtin.set_fact:
+        eula_val: "{{ eulaStatus.json['@Message.ExtendedInfo'][1] }}"
+
     - name: Set the current EULA status
       ansible.builtin.set_fact:
-        curr_eula_status: "{{ eulaStatus.json['@Message.ExtendedInfo'][1].Message }}"
-        curr_eula_status_id: "{{ eulaStatus.json['@Message.ExtendedInfo'][1].MessageId }}"
-      when: eulaStatus is defined and eulaStatus.json is defined and result is defined
+        curr_eula_status: "{{ eula_val.Message }}"
+        curr_eula_status_id: "{{ eula_val.MessageId }}"
+      when: eulaStatus is defined and eulaStatus.json is defined and result
+            is defined
 
     - name: Assert - Eula terms are not accepted as a pre-requisite
       ansible.builtin.assert:
@@ -122,7 +127,8 @@
     - name: Set the CIFS IP and directory path- final step
       ansible.builtin.set_fact:
         cifs_share_ip: "{{ cifs_share_tmp | regex_replace('(\\\\)(.*)', '') }}"
-        cifs_share_dir_path: "{{ cifs_share_tmp | regex_replace('.*(\\\\)(.*)', '\\2') }}"
+        cifs_share_dir_path: "{{ cifs_share_tmp |
+               regex_replace('.*(\\\\)(.*)', '\\2') }}"
       no_log: true
 
     - name: Check Mode - Accept the EULA and run  and export SupportAssist
@@ -170,7 +176,8 @@
       ansible.builtin.assert:
         that:
           - run_result.changed
-          - "run_result.msg == 'Successfully ran and exported the support assist collections.'"
+          - "run_result.msg == 'Successfully ran and exported the support
+             assist collections.'"
           - "'job_details' in run_result"
           - "run_result.job_details.JobState == 'Completed'"
           - "run_result.job_details.JobType == 'SACollectExportHealthData'"
@@ -187,7 +194,8 @@
         that:
           - found_files_mod.files | length > 0
 
-- name: Perform run and export operation when eula_accept is true to http share using proxy
+- name: Perform run and export operation when eula_accept is true to http
+        share using proxy
   block:
     - name: Check Mode - Accept the EULA and run and export SupportAssist
             Collection with job wait as true and filter_data as true to http
@@ -213,9 +221,9 @@
       check_mode: true
       register: check_mode_result
 
-    - name: Verify - Check Mode- Accept the EULA and run and export SupportAssist
-            Collection with job wait as true and filter_data as true to http
-            share using proxy
+    - name: Verify - Check Mode- Accept the EULA and run and export
+            SupportAssist Collection with job wait as true and filter_data
+            as true to http share using proxy
       ansible.builtin.assert:
         that:
           - not check_mode_result.changed
@@ -244,9 +252,9 @@
           proxy_password: "{{ http_proxy_password }}"
       register: run_result
 
-    - name: Verify - Normal Mode - Accept the EULA and run and export SupportAssist
-            Collection with job wait as true and filter_data as true to http
-            share using proxy
+    - name: Verify - Normal Mode - Accept the EULA and run and export
+            SupportAssist Collection with job wait as true and filter_data
+            as true to http share using proxy
       ansible.builtin.assert:
         that:
           - run_result.changed

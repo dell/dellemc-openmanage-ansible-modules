@@ -1,7 +1,8 @@
-# Test code for the Dell OpenManage modules
+# Dell OpenManage Ansible modules
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
@@ -172,7 +173,8 @@
         that:
           - https_export_invalid_proxy_creds.failed
           - not https_export_invalid_proxy_creds.changed
-          - https_export_invalid_proxy_creds.msg == "Cannot access network share."
+          - https_export_invalid_proxy_creds.msg == "Cannot access
+            network share."
           - "'error_info' in https_export_invalid_proxy_creds"
 
     - name: Export https invalid proxy port
@@ -213,7 +215,8 @@
     - name: Set the CIFS IP and directory path- final step
       ansible.builtin.set_fact:
         cifs_share_ip: "{{ cifs_share_tmp | regex_replace('(\\\\)(.*)', '') }}"
-        cifs_share_dir_path: "{{ cifs_share_tmp | regex_replace('.*(\\\\)(.*)', '\\2') }}"
+        cifs_share_dir_path: "{{ cifs_share_tmp |
+                   regex_replace('.*(\\\\)(.*)', '\\2') }}"
       no_log: true
 
     - name: Check mode - Export cifs invalid path and accept_eula is not passed
@@ -328,7 +331,8 @@
         that:
           - cifs_export_invalid_workgroup.failed
           - not cifs_export_invalid_workgroup.changed
-          - 'cifs_export_invalid_workgroup.msg == "HTTP Error 400: Bad Request"'
+          - 'cifs_export_invalid_workgroup.msg == "HTTP Error 400: Bad
+             Request"'
           - "'error_info' in cifs_export_invalid_workgroup"
 
     - name: Export cifs - missing share creds
@@ -518,10 +522,14 @@
         eula_status: true
       when: result is defined
 
+    - name: Set first EULA
+      ansible.builtin.set_fact:
+        eula_val: "{{ eulaStatus.json['@Message.ExtendedInfo'][1] }}"
+
     - name: Set the current EULA status
       ansible.builtin.set_fact:
-        curr_eula_status: "{{ eulaStatus.json['@Message.ExtendedInfo'][1].Message }}"
-        curr_eula_status_id: "{{ eulaStatus.json['@Message.ExtendedInfo'][1].MessageId }}"
+        curr_eula_status: "{{ eula_val.Message }}"
+        curr_eula_status_id: "{{ eula_val.MessageId }}"
       when: eulaStatus is defined and eulaStatus.json is defined and result is defined
 
     - name: Assert - Eula terms are not accepted as a pre-requisite
