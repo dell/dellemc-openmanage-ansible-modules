@@ -17,10 +17,10 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: idrac_secure_boot
-short_description: Configures the iDRAC secure boot
+short_description: Import secure boot certificate.
 version_added: "9.6.0"
 description:
-  - This module allows you to configure the iDRAC secure boot.
+  - This module allows to import the secure boot certificate.
 extends_documentation_fragment:
   - dellemc.openmanage.idrac_x_auth_options
 options:
@@ -28,7 +28,7 @@ options:
     type: bool
     description:
         - Import all the specified key certificates.
-        - I(import_certificates) is C(true) either of I(platform_key) or I(KEK) or I(database) or I(disallow_database) is required.
+        - When I(import_certificates) is C(true) either of I(platform_key) or I(KEK) or I(database) or I(disallow_database) is required.
   platform_key:
     type: path
     description:
@@ -56,22 +56,24 @@ options:
     type: bool
     default: false
     description:
-      -  Restart the server to apply the secure boot settings.
-      - I(restart) is ignored if I(export_certificates) is C(true).
+      - Secure boot certificate import operation requires a server restart. This parameter provides an option to restart the server.
+      - C(true) will restart the server.
+      - C(false) will not restart the server.
+      - I(restart) is applicable when I(import) is C(true).
   restart_type:
     type: str
     default: GracefulRestart
     choices: [GracefulRestart, ForceRestart]
     description:
-      - Reset type
-      - C(ForceRestart) forcefully reboots the host system.
-      - C(GracefulRestart) gracefully reboots the host system.
+      - Restart type of the server.
+      - C(ForceRestart) will forcefully restart the server.
+      - C(GracefulRestart) will gracefully restart the server.
       - I(restart_type) is applicable when I(restart) is C(true).
   job_wait:
     type: bool
     default: true
     description:
-      - Provides the option to wait for job completion.
+      - Whether to wait till completion of the secure boot certificate operation. This is applicable when I(restart) is C(true).
   job_wait_timeout:
     type: int
     default: 1200
@@ -83,7 +85,7 @@ requirements:
 author:
     - "Abhishek Sinha(@ABHISHEK-SINHA10)"
 notes:
-    - When this module runs in check_mode for I(import_certificates), it reports the changes found.
+    - This module will always report changes found to be applied when run in C(check mode).
     - This module does not support idempotency when I(import_certificates) is provided.
     - This module supports IPv4 and IPv6 addresses.
     - This module supports C(check_mode).
