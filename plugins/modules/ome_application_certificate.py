@@ -29,7 +29,10 @@ extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
 options:
   command:
-    description: C(generate_csr) allows the generation of a CSR, C(upload) uploads the certificate and C(upload_cert_chain) uploads the certificate chain.
+    description:
+      - C(generate_csr) allows the generation of a CSR.
+      - C(upload) uploads the certificate on OpenManage Enterprise.
+      - C(upload_cert_chain) uploads the certificate chain on OpenManage Enterprise.
     type: str
     default: generate_csr
     choices: [generate_csr, upload, upload_cert_chain]
@@ -63,8 +66,8 @@ options:
   upload_file:
     type: str
     description: Local path of the certificate file to be uploaded. This option is applicable for C(upload) and C(upload_cert_chain).
-        Once the certificate is uploaded, OpenManage Enterprise cannot be accessed for a few seconds. The formats can be .crt, .cer,
-        .ca-bundle, .p7b, .der, and .pem.
+      Once the certificate is uploaded, OpenManage Enterprise cannot be accessed for a few seconds. The formats of the certificate
+      file are .crt, .cer, .ca-bundle, .p7b, .der, and .pem.
 requirements:
     - "python >= 3.9.6"
 author:
