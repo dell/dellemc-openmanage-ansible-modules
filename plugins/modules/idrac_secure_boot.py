@@ -160,7 +160,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
 SYSTEMS_URI = "/redfish/v1/Systems"
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be negative or zero."
 SUCCESS_MSG = "Successfully imported the SecureBoot certificate."
-NO_OPERATION_SKIP = "Task is skipped as import is 'false'."
+NO_OPERATION_SKIP = "Task is skipped as import_certificates is 'false'."
 PROVIDE_ABSOLUTE_PATH = "Please provide absolute path of the certificate file {path}."
 NO_READ_PERMISSION_PATH = "Unable to read the certificate file {path}."
 NO_FILE_FOUND = "Unable to find the certificate file {path}."
