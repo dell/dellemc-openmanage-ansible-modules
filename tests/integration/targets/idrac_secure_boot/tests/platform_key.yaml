@@ -1,0 +1,78 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    # PRE REQ - Power on server and check LC status
+    - name: Power on server.
+      dellemc.openmanage.redfish_powerstate:
+        baseuri: "{{ idrac_ip }}"
+        username: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+        reset_type: "On"
+
+    - name: Check LC Status
+      dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+
+    - name: Import platform_key policy certificate.
+       (check mode - changes expected)
+      dellemc.openmanage.idrac_secure_boot:
+        &import_pk
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password}}"
+        validate_certs: false
+        import_certificates: true
+        platform_key: /home/collections/ansible_collections/dellemc/openmanage/cert.pem
+        restart: true
+        restart_type: GracefulRestart
+        job_wait: true
+        job_wait_timeout: 1000
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify Import platform_key policy certificate.
+       (check mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == 'Changes found to be applied.'
+
+    - name: Import platform_key policy certificate. (normal mode)
+      dellemc.openmanage.idrac_secure_boot:
+        <<: *import_pk
+      register: import_pk
+
+    - name: Verify Import platform_key policy certificate. (normal mode)
+      ansible.builtin.assert:
+        that:
+          - import_pk.changed
+          - import_pk.msg == "Successfully imported the SecureBoot certificate."
+
+    - name: Get details by uri
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip }}/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/PK/Certificates/CustSecbootpolicy.1"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+      register: pk_uri
+
+    - name: Verify Get details by uri
+      ansible.builtin.assert:
+        that:
+          - import_pk.changed
+          - import_pk.msg == "Successfully imported the SecureBoot certificate."
