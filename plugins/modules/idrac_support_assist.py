@@ -116,8 +116,8 @@ options:
       ignore_certificate_warning:
         description:
           - Ignores the certificate warning when connecting to the network share and is only applicable when I(share_type) is C(https).
-          - C(off) ignores the certificate warning.
-          - C(on) does not ignore the certificate warning.
+          - C(on) ignores the certificate warning.
+          - C(off) does not ignore the certificate warning.
         type: str
         choices: ["off", "on"]
         default: "off"
