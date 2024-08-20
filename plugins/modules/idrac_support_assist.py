@@ -344,7 +344,6 @@ SUCCESS_EXPORT_MSG = "Successfully exported the support assist collections."
 SUCCESS_RUN_MSG = "Successfully ran the support assist collections."
 SUCCESS_RUN_AND_EXPORT_MSG = "Successfully ran and exported the support assist collections."
 RUNNING_RUN_MSG = "Successfully triggered the job to run support assist collections."
-RUNNING_EXPORT_MSG = "Successfully triggered the job to export support assist collections."
 RUNNING_RUN_AND_EXPORT_MSG = "Successfully triggered the job to run and export support assist collections."
 ALREADY_RUN_MSG = "The support assist collections job is already present."
 INVALID_DIRECTORY_MSG = "Provided directory path '{path}' is not valid."
@@ -358,7 +357,7 @@ WAIT_TIMEOUT_MSG = "The job is not complete after {0} seconds."
 CHANGES_FOUND_MSG = "Changes found to be applied."
 CHANGES_NOT_FOUND_MSG = "No changes found to be applied."
 ALLOWED_VALUES_MSG = "Enter a valid value from the list of allowable values: {0}"
-NO_VALUE_MSG = "data_collector can't be empty. Enter a value."
+NO_VALUE_MSG = "data_collector can't be empty. Enter a valid value."
 NO_FILE = "The support assist collections log does not exist."
 TIME_FORMAT = "%Y%m%d_%H%M%S"
 
@@ -554,6 +553,8 @@ class RunSupportAssist(SupportAssist):
 
     def execute(self):
         msg, job_details = None, None
+        if self.module.params.get('export'):
+            self.test_network_share()
         self.__get_run_support_assist_url()
         self.check_support_assist_jobs()
         self.__validate_job_timeout()
@@ -724,8 +725,8 @@ class RunSupportAssist(SupportAssist):
 class ExportSupportAssist(SupportAssist):
 
     def execute(self):
-        RunSupportAssist.check_support_assist_jobs(self)
         self.test_network_share()
+        RunSupportAssist.check_support_assist_jobs(self)
         self.__get_export_support_assist_url()
         if self.module.check_mode:
             self.perform_check_mode()
