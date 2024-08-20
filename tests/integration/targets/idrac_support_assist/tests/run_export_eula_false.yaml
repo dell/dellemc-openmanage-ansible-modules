@@ -28,10 +28,14 @@
       vars:
         eula_status: true
 
+    - name: Set first EULA
+      ansible.builtin.set_fact:
+        eula_val: "{{ eulaStatus.json['@Message.ExtendedInfo'][0] }}"
+
     - name: Set the current EULA status
       ansible.builtin.set_fact:
-        curr_eula_status: "{{ eulaStatus.json['@Message.ExtendedInfo'][0].Message }}"
-        curr_eula_status_id: "{{ eulaStatus.json['@Message.ExtendedInfo'][0].MessageId }}"
+        curr_eula_status: "{{ eula_val.Message }}"
+        curr_eula_status_id: "{{ eula_val.MessageId }}"
       when: eulaStatus is defined and eulaStatus.json is defined
 
     - name: Pre-requisite - Accept the EULA terms
@@ -100,10 +104,14 @@
       vars:
         eula_status: true
 
+    - name: Set first EULA
+      ansible.builtin.set_fact:
+        eula_val: "{{ eulaStatus.json['@Message.ExtendedInfo'][0] }}"
+
     - name: Set the current EULA status
       ansible.builtin.set_fact:
-        curr_eula_status: "{{ eulaStatus.json['@Message.ExtendedInfo'][0].Message }}"
-        curr_eula_status_id: "{{ eulaStatus.json['@Message.ExtendedInfo'][0].MessageId }}"
+        curr_eula_status: "{{ eula_val.Message }}"
+        curr_eula_status_id: "{{ eula_val.MessageId }}"
       when: eulaStatus is defined and eulaStatus.json is defined
 
     - name: Pre-requisite - Unaccept the EULA terms
@@ -118,11 +126,16 @@
         eula_status: true
       when: result is defined
 
+    - name: Set first EULA
+      ansible.builtin.set_fact:
+        eula_val: "{{ eulaStatus.json['@Message.ExtendedInfo'][1] }}"
+
     - name: Set the current EULA status
       ansible.builtin.set_fact:
-        curr_eula_status: "{{ eulaStatus.json['@Message.ExtendedInfo'][1].Message }}"
-        curr_eula_status_id: "{{ eulaStatus.json['@Message.ExtendedInfo'][1].MessageId }}"
-      when: eulaStatus is defined and eulaStatus.json is defined and result is defined
+        curr_eula_status: "{{ eula_val.Message }}"
+        curr_eula_status_id: "{{ eula_val.MessageId }}"
+      when: eulaStatus is defined and eulaStatus.json is defined and
+            result is defined
 
     - name: Assert - Eula terms are not accepted as a pre-requisite
       ansible.builtin.assert:

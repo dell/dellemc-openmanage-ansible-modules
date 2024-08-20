@@ -27,11 +27,15 @@
         file: ../_eula_helper.yml
       vars:
         eula_status: true
-
+    
+    - name: Set first EULA
+      ansible.builtin.set_fact:
+        eula_val: "{{ eulaStatus.json['@Message.ExtendedInfo'][0] }}"
+    
     - name: Set the current EULA status
       ansible.builtin.set_fact:
-        curr_eula_status: "{{ eulaStatus.json['@Message.ExtendedInfo'][0].Message }}"
-        curr_eula_status_id: "{{ eulaStatus.json['@Message.ExtendedInfo'][0].MessageId }}"
+        curr_eula_status: "{{ eula_val.Message }}"
+        curr_eula_status_id: "{{ eula_val.MessageId }}"
       when: eulaStatus is defined and eulaStatus.json is defined
 
     - name: Pre-requisite - Accept the EULA terms
