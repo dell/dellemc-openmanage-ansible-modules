@@ -738,7 +738,8 @@ class ExportSupportAssist(SupportAssist):
             "http": self.__export_support_assist_http,
             "https": self.__export_support_assist_http,
             "cifs": self.__export_support_assist_cifs,
-            "nfs": self.__export_support_assist_nfs
+            "nfs": self.__export_support_assist_nfs,
+            "ftp": self.__export_support_assist_http
         }
         payload = share_type_methods[share_type]()
         if share_type == "local":
