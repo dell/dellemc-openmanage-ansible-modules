@@ -300,6 +300,30 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
                     self.module.warn(FAILED_IMPORT.format(
                         parameter=parameter, path=each_payload['path']))
 
+    def perform_restart(self, success_codes, current_time):
+        if self.module.params.get('restart'):
+            resp, err_msg = trigger_restart_operation(
+                self.idrac, self.module.params.get('restart_type'))
+
+            if resp.success:
+                if self.module.params.get('job_wait'):
+                    lc_completed, error_msg = wait_for_lc_status(
+                        self.idrac, self.module.params.get('job_wait_timeout'))
+
+                    if lc_completed:
+                        lc_log, msg = get_lc_log_or_current_log_time(
+                            self.idrac, current_time, success_codes)
+                        if lc_log:
+                            self.module.exit_json(msg=SUCCESS_MSG, changed=True)
+                        else:
+                            self.module.exit_json(msg=NO_IMPORT_SUCCESS,
+                                                  skipped=True)
+                    else:
+                        self.module.exit_json(msg=error_msg, failed=True)
+                else:
+                    self.module.exit_json(msg=SCHEDULED_AND_RESTARTED)
+            return
+
     def perform_operation(self):
         """
         Perform operation
@@ -320,33 +344,14 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
 
         self.looping_over_parameters(payload_values, uri)
 
-        lc_log, msg = get_lc_log_or_current_log_time(
+        lc_log, scheduled_msg = get_lc_log_or_current_log_time(
             self.idrac, current_time, scheduled_code)
 
         if not lc_log:
             self.module.exit_json(msg=NO_IMPORT_SUCCESS, skipped=True)
 
-        if self.module.params.get('restart'):
-            resp, err_msg = trigger_restart_operation(
-                self.idrac, self.module.params.get('restart_type'))
-
-            if resp.success:
-                if self.module.params.get('job_wait'):
-                    lc_completed, error_msg = wait_for_lc_status(
-                        self.idrac, self.module.params.get('job_wait_timeout'))
-
-                    if lc_completed:
-                        lc_log, msg = get_lc_log_or_current_log_time(
-                            self.idrac, current_time, success_codes)
-
-                        self.module.exit_json(msg=SUCCESS_MSG, changed=True)
-                    else:
-                        self.module.exit_json(msg=error_msg, failed=True)
-                else:
-                    self.module.exit_json(msg=SCHEDULED_AND_RESTARTED)
-            else:
-                self.module.exit_json(msg=msg)
-        self.module.exit_json(msg=msg)
+        self.perform_restart(success_codes, current_time)
+        self.module.exit_json(msg=scheduled_msg)
 
 
 def main():
