@@ -12,7 +12,7 @@
         ca_path: "/path/to/ca_cert.pem"
         import_certificates: true
         platform_key: /user/name/certificates/pk.pem
-        key_exchange_key:
+        KEK:
           - /user/name/certificates/kek1.pem
           - /user/name/certificates/kek2.pem
         database:
