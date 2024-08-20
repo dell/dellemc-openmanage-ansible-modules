@@ -30,7 +30,7 @@ Parameters
   import_certificates (optional, bool, None)
     Import all the specified key certificates.
 
-    \ :emphasis:`import\_certificates`\  is \ :literal:`true`\  either of \ :emphasis:`platform\_key`\  or i(KEK) or \ :emphasis:`database`\  or \ :emphasis:`disallow\_database`\  is required.
+    \ :emphasis:`import\_certificates`\  is \ :literal:`true`\  either of \ :emphasis:`platform\_key`\  or \ :emphasis:`KEK`\  or \ :emphasis:`database`\  or \ :emphasis:`disallow\_database`\  is required.
 
 
   platform_key (optional, path, None)
@@ -70,7 +70,7 @@ Parameters
 
     \ :literal:`GracefulRestart`\  gracefully reboots the host system.
 
-    \ :emphasis:`restart\_type`\  is applicable when i(restart) is \ :literal:`true`\ .
+    \ :emphasis:`restart\_type`\  is applicable when \ :emphasis:`restart`\  is \ :literal:`true`\ .
 
 
   job_wait (optional, bool, True)

@@ -28,7 +28,7 @@ options:
     type: bool
     description:
         - Import all the specified key certificates.
-        - I(import_certificates) is C(true) either of I(platform_key) or i(KEK) or I(database) or I(disallow_database) is required.
+        - I(import_certificates) is C(true) either of I(platform_key) or I(KEK) or I(database) or I(disallow_database) is required.
   platform_key:
     type: path
     description:
@@ -66,7 +66,7 @@ options:
       - Reset type
       - C(ForceRestart) forcefully reboots the host system.
       - C(GracefulRestart) gracefully reboots the host system.
-      - I(restart_type) is applicable when i(restart) is C(true).
+      - I(restart_type) is applicable when I(restart) is C(true).
   job_wait:
     type: bool
     default: true
