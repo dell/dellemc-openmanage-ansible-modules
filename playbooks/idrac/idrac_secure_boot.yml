@@ -33,3 +33,4 @@
         platform_key: /user/name/certificates/pk.pem
         restart: true
         job_wait_timeout: 600
+      delegate_to: localhost
