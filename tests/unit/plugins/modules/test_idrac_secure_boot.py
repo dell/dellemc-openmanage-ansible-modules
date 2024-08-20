@@ -38,7 +38,7 @@ CHANGES_FOUND = 'Changes found to be applied.'
 FAILED_IMPORT = "Failed to import certificate file {path}."
 NO_IMPORT_SUCCESS = "The Secure Boot Certificate Import operation was not successful."
 IMPORT_REQUIRED_IF = "import_certificates is True but any of the following are missing: \
-platform_key, key_exchange_key, database, disallow_database"
+platform_key, KEK, database, disallow_database"
 odata = '@odata.id'
 get_log_function = "idrac_secure_boot.get_lc_log_or_current_log_time"
 OS_ABS_FN = "os.path.isabs"
@@ -150,7 +150,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         mocker.patch("os.path.isfile", return_value=True)
         idrac_default_args.update({'import_certificates': True,
                                    'platform_key': invalid_pem_file_path,
-                                   'key_exchange_key': [invalid_pem_file_path],
+                                   'KEK': [invalid_pem_file_path],
                                    'database': [invalid_pem_file_path],
                                    'disallow_database': [invalid_pem_file_path]})
         resp = self._run_module(idrac_default_args)

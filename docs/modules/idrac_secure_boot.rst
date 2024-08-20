@@ -28,19 +28,19 @@ Parameters
 ----------
 
   import_certificates (optional, bool, None)
-    Import all the specified key certificates.
+    Import all the specified KEK certificates.
 
-    \ :emphasis:`import\_certificates`\  is \ :literal:`true`\  either of \ :emphasis:`platform\_key`\  or i(key\_exchange\_key) or \ :emphasis:`database`\  or \ :emphasis:`disallow\_database`\  is required.
+    \ :emphasis:`import\_certificates`\  is \ :literal:`true`\  either of \ :emphasis:`platform\_key`\  or i(KEK) or \ :emphasis:`database`\  or \ :emphasis:`disallow\_database`\  is required.
 
 
   platform_key (optional, path, None)
-    Platform Key policy certificate path for UEFI Secure Boot.
+    Platform KEK policy certificate path for UEFI Secure Boot.
 
     The absolute path of the certificate file if \ :emphasis:`import\_certificates`\  is \ :literal:`true`\ .
 
 
-  key_exchange_key (optional, list, None)
-    Key exchange key policy certificate paths for UEFI Secure Boot.
+  KEK (optional, list, None)
+    KEK KEK KEK policy certificate paths for UEFI Secure Boot.
 
     The absolute path of the certificate file if \ :emphasis:`import\_certificates`\  is \ :literal:`import`\ .
 
@@ -157,7 +157,7 @@ Examples
       dellemc.openmanage.idrac_secure_boot:
         import_certificates: true
         platform_key: /user/name/certificates/pk.pem
-        key_exchange_key:
+        KEK:
           - /user/name/certificates/kek1.pem
           - /user/name/certificates/kek2.pem
         database:

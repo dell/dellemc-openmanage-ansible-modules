@@ -27,18 +27,18 @@ options:
   import_certificates:
     type: bool
     description:
-        - Import all the specified key certificates.
-        - I(import_certificates) is C(true) either of I(platform_key) or i(key_exchange_key) or I(database) or I(disallow_database) is required.
+        - Import all the specified KEK certificates.
+        - I(import_certificates) is C(true) either of I(platform_key) or i(KEK) or I(database) or I(disallow_database) is required.
   platform_key:
     type: path
     description:
-      - Platform Key policy certificate path for UEFI Secure Boot.
+      - Platform KEK policy certificate path for UEFI Secure Boot.
       - The absolute path of the certificate file if I(import_certificates) is C(true).
-  key_exchange_key:
+  KEK:
     type: list
     elements: path
     description:
-      - Key exchange key policy certificate paths for UEFI Secure Boot.
+      - KEK KEK KEK policy certificate paths for UEFI Secure Boot.
       - The absolute path of the certificate file if I(import_certificates) is C(import).
   database:
     type: list
@@ -95,7 +95,7 @@ EXAMPLES = """
   dellemc.openmanage.idrac_secure_boot:
     import_certificates: true
     platform_key: /user/name/certificates/pk.pem
-    key_exchange_key:
+    KEK:
       - /user/name/certificates/kek1.pem
       - /user/name/certificates/kek2.pem
     database:
@@ -164,7 +164,7 @@ class IDRACSecureBoot:
         self.module = module
         self.idrac = idrac
         self.uri_mapping = {'database': 'db',
-                            'key_exchange_key': 'KEK',
+                            'KEK': 'KEK',
                             'disallow_database': 'dbx',
                             'platform_key': 'PK'}
 
@@ -207,8 +207,8 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
         super().__init__(idrac, module)
         plt_key = self.module.params.get('platform_key')
         self.platform_key = [plt_key] if plt_key else []
-        self.key_exchange_key = self.module.params.get(
-            'key_exchange_key') or []
+        self.KEK = self.module.params.get(
+            'KEK') or []
         self.database = self.module.params.get('database') or []
         self.disallow_database = self.module.params.get(
             'disallow_database') or []
@@ -235,8 +235,8 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
         Filter invalid paths
         """
         self.platform_key = self.validate_certificate_paths(self.platform_key)
-        self.key_exchange_key = self.validate_certificate_paths(
-            self.key_exchange_key)
+        self.KEK = self.validate_certificate_paths(
+            self.KEK)
         self.database = self.validate_certificate_paths(self.database)
         self.disallow_database = self.validate_certificate_paths(
             self.disallow_database)
@@ -261,9 +261,9 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
         if self.platform_key:
             payload['platform_key'] = self.create_dictionary_payload(
                 self.platform_key)
-        if self.key_exchange_key:
-            payload['key_exchange_key'] = self.create_dictionary_payload(
-                self.key_exchange_key)
+        if self.KEK:
+            payload['KEK'] = self.create_dictionary_payload(
+                self.KEK)
         if self.database:
             payload['database'] = self.create_dictionary_payload(self.database)
         if self.disallow_database:
@@ -337,7 +337,7 @@ def main():
         specs = {
             "import_certificates": {"type": 'bool'},
             "platform_key": {"type": 'path'},
-            "key_exchange_key": {"type": 'list', "elements": 'path', "no_log": True},
+            "KEK": {"type": 'list', "elements": 'path'},
             "database": {"type": 'list', "elements": 'path'},
             "disallow_database": {"type": 'list', "elements": 'path'},
             "restart": {"type": 'bool', "default": False},
@@ -346,7 +346,7 @@ def main():
             "job_wait": {"type": 'bool', "default": True},
             "job_wait_timeout": {"type": 'int', "default": 1200},
         }
-        required_if_val = [("import_certificates", True, ("platform_key", "key_exchange_key",
+        required_if_val = [("import_certificates", True, ("platform_key", "KEK",
                             "database", "disallow_database"), True)]
 
         module = IdracAnsibleModule(argument_spec=specs,
