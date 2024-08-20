@@ -1,8 +1,8 @@
 .. _idrac_secure_boot_module:
 
 
-idrac_secure_boot -- Configures the iDRAC secure boot
-=====================================================
+idrac_secure_boot -- Import secure boot certificate.
+====================================================
 
 .. contents::
    :local:
@@ -12,7 +12,7 @@ idrac_secure_boot -- Configures the iDRAC secure boot
 Synopsis
 --------
 
-This module allows you to configure the iDRAC secure boot.
+This module allows to import the secure boot certificate.
 
 
 
@@ -30,51 +30,47 @@ Parameters
   import_certificates (optional, bool, None)
     Import all the specified key certificates.
 
-    \ :emphasis:`import\_certificates`\  is \ :literal:`true`\  either of \ :emphasis:`platform\_key`\  or \ :emphasis:`KEK`\  or \ :emphasis:`database`\  or \ :emphasis:`disallow\_database`\  is required.
+    When \ :emphasis:`import\_certificates`\  is \ :literal:`true`\  either of \ :emphasis:`platform\_key`\  or \ :emphasis:`KEK`\  or \ :emphasis:`database`\  or \ :emphasis:`disallow\_database`\  is required.
 
 
   platform_key (optional, path, None)
-    Platform key policy certificate path for UEFI Secure Boot.
-
-    The absolute path of the certificate file if \ :emphasis:`import\_certificates`\  is \ :literal:`true`\ .
+    The absolute path of the Platform key certificate file for UEFI secure boot.
 
 
   KEK (optional, list, None)
-    Key exchange key policy certificate paths for UEFI Secure Boot.
-
-    The absolute path of the certificate file if \ :emphasis:`import\_certificates`\  is \ :literal:`import`\ .
+    A list of absolute paths of the Key Exchange Key (KEK) certificate file for UEFI secure boot.
 
 
   database (optional, list, None)
-    Paths of database certificate files for UEFI secure boot.
-
-    The absolute path of the certificate file if \ :emphasis:`import\_certificates`\  is \ :literal:`import`\ .
+    A list of absolute paths of the Database certificate file for UEFI secure boot.
 
 
   disallow_database (optional, list, None)
-    Disallow database certificate paths for UEFI Secure Boot.
-
-    The absolute path of the certificate file if \ :emphasis:`import\_certificates`\  is \ :literal:`import`\ .
+    A list of absolute paths of the Disallow Database certificate file for UEFI secure boot.
 
 
   restart (optional, bool, False)
-    Restart the server to apply the secure boot settings.
+    Secure boot certificate import operation requires a server restart. This parameter provides an option to restart the server.
 
-    \ :emphasis:`restart`\  is ignored if \ :emphasis:`export\_certificates`\  is \ :literal:`true`\ .
+    \ :literal:`true`\  will restart the server.
+
+    \ :literal:`false`\  will not restart the server.
+
+    \ :emphasis:`restart`\  is applicable when \ :emphasis:`import`\  is \ :literal:`true`\ .
 
 
   restart_type (optional, str, GracefulRestart)
-    Reset type
+    Restart type of the server.
 
-    \ :literal:`ForceRestart`\  forcefully reboots the host system.
+    \ :literal:`ForceRestart`\  will forcefully restart the server.
 
-    \ :literal:`GracefulRestart`\  gracefully reboots the host system.
+    \ :literal:`GracefulRestart`\  will gracefully restart the server.
 
     \ :emphasis:`restart\_type`\  is applicable when \ :emphasis:`restart`\  is \ :literal:`true`\ .
 
 
   job_wait (optional, bool, True)
-    Provides the option to wait for job completion.
+    Whether to wait till completion of the secure boot certificate operation. This is applicable when \ :emphasis:`restart`\  is \ :literal:`true`\ .
 
 
   job_wait_timeout (optional, int, 1200)
@@ -138,10 +134,10 @@ Notes
 -----
 
 .. note::
-   - When this module runs in check\_mode for \ :emphasis:`import\_certificates`\ , it reports the changes found.
+   - This module supports \ :literal:`check\_mode`\ .
+   - This module will always report changes found to be applied when run in \ :literal:`check mode`\ .
    - This module does not support idempotency when \ :emphasis:`import\_certificates`\  is provided.
    - This module supports IPv4 and IPv6 addresses.
-   - This module supports \ :literal:`check\_mode`\ .
 
 
 

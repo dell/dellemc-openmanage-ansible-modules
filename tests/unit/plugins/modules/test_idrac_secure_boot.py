@@ -35,7 +35,7 @@ PROVIDE_ABSOLUTE_PATH = "Please provide absolute path of the certificate file {p
 NO_READ_PERMISSION_PATH = "Unable to read the certificate file {path}."
 NO_VALID_PATHS = "No valid absolute path found for certificate(s)."
 CHANGES_FOUND = 'Changes found to be applied.'
-FAILED_IMPORT = "Failed to import certificate file {path}."
+FAILED_IMPORT = "Failed to import certificate file {path} for {parameter}."
 NO_IMPORT_SUCCESS = "The Secure Boot Certificate Import operation was not successful."
 IMPORT_REQUIRED_IF = "import_certificates is True but any of the following are missing: \
 platform_key, KEK, database, disallow_database"

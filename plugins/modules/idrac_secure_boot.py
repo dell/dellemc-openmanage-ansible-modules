@@ -32,26 +32,22 @@ options:
   platform_key:
     type: path
     description:
-      - Platform key policy certificate path for UEFI Secure Boot.
-      - The absolute path of the certificate file if I(import_certificates) is C(true).
+      - The absolute path of the Platform key certificate file for UEFI secure boot.
   KEK:
     type: list
     elements: path
     description:
-      - Key exchange key policy certificate paths for UEFI Secure Boot.
-      - The absolute path of the certificate file if I(import_certificates) is C(import).
+      - A list of absolute paths of the Key Exchange Key (KEK) certificate file for UEFI secure boot.
   database:
     type: list
     elements: path
     description:
-      - Paths of database certificate files for UEFI secure boot.
-      - The absolute path of the certificate file if I(import_certificates) is C(import).
+      - A list of absolute paths of the Database certificate file for UEFI secure boot.
   disallow_database:
     type: list
     elements: path
     description:
-      - Disallow database certificate paths for UEFI Secure Boot.
-      - The absolute path of the certificate file if I(import_certificates) is C(import).
+      - A list of absolute paths of the Disallow Database certificate file for UEFI secure boot.
   restart:
     type: bool
     default: false
@@ -85,10 +81,10 @@ requirements:
 author:
     - "Abhishek Sinha(@ABHISHEK-SINHA10)"
 notes:
+    - This module supports C(check_mode).
     - This module will always report changes found to be applied when run in C(check mode).
     - This module does not support idempotency when I(import_certificates) is provided.
     - This module supports IPv4 and IPv6 addresses.
-    - This module supports C(check_mode).
 """
 
 EXAMPLES = """
@@ -170,7 +166,7 @@ NO_READ_PERMISSION_PATH = "Unable to read the certificate file {path}."
 NO_FILE_FOUND = "Unable to find the certificate file {path}."
 NO_VALID_PATHS = "No valid absolute path found for certificate(s)."
 CHANGES_FOUND = 'Changes found to be applied.'
-FAILED_IMPORT = "Failed to import certificate file {path}."
+FAILED_IMPORT = "Failed to import certificate file {path} for {parameter}."
 NO_IMPORT_SUCCESS = "The Secure Boot Certificate Import operation was not successful."
 odata = '@odata.id'
 
