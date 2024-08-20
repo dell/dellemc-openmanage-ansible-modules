@@ -569,8 +569,10 @@ def wait_for_lc_status(idrac, job_wait_timeout=300, resource_id=None, interval=1
     retry_count = 1
     # LCStatus remain 'Ready' even after triggering restart
     # so waiting few seconds before loop
-    time.sleep(3 * interval)
-    max_idrac_reset_try = ((job_wait_timeout - 3 * interval) // interval)
+    waiting_before_lc_status_check = 6 * interval
+    if job_wait_timeout >= waiting_before_lc_status_check:
+        time.sleep(waiting_before_lc_status_check)
+    max_idrac_reset_try = ((job_wait_timeout - waiting_before_lc_status_check) // interval)
     uri, error_msg = validate_and_get_first_resource_id_uri(resource_id, idrac, MANAGERS_URI)
     if error_msg:
         return lc_status_completed, error_msg
