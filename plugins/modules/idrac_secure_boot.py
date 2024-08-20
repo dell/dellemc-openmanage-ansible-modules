@@ -91,8 +91,12 @@ notes:
 
 EXAMPLES = """
 ---
-- name: Import a SecureBoot certificate.
+- name: Import a SecureBoot certificate without applying to iDRAC.
   dellemc.openmanage.idrac_secure_boot:
+    idrac_ip: "192.168.1.2"
+    idrac_user: "user"
+    idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     import_certificates: true
     platform_key: /user/name/certificates/pk.pem
     KEK:
@@ -104,6 +108,17 @@ EXAMPLES = """
     disallow_database:
       - /user/name/certificates/dbx1.pem
       - /user/name/certificates/dbx2.pem
+
+- name: Import a SecureBoot certificate and restart the server to apply it.
+  dellemc.openmanage.idrac_secure_boot:
+    idrac_ip: "192.168.1.2"
+    idrac_user: "user"
+    idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    import_certificates: true
+    platform_key: /user/name/certificates/pk.pem
+    restart: true
+    job_wait_timeout: 600
 """
 
 RETURN = r'''
@@ -112,7 +127,7 @@ msg:
   description: Status of the secure boot operation.
   returned: always
   type: str
-  sample: "The Secure Boot Certificate Import operation has completed successfully."
+  sample: "Successfully imported the SecureBoot certificate."
 error_info:
   description: Details of the HTTP Error.
   returned: on HTTP error
@@ -146,7 +161,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
 
 SYSTEMS_URI = "/redfish/v1/Systems"
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be negative or zero."
-SUCCESS_MSG = "The Secure Boot Certificate Import operation has completed successfully."
+SUCCESS_MSG = "Successfully imported the SecureBoot certificate."
 NO_OPERATION_SKIP = "Task is skipped as import is 'false'."
 PROVIDE_ABSOLUTE_PATH = "Please provide absolute path of the certificate file {path}."
 NO_READ_PERMISSION_PATH = "Unable to read the certificate file {path}."

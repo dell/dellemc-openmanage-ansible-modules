@@ -153,8 +153,12 @@ Examples
 
     
     ---
-    - name: Import a SecureBoot certificate.
+    - name: Import a SecureBoot certificate without applying to iDRAC.
       dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "192.168.1.2"
+        idrac_user: "user"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         import_certificates: true
         platform_key: /user/name/certificates/pk.pem
         KEK:
@@ -167,12 +171,23 @@ Examples
           - /user/name/certificates/dbx1.pem
           - /user/name/certificates/dbx2.pem
 
+    - name: Import a SecureBoot certificate and restart the server to apply it.
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "192.168.1.2"
+        idrac_user: "user"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        import_certificates: true
+        platform_key: /user/name/certificates/pk.pem
+        restart: true
+        job_wait_timeout: 600
+
 
 
 Return Values
 -------------
 
-msg (always, str, The Secure Boot Certificate Import operation has completed successfully.)
+msg (always, str, Successfully imported the SecureBoot certificate.)
   Status of the secure boot operation.
 
 

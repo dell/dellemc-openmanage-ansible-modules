@@ -28,7 +28,7 @@ from mock import MagicMock
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be negative or zero."
-SUCCESS_MSG = "The Secure Boot Certificate Import operation has completed successfully."
+SUCCESS_MSG = "Successfully imported the SecureBoot certificate."
 SCHEDULE_MSG = "The SecureBoot Certificate Import operation is successfully scheduled. Restart the host server for the changes to take effect."
 NO_OPERATION_SKIP = "Task is skipped as import is 'false'."
 PROVIDE_ABSOLUTE_PATH = "Please provide absolute path of the certificate file {path}"
