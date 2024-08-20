@@ -33,6 +33,7 @@
         password: "{{ idrac_password }}"
         validate_certs: "{{ validate_certs }}"
         reset_type: "On"
+      register: prereq_result
       when: curr_pwr_State == "Off"
 
     - name: Wait for the device power state to be On
@@ -49,6 +50,7 @@
     - name: Wait for IDRAC to be up
       ansible.builtin.pause:
         seconds: 120
+      when: prereq_result.changed
 
     - name: Clear the Job Queue
       ansible.builtin.uri:
@@ -67,3 +69,4 @@
     - name: Wait for IDRAC to be up
       ansible.builtin.pause:
         seconds: 180
+      when: powerstate.changed
