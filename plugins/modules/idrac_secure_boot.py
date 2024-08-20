@@ -166,6 +166,7 @@ NO_READ_PERMISSION_PATH = "Unable to read the certificate file {path}."
 NO_FILE_FOUND = "Unable to find the certificate file {path}."
 NO_VALID_PATHS = "No valid absolute path found for certificate(s)."
 CHANGES_FOUND = 'Changes found to be applied.'
+SCHEDULED_AND_RESTARTED = "Successfully scheduled the boot certificate import operation and restarted the server."
 FAILED_IMPORT = "Failed to import certificate file {path} for {parameter}."
 NO_IMPORT_SUCCESS = "The Secure Boot Certificate Import operation was not successful."
 odata = '@odata.id'
@@ -303,7 +304,8 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
         """
         Perform operation
         """
-        success_codes = ["SWC9010", "UEFI0286"]
+        success_codes = ["UEFI0286"]
+        scheduled_code = ["SWC9010"]
         self.filter_invalid_paths()
         self.validate_job_wait()
         payload_values = self.construct_payload()
@@ -319,7 +321,7 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
         self.looping_over_parameters(payload_values, uri)
 
         lc_log, msg = get_lc_log_or_current_log_time(
-            self.idrac, current_time, success_codes)
+            self.idrac, current_time, scheduled_code)
 
         if not lc_log:
             self.module.exit_json(msg=NO_IMPORT_SUCCESS, skipped=True)
@@ -340,6 +342,8 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
                         self.module.exit_json(msg=SUCCESS_MSG, changed=True)
                     else:
                         self.module.exit_json(msg=error_msg, failed=True)
+                else:
+                    self.module.exit_json(msg=SCHEDULED_AND_RESTARTED)
             else:
                 self.module.exit_json(msg=msg)
         self.module.exit_json(msg=msg)
