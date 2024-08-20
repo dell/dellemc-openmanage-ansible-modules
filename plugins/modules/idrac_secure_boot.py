@@ -91,7 +91,7 @@ notes:
 
 EXAMPLES = """
 ---
-- name: Import a SecureBoot certificate without applying to iDRAC.
+- name: Import multiple SecureBoot certificate without applying to iDRAC.
   dellemc.openmanage.idrac_secure_boot:
     idrac_ip: "192.168.1.2"
     idrac_user: "user"
