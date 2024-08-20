@@ -20,7 +20,7 @@
         method: POST
         body:
           "Filter": "Yes"
-          "DataSelectorArrayIn": ["HWData"]
+          "DataSelectorArrayIn": ["TTYLogs"]
         status_code:
           - 200
           - 202
@@ -33,7 +33,8 @@
         method: "GET"
         status_code: 200, 202
       register: result
-      until: result.json.JobState in ['Completed', 'Failed']
+      until: result.json.JobState is defined and result.json.JobState
+            in ['Completed', 'Failed']
       retries: "{{ retries_count | default(100) }}"
       delay: "{{ polling_interval | default(30) }}"
       delegate_to: localhost

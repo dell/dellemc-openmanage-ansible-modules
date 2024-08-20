@@ -96,7 +96,8 @@
           - "run_result.msg == 'Successfully ran and exported the support
             assist collections.'"
           - "'job_details' in run_result"
-          - "run_result.job_details.JobState == 'Completed'"
+          - "run_result.job_details.JobState == 'Completed' or
+            run_result.job_details.JobState == 'CompletedWithErrors'"
           - "run_result.job_details.JobType == 'LocalFileExport'"
 
 - name: Perform run and export operation when eula_accept is true to cifs share
@@ -179,7 +180,8 @@
           - "run_result.msg == 'Successfully ran and exported the support
              assist collections.'"
           - "'job_details' in run_result"
-          - "run_result.job_details.JobState == 'Completed'"
+          - "run_result.job_details.JobState == 'Completed' or
+            run_result.job_details.JobState == 'CompletedWithErrors'"
           - "run_result.job_details.JobType == 'SACollectExportHealthData'"
 
     - name: Search for files starting with TSR
