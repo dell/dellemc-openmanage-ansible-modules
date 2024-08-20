@@ -1,0 +1,132 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Pre-requisite - Checking if LC status is ready
+  ansible.builtin.include_tasks:
+    file: ../__lc_status.yml
+
+- name: Pre-requisite - Checking if iDRAC is powered on and clear job_queue
+  ansible.builtin.include_tasks:
+    file: ../_helper.yml
+
+- name: Perform run and export operation when eula_accept is true to local share
+  vars:
+    home_path: "{{ lookup('env','HOME') }}"
+  block:
+    - name: Pre-requisite - Fetch EULA status
+      ansible.builtin.include_tasks:
+        file: ../_eula_helper.yml
+      vars:
+        eula_status: true
+
+    - name: Set the current EULA status
+      ansible.builtin.set_fact:
+        curr_eula_status: "{{ eulaStatus.json['@Message.ExtendedInfo'][0].Message }}"
+        curr_eula_status_id: "{{ eulaStatus.json['@Message.ExtendedInfo'][0].MessageId }}"
+      when: eulaStatus is defined and eulaStatus.json is defined
+
+    - name: Pre-requisite - Accept the EULA terms
+      ansible.builtin.include_tasks:
+        file: ../_eula_helper.yml
+      vars:
+        accept_eula: true
+      when: curr_eula_status_id is defined and 'SRV074' not in
+            curr_eula_status_id
+
+    - name: Trigger the run collection and export to local
+      ansible.builtin.include_tasks: _run_support_assist_track.yml
+      vars:
+        job_track: true
+
+    - name: Fetch the service tag
+      ansible.builtin.include_tasks: _fetch_service_tag.yml
+
+    - name: Search for files starting with TSR
+      ansible.builtin.find:
+        paths: "{{ home_path }}/nfs"
+        patterns: "TSR*"
+        file_type: file
+      register: found_files
+
+    - name: Delete the found files
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ found_files.files }}"
+
+    - name: Set the NFS IP and directory path
+      ansible.builtin.set_fact:
+        nfs_share_ip: "{{ nfs_share_name.split(':/')[0] }}"
+        nfs_share_dir_path: "{{ nfs_share_name.split(':/')[1] }}"
+
+    - name: Check Mode - Export to NFS share
+      dellemc.openmanage.idrac_support_assist:
+        run: false
+        job_wait: true
+        share_parameters:
+          share_type: "nfs"
+          share_name: "{{ nfs_share_dir_path }}"
+          ip_address: "{{ nfs_share_ip }}"
+      check_mode: true
+      register: check_mode_result
+
+    - name: Verify -  Export to NFS share
+      ansible.builtin.assert:
+        that:
+          - check_mode_result.changed
+          - "check_mode_result.msg == 'Changes found to be applied.'"
+
+    - name: Normal Mode -  Export to NFS share
+      dellemc.openmanage.idrac_support_assist:
+        run: false
+        job_wait: true
+        share_parameters:
+          share_type: "nfs"
+          share_name: "{{ nfs_share_dir_path }}"
+          ip_address: "{{ nfs_share_ip }}"
+      register: run_result
+
+    - name: Verify - Normal Mode - Export to NFS share
+      ansible.builtin.assert:
+        that:
+          - run_result.changed
+          - "run_result.msg == 'Successfully exported the support assist collections.'"
+          - "'job_details' in run_result"
+          - "run_result.job_details.JobState == 'Completed'"
+          - "run_result.job_details.JobType == 'SAExportHealthData'"
+
+    - name: Search for files starting with TSR
+      ansible.builtin.find:
+        paths: "{{ home_path }}/nfs"
+        patterns: "TSR*{{ ServiceTag }}.*"
+        file_type: file
+      register: found_files_mod
+
+    - name: Check if it was exported successfully
+      ansible.builtin.assert:
+        that:
+          - found_files_mod.files | length > 0
+
+  always:
+    - name: Search for files starting with TSR
+      ansible.builtin.find:
+        paths: "{{ home_path }}/nfs"
+        patterns: "TSR*"
+        file_type: file
+      register: found_files
+
+    - name: Delete files after use
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ found_files.files }}"

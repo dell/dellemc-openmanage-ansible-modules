@@ -1,0 +1,165 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Pre-requisite - Checking if LC status is ready
+  ansible.builtin.include_tasks:
+    file: ../__lc_status.yml
+
+- name: Pre-requisite - Checking if iDRAC is powered on and clear job_queue
+  ansible.builtin.include_tasks:
+    file: ../_helper.yml
+
+- name: Run and export with accept_eula as false and EULA terms when it's
+        already accepted
+  block:
+    - name: Pre-requisite - Fetching EULA status
+      ansible.builtin.include_tasks:
+        file: ../_eula_helper.yml
+      vars:
+        eula_status: true
+
+    - name: Set the current EULA status
+      ansible.builtin.set_fact:
+        curr_eula_status: "{{ eulaStatus.json['@Message.ExtendedInfo'][0].Message }}"
+        curr_eula_status_id: "{{ eulaStatus.json['@Message.ExtendedInfo'][0].MessageId }}"
+      when: eulaStatus is defined and eulaStatus.json is defined
+
+    - name: Pre-requisite - Accept the EULA terms
+      ansible.builtin.include_tasks:
+        file: ../_eula_helper.yml
+      vars:
+        accept_eula: true
+      when: curr_eula_status_id is defined and 'SRV074' not in
+            curr_eula_status_id
+
+    - name: Fetch the EULA status after accepting EULA terms
+      ansible.builtin.include_tasks:
+        file: ../_eula_helper.yml
+      vars:
+        eula_status: true
+      when: eulaAccepted is defined
+
+    - name: Check Mode - Run and export with accept_eula as false and
+            EULA terms when it's already accepted
+      dellemc.openmanage.idrac_support_assist:
+        accept_eula: false
+        data_collector: ["storage_logs"]
+        share_parameters:
+          share_type: "local"
+          share_name: "{{ role_path }}/files"
+      check_mode: true
+      register: check_mode_result
+
+    - name: Verify - Check Mode- Run and export with accept_eula as false
+            and EULA terms when it's already accepted
+      ansible.builtin.assert:
+        that:
+          - check_mode_result.changed
+          - "check_mode_result.msg == 'Changes found to be applied.'"
+
+    - name: Normal Mode - Run and export with accept_eula as false and EULA
+            terms when it's already accepted
+      dellemc.openmanage.idrac_support_assist:
+        accept_eula: false
+        data_collector: ["storage_logs"]
+        share_parameters:
+          share_type: "local"
+          share_name: "{{ role_path }}/files"
+      register: run_result
+
+    - name: Verify - Normal Mode - Run and export with accept_eula as false and
+           EULA terms when it's already accepted
+      ansible.builtin.assert:
+        that:
+          - run_result.changed
+          - "run_result.msg == 'Successfully ran and exported the support
+            assist collections.'"
+          - "'job_details' in run_result"
+          - "run_result.job_details.Message == 'The SupportAssist Collection
+            operation is either fully or partially completed, and then exported
+            to the local path.'"
+          - "run_result.job_details.JobState == 'Completed'"
+          - "run_result.job_details.JobType == 'LocalFileExport'"
+
+- name: Run and export with accept_eula as false and EULA terms when
+        it's not accepted
+  block:
+    - name: Pre-requisite - Fetching EULA status
+      ansible.builtin.include_tasks:
+        file: ../_eula_helper.yml
+      vars:
+        eula_status: true
+
+    - name: Set the current EULA status
+      ansible.builtin.set_fact:
+        curr_eula_status: "{{ eulaStatus.json['@Message.ExtendedInfo'][0].Message }}"
+        curr_eula_status_id: "{{ eulaStatus.json['@Message.ExtendedInfo'][0].MessageId }}"
+      when: eulaStatus is defined and eulaStatus.json is defined
+
+    - name: Pre-requisite - Unaccept the EULA terms
+      ansible.builtin.include_tasks:
+        file: ../_reset_config.yml
+      when: curr_eula_status_id is defined and 'SRV074' in curr_eula_status_id
+
+    - name: Fetch the EULA status after accepting EULA terms
+      ansible.builtin.include_tasks:
+        file: ../_eula_helper.yml
+      vars:
+        eula_status: true
+      when: result is defined
+
+    - name: Set the current EULA status
+      ansible.builtin.set_fact:
+        curr_eula_status: "{{ eulaStatus.json['@Message.ExtendedInfo'][1].Message }}"
+        curr_eula_status_id: "{{ eulaStatus.json['@Message.ExtendedInfo'][1].MessageId }}"
+      when: eulaStatus is defined and eulaStatus.json is defined and result is defined
+
+    - name: Assert - Eula terms are not accepted as a pre-requisite
+      ansible.builtin.assert:
+        that:
+          - "'SRV104' in curr_eula_status_id"
+      when: result is defined
+
+    - name: Check Mode - Run with accept_eula as false and EULA terms when
+            it's not accepted
+      dellemc.openmanage.idrac_support_assist:
+        accept_eula: false
+        export: false
+        filter_data: true
+        data_collector: ["storage_logs", "telemetry_reports", "os_app_data"]
+      check_mode: true
+      register: check_mode_result
+
+    - name: Verify - Check Mode-  Run with accept_eula as false and EULA terms
+            when it's not accepted
+      ansible.builtin.assert:
+        that:
+          - not check_mode_result.changed
+          - "check_mode_result.msg == 'No changes found to be applied.'"
+
+    - name: Normal Mode -  Run with accept_eula as false and EULA terms when
+           it's not accepted
+      dellemc.openmanage.idrac_support_assist:
+        accept_eula: false
+        export: false
+        filter_data: true
+        data_collector: ["storage_logs", "telemetry_reports", "os_app_data"]
+      register: run_result
+
+    - name: Verify - Normal Mode -  Run with accept_eula as false and EULA terms
+            when it's not accepted
+      ansible.builtin.assert:
+        that:
+          - run_result.skipped
+          - "run_result.msg == 'Unable to start the operation because the
+            SupportAssist End User License Agreement (EULA) is not accepted.'"

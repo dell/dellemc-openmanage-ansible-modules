@@ -1,0 +1,41 @@
+---
+- name: Constructing url
+  ansible.builtin.set_fact:
+    url_1: "https://{{ idrac_ip | ansible.utils.ipwrap }}:"
+    url_2: "{{ idrac_port }}/redfish/v1/Managers/"
+    url_3: "iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions"
+    url_4: "/DellLCService.SupportAssistCollection"
+
+- name: Final url
+  ansible.builtin.set_fact:
+    run_url: "{{ url_1 }}{{ url_2 }}{{ url_3 }}{{ url_4 }}"
+
+- name: Pre-req
+  vars:
+    home_path: "{{ lookup('env','HOME') }}"
+  block:
+    - name: Run Support Assist via uri
+      ansible.builtin.uri:
+        url: "{{ run_url }}"
+        method: POST
+        body:
+          "Filter": "Yes"
+          "DataSelectorArrayIn": ["HWData"]
+        status_code:
+          - 200
+          - 202
+      register: run_api_result
+      delegate_to: localhost
+
+    - name: Job tracking iDRAC
+      ansible.builtin.uri:
+        url: "{{ run_api_result.location }}"
+        method: "GET"
+        status_code: 200, 202
+      register: result
+      until: result.json.JobState in ['Completed', 'Failed']
+      retries: "{{ retries_count | default(100) }}"
+      delay: "{{ polling_interval | default(30) }}"
+      delegate_to: localhost
+      when: job_track == true
+      no_log: true
