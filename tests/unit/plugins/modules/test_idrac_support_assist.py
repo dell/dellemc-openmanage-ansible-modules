@@ -30,7 +30,6 @@ SUCCESS_EXPORT_MSG = "Successfully exported the support assist collections."
 SUCCESS_RUN_MSG = "Successfully ran the support assist collections."
 SUCCESS_RUN_AND_EXPORT_MSG = "Successfully ran and exported the support assist collections."
 RUNNING_RUN_MSG = "Successfully triggered the job to run support assist collections."
-RUNNING_EXPORT_MSG = "Successfully triggered the job to export support assist collections."
 RUNNING_RUN_AND_EXPORT_MSG = "Successfully triggered the job to run and export support assist collections."
 ALREADY_RUN_MSG = "The support assist collections job is already present."
 EULA_ACCEPTED_MSG = "The SupportAssist End User License Agreement (EULA) is accepted by iDRAC user root via iDRAC interface REDFISH."
@@ -51,6 +50,8 @@ EULA_STATUS_FUNC = "AcceptEULA.eula_status"
 EULA_STATUS_URL = "AcceptEULA._AcceptEULA__get_eula_status_url"
 VALIDATE_TIME_FUNC = "RunSupportAssist._RunSupportAssist__validate_time"
 EXPORT_FUNC = "ExportSupportAssist._ExportSupportAssist__export_support_assist"
+JOB_WAIT_FUNC = "RunSupportAssist._RunSupportAssist__perform_job_wait"
+NETWORK_SHARE_URL = "SupportAssist.get_test_network_share_url"
 RUN_EXEC_FUNC = "RunSupportAssist.execute"
 MESSAGE_EXTENDED = "@Message.ExtendedInfo"
 ASSIST_ODATA = "/SupportAssistService"
@@ -192,7 +193,7 @@ class TestSupportAssist(FakeAnsibleModule):
         payload = {"ShareType": "LOCAL", "ShareName": SHARE_NAME}
         mocker.patch(MODULE_PATH + PAYLOAD_FUNC, return_value=payload)
         mocker.patch(
-            MODULE_PATH + "SupportAssist.get_test_network_share_url", return_value=API_ONE)
+            MODULE_PATH + NETWORK_SHARE_URL, return_value=API_ONE)
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=True)
         support_assist_obj = self.module.SupportAssist(
@@ -205,7 +206,7 @@ class TestSupportAssist(FakeAnsibleModule):
         payload = {"ShareType": "HTTP", "ShareName": "my_share"}
         mocker.patch(MODULE_PATH + PAYLOAD_FUNC, return_value=payload)
         mocker.patch(
-            MODULE_PATH + "SupportAssist.get_test_network_share_url", return_value=API_ONE)
+            MODULE_PATH + NETWORK_SHARE_URL, return_value=API_ONE)
         mocker.patch(MODULE_PATH + API_INVOKE_MOCKER, return_value=obj)
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=True)
@@ -498,7 +499,7 @@ class TestRunSupportAssist(FakeAnsibleModule):
         mocker.patch(
             MODULE_PATH + "RunSupportAssist._RunSupportAssist__validate_job_timeout", return_value=None)
         mocker.patch(
-            MODULE_PATH + "RunSupportAssist._RunSupportAssist__perform_job_wait", return_value=job)
+            MODULE_PATH + JOB_WAIT_FUNC, return_value=job)
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
         run_support_assist_obj = self.module.RunSupportAssist(
@@ -512,7 +513,7 @@ class TestRunSupportAssist(FakeAnsibleModule):
         idrac_default_args.update(
             {'data_collector': ['gpu_logs'], 'export': False})
         mocker.patch(
-            MODULE_PATH + "RunSupportAssist._RunSupportAssist__perform_job_wait", return_value=job)
+            MODULE_PATH + JOB_WAIT_FUNC, return_value=job)
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
         run_support_assist_obj = self.module.RunSupportAssist(
@@ -524,7 +525,10 @@ class TestRunSupportAssist(FakeAnsibleModule):
         # Scenario 3: JobState is scheduled and run and export both are true
         job = {"JobState": "Scheduled"}
         idrac_default_args.update(
-            {'data_collector': ['gpu_logs'], 'run': True, 'export': True, 'share_parameters': {'share_type': 'nfs', 'share_name': 'share', 'ip_address': IP}})
+            {'data_collector': ['gpu_logs'], 'run': True, 'export': True, 'share_parameters':
+             {'share_type': 'nfs', 'share_name': 'share', 'ip_address': IP, 'ignore_certificate_warning': 'yes'}})
+        mocker.patch(
+            MODULE_PATH + NETWORK_SHARE_URL, return_value=API_ONE)
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
         run_support_assist_obj = self.module.RunSupportAssist(
@@ -536,9 +540,10 @@ class TestRunSupportAssist(FakeAnsibleModule):
         # Scenario 4: JobState is scheduled and run and export both are true
         job = {"JobState": "Completed"}
         mocker.patch(
-            MODULE_PATH + "RunSupportAssist._RunSupportAssist__perform_job_wait", return_value=job)
+            MODULE_PATH + JOB_WAIT_FUNC, return_value=job)
         idrac_default_args.update(
-            {'data_collector': ['gpu_logs'], 'run': True, 'export': True, 'share_parameters': {'share_type': 'nfs', 'share_name': 'share', 'ip_address': IP}})
+            {'data_collector': ['gpu_logs'], 'run': True, 'export': True, 'share_parameters':
+             {'share_type': 'nfs', 'share_name': 'share', 'ip_address': IP, 'ignore_certificate_warning': 'yes'}})
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
         run_support_assist_obj = self.module.RunSupportAssist(
