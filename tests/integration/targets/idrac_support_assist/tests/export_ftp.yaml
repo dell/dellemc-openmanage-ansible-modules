@@ -27,11 +27,11 @@
         file: ../_eula_helper.yml
       vars:
         eula_status: true
-    
+
     - name: Set first EULA
       ansible.builtin.set_fact:
         eula_val: "{{ eulaStatus.json['@Message.ExtendedInfo'][0] }}"
-    
+
     - name: Set the current EULA status
       ansible.builtin.set_fact:
         curr_eula_status: "{{ eula_val.Message }}"

@@ -1,3 +1,4 @@
+---
 dependencies:
   - prepare_mount_shares
   - prepare_idrac_lifecycle_controller_status

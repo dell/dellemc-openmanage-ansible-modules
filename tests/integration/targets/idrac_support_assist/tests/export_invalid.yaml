@@ -530,7 +530,8 @@
       ansible.builtin.set_fact:
         curr_eula_status: "{{ eula_val.Message }}"
         curr_eula_status_id: "{{ eula_val.MessageId }}"
-      when: eulaStatus is defined and eulaStatus.json is defined and result is defined
+      when: eulaStatus is defined and eulaStatus.json is defined and result
+            is defined
 
     - name: Assert - Eula terms are not accepted as a pre-requisite
       ansible.builtin.assert:
