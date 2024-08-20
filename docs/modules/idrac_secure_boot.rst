@@ -28,19 +28,19 @@ Parameters
 ----------
 
   import_certificates (optional, bool, None)
-    Import all the specified KEK certificates.
+    Import all the specified key certificates.
 
     \ :emphasis:`import\_certificates`\  is \ :literal:`true`\  either of \ :emphasis:`platform\_key`\  or i(KEK) or \ :emphasis:`database`\  or \ :emphasis:`disallow\_database`\  is required.
 
 
   platform_key (optional, path, None)
-    Platform KEK policy certificate path for UEFI Secure Boot.
+    Platform key policy certificate path for UEFI Secure Boot.
 
     The absolute path of the certificate file if \ :emphasis:`import\_certificates`\  is \ :literal:`true`\ .
 
 
   KEK (optional, list, None)
-    KEK KEK KEK policy certificate paths for UEFI Secure Boot.
+    Key exchange key policy certificate paths for UEFI Secure Boot.
 
     The absolute path of the certificate file if \ :emphasis:`import\_certificates`\  is \ :literal:`import`\ .
 
@@ -138,7 +138,7 @@ Notes
 -----
 
 .. note::
-   - When this module runs in check\_mode for \ :emphasis:`import\_certificates`\ , it reports the list of changes found.
+   - When this module runs in check\_mode for \ :emphasis:`import\_certificates`\ , it reports the changes found.
    - This module does not support idempotency when \ :emphasis:`import\_certificates`\  is provided.
    - This module supports IPv4 and IPv6 addresses.
    - This module supports \ :literal:`check\_mode`\ .

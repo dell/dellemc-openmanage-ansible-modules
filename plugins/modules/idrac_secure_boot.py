@@ -27,18 +27,18 @@ options:
   import_certificates:
     type: bool
     description:
-        - Import all the specified KEK certificates.
+        - Import all the specified key certificates.
         - I(import_certificates) is C(true) either of I(platform_key) or i(KEK) or I(database) or I(disallow_database) is required.
   platform_key:
     type: path
     description:
-      - Platform KEK policy certificate path for UEFI Secure Boot.
+      - Platform key policy certificate path for UEFI Secure Boot.
       - The absolute path of the certificate file if I(import_certificates) is C(true).
   KEK:
     type: list
     elements: path
     description:
-      - KEK KEK KEK policy certificate paths for UEFI Secure Boot.
+      - Key exchange key policy certificate paths for UEFI Secure Boot.
       - The absolute path of the certificate file if I(import_certificates) is C(import).
   database:
     type: list
@@ -83,7 +83,7 @@ requirements:
 author:
     - "Abhishek Sinha(@ABHISHEK-SINHA10)"
 notes:
-    - When this module runs in check_mode for I(import_certificates), it reports the list of changes found.
+    - When this module runs in check_mode for I(import_certificates), it reports the changes found.
     - This module does not support idempotency when I(import_certificates) is provided.
     - This module supports IPv4 and IPv6 addresses.
     - This module supports C(check_mode).
