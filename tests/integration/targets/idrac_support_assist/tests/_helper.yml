@@ -1,0 +1,69 @@
+---
+- name: Constructing url
+  ansible.builtin.set_fact:
+    url_1: "https://{{ idrac_ip | ansible.utils.ipwrap }}:"
+    url_2: "{{ idrac_port }}/redfish/v1/Managers/"
+    url_3: "iDRAC.Embedded.1/Oem/Dell/DellJobService/Actions"
+    url_4: "/DellJobService.DeleteJobQueue"
+    url_5: "{{ idrac_port }}/redfish/v1/Systems/System.Embedded.1"
+
+- name: Final url
+  ansible.builtin.set_fact:
+    clear_job_queue_url: "{{ url_1 }}{{ url_2 }}{{ url_3 }}{{ url_4 }}"
+
+- block:
+    - name: Check the powerstate
+      ansible.builtin.uri:
+        url: "{{ url_1 }}{{ url_5 }}"
+        validate_certs: false
+        method: GET
+        status_code: 200
+      register: powerstate
+      no_log: true
+
+    - name: Set the current powerstate
+      ansible.builtin.set_fact:
+        curr_pwr_State: "{{ powerstate.json.PowerState }}"
+      when: powerstate is defined and powerstate.json is defined
+
+    - name: Pre-req - Power state - On
+      dellemc.openmanage.redfish_powerstate:
+        baseuri: "{{ idrac_ip }}:{{ idrac_port }}"
+        username: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        reset_type: "On"
+      when: curr_pwr_State == "Off"
+
+    - name: Wait for the device power state to be On
+      ansible.builtin.uri:
+        url: "{{ url_1 }}{{ url_5 }}"
+        headers: 'Accept=application/json'
+      register: current_powerstate
+      until: current_powerstate.json.PowerState == "On"
+      retries: 20
+      delay: 30
+      when: curr_pwr_State == "Off"
+      no_log: true
+
+    - name: Wait for IDRAC to be up
+      ansible.builtin.pause:
+        seconds: 120
+
+    - name: Clear the Job Queue
+      ansible.builtin.uri:
+        url: "{{ clear_job_queue_url }}"
+        validate_certs: false
+        headers: "{{ idrac_job_queue_uri_headers }}"
+        body_format: "json"
+        return_content: true
+        force_basic_auth: true
+        method: "POST"
+        body: '{ "JobID" : "JID_CLEARALL_FORCE"}'
+        status_code: 200
+      register: powerstate
+      # no_log: true
+
+    - name: Wait for IDRAC to be up
+      ansible.builtin.pause:
+        seconds: 180

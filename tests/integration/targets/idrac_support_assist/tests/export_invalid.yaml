@@ -1,0 +1,555 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Export invalid scenarios
+  block:
+    - name: Delete file if existing
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - "/tmp/invalid_path"
+
+    - name: Check mode - Export local invalid path
+      dellemc.openmanage.idrac_support_assist:
+        run: false
+        export: true
+        share_parameters:
+          share_name: "tmp/invalid_path"
+          share_type: local
+      check_mode: true
+      register: invalid_local_path
+      ignore_errors: true
+
+    - name: Verify - Export local invalid path
+      ansible.builtin.assert:
+        that:
+          - invalid_local_path.failed
+          - not invalid_local_path.changed
+          - invalid_local_path.msg == "Provided directory path
+              'tmp/invalid_path' is not valid."
+
+    - name: Normal mode - Export local invalid path
+      dellemc.openmanage.idrac_support_assist:
+        run: false
+        export: true
+        share_parameters:
+          share_name: "tmp/invalid_path"
+          share_type: local
+      register: invalid_local_path
+      ignore_errors: true
+
+    - name: Verify - Export local invalid path
+      ansible.builtin.assert:
+        that:
+          - invalid_local_path.failed
+          - not invalid_local_path.changed
+          - invalid_local_path.msg == "Provided directory path
+              'tmp/invalid_path' is not valid."
+
+    - name: Export https invalid ip
+      dellemc.openmanage.idrac_support_assist:
+        run: false
+        export: true
+        accept_eula: true
+        share_parameters:
+          ip_address: "1.2.3.456"
+          share_name: "{{ https_share_dir_path }}"
+          username: "{{ https_share_username | default(omit) }}"
+          password: "{{ https_share_password | default(omit) }}"
+          share_type: https
+          ignore_certificate_warning: "on"
+      register: https_export_invalid_ip
+      ignore_errors: true
+
+    - name: Verify - Export https invalid ip
+      ansible.builtin.assert:
+        that:
+          - https_export_invalid_ip.failed
+          - not https_export_invalid_ip.changed
+          - https_export_invalid_ip.msg == "Cannot access network share."
+
+    - name: Export https invalid path
+      dellemc.openmanage.idrac_support_assist:
+        run: false
+        export: true
+        accept_eula: true
+        share_parameters:
+          ip_address: "{{ https_share_ip }}"
+          share_name: "/invalid_path/doesnotexist"
+          username: "{{ https_share_username | default(omit) }}"
+          password: "{{ https_share_password | default(omit) }}"
+          share_type: https
+          ignore_certificate_warning: "on"
+      register: https_export_invalid_path
+      ignore_errors: true
+
+    - name: Verify - Export https invalid path
+      ansible.builtin.assert:
+        that:
+          - https_export_invalid_path.failed
+          - not https_export_invalid_path.changed
+          - https_export_invalid_path.msg == "The SupportAssist Transmission
+              Operation did not complete successfully."
+
+    - name: Export https invalid username
+      dellemc.openmanage.idrac_support_assist:
+        export: true
+        run: false
+        accept_eula: true
+        share_parameters:
+          ip_address: "{{ https_share_ip }}"
+          share_name: "{{ https_share_dir_path }}"
+          username: "invalid_user_name23456"
+          password: "{{ https_share_password | default(omit) }}"
+          share_type: https
+          ignore_certificate_warning: "on"
+      register: https_export_invalid_user
+      ignore_errors: true
+
+    - name: Verify - Export https invalid username
+      ansible.builtin.assert:
+        that:
+          - https_export_invalid_user.failed
+          - not https_export_invalid_user.changed
+          - https_export_invalid_user.msg == "Cannot access network share."
+
+    - name: Export https invalid password
+      dellemc.openmanage.idrac_support_assist:
+        run: false
+        export: true
+        accept_eula: true
+        share_parameters:
+          ip_address: "{{ https_share_ip }}"
+          share_name: "{{ https_share_dir_path }}"
+          username: "{{ https_share_username | default(omit) }}"
+          password: "invalid_password12345"
+          share_type: https
+          ignore_certificate_warning: "on"
+      register: https_export_invalid_password
+      ignore_errors: true
+
+    - name: Verify - Export https invalid password
+      ansible.builtin.assert:
+        that:
+          - https_export_invalid_password.failed
+          - not https_export_invalid_password.changed
+          - https_export_invalid_password.msg == "Cannot access network
+              share."
+
+    - name: Export https invalid proxy creds
+      dellemc.openmanage.idrac_support_assist:
+        export: true
+        run: false
+        accept_eula: true
+        share_parameters:
+          ip_address: "{{ https_share_ip }}"
+          share_name: "{{ https_share_dir_path }}"
+          username: "{{ https_share_username | default(omit) }}"
+          password: "{{ https_share_password | default(omit) }}"
+          share_type: https
+          ignore_certificate_warning: "on"
+          proxy_support: "parameters_proxy"
+          proxy_server: "{{ http_proxy_server }}"
+          proxy_port: "{{ http_proxy_port }}"
+          proxy_username: "invalid_proxy_user_name12345"
+          proxy_password: "{{ http_proxy_password }}"
+          proxy_type: http
+      register: https_export_invalid_proxy_creds
+      ignore_errors: true
+
+    - name: Verify - Export https invalid proxy creds
+      ansible.builtin.assert:
+        that:
+          - https_export_invalid_proxy_creds.failed
+          - not https_export_invalid_proxy_creds.changed
+          - https_export_invalid_proxy_creds.msg == "Cannot access network share."
+          - "'error_info' in https_export_invalid_proxy_creds"
+
+    - name: Export https invalid proxy port
+      dellemc.openmanage.idrac_support_assist:
+        export: true
+        run: false
+        accept_eula: true
+        share_parameters:
+          ip_address: "{{ https_share_ip }}"
+          share_name: "{{ https_share_dir_path }}"
+          username: "{{ https_share_username | default(omit) }}"
+          password: "{{ https_share_password | default(omit) }}"
+          share_type: https
+          ignore_certificate_warning: "on"
+          proxy_support: "parameters_proxy"
+          proxy_server: "{{ http_proxy_server }}"
+          proxy_port: "{{ http_proxy_port + 1 }}"
+          proxy_username: "{{ http_proxy_username }}"
+          proxy_password: "{{ http_proxy_password }}"
+          proxy_type: http
+      register: https_export_invalid_proxy_port
+      ignore_errors: true
+
+    - name: Verify - Export https invalid proxy port
+      ansible.builtin.assert:
+        that:
+          - https_export_invalid_proxy_port.failed
+          - not https_export_invalid_proxy_port.changed
+          - https_export_invalid_proxy_port.msg == "Cannot access network
+              share."
+          - "'error_info' in https_export_invalid_proxy_port"
+
+    - name: Set the CIFS IP and directory path- first step
+      ansible.builtin.set_fact:
+        cifs_share_tmp: "{{ cifs_share_name | split('\\\\') | last }}"
+      no_log: true
+
+    - name: Set the CIFS IP and directory path- final step
+      ansible.builtin.set_fact:
+        cifs_share_ip: "{{ cifs_share_tmp | regex_replace('(\\\\)(.*)', '') }}"
+        cifs_share_dir_path: "{{ cifs_share_tmp | regex_replace('.*(\\\\)(.*)', '\\2') }}"
+      no_log: true
+
+    - name: Check mode - Export cifs invalid path and accept_eula is not passed
+      dellemc.openmanage.idrac_support_assist:
+        export: true
+        run: false
+        share_parameters:
+          ip_address: "{{ cifs_share_ip }}"
+          share_name: /invalid_path/
+          username: "{{ cifs_share_user | default(omit) }}"
+          password: "{{ cifs_share_password | default(omit) }}"
+          share_type: cifs
+      check_mode: true
+      register: cifs_export_invalid_path
+      ignore_errors: true
+
+    - name: Check Mode - Verify - Export cifs invalid path
+      ansible.builtin.assert:
+        that:
+          - cifs_export_invalid_path.failed
+          - not cifs_export_invalid_path.changed
+          - cifs_export_invalid_path.msg == "Cannot access
+               network share."
+          - "'error_info' in cifs_export_invalid_path"
+
+    - name: Normal Mode - Export cifs invalid path
+      dellemc.openmanage.idrac_support_assist:
+        export: true
+        run: false
+        accept_eula: true
+        share_parameters:
+          ip_address: "{{ cifs_share_ip }}"
+          share_name: /invalid_path/
+          username: "{{ cifs_share_user | default(omit) }}"
+          password: "{{ cifs_share_password | default(omit) }}"
+          share_type: cifs
+      register: cifs_export_invalid_path
+      ignore_errors: true
+
+    - name: Normal Mode - Verify - Export cifs invalid path
+      ansible.builtin.assert:
+        that:
+          - cifs_export_invalid_path.failed
+          - not cifs_export_invalid_path.changed
+          - cifs_export_invalid_path.msg == "Cannot access
+              network share."
+          - "'error_info' in cifs_export_invalid_path"
+
+    - name: Export cifs invalid share user
+      dellemc.openmanage.idrac_support_assist:
+        export: true
+        run: false
+        accept_eula: true
+        share_parameters:
+          ip_address: "{{ cifs_share_ip }}"
+          share_name: "{{ cifs_share_dir_path }}"
+          username: "some_invalid_user2345"
+          password: "{{ cifs_share_password | default(omit) }}"
+          share_type: cifs
+      register: cifs_export_invalid_user
+      ignore_errors: true
+
+    - name: Verify - Export cifs invalid share user
+      ansible.builtin.assert:
+        that:
+          - cifs_export_invalid_user.failed
+          - not cifs_export_invalid_user.changed
+          - cifs_export_invalid_user.msg == "Cannot access
+              network share."
+          - "'error_info' in cifs_export_invalid_user"
+
+    - name: Export cifs invalid share password
+      dellemc.openmanage.idrac_support_assist:
+        export: true
+        run: false
+        accept_eula: true
+        share_parameters:
+          ip_address: "{{ cifs_share_ip }}"
+          share_name: "{{ cifs_share_dir_path }}"
+          username: "{{ cifs_share_user }}"
+          password: "{{ 99999999 | random | string }}"
+          share_type: cifs
+      register: cifs_export_invalid_password
+      ignore_errors: true
+
+    - name: Verify - Export cifs invalid share password
+      ansible.builtin.assert:
+        that:
+          - cifs_export_invalid_password.failed
+          - not cifs_export_invalid_password.changed
+          - cifs_export_invalid_password.msg == "Cannot access
+              network share."
+          - "'error_info' in cifs_export_invalid_password"
+
+    - name: Export cifs invalid share workgroup
+      dellemc.openmanage.idrac_support_assist:
+        export: true
+        run: false
+        accept_eula: true
+        share_parameters:
+          ip_address: "{{ cifs_share_ip }}"
+          share_name: "{{ cifs_share_dir_path }}"
+          username: "{{ cifs_share_user }}"
+          password: "{{ cifs_share_password }}"
+          share_type: cifs
+          workgroup: "Invalid"
+      register: cifs_export_invalid_workgroup
+      ignore_errors: true
+
+    - name: Verify - Export cifs invalid share workgroup
+      ansible.builtin.assert:
+        that:
+          - cifs_export_invalid_workgroup.failed
+          - not cifs_export_invalid_workgroup.changed
+          - 'cifs_export_invalid_workgroup.msg == "HTTP Error 400: Bad Request"'
+          - "'error_info' in cifs_export_invalid_workgroup"
+
+    - name: Export cifs - missing share creds
+      dellemc.openmanage.idrac_support_assist:
+        export: true
+        run: false
+        accept_eula: true
+        share_parameters:
+          ip_address: "{{ cifs_share_ip }}"
+          share_name: "{{ cifs_share_dir_path }}"
+          username: "{{ cifs_share_user }}"
+          share_type: cifs
+          workgroup: "Invalid"
+      register: cifs_export_missing_creds
+      ignore_errors: true
+
+    - name: Verify - Export cifs - missing share creds
+      ansible.builtin.assert:
+        that:
+          - cifs_export_missing_creds.failed
+          - not cifs_export_missing_creds.changed
+          - 'cifs_export_missing_creds.msg == "parameters are required
+             together: username, password found in share_parameters"'
+
+    - name: Set the NFS IP and directory path
+      ansible.builtin.set_fact:
+        nfs_share_ip: "{{ nfs_share_name.split(':/')[0] }}"
+        nfs_share_dir_path: "{{ nfs_share_name.split(':/')[1] }}"
+
+
+    - name: Export NFS invalid share_name
+      dellemc.openmanage.idrac_support_assist:
+        export: true
+        run: false
+        accept_eula: true
+        share_parameters:
+          ip_address: "{{ nfs_share_ip }}"
+          share_name: "/tmp/invalid_path"
+          share_type: nfs
+      register: invalid_nfs_path
+      ignore_errors: true
+
+    - name: Verify - Export NFS invalid share_name
+      ansible.builtin.assert:
+        that:
+          - invalid_nfs_path.failed
+          - not invalid_nfs_path.changed
+          - invalid_nfs_path.msg == "Cannot access network share."
+
+    - name: Export https invalid proxy server
+      dellemc.openmanage.idrac_support_assist:
+        export: true
+        run: false
+        accept_eula: true
+        share_parameters:
+          ip_address: "{{ https_share_ip }}"
+          share_name: "{{ https_share_dir_path }}"
+          username: "{{ https_share_username | default(omit) }}"
+          password: "{{ https_share_password | default(omit) }}"
+          share_type: https
+          ignore_certificate_warning: "on"
+          proxy_support: "parameters_proxy"
+          proxy_server: "invalid"
+          proxy_port: "{{ http_proxy_port }}"
+          proxy_username: "invalid_proxy_user_name12345"
+          proxy_password: "{{ http_proxy_password }}"
+          proxy_type: http
+      register: https_export_invalid_proxy_server
+      ignore_errors: true
+
+    - name: Verify - Export https invalid proxy server
+      ansible.builtin.assert:
+        that:
+          - https_export_invalid_proxy_server.failed
+          - not https_export_invalid_proxy_server.changed
+          - https_export_invalid_proxy_server.msg == "Cannot access
+            network share."
+          - "'error_info' in https_export_invalid_proxy_server"
+
+    - name: Export https invalid proxy type
+      dellemc.openmanage.idrac_support_assist:
+        export: true
+        run: false
+        accept_eula: true
+        share_parameters:
+          ip_address: "{{ https_share_ip }}"
+          share_name: "{{ https_share_dir_path }}"
+          username: "{{ https_share_username | default(omit) }}"
+          password: "{{ https_share_password | default(omit) }}"
+          share_type: https
+          ignore_certificate_warning: "on"
+          proxy_support: "parameters_proxy"
+          proxy_type: invalid
+      register: invalid_proxy_type
+      ignore_errors: true
+
+    - name: Verify - Export https invalid proxy type
+      ansible.builtin.assert:
+        that:
+          - invalid_proxy_type.failed
+          - not invalid_proxy_type.changed
+          - 'invalid_proxy_type.msg == "value of proxy_type must be one
+             of: http, socks, got: invalid found in share_parameters"'
+
+    - name: Export https invalid proxy support
+      dellemc.openmanage.idrac_support_assist:
+        export: true
+        run: false
+        accept_eula: true
+        share_parameters:
+          ip_address: "{{ https_share_ip }}"
+          share_name: "{{ https_share_dir_path }}"
+          username: "{{ https_share_username | default(omit) }}"
+          password: "{{ https_share_password | default(omit) }}"
+          share_type: https
+          ignore_certificate_warning: "on"
+          proxy_support: "invalid"
+          proxy_server: "{{ http_proxy_server }}"
+          proxy_port: "{{ http_proxy_port }}"
+          proxy_username: "invalid_proxy_user_name12345"
+          proxy_password: "{{ http_proxy_password }}"
+          proxy_type: http
+      register: https_export_invalid_proxy_support
+      ignore_errors: true
+
+    - name: Verify - Export https invalid proxy support
+      ansible.builtin.assert:
+        that:
+          - https_export_invalid_proxy_support.failed
+          - not https_export_invalid_proxy_support.changed
+          - 'https_export_invalid_proxy_support.msg == "value of proxy_support
+             must be one of: off, default_proxy, parameters_proxy, got: invalid
+             found in share_parameters"'
+
+    - name: Export https invalid ignore_certificate_warning value
+      dellemc.openmanage.idrac_support_assist:
+        export: true
+        run: false
+        accept_eula: true
+        share_parameters:
+          ip_address: "{{ https_share_ip }}"
+          share_name: "{{ https_share_dir_path }}"
+          username: "{{ https_share_username | default(omit) }}"
+          password: "{{ https_share_password | default(omit) }}"
+          share_type: https
+          ignore_certificate_warning: "invalid"
+      register: invalid_ignore_cert_warn
+      ignore_errors: true
+
+    - name: Verify - Export https invalid proxy support
+      ansible.builtin.assert:
+        that:
+          - invalid_ignore_cert_warn.failed
+          - not invalid_ignore_cert_warn.changed
+          - 'invalid_ignore_cert_warn.msg == "value of
+             ignore_certificate_warning must be one of: off, on, got: invalid
+             found in share_parameters"'
+
+    - name: Export to local with run as false
+      dellemc.openmanage.idrac_support_assist:
+        export: true
+        run: false
+        accept_eula: true
+        share_parameters:
+          share_type: "local"
+          share_name: "{{ role_path }}/files"
+      register: invalid_only_export_local
+      ignore_errors: true
+
+    - name: Verify - Export to local with run as false
+      ansible.builtin.assert:
+        that:
+          - invalid_only_export_local.skipped
+          - 'invalid_only_export_local.msg == "Export to local is only
+              supported when both run and export is set to true."'
+
+- name: Export invalid scenarios when EULA terms not accepted
+  block:
+    - name: Pre-requisite - Reset IDRAC
+      ansible.builtin.include_tasks:
+        file: ../_reset_config.yml
+
+    - name: Fetch the EULA status after accepting EULA terms
+      ansible.builtin.include_tasks:
+        file: ../_eula_helper.yml
+      vars:
+        eula_status: true
+      when: result is defined
+
+    - name: Set the current EULA status
+      ansible.builtin.set_fact:
+        curr_eula_status: "{{ eulaStatus.json['@Message.ExtendedInfo'][1].Message }}"
+        curr_eula_status_id: "{{ eulaStatus.json['@Message.ExtendedInfo'][1].MessageId }}"
+      when: eulaStatus is defined and eulaStatus.json is defined and result is defined
+
+    - name: Assert - Eula terms are not accepted as a pre-requisite
+      ansible.builtin.assert:
+        that:
+          - "'SRV104' in curr_eula_status_id"
+      when: result is defined
+
+    - name: Set the NFS IP and directory path
+      ansible.builtin.set_fact:
+        nfs_share_ip: "{{ nfs_share_name.split(':/')[0] }}"
+        nfs_share_dir_path: "{{ nfs_share_name.split(':/')[1] }}"
+
+    - name: Export to nfs when EULA not accepted
+      dellemc.openmanage.idrac_support_assist:
+        export: true
+        run: false
+        share_parameters:
+          share_type: "nfs"
+          share_name: "{{ nfs_share_dir_path }}"
+          ip_address: "{{ nfs_share_ip }}"
+      register: invalid_eula_not_accepted
+      ignore_errors: true
+
+    - name: Verify -Export to nfs when EULA not accepted
+      ansible.builtin.assert:
+        that:
+          - invalid_eula_not_accepted.skipped
+          - 'invalid_eula_not_accepted.msg == "Unable to start the operation
+            because the SupportAssist End User License Agreement (EULA) is not
+            accepted."'

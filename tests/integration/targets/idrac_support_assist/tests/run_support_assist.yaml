@@ -1,0 +1,178 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Pre-requisite - Checking if LC status is ready
+  ansible.builtin.include_tasks:
+    file: ../__lc_status.yml
+
+- name: Pre-requisite - Checking if iDRAC is powered on and clear job_queue
+  ansible.builtin.include_tasks:
+    file: ../_helper.yml
+
+- name: Perform only run operation when eula_accept is true and job_wait
+        as true
+  block:
+    - name: Pre-requisite - Fetching EULA status
+      ansible.builtin.include_tasks:
+        file: ../_eula_helper.yml
+      vars:
+        eula_status: true
+
+    - name: Set the current EULA status
+      ansible.builtin.set_fact:
+        curr_eula_status: "{{ eulaStatus.json['@Message.ExtendedInfo'][0].Message }}"
+        curr_eula_status_id: "{{ eulaStatus.json['@Message.ExtendedInfo'][0].MessageId }}"
+      when: eulaStatus is defined and eulaStatus.json is defined
+
+    - name: Pre-requisite - Reset the IDRAC
+      ansible.builtin.include_tasks:
+        file: ../_reset_config.yml
+      when: curr_eula_status_id is defined and 'SRV074' in curr_eula_status_id
+
+    - name: Pre-requisite - Fetching EULA status after resetting IDRAC
+      ansible.builtin.include_tasks:
+        file: ../_eula_helper.yml
+      vars:
+        eula_status: true
+      when: result is defined
+
+    - name: Set the current EULA status
+      ansible.builtin.set_fact:
+        curr_eula_status: "{{ eulaStatus.json['@Message.ExtendedInfo'][1].Message }}"
+        curr_eula_status_id: "{{ eulaStatus.json['@Message.ExtendedInfo'][1].MessageId }}"
+      when: eulaStatus is defined and eulaStatus.json is defined and result is defined
+
+    - name: Assert - Eula terms are not accepted as a pre-requisite
+      ansible.builtin.assert:
+        that:
+          - "'SRV104' in curr_eula_status_id"
+      when: result is defined
+
+    - name: Check Mode - Accept the EULA and run the SupportAssist Collection
+            with job wait as true and filter_data as true
+      dellemc.openmanage.idrac_support_assist:
+        accept_eula: true
+        export: false
+        filter_data: true
+        data_collector: ["telemetry_reports"]
+      check_mode: true
+      register: check_mode_result
+
+    - name: Verify - Check Mode- Accept the EULA and run the SupportAssist
+            Collection with job wait as true and filter_data as true
+      ansible.builtin.assert:
+        that:
+          - check_mode_result.changed
+          - "check_mode_result.msg == 'Changes found to be applied.'"
+
+    - name: Normal Mode - Accept the EULA and run the SupportAssist
+            Collection with job wait as true and filter_data as true
+      dellemc.openmanage.idrac_support_assist:
+        accept_eula: true
+        export: false
+        filter_data: true
+        data_collector: ["telemetry_reports"]
+      register: run_result
+
+    - name: Verify - Normal Mode - Accept the EULA and run the SupportAssist
+            Collection with job wait as true and filter_data as true
+      ansible.builtin.assert:
+        that:
+          - run_result.changed
+          - "run_result.msg == 'Successfully ran the support assist
+             collections.'"
+          - "'job_details' in run_result"
+          - "run_result.job_details.Message == 'The SupportAssist Collection
+             Operation is completed successfully.'"
+          - "run_result.job_details.JobState == 'Completed'"
+          - "run_result.job_details.JobType == 'SACollectHealthData'"
+
+- name: Perform only run operation when eula_accept is true and job_wait
+        as false
+  block:
+    - name: Pre-requisite - Fetching EULA status
+      ansible.builtin.include_tasks:
+        file: ../_eula_helper.yml
+      vars:
+        eula_status: true
+
+    - name: Set the current EULA status
+      ansible.builtin.set_fact:
+        curr_eula_status: "{{ eulaStatus.json['@Message.ExtendedInfo'][0].Message }}"
+        curr_eula_status_id: "{{ eulaStatus.json['@Message.ExtendedInfo'][0].MessageId }}"
+      when: eulaStatus is defined and eulaStatus.json is defined
+
+    - name: Pre-requisite - Reset the IDRAC
+      ansible.builtin.include_tasks:
+        file: ../_reset_config.yml
+      when: curr_eula_status_id is defined and 'SRV074' in curr_eula_status_id
+
+    - name: Pre-requisite - Fetching EULA status after resetting IDRAC
+      ansible.builtin.include_tasks:
+        file: ../_eula_helper.yml
+      vars:
+        eula_status: true
+      when: result is defined
+
+    - name: Set the current EULA status
+      ansible.builtin.set_fact:
+        curr_eula_status: "{{ eulaStatus.json['@Message.ExtendedInfo'][1].Message }}"
+        curr_eula_status_id: "{{ eulaStatus.json['@Message.ExtendedInfo'][1].MessageId }}"
+      when: eulaStatus is defined and eulaStatus.json is defined and result is defined
+
+    - name: Assert - Eula terms are not accepted as a pre-requisite
+      ansible.builtin.assert:
+        that:
+          - "'SRV104' in curr_eula_status_id"
+      when: result is defined
+
+    - name: Check Mode - Accept the EULA and run the SupportAssist Collection
+            with job wait as false and filter_data as false
+      dellemc.openmanage.idrac_support_assist:
+        accept_eula: true
+        export: false
+        job_wait: false
+        data_collector: ["debug_logs", "telemetry_reports", "storage_logs",
+                         "hardware_data"]
+      check_mode: true
+      register: check_mode_result
+
+    - name: Verify - Check Mode- Accept the EULA and run the SupportAssist
+            Collection with job wait as false and filter_data as false
+      ansible.builtin.assert:
+        that:
+          - check_mode_result.changed
+          - "check_mode_result.msg == 'Changes found to be applied.'"
+
+    - name: Normal Mode - Check Mode- Accept the EULA and run the SupportAssist
+            Collection with job wait as false and filter_data as false
+      dellemc.openmanage.idrac_support_assist:
+        accept_eula: true
+        export: false
+        job_wait: false
+        data_collector: ["debug_logs", "telemetry_reports", "storage_logs",
+                         "hardware_data"]
+      register: run_result
+
+    - name: Verify - Normal Mode - Accept the EULA and run the SupportAssist
+            Collection with job wait as false and filter_data as false
+      ansible.builtin.assert:
+        that:
+          - run_result.changed
+          - "run_result.msg == 'Successfully triggered the job to run support
+             assist collections.'"
+          - "'job_details' in run_result"
+          - "run_result.job_details.Message == 'The SupportAssist Collection
+             operation started.'"
+          - "run_result.job_details.JobState == 'Running'"
+          - "run_result.job_details.JobType == 'SACollectHealthData'"
