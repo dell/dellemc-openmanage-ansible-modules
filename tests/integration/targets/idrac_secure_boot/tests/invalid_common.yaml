@@ -1,0 +1,147 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Negative - Invalid hostname
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: invalid
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+      ignore_unreachable: true
+      register: invalid_hostname
+
+    - name: Verify task status- Negative - Invalid hostname
+      ansible.builtin.assert:
+        that:
+          - invalid_hostname.unreachable
+          - not invalid_hostname.changed
+          - invalid_hostname.msg == "<urlopen error [Errno -2]
+           Name or service not known>"
+
+    - name: Negative - Missing hostname parameter
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_user }}"
+        validate_certs: false
+      ignore_errors: true
+      register: missing_hostname
+
+    - name: Verify task status - Negative - Missing hostname parameter
+      ansible.builtin.assert:
+        that:
+          - missing_hostname.failed
+          - not missing_hostname.changed
+          - 'missing_hostname.msg == "HTTP Error 401: Unauthorized"'
+
+    - name: Negative - Invalid user
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: invalid
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+      ignore_errors: true
+      register: invalid_user
+
+    - name: Verify task status - Negative - Invalid user
+      ansible.builtin.assert:
+        that:
+          - invalid_user.failed
+          - not invalid_user.changed
+          - 'invalid_user.msg == "HTTP Error 401: Unauthorized"'
+
+    - name: Negative - Invalid password
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user}}"
+        idrac_password: invalid
+        validate_certs: false
+      ignore_errors: true
+      register: invalid_password
+
+    - name: Verify task status - Negative - Invalid password
+      ansible.builtin.assert:
+        that:
+          - invalid_password.failed
+          - not invalid_password.changed
+          - 'invalid_password.msg == "HTTP Error 401: Unauthorized"'
+
+    - name: Negative - Invalid ca_path
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user}}"
+        idrac_password: "{{ idrac_password}}"
+        ca_path: invalid
+        validate_certs: false
+      ignore_errors: true
+      register: invalid_ca_path
+
+    - name: Verify task status - Negative - Invalid ca_path
+      ansible.builtin.assert:
+        that:
+          - invalid_ca_path.failed
+          - not invalid_ca_path.changed
+          - 'invalid_ca_path.msg == "[Errno 2] No such file or
+            directory: b''invalid''"'
+
+    - name: Negative - Invalid option
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user}}"
+        idrac_password: "{{ idrac_password}}"
+        invalid: true
+        validate_certs: false
+      ignore_errors: true
+      register: invalid_option
+
+    - name: Set fact for invalid option message
+      ansible.builtin.set_fact:
+        invalid_msg: "Unsupported parameters for
+           (dellemc.openmanage.idrac_secure_boot) module: invalid.
+            Supported parameters include: "
+
+    - name: Verify task status - Negative - Invalid option
+      ansible.builtin.assert:
+        that:
+          - invalid_option.failed
+          - not invalid_option.changed
+          - invalid_msg in invalid_option.msg
+
+    - name: Negative - Invalid validate_certs
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: invalid
+        idrac_user: "{{ idrac_user}}"
+        idrac_password: "{{ idrac_password}}"
+        validate_certs: invalid
+      ignore_errors: true
+      register: invalid_validate_certs
+
+    - name: Set fact for invalid validate_certs Message
+      ansible.builtin.set_fact:
+        invalid_msg: "argument 'validate_certs' is of type <class 'str'>
+         and we were unable to convert to bool: The value 'invalid' is not
+         a valid boolean.  Valid booleans include: "
+
+    - name: Verify task status - Negative - Invalid validate_certs
+      ansible.builtin.assert:
+        that:
+          - invalid_validate_certs.failed
+          - not invalid_validate_certs.changed
+          - invalid_msg in invalid_validate_certs.msg
+
+  module_defaults:
+    dellemc.openmanage.idrac_secure_boot:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
