@@ -80,8 +80,12 @@ requirements:
     - "python >= 3.9.6"
 author:
     - "Abhishek Sinha(@ABHISHEK-SINHA10)"
+attributes:
+    check_mode:
+        support: full
+    diff_mode:
+        support: full
 notes:
-    - This module supports C(check_mode).
     - This module will always report changes found to be applied when run in C(check mode).
     - This module does not support idempotency when I(import_certificates) is provided.
     - This module supports IPv4 and IPv6 addresses.

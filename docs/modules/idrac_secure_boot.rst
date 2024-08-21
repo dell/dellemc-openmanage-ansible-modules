@@ -134,7 +134,6 @@ Notes
 -----
 
 .. note::
-   - This module supports \ :literal:`check\_mode`\ .
    - This module will always report changes found to be applied when run in \ :literal:`check mode`\ .
    - This module does not support idempotency when \ :emphasis:`import\_certificates`\  is provided.
    - This module supports IPv4 and IPv6 addresses.
