@@ -22,6 +22,10 @@
 - name: Run and export with accept_eula as false and EULA terms when it's
         already accepted
   block:
+    - name: Pre-requisite - Reset IDRAC
+      ansible.builtin.include_tasks:
+        file: ../_reset_config.yml
+
     - name: Pre-requisite - Fetching EULA status
       ansible.builtin.include_tasks:
         file: ../_eula_helper.yml
