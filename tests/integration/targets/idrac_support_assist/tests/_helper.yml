@@ -50,7 +50,6 @@
     - name: Wait for IDRAC to be up
       ansible.builtin.pause:
         seconds: 120
-      when: prereq_result.changed
 
     - name: Clear the Job Queue
       ansible.builtin.uri:
@@ -69,4 +68,3 @@
     - name: Wait for IDRAC to be up
       ansible.builtin.pause:
         seconds: 180
-      when: powerstate.changed

@@ -199,6 +199,10 @@
 - name: Perform run and export operation when eula_accept is true to http
         share using proxy
   block:
+    - name: Pre-requisite - Reset IDRAC
+      ansible.builtin.include_tasks:
+        file: ../_reset_config.yml
+
     - name: Check Mode - Accept the EULA and run and export SupportAssist
             Collection with job wait as true and filter_data as true to http
             share using proxy
@@ -228,8 +232,8 @@
             as true to http share using proxy
       ansible.builtin.assert:
         that:
-          - not check_mode_result.changed
-          - "check_mode_result.msg == 'No changes found to be applied.'"
+          - check_mode_result.changed
+          - "check_mode_result.msg == 'Changes found to be applied.'"
 
     - name: Normal Mode - Accept the EULA and run and export SupportAssist
             Collection with job wait as true and filter_data as true to http

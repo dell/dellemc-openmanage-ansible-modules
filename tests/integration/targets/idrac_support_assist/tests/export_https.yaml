@@ -46,6 +46,11 @@
       when: curr_eula_status_id is defined and 'SRV074' not in
             curr_eula_status_id
 
+    - name: Trigger the run collection and export to local
+      ansible.builtin.include_tasks: _run_support_assist_track.yml
+      vars:
+        job_track: true
+
     - name: Check Mode - Export SupportAssist Collection with job wait as
             true to https share without proxy
       dellemc.openmanage.idrac_support_assist:
