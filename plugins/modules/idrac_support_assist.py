@@ -282,7 +282,7 @@ job_details:
         "CompletionTime": "2024-07-08T01:56:45",
         "Description": "Job Instance",
         "EndTime": null,
-        "Id": "JID_204214544066",
+        "Id": "JID_XXXXXXXXXXXX",
         "JobState": "Completed",
         "JobType": "SACollectExportHealthData",
         "Message": "The SupportAssist Collection and Transmission Operation is completed successfully.",
@@ -644,11 +644,11 @@ class RunSupportAssist(SupportAssist):
                 msg=TIMEOUT_NEGATIVE_OR_ZERO_MSG, failed=True)
 
     def __perform_job_wait(self, run_support_assist_status):
-        job_dict = {}
+        job_details = {}
         job_wait = self.module.params.get('job_wait')
         share_params = self.module.params.get('share_parameters') or {}
         local_share = share_params.get('share_type') or False
-        job_wait_timeout = self.module.params.get('job_wait_timeout')
+        timeout_of_job_wait = self.module.params.get('job_wait_timeout')
         job_tracking_uri = run_support_assist_status.headers.get("Location")
         if job_tracking_uri:
             job_id = job_tracking_uri.split("/")[-1]
@@ -656,22 +656,22 @@ class RunSupportAssist(SupportAssist):
                 self.module, self.idrac, MANAGERS_URI)
             job_uri = f"{res_uri[0]}/{OEM}/{MANUFACTURER}/{JOBS}/{job_id}"
             if job_wait or local_share == 'local':
-                job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, job_uri,
-                                                                                  max_job_wait_sec=job_wait_timeout,
-                                                                                  sleep_interval_secs=1)
-                job_dict = remove_key(job_dict, regex_pattern=ODATA_REGEX)
-                if int(wait_time) >= int(job_wait_timeout):
+                failed_job, message, job_details, time_to_wait = idrac_redfish_job_tracking(self.idrac, job_uri,
+                                                                                            max_job_wait_sec=timeout_of_job_wait,
+                                                                                            sleep_interval_secs=1)
+                job_details = remove_key(job_details, regex_pattern=ODATA_REGEX)
+                if int(time_to_wait) >= int(timeout_of_job_wait):
                     self.module.exit_json(msg=WAIT_TIMEOUT_MSG.format(
-                        job_wait_timeout), changed=True, job_status=job_dict)
-                if job_failed:
+                        timeout_of_job_wait), changed=True, job_status=job_details)
+                if failed_job:
                     self.module.exit_json(
-                        msg=job_dict.get("Message"), job_status=job_dict, failed=True)
+                        msg=job_details.get("Message"), job_status=job_details, failed=True)
             else:
-                job_resp = self.idrac.invoke_request(job_uri, 'GET')
-                job_dict = job_resp.json_data
-                job_dict = remove_key(job_dict, regex_pattern=ODATA_REGEX)
+                job_response = self.idrac.invoke_request(job_uri, 'GET')
+                job_details = job_response.json_data
+                job_details = remove_key(job_details, regex_pattern=ODATA_REGEX)
         self.file_download(job_tracking_uri, local_share)
-        return job_dict
+        return job_details
 
     def file_download(self, job_tracking_uri, local_share):
         if job_tracking_uri and local_share == 'local':
@@ -916,22 +916,22 @@ def get_argument_spec():
                 "username": {"type": 'str'},
                 "password": {"type": 'str', "no_log": True},
                 "proxy_port": {"type": 'int', "default": 80},
-                "ignore_certificate_warning": {
-                    "type": 'str',
-                    "default": "off",
-                    "choices": ["off", "on"]
-                },
-                "ip_address": {"type": 'str'},
                 "proxy_server": {"type": 'str'},
+                "proxy_username": {"type": 'str'},
+                "proxy_password": {"type": 'str', "no_log": True},
                 "workgroup": {"type": 'str'},
                 "proxy_support": {
                     "type": 'str',
                     "default": "off",
                     "choices": ["off", "default_proxy", "parameters_proxy"]
                 },
+                "ignore_certificate_warning": {
+                    "type": 'str',
+                    "default": "off",
+                    "choices": ["off", "on"]
+                },
                 "share_name": {"type": 'str'},
-                "proxy_username": {"type": 'str'},
-                "proxy_password": {"type": 'str', "no_log": True}
+                "ip_address": {"type": 'str'},
             },
             "required_together": [
                 ("username", "password"),

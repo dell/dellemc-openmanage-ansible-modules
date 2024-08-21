@@ -350,7 +350,7 @@ msg (always, str, Successfully ran and exported the SupportAssist collection.)
   Status of the SupportAssist operation.
 
 
-job_details (For run and export operations, dict, {'ActualRunningStartTime': '2024-07-08T01:50:54', 'ActualRunningStopTime': '2024-07-08T01:56:45', 'CompletionTime': '2024-07-08T01:56:45', 'Description': 'Job Instance', 'EndTime': None, 'Id': 'JID_204214544066', 'JobState': 'Completed', 'JobType': 'SACollectExportHealthData', 'Message': 'The SupportAssist Collection and Transmission Operation is completed successfully.', 'MessageArgs': [], 'MessageArgs@odata.count': 0, 'MessageId': 'SRV088', 'Name': 'SupportAssist Collection', 'PercentComplete': 100, 'StartTime': '2024-07-08T01:50:54', 'TargetSettingsURI': None})
+job_details (For run and export operations, dict, {'ActualRunningStartTime': '2024-07-08T01:50:54', 'ActualRunningStopTime': '2024-07-08T01:56:45', 'CompletionTime': '2024-07-08T01:56:45', 'Description': 'Job Instance', 'EndTime': None, 'Id': 'JID_XXXXXXXXXXXX', 'JobState': 'Completed', 'JobType': 'SACollectExportHealthData', 'Message': 'The SupportAssist Collection and Transmission Operation is completed successfully.', 'MessageArgs': [], 'MessageArgs@odata.count': 0, 'MessageId': 'SRV088', 'Name': 'SupportAssist Collection', 'PercentComplete': 100, 'StartTime': '2024-07-08T01:50:54', 'TargetSettingsURI': None})
   Returns the output for status of the job.
 
 
