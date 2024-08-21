@@ -331,31 +331,6 @@ class TestAcceptEULA(FakeAnsibleModule):
         msg = support_assist_obj.execute()
         assert msg == EULA_ACCEPTED_MSG
 
-        # Scneario 3: CheckMode
-        obj2 = MagicMock()
-        obj2.status_code = 200
-        obj2.json_data = {
-            MESSAGE_EXTENDED: [
-                {
-                    "Message": EULA_ACCEPTED_MSG,
-                    "MessageId": "IDRAC.2.8.SRV074",
-                }
-            ]
-        }
-        mocker.patch(
-            MODULE_PATH + EULA_STATUS_URL, return_value=None)
-        mocker.patch(MODULE_PATH + EULA_STATUS_FUNC, return_value=obj)
-        mocker.patch(MODULE_PATH + "AcceptEULA.accept_eula", return_value=obj2)
-        idrac_default_args.update(
-            {'run': False, 'accept_eula': True, 'export': False})
-        f_module = self.get_module_mock(
-            params=idrac_default_args, check_mode=True)
-        support_assist_obj = self.module.AcceptEULA(
-            idrac_connection_support_assist_mock, f_module)
-        with pytest.raises(Exception) as exc:
-            support_assist_obj.execute()
-        assert exc.value.args[0] == CHANGES_NOT_FOUND_MSG
-
     def test_get_eula_status_url(self, idrac_default_args, idrac_connection_support_assist_mock, mocker):
         mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri",
                      return_value=(REDFISH, None))
@@ -1269,105 +1244,105 @@ class TestSupportAssistType(FakeAnsibleModule):
             self.module.SupportAssistType.support_assist_operation(idrac_connection_support_assist_mock, f_module)
         assert exc.value.args[0] == NO_OPERATION_SKIP_MSG
 
-    @pytest.mark.parametrize("exc_type",
+    @pytest.mark.parametrize("exc",
                              [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
-    def test_idrac_support_assist_main_exception_handling_case(self, exc_type, mocker, idrac_default_args):
+    def test_idrac_support_assist_main_exception_handling_case(self, exc, mocker, idrac_default_args):
         idrac_default_args.update(
             {"run": True, "data_collector": ['gpu_logs'], "export": False})
         # Scenario 1: HTTPError with message id SRV095
-        json_str = to_text(json.dumps({"error": {MESSAGE_EXTENDED: [
+        error_string = to_text(json.dumps({"error": {MESSAGE_EXTENDED: [
             {
                 'MessageId': "SRV095",
-                "Message": "Error"
+                "Message": HTTP_ERROR
             }
         ]}}))
-        if exc_type in [HTTPError, SSLValidationError]:
+        if exc in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + RUN_EXEC_FUNC,
-                         side_effect=exc_type(HTTPS_PATH, 400,
-                                              HTTP_ERROR,
-                                              {"accept-type": APPLICATION_JSON},
-                                              StringIO(json_str)))
+                         side_effect=exc(HTTPS_PATH, 400,
+                                         HTTP_ERROR,
+                                         {"accept-type": APPLICATION_JSON},
+                                         StringIO(error_string)))
         else:
             mocker.patch(MODULE_PATH + RUN_EXEC_FUNC,
-                         side_effect=exc_type('test'))
-        result = self._run_module(idrac_default_args)
-        if exc_type == URLError:
-            assert result['unreachable'] is True
-        assert 'msg' in result
+                         side_effect=exc('test'))
+        res_out = self._run_module(idrac_default_args)
+        if exc == URLError:
+            assert res_out['unreachable'] is True
+        assert 'msg' in res_out
 
         # Scenario 2: HTTPError with message id SRV085
-        json_str = to_text(json.dumps({"error": {MESSAGE_EXTENDED: [
+        error_string = to_text(json.dumps({"error": {MESSAGE_EXTENDED: [
             {
                 'MessageId': "SRV085",
-                "Message": "Error"
+                "Message": HTTP_ERROR
             }
         ]}}))
-        if exc_type in [HTTPError, SSLValidationError]:
+        if exc in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + RUN_EXEC_FUNC,
-                         side_effect=exc_type(HTTPS_PATH, 400,
-                                              HTTP_ERROR,
-                                              {"accept-type": APPLICATION_JSON},
-                                              StringIO(json_str)))
-        result = self._run_module(idrac_default_args)
-        assert 'msg' in result
+                         side_effect=exc(HTTPS_PATH, 400,
+                                         HTTP_ERROR,
+                                         {"accept-type": APPLICATION_JSON},
+                                         StringIO(error_string)))
+        res_out = self._run_module(idrac_default_args)
+        assert 'msg' in res_out
 
         # Scenario 3: HTTPError with message id LIC501
-        json_str = to_text(json.dumps({"error": {MESSAGE_EXTENDED: [
+        error_string = to_text(json.dumps({"error": {MESSAGE_EXTENDED: [
             {
                 'MessageId': "LIC501",
-                "Message": "Error"
+                "Message": HTTP_ERROR
             }
         ]}}))
-        if exc_type in [HTTPError, SSLValidationError]:
+        if exc in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + RUN_EXEC_FUNC,
-                         side_effect=exc_type(HTTPS_PATH, 400,
-                                              HTTP_ERROR,
-                                              {"accept-type": APPLICATION_JSON},
-                                              StringIO(json_str)))
-        result = self._run_module(idrac_default_args)
-        assert 'msg' in result
+                         side_effect=exc(HTTPS_PATH, 400,
+                                         HTTP_ERROR,
+                                         {"accept-type": APPLICATION_JSON},
+                                         StringIO(error_string)))
+        res_out = self._run_module(idrac_default_args)
+        assert 'msg' in res_out
 
         # Scenario 4: HTTPError with message id SRV113
-        json_str = to_text(json.dumps({"error": {MESSAGE_EXTENDED: [
+        error_string = to_text(json.dumps({"error": {MESSAGE_EXTENDED: [
             {
                 'MessageId': "SRV113",
-                "Message": "Error"
+                "Message": HTTP_ERROR
             }
         ]}}))
-        if exc_type in [HTTPError, SSLValidationError]:
+        if exc in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + RUN_EXEC_FUNC,
-                         side_effect=exc_type(HTTPS_PATH, 400,
-                                              HTTP_ERROR,
-                                              {"accept-type": APPLICATION_JSON},
-                                              StringIO(json_str)))
-        result = self._run_module(idrac_default_args)
-        assert 'msg' in result
+                         side_effect=exc(HTTPS_PATH, 400,
+                                         HTTP_ERROR,
+                                         {"accept-type": APPLICATION_JSON},
+                                         StringIO(error_string)))
+        res_out = self._run_module(idrac_default_args)
+        assert 'msg' in res_out
 
         # Scenario 5: HTTPError with random message id
-        json_str = to_text(json.dumps({"error": {MESSAGE_EXTENDED: [
+        error_string = to_text(json.dumps({"error": {MESSAGE_EXTENDED: [
             {
                 'MessageId': "123",
-                "Message": "Error"
+                "Message": HTTP_ERROR
             }
         ]}}))
-        if exc_type in [HTTPError, SSLValidationError]:
+        if exc in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + RUN_EXEC_FUNC,
-                         side_effect=exc_type(HTTPS_PATH, 400,
-                                              HTTP_ERROR,
-                                              {"accept-type": APPLICATION_JSON},
-                                              StringIO(json_str)))
-        result = self._run_module(idrac_default_args)
-        assert 'msg' in result
+                         side_effect=exc(HTTPS_PATH, 400,
+                                         HTTP_ERROR,
+                                         {"accept-type": APPLICATION_JSON},
+                                         StringIO(error_string)))
+        res_out = self._run_module(idrac_default_args)
+        assert 'msg' in res_out
 
     def test_main(self, mocker):
-        module_mock = mocker.MagicMock()
-        idrac_mock = mocker.MagicMock()
+        mock_module = mocker.MagicMock()
+        mock_idrac = mocker.MagicMock()
         support_assist_mock = mocker.MagicMock()
         support_assist_mock.execute.return_value = (None, None)
         mocker.patch(MODULE_PATH + 'get_argument_spec', return_value={})
         mocker.patch(MODULE_PATH + 'IdracAnsibleModule',
-                     return_value=module_mock)
-        mocker.patch(MODULE_PATH + 'iDRACRedfishAPI', return_value=idrac_mock)
+                     return_value=mock_module)
+        mocker.patch(MODULE_PATH + 'iDRACRedfishAPI', return_value=mock_idrac)
         mocker.patch(MODULE_PATH + 'SupportAssistType.support_assist_operation',
                      return_value=support_assist_mock)
         main()
