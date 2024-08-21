@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 9.6.0
+# Version 9.4.0
 # Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -60,7 +60,6 @@ JOB_URI = "JobService/Jobs({job_id})"
 JOB_SERVICE_URI = "JobService/Jobs"
 HOST_UNRESOLVED_MSG = "Unable to resolve hostname or IP {0}."
 JOB_EXEC_HISTORY = "JobService/Jobs({job_id})/ExecutionHistories"
-OME_INFO = "ApplicationService/Info"
 
 
 class OpenURLResponse(object):
@@ -426,10 +425,6 @@ class RestOME(object):
         except Exception:
             pass
         return job_detail_status
-
-    def get_ome_version(self):
-        resp = self.invoke_request('GET', OME_INFO)
-        return resp.json_data.get("Version")
 
 
 class OmeAnsibleModule(AnsibleModule):

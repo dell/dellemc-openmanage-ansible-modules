@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 9.5.0
+# Version 9.6.0
 # Copyright (C) 2022-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -47,6 +47,8 @@ MANAGER_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs?$expand=*($levels=
 MANAGER_JOB_ID_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{0}"
 GET_IDRAC_FIRMWARE_VER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
 HOSTNAME_REGEX = r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
+OME_INFO = "ApplicationService/Info"
+
 
 import time
 from datetime import datetime
@@ -547,3 +549,8 @@ def get_idrac_firmware_version(idrac):
     data = {'uri': GET_IDRAC_FIRMWARE_VER_URI} if 'uri' in args else {'path': GET_IDRAC_FIRMWARE_VER_URI}
     firm_version = idrac.invoke_request(method='GET', **data)
     return firm_version.json_data.get('FirmwareVersion', '')
+
+
+def get_ome_version(ome_obj):
+    resp = ome_obj.invoke_request('GET', OME_INFO)
+    return resp.json_data.get("Version")
