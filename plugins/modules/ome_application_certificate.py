@@ -174,6 +174,7 @@ error_info:
 import json
 import os
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_ome_version
 from urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.compat.version import LooseVersion
@@ -298,7 +299,7 @@ def main():
         with RestOME(module.params, req_session=False) as rest_obj:
             command = module.params.get("command")
             if command == "upload_cert_chain":
-                ome_version = rest_obj.get_ome_version()
+                ome_version = get_ome_version(rest_obj)
                 if LooseVersion(ome_version) < "3.10":
                     module.exit_json(msg=UNSUPPORTED_OME.format(ome_version=ome_version), skipped=True)
 
