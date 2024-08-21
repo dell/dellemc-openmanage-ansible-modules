@@ -600,6 +600,7 @@ def fetch_smart_fabric_link_details(module, rest_obj, fabric_details_dict):
                  "ISLLinks": "ISLLinks@odata.navigationLink", "Uplinks": "Uplinks@odata.navigationLink",
                  "Multicast": None, "FabricDesign": None}
     info_list = ["Multicast", "FabricDesign"]
+    details = None
     try:
         for key in info_dict:
             link = info_dict[key]
