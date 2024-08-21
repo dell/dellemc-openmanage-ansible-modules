@@ -74,6 +74,7 @@ author:
   - "Felix Stephen (@felixs88)"
   - "Kritika Bhateja (@Kritika-Bhateja-03)"
   - "Jennifer John (@Jennifer-John)"
+  - "Abhishek Sinha (@ABHISHEK-SINHA10)"
   - "Saksham Nautiyal (@Saksham-Nautiyal)"
 '''
 
