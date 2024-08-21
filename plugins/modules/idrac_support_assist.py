@@ -172,11 +172,14 @@ requirements:
   - "python >= 3.9.6"
 author:
   - "Shivam Sharma(@ShivamSh3)"
+attributes:
+    check_mode:
+        description: Runs task to validate without performing action on the target machine.
+        support: full
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports only iDRAC9 and above.
     - This module supports IPv4 and IPv6 addresses.
-    - This module supports C(check_mode).
     - C(local) for I(share_type) is applicable only when I(run) and I(export) is C(true).
     - When I(share_type) is C(local) for I(run) and (export) operation, then job_wait is not applicable.
 """

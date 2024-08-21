@@ -250,7 +250,6 @@ Notes
    - Run this module from a system that has direct access to Dell iDRAC.
    - This module supports only iDRAC9 and above.
    - This module supports IPv4 and IPv6 addresses.
-   - This module supports \ :literal:`check\_mode`\ .
    - \ :literal:`local`\  for \ :emphasis:`share\_type`\  is applicable only when \ :emphasis:`run`\  and \ :emphasis:`export`\  is \ :literal:`true`\ .
    - When \ :emphasis:`share\_type`\  is \ :literal:`local`\  for \ :emphasis:`run`\  and (export) operation, then job\_wait is not applicable.
 
