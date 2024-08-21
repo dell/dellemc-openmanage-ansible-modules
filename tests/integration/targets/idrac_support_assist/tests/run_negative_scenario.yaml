@@ -47,7 +47,8 @@
           - invalid_filter_data.failed
           - not invalid_filter_data.changed
 
-    - name: Export the SupportAssist Collection passing empty list to data_collector
+    - name: Export the SupportAssist Collection passing empty list
+        to data_collector
       dellemc.openmanage.idrac_support_assist:
         data_collector: []
         run: true
@@ -78,7 +79,8 @@
         seconds: 300
       when: run_with_job_wait_false_1.changed
 
-    - name: Repeating previous tasks - Export the SupportAssist Collection for run with job_wait as false
+    - name: Repeating previous tasks - Export the SupportAssist Collection
+        for run with job_wait as false
       dellemc.openmanage.idrac_support_assist:
         run: true
         export: false
@@ -96,5 +98,6 @@
           - run_with_job_wait_false_2.skipped
           - "run_with_job_wait_false_2.msg == skip_msg"
       vars:
-        success_msg: "Successfully triggered the job to run support assist collections."
+        success_msg: "Successfully triggered the job to run support assist
+          collections."
         skip_msg: "The support assist collections job is already present."
