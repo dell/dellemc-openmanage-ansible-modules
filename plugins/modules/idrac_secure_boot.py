@@ -28,7 +28,7 @@ options:
     type: bool
     description:
         - Import all the specified key certificates.
-        - When I(import_certificates) is C(true) either of I(platform_key) or I(KEK) or I(database) or I(disallow_database) is required.
+        - When I(import_certificates) is C(true), then either I(platform_key), I(KEK), I(database), or I(disallow_database) is required.
   platform_key:
     type: path
     description:
@@ -53,8 +53,8 @@ options:
     default: false
     description:
       - Secure boot certificate import operation requires a server restart. This parameter provides an option to restart the server.
-      - C(true) will restart the server.
-      - C(false) will not restart the server.
+      - C(true) restarts the server.
+      - C(false) does not restart the server.
       - I(restart) is applicable when I(import) is C(true).
   restart_type:
     type: str
@@ -62,8 +62,8 @@ options:
     choices: [GracefulRestart, ForceRestart]
     description:
       - Restart type of the server.
-      - C(ForceRestart) will forcefully restart the server.
-      - C(GracefulRestart) will gracefully restart the server.
+      - C(ForceRestart) forcefully restarts the server.
+      - C(GracefulRestart) gracefully restarts the server.
       - I(restart_type) is applicable when I(restart) is C(true).
   job_wait:
     type: bool
@@ -82,9 +82,11 @@ author:
     - "Abhishek Sinha(@ABHISHEK-SINHA10)"
 attributes:
     check_mode:
+        description: Runs task to validate without performing action on the target machine.
         support: full
     diff_mode:
-        support: full
+        description: Runs the task to report the changes made or to be made.
+        support: none
 notes:
     - This module will always report changes found to be applied when run in C(check mode).
     - This module does not support idempotency when I(import_certificates) is provided.

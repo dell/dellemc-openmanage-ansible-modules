@@ -30,7 +30,7 @@ Parameters
   import_certificates (optional, bool, None)
     Import all the specified key certificates.
 
-    When \ :emphasis:`import\_certificates`\  is \ :literal:`true`\  either of \ :emphasis:`platform\_key`\  or \ :emphasis:`KEK`\  or \ :emphasis:`database`\  or \ :emphasis:`disallow\_database`\  is required.
+    When \ :emphasis:`import\_certificates`\  is \ :literal:`true`\ , then either \ :emphasis:`platform\_key`\ , \ :emphasis:`KEK`\ , \ :emphasis:`database`\ , or \ :emphasis:`disallow\_database`\  is required.
 
 
   platform_key (optional, path, None)
@@ -52,9 +52,9 @@ Parameters
   restart (optional, bool, False)
     Secure boot certificate import operation requires a server restart. This parameter provides an option to restart the server.
 
-    \ :literal:`true`\  will restart the server.
+    \ :literal:`true`\  restarts the server.
 
-    \ :literal:`false`\  will not restart the server.
+    \ :literal:`false`\  does not restart the server.
 
     \ :emphasis:`restart`\  is applicable when \ :emphasis:`import`\  is \ :literal:`true`\ .
 
@@ -62,9 +62,9 @@ Parameters
   restart_type (optional, str, GracefulRestart)
     Restart type of the server.
 
-    \ :literal:`ForceRestart`\  will forcefully restart the server.
+    \ :literal:`ForceRestart`\  forcefully restarts the server.
 
-    \ :literal:`GracefulRestart`\  will gracefully restart the server.
+    \ :literal:`GracefulRestart`\  gracefully restarts the server.
 
     \ :emphasis:`restart\_type`\  is applicable when \ :emphasis:`restart`\  is \ :literal:`true`\ .
 
