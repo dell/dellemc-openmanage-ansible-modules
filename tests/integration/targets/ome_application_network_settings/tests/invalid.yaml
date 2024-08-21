@@ -1,0 +1,364 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: hostname, username
+         and password.'
+  when: hostname is not defined or username is not defined or password
+         is not defined
+
+- block:
+    - name: Negative - Invalid universal_timeout
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          enable_universal_timeout: true
+          universal_timeout: invalid
+      ignore_errors: true
+      register: invalid_universal_timeout
+
+    - name: Set fact for invalid universal_timeout Message
+      ansible.builtin.set_fact:
+        invalid_msg: "argument 'universal_timeout' is of type
+         <class 'str'> found in 'session_inactivity_timeout'. and we were
+         unable to convert to float: <class 'str'> cannot be converted to
+         a float"
+
+    - name: Verify task status - Negative - Invalid universal_timeout
+      ansible.builtin.assert:
+        that:
+          - invalid_universal_timeout.failed
+          - not invalid_universal_timeout.changed
+          - invalid_msg in invalid_universal_timeout.msg
+
+    - name: Negative - Invalid api_timeout
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          enable_universal_timeout: true
+          api_timeout: invalid
+      ignore_errors: true
+      register: invalid_api_timeout
+
+    - name: Set fact for invalid api_timeout Message
+      ansible.builtin.set_fact:
+        invalid_msg: "argument 'api_timeout' is of type
+         <class 'str'> found in 'session_inactivity_timeout'. and we were
+         unable to convert to float: <class 'str'> cannot be converted to
+         a float"
+
+    - name: Verify task status - Negative - Invalid api_timeout
+      ansible.builtin.assert:
+        that:
+          - invalid_api_timeout.failed
+          - not invalid_api_timeout.changed
+          - invalid_msg in invalid_api_timeout.msg
+
+    - name: Negative - Invalid gui_timeout
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          enable_universal_timeout: true
+          gui_timeout: invalid
+      ignore_errors: true
+      register: invalid_gui_timeout
+
+    - name: Set fact for invalid gui_timeout Message
+      ansible.builtin.set_fact:
+        invalid_msg: "argument 'gui_timeout' is of type
+         <class 'str'> found in 'session_inactivity_timeout'. and we were
+         unable to convert to float: <class 'str'> cannot be converted to
+         a float"
+
+    - name: Verify task status - Negative - Invalid gui_timeout
+      ansible.builtin.assert:
+        that:
+          - invalid_gui_timeout.failed
+          - not invalid_gui_timeout.changed
+          - invalid_msg in invalid_gui_timeout.msg
+
+    - name: Negative - Invalid api_sessions
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          enable_universal_timeout: true
+          universal_timeout: 30
+          api_sessions: invalid
+      ignore_errors: true
+      register: invalid_api_sessions
+
+    - name: Set fact for invalid api_sessions Message
+      ansible.builtin.set_fact:
+        invalid_msg: "argument 'api_sessions' is of type
+            <class 'str'> found in 'session_inactivity_timeout'. and we were
+            unable to convert to int: <class 'str'> cannot be converted to an
+            int"
+
+    - name: Verify task status - Negative - Invalid api_sessions
+      ansible.builtin.assert:
+        that:
+          - invalid_api_sessions.failed
+          - not invalid_api_sessions.changed
+          - invalid_msg in invalid_api_sessions.msg
+
+    - name: Negative - Invalid gui_sessions
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          enable_universal_timeout: true
+          universal_timeout: 30
+          gui_sessions: invalid
+      ignore_errors: true
+      register: invalid_gui_sessions
+
+    - name: Set fact for invalid gui_sessions Message
+      ansible.builtin.set_fact:
+        invalid_msg: "argument 'gui_sessions' is of type
+            <class 'str'> found in 'session_inactivity_timeout'. and we were
+            unable to convert to int: <class 'str'> cannot be converted to an
+            int"
+
+    - name: Verify task status - Negative - Invalid gui_sessions
+      ansible.builtin.assert:
+        that:
+          - invalid_gui_sessions.failed
+          - not invalid_gui_sessions.changed
+          - invalid_msg in invalid_gui_sessions.msg
+
+    - name: Negative - Invalid universal and api timeout combination
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          enable_universal_timeout: true
+          universal_timeout: 30
+          api_timeout: 20
+      ignore_errors: true
+      register: invalid_combination
+
+    - name: Verify task status - Negative - Invalid universal and api
+       timeout combination
+      ansible.builtin.assert:
+        that:
+          - invalid_combination.failed
+          - not invalid_combination.changed
+          - 'invalid_combination.msg == "parameters are mutually exclusive:
+           universal_timeout|api_timeout found in session_inactivity_timeout"'
+
+    - name: Negative - Invalid universal and gui timeout combination
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          enable_universal_timeout: true
+          universal_timeout: 30
+          gui_timeout: 20
+      ignore_errors: true
+      register: invalid_combination
+
+    - name: Verify task status - Negative - Invalid universal and gui
+       timeout combination
+      ansible.builtin.assert:
+        that:
+          - invalid_combination.failed
+          - not invalid_combination.changed
+          - 'invalid_combination.msg == "parameters are mutually exclusive:
+           universal_timeout|gui_timeout found in session_inactivity_timeout"'
+
+    - name: Negative api_timeout
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          enable_universal_timeout: false
+          api_timeout: -20
+      ignore_errors: true
+      register: negative_api_timeout
+
+    - name: Verify task status - Negative api_timeout
+      ansible.builtin.assert:
+        that:
+          - negative_api_timeout.failed
+          - not negative_api_timeout.changed
+          - 'negative_api_timeout.msg == "HTTP Error 400: 400"'
+
+    - name: Negative gui_timeout
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          enable_universal_timeout: false
+          gui_timeout: -15
+      ignore_errors: true
+      register: negative_gui_timeout
+
+    - name: Verify task status - Negative gui_timeout
+      ansible.builtin.assert:
+        that:
+          - negative_gui_timeout.failed
+          - not negative_gui_timeout.changed
+          - 'negative_gui_timeout.msg == "HTTP Error 400: 400"'
+
+    - name: Negative api_session
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          api_sessions: -100
+      ignore_errors: true
+      register: negative_api_session
+
+    - name: Verify task status - Negative api_session
+      ansible.builtin.assert:
+        that:
+          - negative_api_session.failed
+          - not negative_api_session.changed
+          - 'negative_api_session.msg == "HTTP Error 400: 400"'
+
+    - name: Negative gui_session
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          gui_sessions: -100
+      ignore_errors: true
+      register: negative_gui_session
+
+    - name: Verify task status - Negative gui_session
+      ansible.builtin.assert:
+        that:
+          - negative_gui_session.failed
+          - not negative_gui_session.changed
+          - 'negative_gui_session.msg == "HTTP Error 400: 400"'
+
+    - name: Negative - universal_timeout outside range
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          enable_universal_timeout: true
+          universal_timeout: 1444
+      ignore_errors: true
+      register: invalid_timeout
+
+    - name: Verify task status - Negative - universal_timeout outside range
+      ansible.builtin.assert:
+        that:
+          - invalid_timeout.failed
+          - not invalid_timeout.changed
+          - 'invalid_timeout.msg == "HTTP Error 400: 400"'
+
+    - name: Negative - api_timeout outside range
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          enable_universal_timeout: false
+          api_timeout: 1444
+      ignore_errors: true
+      register: invalid_timeout
+
+    - name: Verify task status - Negative - api_timeout outside range
+      ansible.builtin.assert:
+        that:
+          - invalid_timeout.failed
+          - not invalid_timeout.changed
+          - 'invalid_timeout.msg == "HTTP Error 400: 400"'
+
+    - name: Negative - gui_timeout outside range
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          enable_universal_timeout: false
+          gui_timeout: 1442
+      ignore_errors: true
+      register: invalid_timeout
+
+    - name: Verify task status - Negative - gui_timeout outside range
+      ansible.builtin.assert:
+        that:
+          - invalid_timeout.failed
+          - not invalid_timeout.changed
+          - 'invalid_timeout.msg == "HTTP Error 400: 400"'
+
+    - name: Negative - api_session outside range
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          api_sessions: 101
+      ignore_errors: true
+      register: invalid_session
+
+    - name: Verify task status - Negative - api_session outside range
+      ansible.builtin.assert:
+        that:
+          - invalid_session.failed
+          - not invalid_session.changed
+          - 'invalid_session.msg == "HTTP Error 400: 400"'
+
+    - name: Negative - gui_session outside range
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          gui_sessions: 102
+      ignore_errors: true
+      register: invalid_session
+
+    - name: Verify task status - Negative - gui_session outside range
+      ansible.builtin.assert:
+        that:
+          - invalid_session.failed
+          - not invalid_session.changed
+          - 'invalid_session.msg == "HTTP Error 400: 400"'
+
+  module_defaults:
+    dellemc.openmanage.ome_application_network_proxy:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"
