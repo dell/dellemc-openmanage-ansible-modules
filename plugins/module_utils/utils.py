@@ -569,10 +569,11 @@ def wait_for_lc_status(idrac, job_wait_timeout=300, resource_id=None, interval=1
     retry_count = 1
     # LCStatus remain 'Ready' even after triggering restart
     # so waiting few seconds before loop
-    waiting_before_lc_status_check = 6 * interval
+    waiting_before_lc_status_check = 12 * interval
     if job_wait_timeout >= waiting_before_lc_status_check:
         time.sleep(waiting_before_lc_status_check)
-    max_idrac_reset_try = ((job_wait_timeout - waiting_before_lc_status_check) // interval)
+        job_wait_timeout = job_wait_timeout - waiting_before_lc_status_check
+    max_idrac_reset_try = job_wait_timeout // interval
     uri, error_msg = validate_and_get_first_resource_id_uri(resource_id, idrac, MANAGERS_URI)
     if error_msg:
         return lc_status_completed, error_msg
@@ -583,6 +584,8 @@ def wait_for_lc_status(idrac, job_wait_timeout=300, resource_id=None, interval=1
         lc_url = action_resp.get('Actions', {}).get('#DellLCService.GetRemoteServicesAPIStatus', {}).get('target', {})
     else:
         return lc_status_completed, UNSUPPORTED_LC_STATUS_MSG
+    lc_resp = idrac.invoke_request(lc_url, "POST", data="{}", dump=False)
+    lcstatus = lc_resp.json_data.get('LCStatus')
     while retry_count < max_idrac_reset_try:
         try:
             lc_resp = idrac.invoke_request(lc_url, "POST", data="{}", dump=False)
