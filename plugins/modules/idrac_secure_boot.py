@@ -55,7 +55,7 @@ options:
       - Secure boot certificate import operation requires a server restart. This parameter provides an option to restart the server.
       - C(true) restarts the server.
       - C(false) does not restart the server.
-      - I(restart) is applicable when I(import) is C(true).
+      - I(restart) is applicable when I(import_certificates) is C(true).
   restart_type:
     type: str
     default: GracefulRestart
