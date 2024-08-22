@@ -41,6 +41,7 @@ Here are the list of modules and module_utils supported by Dell.
     ├── idrac_os_deployment.py
     ├── idrac_redfish_storage_controller.py
     ├── idrac_reset.py
+    ├── idrac_secure_boot.py
     ├── idrac_server_config_profile.py
     ├── idrac_session.py
     ├── idrac_storage_volume.py
