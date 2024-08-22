@@ -1,0 +1,166 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Prerequisite for the testcase
+  ansible.builtin.include_tasks: _helper.yml
+  vars:
+    reset_trigger: 1
+
+- name: Pre-check - fail if enough disk not found to proceed with test case
+  ansible.builtin.fail:
+    msg: 'Physical disks are not sufficient to proceed the test case need
+     minimum 1 and found {{ physicaldisks | length }}'
+  when: physicaldisks | length < 1
+
+- block:
+    - name: Secure erase the physical disk with job_wait as true - Check mode
+      dellemc.openmanage.idrac_redfish_storage_controller: &secure_erase
+        command: "SecureErase"
+        controller_id: "{{ controller_name }}"
+        target: "{{ physicaldisks[0] }}"
+        job_wait: true
+      register: cm_secure_erase_job_wait
+      check_mode: true
+
+    - name: Secure erase the physical disk with job_wait as true - Check
+        mode - Verify task status
+      ansible.builtin.assert:
+        that:
+          - cm_secure_erase_job_wait.changed
+          - not cm_secure_erase_job_wait.failed
+          - cm_secure_erase_job_wait.msg == "Changes found to be applied."
+
+    - name: Secure erase the physical disk with job_wait as true - Normal mode
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        <<: *secure_erase
+      register: secure_erase_job_wait
+
+    - name: Set facts
+      ansible.builtin.set_fact:
+        job_list: []
+        uri_job_status: {}
+
+    - name: Set job list
+      ansible.builtin.set_fact:
+        job_list: "{{ job_list + [item.Id] }}"
+      loop: "{{ [secure_erase_job_wait.status] }}"
+
+    - name: Get job details
+      ansible.builtin.include_tasks: _get_job_details.yml
+      vars:
+        job_id: "{{ item }}"
+      with_items: "{{ job_list }}"
+
+    - name: Set module job status
+      ansible.builtin.set_fact:
+        module_job_status: "{{ secure_erase_job_wait.status }}"
+
+    - name: Assert job status
+      ansible.builtin.include_tasks: _assert_job_status.yml
+
+    - name: Construct expected URI for assertion
+      ansible.builtin.set_fact:
+        erase_job_wait_expected_uri: >-
+          {{ "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/" +
+          secure_erase_job_wait.task.id }}
+
+    - name: Secure erase the physical disk with job_wait as true - Normal
+        mode - Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - secure_erase_job_wait.msg == "Successfully performed the
+            'SecureErase' operation."
+          - secure_erase_job_wait.changed
+          - not secure_erase_job_wait.failed
+          - secure_erase_job_wait.task.id
+          - secure_erase_job_wait.task.uri == erase_job_wait_expected_uri
+
+    - name: Secure erase the physical disk with job_wait as false - Check mode
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        &secure_erase_no_job_wait
+        command: "SecureErase"
+        controller_id: "{{ controller_name }}"
+        target: "{{ physicaldisks[0] }}"
+        job_wait: false
+      register: cm_secure_erase_no_job_wait
+      check_mode: true
+
+    - name: Secure erase the physical disk with job_wait as false - Check
+        mode - Verify task status
+      ansible.builtin.assert:
+        that:
+          - cm_secure_erase_no_job_wait.changed
+          - not cm_secure_erase_no_job_wait.failed
+          - cm_secure_erase_no_job_wait.msg == "Changes found to be applied."
+
+    - name: Secure erase the physical disk with job_wait as false - Normal mode
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        <<: *secure_erase_no_job_wait
+      register: secure_erase_no_job_wait
+
+    - name: Construct expected URI for assertion
+      ansible.builtin.set_fact:
+        erase_no_job_wait_expected_uri: >-
+          {{ "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/" +
+          secure_erase_no_job_wait.task.id }}
+
+    - name: Secure erase the physical disk with job_wait as false - Normal
+        mode - Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - secure_erase_no_job_wait.msg == "Successfully submitted the job
+            that performs the 'SecureErase' operation."
+          - not secure_erase_no_job_wait.changed
+          - not secure_erase_no_job_wait.failed
+          - 'secure_erase_no_job_wait.status.Message == "New" or
+            secure_erase_no_job_wait.status.Message == "Running" or
+            secure_erase_no_job_wait.status.Message == "Job in Progress."'
+          - 'secure_erase_no_job_wait.status.JobState == "ReadyForExecution" or
+            secure_erase_no_job_wait.status.JobState == "Running"'
+          - secure_erase_no_job_wait.task.id
+          - secure_erase_no_job_wait.task.uri == erase_no_job_wait_expected_uri
+
+    - name: Secure erase the physical disk when already a job is
+        running - Normal mode
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        <<: *secure_erase_no_job_wait
+      register: secure_erase_job_running
+
+    - name: Secure erase the physical disk when already a job is
+        running - Normal mode - Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - secure_erase_job_running.msg == "Unable to complete the operation
+            because another job already exists. Wait for the pending job to
+            complete and retry the operation."
+          - not secure_erase_job_running.changed
+          - not secure_erase_job_running.failed
+
+    - name: Track the job completion
+      ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{ secure_erase_job_running.task.id }}"
+      when: secure_erase_job_running.msg == "Unable to complete the operation
+            because another job already exists. Wait for the pending job to
+            complete and retry the operation."
+
+    - name: Wait for the iDRAC lifecycle controller readiness
+      ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
+
+  module_defaults:
+    dellemc.openmanage.idrac_redfish_storage_controller:
+      baseuri: "{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
