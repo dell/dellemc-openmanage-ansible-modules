@@ -80,7 +80,7 @@
 
     - name: Pre-Req - Convert physical disk to non-RAID/Raid
       dellemc.openmanage.idrac_redfish_storage_controller:
-        command: "{{command}}"
+        command: "{{ command }}"
         target: "{{ target_raid_disk}}"
         job_wait: true
         job_wait_timeout: 1200
@@ -95,12 +95,13 @@
 
   module_defaults:
     dellemc.openmanage.idrac_storage_volume:
-      idrac_ip: "{{ idrac_ip }}"
+      idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"
+
     dellemc.openmanage.idrac_redfish_storage_controller:
-      baseuri: "{{ idrac_ip }}:443"
+      baseuri: "{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
       username: "{{ idrac_user }}"
       password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"
