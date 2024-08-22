@@ -85,11 +85,12 @@
             input value for Subject Alternative Name(s) is missing or
             an invalid value is entered."
 
-    - name: Negative - Input with more than 64 characters in subject_alternative_name.
+    - name: Negative - Input with more than 64 characters in
+       subject_alternative_name.
       dellemc.openmanage.ome_application_certificate:
         distinguished_name: "hostname.com"
         subject_alternative_names:
-         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         department_name: "Remote Access Group"
         business_name: "Dell Inc."
         locality: "Round Rock"

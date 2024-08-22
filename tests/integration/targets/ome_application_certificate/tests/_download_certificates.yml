@@ -1,17 +1,20 @@
 ---
-- name: Download file from HTTP/HTTPS source using wget with Windows authentication
+- name: Download file from HTTP/HTTPS source using wget with Windows
+   authentication
   register: file_download_cmd_out
   changed_when: file_download_cmd_out.rc == 0
   failed_when: file_download_cmd_out.rc != 0
-  no_log: "{{ set_no_log }}" # to avoid printing username and password
-  ansible.builtin.command: "{{ wget_command  | format(download_dest_path, source_url)
+  no_log: "{{ set_no_log }}"
+  ansible.builtin.command: "{{ wget_command  |
+   format(download_dest_path, source_url)
     + ('' if validate_certs else ' --no-check-certificate')
     + ' --user=' + url_username + ' --password=' + url_password }}"
   vars:
     wget_command: "wget -P %s %s"
     download_dest_path: "{{ base_path }}"
-    source_url: "http://{{ https_share_ip | ansible.utils.ipwrap }}{{ ome_certificate_path }}{{ certificate_chain }}"
-    validate_certs: false # Set to true if you want to validate SSL certificates
-    set_no_log: false # Set to false if you need to debug and see logs
+    source_url: "http://{{ https_share_ip |
+     ansible.utils.ipwrap }}{{ ome_certificate_path }}{{ certificate_chain }}"
+    validate_certs: false
+    set_no_log: false
     url_username: "{{ https_share_username }}"
     url_password: "{{ https_share_password }}"
