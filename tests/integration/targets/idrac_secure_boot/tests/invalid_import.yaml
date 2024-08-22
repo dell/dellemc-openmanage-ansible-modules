@@ -14,10 +14,6 @@
 - block:
     - name: Negative - Import certificate is false.
       dellemc.openmanage.idrac_secure_boot:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password}}"
-        validate_certs: false
         import_certificates: false
         platform_key: /invalid/path/to/certificate.pem
       ignore_errors: true
@@ -31,10 +27,6 @@
 
     - name: Negative - Import a invalid platform_key certificate.
       dellemc.openmanage.idrac_secure_boot:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        validate_certs: false
         import_certificates: true
         platform_key: /invalid/path/to/certificate.pem
       ignore_errors: true
@@ -49,10 +41,6 @@
 
     - name: Negative - Import a invalid key_exchange_key certificate.
       dellemc.openmanage.idrac_secure_boot:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        validate_certs: false
         import_certificates: true
         KEK:
           - /invalid/path/to/certificate.pem
@@ -68,10 +56,6 @@
 
     - name: Negative - Import a invalid database certificate.
       dellemc.openmanage.idrac_secure_boot:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        validate_certs: false
         import_certificates: true
         database:
           - /invalid/path/to/certificate.pem
@@ -88,10 +72,6 @@
 
     - name: Negative - Import a invalid disallow_database certificate.
       dellemc.openmanage.idrac_secure_boot:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        validate_certs: false
         import_certificates: true
         disallow_database:
           - /invalid/path/to/certificate.pem
@@ -108,10 +88,6 @@
 
     - name: Negative - Invalid restart
       dellemc.openmanage.idrac_secure_boot:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        validate_certs: false
         import_certificates: true
         disallow_database:
           - /invalid/path/to/certificate.pem
@@ -122,7 +98,7 @@
     - name: Set fact for invalid_restart
       ansible.builtin.set_fact:
         invalid_msg: "argument 'restart' is of type <class 'str'> and we were
-        unable to convert to bool: The value 'invalid' is not a valid
+         unable to convert to bool: The value 'invalid' is not a valid
          boolean.  Valid booleans include: "
 
     - name: Verify task status - Negative - Invalid restart
@@ -134,10 +110,6 @@
 
     - name: Negative - Invalid restart_type
       dellemc.openmanage.idrac_secure_boot:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        validate_certs: false
         import_certificates: true
         disallow_database:
           - /invalid/path/to/certificate.pem
@@ -156,10 +128,6 @@
 
     - name: Negative - Invalid job_wait
       dellemc.openmanage.idrac_secure_boot:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        validate_certs: false
         import_certificates: true
         disallow_database:
           - /invalid/path/to/certificate.pem
@@ -171,7 +139,7 @@
     - name: Set fact for invalid job_wait
       ansible.builtin.set_fact:
         invalid_msg: "argument 'job_wait' is of type <class 'str'> and we were
-        unable to convert to bool: The value 'invalid' is not a valid
+         unable to convert to bool: The value 'invalid' is not a valid
          boolean.  Valid booleans include: "
 
     - name: Verify task status - Negative -  Invalid job_wait
@@ -183,10 +151,6 @@
 
     - name: Negative - Invalid job_wait_timeout
       dellemc.openmanage.idrac_secure_boot:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        validate_certs: false
         import_certificates: true
         disallow_database:
           - /invalid/path/to/certificate.pem
@@ -211,10 +175,6 @@
     - name: Negative - Import certificate is true but
         no certificate path provided
       dellemc.openmanage.idrac_secure_boot:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        validate_certs: false
         import_certificates: true
       ignore_errors: true
       register: missing_param
@@ -230,10 +190,6 @@
 
     - name: Negative - Invalid parameter for import_certificates
       dellemc.openmanage.idrac_secure_boot:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        validate_certs: false
         import_certificates: true
         invalid: true
       ignore_errors: true
@@ -245,15 +201,11 @@
         that:
           - invalid_param.failed
           - 'invalid_param.msg == "import_certificates is True but any of
-          the following are missing: platform_key, KEK, database,
-          disallow_database"'
+           the following are missing: platform_key, KEK, database,
+           disallow_database"'
 
     - name: Negative - Import multiple invalid certificates
       dellemc.openmanage.idrac_secure_boot:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        validate_certs: false
         import_certificates: true
         platform_key: /invalid/path/to/certificate.pem
         KEK:
@@ -269,10 +221,6 @@
 
     - name: Negative - Negative job wait_timeout
       dellemc.openmanage.idrac_secure_boot:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        validate_certs: false
         import_certificates: true
         platform_key: /invalid/path/to/certificate.pem
         KEK:
@@ -292,7 +240,7 @@
 
   module_defaults:
     dellemc.openmanage.idrac_secure_boot:
-      idrac_ip: "{{ idrac_ip }}"
+      idrac_ip: "{{ idrac_ip|ansible.utils.ipwrap }}"
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"

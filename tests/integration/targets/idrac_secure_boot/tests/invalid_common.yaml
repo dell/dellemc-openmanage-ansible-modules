@@ -15,9 +15,6 @@
     - name: Negative - Invalid hostname
       dellemc.openmanage.idrac_secure_boot:
         idrac_ip: invalid
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        validate_certs: false
       ignore_unreachable: true
       register: invalid_hostname
 
@@ -29,27 +26,23 @@
           - invalid_hostname.msg == "<urlopen error [Errno -2]
            Name or service not known>"
 
-    - name: Negative - Missing hostname parameter
+    - name: Negative - Unreachable host
       dellemc.openmanage.idrac_secure_boot:
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_user }}"
-        validate_certs: false
-      ignore_errors: true
-      register: missing_hostname
+        idrac_ip: 999.999.999.999
+      ignore_unreachable: true
+      register: invalid_unreachable
 
-    - name: Verify task status - Negative - Missing hostname parameter
+    - name: Verify task status - Negative - Unreachable host
       ansible.builtin.assert:
         that:
-          - missing_hostname.failed
-          - not missing_hostname.changed
-          - 'missing_hostname.msg == "HTTP Error 401: Unauthorized"'
+          - invalid_unreachable.unreachable
+          - not invalid_unreachable.changed
+          - 'invalid_unreachable.msg == "<urlopen error [Errno -2] Name or
+            service not known>"'
 
     - name: Negative - Invalid user
       dellemc.openmanage.idrac_secure_boot:
-        idrac_ip: "{{ idrac_ip }}"
         idrac_user: invalid
-        idrac_password: "{{ idrac_password }}"
-        validate_certs: false
       ignore_errors: true
       register: invalid_user
 
@@ -62,10 +55,7 @@
 
     - name: Negative - Invalid password
       dellemc.openmanage.idrac_secure_boot:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user}}"
         idrac_password: invalid
-        validate_certs: false
       ignore_errors: true
       register: invalid_password
 
@@ -78,11 +68,7 @@
 
     - name: Negative - Invalid ca_path
       dellemc.openmanage.idrac_secure_boot:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user}}"
-        idrac_password: "{{ idrac_password}}"
         ca_path: invalid
-        validate_certs: false
       ignore_errors: true
       register: invalid_ca_path
 
@@ -96,11 +82,7 @@
 
     - name: Negative - Invalid option
       dellemc.openmanage.idrac_secure_boot:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user}}"
-        idrac_password: "{{ idrac_password}}"
         invalid: true
-        validate_certs: false
       ignore_errors: true
       register: invalid_option
 
@@ -119,9 +101,6 @@
 
     - name: Negative - Invalid validate_certs
       dellemc.openmanage.idrac_secure_boot:
-        idrac_ip: invalid
-        idrac_user: "{{ idrac_user}}"
-        idrac_password: "{{ idrac_password}}"
         validate_certs: invalid
       ignore_errors: true
       register: invalid_validate_certs
@@ -141,7 +120,7 @@
 
   module_defaults:
     dellemc.openmanage.idrac_secure_boot:
-      idrac_ip: "{{ idrac_ip }}"
+      idrac_ip: "{{ idrac_ip|ansible.utils.ipwrap }}"
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"

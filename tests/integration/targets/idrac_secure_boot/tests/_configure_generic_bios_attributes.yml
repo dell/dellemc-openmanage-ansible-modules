@@ -1,16 +1,16 @@
 ---
-- name: Configure generic attributes of the BIOS
+- name: Configure bootmode to Uefi
   dellemc.openmanage.idrac_bios:
-    idrac_ip: "{{ idrac_ip }}"
+    idrac_ip: "{{ idrac_ip|ansible.utils.ipwrap }}"
     idrac_user: "{{ idrac_user }}"
     idrac_password: "{{ idrac_password }}"
     validate_certs: false
     attributes:
       BootMode: Uefi
 
-- name: Configure generic attributes of the BIOS
+- name: Configure secure boot policy to custom
   dellemc.openmanage.idrac_bios:
-    idrac_ip: "{{ idrac_ip }}"
+    idrac_ip: "{{ idrac_ip|ansible.utils.ipwrap }}"
     idrac_user: "{{ idrac_user }}"
     idrac_password: "{{ idrac_password }}"
     validate_certs: false
