@@ -5,6 +5,13 @@ iDRAC idrac_ip=xx.xx.xx.xx idrac_user=username idrac_password=password idrac_por
 [ome]
 OME hostname=xx.xx.xx.xx username=username password=password port=443 validate_certs=false
 
+[ome:vars]
+# Credentials
+username=username
+password=password
+port=443
+validate_certs=false
+
 [all:vars]
 ansible_host=localhost
 ansible_connection=local

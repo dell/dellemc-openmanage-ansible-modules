@@ -1,0 +1,36 @@
+---
+- name: Perform iDRAC SecureBoot
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Import multiple SecureBoot certificate without applying to iDRAC.
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "192.168.1.2"
+        idrac_user: "user"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        import_certificates: true
+        platform_key: /user/name/certificates/pk.pem
+        KEK:
+          - /user/name/certificates/kek1.pem
+          - /user/name/certificates/kek2.pem
+        database:
+          - /user/name/certificates/db1.pem
+          - /user/name/certificates/db2.pem
+        disallow_database:
+          - /user/name/certificates/dbx1.pem
+          - /root/Downloads/secureboot.pem
+      delegate_to: localhost
+
+    - name: Import a SecureBoot certificate and restart the server to apply it.
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "192.168.1.2"
+        idrac_user: "user"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        import_certificates: true
+        platform_key: /user/name/certificates/pk.pem
+        restart: true
+        job_wait_timeout: 600
+      delegate_to: localhost
