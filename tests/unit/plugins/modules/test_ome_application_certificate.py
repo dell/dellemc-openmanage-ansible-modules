@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.1.0
-# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.6.0
+# Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -15,7 +15,7 @@ __metaclass__ = type
 import json
 
 import pytest
-from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
+from urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from io import StringIO
 from ansible.module_utils._text import to_text
@@ -24,6 +24,7 @@ from ansible_collections.dellemc.openmanage.plugins.modules import ome_applicati
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+MODULE_UTILS_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.utils.'
 EMAIL_ADDRESS = "support@dell.com"
 
 
@@ -102,6 +103,24 @@ class TestOmeAppCSR(FakeAnsibleModule):
                      return_value=("POST", "ApplicationService/Actions/ApplicationService.UploadCertificate", payload))
         ome_default_args.update({"command": "upload", "upload_file": "/path/certificate.cer"})
         ome_response_mock.success = True
+        result = self.execute_module(ome_default_args)
+        assert result['msg'] == "Successfully uploaded application certificate."
+
+    def test_upload_cert_chain_fail(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
+                                    ome_response_mock):
+        args = {"command": "upload_cert_chain", "upload_file": "/path/nonexistent_certificate_chain.p7b"}
+        f_module = self.get_module_mock(params=args)
+        with pytest.raises(Exception) as exc:
+            self.module.get_resource_parameters(f_module)
+        assert exc.value.args[0] == "No such file or directory."
+
+    def test_upload_cert_chain_success(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
+                                       ome_response_mock):
+        payload = "--BEGIN-CERT-CHAIN--"
+        mocker.patch(MODULE_PATH + 'ome_application_certificate.get_resource_parameters',
+                     return_value=("POST", "ApplicationService/Actions/ApplicationService.UploadCertChain", payload))
+        mocker.patch(MODULE_PATH + 'ome_application_certificate.get_ome_version', return_value="4.1.0")
+        ome_default_args.update({"command": "upload_cert_chain", "upload_file": "/path/certificate_chain.cer"})
         result = self.execute_module(ome_default_args)
         assert result['msg'] == "Successfully uploaded application certificate."
 
