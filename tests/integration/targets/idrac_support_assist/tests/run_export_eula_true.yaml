@@ -1,0 +1,271 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Pre-requisite - Checking if LC status is ready
+  ansible.builtin.include_tasks:
+    file: ../__lc_status.yml
+
+- name: Pre-requisite - Checking if iDRAC is powered on and clear job_queue
+  ansible.builtin.include_tasks:
+    file: ../_helper.yml
+
+- name: Perform run and export operation when eula_accept is true to local
+        share
+  block:
+    - name: Pre-requisite - Reset IDRAC
+      ansible.builtin.include_tasks:
+        file: ../_reset_config.yml
+
+    - name: Fetch the EULA status after accepting EULA terms
+      ansible.builtin.include_tasks:
+        file: ../_eula_helper.yml
+      vars:
+        eula_status: true
+      when: result is defined
+
+    - name: Set first EULA
+      ansible.builtin.set_fact:
+        eula_val: "{{ eulaStatus.json['@Message.ExtendedInfo'][1] }}"
+
+    - name: Set the current EULA status
+      ansible.builtin.set_fact:
+        curr_eula_status: "{{ eula_val.Message }}"
+        curr_eula_status_id: "{{ eula_val.MessageId }}"
+      when: eulaStatus is defined and eulaStatus.json is defined and result
+            is defined
+
+    - name: Assert - Eula terms are not accepted as a pre-requisite
+      ansible.builtin.assert:
+        that:
+          - "'SRV104' in curr_eula_status_id"
+      when: result is defined
+
+    - name: Check Mode - Accept the EULA and run and export SupportAssist
+            Collection with job wait as true and filter_data as true when
+            EULA is not accepted
+      dellemc.openmanage.idrac_support_assist:
+        filter_data: true
+        accept_eula: true
+        data_collector: ["hardware_data"]
+        resource_id: "iDRAC.Embedded.1"
+        job_wait: true
+        share_parameters:
+          share_type: "local"
+          share_name: "{{ role_path }}/files"
+      check_mode: true
+      register: check_mode_result
+
+    - name: Verify - Check Mode- Accept the EULA and run and export
+            SupportAssist Collection with job wait as true and filter_data
+            as true when EULA is not accepted
+      ansible.builtin.assert:
+        that:
+          - check_mode_result.changed
+          - "check_mode_result.msg == 'Changes found to be applied.'"
+
+    - name: Normal Mode - Accept the EULA and run and export SupportAssist
+            Collection with job wait as true and filter_data as true when
+            EULA is not accepted
+      dellemc.openmanage.idrac_support_assist:
+        filter_data: true
+        accept_eula: true
+        data_collector: ["hardware_data"]
+        resource_id: "iDRAC.Embedded.1"
+        job_wait: true
+        share_parameters:
+          share_type: "local"
+          share_name: "{{ role_path }}/files"
+      register: run_result
+
+    - name: Verify - Normal Mode -Accept the EULA and run and export
+            SupportAssist Collection with job wait as true and filter_data
+            as true when EULA is not accepted
+      ansible.builtin.assert:
+        that:
+          - run_result.changed
+          - "run_result.msg == 'Successfully ran and exported the support
+            assist collections.'"
+          - "'job_details' in run_result"
+          - "run_result.job_details.JobState == 'Completed' or
+            run_result.job_details.JobState == 'CompletedWithErrors'"
+          - "run_result.job_details.JobType == 'LocalFileExport'"
+
+- name: Perform run and export operation when eula_accept is true to cifs share
+  vars:
+    home_path: "{{ lookup('env','HOME') }}"
+  block:
+    - name: Fetch the service tag
+      ansible.builtin.include_tasks: _fetch_service_tag.yml
+
+    - name: Search for files starting with TSR
+      ansible.builtin.find:
+        paths: "{{ home_path }}/cifs"
+        patterns: "TSR*"
+        file_type: file
+      register: found_files
+
+    - name: Delete the found files
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ found_files.files }}"
+
+    - name: Set the CIFS IP and directory path- first step
+      ansible.builtin.set_fact:
+        cifs_share_tmp: "{{ cifs_share_name | split('\\\\') | last }}"
+      no_log: true
+
+    - name: Set the CIFS IP and directory path- final step
+      ansible.builtin.set_fact:
+        cifs_share_ip: "{{ cifs_share_tmp | regex_replace('(\\\\)(.*)', '') }}"
+        cifs_share_dir_path: "{{ cifs_share_tmp |
+               regex_replace('.*(\\\\)(.*)', '\\2') }}"
+      no_log: true
+
+    - name: Check Mode - Accept the EULA and run  and export SupportAssist
+            Collection with job wait as false and filter_data as false to CIFS
+            share
+      dellemc.openmanage.idrac_support_assist:
+        accept_eula: true
+        data_collector: ["storage_logs", "debug_logs"]
+        job_wait: false
+        share_parameters:
+          share_type: "cifs"
+          share_name: "{{ cifs_share_dir_path }}"
+          ip_address: "{{ cifs_share_ip }}"
+          username: "{{ cifs_share_user | default(omit) }}"
+          password: "{{ cifs_share_password | default(omit) }}"
+      check_mode: true
+      register: check_mode_result
+
+    - name: Verify - Check Mode- Accept the EULA and run  and export
+            SupportAssist Collection with job wait as false and filter_data
+            as false to CIFS share
+      ansible.builtin.assert:
+        that:
+          - not check_mode_result.changed
+          - "check_mode_result.msg == 'No changes found to be applied.'"
+
+    - name: Normal Mode - Accept the EULA and run  and export SupportAssist
+            Collection with job wait as false and filter_data as false to CIFS
+            share
+      dellemc.openmanage.idrac_support_assist:
+        accept_eula: true
+        job_wait_timeout: 600
+        data_collector: ["storage_logs", "debug_logs"]
+        share_parameters:
+          share_type: "cifs"
+          share_name: "{{ cifs_share_dir_path }}"
+          ip_address: "{{ cifs_share_ip }}"
+          username: "{{ cifs_share_user | default(omit) }}"
+          password: "{{ cifs_share_password | default(omit) }}"
+      register: run_result
+
+    - name: Verify - Normal Mode - Accept the EULA and run  and export
+            SupportAssist Collection with job wait as false and filter_data
+            as false to CIFS share
+      ansible.builtin.assert:
+        that:
+          - run_result.changed
+          - "run_result.msg == 'Successfully ran and exported the support
+             assist collections.'"
+          - "'job_details' in run_result"
+          - "run_result.job_details.JobState == 'Completed' or
+            run_result.job_details.JobState == 'CompletedWithErrors'"
+          - "run_result.job_details.JobType == 'SACollectExportHealthData'"
+
+    - name: Search for files starting with TSR
+      ansible.builtin.find:
+        paths: "{{ home_path }}/cifs"
+        patterns: "TSR*{{ ServiceTag }}.*"
+        file_type: file
+      register: found_files_mod
+
+    - name: Check if it was exported successfully
+      ansible.builtin.assert:
+        that:
+          - found_files_mod.files | length > 0
+
+- name: Perform run and export operation when eula_accept is true to http
+        share using proxy
+  block:
+    - name: Pre-requisite - Reset IDRAC
+      ansible.builtin.include_tasks:
+        file: ../_reset_config.yml
+
+    - name: Check Mode - Accept the EULA and run and export SupportAssist
+            Collection with job wait as true and filter_data as true to http
+            share using proxy
+      dellemc.openmanage.idrac_support_assist:
+        accept_eula: true
+        filter_data: true
+        job_wait: false
+        resource_id: "iDRAC.Embedded.1"
+        data_collector: ["telemetry_reports", "storage_logs"]
+        share_parameters:
+          share_type: "http"
+          share_name: "{{ http_share_dir_path }}"
+          ip_address: "{{ http_share }}"
+          username: "{{ http_share_user }}"
+          password: "{{ http_share_password }}"
+          proxy_support: parameters_proxy
+          proxy_type: http
+          proxy_server: "{{ http_proxy_server }}"
+          proxy_port: "{{ http_proxy_port }}"
+          proxy_username: "{{ http_proxy_username }}"
+          proxy_password: "{{ http_proxy_password }}"
+      check_mode: true
+      register: check_mode_result
+
+    - name: Verify - Check Mode- Accept the EULA and run and export
+            SupportAssist Collection with job wait as true and filter_data
+            as true to http share using proxy
+      ansible.builtin.assert:
+        that:
+          - check_mode_result.changed
+          - "check_mode_result.msg == 'Changes found to be applied.'"
+
+    - name: Normal Mode - Accept the EULA and run and export SupportAssist
+            Collection with job wait as true and filter_data as true to http
+            share using proxy
+      dellemc.openmanage.idrac_support_assist:
+        accept_eula: true
+        filter_data: true
+        job_wait: false
+        resource_id: "iDRAC.Embedded.1"
+        data_collector: ["telemetry_reports", "storage_logs"]
+        share_parameters:
+          share_type: "http"
+          share_name: "{{ http_share_dir_path }}"
+          ip_address: "{{ http_share }}"
+          username: "{{ http_share_user }}"
+          password: "{{ http_share_password }}"
+          proxy_support: parameters_proxy
+          proxy_type: http
+          proxy_server: "{{ http_proxy_server }}"
+          proxy_port: "{{ http_proxy_port }}"
+          proxy_username: "{{ http_proxy_username }}"
+          proxy_password: "{{ http_proxy_password }}"
+      register: run_result
+
+    - name: Verify - Normal Mode - Accept the EULA and run and export
+            SupportAssist Collection with job wait as true and filter_data
+            as true to http share using proxy
+      ansible.builtin.assert:
+        that:
+          - run_result.changed
+          - "run_result.msg == 'Successfully triggered the job to run and
+             export support assist collections.'"
+          - "'job_details' in run_result"
+          - "run_result.job_details.JobState == 'Running'"
+          - "run_result.job_details.JobType == 'SACollectExportHealthData'"

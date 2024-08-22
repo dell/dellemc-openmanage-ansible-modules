@@ -1,0 +1,37 @@
+---
+- name: Constructing url
+  ansible.builtin.set_fact:
+    url_1: "https://{{ idrac_ip | ansible.utils.ipwrap }}:"
+    url_2: "{{ idrac_port }}/redfish/v1/Managers/"
+    url_3: "iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions"
+    url_4: "/DellLCService.SupportAssistGetEULAStatus"
+    url_5: "/DellLCService.SupportAssistAcceptEULA"
+
+- name: Final url
+  ansible.builtin.set_fact:
+    eula_status_url: "{{ url_1 }}{{ url_2 }}{{ url_3 }}{{ url_4 }}"
+    eula_accept_url: "{{ url_1 }}{{ url_2 }}{{ url_3 }}{{ url_5 }}"
+
+- block:
+    - name: Fetch the EULA status
+      ansible.builtin.uri:
+        url: "{{ eula_status_url }}"
+        body: '{}'
+        validate_certs: false
+        method: POST
+        status_code: 200
+      register: eulaStatus
+      when: eula_status is defined
+      no_log: true
+
+    - name: Accept the EULA terms
+      ansible.builtin.uri:
+        url: "{{ eula_accept_url }}"
+        body: '{}'
+        validate_certs: false
+        method: POST
+        status_code: 200
+      register: eulaAccepted
+      when: accept_eula is defined
+      no_log: true
+      ignore_errors: true

@@ -1,0 +1,320 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: hostname, username
+         and password.'
+  when: hostname is not defined or username is not defined or password
+         is not defined
+
+- block:
+    - name: Negative - Invalid ssh_timeout
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          enable_universal_timeout: true
+          ssh_timeout: invalid
+      ignore_errors: true
+      register: invalid_ssh_timeout
+
+    - name: Set fact for invalid ssh_timeout Message
+      ansible.builtin.set_fact:
+        invalid_msg: "argument 'ssh_timeout' is of type
+         <class 'str'> found in 'session_inactivity_timeout'. and we were
+         unable to convert to float: <class 'str'> cannot be converted to
+         a float"
+
+    - name: Verify task status - Negative - Invalid ssh_timeout
+      ansible.builtin.assert:
+        that:
+          - invalid_ssh_timeout.failed
+          - not invalid_ssh_timeout.changed
+          - invalid_msg in invalid_ssh_timeout.msg
+
+    - name: Negative - Invalid serial_timeout
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          enable_universal_timeout: true
+          serial_timeout: invalid
+      ignore_errors: true
+      register: invalid_serial_timeout
+
+    - name: Set fact for invalid serial_timeout Message
+      ansible.builtin.set_fact:
+        invalid_msg: "argument 'serial_timeout' is of type
+         <class 'str'> found in 'session_inactivity_timeout'. and we were
+         unable to convert to float: <class 'str'> cannot be converted to
+         a float"
+
+    - name: Verify task status - Negative - Invalid serial_timeout
+      ansible.builtin.assert:
+        that:
+          - invalid_serial_timeout.failed
+          - not invalid_serial_timeout.changed
+          - invalid_msg in invalid_serial_timeout.msg
+
+    - name: Negative - Invalid ssh_sessions
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          enable_universal_timeout: true
+          universal_timeout: 30
+          ssh_sessions: invalid
+      ignore_errors: true
+      register: invalid_ssh_sessions
+
+    - name: Set fact for invalid ssh_sessions Message
+      ansible.builtin.set_fact:
+        invalid_msg: "argument 'ssh_sessions' is of type
+            <class 'str'> found in 'session_inactivity_timeout'. and we were
+            unable to convert to int: <class 'str'> cannot be converted to an
+            int"
+
+    - name: Verify task status - Negative - Invalid ssh_sessions
+      ansible.builtin.assert:
+        that:
+          - invalid_ssh_sessions.failed
+          - not invalid_ssh_sessions.changed
+          - invalid_msg in invalid_ssh_sessions.msg
+
+    - name: Negative - Invalid serial_sessions
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          enable_universal_timeout: true
+          universal_timeout: 30
+          serial_sessions: invalid
+      ignore_errors: true
+      register: invalid_serial_sessions
+
+    - name: Set fact for invalid serial_sessions Message
+      ansible.builtin.set_fact:
+        invalid_msg: "argument 'serial_sessions' is of type
+            <class 'str'> found in 'session_inactivity_timeout'. and we were
+            unable to convert to int: <class 'str'> cannot be converted to an
+            int"
+
+    - name: Verify task status - Negative - Invalid serial_sessions
+      ansible.builtin.assert:
+        that:
+          - invalid_serial_sessions.failed
+          - not invalid_serial_sessions.changed
+          - invalid_msg in invalid_serial_sessions.msg
+
+    - name: Negative - Invalid universal and ssh timeout combination
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          enable_universal_timeout: true
+          universal_timeout: 30
+          ssh_timeout: 20
+      ignore_errors: true
+      register: invalid_combination
+
+    - name: Verify task status - Negative - Invalid universal and ssh
+       timeout combination
+      ansible.builtin.assert:
+        that:
+          - invalid_combination.failed
+          - not invalid_combination.changed
+          - 'invalid_combination.msg == "parameters are mutually exclusive:
+           universal_timeout|ssh_timeout found in session_inactivity_timeout"'
+
+    - name: Negative - Invalid universal and serial timeout combination
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          enable_universal_timeout: true
+          universal_timeout: 30
+          serial_timeout: 20
+      ignore_errors: true
+      register: invalid_combination
+
+    - name: Verify task status - Negative - Invalid universal and serial
+       timeout combination
+      ansible.builtin.assert:
+        that:
+          - invalid_combination.failed
+          - not invalid_combination.changed
+          - 'invalid_combination.msg == "parameters are mutually exclusive:
+           universal_timeout|serial_timeout found in
+           session_inactivity_timeout"'
+
+    - name: Negative ssh_timeout parameter
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          enable_universal_timeout: false
+          ssh_timeout: -30
+      ignore_errors: true
+      register: negative_ssh_timeout
+
+    - name: Verify task status - Negative ssh_timeout parameter
+      ansible.builtin.assert:
+        that:
+          - negative_ssh_timeout.failed
+          - not negative_ssh_timeout.changed
+          - 'negative_ssh_timeout.msg == "HTTP Error 400: 400"'
+
+    - name: Negative serial_timeout parameter
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          enable_universal_timeout: false
+          serial_timeout: -35
+      ignore_errors: true
+      register: negative_serial_timeout
+
+    - name: Verify task status - Negative serial_timeout parameter
+      ansible.builtin.assert:
+        that:
+          - negative_serial_timeout.failed
+          - not negative_serial_timeout.changed
+          - 'negative_serial_timeout.msg == "HTTP Error 400: 400"'
+
+    - name: Negative ssh_session parameter
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          ssh_sessions: -2
+      ignore_errors: true
+      register: negative_ssh_session
+
+    - name: Verify task status - Negative ssh_session parameter
+      ansible.builtin.assert:
+        that:
+          - negative_ssh_session.failed
+          - not negative_ssh_session.changed
+          - 'negative_ssh_session.msg == "HTTP Error 400: 400"'
+
+    - name: Negative serial_session parameter
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          serial_sessions: -1
+      ignore_errors: true
+      register: negative_serial_session
+
+    - name: Verify task status - Negative serial_session parameter
+      ansible.builtin.assert:
+        that:
+          - negative_serial_session.failed
+          - not negative_serial_session.changed
+          - 'negative_serial_session.msg == "HTTP Error 400: 400"'
+
+    - name: Negative - ssh_timeout outside range
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          enable_universal_timeout: false
+          ssh_timeout: 1500
+      ignore_errors: true
+      register: invalid_timeout
+
+    - name: Verify task status - Negative - ssh_timeout outside range
+      ansible.builtin.assert:
+        that:
+          - invalid_timeout.failed
+          - not invalid_timeout.changed
+          - 'invalid_timeout.msg == "HTTP Error 400: 400"'
+
+    - name: Negative - serial_timeout outside range
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          enable_universal_timeout: false
+          serial_timeout: 2000
+      ignore_errors: true
+      register: invalid_timeout
+
+    - name: Verify task status - Negative - serial_timeout outside range
+      ansible.builtin.assert:
+        that:
+          - invalid_timeout.failed
+          - not invalid_timeout.changed
+          - 'invalid_timeout.msg == "HTTP Error 400: 400"'
+
+    - name: Negative - ssh_session outside range
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          ssh_sessions: 120
+      ignore_errors: true
+      register: invalid_session
+
+    - name: Verify task status - Negative - ssh_session outside range
+      ansible.builtin.assert:
+        that:
+          - invalid_session.failed
+          - not invalid_session.changed
+          - 'invalid_session.msg == "HTTP Error 400: 400"'
+
+    - name: Negative - serial_session outside range
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        session_inactivity_timeout:
+          serial_sessions: 105
+      ignore_errors: true
+      register: invalid_session
+
+    - name: Verify task status - Negative - serial_session outside range
+      ansible.builtin.assert:
+        that:
+          - invalid_session.failed
+          - not invalid_session.changed
+          - 'invalid_session.msg == "HTTP Error 400: 400"'
+
+  module_defaults:
+    dellemc.openmanage.ome_application_network_proxy:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"
