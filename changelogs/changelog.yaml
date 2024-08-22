@@ -1991,7 +1991,7 @@ releases:
 
 
       minor_changes:
-        - ome_application_certificate - This module is enhanced to support  
+        - ome_application_certificate - This module is enhanced to support
           the upload of certificate chain.
 
       known_issues:
@@ -2022,8 +2022,8 @@ releases:
           namespace: ''
 
         - description:
-            This module allows to run and export SupportAssist
-            collection logs on iDRAC.
+            This module allows to run and export SupportAssist collection
+            logs on iDRAC.
           name: idrac_support_assist
           namespace: ''
     release_date: '2024-08-30'
