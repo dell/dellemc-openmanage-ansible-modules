@@ -1,0 +1,103 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Prerequisite for the testcase
+  ansible.builtin.include_tasks: _helper.yml
+  vars:
+    id: ["{{ physicaldisks[0] }}"]
+    vd_trigger: 1
+    reset_trigger: 1
+
+- block:
+    - name: Reset controller configuration - Check mode
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "ResetConfig"
+        controller_id: "{{ controller_name }}"
+      register: cm_result
+      check_mode: true
+
+    - name: Reset controller configuration - Check mode - Verify task status
+      ansible.builtin.assert:
+        that:
+          - cm_result.changed
+          - not cm_result.failed
+          - cm_result.msg == "Changes found to be applied."
+
+    - name: Reset controller - Normal mode
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "ResetConfig"
+        controller_id: "{{ controller_name }}"
+      register: result
+
+    - name: Wait for the iDRAC lifecycle controller readiness
+      ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{result.status.Id}}"
+      when: result.msg == "Successfully submitted the job that performs
+        the 'ResetConfig' operation."
+
+    - name: Reset controller - Normal mode - Verify task status
+      ansible.builtin.assert:
+        that:
+          - not result.changed
+          - not result.failed
+          - result.msg == "Successfully submitted the job that performs the
+            'ResetConfig' operation."
+
+    - name: Reset controller - Idempotence
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "ResetConfig"
+        controller_id: "{{ controller_name }}"
+      register: idempotence
+
+    - name: Reset controller - Idempotence - Verify task status
+      ansible.builtin.assert:
+        that:
+          - not idempotence.changed
+          - not idempotence.failed
+          - idempotence.msg == "No changes found to be applied."
+
+    - name: Reset controller - Check mode - (No Change expected)
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "ResetConfig"
+        controller_id: "{{ controller_name }}"
+      register: no_cm_result
+      check_mode: true
+
+    - name: Reset controller - Check mode - (No Change expected) - Verify
+        task status
+      ansible.builtin.assert:
+        that:
+          - not no_cm_result.changed
+          - not no_cm_result.failed
+          - no_cm_result.msg == "No changes found to be applied."
+
+    - name: Set value for virtualdisk
+      ansible.builtin.set_fact:
+        virtualdisk: false
+      loop: "{{ lookup('dict',
+        result_post_check.storage_status.Message.Controller[ controller_name ],
+        wantlist=True)}}"
+      when: "not 'VirtualDisk' in item.value"
+
+    - name: Set value for virtualdisk - Verify task status
+      ansible.builtin.assert:
+        that:
+          - not virtualdisk
+
+  module_defaults:
+    dellemc.openmanage.idrac_redfish_storage_controller:
+      baseuri: "{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
