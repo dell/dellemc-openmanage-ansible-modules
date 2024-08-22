@@ -1,0 +1,92 @@
+---
+- name: Dell OpenManage Ansible iDRAC SupportAssist.
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Accept the EULA and run and export the SupportAssist
+       Collection to local path
+      dellemc.openmanage.idrac_support_assist:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "idrac_user"
+        idrac_password: "idrac_password"
+        accept_eula: true
+        ca_path: "path/to/ca_file"
+        data_collector: ["debug_logs", "hardware_data", "os_app_data",
+                         "storage_logs"]
+        share_parameters:
+          share_type: "local"
+          share_path: "/opt/local/support_assist_collections/"
+      delegate_to: localhost
+
+    - name: Run the SupportAssist Collection with with custom
+       data_to_collect with filter_data
+      dellemc.openmanage.idrac_support_assist:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "idrac_user"
+        idrac_password: "idrac_password"
+        ca_path: "path/to/ca_file"
+        export: false
+        filter_data: true
+        data_collector: ["debug_logs", "hardware_data"]
+      delegate_to: localhost
+
+    - name: Run and export the SupportAssist Collection to HTTPS share
+      dellemc.openmanage.idrac_support_assist:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "idrac_user"
+        idrac_password: "idrac_password"
+        ca_path: "path/to/ca_file"
+        data_collector: ["hardware_data"]
+        share_parameters:
+          share_type: "HTTPS"
+          ignore_certificate_warning: "on"
+          share_name: "/share_path/support_assist_collections"
+          ip_address: "192.168.0.2"
+      delegate_to: localhost
+
+    - name: Run and export the SupportAssist Collection to NFS share
+      dellemc.openmanage.idrac_support_assist:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "idrac_user"
+        idrac_password: "idrac_password"
+        ca_path: "path/to/ca_file"
+        data_collector: ["debug_logs"]
+        share_parameters:
+          share_type: "NFS"
+          share_name: "nfsshare/support_assist_collections/"
+          ip_address: "192.168.0.3"
+      delegate_to: localhost
+
+    - name: Export the last SupportAssist Collection to CIFS share
+      dellemc.openmanage.idrac_support_assist:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "idrac_user"
+        idrac_password: "idrac_password"
+        ca_path: "path/to/ca_file"
+        run: false
+        share_parameters:
+          share_type: "NFS"
+          share_name: "/cifsshare/support_assist_collections/"
+          ip_address: "192.168.0.4"
+      delegate_to: localhost
+
+    - name: Export the last SupportAssist Collection to HTTPS share via proxy
+      dellemc.openmanage.idrac_support_assist:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "idrac_user"
+        idrac_password: "idrac_password"
+        ca_path: "path/to/ca_file"
+        run: false
+        share_parameters:
+          share_type: "HTTPS"
+          share_name: "/share_path/support_assist_collections"
+          ignore_certificate_warning: "on"
+          ip_address: "192.168.0.2"
+          proxy_support: parameters_proxy
+          proxy_type: http
+          proxy_server: "192.168.0.5"
+          proxy_port: 1080
+          proxy_idrac_user: "proxy_user"
+          proxy_idrac_password: "proxy_idrac_password"
+      delegate_to: localhost
