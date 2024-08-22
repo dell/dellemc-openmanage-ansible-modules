@@ -199,13 +199,13 @@
 
   module_defaults:
     dellemc.openmanage.idrac_storage_volume:
-      idrac_ip: "{{ idrac_ip }}"
+      idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"
 
     dellemc.openmanage.idrac_redfish_storage_controller:
-      baseuri: "{{ idrac_ip }}:{{ idrac_port }}"
+      baseuri: "{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
       username: "{{ idrac_user }}"
       password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"
