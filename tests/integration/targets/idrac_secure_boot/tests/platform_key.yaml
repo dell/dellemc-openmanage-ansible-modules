@@ -12,21 +12,9 @@
    is not defined'
 
 - block:
-    # PRE REQ - Power on server and check LC status
-    - name: Power on server.
-      dellemc.openmanage.redfish_powerstate:
-        baseuri: "{{ idrac_ip }}"
-        username: "{{ idrac_user }}"
-        password: "{{ idrac_password }}"
-        validate_certs: false
-        reset_type: "On"
+    - ansible.builtin.include_tasks: _helper.yml
 
-    - name: Check LC Status
-      dellemc.openmanage.idrac_lifecycle_controller_status_info:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        validate_certs: false
+    - ansible.builtin.include_tasks: _configure_generic_bios_attributes.yml
 
     - name: Import platform_key policy certificate.
        (check mode - changes expected)
@@ -37,7 +25,7 @@
         idrac_password: "{{ idrac_password}}"
         validate_certs: false
         import_certificates: true
-        platform_key: /home/collections/ansible_collections/dellemc/openmanage/cert.pem
+        platform_key: "{{ platform_key_path }}"
         restart: true
         restart_type: GracefulRestart
         job_wait: true
@@ -52,6 +40,8 @@
           - cm_changes.changed
           - cm_changes.msg == 'Changes found to be applied.'
 
+    - ansible.builtin.include_tasks: _get_time_details.yml
+
     - name: Import platform_key policy certificate. (normal mode)
       dellemc.openmanage.idrac_secure_boot:
         <<: *import_pk
@@ -61,18 +51,7 @@
       ansible.builtin.assert:
         that:
           - import_pk.changed
-          - import_pk.msg == "Successfully imported the SecureBoot certificate."
+          - import_pk.msg == "Successfully imported the SecureBoot
+           certificate."
 
-    - name: Get details by uri
-      ansible.builtin.uri:
-        url: "https://{{ idrac_ip }}/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/PK/Certificates/CustSecbootpolicy.1"
-        user: "{{ idrac_user }}"
-        password: "{{ idrac_password }}"
-        validate_certs: false
-      register: pk_uri
-
-    - name: Verify Get details by uri
-      ansible.builtin.assert:
-        that:
-          - import_pk.changed
-          - import_pk.msg == "Successfully imported the SecureBoot certificate."
+    - ansible.builtin.include_tasks: _get_log_entries.yml
