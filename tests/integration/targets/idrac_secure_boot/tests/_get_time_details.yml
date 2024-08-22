@@ -1,7 +1,7 @@
 ---
-- name: Get time details by uri
+- name: Get time details by using uri
   vars:
-    url1: "https://{{ idrac_ip }}"
+    url1: "https://{{ idrac_ip|ansible.utils.ipwrap }}"
     url2: "/redfish/v1/Managers/iDRAC.Embedded.1"
     url3: "/LogServices/Lclog"
   ansible.builtin.uri:

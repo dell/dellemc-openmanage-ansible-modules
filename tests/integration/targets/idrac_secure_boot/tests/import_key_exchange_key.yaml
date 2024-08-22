@@ -16,42 +16,48 @@
 
     - ansible.builtin.include_tasks: _configure_generic_bios_attributes.yml
 
-    - name: Import platform_key policy certificate.
+    - name: Import key exchange key policy certificate
        (check mode - changes expected)
-      dellemc.openmanage.idrac_secure_boot:
-        &import_pk
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password}}"
-        validate_certs: false
+      dellemc.openmanage.idrac_secure_boot: &import_cert
         import_certificates: true
-        platform_key: "{{ platform_key_path }}"
+        KEK:
+          - "{{ idrac_secure_boot_cert_path_1 }}"
+          - "{{ idrac_secure_boot_cert_path_2 }}"
         restart: true
-        restart_type: GracefulRestart
+        restart_type: ForceRestart
         job_wait: true
         job_wait_timeout: 1000
       register: cm_changes
       check_mode: true
 
-    - name: Verify Import platform_key policy certificate.
+    - name: Verify - Import key exchange key policy certificate
        (check mode - changes expected)
       ansible.builtin.assert:
         that:
           - cm_changes.changed
           - cm_changes.msg == 'Changes found to be applied.'
 
-    - ansible.builtin.include_tasks: _get_time_details.yml
+    - name: Get time details
+      ansible.builtin.include_tasks: _get_time_details.yml
 
-    - name: Import platform_key policy certificate. (normal mode)
+    - name: Import key exchange key policy certificate. (normal mode)
       dellemc.openmanage.idrac_secure_boot:
-        <<: *import_pk
-      register: import_pk
+        <<: *import_cert
+      register: import_cert
 
-    - name: Verify Import platform_key policy certificate. (normal mode)
+    - name: Verify - Import key exchange key policy certificate (normal mode)
       ansible.builtin.assert:
         that:
-          - import_pk.changed
-          - import_pk.msg == "Successfully imported the SecureBoot
+          - import_cert.changed
+          - import_cert.msg == "Successfully imported the SecureBoot
            certificate."
 
-    - ansible.builtin.include_tasks: _get_log_entries.yml
+    - name: Verify - Secure boot Log entries
+      ansible.builtin.include_tasks: _get_log_entries.yml
+
+  module_defaults:
+    dellemc.openmanage.idrac_secure_boot:
+      idrac_ip: "{{ idrac_ip|ansible.utils.ipwrap }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
