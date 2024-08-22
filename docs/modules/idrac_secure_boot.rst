@@ -56,7 +56,7 @@ Parameters
 
     \ :literal:`false`\  does not restart the server.
 
-    \ :emphasis:`restart`\  is applicable when \ :emphasis:`import`\  is \ :literal:`true`\ .
+    \ :emphasis:`restart`\  is applicable when \ :emphasis:`import\_certificates`\  is \ :literal:`true`\ .
 
 
   restart_type (optional, str, GracefulRestart)
