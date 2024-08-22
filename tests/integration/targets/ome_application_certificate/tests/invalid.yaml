@@ -162,6 +162,23 @@
           - 'invalid_ca_path.msg == "[Errno 2] No such file or
             directory: b''invalid''"'
 
+    - name: Upload the invalid certificate chain (Negative)
+      dellemc.openmanage.ome_application_certificate:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: "{{ validate_certs }}"
+        command: "upload_cert_chain"
+        upload_file: "invalid"
+      register: upload_result
+      ignore_errors: true
+
+    - name: Verify upload of the certificate chain
+      ansible.builtin.assert:
+        that:
+          - upload_result.failed
+          - upload_result.msg == "No such file or directory."
+
   module_defaults:
     dellemc.openmanage.ome_application_certificate:
       validate_certs: "{{ validate_certs }}"
