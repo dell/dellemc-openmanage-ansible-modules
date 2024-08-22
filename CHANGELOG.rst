@@ -4,6 +4,37 @@ Dell OpenManage Ansible Modules Release Notes
 
 .. contents:: Topics
 
+v9.6.0
+======
+
+Release Summary
+---------------
+
+- The ``ome_application_certificate`` module is enhanced to support the upload of certificate chain.
+- The ``idrac_support_assist`` module is added to add support to run and export SupportAssist collection logs on iDRAC.
+- The ``idrac_secure_boot`` module is added to import the secure boot certificate.
+
+Major Changes
+-------------
+
+- idrac_secure_boot - This module allows to import the secure boot certificate.
+- idrac_support_assist - This module allows to run and export SupportAssist collection logs on iDRAC.
+
+Minor Changes
+-------------
+
+- ome_application_certificate - This module is enhanced to support the upload of certificate chain.
+
+Known Issues
+------------
+
+- idrac_diagnostics - Issue(285322) - This module doesn't support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
+- idrac_firmware - Issue(279282) - This module does not support firmware update using HTTP, HTTPS, and FTP shares with authentication on iDRAC8.
+- idrac_storage_volume - Issue(290766) - The module will report success instead of showing failure for new virtual creation on the BOSS-N1 controller if a virtual disk is already present on the same controller.
+- idrac_support_assist - Issue(308550) - This module fails when the NFS share path contains sub directory.
+- ome_diagnostics - Issue(279193) - Export of SupportAssist collection logs to the share location fails on OME version 4.0.0.
+- ome_smart_fabric_uplink - Issue(186024) - The module supported by OpenManage Enterprise Modular, however it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, then the existing uplink is modified.
+
 v9.5.0
 ======
 
