@@ -1,0 +1,182 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Pre-requisite - Checking if LC status is ready
+  ansible.builtin.include_tasks:
+    file: ../__lc_status.yml
+
+- name: Pre-requisite - Checking if iDRAC is powered on and clear job_queue
+  ansible.builtin.include_tasks:
+    file: ../_helper.yml
+
+- name: Perform Export operation to http share
+        without proxy
+  block:
+    - name: Pre-requisite - Fetch EULA status
+      ansible.builtin.include_tasks:
+        file: ../_eula_helper.yml
+      vars:
+        eula_status: true
+
+    - name: Set first EULA
+      ansible.builtin.set_fact:
+        eula_val: "{{ eulaStatus.json['@Message.ExtendedInfo'][0] }}"
+
+    - name: Set the current EULA status
+      ansible.builtin.set_fact:
+        curr_eula_status: "{{ eula_val.Message }}"
+        curr_eula_status_id: "{{ eula_val.MessageId }}"
+      when: eulaStatus is defined and eulaStatus.json is defined
+
+    - name: Pre-requisite - Accept the EULA terms
+      ansible.builtin.include_tasks:
+        file: ../_eula_helper.yml
+      vars:
+        accept_eula: true
+      when: curr_eula_status_id is defined and 'SRV074' not in
+            curr_eula_status_id
+
+    - name: Trigger the run collection and export to local
+      ansible.builtin.include_tasks: _run_support_assist_track.yml
+      vars:
+        job_track: true
+
+    - name: Check Mode - Export SupportAssist Collection with job wait as
+            true to http share without proxy
+      dellemc.openmanage.idrac_support_assist:
+        run: false
+        job_wait_timeout: 600
+        share_parameters:
+          share_type: "http"
+          share_name: "{{ http_share_dir_path }}"
+          ip_address: "{{ http_share }}"
+          username: "{{ http_share_user }}"
+          password: "{{ http_share_password }}"
+      check_mode: true
+      register: check_mode_result
+
+    - name: Verify-Check Mode-Export SupportAssist Collection with job wait as
+            true to http share without proxy
+      ansible.builtin.assert:
+        that:
+          - check_mode_result.changed
+          - "check_mode_result.msg == 'Changes found to be applied.'"
+
+    - name: Normal Mode - Export SupportAssist Collection with job wait as
+            true to http share without proxy
+      dellemc.openmanage.idrac_support_assist:
+        run: false
+        job_wait_timeout: 600
+        share_parameters:
+          share_type: "http"
+          share_name: "{{ http_share_dir_path }}"
+          ip_address: "{{ http_share }}"
+          username: "{{ http_share_user }}"
+          password: "{{ http_share_password }}"
+      register: run_result
+
+    - name: Verify-Normal Mode-Export SupportAssist Collection with job wait as
+            true to http share without proxy
+      ansible.builtin.assert:
+        that:
+          - run_result.changed
+          - "run_result.msg == 'Successfully exported the support assist
+             collections.'"
+          - "'job_details' in run_result"
+          - "run_result.job_details.JobState == 'Completed'"
+          - "run_result.job_details.JobType == 'SAExportHealthData'"
+
+- name: Perform export operation to http share using socks proxy
+  block:
+    - name: Pre-requisite - Reset IDRAC
+      ansible.builtin.include_tasks:
+        file: ../_reset_config.yml
+
+    - name: Fetch the EULA status after accepting EULA terms
+      ansible.builtin.include_tasks:
+        file: ../_eula_helper.yml
+      vars:
+        eula_status: true
+      when: result is defined
+
+    - name: Set first EULA
+      ansible.builtin.set_fact:
+        eula_val: "{{ eulaStatus.json['@Message.ExtendedInfo'][1] }}"
+
+    - name: Set the current EULA status
+      ansible.builtin.set_fact:
+        curr_eula_status: "{{ eula_val.Message }}"
+        curr_eula_status_id: "{{ eula_val.MessageId }}"
+      when: eulaStatus is defined and eulaStatus.json is defined and result
+            is defined
+
+    - name: Assert - Eula terms are not accepted as a pre-requisite
+      ansible.builtin.assert:
+        that:
+          - "'SRV104' in curr_eula_status_id"
+      when: result is defined
+
+    - name: Check Mode - Export SupportAssist Collection with job wait as
+            false to http share using socks proxy
+      dellemc.openmanage.idrac_support_assist:
+        accept_eula: true
+        run: false
+        job_wait: false
+        share_parameters:
+          share_type: "http"
+          share_name: "{{ http_share_dir_path }}"
+          ip_address: "{{ http_share }}"
+          username: "{{ http_share_user }}"
+          password: "{{ http_share_password }}"
+          proxy_support: parameters_proxy
+          proxy_type: socks
+          proxy_server: "{{ socks4_proxy_server }}"
+          proxy_port: "{{ socks4_proxy_port }}"
+      check_mode: true
+      register: check_mode_result
+
+    - name: Verify - Export SupportAssist Collection with job wait as
+            false to http share using socks proxy
+      ansible.builtin.assert:
+        that:
+          - check_mode_result.changed
+          - "check_mode_result.msg == 'Changes found to be applied.'"
+
+    - name: Normal Mode - Export SupportAssist Collection with job wait as
+            false to http share using socks proxy
+      dellemc.openmanage.idrac_support_assist:
+        accept_eula: true
+        run: false
+        job_wait: false
+        share_parameters:
+          share_type: "http"
+          share_name: "{{ http_share_dir_path }}"
+          ip_address: "{{ http_share }}"
+          username: "{{ http_share_user }}"
+          password: "{{ http_share_password }}"
+          proxy_support: parameters_proxy
+          proxy_type: socks
+          proxy_server: "{{ socks4_proxy_server }}"
+          proxy_port: "{{ socks4_proxy_port }}"
+      register: run_result
+
+    - name: Verify - Normal Mode - Export SupportAssist Collection with job
+            wait as false to http share socks using proxy
+      ansible.builtin.assert:
+        that:
+          - run_result.changed
+          - "run_result.msg == 'Successfully exported the support assist
+             collections.'"
+          - "'job_details' in run_result"
+          - "run_result.job_details.JobState == 'Completed'"
+          - "run_result.job_details.JobType == 'SAExportHealthData'"

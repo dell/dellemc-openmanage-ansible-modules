@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.6.0
 # Copyright (C) 2020-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -29,10 +29,13 @@ extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
 options:
   command:
-    description: C(generate_csr) allows the generation of a CSR and C(upload) uploads the certificate.
+    description:
+      - C(generate_csr) allows the generation of a CSR.
+      - C(upload) uploads the certificate on OpenManage Enterprise.
+      - C(upload_cert_chain) uploads the certificate chain on OpenManage Enterprise.
     type: str
     default: generate_csr
-    choices: [generate_csr, upload]
+    choices: [generate_csr, upload, upload_cert_chain]
   distinguished_name:
     description: Name of the certificate issuer. This option is applicable for C(generate_csr).
     type: str
@@ -62,14 +65,17 @@ options:
     version_added: 8.1.0
   upload_file:
     type: str
-    description: Local path of the certificate file to be uploaded. This option is applicable for C(upload).
-        Once the certificate is uploaded, OpenManage Enterprise cannot be accessed for a few seconds.
+    description: Local path of the certificate file to be uploaded. This option is applicable for C(upload) and C(upload_cert_chain).
+      Once the certificate is uploaded, OpenManage Enterprise cannot be accessed for a few seconds. The formats of the certificate
+      file are .crt, .cer, .ca-bundle, .p7b, .der, and .pem.
 requirements:
     - "python >= 3.9.6"
 author:
   - "Felix Stephen (@felixs88)"
   - "Kritika Bhateja (@Kritika-Bhateja-03)"
   - "Jennifer John (@Jennifer-John)"
+  - "Abhishek Sinha (@ABHISHEK-SINHA10)"
+  - "Saksham Nautiyal (@Saksham-Nautiyal)"
 '''
 
 EXAMPLES = r'''
@@ -113,6 +119,15 @@ EXAMPLES = r'''
     ca_path: "/path/to/ca_cert.pem"
     command: "upload"
     upload_file: "/path/certificate.cer"
+
+- name: Upload the certificate chain
+  dellemc.openmanage.ome_application_certificate:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "upload_cert_chain"
+    upload_file: "/path/certificate_chain.p7b"
 '''
 
 RETURN = r'''
@@ -160,37 +175,83 @@ error_info:
 import json
 import os
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
-from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_ome_version
+from urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible.module_utils.compat.version import LooseVersion
+
+UNSUPPORTED_OME = "This operation is not supported on OpenManage Enterprise version {ome_version}"
+CERT_SIGN = "Successfully generated certificate signing request."
+CERT_UPLOAD = "Successfully uploaded application certificate."
+
+
+def generate_csr_payload(module):
+    return {
+        "DistinguishedName": module.params["distinguished_name"],
+        "DepartmentName": module.params["department_name"],
+        "BusinessName": module.params["business_name"],
+        "Locality": module.params["locality"],
+        "State": module.params["country_state"],
+        "Country": module.params["country"],
+        "Email": module.params["email"],
+        "San": get_san(module.params["subject_alternative_names"])
+    }
+
+
+def read_file_payload(module):
+    file_path = module.params["upload_file"]
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as file:
+            return file.read()
+    else:
+        module.fail_json(msg="No such file or directory.")
 
 
 def get_resource_parameters(module):
     command = module.params["command"]
     csr_uri = "ApplicationService/Actions/ApplicationService.{0}"
     method = "POST"
-    if command == "generate_csr":
-        uri = csr_uri.format("GenerateCSR")
-        payload = {"DistinguishedName": module.params["distinguished_name"],
-                   "DepartmentName": module.params["department_name"],
-                   "BusinessName": module.params["business_name"],
-                   "Locality": module.params["locality"], "State": module.params["country_state"],
-                   "Country": module.params["country"], "Email": module.params["email"],
-                   "San": get_san(module.params["subject_alternative_names"])}
-    else:
-        file_path = module.params["upload_file"]
-        uri = csr_uri.format("UploadCertificate")
-        if os.path.exists(file_path):
-            with open(file_path, 'rb') as payload:
-                payload = payload.read()
-        else:
-            module.fail_json(msg="No such file or directory.")
+    payload = None
+
+    # Mapping of command to their respective actions
+    command_map = {
+        "generate_csr": {
+            "uri": csr_uri.format("GenerateCSR"),
+            "payload_func": generate_csr_payload
+        },
+        "upload": {
+            "uri": csr_uri.format("UploadCertificate"),
+            "payload_func": read_file_payload
+        },
+        "upload_cert_chain": {
+            "uri": csr_uri.format("UploadCertChain"),
+            "payload_func": read_file_payload
+        }
+    }
+
+    command_details = command_map.get(command)
+    if not command_details:
+        module.fail_json(msg=f"Unknown command: {command}")
+
+    uri = command_details["uri"]
+    payload = command_details["payload_func"](module)
+
     return method, uri, payload
+
+
+def read_file(module):
+    """Reads the file content for 'upload' and 'upload_cert_chain' commands."""
+    file_path = module.params["upload_file"]
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as file:
+            return file.read()
+    else:
+        module.fail_json(msg="No such file or directory.")
 
 
 def get_san(subject_alternative_names):
     if not subject_alternative_names:
         return subject_alternative_names
-
     return subject_alternative_names.replace(" ", "")
 
 
@@ -212,7 +273,7 @@ def format_csr_string(csr_string):
 def main():
     specs = {
         "command": {"type": "str", "required": False,
-                    "choices": ["generate_csr", "upload"], "default": "generate_csr"},
+                    "choices": ["generate_csr", "upload", "upload_cert_chain"], "default": "generate_csr"},
         "distinguished_name": {"required": False, "type": "str"},
         "department_name": {"required": False, "type": "str"},
         "business_name": {"required": False, "type": "str"},
@@ -220,8 +281,8 @@ def main():
         "country_state": {"required": False, "type": "str"},
         "country": {"required": False, "type": "str"},
         "email": {"required": False, "type": "str"},
-        "upload_file": {"required": False, "type": "str"},
-        "subject_alternative_names": {"required": False, "type": "str"}
+        "subject_alternative_names": {"required": False, "type": "str"},
+        "upload_file": {"required": False, "type": "str"}
     }
 
     module = OmeAnsibleModule(
@@ -229,25 +290,35 @@ def main():
         required_if=[["command", "generate_csr", ["distinguished_name", "department_name",
                                                   "business_name", "locality", "country_state",
                                                   "country", "email"]],
-                     ["command", "upload", ["upload_file"]]],
+                     ["command", "upload", ["upload_file"]],
+                     ["command", "upload_cert_chain", ["upload_file"]]],
         supports_check_mode=False
     )
+
     header = {"Content-Type": "application/octet-stream", "Accept": "application/octet-stream"}
     try:
         with RestOME(module.params, req_session=False) as rest_obj:
-            method, uri, payload = get_resource_parameters(module)
             command = module.params.get("command")
-            dump = False if command == "upload" else True
-            headers = header if command == "upload" else None
+            if command == "upload_cert_chain":
+                ome_version = get_ome_version(rest_obj)
+                if LooseVersion(ome_version) < "3.10":
+                    module.exit_json(msg=UNSUPPORTED_OME.format(ome_version=ome_version), skipped=True)
+
+            method, uri, payload = get_resource_parameters(module)
+            dump = False if command in ["upload", "upload_cert_chain"] else True
+            headers = header if command in ["upload", "upload_cert_chain"] else None
             resp = rest_obj.invoke_request(method, uri, headers=headers, data=payload, dump=dump)
             if resp.success:
                 if command == "generate_csr":
                     resp_copy = resp.json_data
-                    formated_csr = format_csr_string(resp_copy["CertificateData"])
-                    resp_copy["CertificateData"] = formated_csr
-                    module.exit_json(msg="Successfully generated certificate signing request.",
+                    formatted_csr = format_csr_string(resp_copy["CertificateData"])
+                    resp_copy["CertificateData"] = formatted_csr
+                    module.exit_json(msg=CERT_SIGN,
                                      csr_status=resp_copy)
-                module.exit_json(msg="Successfully uploaded application certificate.", changed=True)
+                else:
+                    module.exit_json(msg=CERT_UPLOAD, changed=True)
+            else:
+                module.fail_json(msg="Request failed", error_info=resp.json_data)
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:

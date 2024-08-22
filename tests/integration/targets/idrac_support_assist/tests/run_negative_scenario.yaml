@@ -1,0 +1,103 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: idrac_ip, idrac_user and
+      idrac_password."
+  when: "idrac_ip is not defined or idrac_user is not defined or idrac_password
+    is not defined"
+
+- name: Pre-requisite - Checking if LC status is ready
+  ansible.builtin.include_tasks:
+    file: ../__lc_status.yml
+
+- name: Pre-requisite - Checking if iDRAC is powered on and clear job_queue
+  ansible.builtin.include_tasks:
+    file: ../_helper.yml
+
+- block:
+    - name: Export the SupportAssist Collection passing invalid run input
+      dellemc.openmanage.idrac_support_assist:
+        unsupported_argument: unsupported
+        run: "invalid"
+        accep_eula: true
+      register: invalid_run_input
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid run input
+      ansible.builtin.assert:
+        that:
+          - invalid_run_input.failed
+          - not invalid_run_input.changed
+
+    - name: Export the SupportAssist Collection passing invalid filter_data
+      dellemc.openmanage.idrac_support_assist:
+        filter_data: "invalid"
+        run: true
+      register: invalid_filter_data
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid filter_data
+      ansible.builtin.assert:
+        that:
+          - invalid_filter_data.failed
+          - not invalid_filter_data.changed
+
+    - name: Export the SupportAssist Collection passing empty list
+        to data_collector
+      dellemc.openmanage.idrac_support_assist:
+        data_collector: []
+        run: true
+        export: false
+      register: empty_data_collector
+      ignore_errors: true
+
+    - name: Verify task status - Negative - empty list of data_collector
+      ansible.builtin.assert:
+        that:
+          - empty_data_collector.skipped
+          - "empty_data_collector.msg == err_msg"
+      vars:
+        err_msg: "data_collector can't be empty. Enter a valid value."
+
+    - name: Export the SupportAssist Collection for run with job_wait as false
+      dellemc.openmanage.idrac_support_assist:
+        run: true
+        export: false
+        job_wait: false
+        accept_eula: true
+        data_collector: ["debug_logs"]
+      register: run_with_job_wait_false_1
+      ignore_errors: true
+
+    - name: Waiting for Job to complete
+      ansible.builtin.pause:
+        seconds: 300
+      when: run_with_job_wait_false_1.changed
+
+    - name: Repeating previous tasks - Export the SupportAssist Collection
+        for run with job_wait as false
+      dellemc.openmanage.idrac_support_assist:
+        run: true
+        export: false
+        job_wait: false
+        accept_eula: true
+        data_collector: ["debug_logs"]
+      register: run_with_job_wait_false_2
+      ignore_errors: true
+
+    - name: Verify task status - Negative - run with job_wait as false
+      ansible.builtin.assert:
+        that:
+          - run_with_job_wait_false_1.changed
+          - "run_with_job_wait_false_1.msg == success_msg"
+          - run_with_job_wait_false_2.skipped
+          - "run_with_job_wait_false_2.msg == skip_msg"
+      vars:
+        success_msg: "Successfully triggered the job to run support assist
+          collections."
+        skip_msg: "The support assist collections job is already present."
