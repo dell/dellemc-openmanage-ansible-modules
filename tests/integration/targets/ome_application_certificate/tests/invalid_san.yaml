@@ -88,7 +88,8 @@
     - name: Negative - Input with more than 64 characters in subject_alternative_name.
       dellemc.openmanage.ome_application_certificate:
         distinguished_name: "hostname.com"
-        subject_alternative_names: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        subject_alternative_names:
+         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         department_name: "Remote Access Group"
         business_name: "Dell Inc."
         locality: "Round Rock"
@@ -109,35 +110,31 @@
             value for Subject Alternative Name(s) is missing or an invalid
             value is entered."
 
-    #   TITLE: Defect- JIT-277402 - Ansible(8.3.0)-[Latent]
-    #   [ome_application_certificate]
-    #   Task is not failing when invalid Subject Alternative Name is provided
-    #   DESCRIPTION: : Module should show proper error message
-    # - name: Negative - Input with a single character in each segment in
-    #   subject_alternative_name.
-    #   dellemc.openmanage.ome_application_certificate:
-    #     distinguished_name: "hostname.com"
-    #     subject_alternative_names: "test.dell.i"
-    #     department_name: "Remote Access Group"
-    #     business_name: "Dell Inc."
-    #     locality: "Round Rock"
-    #     country_state: "Texas"
-    #     country: "US"
-    #     email: "support@dell.com"
-    #   register: invalid_san_m_char_segment
-    #   ignore_errors: true
+    - name: Negative - Input with a single character in each segment in
+       subject_alternative_name.
+      dellemc.openmanage.ome_application_certificate:
+        distinguished_name: "hostname.com"
+        subject_alternative_names: "test.dell.i"
+        department_name: "Remote Access Group"
+        business_name: "Dell Inc."
+        locality: "Round Rock"
+        country_state: "Texas"
+        country: "US"
+        email: "support@dell.com"
+      register: invalid_san_m_char_segment
+      ignore_errors: true
 
-    # - name: Verify the status of tasks
-    #   ansible.builtin.assert:
-    #     that:
-    #       - invalid_san_m_char_segment.failed
-    #       - not invalid_san_m_char_segment.changed
-    #       - 'invalid_san_m_char_segment.msg == "HTTP Error 400: 400"'
-    #       - invalid_san_m_char_segment.error_info.error
-    #         ['@Message.ExtendedInfo'][0]
-    #         .Message == "Unable to complete the request because the
-    #         input value for Subject Alternative Name(s) is missing
-    #         or an invalid value is entered."
+    - name: Verify the status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_san_m_char_segment.failed
+          - not invalid_san_m_char_segment.changed
+          - 'invalid_san_m_char_segment.msg == "HTTP Error 400: 400"'
+          - invalid_san_m_char_segment.error_info.error
+            ['@Message.ExtendedInfo'][0]
+            .Message == "Unable to complete the request because the
+            input value for Subject Alternative Name(s) is missing
+            or an invalid value is entered."
 
   module_defaults:
     dellemc.openmanage.ome_application_certificate:

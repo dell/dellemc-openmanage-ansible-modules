@@ -94,6 +94,74 @@
           - invalid_unreachable.msg == "<urlopen error [Errno -2] Name
              or service not known>"
 
+    - name: Negative - Invalid username
+      dellemc.openmanage.ome_application_certificate:
+        hostname: "{{ hostname }}"
+        username: invalid
+        password: "{{ password }}"
+        distinguished_name: "hostname.com"
+        department_name: "Remote Access Group"
+        business_name: "Dell Inc."
+        locality: "Round Rock"
+        country_state: "Texas"
+        country: "US"
+        email: "support@dell.com"
+      ignore_errors: true
+      register: invalid_user
+
+    - name: Verify task status - Negative - Invalid user
+      ansible.builtin.assert:
+        that:
+          - invalid_user.failed
+          - not invalid_user.changed
+          - 'invalid_user.msg == "HTTP Error 401: 401" or
+           "HTTP Error 400: 400"'
+
+    - name: Negative - Invalid password
+      dellemc.openmanage.ome_application_certificate:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: invalid
+        distinguished_name: "hostname.com"
+        department_name: "Remote Access Group"
+        business_name: "Dell Inc."
+        locality: "Round Rock"
+        country_state: "Texas"
+        country: "US"
+        email: "support@dell.com"
+      ignore_errors: true
+      register: invalid_password
+
+    - name: Verify task status - Negative - Invalid password
+      ansible.builtin.assert:
+        that:
+          - invalid_password.failed
+          - not invalid_password.changed
+
+    - name: Negative - Invalid ca_path
+      dellemc.openmanage.ome_application_certificate:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: invalid
+        distinguished_name: "hostname.com"
+        department_name: "Remote Access Group"
+        business_name: "Dell Inc."
+        locality: "Round Rock"
+        country_state: "Texas"
+        country: "US"
+        email: "support@dell.com"
+      ignore_errors: true
+      register: invalid_ca_path
+
+    - name: Verify task status - Negative - Invalid ca_path
+      ansible.builtin.assert:
+        that:
+          - invalid_ca_path.failed
+          - not invalid_ca_path.changed
+          - 'invalid_ca_path.msg == "[Errno 2] No such file or
+            directory: b''invalid''"'
+
   module_defaults:
     dellemc.openmanage.ome_application_certificate:
       validate_certs: "{{ validate_certs }}"

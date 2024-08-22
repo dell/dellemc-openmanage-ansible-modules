@@ -10,7 +10,7 @@
   vars:
     wget_command: "wget -P %s %s"
     download_dest_path: "{{ base_path }}"
-    source_url: "http://{{ https_share_ip }}{{ ome_certificate_path }}{{ certificate_chain }}"
+    source_url: "http://{{ https_share_ip | ansible.utils.ipwrap }}{{ ome_certificate_path }}{{ certificate_chain }}"
     validate_certs: false # Set to true if you want to validate SSL certificates
     set_no_log: false # Set to false if you need to debug and see logs
     url_username: "{{ https_share_username }}"
