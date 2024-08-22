@@ -37,7 +37,8 @@
 
     - name: Constructing url
       ansible.builtin.set_fact:
-        url_1: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/"
+        url_1: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+          /redfish/v1/"
         url_2: "Systems/System.Embedded.1/Storage/{{ controller_name }}/"
         url_3: "Controllers/{{ controller_name }}"
 
@@ -45,7 +46,7 @@
       ansible.builtin.set_fact:
         job_url: "{{ url_1 }}{{ url_2 }}{{ url_3 }}"
 
-    - ansible.builtin.include_tasks: get_data.yml
+    - ansible.builtin.include_tasks: _get_data.yml
       vars:
         url: "{{ job_url }}"
 
@@ -96,7 +97,7 @@
     - ansible.builtin.pause: seconds=10
       when: configure_attributes_output.changed
 
-    - ansible.builtin.include_tasks: get_data.yml
+    - ansible.builtin.include_tasks: _get_data.yml
       vars:
         url: "{{ job_url }}"
 
@@ -136,7 +137,7 @@
     - ansible.builtin.pause: seconds=10
       when: change_attributes_output.changed
 
-    - ansible.builtin.include_tasks: get_data.yml
+    - ansible.builtin.include_tasks: _get_data.yml
       vars:
         url: "{{ job_url }}"
 
@@ -181,7 +182,7 @@
     - ansible.builtin.pause: seconds=10
       when: configure_attributes_output.changed
 
-    - ansible.builtin.include_tasks: get_data.yml
+    - ansible.builtin.include_tasks: _get_data.yml
       vars:
         url: "{{ job_url }}"
 
@@ -216,13 +217,13 @@
 
   module_defaults:
     dellemc.openmanage.dellemc_idrac_storage_volume:
-      idrac_ip: "{{ idrac_ip }}"
+      idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"
 
     dellemc.openmanage.idrac_redfish_storage_controller:
-      baseuri: "{{ idrac_ip }}:{{ idrac_port }}"
+      baseuri: "{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
       username: "{{ idrac_user }}"
       password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"
