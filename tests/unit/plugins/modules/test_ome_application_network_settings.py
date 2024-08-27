@@ -18,6 +18,7 @@ import pytest
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import SSLValidationError
 from io import StringIO
+from copy import deepcopy
 from ansible.module_utils._text import to_text
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_application_network_settings
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
@@ -177,7 +178,7 @@ class TestOmeApplicationNetworkSettings(FakeAnsibleModule):
                     "api_timeout": 2
                 }
             },
-            "payload": responseData.get("value")
+            "payload": deepcopy(responseData).get("value")
         }
     ])
     def test_update_payload_timeout_change(self, params, ome_connection_mock_for_ns, ome_response_mock):
@@ -212,7 +213,7 @@ class TestOmeApplicationNetworkSettings(FakeAnsibleModule):
                     "api_sessions": 90
                 }
             },
-            "payload": responseData.get("value")
+            "payload": deepcopy(responseData).get("value")
         }
     ])
     def test_update_payload_timeout_and_max_session_change(self, params, ome_connection_mock_for_ns, ome_response_mock):
