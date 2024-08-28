@@ -14,6 +14,7 @@ __metaclass__ = type
 
 import pytest
 import json
+from copy import deepcopy
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_network_vlan_info
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -87,7 +88,7 @@ class TestOmeNetworkVlanInfo(FakeAnsibleModule):
 
     def test_get_network_vlan_info_success_case(self, mocker, ome_default_args, ome_connection_network_vlan_info_mock,
                                                 ome_response_mock):
-        ome_response_mock.json_data = response
+        ome_response_mock.json_data = deepcopy(response)
         ome_response_mock.status_code = 200
         mocker.patch(
             MODULE_PATH + 'ome_network_vlan_info.get_network_type_and_qos_type_information',
@@ -101,7 +102,7 @@ class TestOmeNetworkVlanInfo(FakeAnsibleModule):
                                                       ome_connection_network_vlan_info_mock, ome_response_mock):
         ome_default_args.update({"id": 20057})
         ome_response_mock.success = True
-        ome_response_mock.json_data = response
+        ome_response_mock.json_data = deepcopy(response)
         ome_response_mock.status_code = 200
         mocker.patch(
             MODULE_PATH + 'ome_network_vlan_info.get_network_type_and_qos_type_information',
@@ -115,7 +116,7 @@ class TestOmeNetworkVlanInfo(FakeAnsibleModule):
                                                         ome_connection_network_vlan_info_mock, ome_response_mock):
         ome_default_args.update({"name": "Logical Network - 1"})
         ome_response_mock.success = True
-        ome_response_mock.json_data = response
+        ome_response_mock.json_data = deepcopy(response)
         ome_response_mock.status_code = 200
         mocker.patch(
             MODULE_PATH + 'ome_network_vlan_info.get_network_type_and_qos_type_information',
