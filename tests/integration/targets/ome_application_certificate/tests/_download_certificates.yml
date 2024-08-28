@@ -11,9 +11,10 @@
     + ' --user=' + url_username + ' --password=' + url_password }}"
   vars:
     wget_command: "wget -P %s %s"
-    download_dest_path: "{{ base_path }}"
+    download_dest_path: "{{ ome_application_certificate_base_path }}"
     source_url: "http://{{ https_share_ip |
-     ansible.utils.ipwrap }}{{ ome_certificate_path }}{{ certificate_chain }}"
+     ansible.utils.ipwrap }}{{ ome_application_certificate_certificate_path }}
+     {{ ome_application_certificate_certificate_chain }}"
     validate_certs: false
     set_no_log: false
     url_username: "{{ https_share_username }}"

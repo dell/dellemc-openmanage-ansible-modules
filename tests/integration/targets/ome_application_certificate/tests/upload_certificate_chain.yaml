@@ -12,7 +12,7 @@
 
 - name: Ensure directory exists
   ansible.builtin.file:
-    path: "{{ base_path }}"
+    path: "{{ ome_application_certificate_base_path }}"
     state: directory
 
 - ansible.builtin.include_tasks: _download_certificates.yml
@@ -24,7 +24,8 @@
     password: "{{ password }}"
     validate_certs: "{{ validate_certs }}"
     command: "upload_cert_chain"
-    upload_file: "{{ base_path }}/{{ certificate_chain }}"
+    upload_file: "{{ ome_application_certificate_base_path }}/
+     {{ ome_application_certificate_certificate_chain }}"
   register: upload_result
 
 - name: Verify upload of the certificate chain
