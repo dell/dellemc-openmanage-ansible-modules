@@ -59,6 +59,8 @@
 
     - name: Verify - Secure boot Log entries
       ansible.builtin.include_tasks: _get_log_entries.yml
+      vars:
+        msg_id: "UEFI0286"
 
   module_defaults:
     dellemc.openmanage.idrac_secure_boot:

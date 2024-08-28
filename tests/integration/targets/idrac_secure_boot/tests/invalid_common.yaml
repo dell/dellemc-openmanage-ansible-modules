@@ -78,7 +78,7 @@
           - invalid_ca_path.failed
           - not invalid_ca_path.changed
           - 'invalid_ca_path.msg == "[Errno 2] No such file or
-            directory: b''invalid''"'
+            directory"'
 
     - name: Negative - Invalid option
       dellemc.openmanage.idrac_secure_boot:

@@ -52,6 +52,8 @@
 
     - name: Verify - Secure boot Log entries
       ansible.builtin.include_tasks: _get_log_entries.yml
+      vars:
+        msg_id: "UEFI0286"
 
     - name: Import platform key policy certificate without restart
         (check mode - changes expected)
@@ -86,6 +88,12 @@
             operation is successfully scheduled. Restart the host server
             for the changes to take effect."
 
+    - name: Verify - SecureBoot Certificate Import
+            operation is successfully scheduled
+      ansible.builtin.include_tasks: _get_log_entries.yml
+      vars:
+        msg_id: "SWC9010"
+
     - name: Restart the server
       dellemc.openmanage.redfish_powerstate:
         baseuri: "{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
@@ -100,6 +108,8 @@
 
     - name: Verify - Secure boot Log entries
       ansible.builtin.include_tasks: _get_log_entries.yml
+      vars:
+        msg_id: "UEFI0286"
 
   module_defaults:
     dellemc.openmanage.idrac_secure_boot:

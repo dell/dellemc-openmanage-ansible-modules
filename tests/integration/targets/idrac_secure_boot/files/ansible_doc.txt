@@ -1,92 +1,184 @@
-- '        This module shows the status of a specific Lifecycle'
-- '        Controller job using its job ID.'
+- '  This module allows to import the secure boot certificate.'
 - ''
-- 'ADDED IN: version 2.1.0 of dellemc.openmanage'
+- "\e[1mOPTIONS\e[0m (red indicates it is required):"
 - ''
-- 'OPTIONS (= is mandatory):'
+- "   \e[0;33mKEK\e[0m     A list of absolute paths of the Key Exchange Key (KEK)"
+- '           certificate file for UEFI secure boot.'
+- '        default: null'
+- '        elements: path'
+- '        type: list'
 - ''
-- '- ca_path'
-- '        The Privacy Enhanced Mail (PEM) file that contains a CA'
-- '        certificate to be used for the validation.'
+- "   \e[0;33mca_path\e[0m  The Privacy Enhanced Mail (PEM) file that contains a CA
+    certificate"
+- '            to be used for the validation.'
 - '        default: null'
 - '        type: path'
-- '        added in: version 5.0.0 of dellemc.openmanage'
 - ''
+- "   \e[0;33mdatabase\e[0m  A list of absolute paths of the Database certificate
+    file for UEFI"
+- '             secure boot.'
+- '        default: null'
+- '        elements: path'
+- '        type: list'
 - ''
-- = idrac_ip
-- '        iDRAC IP Address.'
+- "   \e[0;33mdisallow_database\e[0m  A list of absolute paths of the Disallow Database
+    certificate file"
+- '                      for UEFI secure boot.'
+- '        default: null'
+- '        elements: path'
+- '        type: list'
+- ''
+- "   \e[0;31m\e[1midrac_ip\e[0m\e[0m  iDRAC IP Address."
 - '        type: str'
 - ''
-- = idrac_password
-- '        iDRAC user password.'
-- '        If the password is not provided, then the environment variable'
-- '        `IDRAC_PASSWORD'' is used.'
-- '        Example: export IDRAC_PASSWORD=password'
+- "   \e[0;33midrac_password\e[0m  iDRAC user password."
+- '                   If the password is not provided, then the'
+- '                   environment variable `IDRAC_PASSWORD'' is used.'
+- '                   Example: export IDRAC_PASSWORD=password'
 - '        aliases: [idrac_pwd]'
+- '        default: null'
 - '        type: str'
 - ''
-- '- idrac_port'
-- '        iDRAC port.'
+- "   \e[0;33midrac_port\e[0m  iDRAC port."
 - '        default: 443'
 - '        type: int'
 - ''
-- = idrac_user
-- '        iDRAC username.'
-- '        If the username is not provided, then the environment variable'
-- '        `IDRAC_USERNAME'' is used.'
-- '        Example: export IDRAC_USERNAME=username'
+- "   \e[0;33midrac_user\e[0m  iDRAC username."
+- '               If the username is not provided, then the environment'
+- '               variable `IDRAC_USERNAME'' is used.'
+- '               Example: export IDRAC_USERNAME=username'
+- '        default: null'
 - '        type: str'
 - ''
-- = job_id
-- '        JOB ID in the format "JID_123456789012".'
-- '        type: str'
+- "   \e[0;33mimport_certificates\e[0m  Import all the specified key certificates."
+- "                        When \e[4mimport_certificates\e[0m is"
+- "                        \e[1;30m`true'\e[0m, then either"
+- "                        \e[4mplatform_key\e[0m, \e[4mKEK\e[0m,"
+- "                        \e[4mdatabase\e[0m, or \e[4mdisallow_database\e[0m"
+- '                        is required.'
+- '        default: null'
+- '        type: bool'
 - ''
-- '- timeout'
-- '        The socket level timeout in seconds.'
-- '        default: 30'
-- '        type: int'
-- '        added in: version 5.0.0 of dellemc.openmanage'
-- ''
-- ''
-- '- validate_certs'
-- '        If `false'', the SSL certificates will not be validated.'
-- '        Configure `false'' only on personally controlled sites where'
-- '        self-signed certificates are used.'
-- '        Prior to collection version `5.0.0'', the `validate_certs'' is'
-- '        `false'' by default.'
+- "   \e[0;33mjob_wait\e[0m  Whether to wait till completion of the secure boot certificate"
+- "             operation. This is applicable when \e[4mrestart\e[0m is"
+- "             \e[1;30m`true'\e[0m."
 - '        default: true'
 - '        type: bool'
-- '        added in: version 5.0.0 of dellemc.openmanage'
+- ''
+- "   \e[0;33mjob_wait_timeout\e[0m  The maximum wait time of \e[4mjob_wait\e[0m in
+    seconds. The job is"
+- '                     tracked only for this duration.'
+- "                     This option is applicable when \e[4mjob_wait\e[0m"
+- "                     is \e[1;30m`true'\e[0m."
+- '        default: 1200'
+- '        type: int'
+- ''
+- "   \e[0;33mplatform_key\e[0m  The absolute path of the Platform key certificate
+    file for UEFI"
+- '                 secure boot.'
+- '        default: null'
+- '        type: path'
+- ''
+- "   \e[0;33mrestart\e[0m  Secure boot certificate import operation requires a server
+    restart."
+- '            This parameter provides an option to restart the server.'
+- "            \e[1;30m`true'\e[0m restarts the server."
+- "            \e[1;30m`false'\e[0m does not restart the server."
+- "            \e[4mrestart\e[0m is applicable when"
+- "            \e[4mimport_certificates\e[0m is \e[1;30m`true'\e[0m."
+- '        default: false'
+- '        type: bool'
+- ''
+- "   \e[0;33mrestart_type\e[0m  Restart type of the server."
+- "                 \e[1;30m`ForceRestart'\e[0m forcefully restarts the"
+- '                 server.'
+- "                 \e[1;30m`GracefulRestart'\e[0m gracefully restarts the"
+- '                 server.'
+- "                 \e[4mrestart_type\e[0m is applicable when"
+- "                 \e[4mrestart\e[0m is \e[1;30m`true'\e[0m."
+- '        choices: [GracefulRestart, ForceRestart]'
+- '        default: GracefulRestart'
+- '        type: str'
+- ''
+- "   \e[0;33mtimeout\e[0m  The socket level timeout in seconds."
+- '        default: 30'
+- '        type: int'
+- ''
+- "   \e[0;33mvalidate_certs\e[0m  If \e[1;30m`false'\e[0m, the SSL certificates will
+    not be validated."
+- "                   Configure \e[1;30m`false'\e[0m only on personally"
+- '                   controlled sites where self-signed certificates are'
+- '                   used.'
+- "                   Prior to collection version \e[1;30m`5.0.0'\e[0m, the"
+- "                   \e[4mvalidate_certs\e[0m is \e[1;30m`false'\e[0m by"
+- '                   default.'
+- '        default: true'
+- '        type: bool'
+- ''
+- "   \e[0;33mx_auth_token\e[0m  Authentication token."
+- '                 If the x_auth_token is not provided, then the'
+- '                 environment variable `IDRAC_X_AUTH_TOKEN'' is used.'
+- '                 Example: export IDRAC_X_AUTH_TOKEN=x_auth_token'
+- '        default: null'
+- '        type: str'
+- ''
+- "\e[1mATTRIBUTES:\e[0m"
+- ''
+- "        \e[4mcheck_mode:\e[0m"
+- '        description: Runs task to validate without performing action on the target
+    machine.'
+- '        support: full'
+- ''
+- "        \e[4mdiff_mode:\e[0m"
+- '        description: Runs the task to report the changes made or to be made.'
+- '        support: none'
+- ''
+- "\e[1mNOTES:\e[0m"
+- '      * This module will always report changes found to be'
+- "        applied when run in \e[1;30m`check mode'\e[0m."
+- '      * This module does not support idempotency when'
+- "        \e[4mimport_certificates\e[0m is provided."
+- '      * This module supports IPv4 and IPv6 addresses.'
+- ''
+- "\e[1mREQUIREMENTS:\e[0m  python >= 3.9.6"
 - ''
 - ''
+- "\e[1mAUTHOR\e[0m: Abhishek Sinha(@ABHISHEK-SINHA10)"
 - ''
-- 'NOTES:'
-- '      * Run this module from a system that has direct access to'
-- '        Dell iDRAC.'
-- '      * This module supports both IPv4 and IPv6 address for'
-- '        `idrac_ip''.'
-- '      * This module supports `check_mode''.'
-- ''
-- ''
-- 'REQUIREMENTS:  omsdk >= 1.2.488, python >= 3.9.6'
-- ''
-- 'AUTHOR: Rajeev Arakkal (@rajeevarakkal), Anooja Vardhineni (@anooja-vardhineni)'
-- ''
-- 'EXAMPLES:'
-- ''
+- "\e[1mEXAMPLES:\e[0m"
 - '---'
-- '- name: Show status of a Lifecycle Control job'
-- '  dellemc.openmanage.idrac_lifecycle_controller_job_status_info:'
-- '    idrac_ip: "192.168.0.1"'
-- '    idrac_user: "user_name"'
-- '    idrac_password: "user_password"'
+- '- name: Import multiple SecureBoot certificate without applying to iDRAC.'
+- '  dellemc.openmanage.idrac_secure_boot:'
+- '    idrac_ip: "192.168.1.2"'
+- '    idrac_user: "user"'
+- '    idrac_password: "password"'
 - '    ca_path: "/path/to/ca_cert.pem"'
-- '    job_id: "JID_1234567890"'
+- '    import_certificates: true'
+- '    platform_key: /user/name/certificates/pk.pem'
+- '    KEK:'
+- '      - /user/name/certificates/kek1.pem'
+- '      - /user/name/certificates/kek2.pem'
+- '    database:'
+- '      - /user/name/certificates/db1.pem'
+- '      - /user/name/certificates/db2.pem'
+- '    disallow_database:'
+- '      - /user/name/certificates/dbx1.pem'
+- '      - /user/name/certificates/dbx2.pem'
 - ''
+- '- name: Import a SecureBoot certificate and restart the server to apply it.'
+- '  dellemc.openmanage.idrac_secure_boot:'
+- '    idrac_ip: "192.168.1.2"'
+- '    idrac_user: "user"'
+- '    idrac_password: "password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    import_certificates: true'
+- '    platform_key: /user/name/certificates/pk.pem'
+- '    restart: true'
+- '    job_wait_timeout: 600'
 - ''
-- 'RETURN VALUES:'
-- '- error_info'
-- '        Details of the HTTP Error.'
+- "\e[1mRETURN VALUES:\e[0m"
+- ''
+- "   \e[0;33merror_info\e[0m  Details of the HTTP Error."
 - '        returned: on HTTP error'
 - '        sample:'
 - '          error:'
@@ -103,25 +195,7 @@
 - '            message: A general error has occurred. See ExtendedInfo for more information.'
 - '        type: dict'
 - ''
-- '- job_info'
-- '        Displays the status of a Lifecycle Controller job.'
-- '        returned: success'
-- '        sample:'
-- '          ElapsedTimeSinceCompletion: ''8742'''
-- '          InstanceID: JID_844222910040'
-- '          JobStartTime: NA'
-- '          JobStatus: Completed'
-- '          JobUntilTime: NA'
-- '          Message: Job completed successfully.'
-- '          MessageArguments: NA'
-- '          MessageID: RED001'
-- '          Name: update:DCIM:INSTALLED#iDRAC.Embedded.1-1#IDRACinfo'
-- '          PercentComplete: ''100'''
-- '          Status: Success'
-- '        type: dict'
-- ''
-- '- msg'
-- '        Overall status of the job facts operation.'
+- "   \e[0;33mmsg\e[0m     Status of the secure boot operation."
 - '        returned: always'
-- '        sample: Successfully fetched the job info.'
+- '        sample: Successfully imported the SecureBoot certificate.'
 - '        type: str'
