@@ -1,0 +1,168 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Prerequisite - Fetch Storage details
+      dellemc_idrac_storage_volume:
+        state: "view"
+      register: result_pre_req
+
+    - ansible.builtin.set_fact:
+        controller_name: "{{ result_pre_req.storage_status.Message.Controller.
+         keys() | select('match', 'RAID.') | first }}"
+
+    - name: Prerequisite - Ensure encryption is enabled
+      idrac_redfish_storage_controller:
+        controller_id: "{{ controller_name }}"
+        command: "SetControllerKey"
+        mode: "LKM"
+        key: "your_Key@123"
+        key_id: "your_Keyid@123"
+      register: prereq_result_set_attrs
+
+    - ansible.builtin.wait_for: timeout=30
+      when: prereq_result_set_attrs.msg == "Successfully submitted the job that
+           performs the 'SetControllerKey' operation."
+
+    - name: Check for iDRAC lc ready status.
+      idrac_lifecycle_controller_status_info:
+      register: result
+      until: result.lc_status_info.LCReady and result.lc_status_info.
+       LCStatus == "Ready"
+      retries: 50
+      delay: 30
+
+    - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{set_LKM_encryption.status.Id}}"
+      when: prereq_result_set_attrs.msg == "Successfully submitted the job
+       that configures the controller attributes."
+
+    - ansible.builtin.pause: seconds=10
+      when: prereq_result_set_attrs.changed
+
+    - name: Constructing url
+      ansible.builtin.set_fact:
+        url_1: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+          /redfish/v1/"
+        url_2: "Systems/System.Embedded.1/Storage/{{ controller_name }}/"
+        url_3: "Controllers/{{ controller_name }}"
+
+    - name: Final url
+      ansible.builtin.set_fact:
+        job_url: "{{ url_1 }}{{ url_2 }}{{ url_3 }}"
+
+    - ansible.builtin.include_tasks: _get_data.yml
+      vars:
+        url: "{{ job_url }}"
+
+    - name: Verify prerequisite - Check whether encryption is enabled
+      ansible.builtin.assert:
+        that:
+          - fetched_data.json.Oem.Dell.DellStorageController.EncryptionMode
+           == "LocalKeyManagement"
+        fail_msg: "Prerequisite - Storage controller attribute
+         'EncryptionMode' is set to 'None'"
+        success_msg: "Prerequisite - Storage controller attribute
+         'EncryptionMode' is set to 'LKM' successfully"
+
+    - name: Remove controller encryption key (Check mode - Changes expected)
+      idrac_redfish_storage_controller: &idrac_redfish_storage_controller_1
+        controller_id: "{{ controller_name }}"
+        command: "RemoveControllerKey"
+      register: set_LKM_encryption
+      check_mode: true
+
+    - name: Verify task status - Remove controller encryption key
+       (Check mode - Changes expected)
+      assert:
+        that:
+          - set_LKM_encryption.changed
+          - set_LKM_encryption.msg == "Changes found to be applied."
+
+    - name: Remove controller encryption key (Normal mode)
+      idrac_redfish_storage_controller:
+        <<: *idrac_redfish_storage_controller_1
+      register: set_LKM_encryption
+
+    - ansible.builtin.wait_for: timeout=120
+      when: set_LKM_encryption.msg == "Successfully submitted the job that
+       performs the 'RemoveControllerKey' operation."
+
+    - name: Check for iDRAC lc ready status.
+      idrac_lifecycle_controller_status_info:
+      register: result
+      until: result.lc_status_info.LCReady and result.lc_status_info.LCStatus
+       == "Ready"
+      retries: 50
+      delay: 30
+
+    - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{set_LKM_encryption.status.Id}}"
+      when: set_LKM_encryption.msg == "Successfully submitted the job
+       that configures the controller attributes."
+
+    - ansible.builtin.pause: seconds=10
+      when: set_LKM_encryption.changed
+
+    - ansible.builtin.include_tasks: _get_data.yml
+      vars:
+        url: "{{ job_url }}"
+
+    - name: Verify task status - Remove controller encryption key (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - not set_LKM_encryption.changed
+          - set_LKM_encryption.msg == "Successfully submitted the job that
+           performs the 'RemoveControllerKey' operation."
+          - fetched_data.json.Oem.Dell.DellStorageController.
+           EncryptionMode == "None"
+
+    - name: Remove controller encryption key (Idempotency mode)
+      idrac_redfish_storage_controller:
+        <<: *idrac_redfish_storage_controller_1
+      register: set_LKM_encryption_idempotency
+
+    - name: Verify task status - Remove controller encryption key
+       (Idempotency mode)
+      ansible.builtin.assert:
+        that:
+          - not set_LKM_encryption_idempotency.changed
+          - set_LKM_encryption_idempotency.msg == "No changes found
+           to be applied."
+
+  module_defaults:
+    dellemc.openmanage.dellemc_idrac_storage_volume:
+      idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+    dellemc.openmanage.idrac_redfish_storage_controller:
+      baseuri: "{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+    dellemc.openmanage.redfish_powerstate:
+      baseuri: "{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+    dellemc.openmanage.idrac_lifecycle_controller_status_info:
+      idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
