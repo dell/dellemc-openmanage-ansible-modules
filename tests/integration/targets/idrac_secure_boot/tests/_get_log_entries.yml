@@ -5,8 +5,7 @@
     url2: "/redfish/v1/Managers/iDRAC.Embedded.1"
     url3: "/LogServices/Lclog/Entries"
   ansible.builtin.uri:
-    url:
-      "{{ url1 }}{{ url2 }}{{ url3 }}"
+    url: "{{ url1 }}{{ url2 }}{{ url3 }}"
     user: "{{ idrac_user }}"
     password: "{{ idrac_password }}"
     validate_certs: false
@@ -20,11 +19,11 @@
   ansible.builtin.set_fact:
     found: false
 
-- name: Loop through entries and check for MessageId containing USR0030
+- name: Loop through entries and check for MessageId
   ansible.builtin.set_fact:
     found: true
   when:
-    - "'UEFI0286' in item.MessageId"
+    - msg_id in item.MessageId
     - item.Created >= curr_time
   loop: "{{ entries }}"
   loop_control:
