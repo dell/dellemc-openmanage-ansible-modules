@@ -2,9 +2,25 @@
 [idrac]
 iDRAC idrac_ip=xx.xx.xx.xx idrac_user=username idrac_password=password idrac_port=443 validate_certs=false
 
+[ome]
+OME hostname=yy.yy.yy.yy
+
+[ome:vars]
+# Credentials
+username=username
+password=password
+port=443
+validate_certs=false
+
 [all:vars]
 ansible_host=localhost
 ansible_connection=local
 ansible_become_pass=password
 idrac_reset_default_username=default_username
 idrac_reset_default_password=default_password
+http_share=http_share_ip
+http_share_dir_path=http_share_path
+idrac_firmware_dup_file=idrac_firmware_dup_file
+bios_firmware_dup_file=bios_firmware_dup_file
+idrac_secure_boot_cert_path_1=secure_boot_certitifate_path_1
+idrac_secure_boot_cert_path_2=secure_boot_certitifate_path_1

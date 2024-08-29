@@ -1,6 +1,6 @@
 namespace: dellemc
 name: openmanage
-version: 9.4.0
+version: 9.6.0
 readme: README.md
 authors:
   - Jagadeesh N V <Jagadeesh.N.V@Dell.com>
@@ -13,6 +13,7 @@ authors:
   - Rajshekar P <Rajshekar.P@Dell.com>
   - Jennifer John <Jennifer.John@Dell.com>
   - Lovepreet Singh <Lovepreet.Singh1@dell.com>
+  - Saksham Nautiyal <Saksham.Nautiyal@dell.com>
 
 description: Dell OpenManage Ansible Modules allows data center and IT
   administrators to use RedHat Ansible to automate and orchestrate the

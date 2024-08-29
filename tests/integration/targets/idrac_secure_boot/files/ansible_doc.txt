@@ -1,0 +1,201 @@
+- '  This module allows to import the secure boot certificate.'
+- ''
+- "\e[1mOPTIONS\e[0m (red indicates it is required):"
+- ''
+- "   \e[0;33mKEK\e[0m     A list of absolute paths of the Key Exchange Key (KEK)"
+- '           certificate file for UEFI secure boot.'
+- '        default: null'
+- '        elements: path'
+- '        type: list'
+- ''
+- "   \e[0;33mca_path\e[0m  The Privacy Enhanced Mail (PEM) file that contains a CA
+    certificate"
+- '            to be used for the validation.'
+- '        default: null'
+- '        type: path'
+- ''
+- "   \e[0;33mdatabase\e[0m  A list of absolute paths of the Database certificate
+    file for UEFI"
+- '             secure boot.'
+- '        default: null'
+- '        elements: path'
+- '        type: list'
+- ''
+- "   \e[0;33mdisallow_database\e[0m  A list of absolute paths of the Disallow Database
+    certificate file"
+- '                      for UEFI secure boot.'
+- '        default: null'
+- '        elements: path'
+- '        type: list'
+- ''
+- "   \e[0;31m\e[1midrac_ip\e[0m\e[0m  iDRAC IP Address."
+- '        type: str'
+- ''
+- "   \e[0;33midrac_password\e[0m  iDRAC user password."
+- '                   If the password is not provided, then the'
+- '                   environment variable `IDRAC_PASSWORD'' is used.'
+- '                   Example: export IDRAC_PASSWORD=password'
+- '        aliases: [idrac_pwd]'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33midrac_port\e[0m  iDRAC port."
+- '        default: 443'
+- '        type: int'
+- ''
+- "   \e[0;33midrac_user\e[0m  iDRAC username."
+- '               If the username is not provided, then the environment'
+- '               variable `IDRAC_USERNAME'' is used.'
+- '               Example: export IDRAC_USERNAME=username'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mimport_certificates\e[0m  Import all the specified key certificates."
+- "                        When \e[4mimport_certificates\e[0m is"
+- "                        \e[1;30m`true'\e[0m, then either"
+- "                        \e[4mplatform_key\e[0m, \e[4mKEK\e[0m,"
+- "                        \e[4mdatabase\e[0m, or \e[4mdisallow_database\e[0m"
+- '                        is required.'
+- '        default: null'
+- '        type: bool'
+- ''
+- "   \e[0;33mjob_wait\e[0m  Whether to wait till completion of the secure boot certificate"
+- "             operation. This is applicable when \e[4mrestart\e[0m is"
+- "             \e[1;30m`true'\e[0m."
+- '        default: true'
+- '        type: bool'
+- ''
+- "   \e[0;33mjob_wait_timeout\e[0m  The maximum wait time of \e[4mjob_wait\e[0m in
+    seconds. The job is"
+- '                     tracked only for this duration.'
+- "                     This option is applicable when \e[4mjob_wait\e[0m"
+- "                     is \e[1;30m`true'\e[0m."
+- '        default: 1200'
+- '        type: int'
+- ''
+- "   \e[0;33mplatform_key\e[0m  The absolute path of the Platform key certificate
+    file for UEFI"
+- '                 secure boot.'
+- '        default: null'
+- '        type: path'
+- ''
+- "   \e[0;33mrestart\e[0m  Secure boot certificate import operation requires a server
+    restart."
+- '            This parameter provides an option to restart the server.'
+- "            \e[1;30m`true'\e[0m restarts the server."
+- "            \e[1;30m`false'\e[0m does not restart the server."
+- "            \e[4mrestart\e[0m is applicable when"
+- "            \e[4mimport_certificates\e[0m is \e[1;30m`true'\e[0m."
+- '        default: false'
+- '        type: bool'
+- ''
+- "   \e[0;33mrestart_type\e[0m  Restart type of the server."
+- "                 \e[1;30m`ForceRestart'\e[0m forcefully restarts the"
+- '                 server.'
+- "                 \e[1;30m`GracefulRestart'\e[0m gracefully restarts the"
+- '                 server.'
+- "                 \e[4mrestart_type\e[0m is applicable when"
+- "                 \e[4mrestart\e[0m is \e[1;30m`true'\e[0m."
+- '        choices: [GracefulRestart, ForceRestart]'
+- '        default: GracefulRestart'
+- '        type: str'
+- ''
+- "   \e[0;33mtimeout\e[0m  The socket level timeout in seconds."
+- '        default: 30'
+- '        type: int'
+- ''
+- "   \e[0;33mvalidate_certs\e[0m  If \e[1;30m`false'\e[0m, the SSL certificates will
+    not be validated."
+- "                   Configure \e[1;30m`false'\e[0m only on personally"
+- '                   controlled sites where self-signed certificates are'
+- '                   used.'
+- "                   Prior to collection version \e[1;30m`5.0.0'\e[0m, the"
+- "                   \e[4mvalidate_certs\e[0m is \e[1;30m`false'\e[0m by"
+- '                   default.'
+- '        default: true'
+- '        type: bool'
+- ''
+- "   \e[0;33mx_auth_token\e[0m  Authentication token."
+- '                 If the x_auth_token is not provided, then the'
+- '                 environment variable `IDRAC_X_AUTH_TOKEN'' is used.'
+- '                 Example: export IDRAC_X_AUTH_TOKEN=x_auth_token'
+- '        default: null'
+- '        type: str'
+- ''
+- "\e[1mATTRIBUTES:\e[0m"
+- ''
+- "        \e[4mcheck_mode:\e[0m"
+- '        description: Runs task to validate without performing action on the target
+    machine.'
+- '        support: full'
+- ''
+- "        \e[4mdiff_mode:\e[0m"
+- '        description: Runs the task to report the changes made or to be made.'
+- '        support: none'
+- ''
+- "\e[1mNOTES:\e[0m"
+- '      * This module will always report changes found to be'
+- "        applied when run in \e[1;30m`check mode'\e[0m."
+- '      * This module does not support idempotency when'
+- "        \e[4mimport_certificates\e[0m is provided."
+- '      * This module supports IPv4 and IPv6 addresses.'
+- ''
+- "\e[1mREQUIREMENTS:\e[0m  python >= 3.9.6"
+- ''
+- ''
+- "\e[1mAUTHOR\e[0m: Abhishek Sinha(@ABHISHEK-SINHA10)"
+- ''
+- "\e[1mEXAMPLES:\e[0m"
+- '---'
+- '- name: Import multiple SecureBoot certificate without applying to iDRAC.'
+- '  dellemc.openmanage.idrac_secure_boot:'
+- '    idrac_ip: "192.168.1.2"'
+- '    idrac_user: "user"'
+- '    idrac_password: "password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    import_certificates: true'
+- '    platform_key: /user/name/certificates/pk.pem'
+- '    KEK:'
+- '      - /user/name/certificates/kek1.pem'
+- '      - /user/name/certificates/kek2.pem'
+- '    database:'
+- '      - /user/name/certificates/db1.pem'
+- '      - /user/name/certificates/db2.pem'
+- '    disallow_database:'
+- '      - /user/name/certificates/dbx1.pem'
+- '      - /user/name/certificates/dbx2.pem'
+- ''
+- '- name: Import a SecureBoot certificate and restart the server to apply it.'
+- '  dellemc.openmanage.idrac_secure_boot:'
+- '    idrac_ip: "192.168.1.2"'
+- '    idrac_user: "user"'
+- '    idrac_password: "password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    import_certificates: true'
+- '    platform_key: /user/name/certificates/pk.pem'
+- '    restart: true'
+- '    job_wait_timeout: 600'
+- ''
+- "\e[1mRETURN VALUES:\e[0m"
+- ''
+- "   \e[0;33merror_info\e[0m  Details of the HTTP Error."
+- '        returned: on HTTP error'
+- '        sample:'
+- '          error:'
+- '            ''@Message.ExtendedInfo'':'
+- '            - Message: Unable to process the request because an error occurred.'
+- '              MessageArgs: []'
+- '              MessageId: GEN1234'
+- '              RelatedProperties: []'
+- '              Resolution: Retry the operation. If the issue persists, contact your
+    system'
+- '                administrator.'
+- '              Severity: Critical'
+- '            code: Base.1.0.GeneralError'
+- '            message: A general error has occurred. See ExtendedInfo for more information.'
+- '        type: dict'
+- ''
+- "   \e[0;33mmsg\e[0m     Status of the secure boot operation."
+- '        returned: always'
+- '        sample: Successfully imported the SecureBoot certificate.'
+- '        type: str'

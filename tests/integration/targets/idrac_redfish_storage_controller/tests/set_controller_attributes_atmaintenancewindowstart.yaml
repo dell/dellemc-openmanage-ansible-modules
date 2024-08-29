@@ -1,0 +1,272 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Prerequisite - Fetch Storage details
+      dellemc_idrac_storage_volume:
+        state: "view"
+      register: result_pre_req
+
+    - ansible.builtin.set_fact:
+        controller_name: "{{ result_pre_req.storage_status.Message.Controller.
+         keys() | select('match', 'RAID.') | first }}"
+
+    - name: Prerequisite - Change Storage controller attribute ControllerMode
+       to RAID
+      idrac_redfish_storage_controller:
+        controller_id: "{{ controller_name }}"
+        attributes:
+          ControllerMode: "RAID"
+        apply_time: OnReset
+      register: prereq_result_set_attrs
+
+    - name: Perform graceful restart of the device
+      redfish_powerstate:
+        reset_type: GracefulRestart
+      when: prereq_result_set_attrs.msg == "Successfully submitted the job
+       that configures the controller attributes."
+
+    - ansible.builtin.wait_for: timeout=60
+      when: prereq_result_set_attrs.msg == "Successfully submitted the job
+       that configures the controller attributes."
+
+    - name: Check for iDRAC lc ready status.
+      idrac_lifecycle_controller_status_info:
+      register: result
+      until: result.lc_status_info.LCReady and result.lc_status_info.
+       LCStatus == "Ready"
+      retries: 50
+      delay: 30
+
+    - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{configure_attributes_output.status.Id}}"
+      when: prereq_result_set_attrs.msg == "Successfully submitted the job
+       that configures the controller attributes."
+
+    - ansible.builtin.pause: seconds=10
+      when: prereq_result_set_attrs.changed
+
+    - name: Constructing url
+      ansible.builtin.set_fact:
+        url_1: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+          /redfish/v1/"
+        url_2: "Systems/System.Embedded.1/Storage/{{ controller_name }}/"
+        url_3: "Controllers/{{ controller_name }}"
+
+    - name: Final url
+      ansible.builtin.set_fact:
+        job_url: "{{ url_1 }}{{ url_2 }}{{ url_3 }}"
+
+    - ansible.builtin.include_tasks: _get_data.yml
+      vars:
+        url: "{{ job_url }}"
+
+    - name: Verify prerequisite - Change Storage controller attribute
+       'ControllerMode' to RAID
+      ansible.builtin.assert:
+        that:
+          - fetched_data.json.Oem.Dell.DellStorageController.ControllerMode
+           == "RAID"
+        fail_msg: "Prerequisite - Storage controller attribute
+         'ControllerMode' not set to 'RAID'"
+        success_msg: "Prerequisite - Storage controller attribute
+         'ControllerMode' is set to 'RAID' successfully"
+
+    - name: Prerequisite - Change Storage controller attributes
+      idrac_redfish_storage_controller:
+        controller_id: "{{ controller_name }}"
+        attributes:
+          CheckConsistencyMode: "Normal"
+          CopybackMode: "Off"
+          LoadBalanceMode: "Disabled"
+          EnhancedAutoImportForeignConfigurationMode: "Disabled"
+          PatrolReadMode: "Automatic"
+        apply_time: OnReset
+      register: prereq_result_set_attrs
+
+    - name: Perform graceful restart of the device
+      redfish_powerstate:
+        reset_type: GracefulRestart
+      when: prereq_result_set_attrs.msg == "Successfully submitted the job
+       that configures the controller attributes."
+
+    - ansible.builtin.wait_for: timeout=60
+      when: prereq_result_set_attrs.msg == "Successfully submitted the job
+       that configures the controller attributes."
+
+    - name: Check for iDRAC lc ready status.
+      idrac_lifecycle_controller_status_info:
+      register: result
+      until: result.lc_status_info.LCReady and result.lc_status_info.
+       LCStatus == "Ready"
+      retries: 50
+      delay: 30
+
+    - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{prereq_result_set_attrs.status.Id}}"
+      when: prereq_result_set_attrs.msg == "Successfully submitted the job
+       that configures the controller attributes."
+
+    - ansible.builtin.pause: seconds=10
+      when: prereq_result_set_attrs.changed
+
+    - ansible.builtin.include_tasks: _get_data.yml
+      vars:
+        url: "{{ job_url }}"
+
+    - name: Verify prerequisite is set
+      ansible.builtin.assert:
+        that:
+          - controller_name
+          - fetched_data.json.Oem.Dell.DellStorageController.
+           CheckConsistencyMode == "Normal"
+          - fetched_data.json.Oem.Dell.DellStorageController.
+           CopybackMode  == "Off"
+          - fetched_data.json.Oem.Dell.DellStorageController.
+           LoadBalanceMode  == "Disabled"
+          - fetched_data.json.Oem.Dell.DellStorageController.
+           EnhancedAutoImportForeignConfigurationMode  == "Disabled"
+          - fetched_data.json.Oem.Dell.DellStorageController.
+           PatrolReadMode  == "Automatic"
+        fail_msg: "Prerequisite is not set"
+        success_msg: "Prerequisite is set successfully"
+
+    - name: Constructing url
+      ansible.builtin.set_fact:
+        url_1: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+          /redfish/v1/"
+        url_2: "Managers/iDRAC.Embedded.1"
+
+    - name: Final url
+      ansible.builtin.set_fact:
+        date_time_url: "{{ url_1 }}{{ url_2 }}{{ url_3 }}"
+
+    - ansible.builtin.include_tasks: _get_updated_datetime.yml
+      vars:
+        url: "{{ date_time_url }}"
+        add_minutes: '3'
+
+
+    - name: Configure Storage controller attributes at apply_time:At
+       MaintenanceWindowStart (Check mode - Changes expected)
+      idrac_redfish_storage_controller: &idrac_redfish_storage_controller_1
+        controller_id: "{{ controller_name }}"
+        attributes:
+          CheckConsistencyMode: "StopOnError"
+          CopybackMode: "On"
+          LoadBalanceMode: "Automatic"
+          EnhancedAutoImportForeignConfigurationMode: "Enabled"
+          PatrolReadMode: "Disabled"
+        apply_time: AtMaintenanceWindowStart
+        maintenance_window:
+          start_time: "{{ updated_datetime_with_offset }}"
+          duration: 1200
+      register: configure_attributes_output
+      check_mode: true
+
+    - name: Verify task status - Configure Storage controller attributes
+       at apply_time:AtMaintenanceWindowStart (Check mode - Changes expected)
+      assert:
+        that:
+          - configure_attributes_output.changed
+          - configure_attributes_output.msg == "Changes found to be applied."
+
+    - name: Configure Storage controller attributes at apply_time:At
+       MaintenanceWindowStart (Normal mode)
+      idrac_redfish_storage_controller:
+        <<: *idrac_redfish_storage_controller_1
+      register: configure_attributes_output
+
+    - ansible.builtin.wait_for: timeout=120
+      when: configure_attributes_output.msg == "Successfully submitted the job
+       that configures the controller attributes."
+
+    - name: Check for iDRAC lc ready status.
+      idrac_lifecycle_controller_status_info:
+      register: result
+      until: result.lc_status_info.LCReady and result.lc_status_info.LCStatus
+       == "Ready"
+      retries: 50
+      delay: 30
+
+    - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{configure_attributes_output.status.Id}}"
+      when: configure_attributes_output.msg == "Successfully submitted the job
+       that configures the controller attributes."
+
+    - ansible.builtin.pause: seconds=10
+      when: configure_attributes_output.changed
+
+    - ansible.builtin.include_tasks: _get_data.yml
+      vars:
+        url: "{{ job_url }}"
+
+    - name: Verify task status - Configure Storage controller attributes at
+       apply_time:AtMaintenanceWindowStart (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - not configure_attributes_output.changed
+          - configure_attributes_output.msg == "Successfully submitted
+           the job that configures the controller attributes."
+          - fetched_data.json.Oem.Dell.DellStorageController.
+           CheckConsistencyMode == "StopOnError"
+          - fetched_data.json.Oem.Dell.DellStorageController.
+           CopybackMode == "On"
+          - fetched_data.json.Oem.Dell.DellStorageController.
+           LoadBalanceMode  == "Automatic"
+          - fetched_data.json.Oem.Dell.DellStorageController.
+           EnhancedAutoImportForeignConfigurationMode  == "Enabled"
+          - fetched_data.json.Oem.Dell.DellStorageController.
+           PatrolReadMode  == "Disabled"
+
+    - name: Configure Storage controller attributes at apply_time:At
+       MaintenanceWindowStart (Idempotency mode)
+      idrac_redfish_storage_controller:
+        <<: *idrac_redfish_storage_controller_1
+      register: configure_attributes_output_idempotency
+
+    - name: Verify task status - Configure Storage controller attributes at
+       apply_time:AtMaintenanceWindowStart (Idempotency mode)
+      ansible.builtin.assert:
+        that:
+          - not configure_attributes_output_idempotency.changed
+          - configure_attributes_output_idempotency.msg == "No changes found
+           to be applied."
+
+  module_defaults:
+    dellemc.openmanage.dellemc_idrac_storage_volume:
+      idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+    dellemc.openmanage.idrac_redfish_storage_controller:
+      baseuri: "{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+    dellemc.openmanage.redfish_powerstate:
+      baseuri: "{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+    dellemc.openmanage.idrac_lifecycle_controller_status_info:
+      idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

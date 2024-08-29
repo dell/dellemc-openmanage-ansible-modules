@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.5.0
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -26,18 +26,21 @@ options:
     description:
       - IP address or hostname of the iDRAC.
     type: str
+    aliases: [idrac_ip]
   username:
     description:
       - Username of the iDRAC. If the username is not provided, then
         the environment variable E(IDRAC_USERNAME) is used.
       - I(username) is required when I(state) is C(present).
     type: str
+    aliases: [idrac_user]
   password:
     description:
       - Password of the iDRAC. If the password is not provided, then
         the environment variable E(IDRAC_PASSWORD) is used.
       - I(password) is required when I(state) is C(present).
     type: str
+    aliases: [idrac_password]
   port:
     description:
       - Port of the iDRAC.
@@ -72,12 +75,12 @@ options:
      - Authentication token.
      - I(x_auth_token) is required when I(state) is C(absent).
     type: str
+    aliases: ['auth_token']
   session_id:
     description:
      - Session ID of the iDRAC.
      - I(session_id) is required when I(state) is C(absent).
     type: int
-    aliases: ['auth_token']
 requirements:
   - "python >= 3.9.6"
 author:
@@ -445,9 +448,11 @@ def get_argument_spec():
         A dictionary representing the argument specification.
     """
     return {
-        "hostname": {"type": "str"},
-        "username": {"type": "str", "fallback": (env_fallback, ['IDRAC_USERNAME'])},
-        "password": {"type": "str", "no_log": True, "fallback": (env_fallback, ['IDRAC_PASSWORD'])},
+        "hostname": {"type": "str", "aliases": ["idrac_ip"]},
+        "username": {"type": "str", "aliases": ["idrac_user"],
+                     "fallback": (env_fallback, ['IDRAC_USERNAME'])},
+        "password": {"type": "str", "aliases": ["idrac_password"], "no_log": True,
+                     "fallback": (env_fallback, ['IDRAC_PASSWORD'])},
         "port": {"type": "int", "default": 443},
         "validate_certs": {"type": "bool", "default": True},
         "ca_path": {"type": "path", "default": None},

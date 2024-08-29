@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 9.1.0
+# Version 9.6.0
 # Copyright (C) 2022-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -36,6 +36,8 @@ RESET_SUCCESS = "iDRAC has been reset successfully."
 RESET_FAIL = "Unable to reset the iDRAC. For changes to reflect, manually reset the iDRAC."
 INVALID_ID_MSG = "Unable to complete the operation because " + \
                  "the value `{0}` for the input  `{1}` parameter is invalid."
+UNSUPPORTED_LC_STATUS_MSG = "Lifecycle controller status check is not supported."
+LC_STATUS_MSG = "Lifecycle controller status check is {lc_status} after {retries} number of retries, Exiting.."
 SYSTEM_ID = "System.Embedded.1"
 MANAGER_ID = "iDRAC.Embedded.1"
 SYSTEMS_URI = "/redfish/v1/Systems"
@@ -47,9 +49,12 @@ MANAGER_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs?$expand=*($levels=
 MANAGER_JOB_ID_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{0}"
 GET_IDRAC_FIRMWARE_VER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
 HOSTNAME_REGEX = r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
+OME_INFO = "ApplicationService/Info"
+ODATA_ID = "@odata.id"
 
 import time
 from datetime import datetime
+from inspect import getfullargspec
 import re
 from ansible.module_utils.six.moves.urllib.error import HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -318,7 +323,7 @@ def get_manager_res_id(idrac):
     try:
         resp = idrac.invoke_request(MANAGERS_URI, "GET")
         membs = resp.json_data.get("Members")
-        res_uri = membs[0].get('@odata.id')
+        res_uri = membs[0].get(ODATA_ID)
         res_id = res_uri.split("/")[-1]
     except HTTPError:
         res_id = MANAGER_ID
@@ -383,7 +388,7 @@ def get_system_res_id(idrac):
                     "does not exist or is not implemented."
     else:
         member = resp.json_data.get("Members")
-        res_uri = member[0].get('@odata.id')
+        res_uri = member[0].get(ODATA_ID)
         res_id = res_uri.split("/")[-1]
     return res_id, error_msg
 
@@ -475,7 +480,9 @@ def wait_for_redfish_job_complete(redfish_obj, job_uri, job_wait=True, wait_time
 
 
 def get_dynamic_uri(idrac_obj, base_uri, search_label=''):
-    resp = idrac_obj.invoke_request(method='GET', uri=base_uri).json_data
+    args = getfullargspec(idrac_obj.invoke_request)[0]
+    data = {'uri': base_uri} if 'uri' in args else {'path': base_uri}
+    resp = idrac_obj.invoke_request(method='GET', **data).json_data
     if search_label:
         if search_label in resp:
             return resp[search_label]
@@ -484,15 +491,15 @@ def get_dynamic_uri(idrac_obj, base_uri, search_label=''):
 
 
 def get_scheduled_job_resp(idrac_obj, job_type):
-    # job_type can be like 'NICConfiguration' or 'BIOSConfiguration'
-    job_resp = {}
-    job_list = idrac_obj.invoke_request(
-        MANAGER_JOB_URI, "GET").json_data.get('Members', [])
-    for each_job in job_list:
-        if each_job.get("JobType") == job_type and each_job.get("JobState") in ["Scheduled", "Running", "Starting"]:
-            job_resp = each_job
-            break
-    return job_resp
+    job_state = {"Scheduled", "New", "Running"}
+    args = getfullargspec(idrac_obj.invoke_request)[0]
+    data = {'uri': MANAGER_JOB_URI} if 'uri' in args else {'path': MANAGER_JOB_URI}
+    job_list = idrac_obj.invoke_request(method="GET", **data).json_data.get('Members', [])
+    if isinstance(job_type, str):
+        job_resp = next((j for j in job_list if (j.get("JobState") in job_state) and (j.get("JobType") == job_type)), None)
+    elif isinstance(job_type, list):
+        job_resp = next((j for j in job_list if (j.get("JobState") in job_state) and (j.get("JobType") in job_type)), None)
+    return remove_key(job_resp, regex_pattern='(.*?)@odata')
 
 
 def delete_job(idrac_obj, job_id):
@@ -520,25 +527,135 @@ def xml_data_conversion(attr_dict, fqdd=None, custom_payload_to_add=None):
     return root
 
 
-def validate_and_get_first_resource_id_uri(module, idrac, base_uri):
-    odata = '@odata.id'
+def validate_and_get_first_resource_id_uri(resource_id, idrac, base_uri):
     found = False
     res_id_uri = None
-    res_id_input = module.params.get('resource_id')
+    if resource_id and not isinstance(resource_id, str):
+        resource_id = resource_id.params.get('resource_id')
     res_id_members = get_dynamic_uri(idrac, base_uri, 'Members')
     for each in res_id_members:
-        if res_id_input and res_id_input == each[odata].split('/')[-1]:
-            res_id_uri = each[odata]
+        if resource_id and resource_id == each[ODATA_ID].split('/')[-1]:
+            res_id_uri = each[ODATA_ID]
             found = True
             break
-    if not found and res_id_input:
+    if not found and resource_id:
         return res_id_uri, INVALID_ID_MSG.format(
-            res_id_input, 'resource_id')
-    elif res_id_input is None:
-        res_id_uri = res_id_members[0][odata]
+            resource_id, 'resource_id')
+    elif resource_id is None:
+        res_id_uri = res_id_members[0][ODATA_ID]
     return res_id_uri, ''
 
 
 def get_idrac_firmware_version(idrac):
-    firm_version = idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_VER_URI)
+    args = getfullargspec(idrac.invoke_request)[0]
+    data = {'uri': GET_IDRAC_FIRMWARE_VER_URI} if 'uri' in args else {'path': GET_IDRAC_FIRMWARE_VER_URI}
+    firm_version = idrac.invoke_request(method='GET', **data)
     return firm_version.json_data.get('FirmwareVersion', '')
+
+
+def get_ome_version(ome_obj):
+    resp = ome_obj.invoke_request('GET', OME_INFO)
+    return resp.json_data.get("Version")
+
+
+def trigger_restart_operation(idrac, restart_type="GracefulRestart", resource_id=None):
+    resp, error_msg = {}, {}
+    uri, error_msg = validate_and_get_first_resource_id_uri(resource_id, idrac, SYSTEMS_URI)
+    if error_msg:
+        return resp, error_msg
+    actions_uri = get_dynamic_uri(idrac, uri, 'Actions').get("#ComputerSystem.Reset", {}).get("target", '')
+    payload = {"ResetType": restart_type}
+    resp = idrac.invoke_request(method='POST', uri=actions_uri, data=payload)
+    return resp, error_msg
+
+
+def wait_for_lc_status(idrac, job_wait_timeout=300, resource_id=None, interval=10):
+    lc_status_completed, error_msg = False, ''
+    lcstatus = ""
+    retry_count = 1
+    # LCStatus remain 'Ready' even after triggering restart
+    # so waiting few seconds before loop
+    waiting_before_lc_status_check = 12 * interval
+    if job_wait_timeout >= waiting_before_lc_status_check:
+        time.sleep(waiting_before_lc_status_check)
+        job_wait_timeout = job_wait_timeout - waiting_before_lc_status_check
+    max_idrac_reset_try = job_wait_timeout // interval
+    uri, error_msg = validate_and_get_first_resource_id_uri(resource_id, idrac, MANAGERS_URI)
+    if error_msg:
+        return lc_status_completed, error_msg
+    resp = get_dynamic_uri(idrac, uri, "Links")
+    url = resp.get("Oem", {}).get("Dell", {}).get('DellLCService', {}).get(ODATA_ID, {})
+    if url:
+        action_resp = get_dynamic_uri(idrac, url)
+        lc_url = action_resp.get('Actions', {}).get('#DellLCService.GetRemoteServicesAPIStatus', {}).get('target', {})
+    else:
+        return lc_status_completed, UNSUPPORTED_LC_STATUS_MSG
+    lc_resp = idrac.invoke_request(lc_url, "POST", data="{}", dump=False)
+    lcstatus = lc_resp.json_data.get('LCStatus')
+    while retry_count < max_idrac_reset_try:
+        try:
+            lc_resp = idrac.invoke_request(lc_url, "POST", data="{}", dump=False)
+            lcstatus = lc_resp.json_data.get('LCStatus')
+            if lcstatus == 'Ready':
+                lc_status_completed = True
+                break
+            time.sleep(interval)
+            retry_count = retry_count + 1
+        except URLError:
+            time.sleep(interval)
+            retry_count = retry_count + 1
+            if retry_count == max_idrac_reset_try:
+                error_msg = LC_STATUS_MSG.format(lc_status='unreachable', retries=max_idrac_reset_try)
+                break
+    if retry_count == max_idrac_reset_try and lcstatus != "Ready":
+        error_msg = LC_STATUS_MSG.format(lc_status=lcstatus, retries=retry_count)
+    return lc_status_completed, error_msg
+
+
+def get_lc_log_or_current_log_time(idrac, curr_time=None, lc_log_ids_list=None, resource_id=None):
+    lc_log_found = False
+    msg = "No LC log found."
+
+    uri, error_msg = validate_and_get_first_resource_id_uri(
+        resource_id, idrac, MANAGERS_URI
+    )
+    if error_msg:
+        return lc_log_found, error_msg
+
+    log_services_uri = get_dynamic_uri(idrac, uri, "LogServices").get(
+        ODATA_ID, {}
+    )
+    log_svc_member = get_dynamic_uri(idrac, log_services_uri, "Members")
+    log_lc_uri = [
+        each[ODATA_ID]
+        for each in log_svc_member
+        if each[ODATA_ID].split("/")[-1] == "Lclog"
+    ][0]
+    log_entries_uri = get_dynamic_uri(
+        idrac, log_lc_uri, "Entries"
+    ).get(ODATA_ID, {})
+
+    try:
+        resp = idrac.invoke_request(log_lc_uri, "GET")
+        logs_list = idrac.invoke_request(log_entries_uri, "GET").json_data.get(
+            "Members"
+        )
+
+        if not curr_time:
+            curr_time = resp.json_data.get("DateTime")
+
+        if not lc_log_ids_list:
+            return curr_time
+
+        for log in logs_list:
+            if log.get("Created") >= curr_time:
+                for err_id in lc_log_ids_list:
+                    if err_id in log.get("MessageId"):
+                        lc_log_found = True
+                        msg = log.get("Message")
+                        break
+
+    except Exception:
+        msg = "No LC log found."
+
+    return lc_log_found, msg

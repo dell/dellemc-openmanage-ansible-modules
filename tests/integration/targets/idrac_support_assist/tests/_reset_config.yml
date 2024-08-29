@@ -1,0 +1,10 @@
+---
+- name: Reset iDRAC.
+  dellemc.openmanage.idrac_reset:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    validate_certs: "{{ validate_certs }}"
+    reset_to_default: "Default"
+    wait_for_idrac: true
+  register: result

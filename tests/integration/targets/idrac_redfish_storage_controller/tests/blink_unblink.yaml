@@ -1,0 +1,211 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Prerequisite - Fetch Storage details
+      dellemc.openmanage.idrac_storage_volume:
+        state: "view"
+      register: result_pre_req
+
+    - ansible.builtin.set_fact:
+        controller_name: "{{ item.key }}"
+      loop: "{{ lookup('dict', result_pre_req.storage_status.Message
+       .Controller)}}"
+      when: "'Enclosure' in item.value"
+      ignore_errors: true
+
+    - ansible.builtin.set_fact:
+        controller_keys: "{{ result_pre_req.storage_status.Message.
+         Controller[ controller_name ].keys()  }}"
+      when: controller_name is defined
+
+    - ansible.builtin.set_fact:
+        physical_disks: "{{ item.value.PhysicalDisk }}"
+      loop: "{{ lookup('dict', result_pre_req.storage_status.Message.
+       Controller[ controller_name ].Enclosure, wantlist=True)}}"
+      when: controller_name in item.key
+      ignore_errors: true
+
+    - name: Prerequisite - Check for controller and physical disk availability
+      ansible.builtin.fail:
+        msg: 'Controller or physical disk is not available to perform
+         blink-unblink operation'
+      when: physical_disks is not defined or controller_name is not defined
+
+    - ansible.builtin.set_fact:
+        virtual_disks: "{{ result_pre_req.storage_status.Message.Controller
+         [ controller_name ].VirtualDisk.keys() }}"
+      when: "'VirtualDisk' in controller_keys"
+      ignore_errors: true
+
+    - name: Prerequisite -Convert physical disk state to Raid if it's Non-RAID
+      idrac_redfish_storage_controller:
+        command: "ConvertToRAID"
+        target: "{{ physical_disks[-1] }}"
+        job_wait: true
+        job_wait_timeout: 1200
+      register: result_raid
+      when: virtual_disks is not defined
+
+    - name: Prerequisite - Create a virtual disk if not available
+      dellemc_idrac_storage_volume:
+        state: "create"
+        controller_id: "{{ controller_name }}"
+        volume_type: "{{ volume_type }}"
+        span_length: "{{ span_length }}"
+        volumes:
+          - name: "ansible_test"
+            drives:
+              id: ["{{ physical_disks[-1] }}"]
+      register: result_create_vd
+      when: virtual_disks is not defined
+
+    - name: Prerequisite - Fetch Storage details
+      dellemc.openmanage.idrac_storage_volume:
+        state: "view"
+      register: result_pre_req
+      when: virtual_disks is not defined
+
+    - ansible.builtin.set_fact:
+        virtual_disks: "{{ result_pre_req.storage_status.Message.
+         Controller[ controller_name ].VirtualDisk.keys() }}"
+      when: virtual_disks is not defined
+      ignore_errors: true
+
+    - name: Prerequisite - Check for virtual disk availability
+      ansible.builtin.fail:
+        msg: 'virtual disk is not available to perform blink-unblink operation'
+      when: virtual_disks is not defined
+
+    - name: Blink the Physical Disk (Check mode - Changes expected)
+      idrac_redfish_storage_controller: &idrac_redfish_storage_controller_1
+        command: BlinkTarget
+        target: "{{ physical_disks[0] }}"
+      register: result
+      check_mode: true
+
+    - name: Verify task status - Blink the Physical Disk
+       (Check mode - Changes expected)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Changes found to be applied."
+
+    - name: Blink the Physical Disk (Normal mode)
+      idrac_redfish_storage_controller:
+        <<: *idrac_redfish_storage_controller_1
+      register: result
+
+    - name: Verify task status - Blink the Physical Disk (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Successfully performed the 'BlinkTarget' operation."
+
+    - name: Unblink the Physical Disk (Check mode - Changes expected)
+      idrac_redfish_storage_controller: &idrac_redfish_storage_controller_2
+        command: UnBlinkTarget
+        target: "{{ physical_disks[0] }}"
+      register: result
+      check_mode: true
+
+    - name: Verify task status - Unblink the Physical Disk
+       (Check mode - Changes expected)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Changes found to be applied."
+
+    - name: Unblink the Physical Disk (Normal mode)
+      idrac_redfish_storage_controller:
+        <<: *idrac_redfish_storage_controller_2
+      register: result
+
+    - name: Verify task status - Unblink the Physical Disk (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Successfully performed the 'UnBlinkTarget'
+           operation."
+
+
+    - name: Blink the Virtual Disk (Check mode - Changes expected)
+      idrac_redfish_storage_controller: &idrac_redfish_storage_controller_3
+        command: BlinkTarget
+        volume_id: "{{ virtual_disks[0] }}"
+      register: result
+      check_mode: true
+
+    - name: Verify task status - Blink the Virtual Disk (Check mode -
+       Changes expected)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Changes found to be applied."
+
+    - name: Blink the Virtual Disk (Normal mode)
+      idrac_redfish_storage_controller:
+        <<: *idrac_redfish_storage_controller_3
+      register: result
+
+    - name: Verify task status - Virtual the Physical Disk (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Successfully performed the 'BlinkTarget' operation."
+
+    - name: Unblink the Virtual Disk (Check mode - Changes expected)
+      idrac_redfish_storage_controller: &idrac_redfish_storage_controller_4
+        command: UnBlinkTarget
+        volume_id: "{{ virtual_disks[0] }}"
+      register: result
+      check_mode: true
+
+    - name: Verify task status - Virtual the Physical Disk (Check mode -
+       Changes expected)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Changes found to be applied."
+
+    - name: Unblink the Virtual Disk (Normal mode)
+      idrac_redfish_storage_controller:
+        <<: *idrac_redfish_storage_controller_4
+      register: result
+
+    - name: Verify task status - Unblink the Virtual Disk (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Successfully performed the 'UnBlinkTarget'
+           operation."
+
+    - name: Delete created virtual disk after testcase completion
+      dellemc.openmanage.idrac_storage_volume:
+        state: "delete"
+        volumes:
+          - name: "ansible_test"
+      ignore_errors: true
+
+  module_defaults:
+    dellemc.openmanage.idrac_storage_volume:
+      idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+    dellemc.openmanage.idrac_redfish_storage_controller:
+      baseuri: "{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

@@ -1,0 +1,201 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- ansible.builtin.include_tasks: _helper.yml
+
+- name: Pre-check - fail if enough disk not found to create VD on RAID 0
+  ansible.builtin.fail:
+    msg: 'Physical disks are not sufficient to proceed the test case need
+     minimum 1 and found {{ physicaldisks | length }}'
+  when: physicaldisks | length < 1
+
+- block:
+    # Removing if disks are assigned as hotspare and resetting the controller
+    # with changing disk nonraid mode if in raidmode
+    - ansible.builtin.include_tasks: _helper.yml
+      vars:
+        reset_trigger: 1
+        target: "{{ physicaldisks[0] }}"
+        target_raid_disk: "{{ physicaldisks[0] }}"
+        command: "ConvertToNonRAID"
+
+    - name: Convert physical disk to Raid. - check mode - (Change expected)
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "ConvertToRAID"
+        target: "{{ physicaldisks[0] }}"
+      register: cm_result_raid
+      check_mode: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - cm_result_raid.changed
+          - cm_result_raid.msg == "Changes found to be applied."
+
+    - name: Convert physical disk to Raid. - Normal
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "ConvertToRAID"
+        target: "{{ physicaldisks[0] }}"
+        job_wait: true
+        job_wait_timeout: 1200
+      register: result_raid
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - result_raid.msg == "Successfully performed the 'ConvertToRAID'
+           operation."
+          - result_raid.changed
+
+    - name: Convert physical disk to Raid. - Idempotence
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "ConvertToRAID"
+        target: "{{ physicaldisks[0] }}"
+      register: idempotence_raid
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - not idempotence_raid.changed
+          - idempotence_raid.msg == "No changes found to be applied."
+
+    - name: Convert physical disk to Raid. - Check mode - (No change expected)
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "ConvertToRAID"
+        target: "{{ physicaldisks[0] }}"
+      register: no_cm_result_raid
+      check_mode: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - not no_cm_result_raid.changed
+          - no_cm_result_raid.msg == "No changes found to be applied."
+
+    # Creating VD to check if disk is converted in Raid mode
+    # (Expect pass to create the Vd)
+    - ansible.builtin.include_tasks: _helper.yml
+      vars:
+        volume_type: "RAID 0"
+        span_length: 1
+        id: ["{{ physicaldisks[0] }}"]
+        vd_trigger: 1
+
+    - ansible.builtin.set_fact:
+        is_vd_exist_first_check: "{{ virtualdisk }}"
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - is_vd_exist_first_check
+
+    # Resetting the controller and converting disk to raid if in non raid mode
+    - ansible.builtin.include_tasks: _helper.yml
+      vars:
+        reset_trigger: 1
+        target: "{{ physicaldisks[0] }}"
+        target_raid_disk: "{{ physicaldisks[0] }}"
+        command: "ConvertToRAID"
+
+    - name: Convert physical disk to Non-Raid. - check mode - (Change expected)
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "ConvertToNonRAID"
+        target: "{{ physicaldisks[0] }}"
+      register: cm_result_non_raid
+      check_mode: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - cm_result_non_raid.changed
+          - cm_result_non_raid.msg == "Changes found to be applied."
+
+    - name: Convert physical disk to Non-Raid. - Normal
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "ConvertToNonRAID"
+        target: "{{ physicaldisks[0] }}"
+      register: result_non_raid
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - result_non_raid.msg == "Successfully submitted the job that
+           performs the 'ConvertToNonRAID' operation."
+
+    - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{ result_non_raid.status.Id }}"
+      when: result_non_raid.msg == "Successfully submitted the job that
+       performs the 'ConvertToNonRAID' operation."
+      ignore_errors: true
+
+    - name: Convert physical disk to Non-Raid. - Idempotence
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "ConvertToNonRAID"
+        target: "{{ physicaldisks[0] }}"
+      register: idempotence_non_raid
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - not idempotence_non_raid.changed
+          - idempotence_non_raid.msg == "No changes found to be applied."
+
+    - name: Convert physical disk to Non-Raid-Check mode - (No change expected)
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "ConvertToNonRAID"
+        target: "{{ physicaldisks[0] }}"
+      register: no_cm_result_non_raid
+      check_mode: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - not no_cm_result_non_raid.changed
+          - no_cm_result_non_raid.msg == "No changes found to be applied."
+
+    # Creating Vd to check if disk is converted in non-Raid mode
+    # (Expecting fail to create the VD)
+    - ansible.builtin.include_tasks: _helper.yml
+      vars:
+        volume_type: "RAID 0"
+        span_length: 1
+        id: ["{{ physicaldisks[0] }}"]
+        ignore_errors_val: true
+        vd_trigger: 1
+
+    - ansible.builtin.set_fact:
+        virtualdisk: false
+        loop: "{{ lookup('dict', result_post_check.storage_status.Message.
+         Controller[ controller_name ], wantlist=True)}}"
+        when: "not 'VirtualDisk' in item.value"
+
+    - ansible.builtin.set_fact:
+        is_vd_exist_second_check: "{{ virtualdisk }}"
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - not is_vd_exist_second_check
+
+    - ansible.builtin.include_tasks: _helper.yml
+      vars:
+        target_raid_disk: "{{ physicaldisks[0] }}"
+        command: "ConvertToRAID"
+
+  module_defaults:
+    dellemc.openmanage.idrac_redfish_storage_controller:
+      baseuri: "{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

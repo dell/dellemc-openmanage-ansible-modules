@@ -1,6 +1,8 @@
 galaxy_info:
   role_name: idrac_storage_controller
-  author: Felix Stephen
+  author: |
+    - Felix Stephen
+    - Abhishek Sinha ('ABHISHEK-SINHA10')
   description: The role performs the iDRAC storage controller operations.
   company: Dell Technologies
 
