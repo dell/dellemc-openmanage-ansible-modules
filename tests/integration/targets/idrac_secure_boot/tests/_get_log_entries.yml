@@ -1,0 +1,37 @@
+---
+- name: Get entries
+  vars:
+    url1: "https://{{ idrac_ip|ansible.utils.ipwrap }}"
+    url2: "/redfish/v1/Managers/iDRAC.Embedded.1"
+    url3: "/LogServices/Lclog/Entries"
+  ansible.builtin.uri:
+    url: "{{ url1 }}{{ url2 }}{{ url3 }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    validate_certs: false
+  register: entry_uri
+
+- name: Setting fact for log entries
+  ansible.builtin.set_fact:
+    entries: "{{ entry_uri.json.Members }}"
+
+- name: Initialize variable to track if entry is found
+  ansible.builtin.set_fact:
+    found: false
+
+- name: Loop through entries and check for MessageId
+  ansible.builtin.set_fact:
+    found: true
+  when:
+    - msg_id in item.MessageId
+    - item.Created >= curr_time
+  loop: "{{ entries }}"
+  loop_control:
+    loop_var: item
+  until: found
+  retries: 1  # stops the loop if any match is found
+
+- name: Asserting whether certificate upload is successful or not
+  ansible.builtin.assert:
+    that:
+      - found
