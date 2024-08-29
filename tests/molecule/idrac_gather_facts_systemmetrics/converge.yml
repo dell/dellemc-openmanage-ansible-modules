@@ -60,7 +60,7 @@
           - "((psu_ids | length == 0) and (power_metrics | length == 0))"
         fail_msg: "The response from the role does not match"
         success_msg: "The response from the role matches"
-      when: psu_ids| length == 0
+      when: psu_ids | length == 0
 
     - name: Call assertion for Power metrics
       ansible.builtin.include_tasks: ../helper/idrac_gather_facts/asserts/psmetrics_assert.yml

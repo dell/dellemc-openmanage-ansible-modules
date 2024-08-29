@@ -1,5 +1,5 @@
 ---
-- name: Making sure Server is powered on and clear all job 
+- name: Making sure Server is powered on and clear all job
   ansible.builtin.include_tasks:
     file: ../helper/common/power_on_idrac_and_clear_all_job.yaml
 

@@ -1,20 +1,12 @@
 ---
-- name: Power On iDRAC
-  hosts: all
-  gather_facts: false
+- name: Powering iDRAC On
+  ansible.builtin.import_role:
+    name: dellemc.openmanage.idrac_server_powerstate
   vars:
     hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
     username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
     password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
-    https_port: "443"
-    https_timeout: 30
     validate_certs: false
-  roles:
-    - role: dellemc.openmanage.idrac_server_powerstate
-      vars:
-        hostname: "{{ hostname }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
-        validate_certs: "{{ validate_certs }}"
-        https_port: "{{ https_port }}"
-        https_timeout: "{{ https_timeout }}"
+    https_port: 443
+    https_timeout: 30
+    reset_type: "On"

@@ -1,3 +1,5 @@
+tests/molecule/helper/common/power_on_idrac.yaml var-naming[no-role-prefix]
+
 roles/redfish_storage_volume/defaults/main.yml var-naming[no-role-prefix]
 tests/molecule/redfish_storage_volume_RAID0/converge.yml var-naming[no-role-prefix]
 tests/molecule/redfish_storage_volume_initialization/converge.yml var-naming[no-role-prefix]
