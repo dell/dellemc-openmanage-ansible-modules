@@ -79,7 +79,7 @@
       block:
         - name: Delete a job from the job queue which cannot be deleted
           ansible.builtin.include_role:
-            name: "idrac_job_queue"
+            name: dellemc.openmanage.idrac_job_queue
           vars:
             <<: *input
             job_id: "{{ jobid[-1] }}"

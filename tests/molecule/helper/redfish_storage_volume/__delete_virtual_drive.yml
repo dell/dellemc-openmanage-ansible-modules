@@ -20,7 +20,7 @@
 
 - name: "Deleting virtual disk in {{ controller_id }}"
   ansible.builtin.import_role:
-    name: redfish_storage_volume
+    name: dellemc.openmanage.redfish_storage_volume
   vars:
     hostname: "{{ lookup('env', 'IDRAC_IP') }}"
     username: "{{ lookup('env', 'IDRAC_USER') }}"

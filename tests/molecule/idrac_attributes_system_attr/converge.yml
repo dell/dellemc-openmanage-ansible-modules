@@ -8,7 +8,7 @@
     password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
     validate_certs: false
   roles:
-    - role: idrac_attributes
+    - role: dellemc.openmanage.idrac_attributes
       vars:
         system_attributes:
           ServerOS.1.HostName: demohostname

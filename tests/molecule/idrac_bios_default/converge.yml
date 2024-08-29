@@ -26,7 +26,7 @@
       block:
         - name: Perform reset bios with invalid username
           ansible.builtin.include_role:
-            name: idrac_bios
+            name: dellemc.openmanage.idrac_bios
           vars:
             hostname: "{{ lookup('env', 'IDRAC_IP') }}"
             username: "randomusername"
@@ -44,7 +44,7 @@
       block:
         - name: Clear pending attributes with invalid value
           ansible.builtin.include_role:
-            name: idrac_bios
+            name: dellemc.openmanage.idrac_bios
           vars:
             hostname: "{{ lookup('env', 'IDRAC_IP') }}"
             username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -61,7 +61,7 @@
       block:
         - name: Perform reset bios with invalid value
           ansible.builtin.include_role:
-            name: idrac_bios
+            name: dellemc.openmanage.idrac_bios
           vars:
             hostname: "{{ lookup('env', 'IDRAC_IP') }}"
             username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -78,7 +78,7 @@
       block:
         - name: Perform reset bios with invalid password
           ansible.builtin.include_role:
-            name: idrac_bios
+            name: dellemc.openmanage.idrac_bios
           vars:
             hostname: "{{ lookup('env', 'IDRAC_IP') }}"
             username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -98,7 +98,7 @@
       block:
         - name: Perform reset type with invalid value
           ansible.builtin.include_role:
-            name: idrac_bios
+            name: dellemc.openmanage.idrac_bios
           vars:
             hostname: "{{ lookup('env', 'IDRAC_IP') }}"
             username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -120,7 +120,7 @@
       block:
         - name: Clear pending attributes with reset
           ansible.builtin.include_role:
-            name: idrac_bios
+            name: dellemc.openmanage.idrac_bios
           vars:
             hostname: "{{ lookup('env', 'IDRAC_IP') }}"
             username: "{{ lookup('env', 'IDRAC_USER') }}"

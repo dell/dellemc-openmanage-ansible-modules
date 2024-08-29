@@ -5,7 +5,7 @@
   vars:
     idrac_user_name: "moleculeTest"
   roles:
-    - role: idrac_user
+    - role: dellemc.openmanage.idrac_user
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"

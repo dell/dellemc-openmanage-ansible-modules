@@ -21,7 +21,7 @@
       block:
         - name: Delete a job from the job queue with an invalid id
           ansible.builtin.import_role:
-            name: "idrac_job_queue"
+            name: dellemc.openmanage.idrac_job_queue
           vars:
             hostname: "{{ lookup('env', 'IDRAC_IP') }}"
             username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -38,7 +38,7 @@
       block:
         - name: Clearing job queue with an invalid hostname
           ansible.builtin.import_role:
-            name: idrac_job_queue
+            name: dellemc.openmanage.idrac_job_queue
           vars:
             hostname: "invalidHostname"
             username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -57,7 +57,7 @@
       block:
         - name: Clearing job queue with an invalid username
           ansible.builtin.import_role:
-            name: idrac_job_queue
+            name: dellemc.openmanage.idrac_job_queue
           vars:
             hostname: "{{ lookup('env', 'IDRAC_IP') }}"
             username: "invalidUsername"
@@ -75,7 +75,7 @@
       block:
         - name: Clearing job queue with an invalid password
           ansible.builtin.import_role:
-            name: idrac_job_queue
+            name: dellemc.openmanage.idrac_job_queue
           vars:
             hostname: "{{ lookup('env', 'IDRAC_IP') }}"
             username: "{{ lookup('env', 'IDRAC_USER') }}"

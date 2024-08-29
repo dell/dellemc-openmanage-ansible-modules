@@ -149,7 +149,7 @@
       block:
         - name: TC-115443 - Ansible - Role - idrac_boot - Providing invalid job_wait_timeout
           ansible.builtin.import_role:
-            name: idrac_boot
+            name: dellemc.openmanage.idrac_boot
           vars:
             hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
             username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
@@ -172,7 +172,7 @@
       block:
         - name: Check 1 - TC-115444 - mutual exclusivity between boot_option_reference and display_name
           ansible.builtin.include_role:
-            name: idrac_boot
+            name: dellemc.openmanage.idrac_boot
           vars:
             hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
             username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
@@ -197,7 +197,7 @@
       block:
         - name: Check 2 - TC-115444 - mutual exclusivity between boot_options and boot_order
           ansible.builtin.include_role:
-            name: idrac_boot
+            name: dellemc.openmanage.idrac_boot
           vars:
             hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
             username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
@@ -222,7 +222,7 @@
       block:
         - name: Check 3 - TC-115444 - mutual exclusivity between boot_options and boot_source_override_mode
           ansible.builtin.include_role:
-            name: idrac_boot
+            name: dellemc.openmanage.idrac_boot
           vars:
             hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
             username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
@@ -245,7 +245,7 @@
       block:
         - name: Check 4 - TC-115444 - mutual exclusivity between boot_options and boot_source_override_enabled
           ansible.builtin.include_role:
-            name: idrac_boot
+            name: dellemc.openmanage.idrac_boot
           vars:
             hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
             username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
@@ -268,7 +268,7 @@
       block:
         - name: Check 5 - TC-115444 - mutual exclusivity between boot_options and boot_source_override_target
           ansible.builtin.include_role:
-            name: idrac_boot
+            name: dellemc.openmanage.idrac_boot
           vars:
             hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
             username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
@@ -291,7 +291,7 @@
       block:
         - name: Check 6 - TC-115444 - mutual exclusivity between boot_options and uefi_target_boot_source_override
           ansible.builtin.include_role:
-            name: idrac_boot
+            name: dellemc.openmanage.idrac_boot
           vars:
             hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
             username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
