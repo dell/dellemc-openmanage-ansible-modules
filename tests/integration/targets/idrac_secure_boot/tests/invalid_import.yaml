@@ -1,0 +1,246 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Negative - Import certificate is false.
+      dellemc.openmanage.idrac_secure_boot:
+        import_certificates: false
+        platform_key: /invalid/path/to/certificate.pem
+      ignore_errors: true
+      register: invalid_import
+
+    - name: Verify task status - Negative - Import certificate is false.
+      ansible.builtin.assert:
+        that:
+          - invalid_import.skipped
+          - invalid_import.msg == "Task is skipped as import_certificates is 'false'."
+
+    - name: Negative - Import a invalid platform_key certificate.
+      dellemc.openmanage.idrac_secure_boot:
+        import_certificates: true
+        platform_key: /invalid/path/to/certificate.pem
+      ignore_errors: true
+      register: invalid_pk_key
+
+    - name: Verify task status - Negative - Import a invalid platform_key
+        certificate.
+      ansible.builtin.assert:
+        that:
+          - invalid_pk_key.skipped
+          - 'invalid_pk_key.msg == "No valid absolute path found for certificate(s)."'
+
+    - name: Negative - Import a invalid key_exchange_key certificate.
+      dellemc.openmanage.idrac_secure_boot:
+        import_certificates: true
+        KEK:
+          - /invalid/path/to/certificate.pem
+      ignore_errors: true
+      register: invalid_kek_key
+
+    - name: Verify task status - Negative - Import a invalid key_exchange_key
+        certificate.
+      ansible.builtin.assert:
+        that:
+          - invalid_kek_key.skipped
+          - 'invalid_kek_key.msg == "No valid absolute path found for certificate(s)."'
+
+    - name: Negative - Import a invalid database certificate.
+      dellemc.openmanage.idrac_secure_boot:
+        import_certificates: true
+        database:
+          - /invalid/path/to/certificate.pem
+      ignore_errors: true
+      register: invalid_db_key
+
+    - name: Verify task status - Negative - Import a invalid database
+       certificate.
+      ansible.builtin.assert:
+        that:
+          - invalid_db_key.skipped
+          - 'invalid_db_key.msg == "No valid absolute path found for
+            certificate(s)."'
+
+    - name: Negative - Import a invalid disallow_database certificate.
+      dellemc.openmanage.idrac_secure_boot:
+        import_certificates: true
+        disallow_database:
+          - /invalid/path/to/certificate.pem
+      ignore_errors: true
+      register: invalid_dd_key
+
+    - name: Verify task status - Negative - Import a invalid disallow_database
+        certificate.
+      ansible.builtin.assert:
+        that:
+          - invalid_dd_key.skipped
+          - 'invalid_dd_key.msg == "No valid absolute path found for
+             certificate(s)."'
+
+    - name: Negative - Invalid restart
+      dellemc.openmanage.idrac_secure_boot:
+        import_certificates: true
+        disallow_database:
+          - /invalid/path/to/certificate.pem
+        restart: invalid
+      ignore_errors: true
+      register: invalid_restart
+
+    - name: Set fact for invalid_restart
+      ansible.builtin.set_fact:
+        invalid_msg: "argument 'restart' is of type <class 'str'> and we were
+         unable to convert to bool: The value 'invalid' is not a valid
+         boolean.  Valid booleans include: "
+
+    - name: Verify task status - Negative - Invalid restart
+      ansible.builtin.assert:
+        that:
+          - invalid_restart.failed
+          - not invalid_restart.changed
+          - 'invalid_msg in invalid_restart.msg'
+
+    - name: Negative - Invalid restart_type
+      dellemc.openmanage.idrac_secure_boot:
+        import_certificates: true
+        disallow_database:
+          - /invalid/path/to/certificate.pem
+        restart: true
+        restart_type: invalid
+      ignore_errors: true
+      register: invalid_restart_type
+
+    - name: Verify task status - Negative -  Invalid restart_type
+      ansible.builtin.assert:
+        that:
+          - invalid_restart_type.failed
+          - not invalid_restart_type.changed
+          - 'invalid_restart_type.msg == "value of restart_type must be one of:
+           ForceRestart, GracefulRestart, got: invalid"'
+
+    - name: Negative - Invalid job_wait
+      dellemc.openmanage.idrac_secure_boot:
+        import_certificates: true
+        disallow_database:
+          - /invalid/path/to/certificate.pem
+        restart: true
+        job_wait: invalid
+      ignore_errors: true
+      register: invalid_job_wait
+
+    - name: Set fact for invalid job_wait
+      ansible.builtin.set_fact:
+        invalid_msg: "argument 'job_wait' is of type <class 'str'> and we were
+         unable to convert to bool: The value 'invalid' is not a valid
+         boolean.  Valid booleans include: "
+
+    - name: Verify task status - Negative -  Invalid job_wait
+      ansible.builtin.assert:
+        that:
+          - invalid_job_wait.failed
+          - not invalid_job_wait.changed
+          - 'invalid_msg in invalid_job_wait.msg'
+
+    - name: Negative - Invalid job_wait_timeout
+      dellemc.openmanage.idrac_secure_boot:
+        import_certificates: true
+        disallow_database:
+          - /invalid/path/to/certificate.pem
+        restart: true
+        job_wait_timeout: invalid
+      ignore_errors: true
+      register: invalid_job_wait_timeout
+
+    - name: Set fact for invalid job_wait
+      ansible.builtin.set_fact:
+        invalid_msg: "argument 'job_wait_timeout' is
+           of type <class 'str'> and we were unable to convert to
+           int: "
+
+    - name: Verify task status - Negative -  Invalid job_wait_timeout
+      ansible.builtin.assert:
+        that:
+          - invalid_job_wait_timeout.failed
+          - not invalid_job_wait_timeout.changed
+          - 'invalid_msg in invalid_job_wait_timeout.msg'
+
+    - name: Negative - Import certificate is true but
+        no certificate path provided
+      dellemc.openmanage.idrac_secure_boot:
+        import_certificates: true
+      ignore_errors: true
+      register: missing_param
+
+    - name: Verify task status - Negative - Import certificate is true but
+        no certificate path provided
+      ansible.builtin.assert:
+        that:
+          - missing_param.failed
+          - 'missing_param.msg == "import_certificates is True but any of
+           the following are missing: platform_key, KEK, database,
+            disallow_database"'
+
+    - name: Negative - Invalid parameter for import_certificates
+      dellemc.openmanage.idrac_secure_boot:
+        import_certificates: true
+        invalid: true
+      ignore_errors: true
+      register: invalid_param
+
+    - name: Verify task status - Negative - Import certificate is true but
+        no certificate path provided
+      ansible.builtin.assert:
+        that:
+          - invalid_param.failed
+          - 'invalid_param.msg == "import_certificates is True but any of
+           the following are missing: platform_key, KEK, database,
+           disallow_database"'
+
+    - name: Negative - Import multiple invalid certificates
+      dellemc.openmanage.idrac_secure_boot:
+        import_certificates: true
+        platform_key: /invalid/path/to/certificate.pem
+        KEK:
+          - /invalid/path/to/certificate.pem
+      ignore_errors: true
+      register: invalid_mult
+
+    - name: Verify task status - Negative - Import multiple invalid certificates
+      ansible.builtin.assert:
+        that:
+          - invalid_mult.skipped
+          - 'invalid_mult.msg == "No valid absolute path found for certificate(s)."'
+
+    - name: Negative - Negative job wait_timeout
+      dellemc.openmanage.idrac_secure_boot:
+        import_certificates: true
+        platform_key: /invalid/path/to/certificate.pem
+        KEK:
+          - /invalid/path/to/certificate.pem
+        restart: true
+        job_wait: true
+        job_wait_timeout: -10
+      ignore_errors: true
+      register: neg_job_timeout
+
+    - name: Verify task status - Negative job wait_timeout
+      ansible.builtin.assert:
+        that:
+          - neg_job_timeout.failed
+          - 'neg_job_timeout.msg == "The value for the ''job_wait_timeout''
+           parameter cannot be negative or zero."'
+
+  module_defaults:
+    dellemc.openmanage.idrac_secure_boot:
+      idrac_ip: "{{ idrac_ip|ansible.utils.ipwrap }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
