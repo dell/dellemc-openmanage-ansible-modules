@@ -1,0 +1,17 @@
+---
+- name: Get time details by using uri
+  vars:
+    url1: "https://{{ idrac_ip|ansible.utils.ipwrap }}"
+    url2: "/redfish/v1/Managers/iDRAC.Embedded.1"
+    url3: "/LogServices/Lclog"
+  ansible.builtin.uri:
+    url:
+      "{{ url1 }}{{ url2 }}{{ url3 }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    validate_certs: false
+  register: pk_uri
+
+- name: Setting fact for current time
+  ansible.builtin.set_fact:
+    curr_time: "{{ pk_uri.json.DateTime }}"
