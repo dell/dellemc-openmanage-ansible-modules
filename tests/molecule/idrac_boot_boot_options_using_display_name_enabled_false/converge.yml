@@ -41,7 +41,7 @@
 
     - name: Checking for LCStatus before running pre-requisite
       ansible.builtin.include_tasks:
-        file: ../helper/idrac_boot/__lc_status_check.yaml
+        file: ../helper/common/lc_status_check.yaml
 
     - name: Pre-requisite - Making sure enabled is true for fisrt display_name
       check_mode: false
@@ -55,7 +55,7 @@
 
     - name: Checking for LCStatus after running pre-requisite
       ansible.builtin.include_tasks:
-        file: ../helper/idrac_boot/__lc_status_check.yaml
+        file: ../helper/common/lc_status_check.yaml
 
     - name: TC-115426 - Validate boot_options using display_name and enabled false
       ansible.builtin.include_role:
@@ -67,7 +67,7 @@
 
     - name: Checking for LCStatus after performing operation
       ansible.builtin.include_tasks:
-        file: ../helper/idrac_boot/__lc_status_check.yaml
+        file: ../helper/common/lc_status_check.yaml
 
     - name: Asserting TC-115426 in check mode
       ansible.builtin.assert:

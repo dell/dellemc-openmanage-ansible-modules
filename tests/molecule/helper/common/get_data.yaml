@@ -10,7 +10,7 @@
     force_basic_auth: true
     return_content: true
     status_code: 200
-    headers: 'Accept=application/json'
+    headers: "Accept=application/json"
   check_mode: false
   no_log: true
-  register: idrac_bios_uri_data
+  register: uri_data

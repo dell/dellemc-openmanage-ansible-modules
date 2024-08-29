@@ -6,9 +6,13 @@
     idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
     idrac_port: "{{ lookup('env', 'https_port') }}"
   tasks:
+    - name: Making sure server is powered ON and job is cleared
+      ansible.builtin.include_tasks:
+        file: ../helper/common/power_on_idrac_and_clear_all_job.yaml
+
     - name: Fetch Jobs Data
       ansible.builtin.include_tasks:
-        file: ../helper/idrac_bios/__get_data.yml
+        file: ../helper/common/get_data.yaml
       vars:
         url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/Managers\
         /iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
@@ -18,7 +22,7 @@
         idrac_bios_jobs_items: []
 
     - name: Fetch Bios Jobs Data
-      loop: "{{ idrac_bios_uri_data.json.Members }}"
+      loop: "{{ uri_data.json.Members }}"
       when: item.JobType == 'BIOSConfiguration' and item.JobState in ['Scheduled', 'Scheduling']
       ansible.builtin.set_fact:
         idrac_bios_jobs_items: "{{ idrac_bios_jobs_items | default([]) + [item] }}"
@@ -29,14 +33,14 @@
       block:
         - name: Fetch IDRAC Data
           ansible.builtin.include_tasks:
-            file: ../helper/idrac_bios/__get_data.yml
+            file: ../helper/common/get_data.yaml
           vars:
             url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/\
             Systems/System.Embedded.1/Bios"
 
         - name: Fetch the existing boot mode
           ansible.builtin.set_fact:
-            boot_mode: "{{ idrac_bios_uri_data.json.Attributes.BootMode }}"
+            boot_mode: "{{ uri_data.json.Attributes.BootMode }}"
 
         - name: Set the boot mode
           ansible.builtin.set_fact:

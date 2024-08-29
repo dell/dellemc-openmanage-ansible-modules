@@ -2,6 +2,10 @@
   hosts: all
   gather_facts: false
   tasks:
+    - name: Making sure Server is powered On and clear all job
+      ansible.builtin.include_tasks:
+        file: ../helper/common/power_on_idrac_and_clear_all_job.yaml
+
     - name: Checking if path exists
       ansible.builtin.stat:
         path: "{{ lookup('env', 'redfish_firmware_image_local_path') }}"

@@ -30,15 +30,15 @@
 
     - name: Fetch IDRAC time offset
       ansible.builtin.include_tasks:
-        file: ../helper/idrac_bios/__get_data.yml
+        file: ../helper/common/get_data.yaml
       vars:
         url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1\
         /Managers/iDRAC.Embedded.1"
 
     - name: Set the local offset
-      when: idrac_bios_uri_data.json.DateTimeLocalOffset is defined
+      when: uri_data.json.DateTimeLocalOffset is defined
       ansible.builtin.set_fact:
-        local_offset: "{{ idrac_bios_uri_data.json.DateTimeLocalOffset }}"
+        local_offset: "{{ uri_data.json.DateTimeLocalOffset }}"
 
     - name: Update attributes with apply time at start of maintenance window
       ansible.builtin.import_role:

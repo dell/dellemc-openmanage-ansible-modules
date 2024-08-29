@@ -1,5 +1,5 @@
 ---
-- name: CleanUp job
+- name: CleanUp job in iDRAC
   hosts: all
   gather_facts: false
   vars:

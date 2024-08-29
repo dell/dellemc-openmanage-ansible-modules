@@ -5,6 +5,10 @@
   vars:
     idrac_user_name: "moleculeTest"
   tasks:
+    - name: Making sure iDRAC is powered on and job is cleared
+      ansible.builtin.include_tasks:
+        file: ../common/power_on_idrac_and_clear_all_job.yaml
+  
     - name: Configure a new iDRAC user with minimum required parameters
       ansible.builtin.import_role:
         name: dellemc.openmanage.idrac_user

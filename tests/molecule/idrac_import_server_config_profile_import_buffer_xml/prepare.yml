@@ -1,7 +1,7 @@
 ---
-- name: Cleanup
+- name: Prepare file
   hosts: all
   gather_facts: false
   tasks:
-    - name: Cleanup config
+    - name: Importing Json
       ansible.builtin.include_tasks: ../helper/idrac_import_server_config_profile/prepare.yml

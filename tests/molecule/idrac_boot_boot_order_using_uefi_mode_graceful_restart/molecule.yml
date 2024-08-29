@@ -2,5 +2,4 @@
 provisioner:
   name: ansible
   playbooks:
-    prepare: ../helper/idrac_boot/__power_on_idrac.yaml
-    cleanup: ../helper/idrac_boot/__clear_all_job.yaml
+    prepare: ../helper/common/power_on_idrac_and_clear_all_job.yaml

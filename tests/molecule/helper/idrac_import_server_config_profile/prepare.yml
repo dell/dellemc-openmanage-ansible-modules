@@ -1,5 +1,9 @@
 ---
-- name: "Cleanup config"
+- name: Making sure Server is powered on and clear all job 
+  ansible.builtin.include_tasks:
+    file: ../helper/common/power_on_idrac_and_clear_all_job.yaml
+
+- name: Prepare config
   ansible.builtin.import_role:
     name: idrac_import_server_config_profile
   vars:

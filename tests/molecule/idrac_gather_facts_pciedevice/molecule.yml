@@ -1,4 +1,8 @@
 ---
+provisioner:
+  name: ansible
+  playbooks:
+    prepare: ../helper/common/power_on_idrac.yaml
 scenario:
   test_sequence:
     - cleanup

@@ -10,3 +10,5 @@ provisioner:
     http_filename: "exported_scp_http.xml"
     nfs_mount_path: "/tmp/nfs_idrac_export"
     cifs_mount_path: "/tmp/cifs_idrac_export"
+  playbooks:
+    prepare: ../helper/common/power_on_idrac_and_clear_all_job.yaml
