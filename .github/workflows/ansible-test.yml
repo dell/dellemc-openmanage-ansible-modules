@@ -10,138 +10,24 @@ on:
     - cron: '0 6 * * *'
 
 jobs:
-  build:
-    name: Build collection
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        ansible-version: [stable-2.15, stable-2.16, stable-2.17, devel]
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v3
-
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.11
-
-      - name: Install ansible (${{ matrix.ansible-version }})
-        run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
-
-      - name: Build a collection tarball
-        run: ansible-galaxy collection build --output-path "${GITHUB_WORKSPACE}/.cache/collection-tarballs"
-
-      - name: Store migrated collection artifacts
-        uses: actions/upload-artifact@v1
-        with:
-          name: collection
-          path: .cache/collection-tarballs
-
-###
-# Unit tests (OPTIONAL)
-#
-# https://docs.ansible.com/ansible/latest/dev_guide/testing_units.html
-
-  unit:
-    name: Unit Tests - ( Ansible ${{ matrix.ansible }} and ${{ matrix.python }})
-    needs: [build]
-    strategy:
-      matrix:
-        python: ['3.10', '3.11']
-        ansible:
-          - stable-2.15
-          - stable-2.16
-          - stable-2.17
-          - devel
-        exclude:
-          - ansible: devel
-            python: '3.10'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Perform unit testing with ansible-test
-        uses: ansible-community/ansible-test-gh-action@release/v1
-        with:
-          testing-type: units
-          coverage: ${{ (matrix.python == '3.11' && matrix.ansible == 'stable-2.17') && 'always' ||  'never' }}
-          ansible-core-version: ${{ matrix.ansible }}
-          target-python-version: ${{ matrix.python }}
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-###
-# Sanity tests (REQUIRED)
-#
-# https://docs.ansible.com/ansible/latest/dev_guide/testing_sanity.html
-
+  ansible-lint:
+    uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@main
   sanity:
-    name: Sanity - (Ansible ${{ matrix.ansible }} and ${{ matrix.python }})
-    needs: [build]
-    strategy:
-      matrix:
-        python: ['3.10', '3.11']
-        ansible:
-          - stable-2.15
-          - stable-2.16
-          - stable-2.17
-          - devel
-        exclude:
-          - ansible: devel
-            python: '3.10'
+    uses: ansible/ansible-content-actions/.github/workflows/sanity.yaml@main
+  unit-galaxy:
+    uses: ansible/ansible-content-actions/.github/workflows/unit.yaml@main
+  all_green:
+    if: ${{ always() }}
+    needs:
+      - sanity
+      - unit-galaxy
+      - ansible-lint
     runs-on: ubuntu-latest
     steps:
-      - name: Perform sanity testing
-        uses: ansible-community/ansible-test-gh-action@release/v1
-        with:
-          ansible-core-version: ${{ matrix.ansible }}
-          target-python-version: ${{ matrix.python }}
-          testing-type: sanity
-          pull-request-change-detection: true
-          coverage: never
-
-  lint:
-    name: Ansible lint
-    runs-on: ubuntu-latest
-    needs: [build]
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ['3.10', '3.11']
-        ansible-version: [stable-2.15, stable-2.16, stable-2.17, devel]
-        exclude:
-          - ansible-version: devel
-            python-version: '3.10'
-    steps:
-      # Important: This sets up your GITHUB_WORKSPACE environment variable
-      - name: Checkout the source code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0 # needed for progressive mode to work
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install ansible (${{ matrix.ansible-version }}) version
-        run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
-
-      - name: Install ansible lint
-        run: pip install ansible-lint pytest --disable-pip-version-check
-
-      - name: Install ansible posix
-        run: ansible-galaxy collection install ansible.posix
-
-      - name: Download migrated collection artifacts
-        uses: actions/download-artifact@v1
-        with:
-          name: collection
-          path: .cache/collection-tarballs
-
-      - name: Install collection build
-        run: ansible-galaxy collection install .cache/collection-tarballs/*.tar.gz
-
-      - name: Run Ansible lint
-        run: ansible-lint --show-relpath
-        working-directory: /home/runner/work/dellemc-openmanage-ansible-modules/dellemc-openmanage-ansible-modules
+      - run: >-
+          python -c "assert 'failure' not in
+          set([
+          '${{ needs.sanity.result }}',
+          '${{ needs.unit-galaxy.result }}'
+          '${{ needs.ansible-lint.result }}'
+          ])"
