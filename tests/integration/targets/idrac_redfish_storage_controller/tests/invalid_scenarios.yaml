@@ -1,0 +1,286 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Negative - unsupported argument
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        unsupported_argument: unsupported
+        command: ResetConfig
+        controller_id: RAID.SL.5-1
+      register: invalid_unsupported_argument
+      ignore_errors: true
+
+    - name: Verify task status - Negative - unsupported argument
+      ansible.builtin.assert:
+        that:
+          - invalid_unsupported_argument.failed
+          - not invalid_unsupported_argument.changed
+          - 'invalid_unsupported_argument.msg == "Unsupported parameters for
+            (dellemc.openmanage.idrac_redfish_storage_controller) module:
+            unsupported_argument. Supported parameters include: apply_time,
+            attributes, baseuri, ca_path, command, controller_id, job_wait,
+            job_wait_timeout, key, key_id, maintenance_window, mode, old_key,
+            password, size, target, timeout, username, validate_certs,
+            volume_id, x_auth_token (drive_id)."'
+
+    - name: Negative - unreachable host
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: 999.999.999.999
+        command: ResetConfig
+        controller_id: RAID.SL.5-1
+      register: invalid_unreachable
+      ignore_unreachable: true
+
+    - name: Verify task status - Negative - unreachable host
+      ansible.builtin.assert:
+        that:
+          - invalid_unreachable.unreachable
+          - not invalid_unreachable.changed
+          - 'invalid_unreachable.msg == "<urlopen error Unable to resolve
+            hostname or IP 999.999.999.999.>" or
+            invalid_unreachable.msg == "<urlopen error [Errno -2] Name or
+            service not known>"'
+
+    - name: Negative - invalid port
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "{{ idrac_ip|ansible.utils.ipwrap }}:65536"
+        command: ResetConfig
+        controller_id: RAID.SL.5-1
+      register: invalid_port
+      ignore_unreachable: true
+
+    - name: Verify task status - Negative - invalid port
+      ansible.builtin.assert:
+        that:
+          - invalid_port.unreachable
+          - not invalid_port.changed
+          - ('invalid_port.msg == "<urlopen error [Errno 111] Connection
+            refused>"') or ('invalid_port.msg == "<urlopen error timed out>"')
+
+    - name: Negative - invalid username
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        username: invalid
+        command: ResetConfig
+        controller_id: RAID.SL.5-1
+      register: invalid_username
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid username
+      ansible.builtin.assert:
+        that:
+          - invalid_username.failed
+          - not invalid_username.changed
+          - 'invalid_username.msg == "HTTP Error 401: Unauthorized" or
+            invalid_username.msg == "<urlopen error timed out>"'
+
+    - name: Negative - invalid password
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        password: invalid
+        command: ResetConfig
+        controller_id: RAID.SL.5-1
+      register: invalid_password
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid password
+      ansible.builtin.assert:
+        that:
+          - invalid_password.failed
+          - not invalid_password.changed
+          - 'invalid_password.msg == "HTTP Error 401: Unauthorized" or
+            invalid_password.msg == "<urlopen error timed out>"'
+
+    - name: Negative - invalid validate_certs
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        validate_certs: invalid
+        command: ResetConfig
+        controller_id: RAID.SL.5-1
+      register: invalid_validate_certs
+      ignore_errors: true
+
+    - ansible.builtin.set_fact:
+        invalid_validate_certs_expected_msg: "argument 'validate_certs' is of
+          type <class 'str'> and we were unable to convert to bool: The value
+          'invalid' is not a valid boolean.  Valid booleans include: "
+
+    - name: Verify task status - Negative - invalid validate_certs
+      ansible.builtin.assert:
+        that:
+          - invalid_validate_certs.failed
+          - not invalid_validate_certs.changed
+          - invalid_validate_certs_expected_msg in invalid_validate_certs.msg
+
+    - name: Negative - invalid ca_path path
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        ca_path: /invalid/path
+        command: ResetConfig
+        controller_id: RAID.SL.5-1
+      register: invalid_ca_path
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid ca_path path
+      ansible.builtin.assert:
+        that:
+          - invalid_ca_path.failed
+          - not invalid_ca_path.changed
+          # - 'invalid_ca_path.msg == "[Errno 2] No such file or directory:
+          #   b''/invalid/path''"'
+
+    - name: Negative - invalid timeout type
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        timeout: invalid
+        command: ResetConfig
+        controller_id: RAID.SL.5-1
+      register: invalid_timeout_type
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid timeout type
+      ansible.builtin.assert:
+        that:
+          - invalid_timeout_type.failed
+          - not invalid_timeout_type.changed
+          - 'invalid_timeout_type.msg == "argument ''timeout'' is of type
+            <class ''str''> and we were unable to convert to int:
+            <class ''str''> cannot be converted to an int"'
+
+    - name: Negative - invalid timeout value
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        timeout: -1
+        command: ResetConfig
+        controller_id: RAID.SL.5-1
+      register: invalid_timeout_value
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid timeout value
+      ansible.builtin.assert:
+        that:
+          - invalid_timeout_value.failed
+          - not invalid_timeout_value.changed
+          - 'invalid_timeout_value.msg == "Timeout value out of range"'
+
+    - name: Negative - Invalid command
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: invalid
+      register: invalid_command_value
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid command
+      ansible.builtin.assert:
+        that:
+          - invalid_command_value.failed
+          - not invalid_command_value.changed
+          - 'invalid_command_value.msg == "value of command must be one of:
+           ResetConfig, AssignSpare, SetControllerKey, RemoveControllerKey,
+           ReKey, UnassignSpare, EnableControllerEncryption, BlinkTarget,
+           UnBlinkTarget, ConvertToRAID, ConvertToNonRAID,
+           ChangePDStateToOnline, ChangePDStateToOffline, LockVirtualDisk,
+           OnlineCapacityExpansion, SecureErase, got: invalid"'
+
+    - name: Negative - Invalid controller id
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: ResetConfig
+        controller_id: invalid
+      register: invalid_controller_id
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid controller id
+      ansible.builtin.assert:
+        that:
+          - invalid_controller_id.failed
+          - not invalid_controller_id.changed
+          - 'invalid_controller_id.msg == "controller_id with id ''invalid'' not
+           found in system"'
+
+    - name: Negative - Invalid volume id
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: BlinkTarget
+        volume_id: invalid
+      register: invalid_volume_id
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid volume id
+      ansible.builtin.assert:
+        that:
+          - invalid_volume_id.failed
+          - not invalid_volume_id.changed
+          - invalid_volume_id.msg == "HTTP Error 400: Bad Request"
+
+    - name: Negative - Invalid target
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: BlinkTarget
+        target: invalid
+      register: invalid_target
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid target
+      ansible.builtin.assert:
+        that:
+          - invalid_target.failed
+          - not invalid_target.changed
+          - invalid_target.msg == "HTTP Error 400: Bad Request"
+
+    - name: Negative - Invalid encryption mode
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: SetControllerKey
+        mode: invalid
+        controller_id: RAID.SL.5-1
+        key: invalid
+        key_id: check
+      register: invalid_encryption
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid encryption
+      ansible.builtin.assert:
+        that:
+          - invalid_encryption.failed
+          - not invalid_encryption.changed
+          - 'invalid_encryption.msg == "value of mode must be one of: LKM, SEKM, got: ********"'
+
+    - name: Negative - Invalid key
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: SetControllerKey
+        mode: LKM
+        controller_id: RAID.SL.5-1
+        key: invalid
+        key_id: check
+      register: invalid_key
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid key
+      ansible.builtin.assert:
+        that:
+          - invalid_key.failed
+          - not invalid_key.changed
+          - invalid_key.msg == "HTTP Error 400: Bad Request"
+
+    - name: Negative - Invalid size
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: OnlineCapacityExpansion
+        size: invalid
+      register: invalid_size
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid key
+      ansible.builtin.assert:
+        that:
+          - invalid_size.failed
+          - not invalid_size.changed
+          - 'invalid_size.msg == "argument ''size'' is of type <class ''str''>
+           and we were unable to convert to int: <class ''str''> cannot be
+           converted to an int"'
+
+  module_defaults:
+    dellemc.openmanage.idrac_redfish_storage_controller:
+      baseuri: "{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
