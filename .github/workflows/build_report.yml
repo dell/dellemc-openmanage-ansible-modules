@@ -3,6 +3,8 @@ name: 'Build coverage report'
 on:
   workflow_dispatch:
   push:
+    branches:
+      - collections
   
 jobs:
   build:
