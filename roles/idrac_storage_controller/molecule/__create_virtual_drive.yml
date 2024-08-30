@@ -1,0 +1,121 @@
+---
+- name: Waiting for iDRAC to be in ready state
+  ansible.builtin.include_tasks:
+    file: ../__lc_status.yml
+
+- name: Get apply time details
+  ansible.builtin.uri: &uri_inputs
+    url:
+      "https://{{ lookup('env', 'IDRAC_IP')
+       }}/redfish/v1/Systems/System.Embedded.1"
+    url_username: "{{ lookup('env', 'IDRAC_USER') }}"
+    url_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    timeout: 30
+    validate_certs: false
+    return_content: true
+    force_basic_auth: true
+    body_format: "json"
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+      OData-Version: "4.0"
+    method: GET
+    body: {}
+  register: idrac_storage_controller_apply_time_inputs
+
+- name: Set facts for apply_time &uri_inputs
+  ansible.builtin.set_fact:
+    idrac_storage_controller_apply_time:
+      "{{ idrac_storage_controller_apply_time_inputs.json['@Redfish.Settings']
+       ['SupportedApplyTimes'] | first }}"
+  when: idrac_storage_controller_apply_time_inputs is defined
+
+- name: Pre-req Create a volume.
+  ansible.builtin.import_role:
+    name: redfish_storage_volume
+  vars:
+    hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+    username: "{{ lookup('env', 'IDRAC_USER') }}"
+    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+    state: present
+    raid_type: "{{ supported_raid_type }}"
+    name: "VD" # noqa: var-naming[no-reserved]
+    controller_id: "{{ idrac_storage_controller_controller_id }}"
+    drives: "{{ idrac_storage_controller_drive_list[0] }}"
+    apply_time: "{{ idrac_storage_controller_apply_time }}"
+    capacity_bytes: 104857600
+    job_wait: true
+  check_mode: false
+  when: idrac_storage_controller_drive_list[0] is defined
+
+- name: Fetch volume details
+  when: redfish_storage_volume_out.changed
+  block:
+    - name: Perform reset operation
+      ansible.builtin.uri:
+        url:
+          "https://{{ lookup('env', 'IDRAC_IP')
+           }}/redfish/v1/Systems/System.Embedded.1/Actions/ComputerSystem.Reset"
+        method: "POST"
+        body: '{"ResetType": "GracefulRestart"}'
+        status_code: [204]
+        <<: *uri_inputs
+      register: idrac_storage_controller_result
+      delegate_to: localhost
+      when:
+        - idrac_storage_controller_apply_time == "OnReset"
+
+    - name: Wait for port 443 to become open on the host
+      ansible.builtin.wait_for:
+        host: "{{ lookup('env', 'IDRAC_IP') }}"
+        port: "{{ lookup('env', 'IDRAC_PORT') }}"
+        delay: 60
+        timeout: 300
+        connect_timeout: 10
+        sleep: 10
+        active_connection_states:
+          - "ESTABLISHED"
+      delegate_to: localhost
+      register: idrac_storage_controller_connection_status
+      ignore_errors: true
+      when: idrac_storage_controller_result.status == 204
+
+    - name: Waiting for iDRAC to be in ready state
+      ansible.builtin.include_tasks:
+        file: ../__lc_status.yml
+      when: idrac_storage_controller_result.status == 204
+
+    - name: Fetching Volume_id from iDRAC
+      ansible.builtin.uri:
+        url:
+          "https://{{ lookup('env', 'IDRAC_IP')
+           }}/redfish/v1/Systems/System.Embedded.1/Storage/{{
+           idrac_storage_controller_controller_id }}/Volumes"
+        <<: *uri_inputs
+      register: idrac_storage_controller_fetched_output
+
+    - name: Extracting volume_id
+      ansible.builtin.set_fact:
+        idrac_storage_controller_volume_id:
+          "{{ (idrac_storage_controller_fetched_output.json.Members
+            | last)['@odata.id'] | ansible.builtin.split('/') | last }}"
+      when:
+        - redfish_storage_volume_out.changed
+        - idrac_storage_controller_fetched_output.json.Members is defined
+
+    - name: Fetching Volume details
+      ansible.builtin.uri:
+        url:
+          "https://{{ lookup('env', 'IDRAC_IP')
+           }}/redfish/v1/Systems/System.Embedded.1/Storage/{{
+           idrac_storage_controller_controller_id }}/Volumes/{{
+           idrac_storage_controller_volume_id }}"
+        <<: *uri_inputs
+      register: idrac_storage_controller_volume_output
+
+    - name: Extracting capacity_bytes
+      ansible.builtin.set_fact:
+        idrac_storage_controller_capacity_bytes:
+          "{{ idrac_storage_controller_volume_output.json['CapacityBytes'] }}"
+      when: idrac_storage_controller_volume_output is defined

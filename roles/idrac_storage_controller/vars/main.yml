@@ -1,2 +1,6 @@
 ---
 idrac_storage_controller_task_delegate: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+idrac_storage_controller_delay_for_idrac_connection: 60
+idrac_storage_controller_wait_for_idrac_reachable: 300
+idrac_storage_controller_connect_timeout: 10
+idrac_storage_controller_sleep_interval: 10

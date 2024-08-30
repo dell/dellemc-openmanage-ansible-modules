@@ -1,0 +1,127 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Running for expansion type scenarios
+      block:
+        - name: Pre-req extract storage information and create a volume.
+          ansible.builtin.include_tasks:
+            file: ../_extract_storage.yml
+
+        - name: Pre-req create a volume.
+          ansible.builtin.include_tasks:
+            file: ../__create_virtual_drive.yml
+
+        - name: Getting disk information
+          ansible.builtin.uri:
+            url:
+              "https://{{ lookup('env', 'IDRAC_IP')
+              }}/redfish/v1/Systems/System.Embedded.1/Storage/{{
+              idrac_storage_controller_controller_id }}/Drives/{{
+              item }}"
+            url_username: "{{ lookup('env', 'IDRAC_USER') }}"
+            url_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            timeout: 30
+            validate_certs: false
+            return_content: true
+            force_basic_auth: true
+            body_format: "json"
+            headers:
+              Content-Type: "application/json"
+              Accept: "application/json"
+              OData-Version: "4.0"
+            method: GET
+            body: {}
+          register: idrac_storage_controller_drives_output
+          loop: "{{ idrac_storage_controller_drive_list }}"
+          when:
+            - idrac_storage_controller_drive_list is defined
+            - idrac_storage_controller_drive_list | length > 1
+
+        - name: Get available physical disk
+          ansible.builtin.set_fact:
+            available_disk: "{{ item.json.Id }}"
+          loop: "{{ idrac_storage_controller_drives_output.results }}"
+          when:
+            - idrac_storage_controller_drives_output is defined
+            - item != "Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-1"
+            - item.json.Oem.Dell.DellPhysicalDisk.RaidStatus == "Ready"
+
+        - name: Expansion via disk
+          ansible.builtin.import_role:
+            name: idrac_storage_controller
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            controller_id: "{{ lookup('env', 'CONTROLLER_ID') }}"
+            volumes:
+              id: "{{ idrac_storage_controller_volume_id }}"
+              expand_capacity_disk:
+                "{{ available_disk }}"
+          when: available_disk is defined
+
+        - name: Asserting operation with check mode.
+          ansible.builtin.assert:
+            that: oce_vd_out.msg == "Changes found to be applied."
+          when: ansible_check_mode
+
+        - name: Asserting operation with normal mode.
+          ansible.builtin.assert:
+            that: oce_vd_out.msg == "Successfully performed the 'OnlineCapacityExpansion' operation."
+          when: not ansible_check_mode and oce_vd_out.changed
+
+        - name: Asserting operation with idempotence.
+          ansible.builtin.assert:
+            that: oce_vd_out.msg == "No changes found to be applied."
+          when: not ansible_check_mode and not oce_vd_out.changed
+
+        - name: Waiting for iDRAC to be in ready state
+          ansible.builtin.include_tasks:
+            file: ../__lc_status.yml
+
+        - name: Fetching virtual disk info
+          ansible.builtin.uri:
+            url:
+              "https://{{ lookup('env', 'IDRAC_IP')
+               }}/redfish/v1/Systems/System.Embedded.1/Storage/{{
+               idrac_storage_controller_controller_id }}/Volumes/{{
+               idrac_storage_controller_volume_id }}"
+            url_username: "{{ lookup('env', 'IDRAC_USER') }}"
+            url_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            timeout: 30
+            validate_certs: false
+            return_content: true
+            force_basic_auth: true
+            body_format: "json"
+            headers:
+              Content-Type: "application/json"
+              Accept: "application/json"
+              OData-Version: "4.0"
+            method: GET
+            body: {}
+          register: idrac_storage_controller_virtual_disk_info
+
+        - name: Fetching disk info
+          ansible.builtin.debug:
+            var: idrac_storage_controller_virtual_disk_info
+
+        - name: Asserting operation with idempotence.
+          ansible.builtin.assert:
+            that: oce_vd_out.msg == "No changes found to be applied."
+          when: not ansible_check_mode and not oce_vd_out.changed
+
+      rescue:
+        - name: Set the failure messages
+          ansible.builtin.set_fact:
+            idrac_storage_controller_failure:
+              "{{ ansible_failed_result |
+                combine({'failed_task_name': ansible_failed_task.name}) }}"
+
+      always:
+        - name: Deleting the volume.
+          ansible.builtin.include_tasks:
+            file: ../__delete_virtual_drive.yml
