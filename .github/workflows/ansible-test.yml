@@ -1,5 +1,9 @@
 name: CI
 
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 on:
   # Run CI against all pushes (direct commits, also merged PRs), Pull Requests
   workflow_dispatch:
