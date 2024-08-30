@@ -24,7 +24,7 @@
     - name: Prerequisite - Reset any encryption configurations
       idrac_redfish_storage_controller:
         controller_id: "{{ controller_name }}"
-        command: "RemoveControllerKey"
+        command: "ResetConfig"
       register: prereq_result_set_attrs
 
     - ansible.builtin.wait_for: timeout=30
@@ -76,7 +76,7 @@
     - name: Set controller encryption LKM (Check mode - Changes expected)
       idrac_redfish_storage_controller: &idrac_redfish_storage_controller_1
         controller_id: "{{ controller_name }}"
-        command: "EnableControllerEncryption"
+        command: "SetControllerKey"
         mode: "LKM"
         key: "your_Key@123"
         key_id: "your_Keyid@123"
@@ -125,7 +125,7 @@
         that:
           - not set_LKM_encryption.changed
           - set_LKM_encryption.msg == "Successfully submitted the job that
-           performs the 'EnableControllerEncryption' operation."
+           performs the 'SetControllerKey' operation."
           - fetched_data.json.Oem.Dell.DellStorageController.
            EncryptionMode == "LocalKeyManagement"
           - fetched_data.json.Oem.Dell.DellStorageController.
