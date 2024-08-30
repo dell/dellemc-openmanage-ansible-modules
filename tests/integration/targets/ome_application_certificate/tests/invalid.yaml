@@ -1,0 +1,188 @@
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: hostname, username
+         and password.'
+  when: hostname is not defined or username is not defined or password
+         is not defined
+
+- block:
+    - name: Negative - invalid email
+      dellemc.openmanage.ome_application_certificate:
+        distinguished_name: "hostname.com"
+        department_name: "Remote Access Group"
+        business_name: "Dell Inc."
+        locality: "Round Rock"
+        country_state: "Texas"
+        country: "US"
+        email: "support"
+      register: invalid_email
+      ignore_errors: true
+
+    - name: Verify the status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_email.failed
+          - invalid_email.msg == "HTTP Error 400: 400"
+
+    - name: Negative - invalid country
+      dellemc.openmanage.ome_application_certificate:
+        distinguished_name: "hostname.com"
+        department_name: "Remote Access Group"
+        business_name: "Dell Inc."
+        locality: "Round Rock"
+        country_state: "Texas"
+        country: "invalid"
+        email: "support@dell.com"
+      register: invalid_country
+      ignore_errors: true
+
+    - name: Verify the status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_country.failed
+          - invalid_country.msg == "HTTP Error 400: 400"
+
+    - name: Negative - invalid command
+      dellemc.openmanage.ome_application_certificate:
+        command: "invalid"
+        upload_file: "/path/certificate.cer"
+      register: invalid_command
+      ignore_errors: true
+
+    - name: Verify the status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_command.failed
+          - 'invalid_command.msg == "value of command must be one of:
+           generate_csr, upload, upload_cert_chain, got: invalid"'
+
+    - name: Negative - invalid path
+      dellemc.openmanage.ome_application_certificate:
+        command: "upload"
+        upload_file: "/path/certificate.cer"
+      register: invalid_path
+      ignore_errors: true
+
+    - name: Verify the status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_path.failed
+          - invalid_path.msg == "No such file or directory."
+
+    - name: Negative - unreachable host
+      dellemc.openmanage.ome_application_certificate:
+        hostname: "999.999.999.999"
+        distinguished_name: "hostname.com"
+        department_name: "Remote Access Group"
+        business_name: "Dell Inc."
+        locality: "Round Rock"
+        country_state: "Texas"
+        country: "US"
+        email: "support@dell.com"
+      register: invalid_unreachable
+      ignore_unreachable: true
+
+    - name: Verify the status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_unreachable.unreachable
+          - invalid_unreachable.msg == "<urlopen error [Errno -2] Name
+             or service not known>"
+
+    - name: Negative - Invalid username
+      dellemc.openmanage.ome_application_certificate:
+        hostname: "{{ hostname }}"
+        username: invalid
+        password: "{{ password }}"
+        distinguished_name: "hostname.com"
+        department_name: "Remote Access Group"
+        business_name: "Dell Inc."
+        locality: "Round Rock"
+        country_state: "Texas"
+        country: "US"
+        email: "support@dell.com"
+      ignore_errors: true
+      register: invalid_user
+
+    - name: Verify task status - Negative - Invalid user
+      ansible.builtin.assert:
+        that:
+          - invalid_user.failed
+          - not invalid_user.changed
+          - 'invalid_user.msg == "HTTP Error 401: 401" or
+           "HTTP Error 400: 400"'
+
+    - name: Negative - Invalid password
+      dellemc.openmanage.ome_application_certificate:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: invalid
+        distinguished_name: "hostname.com"
+        department_name: "Remote Access Group"
+        business_name: "Dell Inc."
+        locality: "Round Rock"
+        country_state: "Texas"
+        country: "US"
+        email: "support@dell.com"
+      ignore_errors: true
+      register: invalid_password
+
+    - name: Verify task status - Negative - Invalid password
+      ansible.builtin.assert:
+        that:
+          - invalid_password.failed
+          - not invalid_password.changed
+
+    - name: Negative - Invalid ca_path
+      dellemc.openmanage.ome_application_certificate:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: invalid
+        distinguished_name: "hostname.com"
+        department_name: "Remote Access Group"
+        business_name: "Dell Inc."
+        locality: "Round Rock"
+        country_state: "Texas"
+        country: "US"
+        email: "support@dell.com"
+      ignore_errors: true
+      register: invalid_ca_path
+
+    - name: Verify task status - Negative - Invalid ca_path
+      ansible.builtin.assert:
+        that:
+          - invalid_ca_path.failed
+          - not invalid_ca_path.changed
+          - 'invalid_ca_path.msg == "[Errno 2] No such file or
+            directory: b''invalid''"'
+
+    - name: Upload the invalid certificate chain (Negative)
+      dellemc.openmanage.ome_application_certificate:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: "{{ validate_certs }}"
+        command: "upload_cert_chain"
+        upload_file: "invalid"
+      register: upload_result
+      ignore_errors: true
+
+    - name: Verify upload of the certificate chain
+      ansible.builtin.assert:
+        that:
+          - upload_result.failed
+          - upload_result.msg == "No such file or directory."
+
+  module_defaults:
+    dellemc.openmanage.ome_application_certificate:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"
