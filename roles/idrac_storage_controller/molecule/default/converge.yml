@@ -3,6 +3,10 @@
   hosts: all
   gather_facts: false
   tasks:
+    - name: Making sure Server is powered on and clear all job
+      ansible.builtin.include_tasks:
+        file: ../helper/power_on_idrac_and_clear_all_job.yaml
+
     - name: Pre-req - Fetch volumes
       ansible.builtin.include_tasks: ../__fetch_volumes.yml
       vars:

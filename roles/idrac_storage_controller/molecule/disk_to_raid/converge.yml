@@ -26,7 +26,7 @@
 
         - name: Creating Vd to check if disk is converted in Raid mode
                (Expect pass to create the Vd)
-          ansible.builtin.include_tasks: ../__helper.yml
+          ansible.builtin.include_tasks: ../__helper.yaml
           vars:
             volume_type: "RAID 0"
             span_length: 1

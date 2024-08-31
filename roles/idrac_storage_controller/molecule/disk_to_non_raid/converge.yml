@@ -27,7 +27,7 @@
           ignore_errors: true
           register: raid_state_out_lc
           ansible.builtin.include_tasks:
-            file: ../__lc_status.yml
+            file: ../__lc_status.yaml
           when: raid_state_out is defined and raid_state_out.msg ==
              "Successfully submitted the job that performs the
              'ConvertToNonRAID' operation."
@@ -39,7 +39,7 @@
 
         - name: Creating Vd to check if disk is converted in non-Raid mode
                (Expecting fail to create the VD)
-          ansible.builtin.include_tasks: ../__helper.yml
+          ansible.builtin.include_tasks: ../__helper.yaml
           vars:
             volume_type: "RAID 0"
             span_length: 1

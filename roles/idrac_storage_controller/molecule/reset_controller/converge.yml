@@ -17,7 +17,7 @@
 
     - name: Waiting for iDRAC to be in ready state
       ansible.builtin.include_tasks:
-        file: ../__lc_status.yml
+        file: ../__lc_status.yaml
       when: reset_config_out.msg == "Successfully submitted the job that
             performs the 'ResetConfig' operation."
 

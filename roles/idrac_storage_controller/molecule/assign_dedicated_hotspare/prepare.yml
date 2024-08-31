@@ -3,8 +3,12 @@
   hosts: all
   gather_facts: false
   tasks:
+    - name: Making sure Server is powered on and clear all job
+      ansible.builtin.include_tasks:
+        file: ../helper/power_on_idrac_and_clear_all_job.yaml
+
     - name: Include the helper file
-      ansible.builtin.include_tasks: ../__helper.yml
+      ansible.builtin.include_tasks: ../__helper.yaml
       vars:
         initial_state: true
 
@@ -15,7 +19,7 @@
       when: physicaldisks is defined and physicaldisks | length < 4
 
     - name: Creating the VD on raid5
-      ansible.builtin.include_tasks: ../__helper.yml
+      ansible.builtin.include_tasks: ../__helper.yaml
       vars:
         vd_trigger: 1
         volume_type: "RAID 5"
@@ -26,7 +30,7 @@
         ignore_errors_val: true
 
     - name: Pre-Req - Unassigning the dedicated hotspare
-      ansible.builtin.include_tasks: ../__helper.yml
+      ansible.builtin.include_tasks: ../__helper.yaml
       vars:
         target: "{{ physicaldisks[3] }}"
         ignore_errors_val: true
