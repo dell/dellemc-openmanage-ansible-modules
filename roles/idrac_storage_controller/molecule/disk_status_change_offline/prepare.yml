@@ -3,8 +3,12 @@
   hosts: all
   gather_facts: false
   tasks:
+    - name: Making sure Server is powered on and clear all job
+      ansible.builtin.include_tasks:
+        file: ../helper/power_on_idrac_and_clear_all_job.yaml
+
     - name: Include the helper file
-      ansible.builtin.include_tasks: ../__helper.yml
+      ansible.builtin.include_tasks: ../__helper.yaml
       vars:
         initial_state: true
 
@@ -16,18 +20,18 @@
 
     - name: Removing if disks are assigned as hotspare and resetting the
             controller
-      ansible.builtin.include_tasks: ../__helper.yml
+      ansible.builtin.include_tasks: ../__helper.yaml
       vars:
         reset_trigger: 1
         target: "{{ physicaldisks[0] }}"
 
     - name: Removing if disks are assigned as hotspare
-      ansible.builtin.include_tasks: ../__helper.yml
+      ansible.builtin.include_tasks: ../__helper.yaml
       vars:
         target: "{{ physicaldisks[1] }}"
 
     - name: Making online the target disk as prereq
-      ansible.builtin.include_tasks: ../__helper.yml
+      ansible.builtin.include_tasks: ../__helper.yaml
       vars:
         volume_type: "RAID 1"
         span_length: 2

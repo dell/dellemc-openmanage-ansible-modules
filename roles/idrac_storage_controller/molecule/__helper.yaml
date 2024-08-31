@@ -3,7 +3,7 @@
   block:
     - name: Waiting for iDRAC to be in ready state
       ansible.builtin.include_tasks:
-        file: ../__lc_status.yml
+        file: ../__lc_status.yaml
 
     - name: Pre-req - Fetch volumes
       ansible.builtin.include_tasks: ../__fetch_volumes.yml
@@ -28,7 +28,7 @@
 
     - name: Waiting for iDRAC to be in ready state
       ansible.builtin.include_tasks:
-        file: ../__lc_status.yml
+        file: ../__lc_status.yaml
 
     - name: Pre-Req - Unassigned hot spare
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -108,9 +108,5 @@
       ignore_errors: true
       register: res_status
       ansible.builtin.include_tasks:
-        file: ../__lc_status.yml
-      when: res_status is defined and (res_status.msg ==
-           "Successfully performed the 'ChangePDStateToOffline' operation." or
-           res_status.msg == "Successfully performed the
-           'ChangePDStateToOnline' operation.")
-      no_log: true
+        file: ../__lc_status.yaml
+      # no_log: true
