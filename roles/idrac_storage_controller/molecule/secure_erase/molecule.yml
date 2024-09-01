@@ -1,8 +1,4 @@
 ---
-provisioner:
-  name: ansible
-  playbooks:
-    prepare: ../helper/key_prepare.yaml
 scenario:
   test_sequence:
     - destroy
@@ -11,4 +7,4 @@ scenario:
     - prepare
     - check
     - converge
-    - destroy
+    - cleanup

@@ -201,4 +201,7 @@ roles/idrac_storage_controller/molecule/remove_key_controller/converge.yml var-n
 roles/idrac_storage_controller/molecule/remove_key_controller/molecule.yml var-naming[no-role-prefix]
 roles/idrac_storage_controller/molecule/set_controller_key/converge.yml var-naming[no-role-prefix]
 roles/idrac_storage_controller/molecule/set_controller_key/molecule.yml var-naming[no-role-prefix]
+roles/idrac_storage_controller/molecule/secure_erase/converge.yml var-naming[no-role-prefix]
+roles/idrac_storage_controller/molecule/secure_erase/molecule.yml var-naming[no-role-prefix]
+roles/idrac_storage_controller/molecule/secure_erase/prepare.yml var-naming[no-role-prefix]
 roles/idrac_storage_controller/molecule/helper/power_on_idrac.yaml var-naming[no-role-prefix]
