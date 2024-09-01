@@ -33,7 +33,7 @@
       OData-Version: "4.0"
     body_format: "json"
     method: POST
-    body: { "JobID": "JID_CLEARALL" }
+    body: {"JobID": "JID_CLEARALL"}
     return_content: true
     force_basic_auth: true
     timeout: "{{ https_timeout }}"

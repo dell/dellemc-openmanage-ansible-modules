@@ -63,7 +63,7 @@
     - name: Wait for 10 seconds
       ansible.builtin.pause:
         seconds: 10
-      when: prereq_result_set_attrs.changed # noqa: no-handler
+      when: prereq_result_set_attrs.changed   # noqa: no-handler
 
     - name: Constructing url
       ansible.builtin.set_fact:
