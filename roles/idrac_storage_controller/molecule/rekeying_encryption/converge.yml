@@ -34,7 +34,7 @@
       ansible.builtin.wait_for:
         timeout: 120
       when: storage_controller_rekey.msg == "Successfully performed the
-       'ReKey' operation." # noqa: no-handler
+       'ReKey' operation."    # noqa: no-handler
 
     - name: Waiting for iDRAC to be in ready state
       ignore_errors: true

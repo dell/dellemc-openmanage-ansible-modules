@@ -30,7 +30,7 @@
       ansible.builtin.wait_for:
         timeout: 120
       when: remove_controller_key_out.msg == "Successfully performed the
-       'RemoveControllerKey' operation." # noqa: no-handler
+       'RemoveControllerKey' operation."    # noqa: no-handler
 
     - name: Waiting for iDRAC to be in ready state
       ignore_errors: true
