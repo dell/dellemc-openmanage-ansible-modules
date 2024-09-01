@@ -3,17 +3,13 @@
   hosts: all
   gather_facts: false
   tasks:
-    - name: Making sure Server is powered on and clear all job
-      ansible.builtin.include_tasks:
-        file: ../helper/power_on_idrac_and_clear_all_job.yaml
-
     - name: Pre-req - Fetch volumes
       ansible.builtin.include_tasks: ../__fetch_volumes.yml
       vars:
         post_op: false
 
     - name: Performing operation on the iDRAC device using default
-           reset_type with invalid hostname
+            reset_type with invalid hostname
       ansible.builtin.import_role:
         name: idrac_storage_controller
       vars:
@@ -28,13 +24,13 @@
       register: tmp
 
     - name: "Verifying operation on the iDRAC device using default
-             reset_type with invalid hostname"
+              reset_type with invalid hostname"
       ansible.builtin.assert:
         that:
           - "'<urlopen error Unable to communicate with iDRAC randomHostname.'
-             in '{{ reset_config_out.msg }}' or
+              in '{{ reset_config_out.msg }}' or
             '<urlopen error [Errno -2] Name or service not known>' in
-             '{{ reset_config_out.msg }}'"
+              '{{ reset_config_out.msg }}'"
 
     - name: Performing operation on the iDRAC device using default
             reset_type with invalid username
@@ -52,13 +48,13 @@
       register: tmp
 
     - name: "Verifying operation on the iDRAC device using default
-             reset_type with invalid username"
+              reset_type with invalid username"
       ansible.builtin.assert:
         that:
           - "'HTTP Error 401' in '{{ reset_config_out.msg }}'"
 
     - name: Performing operation on the iDRAC device using default
-           reset_type with invalid password
+            reset_type with invalid password
       ansible.builtin.import_role:
         name: idrac_storage_controller
       vars:
@@ -73,13 +69,13 @@
       register: tmp
 
     - name: "Verifying operation on the iDRAC device using default
-             reset_type with invalid password"
+              reset_type with invalid password"
       ansible.builtin.assert:
         that:
           - "'HTTP Error 401' in '{{ reset_config_out.msg }}'"
 
     - name: Performing operation on the iDRAC device using default
-           reset_type without controller ID
+            reset_type without controller ID
       ansible.builtin.import_role:
         name: idrac_storage_controller
       vars:
@@ -94,14 +90,14 @@
       register: tmp
 
     - name: "Verifying operation on the iDRAC device using default
-             reset_type without controller ID"
+              reset_type without controller ID"
       ansible.builtin.assert:
         that:
           - reset_config_out.msg == "controller_id with id 'None'
             not found in system"
 
     - name: Playbook to set controller attributes with Job wait by providing
-           a invalid value for attribute
+            a invalid value for attribute
       ansible.builtin.import_role:
         name: idrac_storage_controller
       vars:
@@ -155,7 +151,7 @@
           - attributes_config_out.failed
 
     - name: Playbook to set controller attributes with Job wait when
-           "apply_time=AtMaintenanceWindowStart"  by providing a invalid
+            "apply_time=AtMaintenanceWindowStart"  by providing a invalid
             maintenance_window
       ansible.builtin.import_role:
         name: idrac_storage_controller
@@ -271,8 +267,8 @@
       ansible.builtin.assert:
         that:
           - "'we were unable to convert to bool: The value
-           \\'invalid\\' is not a valid boolean.' in
-           remove_controller_key_out.msg"
+            \\'invalid\\' is not a valid boolean.' in
+            remove_controller_key_out.msg"
           - remove_controller_key_out.failed
 
     - name: Playbook to set controller attributes with Job wait when key
@@ -375,8 +371,8 @@
           - storage_controller_rekey.failed
 
     - name: Playbook to set controller attributes with Job wait when
-           "apply_time=AtMaintenanceWindowStart"  by providing a invalid
-           attribute
+            "apply_time=AtMaintenanceWindowStart"  by providing a invalid
+            attribute
       ansible.builtin.import_role:
         name: idrac_storage_controller
       vars:
@@ -435,10 +431,10 @@
     - name: Update the value of the id key
       ansible.builtin.set_fact:
         vol_details: "{{ vol_details | combine({'id': physicaldisks[0],
-                     'expand_capacity_disk': -1}) }}"
+                      'expand_capacity_disk': -1}) }}"
 
     - name: Playbook to expand size of disk by target with Job wait with
-           "volume_id" and Invalid expand_capacity_disk
+            "volume_id" and Invalid expand_capacity_disk
       ansible.builtin.import_role:
         name: idrac_storage_controller
       vars:
@@ -454,7 +450,7 @@
       register: tmp
 
     - name: Verifying size expansion of disk by target with Job wait with
-           "volume_id" and Invalid expand_capacity_disk
+            "volume_id" and Invalid expand_capacity_disk
       ansible.builtin.assert:
         that:
           - oce_vd_out.failed
@@ -507,7 +503,7 @@
           id: "{{ physicaldisks[0] }}"
           dedicated_hot_spare: "Invalid"
 
-    - name: Playbook to ssign dedicated hot spare
+    - name: Playbook with invalid assign dedicated hot spare
       ansible.builtin.import_role:
         name: idrac_storage_controller
       vars:
@@ -520,7 +516,7 @@
       ignore_errors: true
       register: tmp
 
-    - name: Verifying - Assign dedicated hot spare
+    - name: Verifying - Invalid assign dedicated hot spare
       ansible.builtin.assert:
         that:
           - "'Unable to locate the physical disk with the ID: Invalid'

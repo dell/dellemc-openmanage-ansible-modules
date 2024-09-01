@@ -12,6 +12,17 @@
       ansible.builtin.include_tasks:
         file: ../helper/power_on_idrac_and_clear_all_job.yaml
 
+    - name: Pre-req -  Reset controller configuration
+      dellemc.openmanage.idrac_reset:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        reset_to_default: "Default"
+        wait_for_idrac: true
+      register: result_reset_controller
+      ignore_errors: true
+
     - name: Prerequisite - Fetch Storage details
       dellemc.openmanage.idrac_storage_volume:
         idrac_ip: "{{ idrac_ip }}"
@@ -43,7 +54,8 @@
       ignore_errors: true
 
     - name: Waiting for iDRAC to be in ready state
-      ansible.builtin.pause: seconds=30
+      ansible.builtin.pause:
+        seconds: 30
       when: prereq_result_set_attrs.msg == "Successfully performed the
        'SetControllerKey' operation."
 
@@ -63,8 +75,9 @@
        'SetControllerKey' operation."
 
     - name: Waiting for iDRAC to be in ready state
-      ansible.builtin.pause: seconds=10
-      when: prereq_result_set_attrs.changed
+      ansible.builtin.pause:
+        seconds: 10
+      when: prereq_result_set_attrs.changed # noqa: no-handler
 
     - name: Constructing url
       ansible.builtin.set_fact:

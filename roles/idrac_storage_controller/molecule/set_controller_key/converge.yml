@@ -3,7 +3,8 @@
   hosts: all
   gather_facts: false
   tasks:
-    - name: Set controller encryption LKM (Check mode - Changes expected)
+    - name: Set controller encryption LKM
+             (Check mode - Changes expected)
       ansible.builtin.import_role:
         name: idrac_storage_controller
       vars:
@@ -60,4 +61,5 @@
           - not set_controller_key_out.changed
           - set_controller_key_out.msg == "No changes found
            to be applied."
-      when: not ansible_check_mode and set_controller_key_out.status is not defined
+      when: not ansible_check_mode and set_controller_key_out.status
+             is not defined
