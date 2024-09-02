@@ -16,9 +16,10 @@
     return_content: true
     status_code: 200
     headers: 'Accept=application/json'
-  register: fetched_data
+  register: idrac_storage_controller_fetched_data
 
 - name: Set the variable 'loop_data'
   ansible.builtin.set_fact:
-    loop_data: "{{ loop_data | default([]) + [fetched_data] }}"
+    loop_data: "{{ loop_data | default([]) +
+             [idrac_storage_controller_fetched_data] }}"
   when: capture_all is defined

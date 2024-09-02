@@ -9,3 +9,4 @@ scenario:
     - converge
     - idempotence
     - cleanup
+    - destroy

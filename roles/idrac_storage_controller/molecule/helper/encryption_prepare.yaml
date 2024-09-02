@@ -19,13 +19,23 @@
         idrac_password: "{{ idrac_password }}"
         validate_certs: false
         state: "view"
-      register: result_pre_req
+      register: idrac_storage_controller_res
+
+    - name: Set the storage status
+      ansible.builtin.set_fact:
+        cacheable: true
+        storage_status: "{{ idrac_storage_controller_res.storage_status }}"
+
+    - name: Set the controller Info
+      ansible.builtin.set_fact:
+        cacheable: true
+        controller_info: "{{ storage_status.Message.Controller }}"
 
     - name: Set the controller name
       ansible.builtin.set_fact:
         cacheable: true
-        controller_name: "{{ result_pre_req.storage_status.Message.Controller.
-         keys() | select('match', 'RAID.') | first }}"
+        controller_name: "{{ controller_info.keys() |
+         select('match', 'RAID.') | first }}"
 
     - name: Prerequisite - Reset any encryption configurations
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -36,34 +46,34 @@
         job_wait: true
         controller_id: "{{ controller_name }}"
         command: "RemoveControllerKey"
-      register: prereq_result_set_attrs
+      register: idrac_storage_controller_set_attrs
       ignore_errors: true
 
     - name: Waiting for iDRAC to be in ready state
       ansible.builtin.pause:
         seconds: 30
-      when: prereq_result_set_attrs.msg == "Successfully performed the
-       'RemoveControllerKey' operation."
+      when: idrac_storage_controller_set_attrs.msg == "Successfully
+       performed the 'RemoveControllerKey' operation."
 
     - name: Waiting for iDRAC to be in ready state
       ignore_errors: true
-      register: pd_state_out_lc
+      register: idrac_storage_controller_pd_state_out_lc
       ansible.builtin.include_tasks:
         file: ../__lc_status.yaml
-      when: prereq_result_set_attrs.msg == "Successfully performed the
-       'RemoveControllerKey' operation."
+      when: idrac_storage_controller_set_attrs.msg == "Successfully
+       performed the 'RemoveControllerKey' operation."
 
     - name: Prepare the controller for controller encryption
       ansible.builtin.include_tasks: ../__prepare_lc_job_status.yaml
       vars:
-        job_id: "{{set_LKM_encryption.status.Id}}"
-      when: prereq_result_set_attrs.msg == "Successfully performed the
-       'RemoveControllerKey' operation."
+        job_id: "{{ set_LKM_encryption.status.Id }}"
+      when: idrac_storage_controller_set_attrs.msg == "Successfully
+       performed the 'RemoveControllerKey' operation."
 
     - name: Wait for 10 seconds
       ansible.builtin.pause:
         seconds: 10
-      when: prereq_result_set_attrs.changed   # noqa: no-handler
+      when: idrac_storage_controller_set_attrs.changed   # noqa: no-handler
 
     - name: Constructing url
       ansible.builtin.set_fact:
@@ -85,8 +95,8 @@
     - name: Verify prerequisite - Check whether encryption is enabled
       ansible.builtin.assert:
         that:
-          - fetched_data.json.Oem.Dell.DellStorageController.EncryptionMode
-           == "None"
+          - idrac_storage_controller_fetched_data.json.Oem.Dell.
+            DellStorageController.EncryptionMode == "None"
         fail_msg: "Prerequisite - Storage controller attribute
          'EncryptionMode' not set to 'None'"
         success_msg: "Prerequisite - Storage controller attribute

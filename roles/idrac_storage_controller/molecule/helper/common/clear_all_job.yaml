@@ -35,4 +35,4 @@
     force_basic_auth: true
     timeout: "{{ https_timeout }}"
   check_mode: false
-  register: result
+  register: idrac_storage_controller_result

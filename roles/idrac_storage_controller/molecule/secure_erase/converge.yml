@@ -57,14 +57,14 @@
       ansible.utils.fact_diff:
         before: "{{ uri_job_status }}"
         after: "{{ module_job_status }}"
-      register: diff_result
+      register: idrac_storage_controller_diff_result
       when: not ansible_check_mode
 
     - name: Verify task status - Compare job_status from task and uri
       ansible.builtin.assert:
         that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
+          - not idrac_storage_controller_diff_result.changed
+          - not idrac_storage_controller_diff_result.diff_lines
       when: not ansible_check_mode
 
     - name: Construct expected URI for assertion

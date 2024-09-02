@@ -19,7 +19,7 @@
         mode: "LKM"
         key: "your_Key@123"
         key_id: "your_Keyid@123"
-      register: encryption
+      register: idrac_storage_controller_encryption
 
     - name: Verify task status - Enable controller encryption
        (Check mode - Changes expected)
@@ -31,7 +31,7 @@
 
     - name: Waiting for iDRAC to be in ready state
       ignore_errors: true
-      register: pd_state_out_lc
+      register: idrac_storage_controller_pd_state_out_lc
       ansible.builtin.include_tasks:
         file: ../__lc_status.yaml
       when: enable_encryption_out.msg == "Successfully performed the
@@ -49,10 +49,10 @@
           - enable_encryption_out.changed
           - enable_encryption_out.msg == "Successfully performed the
            'EnableControllerEncryption' operation."
-          - fetched_data.json.Oem.Dell.DellStorageController.
-           EncryptionMode == "LocalKeyManagement"
-          - fetched_data.json.Oem.Dell.DellStorageController.
-           KeyID == "your_Keyid@123"
+          - idrac_storage_controller_fetched_data.json.Oem.Dell.
+            DellStorageController.EncryptionMode == "LocalKeyManagement"
+          - idrac_storage_controller_fetched_data.json.Oem.Dell.
+            DellStorageController.KeyID == "your_Keyid@123"
       when: not ansible_check_mode and enable_encryption_out.status is defined
 
     - name: Verify task status - Enable controller encryption

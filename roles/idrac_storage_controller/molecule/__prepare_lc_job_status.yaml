@@ -15,10 +15,12 @@
         validate_certs: false
         job_id: "{{ job_id }}"
       when: job_id is defined
-      register: result_job_wait
-      until: result_job_wait.job_info.JobStatus == "Completed" or
-        result_job_wait.job_info.JobStatus == "Failed"
-      failed_when: result_job_wait.job_info.JobStatus == "Failed"
+      register: idrac_storage_controller_job_wait
+      until: idrac_storage_controller_job_wait.job_info.JobStatus
+         == "Completed" or idrac_storage_controller_job_wait.job_info.JobStatus
+         == "Failed"
+      failed_when: idrac_storage_controller_job_wait.job_info.JobStatus
+       == "Failed"
       retries: 100
       delay: 30
 
@@ -34,10 +36,10 @@
         return_content: true
         status_code: 200
         headers: 'Accept=application/json'
-      register: result_job_wait
+      register: idrac_storage_controller_job_wait
       when: location is defined
-      until: result_job_wait.json.JobState == "Completed" or
-        result_job_wait.json.JobState == "Failed"
-      failed_when: result_job_wait.json.JobState == "Failed"
+      until: idrac_storage_controller_job_wait.json.JobState == "Completed" or
+        idrac_storage_controller_job_wait.json.JobState == "Failed"
+      failed_when: idrac_storage_controller_job_wait.json.JobState == "Failed"
       retries: 100
       delay: 30

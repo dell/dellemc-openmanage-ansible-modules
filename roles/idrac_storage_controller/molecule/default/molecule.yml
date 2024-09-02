@@ -1,7 +1,6 @@
 ---
 scenario:
   test_sequence:
-    - cleanup
     - destroy
     - syntax
     - create

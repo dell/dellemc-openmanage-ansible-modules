@@ -20,7 +20,7 @@
         old_key: "your_Key@123"
         key_id: "your_Keyid@123"
         rekey: true
-      register: rekey_controller_encryption
+      register: idrac_storage_controller_rekey_controller_encryption
 
     - name: Verify task status - Set rekeying of controller encryption key
        (Check mode - Changes expected)
@@ -38,7 +38,7 @@
 
     - name: Waiting for iDRAC to be in ready state
       ignore_errors: true
-      register: pd_state_out_lc
+      register: idrac_storage_controller_pd_state_out_lc
       ansible.builtin.include_tasks:
         file: ../__lc_status.yaml
       when: storage_controller_rekey.msg == "Successfully performed the
@@ -58,9 +58,9 @@
           - storage_controller_rekey.changed
           - storage_controller_rekey.msg == "Successfully performed the
             'ReKey' operation."
-          - fetched_data.json.Oem.Dell.DellStorageController.
-           EncryptionMode == "LocalKeyManagement"
-          - fetched_data.json.Oem.Dell.DellStorageController.
-           KeyID == "your_Keyid@123"
+          - idrac_storage_controller_fetched_data.json.Oem.Dell.
+            DellStorageController.EncryptionMode == "LocalKeyManagement"
+          - idrac_storage_controller_fetched_data.json.Oem.Dell.
+            DellStorageController.KeyID == "your_Keyid@123"
       when: not ansible_check_mode and storage_controller_rekey.status
              is defined
