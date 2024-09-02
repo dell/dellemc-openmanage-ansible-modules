@@ -90,6 +90,7 @@
         controller_id: RAID.SL.5-1
       register: invalid_password
       ignore_errors: true
+      ignore_unreachable: true
 
     - name: Verify task status - Negative - invalid password
       ansible.builtin.assert:
@@ -132,8 +133,6 @@
         that:
           - invalid_ca_path.failed
           - not invalid_ca_path.changed
-          # - 'invalid_ca_path.msg == "[Errno 2] No such file or directory:
-          #   b''/invalid/path''"'
 
     - name: Negative - invalid timeout type
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -243,7 +242,8 @@
         that:
           - invalid_encryption.failed
           - not invalid_encryption.changed
-          - 'invalid_encryption.msg == "value of mode must be one of: LKM, SEKM, got: ********"'
+          - 'invalid_encryption.msg == "value of mode must be one of:
+            LKM, SEKM, got: ********"'
 
     - name: Negative - Invalid key
       dellemc.openmanage.idrac_redfish_storage_controller:
