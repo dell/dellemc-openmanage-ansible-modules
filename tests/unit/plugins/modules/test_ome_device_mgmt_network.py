@@ -14,7 +14,7 @@ __metaclass__ = type
 
 import json
 from io import StringIO
-
+from copy import deepcopy
 import pytest
 from ansible.module_utils._text import to_text
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
@@ -206,9 +206,9 @@ class TestOmeDeviceMgmtNetwork(FakeAnsibleModule):
         f_module = self.get_module_mock(params=addr_param["in"])
         self.module.validate_input(f_module)
 
-    @pytest.mark.parametrize("param", [{"in": inp_param, "device": chassis, "enable_nic": False, "delay": 5,
+    @pytest.mark.parametrize("param", [{"in": deepcopy(inp_param), "device": deepcopy(chassis), "enable_nic": False, "delay": 5,
                                         "diff": {'EnableNIC': False, 'Delay': 5}},
-                                       {"in": inp_param, "device": chassis, "enable_nic": True,
+                                       {"in": deepcopy(inp_param), "device": deepcopy(chassis), "enable_nic": True,
                                         "diff": {'StaticAlternateDNSServer': '2607:f2b1:f081:9:1c8c:f1c7:47e:f121',
                                                  'StaticPreferredDNSServer': '2607:f2b1:f081:9:1c8c:f1c7:47e:f122',
                                                  'StaticGateway': '0000::ffff', 'StaticSubnetMask': '255.255.255.0',
@@ -217,24 +217,24 @@ class TestOmeDeviceMgmtNetwork(FakeAnsibleModule):
                                                  'StaticPrefixLength': 0, 'EnableIPv6': True, 'NetworkSpeed': '10_MB',
                                                  'DnsName': 'openmanage-enterprise', 'AutoNegotiation': False,
                                                  'DnsDomainName': 'localdomain', 'MgmtVLANId': 0}},
-                                       {"in": {"ipv6_configuration": ipv6_configuration}, "device": chassis,
+                                       {"in": {"ipv6_configuration": ipv6_configuration}, "device": deepcopy(chassis),
                                         "enable_nic": True,
                                         "diff": {'StaticAlternateDNSServer': '2607:f2b1:f081:9:1c8c:f1c7:47e:f121',
                                                  'StaticPreferredDNSServer': '2607:f2b1:f081:9:1c8c:f1c7:47e:f122',
                                                  'StaticGateway': '0000::ffff',
                                                  'StaticIPv6Address': '2607:f2b1:f081:9:1c8c:f1c7:47e:f120',
                                                  'StaticPrefixLength': 0, 'EnableIPv6': True}},
-                                       {"in": {"ipv4_configuration": ipv4_configuration}, "device": chassis,
+                                       {"in": {"ipv4_configuration": ipv4_configuration}, "device": deepcopy(chassis),
                                         "enable_nic": True,
                                         "diff": {'StaticAlternateDNSServer': '192.168.11.3',
                                                  'StaticPreferredDNSServer': '192.168.11.2',
                                                  'StaticGateway': '192.168.11.1', 'StaticSubnetMask': '255.255.255.0',
                                                  'StaticIPAddress': '192.168.11.20'}},
-                                       {"in": {"dns_configuration": dns_configuration}, "device": chassis,
+                                       {"in": {"dns_configuration": dns_configuration}, "device": deepcopy(chassis),
                                         "enable_nic": True,
                                         "diff": {'NetworkSpeed': '10_MB', 'DnsName': 'openmanage-enterprise',
                                                  'AutoNegotiation': False, 'DnsDomainName': 'localdomain'}},
-                                       {"in": {"management_vlan": management_vlan}, "device": chassis,
+                                       {"in": {"management_vlan": management_vlan}, "device": deepcopy(chassis),
                                         "enable_nic": True,
                                         "diff": {'MgmtVLANId': 0}}])
     def test_update_chassis_payload_success(self, param):
@@ -245,9 +245,9 @@ class TestOmeDeviceMgmtNetwork(FakeAnsibleModule):
         diff = self.module.update_chassis_payload(f_module, param["device"])
         assert diff == param.get("diff")
 
-    @pytest.mark.parametrize("param", [{"in": inp_param, "device": server, "enable_nic": False,
+    @pytest.mark.parametrize("param", [{"in": deepcopy(inp_param), "device": deepcopy(server), "enable_nic": False,
                                         "diff": {'enableNIC': 'Disabled'}},
-                                       {"in": inp_param, "device": server, "enable_nic": True,
+                                       {"in": deepcopy(inp_param), "device": deepcopy(server), "enable_nic": True,
                                         "diff": {'staticIPAddressIPv4': '192.168.11.20',
                                                  'staticSubnetMaskIPv4': '255.255.255.0',
                                                  'staticGatewayIPv4': '192.168.11.1',
@@ -261,20 +261,20 @@ class TestOmeDeviceMgmtNetwork(FakeAnsibleModule):
                                                  'staticPrefixLengthIPv6': 0, 'staticGatewayIPv6': '0000::ffff',
                                                  'enableIPv6': 'Enabled',
                                                  'vlanId': 0}},
-                                       {"in": {"ipv6_configuration": ipv6_configuration}, "device": server,
+                                       {"in": {"ipv6_configuration": ipv6_configuration}, "device": deepcopy(server),
                                         "enable_nic": True,
                                         "diff": {'staticPreferredDNSIPv6': '2607:f2b1:f081:9:1c8c:f1c7:47e:f122',
                                                  'staticAlternateDNSIPv6': '2607:f2b1:f081:9:1c8c:f1c7:47e:f121',
                                                  'staticIPAddressIPv6': '2607:f2b1:f081:9:1c8c:f1c7:47e:f120',
                                                  'staticPrefixLengthIPv6': 0, 'staticGatewayIPv6': '0000::ffff',
                                                  'enableAutoConfigurationIPv6': 'Disabled', 'enableIPv6': 'Enabled'}},
-                                       {"in": {"ipv4_configuration": ipv4_configuration}, "device": server,
+                                       {"in": {"ipv4_configuration": ipv4_configuration}, "device": deepcopy(server),
                                         "enable_nic": True, "diff": {'staticIPAddressIPv4': '192.168.11.20',
                                                                      'staticSubnetMaskIPv4': '255.255.255.0',
                                                                      'staticGatewayIPv4': '192.168.11.1',
                                                                      'staticPreferredDNSIPv4': '192.168.11.2',
                                                                      'staticAlternateDNSIPv4': '192.168.11.3'}},
-                                       {"in": {"management_vlan": management_vlan}, "device": server,
+                                       {"in": {"management_vlan": management_vlan}, "device": deepcopy(server),
                                         "enable_nic": True, "diff": {'vlanEnable': 'Enabled', 'vlanId': 0}}
                                        ])
     def test_update_server_payload_success(self, param):
@@ -284,7 +284,7 @@ class TestOmeDeviceMgmtNetwork(FakeAnsibleModule):
         diff = self.module.update_server_payload(f_module, param["device"])
         assert diff == param.get("diff")
 
-    @pytest.mark.parametrize("param", [{"in": inp_param, "device": iom, "enable_nic": False,
+    @pytest.mark.parametrize("param", [{"in": deepcopy(inp_param), "device": deepcopy(iom), "enable_nic": False,
                                         "diff": {'StaticGateway': '0000::ffff', 'StaticIPAddress': '192.168.11.20',
                                                  'StaticSubnetMask': '255.255.255.0', 'EnableDHCP': False,
                                                  'EnableMgmtVLANId': True,
@@ -292,22 +292,22 @@ class TestOmeDeviceMgmtNetwork(FakeAnsibleModule):
                                                  'StaticIPv6Address': '2607:f2b1:f081:9:1c8c:f1c7:47e:f120',
                                                  'MgmtVLANId': 0, 'SecondaryDNS': '192.96.20.182',
                                                  'PrimaryDNS': '192.96.20.181'}},
-                                       {"in": inp_param, "device": iom, "enable_nic": True,
+                                       {"in": deepcopy(inp_param), "device": deepcopy(iom), "enable_nic": True,
                                         "diff": {'StaticGateway': '0000::ffff', 'StaticIPAddress': '192.168.11.20',
                                                  'StaticSubnetMask': '255.255.255.0', 'EnableDHCP': False,
                                                  'StaticPrefixLength': 0, 'EnableMgmtVLANId': True,
                                                  'StaticIPv6Address': '2607:f2b1:f081:9:1c8c:f1c7:47e:f120',
                                                  'MgmtVLANId': 0, 'SecondaryDNS': '192.96.20.182',
                                                  'PrimaryDNS': '192.96.20.181'}},
-                                       {"in": {"ipv6_configuration": ipv6_configuration}, "device": iom,
+                                       {"in": {"ipv6_configuration": ipv6_configuration}, "device": deepcopy(iom),
                                         "enable_nic": True, "diff": {'StaticGateway': '0000::ffff',
                                                                      'StaticPrefixLength': 0,
                                                                      'StaticIPv6Address': '2607:f2b1:f081:9:1c8c:f1c7:47e:f120'}},
-                                       {"in": {"ipv4_configuration": ipv4_configuration}, "device": iom,
+                                       {"in": {"ipv4_configuration": ipv4_configuration}, "device": deepcopy(iom),
                                         "enable_nic": True,
                                         "diff": {'StaticGateway': '192.168.11.1', 'StaticIPAddress': '192.168.11.20',
                                                  'StaticSubnetMask': '255.255.255.0', 'EnableDHCP': False}},
-                                       {"in": {"management_vlan": management_vlan}, "device": iom,
+                                       {"in": {"management_vlan": management_vlan}, "device": deepcopy(iom),
                                         "enable_nic": True, "diff": {'EnableMgmtVLANId': True, 'MgmtVLANId': 0}}
                                        ])
     def test_update_iom_payload_success(self, param):
