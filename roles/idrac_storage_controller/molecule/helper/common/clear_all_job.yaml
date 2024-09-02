@@ -2,12 +2,9 @@
 - name: Set variable facts
   ansible.builtin.set_fact:
     hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
-    username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
-    password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
     https_port: "443"
     https_timeout: 30
     validate_certs: false
-  no_log: true
 
 - name: Constructing url
   ansible.builtin.set_fact:
@@ -23,8 +20,8 @@
 - name: Clearing job queue
   ansible.builtin.uri:
     url: "{{ clear_job_url }}"
-    user: "{{ username }}"
-    password: "{{ password }}"
+    user: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
+    password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
     headers:

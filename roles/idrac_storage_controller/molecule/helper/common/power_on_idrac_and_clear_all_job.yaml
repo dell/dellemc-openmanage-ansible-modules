@@ -1,8 +1,8 @@
 ---
 - name: Making sure Server is powered On
   ansible.builtin.include_tasks:
-    file: ../helper/power_on_idrac.yaml
+    file: ../common/power_on_idrac.yaml
 
 - name: Making sure Job queue is empty
   ansible.builtin.include_tasks:
-    file: ../helper/clear_all_job.yaml
+    file: ../common/clear_all_job.yaml
