@@ -27,6 +27,54 @@ The below requirements are needed on the host that executes this module.
 Parameters
 ----------
 
+  boot_mode (optional, str, None)
+    Boot Mode of the idrac.
+
+    \ :emphasis:`Uefi`\  Enables the secure boot in uefi mode.
+
+    \ :emphasis:`Bios`\  Enables the secure boot in uefi mode.
+
+
+  secure_boot (optional, str, None)
+    UEFI Secure Boot.
+
+    The \ :emphasis:`secure\_boot\_mode`\  can be \ :literal:`Enabled`\  only if \ :emphasis:`boot\_mode`\  is \ :literal:`Uefi`\  and \ :emphasis:`force\_int\_10`\  is \ :literal:`Disabled`\ .
+
+    \ :emphasis:`Enabled`\  enables the Secureboot mode.
+
+    \ :emphasis:`Disabled`\  enables the Secureboot mode.
+
+
+  secure_boot_mode (optional, str, None)
+    The UEFI Secure Boot Mode configures how the Secure Boot Policy are used.
+
+    \ :emphasis:`UserMode`\  set the secure boot mode into an user mode where PK must be installed, and BIOS performs signature verification on programmatic attempts to update policy objects.
+
+    \ :emphasis:`DeployedMode`\  set the secure boot mode into an deployed mode where PK is present, and BIOS performs signature verification on programmatic attempts to update policy objects
+
+    \ :emphasis:`AuditMode`\  set the secure boot mode into an audit mode where PK is not present. The BIOS does not authenticate programmatic updates to the policy objects, and transitions between modes. The BIOS performs a signature verification on pre-boot images and logs the results in the image Execution Information Table, but executes the images whether they pass or fail verification.
+
+
+  secure_boot_policy (optional, str, None)
+    Following are the secure boot policy.
+
+    C (Standard) indicates that the system has default certificates and image digests, or hash loaded from the factory.
+
+    \ :literal:`Custom`\  inherits the standard certificates and image digests that are loaded in the system by default, which you can modify.
+
+    Secure Boot Policy configured as Custom allows you to perform operations such as View, Export, Import, Delete, Delete All, Reset, and Reset.
+
+
+  force_int_10 (optional, str, None)
+    Determines whether the system BIOS will load the legacy video (INT 10h) option ROM from the video controller.
+
+    This field is supported only in UEFI boot mode. This field cannot be set to Enabled if UEFI SecureBoot is enabled.
+
+    \ :literal:`Enabled`\  if the operating system does not support UEFI video output standards.
+
+    \ :literal:`Disabled`\  if the operating system support UEFI video output standards.
+
+
   import_certificates (optional, bool, None)
     Import all the specified key certificates.
 
@@ -47,6 +95,24 @@ Parameters
 
   disallow_database (optional, list, None)
     A list of absolute paths of the Disallow Database certificate file for UEFI secure boot.
+
+
+  reset_keys (optional, str, None)
+    Resets the UEFI Secure Boot keys.
+
+    \ :literal:`ResetAllKeysToDefault`\  - Reset the content of all UEFI Secure Boot key databases (PK, KEK, DB, DBX) to their default values.
+
+    \ :literal:`DeletePK`\  - Delete the content of the PK UEFI Secure Boot database. This puts the system in Setup Mode.
+
+    \ :literal:`DeleteAllKeys`\  - Delete the content of all UEFI Secure Boot key databases (PK, KEK, DB, DBX). This puts the system in Setup Mode
+
+    \ :literal:`ResetPK`\  - Reset the content of PK UEFI Secure Boot database to their default values.
+
+    \ :literal:`ResetKEK`\ - Reset the content of KEK UEFI Secure Boot database to their default values.
+
+    \ :literal:`ResetDB`\ - Reset the content of DB UEFI Secure Boot database to their default values.
+
+    \ :literal:`ResetDBX`\ - Reset the content of DBX UEFI Secure Boot database to their default values.
 
 
   restart (optional, bool, False)
@@ -136,6 +202,7 @@ Notes
 .. note::
    - This module will always report changes found to be applied when run in \ :literal:`check mode`\ .
    - This module does not support idempotency when \ :emphasis:`import\_certificates`\  is provided.
+   - The order of operations set secure boot settings (boot\_mode, secure\_boot, secure\_boot\_mode, secure\_boot\_policy, force\_int\_10),  export,  certificate reset,  import, idrac reset.
    - This module supports IPv4 and IPv6 addresses.
 
 
@@ -148,6 +215,22 @@ Examples
 
     
     ---
+    - name: Enable Secureboot.
+      dellemc.openmanage.idrac_secureboot:
+        secure_boot: Enabled
+
+    - name: Set SecureBootMode and SecureBootPolicy and reset iDRAC.
+      dellemc.openmanage.idrac_secureboot:
+        secure_boot: Enabled
+        secure_boot_mode: UserMode
+        secure_boot_policy: Custom
+        reset: true
+        reset_type: graceful_restart
+
+    - name: Reset Secure Boot certificates.  
+      dellemc.openmanage.idrac_secureboot:
+        reset_keys: "RESET_ALL_KEYS_TO_DEFAULT"
+
     - name: Import multiple SecureBoot certificate without applying to iDRAC.
       dellemc.openmanage.idrac_secure_boot:
         idrac_ip: "192.168.1.2"
@@ -204,4 +287,5 @@ Authors
 ~~~~~~~
 
 - Abhishek Sinha(@ABHISHEK-SINHA10)
+- Lovepreet Singh (@singh-lovepreet1)
 
