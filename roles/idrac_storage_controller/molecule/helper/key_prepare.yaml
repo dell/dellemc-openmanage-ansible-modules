@@ -60,13 +60,13 @@
         mode: "LKM"
         key: "your_Key@123"
         key_id: "your_Keyid@123"
-      register: idrac_storage_controller_result_set_attrs
+      register: idrac_storage_controller_res_set_attrs
       ignore_errors: true
 
     - name: Waiting for iDRAC to be in ready state
       ansible.builtin.pause:
         seconds: 30
-      when: idrac_storage_controller_result_set_attrs.msg == "Successfully
+      when: idrac_storage_controller_res_set_attrs.msg == "Successfully
        performed the 'SetControllerKey' operation."
 
     - name: Waiting for iDRAC to be in ready state
@@ -74,20 +74,20 @@
       register: idrac_storage_controller_pd_state_out_lc
       ansible.builtin.include_tasks:
         file: ../__lc_status.yaml
-      when: idrac_storage_controller_result_set_attrs.msg == "Successfully
+      when: idrac_storage_controller_res_set_attrs.msg == "Successfully
        performed the 'SetControllerKey' operation."
 
     - name: Preparing job status
       ansible.builtin.include_tasks: ../__prepare_lc_job_status.yaml
       vars:
         job_id: "{{ set_LKM_encryption.status.Id }}"
-      when: idrac_storage_controller_result_set_attrs.msg == "Successfully
+      when: idrac_storage_controller_res_set_attrs.msg == "Successfully
        performed the 'SetControllerKey' operation."
 
     - name: Waiting for iDRAC to be in ready state
       ansible.builtin.pause:
         seconds: 10
-      when: idrac_storage_controller_result_set_attrs.changed   # noqa: no-handler
+      when: idrac_storage_controller_res_set_attrs.changed   # noqa: no-handler
 
     - name: Constructing url
       ansible.builtin.set_fact:
