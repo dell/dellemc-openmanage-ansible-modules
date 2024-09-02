@@ -41,4 +41,4 @@
         target: "{{ physicaldisks[3] }}"
         job_wait: true
         job_wait_timeout: 1200
-      register: result
+      register: idrac_storage_controller_result

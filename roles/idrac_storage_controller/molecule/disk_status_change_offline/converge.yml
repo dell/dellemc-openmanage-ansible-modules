@@ -26,7 +26,7 @@
 
         - name: Waiting for iDRAC to be in ready state
           ignore_errors: true
-          register: pd_state_out_lc
+          register: idrac_storage_controller_pd_state_out_lc
           ansible.builtin.include_tasks:
             file: ../__lc_status.yaml
           when: pd_state_out.msg == "Successfully performed the

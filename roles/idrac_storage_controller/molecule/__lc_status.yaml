@@ -20,8 +20,8 @@
       "{{ url1 }}{{ url2 }}{{ url3 }}"
     method: POST
     body: {}
-  until: status_result.json.Status == "Ready"
-  register: status_result
+  until: idrac_storage_controller_status_result.json.Status == "Ready"
+  register: idrac_storage_controller_status_result
   check_mode: false
   retries: 120
   delay: 30

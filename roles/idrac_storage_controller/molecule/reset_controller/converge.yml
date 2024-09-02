@@ -23,7 +23,7 @@
 
     - name: Pre-req - Fetch volumes after performing the reset
       ignore_errors: true
-      register: result_vol
+      register: idrac_storage_controller_result_vol
       ansible.builtin.include_tasks: ../__fetch_volumes.yml
       vars:
         post_op: false

@@ -16,7 +16,7 @@
         job_wait_timeout: 1200
         controller_id: "{{ controller_name }}"
         remove_key: true
-      register: remove_controller_encryption
+      register: idrac_storage_controller_remove_controller_encryption
 
     - name: Verify task status - Remove controller encryption key
        (Check mode - Changes expected)
@@ -34,7 +34,7 @@
 
     - name: Waiting for iDRAC to be in ready state
       ignore_errors: true
-      register: pd_state_out_lc
+      register: idrac_storage_controller_pd_state_out_lc
       ansible.builtin.include_tasks:
         file: ../__lc_status.yaml
       when: remove_controller_key_out.msg == "Successfully performed the
@@ -54,8 +54,8 @@
           - remove_controller_key_out.changed
           - remove_controller_key_out.msg == "Successfully performed the
             'RemoveControllerKey' operation."
-          - fetched_data.json.Oem.Dell.DellStorageController.
-           EncryptionMode == "None"
+          - idrac_storage_controller_fetched_data.json.Oem.Dell.
+            DellStorageController.EncryptionMode == "None"
       when: not ansible_check_mode and remove_controller_key_out.status
              is defined
 

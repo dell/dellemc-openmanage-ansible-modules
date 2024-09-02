@@ -21,15 +21,16 @@
     return_content: true
     status_code: 200
     headers: 'Accept=application/json'
-  until: uri_res.status == 200
+  until: idrac_storage_controller_uri_rs.status == 200
   retries: 12
   delay: 5
-  register: uri_res
+  register: idrac_storage_controller_uri_rs
 
 - name: Remove odata from uri response
   ansible.builtin.set_fact:
-    job_data_uri: "{{ uri_res.json | ansible.utils.remove_keys(target=
-     ['@odata', 'MessageArgs@odata.count'], matching_parameter='regex') }}"
+    job_data_uri: "{{ idrac_storage_controller_uri_rs.json |
+     ansible.utils.remove_keys(target=['@odata',
+      'MessageArgs@odata.count'], matching_parameter='regex') }}"
 
 - name: Set uri job status
   ansible.builtin.set_fact:
