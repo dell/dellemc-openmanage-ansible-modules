@@ -24,7 +24,7 @@
     - name: Prerequisite - Reset any encryption configurations
       idrac_redfish_storage_controller:
         controller_id: "{{ controller_name }}"
-        command: "ResetConfig"
+        command: "RemoveControllerKey"
       register: prereq_result_set_attrs
 
     - ansible.builtin.wait_for: timeout=30
@@ -41,9 +41,9 @@
 
     - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
       vars:
-        job_id: "{{set_LKM_encryption.status.Id}}"
+        job_id: "{{prereq_result_set_attrs.status.Id}}"
       when: prereq_result_set_attrs.msg == "Successfully submitted the job
-       that configures the controller attributes."
+       that performs the 'RemoveControllerKey' operation."
 
     - ansible.builtin.pause: seconds=10
       when: prereq_result_set_attrs.changed
@@ -95,9 +95,9 @@
         <<: *idrac_redfish_storage_controller_1
       register: set_LKM_encryption
 
-    - ansible.builtin.wait_for: timeout=120
-      when: set_LKM_encryption.msg == "Successfully submitted the job
-       that configures the controller attributes."
+    - ansible.builtin.wait_for: timeout=30
+      when: set_LKM_encryption.msg == "Successfully submitted the
+       job that performs the 'SetControllerKey' operation."
 
     - name: Check for iDRAC lc ready status.
       idrac_lifecycle_controller_status_info:
@@ -110,8 +110,8 @@
     - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
       vars:
         job_id: "{{set_LKM_encryption.status.Id}}"
-      when: set_LKM_encryption.msg == "Successfully submitted the job
-       that configures the controller attributes."
+      when: set_LKM_encryption.msg == "Successfully submitted the
+       job that performs the 'SetControllerKey' operation."
 
     - ansible.builtin.pause: seconds=10
       when: set_LKM_encryption.changed
