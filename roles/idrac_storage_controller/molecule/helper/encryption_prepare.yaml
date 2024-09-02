@@ -10,7 +10,7 @@
   tasks:
     - name: Making sure Server is powered on and clear all job
       ansible.builtin.include_tasks:
-        file: ../helper/power_on_idrac_and_clear_all_job.yaml
+        file: ../helper/common/power_on_idrac_and_clear_all_job.yaml
 
     - name: Prerequisite - Fetch Storage details
       dellemc.openmanage.idrac_storage_volume:
