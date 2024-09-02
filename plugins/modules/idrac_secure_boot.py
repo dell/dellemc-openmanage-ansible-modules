@@ -166,6 +166,7 @@ error_info:
 
 import json
 import os
+from copy import deepcopy
 from urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
@@ -188,6 +189,8 @@ NO_IMPORT_SUCCESS = "The Secure Boot Certificate Import operation was not succes
 NO_DIRECTORY_FOUND = "Unable to find the directory {path}."
 NO_WRITE_PERMISSION_PATH = 'Unable to write to the directory {path}.'
 TOO_MANY_DIRECTORIES = 'More than one directory found for parameter {key}.'
+CERT_IS_EMPTY = 'Certificate string is empty in {file_name} for {parameter}.'
+SUCCESS_EXPORT_MSG = 'Successfully exported the SecureBoot certificate.'
 odata = '@odata.id'
 
 
@@ -375,7 +378,7 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
 
 
 class IDRACExportSecureBoot(IDRACSecureBoot):
-    
+
     def __init__(self, idrac, module):
         super().__init__(idrac, module)
 
@@ -405,23 +408,23 @@ class IDRACExportSecureBoot(IDRACSecureBoot):
         self.database = self.validate_key_directory('database', self.database)
         self.disallow_database = self.validate_key_directory('disallow_database', self.disallow_database)
 
-    def write_certificate_file(self, path, content):
-        with open(path, 'w') as f:
-            return f.write(content)
-
-    def fetch_certificate_file_and_write(self, uri, path):
-        certificates_uri = get_dynamic_uri(self.idrac, uri, 'Certificates')
+    def fetch_certificate_file_and_write(self, uri, path, parameter):
+        certificates_uri = get_dynamic_uri(self.idrac, uri, 'Certificates')[odata]
         members = get_dynamic_uri(self.idrac, certificates_uri, 'Members')
         for each_member in members:
             tmp_uri = each_member.get(odata)
             file_name = tmp_uri.split('/')[-1]
+            updated_file_name = deepcopy(file_name).replace('.', '_')
             resp = get_dynamic_uri(self.idrac, tmp_uri)
             cert_type = resp.get('CertificateType').lower()
             cert_string = resp.get('CertificateString')
+            file_path = os.path.join(path, f"{updated_file_name}.{cert_type}")
             if cert_string:
-                self.write_certificate_file(
-                    os.path.join(path, f"{file_name}.{cert_type}"), cert_string)
-
+                with open(file_path, 'w') as f:
+                    f.write(cert_string)
+            else:
+                self.module.warn(CERT_IS_EMPTY.format(file_name=file_name,
+                                                      parameter=parameter))
 
     def perform_operation(self):
         """
@@ -429,6 +432,8 @@ class IDRACExportSecureBoot(IDRACSecureBoot):
         """
         self.validate_job_wait()
         self.filter_invalid_directory()
+        if self.module.check_mode:
+            self.module.exit_json(msg=CHANGES_FOUND, changed=True)
         uri = self.mapping_secure_boot_database_uri()
         data_map = {
             'platform_key': self.platform_key,
@@ -438,8 +443,9 @@ class IDRACExportSecureBoot(IDRACSecureBoot):
         }
         for parameter, path in data_map.items():
             if path:
-                self.fetch_certificate_file_and_write(uri[parameter], path)
-        self.module.exit_json(msg=SUCCESS_MSG, data=uri)
+                self.fetch_certificate_file_and_write(uri[parameter], path,
+                                                      parameter)
+        self.module.exit_json(msg=SUCCESS_EXPORT_MSG)
 
 
 def main():

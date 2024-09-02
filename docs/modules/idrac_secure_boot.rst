@@ -27,6 +27,14 @@ The below requirements are needed on the host that executes this module.
 Parameters
 ----------
 
+  export_certificates (optional, bool, None)
+    Export all the available certificates in the specified directory for the given keys.
+
+    \ :emphasis:`export\_cetificates`\  is mutually exclusive with \ :emphasis:`import`\ .
+
+    \ :emphasis:`export\_cetificates`\  is \ :literal:`true`\  either of \ :emphasis:`platform\_key`\  or i(key\_exchange\_key) or \ :emphasis:`database`\  - or \ :emphasis:`disallow\_database`\  is required.
+
+
   import_certificates (optional, bool, None)
     Import all the specified key certificates.
 
@@ -36,17 +44,25 @@ Parameters
   platform_key (optional, path, None)
     The absolute path of the Platform key certificate file for UEFI secure boot.
 
+    Directory path with write permissions if \ :emphasis:`export\_certificates`\  is \ :literal:`true`\ .
+
 
   KEK (optional, list, None)
     A list of absolute paths of the Key Exchange Key (KEK) certificate file for UEFI secure boot.
+
+    Directory path with write permissions if \ :emphasis:`export\_certificates`\  is \ :literal:`true`\ .
 
 
   database (optional, list, None)
     A list of absolute paths of the Database certificate file for UEFI secure boot.
 
+    Directory path with write permissions if \ :emphasis:`export\_certificates`\  is \ :literal:`true`\ .
+
 
   disallow_database (optional, list, None)
     A list of absolute paths of the Disallow Database certificate file for UEFI secure boot.
+
+    Directory path with write permissions if \ :emphasis:`export\_certificates`\  is \ :literal:`true`\ .
 
 
   restart (optional, bool, False)
