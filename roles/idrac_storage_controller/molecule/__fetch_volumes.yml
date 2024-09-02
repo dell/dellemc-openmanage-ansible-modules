@@ -6,13 +6,13 @@
     idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
     validate_certs: false
     state: "view"
-  register: idrac_storage_controller_result
+  register: idrac_storage_controller_res
   when: run_trigger is not defined
   # no_log: true
 
 - name: Set the Storage status
   ansible.builtin.set_fact:
-    storage_status: "{{ idrac_storage_controller_result.storage_status.Message }}"
+    storage_status: "{{ idrac_storage_controller_res.storage_status.Message }}"
 
 - name: Fetch the enclosures and controller name
   ansible.builtin.set_fact:
