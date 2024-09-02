@@ -24,30 +24,40 @@ description:
 extends_documentation_fragment:
   - dellemc.openmanage.idrac_x_auth_options
 options:
+  export_certificates:
+    type: bool
+    description:
+      - Export all the available certificates in the specified directory for the given keys.
+      - I(export_cetificates) is mutually exclusive with I(import).
+      - I(export_cetificates) is C(true) either of I(platform_key) or i(key_exchange_key) or I(database) - or I(disallow_database) is required.
   import_certificates:
     type: bool
     description:
-        - Import all the specified key certificates.
-        - When I(import_certificates) is C(true), then either I(platform_key), I(KEK), I(database), or I(disallow_database) is required.
+      - Import all the specified key certificates.
+      - When I(import_certificates) is C(true), then either I(platform_key), I(KEK), I(database), or I(disallow_database) is required.
   platform_key:
     type: path
     description:
       - The absolute path of the Platform key certificate file for UEFI secure boot.
+      - Directory path with write permissions if I(export_certificates) is C(true).
   KEK:
     type: list
     elements: path
     description:
       - A list of absolute paths of the Key Exchange Key (KEK) certificate file for UEFI secure boot.
+      - Directory path with write permissions if I(export_certificates) is C(true).
   database:
     type: list
     elements: path
     description:
       - A list of absolute paths of the Database certificate file for UEFI secure boot.
+      - Directory path with write permissions if I(export_certificates) is C(true).
   disallow_database:
     type: list
     elements: path
     description:
       - A list of absolute paths of the Disallow Database certificate file for UEFI secure boot.
+      - Directory path with write permissions if I(export_certificates) is C(true).
   restart:
     type: bool
     default: false
@@ -175,6 +185,9 @@ CHANGES_FOUND = 'Changes found to be applied.'
 SCHEDULED_AND_RESTARTED = "Successfully scheduled the boot certificate import operation and restarted the server."
 FAILED_IMPORT = "Failed to import certificate file {path} for {parameter}."
 NO_IMPORT_SUCCESS = "The Secure Boot Certificate Import operation was not successful."
+NO_DIRECTORY_FOUND = "Unable to find the directory {path}."
+NO_WRITE_PERMISSION_PATH = 'Unable to write to the directory {path}.'
+TOO_MANY_DIRECTORIES = 'More than one directory found for parameter {key}.'
 odata = '@odata.id'
 
 
@@ -183,6 +196,13 @@ class IDRACSecureBoot:
     def __init__(self, idrac, module):
         self.module = module
         self.idrac = idrac
+        plt_key = self.module.params.get('platform_key')
+        self.platform_key = [plt_key] if plt_key else []
+        self.KEK = self.module.params.get(
+            'KEK') or []
+        self.database = self.module.params.get('database') or []
+        self.disallow_database = self.module.params.get(
+            'disallow_database') or []
         self.uri_mapping = {'database': 'db',
                             'KEK': 'KEK',
                             'disallow_database': 'dbx',
@@ -225,13 +245,6 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
 
     def __init__(self, idrac, module):
         super().__init__(idrac, module)
-        plt_key = self.module.params.get('platform_key')
-        self.platform_key = [plt_key] if plt_key else []
-        self.KEK = self.module.params.get(
-            'KEK') or []
-        self.database = self.module.params.get('database') or []
-        self.disallow_database = self.module.params.get(
-            'disallow_database') or []
 
     def validate_certificate_paths(self, paths):
         """
@@ -361,9 +374,78 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
         self.module.exit_json(msg=scheduled_msg)
 
 
+class IDRACExportSecureBoot(IDRACSecureBoot):
+    
+    def __init__(self, idrac, module):
+        super().__init__(idrac, module)
+
+    def verify_path_is_directory_and_has_write_permission(self, path):
+        flag = True
+        is_dir_path = os.path.isdir(path)
+        if path and not is_dir_path:
+            self.module.warn(NO_DIRECTORY_FOUND.format(path=path))
+            flag = False
+        if path and is_dir_path and not os.access(path=path, mode=os.W_OK):
+            self.module.warn(NO_WRITE_PERMISSION_PATH.format(path=path))
+            flag = False
+        return path if flag is True else ''
+
+    def validate_key_directory(self, parameter, directories):
+        resp = ''
+        length_directories = len(directories)
+        if length_directories != 1:
+            self.module.warn(TOO_MANY_DIRECTORIES.format(key=parameter))
+        if length_directories == 1:
+            resp = self.verify_path_is_directory_and_has_write_permission(directories[0])
+        return resp
+
+    def filter_invalid_directory(self):
+        self.platform_key = self.validate_key_directory('platform_key', self.platform_key)
+        self.KEK = self.validate_key_directory('KEK', self.KEK)
+        self.database = self.validate_key_directory('database', self.database)
+        self.disallow_database = self.validate_key_directory('disallow_database', self.disallow_database)
+
+    def write_certificate_file(self, path, content):
+        with open(path, 'w') as f:
+            return f.write(content)
+
+    def fetch_certificate_file_and_write(self, uri, path):
+        certificates_uri = get_dynamic_uri(self.idrac, uri, 'Certificates')
+        members = get_dynamic_uri(self.idrac, certificates_uri, 'Members')
+        for each_member in members:
+            tmp_uri = each_member.get(odata)
+            file_name = tmp_uri.split('/')[-1]
+            resp = get_dynamic_uri(self.idrac, tmp_uri)
+            cert_type = resp.get('CertificateType').lower()
+            cert_string = resp.get('CertificateString')
+            if cert_string:
+                self.write_certificate_file(
+                    os.path.join(path, f"{file_name}.{cert_type}"), cert_string)
+
+
+    def perform_operation(self):
+        """
+        Perform operation
+        """
+        self.validate_job_wait()
+        self.filter_invalid_directory()
+        uri = self.mapping_secure_boot_database_uri()
+        data_map = {
+            'platform_key': self.platform_key,
+            'KEK': self.KEK,
+            'database': self.database,
+            'disallow_database': self.disallow_database
+        }
+        for parameter, path in data_map.items():
+            if path:
+                self.fetch_certificate_file_and_write(uri[parameter], path)
+        self.module.exit_json(msg=SUCCESS_MSG, data=uri)
+
+
 def main():
     try:
         specs = {
+            "export_certificates": {"type": 'bool'},
             "import_certificates": {"type": 'bool'},
             "platform_key": {"type": 'path'},
             "KEK": {"type": 'list', "elements": 'path'},
@@ -375,16 +457,22 @@ def main():
             "job_wait": {"type": 'bool', "default": True},
             "job_wait_timeout": {"type": 'int', "default": 1200},
         }
+        mutually_exclusive_val = [("import_certificates", "export_certificates")]
         required_if_val = [("import_certificates", True, ("platform_key", "KEK",
+                            "database", "disallow_database"), True),
+                           ("export_certificates", True, ("platform_key", "KEK",
                             "database", "disallow_database"), True)]
 
         module = IdracAnsibleModule(argument_spec=specs,
                                     required_if=required_if_val,
+                                    mutually_exclusive=mutually_exclusive_val,
                                     supports_check_mode=True)
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:
             obj = None
             if module.params.get('import_certificates'):
                 obj = IDRACImportSecureBoot(idrac, module)
+            elif module.params.get('export_certificates'):
+                obj = IDRACExportSecureBoot(idrac, module)
             else:
                 module.exit_json(msg=NO_OPERATION_SKIP, skipped=True)
             obj.perform_operation()
