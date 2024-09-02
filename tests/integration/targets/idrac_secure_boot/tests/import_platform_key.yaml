@@ -1,0 +1,119 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - ansible.builtin.include_tasks: _helper.yml
+
+    - ansible.builtin.include_tasks: _configure_generic_bios_attributes.yml
+
+    - name: Import platform key policy certificate
+       (check mode - changes expected)
+      dellemc.openmanage.idrac_secure_boot: &import_cert
+        import_certificates: true
+        platform_key: "{{ idrac_secure_boot_cert_path_1 }}"
+        restart: true
+        restart_type: GracefulRestart
+        job_wait: true
+        job_wait_timeout: 1000
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify - Import platform key policy certificate
+       (check mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == 'Changes found to be applied.'
+
+    - name: Get time details
+      ansible.builtin.include_tasks: _get_time_details.yml
+
+    - name: Import platform key policy certificate (normal mode)
+      dellemc.openmanage.idrac_secure_boot:
+        <<: *import_cert
+      register: import_cert
+
+    - name: Verify - Import platform key policy certificate (normal mode)
+      ansible.builtin.assert:
+        that:
+          - import_cert.changed
+          - import_cert.msg == "Successfully imported the SecureBoot
+           certificate."
+
+    - name: Verify - Secure boot Log entries
+      ansible.builtin.include_tasks: _get_log_entries.yml
+      vars:
+        msg_id: "UEFI0286"
+
+    - name: Import platform key policy certificate without restart
+        (check mode - changes expected)
+      dellemc.openmanage.idrac_secure_boot: &import_cert_no_restart
+        import_certificates: true
+        platform_key: "{{ idrac_secure_boot_cert_path_1 }}"
+        restart: false
+      register: cm_no_restart
+      check_mode: true
+
+    - name: Verify - Import platform key policy certificate without
+        restart (check mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - cm_no_restart.changed
+          - cm_no_restart.msg == 'Changes found to be applied.'
+
+    - name: Get time details
+      ansible.builtin.include_tasks: _get_time_details.yml
+
+    - name: Import platform key policy certificate (normal mode)
+      dellemc.openmanage.idrac_secure_boot:
+        <<: *import_cert_no_restart
+      register: import_no_restart
+
+    - name: Verify - Import platform key policy certificate without
+        restart (normal mode)
+      ansible.builtin.assert:
+        that:
+          - not import_no_restart.changed
+          - import_no_restart.msg == "The SecureBoot Certificate Import
+            operation is successfully scheduled. Restart the host server
+            for the changes to take effect."
+
+    - name: Verify - SecureBoot Certificate Import
+            operation is successfully scheduled
+      ansible.builtin.include_tasks: _get_log_entries.yml
+      vars:
+        msg_id: "SWC9010"
+
+    - name: Restart the server
+      dellemc.openmanage.redfish_powerstate:
+        baseuri: "{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
+        username: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+        reset_type: GracefulRestart
+
+    - name: Wait for the iDRAC lifecycle controller readiness
+      ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
+
+    - name: Verify - Secure boot Log entries
+      ansible.builtin.include_tasks: _get_log_entries.yml
+      vars:
+        msg_id: "UEFI0286"
+
+  module_defaults:
+    dellemc.openmanage.idrac_secure_boot:
+      idrac_ip: "{{ idrac_ip|ansible.utils.ipwrap }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
