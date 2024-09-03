@@ -1,0 +1,87 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Block for disk conversion to Non-Raid
+      block:
+        - name: Create a list of dictionaries of dictionaries
+          ansible.builtin.set_fact:
+            my_list:
+              id: "{{ physicaldisks[0] }}"
+              raid_state: nonraid
+
+        - name: Validate the disk conversion to NON-RAID
+          ansible.builtin.import_role:
+            name: idrac_storage_controller
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            job_wait: false
+            controller_id: "{{ controller_name }}"
+            disks: "{{ my_list }}"
+
+        - name: Waiting for iDRAC to be in ready state
+          ignore_errors: true
+          register: idrac_storage_controller_raid_state_out_lc
+          ansible.builtin.include_tasks:
+            file: ../__lc_status.yaml
+          when: raid_state_out is defined and raid_state_out.msg ==
+             "Successfully submitted the job that performs the
+             'ConvertToNonRAID' operation."
+
+        - name: Wait for 120 seconds
+          ansible.builtin.pause:
+            seconds: 120
+          when: not ansible_check_mode and raid_state_out.status is defined
+
+        - name: Creating Vd to check if disk is converted in non-Raid mode
+               (Expecting fail to create the VD)
+          ansible.builtin.include_tasks: ../__helper.yaml
+          vars:
+            volume_type: "RAID 0"
+            span_length: 1
+            id: ["{{ physicaldisks[0] }}"]
+            ignore_errors_val: true
+            vd_trigger: 1
+          when: raid_state_out is defined and raid_state_out.msg ==
+             "Successfully submitted the job that performs the
+             'ConvertToNonRAID' operation."
+
+        - name: Check if VD is created
+          ansible.builtin.set_fact:
+            vd_check: false
+          when: raid_state_out is defined and raid_state_out.msg ==
+             "Successfully submitted the job that performs the
+             'ConvertToNonRAID' operation."
+
+        - name: Store boolean value in a variable
+          ansible.builtin.set_fact:
+            is_vd_exist: "{{ vd_check }}"
+          when: vd_check is defined and raid_state_out.msg ==
+             "Successfully submitted the job that performs the
+             'ConvertToNonRAID' operation."
+
+        - name: Verifying disk conversion to non-raid in check mode
+          ansible.builtin.assert:
+            that:
+              - raid_state_out.msg == "Changes found to be applied."
+              - raid_state_out.changed
+          when: ansible_check_mode
+
+        - name: Verifying disk conversion to non-raid in normal mode
+          ansible.builtin.assert:
+            that:
+              - raid_state_out.msg == "Successfully submitted the job that
+                performs the 'ConvertToNonRAID' operation."
+              - is_vd_exist is defined and not is_vd_exist
+          when: not ansible_check_mode and raid_state_out.status is defined
+
+        - name: Verifying disk conversion to non-raid in idempotence mode
+          ansible.builtin.assert:
+            that:
+              - raid_state_out.msg == "No changes found to be applied."
+              - not raid_state_out.changed
+          when: not ansible_check_mode and raid_state_out.status is not defined

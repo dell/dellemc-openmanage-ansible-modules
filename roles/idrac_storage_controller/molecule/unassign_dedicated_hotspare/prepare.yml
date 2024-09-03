@@ -1,0 +1,44 @@
+---
+- name: Prepare the controller for disk status change to online
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Making sure Server is powered on and clear all job
+      ansible.builtin.include_tasks:
+        file: ../helper/common/power_on_idrac_and_clear_all_job.yaml
+
+    - name: Include the helper file
+      ansible.builtin.include_tasks: ../__helper.yaml
+      vars:
+        initial_state: true
+
+    - name: Pre-check - fail if enough disk not found to create VD on RAID 1
+      ansible.builtin.fail:
+        msg: 'Physical disks are not sufficient to proceed the test case need
+             more than 4 and found {{ physicaldisks | length }}'
+      when: physicaldisks is defined and physicaldisks | length < 4
+
+    - name: Creating the VD on raid5
+      ansible.builtin.include_tasks: ../__helper.yaml
+      vars:
+        vd_trigger: 1
+        volume_type: "RAID 5"
+        span_length: 3
+        id: ["{{ physicaldisks[0] }}", "{{ physicaldisks[1] }}",
+             "{{ physicaldisks[2] }}"]
+        reset_trigger: 1
+        ignore_errors_val: true
+
+    - name: Pre-Req - Assigning the dedicated hotspare
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "{{ lookup('env', 'IDRAC_IP') }}:443"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        command: "AssignSpare"
+        volume_id:
+          - "{{ virtualdisk }}"
+        target: "{{ physicaldisks[3] }}"
+        job_wait: true
+        job_wait_timeout: 1200
+      register: idrac_storage_controller_result
