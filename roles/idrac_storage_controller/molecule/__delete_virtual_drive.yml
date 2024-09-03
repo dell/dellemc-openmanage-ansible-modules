@@ -1,0 +1,22 @@
+---
+- name: "Deleting virtual disk in {{ controller_id }}"
+  ansible.builtin.import_role:
+    name: redfish_storage_volume
+  vars:
+    hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+    username: "{{ lookup('env', 'IDRAC_USER') }}"
+    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+    state: absent
+    volume_id: "{{ virtualdisk }}"
+    reboot_server: true
+    job_wait: true
+  when: virtualdisk is defined
+  register: idrac_storage_controller_out
+  check_mode: false
+
+- name: Waiting for iDRAC to be in ready state
+  ansible.builtin.include_tasks:
+    file: ../__lc_status.yaml
+  when: idrac_storage_controller_out is defined and
+        idrac_storage_controller_out.changed

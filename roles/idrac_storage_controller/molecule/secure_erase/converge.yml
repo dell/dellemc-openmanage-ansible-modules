@@ -1,0 +1,88 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Create a list of dictionaries of dictionaries
+      ansible.builtin.set_fact:
+        disks_details:
+          id: "{{ physicaldisks[0] }}"
+          erase: true
+
+    - name: Secure Erase
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        job_wait: true
+        job_wait_timeout: 400
+        disks: "{{ disks_details }}"
+        controller_id: "{{ controller_name }}"
+
+    - name: Verifying - assign dedicated hot spare in check mode
+      ansible.builtin.assert:
+        that:
+          - erase_state_out.msg == "Changes found to be applied."
+          - erase_state_out.changed
+      when: ansible_check_mode
+
+    - name: Set facts
+      ansible.builtin.set_fact:
+        job_list: []
+        uri_job_status: {}
+      when: not ansible_check_mode
+
+    - name: Set job list
+      ansible.builtin.set_fact:
+        job_list: "{{ job_list + [item.Id] }}"
+      loop: "{{ [erase_state_out.status] }}"
+      when: not ansible_check_mode
+
+    - name: Get job details
+      ansible.builtin.include_tasks: ../__get_job_details.yml
+      vars:
+        job_id: "{{ item }}"
+      with_items: "{{ job_list }}"
+      when: not ansible_check_mode
+
+    - name: Set module job status
+      ansible.builtin.set_fact:
+        module_job_status: "{{ erase_state_out.status }}"
+      when: not ansible_check_mode
+
+    - name: Compare job_detailed_status from task and uri
+      ansible.utils.fact_diff:
+        before: "{{ uri_job_status }}"
+        after: "{{ module_job_status }}"
+      register: idrac_storage_controller_diff_result
+      when: not ansible_check_mode
+
+    - name: Verify task status - Compare job_status from task and uri
+      ansible.builtin.assert:
+        that:
+          - not idrac_storage_controller_diff_result.changed
+          - not idrac_storage_controller_diff_result.diff_lines
+      when: not ansible_check_mode
+
+    - name: Construct expected URI for assertion
+      ansible.builtin.set_fact:
+        erase_job_wait_expected_uri: >-
+          {{ "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/" +
+          erase_state_out.task.id }}
+      when: not ansible_check_mode
+
+    - name: Secure erase the physical disk with job_wait as true - Normal
+        mode - Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - erase_state_out.msg == "Successfully performed the
+            'SecureErase' operation."
+          - erase_state_out.changed
+          - not erase_state_out.failed
+          - erase_state_out.task.id
+          - erase_state_out.task.uri == erase_job_wait_expected_uri
+      when: not ansible_check_mode and
+            erase_state_out.status is defined
