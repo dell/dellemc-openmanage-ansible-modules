@@ -17,10 +17,13 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: idrac_secure_boot
-short_description: Import secure boot certificate.
+short_description: Configure attributes, import or export secure boot certificate and Reset keys
 version_added: "9.6.0"
 description:
   - This module allows to import the secure boot certificate.
+  - This module allows to enable/disable secure boot, boot mode.
+  - This modules also allows to configure Policies PK, KEK and configure DB, DBX certificates.
+  - This module allows to reset the UEFI Secure Boot keys.
 extends_documentation_fragment:
   - dellemc.openmanage.idrac_x_auth_options
 options:

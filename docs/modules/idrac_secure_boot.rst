@@ -1,8 +1,8 @@
 .. _idrac_secure_boot_module:
 
 
-idrac_secure_boot -- Import secure boot certificate.
-====================================================
+idrac_secure_boot -- Configure attributes, import or export secure boot certificate and Reset keys
+==================================================================================================
 
 .. contents::
    :local:
@@ -13,6 +13,12 @@ Synopsis
 --------
 
 This module allows to import the secure boot certificate.
+
+This module allows to enable/disable secure boot, boot mode.
+
+This modules also allows to configure Policies PK, KEK and configure DB, DBX certificates.
+
+This module allows to reset the UEFI Secure Boot keys.
 
 
 
