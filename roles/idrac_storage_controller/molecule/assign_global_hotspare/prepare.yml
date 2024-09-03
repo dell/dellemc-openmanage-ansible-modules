@@ -1,0 +1,31 @@
+---
+- name: Prepare the controller for disk status change to online
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Making sure Server is powered on and clear all job
+      ansible.builtin.include_tasks:
+        file: ../helper/common/power_on_idrac_and_clear_all_job.yaml
+
+    - name: Include the helper file
+      ansible.builtin.include_tasks: ../__helper.yaml
+      vars:
+        initial_state: true
+
+    - name: Pre-check - fail if enough disk not found to create VD on RAID 1
+      ansible.builtin.fail:
+        msg: 'Physical disks are not sufficient to proceed the test case need
+             more than 2 and found {{ physicaldisks | length }}'
+      when: physicaldisks is defined and physicaldisks | length < 2
+
+    - name: Trigger the reset
+      ansible.builtin.include_tasks: ../__helper.yaml
+      vars:
+        reset_trigger: 1
+        ignore_errors_val: true
+
+    - name: Pre-Req - Unassigning the dedicated hotspare
+      ansible.builtin.include_tasks: ../__helper.yaml
+      vars:
+        target: "{{ physicaldisks[0] }}"
+        ignore_errors_val: true

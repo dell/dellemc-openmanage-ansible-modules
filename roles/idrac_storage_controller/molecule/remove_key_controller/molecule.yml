@@ -1,0 +1,15 @@
+---
+provisioner:
+  name: ansible
+  playbooks:
+    prepare: ../helper/key_prepare.yaml
+scenario:
+  test_sequence:
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - check
+    - converge
+    - idempotence
+    - destroy

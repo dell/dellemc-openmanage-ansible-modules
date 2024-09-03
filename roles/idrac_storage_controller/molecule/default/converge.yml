@@ -1,0 +1,524 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Pre-req - Fetch volumes
+      ansible.builtin.include_tasks: ../__fetch_volumes.yml
+      vars:
+        post_op: false
+
+    - name: Performing operation on the iDRAC device using default
+            reset_type with invalid hostname
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "randomHostname"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        controller_id: "{{ controller_name }}"
+        reset_config: true
+      ignore_errors: true
+      ignore_unreachable: true
+      register: idrac_storage_controller_idrac_storage_controller_tmp
+
+    - name: "Verifying operation on the iDRAC device using default
+              reset_type with invalid hostname"
+      ansible.builtin.assert:
+        that:
+          - "'<urlopen error Unable to communicate with iDRAC randomHostname.'
+              in '{{ reset_config_out.msg }}' or
+            '<urlopen error [Errno -2] Name or service not known>' in
+              '{{ reset_config_out.msg }}'"
+
+    - name: Performing operation on the iDRAC device using default
+            reset_type with invalid username
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "WrongUsername123"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        reset_config: true
+        controller_id: "{{ controller_name }}"
+      ignore_errors: true
+      ignore_unreachable: true
+      register: idrac_storage_controller_idrac_storage_controller_tmp
+
+    - name: "Verifying operation on the iDRAC device using default
+              reset_type with invalid username"
+      ansible.builtin.assert:
+        that:
+          - "'HTTP Error 401' in '{{ reset_config_out.msg }}'"
+
+    - name: Performing operation on the iDRAC device using default
+            reset_type with invalid password
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "WrongPassword@123"
+        validate_certs: false
+        controller_id: "{{ controller_name }}"
+        reset_config: true
+      ignore_errors: true
+      ignore_unreachable: true
+      register: idrac_storage_controller_idrac_storage_controller_tmp
+
+    - name: "Verifying operation on the iDRAC device using default
+              reset_type with invalid password"
+      ansible.builtin.assert:
+        that:
+          - "'HTTP Error 401' in '{{ reset_config_out.msg }}'"
+
+    - name: Performing operation on the iDRAC device using default
+            reset_type without controller ID
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        controller_id: None
+        reset_config: true
+      ignore_errors: true
+      ignore_unreachable: true
+      register: idrac_storage_controller_tmp
+
+    - name: "Verifying operation on the iDRAC device using default
+              reset_type without controller ID"
+      ansible.builtin.assert:
+        that:
+          - reset_config_out.msg == "controller_id with id 'None'
+            not found in system"
+
+    - name: Playbook to set controller attributes with Job wait by providing
+            a invalid value for attribute
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        controller_id: "{{ controller_name }}"
+        attributes:
+          CopybackMode: "On"
+          EnhancedAutoImportForeignConfigurationMode: "invalid value"
+          PatrolReadMode: Disabled
+        apply_time: Immediate
+      ignore_errors: true
+      register: idrac_storage_controller_tmp
+
+    - name: Verifying set controller attributes with Job wait by providing
+            a invalid value for attribute
+      ansible.builtin.assert:
+        that:
+          - attributes_config_out.msg == "Unable to configure the controller
+            attribute(s) settings."
+          - attributes_config_out.failed
+
+    - name: Playbook to set controller attributes with Job wait by providing
+            a invalid apply_time
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        controller_id: "{{ controller_name }}"
+        attributes:
+          CopybackMode: "On"
+          PatrolReadMode: Disabled
+        apply_time: "Invalid_apply_tine"
+        maintenance_window:
+          start_time: "2026-09-14T06:59:35-05:00"
+          duration: "180"
+      ignore_errors: true
+      register: idrac_storage_controller_tmp
+
+    - name: Verifying disk status change to online in Normal mode
+      ansible.builtin.assert:
+        that:
+          - "attributes_config_out.msg == 'value of apply_time must be one
+            of: Immediate, OnReset, AtMaintenanceWindowStart,
+            InMaintenanceWindowOnReset, got: Invalid_apply_tine'"
+          - attributes_config_out.failed
+
+    - name: Playbook to set controller attributes with Job wait when
+            "apply_time=AtMaintenanceWindowStart"  by providing a invalid
+            maintenance_window
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        controller_id: "{{ controller_name }}"
+        attributes:
+          CopybackMode: "On"
+          PatrolReadMode: Disabled
+        apply_time: "InMaintenanceWindowOnReset"
+        maintenance_window:
+          start_time: "Invalid_start_time"
+          duration: "180"
+      ignore_errors: true
+      register: idrac_storage_controller_tmp
+
+    - name: Verifying disk status change to online in Normal mode
+      ansible.builtin.assert:
+        that:
+          - "'The maintenance time must be post-fixed with local offset
+            to' in attributes_config_out.status_msg"
+          - attributes_config_out.failed
+
+    - name: Playbook to set controller attributes with Job wait by providing
+            a key_id with length greater than 32
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        controller_id: "{{ controller_name }}"
+        set_controller_key: true
+        key: "PassPhrase@123"
+        key_id: "mykeyid123456789ooowalcowlskgjnsfnjnjogfwegnwfnwogjnewgneengo"
+      ignore_errors: true
+      register: idrac_storage_controller_tmp
+
+    - name: Verifying set controller attributes with Job wait by providing
+            a key_id with length greater than 32
+      ansible.builtin.assert:
+        that:
+          - "set_controller_key_out.msg == 'HTTP Error 400: Bad Request'"
+          - set_controller_key_out.failed
+
+    - name: Playbook to set controller attributes with Job wait by providing
+            a key_id with space
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        controller_id: "{{ controller_name }}"
+        set_controller_key: true
+        key: "PassPhrase@123"
+        key_id: "Mykeyid_12 34"
+      ignore_errors: true
+      register: idrac_storage_controller_tmp
+
+    - name: Verifying set controller attributes with Job wait by providing
+            a key_id with space
+      ansible.builtin.assert:
+        that:
+          - "set_controller_key_out.msg == 'HTTP Error 400: Bad Request'"
+          - set_controller_key_out.failed
+
+    - name: Playbook to set controller attributes with Job wait by providing
+            a key with length greater than 32
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        controller_id: "{{ controller_name }}"
+        set_controller_key: true
+        key_id: "PassPhrase@123"
+        key: "mykeyid123456789ooowalcowlskgjnsfnjnjogfwegnwfnwogjnewgneengo"
+      ignore_errors: true
+      register: idrac_storage_controller_tmp
+
+    - name: Verifying set controller attributes with Job wait by providing
+            a key with length greater than 32
+      ansible.builtin.assert:
+        that:
+          - "set_controller_key_out.msg == 'HTTP Error 400: Bad Request'"
+          - set_controller_key_out.failed
+
+    - name: Playbook to remove controller key configuration with invalid value
+            for job_wait
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        controller_id: "{{ controller_name }}"
+        job_wait: "invalid"
+        remove_key: true
+      ignore_errors: true
+      register: idrac_storage_controller_tmp
+
+    - name: Verifying set controller attributes with Job wait and key_id
+            is missing
+      ansible.builtin.assert:
+        that:
+          - "'we were unable to convert to bool: The value
+            \\'invalid\\' is not a valid boolean.' in
+            remove_controller_key_out.msg"
+          - remove_controller_key_out.failed
+
+    - name: Playbook to set controller attributes with Job wait when key
+            is missing
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        controller_id: "{{ controller_name }}"
+        rekey: true
+        key_id: "PassPhrase@123"
+      ignore_errors: true
+      register: idrac_storage_controller_tmp
+
+    - name: Verifying set controller attributes with Job wait when key
+            is missing
+      ansible.builtin.assert:
+        that:
+          - "'All of the following: key, key_id and old_key are required for
+            \\'ReKey\\' operation.' in storage_controller_rekey.msg"
+          - storage_controller_rekey.failed
+
+    - name: Playbook to set controller attributes with Job wait when
+            key_id is missing
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        controller_id: "{{ controller_name }}"
+        rekey: true
+        key: "PassPhrase@123"
+        old_key: "old_key"
+        mode: LKM
+      ignore_errors: true
+      register: idrac_storage_controller_tmp
+
+    - name: Verifying set controller attributes with Job wait when
+            key_id is missing
+      ansible.builtin.assert:
+        that:
+          - "'All of the following: key, key_id and ******** are required for
+            \\'ReKey\\' operation.' in storage_controller_rekey.msg"
+          - storage_controller_rekey.failed
+
+    - name: Playbook to set controller attributes with Job wait when
+            old_key is missing
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        controller_id: "{{ controller_name }}"
+        rekey: true
+        key: "PassPhrase@123"
+        key_id: "PassPhrase@123"
+        mode: LKM
+      ignore_errors: true
+      register: idrac_storage_controller_tmp
+
+    - name: Verifying set controller attributes with Job wait when
+            key_id is missing
+      ansible.builtin.assert:
+        that:
+          - "'All of the following: key, key_id and old_key are required for
+            \\'ReKey\\' operation.' in storage_controller_rekey.msg"
+          - storage_controller_rekey.failed
+
+    - name: Playbook to set controller attributes with Job wait and invalid
+            value for mode
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        controller_id: "{{ controller_name }}"
+        rekey: true
+        key: "PassPhrase@123"
+        key_id: "PassPhrase@123"
+        old_key: "old_key"
+        mode: "invalid_mode"
+      ignore_errors: true
+      register: idrac_storage_controller_tmp
+
+    - name: Verifying set controller attributes with Job wait and invalid
+            value for mode
+      ansible.builtin.assert:
+        that:
+          - "storage_controller_rekey.msg == 'value of mode must be one
+            of: LKM, SEKM, got: invalid_mode'"
+          - storage_controller_rekey.failed
+
+    - name: Playbook to set controller attributes with Job wait when
+            "apply_time=AtMaintenanceWindowStart"  by providing a invalid
+            attribute
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        controller_id: "{{ controller_name }}"
+        attributes:
+          CopybackMode: "On"
+          PatrolReadMode: Disabled
+          InvalidAttribute: "Off"
+        apply_time: AtMaintenanceWindowStart
+        maintenance_window:
+          start_time: "2026-09-14T06:59:35-05:00"
+          duration: "180"
+      ignore_errors: true
+      register: idrac_storage_controller_tmp
+
+    - name: Verifying disk status change to online in Normal mode
+      ansible.builtin.assert:
+        that:
+          - "attributes_config_out.msg == 'The following attributes
+            are invalid: [\\'InvalidAttribute\\']'"
+          - attributes_config_out.failed
+
+    - name: Create a list of dictionaries of dictionaries
+      ansible.builtin.set_fact:
+        vol_details:
+          id: "Invalid"
+          expand_capacity_disk: 362785
+
+    - name: Playbook to expand size of disk by target with Job wait
+            with "volume_id " as Invalid value
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        command: OnlineCapacityExpansion
+        controller_id: "{{ controller_name }}"
+        volumes: "{{ vol_details }}"
+        job_wait: true
+      ignore_errors: true
+      register: idrac_storage_controller_tmp
+
+    - name: Verifying disk status change to online in Normal mode
+      ansible.builtin.assert:
+        that:
+          - "oce_vd_out.msg == 'Unable to locate the virtual disk with
+            the ID: Invalid'"
+          - oce_vd_out.failed
+
+    - name: Update the value of the id key
+      ansible.builtin.set_fact:
+        vol_details: "{{ vol_details | combine({'id': physicaldisks[0],
+                      'expand_capacity_disk': -1}) }}"
+
+    - name: Playbook to expand size of disk by target with Job wait with
+            "volume_id" and Invalid expand_capacity_disk
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        command: OnlineCapacityExpansion
+        controller_id: "{{ controller_name }}"
+        volumes: "{{ vol_details }}"
+        job_wait: true
+      ignore_errors: true
+      register: idrac_storage_controller_tmp
+
+    - name: Verifying size expansion of disk by target with Job wait with
+            "volume_id" and Invalid expand_capacity_disk
+      ansible.builtin.assert:
+        that:
+          - oce_vd_out.failed
+
+    - name: Create a list of dictionaries of dictionaries
+      ansible.builtin.set_fact:
+        disk_details:
+          status: "online"
+
+    - name: Playbook to change disk status when target is missing
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        controller_id: "{{ controller_name }}"
+        disks: "{{ disk_details }}"
+      ignore_errors: true
+      register: idrac_storage_controller_tmp
+
+    - name: Update the value of the id key
+      ansible.builtin.set_fact:
+        disk_details: "{{ disk_details | combine({'id': 'Invalid'}) }}"
+
+    - name: Playbook to change disk status when target Id is invalid
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        controller_id: "{{ controller_name }}"
+        disks: "{{ disk_details }}"
+      ignore_errors: true
+      register: idrac_storage_controller_tmp
+
+    - name: Verifying change disk status when target Id is invalid
+      ansible.builtin.assert:
+        that:
+          - "'Unable to locate the physical disk with the ID: Invalid'
+            in pd_state_out.msg"
+          - pd_state_out.failed
+
+    - name: Create a dictionary for dedicated hotspare
+      ansible.builtin.set_fact:
+        volume_details:
+          id: "{{ physicaldisks[0] }}"
+          dedicated_hot_spare: "Invalid"
+
+    - name: Playbook with invalid assign dedicated hot spare
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        controller_id: "{{ controller_name }}"
+        volumes: "{{ volume_details }}"
+      ignore_errors: true
+      register: idrac_storage_controller_tmp
+
+    - name: Verifying - Invalid assign dedicated hot spare
+      ansible.builtin.assert:
+        that:
+          - "'Unable to locate the physical disk with the ID: Invalid'
+            in assign_dedicated_spare_out.msg"
+          - assign_dedicated_spare_out.failed

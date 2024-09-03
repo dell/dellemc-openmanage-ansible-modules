@@ -1,0 +1,12 @@
+---
+- name: Cleanup - Unassign the dedicated hotspare
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Removing if disks are assigned as hotspare and resetting the
+            controller
+      ansible.builtin.include_tasks: ../__helper.yaml
+      vars:
+        target: "{{ physicaldisks[3] }}"
+        ignore_errors_val: true
+        reset_trigger: true
