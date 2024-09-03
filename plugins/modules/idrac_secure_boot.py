@@ -44,10 +44,13 @@ options:
     choices: [UserMode, DeployedMode, AuditMode]
     description:
         - The UEFI Secure Boot Mode configures how the Secure Boot Policy are used.
-        - I(UserMode) set the secure boot mode into an user mode where PK must be installed, and BIOS performs signature verification on programmatic attempts to update policy objects.
-        - I(DeployedMode) set the secure boot mode into an deployed mode where PK is present, and BIOS performs signature verification on programmatic attempts to update policy objects
-        - I(AuditMode) set the secure boot mode into an audit mode where PK is not present. The BIOS does not authenticate programmatic updates to the policy objects, and transitions between modes.
-          The BIOS performs a signature verification on pre-boot images and logs the results in the image Execution Information Table, but executes the images whether they pass or fail verification.
+        - I(UserMode) set the secure boot mode into an user mode where PK must be installed, and BIOS performs signature verification on programmatic attempts
+          to update policy objects.
+        - I(DeployedMode) set the secure boot mode into an deployed mode where PK is present, and BIOS performs signature verification on programmatic attempts
+          to update policy objects
+        - I(AuditMode) set the secure boot mode into an audit mode where PK is not present. The BIOS does not authenticate programmatic updates to the policy
+          objects, and transitions between modes. The BIOS performs a signature verification on pre-boot images and logs the results in the image Execution
+          Information Table, but executes the images whether they pass or fail verification.
   secure_boot_policy:
     type: str
     choices: [Standard, Custom]
@@ -63,7 +66,7 @@ options:
         - Determines whether the system BIOS will load the legacy video (INT 10h) option ROM from the video controller.
         - This field is supported only in UEFI boot mode. This field cannot be set to Enabled if UEFI SecureBoot is enabled.
         - C(Enabled) if the operating system does not support UEFI video output standards.
-        - C(Disabled) if the operating system support UEFI video output standards. 
+        - C(Disabled) if the operating system support UEFI video output standards.
   import_certificates:
     type: bool
     description:
@@ -143,7 +146,8 @@ attributes:
 notes:
     - This module will always report changes found to be applied when run in C(check mode).
     - This module does not support idempotency when I(import_certificates) is provided.
-    - The order of operations set secure boot settings (boot_mode, secure_boot, secure_boot_mode, secure_boot_policy, force_int_10),  export,  certificate reset,  import, idrac reset.
+    - The order of operations set secure boot settings (boot_mode, secure_boot, secure_boot_mode, secure_boot_policy, force_int_10),
+      export,  certificate reset,  import, idrac reset.
     - This module supports IPv4 and IPv6 addresses.
 """
 
@@ -161,7 +165,7 @@ EXAMPLES = """
     reset: true
     reset_type: graceful_restart
 
-- name: Reset Secure Boot certificates.  
+- name: Reset Secure Boot certificates.
   dellemc.openmanage.idrac_secureboot:
     reset_keys: "RESET_ALL_KEYS_TO_DEFAULT"
 
@@ -434,11 +438,18 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
 def main():
     try:
         specs = {
+            "boot_mode": {"type": 'str', "choices": ['Uefi', 'Bios']},
+            "secure_boot": {"type": 'str', "choices": ['Enabled', 'Disabled']},
+            "secure_boot_mode": {"type": 'str', "choices": ['UserMode', 'DeployedMode', 'AuditMode']},
+            "secure_boot_policy": {"type": 'str', "choices": ['Standard', 'Custom']},
+            "force_int_10": {"type": 'str', "choices": ['Enabled', 'Disabled']},
             "import_certificates": {"type": 'bool'},
             "platform_key": {"type": 'path'},
             "KEK": {"type": 'list', "elements": 'path'},
             "database": {"type": 'list', "elements": 'path'},
             "disallow_database": {"type": 'list', "elements": 'path'},
+            "reset_keys": {"type": 'str', "choices": ['ResetAllKeysToDefault', 'DeleteAllKeys', 'DeletePK',
+                                                      'ResetPK', 'ResetKEK', 'ResetDB', 'ResetDBX']},
             "restart": {"type": 'bool', "default": False},
             "restart_type": {"type": 'str', "default": "GracefulRestart",
                              "choices": ['ForceRestart', 'GracefulRestart']},

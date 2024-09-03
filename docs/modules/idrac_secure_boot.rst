@@ -202,7 +202,7 @@ Notes
 .. note::
    - This module will always report changes found to be applied when run in \ :literal:`check mode`\ .
    - This module does not support idempotency when \ :emphasis:`import\_certificates`\  is provided.
-   - The order of operations set secure boot settings (boot\_mode, secure\_boot, secure\_boot\_mode, secure\_boot\_policy, force\_int\_10),  export,  certificate reset,  import, idrac reset.
+   - The order of operations set secure boot settings (boot\_mode, secure\_boot, secure\_boot\_mode, secure\_boot\_policy, force\_int\_10), export,  certificate reset,  import, idrac reset.
    - This module supports IPv4 and IPv6 addresses.
 
 
@@ -227,7 +227,7 @@ Examples
         reset: true
         reset_type: graceful_restart
 
-    - name: Reset Secure Boot certificates.  
+    - name: Reset Secure Boot certificates.
       dellemc.openmanage.idrac_secureboot:
         reset_keys: "RESET_ALL_KEYS_TO_DEFAULT"
 
