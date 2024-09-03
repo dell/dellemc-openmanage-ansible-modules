@@ -66,6 +66,7 @@ options:
       - C(true) restarts the server.
       - C(false) does not restart the server.
       - I(restart) is applicable when I(import_certificates) is C(true).
+      - I(restart) will be ignored only when I(export_certificates) is C(true).
   restart_type:
     type: str
     default: GracefulRestart
@@ -99,12 +100,31 @@ attributes:
         support: none
 notes:
     - This module will always report changes found to be applied when run in C(check mode).
-    - This module does not support idempotency when I(import_certificates) is provided.
+    - This module does not support idempotency when I(reset_type) or I(export_certificates)
+      or I(import_certificates) is provided.
+    - The order of operations set secure boot settings (boot_mode, secure_boot, secure_boot_mode,
+      secure_boot_policy, force_int_10),  export,  certificate reset,  import, idrac reset.
+    - I(export_certificate) will export all the certificates of the key defined in the playbook.
     - This module supports IPv4 and IPv6 addresses.
 """
 
 EXAMPLES = """
 ---
+- name: Export multiple SecureBoot certificate.
+  dellemc.openmanage.idrac_secure_boot:
+    idrac_ip: "192.168.1.2"
+    idrac_user: "user"
+    idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    export_certificates: true
+    platform_key: /user/name/export_cert/pk
+    KEK:
+      - /user/name/export_cert/kek
+    database:
+      - /user/name/export_cert/db
+    disallow_database:
+      - /user/name/export_cert/dbx
+
 - name: Import multiple SecureBoot certificate without applying to iDRAC.
   dellemc.openmanage.idrac_secure_boot:
     idrac_ip: "192.168.1.2"
@@ -166,15 +186,16 @@ error_info:
 
 import json
 import os
-from copy import deepcopy
 from urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     get_dynamic_uri, remove_key, validate_and_get_first_resource_id_uri,
-    trigger_restart_operation, wait_for_lc_status, get_lc_log_or_current_log_time)
+    trigger_restart_operation, wait_for_lc_status, get_lc_log_or_current_log_time,
+    cert_file_format_string)
 
 SYSTEMS_URI = "/redfish/v1/Systems"
+TIME_FORMAT = "%Y%m%d_%H%M%S"
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be negative or zero."
 SUCCESS_MSG = "Successfully imported the SecureBoot certificate."
 NO_OPERATION_SKIP = "Task is skipped as import_certificates is 'false'."
@@ -396,7 +417,7 @@ class IDRACExportSecureBoot(IDRACSecureBoot):
     def validate_key_directory(self, parameter, directories):
         resp = ''
         length_directories = len(directories)
-        if length_directories != 1:
+        if length_directories > 1:
             self.module.warn(TOO_MANY_DIRECTORIES.format(key=parameter))
         if length_directories == 1:
             resp = self.verify_path_is_directory_and_has_write_permission(directories[0])
@@ -414,10 +435,11 @@ class IDRACExportSecureBoot(IDRACSecureBoot):
         for each_member in members:
             tmp_uri = each_member.get(odata)
             file_name = tmp_uri.split('/')[-1]
-            updated_file_name = deepcopy(file_name).replace('.', '_')
             resp = get_dynamic_uri(self.idrac, tmp_uri)
             cert_type = resp.get('CertificateType').lower()
             cert_string = resp.get('CertificateString')
+            hostname = self.module.params.get('idrac_ip')
+            updated_file_name = cert_file_format_string(hostname, postfix=f"_{file_name}")
             file_path = os.path.join(path, f"{updated_file_name}.{cert_type}")
             if cert_string:
                 with open(file_path, 'w') as f:

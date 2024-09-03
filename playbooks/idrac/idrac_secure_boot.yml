@@ -4,6 +4,22 @@
   gather_facts: false
 
   tasks:
+    - name: Export multiple SecureBoot certificate.
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "192.168.1.2"
+        idrac_user: "user"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        export_certificates: true
+        platform_key: /user/name/export_cert/pk
+        KEK:
+          - /user/name/export_cert/kek
+        database:
+          - /user/name/export_cert/db
+        disallow_database:
+          - /user/name/export_cert/dbx
+      delegate_to: localhost
+
     - name: Import multiple SecureBoot certificate without applying to iDRAC.
       dellemc.openmanage.idrac_secure_boot:
         idrac_ip: "192.168.1.2"

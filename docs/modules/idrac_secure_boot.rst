@@ -74,6 +74,8 @@ Parameters
 
     \ :emphasis:`restart`\  is applicable when \ :emphasis:`import\_certificates`\  is \ :literal:`true`\ .
 
+    \ :emphasis:`restart`\  will be ignored only when \ :emphasis:`export\_certificates`\  is \ :literal:`true`\ .
+
 
   restart_type (optional, str, GracefulRestart)
     Restart type of the server.
@@ -151,7 +153,9 @@ Notes
 
 .. note::
    - This module will always report changes found to be applied when run in \ :literal:`check mode`\ .
-   - This module does not support idempotency when \ :emphasis:`import\_certificates`\  is provided.
+   - This module does not support idempotency when \ :emphasis:`reset\_type`\  or \ :emphasis:`export\_certificates`\  or \ :emphasis:`import\_certificates`\  is provided.
+   - The order of operations set secure boot settings (boot\_mode, secure\_boot, secure\_boot\_mode, secure\_boot\_policy, force\_int\_10),  export,  certificate reset,  import, idrac reset.
+   - \ :emphasis:`export\_certificate`\  will export all the certificates of the key defined in the playbook.
    - This module supports IPv4 and IPv6 addresses.
 
 
@@ -164,6 +168,21 @@ Examples
 
     
     ---
+    - name: Export multiple SecureBoot certificate.
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "192.168.1.2"
+        idrac_user: "user"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        export_certificates: true
+        platform_key: /user/name/export_cert/pk
+        KEK:
+          - /user/name/export_cert/kek
+        database:
+          - /user/name/export_cert/db
+        disallow_database:
+          - /user/name/export_cert/dbx
+
     - name: Import multiple SecureBoot certificate without applying to iDRAC.
       dellemc.openmanage.idrac_secure_boot:
         idrac_ip: "192.168.1.2"
