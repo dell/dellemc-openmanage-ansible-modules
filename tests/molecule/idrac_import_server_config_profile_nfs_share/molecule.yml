@@ -1,0 +1,6 @@
+---
+provisioner:
+  name: ansible
+  playbooks:
+    prepare: ../helper/common/power_on_idrac_and_clear_all_job.yaml
+    cleanup: ../helper/idrac_import_server_config_profile/cleanup.yml

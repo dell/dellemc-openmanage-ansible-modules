@@ -1,0 +1,5 @@
+---
+provisioner:
+  name: ansible
+  playbooks:
+    cleanup: ../helper/idrac_attributes/cleanup.yaml

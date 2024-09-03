@@ -1,0 +1,14 @@
+---
+provisioner:
+  name: ansible
+  playbooks:
+    prepare: ../helper/idrac_bios/prepare.yml
+    cleanup: ../helper/idrac_bios/cleanup.yml
+scenario:
+  test_sequence:
+    - create
+    - prepare
+    - check
+    - converge
+    - cleanup
+    - destroy

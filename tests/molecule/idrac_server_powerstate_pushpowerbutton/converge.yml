@@ -1,0 +1,48 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  vars:
+    idrac_server_powerstate_wait_seconds: "{{ lookup('env', 'idrac_powercycle_wait_seconds') }}"
+  tasks:
+    - name: Performing PushPowerButton on the iDRAC device
+      ansible.builtin.import_role:
+        name: dellemc.openmanage.idrac_server_powerstate
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        reset_type: "PushPowerButton"
+        resource_id: "System.Embedded.1"
+      tags: molecule-idempotence-notest
+
+    - name: Fetching iDRAC server powerstate after performing PushPowerButton operation
+      ansible.builtin.uri:
+        url: "https://{{ lookup('env', 'IDRAC_IP') }}:{{ https_port }}/redfish/v1/Systems/System.Embedded.1"
+        user: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        headers: 'Accept=application/json'
+      register: idrac_server_powerstate_current_powerstate
+      no_log: true
+      tags: molecule-idempotence-notest
+
+    - name: "Waiting after performing PushPowerButton operation, Server is Powering On"
+      ansible.builtin.pause:
+        seconds: "{{ idrac_server_powerstate_wait_seconds }}"
+      when: not ansible_check_mode and idrac_server_powerstate_current_powerstate.json.PowerState == "On"
+      tags: molecule-idempotence-notest
+
+    - name: Asserting PushPowerButton in check mode
+      ansible.builtin.assert:
+        that: idrac_server_powerstate_out.msg == "Changes found to be applied."
+      when: ansible_check_mode
+      tags: molecule-idempotence-notest
+
+    - name: Asserting PushPowerButton in normal mode
+      ansible.builtin.assert:
+        that:
+          - idrac_server_powerstate_out.msg == "Successfully performed the reset type operation 'PushPowerButton'."
+      when: not ansible_check_mode and idrac_server_powerstate_out.changed
+      tags: molecule-idempotence-notest

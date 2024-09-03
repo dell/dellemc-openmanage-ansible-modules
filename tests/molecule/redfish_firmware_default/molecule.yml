@@ -1,0 +1,14 @@
+---
+provisioner:
+  name: ansible
+  playbooks:
+    prepare: ../helper/redfish_firmware/prepare.yml
+    cleanup: ../helper/redfish_firmware/cleanup.yml
+scenario:
+  test_sequence:
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - converge
+    - destroy

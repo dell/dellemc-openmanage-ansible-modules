@@ -1,0 +1,11 @@
+---
+provisioner:
+  name: ansible
+  playbooks:
+    prepare: ../helper/common/power_on_idrac_and_clear_all_job.yaml
+scenario:
+  test_sequence:
+    - create
+    - check
+    - converge
+    - destroy

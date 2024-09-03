@@ -1,0 +1,159 @@
+---
+- name: Converge file for negative scenarios with maintenance window
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Block to update attributes with maintenance window and no start_time
+      block:
+        - name: Update attributes with maintenance window and no start_time
+          ansible.builtin.include_role:
+            name: dellemc.openmanage.idrac_bios
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            apply_time: AtMaintenanceWindowStart
+            maintenance_window:
+              duration: 600
+            attributes:
+              BootMode: "Bios"
+      rescue:
+        - name: Assert update attributes with maintenance window
+                and no start_time
+          ansible.builtin.assert:
+            that: "ansible_failed_result.msg is
+                  search('missing required arguments')"
+
+    - name: Block to update attributes with maintenance window
+            with invalid start_time
+      block:
+        - name: Update attributes with maintenance window with
+                invalid start_time
+          ansible.builtin.include_role:
+            name: dellemc.openmanage.idrac_bios
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            apply_time: AtMaintenanceWindowStart
+            maintenance_window:
+              start_time: "2022"
+              duration: 600
+            attributes:
+              BootMode: "Bios"
+      rescue:
+        - name: Assert update attributes with maintenance window
+                with invalid start_time
+          ansible.builtin.assert:
+            that: "idrac_bios_out.attributes.status_msg is search('The
+                  maintenance time must be post-fixed with local offset
+                  to')"
+
+    - name: Block to update attributes with maintenance window
+            with invalid duration
+      block:
+        - name: Update attributes with maintenance window with invalid duration
+          ansible.builtin.include_role:
+            name: dellemc.openmanage.idrac_bios
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            apply_time: AtMaintenanceWindowStart
+            maintenance_window:
+              start_time: "2022-30-09T05:15:40-21"
+              duration: "10 minutes"
+            attributes:
+              BootMode: "Bios"
+      rescue:
+        - name: Assert update attributes with maintenance window
+                with invalid duration
+          ansible.builtin.assert:
+            that:
+              - "ansible_failed_result.msg is
+                search('Validation of arguments failed')"
+
+    - name: Block to update attributes with maintenance window
+            with invalid apply time
+      block:
+        - name: Update attributes with maintenance window
+                with invalid apply time
+          ansible.builtin.include_role:
+            name: dellemc.openmanage.idrac_bios
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            apply_time: AtMaintenanceWindowBegin
+            maintenance_window:
+              start_time: "2022-30-09T05:15:40-21"
+              duration: 10
+            attributes:
+              BootMode: "Bios"
+      rescue:
+        - name: Assert update attributes with maintenance window
+                with invalid apply time
+          ansible.builtin.assert:
+            that:
+              - "ansible_failed_result.msg is search('value of
+                apply_time must be one of')"
+              - "ansible_failed_result.msg is search('Immediate,
+                OnReset, AtMaintenanceWindowStart, InMaintenanceWindowOnReset')"
+
+    - name: Block to update attributes with maintenance
+            window with invalid job wait
+      block:
+        - name: Update attributes with maintenance window with invalid job wait
+          ansible.builtin.include_role:
+            name: dellemc.openmanage.idrac_bios
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            apply_time: AtMaintenanceWindowStart
+            maintenance_window:
+              start_time: "2023-05-18T05:17:40-05:00"
+              duration: 600
+            attributes:
+              BootMode: "Bios"
+            job_wait: truee
+      rescue:
+        - name: Assert update attributes with maintenance
+                window with invalid job wait
+          ansible.builtin.assert:
+            that: "ansible_failed_result.msg is
+                  search('unable to convert to bool')"
+
+    - name: Block to update attributes with maintenance window
+            with invalid job wait timeout
+      block:
+        - name: Update attributes with maintenance window
+                with invalid job wait timeout
+          ansible.builtin.include_role:
+            name: dellemc.openmanage.idrac_bios
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            apply_time: AtMaintenanceWindowStart
+            maintenance_window:
+              start_time: "2023-05-18T05:17:40-05:00"
+              duration: 600
+            attributes:
+              BootMode: "Bios"
+              OneTimeBootMode: "Enabled"
+              BootSeqRetry: "Enabled"
+            job_wait_timeout: -10
+      rescue:
+        - name: Assert attributes with maintenance window
+                with invalid job wait timeout
+          ansible.builtin.assert:
+            that:
+              - "'The parameter job_wait_timeout value cannot
+                be negative or zero' in idrac_bios_out.attributes.msg"

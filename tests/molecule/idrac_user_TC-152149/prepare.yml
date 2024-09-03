@@ -1,0 +1,23 @@
+---
+- name: Prepare
+  hosts: all
+  gather_facts: false
+  vars:
+    idrac_user_name: "moleculeTest"
+  tasks:
+    - name: Making sure iDRAC is powered on and job is cleared
+      ansible.builtin.include_tasks:
+        file: ../common/power_on_idrac_and_clear_all_job.yaml
+
+    - name: Configure a new iDRAC user with minimum required parameters
+      ansible.builtin.import_role:
+        name: dellemc.openmanage.idrac_user
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        state: present
+        user_name: "{{ idrac_user_name }}"
+        user_password: "#1234Abc"
+        custom_privilege: 0

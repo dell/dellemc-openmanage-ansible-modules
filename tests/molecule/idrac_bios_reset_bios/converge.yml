@@ -1,0 +1,32 @@
+---
+- name: Converge file for reset bios
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Perform reset bios operation
+      ansible.builtin.import_role:
+        name: dellemc.openmanage.idrac_bios
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        reset_bios: true
+
+    - name: Verify reset bios operation in normal mode
+      ansible.builtin.assert:
+        that:
+          - idrac_bios_out.reset_bios.status_msg == "BIOS reset to defaults has
+            been completed successfully."
+          - idrac_bios_out.clear_pending.skipped
+          - idrac_bios_out.attributes.skipped
+      when: not ansible_check_mode
+      tags: molecule-idempotence-notest
+
+    - name: Verify reset bios operation in check mode
+      ansible.builtin.assert:
+        that:
+          - idrac_bios_out.reset_bios.status_msg == "Changes found
+            to be applied."
+      when: ansible_check_mode
+      tags: molecule-idempotence-notest

@@ -1,5 +1,0 @@
----
-provisioner:
-  name: ansible
-  playbooks:
-    cleanup: ../resources/tests/cleanup.yml

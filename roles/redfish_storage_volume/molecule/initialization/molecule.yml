@@ -1,7 +1,0 @@
----
-scenario:
-  test_sequence:
-    - create
-    - syntax
-    - converge
-    - destroy

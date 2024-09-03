@@ -1,0 +1,64 @@
+---
+- name: Cleanup
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Setfact for target
+      ansible.builtin.set_fact:
+        idrac_import_server_config_profile_target: "{{ idrac_import_server_config_profile_target | default(['ALL']) }}"
+
+    - name: Cleanup when target is ['ALL'] or ['IDRAC']
+      ansible.builtin.import_role:
+        name: dellemc.openmanage.idrac_attributes
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        idrac_attributes:
+          Time.1.Timezone: "UTC" # "UTC"
+      when: "'ALL' in idrac_import_server_config_profile_target or 'IDRAC' in idrac_import_server_config_profile_target"
+
+    - name: Cleanup when target is ['BIOS']
+      dellemc.openmanage.idrac_bios:
+        idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+        idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+        idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        attributes:
+          NumLock: "On" # "On"
+      when: "'BIOS' in idrac_import_server_config_profile_target"
+
+    - name: Calling nic_helper.yml
+      ansible.builtin.include_tasks:
+        file: "nic_helper.yml"
+      when: "'NIC' in idrac_import_server_config_profile_target"
+
+    - name: Cleanup when target is ['NIC']
+      dellemc.openmanage.idrac_network_attributes:
+        idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+        idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+        idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        network_adapter_id: "{{ inp_network_adapter_id }}"
+        network_device_function_id: "{{ inp_network_device_function_id }}"
+        apply_time: Immediate
+        oem_network_attributes:
+          BannerMessageTimeout: "5" # "5"
+      when: "'NIC' in idrac_import_server_config_profile_target"
+
+    - name: Calling raid_helper.yml
+      ansible.builtin.include_tasks:
+        file: "raid_helper.yml"
+      when: "'RAID' in idrac_import_server_config_profile_target"
+
+    - name: Cleanup when target is ['RAID']
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "{{ lookup('env', 'IDRAC_IP') }}:{{ https_port }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        controller_id: "{{ inp_controller_id }}"
+        attributes:
+          SupportedInitializationTypes: "Fast"
+      when: "'RAID' in idrac_import_server_config_profile_target"
