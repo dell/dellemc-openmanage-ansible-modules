@@ -143,6 +143,7 @@ attributes:
 notes:
     - This module will always report changes found to be applied when run in C(check mode).
     - This module does not support idempotency when I(import_certificates) is provided.
+    - The order of operations set secure boot settings (boot_mode, secure_boot, secure_boot_mode, secure_boot_policy, force_int_10),  export,  certificate reset,  import, idrac reset.
     - This module supports IPv4 and IPv6 addresses.
 """
 
