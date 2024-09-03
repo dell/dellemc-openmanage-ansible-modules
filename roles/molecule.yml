@@ -10,8 +10,15 @@ platforms:
     pre_build_image: true
     volumes:
       - /tmp:/tmp
+    cgroupns_mode: host
 provisioner:
   name: ansible
+  config_options:
+    defaults:
+      gathering: smart
+      fact_caching: jsonfile
+      fact_caching_connection: /tmp/facts_cache
+      fact_caching_timeout: 1800
   env:
     idrac_powercycle_wait_seconds: 180
     idrac_certificate_delegate_to: localhost
