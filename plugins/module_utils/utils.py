@@ -660,6 +660,7 @@ def get_lc_log_or_current_log_time(idrac, curr_time=None, lc_log_ids_list=None, 
 
     return lc_log_found, msg
 
+
 def expand_ipv6(ip):
     sections = ip.split(':')
     num_sections = len(sections)
@@ -670,6 +671,7 @@ def expand_ipv6(ip):
     sections = [section.zfill(4) for section in sections]
     expanded_ip = ':'.join(sections)
     return expanded_ip
+
 
 def cert_file_format_string(ip, prefix="",
                             postfix="",
