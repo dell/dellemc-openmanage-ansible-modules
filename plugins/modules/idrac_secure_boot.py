@@ -299,6 +299,8 @@ NO_WRITE_PERMISSION_PATH = 'Unable to write to the directory {path}.'
 TOO_MANY_DIRECTORIES = 'More than one directory found for parameter {key}.'
 CERT_IS_EMPTY = 'Certificate string is empty in {file_name} for {parameter}.'
 SUCCESS_EXPORT_MSG = 'Successfully exported the SecureBoot certificate.'
+UNSUCCESSFUL_EXPORT_MSG = 'Failed to export the SecureBoot certificate.'
+NO_CHANGES_FOUND = 'No changes found to be applied.'
 odata = '@odata.id'
 
 
@@ -515,6 +517,7 @@ class IDRACExportSecureBoot(IDRACSecureBoot):
         self.KEK = self.validate_key_directory('KEK', self.KEK)
         self.database = self.validate_key_directory('database', self.database)
         self.disallow_database = self.validate_key_directory('disallow_database', self.disallow_database)
+        return any([self.platform_key, self.KEK, self.database, self.disallow_database])
 
     def fetch_certificate_file_and_write(self, uri, path, parameter):
         certificates_uri = get_dynamic_uri(self.idrac, uri, 'Certificates')[odata]
@@ -540,17 +543,24 @@ class IDRACExportSecureBoot(IDRACSecureBoot):
         Perform operation
         """
         self.validate_job_wait()
-        self.filter_invalid_directory()
+        valid_directory = self.filter_invalid_directory()
         if self.module.check_mode:
-            self.module.exit_json(msg=CHANGES_FOUND, changed=True)
+            if valid_directory:
+                self.module.exit_json(msg=CHANGES_FOUND, changed=True)
+            else:
+                self.module.exit_json(msg=NO_CHANGES_FOUND)
+
+        if not valid_directory:
+            self.module.exit_json(msg=UNSUCCESSFUL_EXPORT_MSG, failed=True)
+
         uri = self.mapping_secure_boot_database_uri()
-        data_map = {
+        parameter_map = {
             'platform_key': self.platform_key,
             'KEK': self.KEK,
             'database': self.database,
             'disallow_database': self.disallow_database
         }
-        for parameter, path in data_map.items():
+        for parameter, path in parameter_map.items():
             if path:
                 self.fetch_certificate_file_and_write(uri[parameter], path,
                                                       parameter)
