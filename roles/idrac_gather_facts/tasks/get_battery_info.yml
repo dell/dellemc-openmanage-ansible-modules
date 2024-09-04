@@ -10,3 +10,10 @@
     "sensor_battery":
       "{{ battery_result.json | ansible.utils.remove_keys(target=['@odata.context',
       '@odata.id', '@odata.type']) }}"
+  ignore_errors: true
+  register: battery_result_register
+
+- name: Set fail message
+  ansible.builtin.fail:
+    msg: "This target is not supported on iDRAC8"
+  when: battery_result.status == 400 and battery_result.server == "iDRAC/8"

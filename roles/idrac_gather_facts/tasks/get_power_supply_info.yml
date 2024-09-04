@@ -11,3 +11,10 @@
       "{{ power_supply_result.json.Members | ansible.utils.remove_keys(target=['@odata.context',
       '@odata.id', '@odata.type', 'ActiveInputVoltage@Redfish.Deprecated', 'OperationalStatus@odata.count',
       'RedTypeOfSet@odata.count']) }}"
+  ignore_errors: true
+  register: power_supply_result_register
+
+- name: Set the fail message
+  ansible.builtin.fail:
+    msg: "This target is not supported on iDRAC8"
+  when: power_supply_result.status == -1

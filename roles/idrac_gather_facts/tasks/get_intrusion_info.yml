@@ -4,7 +4,15 @@
     url: "https://{{ hostname }}:{{ https_port }}{{ api_chassis }}?$select=PhysicalSecurity/IntrusionSensor"
   register: intrusion_result
   delegate_to: "{{ idrac_gather_facts_delegate }}"
+  ignore_errors: true
 
 - name: Set Sensor Battery facts
   ansible.builtin.set_fact:
     "intrusion_sensor": "{{ intrusion_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type']) }}"
+  ignore_errors: true
+  register: intrusion_result_register
+
+- name: Set fail message
+  ansible.builtin.fail:
+    msg: "This target is not supported on iDRAC8"
+  when: intrusion_result.status == 400 and intrusion_result.server == "iDRAC/8"

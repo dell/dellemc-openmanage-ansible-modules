@@ -8,3 +8,10 @@
 - name: Set enclosure facts
   ansible.builtin.set_fact:
     enclosure: "{{ enclosure_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'Links', 'Description']) }}"
+  ignore_errors: true
+  register: enclosure_result_register
+
+- name: Set the keys diff
+  ansible.builtin.fail:
+    msg: "This target is not supported on iDRAC8"
+  when: enclosure_result.status == 404

@@ -17,3 +17,10 @@
     system:
       "{{ system_result.json.Oem.Dell.DellSystem | combine(os_result.json.Attributes) |
       ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type']) }}"
+  ignore_errors: true
+  register: system_result_register
+
+- name: Set fail message
+  ansible.builtin.fail:
+    msg: "This target is not supported on iDRAC8"
+  when: os_result.status == 404

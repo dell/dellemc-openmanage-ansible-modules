@@ -8,3 +8,10 @@
 - name: Set PCIeDevice facts
   ansible.builtin.set_fact:
     pcie_device: "{{ pcie_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'Links', '@odata.etag']) }}"
+  ignore_errors: true
+  register: pcie_result_register
+
+- name: Set fail message
+  ansible.builtin.fail:
+    msg: "This target is not supported on iDRAC8"
+  when: pcie_result.status == 404 and pcie_result.server == "iDRAC/8"
