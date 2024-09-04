@@ -39,6 +39,12 @@ FAILED_IMPORT = "Failed to import certificate file {path} for {parameter}."
 NO_IMPORT_SUCCESS = "The Secure Boot Certificate Import operation was not successful."
 IMPORT_REQUIRED_IF = "import_certificates is True but any of the following are missing: \
 platform_key, KEK, database, disallow_database"
+EXPORT_REQUIRED_IF = "export_certificates is True but any of the following are missing: \
+platform_key, KEK, database, disallow_database"
+IMPORT_EXPORT_MUTUALLY_EXCLUSIVE = "parameters are mutually exclusive: import_certificates|export_certificates"
+SUCCESS_EXPORT_MSG = 'Successfully exported the SecureBoot certificate.'
+UNSUCCESSFUL_EXPORT_MSG = 'Failed to export the SecureBoot certificate.'
+NO_CHANGES_FOUND = 'No changes found to be applied.'
 odata = '@odata.id'
 get_log_function = "idrac_secure_boot.get_lc_log_or_current_log_time"
 OS_ABS_FN = "os.path.isabs"
@@ -215,6 +221,69 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == SCHEDULE_MSG
         assert resp['changed'] is False
+
+    def test_export_secure_boot(self, idrac_default_args, idrac_connection_secure_boot,
+                                idrac_secure_boot_mock, mocker):
+        mapping_uri_resp = {'database': "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/db",
+                                        'disallow_database': "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/dbx",
+                                        'KEK': "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/KEK",
+                                        'platform_key': "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/PK"}
+
+        members = [
+            {
+                "@odata.id": "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/dbx/Certificates/CustSecbootpolicy.222"},
+            {
+                "@odata.id": "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/dbx/Certificates/CustSecbootpolicy.278"}]                          
+        certificates = {
+            odata: "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/db/Certificates"}
+        
+        resp_iDRAC = {'CertificateType': 'PEM',
+                      'CertificateString': '---BEGIN CERT---'}
+
+        # Scenario 1: When import and export both is given
+        idrac_default_args.update({'import_certificates': True,
+                                   'export_certificates': True,
+                                   'database': '/tmp/export/db'
+                                   })
+        with pytest.raises(Exception) as ex:
+            self._run_module(idrac_default_args)
+        assert ex.value.args[0]["msg"] == IMPORT_EXPORT_MUTUALLY_EXCLUSIVE
+        assert ex.value.args[0]["failed"] is True
+
+        # Scenario 2: When export is given but other parameters are missing
+        del idrac_default_args['import_certificates']
+        del idrac_default_args['database']
+        idrac_default_args.update({'export_certificates': True})
+        with pytest.raises(Exception) as ex:
+            self._run_module(idrac_default_args)
+        assert ex.value.args[0]["msg"] == EXPORT_REQUIRED_IF
+        assert ex.value.args[0]["failed"] is True
+
+        # Scenario 3: when multiple path is given
+        idrac_default_args.update({'database': ['/tmp/db1', '/tmp/db2']})
+        data = self._run_module(idrac_default_args)
+        assert data['msg'] == UNSUCCESSFUL_EXPORT_MSG
+        assert data['failed'] is True
+
+        def mock_get_dynamic_uri_request(*args, **kwargs):
+            length = len(args)
+            if length > 2:
+                if args[2] == 'Members':
+                    return members
+                elif args[2] == 'Certificates':
+                    return certificates
+            else:
+                return resp_iDRAC
+
+        # Scenario 3: when single path is given
+        mocker.patch(MODULE_PATH + "idrac_secure_boot.get_dynamic_uri",
+                     side_effect=mock_get_dynamic_uri_request)
+        mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACSecureBoot.mapping_secure_boot_database_uri",
+                     return_value=mapping_uri_resp)
+        idrac_default_args.update({'database': ['/tmp/']})
+        data = self._run_module(idrac_default_args)
+        assert data['msg'] == SUCCESS_EXPORT_MSG
+        assert data['changed'] is False
 
     @pytest.mark.parametrize("exc_type",
                              [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
