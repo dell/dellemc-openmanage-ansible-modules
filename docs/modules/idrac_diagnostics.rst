@@ -150,9 +150,9 @@ Parameters
     ignore_certificate_warning (optional, str, off)
       Ignores the certificate warning while connecting to Share and is only applicable when \ :emphasis:`share\_type`\  is \ :literal:`https`\ .
 
-      \ :literal:`off`\  ignores the certificate warning.
+      \ :literal:`on`\  ignores the certificate warning.
 
-      \ :literal:`on`\  does not ignore the certificate warning.
+      \ :literal:`off`\  does not ignore the certificate warning.
 
 
     proxy_support (optional, str, off)

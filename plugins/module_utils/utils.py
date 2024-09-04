@@ -569,6 +569,17 @@ def trigger_restart_operation(idrac, restart_type="GracefulRestart", resource_id
     return resp, error_msg
 
 
+def power_on_operation(idrac, restart_type="On", resource_id=None):
+    resp, error_msg = {}, {}
+    uri, error_msg = validate_and_get_first_resource_id_uri(resource_id, idrac, SYSTEMS_URI)
+    if error_msg:
+        return resp, error_msg
+    actions_uri = get_dynamic_uri(idrac, uri, 'Actions').get("#ComputerSystem.Reset", {}).get("target", '')
+    payload = {"ResetType": restart_type}
+    resp = idrac.invoke_request(method='POST', uri=actions_uri, data=payload)
+    return resp, error_msg
+
+
 def wait_for_lc_status(idrac, job_wait_timeout=300, resource_id=None, interval=10):
     lc_status_completed, error_msg = False, ''
     lcstatus = ""
