@@ -233,10 +233,10 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
             {
                 "@odata.id": "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/dbx/Certificates/CustSecbootpolicy.222"},
             {
-                "@odata.id": "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/dbx/Certificates/CustSecbootpolicy.278"}]                          
+                "@odata.id": "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/dbx/Certificates/CustSecbootpolicy.278"}]
         certificates = {
             odata: "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/db/Certificates"}
-        
+
         resp_iDRAC = {'CertificateType': 'PEM',
                       'CertificateString': '---BEGIN CERT---'}
 
@@ -284,6 +284,30 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         data = self._run_module(idrac_default_args)
         assert data['msg'] == SUCCESS_EXPORT_MSG
         assert data['changed'] is False
+
+        # Scenario 4: When single path is given in check mode
+        data = self._run_module(idrac_default_args, check_mode=True)
+        assert data['msg'] == CHANGES_FOUND
+        assert data['changed'] is True
+
+        # Scenario 5: When no path is given in check mode
+        idrac_default_args.update({'database': []})
+        data = self._run_module(idrac_default_args, check_mode=True)
+        assert data['msg'] == NO_CHANGES_FOUND
+        assert data['changed'] is False
+
+        # Scenario 6: When file path is given
+        idrac_default_args.update({'database': ['/tmp/abc.txt']})
+        data = self._run_module(idrac_default_args)
+        assert data['msg'] == UNSUCCESSFUL_EXPORT_MSG
+        assert data['failed'] is True
+
+        # Scenario 7: Directory does not have write permission
+        mocker.patch(OS_ACCESS_FN, return_value=False)
+        idrac_default_args.update({'database': ['/tmp']})
+        data = self._run_module(idrac_default_args)
+        assert data['msg'] == UNSUCCESSFUL_EXPORT_MSG
+        assert data['failed'] is True
 
     @pytest.mark.parametrize("exc_type",
                              [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
