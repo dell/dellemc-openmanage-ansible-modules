@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.6.0
+# Version 9.7.0
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -17,13 +17,59 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: idrac_secure_boot
-short_description: Import secure boot certificate.
+short_description: Configure attributes, import or export secure boot certificate and Reset keys
 version_added: "9.6.0"
 description:
-  - This module allows to import the secure boot certificate.
+  - This module allows to import/export the secure boot certificates.
+  - This module allows to enable/disable secure boot, boot mode.
+  - This modules also allows to configure Policies PK, KEK and configure DB, DBX certificates.
+  - This module allows to reset the UEFI Secure Boot keys..
 extends_documentation_fragment:
   - dellemc.openmanage.idrac_x_auth_options
 options:
+  boot_mode:
+    type: str
+    choices: [Uefi, Bios]
+    description:
+      - Boot Mode of the idrac.
+      - I(Uefi) Enables the secure boot in uefi mode.
+      - I(Bios) Enables the secure boot in bios mode.
+  secure_boot:
+    type: str
+    choices: [Enabled, Disabled]
+    description:
+      - UEFI Secure Boot.
+      - The I(secure_boot_mode) can be C(Enabled) only if I(boot_mode) is C(Uefi) and I(force_int_10) is C(Disabled).
+      - I(Enabled) enables the Secureboot mode.
+      - I(Disabled) disables the Secureboot mode.
+  secure_boot_mode:
+    type: str
+    choices: [UserMode, DeployedMode, AuditMode]
+    description:
+      - The UEFI Secure Boot Mode configures how the Secure Boot Policy are used.
+      - I(UserMode) set the secure boot mode into an user mode where PK must be installed, and BIOS performs signature verification on programmatic attempts
+        to update policy objects.
+      - I(DeployedMode) set the secure boot mode into an deployed mode where PK is present, and BIOS performs signature verification on programmatic attempts
+        to update policy objects
+      - I(AuditMode) set the secure boot mode into an audit mode where PK is not present. The BIOS does not authenticate programmatic updates to the policy
+        objects, and transitions between modes. The BIOS performs a signature verification on pre-boot images and logs the results in the image Execution
+        Information Table, but executes the images whether they pass or fail verification.
+  secure_boot_policy:
+    type: str
+    choices: [Standard, Custom]
+    description:
+      - Following are the secure boot policy.
+      - C (Standard) indicates that the system has default certificates and image digests, or hash loaded from the factory.
+      - C(Custom) inherits the standard certificates and image digests that are loaded in the system by default, which you can modify.
+      - Secure Boot Policy configured as Custom allows you to perform operations such as View, Export, Import, Delete, Delete All, Reset, and Reset.
+  force_int_10:
+    type: str
+    choices: [Enabled, Disabled]
+    description:
+      - Determines whether the system BIOS will load the legacy video (INT 10h) option ROM from the video controller.
+      - This field is supported only in UEFI boot mode. This field cannot be set to Enabled if UEFI SecureBoot is enabled.
+      - C(Enabled) if the operating system does not support UEFI video output standards.
+      - C(Disabled) if the operating system support UEFI video output standards.
   export_certificates:
     type: bool
     description:
@@ -58,6 +104,18 @@ options:
     description:
       - A list of absolute paths of the Disallow Database certificate file for UEFI secure boot.
       - Directory path with write permissions if I(export_certificates) is C(true).
+  reset_keys:
+    type: str
+    choices: [ResetAllKeysToDefault, DeleteAllKeys, DeletePK, ResetPK, ResetKEK, ResetDB, ResetDBX]
+    description:
+      - Resets the UEFI Secure Boot keys.
+      - C(ResetAllKeysToDefault) - Reset the content of all UEFI Secure Boot key databases (PK, KEK, DB, DBX) to their default values.
+      - C(DeletePK) - Delete the content of the PK UEFI Secure Boot database. This puts the system in Setup Mode.
+      - C(DeleteAllKeys) - Delete the content of all UEFI Secure Boot key databases (PK, KEK, DB, DBX). This puts the system in Setup Mode
+      - C(ResetPK) - Reset the content of PK UEFI Secure Boot database to their default values.
+      - C(ResetKEK)- Reset the content of KEK UEFI Secure Boot database to their default values.
+      - C(ResetDB)- Reset the content of DB UEFI Secure Boot database to their default values.
+      - C(ResetDBX)- Reset the content of DBX UEFI Secure Boot database to their default values.
   restart:
     type: bool
     default: false
@@ -91,6 +149,7 @@ requirements:
     - "python >= 3.9.6"
 author:
     - "Abhishek Sinha(@ABHISHEK-SINHA10)"
+    - "Lovepreet Singh (@singh-lovepreet1)"
 attributes:
     check_mode:
         description: Runs task to validate without performing action on the target machine.
@@ -110,6 +169,34 @@ notes:
 
 EXAMPLES = """
 ---
+- name: Enable Secureboot.
+  dellemc.openmanage.idrac_secure_boot:
+    idrac_ip: "192.168.1.2"
+    idrac_user: "user"
+    idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    secure_boot: "Enabled"
+
+- name: Set SecureBootMode and SecureBootPolicy and reset iDRAC.
+  dellemc.openmanage.idrac_secure_boot:
+    idrac_ip: "192.168.1.2"
+    idrac_user: "user"
+    idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    secure_boot: "Enabled"
+    secure_boot_mode: "UserMode"
+    secure_boot_policy: "Custom"
+    restart: true
+    restart_type: "GracefulRestart"
+
+- name: Reset Secure Boot certificates.
+  dellemc.openmanage.idrac_secure_boot:
+    idrac_ip: "192.168.1.2"
+    idrac_user: "user"
+    idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    reset_keys: "ResetAllKeysToDefault"
+
 - name: Export multiple SecureBoot certificate.
   dellemc.openmanage.idrac_secure_boot:
     idrac_ip: "192.168.1.2"
@@ -473,6 +560,11 @@ class IDRACExportSecureBoot(IDRACSecureBoot):
 def main():
     try:
         specs = {
+            "boot_mode": {"type": 'str', "choices": ['Uefi', 'Bios']},
+            "secure_boot": {"type": 'str', "choices": ['Enabled', 'Disabled']},
+            "secure_boot_mode": {"type": 'str', "choices": ['UserMode', 'DeployedMode', 'AuditMode']},
+            "secure_boot_policy": {"type": 'str', "choices": ['Standard', 'Custom']},
+            "force_int_10": {"type": 'str', "choices": ['Enabled', 'Disabled']},
             "export_certificates": {"type": 'bool'},
             "import_certificates": {"type": 'bool'},
             "platform_key": {"type": 'path'},
@@ -482,6 +574,8 @@ def main():
             "restart": {"type": 'bool', "default": False},
             "restart_type": {"type": 'str', "default": "GracefulRestart",
                              "choices": ['ForceRestart', 'GracefulRestart']},
+            "reset_keys": {"type": 'str', "choices": ['ResetAllKeysToDefault', 'DeleteAllKeys', 'DeletePK',
+                                                      'ResetPK', 'ResetKEK', 'ResetDB', 'ResetDBX']},
             "job_wait": {"type": 'bool', "default": True},
             "job_wait_timeout": {"type": 'int', "default": 1200},
         }

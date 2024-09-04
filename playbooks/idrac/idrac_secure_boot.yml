@@ -4,6 +4,37 @@
   gather_facts: false
 
   tasks:
+    - name: Enable Secureboot.
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "192.168.1.2"
+        idrac_user: "user"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        secure_boot: "Enabled"
+      delegate_to: localhost
+
+    - name: Set SecureBootMode and SecureBootPolicy and reset iDRAC.
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "192.168.1.2"
+        idrac_user: "user"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        secure_boot: "Enabled"
+        secure_boot_mode: "UserMode"
+        secure_boot_policy: "Custom"
+        restart: true
+        restart_type: "GracefulRestart"
+      delegate_to: localhost
+
+    - name: Reset Secure Boot certificates.
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "192.168.1.2"
+        idrac_user: "user"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        reset_keys: "ResetAllKeysToDefault"
+      delegate_to: localhost
+
     - name: Export multiple SecureBoot certificate.
       dellemc.openmanage.idrac_secure_boot:
         idrac_ip: "192.168.1.2"
