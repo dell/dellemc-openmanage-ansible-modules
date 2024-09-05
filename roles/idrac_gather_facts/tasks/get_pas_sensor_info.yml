@@ -10,10 +10,5 @@
     "presence_and_status_sensor":
       "{{ pas_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'Assembly',
       'Links']) }}"
-  ignore_errors: true
+  when: pas_result.status == 200
   register: pas_result_register
-
-- name: Set the fail message
-  ansible.builtin.fail:
-    msg: "This target is not supported on iDRAC8"
-  when: pas_result.status == 400 and pas_result.server == "iDRAC/8"
