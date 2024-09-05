@@ -14,8 +14,8 @@ __metaclass__ = type
 
 import json
 from io import StringIO
-
 import pytest
+from mock import mock_open
 from ansible.module_utils._text import to_text
 from urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -237,13 +237,13 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         certificates = {
             odata: "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/db/Certificates"}
 
-        resp_iDRAC = {'CertificateType': 'PEM',
+        resp_idrac = {'CertificateType': 'PEM',
                       'CertificateString': '---BEGIN CERT---'}
 
         # Scenario 1: When import and export both is given
         idrac_default_args.update({'import_certificates': True,
                                    'export_certificates': True,
-                                   'database': '/tmp/export/db'
+                                   'database': '/XYZ/export/db'
                                    })
         with pytest.raises(Exception) as ex:
             self._run_module(idrac_default_args)
@@ -260,7 +260,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         assert ex.value.args[0]["failed"] is True
 
         # Scenario 3: when multiple path is given
-        idrac_default_args.update({'database': ['/tmp/db1', '/tmp/db2']})
+        idrac_default_args.update({'database': ['/XYZ/db1', '/XYZ/db2']})
         data = self._run_module(idrac_default_args)
         assert data['msg'] == UNSUCCESSFUL_EXPORT_MSG
         assert data['failed'] is True
@@ -273,36 +273,41 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
                 elif args[2] == 'Certificates':
                     return certificates
             else:
-                return resp_iDRAC
+                return resp_idrac
 
-        # Scenario 3: when single path is given
+
+        # Scenario 4: When file path is given
+        idrac_default_args.update({'database': ['/XYZ/abc.txt']})
+        data = self._run_module(idrac_default_args)
+        assert data['msg'] == UNSUCCESSFUL_EXPORT_MSG
+        assert data['failed'] is True
+
+        # Scenario 5: when single path is given
+        mocker.patch("os.path.isdir", return_value=True)
+        mocker.patch(OS_ACCESS_FN, return_value=True)
+        mocker.patch("builtins.open", side_effect=mock_open(read_data="data"), create=True)
         mocker.patch(MODULE_PATH + "idrac_secure_boot.get_dynamic_uri",
                      side_effect=mock_get_dynamic_uri_request)
         mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACSecureBoot.mapping_secure_boot_database_uri",
                      return_value=mapping_uri_resp)
-        idrac_default_args.update({'database': ['/tmp/']})
+        del idrac_default_args['database']
+        idrac_default_args.update({'database': ['/XYZ/']})
         data = self._run_module(idrac_default_args)
         assert data['msg'] == SUCCESS_EXPORT_MSG
         assert data['changed'] is False
 
-        # Scenario 4: When single path is given in check mode
+        # Scenario 6: When single path is given in check mode
         data = self._run_module(idrac_default_args, check_mode=True)
         assert data['msg'] == CHANGES_FOUND
         assert data['changed'] is True
 
-        # Scenario 5: When no path is given in check mode
+        # Scenario 7: When no path is given in check mode
         idrac_default_args.update({'database': []})
         data = self._run_module(idrac_default_args, check_mode=True)
         assert data['msg'] == NO_CHANGES_FOUND
         assert data['changed'] is False
 
-        # Scenario 6: When file path is given
-        idrac_default_args.update({'database': ['/tmp/abc.txt']})
-        data = self._run_module(idrac_default_args)
-        assert data['msg'] == UNSUCCESSFUL_EXPORT_MSG
-        assert data['failed'] is True
-
-        # Scenario 7: Directory does not have write permission
+        # Scenario 8: Directory does not have write permission
         mocker.patch(OS_ACCESS_FN, return_value=False)
         idrac_default_args.update({'database': ['/tmp']})
         data = self._run_module(idrac_default_args)

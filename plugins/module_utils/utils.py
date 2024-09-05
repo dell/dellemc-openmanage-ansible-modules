@@ -675,8 +675,8 @@ def expand_ipv6(ip):
 
 def cert_file_format_string(ip, prefix="",
                             postfix="",
-                            DATETIME_FORMAT="%Y%m%d_%H%M%S"):
+                            datetime_format="%Y%m%d_%H%M%S"):
     now = datetime.now()
     hostname = expand_ipv6(ip).replace(":", ".")
-    data = f"{prefix}{hostname}_{now.strftime(DATETIME_FORMAT)}{postfix}"
+    data = f"{prefix}{hostname}_{now.strftime(datetime_format)}{postfix}"
     return data
