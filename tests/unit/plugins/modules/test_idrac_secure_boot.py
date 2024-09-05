@@ -308,7 +308,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
 
         # Scenario 8: Directory does not have write permission
         mocker.patch(OS_ACCESS_FN, return_value=False)
-        idrac_default_args.update({'database': ['/tmp']})
+        idrac_default_args.update({'database': ['/XYZ/']})
         data = self._run_module(idrac_default_args)
         assert data['msg'] == UNSUCCESSFUL_EXPORT_MSG
         assert data['failed'] is True
