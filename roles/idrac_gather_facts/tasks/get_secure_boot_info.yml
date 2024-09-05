@@ -32,7 +32,7 @@
   loop: "{{ secure_boot_results.results }}"
   loop_control:
     loop_var: sec_boot_cert
-  when: secure_boot_result.status == 200 and secure_boot_db_result.status == 200 
+  when: secure_boot_result.status == 200 and secure_boot_db_result.status == 200
 
 - name: Combine the secure boot database and certificates into secure boot.
   ansible.builtin.set_fact:
