@@ -275,7 +275,6 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
             else:
                 return resp_idrac
 
-
         # Scenario 4: When file path is given
         idrac_default_args.update({'database': ['/XYZ/abc.txt']})
         data = self._run_module(idrac_default_args)
