@@ -32,7 +32,7 @@ SUCCESS_MSG = "Successfully imported the SecureBoot certificate."
 SCHEDULE_MSG = "The SecureBoot Certificate Import operation is successfully scheduled. Restart the host server for the changes to take effect."
 NO_OPERATION_SKIP = "Task is skipped as operation is not specified."
 SUCCESS_COMPLETE = "Successfully applied the BIOS attributes update."
-BIOS_JOB_RUNNING = "BIOS Config job is already running. Wait for the job to complete."
+BIOS_JOB_EXISTS = "BIOS Configuration job already exists."
 SCHEDULED_SUCCESS = "Successfully scheduled the job for the BIOS attributes update."
 COMMITTED_SUCCESS = "Successfully committed changes. The job is in pending state. The changes will be applied ay next reboot."
 PROVIDE_ABSOLUTE_PATH = "Please provide absolute path of the certificate file {path}"
@@ -345,7 +345,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, side_effect=[obj, obj2, obj, obj])
         mocker.patch(MODULE_PATH + 'idrac_secure_boot.IDRACAttributes.check_scheduled_bios_job', return_value="Job_ID")
         resp = self._run_module(idrac_default_args)
-        assert resp['msg'] == BIOS_JOB_RUNNING
+        assert resp['msg'] == BIOS_JOB_EXISTS
         assert resp['failed'] is True
 
         # Scenario 9: When boot_mode is Bios, restart fails

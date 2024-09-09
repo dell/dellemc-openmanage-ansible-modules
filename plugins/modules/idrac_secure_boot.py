@@ -291,7 +291,7 @@ SYSTEMS_URI = "/redfish/v1/Systems"
 IDRAC_JOBS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs"
 iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
 iDRAC_JOBS_EXP = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
-BIOS_JOB_RUNNING = "BIOS Config job is already running. Wait for the job to complete."
+BIOS_JOB_EXISTS = "BIOS Configuration job already exists."
 TIME_FORMAT = "%Y%m%d_%H%M%S"
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be negative or zero."
 SUCCESS_MSG = "Successfully imported the SecureBoot certificate."
@@ -681,7 +681,7 @@ class IDRACAttributes(IDRACSecureBoot):
     def handle_scheduled_bios_job(self):
         job_id = self.check_scheduled_bios_job()
         if job_id:
-            self.module.exit_json(msg=BIOS_JOB_RUNNING, job_id=job_id,
+            self.module.exit_json(msg=BIOS_JOB_EXISTS, job_id=job_id,
                                   failed=True)
 
     def apply_attributes_and_exit_json(self, attr):
