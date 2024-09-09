@@ -55,8 +55,14 @@ INVOKE_REQ_KEY = "idrac_secure_boot.iDRACRedfishAPI.invoke_request"
 get_log_function = "idrac_secure_boot.get_lc_log_or_current_log_time"
 OS_ABS_FN = "os.path.isabs"
 OS_ACCESS_FN = "os.access"
-HTTP_ERROR_MSG = "HTTP Error 400: Bad Request"
+HTTP_ERROR_MSG = 'Http error message'
 RETURN_TYPE = "application/json"
+GET_DYNAMIC_URI = "idrac_secure_boot.get_dynamic_uri"
+HTTP_ERROR_URL = 'https://testhost.com'
+RESET_HOST_KEY = 'idrac_secure_boot.IDRACAttributes.reset_host'
+JOB_RACKING_KEY = "idrac_secure_boot.idrac_redfish_job_tracking"
+VALIDATE_RESOURCE_KEY = 'idrac_secure_boot.validate_and_get_first_resource_id_uri'
+JOB_FAILED_MSG = 'Job Failed'
 
 
 class TestIDRACSecureBoot(FakeAnsibleModule):
@@ -118,7 +124,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
                 return False, 'some msg'
             return curr_time
 
-        mocker.patch(MODULE_PATH + "idrac_secure_boot.get_dynamic_uri",
+        mocker.patch(MODULE_PATH + GET_DYNAMIC_URI,
                      side_effect=mock_get_dynamic_uri_request)
         mocker.patch(MODULE_PATH + "idrac_secure_boot.validate_and_get_first_resource_id_uri",
                      return_value=(self.uri, ''))
@@ -220,9 +226,9 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         obj.success = False
         mocker.patch(MODULE_PATH + "idrac_secure_boot.trigger_restart_operation",
                      return_value=(obj, 'Error in triggering restart'))
-        idrac_secure_boot_mock.invoke_request.side_effect = HTTPError('https://testhost.com', 400,
-                                                                      'http error message',
-                                                                      {"accept-type": "application/json"},
+        idrac_secure_boot_mock.invoke_request.side_effect = HTTPError(HTTP_ERROR_URL, 400,
+                                                                      HTTP_ERROR_MSG,
+                                                                      {"accept-type": RETURN_TYPE},
                                                                       StringIO('HTTP 400: Bad Request'))
         mocker.patch(MODULE_PATH + get_log_function,
                      side_effect=mock_get_lc_log_scheduled)
@@ -268,7 +274,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
             else:
                 return atttr_resp
 
-        mocker.patch(MODULE_PATH + "idrac_secure_boot.get_dynamic_uri",
+        mocker.patch(MODULE_PATH + GET_DYNAMIC_URI,
                      side_effect=mock_get_dynamic_uri_request)
         mocker.patch(MODULE_PATH + "idrac_secure_boot.validate_and_get_first_resource_id_uri",
                      return_value=(uri, ''))
@@ -309,7 +315,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         # Scenario 5: When secure_boot_policy is Custom, update happens in normal mode and restart is True but job_wait false
         idrac_default_args.update({'restart': True, 'job_wait': False})
         mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, side_effect=[obj, obj2, obj, obj])
-        mocker.patch(MODULE_PATH + 'idrac_secure_boot.IDRACAttributes.reset_host', return_value=True)
+        mocker.patch(MODULE_PATH + RESET_HOST_KEY, return_value=True)
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == SCHEDULED_SUCCESS
         assert resp['changed'] is True
@@ -317,8 +323,8 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         # Scenario 6: When secure_boot_policy is Custom, update happens in normal mode and restart is True and job_wait True
         idrac_default_args.update({'restart': True, 'job_wait': True})
         mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, side_effect=[obj, obj2, obj, obj])
-        mocker.patch(MODULE_PATH + 'idrac_secure_boot.IDRACAttributes.reset_host', return_value=True)
-        mocker.patch(MODULE_PATH + "idrac_secure_boot.idrac_redfish_job_tracking",
+        mocker.patch(MODULE_PATH + RESET_HOST_KEY, return_value=True)
+        mocker.patch(MODULE_PATH + JOB_RACKING_KEY,
                      return_value=(False, 'successfull', job_dict, 10))
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == SUCCESS_COMPLETE
@@ -329,13 +335,13 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         del idrac_default_args['secure_boot_policy']
         atttr_resp['Attributes']['SecureBoot'] = 'Disabled'
         idrac_default_args.update({'boot_mode': 'Bios'})
-        mocker.patch(MODULE_PATH + 'idrac_secure_boot.validate_and_get_first_resource_id_uri', return_value=(uri, "Error"))
+        mocker.patch(MODULE_PATH + VALIDATE_RESOURCE_KEY, return_value=(uri, "Error"))
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == "Error"
         assert resp['failed'] is True
 
         # Scenario 8: When boot_mode is Bios, already a BIOS job is running
-        mocker.patch(MODULE_PATH + 'idrac_secure_boot.validate_and_get_first_resource_id_uri', return_value=(uri, ""))
+        mocker.patch(MODULE_PATH + VALIDATE_RESOURCE_KEY, return_value=(uri, ""))
         mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, side_effect=[obj, obj2, obj, obj])
         mocker.patch(MODULE_PATH + 'idrac_secure_boot.IDRACAttributes.check_scheduled_bios_job', return_value="Job_ID")
         resp = self._run_module(idrac_default_args)
@@ -345,10 +351,10 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         # Scenario 9: When boot_mode is Bios, restart fails
         obj2.json_data = {'Members': [],
                           'PowerState': 'Off'}
-        mocker.patch(MODULE_PATH + 'idrac_secure_boot.validate_and_get_first_resource_id_uri', return_value=(uri, ""))
+        mocker.patch(MODULE_PATH + VALIDATE_RESOURCE_KEY, return_value=(uri, ""))
         mocker.patch(MODULE_PATH + 'idrac_secure_boot.IDRACAttributes.check_scheduled_bios_job', return_value="")
         mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, side_effect=[obj, obj, obj])
-        mocker.patch(MODULE_PATH + 'idrac_secure_boot.IDRACAttributes.reset_host', return_value=False)
+        mocker.patch(MODULE_PATH + RESET_HOST_KEY, return_value=False)
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == HOST_RESTART_FAILED
         assert resp['failed'] is True
@@ -357,11 +363,11 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         del idrac_default_args['boot_mode']
         idrac_default_args.update({'force_int_10': 'Enabled'})
         mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, side_effect=[obj, obj2, obj, obj])
-        mocker.patch(MODULE_PATH + 'idrac_secure_boot.IDRACAttributes.reset_host', return_value=True)
-        mocker.patch(MODULE_PATH + "idrac_secure_boot.idrac_redfish_job_tracking",
-                     return_value=(True, 'Job Failed', job_dict, 10))
+        mocker.patch(MODULE_PATH + RESET_HOST_KEY, return_value=True)
+        mocker.patch(MODULE_PATH + JOB_RACKING_KEY,
+                     return_value=(True, JOB_FAILED_MSG, job_dict, 10))
         resp = self._run_module(idrac_default_args)
-        assert resp['msg'] == 'Job Failed'
+        assert resp['msg'] == JOB_FAILED_MSG
         assert resp['failed'] is True
 
         # Scenario 11: When Secure_boot is Enabled, but force_int_10 is Enabled
@@ -371,14 +377,14 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         idrac_default_args.update({'secure_boot': 'Enabled'})
         atttr_resp['Attributes']['force_int_10'] = 'Enabled'
         mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, side_effect=[obj])
-        mocker.patch(MODULE_PATH + 'idrac_secure_boot.IDRACAttributes.reset_host', return_value=True)
+        mocker.patch(MODULE_PATH + RESET_HOST_KEY, return_value=True)
         mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACAttributes.apply_attributes",
-                     side_effect=HTTPError('https://testhost.com', 400,
-                                           'http error message',
-                                           {"accept-type": "application/json"},
+                     side_effect=HTTPError(HTTP_ERROR_URL, 400,
+                                           HTTP_ERROR_MSG,
+                                           {"accept-type": RETURN_TYPE},
                                            StringIO(json_str)))
-        mocker.patch(MODULE_PATH + "idrac_secure_boot.idrac_redfish_job_tracking",
-                     return_value=(False, 'Job Failed', job_dict, 10))
+        mocker.patch(MODULE_PATH + JOB_RACKING_KEY,
+                     return_value=(False, 'Success', job_dict, 10))
         try:
             self._run_module(idrac_default_args)
         except Exception as ex:
@@ -449,7 +455,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         mocker.patch("os.path.isdir", return_value=True)
         mocker.patch(OS_ACCESS_FN, return_value=True)
         mocker.patch("builtins.open", side_effect=mock_open(read_data="data"), create=True)
-        mocker.patch(MODULE_PATH + "idrac_secure_boot.get_dynamic_uri",
+        mocker.patch(MODULE_PATH + GET_DYNAMIC_URI,
                      side_effect=mock_get_dynamic_uri_request)
         mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACSecureBoot.mapping_secure_boot_database_uri",
                      return_value=mapping_uri_resp)
@@ -493,9 +499,9 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACImportSecureBoot.perform_operation",
-                         side_effect=exc_type('https://testhost.com', 400,
-                                              'http error message',
-                                              {"accept-type": "application/json"},
+                         side_effect=exc_type(HTTP_ERROR_URL, 400,
+                                              HTTP_ERROR_MSG,
+                                              {"accept-type": RETURN_TYPE},
                                               StringIO(json_str)))
         else:
             mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACImportSecureBoot.perform_operation",

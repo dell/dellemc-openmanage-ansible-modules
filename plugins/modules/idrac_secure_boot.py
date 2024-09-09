@@ -609,11 +609,9 @@ class IDRACAttributes(IDRACSecureBoot):
         job_resp = self.idrac.invoke_request(iDRAC_JOBS_EXP, "GET")
         job_list = job_resp.json_data.get('Members', [])
         sch_jb = None
-        jb_state = 'Unknown'
         for jb in job_list:
             if jb.get("JobType") == "BIOSConfiguration" and jb.get("JobState") in ["Scheduled", "Running", "Starting"]:
                 sch_jb = jb['Id']
-                jb_state = jb.get("JobState")
                 break
         return sch_jb
 
@@ -635,7 +633,7 @@ class IDRACAttributes(IDRACSecureBoot):
     def apply_attributes(self, pending):
         payload = {"Attributes": pending}
         reboot_required = False
-        resp = self.idrac.invoke_request(self.bios_setting_uri, "PATCH", data=payload)
+        self.idrac.invoke_request(self.bios_setting_uri, "PATCH", data=payload)
         if self.module.params.get('restart'):
             reboot_required = True
         job_id = self.trigger_bios_job()
