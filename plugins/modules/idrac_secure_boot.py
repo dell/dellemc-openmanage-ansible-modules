@@ -17,13 +17,14 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: idrac_secure_boot
-short_description: Configure attributes, import or export secure boot certificate and Reset keys
+short_description: Configure attributes, import, or export secure boot certificate, and reset keys.
 version_added: "9.6.0"
 description:
-  - This module allows to import/export the secure boot certificates.
-  - This module allows to enable/disable secure boot, boot mode.
-  - This modules also allows to configure Policies PK, KEK and configure DB, DBX certificates.
-  - This module allows to reset the UEFI Secure Boot keys..
+  - Import or Export Secure Boot certificate.
+  - Enable or disable Secure Boot mode.
+  - Configure Platform Key (PK) and Key Exchange Key (KEK) policies
+  - Configure Allow Database (DB) and Disallow Database (DBX) certificates.
+  - Reset UEFI Secure Boot keys.
 extends_documentation_fragment:
   - dellemc.openmanage.idrac_x_auth_options
 options:
@@ -31,45 +32,47 @@ options:
     type: str
     choices: [Uefi, Bios]
     description:
-      - Boot Mode of the idrac.
-      - I(Uefi) Enables the secure boot in uefi mode.
-      - I(Bios) Enables the secure boot in bios mode.
+      - Boot mode of the iDRAC.
+      - C(Uefi) enables the secure boot in UEFI mode.
+      - C(Bios) enables the secure boot in BIOS mode.
   secure_boot:
     type: str
-    choices: [Enabled, Disabled]
+    choices: [Disabled, Enabled]
     description:
       - UEFI Secure Boot.
-      - The I(secure_boot_mode) can be C(Enabled) only if I(boot_mode) is C(Uefi) and I(force_int_10) is C(Disabled).
-      - I(Enabled) enables the Secureboot mode.
-      - I(Disabled) disables the Secureboot mode.
+      - The I(secure_boot) can be C(Enabled) only if I(boot_mode) is C(UEFI) and I(force_int_10) is C(Disabled).
+      - C(Disabled) disables the secure boot mode.
+      - C(Enabled) enables the secure boot mode.
   secure_boot_mode:
     type: str
-    choices: [UserMode, DeployedMode, AuditMode]
+    choices: [AuditMode, DeployedMode, UserMode]
     description:
-      - The UEFI Secure Boot Mode configures how the Secure Boot Policy are used.
-      - I(UserMode) set the secure boot mode into an user mode where PK must be installed, and BIOS performs signature verification on programmatic attempts
-        to update policy objects.
-      - I(DeployedMode) set the secure boot mode into an deployed mode where PK is present, and BIOS performs signature verification on programmatic attempts
-        to update policy objects
-      - I(AuditMode) set the secure boot mode into an audit mode where PK is not present. The BIOS does not authenticate programmatic updates to the policy
-        objects, and transitions between modes. The BIOS performs a signature verification on pre-boot images and logs the results in the image Execution
-        Information Table, but executes the images whether they pass or fail verification.
+      - The UEFI Secure Boot mode configures how to use the Secure Boot Policy.
+      - C(AuditMode) sets the Secure Boot mode to an Audit mode when Platform Key is not installed on the system. The BIOS does not authenticate
+        updates to the policy objects and transition between modes. BIOS performs a signature verification on pre-boot images and logs the results in the Image
+        Execution Information table, where it processes the images whether the status of verification is pass or fail.
+      - C(DeployedMode) sets the Secure Boot mode to a Deployed mode when Platform Key is installed on the system, and then BIOS performs a signature
+        verification to update the policy objects.
+      - C(UserMode) sets the Secure Boot mode to a User mode when Platform Key is installed on the system, and then BIOS performs signature
+        verification to update policy objects.
   secure_boot_policy:
     type: str
-    choices: [Standard, Custom]
+    choices: [Custom, Standard]
     description:
-      - Following are the secure boot policy.
-      - C (Standard) indicates that the system has default certificates and image digests, or hash loaded from the factory.
-      - C(Custom) inherits the standard certificates and image digests that are loaded in the system by default, which you can modify.
-      - Secure Boot Policy configured as Custom allows you to perform operations such as View, Export, Import, Delete, Delete All, Reset, and Reset.
+      - The following are the types of Secure Boot policy.
+      - C(Custom) inherits the standard certificates and image digests that are loaded in the system by default.
+        You can modify the certificates and image digests.
+      - C(Standard) indicates that the system has default certificates, image digests, or hash loaded from the factory.
+      - When Secure Boot Policy is configured as Custom you can perform the following operations as view,
+        export, import, delete, delete all, and reset policies.
   force_int_10:
     type: str
-    choices: [Enabled, Disabled]
+    choices: [Disabled, Enabled]
     description:
-      - Determines whether the system BIOS will load the legacy video (INT 10h) option ROM from the video controller.
-      - This field is supported only in UEFI boot mode. This field cannot be set to Enabled if UEFI SecureBoot is enabled.
+      - Determines if the system BIOS will load the legacy video (INT 10h) option ROM from the video controller.
+      - This parameter is supported only in UEFI boot mode. If UEFI Secure Boot mode is enabled, you cannot enable this parameter.
+      - C(Disabled) if the operating system supports UEFI video output standards.
       - C(Enabled) if the operating system does not support UEFI video output standards.
-      - C(Disabled) if the operating system support UEFI video output standards.
   export_certificates:
     type: bool
     description:
@@ -96,26 +99,26 @@ options:
     type: list
     elements: path
     description:
-      - A list of absolute paths of the Database certificate file for UEFI secure boot.
+      - A list of absolute paths of the Allowe Database(DB) certificate file for UEFI secure boot.
       - Directory path with write permissions if I(export_certificates) is C(true).
   disallow_database:
     type: list
     elements: path
     description:
-      - A list of absolute paths of the Disallow Database certificate file for UEFI secure boot.
+      - A list of absolute paths of the Disallow Database(DBX) certificate file for UEFI secure boot.
       - Directory path with write permissions if I(export_certificates) is C(true).
   reset_keys:
     type: str
-    choices: [ResetAllKeysToDefault, DeleteAllKeys, DeletePK, ResetPK, ResetKEK, ResetDB, ResetDBX]
+    choices: [DeleteAllKeys, DeletePK, ResetAllKeysToDefault, ResetDB, ResetDBX, ResetKEK, ResetPK]
     description:
       - Resets the UEFI Secure Boot keys.
-      - C(ResetAllKeysToDefault) - Reset the content of all UEFI Secure Boot key databases (PK, KEK, DB, DBX) to their default values.
-      - C(DeletePK) - Delete the content of the PK UEFI Secure Boot database. This puts the system in Setup Mode.
-      - C(DeleteAllKeys) - Delete the content of all UEFI Secure Boot key databases (PK, KEK, DB, DBX). This puts the system in Setup Mode
-      - C(ResetPK) - Reset the content of PK UEFI Secure Boot database to their default values.
-      - C(ResetKEK)- Reset the content of KEK UEFI Secure Boot database to their default values.
-      - C(ResetDB)- Reset the content of DB UEFI Secure Boot database to their default values.
-      - C(ResetDBX)- Reset the content of DBX UEFI Secure Boot database to their default values.
+      - C(DeleteAllKeys) deletes the content of all UEFI Secure Boot key databases (PK, KEK, DB, and DBX). This choice configures the system in Setup Mode.
+      - C(DeletePK) deletes the content of the PK UEFI Secure Boot database. This choice configures the system in Setup Mode.
+      - C(ResetAllKeysToDefault) resets the content of all UEFI Secure Boot key databases (PK, KEK, DB, and DBX) to their default values.
+      - C(ResetDB) resets the content of the DB UEFI Secure Boot database to its default values.
+      - C(ResetDBX) resets the content of the DBX UEFI Secure Boot database to its default values.
+      - C(ResetKEK) resets the content of the KEK UEFI Secure Boot database to its default values.
+      - C(ResetPK) resets the content of the PK UEFI Secure Boot database to its default values.
   restart:
     type: bool
     default: false
@@ -161,15 +164,16 @@ notes:
     - This module will always report changes found to be applied when run in C(check mode).
     - This module does not support idempotency when I(reset_type) or I(export_certificates)
       or I(import_certificates) is provided.
-    - The order of operations set secure boot settings (boot_mode, secure_boot, secure_boot_mode,
-      secure_boot_policy, force_int_10),  export,  certificate reset,  import, idrac reset.
+    - The order of operations is as follows configure Secure Boot settings(boot_mode, secure_boot, secure_boot_mode, secure_boot_policy, force_int_10),
+      export, certificate reset, import, followed by idrac reset.
     - I(export_certificate) will export all the certificates of the key defined in the playbook.
+    - This module considers values of I(restart), I(job_wait) only for the last operation in the sequence.
     - This module supports IPv4 and IPv6 addresses.
 """
 
 EXAMPLES = """
 ---
-- name: Enable Secureboot.
+- name: Enable Secure Boot.
   dellemc.openmanage.idrac_secure_boot:
     idrac_ip: "192.168.1.2"
     idrac_user: "user"
@@ -177,7 +181,7 @@ EXAMPLES = """
     ca_path: "/path/to/ca_cert.pem"
     secure_boot: "Enabled"
 
-- name: Set SecureBootMode and SecureBootPolicy and reset iDRAC.
+- name: Set Secure Boot mode, Secure Boot policy, and restart iDRAC.
   dellemc.openmanage.idrac_secure_boot:
     idrac_ip: "192.168.1.2"
     idrac_user: "user"
@@ -273,23 +277,35 @@ error_info:
 
 import json
 import os
+import time
+from ansible.module_utils.common.dict_transformations import recursive_diff
 from urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     get_dynamic_uri, remove_key, validate_and_get_first_resource_id_uri,
     trigger_restart_operation, wait_for_lc_status, get_lc_log_or_current_log_time,
-    cert_file_format_string)
+    cert_file_format_string, strip_substr_dict, idrac_redfish_job_tracking)
 
 SYSTEMS_URI = "/redfish/v1/Systems"
+IDRAC_JOBS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs"
+iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
+iDRAC_JOBS_EXP = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
+BIOS_JOB_RUNNING = "BIOS Config job is already running. Wait for the job to complete."
 TIME_FORMAT = "%Y%m%d_%H%M%S"
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be negative or zero."
 SUCCESS_MSG = "Successfully imported the SecureBoot certificate."
-NO_OPERATION_SKIP = "Task is skipped as import_certificates is 'false'."
+NO_OPERATION_SKIP = "Task is skipped as operation is not specified."
 PROVIDE_ABSOLUTE_PATH = "Please provide absolute path of the certificate file {path}."
 NO_READ_PERMISSION_PATH = "Unable to read the certificate file {path}."
 NO_FILE_FOUND = "Unable to find the certificate file {path}."
 NO_VALID_PATHS = "No valid absolute path found for certificate(s)."
+HOST_RESTART_FAILED = "Unable to restart the host. Check the host status and restart the host manually."
+SUCCESS_CLEAR = "Successfully cleared the pending BIOS attributes."
+SUCCESS_COMPLETE = "Successfully applied the BIOS attributes update."
+SCHEDULED_SUCCESS = "Successfully scheduled the job for the BIOS attributes update."
+COMMITTED_SUCCESS = "Successfully committed changes. The job is in pending state. The changes will be applied ay next reboot."
+RESET_TRIGGERRED = "Reset BIOS action triggered successfully."
 CHANGES_FOUND = 'Changes found to be applied.'
 SCHEDULED_AND_RESTARTED = "Successfully scheduled the boot certificate import operation and restarted the server."
 FAILED_IMPORT = "Failed to import certificate file {path} for {parameter}."
@@ -302,6 +318,8 @@ SUCCESS_EXPORT_MSG = 'Successfully exported the SecureBoot certificate.'
 UNSUCCESSFUL_EXPORT_MSG = 'Failed to export the SecureBoot certificate.'
 NO_CHANGES_FOUND = 'No changes found to be applied.'
 odata = '@odata.id'
+POWER_CHECK_RETRIES = 30
+POWER_CHECK_INTERVAL = 10
 
 
 class IDRACSecureBoot:
@@ -352,6 +370,68 @@ class IDRACSecureBoot:
                     mapped_value.update({label: uri})
                     break
         return mapped_value
+
+    def track_power_state(self, desired_state, retries=POWER_CHECK_RETRIES, interval=POWER_CHECK_INTERVAL):
+        count = retries
+        while count:
+            ps = self.get_power_state()
+            if ps in desired_state:
+                achieved = True
+                break
+            else:
+                time.sleep(interval)
+            count = count - 1
+        else:
+            achieved = False
+        return achieved
+
+    def get_power_state(self):
+        retries = 3
+        pstate = "Unknown"
+        while retries > 0:
+            try:
+                resp = self.idrac.invoke_request(self.uri, "GET")
+                pstate = resp.json_data.get("PowerState")
+                break
+            except Exception:
+                retries = retries - 1
+        return pstate
+
+    def power_act_host(self, p_state):
+        try:
+            resp, error_msg = {}, {}
+            uri, error_msg = validate_and_get_first_resource_id_uri(None, self.idrac, SYSTEMS_URI)
+            if error_msg:
+                return resp, error_msg
+            actions_uri = get_dynamic_uri(self.idrac, uri, 'Actions').get("#ComputerSystem.Reset", {}).get("target", '')
+            self.idrac.invoke_request(actions_uri, "POST", data={'ResetType': p_state})
+            p_act = True
+        except HTTPError:
+            p_act = False
+        return p_act
+
+    def reset_host(self):
+        restart_type = self.module.params.get('restart_type')
+        p_state = 'On'
+        ps = self.get_power_state()
+        on_state = ["On"]
+        if ps in on_state:
+            p_state = 'GracefulShutdown'
+            if 'force' in restart_type:
+                p_state = 'ForceOff'
+            p_act = self.power_act_host(p_state)
+            if not p_act:
+                self.module.exit_json(failed=True, msg=HOST_RESTART_FAILED)
+            state_achieved = self.track_power_state(["Off"])
+            p_state = "On"
+            if not state_achieved:
+                time.sleep(10)
+                p_state = "ForceRestart"
+        p_act = self.power_act_host(p_state)
+        if not p_act:
+            self.module.exit_json(failed=True, msg=HOST_RESTART_FAILED)
+        state_achieved = self.track_power_state(on_state)
+        return state_achieved
 
 
 class IDRACImportSecureBoot(IDRACSecureBoot):
@@ -487,6 +567,165 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
         self.module.exit_json(msg=scheduled_msg)
 
 
+class IDRACResetCertificates(IDRACSecureBoot):
+
+    def __init__(self, idrac, module):
+        super().__init__(idrac, module)
+        self.reset_keys = self.module.params.get('reset_keys')
+
+    def perform_operation(self):
+        """
+        Perform operation
+        """
+        self.validate_job_wait()
+
+
+class IDRACAttributes(IDRACSecureBoot):
+
+    def __init__(self, idrac, module):
+        super().__init__(idrac, module)
+        self.boot_mode = self.module.params.get('boot_mode')
+        self.secure_boot = self.module.params.get('secure_boot')
+        self.secure_boot_mode = self.module.params.get('secure_boot_mode')
+        self.secure_boot_policy = self.module.params.get('secure_boot_policy')
+        self.force_int_10 = self.module.params.get('force_int_10')
+
+    def get_dynamic_attribute_uri(self):
+        self.uri, error_msg = validate_and_get_first_resource_id_uri(
+            self.module, self.idrac, SYSTEMS_URI)
+        if error_msg:
+            self.module.exit_json(msg=error_msg, failed=True)
+        self.bios_uri = get_dynamic_uri(
+            self.idrac, self.uri, 'Bios')[odata]
+
+    def get_current_attributes(self):
+        self.get_dynamic_attribute_uri()
+        curr_attributes_res = get_dynamic_uri(
+            self.idrac, self.bios_uri)
+        self.curr_attributes_val = curr_attributes_res.get("Attributes", {})
+        self.bios_setting_uri = curr_attributes_res.get("@Redfish.Settings").get('SettingsObject').get(odata)
+
+    def check_scheduled_bios_job(self):
+        job_resp = self.idrac.invoke_request(iDRAC_JOBS_EXP, "GET")
+        job_list = job_resp.json_data.get('Members', [])
+        sch_jb = None
+        jb_state = 'Unknown'
+        for jb in job_list:
+            if jb.get("JobType") == "BIOSConfiguration" and jb.get("JobState") in ["Scheduled", "Running", "Starting"]:
+                sch_jb = jb['Id']
+                jb_state = jb.get("JobState")
+                break
+        return sch_jb
+
+    def get_pending_attributes(self):
+        try:
+            resp = self.idrac.invoke_request(self.bios_setting_uri, "GET")
+            attr = resp.json_data.get("Attributes")
+        except Exception:
+            attr = {}
+        return attr
+
+    def trigger_bios_job(self):
+        job_id = None
+        payload = {"TargetSettingsURI": self.bios_setting_uri}
+        resp = self.idrac.invoke_request(IDRAC_JOBS_URI, "POST", data=payload)
+        job_id = resp.headers["Location"].split("/")[-1]
+        return job_id
+
+    def apply_attributes(self, pending):
+        payload = {"Attributes": pending}
+        reboot_required = False
+        resp = self.idrac.invoke_request(self.bios_setting_uri, "PATCH", data=payload)
+        if self.module.params.get('restart'):
+            reboot_required = True
+        job_id = self.trigger_bios_job()
+        return job_id, reboot_required
+
+    def compare_attr_val(self, curr_attr):
+        new_payload = {"BootMode": self.boot_mode, "SecureBoot": self.secure_boot,
+                       "SecureBootMode": self.secure_boot_mode, "SecureBootPolicy": self.secure_boot_policy,
+                       "ForceInt10": self.force_int_10}
+        new_attr = {k: v for k, v in new_payload.items() if v is not None}
+        fetched_dict = {}
+        attributes = list(new_attr.keys())
+        for key in attributes:
+            if key in curr_attr:
+                fetched_dict[key] = curr_attr[key]
+        diff_tuple = recursive_diff(new_attr, fetched_dict)
+        attr = {}
+        if diff_tuple and diff_tuple[0]:
+            attr = diff_tuple[0]
+        return attr
+
+    def attributes_config(self):
+        curr_attr = self.curr_attributes_val
+        attr = self.compare_attr_val(curr_attr)
+        self.import_op = self.module.params.get('import_certificates')
+        self.export_op = self.module.params.get('export_certificates')
+        self.reset_keys = self.module.params.get('reset_keys')
+        if not attr:
+            if self.import_op or self.export_op or self.reset_keys:
+                return
+            elif self.module.check_mode:
+                self.module.exit_json(msg=NO_CHANGES_FOUND, changed=False)
+            self.module.exit_json(msg=NO_CHANGES_FOUND, skipped=True)
+        if self.module.check_mode:
+            self.module.exit_json(msg=CHANGES_FOUND, changed=True)
+        self.update_pending_attributes(attr)
+
+    def update_pending_attributes(self, attr):
+        pending = self.get_pending_attributes()
+        pending.update(attr)
+        if pending:
+            self.handle_scheduled_bios_job()
+        self.apply_attributes_and_exit_json(attr)
+
+    def handle_scheduled_bios_job(self):
+        job_id = self.check_scheduled_bios_job()
+        if job_id:
+            self.module.exit_json(msg=BIOS_JOB_RUNNING, job_id=job_id,
+                                  failed=True)
+
+    def apply_attributes_and_exit_json(self, attr):
+        reboot_required = False
+        job_id, reboot_required = self.apply_attributes(attr)
+        job_wait = self.module.params.get("job_wait")
+        if self.import_op or self.export_op or self.reset_keys:
+            reboot_required = True
+            job_wait = True
+        if reboot_required and job_id:
+            reset_success = self.reset_host()
+            if not reset_success:
+                self.module.exit_json(msg=HOST_RESTART_FAILED,
+                                      failed=True)
+            if job_wait:
+                self.handle_job_wait(job_id)
+                return
+            else:
+                self.module.exit_json(msg=SCHEDULED_SUCCESS, job_id=job_id, changed=True)
+        self.module.exit_json(msg=COMMITTED_SUCCESS,
+                              job_id=job_id, changed=True)
+
+    def handle_job_wait(self, job_id):
+        job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(
+            self.idrac, iDRAC_JOB_URI.format(job_id=job_id),
+            max_job_wait_sec=self.module.params.get('job_wait_timeout'))
+        if job_failed:
+            self.module.exit_json(failed=True, msg=msg, job_id=job_id)
+        if self.import_op or self.export_op or self.reset_keys:
+            return
+        self.module.exit_json(msg=SUCCESS_COMPLETE, job_id=job_id,
+                              job_status=strip_substr_dict(job_dict), changed=True)
+
+    def perform_operation(self):
+        """
+        Perform operation
+        """
+        self.validate_job_wait()
+        self.get_current_attributes()
+        self.attributes_config()
+
+
 class IDRACExportSecureBoot(IDRACSecureBoot):
 
     def __init__(self, idrac, module):
@@ -571,10 +810,10 @@ def main():
     try:
         specs = {
             "boot_mode": {"type": 'str', "choices": ['Uefi', 'Bios']},
-            "secure_boot": {"type": 'str', "choices": ['Enabled', 'Disabled']},
-            "secure_boot_mode": {"type": 'str', "choices": ['UserMode', 'DeployedMode', 'AuditMode']},
-            "secure_boot_policy": {"type": 'str', "choices": ['Standard', 'Custom']},
-            "force_int_10": {"type": 'str', "choices": ['Enabled', 'Disabled']},
+            "secure_boot": {"type": 'str', "choices": ['Disabled', 'Enabled']},
+            "secure_boot_mode": {"type": 'str', "choices": ['AuditMode', 'DeployedMode', 'UserMode']},
+            "secure_boot_policy": {"type": 'str', "choices": ['Custom', 'Standard']},
+            "force_int_10": {"type": 'str', "choices": ['Disabled', 'Enabled']},
             "export_certificates": {"type": 'bool'},
             "import_certificates": {"type": 'bool'},
             "platform_key": {"type": 'path'},
@@ -601,13 +840,26 @@ def main():
                                     supports_check_mode=True)
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:
             obj = None
+            boot_mode = module.params.get('boot_mode')
+            secure_boot = module.params.get('secure_boot')
+            secure_boot_mode = module.params.get('secure_boot_mode')
+            secure_boot_policy = module.params.get('secure_boot_policy')
+            force_int_10 = module.params.get('force_int_10')
+            if not all(p is None for p in [boot_mode, secure_boot, secure_boot_mode,
+                                           secure_boot_policy, force_int_10]):
+                obj = IDRACAttributes(idrac, module)
+                obj.perform_operation()
+            if module.params.get('export_certificates'):
+                obj = IDRACExportSecureBoot(idrac, module)
+                obj.perform_operation()
+            if module.params.get('reset_keys'):
+                obj = IDRACResetCertificates(idrac, module)
+                obj.perform_operation()
             if module.params.get('import_certificates'):
                 obj = IDRACImportSecureBoot(idrac, module)
-            elif module.params.get('export_certificates'):
-                obj = IDRACExportSecureBoot(idrac, module)
-            else:
+                obj.perform_operation()
+            elif obj is None:
                 module.exit_json(msg=NO_OPERATION_SKIP, skipped=True)
-            obj.perform_operation()
     except HTTPError as err:
         filter_err = remove_key(json.load(err), regex_pattern='(.*?)@odata')
         module.exit_json(msg=str(err), error_info=filter_err, failed=True)

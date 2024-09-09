@@ -4,7 +4,7 @@
   gather_facts: false
 
   tasks:
-    - name: Enable Secureboot.
+    - name: Enable Secure Boot.
       dellemc.openmanage.idrac_secure_boot:
         idrac_ip: "192.168.1.2"
         idrac_user: "user"
@@ -13,7 +13,7 @@
         secure_boot: "Enabled"
       delegate_to: localhost
 
-    - name: Set SecureBootMode and SecureBootPolicy and reset iDRAC.
+    - name: Set Secure Boot mode and Secure Boot policy and restart iDRAC.
       dellemc.openmanage.idrac_secure_boot:
         idrac_ip: "192.168.1.2"
         idrac_user: "user"

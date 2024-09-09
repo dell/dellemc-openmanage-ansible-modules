@@ -30,10 +30,15 @@ MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be negative or zero."
 SUCCESS_MSG = "Successfully imported the SecureBoot certificate."
 SCHEDULE_MSG = "The SecureBoot Certificate Import operation is successfully scheduled. Restart the host server for the changes to take effect."
-NO_OPERATION_SKIP = "Task is skipped as import_certificates is 'false'."
+NO_OPERATION_SKIP = "Task is skipped as operation is not specified."
+SUCCESS_COMPLETE = "Successfully applied the BIOS attributes update."
+BIOS_JOB_RUNNING = "BIOS Config job is already running. Wait for the job to complete."
+SCHEDULED_SUCCESS = "Successfully scheduled the job for the BIOS attributes update."
+COMMITTED_SUCCESS = "Successfully committed changes. The job is in pending state. The changes will be applied ay next reboot."
 PROVIDE_ABSOLUTE_PATH = "Please provide absolute path of the certificate file {path}"
 NO_READ_PERMISSION_PATH = "Unable to read the certificate file {path}."
 NO_VALID_PATHS = "No valid absolute path found for certificate(s)."
+HOST_RESTART_FAILED = "Unable to restart the host. Check the host status and restart the host manually."
 CHANGES_FOUND = 'Changes found to be applied.'
 FAILED_IMPORT = "Failed to import certificate file {path} for {parameter}."
 NO_IMPORT_SUCCESS = "The Secure Boot Certificate Import operation was not successful."
@@ -46,9 +51,12 @@ SUCCESS_EXPORT_MSG = 'Successfully exported the SecureBoot certificate.'
 UNSUCCESSFUL_EXPORT_MSG = 'Failed to export the SecureBoot certificate.'
 NO_CHANGES_FOUND = 'No changes found to be applied.'
 odata = '@odata.id'
+INVOKE_REQ_KEY = "idrac_secure_boot.iDRACRedfishAPI.invoke_request"
 get_log_function = "idrac_secure_boot.get_lc_log_or_current_log_time"
 OS_ABS_FN = "os.path.isabs"
 OS_ACCESS_FN = "os.access"
+HTTP_ERROR_MSG = "HTTP Error 400: Bad Request"
+RETURN_TYPE = "application/json"
 
 
 class TestIDRACSecureBoot(FakeAnsibleModule):
@@ -221,6 +229,162 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == SCHEDULE_MSG
         assert resp['changed'] is False
+
+    def test_attributes_secure_boot(self, idrac_default_args, idrac_connection_secure_boot,
+                                    idrac_secure_boot_mock, mocker):
+        uri = '/redfish/v1/Systems/System.Embedded.1'
+        atttr_resp = {
+            "Attributes": {
+                "BootMode": "Uefi",
+                "SecureBoot": "Enabled",
+                "SecureBootMode": "UserMode",
+                "SecureBootPolicy": "Standard",
+                "force_int_10": "Disabled"
+            },
+            "@Redfish.Settings": {
+                "SettingsObject": {
+                    odata: "/redfish/v1/Systems/System.Embedded.1/Bios/Settings"
+                }
+            }
+        }
+        bios = {
+            odata: "/redfish/v1/Systems/System.Embedded.1/Bios"}
+        reset_idrac = {
+            "#ComputerSystem.Reset": {
+                "target": "/redfish/v1/Systems/System.Embedded.1/Actions/ComputerSystem.Reset"
+            }
+        }
+        job_dict = {
+            "Id": "job_1", "JobType": "BIOSConfiguration", "JobState": "Completed"
+        }
+
+        def mock_get_dynamic_uri_request(*args, **kwargs):
+            length = len(args)
+            if length > 2:
+                if args[2] == 'Bios':
+                    return bios
+                elif args[2] == 'SecureBoot':
+                    return reset_idrac
+            else:
+                return atttr_resp
+
+        mocker.patch(MODULE_PATH + "idrac_secure_boot.get_dynamic_uri",
+                     side_effect=mock_get_dynamic_uri_request)
+        mocker.patch(MODULE_PATH + "idrac_secure_boot.validate_and_get_first_resource_id_uri",
+                     return_value=(uri, ''))
+
+        # Scenario 1: When secure_boot is enabled when already enabled in check_mode
+        idrac_default_args.update({'secure_boot': 'Enabled'})
+        resp = self._run_module(idrac_default_args, check_mode=True)
+        assert resp['msg'] == NO_CHANGES_FOUND
+        assert resp['changed'] is False
+
+        # Scenario 2: When secure_boot is enabled when already enabled in normal mode
+        resp = self._run_module(idrac_default_args)
+        assert resp['msg'] == NO_CHANGES_FOUND
+        assert resp['skipped'] is True
+
+        # Scenario 3: When secure_boot_policy is Custom, update happens in check_mode
+        idrac_default_args.update({'secure_boot_policy': 'Custom'})
+        resp = self._run_module(idrac_default_args, check_mode=True)
+        assert resp['msg'] == CHANGES_FOUND
+        assert resp['changed'] is True
+
+        # Scenario 4: When secure_boot_policy is Custom, update happens in normal mode and restart is False
+        obj = MagicMock()
+        obj2 = MagicMock()
+        obj.status_code = 200
+        obj.json_data = {'Attributes': {}, 'PowerState': 'On'}
+        obj.headers = {'Location': '/redfish/v1/TaskService/Tasks/Job_ID'}
+        obj2.status_code = 204
+        obj2.json_data = {'Members': [{'JobType': 'BIOSConfiguration', 'JobState': 'Scheduled', 'Id': 'Job_ID'}],
+                          'PowerState': 'Off'}
+        idrac_default_args.update({'secure_boot_policy': 'Custom'})
+        idrac_default_args.update({'restart': False})
+        mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, side_effect=[obj, obj2, obj, obj, obj, obj, obj2, obj2, obj2, obj])
+        resp = self._run_module(idrac_default_args)
+        assert resp['msg'] == COMMITTED_SUCCESS
+        assert resp['changed'] is True
+
+        # Scenario 5: When secure_boot_policy is Custom, update happens in normal mode and restart is True but job_wait false
+        idrac_default_args.update({'restart': True, 'job_wait': False})
+        mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, side_effect=[obj, obj2, obj, obj])
+        mocker.patch(MODULE_PATH + 'idrac_secure_boot.IDRACAttributes.reset_host', return_value=True)
+        resp = self._run_module(idrac_default_args)
+        assert resp['msg'] == SCHEDULED_SUCCESS
+        assert resp['changed'] is True
+
+        # Scenario 6: When secure_boot_policy is Custom, update happens in normal mode and restart is True and job_wait True
+        idrac_default_args.update({'restart': True, 'job_wait': True})
+        mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, side_effect=[obj, obj2, obj, obj])
+        mocker.patch(MODULE_PATH + 'idrac_secure_boot.IDRACAttributes.reset_host', return_value=True)
+        mocker.patch(MODULE_PATH + "idrac_secure_boot.idrac_redfish_job_tracking",
+                     return_value=(False, 'successfull', job_dict, 10))
+        resp = self._run_module(idrac_default_args)
+        assert resp['msg'] == SUCCESS_COMPLETE
+        assert resp['changed'] is True
+        assert resp['job_status'] == job_dict
+
+        # Scenario 7: When boot_mode is Bios, validate_and_get_first_resource_id_uri givess error
+        del idrac_default_args['secure_boot_policy']
+        atttr_resp['Attributes']['SecureBoot'] = 'Disabled'
+        idrac_default_args.update({'boot_mode': 'Bios'})
+        mocker.patch(MODULE_PATH + 'idrac_secure_boot.validate_and_get_first_resource_id_uri', return_value=(uri, "Error"))
+        resp = self._run_module(idrac_default_args)
+        assert resp['msg'] == "Error"
+        assert resp['failed'] is True
+
+        # Scenario 8: When boot_mode is Bios, already a BIOS job is running
+        mocker.patch(MODULE_PATH + 'idrac_secure_boot.validate_and_get_first_resource_id_uri', return_value=(uri, ""))
+        mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, side_effect=[obj, obj2, obj, obj])
+        mocker.patch(MODULE_PATH + 'idrac_secure_boot.IDRACAttributes.check_scheduled_bios_job', return_value="Job_ID")
+        resp = self._run_module(idrac_default_args)
+        assert resp['msg'] == BIOS_JOB_RUNNING
+        assert resp['failed'] is True
+
+        # Scenario 9: When boot_mode is Bios, restart fails
+        obj2.json_data = {'Members': [],
+                          'PowerState': 'Off'}
+        mocker.patch(MODULE_PATH + 'idrac_secure_boot.validate_and_get_first_resource_id_uri', return_value=(uri, ""))
+        mocker.patch(MODULE_PATH + 'idrac_secure_boot.IDRACAttributes.check_scheduled_bios_job', return_value="")
+        mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, side_effect=[obj, obj, obj])
+        mocker.patch(MODULE_PATH + 'idrac_secure_boot.IDRACAttributes.reset_host', return_value=False)
+        resp = self._run_module(idrac_default_args)
+        assert resp['msg'] == HOST_RESTART_FAILED
+        assert resp['failed'] is True
+
+        # Scenario 10: When force_int_10 is Enabled, Job tracking fails
+        del idrac_default_args['boot_mode']
+        idrac_default_args.update({'force_int_10': 'Enabled'})
+        mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, side_effect=[obj, obj2, obj, obj])
+        mocker.patch(MODULE_PATH + 'idrac_secure_boot.IDRACAttributes.reset_host', return_value=True)
+        mocker.patch(MODULE_PATH + "idrac_secure_boot.idrac_redfish_job_tracking",
+                     return_value=(True, 'Job Failed', job_dict, 10))
+        resp = self._run_module(idrac_default_args)
+        assert resp['msg'] == 'Job Failed'
+        assert resp['failed'] is True
+
+        # Scenario 11: When Secure_boot is Enabled, but force_int_10 is Enabled
+        del idrac_default_args['force_int_10']
+        json_str = to_text(json.dumps({"data": "out"}))
+        atttr_resp['Attributes']['secure_boot'] = 'Disabled'
+        idrac_default_args.update({'secure_boot': 'Enabled'})
+        atttr_resp['Attributes']['force_int_10'] = 'Enabled'
+        mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, side_effect=[obj])
+        mocker.patch(MODULE_PATH + 'idrac_secure_boot.IDRACAttributes.reset_host', return_value=True)
+        mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACAttributes.apply_attributes",
+                     side_effect=HTTPError('https://testhost.com', 400,
+                                           'http error message',
+                                           {"accept-type": "application/json"},
+                                           StringIO(json_str)))
+        mocker.patch(MODULE_PATH + "idrac_secure_boot.idrac_redfish_job_tracking",
+                     return_value=(False, 'Job Failed', job_dict, 10))
+        try:
+            self._run_module(idrac_default_args)
+        except Exception as ex:
+            assert isinstance(ex, HTTPError)
+            assert ex.value.args[0]["msg"] == "HTTP Error 400: Bad Request"
+            assert ex.value.args[0]["failed"] is True
 
     def test_export_secure_boot(self, idrac_default_args, idrac_connection_secure_boot,
                                 idrac_secure_boot_mock, mocker):
