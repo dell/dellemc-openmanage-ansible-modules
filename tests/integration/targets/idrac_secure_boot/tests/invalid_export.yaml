@@ -1,0 +1,168 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Negative - Export certificate is false.
+      dellemc.openmanage.idrac_secure_boot:
+        export_certificates: false
+        platform_key: /invalid/path/to/directory
+      ignore_errors: true
+      register: invalid_export
+
+    - name: Verify task status - Negative - Export certificate is false.
+      ansible.builtin.assert:
+        that:
+          - invalid_export.skipped
+          - invalid_export.msg == "Task is skipped as operation is
+           not specified."
+
+    - name: Negative - Export with import
+      dellemc.openmanage.idrac_secure_boot:
+        export_certificates: true
+        platform_key: /invalid/path/to/directory
+        import_certificates: true
+        database:
+          - /invalid/path/to/directory
+      ignore_errors: true
+      register: invalid_export
+
+    - name: Verify task status - Negative - Export with import
+      ansible.builtin.assert:
+        that:
+          - invalid_export.failed
+          - 'invalid_export.msg == "parameters are mutually exclusive:
+             import_certificates|export_certificates"'
+
+    - name: Negative - Export platform_key certificate in invalid directory
+       path.
+      dellemc.openmanage.idrac_secure_boot:
+        export_certificates: true
+        platform_key: /invalid/path/to/directory
+      ignore_errors: true
+      register: invalid_pk_key
+
+    - name: Verify task status - Negative - Export platform_key certificate
+       in invalid directory path.
+      ansible.builtin.assert:
+        that:
+          - invalid_pk_key.failed
+          - 'invalid_pk_key.msg == "Failed to export the SecureBoot
+           certificate."'
+
+    - name: Negative - Export key_exchange_key certificate in
+       invalid directory path.
+      dellemc.openmanage.idrac_secure_boot:
+        export_certificates: true
+        KEK:
+          - /invalid/path/to/directory
+      ignore_errors: true
+      register: invalid_kek_key
+
+    - name: Verify task status - Negative - Export key_exchange_key
+       certificate in invalid directory path.
+      ansible.builtin.assert:
+        that:
+          - invalid_kek_key.failed
+          - 'invalid_kek_key.msg == "Failed to export the SecureBoot
+           certificate."'
+
+    - name: Negative - Export database certificate in
+       invalid directory path.
+      dellemc.openmanage.idrac_secure_boot:
+        export_certificates: true
+        database:
+          - /invalid/path/to/directory
+      ignore_errors: true
+      register: invalid_db_key
+
+    - name: Verify task status - Negative - Export database certificate in
+       invalid directory path.
+      ansible.builtin.assert:
+        that:
+          - invalid_db_key.failed
+          - 'invalid_db_key.msg == "Failed to export the SecureBoot
+           certificate."'
+
+    - name: Negative - Export disallow_database certificate in
+       invalid directory path.
+      dellemc.openmanage.idrac_secure_boot:
+        export_certificates: true
+        disallow_database:
+          - /invalid/path/to/directory1
+          - /invalid/path/to/directory2
+      ignore_errors: true
+      register: invalid_dd_key
+
+    - name: Verify task status - Negative - Export disallow_database
+       certificate in invalid directory path.
+      ansible.builtin.assert:
+        that:
+          - invalid_dd_key.failed
+          - 'invalid_dd_key.msg == "Failed to export the SecureBoot
+           certificate."'
+
+    - name: Negative - Export certificate is true but
+        no directory path provided
+      dellemc.openmanage.idrac_secure_boot:
+        export_certificates: true
+      ignore_errors: true
+      register: missing_param
+
+    - name: Verify task status - Negative - Export certificate is true but
+        no directory path provided
+      ansible.builtin.assert:
+        that:
+          - missing_param.failed
+          - 'missing_param.msg == "export_certificates is True but any of
+           the following are missing: platform_key, KEK, database,
+            disallow_database"'
+
+    - name: Negative - Invalid parameter for export_certificates
+      dellemc.openmanage.idrac_secure_boot:
+        export_certificates: true
+        invalid: true
+      ignore_errors: true
+      register: invalid_param
+
+    - name: Verify task status - Negative - Invalid parameter for
+       export_certificates
+      ansible.builtin.assert:
+        that:
+          - invalid_param.failed
+          - 'invalid_param.msg == "export_certificates is True but any of
+           the following are missing: platform_key, KEK, database,
+           disallow_database"'
+
+    - name: Negative - Export multiple certificates to invalid directory path
+      dellemc.openmanage.idrac_secure_boot:
+        export_certificates: true
+        platform_key: /invalid/path/to/directory
+        KEK:
+          - /invalid/path/to/directory
+      ignore_errors: true
+      register: invalid_mult
+
+    - name: Verify task status - Negative -  Export multiple certificates to
+       invalid directory path
+      ansible.builtin.assert:
+        that:
+          - invalid_mult.failed
+          - 'invalid_mult.msg == "Failed to export the SecureBoot
+           certificate."'
+
+  module_defaults:
+    dellemc.openmanage.idrac_secure_boot:
+      idrac_ip: "{{ idrac_ip|ansible.utils.ipwrap }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

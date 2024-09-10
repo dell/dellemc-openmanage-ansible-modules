@@ -23,7 +23,8 @@
       ansible.builtin.assert:
         that:
           - invalid_import.skipped
-          - invalid_import.msg == "Task is skipped as import_certificates is 'false'."
+          - invalid_import.msg == "Task is skipped as operation is not
+            specified."
 
     - name: Negative - Import a invalid platform_key certificate.
       dellemc.openmanage.idrac_secure_boot:

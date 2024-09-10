@@ -1,12 +1,26 @@
-- '  This module allows to import the secure boot certificate.'
+- '  Import or Export Secure Boot certificate.'
+- '  Enable or disable Secure Boot mode.'
+- '  Configure Platform Key (PK) and Key Exchange Key (KEK) policies'
+- '  Configure Allow Database (DB) and Disallow Database (DBX)'
+- '  certificates.'
+- '  Reset UEFI Secure Boot keys.'
 - ''
 - "\e[1mOPTIONS\e[0m (red indicates it is required):"
 - ''
 - "   \e[0;33mKEK\e[0m     A list of absolute paths of the Key Exchange Key (KEK)"
 - '           certificate file for UEFI secure boot.'
+- '           Directory path with write permissions if'
+- "           \e[4mexport_certificates\e[0m is \e[1;30m`true'\e[0m."
 - '        default: null'
 - '        elements: path'
 - '        type: list'
+- ''
+- "   \e[0;33mboot_mode\e[0m  Boot mode of the iDRAC."
+- "              \e[1;30m`Uefi'\e[0m enables the secure boot in UEFI mode."
+- "              \e[1;30m`Bios'\e[0m enables the secure boot in BIOS mode."
+- '        choices: [Uefi, Bios]'
+- '        default: null'
+- '        type: str'
 - ''
 - "   \e[0;33mca_path\e[0m  The Privacy Enhanced Mail (PEM) file that contains a CA
     certificate"
@@ -14,19 +28,51 @@
 - '        default: null'
 - '        type: path'
 - ''
-- "   \e[0;33mdatabase\e[0m  A list of absolute paths of the Database certificate
-    file for UEFI"
-- '             secure boot.'
+- "   \e[0;33mdatabase\e[0m  A list of absolute paths of the Allowe Database(DB) certificate
+    file"
+- '             for UEFI secure boot.'
+- '             Directory path with write permissions if'
+- "             \e[4mexport_certificates\e[0m is \e[1;30m`true'\e[0m."
 - '        default: null'
 - '        elements: path'
 - '        type: list'
 - ''
-- "   \e[0;33mdisallow_database\e[0m  A list of absolute paths of the Disallow Database
-    certificate file"
-- '                      for UEFI secure boot.'
+- "   \e[0;33mdisallow_database\e[0m  A list of absolute paths of the Disallow Database(DBX)
+    certificate"
+- '                      file for UEFI secure boot.'
+- '                      Directory path with write permissions if'
+- "                      \e[4mexport_certificates\e[0m is"
+- "                      \e[1;30m`true'\e[0m."
 - '        default: null'
 - '        elements: path'
 - '        type: list'
+- ''
+- "   \e[0;33mexport_certificates\e[0m  Export all the available certificates in the
+    specified directory for"
+- '                        the given keys.'
+- "                        \e[4mexport_cetificates\e[0m is mutually"
+- "                        exclusive with \e[4mimport\e[0m."
+- "                        \e[4mexport_cetificates\e[0m is"
+- "                        \e[1;30m`true'\e[0m either of"
+- "                        \e[4mplatform_key\e[0m or i(key_exchange_key) or"
+- "                        \e[4mdatabase\e[0m - or"
+- "                        \e[4mdisallow_database\e[0m is required."
+- '        default: null'
+- '        type: bool'
+- ''
+- "   \e[0;33mforce_int_10\e[0m  Determines if the system BIOS will load the legacy
+    video (INT 10h)"
+- '                 option ROM from the video controller.'
+- '                 This parameter is supported only in UEFI boot mode.'
+- '                 If UEFI Secure Boot mode is enabled, you cannot'
+- '                 enable this parameter.'
+- "                 \e[1;30m`Disabled'\e[0m if the operating system"
+- '                 supports UEFI video output standards.'
+- "                 \e[1;30m`Enabled'\e[0m if the operating system does not"
+- '                 support UEFI video output standards.'
+- '        choices: [Disabled, Enabled]'
+- '        default: null'
+- '        type: str'
 - ''
 - "   \e[0;31m\e[1midrac_ip\e[0m\e[0m  iDRAC IP Address."
 - '        type: str'
@@ -76,8 +122,33 @@
 - "   \e[0;33mplatform_key\e[0m  The absolute path of the Platform key certificate
     file for UEFI"
 - '                 secure boot.'
+- '                 Directory path with write permissions if'
+- "                 \e[4mexport_certificates\e[0m is \e[1;30m`true'\e[0m."
 - '        default: null'
 - '        type: path'
+- ''
+- "   \e[0;33mreset_keys\e[0m  Resets the UEFI Secure Boot keys."
+- "               \e[1;30m`DeleteAllKeys'\e[0m deletes the content of all"
+- '               UEFI Secure Boot key databases (PK, KEK, DB, and DBX).'
+- '               This choice configures the system in Setup Mode.'
+- "               \e[1;30m`DeletePK'\e[0m deletes the content of the PK"
+- '               UEFI Secure Boot database. This choice configures the'
+- '               system in Setup Mode.'
+- "               \e[1;30m`ResetAllKeysToDefault'\e[0m resets the content"
+- '               of all UEFI Secure Boot key databases (PK, KEK, DB, and'
+- '               DBX) to their default values.'
+- "               \e[1;30m`ResetDB'\e[0m resets the content of the DB UEFI"
+- '               Secure Boot database to its default values.'
+- "               \e[1;30m`ResetDBX'\e[0m resets the content of the DBX"
+- '               UEFI Secure Boot database to its default values.'
+- "               \e[1;30m`ResetKEK'\e[0m resets the content of the KEK"
+- '               UEFI Secure Boot database to its default values.'
+- "               \e[1;30m`ResetPK'\e[0m resets the content of the PK UEFI"
+- '               Secure Boot database to its default values.'
+- '        choices: [DeleteAllKeys, DeletePK, ResetAllKeysToDefault, ResetDB, ResetDBX,
+    ResetKEK, ResetPK]'
+- '        default: null'
+- '        type: str'
 - ''
 - "   \e[0;33mrestart\e[0m  Secure boot certificate import operation requires a server
     restart."
@@ -86,6 +157,8 @@
 - "            \e[1;30m`false'\e[0m does not restart the server."
 - "            \e[4mrestart\e[0m is applicable when"
 - "            \e[4mimport_certificates\e[0m is \e[1;30m`true'\e[0m."
+- "            \e[4mrestart\e[0m will be ignored only when"
+- "            \e[4mexport_certificates\e[0m is \e[1;30m`true'\e[0m."
 - '        default: false'
 - '        type: bool'
 - ''
@@ -98,6 +171,59 @@
 - "                 \e[4mrestart\e[0m is \e[1;30m`true'\e[0m."
 - '        choices: [GracefulRestart, ForceRestart]'
 - '        default: GracefulRestart'
+- '        type: str'
+- ''
+- "   \e[0;33msecure_boot\e[0m  UEFI Secure Boot."
+- "                The \e[4msecure_boot\e[0m can be \e[1;30m`Enabled'\e[0m"
+- "                only if \e[4mboot_mode\e[0m is \e[1;30m`UEFI'\e[0m and"
+- "                \e[4mforce_int_10\e[0m is \e[1;30m`Disabled'\e[0m."
+- "                \e[1;30m`Disabled'\e[0m disables the secure boot mode."
+- "                \e[1;30m`Enabled'\e[0m enables the secure boot mode."
+- '        choices: [Disabled, Enabled]'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33msecure_boot_mode\e[0m  The UEFI Secure Boot mode configures how to use
+    the Secure Boot"
+- '                     Policy.'
+- "                     \e[1;30m`AuditMode'\e[0m sets the Secure Boot mode"
+- '                     to an Audit mode when Platform Key is not'
+- '                     installed on the system. The BIOS does not'
+- '                     authenticate updates to the policy objects and'
+- '                     transition between modes. BIOS performs a'
+- '                     signature verification on pre-boot images and'
+- '                     logs the results in the Image Execution'
+- '                     Information table, where it processes the images'
+- '                     whether the status of verification is pass or'
+- '                     fail.'
+- "                     \e[1;30m`DeployedMode'\e[0m sets the Secure Boot"
+- '                     mode to a Deployed mode when Platform Key is'
+- '                     installed on the system, and then BIOS performs a'
+- '                     signature verification to update the policy'
+- '                     objects.'
+- "                     \e[1;30m`UserMode'\e[0m sets the Secure Boot mode"
+- '                     to a User mode when Platform Key is installed on'
+- '                     the system, and then BIOS performs signature'
+- '                     verification to update policy objects.'
+- '        choices: [AuditMode, DeployedMode, UserMode]'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33msecure_boot_policy\e[0m  The following are the types of Secure Boot
+    policy."
+- "                       \e[1;30m`Custom'\e[0m inherits the standard"
+- '                       certificates and image digests that are loaded'
+- '                       in the system by default. You can modify the'
+- '                       certificates and image digests.'
+- "                       \e[1;30m`Standard'\e[0m indicates that the system"
+- '                       has default certificates, image digests, or'
+- '                       hash loaded from the factory.'
+- '                       When Secure Boot Policy is configured as Custom'
+- '                       you can perform the following operations as'
+- '                       view, export, import, delete, delete all, and'
+- '                       reset policies.'
+- '        choices: [Custom, Standard]'
+- '        default: null'
 - '        type: str'
 - ''
 - "   \e[0;33mtimeout\e[0m  The socket level timeout in seconds."
@@ -137,16 +263,69 @@
 - '      * This module will always report changes found to be'
 - "        applied when run in \e[1;30m`check mode'\e[0m."
 - '      * This module does not support idempotency when'
+- "        \e[4mreset_type\e[0m or \e[4mexport_certificates\e[0m or"
 - "        \e[4mimport_certificates\e[0m is provided."
+- '      * The order of operations is as follows configure Secure'
+- '        Boot settings(boot_mode, secure_boot, secure_boot_mode,'
+- '        secure_boot_policy, force_int_10), export, certificate'
+- '        reset, import, followed by idrac reset.'
+- "      * \e[4mexport_certificate\e[0m will export all the"
+- '        certificates of the key defined in the playbook.'
+- "      * This module considers values of \e[4mrestart\e[0m,"
+- "        \e[4mjob_wait\e[0m only for the last operation in the"
+- '        sequence.'
 - '      * This module supports IPv4 and IPv6 addresses.'
 - ''
 - "\e[1mREQUIREMENTS:\e[0m  python >= 3.9.6"
 - ''
 - ''
-- "\e[1mAUTHOR\e[0m: Abhishek Sinha(@ABHISHEK-SINHA10)"
+- "\e[1mAUTHOR\e[0m: Abhishek Sinha(@ABHISHEK-SINHA10), Lovepreet Singh (@singh-lovepreet1)"
 - ''
 - "\e[1mEXAMPLES:\e[0m"
 - '---'
+- '- name: Enable Secure Boot.'
+- '  dellemc.openmanage.idrac_secure_boot:'
+- '    idrac_ip: "192.168.1.2"'
+- '    idrac_user: "user"'
+- '    idrac_password: "password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    secure_boot: "Enabled"'
+- ''
+- '- name: Set Secure Boot mode, Secure Boot policy, and restart iDRAC.'
+- '  dellemc.openmanage.idrac_secure_boot:'
+- '    idrac_ip: "192.168.1.2"'
+- '    idrac_user: "user"'
+- '    idrac_password: "password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    secure_boot: "Enabled"'
+- '    secure_boot_mode: "UserMode"'
+- '    secure_boot_policy: "Custom"'
+- '    restart: true'
+- '    restart_type: "GracefulRestart"'
+- ''
+- '- name: Reset Secure Boot certificates.'
+- '  dellemc.openmanage.idrac_secure_boot:'
+- '    idrac_ip: "192.168.1.2"'
+- '    idrac_user: "user"'
+- '    idrac_password: "password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    reset_keys: "ResetAllKeysToDefault"'
+- ''
+- '- name: Export multiple SecureBoot certificate.'
+- '  dellemc.openmanage.idrac_secure_boot:'
+- '    idrac_ip: "192.168.1.2"'
+- '    idrac_user: "user"'
+- '    idrac_password: "password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    export_certificates: true'
+- '    platform_key: /user/name/export_cert/pk'
+- '    KEK:'
+- '      - /user/name/export_cert/kek'
+- '    database:'
+- '      - /user/name/export_cert/db'
+- '    disallow_database:'
+- '      - /user/name/export_cert/dbx'
+- ''
 - '- name: Import multiple SecureBoot certificate without applying to iDRAC.'
 - '  dellemc.openmanage.idrac_secure_boot:'
 - '    idrac_ip: "192.168.1.2"'
