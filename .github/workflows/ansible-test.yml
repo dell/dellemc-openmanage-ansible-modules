@@ -33,7 +33,7 @@ jobs:
         run: ansible-galaxy collection build --output-path "${GITHUB_WORKSPACE}/.cache/collection-tarballs"
 
       - name: Store migrated collection artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4.4.0
         with:
           name: collection
           path: .cache/collection-tarballs
@@ -134,7 +134,7 @@ jobs:
         run: ansible-galaxy collection install ansible.posix
 
       - name: Download migrated collection artifacts
-        uses: actions/download-artifact@v4.1.7
+        uses: actions/download-artifact@v4.1.8
         with:
           name: collection
           path: .cache/collection-tarballs
