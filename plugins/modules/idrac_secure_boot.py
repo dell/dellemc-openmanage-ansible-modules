@@ -690,7 +690,6 @@ class IDRACAttributes(IDRACSecureBoot):
         job_wait = self.module.params.get("job_wait")
         job_resp = self.idrac.invoke_request(iDRAC_JOB_URI.format(job_id=job_id), 'GET')
         job_dict = job_resp.json_data
-        job_dict = remove_key(job_dict)
         if self.import_op or self.export_op or self.reset_keys:
             reboot_required = True
             job_wait = True
@@ -714,7 +713,6 @@ class IDRACAttributes(IDRACSecureBoot):
             max_job_wait_sec=self.module.params.get('job_wait_timeout'))
         if job_failed:
             self.module.exit_json(failed=True, msg=msg, job_id=job_id)
-        job_dict = remove_key(job_dict)
         if self.import_op or self.export_op or self.reset_keys:
             return
         self.module.exit_json(msg=SUCCESS_COMPLETE, job_status=strip_substr_dict(job_dict), changed=True)

@@ -72,6 +72,8 @@ NO_RESET_KEYS_SUCCESS = "The Secure Boot Reset Certificates operation was not su
 FAILED_RESET_KEYS = "Failed to complete the Reset Certificates operation using {reset_key_op}. Retry the operation."
 CHECK_SCHEDULED_JOB_KEY = 'idrac_secure_boot.IDRACAttributes.check_scheduled_bios_job'
 TRIGGER_RESTART_KEY = "idrac_secure_boot.trigger_restart_operation"
+RANDOM_MSG = 'some msg'
+WAIT_FOR_LC_STATUS = "idrac_secure_boot.wait_for_lc_status"
 
 
 class TestIDRACSecureBoot(FakeAnsibleModule):
@@ -130,7 +132,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
 
         def mock_get_no_lc_log(*args, **kwargs):
             if args[0]:
-                return False, 'some msg'
+                return False, RANDOM_MSG
             return curr_time
 
         mocker.patch(MODULE_PATH + GET_DYNAMIC_URI,
@@ -211,8 +213,8 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         obj.success = 'OK'
         mocker.patch(MODULE_PATH + TRIGGER_RESTART_KEY,
                      return_value=(obj, 'Error in triggering restart'))
-        mocker.patch(MODULE_PATH + "idrac_secure_boot.wait_for_lc_status",
-                     return_value=(True, 'some msg'))
+        mocker.patch(MODULE_PATH + WAIT_FOR_LC_STATUS,
+                     return_value=(True, RANDOM_MSG))
         mocker.patch(MODULE_PATH + get_log_function,
                      side_effect=mock_get_lc_log_success)
         idrac_default_args.update({'import_certificates': True,
@@ -225,7 +227,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
 
         # Sceneario 10: When got error during LC status waiting
         error_msg = 'Timeout during LC status'
-        mocker.patch(MODULE_PATH + "idrac_secure_boot.wait_for_lc_status",
+        mocker.patch(MODULE_PATH + WAIT_FOR_LC_STATUS,
                      return_value=(False, error_msg))
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == error_msg
@@ -308,7 +310,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
 
         def mock_get_no_lc_log(*args, **kwargs):
             if args[0]:
-                return False, 'some msg'
+                return False, RANDOM_MSG
             return curr_time
 
         mocker.patch(MODULE_PATH + GET_DYNAMIC_URI,
@@ -326,7 +328,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, return_value=obj)
         mocker.patch(MODULE_PATH + TRIGGER_RESTART_KEY,
                      return_value=(obj, ''))
-        mocker.patch(MODULE_PATH + "idrac_secure_boot.wait_for_lc_status",
+        mocker.patch(MODULE_PATH + WAIT_FOR_LC_STATUS,
                      return_value=(True, "error_msg"))
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == SUCCESS_MSG_RESET.format(reset_key_op='ResetDB')
@@ -339,7 +341,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         idrac_default_args.update({'job_wait': False})
         mocker.patch(MODULE_PATH + TRIGGER_RESTART_KEY,
                      return_value=(obj, ''))
-        mocker.patch(MODULE_PATH + "idrac_secure_boot.wait_for_lc_status",
+        mocker.patch(MODULE_PATH + WAIT_FOR_LC_STATUS,
                      return_value=(True, "error_msg"))
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == SUCCESS_RESET_KEYS_RESTARTED.format(reset_key_op='ResetDB')
