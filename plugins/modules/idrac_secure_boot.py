@@ -20,6 +20,7 @@ module: idrac_secure_boot
 short_description: Configure attributes, import, or export secure boot certificate, and reset keys.
 version_added: "9.6.0"
 description:
+  - This module allows you to perform the following operations.`
   - Import or Export Secure Boot certificate.
   - Enable or disable Secure Boot mode.
   - Configure Platform Key (PK) and Key Exchange Key (KEK) policies
@@ -277,7 +278,6 @@ error_info:
 
 import json
 import os
-import time
 from ansible.module_utils.common.dict_transformations import recursive_diff
 from urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -285,7 +285,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish i
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     get_dynamic_uri, remove_key, validate_and_get_first_resource_id_uri,
     trigger_restart_operation, wait_for_lc_status, get_lc_log_or_current_log_time,
-    cert_file_format_string, strip_substr_dict, idrac_redfish_job_tracking)
+    cert_file_format_string, strip_substr_dict, idrac_redfish_job_tracking, reset_host)
 
 SYSTEMS_URI = "/redfish/v1/Systems"
 IDRAC_JOBS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs"
@@ -295,21 +295,21 @@ BIOS_JOB_EXISTS = "BIOS Configuration job already exists."
 TIME_FORMAT = "%Y%m%d_%H%M%S"
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be negative or zero."
 SUCCESS_MSG = "Successfully imported the SecureBoot certificate."
-NO_OPERATION_SKIP = "Task is skipped as operation is not specified."
+NO_OPERATION_SKIP = "Task is skipped because no operation is selected."
 PROVIDE_ABSOLUTE_PATH = "Please provide absolute path of the certificate file {path}."
 NO_READ_PERMISSION_PATH = "Unable to read the certificate file {path}."
 NO_FILE_FOUND = "Unable to find the certificate file {path}."
 NO_VALID_PATHS = "No valid absolute path found for certificate(s)."
-HOST_RESTART_FAILED = "Unable to restart the host. Check the host status and restart the host manually."
-SUCCESS_CLEAR = "Successfully cleared the pending BIOS attributes."
+HOST_RESTART_FAILED = "Unable to restart the host system. Check the host status and restart the host system manually."
 SUCCESS_COMPLETE = "Successfully applied the BIOS attributes update."
 SCHEDULED_SUCCESS = "Successfully scheduled the job for the BIOS attributes update."
-COMMITTED_SUCCESS = "Successfully committed changes. The job is in pending state. The changes will be applied ay next reboot."
+COMMITTED_SUCCESS = "Successfully committed changes. The job is in pending state. The changes will be applied at next reboot."
 RESET_TRIGGERRED = "Reset BIOS action triggered successfully."
 CHANGES_FOUND = 'Changes found to be applied.'
 SCHEDULED_AND_RESTARTED = "Successfully scheduled the boot certificate import operation and restarted the server."
 FAILED_IMPORT = "Failed to import certificate file {path} for {parameter}."
 NO_IMPORT_SUCCESS = "The Secure Boot Certificate Import operation was not successful."
+NO_RESET_KEYS_SUCCESS = "The Secure Boot Reset Certificates operation was not successful."
 NO_DIRECTORY_FOUND = "Unable to find the directory {path}."
 NO_WRITE_PERMISSION_PATH = 'Unable to write to the directory {path}.'
 TOO_MANY_DIRECTORIES = 'More than one directory found for parameter {key}.'
@@ -317,9 +317,13 @@ CERT_IS_EMPTY = 'Certificate string is empty in {file_name} for {parameter}.'
 SUCCESS_EXPORT_MSG = 'Successfully exported the SecureBoot certificate.'
 UNSUCCESSFUL_EXPORT_MSG = 'Failed to export the SecureBoot certificate.'
 NO_CHANGES_FOUND = 'No changes found to be applied.'
+INVALID_RESET_KEY = "The Reset key {reset_key_op} entered is not applicable. Enter a valid Reset key and retry the operation."
+SUCCESS_MSG_RESET = "The {reset_key_op} operation is successfully completed and restarted the host system."
+SUCCESS_RESET_KEYS_RESTARTED = "The {reset_key_op} operation is successfully completed and initiated the restart operation for the host system." \
+    "Ensure to wait for the host system to be available."
+SCHEDULED_RESET_KEYS = "The {reset_key_op} operation is successfully completed. To apply the updates, restart the host system manually."
 odata = '@odata.id'
-POWER_CHECK_RETRIES = 30
-POWER_CHECK_INTERVAL = 10
+FAILED_RESET_KEYS = "Failed to complete the Reset Certificates operation using {reset_key_op}. Retry the operation."
 
 
 class IDRACSecureBoot:
@@ -352,10 +356,10 @@ class IDRACSecureBoot:
             self.module, self.idrac, SYSTEMS_URI)
         if error_msg:
             self.module.exit_json(msg=error_msg, failed=True)
-        secure_boot_uri = get_dynamic_uri(
+        self.secure_boot_uri = get_dynamic_uri(
             self.idrac, uri, 'SecureBoot')[odata]
         secure_boot_database_uri = get_dynamic_uri(
-            self.idrac, secure_boot_uri, 'SecureBootDatabases')[odata]
+            self.idrac, self.secure_boot_uri, 'SecureBootDatabases')[odata]
         return secure_boot_database_uri
 
     def mapping_secure_boot_database_uri(self):
@@ -371,67 +375,58 @@ class IDRACSecureBoot:
                     break
         return mapped_value
 
-    def track_power_state(self, desired_state, retries=POWER_CHECK_RETRIES, interval=POWER_CHECK_INTERVAL):
-        count = retries
-        while count:
-            ps = self.get_power_state()
-            if ps in desired_state:
-                achieved = True
-                break
+    def get_dynamic_attribute_uri(self):
+        self.uri, error_msg = validate_and_get_first_resource_id_uri(
+            self.module, self.idrac, SYSTEMS_URI)
+        if error_msg:
+            self.module.exit_json(msg=error_msg, failed=True)
+        self.bios_uri = get_dynamic_uri(
+            self.idrac, self.uri, 'Bios')[odata]
+
+    def get_current_attributes(self):
+        self.get_dynamic_attribute_uri()
+        curr_attributes_res = get_dynamic_uri(
+            self.idrac, self.bios_uri)
+        self.curr_attributes_val = curr_attributes_res.get("Attributes", {})
+        self.bios_setting_uri = curr_attributes_res.get("@Redfish.Settings").get('SettingsObject').get(odata)
+
+    def perform_restart(self, success_codes, current_time, op):
+        resp, _err_msg = trigger_restart_operation(self.idrac,
+                                                   self.module.params.get('restart_type'))
+        job_wait = self.module.params.get('job_wait')
+        if self.module.params.get('import_certificates') and op != 'import_certificates':
+            job_wait = True
+        if resp.success:
+            if job_wait:
+                lc_completed, error_msg = wait_for_lc_status(
+                    self.idrac, self.module.params.get('job_wait_timeout'))
+                self.operation_after_lc_status_check(success_codes, current_time, lc_completed, error_msg, op)
             else:
-                time.sleep(interval)
-            count = count - 1
+                scheduled_msg = {
+                    'import_certificates': SCHEDULED_AND_RESTARTED,
+                    'reset_keys': SUCCESS_RESET_KEYS_RESTARTED.format(reset_key_op=self.module.params.get('reset_keys'))
+                }
+                self.module.exit_json(msg=scheduled_msg.get(op))
+
+    def operation_after_lc_status_check(self, success_codes, current_time, lc_completed, error_msg, op):
+        success_msgs = {
+            'import_certificates': SUCCESS_MSG,
+            'reset_keys': SUCCESS_MSG_RESET.format(reset_key_op=self.module.params.get('reset_keys'))
+        }
+        no_success = {
+            'import_certificates': NO_IMPORT_SUCCESS,
+            'reset_keys': NO_RESET_KEYS_SUCCESS
+        }
+        if lc_completed:
+            lc_log, _msg = get_lc_log_or_current_log_time(self.idrac, current_time, success_codes)
+            if lc_log:
+                if not (op == "reset_keys" and self.module.params.get('import_certificates')) or op == "import_certificates":
+                    self.module.exit_json(msg=success_msgs.get(op), changed=True)
+            else:
+                self.module.exit_json(msg=no_success.get(op),
+                                      skipped=True)
         else:
-            achieved = False
-        return achieved
-
-    def get_power_state(self):
-        retries = 3
-        pstate = "Unknown"
-        while retries > 0:
-            try:
-                resp = self.idrac.invoke_request(self.uri, "GET")
-                pstate = resp.json_data.get("PowerState")
-                break
-            except Exception:
-                retries = retries - 1
-        return pstate
-
-    def power_act_host(self, p_state):
-        try:
-            resp, error_msg = {}, {}
-            uri, error_msg = validate_and_get_first_resource_id_uri(None, self.idrac, SYSTEMS_URI)
-            if error_msg:
-                return resp, error_msg
-            actions_uri = get_dynamic_uri(self.idrac, uri, 'Actions').get("#ComputerSystem.Reset", {}).get("target", '')
-            self.idrac.invoke_request(actions_uri, "POST", data={'ResetType': p_state})
-            p_act = True
-        except HTTPError:
-            p_act = False
-        return p_act
-
-    def reset_host(self):
-        restart_type = self.module.params.get('restart_type')
-        p_state = 'On'
-        ps = self.get_power_state()
-        on_state = ["On"]
-        if ps in on_state:
-            p_state = 'GracefulShutdown'
-            if 'force' in restart_type:
-                p_state = 'ForceOff'
-            p_act = self.power_act_host(p_state)
-            if not p_act:
-                self.module.exit_json(failed=True, msg=HOST_RESTART_FAILED)
-            state_achieved = self.track_power_state(["Off"])
-            p_state = "On"
-            if not state_achieved:
-                time.sleep(10)
-                p_state = "ForceRestart"
-        p_act = self.power_act_host(p_state)
-        if not p_act:
-            self.module.exit_json(failed=True, msg=HOST_RESTART_FAILED)
-        state_achieved = self.track_power_state(on_state)
-        return state_achieved
+            self.module.exit_json(msg=error_msg, failed=True)
 
 
 class IDRACImportSecureBoot(IDRACSecureBoot):
@@ -512,30 +507,6 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
                     self.module.warn(FAILED_IMPORT.format(
                         parameter=parameter, path=each_payload['path']))
 
-    def perform_restart(self, success_codes, current_time):
-        resp, err_msg = trigger_restart_operation(
-            self.idrac, self.module.params.get('restart_type'))
-
-        if resp.success:
-            if self.module.params.get('job_wait'):
-                lc_completed, error_msg = wait_for_lc_status(
-                    self.idrac, self.module.params.get('job_wait_timeout'))
-
-                self.operation_after_lc_status_check(success_codes, current_time, lc_completed, error_msg)
-            else:
-                self.module.exit_json(msg=SCHEDULED_AND_RESTARTED)
-
-    def operation_after_lc_status_check(self, success_codes, current_time, lc_completed, error_msg):
-        if lc_completed:
-            lc_log, msg = get_lc_log_or_current_log_time(self.idrac, current_time, success_codes)
-            if lc_log:
-                self.module.exit_json(msg=SUCCESS_MSG, changed=True)
-            else:
-                self.module.exit_json(msg=NO_IMPORT_SUCCESS,
-                                      skipped=True)
-        else:
-            self.module.exit_json(msg=error_msg, failed=True)
-
     def perform_operation(self):
         """
         Perform operation
@@ -563,7 +534,7 @@ class IDRACImportSecureBoot(IDRACSecureBoot):
             self.module.exit_json(msg=NO_IMPORT_SUCCESS, skipped=True)
 
         if self.module.params.get('restart'):
-            self.perform_restart(success_codes, current_time)
+            self.perform_restart(success_codes, current_time, 'import_certificates')
         self.module.exit_json(msg=scheduled_msg)
 
 
@@ -572,12 +543,56 @@ class IDRACResetCertificates(IDRACSecureBoot):
     def __init__(self, idrac, module):
         super().__init__(idrac, module)
         self.reset_keys = self.module.params.get('reset_keys')
+        self.import_op = self.module.params.get('import_certificates')
+
+    def validate_allowed_reset_keys(self, allowed_values):
+        if self.reset_keys not in allowed_values:
+            self.module.fail_json(msg=INVALID_RESET_KEY.format(reset_key_op=self.reset_keys), skipped=True)
+
+    def fetch_allowed_values_reset_uri(self):
+        self.get_dynamic_secure_boot_database_uri()
+        resp = get_dynamic_uri(
+            self.idrac, self.secure_boot_uri, 'Actions')
+        secure_boot_resp = resp.get("#SecureBoot.ResetKeys")
+        reset_allowable_values = secure_boot_resp.get("ResetKeysType@Redfish.AllowableValues")
+        reset_key_uri = secure_boot_resp.get("target")
+        self.validate_allowed_reset_keys(reset_allowable_values)
+        return reset_key_uri
 
     def perform_operation(self):
         """
         Perform operation
         """
+        success_codes = ["UEFI0286"]
+        scheduled_code = ["SWC9008"]
         self.validate_job_wait()
+        reset_key_uri = self.fetch_allowed_values_reset_uri()
+        payload = {"ResetKeysType": self.reset_keys}
+        self.get_current_attributes()
+        secure_boot_policy = self.curr_attributes_val.get("SecureBootPolicy")
+        if self.module.check_mode:
+            if secure_boot_policy == 'Standard':
+                if self.import_op:
+                    return
+                self.module.exit_json(msg=NO_CHANGES_FOUND)
+            self.module.exit_json(msg=CHANGES_FOUND, changed=True)
+        current_time = get_lc_log_or_current_log_time(self.idrac)
+        resp = self.idrac.invoke_request(reset_key_uri, "POST", data=payload)
+        if resp.success:
+            lc_log, _scheduled_msg = get_lc_log_or_current_log_time(
+                self.idrac, current_time, scheduled_code)
+            if not lc_log:
+                self.module.exit_json(msg=NO_RESET_KEYS_SUCCESS, skipped=True)
+            reboot_required = self.module.params.get('restart')
+            if self.import_op:
+                reboot_required = True
+            current_time = get_lc_log_or_current_log_time(self.idrac)
+            if reboot_required:
+                self.perform_restart(success_codes, current_time, 'reset_keys')
+            else:
+                self.module.exit_json(msg=SCHEDULED_RESET_KEYS.format(reset_key_op=self.reset_keys), changed=True)
+        else:
+            self.module.exit_json(msg=FAILED_RESET_KEYS.format(reset_key_op=self.reset_keys), failed=True)
 
 
 class IDRACAttributes(IDRACSecureBoot):
@@ -589,21 +604,6 @@ class IDRACAttributes(IDRACSecureBoot):
         self.secure_boot_mode = self.module.params.get('secure_boot_mode')
         self.secure_boot_policy = self.module.params.get('secure_boot_policy')
         self.force_int_10 = self.module.params.get('force_int_10')
-
-    def get_dynamic_attribute_uri(self):
-        self.uri, error_msg = validate_and_get_first_resource_id_uri(
-            self.module, self.idrac, SYSTEMS_URI)
-        if error_msg:
-            self.module.exit_json(msg=error_msg, failed=True)
-        self.bios_uri = get_dynamic_uri(
-            self.idrac, self.uri, 'Bios')[odata]
-
-    def get_current_attributes(self):
-        self.get_dynamic_attribute_uri()
-        curr_attributes_res = get_dynamic_uri(
-            self.idrac, self.bios_uri)
-        self.curr_attributes_val = curr_attributes_res.get("Attributes", {})
-        self.bios_setting_uri = curr_attributes_res.get("@Redfish.Settings").get('SettingsObject').get(odata)
 
     def check_scheduled_bios_job(self):
         job_resp = self.idrac.invoke_request(iDRAC_JOBS_EXP, "GET")
@@ -666,7 +666,7 @@ class IDRACAttributes(IDRACSecureBoot):
                 return
             elif self.module.check_mode:
                 self.module.exit_json(msg=NO_CHANGES_FOUND, changed=False)
-            self.module.exit_json(msg=NO_CHANGES_FOUND, skipped=True)
+            self.module.exit_json(msg=NO_CHANGES_FOUND)
         if self.module.check_mode:
             self.module.exit_json(msg=CHANGES_FOUND, changed=True)
         self.update_pending_attributes(attr)
@@ -682,17 +682,21 @@ class IDRACAttributes(IDRACSecureBoot):
         job_id = self.check_scheduled_bios_job()
         if job_id:
             self.module.exit_json(msg=BIOS_JOB_EXISTS, job_id=job_id,
-                                  failed=True)
+                                  skipped=True)
 
     def apply_attributes_and_exit_json(self, attr):
         reboot_required = False
         job_id, reboot_required = self.apply_attributes(attr)
         job_wait = self.module.params.get("job_wait")
+        job_resp = self.idrac.invoke_request(iDRAC_JOB_URI.format(job_id=job_id), 'GET')
+        job_dict = job_resp.json_data
+        job_dict = remove_key(job_dict)
         if self.import_op or self.export_op or self.reset_keys:
             reboot_required = True
             job_wait = True
         if reboot_required and job_id:
-            reset_success = self.reset_host()
+            restart_type = self.module.params.get('restart_type')
+            reset_success = reset_host(self.idrac, restart_type, SYSTEMS_URI, self.uri)
             if not reset_success:
                 self.module.exit_json(msg=HOST_RESTART_FAILED,
                                       failed=True)
@@ -702,18 +706,18 @@ class IDRACAttributes(IDRACSecureBoot):
             else:
                 self.module.exit_json(msg=SCHEDULED_SUCCESS, job_id=job_id, changed=True)
         self.module.exit_json(msg=COMMITTED_SUCCESS,
-                              job_id=job_id, changed=True)
+                              job_status=strip_substr_dict(job_dict), changed=True)
 
     def handle_job_wait(self, job_id):
-        job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(
+        job_failed, msg, job_dict, _wait_time = idrac_redfish_job_tracking(
             self.idrac, iDRAC_JOB_URI.format(job_id=job_id),
             max_job_wait_sec=self.module.params.get('job_wait_timeout'))
         if job_failed:
             self.module.exit_json(failed=True, msg=msg, job_id=job_id)
+        job_dict = remove_key(job_dict)
         if self.import_op or self.export_op or self.reset_keys:
             return
-        self.module.exit_json(msg=SUCCESS_COMPLETE, job_id=job_id,
-                              job_status=strip_substr_dict(job_dict), changed=True)
+        self.module.exit_json(msg=SUCCESS_COMPLETE, job_status=strip_substr_dict(job_dict), changed=True)
 
     def perform_operation(self):
         """
@@ -784,8 +788,9 @@ class IDRACExportSecureBoot(IDRACSecureBoot):
         if self.module.check_mode:
             if valid_directory:
                 self.module.exit_json(msg=CHANGES_FOUND, changed=True)
-            else:
-                self.module.exit_json(msg=NO_CHANGES_FOUND)
+            elif self.module.params.get('reset_keys') or self.module.params.get('import_certificates'):
+                return
+            self.module.exit_json(msg=NO_CHANGES_FOUND)
 
         if not valid_directory:
             self.module.exit_json(msg=UNSUCCESSFUL_EXPORT_MSG, failed=True)
@@ -801,6 +806,8 @@ class IDRACExportSecureBoot(IDRACSecureBoot):
             if path:
                 self.fetch_certificate_file_and_write(uri[parameter], path,
                                                       parameter)
+        if self.module.params.get('reset_keys') or self.module.params.get('import_certificates'):
+            return
         self.module.exit_json(msg=SUCCESS_EXPORT_MSG)
 
 
@@ -843,20 +850,21 @@ def main():
             secure_boot_mode = module.params.get('secure_boot_mode')
             secure_boot_policy = module.params.get('secure_boot_policy')
             force_int_10 = module.params.get('force_int_10')
+            class_mapping = {
+                'export_certificates': IDRACExportSecureBoot,
+                'reset_keys': IDRACResetCertificates,
+                'import_certificates': IDRACImportSecureBoot
+            }
             if not all(p is None for p in [boot_mode, secure_boot, secure_boot_mode,
                                            secure_boot_policy, force_int_10]):
                 obj = IDRACAttributes(idrac, module)
                 obj.perform_operation()
-            if module.params.get('export_certificates'):
-                obj = IDRACExportSecureBoot(idrac, module)
-                obj.perform_operation()
-            if module.params.get('reset_keys'):
-                obj = IDRACResetCertificates(idrac, module)
-                obj.perform_operation()
-            if module.params.get('import_certificates'):
-                obj = IDRACImportSecureBoot(idrac, module)
-                obj.perform_operation()
-            elif obj is None:
+            if any(module.params.get(param) is not None for param in class_mapping.keys()):
+                for param, op_class in class_mapping.items():
+                    if module.params.get(param):
+                        obj = op_class(idrac, module)
+                        obj.perform_operation()
+            if obj is None:
                 module.exit_json(msg=NO_OPERATION_SKIP, skipped=True)
     except HTTPError as err:
         filter_err = remove_key(json.load(err), regex_pattern='(.*?)@odata')

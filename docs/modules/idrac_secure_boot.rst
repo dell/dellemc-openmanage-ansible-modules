@@ -12,6 +12,8 @@ idrac_secure_boot -- Configure attributes, import, or export secure boot certifi
 Synopsis
 --------
 
+This module allows you to perform the following operations.\`
+
 Import or Export Secure Boot certificate.
 
 Enable or disable Secure Boot mode.

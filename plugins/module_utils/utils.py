@@ -51,6 +51,8 @@ GET_IDRAC_FIRMWARE_VER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1?$select=Firm
 HOSTNAME_REGEX = r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
 OME_INFO = "ApplicationService/Info"
 ODATA_ID = "@odata.id"
+POWER_CHECK_RETRIES = 30
+POWER_CHECK_INTERVAL = 10
 
 import time
 from datetime import datetime
@@ -680,3 +682,68 @@ def cert_file_format_string(ip, prefix="",
     hostname = expand_ipv6(ip).replace(":", ".")
     data = f"{prefix}{hostname}_{now.strftime(datetime_format)}{postfix}"
     return data
+
+
+def track_power_state(idrac, base_uri, desired_state, retries=POWER_CHECK_RETRIES, interval=POWER_CHECK_INTERVAL):
+    count = retries
+    while count:
+        ps = get_power_state(idrac, base_uri)
+        if ps in desired_state:
+            achieved = True
+            break
+        else:
+            time.sleep(interval)
+        count = count - 1
+    else:
+        achieved = False
+    return achieved
+
+
+def get_power_state(idrac, base_uri):
+    retries = 3
+    pstate = "Unknown"
+    while retries > 0:
+        try:
+            resp = idrac.invoke_request(base_uri, "GET")
+            pstate = resp.json_data.get("PowerState")
+            break
+        except Exception:
+            retries = retries - 1
+    return pstate
+
+
+def power_act_host(idrac, system_uri, p_state):
+    try:
+        _resp, error_msg = {}, {}
+        uri, error_msg = validate_and_get_first_resource_id_uri(None, idrac, system_uri)
+        if error_msg:
+            return False
+        actions_uri = get_dynamic_uri(idrac, uri, 'Actions').get("#ComputerSystem.Reset", {}).get("target", '')
+        idrac.invoke_request(actions_uri, "POST", data={'ResetType': p_state})
+        p_act = True
+    except HTTPError:
+        p_act = False
+    return p_act
+
+
+def reset_host(idrac, restart_type, system_uri, base_uri):
+    p_state = 'On'
+    ps = get_power_state(idrac, base_uri)
+    on_state = ["On"]
+    if ps in on_state:
+        p_state = 'GracefulShutdown'
+        if 'Force' in restart_type:
+            p_state = 'ForceOff'
+        p_act = power_act_host(idrac, system_uri, p_state)
+        if not p_act:
+            return False
+        state_achieved = track_power_state(idrac, base_uri, ["Off"])
+        p_state = "On"
+        if not state_achieved:
+            time.sleep(10)
+            p_state = "ForceRestart"
+    p_act = power_act_host(idrac, system_uri, p_state)
+    if not p_act:
+        return False
+    state_achieved = track_power_state(idrac, base_uri, on_state)
+    return state_achieved
