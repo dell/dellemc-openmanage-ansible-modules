@@ -23,8 +23,8 @@
       ansible.builtin.assert:
         that:
           - invalid_export.skipped
-          - invalid_export.msg == "Task is skipped as operation is
-           not specified."
+          - invalid_export.msg == "Task is skipped because no operation
+            is selected."
 
     - name: Negative - Export with import
       dellemc.openmanage.idrac_secure_boot:

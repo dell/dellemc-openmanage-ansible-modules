@@ -1,3 +1,4 @@
+- '  This module allows you to perform the following operations.`'
 - '  Import or Export Secure Boot certificate.'
 - '  Enable or disable Secure Boot mode.'
 - '  Configure Platform Key (PK) and Key Exchange Key (KEK) policies'
