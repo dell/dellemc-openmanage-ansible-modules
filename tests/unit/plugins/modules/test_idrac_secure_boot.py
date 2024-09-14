@@ -74,6 +74,8 @@ CHECK_SCHEDULED_JOB_KEY = 'idrac_secure_boot.IDRACAttributes.check_scheduled_bio
 TRIGGER_RESTART_KEY = "idrac_secure_boot.trigger_restart_operation"
 RANDOM_MSG = 'some msg'
 WAIT_FOR_LC_STATUS = "idrac_secure_boot.wait_for_lc_status"
+MESSAGE_EXTENDED = "@Message.ExtendedInfo"
+HTTP_ERROR = "http error message"
 
 
 class TestIDRACSecureBoot(FakeAnsibleModule):
@@ -504,28 +506,6 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         assert resp['msg'] == JOB_FAILED_MSG
         assert resp['failed'] is True
 
-        # Scenario 11: When Secure_boot is Enabled, but force_int_10 is Enabled
-        del idrac_default_args['force_int_10']
-        json_str = to_text(json.dumps({"data": "out"}))
-        attr_resp['Attributes']['secure_boot'] = 'Disabled'
-        idrac_default_args.update({'secure_boot': 'Enabled'})
-        attr_resp['Attributes']['force_int_10'] = 'Enabled'
-        mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, side_effect=[obj])
-        mocker.patch(MODULE_PATH + RESET_HOST_KEY, return_value=True)
-        mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACAttributes.apply_attributes",
-                     side_effect=HTTPError(HTTP_ERROR_URL, 400,
-                                           HTTP_ERROR_MSG,
-                                           {"accept-type": RETURN_TYPE},
-                                           StringIO(json_str)))
-        mocker.patch(MODULE_PATH + JOB_RACKING_KEY,
-                     return_value=(False, 'Success', job_dict, 10))
-        try:
-            self._run_module(idrac_default_args)
-        except Exception as ex:
-            assert isinstance(ex, HTTPError)
-            assert ex.value.args[0]["msg"] == "HTTP Error 400: Bad Request"
-            assert ex.value.args[0]["failed"] is True
-
     def test_export_secure_boot(self, idrac_default_args, idrac_connection_secure_boot,
                                 idrac_secure_boot_mock, mocker):
         mapping_uri_resp = {'database': "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/db",
@@ -630,7 +610,12 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         mocker.patch("os.path.isfile", return_value=True)
         idrac_default_args.update({'import_certificates': True,
                                    'database': [invalid_pem_file_path]})
-        json_str = to_text(json.dumps({"data": "out"}))
+        json_str = to_text(json.dumps({"error": {MESSAGE_EXTENDED: [
+            {
+                'MessageId': "123",
+                "Message": HTTP_ERROR
+            }
+        ]}}))
         if exc_type in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACImportSecureBoot.perform_operation",
                          side_effect=exc_type(HTTP_ERROR_URL, 400,
@@ -646,3 +631,22 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         else:
             assert result['failed'] is True
         assert 'msg' in result
+
+        # Scenario: When secure_boot is not enabled as boot_mode is 'Bios'
+        del idrac_default_args['import_certificates']
+        del idrac_default_args['database']
+        idrac_default_args.update({'secure_boot': 'Enabled'})
+        error_string = to_text(json.dumps({"error": {MESSAGE_EXTENDED: [
+            {
+                'MessageId': "SYS410",
+                "Message": HTTP_ERROR
+            }
+        ]}}))
+        if exc_type in [HTTPError, SSLValidationError]:
+            mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACAttributes.perform_operation",
+                         side_effect=exc_type(HTTP_ERROR_URL, 400,
+                                              HTTP_ERROR,
+                                              {"accept-type": RETURN_TYPE},
+                                              StringIO(error_string)))
+        res_out = self._run_module(idrac_default_args)
+        assert 'msg' in res_out

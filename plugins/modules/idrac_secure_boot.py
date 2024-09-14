@@ -324,6 +324,7 @@ SUCCESS_RESET_KEYS_RESTARTED = "The {reset_key_op} operation is successfully com
 SCHEDULED_RESET_KEYS = "The {reset_key_op} operation is successfully completed. To apply the updates, restart the host system manually."
 odata = '@odata.id'
 FAILED_RESET_KEYS = "Failed to complete the Reset Certificates operation using {reset_key_op}. Retry the operation."
+MESSAGE_EXTENDED_INFO = "@Message.ExtendedInfo"
 
 
 class IDRACSecureBoot:
@@ -866,6 +867,10 @@ def main():
                 module.exit_json(msg=NO_OPERATION_SKIP, skipped=True)
     except HTTPError as err:
         filter_err = remove_key(json.load(err), regex_pattern='(.*?)@odata')
+        message_details = filter_err.get('error').get(MESSAGE_EXTENDED_INFO)[0]
+        message_id = message_details.get('MessageId')
+        if 'SYS410' in message_id:
+            module.exit_json(msg=message_details.get('Message'), skipped=True)
         module.exit_json(msg=str(err), error_info=filter_err, failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
