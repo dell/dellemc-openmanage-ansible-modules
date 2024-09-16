@@ -1,0 +1,531 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Set boot mode to Uefi (check mode - changes expected)
+      dellemc.openmanage.idrac_secure_boot: &boot_md_uefi
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        boot_mode: Uefi
+        restart: true
+        restart_type: GracefulRestart
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify - Set boot mode to Uefi (check mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == 'Changes found to be applied.'
+
+    - name: Set boot mode to Uefi (normal mode)
+      dellemc.openmanage.idrac_secure_boot:
+        <<: *boot_md_uefi
+      register: boot_md_uefi
+
+    - name: Verify - Set boot mode to Uefi (normal mode)
+      ansible.builtin.assert:
+        that:
+          - boot_md_uefi.changed
+          - boot_md_uefi.msg == 'Successfully applied the BIOS
+           attributes update.'
+
+    - name: Get details by uri.
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap
+         }}/redfish/v1/Systems/System.Embedded.1/Bios"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+        status_code: 200
+      register: boot_md_uri
+
+    - name: Verify -  Get details by uri.
+      ansible.builtin.assert:
+        that:
+          - boot_md_uefi.changed
+          - 'boot_md_uri.json.Attributes.BootMode == "Uefi"'
+
+    - name: Set boot mode to bios (check mode - changes expected)
+      dellemc.openmanage.idrac_secure_boot: &boot_md_bios
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        boot_mode: Bios
+        validate_certs: false
+        restart: true
+        restart_type: GracefulRestart
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify - Set boot mode to bios (check mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == 'Changes found to be applied.'
+
+    - name: Set boot mode to bios (normal mode)
+      dellemc.openmanage.idrac_secure_boot:
+        <<: *boot_md_bios
+      register: boot_md_bios
+
+    - name: Verify - Set boot mode to bios (normal mode)
+      ansible.builtin.assert:
+        that:
+          - boot_md_bios.changed
+          - boot_md_bios.msg == 'Successfully applied the BIOS
+           attributes update.'
+
+    - name: Get details by uri.
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap
+         }}/redfish/v1/Systems/System.Embedded.1/Bios"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+        status_code: 200
+      register: boot_md_uri
+
+    - name: Verify -  Get details by uri.
+      ansible.builtin.assert:
+        that:
+          - boot_md_bios.changed
+          - 'boot_md_uri.json.Attributes.BootMode == "Bios"'
+
+    - name: Enable secure boot (check mode - changes expected)
+      dellemc.openmanage.idrac_secure_boot: &secure_boot_enable
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        secure_boot: Enabled
+        validate_certs: false
+        force_int_10: Disabled
+        restart: true
+        restart_type: GracefulRestart
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify - Enable secure boot (check mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == 'Changes found to be applied.'
+
+    - name: Enable secure boot (normal mode)
+      dellemc.openmanage.idrac_secure_boot:
+        <<: *secure_boot_enable
+      register: secure_boot_enable
+
+    - name: Verify - Enable secure boot(normal mode)
+      ansible.builtin.assert:
+        that:
+          - secure_boot_enable.changed
+          - 'secure_boot_enable.msg == "Successfully applied the BIOS
+           attributes update."'
+
+    - name: Get details by uri.
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap
+         }}/redfish/v1/Systems/System.Embedded.1/Bios"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+        status_code: 200
+      register: boot_md_uri
+
+    - name: Verify -  Get details by uri.
+      ansible.builtin.assert:
+        that:
+          - secure_boot_enable.changed
+          - 'boot_md_uri.json.Attributes.SecureBoot == "Enabled"'
+
+    - name: Disable secure boot (check mode - changes expected)
+      dellemc.openmanage.idrac_secure_boot: &secure_boot_disable
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        secure_boot: Disabled
+        validate_certs: false
+        restart: true
+        restart_type: GracefulRestart
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify - Disable secure boot (check mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == 'Changes found to be applied.'
+
+    - name: Disable secure boot (normal mode)
+      dellemc.openmanage.idrac_secure_boot:
+        <<: *secure_boot_disable
+      register: secure_boot_disable
+
+    - name: Verify - Disable secure boot(normal mode)
+      ansible.builtin.assert:
+        that:
+          - secure_boot_disable.changed
+          - secure_boot_disable.msg == 'Successfully applied the BIOS
+           attributes update.'
+
+    - name: Get details by uri.
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap
+         }}/redfish/v1/Systems/System.Embedded.1/Bios"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+        status_code: 200
+      register: boot_md_uri
+
+    - name: Verify -  Get details by uri.
+      ansible.builtin.assert:
+        that:
+          - secure_boot_disable.changed
+          - 'boot_md_uri.json.Attributes.SecureBoot == "Disabled"'
+
+    - name: Set secure boot mode to UserMode (check mode - changes expected)
+      dellemc.openmanage.idrac_secure_boot: &secure_boot_mode_user
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        secure_boot_mode: UserMode
+        validate_certs: false
+        restart: true
+        restart_type: GracefulRestart
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify - Enable secure boot (check mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == 'Changes found to be applied.'
+
+    - name: Set secure boot mode to UserMode (normal mode)
+      dellemc.openmanage.idrac_secure_boot:
+        <<: *secure_boot_mode_user
+      register: secure_boot_mode_user
+
+    - name: Verify - Set secure boot mode to UserMode(normal mode)
+      ansible.builtin.assert:
+        that:
+          - secure_boot_mode_user.changed
+          - 'secure_boot_mode_user.msg == "Successfully applied the BIOS
+           attributes update."'
+
+    - name: Get details by uri.
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap
+         }}/redfish/v1/Systems/System.Embedded.1/Bios"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+        status_code: 200
+      register: boot_md_uri
+
+    - name: Verify -  Get details by uri.
+      ansible.builtin.assert:
+        that:
+          - secure_boot_mode_user.changed
+          - 'boot_md_uri.json.Attributes.SecureBootMode == "UserMode"'
+
+    - name: Set secure boot mode to DeployedMode (check mode - changes expected)
+      dellemc.openmanage.idrac_secure_boot: &secure_boot_mode_deployed
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        secure_boot_mode: DeployedMode
+        validate_certs: false
+        restart: true
+        restart_type: GracefulRestart
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify - Set secure boot mode to DeployedMode
+        (check mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == 'Changes found to be applied.'
+
+    - name: Set secure boot mode to DeployedMode (normal mode)
+      dellemc.openmanage.idrac_secure_boot:
+        <<: *secure_boot_mode_deployed
+      register: secure_boot_mode_deployed
+
+    - name: Verify - Set secure boot mode to DeployedMode (normal mode)
+      ansible.builtin.assert:
+        that:
+          - secure_boot_mode_deployed.changed
+          - 'secure_boot_mode_deployed.msg == "Successfully applied the BIOS
+           attributes update."'
+
+    - name: Get details by uri.
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap
+         }}/redfish/v1/Systems/System.Embedded.1/Bios"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+        status_code: 200
+      register: boot_md_uri
+
+    - name: Verify -  Get details by uri.
+      ansible.builtin.assert:
+        that:
+          - secure_boot_mode_deployed.changed
+          - 'boot_md_uri.json.Attributes.SecureBootMode == "DeployedMode"'
+
+    - name: Set secure boot mode to AuditMode (check mode - changes expected)
+      dellemc.openmanage.idrac_secure_boot: &secure_boot_mode_audit
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        secure_boot_mode: AuditMode
+        validate_certs: false
+        restart: true
+        restart_type: GracefulRestart
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify - Set secure boot mode to AuditMode
+        (check mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == 'Changes found to be applied.'
+
+    - name: Set secure boot mode to AuditMode (normal mode)
+      dellemc.openmanage.idrac_secure_boot:
+        <<: *secure_boot_mode_audit
+      register: secure_boot_mode_audit
+
+    - name: Verify - Set secure boot mode to AuditMode (normal mode)
+      ansible.builtin.assert:
+        that:
+          - secure_boot_mode_audit.changed
+          - 'secure_boot_mode_audit.msg == "Successfully applied the BIOS
+           attributes update."'
+
+    - name: Get details by uri.
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap
+         }}/redfish/v1/Systems/System.Embedded.1/Bios"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+        status_code: 200
+      register: boot_md_uri
+
+    - name: Verify -  Get details by uri.
+      ansible.builtin.assert:
+        that:
+          - secure_boot_mode_audit.changed
+          - 'boot_md_uri.json.Attributes.SecureBootMode == "AuditMode"'
+
+    - name: Set secure boot policy to Standard (check mode - changes expected)
+      dellemc.openmanage.idrac_secure_boot: &secure_boot_policy_standard
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        secure_boot_policy: Standard
+        validate_certs: false
+        restart: true
+        restart_type: GracefulRestart
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify - Set secure boot policy to Standard
+        (check mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == 'Changes found to be applied.'
+
+    - name: Set secure boot policy to Standard (normal mode)
+      dellemc.openmanage.idrac_secure_boot:
+        <<: *secure_boot_policy_standard
+      register: secure_boot_policy_standard
+
+    - name: Verify - Set secure boot policy to Standard (normal mode)
+      ansible.builtin.assert:
+        that:
+          - secure_boot_policy_standard.changed
+          - 'secure_boot_policy_standard.msg == "Successfully applied the BIOS
+           attributes update."'
+
+    - name: Get details by uri.
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap
+         }}/redfish/v1/Systems/System.Embedded.1/Bios"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+        status_code: 200
+      register: boot_md_uri
+
+    - name: Verify -  Get details by uri.
+      ansible.builtin.assert:
+        that:
+          - secure_boot_policy_standard.changed
+          - 'boot_md_uri.json.Attributes.SecureBootPolicy == "Standard"'
+
+    - name: Set secure boot policy to Custom (check mode - changes expected)
+      dellemc.openmanage.idrac_secure_boot: &secure_boot_policy_custom
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        secure_boot_policy: Custom
+        validate_certs: false
+        restart: true
+        restart_type: GracefulRestart
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify - Set secure boot policy to Custom
+        (check mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == 'Changes found to be applied.'
+
+    - name: Set secure boot policy to Custom (normal mode)
+      dellemc.openmanage.idrac_secure_boot:
+        <<: *secure_boot_policy_custom
+      register: secure_boot_policy_custom
+
+    - name: Verify - Set secure boot policy to Custom (normal mode)
+      ansible.builtin.assert:
+        that:
+          - secure_boot_policy_custom.changed
+          - 'secure_boot_policy_custom.msg == "Successfully applied the BIOS
+           attributes update."'
+
+    - name: Get details by uri.
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap
+         }}/redfish/v1/Systems/System.Embedded.1/Bios"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+        status_code: 200
+      register: boot_md_uri
+
+    - name: Verify -  Get details by uri.
+      ansible.builtin.assert:
+        that:
+          - secure_boot_policy_custom.changed
+          - 'boot_md_uri.json.Attributes.SecureBootPolicy == "Custom"'
+
+    - name: Enable force_int_10 (check mode - changes expected)
+      dellemc.openmanage.idrac_secure_boot: &force_enabled
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        force_int_10: Enabled
+        validate_certs: false
+        restart: true
+        restart_type: GracefulRestart
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify - Enable force_int_10 (check mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == 'Changes found to be applied.'
+
+    - name: Enable force_int_10 (normal mode)
+      dellemc.openmanage.idrac_secure_boot:
+        <<: *force_enabled
+      register: force_enabled
+
+    - name: Verify - Enable force_int_10 (normal mode)
+      ansible.builtin.assert:
+        that:
+          - force_enabled.changed
+          - 'force_enabled.msg == "Successfully applied the BIOS
+           attributes update."'
+
+    - name: Get details by uri.
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap
+         }}/redfish/v1/Systems/System.Embedded.1/Bios"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+        status_code: 200
+      register: boot_md_uri
+
+    - name: Verify -  Get details by uri.
+      ansible.builtin.assert:
+        that:
+          - force_enabled.changed
+          - 'boot_md_uri.json.Attributes.ForceInt10 == "Enabled"'
+
+    - name: Disable force_int_10 (check mode - changes expected)
+      dellemc.openmanage.idrac_secure_boot: &force_disbled
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        force_int_10: Disabled
+        validate_certs: false
+        restart: true
+        restart_type: GracefulRestart
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify - Disable force_int_10 (check mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == 'Changes found to be applied.'
+
+    - name: Disable force_int_10 (normal mode)
+      dellemc.openmanage.idrac_secure_boot:
+        <<: *force_disbled
+      register: force_disbled
+
+    - name: Verify - Disable force_int_10 (normal mode)
+      ansible.builtin.assert:
+        that:
+          - force_disbled.changed
+          - 'force_disbled.msg == "Successfully applied the BIOS
+           attributes update."'
+
+    - name: Get details by uri.
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap
+         }}/redfish/v1/Systems/System.Embedded.1/Bios"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+        status_code: 200
+      register: boot_md_uri
+
+    - name: Verify -  Get details by uri.
+      ansible.builtin.assert:
+        that:
+          - force_disbled.changed
+          - 'boot_md_uri.json.Attributes.ForceInt10 == "Disabled"'
+
+  module_defaults:
+    dellemc.openmanage.idrac_secure_boot:
+      idrac_ip: "{{ idrac_ip|ansible.utils.ipwrap }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
