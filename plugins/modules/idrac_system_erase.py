@@ -209,7 +209,7 @@ LC_SERVICE = "DellLCService"
 ACTIONS = "Actions"
 SYSTEM_ERASE = "DellLCService.SystemErase"
 SYSTEM_ERASE_FETCH = "#DellLCService.SystemErase"
-COMPONENT_ALLOWABLE_VALUSE = "Component@Redfish.AllowableValues"
+COMPONENT_ALLOWABLE_VALUES = "Component@Redfish.AllowableValues"
 
 ERASE_SUCCESS_COMPLETION_MSG = "Successfully completed the system erase operation."
 ERASE_SUCCESS_SCHEDULED_MSG = "Successfully submitted the job for system erase operation."
@@ -263,11 +263,28 @@ class SystemErase():
                 job_details=job_dict)
         return job_dict
 
+    def get_job_details(self, erase_component_response):
+        res_uri = validate_and_get_first_resource_id_uri(self.module, self.idrac, MANAGERS_URI)
+        job_tracking_uri = erase_component_response.headers.get("Location")
+        job_id = job_tracking_uri.split("/")[-1]
+        job_uri = IDRAC_JOB_URI.format(job_id=job_id, res_uri=res_uri[0])
+        # job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, job_uri)
+        # job_dict = remove_key(job_dict, regex_pattern=ODATA_REGEX)
+        # if job_failed:
+        #     self.module.exit_json(
+        #         msg=job_dict.get('Message'),
+        #         failed=True,
+        #         job_details=job_dict)
+        job_response = self.idrac.invoke_request(job_uri, 'GET')
+        job_details = job_response.json_data
+        job_details = remove_key(job_details, regex_pattern=ODATA_REGEX)
+        return job_details
+
     def check_allowable_value(self, component):
         sytem_erase_url = self.get_system_erase_url()
         system_erase_response = self.idrac.invoke_request(sytem_erase_url, "GET")
-        allowable_values = system_erase_response.json_data[ACTIONS][SYSTEM_ERASE_FETCH]
-        [COMPONENT_ALLOWABLE_VALUSE]
+        allowable_values = system_erase_response.json_data[ACTIONS][SYSTEM_ERASE_FETCH][
+            COMPONENT_ALLOWABLE_VALUES]
         actual_values = component
         matching_values = []
         unmatching_values = []
@@ -305,7 +322,9 @@ class EraseComponent(SystemErase):
                     self.module.exit_json(msg=ERASE_SUCCESS_COMPLETION_MSG, changed=True,
                                           job_details=job_dict)
             else:
-                self.module.exit_json(msg=ERASE_SUCCESS_SCHEDULED_MSG, changed=False)
+                job_dict = self.get_job_details(erase_component_response)
+                self.module.exit_json(msg=ERASE_SUCCESS_SCHEDULED_MSG, changed=False,
+                                      job_details=job_dict)
         else:
             job_status = self.get_job_status(erase_component_response)
             self.module.exit_json(msg=FAILURE_MSG, failed=True)
