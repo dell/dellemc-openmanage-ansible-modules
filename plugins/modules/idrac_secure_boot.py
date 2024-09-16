@@ -301,9 +301,9 @@ NO_READ_PERMISSION_PATH = "Unable to read the certificate file {path}."
 NO_FILE_FOUND = "Unable to find the certificate file {path}."
 NO_VALID_PATHS = "No valid absolute path found for certificate(s)."
 HOST_RESTART_FAILED = "Unable to restart the host system. Check the host status and restart the host system manually."
-SUCCESS_COMPLETE = "Successfully applied the BIOS attributes update."
-SCHEDULED_SUCCESS = "Successfully scheduled the job for the BIOS attributes update."
-COMMITTED_SUCCESS = "Successfully committed changes. The job is in pending state. The changes will be applied at next reboot."
+SUCCESS_COMPLETE = "Successfully applied the {partial} BIOS attributes update."
+SCHEDULED_SUCCESS = "Successfully scheduled the job for the {partial} BIOS attributes update."
+COMMITTED_SUCCESS = "Successfully committed {partial} changes. The job is in pending state. The changes will be applied at next reboot."
 RESET_TRIGGERRED = "Reset BIOS action triggered successfully."
 CHANGES_FOUND = 'Changes found to be applied.'
 SCHEDULED_AND_RESTARTED = "Successfully scheduled the boot certificate import operation and restarted the server."
@@ -325,6 +325,8 @@ SCHEDULED_RESET_KEYS = "The {reset_key_op} operation is successfully completed. 
 odata = '@odata.id'
 FAILED_RESET_KEYS = "Failed to complete the Reset Certificates operation using {reset_key_op}. Retry the operation."
 MESSAGE_EXTENDED_INFO = "@Message.ExtendedInfo"
+FAILED_BIOS_JOB = "Failed to complete the Attribute Updation operation. Retry the operation."
+NOT_UPDATED_ATTRIBUTES = "The following attributes will not be updated: {attribute_list}"
 
 
 class IDRACSecureBoot:
@@ -634,11 +636,19 @@ class IDRACAttributes(IDRACSecureBoot):
     def apply_attributes(self, pending):
         payload = {"Attributes": pending}
         reboot_required = False
-        self.idrac.invoke_request(self.bios_setting_uri, "PATCH", data=payload)
-        if self.module.params.get('restart'):
-            reboot_required = True
-        job_id = self.trigger_bios_job()
-        return job_id, reboot_required
+        partial_update = False
+        resp = self.idrac.invoke_request(self.bios_setting_uri, "PATCH", data=payload)
+        if resp.success:
+            resp_body = resp.json_data.get(MESSAGE_EXTENDED_INFO)
+            filtered_data = [item.get("MessageArgs") for item in resp_body if "SYS410" in item.get("MessageId", "")]
+            if filtered_data:
+                self.module.warn(NOT_UPDATED_ATTRIBUTES.format(attribute_list=', '.join(map(str, filtered_data))))
+                partial_update = True
+            if self.module.params.get('restart'):
+                reboot_required = True
+            job_id = self.trigger_bios_job()
+            return job_id, reboot_required, partial_update
+        self.module.exit_json(msg=FAILED_BIOS_JOB, failed=True)
 
     def compare_attr_val(self, curr_attr):
         new_payload = {"BootMode": self.boot_mode, "SecureBoot": self.secure_boot,
@@ -687,7 +697,7 @@ class IDRACAttributes(IDRACSecureBoot):
 
     def apply_attributes_and_exit_json(self, attr):
         reboot_required = False
-        job_id, reboot_required = self.apply_attributes(attr)
+        job_id, reboot_required, partial_update = self.apply_attributes(attr)
         job_wait = self.module.params.get("job_wait")
         job_resp = self.idrac.invoke_request(iDRAC_JOB_URI.format(job_id=job_id), 'GET')
         job_dict = job_resp.json_data
@@ -701,14 +711,18 @@ class IDRACAttributes(IDRACSecureBoot):
                 self.module.exit_json(msg=HOST_RESTART_FAILED,
                                       failed=True)
             if job_wait:
-                self.handle_job_wait(job_id)
+                self.handle_job_wait(job_id, partial_update)
                 return
             else:
-                self.module.exit_json(msg=SCHEDULED_SUCCESS, job_id=job_id, changed=True)
-        self.module.exit_json(msg=COMMITTED_SUCCESS,
+                resp_msg = SCHEDULED_SUCCESS.format(partial='partial' if partial_update
+                                                    else '').replace("  ", " ")
+                self.module.exit_json(msg=resp_msg, job_id=job_id, changed=True)
+        resp_msg = COMMITTED_SUCCESS.format(partial='partial' if partial_update
+                                            else '').replace("  ", " ")
+        self.module.exit_json(msg=resp_msg,
                               job_status=strip_substr_dict(job_dict), changed=True)
 
-    def handle_job_wait(self, job_id):
+    def handle_job_wait(self, job_id, partial_update):
         job_failed, msg, job_dict, _wait_time = idrac_redfish_job_tracking(
             self.idrac, iDRAC_JOB_URI.format(job_id=job_id),
             max_job_wait_sec=self.module.params.get('job_wait_timeout'))
@@ -716,7 +730,9 @@ class IDRACAttributes(IDRACSecureBoot):
             self.module.exit_json(failed=True, msg=msg, job_id=job_id)
         if self.import_op or self.export_op or self.reset_keys:
             return
-        self.module.exit_json(msg=SUCCESS_COMPLETE, job_status=strip_substr_dict(job_dict), changed=True)
+        resp_msg = SUCCESS_COMPLETE.format(partial='partial' if partial_update
+                                           else '').replace("  ", " ")
+        self.module.exit_json(msg=resp_msg, job_status=strip_substr_dict(job_dict), changed=True)
 
     def perform_operation(self):
         """
@@ -870,6 +886,8 @@ def main():
         message_details = filter_err.get('error').get(MESSAGE_EXTENDED_INFO)[0]
         message_id = message_details.get('MessageId')
         if 'SYS410' in message_id:
+            module.exit_json(msg=message_details.get('Message'), skipped=True)
+        if 'SYS409' in message_id:
             module.exit_json(msg=message_details.get('Message'), skipped=True)
         module.exit_json(msg=str(err), error_info=filter_err, failed=True)
     except URLError as err:
