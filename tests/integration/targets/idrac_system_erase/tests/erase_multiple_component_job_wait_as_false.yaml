@@ -1,0 +1,76 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: idrac_ip, idrac_user and
+      idrac_password."
+  when: "idrac_ip is not defined or idrac_user is not defined or idrac_password
+    is not defined"
+
+- name: Pre-requisite - Checking if LC status is ready
+  ansible.builtin.include_tasks:
+    file: ../__lc_status.yml
+
+- name: Erase multiple component and power on the server
+  block:
+    - name: Check Mode - Erase multiple component and power on the server
+      dellemc.openmanage.idrac_system_erase:
+        component: [
+          "LCData",
+          "NonVolatileMemory",
+          "OverwritePD",
+          "PERCNVCache",
+          "vFlash",
+        ]
+      check_mode: true
+      register: check_mode_result
+
+    - name: Verify - Erase multiple component and power on the server
+      ansible.builtin.assert:
+        that:
+          - check_mode_result.changed
+          - "check_mode_result.msg == 'Changes found to be applied.'"
+
+    - name: Normal Mode - Erase multiple component and power on the server
+      dellemc.openmanage.idrac_system_erase:
+        component: [
+          "LCData",
+          "NonVolatileMemory",
+          "OverwritePD",
+          "PERCNVCache",
+          "vFlash",
+        ]
+        job_wait: false
+      register: run_result
+
+    - name: Verify - Erase multiple component and power on the server
+      ansible.builtin.assert:
+        that:
+          - not run_result.changed
+          - "run_result.msg == 'Successfully submitted the job for
+            system erase operation.'"
+          - "'job_details' in run_result"
+          - "run_result.job_details.JobState == 'Running'"
+
+    - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{ run_result.job_details.Id }}"
+      when: run_result.msg == "Successfully submitted the job for
+        system erase operation."
+
+    - name: Post erase - Checking if LC status is ready
+      ansible.builtin.include_tasks:
+        file: ../__lc_status.yml
+
+    - name: Checking if iDRAC is powered ff
+      ansible.builtin.include_tasks:
+        file: ../_power_status.yml
+
+    - name: Verify - Checking if iDRAC is powered off
+      ansible.builtin.assert:
+        that:
+          - state.changed == true
