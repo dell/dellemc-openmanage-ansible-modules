@@ -497,8 +497,8 @@ class EraseComponent(SystemErase):
                 self.module.exit_json(msg=ERASE_SUCCESS_SCHEDULED_MSG, changed=False,
                                       job_details=job_dict)
         else:
-            job_status = self.get_job_status(erase_component_response)
-            self.module.exit_json(msg=FAILURE_MSG, failed=True)
+            job_dict = self.get_job_status(erase_component_response)
+            self.module.exit_json(msg=FAILURE_MSG, failed=True, job_details=job_dict)
 
 
 def main():
