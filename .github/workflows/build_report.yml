@@ -1,0 +1,54 @@
+name: 'Build coverage report'
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - collections
+  schedule:
+    - cron: '0 6 * * *'
+  
+jobs:
+  build:
+    name: Build collection
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ansible-version: [stable-2.15, stable-2.16, stable-2.17, devel]
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Install ansible (${{ matrix.ansible-version }})
+        run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
+
+      - name: Build a collection tarball
+        run: ansible-galaxy collection build --output-path "${GITHUB_WORKSPACE}/.cache/collection-tarballs"
+
+      - name: Store migrated collection artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: collection
+          path: .cache/collection-tarballs
+
+# Unit tests with coverage 
+  unit:
+    name: Unit Tests to generate coverage report
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Perform unit testing with ansible-test and generate coverage report
+        uses: ansible-community/ansible-test-gh-action@release/v1
+        with:
+          testing-type: units
+          coverage: 'always'
+          ansible-core-version: 'stable-2.17'
+          target-python-version: '3.11'
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
