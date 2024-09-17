@@ -197,7 +197,6 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     get_dynamic_uri, power_on_operation, validate_and_get_first_resource_id_uri, remove_key, idrac_redfish_job_tracking)
 
 
-REDFISH = "/redfish/v1"
 MANAGERS_URI = "/redfish/v1/Managers"
 IDRAC_JOB_URI = "{res_uri}/Jobs/{job_id}"
 ODATA = "@odata.id"
@@ -210,6 +209,7 @@ ACTIONS = "Actions"
 SYSTEM_ERASE = "DellLCService.SystemErase"
 SYSTEM_ERASE_FETCH = "#DellLCService.SystemErase"
 COMPONENT_ALLOWABLE_VALUES = "Component@Redfish.AllowableValues"
+JOB_FILTER = "Jobs?$expand=*($levels=1)"
 
 ERASE_SUCCESS_COMPLETION_MSG = "Successfully completed the system erase operation."
 ERASE_SUCCESS_SCHEDULED_MSG = "Successfully submitted the job for system erase operation."
@@ -217,6 +217,12 @@ ERASE_SUCCESS_POWER_ON_MSG = "Successfully completed the system erase operation 
                              "the server."
 NO_COMPONENT_MATCH = "Unable to complete the operation because the value entered for the " \
                      "'component' is not in the list of acceptable values."
+TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be " \
+                               "negative or zero."
+WAIT_TIMEOUT_MSG = "The job is not complete after {0} seconds."
+INVALID_COMPONENT_WARN_MSG = "Erase operation is not performed on these components - " \
+                             "{unmatching_components_str_format} as they are either invalid or " \
+                             "inapplicable."
 FAILURE_MSG = "Unable to complete the system erase operation."
 CHANGES_FOUND_MSG = "Changes found to be applied."
 NO_CHANGES_FOUND_MSG = "No changes found to be applied."
@@ -224,6 +230,14 @@ NO_CHANGES_FOUND_MSG = "No changes found to be applied."
 
 class SystemErase():
     def __init__(self, idrac, module):
+        """
+        Initializes the class instance with the provided idrac and module parameters.
+
+        :param idrac: The idrac parameter.
+        :type idrac: Any
+        :param module: The module parameter.
+        :type module: Any
+        """
         self.idrac = idrac
         self.module = module
 
@@ -237,6 +251,33 @@ class SystemErase():
         """
 
     def get_system_erase_url(self):
+        """
+        Retrieves the URL for the system erase operation.
+
+        Returns:
+            str: The URL for the system erase operation.
+        """
+        url = self.get_url()
+        resp = get_dynamic_uri(self.idrac, url)
+        system_erase_url = (
+            resp.get('Links', {})
+            .get(OEM, {})
+            .get(MANUFACTURER, {})
+            .get(LC_SERVICE, {})
+            .get(ODATA, {})
+        )
+        return system_erase_url
+
+    def get_url(self):
+        """
+        Retrieves the URL for the resource.
+
+        Returns:
+            str: The URL for the resource.
+
+        Raises:
+            AnsibleExitJson: If the resource ID is not found.
+        """
         res_id = self.module.params.get('resource_id')
         if res_id:
             uri = MANAGERS_URI + "/" + res_id
@@ -245,17 +286,33 @@ class SystemErase():
                 self.module, self.idrac, MANAGERS_URI)
             if error_msg:
                 self.module.exit_json(msg=error_msg, failed=True)
-        resp = get_dynamic_uri(self.idrac, uri)
-        system_erase_url = resp.get('Links', {}).get(OEM, {}).get(MANUFACTURER, {}).get(LC_SERVICE, {}).get(ODATA, {})
-        return system_erase_url
+        return uri
 
     def get_job_status(self, erase_component_response):
+        """
+        Retrieves the status of a job.
+
+        Args:
+            erase_component_response (object): The response object for the erase component
+            operation.
+
+        Returns:
+            dict: The job details.
+
+        Raises:
+            AnsibleExitJson: If the job tracking times out.
+        """
+        job_wait_timeout = self.module.params.get('job_wait_timeout')
         res_uri = validate_and_get_first_resource_id_uri(self.module, self.idrac, MANAGERS_URI)
         job_tracking_uri = erase_component_response.headers.get("Location")
         job_id = job_tracking_uri.split("/")[-1]
         job_uri = IDRAC_JOB_URI.format(job_id=job_id, res_uri=res_uri[0])
-        job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, job_uri)
+        job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(
+            self.idrac, job_uri, max_job_wait_sec=job_wait_timeout)
         job_dict = remove_key(job_dict, regex_pattern=ODATA_REGEX)
+        if int(wait_time) >= int(job_wait_timeout):
+            self.module.exit_json(msg=WAIT_TIMEOUT_MSG.format(
+                job_wait_timeout), changed=True, job_status=job_dict)
         if job_failed:
             self.module.exit_json(
                 msg=job_dict.get('Message'),
@@ -264,23 +321,76 @@ class SystemErase():
         return job_dict
 
     def get_job_details(self, erase_component_response):
+        """
+        Retrieves the details of a job.
+
+        Args:
+            erase_component_response (object): The response object for the erase component
+            operation.
+
+        Returns:
+            dict: The job details.
+
+        Raises:
+            None.
+        """
         res_uri = validate_and_get_first_resource_id_uri(self.module, self.idrac, MANAGERS_URI)
         job_tracking_uri = erase_component_response.headers.get("Location")
         job_id = job_tracking_uri.split("/")[-1]
         job_uri = IDRAC_JOB_URI.format(job_id=job_id, res_uri=res_uri[0])
-        # job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, job_uri)
-        # job_dict = remove_key(job_dict, regex_pattern=ODATA_REGEX)
-        # if job_failed:
-        #     self.module.exit_json(
-        #         msg=job_dict.get('Message'),
-        #         failed=True,
-        #         job_details=job_dict)
         job_response = self.idrac.invoke_request(job_uri, 'GET')
         job_details = job_response.json_data
         job_details = remove_key(job_details, regex_pattern=ODATA_REGEX)
         return job_details
 
+    def check_system_erase_job(self):
+        """
+        Retrieves the state of the most recent SystemErase job.
+
+        Returns:
+            str: The state of the most recent SystemErase job. Possible values are:
+                - "New"
+                - "Scheduling"
+                - "Running"
+                - "Completed"
+                - "Failed"
+                - "Unknown" if no SystemErase job is found.
+        """
+        url = self.get_url()
+        job_details_url = url + f"/{JOB_FILTER}"
+        job_resp = self.idrac.invoke_request(job_details_url, "GET")
+        job_list = job_resp.json_data.get('Members', [])
+        job_list_reversed = list(reversed(job_list))
+        jb_state = 'Unknown'
+        for jb in job_list_reversed:
+            if jb.get("JobType") == "SystemErase" and jb.get("JobState") in [
+                    "New", "Scheduling", "Running", "Completed", "Failed"]:
+                jb_state = jb.get("JobState")
+                break
+        return jb_state
+
+    def validate_job_wait(self):
+        """
+        Validates job_wait and job_wait_timeout parameters.
+        """
+        if self.module.params.get('job_wait') and self.module.params.get('job_wait_timeout') <= 0:
+            self.module.exit_json(
+                msg=TIMEOUT_NEGATIVE_OR_ZERO_MSG, failed=True)
+
     def check_allowable_value(self, component):
+        """
+        Check if the given component values are in the allowable values.
+
+        Args:
+            component (list): A list of component values.
+
+        Returns:
+            tuple: A tuple containing two lists. The first list contains the matching values, and
+            the second list contains the unmatching values.
+
+        Raises:
+            None.
+        """
         sytem_erase_url = self.get_system_erase_url()
         system_erase_response = self.idrac.invoke_request(sytem_erase_url, "GET")
         allowable_values = system_erase_response.json_data[ACTIONS][SYSTEM_ERASE_FETCH][
@@ -297,15 +407,73 @@ class SystemErase():
             self.module.exit_json(msg=NO_COMPONENT_MATCH, skipped=True)
         return matching_values, unmatching_values
 
+    def warn_unmatching_components(self, unmatching_components):
+        """
+        Warn the user about unmatching components.
+
+        Args:
+            unmatching_components (list): A list of unmatching components.
+
+        Returns:
+            None
+        """
+        if len(unmatching_components) > 0:
+            unmatching_components_str_format = ", '".join(
+                item + "'" for item in unmatching_components)
+            self.module.warn(INVALID_COMPONENT_WARN_MSG.format(
+                unmatching_components_str_format=unmatching_components_str_format))
+
 
 class EraseComponent(SystemErase):
+    """
+    Class to erase component and perform all the operations
+    """
     STATUS_SUCCESS = [202]
+    JOB_STATUS = ["New", "Scheduling", "Running"]
 
     def execute(self):
+        """
+        Executes the system erase operation.
+
+        This function checks if the job_wait parameter is set and validates the job wait.
+        It also checks if the module is in check mode and checks the state of the system erase job.
+        If the job state is in the JOB_STATUS list, it exits with a message indicating no changes
+        found.
+        If the job state is not in the JOB_STATUS list, it exits with a message indicating changes
+        found.
+
+        The function then creates a payload dictionary and assigns the matching components to
+        the 'Component' key.
+        It retrieves the system erase URL and sends a POST request to initiate the erase operation.
+        The response status code is checked and if it is in the STATUS_SUCCESS list, it proceeds to
+        handle the job.
+        If the job_wait parameter is set and the power_on parameter is also set, it retrieves the
+        job status, performs the power on operation, warns about unmatching components, and exits
+        with a message indicating the erase operation was successful and the job details.
+        If the job_wait parameter is set but the power_on parameter is not set, it retrieves the
+        job status, warns about unmatching components, and exits with a message indicating the
+        erase operation was successful and the job details.
+        If the job_wait parameter is not set, it retrieves the job details, warns about unmatching
+        components, and exits with a message indicating the erase operation was scheduled and the
+        job details.
+        If the response status code is not in the STATUS_SUCCESS list, it retrieves the job status
+        and exits with a message indicating the operation failed.
+
+        Returns:
+            None
+        """
+        if self.module.params.get('job_wait'):
+            self.validate_job_wait()
+        if self.module.check_mode:
+            job_state = self.check_system_erase_job()
+            if job_state in self.JOB_STATUS:
+                self.module.exit_json(msg=NO_CHANGES_FOUND_MSG, changed=False)
+            else:
+                self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
         payload = {}
         component_list = self.module.params.get('component')
-        matchin_components, unmatching_components = self.check_allowable_value(component_list)
-        payload["Component"] = matchin_components
+        matching_components, unmatching_components = self.check_allowable_value(component_list)
+        payload["Component"] = matching_components
         system_erase_url = self.get_system_erase_url()
         erase_component_response = self.idrac.invoke_request(
             system_erase_url + f"/{ACTIONS}/{SYSTEM_ERASE}", "POST", data=payload)
@@ -315,14 +483,17 @@ class EraseComponent(SystemErase):
                 if self.module.params.get('power_on'):
                     job_dict = self.get_job_status(erase_component_response)
                     power_on_operation(self.idrac)
+                    self.warn_unmatching_components(unmatching_components)
                     self.module.exit_json(msg=ERASE_SUCCESS_POWER_ON_MSG, changed=True,
                                           job_details=job_dict)
                 else:
                     job_dict = self.get_job_status(erase_component_response)
+                    self.warn_unmatching_components(unmatching_components)
                     self.module.exit_json(msg=ERASE_SUCCESS_COMPLETION_MSG, changed=True,
                                           job_details=job_dict)
             else:
                 job_dict = self.get_job_details(erase_component_response)
+                self.warn_unmatching_components(unmatching_components)
                 self.module.exit_json(msg=ERASE_SUCCESS_SCHEDULED_MSG, changed=False,
                                       job_details=job_dict)
         else:
@@ -331,6 +502,22 @@ class EraseComponent(SystemErase):
 
 
 def main():
+    """
+    Executes the main function of the program.
+
+    This function initializes the necessary modules and arguments, and then
+    creates an instance of the iDRACRedfishAPI class. It then creates an
+    instance of the EraseComponent class and calls its execute method.
+
+    If any exceptions are raised during the execution of the code, the
+    appropriate error message is returned.
+
+    Parameters:
+        None
+
+    Returns:
+        None
+    """
     specs = get_argument_spec()
     module = IdracAnsibleModule(
         argument_spec=specs,
@@ -350,6 +537,25 @@ def main():
 
 
 def get_argument_spec():
+    """
+    Returns a dictionary specifying the argument specification for the function.
+
+    Parameters:
+        None
+
+    Returns:
+        dict: A dictionary containing the argument specification.
+              The dictionary has the following keys:
+              - "component": A dictionary specifying the type and required status of the
+              "component" argument.
+              - "power_on": A dictionary specifying the type and default value of the "power_on"
+              argument.
+              - "job_wait": A dictionary specifying the type and default value of the "job_wait"
+              argument.
+              - "job_wait_timeout": A dictionary specifying the type and default value of the
+              "job_wait_timeout" argument.
+              - "resource_id": A dictionary specifying the type of the "resource_id" argument.
+    """
     return {
         "component": {"type": 'list', "elements": 'str', "required": True},
         "power_on": {"type": 'bool', "default": False},
