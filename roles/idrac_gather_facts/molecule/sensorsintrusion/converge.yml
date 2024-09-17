@@ -58,7 +58,8 @@
           '@odata.id', '@odata.type']) }}"
       vars:
         jquery: "Oem.Dell.DellSystem"
-      when: sensorintrusion_result is defined and sensorintrusion_result.status == 200
+      when: sensorintrusion_result is defined and
+            sensorintrusion_result.status == 200
 
     - name: Set the keys diff
       ansible.builtin.set_fact:

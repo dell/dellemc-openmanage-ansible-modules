@@ -35,8 +35,10 @@
       ansible.builtin.assert:
         that:
           - "{{ secure_boot | length > 0 }}"
-      when: secure_boot_result.status == 200 and secure_boot_db_result.status == 200
+      when: secure_boot_result.status == 200 and
+            secure_boot_db_result.status == 200
 
     - name: Call assertion
       ansible.builtin.include_tasks: ../../tests/asserts/secureboot_assert.yml
-      when: secure_boot_result.status == 200 and secure_boot_db_result.status == 200
+      when: secure_boot_result.status == 200 and
+            secure_boot_db_result.status == 200
