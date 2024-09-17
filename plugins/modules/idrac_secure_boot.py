@@ -64,13 +64,13 @@ options:
       - C(Custom) inherits the standard certificates and image digests that are loaded in the system by default.
         You can modify the certificates and image digests.
       - C(Standard) indicates that the system has default certificates, image digests, or hash loaded from the factory.
-      - When Secure Boot Policy is configured as Custom you can perform the following operations as view,
-        export, import, delete, delete all, and reset policies.
+      - When the Secure Boot Policy is set to Custom, you can perform following operations such as viewing, exporting,
+        importing, deleting, deleting all, and resetting policies.
   force_int_10:
     type: str
     choices: [Disabled, Enabled]
     description:
-      - Determines if the system BIOS will load the legacy video (INT 10h) option ROM from the video controller.
+      - Determines whether the system BIOS loads the legacy video (INT 10h) option ROM from the video controller.
       - This parameter is supported only in UEFI boot mode. If UEFI Secure Boot mode is enabled, you cannot enable this parameter.
       - C(Disabled) if the operating system supports UEFI video output standards.
       - C(Enabled) if the operating system does not support UEFI video output standards.
@@ -89,25 +89,25 @@ options:
     type: path
     description:
       - The absolute path of the Platform key certificate file for UEFI secure boot.
-      - Directory path with write permissions if I(export_certificates) is C(true).
+      - Directory path with write permission when I(export_certificates) is C(true).
   KEK:
     type: list
     elements: path
     description:
       - A list of absolute paths of the Key Exchange Key (KEK) certificate file for UEFI secure boot.
-      - Directory path with write permissions if I(export_certificates) is C(true).
+      - Directory path with write permission when I(export_certificates) is C(true).
   database:
     type: list
     elements: path
     description:
-      - A list of absolute paths of the Allowe Database(DB) certificate file for UEFI secure boot.
-      - Directory path with write permissions if I(export_certificates) is C(true).
+      - A list of absolute paths of the Allow Database(DB) certificate file for UEFI secure boot.
+      - Directory path with write permission when I(export_certificates) is C(true).
   disallow_database:
     type: list
     elements: path
     description:
       - A list of absolute paths of the Disallow Database(DBX) certificate file for UEFI secure boot.
-      - Directory path with write permissions if I(export_certificates) is C(true).
+      - Directory path with write permission when I(export_certificates) is C(true).
   reset_keys:
     type: str
     choices: [DeleteAllKeys, DeletePK, ResetAllKeysToDefault, ResetDB, ResetDBX, ResetKEK, ResetPK]
@@ -162,13 +162,13 @@ attributes:
         description: Runs the task to report the changes made or to be made.
         support: none
 notes:
-    - This module will always report changes found to be applied when run in C(check mode).
+    - This module will always report changes found to be applied for I(import_certificates) when run in C(check mode).
     - This module does not support idempotency when I(reset_type) or I(export_certificates)
       or I(import_certificates) is provided.
-    - The order of operations is as follows configure Secure Boot settings(boot_mode, secure_boot, secure_boot_mode, secure_boot_policy, force_int_10),
-      export, certificate reset, import, followed by idrac reset.
+    - To configure the secure boot settings, the idrac_secure_boot module performs the following order of operations
+      set attributes, export certificate, reset keys, import certificate, and restart iDRAC.
     - I(export_certificate) will export all the certificates of the key defined in the playbook.
-    - This module considers values of I(restart), I(job_wait) only for the last operation in the sequence.
+    - This module considers values of I(restart) and I(job_wait) only for the last operation in the sequence.
     - This module supports IPv4 and IPv6 addresses.
 """
 
@@ -202,7 +202,7 @@ EXAMPLES = """
     ca_path: "/path/to/ca_cert.pem"
     reset_keys: "ResetAllKeysToDefault"
 
-- name: Export multiple SecureBoot certificate.
+- name: Export multiple Secure Boot certificate.
   dellemc.openmanage.idrac_secure_boot:
     idrac_ip: "192.168.1.2"
     idrac_user: "user"
@@ -217,7 +217,7 @@ EXAMPLES = """
     disallow_database:
       - /user/name/export_cert/dbx
 
-- name: Import multiple SecureBoot certificate without applying to iDRAC.
+- name: Import multiple Secure Boot certificate without applying to iDRAC.
   dellemc.openmanage.idrac_secure_boot:
     idrac_ip: "192.168.1.2"
     idrac_user: "user"
@@ -235,7 +235,7 @@ EXAMPLES = """
       - /user/name/certificates/dbx1.pem
       - /user/name/certificates/dbx2.pem
 
-- name: Import a SecureBoot certificate and restart the server to apply it.
+- name: Import a Secure Boot certificate and restart the server to apply it.
   dellemc.openmanage.idrac_secure_boot:
     idrac_ip: "192.168.1.2"
     idrac_user: "user"
@@ -276,8 +276,8 @@ error_info:
   }
 '''
 
-import json
 import os
+import json
 from ansible.module_utils.common.dict_transformations import recursive_diff
 from urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -301,9 +301,9 @@ NO_READ_PERMISSION_PATH = "Unable to read the certificate file {path}."
 NO_FILE_FOUND = "Unable to find the certificate file {path}."
 NO_VALID_PATHS = "No valid absolute path found for certificate(s)."
 HOST_RESTART_FAILED = "Unable to restart the host system. Check the host status and restart the host system manually."
-SUCCESS_COMPLETE = "Successfully applied the {partial} BIOS attributes update."
-SCHEDULED_SUCCESS = "Successfully scheduled the job for the {partial} BIOS attributes update."
-COMMITTED_SUCCESS = "Successfully committed {partial} changes. The job is in pending state. The changes will be applied at next reboot."
+SUCCESS_COMPLETE = "Successfully updated the {partial} BIOS attributes."
+SCHEDULED_SUCCESS = "Successfully scheduled the job and initiated the restart operation for {partial} BIOS attributes update."
+COMMITTED_SUCCESS = "Successfully committed {partial} changes. The job is in pending state, and changes will be effective at the next reboot."
 RESET_TRIGGERRED = "Reset BIOS action triggered successfully."
 CHANGES_FOUND = 'Changes found to be applied.'
 SCHEDULED_AND_RESTARTED = "Successfully scheduled the boot certificate import operation and restarted the server."
@@ -325,8 +325,10 @@ SCHEDULED_RESET_KEYS = "The {reset_key_op} operation is successfully completed. 
 odata = '@odata.id'
 FAILED_RESET_KEYS = "Failed to complete the Reset Certificates operation using {reset_key_op}. Retry the operation."
 MESSAGE_EXTENDED_INFO = "@Message.ExtendedInfo"
-FAILED_BIOS_JOB = "Failed to complete the Attribute Updation operation. Retry the operation."
-NOT_UPDATED_ATTRIBUTES = "The following attributes will not be updated: {attribute_list}"
+FAILED_BIOS_JOB = "Failed to update the BIOS attributes. Retry the operation."
+NOT_UPDATED_ATTRIBUTES = "Unable to update the following BIOS attributes: {attribute_list}. This may be because the attribute is in " \
+    "read-only mode, its value depends on other attributes, or an incorrect value was provided."
+SYS_CODES = ["SYS410", "SYS409"]
 
 
 class IDRACSecureBoot:
@@ -640,7 +642,8 @@ class IDRACAttributes(IDRACSecureBoot):
         resp = self.idrac.invoke_request(self.bios_setting_uri, "PATCH", data=payload)
         if resp.success:
             resp_body = resp.json_data.get(MESSAGE_EXTENDED_INFO)
-            filtered_data = [item.get("MessageArgs") for item in resp_body if "SYS410" in item.get("MessageId", "")]
+            filtered_data = [item.get("MessageArgs") for item in resp_body
+                             if any(code in item.get("MessageId", "") for code in SYS_CODES)]
             if filtered_data:
                 self.module.warn(NOT_UPDATED_ATTRIBUTES.format(attribute_list=', '.join(map(str, filtered_data))))
                 partial_update = True
@@ -716,7 +719,7 @@ class IDRACAttributes(IDRACSecureBoot):
             else:
                 resp_msg = SCHEDULED_SUCCESS.format(partial='partial' if partial_update
                                                     else '').replace("  ", " ")
-                self.module.exit_json(msg=resp_msg, job_id=job_id, changed=True)
+                self.module.exit_json(msg=resp_msg, job_status=strip_substr_dict(job_dict), changed=True)
         resp_msg = COMMITTED_SUCCESS.format(partial='partial' if partial_update
                                             else '').replace("  ", " ")
         self.module.exit_json(msg=resp_msg,

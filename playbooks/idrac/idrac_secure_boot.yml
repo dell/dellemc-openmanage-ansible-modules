@@ -35,7 +35,7 @@
         reset_keys: "ResetAllKeysToDefault"
       delegate_to: localhost
 
-    - name: Export multiple SecureBoot certificate.
+    - name: Export multiple Secure Boot certificate.
       dellemc.openmanage.idrac_secure_boot:
         idrac_ip: "192.168.1.2"
         idrac_user: "user"
@@ -51,7 +51,7 @@
           - /user/name/export_cert/dbx
       delegate_to: localhost
 
-    - name: Import multiple SecureBoot certificate without applying to iDRAC.
+    - name: Import multiple Secure Boot certificate without applying to iDRAC.
       dellemc.openmanage.idrac_secure_boot:
         idrac_ip: "192.168.1.2"
         idrac_user: "user"
@@ -70,7 +70,7 @@
           - /root/Downloads/secureboot.pem
       delegate_to: localhost
 
-    - name: Import a SecureBoot certificate and restart the server to apply it.
+    - name: Import a Secure Boot certificate and restart the server to apply it.
       dellemc.openmanage.idrac_secure_boot:
         idrac_ip: "192.168.1.2"
         idrac_user: "user"

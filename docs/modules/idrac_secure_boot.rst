@@ -72,11 +72,11 @@ Parameters
 
     \ :literal:`Standard`\  indicates that the system has default certificates, image digests, or hash loaded from the factory.
 
-    When Secure Boot Policy is configured as Custom you can perform the following operations as view, export, import, delete, delete all, and reset policies.
+    When the Secure Boot Policy is set to Custom, you can perform following operations such as viewing, exporting, importing, deleting, deleting all, and resetting policies.
 
 
   force_int_10 (optional, str, None)
-    Determines if the system BIOS will load the legacy video (INT 10h) option ROM from the video controller.
+    Determines whether the system BIOS loads the legacy video (INT 10h) option ROM from the video controller.
 
     This parameter is supported only in UEFI boot mode. If UEFI Secure Boot mode is enabled, you cannot enable this parameter.
 
@@ -102,25 +102,25 @@ Parameters
   platform_key (optional, path, None)
     The absolute path of the Platform key certificate file for UEFI secure boot.
 
-    Directory path with write permissions if \ :emphasis:`export\_certificates`\  is \ :literal:`true`\ .
+    Directory path with write permission when \ :emphasis:`export\_certificates`\  is \ :literal:`true`\ .
 
 
   KEK (optional, list, None)
     A list of absolute paths of the Key Exchange Key (KEK) certificate file for UEFI secure boot.
 
-    Directory path with write permissions if \ :emphasis:`export\_certificates`\  is \ :literal:`true`\ .
+    Directory path with write permission when \ :emphasis:`export\_certificates`\  is \ :literal:`true`\ .
 
 
   database (optional, list, None)
-    A list of absolute paths of the Allowe Database(DB) certificate file for UEFI secure boot.
+    A list of absolute paths of the Allow Database(DB) certificate file for UEFI secure boot.
 
-    Directory path with write permissions if \ :emphasis:`export\_certificates`\  is \ :literal:`true`\ .
+    Directory path with write permission when \ :emphasis:`export\_certificates`\  is \ :literal:`true`\ .
 
 
   disallow_database (optional, list, None)
     A list of absolute paths of the Disallow Database(DBX) certificate file for UEFI secure boot.
 
-    Directory path with write permissions if \ :emphasis:`export\_certificates`\  is \ :literal:`true`\ .
+    Directory path with write permission when \ :emphasis:`export\_certificates`\  is \ :literal:`true`\ .
 
 
   reset_keys (optional, str, None)
@@ -228,11 +228,11 @@ Notes
 -----
 
 .. note::
-   - This module will always report changes found to be applied when run in \ :literal:`check mode`\ .
+   - This module will always report changes found to be applied for \ :emphasis:`import\_certificates`\  when run in \ :literal:`check mode`\ .
    - This module does not support idempotency when \ :emphasis:`reset\_type`\  or \ :emphasis:`export\_certificates`\  or \ :emphasis:`import\_certificates`\  is provided.
-   - The order of operations is as follows configure Secure Boot settings(boot\_mode, secure\_boot, secure\_boot\_mode, secure\_boot\_policy, force\_int\_10), export, certificate reset, import, followed by idrac reset.
+   - To configure the secure boot settings, the idrac\_secure\_boot module performs the following order of operations set attributes, export certificate, reset keys, import certificate, and restart iDRAC.
    - \ :emphasis:`export\_certificate`\  will export all the certificates of the key defined in the playbook.
-   - This module considers values of \ :emphasis:`restart`\ , \ :emphasis:`job\_wait`\  only for the last operation in the sequence.
+   - This module considers values of \ :emphasis:`restart`\  and \ :emphasis:`job\_wait`\  only for the last operation in the sequence.
    - This module supports IPv4 and IPv6 addresses.
 
 
@@ -273,7 +273,7 @@ Examples
         ca_path: "/path/to/ca_cert.pem"
         reset_keys: "ResetAllKeysToDefault"
 
-    - name: Export multiple SecureBoot certificate.
+    - name: Export multiple Secure Boot certificate.
       dellemc.openmanage.idrac_secure_boot:
         idrac_ip: "192.168.1.2"
         idrac_user: "user"
@@ -288,7 +288,7 @@ Examples
         disallow_database:
           - /user/name/export_cert/dbx
 
-    - name: Import multiple SecureBoot certificate without applying to iDRAC.
+    - name: Import multiple Secure Boot certificate without applying to iDRAC.
       dellemc.openmanage.idrac_secure_boot:
         idrac_ip: "192.168.1.2"
         idrac_user: "user"
@@ -306,7 +306,7 @@ Examples
           - /user/name/certificates/dbx1.pem
           - /user/name/certificates/dbx2.pem
 
-    - name: Import a SecureBoot certificate and restart the server to apply it.
+    - name: Import a Secure Boot certificate and restart the server to apply it.
       dellemc.openmanage.idrac_secure_boot:
         idrac_ip: "192.168.1.2"
         idrac_user: "user"
