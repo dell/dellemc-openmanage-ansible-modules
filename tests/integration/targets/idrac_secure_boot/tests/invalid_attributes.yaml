@@ -97,7 +97,7 @@
           - 'invalid_secure_boot_md.msg == "value of force_int_10 must be
            one of: Disabled, Enabled, got: invalid"'
 
-    - name: Set boot mode to bios and enable force_int_10
+    - name: Prerequisite - Set boot mode to bios and enable force_int_10
       dellemc.openmanage.idrac_secure_boot: &boot_md_bios
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"

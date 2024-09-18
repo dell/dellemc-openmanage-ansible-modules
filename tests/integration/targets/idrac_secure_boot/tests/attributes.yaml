@@ -39,8 +39,7 @@
       ansible.builtin.assert:
         that:
           - boot_md_uefi.changed
-          - boot_md_uefi.msg == 'Successfully applied the BIOS
-           attributes update.'
+          - boot_md_uefi.msg == 'Successfully updated the BIOS attributes.'
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -85,8 +84,7 @@
       ansible.builtin.assert:
         that:
           - boot_md_bios.changed
-          - boot_md_bios.msg == 'Successfully applied the BIOS
-           attributes update.'
+          - boot_md_bios.msg == 'Successfully updated the BIOS attributes.'
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -132,8 +130,7 @@
       ansible.builtin.assert:
         that:
           - secure_boot_enable.changed
-          - 'secure_boot_enable.msg == "Successfully applied the BIOS
-           attributes update."'
+          - 'secure_boot_enable.msg == "Successfully updated the BIOS attributes."'
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -178,8 +175,7 @@
       ansible.builtin.assert:
         that:
           - secure_boot_disable.changed
-          - secure_boot_disable.msg == 'Successfully applied the BIOS
-           attributes update.'
+          - secure_boot_disable.msg == 'Successfully updated the BIOS attributes.'
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -224,8 +220,7 @@
       ansible.builtin.assert:
         that:
           - secure_boot_mode_user.changed
-          - 'secure_boot_mode_user.msg == "Successfully applied the BIOS
-           attributes update."'
+          - 'secure_boot_mode_user.msg == "Successfully updated the BIOS attributes."'
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -271,8 +266,7 @@
       ansible.builtin.assert:
         that:
           - secure_boot_mode_deployed.changed
-          - 'secure_boot_mode_deployed.msg == "Successfully applied the BIOS
-           attributes update."'
+          - 'secure_boot_mode_deployed.msg == "Successfully updated the BIOS attributes."'
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -318,8 +312,7 @@
       ansible.builtin.assert:
         that:
           - secure_boot_mode_audit.changed
-          - 'secure_boot_mode_audit.msg == "Successfully applied the BIOS
-           attributes update."'
+          - 'secure_boot_mode_audit.msg == "Successfully updated the BIOS attributes."'
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -365,8 +358,7 @@
       ansible.builtin.assert:
         that:
           - secure_boot_policy_standard.changed
-          - 'secure_boot_policy_standard.msg == "Successfully applied the BIOS
-           attributes update."'
+          - 'secure_boot_policy_standard.msg == "Successfully updated the BIOS attributes."'
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -412,8 +404,7 @@
       ansible.builtin.assert:
         that:
           - secure_boot_policy_custom.changed
-          - 'secure_boot_policy_custom.msg == "Successfully applied the BIOS
-           attributes update."'
+          - 'secure_boot_policy_custom.msg == "Successfully updated the BIOS attributes."'
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -458,8 +449,7 @@
       ansible.builtin.assert:
         that:
           - force_enabled.changed
-          - 'force_enabled.msg == "Successfully applied the BIOS
-           attributes update."'
+          - 'force_enabled.msg == "Successfully updated the BIOS attributes."'
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -504,8 +494,7 @@
       ansible.builtin.assert:
         that:
           - force_disbled.changed
-          - 'force_disbled.msg == "Successfully applied the BIOS
-           attributes update."'
+          - 'force_disbled.msg == "Successfully updated the BIOS attributes."'
 
     - name: Get details by uri.
       ansible.builtin.uri:
