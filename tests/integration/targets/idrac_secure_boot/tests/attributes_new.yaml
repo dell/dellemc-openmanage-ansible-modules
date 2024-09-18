@@ -1,0 +1,144 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Set boot mode to Uefi
+      dellemc.openmanage.idrac_secure_boot: 
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        boot_mode: Uefi
+        restart: true
+        restart_type: GracefulRestart
+      register: cm_changes
+
+    - name: Change any bios parameter
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        force_int_10: Disabled
+        validate_certs: false
+        restart: false
+
+    - name: Bios configuration exists (check mode - changes expected)
+      dellemc.openmanage.idrac_secure_boot: &bios_config_exists
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        force_int_10: Disabled
+        validate_certs: false
+        restart: false
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify - Bios configuration exists (check mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == 'Changes found to be applied.'
+
+    - name: Bios configuration exists (normal mode)
+      dellemc.openmanage.idrac_secure_boot:
+        <<: *bios_config_exists
+      register: bios_config_exists
+
+    - name: Verify - Set boot mode to bios (already exists) (normal mode)
+      ansible.builtin.assert:
+        that:
+          - bios_config_exists.skipped
+          - 'bios_config_exists.msg == "BIOS Configuration job already exists."'
+
+    # - name: Prerequisite - Set boot mode to Bios
+    #   dellemc.openmanage.idrac_secure_boot:
+    #     idrac_ip: "{{ idrac_ip }}"
+    #     idrac_user: "{{ idrac_user }}"
+    #     idrac_password: "{{ idrac_password }}"
+    #     boot_mode: Bios
+    #     validate_certs: false
+    #     restart: true
+    #     restart_type: GracefulRestart
+    #     job_wait: true
+    #     job_wait_timeout: 1000
+
+    # - name: Check partial update (check mode - changes expected)
+    #   dellemc.openmanage.idrac_secure_boot: &partial_update
+    #     idrac_ip: "{{ idrac_ip }}"
+    #     idrac_user: "{{ idrac_user }}"
+    #     idrac_password: "{{ idrac_password }}"
+    #     validate_certs: false
+    #     boot_mode: Uefi
+    #     secure_boot_policy: Custom
+    #     restart: true
+    #     restart_type: GracefulRestart
+    #     job_wait: true
+    #     job_wait_timeout: 1000
+    #   register: cm_changes
+    #   check_mode: true
+
+    # - name: Verify -  Check partial update (check mode - changes expected)
+    #   ansible.builtin.assert:
+    #     that:
+    #       - cm_changes.changed
+    #       - cm_changes.msg == 'Changes found to be applied.'
+
+    # - name: Check partial update (normal mode)
+    #   dellemc.openmanage.idrac_secure_boot:
+    #     <<: *partial_update
+    #   register: partial_update
+
+    # - name: Verify - Check partial update (normal mode)
+    #   ansible.builtin.assert:
+    #     that:
+    #       - partial_update.changed
+    #       - 'partial_update.msg == "Successfully updated the partial BIOS attributes."'
+
+    - name: Check secure_boot_policy with export operation (check mode - changes expected)
+      dellemc.openmanage.idrac_secure_boot: &secure_with_export
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        secure_boot_policy: Custom
+        export_certificates: true
+        database: "{{ idrac_secure_boot_dir_path_1 }}"
+        restart: true
+        restart_type: GracefulRestart
+        job_wait: true
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify - Check secure_boot_policy with export operation (check mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == 'Changes found to be applied.'
+
+    - name: Check secure_boot_policy with export operation (normal mode)
+      dellemc.openmanage.idrac_secure_boot:
+        <<: *secure_with_export
+      register: secure_with_export
+
+    - name: Verify - Check secure_boot_policy with export operation (normal mode)
+      ansible.builtin.assert:
+        that:
+          - secure_with_export.changed
+          - 'secure_with_export.msg == "Successfully exported the SecureBoot certificate."'
+
+  module_defaults:
+    dellemc.openmanage.idrac_secure_boot:
+      idrac_ip: "{{ idrac_ip|ansible.utils.ipwrap }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
