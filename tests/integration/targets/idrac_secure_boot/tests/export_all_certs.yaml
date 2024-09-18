@@ -55,14 +55,14 @@
           - export_cert.msg == "Successfully exported the SecureBoot
            certificate."
 
-    # - name: Verify - Secure boot Log entries
-    #   ansible.builtin.include_tasks: _get_log_entries.yml
-    #   vars:
-    #     msg_id: "SWC9011"
+    - name: Verify - Secure boot Log entries
+      ansible.builtin.include_tasks: _get_log_entries.yml
+      vars:
+        msg_id: "SWC9011"
 
   module_defaults:
     dellemc.openmanage.idrac_secure_boot:
-      idrac_ip: "{{ idrac_ip|ansible.utils.ipwrap }}"
+      idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"
