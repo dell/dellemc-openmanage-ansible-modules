@@ -913,15 +913,15 @@ def main():
     except HTTPError as err:
         filter_err = remove_key(json.load(err), regex_pattern='(.*?)@odata')
         message_details = filter_err.get('error').get(MESSAGE_EXTENDED_INFO)[0]
-        message_id = message_details.get('MessageId')
-        if 'SYS011' in message_id:
-            module.exit_json(msg=message_details.get('Message'), skipped=True)
-        if 'SYS409' in message_id:
-            module.exit_json(msg=message_details.get('Message'), skipped=True)
-        if 'SYS410' in message_id:
-            module.exit_json(msg=message_details.get('Message'), skipped=True)
-        if 'SYS439' in message_id:
-            module.exit_json(msg=message_details.get('Message'), skipped=True)
+        message_id = message_details.get('MessageId').split(".")[-1]
+        skippable_messages = {
+            'SYS011': message_details.get('Message'),
+            'SYS409': message_details.get('Message'),
+            'SYS410': message_details.get('Message'),
+            'SYS439': message_details.get('Message')
+        }
+        if message_id in skippable_messages:
+            module.exit_json(msg=skippable_messages[message_id], skipped=True)
         module.exit_json(msg=str(err), error_info=filter_err, failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)

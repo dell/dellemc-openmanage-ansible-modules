@@ -77,6 +77,9 @@ CHECK_SCHEDULED_JOB_KEY = 'idrac_secure_boot.IDRACAttributes.check_scheduled_bio
 TRIGGER_RESTART_KEY = "idrac_secure_boot.trigger_restart_operation"
 RANDOM_MSG = 'some msg'
 WAIT_FOR_LC_STATUS = "idrac_secure_boot.wait_for_lc_status"
+ATTR_PERFORM_OPERATION = "idrac_secure_boot.IDRACAttributes.perform_operation"
+RESET_KEY = "#SecureBoot.ResetKeys"
+RESET_KEY_ALLOWED_VALUES = "ResetKeysType@Redfish.AllowableValues"
 MESSAGE_EXTENDED = "@Message.ExtendedInfo"
 HTTP_ERROR = "http error message"
 
@@ -280,8 +283,8 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         }
 
         actions_resp = {
-            "#SecureBoot.ResetKeys": {
-                "ResetKeysType@Redfish.AllowableValues": [
+            RESET_KEY: {
+                RESET_KEY_ALLOWED_VALUES: [
                     "ResetAllKeysToDefault",
                     "DeleteAllKeys",
                     "DeletePK",
@@ -380,10 +383,10 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         assert resp['skipped'] is True
 
         # Scenario 7: When reset_keys passed is not allowed
-        actions_resp["#SecureBoot.ResetKeys"]["ResetKeysType@Redfish.AllowableValues"].remove('ResetDB')
-        actions_resp["#SecureBoot.ResetKeys"]["ResetKeysType@Redfish.AllowableValues"].remove('ResetPK')
-        actions_resp["#SecureBoot.ResetKeys"]["ResetKeysType@Redfish.AllowableValues"].remove('ResetKEK')
-        actions_resp["#SecureBoot.ResetKeys"]["ResetKeysType@Redfish.AllowableValues"].remove('ResetDBX')
+        actions_resp[RESET_KEY][RESET_KEY_ALLOWED_VALUES].remove('ResetDB')
+        actions_resp[RESET_KEY][RESET_KEY_ALLOWED_VALUES].remove('ResetPK')
+        actions_resp[RESET_KEY][RESET_KEY_ALLOWED_VALUES].remove('ResetKEK')
+        actions_resp[RESET_KEY][RESET_KEY_ALLOWED_VALUES].remove('ResetDBX')
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == INVALID_RESET_KEY.format(reset_key_op='ResetDB', supported_values="ResetAllKeysToDefault, DeleteAllKeys, DeletePK")
         assert resp['skipped'] is True
@@ -669,7 +672,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
             }
         ]}}))
         if exc_type in [HTTPError, SSLValidationError]:
-            mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACAttributes.perform_operation",
+            mocker.patch(MODULE_PATH + ATTR_PERFORM_OPERATION,
                          side_effect=exc_type(HTTP_ERROR_URL, 400,
                                               HTTP_ERROR,
                                               {"accept-type": RETURN_TYPE},
@@ -685,7 +688,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
             }
         ]}}))
         if exc_type in [HTTPError, SSLValidationError]:
-            mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACAttributes.perform_operation",
+            mocker.patch(MODULE_PATH + ATTR_PERFORM_OPERATION,
                          side_effect=exc_type(HTTP_ERROR_URL, 400,
                                               HTTP_ERROR,
                                               {"accept-type": RETURN_TYPE},
@@ -701,7 +704,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
             }
         ]}}))
         if exc_type in [HTTPError, SSLValidationError]:
-            mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACAttributes.perform_operation",
+            mocker.patch(MODULE_PATH + ATTR_PERFORM_OPERATION,
                          side_effect=exc_type(HTTP_ERROR_URL, 400,
                                               HTTP_ERROR,
                                               {"accept-type": RETURN_TYPE},
@@ -717,7 +720,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
             }
         ]}}))
         if exc_type in [HTTPError, SSLValidationError]:
-            mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACAttributes.perform_operation",
+            mocker.patch(MODULE_PATH + ATTR_PERFORM_OPERATION,
                          side_effect=exc_type(HTTP_ERROR_URL, 400,
                                               HTTP_ERROR,
                                               {"accept-type": RETURN_TYPE},
