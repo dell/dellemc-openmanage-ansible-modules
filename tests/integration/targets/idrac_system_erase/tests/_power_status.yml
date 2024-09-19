@@ -1,7 +1,7 @@
 ---
 - name: Wait for iDRAC
   ansible.builtin.pause:
-    seconds: 180
+    seconds: 600
 
 - name: Power on status
   dellemc.openmanage.redfish_powerstate:

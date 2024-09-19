@@ -19,13 +19,8 @@
   block:
     - name: Check Mode - Erase multiple component and power on the server
       dellemc.openmanage.idrac_system_erase:
-        component: [
-          "LCData",
-          "NonVolatileMemory",
-          "OverwritePD",
-          "PERCNVCache",
-          "vFlash",
-        ]
+        component: ["LCData", "NonVolatileMemory", "OverwritePD",
+         "PERCNVCache"]
       check_mode: true
       register: check_mode_result
 
@@ -37,13 +32,8 @@
 
     - name: Normal Mode - Erase multiple component and power on the server
       dellemc.openmanage.idrac_system_erase:
-        component: [
-          "LCData",
-          "NonVolatileMemory",
-          "OverwritePD",
-          "PERCNVCache",
-          "vFlash",
-        ]
+        component: ["LCData", "NonVolatileMemory", "OverwritePD",
+         "PERCNVCache"]
         job_wait: false
       register: run_result
 

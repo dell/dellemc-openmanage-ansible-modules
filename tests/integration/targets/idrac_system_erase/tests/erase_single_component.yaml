@@ -34,6 +34,7 @@
       dellemc.openmanage.idrac_system_erase:
         component: ["ReinstallFW"]
         power_on: true
+        job_wait_timeout: 3600
       register: run_result
 
     - name: Verify - Erase single component and power on the server
