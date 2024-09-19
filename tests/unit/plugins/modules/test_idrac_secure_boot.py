@@ -31,9 +31,10 @@ TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter c
 SUCCESS_MSG = "Successfully imported the SecureBoot certificate."
 SCHEDULE_MSG = "The SecureBoot Certificate Import operation is successfully scheduled. Restart the host server for the changes to take effect."
 NO_OPERATION_SKIP = "Task is skipped because no operation is selected."
-SUCCESS_COMPLETE = "Successfully updated the BIOS attributes."
+SUCCESS_COMPLETE = "Successfully updated the iDRAC Secure Boot settings."
 BIOS_JOB_EXISTS = "BIOS Configuration job already exists."
-SCHEDULED_SUCCESS = "Successfully scheduled the job and initiated the restart operation for BIOS attributes update."
+SCHEDULED_SUCCESS = "Successfully scheduled the job and initiated the restart operation for iDRAC Secure Boot settings update."
+SCHEDULED_SUCCESS_PARTIAL = "Successfully scheduled the job and initiated the restart operation for partial iDRAC Secure Boot settings update."
 COMMITTED_SUCCESS = "Successfully committed changes. The job is in pending state, and changes will be effective at the next reboot."
 PROVIDE_ABSOLUTE_PATH = "Please provide absolute path of the certificate file {path}"
 NO_READ_PERMISSION_PATH = "Unable to read the certificate file {path}."
@@ -60,13 +61,15 @@ RETURN_TYPE = "application/json"
 GET_DYNAMIC_URI = "idrac_secure_boot.get_dynamic_uri"
 HTTP_ERROR_URL = 'https://testhost.com'
 RESET_HOST_KEY = "idrac_secure_boot.reset_host"
-JOB_RACKING_KEY = "idrac_secure_boot.idrac_redfish_job_tracking"
+JOB_TRACKING_KEY = "idrac_secure_boot.idrac_redfish_job_tracking"
 VALIDATE_RESOURCE_KEY = 'idrac_secure_boot.validate_and_get_first_resource_id_uri'
 JOB_FAILED_MSG = 'Job Failed'
 NVALID_RESET_KEY = "Reset key {reset_key} is not allowed."
 SUCCESS_MSG_RESET = "The {reset_key_op} operation is successfully completed and restarted the host system."
-SUCCESS_RESET_KEYS_RESTARTED = "The {reset_key_op} operation is successfully completed and initiated the restart operation for the host system." \
+SUCCESS_RESET_KEYS_RESTARTED = "The {reset_key_op} operation is successfully completed and initiated the restart operation for the host system. " \
     "Ensure to wait for the host system to be available."
+INVALID_RESET_KEY = "The Reset key {reset_key_op} entered is not applicable. The supported values are {supported_values}. " \
+    "Enter a valid Reset key and retry the operation."
 SCHEDULED_RESET_KEYS = "The {reset_key_op} operation is successfully completed. To apply the updates, restart the host system manually."
 NO_RESET_KEYS_SUCCESS = "The Secure Boot Reset Certificates operation was not successful."
 FAILED_RESET_KEYS = "Failed to complete the Reset Certificates operation using {reset_key_op}. Retry the operation."
@@ -244,9 +247,10 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
                                                                       {"accept-type": RETURN_TYPE},
                                                                       StringIO('HTTP 400: Bad Request'))
         mocker.patch(MODULE_PATH + get_log_function,
-                     side_effect=mock_get_lc_log_scheduled)
+                     side_effect=[curr_time, (True, RANDOM_MSG), (False, RANDOM_MSG),
+                                  (True, RANDOM_MSG)])
         resp = self._run_module(idrac_default_args)
-        assert resp['msg'] == SCHEDULE_MSG
+        assert resp['msg'] == HOST_RESTART_FAILED
         assert resp['changed'] is False
 
     def test_reset_keys(self, idrac_default_args, idrac_connection_secure_boot,
@@ -305,11 +309,6 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
             else:
                 return attr_resp
 
-        def mock_get_lc_log_scheduled(*args, **kwargs):
-            if args[0]:
-                return True, SCHEDULE_MSG
-            return curr_time
-
         def mock_get_no_lc_log(*args, **kwargs):
             if args[0]:
                 return False, RANDOM_MSG
@@ -320,7 +319,8 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + VALIDATE_RESOURCE_KEY,
                      return_value=(uri, ''))
         mocker.patch(MODULE_PATH + get_log_function,
-                     side_effect=mock_get_lc_log_scheduled)
+                     side_effect=[curr_time, (False, RANDOM_MSG), (True, RANDOM_MSG), curr_time,
+                                  (False, RANDOM_MSG), (True, RANDOM_MSG)])
 
         # Scenario 1: When only reset_keys is passed and restart true and job_wait is true
         obj = MagicMock()
@@ -331,7 +331,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + TRIGGER_RESTART_KEY,
                      return_value=(obj, ''))
         mocker.patch(MODULE_PATH + WAIT_FOR_LC_STATUS,
-                     return_value=(True, "error_msg"))
+                     return_value=(True, ""))
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == SUCCESS_MSG_RESET.format(reset_key_op='ResetDB')
         assert resp['changed'] is True
@@ -345,6 +345,9 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
                      return_value=(obj, ''))
         mocker.patch(MODULE_PATH + WAIT_FOR_LC_STATUS,
                      return_value=(True, "error_msg"))
+        mocker.patch(MODULE_PATH + get_log_function,
+                     side_effect=[curr_time, (False, RANDOM_MSG), (True, RANDOM_MSG), curr_time,
+                                  (False, RANDOM_MSG), (True, RANDOM_MSG)])
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == SUCCESS_RESET_KEYS_RESTARTED.format(reset_key_op='ResetDB')
         assert resp['changed'] is False
@@ -352,6 +355,9 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         # Scenario 3: When only reset_keys is passed and restart false
         idrac_default_args.update({'restart': False})
         idrac_default_args.update({'job_wait': True})
+        mocker.patch(MODULE_PATH + get_log_function,
+                     side_effect=[curr_time, (False, RANDOM_MSG), (True, RANDOM_MSG), curr_time,
+                                  (False, RANDOM_MSG), (True, RANDOM_MSG)])
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == SCHEDULED_RESET_KEYS.format(reset_key_op='ResetDB')
         assert resp['changed'] is True
@@ -371,6 +377,15 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + get_log_function, side_effect=mock_get_no_lc_log)
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == NO_RESET_KEYS_SUCCESS
+        assert resp['skipped'] is True
+
+        # Scenario 7: When reset_keys passed is not allowed
+        actions_resp["#SecureBoot.ResetKeys"]["ResetKeysType@Redfish.AllowableValues"].remove('ResetDB')
+        actions_resp["#SecureBoot.ResetKeys"]["ResetKeysType@Redfish.AllowableValues"].remove('ResetPK')
+        actions_resp["#SecureBoot.ResetKeys"]["ResetKeysType@Redfish.AllowableValues"].remove('ResetKEK')
+        actions_resp["#SecureBoot.ResetKeys"]["ResetKeysType@Redfish.AllowableValues"].remove('ResetDBX')
+        resp = self._run_module(idrac_default_args)
+        assert resp['msg'] == INVALID_RESET_KEY.format(reset_key_op='ResetDB', supported_values="ResetAllKeysToDefault, DeleteAllKeys, DeletePK")
         assert resp['skipped'] is True
 
     def test_attributes_secure_boot(self, idrac_default_args, idrac_connection_secure_boot,
@@ -460,7 +475,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         # Scenario 6: When secure_boot_policy is Custom, update happens in normal mode and restart is True and job_wait True
         idrac_default_args.update({'restart': True, 'job_wait': True, 'restart_type': 'ForceRestart'})
         mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, side_effect=[obj, obj2, obj, obj, obj2, obj2, obj2, obj])
-        mocker.patch(MODULE_PATH + JOB_RACKING_KEY,
+        mocker.patch(MODULE_PATH + JOB_TRACKING_KEY,
                      return_value=(False, 'successfull', job_dict, 10))
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == SUCCESS_COMPLETE
@@ -500,11 +515,22 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         idrac_default_args.update({'force_int_10': 'Enabled'})
         mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, side_effect=[obj, obj2, obj, obj])
         mocker.patch(MODULE_PATH + RESET_HOST_KEY, return_value=True)
-        mocker.patch(MODULE_PATH + JOB_RACKING_KEY,
+        mocker.patch(MODULE_PATH + JOB_TRACKING_KEY,
                      return_value=(True, JOB_FAILED_MSG, job_dict, 10))
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == JOB_FAILED_MSG
         assert resp['failed'] is True
+
+        # Scenario 11: Partial Update of iDRAC Secure Boot Settings
+        idrac_default_args.update({'force_int_10': 'Enabled', 'restart': True, 'job_wait': False})
+        mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, side_effect=[obj, obj2, obj, obj])
+        mocker.patch(MODULE_PATH + RESET_HOST_KEY, return_value=True)
+        mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACAttributes.get_pending_attributes", return_value={})
+        mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACAttributes.handle_scheduled_bios_job", return_value=None)
+        mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACAttributes.apply_attributes", return_value=('Job_ID', "Success", True))
+        resp = self._run_module(idrac_default_args)
+        assert resp['msg'] == SCHEDULED_SUCCESS_PARTIAL
+        assert resp['changed'] is True
 
     def test_export_secure_boot(self, idrac_default_args, idrac_connection_secure_boot,
                                 idrac_secure_boot_mock, mocker):
@@ -632,13 +658,61 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
             assert result['failed'] is True
         assert 'msg' in result
 
-        # Scenario: When secure_boot is not enabled as boot_mode is 'Bios'
+        # Scenario: When HTTPError gives SYS011
         del idrac_default_args['import_certificates']
         del idrac_default_args['database']
         idrac_default_args.update({'secure_boot': 'Enabled'})
         error_string = to_text(json.dumps({"error": {MESSAGE_EXTENDED: [
             {
+                'MessageId': "SYS011",
+                "Message": HTTP_ERROR
+            }
+        ]}}))
+        if exc_type in [HTTPError, SSLValidationError]:
+            mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACAttributes.perform_operation",
+                         side_effect=exc_type(HTTP_ERROR_URL, 400,
+                                              HTTP_ERROR,
+                                              {"accept-type": RETURN_TYPE},
+                                              StringIO(error_string)))
+        res_out = self._run_module(idrac_default_args)
+        assert 'msg' in res_out
+
+        # Scenario: When HTTPError gives SYS409
+        error_string = to_text(json.dumps({"error": {MESSAGE_EXTENDED: [
+            {
+                'MessageId': "SYS409",
+                "Message": HTTP_ERROR
+            }
+        ]}}))
+        if exc_type in [HTTPError, SSLValidationError]:
+            mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACAttributes.perform_operation",
+                         side_effect=exc_type(HTTP_ERROR_URL, 400,
+                                              HTTP_ERROR,
+                                              {"accept-type": RETURN_TYPE},
+                                              StringIO(error_string)))
+        res_out = self._run_module(idrac_default_args)
+        assert 'msg' in res_out
+
+        # Scenario: When HTTPError gives SYS410
+        error_string = to_text(json.dumps({"error": {MESSAGE_EXTENDED: [
+            {
                 'MessageId': "SYS410",
+                "Message": HTTP_ERROR
+            }
+        ]}}))
+        if exc_type in [HTTPError, SSLValidationError]:
+            mocker.patch(MODULE_PATH + "idrac_secure_boot.IDRACAttributes.perform_operation",
+                         side_effect=exc_type(HTTP_ERROR_URL, 400,
+                                              HTTP_ERROR,
+                                              {"accept-type": RETURN_TYPE},
+                                              StringIO(error_string)))
+        res_out = self._run_module(idrac_default_args)
+        assert 'msg' in res_out
+
+        # Scenario: When HTTPError gives SYS439
+        error_string = to_text(json.dumps({"error": {MESSAGE_EXTENDED: [
+            {
+                'MessageId': "SYS439",
                 "Message": HTTP_ERROR
             }
         ]}}))

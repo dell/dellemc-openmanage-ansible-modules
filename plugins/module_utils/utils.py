@@ -700,7 +700,7 @@ def track_power_state(idrac, base_uri, desired_state, retries=POWER_CHECK_RETRIE
 
 
 def get_power_state(idrac, base_uri):
-    retries = 3
+    retries = 10
     pstate = "Unknown"
     while retries > 0:
         try:
