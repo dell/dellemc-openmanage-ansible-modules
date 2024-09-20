@@ -10,3 +10,5 @@
     "presence_and_status_sensor":
       "{{ pas_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'Assembly',
       'Links']) }}"
+  when: pas_result.status == 200
+  register: pas_result_register

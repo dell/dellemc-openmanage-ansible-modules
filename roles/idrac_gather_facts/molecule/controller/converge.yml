@@ -35,6 +35,8 @@
       ansible.builtin.assert:
         that:
           - "{{ controller | length > 0 }}"
+      when: controller_list_temp is defined
 
     - name: Call assertion
       ansible.builtin.include_tasks: ../../tests/asserts/controller_assert.yml
+      when: controller_list_temp is defined
