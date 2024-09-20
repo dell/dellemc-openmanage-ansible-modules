@@ -8,3 +8,5 @@
 - name: Set enclosure facts
   ansible.builtin.set_fact:
     enclosure: "{{ enclosure_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'Links', 'Description']) }}"
+  when: enclosure_result.status == 200
+  register: enclosure_result_register

@@ -3,11 +3,13 @@
   ansible.builtin.uri:
     url: "https://{{ hostname }}:{{ https_port }}{{ api_chassis }}/PowerSubsystem/PowerSupplies?$expand=*($levels=1)"
   register: power_result
+  ignore_errors: true
   delegate_to: "{{ idrac_gather_facts_delegate }}"
 
 - name: Get Power Supply Metrics ids
   ansible.builtin.set_fact:
     power_metrics_ids: "{{ power_result.json.Members | selectattr('Metrics', 'defined') | map(attribute='Metrics') | flatten }}"
+  when: power_result.status == 200
 
 - name: Get Power Supply Metrics information.
   ansible.builtin.uri:
@@ -23,6 +25,7 @@
     status_code: "{{ idrac_gather_facts_uri_status_code }}"
     return_content: "{{ idrac_gather_facts_uri_return_content }}"
   loop: "{{ power_metrics_ids }}"
+  when: power_result.status == 200
   register: power_metrics_result
   delegate_to: "{{ idrac_gather_facts_delegate }}"
 
@@ -61,6 +64,7 @@
 - name: Get Memory Metrics ids
   ansible.builtin.set_fact:
     memory_metrics_ids: "{{ memory_result.json.Members | selectattr('Metrics', 'defined') | map(attribute='Metrics') | flatten }}"
+  when: memory_result.status == 200
 
 - name: Get Memory Metrics information.
   ansible.builtin.uri:
@@ -77,17 +81,27 @@
     status_code: "{{ idrac_gather_facts_uri_status_code }}"
     return_content: "{{ idrac_gather_facts_uri_return_content }}"
   loop: "{{ memory_metrics_ids }}"
+  when: memory_result.status == 200
   register: memory_metrics_result
   delegate_to: "{{ idrac_gather_facts_delegate }}"
 
-- name: Set Power Supply/Thermal/Memory Metrics facts
+- name: Set Power Supply facts
   ansible.builtin.set_fact:
     power_metrics:
       "{{ power_metrics_result.results | selectattr('json', 'defined') | map(attribute='json') | flatten |
       ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', 'DataSourceUri']) }}"
+  when: power_result.status == 200
+
+- name: Set Thermal Metrics facts
+  ansible.builtin.set_fact:
     thermal_metrics:
       "{{ thermal_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', 'DataSourceUri',
       'TemperatureReadingsCelsius@odata.count']) }}"
+  when: thermal_result.status == 200
+
+- name: Set Memory Metrics facts
+  ansible.builtin.set_fact:
     memory_metrics:
       "{{ memory_metrics_result.results | selectattr('json', 'defined') | map(attribute='json') | flatten |
       ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', 'DataSourceUri']) }}"
+  when: memory_result.status == 200

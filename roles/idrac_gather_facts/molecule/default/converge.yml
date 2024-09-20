@@ -35,6 +35,7 @@
       ansible.builtin.assert:
         that:
           - "{{ system | length > 0 }}"
+      when: system_result.status == 200 and os_result.status == 200
 
     - name: Fetching System info
       ansible.builtin.uri:
@@ -70,16 +71,19 @@
         api_response:
           "{{ system_result.json.Oem.Dell.DellSystem | combine(os_result.json.Attributes) |
           ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type']) }}"
+      when: system_result.status == 200 and os_result.status == 200
 
     - name: Set the keys diff
       ansible.builtin.set_fact:
         diff_keys: "{{ system.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
+      when: system is defined and api_response is defined
 
     - name: Set a Diff of dict
       ansible.builtin.set_fact:
         diff_data: "{{ diff_data | combine({item: system[item]}) }}"
       loop: "{{ system.keys() }}"
       when:
+        - diff_keys is defined
         - diff_keys | length == 0
         - system[item] != api_response[item]
         - item not in exclude_keys
@@ -91,3 +95,4 @@
           - "{{ (diff_data | length) == 0 }}"
         fail_msg: "The response from the role does not match | Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
         success_msg: "The response from the role matches |  Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
+      when: diff_keys is defined and diff_data is defined

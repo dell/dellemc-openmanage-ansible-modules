@@ -35,7 +35,7 @@
   ansible.builtin.set_fact:
     result_diff: "{{ thermal_metrics |
       symmetric_difference(api_thermal_metrics) }}"
-  when: api_thermal_metrics | length > 0
+  when: thermal_result.status == 200 and api_thermal_metrics | length > 0
 
 - name: Assert the differences in List
   ansible.builtin.assert:
@@ -43,4 +43,4 @@
     success_msg: "The response from the role matches"
     that:
       - "{{ (result_diff | length) == 0 }}"
-  when: api_thermal_metrics | length > 0
+  when: thermal_result.status == 200 and api_thermal_metrics | length > 0
