@@ -48,16 +48,16 @@ options:
     required: true
   power_on:
     description:
-      - This allows to power on the server after erase operation. This is applicable only when I(job_wait) is C(true).
-      - C(true) will power on the server.
-      - C(false) will not power on the server.
+      - This parameter allows you to power on the server after the erase operation is completed. This is applicable when I(job_wait) is C(true).
+      - C(true) power on the server.
+      - C(false) does not power on the server.
     type: bool
     default: false
   job_wait:
     description:
       - Whether to wait till completion of the job. This is applicable when I(power_on) is C(true).
-      - C(true) will wait for job completion.
-      - C(false) will not wait for job completion.
+      - C(true) waits for job completion.
+      - C(false) does not wait for job completion.
     type: bool
     default: true
   job_wait_timeout:
@@ -89,7 +89,7 @@ notes:
 
 EXAMPLES = r"""
 ---
-- name: Erase single component and power on the server
+- name: Erase a single component and power on the server
   dellemc.openmanage.idrac_system_erase:
     idrac_ip: 198.162.0.1
     idrac_user: username
@@ -98,7 +98,7 @@ EXAMPLES = r"""
     component: ["BIOS"]
     power_on: true
 
-- name: Erase multiple components and don't power on the server after erase operation
+- name: Erase multiple components and do not power on the server after the erase operation is completed
   dellemc.openmanage.idrac_system_erase:
     idrac_ip: 198.162.0.1
     idrac_user: username
@@ -106,7 +106,7 @@ EXAMPLES = r"""
     ca_path: "/path/to/ca_cert.pem"
     component: ["BIOS", "DIAG", "PERCNVCache"]
 
-- name: Erase multiple components and don't wait for the job completion
+- name: Erase multiple components and do not wait for the job completion
   dellemc.openmanage.idrac_system_erase:
     idrac_ip: 198.162.0.1
     idrac_user: username

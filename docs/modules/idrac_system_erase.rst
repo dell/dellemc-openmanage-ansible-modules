@@ -28,31 +28,31 @@ Parameters
 ----------
 
   component (True, list, None)
-    System and storage components to erase.
+    List of system and storage components that can be deleted.
 
-    Below are the supported components. AllApps BIOS CryptographicErasePD DIAG DPU DrvPack IDRAC LCData NonVolatileMemory OverwritePD PERCNVCache ReinstallFW vFlash
+    The following are the supported components. AllApps BIOS CryptographicErasePD DIAG DPU DrvPack IDRAC LCData NonVolatileMemory OverwritePD PERCNVCache ReinstallFW vFlash
 
 
   power_on (optional, bool, False)
-    This allows to power on the server after erase operation. This is applicable only when \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .
+    This parameter allows you to power on the server after the erase operation is completed. This is applicable when :emphasis:`job\_wait` is :literal:`true`.
 
-    \ :literal:`true`\  will power on the server.
+    :literal:`true` power on the server.
 
-    \ :literal:`false`\  will not power on the server.
+    :literal:`false` does not power on the server.
 
 
   job_wait (optional, bool, True)
-    Whether to wait till completion of the job. This is applicable when \ :emphasis:`power\_on`\  is \ :literal:`true`\ .
+    Whether to wait till completion of the job. This is applicable when :emphasis:`power\_on` is :literal:`true`.
 
-    \ :literal:`true`\  will wait for job completion.
+    :literal:`true` waits for job completion.
 
-    \ :literal:`false`\  will not wait for job completion.
+    :literal:`false` does not wait for job completion.
 
 
   job_wait_timeout (optional, int, 1200)
-    The maximum wait time of \ :emphasis:`job\_wait`\  in seconds. The job is tracked only for this duration.
+    The maximum wait time of :emphasis:`job\_wait` in seconds. The job is tracked only for this duration.
 
-    This option is applicable when \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .
+    This option is applicable when :emphasis:`job\_wait` is :literal:`true`.
 
 
   resource_id (optional, str, None)
@@ -66,7 +66,7 @@ Parameters
   idrac_user (False, str, None)
     iDRAC username.
 
-    If the username is not provided, then the environment variable \ :envvar:`IDRAC\_USERNAME`\  is used.
+    If the username is not provided, then the environment variable :envvar:`IDRAC\_USERNAME` is used.
 
     Example: export IDRAC\_USERNAME=username
 
@@ -74,7 +74,7 @@ Parameters
   idrac_password (False, str, None)
     iDRAC user password.
 
-    If the password is not provided, then the environment variable \ :envvar:`IDRAC\_PASSWORD`\  is used.
+    If the password is not provided, then the environment variable :envvar:`IDRAC\_PASSWORD` is used.
 
     Example: export IDRAC\_PASSWORD=password
 
@@ -82,7 +82,7 @@ Parameters
   x_auth_token (False, str, None)
     Authentication token.
 
-    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`IDRAC\_X\_AUTH\_TOKEN`\  is used.
+    If the x\_auth\_token is not provided, then the environment variable :envvar:`IDRAC\_X\_AUTH\_TOKEN` is used.
 
     Example: export IDRAC\_X\_AUTH\_TOKEN=x\_auth\_token
 
@@ -92,11 +92,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If \ :literal:`false`\ , the SSL certificates will not be validated.
+    If :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
+    Configure :literal:`false` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
+    Prior to collection version :literal:`5.0.0`\ , the :emphasis:`validate\_certs` is :literal:`false` by default.
 
 
   ca_path (optional, path, None)
@@ -128,7 +128,7 @@ Examples
 
     
     ---
-    - name: Erase single component and power on the server
+    - name: Erase a single component and power on the server
       dellemc.openmanage.idrac_system_erase:
         idrac_ip: 198.162.0.1
         idrac_user: username
@@ -137,7 +137,7 @@ Examples
         component: ["BIOS"]
         power_on: true
 
-    - name: Erase multiple components and don't power on the server after erase operation
+    - name: Erase multiple components and do not power on the server after the erase operation is completed
       dellemc.openmanage.idrac_system_erase:
         idrac_ip: 198.162.0.1
         idrac_user: username
@@ -145,7 +145,7 @@ Examples
         ca_path: "/path/to/ca_cert.pem"
         component: ["BIOS", "DIAG", "PERCNVCache"]
 
-    - name: Erase multiple components and don't wait for the job completion
+    - name: Erase multiple components and do not wait for the job completion
       dellemc.openmanage.idrac_system_erase:
         idrac_ip: 198.162.0.1
         idrac_user: username
