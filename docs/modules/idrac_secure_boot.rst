@@ -234,6 +234,7 @@ Notes
    - \ :emphasis:`export\_certificate`\  will export all the certificates of the key defined in the playbook.
    - This module considers values of \ :emphasis:`restart`\  and \ :emphasis:`job\_wait`\  only for the last operation in the sequence.
    - This module supports IPv4 and IPv6 addresses.
+   - Only \ :emphasis:`reset\_keys`\  is supported on iDRAC8.
 
 
 

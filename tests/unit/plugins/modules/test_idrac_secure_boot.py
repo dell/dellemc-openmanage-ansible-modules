@@ -77,6 +77,7 @@ CHECK_SCHEDULED_JOB_KEY = 'idrac_secure_boot.IDRACAttributes.check_scheduled_bio
 TRIGGER_RESTART_KEY = "idrac_secure_boot.trigger_restart_operation"
 RANDOM_MSG = 'some msg'
 WAIT_FOR_LC_STATUS = "idrac_secure_boot.wait_for_lc_status"
+GET_FIRMWARE_VERSION = "idrac_secure_boot.get_idrac_firmware_version"
 ATTR_PERFORM_OPERATION = "idrac_secure_boot.IDRACAttributes.perform_operation"
 RESET_KEY = "#SecureBoot.ResetKeys"
 RESET_KEY_ALLOWED_VALUES = "ResetKeysType@Redfish.AllowableValues"
@@ -433,6 +434,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
                      side_effect=mock_get_dynamic_uri_request)
         mocker.patch(MODULE_PATH + "idrac_secure_boot.validate_and_get_first_resource_id_uri",
                      return_value=(uri, ''))
+        mocker.patch(MODULE_PATH + GET_FIRMWARE_VERSION, return_value=("7.00.00"))
 
         # Scenario 1: When secure_boot is enabled when already enabled in check_mode
         idrac_default_args.update({'secure_boot': 'Enabled'})
@@ -534,6 +536,13 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
         resp = self._run_module(idrac_default_args)
         assert resp['msg'] == SCHEDULED_SUCCESS_PARTIAL
         assert resp['changed'] is True
+
+        # Scenario 12: When secure_boot is updated on iDRAC8
+        idrac_default_args.update({'secure_boot': 'Enabled'})
+        mocker.patch(MODULE_PATH + GET_FIRMWARE_VERSION, return_value=("2.86.86"))
+        resp = self._run_module(idrac_default_args, check_mode=True)
+        assert resp['msg'] == "Secure Boot settings update is not supported on this firmware version of iDRAC."
+        assert resp['skipped'] is True
 
     def test_export_secure_boot(self, idrac_default_args, idrac_connection_secure_boot,
                                 idrac_secure_boot_mock, mocker):

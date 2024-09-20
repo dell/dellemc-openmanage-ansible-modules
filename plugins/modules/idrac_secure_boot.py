@@ -170,6 +170,7 @@ notes:
     - I(export_certificate) will export all the certificates of the key defined in the playbook.
     - This module considers values of I(restart) and I(job_wait) only for the last operation in the sequence.
     - This module supports IPv4 and IPv6 addresses.
+    - Only I(reset_keys) is supported on iDRAC8.
 """
 
 EXAMPLES = """
@@ -280,12 +281,13 @@ import os
 import json
 from ansible.module_utils.common.dict_transformations import recursive_diff
 from urllib.error import HTTPError, URLError
+from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     get_dynamic_uri, remove_key, validate_and_get_first_resource_id_uri,
     trigger_restart_operation, wait_for_lc_status, get_lc_log_or_current_log_time,
-    cert_file_format_string, strip_substr_dict, idrac_redfish_job_tracking, reset_host)
+    cert_file_format_string, strip_substr_dict, idrac_redfish_job_tracking, reset_host, get_idrac_firmware_version)
 
 SYSTEMS_URI = "/redfish/v1/Systems"
 IDRAC_JOBS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs"
@@ -766,6 +768,9 @@ class IDRACAttributes(IDRACSecureBoot):
         Perform operation
         """
         self.validate_job_wait()
+        idrac_firmware_version = get_idrac_firmware_version(self.idrac)
+        if LooseVersion(idrac_firmware_version) < '3.0':
+            self.module.exit_json(msg=OPERATION_NOT_SUPPORTED.format(op='Secure Boot settings update'), skipped=True)
         self.get_current_attributes()
         self.attributes_config()
 
