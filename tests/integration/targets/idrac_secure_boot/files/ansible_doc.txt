@@ -10,7 +10,7 @@
 - ''
 - "   \e[0;33mKEK\e[0m     A list of absolute paths of the Key Exchange Key (KEK)"
 - '           certificate file for UEFI secure boot.'
-- '           Directory path with write permissions if'
+- '           Directory path with write permission when'
 - "           \e[4mexport_certificates\e[0m is \e[1;30m`true'\e[0m."
 - '        default: null'
 - '        elements: path'
@@ -29,10 +29,10 @@
 - '        default: null'
 - '        type: path'
 - ''
-- "   \e[0;33mdatabase\e[0m  A list of absolute paths of the Allowe Database(DB) certificate
+- "   \e[0;33mdatabase\e[0m  A list of absolute paths of the Allow Database(DB) certificate
     file"
 - '             for UEFI secure boot.'
-- '             Directory path with write permissions if'
+- '             Directory path with write permission when'
 - "             \e[4mexport_certificates\e[0m is \e[1;30m`true'\e[0m."
 - '        default: null'
 - '        elements: path'
@@ -41,7 +41,7 @@
 - "   \e[0;33mdisallow_database\e[0m  A list of absolute paths of the Disallow Database(DBX)
     certificate"
 - '                      file for UEFI secure boot.'
-- '                      Directory path with write permissions if'
+- '                      Directory path with write permission when'
 - "                      \e[4mexport_certificates\e[0m is"
 - "                      \e[1;30m`true'\e[0m."
 - '        default: null'
@@ -61,7 +61,7 @@
 - '        default: null'
 - '        type: bool'
 - ''
-- "   \e[0;33mforce_int_10\e[0m  Determines if the system BIOS will load the legacy
+- "   \e[0;33mforce_int_10\e[0m  Determines whether the system BIOS loads the legacy
     video (INT 10h)"
 - '                 option ROM from the video controller.'
 - '                 This parameter is supported only in UEFI boot mode.'
@@ -123,7 +123,7 @@
 - "   \e[0;33mplatform_key\e[0m  The absolute path of the Platform key certificate
     file for UEFI"
 - '                 secure boot.'
-- '                 Directory path with write permissions if'
+- '                 Directory path with write permission when'
 - "                 \e[4mexport_certificates\e[0m is \e[1;30m`true'\e[0m."
 - '        default: null'
 - '        type: path'
@@ -219,10 +219,10 @@
 - "                       \e[1;30m`Standard'\e[0m indicates that the system"
 - '                       has default certificates, image digests, or'
 - '                       hash loaded from the factory.'
-- '                       When Secure Boot Policy is configured as Custom'
-- '                       you can perform the following operations as'
-- '                       view, export, import, delete, delete all, and'
-- '                       reset policies.'
+- '                       When the Secure Boot Policy is set to Custom,'
+- '                       you can perform following operations such as'
+- '                       viewing, exporting, importing, deleting,'
+- '                       deleting all, and resetting policies.'
 - '        choices: [Custom, Standard]'
 - '        default: null'
 - '        type: str'
@@ -262,17 +262,18 @@
 - ''
 - "\e[1mNOTES:\e[0m"
 - '      * This module will always report changes found to be'
-- "        applied when run in \e[1;30m`check mode'\e[0m."
+- "        applied for \e[4mimport_certificates\e[0m when run in"
+- "        \e[1;30m`check mode'\e[0m."
 - '      * This module does not support idempotency when'
 - "        \e[4mreset_type\e[0m or \e[4mexport_certificates\e[0m or"
 - "        \e[4mimport_certificates\e[0m is provided."
-- '      * The order of operations is as follows configure Secure'
-- '        Boot settings(boot_mode, secure_boot, secure_boot_mode,'
-- '        secure_boot_policy, force_int_10), export, certificate'
-- '        reset, import, followed by idrac reset.'
+- '      * To configure the secure boot settings, the'
+- '        idrac_secure_boot module performs the following order of'
+- '        operations set attributes, export certificate, reset'
+- '        keys, import certificate, and restart iDRAC.'
 - "      * \e[4mexport_certificate\e[0m will export all the"
 - '        certificates of the key defined in the playbook.'
-- "      * This module considers values of \e[4mrestart\e[0m,"
+- "      * This module considers values of \e[4mrestart\e[0m and"
 - "        \e[4mjob_wait\e[0m only for the last operation in the"
 - '        sequence.'
 - '      * This module supports IPv4 and IPv6 addresses.'
@@ -312,7 +313,7 @@
 - '    ca_path: "/path/to/ca_cert.pem"'
 - '    reset_keys: "ResetAllKeysToDefault"'
 - ''
-- '- name: Export multiple SecureBoot certificate.'
+- '- name: Export multiple Secure Boot certificate.'
 - '  dellemc.openmanage.idrac_secure_boot:'
 - '    idrac_ip: "192.168.1.2"'
 - '    idrac_user: "user"'
@@ -327,7 +328,7 @@
 - '    disallow_database:'
 - '      - /user/name/export_cert/dbx'
 - ''
-- '- name: Import multiple SecureBoot certificate without applying to iDRAC.'
+- '- name: Import multiple Secure Boot certificate without applying to iDRAC.'
 - '  dellemc.openmanage.idrac_secure_boot:'
 - '    idrac_ip: "192.168.1.2"'
 - '    idrac_user: "user"'
@@ -345,7 +346,7 @@
 - '      - /user/name/certificates/dbx1.pem'
 - '      - /user/name/certificates/dbx2.pem'
 - ''
-- '- name: Import a SecureBoot certificate and restart the server to apply it.'
+- '- name: Import a Secure Boot certificate and restart the server to apply it.'
 - '  dellemc.openmanage.idrac_secure_boot:'
 - '    idrac_ip: "192.168.1.2"'
 - '    idrac_user: "user"'
