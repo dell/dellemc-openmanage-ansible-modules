@@ -10,3 +10,5 @@
     "sensor_battery":
       "{{ battery_result.json | ansible.utils.remove_keys(target=['@odata.context',
       '@odata.id', '@odata.type']) }}"
+  when: battery_result.status == 200
+  register: battery_result_register

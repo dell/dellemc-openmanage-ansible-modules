@@ -34,6 +34,7 @@
       ansible.builtin.assert:
         that:
           - "{{ pcie_device | length > 0 }}"
+      when: pcie_result.status == 200
 
     - name: Call assertion
       ansible.builtin.include_tasks: ../../tests/asserts/pciedevice_assert.yml

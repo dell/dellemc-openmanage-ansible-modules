@@ -21,6 +21,7 @@
   loop_control:
     loop_var: sec_boot_db_item
   register: secure_boot_results
+  when: secure_boot_db_result.status == 200
   delegate_to: "{{ idrac_gather_facts_delegate }}"
 
 - name: Combine certificates with corresponding db information.
@@ -31,7 +32,7 @@
   loop: "{{ secure_boot_results.results }}"
   loop_control:
     loop_var: sec_boot_cert
-  no_log: true
+  when: secure_boot_result.status == 200 and secure_boot_db_result.status == 200
 
 - name: Combine the secure boot database and certificates into secure boot.
   ansible.builtin.set_fact:
@@ -39,3 +40,4 @@
       interim_secure_boot}) |
       ansible.utils.remove_keys(target=["^.*@odata\..*$"],
       matching_parameter="regex") }}'
+  when: secure_boot_result.status == 200 and secure_boot_db_result.status == 200
