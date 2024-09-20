@@ -28,8 +28,8 @@ extends_documentation_fragment:
 options:
   component:
     description:
-      - System and storage components to erase.
-      - Below are the supported components.
+      - List of system and storage components that can be deleted.
+      - The following are the supported components.
         AllApps
         BIOS
         CryptographicErasePD
@@ -194,7 +194,7 @@ from urllib.error import HTTPError, URLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    get_dynamic_uri, power_on_operation, validate_and_get_first_resource_id_uri, remove_key, idrac_redfish_job_tracking)
+    get_dynamic_uri, trigger_restart_operation, validate_and_get_first_resource_id_uri, remove_key, idrac_redfish_job_tracking)
 
 
 MANAGERS_URI = "/redfish/v1/Managers"
@@ -403,8 +403,13 @@ class SystemErase():
                 matching_values.append(value)
             else:
                 unmatching_values.append(value)
-        if len(matching_values) == 0:
+        if len(matching_values) == 0 and not self.module.check_mode:
             self.module.exit_json(msg=NO_COMPONENT_MATCH, skipped=True)
+        if len(unmatching_values) > 0 and self.module.check_mode:
+            if len(matching_values) > 0 :
+                self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
+            else:
+                self.module.exit_json(msg=NO_CHANGES_FOUND_MSG, changed=False)
         return matching_values, unmatching_values
 
     def warn_unmatching_components(self, unmatching_components):
@@ -464,6 +469,8 @@ class EraseComponent(SystemErase):
         """
         if self.module.params.get('job_wait'):
             self.validate_job_wait()
+        component_list = self.module.params.get('component')
+        matching_components, unmatching_components = self.check_allowable_value(component_list)
         if self.module.check_mode:
             job_state = self.check_system_erase_job()
             if job_state in self.JOB_STATUS:
@@ -471,8 +478,6 @@ class EraseComponent(SystemErase):
             else:
                 self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
         payload = {}
-        component_list = self.module.params.get('component')
-        matching_components, unmatching_components = self.check_allowable_value(component_list)
         payload["Component"] = matching_components
         system_erase_url = self.get_system_erase_url()
         erase_component_response = self.idrac.invoke_request(
@@ -482,7 +487,7 @@ class EraseComponent(SystemErase):
             if self.module.params.get('job_wait'):
                 if self.module.params.get('power_on'):
                     job_dict = self.get_job_status(erase_component_response)
-                    power_on_operation(self.idrac)
+                    trigger_restart_operation(self.idrac, restart_type="On")
                     self.warn_unmatching_components(unmatching_components)
                     self.module.exit_json(msg=ERASE_SUCCESS_POWER_ON_MSG, changed=True,
                                           job_details=job_dict)
