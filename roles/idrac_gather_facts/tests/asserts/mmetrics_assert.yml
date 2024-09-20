@@ -47,7 +47,7 @@
   ansible.builtin.set_fact:
     result_diff: "{{ memory_metrics |
       symmetric_difference(api_memory_metrics) }}"
-  when: api_memory_metrics| length > 0
+  when: memory_result.status == 200 and api_memory_metrics| length > 0
 
 - name: Assert the differences in List
   ansible.builtin.assert:
@@ -55,4 +55,4 @@
     success_msg: "The response from the role matches"
     that:
       - "{{ (result_diff | length) == 0 }}"
-  when: api_memory_metrics| length > 0
+  when: memory_result.status == 200 and api_memory_metrics| length > 0

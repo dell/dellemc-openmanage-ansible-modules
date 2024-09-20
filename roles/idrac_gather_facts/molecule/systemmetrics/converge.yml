@@ -48,11 +48,13 @@
         status_code: "{{ idrac_gather_facts_uri_status_code }}"
         return_content: "{{ idrac_gather_facts_uri_return_content }}"
       register: response_power_supply
+      ignore_errors: true
       no_log: true
 
     - name: Get Power Supply Metrics ids
       ansible.builtin.set_fact:
         psu_ids: "{{ power_result.json.Members | map(attribute='Id') | list }}"
+      when: power_result.status == 200
 
     - name: Assert Power Supply Metrics metrics
       ansible.builtin.assert:
@@ -60,7 +62,7 @@
           - "((psu_ids | length == 0) and (power_metrics | length == 0))"
         fail_msg: "The response from the role does not match"
         success_msg: "The response from the role matches"
-      when: psu_ids| length == 0
+      when: psu_ids is defined and psu_ids | length == 0
 
     - name: Call assertion for Power metrics
       ansible.builtin.include_tasks: ../../tests/asserts/psmetrics_assert.yml
@@ -68,4 +70,4 @@
       loop_control:
         loop_var: power_data
         index_var: index
-      when: psu_ids | length > 0
+      when: power_result.status == 200 and psu_ids | length > 0

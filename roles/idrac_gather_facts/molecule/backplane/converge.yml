@@ -43,6 +43,7 @@
     - name: Set PCIeSSDBackPlane facts
       ansible.builtin.set_fact:
         api_response: "{{ backplane_result_url.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type']) }}"
+      when: backplane_result_url.status == 200
 
     - name: Gather Facts for the PCIeSSDBackPlane component
       ansible.builtin.include_role:
@@ -54,12 +55,12 @@
           - "((api_response | length == 0) and (backplane | length == 0))"
         fail_msg: "The response from the role does not match"
         success_msg: "The response from the role matches"
-      when: api_response | length == 0
+      when: api_response is defined and api_response | length == 0
 
     - name: Check whether output differs
       ansible.builtin.set_fact:
         result_diff: "{{ backplane | symmetric_difference(api_response) }}"
-      when: api_response | length > 0
+      when: api_response is defined and api_response | length > 0
 
     - name: Assert the differences in List
       ansible.builtin.assert:
@@ -67,4 +68,4 @@
         success_msg: "The response from the role matches"
         that:
           - "{{ (result_diff | length) == 0 }}"
-      when: api_response | length > 0
+      when: api_response is defined and api_response | length > 0

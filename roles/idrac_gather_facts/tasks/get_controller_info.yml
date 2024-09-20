@@ -28,6 +28,7 @@
     loop_var: each_controller
   register: result
   delegate_to: "{{ idrac_gather_facts_delegate }}"
+  when: controller_list_temp is defined
 
 - name: Set All Controllers facts
   ansible.builtin.set_fact:
@@ -36,3 +37,4 @@
       map(attribute='Members') | flatten |
       ansible.utils.remove_keys(target=['^.*@odata.*$'],
       matching_parameter='regex') }}"
+  when: controller_list_temp is defined
