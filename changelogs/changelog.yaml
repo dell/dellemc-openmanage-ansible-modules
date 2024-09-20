@@ -2027,3 +2027,51 @@ releases:
           name: idrac_support_assist
           namespace: ''
     release_date: '2024-08-30'
+
+  9.7.0:
+    changes:
+      release_summary: '- The ``idrac_secure_boot`` module is
+          enhanced to export, reset and configure the attributes of
+          boot certificate.
+        - The ``idrac_system_erase`` module is added to add support
+          to erase system and storage components of the server.'
+
+      major_changes:
+        - idrac_system_erase - This module allows to Erase system and
+          storage components of the server on iDRAC.
+        - idrac_secure_boot - This module allows to Configure attributes,
+          import, or export secure boot certificate, and reset keys.
+
+      bugfixes:
+        - Resolved the issue in ``idrac_gather_facts`` role where it
+          was failing for some component in iDRAC8.
+          (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/718)
+
+      known_issues:
+        - idrac_storage_volume - Issue(290766) - The module will report success
+          instead of showing failure for new virtual creation on the BOSS-N1
+          controller if a virtual disk is already present on the same
+          controller.
+        - idrac_diagnostics - Issue(285322) - This module doesn't support
+          export of diagnostics file to HTTP and HTTPS share via SOCKS
+          proxy.
+        - idrac_firmware - Issue(279282) - This module does not support
+          firmware update using HTTP, HTTPS, and FTP shares with
+          authentication on iDRAC8.
+        - ome_diagnostics - Issue(279193) - Export of SupportAssist
+          collection logs to the share location fails on OME version 4.0.0.
+        - ome_smart_fabric_uplink - Issue(186024) - The module supported by
+          OpenManage Enterprise Modular, however it does not allow the
+          creation of multiple uplinks of the same name. If an uplink is
+          created using the same name as an existing uplink, then the existing
+          uplink is modified.
+        - idrac_support_assist - Issue(308550) - This module fails when the NFS
+          share path contains sub directory.
+
+      modules:
+        - description:
+            This module allows to erase system and storage components of the server
+            on iDRAC.
+          name: idrac_system_erase
+          namespace: ''
+    release_date: '2024-09-30'
