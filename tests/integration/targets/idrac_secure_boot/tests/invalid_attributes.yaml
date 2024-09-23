@@ -1,0 +1,135 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Negative - Invalid boot mode.
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        boot_mode: invalid
+      ignore_errors: true
+      register: invalid_boot_md
+
+    - name: Verify task status - Negative - Invalid boot mode.
+      ansible.builtin.assert:
+        that:
+          - invalid_boot_md.failed
+          - 'invalid_boot_md.msg == "value of boot_mode must be one of:
+           Uefi, Bios, got: invalid"'
+
+    - name: Negative - Invalid secure boot.
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        secure_boot: invalid
+      ignore_errors: true
+      register: invalid_secure_boot
+
+    - name: Verify task status - Negative - Invalid secure boot.
+      ansible.builtin.assert:
+        that:
+          - invalid_secure_boot.failed
+          - 'invalid_secure_boot.msg == "value of secure_boot must be one of:
+           Disabled, Enabled, got: invalid"'
+
+    - name: Negative - Invalid secure boot mode.
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        secure_boot_mode: invalid
+      ignore_errors: true
+      register: invalid_secure_boot_md
+
+    - name: Verify task status - Negative - Invalid secure boot policy.
+      ansible.builtin.assert:
+        that:
+          - invalid_secure_boot_md.failed
+          - 'invalid_secure_boot_md.msg == "value of secure_boot_mode must
+           be one of: AuditMode, DeployedMode, UserMode, got: invalid"'
+
+    - name: Negative - Invalid secure boot policy.
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        secure_boot_policy: invalid
+      ignore_errors: true
+      register: invalid_secure_boot_policy
+
+    - name: Verify task status - Negative - Invalid secure boot policy.
+      ansible.builtin.assert:
+        that:
+          - invalid_secure_boot_policy.failed
+          - 'invalid_secure_boot_policy.msg == "value of secure_boot_policy
+           must be one of: Custom, Standard, got: invalid"'
+
+    - name: Negative - Invalid force_int_10.
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        force_int_10: invalid
+      ignore_errors: true
+      register: invalid_ft
+
+    - name: Verify task status - Negative - Invalid force_int_10.
+      ansible.builtin.assert:
+        that:
+          - invalid_ft.failed
+          - 'invalid_ft.msg == "value of force_int_10 must be
+           one of: Disabled, Enabled, got: invalid"'
+
+    - name: Prerequisite - Set boot mode to bios and enable force_int_10
+      dellemc.openmanage.idrac_secure_boot: &boot_md_bios
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        boot_mode: Bios
+        force_int_10: Enabled
+        validate_certs: false
+        restart: true
+        restart_type: GracefulRestart
+
+    - name: Negative - Enable secure boot with boot mode Bios and
+        force_int_10 enabled.
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        secure_boot: Enabled
+      ignore_errors: true
+      register: invalid_boot
+
+    - name: Verify task status - Negative - Enable secure boot with
+        boot mode Bios.
+      ansible.builtin.assert:
+        that:
+          - invalid_boot.skipped
+          - 'invalid_boot.msg == "Unable to modify the attribute because
+           the attribute is read-only and depends on other attributes."'
+
+  module_defaults:
+    dellemc.openmanage.idrac_secure_boot:
+      idrac_ip: "{{ idrac_ip|ansible.utils.ipwrap }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
