@@ -16,19 +16,24 @@
 
     - ansible.builtin.include_tasks: _configure_generic_bios_attributes.yml
 
-    - name: Import database policy certificate
+    - name: Export all policy certificate
        (check mode - changes expected)
-      dellemc.openmanage.idrac_secure_boot: &import_cert
-        import_certificates: true
-        database: "{{ idrac_secure_boot_cert_path_1 }}"
+      dellemc.openmanage.idrac_secure_boot: &export_cert
+        export_certificates: true
+        database:
+          - "{{ idrac_secure_boot_dir_path_1 }}"
+        disallow_database: "{{ idrac_secure_boot_dir_path_2 }}"
+        KEK:
+          - "{{ idrac_secure_boot_dir_path_3 }}"
+        platform_key: "{{ idrac_secure_boot_dir_path_4 }}"
         restart: true
-        restart_type: ForceRestart
+        restart_type: GracefulRestart
         job_wait: true
         job_wait_timeout: 1000
       register: cm_changes
       check_mode: true
 
-    - name: Verify - Import database policy certificate
+    - name: Verify - Export all policy certificate
        (check mode - changes expected)
       ansible.builtin.assert:
         that:
@@ -38,22 +43,22 @@
     - name: Get time details
       ansible.builtin.include_tasks: _get_time_details.yml
 
-    - name: Import database policy certificate. (normal mode)
+    - name: Export all policy certificate (normal mode)
       dellemc.openmanage.idrac_secure_boot:
-        <<: *import_cert
-      register: import_cert
+        <<: *export_cert
+      register: export_cert
 
-    - name: Verify - Import database policy certificate (normal mode)
+    - name: Verify - Export all policy certificate (normal mode)
       ansible.builtin.assert:
         that:
-          - import_cert.changed
-          - import_cert.msg == "Successfully imported the SecureBoot
+          - not export_cert.changed
+          - export_cert.msg == "Successfully exported the SecureBoot
            certificate."
 
     - name: Verify - Secure boot Log entries
       ansible.builtin.include_tasks: _get_log_entries.yml
       vars:
-        msg_id: "UEFI0286"
+        msg_id: "SWC9011"
 
   module_defaults:
     dellemc.openmanage.idrac_secure_boot:
