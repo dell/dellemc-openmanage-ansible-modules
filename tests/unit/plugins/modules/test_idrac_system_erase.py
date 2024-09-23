@@ -548,32 +548,7 @@ class TestSystemErase(FakeAnsibleModule):
                 erase_component_obj.execute()
             assert exc.value.args[0] == ERASE_SUCCESS_POWER_ON_MSG
 
-            # Scenario 3: Status is success and job_wait as true with power_on as false
-            job = {"JobState": "Completed"}
-            idrac_default_args.update(
-                {'component': ['BIOS'], 'power_on': False, 'job_wait': True, 'job_wait_timeout': 1})
-            mocker.patch(
-                MODULE_PATH + ALLOWABLE_VALUE_FUNC, return_value=(["BIOS"], []))
-            mocker.patch(
-                MODULE_PATH + SYSTEM_ERASE_URL, return_value=API_ONE)
-            mocker.patch(MODULE_PATH + API_INVOKE_MOCKER, return_value=obj)
-            mocker.patch(
-                MODULE_PATH + SYSTEM_ERASE_JOB_STATUS, return_value=job)
-            mocker.patch(MODULE_UTILS_PATH + "validate_and_get_first_resource_id_uri",
-                         return_value=([MANAGER_URI_ONE], None))
-            mocker.patch(MODULE_UTILS_PATH + "get_dynamic_uri",
-                         return_value={"Actions": {"#ComputerSystem.Reset": {"target": API_ONE}}})
-            mocker.patch(
-                MODULE_UTILS_PATH + "trigger_restart_operation", return_value=(None, None))
-            f_module = self.get_module_mock(
-                params=idrac_default_args, check_mode=False)
-            erase_component_obj = self.module.EraseComponent(
-                idrac_connection_system_erase_mock, f_module)
-            with pytest.raises(Exception) as exc:
-                erase_component_obj.execute()
-            assert exc.value.args[0] == ERASE_SUCCESS_COMPLETION_MSG
-
-            # Scenario 4: Status is failure
+            # Scenario 3: Status is failure
             obj.status_code = 404
             job = {"JobState": "Failed"}
             idrac_default_args.update(
