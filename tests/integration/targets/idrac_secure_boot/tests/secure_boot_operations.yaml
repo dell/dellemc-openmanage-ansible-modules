@@ -79,7 +79,7 @@
 
     - ansible.builtin.include_tasks: _clear_all_jobs.yml
 
-    - name: Check secure_boot_mode with import operation
+    - name: Set secure_boot_mode with import operation
         (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &secure_with_import
         idrac_ip: "{{ idrac_ip }}"
@@ -94,7 +94,7 @@
       register: cm_changes
       check_mode: true
 
-    - name: Verify - Check secure_boot_policy with import operation
+    - name: Verify - Set secure_boot_mode with import operation
         (check mode - changes expected)
       ansible.builtin.assert:
         that:
@@ -104,12 +104,12 @@
     - name: Get time details
       ansible.builtin.include_tasks: _get_time_details.yml
 
-    - name: Check secure_boot_policy with import operation (normal mode)
+    - name: Set secure_boot_mode with import operation (normal mode)
       dellemc.openmanage.idrac_secure_boot:
         <<: *secure_with_import
       register: secure_with_import
 
-    - name: Verify - Check secure_boot_policy with import
+    - name: Verify - Set secure_boot_mode with import
         operation (normal mode)
       ansible.builtin.assert:
         that:
@@ -123,7 +123,7 @@
       vars:
         msg_id: "SWC9010"
 
-    - name: Update secure_boot_mode to check idempotent mode
+    - name: Update secure_boot_mode to check idempotency
        (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &idp_secure
         idrac_ip: "{{ idrac_ip }}"
@@ -138,7 +138,7 @@
       register: cm_changes
       check_mode: true
 
-    - name: Verify -  Update secure_boot_mode to check idempotent mode
+    - name: Verify -  Update secure_boot_mode to check idempotency
        (check mode - changes expected)
       ansible.builtin.assert:
         that:
@@ -151,7 +151,7 @@
         <<: *idp_secure
       register: idp_secure
 
-    - name: Verify - Update secure_boot_mode to check idempotent mode
+    - name: Verify - Update secure_boot_mode to check idempotency
        (normal mode)
       ansible.builtin.assert:
         that:
@@ -165,7 +165,7 @@
         <<: *idp_secure
       register: idp_mode
 
-    - name: Verify - Update secure_boot_mode to check idempotent mode
+    - name: Verify - Update secure_boot_mode to check idempotency
        (idempotent mode)
       ansible.builtin.assert:
         that:
