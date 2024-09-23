@@ -5,7 +5,7 @@
 
 - name: Power on status
   dellemc.openmanage.redfish_powerstate:
-    baseuri: "{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
+    baseuri: "{{ idrac_ip }}:{{ idrac_port }}"
     username: "{{ idrac_user }}"
     password: "{{ idrac_password }}"
     validate_certs: false

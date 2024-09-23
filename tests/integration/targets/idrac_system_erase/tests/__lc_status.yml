@@ -1,7 +1,7 @@
 ---
 - name: Waiting for iDRAC to be in ready state
   vars:
-    url1: "https://{{ idrac_ip }}"
+    url1: "https://{{ idrac_ip | ansible.utils.ipwrap }}"
     url2: "/redfish/v1/Dell/Managers/iDRAC.Embedded.1"
     url3: "/DellLCService/Actions/DellLCService.GetRemoteServicesAPIStatus"
   ansible.builtin.uri:

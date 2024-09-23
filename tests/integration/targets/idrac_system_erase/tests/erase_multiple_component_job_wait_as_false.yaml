@@ -52,11 +52,7 @@
       when: run_result.msg == "Successfully submitted the job for
         system erase operation."
 
-    - name: Post erase - Checking if LC status is ready
-      ansible.builtin.include_tasks:
-        file: ../__lc_status.yml
-
-    - name: Checking if iDRAC is powered ff
+    - name: Checking if iDRAC is powered off
       ansible.builtin.include_tasks:
         file: ../_power_status.yml
 

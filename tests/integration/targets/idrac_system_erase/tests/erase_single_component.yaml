@@ -46,10 +46,6 @@
           - "'job_details' in run_result"
           - "run_result.job_details.JobState == 'Completed'"
 
-    - name: Post erase - Checking if LC status is ready
-      ansible.builtin.include_tasks:
-        file: ../__lc_status.yml
-
     - name: Checking if iDRAC is powered on
       ansible.builtin.include_tasks:
         file: ../_power_status.yml
