@@ -11,7 +11,6 @@
 from __future__ import absolute_import, division, print_function
 
 import pytest
-from unittest.mock import patch
 from unittest.mock import patch, MagicMock
 from urllib.error import HTTPError, URLError
 from ansible.module_utils._text import to_text
@@ -19,10 +18,8 @@ from io import StringIO
 import json
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_system_erase
-from ansible_collections.dellemc.openmanage.plugins.modules.idrac_system_erase import SystemErase
+from ansible_collections.dellemc.openmanage.plugins.modules.idrac_system_erase import SystemErase, main
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
-from mock import MagicMock
-from ansible_collections.dellemc.openmanage.plugins.modules.idrac_system_erase import main
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.idrac_system_erase.'
 MODULE_UTILS_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.utils.'
@@ -35,7 +32,6 @@ MANAGER_URI_RESOURCE = "/redfish/v1/Managers/iDRAC.Embedded.1"
 IDRAC_JOB_URI = "{res_uri}/Jobs/{job_id}"
 ODATA = "@odata.id"
 ODATA_REGEX = "(.*?)@odata"
-
 OEM = "Oem"
 MANUFACTURER = "Dell"
 LC_SERVICE = "DellLCService"
