@@ -88,13 +88,13 @@
         validate_certs: false
         force_int_10: invalid
       ignore_errors: true
-      register: invalid_secure_boot_md
+      register: invalid_ft
 
     - name: Verify task status - Negative - Invalid force_int_10.
       ansible.builtin.assert:
         that:
-          - invalid_secure_boot_md.failed
-          - 'invalid_secure_boot_md.msg == "value of force_int_10 must be
+          - invalid_ft.failed
+          - 'invalid_ft.msg == "value of force_int_10 must be
            one of: Disabled, Enabled, got: invalid"'
 
     - name: Prerequisite - Set boot mode to bios and enable force_int_10
