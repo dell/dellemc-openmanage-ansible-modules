@@ -34,6 +34,7 @@
       ansible.builtin.assert:
         that:
           - "{{ intrusion_sensor | length > 0 }}"
+      when: intrusion_result.status == 200
 
     - name: Fetching Sensor Battery info
       ansible.builtin.uri:
@@ -47,6 +48,7 @@
         status_code: "{{ idrac_gather_facts_uri_status_code }}"
         return_content: "{{ idrac_gather_facts_uri_return_content }}"
       no_log: true
+      ignore_errors: true
       register: sensorintrusion_result
 
     - name: Response filter
@@ -56,16 +58,20 @@
           '@odata.id', '@odata.type']) }}"
       vars:
         jquery: "Oem.Dell.DellSystem"
+      when: sensorintrusion_result is defined and
+            sensorintrusion_result.status == 200
 
     - name: Set the keys diff
       ansible.builtin.set_fact:
         diff_keys: "{{ intrusion_sensor.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
+      when: api_response is defined
 
     - name: Set a diff of dict
       ansible.builtin.set_fact:
         diff_data: "{{ diff_data | combine({item: intrusion_sensor[item]}) }}"
       loop: "{{ intrusion_sensor.keys() }}"
       when:
+        - diff_keys is defined
         - diff_keys | length == 0
         - intrusion_sensor[item] != api_response[item]
         - item not in exclude_keys
@@ -77,3 +83,4 @@
           - "{{ (diff_data | length) == 0 }}"
         fail_msg: "The response from the role does not match | Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
         success_msg: "The response from the role matches |  Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
+      when: diff_keys is defined and diff_data is defined

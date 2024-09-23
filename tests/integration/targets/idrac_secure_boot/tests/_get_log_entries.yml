@@ -31,7 +31,7 @@
   until: found
   retries: 1  # stops the loop if any match is found
 
-- name: Asserting whether certificate upload is successful or not
+- name: Asserting whether message id is found or not
   ansible.builtin.assert:
     that:
       - found

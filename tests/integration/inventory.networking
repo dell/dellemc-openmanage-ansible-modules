@@ -46,3 +46,9 @@ http_proxy_server=http_proxy_server
 http_proxy_port=http_proxy_port
 http_proxy_username=http_proxy_username
 http_proxy_password=http_proxy_password
+
+#make sure these directories has write permissions
+idrac_secure_boot_dir_path_1=secure_boot_dir_path/db
+idrac_secure_boot_dir_path_2=secure_boot_dir_path/dbx
+idrac_secure_boot_dir_path_3=secure_boot_dir_path/kek
+idrac_secure_boot_dir_path_4=secure_boot_dir_path/pk
