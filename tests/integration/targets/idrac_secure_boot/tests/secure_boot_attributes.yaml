@@ -12,51 +12,6 @@
    is not defined'
 
 - block:
-    - name: Set boot mode to Uefi (check mode - changes expected)
-      dellemc.openmanage.idrac_secure_boot: &boot_md_uefi
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        validate_certs: false
-        boot_mode: Uefi
-        restart: true
-        restart_type: GracefulRestart
-      register: cm_changes
-      check_mode: true
-
-    - name: Verify - Set boot mode to Uefi (check mode - changes expected)
-      ansible.builtin.assert:
-        that:
-          - cm_changes.changed
-          - cm_changes.msg == 'Changes found to be applied.'
-
-    - name: Set boot mode to Uefi (normal mode)
-      dellemc.openmanage.idrac_secure_boot:
-        <<: *boot_md_uefi
-      register: boot_md_uefi
-
-    - name: Verify - Set boot mode to Uefi (normal mode)
-      ansible.builtin.assert:
-        that:
-          - boot_md_uefi.changed
-          - boot_md_uefi.msg == 'Successfully updated the iDRAC Secure Boot settings.'
-
-    - name: Get details by uri.
-      ansible.builtin.uri:
-        url: "https://{{ idrac_ip | ansible.utils.ipwrap
-         }}/redfish/v1/Systems/System.Embedded.1/Bios"
-        user: "{{ idrac_user }}"
-        password: "{{ idrac_password }}"
-        validate_certs: false
-        status_code: 200
-      register: boot_md_uri
-
-    - name: Verify -  Get details by uri.
-      ansible.builtin.assert:
-        that:
-          - boot_md_uefi.changed
-          - 'boot_md_uri.json.Attributes.BootMode == "Uefi"'
-
     - name: Set boot mode to bios (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &boot_md_bios
         idrac_ip: "{{ idrac_ip }}"
@@ -84,7 +39,8 @@
       ansible.builtin.assert:
         that:
           - boot_md_bios.changed
-          - boot_md_bios.msg == 'Successfully updated the iDRAC Secure Boot settings.'
+          - boot_md_bios.msg == 'Successfully updated the iDRAC Secure
+           Boot settings.'
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -101,6 +57,52 @@
         that:
           - boot_md_bios.changed
           - 'boot_md_uri.json.Attributes.BootMode == "Bios"'
+
+    - name: Set boot mode to Uefi (check mode - changes expected)
+      dellemc.openmanage.idrac_secure_boot: &boot_md_uefi
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        boot_mode: Uefi
+        restart: true
+        restart_type: GracefulRestart
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify - Set boot mode to Uefi (check mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == 'Changes found to be applied.'
+
+    - name: Set boot mode to Uefi (normal mode)
+      dellemc.openmanage.idrac_secure_boot:
+        <<: *boot_md_uefi
+      register: boot_md_uefi
+
+    - name: Verify - Set boot mode to Uefi (normal mode)
+      ansible.builtin.assert:
+        that:
+          - boot_md_uefi.changed
+          - boot_md_uefi.msg == 'Successfully updated the iDRAC Secure
+           Boot settings.'
+
+    - name: Get details by uri.
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap
+         }}/redfish/v1/Systems/System.Embedded.1/Bios"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+        status_code: 200
+      register: boot_md_uri
+
+    - name: Verify -  Get details by uri.
+      ansible.builtin.assert:
+        that:
+          - boot_md_uefi.changed
+          - 'boot_md_uri.json.Attributes.BootMode == "Uefi"'
 
     - name: Enable secure boot (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &secure_boot_enable
@@ -130,7 +132,8 @@
       ansible.builtin.assert:
         that:
           - secure_boot_enable.changed
-          - 'secure_boot_enable.msg == "Successfully updated the iDRAC Secure Boot settings."'
+          - 'secure_boot_enable.msg == "Successfully updated the iDRAC
+           Secure Boot settings."'
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -175,7 +178,8 @@
       ansible.builtin.assert:
         that:
           - secure_boot_disable.changed
-          - secure_boot_disable.msg == 'Successfully updated the iDRAC Secure Boot settings.'
+          - secure_boot_disable.msg == 'Successfully updated the iDRAC
+           Secure Boot settings.'
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -220,7 +224,8 @@
       ansible.builtin.assert:
         that:
           - secure_boot_mode_user.changed
-          - 'secure_boot_mode_user.msg == "Successfully updated the iDRAC Secure Boot settings."'
+          - 'secure_boot_mode_user.msg == "Successfully updated the iDRAC
+           Secure Boot settings."'
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -266,7 +271,8 @@
       ansible.builtin.assert:
         that:
           - secure_boot_mode_deployed.changed
-          - 'secure_boot_mode_deployed.msg == "Successfully updated the iDRAC Secure Boot settings."'
+          - 'secure_boot_mode_deployed.msg == "Successfully updated the iDRAC
+           Secure Boot settings."'
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -312,7 +318,8 @@
       ansible.builtin.assert:
         that:
           - secure_boot_mode_audit.changed
-          - 'secure_boot_mode_audit.msg == "Successfully updated the iDRAC Secure Boot settings."'
+          - 'secure_boot_mode_audit.msg == "Successfully updated the iDRAC
+           Secure Boot settings."'
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -358,7 +365,8 @@
       ansible.builtin.assert:
         that:
           - secure_boot_policy_standard.changed
-          - 'secure_boot_policy_standard.msg == "Successfully updated the iDRAC Secure Boot settings."'
+          - 'secure_boot_policy_standard.msg == "Successfully updated the iDRAC
+           Secure Boot settings."'
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -404,7 +412,8 @@
       ansible.builtin.assert:
         that:
           - secure_boot_policy_custom.changed
-          - 'secure_boot_policy_custom.msg == "Successfully updated the iDRAC Secure Boot settings."'
+          - 'secure_boot_policy_custom.msg == "Successfully updated the iDRAC
+           Secure Boot settings."'
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -449,7 +458,8 @@
       ansible.builtin.assert:
         that:
           - force_enabled.changed
-          - 'force_enabled.msg == "Successfully updated the iDRAC Secure Boot settings."'
+          - 'force_enabled.msg == "Successfully updated the iDRAC Secure
+           Boot settings."'
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -494,7 +504,8 @@
       ansible.builtin.assert:
         that:
           - force_disbled.changed
-          - 'force_disbled.msg == "Successfully updated the iDRAC Secure Boot settings."'
+          - 'force_disbled.msg == "Successfully updated the iDRAC Secure
+           Boot settings."'
 
     - name: Get details by uri.
       ansible.builtin.uri:

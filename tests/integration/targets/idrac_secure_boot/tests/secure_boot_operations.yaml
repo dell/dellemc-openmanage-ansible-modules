@@ -12,18 +12,32 @@
    is not defined'
 
 - block:
-    - name: Set boot mode to Uefi
+    - name: Prerequisite - Enable force_int_10
       dellemc.openmanage.idrac_secure_boot:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
+        force_int_10: Enabled
         validate_certs: false
-        boot_mode: Uefi
         restart: true
         restart_type: GracefulRestart
-      register: cm_changes
 
-    - name: Change any bios parameter
+    - name: Get force_int_10 details by uri.
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap
+         }}/redfish/v1/Systems/System.Embedded.1/Bios"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+        status_code: 200
+      register: boot_md_uri
+
+    - name: Verify - Force_int_10 is enabled
+      ansible.builtin.assert:
+        that:
+          - 'boot_md_uri.json.Attributes.ForceInt10 == "Enabled"'
+
+    - name: Disable force_int_10
       dellemc.openmanage.idrac_secure_boot:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
@@ -58,9 +72,15 @@
       ansible.builtin.assert:
         that:
           - bios_config_exists.skipped
-          - 'bios_config_exists.msg == "BIOS Configuration job already exists."'
+          - 'bios_config_exists.msg == "BIOS Configuration job already
+           exists."'
 
-    - name: Check secure_boot_mode with import operation (check mode - changes expected)
+    - ansible.builtin.include_tasks: _configure_generic_bios_attributes.yml
+
+    - ansible.builtin.include_tasks: _clear_all_jobs.yml
+
+    - name: Check secure_boot_mode with import operation
+        (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &secure_with_import
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
@@ -74,7 +94,8 @@
       register: cm_changes
       check_mode: true
 
-    - name: Verify - Check secure_boot_policy with import operation (check mode - changes expected)
+    - name: Verify - Check secure_boot_policy with import operation
+        (check mode - changes expected)
       ansible.builtin.assert:
         that:
           - cm_changes.changed
@@ -88,12 +109,14 @@
         <<: *secure_with_import
       register: secure_with_import
 
-    - name: Verify - Check secure_boot_policy with import operation (normal mode)
+    - name: Verify - Check secure_boot_policy with import
+        operation (normal mode)
       ansible.builtin.assert:
         that:
           - not secure_with_import.changed
           - 'secure_with_import.msg == "The SecureBoot Certificate Import
-            operation is successfully scheduled. Restart the host server for the changes to take effect."'
+            operation is successfully scheduled. Restart the host server for
+            the changes to take effect."'
 
     - name: Verify - Secure boot Log entries
       ansible.builtin.include_tasks: _get_log_entries.yml
@@ -133,7 +156,8 @@
       ansible.builtin.assert:
         that:
           - idp_secure.changed
-          - 'idp_secure.msg == "Successfully updated the iDRAC Secure Boot settings."'
+          - 'idp_secure.msg == "Successfully updated the iDRAC Secure
+           Boot settings."'
 
     - name: Update secure_boot_mode to check idempotent mode
        (idempotent mode)
