@@ -1,0 +1,3 @@
+---
+dependencies:
+  - prepare_lifecycle_controller_job
