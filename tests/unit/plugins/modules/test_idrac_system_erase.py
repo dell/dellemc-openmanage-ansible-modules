@@ -30,6 +30,7 @@ HTTPS_PATH = 'HTTPS_PATH/job_tracking/12345'
 
 MANAGERS_URI = "/redfish/v1/Managers"
 MANAGER_URI_ONE = "/redfish/v1/managers/1"
+REDFISH_MOCK_URL = "/redfish/v1/Managers/1234"
 MANAGER_URI_RESOURCE = "/redfish/v1/Managers/iDRAC.Embedded.1"
 IDRAC_JOB_URI = "{res_uri}/Jobs/{job_id}"
 ODATA = "@odata.id"
@@ -41,6 +42,8 @@ LC_SERVICE = "DellLCService"
 ACTIONS = "Actions"
 SYSTEM_ERASE = "DellLCService.SystemErase"
 SYSTEM_ERASE_FETCH = "#DellLCService.SystemErase"
+SYSTEM_ERASE_URL = "SystemErase.get_system_erase_url"
+SYSTEM_ERASE_JOB_STATUS = "SystemErase.get_job_status"
 COMPONENT_ALLOWABLE_VALUES = "Component@Redfish.AllowableValues"
 JOB_FILTER = "Jobs?$expand=*($levels=1)"
 API_ONE = "/local/action"
@@ -240,7 +243,7 @@ class TestSystemErase(FakeAnsibleModule):
     @patch(MODULE_PATH + 'SystemErase.get_url')
     def test_check_system_erase_job_success(self, mock_get_url, mock_module):
         """Test check_system_erase_job when a SystemErase job is found with a valid state."""
-        mock_url = '/redfish/v1/Managers/1234'
+        mock_url = REDFISH_MOCK_URL
         mock_get_url.return_value = mock_url
 
         # Create a mock idrac object
@@ -263,7 +266,7 @@ class TestSystemErase(FakeAnsibleModule):
     @patch(MODULE_PATH + 'SystemErase.get_url')
     def test_check_system_erase_job_failed(self, mock_get_url, mock_module):
         """Test check_system_erase_job when a SystemErase job is found with 'Failed' state."""
-        mock_url = '/redfish/v1/Managers/1234'
+        mock_url = REDFISH_MOCK_URL
         mock_get_url.return_value = mock_url
 
         # Create a mock idrac object
@@ -286,7 +289,7 @@ class TestSystemErase(FakeAnsibleModule):
     @patch(MODULE_PATH + 'SystemErase.get_url')
     def test_check_system_erase_job_multiple_states(self, mock_get_url, mock_module):
         """Test check_system_erase_job with multiple jobs having different states."""
-        mock_url = '/redfish/v1/Managers/1234'
+        mock_url = REDFISH_MOCK_URL
         mock_get_url.return_value = mock_url
 
         # Create a mock idrac object
@@ -310,7 +313,7 @@ class TestSystemErase(FakeAnsibleModule):
     @patch(MODULE_PATH + 'SystemErase.get_url')
     def test_check_system_erase_job_no_jobs(self, mock_get_url, mock_module):
         """Test check_system_erase_job when no SystemErase jobs are found."""
-        mock_url = '/redfish/v1/Managers/1234'
+        mock_url = REDFISH_MOCK_URL
         mock_get_url.return_value = mock_url
 
         # Create a mock idrac object
@@ -327,7 +330,7 @@ class TestSystemErase(FakeAnsibleModule):
     @patch(MODULE_PATH + 'SystemErase.get_url')
     def test_check_system_erase_job_no_system_erase_type(self, mock_get_url, mock_module):
         """Test check_system_erase_job when there are jobs but none of type 'SystemErase'."""
-        mock_url = '/redfish/v1/Managers/1234'
+        mock_url = REDFISH_MOCK_URL
         mock_get_url.return_value = mock_url
 
         # Create a mock idrac object
@@ -350,7 +353,7 @@ class TestSystemErase(FakeAnsibleModule):
     @patch(MODULE_PATH + 'SystemErase.get_url')
     def test_check_system_erase_job_partial_states(self, mock_get_url, mock_module):
         """Test check_system_erase_job with a mix of SystemErase and other jobs."""
-        mock_url = '/redfish/v1/Managers/1234'
+        mock_url = REDFISH_MOCK_URL
         mock_get_url.return_value = mock_url
 
         # Create a mock idrac object
@@ -414,7 +417,7 @@ class TestSystemErase(FakeAnsibleModule):
                     ]}}}
         # Scenario 1: Valid component
         mocker.patch(
-            MODULE_PATH + "SystemErase.get_system_erase_url", return_value=API_ONE)
+            MODULE_PATH + SYSTEM_ERASE_URL, return_value=API_ONE)
         mocker.patch(MODULE_PATH + API_INVOKE_MOCKER, return_value=obj)
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
@@ -426,7 +429,7 @@ class TestSystemErase(FakeAnsibleModule):
 
         # Scenario 2: Invalid component
         mocker.patch(
-            MODULE_PATH + "SystemErase.get_system_erase_url", return_value=API_ONE)
+            MODULE_PATH + SYSTEM_ERASE_URL, return_value=API_ONE)
         mocker.patch(MODULE_PATH + API_INVOKE_MOCKER, return_value=obj)
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
@@ -439,7 +442,7 @@ class TestSystemErase(FakeAnsibleModule):
 
         # Scenario 3: Invalid component in check_mode
         mocker.patch(
-            MODULE_PATH + "SystemErase.get_system_erase_url", return_value=API_ONE)
+            MODULE_PATH + SYSTEM_ERASE_URL, return_value=API_ONE)
         mocker.patch(MODULE_PATH + API_INVOKE_MOCKER, return_value=obj)
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=True)
@@ -512,7 +515,7 @@ class TestSystemErase(FakeAnsibleModule):
             mocker.patch(
                 MODULE_PATH + ALLOWABLE_VALUE_FUNC, return_value=(["DIAG"], []))
             mocker.patch(
-                MODULE_PATH + "SystemErase.get_system_erase_url", return_value=API_ONE)
+                MODULE_PATH + SYSTEM_ERASE_URL, return_value=API_ONE)
             mocker.patch(MODULE_PATH + API_INVOKE_MOCKER, return_value=obj)
             mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri",
                          return_value=("/redfish/v1", None))
@@ -531,10 +534,10 @@ class TestSystemErase(FakeAnsibleModule):
             mocker.patch(
                 MODULE_PATH + ALLOWABLE_VALUE_FUNC, return_value=(["DIAG"], []))
             mocker.patch(
-                MODULE_PATH + "SystemErase.get_system_erase_url", return_value=API_ONE)
+                MODULE_PATH + SYSTEM_ERASE_URL, return_value=API_ONE)
             mocker.patch(MODULE_PATH + API_INVOKE_MOCKER, return_value=obj)
             mocker.patch(
-                MODULE_PATH + "SystemErase.get_job_status", return_value=job)
+                MODULE_PATH + SYSTEM_ERASE_JOB_STATUS, return_value=job)
             mocker.patch(MODULE_UTILS_PATH + "validate_and_get_first_resource_id_uri",
                          return_value=([MANAGER_URI_ONE], None))
             mocker.patch(MODULE_UTILS_PATH + "get_dynamic_uri",
@@ -556,10 +559,10 @@ class TestSystemErase(FakeAnsibleModule):
             mocker.patch(
                 MODULE_PATH + ALLOWABLE_VALUE_FUNC, return_value=(["DIAG"], []))
             mocker.patch(
-                MODULE_PATH + "SystemErase.get_system_erase_url", return_value=API_ONE)
+                MODULE_PATH + SYSTEM_ERASE_URL, return_value=API_ONE)
             mocker.patch(MODULE_PATH + API_INVOKE_MOCKER, return_value=obj)
             mocker.patch(
-                MODULE_PATH + "SystemErase.get_job_status", return_value=job)
+                MODULE_PATH + SYSTEM_ERASE_JOB_STATUS, return_value=job)
             mocker.patch(MODULE_UTILS_PATH + "validate_and_get_first_resource_id_uri",
                          return_value=([MANAGER_URI_ONE], None))
             mocker.patch(MODULE_UTILS_PATH + "get_dynamic_uri",
@@ -582,10 +585,10 @@ class TestSystemErase(FakeAnsibleModule):
             mocker.patch(
                 MODULE_PATH + ALLOWABLE_VALUE_FUNC, return_value=(["DIAG"], []))
             mocker.patch(
-                MODULE_PATH + "SystemErase.get_system_erase_url", return_value=API_ONE)
+                MODULE_PATH + SYSTEM_ERASE_URL, return_value=API_ONE)
             mocker.patch(MODULE_PATH + API_INVOKE_MOCKER, return_value=obj)
             mocker.patch(
-                MODULE_PATH + "SystemErase.get_job_status", return_value=job)
+                MODULE_PATH + SYSTEM_ERASE_JOB_STATUS, return_value=job)
             f_module = self.get_module_mock(
                 params=idrac_default_args, check_mode=False)
             erase_component_obj = self.module.EraseComponent(
