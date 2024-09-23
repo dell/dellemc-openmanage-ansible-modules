@@ -20,9 +20,9 @@ module: idrac_system_erase
 short_description: Erase system and storage components of the server
 version_added: "9.7.0"
 description:
-  - This module allows erasing System components such as iDRAC, BIOS, DIAG,
-    etc., and Storage components such as PERC NV cache, Non-volatile memory,
-    Cryptographic erase PD, etc. of the server.
+  - This module allows you to erase system components such as iDRAC, BIOS, DIAG,
+    and so forth. You can also erase storage components such as PERC NV cache,
+    non-volatile memory, cryptographic erase of physical disks, and so on of the server
 extends_documentation_fragment:
   - dellemc.openmanage.idrac_x_auth_options
 options:

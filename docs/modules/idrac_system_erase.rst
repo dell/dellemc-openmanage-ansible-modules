@@ -12,7 +12,7 @@ idrac_system_erase -- Erase system and storage components of the server
 Synopsis
 --------
 
-This module allows erasing System components such as iDRAC, BIOS, DIAG, etc., and Storage components such as PERC NV cache, Non-volatile memory, Cryptographic erase PD, etc. of the server.
+This module allows you to erase system components such as iDRAC, BIOS, DIAG, and so forth. You can also erase storage components such as PERC NV cache, non-volatile memory, cryptographic erase of physical disks, and so on of the server
 
 
 
