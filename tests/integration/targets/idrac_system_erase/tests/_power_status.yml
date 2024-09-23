@@ -1,0 +1,14 @@
+---
+- name: Wait for iDRAC
+  ansible.builtin.pause:
+    seconds: 600
+
+- name: Power on status
+  dellemc.openmanage.redfish_powerstate:
+    baseuri: "{{ idrac_ip }}:{{ idrac_port }}"
+    username: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    validate_certs: false
+    reset_type: "On"
+  register: state
+  check_mode: true
