@@ -47,6 +47,7 @@ Here are the list of modules and module_utils supported by Dell.
     ├── idrac_storage_volume.py
     ├── idrac_support_assist.py
     ├── idrac_syslog.py
+    ├── idrac_system_erase.py
     ├── idrac_system_info.py
     ├── idrac_timezone_ntp.py
     ├── idrac_user.py
