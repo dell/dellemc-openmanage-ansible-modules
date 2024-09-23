@@ -95,3 +95,4 @@
       ansible.builtin.assert:
         that:
           - "{{ manager_id not in manager_ids }}"
+      when: manager_ids is defined

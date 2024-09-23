@@ -8,3 +8,5 @@
 - name: Set enclosure EMM facts
   ansible.builtin.set_fact:
     enclosure_emm: "{{ emm_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'Description', 'Links']) }}"
+  when: emm_result.status == 200
+  register: emm_result_register

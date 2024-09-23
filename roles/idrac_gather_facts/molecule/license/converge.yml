@@ -34,6 +34,7 @@
       ansible.builtin.assert:
         that:
           - "{{ license | length > 0 }}"
+      when: license_result.status == 200
 
     - name: Call assertion
       ansible.builtin.include_tasks: ../../tests/asserts/license_assert.yml

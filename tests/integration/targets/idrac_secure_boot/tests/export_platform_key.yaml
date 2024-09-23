@@ -1,0 +1,63 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - ansible.builtin.include_tasks: _helper.yml
+
+    - ansible.builtin.include_tasks: _configure_generic_bios_attributes.yml
+
+    - name: Export platform key policy certificate
+       (check mode - changes expected)
+      dellemc.openmanage.idrac_secure_boot: &export_cert
+        export_certificates: true
+        platform_key: "{{ idrac_secure_boot_dir_path_4 }}"
+        restart: true
+        restart_type: GracefulRestart
+        job_wait: true
+        job_wait_timeout: 1000
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify - Export platform key policy certificate
+       (check mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == 'Changes found to be applied.'
+
+    - name: Get time details
+      ansible.builtin.include_tasks: _get_time_details.yml
+
+    - name: Export platform key policy certificate (normal mode)
+      dellemc.openmanage.idrac_secure_boot:
+        <<: *export_cert
+      register: export_cert
+
+    - name: Verify - Export platform key policy certificate (normal mode)
+      ansible.builtin.assert:
+        that:
+          - not export_cert.changed
+          - export_cert.msg == "Successfully exported the SecureBoot
+           certificate."
+
+    - name: Verify - Secure boot Log entries
+      ansible.builtin.include_tasks: _get_log_entries.yml
+      vars:
+        msg_id: "SWC9011"
+
+  module_defaults:
+    dellemc.openmanage.idrac_secure_boot:
+      idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
