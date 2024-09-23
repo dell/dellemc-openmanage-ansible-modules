@@ -22,6 +22,7 @@ from ansible_collections.dellemc.openmanage.plugins.modules.idrac_system_erase i
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.idrac_system_erase.'
 MODULE_UTILS_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.utils.'
 HTTPS_PATH = 'HTTPS_PATH/job_tracking/12345'
+REDFISH_MOCK_URL = '/redfish/v1/Managers/1234'
 
 MANAGERS_URI = "/redfish/v1/Managers"
 MANAGER_URI_ONE = "/redfish/v1/managers/1"
@@ -223,7 +224,7 @@ class TestSystemErase(FakeAnsibleModule):
     @patch(MODULE_PATH + 'SystemErase.get_url')
     def test_check_system_erase_job_success(self, mock_get_url, mock_module):
         """Test check_system_erase_job when a SystemErase job is found with a valid state."""
-        mock_url = '/redfish/v1/Managers/1234'
+        mock_url = REDFISH_MOCK_URL
         mock_get_url.return_value = mock_url
 
         # Create a mock idrac object
@@ -238,7 +239,7 @@ class TestSystemErase(FakeAnsibleModule):
         )
 
         # Initialize SystemErase object with mock idrac
-        system_erase_obj = SystemErase(module = mock_module, idrac=mock_idrac)
+        system_erase_obj = SystemErase(module=mock_module, idrac=mock_idrac)
 
         result = system_erase_obj.check_system_erase_job()
         assert result == 'Completed'
@@ -246,7 +247,7 @@ class TestSystemErase(FakeAnsibleModule):
     @patch(MODULE_PATH + 'SystemErase.get_url')
     def test_check_system_erase_job_failed(self, mock_get_url, mock_module):
         """Test check_system_erase_job when a SystemErase job is found with 'Failed' state."""
-        mock_url = '/redfish/v1/Managers/1234'
+        mock_url = REDFISH_MOCK_URL
         mock_get_url.return_value = mock_url
 
         # Create a mock idrac object
@@ -261,7 +262,7 @@ class TestSystemErase(FakeAnsibleModule):
         )
 
         # Initialize SystemErase object with mock idrac
-        system_erase_obj = SystemErase(module = mock_module, idrac=mock_idrac)
+        system_erase_obj = SystemErase(module=mock_module, idrac=mock_idrac)
 
         result = system_erase_obj.check_system_erase_job()
         assert result == 'Failed'
@@ -269,7 +270,7 @@ class TestSystemErase(FakeAnsibleModule):
     @patch(MODULE_PATH + 'SystemErase.get_url')
     def test_check_system_erase_job_multiple_states(self, mock_get_url, mock_module):
         """Test check_system_erase_job with multiple jobs having different states."""
-        mock_url = '/redfish/v1/Managers/1234'
+        mock_url = REDFISH_MOCK_URL
         mock_get_url.return_value = mock_url
 
         # Create a mock idrac object
@@ -285,7 +286,7 @@ class TestSystemErase(FakeAnsibleModule):
         )
 
         # Initialize SystemErase object with mock idrac
-        system_erase_obj = SystemErase(module = mock_module, idrac=mock_idrac)
+        system_erase_obj = SystemErase(module=mock_module, idrac=mock_idrac)
 
         result = system_erase_obj.check_system_erase_job()
         assert result == 'Completed'
@@ -293,7 +294,7 @@ class TestSystemErase(FakeAnsibleModule):
     @patch(MODULE_PATH + 'SystemErase.get_url')
     def test_check_system_erase_job_no_jobs(self, mock_get_url, mock_module):
         """Test check_system_erase_job when no SystemErase jobs are found."""
-        mock_url = '/redfish/v1/Managers/1234'
+        mock_url = REDFISH_MOCK_URL
         mock_get_url.return_value = mock_url
 
         # Create a mock idrac object
@@ -301,7 +302,7 @@ class TestSystemErase(FakeAnsibleModule):
         mock_idrac.invoke_request.return_value = MagicMock(json_data={'Members': []})
 
         # Initialize SystemErase object with mock idrac
-        system_erase_obj = SystemErase(module = mock_module, idrac=mock_idrac)
+        system_erase_obj = SystemErase(module=mock_module, idrac=mock_idrac)
 
         result = system_erase_obj.check_system_erase_job()
         assert result == 'Unknown'
@@ -309,7 +310,7 @@ class TestSystemErase(FakeAnsibleModule):
     @patch(MODULE_PATH + 'SystemErase.get_url')
     def test_check_system_erase_job_no_system_erase_type(self, mock_get_url, mock_module):
         """Test check_system_erase_job when there are jobs but none of type 'SystemErase'."""
-        mock_url = '/redfish/v1/Managers/1234'
+        mock_url = REDFISH_MOCK_URL
         mock_get_url.return_value = mock_url
 
         # Create a mock idrac object
@@ -324,7 +325,7 @@ class TestSystemErase(FakeAnsibleModule):
         )
 
         # Initialize SystemErase object with mock idrac
-        system_erase_obj = SystemErase(module = mock_module, idrac=mock_idrac)
+        system_erase_obj = SystemErase(module=mock_module, idrac=mock_idrac)
 
         result = system_erase_obj.check_system_erase_job()
         assert result == 'Unknown'
@@ -332,7 +333,7 @@ class TestSystemErase(FakeAnsibleModule):
     @patch(MODULE_PATH + 'SystemErase.get_url')
     def test_check_system_erase_job_partial_states(self, mock_get_url, mock_module):
         """Test check_system_erase_job with a mix of SystemErase and other jobs."""
-        mock_url = '/redfish/v1/Managers/1234'
+        mock_url = REDFISH_MOCK_URL
         mock_get_url.return_value = mock_url
 
         # Create a mock idrac object
@@ -349,7 +350,7 @@ class TestSystemErase(FakeAnsibleModule):
         )
 
         # Initialize SystemErase object with mock idrac
-        system_erase_obj = SystemErase(module = mock_module, idrac=mock_idrac)
+        system_erase_obj = SystemErase(module=mock_module, idrac=mock_idrac)
 
         result = system_erase_obj.check_system_erase_job()
         assert result == 'Scheduling'
