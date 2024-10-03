@@ -35,11 +35,12 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.rest_api import
 root_omevv_uri = "/omevv/GatewayService/v1"
 session_resource = {}
 
+
 class RestOMEVV(RestAPI):
     def __init__(self, module_params, protocol="https"):
         self.uuid = module_params.get("uuid", "")
         self.omevv_header_dict = {
-            "x_omivv-api-vcenter-identifier": self.uuid
+            "x_omivv-api-vcenter-identifier": self.uuid if self.uuid is not None else ""
         }
         super().__init__(
             root_uri=root_omevv_uri,
@@ -54,13 +55,8 @@ class RestOMEVV(RestAPI):
         if isinstance(headers, dict):
             self.omevv_header_dict.update(headers)
         return self._base_invoke_request(method, path, data, query_param, self.omevv_header_dict,
-                                        api_timeout, dump)
+                                         api_timeout, dump)
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        return False
 
 class OMEVVAnsibleModule(RestAnsibleModule):
     def __init__(self, argument_spec, bypass_checks=False, no_log=False,
@@ -70,7 +66,7 @@ class OMEVVAnsibleModule(RestAnsibleModule):
                  env_fallback_username='VCENTER_USERNAME', env_fallback_password='VCENTER_PASSWORD'):
         argument_spec.update({"uuid": {"required": False, "type": "str"}})
         super().__init__(argument_spec, bypass_checks, no_log,
-                       mutually_exclusive, required_together,
-                       required_one_of, add_file_common_args,
-                       supports_check_mode, required_if, required_by,
-                       env_fallback_username, env_fallback_password)
+                         mutually_exclusive, required_together,
+                         required_one_of, add_file_common_args,
+                         supports_check_mode, required_if, required_by,
+                         env_fallback_username, env_fallback_password)

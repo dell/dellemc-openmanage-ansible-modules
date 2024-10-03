@@ -51,6 +51,7 @@ rest_auth_params = {
 
 base_headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
 
+
 class OpenURLResponse(object):
     """Handles HTTPResponse"""
 
@@ -139,7 +140,7 @@ class RestAPI:
         return url_kwargs
 
     def _base_invoke_request(self, method, path, data=None, query_param=None, headers=None,
-                       api_timeout=None, dump=True, auth_token_header='X-Auth-Token'):
+                             api_timeout=None, dump=True, auth_token_header='X-Auth-Token'):
         """
         Sends a request through open_url
         Returns :class:`OpenURLResponse` object.
@@ -170,10 +171,11 @@ class RestAPI:
         return resp_data
 
     def __enter__(self):
-        pass
+        return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        pass
+        return False
+
 
 class RestAnsibleModule(AnsibleModule):
     def __init__(self, argument_spec, bypass_checks=False, no_log=False,
@@ -201,4 +203,3 @@ class RestAnsibleModule(AnsibleModule):
                          mutually_exclusive, required_together,
                          required_one_of, add_file_common_args,
                          supports_check_mode, required_if, required_by)
-
