@@ -49,8 +49,6 @@ rest_auth_params = {
     "timeout": {"type": "int", "default": 30},
 }
 
-base_headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
-
 
 class OpenURLResponse(object):
     """Handles HTTPResponse"""
@@ -84,7 +82,7 @@ class OpenURLResponse(object):
 
 class RestAPI:
     def __init__(self, root_uri, module_params, session_resource_collection,
-                 req_session=False, protocol="https", basic_headers=base_headers):
+                 req_session=False, protocol="https", basic_headers=None):
         self.hostname = config_ipv6(str(module_params.get("hostname", "")).strip(']['))
         self.username = module_params.get("username")
         self.password = module_params.get("password")
@@ -96,7 +94,7 @@ class RestAPI:
         self.session_id = None
         self.protocol = protocol
         self.root_uri = root_uri
-        self._headers = basic_headers
+        self._headers = basic_headers or {}
         self.session_resource = session_resource_collection
 
     def __build_url(self, path, query_param=None):
@@ -113,6 +111,8 @@ class RestAPI:
 
     def _url_common_args_spec(self, method, api_timeout=None, headers=None):
         """Creates an argument common spec"""
+        base_headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
+        self._headers.update(base_headers)
         if isinstance(headers, dict):
             self._headers.update(headers)
         return {
