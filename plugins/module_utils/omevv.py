@@ -39,7 +39,7 @@ session_resource = {}
 
 class RestOMEVV(RestAPI):
     def __init__(self, module_params, protocol="https"):
-        self.uuid = module_params.get("uuid", "")
+        self.uuid = module_params.get("vcenter_uuid", "")
         self.omevv_header_dict = {
             "x_omivv-api-vcenter-identifier": self.uuid if self.uuid is not None else ""
         }
@@ -67,8 +67,9 @@ class OMEVVAnsibleModule(RestAnsibleModule):
                  env_fallback_username='OMEVV_VCENTER_USERNAME',
                  env_fallback_password='OMEVV_VCENTER_PASSWORD',
                  env_fallback_uuid='OMEVV_VCENTER_UUID'):
-        argument_spec.update({"uuid": {"required": False, "type": "str",
-                                       "fallback": (env_fallback, [env_fallback_uuid])}})
+        if "vcenter_uuid" in argument_spec:
+            argument_spec.update({"vcenter_uuid": {"required": False, "type": "str",
+                                           "fallback": (env_fallback, [env_fallback_uuid])}})
         super().__init__(argument_spec, bypass_checks, no_log,
                          mutually_exclusive, required_together,
                          required_one_of, add_file_common_args,
