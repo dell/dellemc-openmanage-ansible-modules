@@ -38,13 +38,14 @@ session_resource = {}
 
 
 class RestOMEVV(RestAPI):
-    def __init__(self, module_params, protocol="https"):
+    def __init__(self, module_params, protocol="https",
+                 root_uri=root_omevv_uri):
         self.uuid = module_params.get("vcenter_uuid", "")
         self.omevv_header_dict = {
             "x_omivv-api-vcenter-identifier": self.uuid if self.uuid is not None else ""
         }
         super().__init__(
-            root_uri=root_omevv_uri,
+            root_uri=root_uri,
             module_params=module_params,
             session_resource_collection=session_resource,
             req_session=False,
@@ -66,10 +67,10 @@ class OMEVVAnsibleModule(RestAnsibleModule):
                  supports_check_mode=False, required_if=None, required_by=None,
                  env_fallback_username='OMEVV_VCENTER_USERNAME',
                  env_fallback_password='OMEVV_VCENTER_PASSWORD',
-                 env_fallback_uuid='OMEVV_VCENTER_UUID'):
-        if "vcenter_uuid" in argument_spec:
-            argument_spec.update({"vcenter_uuid": {"required": False, "type": "str",
-                                           "fallback": (env_fallback, [env_fallback_uuid])}})
+                 env_fallback_uuid='OMEVV_VCENTER_UUID', uuid_required=True):
+        if uuid_required:
+            argument_spec.update({"vcenter_uuid": {"required": True, "type": "str",
+                                                   "fallback": (env_fallback, [env_fallback_uuid])}})
         super().__init__(argument_spec, bypass_checks, no_log,
                          mutually_exclusive, required_together,
                          required_one_of, add_file_common_args,
