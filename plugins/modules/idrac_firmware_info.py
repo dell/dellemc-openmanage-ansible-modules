@@ -25,7 +25,9 @@ extends_documentation_fragment:
 requirements:
     - "omsdk >= 1.2.488"
     - "python >= 3.9.6"
-author: "Rajeev Arakkal (@rajeevarakkal)"
+author: 
+  - "Rajeev Arakkal (@rajeevarakkal)"
+  - "Saksham Nautiyal (@Saksham-Nautiyal)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
