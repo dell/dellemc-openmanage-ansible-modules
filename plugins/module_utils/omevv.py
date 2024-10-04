@@ -31,6 +31,7 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 from ansible_collections.dellemc.openmanage.plugins.module_utils.rest_api import RestAPI, RestAnsibleModule
+from ansible.module_utils.common.parameters import env_fallback
 
 root_omevv_uri = "/omevv/GatewayService/v1"
 session_resource = {}
@@ -63,8 +64,11 @@ class OMEVVAnsibleModule(RestAnsibleModule):
                  mutually_exclusive=None, required_together=None,
                  required_one_of=None, add_file_common_args=False,
                  supports_check_mode=False, required_if=None, required_by=None,
-                 env_fallback_username='VCENTER_USERNAME', env_fallback_password='VCENTER_PASSWORD'):
-        argument_spec.update({"uuid": {"required": False, "type": "str"}})
+                 env_fallback_username='OMEVV_VCENTER_USERNAME',
+                 env_fallback_password='OMEVV_VCENTER_PASSWORD',
+                 env_fallback_uuid='OMEVV_VCENTER_UUID'):
+        argument_spec.update({"uuid": {"required": False, "type": "str",
+                                       "fallback": (env_fallback, [env_fallback_uuid])}})
         super().__init__(argument_spec, bypass_checks, no_log,
                          mutually_exclusive, required_together,
                          required_one_of, add_file_common_args,
