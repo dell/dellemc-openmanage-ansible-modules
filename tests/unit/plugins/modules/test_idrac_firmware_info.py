@@ -19,7 +19,7 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common im
 from mock import MagicMock, PropertyMock
 from pytest import importorskip
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
+from urllib.error import URLError, HTTPError
 from io import StringIO
 from ansible.module_utils._text import to_text
 
@@ -47,6 +47,14 @@ class TestFirmware(FakeAnsibleModule):
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_firmware_info_mock
         return idrac_firmware_info_mock
 
+    @pytest.fixture
+    def idrac_redfish_mock(self, mocker):
+        redfish_mock = MagicMock()
+        redfish_conn_mock = mocker.patch(MODULE_PATH + 'idrac_firmware_info.iDRACRedfishAPI',
+                                         return_value=redfish_mock)
+        redfish_conn_mock.return_value.__enter__.return_value = redfish_mock
+        return redfish_mock
+
     def test_main_idrac_get_firmware_info_success_case01(self, idrac_firmware_info_connection_mock,
                                                          idrac_default_args):
         obj2 = MagicMock()
@@ -57,18 +65,21 @@ class TestFirmware(FakeAnsibleModule):
                           "msg": "Successfully fetched the firmware inventory details.",
                           "changed": False}
 
-    @pytest.mark.parametrize("exc_type", [SSLValidationError, URLError, ValueError, TypeError,
-                                          ConnectionError, HTTPError])
+    @pytest.mark.parametrize("exc_type", [SSLValidationError, URLError, ValueError, TypeError, ConnectionError, HTTPError])
     def test_idrac_get_firmware_info_exception_handling_case(self, idrac_firmware_info_connection_mock,
                                                              exc_type, mocker, idrac_default_args):
         json_str = to_text(json.dumps({"data": "out"}))
         obj2 = MagicMock()
         idrac_firmware_info_connection_mock.update_mgr = obj2
         if exc_type not in [HTTPError, SSLValidationError]:
-            type(obj2).InstalledFirmware = PropertyMock(side_effect=exc_type('test'))
+            if exc_type == URLError:
+                type(obj2).InstalledFirmware = PropertyMock(side_effect=exc_type('https://idrac-mock-url'))
+            else:
+                type(obj2).InstalledFirmware = PropertyMock(side_effect=exc_type('test'))
         else:
             type(obj2).InstalledFirmware = PropertyMock(side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                                                              {"accept-type": "application/json"}, StringIO(json_str)))
+
         if not exc_type == URLError:
             result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] is True
