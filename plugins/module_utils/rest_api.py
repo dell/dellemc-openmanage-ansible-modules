@@ -39,16 +39,6 @@ from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
 from ansible.module_utils.basic import AnsibleModule
 
-rest_auth_params = {
-    "hostname": {"required": True, "type": "str"},
-    "username": {"required": True, "type": "str"},
-    "password": {"required": True, "type": "str", "no_log": True},
-    "port": {"type": "int", "default": 443},
-    "validate_certs": {"type": "bool", "default": True},
-    "ca_path": {"type": "path"},
-    "timeout": {"type": "int", "default": 30},
-}
-
 
 class OpenURLResponse(object):
     """Handles HTTPResponse"""
@@ -178,9 +168,9 @@ class RestAPI:
 
 class RestAnsibleModule(AnsibleModule):
     def __init__(self, argument_spec, bypass_checks=False, no_log=False,
-                 mutually_exclusive=None, required_together=None,
-                 required_one_of=None, add_file_common_args=False,
-                 supports_check_mode=False, required_if=None, required_by=None,
+                 mutually_exclusive=[], required_together=[],
+                 required_one_of=[], add_file_common_args=False,
+                 supports_check_mode=False, required_if={}, required_by={},
                  env_fallback_username='USERNAME', env_fallback_password='PASSWORD'):
         temp_argument_spec = {
             "hostname": {"required": True, "type": "str"},
@@ -193,10 +183,7 @@ class RestAnsibleModule(AnsibleModule):
         }
         argument_spec.update(temp_argument_spec)
         auth_required_together = [("username", "password")]
-
-        if required_together is None:
-            required_together = []
-            required_together.extend(auth_required_together)
+        required_together.extend(auth_required_together)
 
         super().__init__(argument_spec, bypass_checks, no_log,
                          mutually_exclusive, required_together,
