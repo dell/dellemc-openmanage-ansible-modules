@@ -93,7 +93,7 @@ class OMEVVAnsibleModule(AnsibleModule):
         if uuid_required:
             argument_spec.update({"vcenter_uuid": {"required": False, "type": "str",
                                                    "fallback": (env_fallback, ['OMEVV_VCENTER_UUID'])}})
-        auth_required_together = [("username", "password")]
+        auth_required_together = [("vcenter_username", "vcenter_password")]
 
         if mutually_exclusive is None:
             mutually_exclusive = []
@@ -104,8 +104,6 @@ class OMEVVAnsibleModule(AnsibleModule):
             required_one_of = []
         if required_by is None:
             required_by = {}
-        if required_if is None:
-            required_if = {}
 
         super().__init__(argument_spec, bypass_checks, no_log,
                          mutually_exclusive, required_together,

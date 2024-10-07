@@ -38,7 +38,7 @@ options:
   vcenter_uuid:
     description:
      - Universally unique identifier (uuid) of vCenter.
-     - vCenter uuid details can be fetched using M(omevv_vcenter_info) module.
+     - vCenter uuid details can be fetched using M(dellemc.openmanage.omevv_vcenter_info) module.
      - If the uuid is not provided, then the environment variable E(OMEVV_VCENTER_UUID) is used.
      - "Example: export OMEVV_VCENTER_UUID=uuid"
     type: str
