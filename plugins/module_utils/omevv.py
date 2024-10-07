@@ -30,8 +30,9 @@ from __future__ import (absolute_import, division, print_function)
 
 __metaclass__ = type
 
-from ansible_collections.dellemc.openmanage.plugins.module_utils.rest_api import RestAPI, RestAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.rest_api import RestAPI
 from ansible.module_utils.common.parameters import env_fallback
+from ansible.module_utils.basic import AnsibleModule
 
 root_omevv_uri = "/omevv/GatewayService/v1"
 
@@ -71,19 +72,40 @@ class RestOMEVV(RestAPI):
                                          api_timeout, dump)
 
 
-class OMEVVAnsibleModule(RestAnsibleModule):
+class OMEVVAnsibleModule(AnsibleModule):
     def __init__(self, argument_spec, bypass_checks=False, no_log=False,
-                 mutually_exclusive=[], required_together=[],
-                 required_one_of=[], add_file_common_args=False,
-                 supports_check_mode=False, required_if={}, required_by={},
-                 env_fallback_username='OMEVV_VCENTER_USERNAME',
-                 env_fallback_password='OMEVV_VCENTER_PASSWORD',
-                 env_fallback_uuid='OMEVV_VCENTER_UUID', uuid_required=True):
+                 mutually_exclusive=None, required_together=None,
+                 required_one_of=None, add_file_common_args=False,
+                 supports_check_mode=False, required_if=None, required_by=None,
+                 uuid_required=True):
+        temp_argument_spec = {
+            "hostname": {"required": True, "type": "str"},
+            "vcenter_username": {"required": False, "type": "str", "fallback": (env_fallback, ['OMEVV_VCENTER_USERNAME'])},
+            "vcenter_password": {"required": False, "type": "str", "no_log": True, "fallback": (env_fallback, ['OMEVV_VCENTER_PASSWORD'])},
+            "port": {"type": "int", "default": 443},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
+        }
+        argument_spec.update(temp_argument_spec)
         if uuid_required:
             argument_spec.update({"vcenter_uuid": {"required": True, "type": "str",
-                                                   "fallback": (env_fallback, [env_fallback_uuid])}})
+                                                   "fallback": (env_fallback, ['OMEVV_VCENTER_UUID'])}})
+        auth_required_together = [("username", "password")]
+
+        if mutually_exclusive is None:
+            mutually_exclusive = []
+        if required_together is None:
+            required_together = []
+        required_together.extend(auth_required_together)
+        if required_one_of is None:
+            required_one_of = []
+        if required_by is None:
+            required_by = {}
+        if required_if is None:
+            required_if = {}
+
         super().__init__(argument_spec, bypass_checks, no_log,
                          mutually_exclusive, required_together,
                          required_one_of, add_file_common_args,
-                         supports_check_mode, required_if, required_by,
-                         env_fallback_username, env_fallback_password)
+                         supports_check_mode, required_if, required_by)

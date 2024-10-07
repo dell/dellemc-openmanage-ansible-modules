@@ -37,7 +37,6 @@ from ansible.module_utils.common.parameters import env_fallback
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
-from ansible.module_utils.basic import AnsibleModule
 
 
 class OpenURLResponse(object):
@@ -164,28 +163,3 @@ class RestAPI:
 
     def __exit__(self, exc_type, exc_value, traceback):
         return False
-
-
-class RestAnsibleModule(AnsibleModule):
-    def __init__(self, argument_spec, bypass_checks=False, no_log=False,
-                 mutually_exclusive=[], required_together=[],
-                 required_one_of=[], add_file_common_args=False,
-                 supports_check_mode=False, required_if={}, required_by={},
-                 env_fallback_username='USERNAME', env_fallback_password='PASSWORD'):
-        temp_argument_spec = {
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": False, "type": "str", "fallback": (env_fallback, [env_fallback_username])},
-            "password": {"required": False, "type": "str", "no_log": True, "fallback": (env_fallback, [env_fallback_password])},
-            "port": {"type": "int", "default": 443},
-            "validate_certs": {"type": "bool", "default": True},
-            "ca_path": {"type": "path"},
-            "timeout": {"type": "int", "default": 30},
-        }
-        argument_spec.update(temp_argument_spec)
-        auth_required_together = [("username", "password")]
-        required_together.extend(auth_required_together)
-
-        super().__init__(argument_spec, bypass_checks, no_log,
-                         mutually_exclusive, required_together,
-                         required_one_of, add_file_common_args,
-                         supports_check_mode, required_if, required_by)
