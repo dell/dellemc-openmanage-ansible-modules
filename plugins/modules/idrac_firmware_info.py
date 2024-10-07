@@ -25,7 +25,7 @@ extends_documentation_fragment:
 requirements:
     - "omsdk >= 1.2.488"
     - "python >= 3.9.6"
-author: 
+author:
   - "Rajeev Arakkal (@rajeevarakkal)"
   - "Saksham Nautiyal (@Saksham-Nautiyal)"
 notes:
@@ -107,7 +107,6 @@ error_info:
 '''
 
 
-import json
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key
@@ -115,23 +114,25 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from urllib.error import URLError, HTTPError
 
-GET_IDRAC_FIRMWARE_DETAILS_URI= "/redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory?$select=Members"
-GET_IDRAC_FIRMWARE_URI= "/redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory"
+GET_IDRAC_FIRMWARE_DETAILS_URI = "/redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory?$select=Members"
+GET_IDRAC_FIRMWARE_URI = "/redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory"
+
 
 def get_idrac_firmware_info(idrac, module):
     try:
-        response = idrac.invoke_request(method='GET',uri=GET_IDRAC_FIRMWARE_URI)
+        response = idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_URI)
 
         if response.status_code == 200:
             details_response = idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_DETAILS_URI)
-            
+
             if details_response and details_response.status_code == 200 and details_response.json_data:
                 filtered_data = remove_key(details_response.json_data)
                 return filtered_data
-    except:
+    except Exception as e:
         with iDRACConnection(module.params) as idrac:
             firmware_details = idrac.update_mgr.InstalledFirmware
             return firmware_details
+
 
 def main():
     specs = {}
@@ -150,10 +151,9 @@ def main():
         module.fail_json(msg="Network error occurred", unreachable=True, error_info=str(err))
     except (RuntimeError, SSLValidationError, IOError, ValueError, TypeError, ConnectionError) as e:
         module.fail_json(msg="An error occurred", error_info=str(e))
-
     module.exit_json(
         msg="Successfully fetched the firmware inventory details.",
-        firmware_info = firmware_info
+        firmware_info=firmware_info
     )
 
 
