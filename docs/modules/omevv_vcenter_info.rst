@@ -12,7 +12,7 @@ omevv_vcenter_info -- Retrieve all or specific vCenter information.
 Synopsis
 --------
 
-This module retrieve all or specific vCenter information.
+This module allows you to retrieve all or specific vCenter information.
 
 
 
@@ -30,7 +30,7 @@ Parameters
   vcenter_hostname (optional, str, None)
     vCenter IP address or hostname.
 
-    If \ :emphasis:`vcenter\_hostname`\  is provided, then module will retrieve only the specified vCenter details.
+    If \ :emphasis:`vcenter\_hostname`\  is provided, the module retrieves only specified vCenter information.
 
 
   hostname (True, str, None)
@@ -88,7 +88,6 @@ Notes
 -----
 
 .. note::
-   - This module supports \ :literal:`check\_mode`\ .
    - This module supports IPv4 and IPv6 addresses.
 
 
@@ -101,14 +100,14 @@ Examples
 
     
     ---
-    - name: Fetch all vCenter information
+    - name: Retrieve all vCenter information.
       dellemc.openmanage.omevv_vcenter_info:
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
         ca_path: "path/to/ca_file"
 
-    - name: Fetch specific vCenter information
+    - name: Retrieve specific vCenter information.
       dellemc.openmanage.omevv_vcenter_info:
         hostname: "192.168.0.1"
         username: "username"
@@ -122,11 +121,11 @@ Return Values
 -------------
 
 msg (always, str, Successfully fetched the vCenter information.)
-  Status of the vCenter information retrieval operation.
+  Status of the vCenter information for the retrieve operation.
 
 
 vcenter_info (success, list, [{'uuid': '77373c7e-d2b0-453b-9567-102484519bd1', 'consoleAddress': 'vcenter_ip_or_hostname', 'description': 'vCenter 8.0', 'registeredExtensions': ['PHM', 'WEBCLIENT', 'PHA', 'VLCM']}, {'uuid': '77373c7e-d2b0-453b-9567-102484519bd2', 'consoleAddress': 'vcenter_ip_or_hostname', 'description': 'vCenter 8.1', 'registeredExtensions': ['PHM', 'WEBCLIENT', 'PHA', 'VLCM']}])
-  Information about the vCenter.
+  Information on the vCenter.
 
 
 error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})

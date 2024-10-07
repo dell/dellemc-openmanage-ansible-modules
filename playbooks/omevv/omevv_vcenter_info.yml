@@ -1,9 +1,9 @@
 ---
 - name: Dell OpenManage Ansible device inventory details.
-  hosts: omevv
+  hosts: ome
   gather_facts: false
   tasks:
-    - name: Fetch all vCenter information
+    - name: Retrieve all vCenter information.
       dellemc.openmanage.omevv_vcenter_info:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
@@ -11,7 +11,7 @@
         ca_path: "path/to/ca_file"
       delegate_to: localhost
 
-    - name: Fetch specific vCenter information
+    - name: Retrieve specific vCenter information.
       dellemc.openmanage.omevv_vcenter_info:
         hostname: "{{ hostname }}"
         username: "{{ username }}"

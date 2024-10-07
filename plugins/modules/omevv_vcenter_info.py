@@ -18,34 +18,37 @@ module: omevv_vcenter_info
 short_description: Retrieve all or specific vCenter information.
 version_added: "9.8.0"
 description:
-  - This module retrieve all or specific vCenter information.
+  - This module allows you to retrieve all or specific vCenter information.
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
 options:
   vcenter_hostname:
     description:
       - vCenter IP address or hostname.
-      - If I(vcenter_hostname) is provided, then module will retrieve only the specified vCenter details.
+      - If I(vcenter_hostname) is provided, the module retrieves only specified vCenter information.
     type: str
 requirements:
   - "python >= 3.9.6"
 author:
   - "Lovepreet Singh (@singh-lovepreet1)"
+attributes:
+    check_mode:
+        description: Runs task to validate without performing action on the target machine.
+        support: full
 notes:
-  - This module supports C(check_mode).
   - This module supports IPv4 and IPv6 addresses.
 '''
 
 EXAMPLES = r'''
 ---
-- name: Fetch all vCenter information
+- name: Retrieve all vCenter information.
   dellemc.openmanage.omevv_vcenter_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
     ca_path: "path/to/ca_file"
 
-- name: Fetch specific vCenter information
+- name: Retrieve specific vCenter information.
   dellemc.openmanage.omevv_vcenter_info:
     hostname: "192.168.0.1"
     username: "username"
@@ -57,12 +60,12 @@ EXAMPLES = r'''
 RETURN = r'''
 ---
 msg:
-  description: Status of the vCenter information retrieval operation.
+  description: Status of the vCenter information for the retrieve operation.
   returned: always
   type: str
   sample: "Successfully fetched the vCenter information."
 vcenter_info:
-  description: Information about the vCenter.
+  description: Information on the vCenter.
   returned: success
   type: list
   elements: dict
@@ -117,10 +120,11 @@ import json
 from ssl import SSLError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv import RestOMEVV, OMEVVAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv import RestOMEVV
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import OmeAnsibleModule
 
 BASE_URI = "/omevv/GatewayService/v1/Consoles"
-SUCCESS_MSG = "Successfully fetched the vCenter information."
+SUCCESS_MSG = "Successfully retrieved the vCenter information."
 NO_VCENTER_MSG = "Unable to complete the operation because the '{vcenter_hostname}' is not a valid 'vcenter_hostname'."
 FAILED_MSG = "Unable to fetch the vCenter information."
 
@@ -137,7 +141,7 @@ class OMEVVVCenterInfo:
         if resp.success:
             output_all = {'msg': SUCCESS_MSG, 'vcenter_info': vcenter_info, 'op': 'success'}
             return output_all
-        self.module.exit_json(msg=FAILED_MSG, failed=True)
+        return {'msg': FAILED_MSG, 'op': 'failed'}
 
     def get_vcenter_info(self, result, vcenter_id) -> dict:
         output_not_found_or_empty = {'msg': NO_VCENTER_MSG.format(vcenter_hostname=vcenter_id),
@@ -150,11 +154,12 @@ class OMEVVVCenterInfo:
                     return output_specific
         return output_not_found_or_empty
 
-    def perform_module_operation(self) -> None:
+    def perform_module_operation(self) -> dict:
         result = self.get_all_vcenter_info()
         vcenter_id = self.module.params.get("vcenter_hostname")
-        if vcenter_id:
-            result = self.get_vcenter_info(result, vcenter_id)
+        if vcenter_id is None or result['op'] == 'failed':
+            return result
+        result = self.get_vcenter_info(result, vcenter_id)
         return result
 
 
@@ -162,16 +167,18 @@ def main():
     argument_spec = {
         "vcenter_hostname": {"type": 'str'}
     }
-    module = OMEVVAnsibleModule(argument_spec=argument_spec,
-                                supports_check_mode=True)
+    module = OmeAnsibleModule(argument_spec=argument_spec,
+                              supports_check_mode=True)
     try:
         with RestOMEVV(module.params) as rest_obj:
             omevv_obj = OMEVVVCenterInfo(module, rest_obj)
             resp = omevv_obj.perform_module_operation()
             if resp['op'] == 'success':
                 module.exit_json(msg=resp['msg'], vcenter_info=resp['vcenter_info'])
+            elif resp['op'] == 'skipped':
+                module.exit_json(msg=resp['msg'], vcenter_info=resp['vcenter_info'], skipped=True)
             else:
-                module.exit_json(msg=resp['msg'], skipped=True)
+                module.exit_json(msg=resp['msg'], failed=True)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
