@@ -49,6 +49,21 @@ class RestOMEVV(RestAPI):
 
     def invoke_request(self, method, path, data=None, query_param=None, headers=None,
                        api_timeout=None, dump=True):
+        """
+        Sends a request through the base invoke request method.
+
+        Args:
+            method (str): The HTTP method to use for the request.
+            path (str): The path to request without query parameter.
+            data (dict, optional): The payload to send with the request. Defaults to None.
+            query_param (dict, optional): The dictionary of query parameters to send with the request. Defaults to None.
+            headers (dict, optional): The dictionary of HTTP headers to send with the request. Defaults to None.
+            api_timeout (int, optional): The timeout value for the request. Defaults to None.
+            dump (bool, optional): Whether to dump the payload data. Defaults to True.
+
+        Returns:
+            Response: The response object from the request.
+        """
         if self.uuid:
             headers = headers or {}
             headers["x_omivv-api-vcenter-identifier"] = self.uuid
