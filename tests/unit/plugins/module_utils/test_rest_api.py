@@ -82,8 +82,8 @@ class TestRestAPI(object):
         mocker.patch(MODULE_UTIL_PATH + OMEVV_OPENURL,
                      return_value=mock_response)
         with RestAPI("/uri/v1", module_params) as obj:
-            response = obj._base_invoke_request(TEST_PATH, "POST", headers={
-                                          "application": "octstream"})
+            response = obj._base_invoke_request(TEST_PATH, "POST",
+                                                headers={"application": "octstream"})
         assert response.status_code == 200
         assert response.json_data == {"value": "data"}
         assert response.success is True

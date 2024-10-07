@@ -101,4 +101,3 @@ class TestRestOMEVV(object):
         with pytest.raises(HTTPError):
             with RestOMEVV(module_params) as obj:
                 obj.invoke_request(TEST_PATH, "GET")
-
