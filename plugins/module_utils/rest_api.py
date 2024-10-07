@@ -33,7 +33,6 @@ __metaclass__ = type
 import json
 import os
 from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
-from ansible.module_utils.common.parameters import env_fallback
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
