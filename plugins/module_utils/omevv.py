@@ -41,9 +41,6 @@ class RestOMEVV(RestAPI):
     def __init__(self, module_params, protocol="https",
                  root_uri=root_omevv_uri):
         self.uuid = module_params.get("vcenter_uuid", "")
-        self.omevv_header_dict = {
-            "x_omivv-api-vcenter-identifier": self.uuid if self.uuid is not None else ""
-        }
         super().__init__(
             root_uri=root_uri,
             module_params=module_params,
@@ -54,9 +51,10 @@ class RestOMEVV(RestAPI):
 
     def invoke_request(self, method, path, data=None, query_param=None, headers=None,
                        api_timeout=None, dump=True):
-        if isinstance(headers, dict):
-            self.omevv_header_dict.update(headers)
-        return self._base_invoke_request(method, path, data, query_param, self.omevv_header_dict,
+        if self.uuid:
+            headers = headers or {}
+            headers["x_omivv-api-vcenter-identifier"] = self.uuid
+        return self._base_invoke_request(method, path, data, query_param, headers,
                                          api_timeout, dump)
 
 
