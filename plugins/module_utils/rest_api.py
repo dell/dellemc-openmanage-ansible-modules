@@ -81,8 +81,8 @@ class OpenURLResponse(object):
 
 
 class RestAPI:
-    def __init__(self, root_uri, module_params, session_resource_collection,
-                 req_session=False, protocol="https", basic_headers=None):
+    def __init__(self, root_uri, module_params, req_session=False,
+                 protocol="https", basic_headers=None):
         self.hostname = config_ipv6(str(module_params.get("hostname", "")).strip(']['))
         self.username = module_params.get("username")
         self.password = module_params.get("password")
@@ -95,7 +95,6 @@ class RestAPI:
         self.protocol = protocol
         self.root_uri = root_uri
         self._headers = basic_headers or {}
-        self.session_resource = session_resource_collection
 
     def __build_url(self, path, query_param=None):
         url = '{0}://{1}:{2}'.format(self.protocol, self.hostname, self.port)
@@ -156,7 +155,7 @@ class RestAPI:
         :returns: OpenURLResponse
         """
         try:
-            if auth_token_header in self._headers:
+            if self.req_session and auth_token_header in self._headers:
                 url_kwargs = self._args_with_session(method, api_timeout, headers=headers)
             else:
                 url_kwargs = self._args_without_session(method, api_timeout, headers=headers)

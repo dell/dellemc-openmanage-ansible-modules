@@ -34,7 +34,6 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.rest_api import
 from ansible.module_utils.common.parameters import env_fallback
 
 root_omevv_uri = "/omevv/GatewayService/v1"
-session_resource = {}
 
 
 class RestOMEVV(RestAPI):
@@ -44,7 +43,6 @@ class RestOMEVV(RestAPI):
         super().__init__(
             root_uri=root_uri,
             module_params=module_params,
-            session_resource_collection=session_resource,
             req_session=False,
             protocol=protocol
         )
