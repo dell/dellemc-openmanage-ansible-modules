@@ -40,13 +40,15 @@ root_omevv_uri = "/omevv/GatewayService/v1"
 class RestOMEVV(RestAPI):
     def __init__(self, module_params, protocol="https",
                  root_uri=root_omevv_uri):
-        self.uuid = module_params.get("vcenter_uuid", "")
         super().__init__(
             root_uri=root_uri,
             module_params=module_params,
             req_session=False,
             protocol=protocol
         )
+        self.username = module_params.get("vcenter_username")
+        self.password = module_params.get("vcenter_password")
+        self.uuid = module_params.get("vcenter_uuid", "")
 
     def invoke_request(self, method, path, data=None, query_param=None, headers=None,
                        api_timeout=None, dump=True):
@@ -89,7 +91,7 @@ class OMEVVAnsibleModule(AnsibleModule):
         }
         argument_spec.update(temp_argument_spec)
         if uuid_required:
-            argument_spec.update({"vcenter_uuid": {"required": True, "type": "str",
+            argument_spec.update({"vcenter_uuid": {"required": False, "type": "str",
                                                    "fallback": (env_fallback, ['OMEVV_VCENTER_UUID'])}})
         auth_required_together = [("username", "password")]
 
