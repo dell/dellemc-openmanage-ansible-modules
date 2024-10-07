@@ -118,12 +118,12 @@ from ssl import SSLError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv import RestOMEVV, OMEVVAnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import strip_substr_dict
 
 BASE_URI = "/omevv/GatewayService/v1/Consoles"
 SUCCESS_MSG = "Successfully fetched the vCenter information."
 NO_VCENTER_MSG = "Unable to complete the operation because the '{vcenter_hostname}' is not a valid 'vcenter_hostname'."
 FAILED_MSG = "Unable to fetch the vCenter information."
+
 
 class OMEVVVCenterInfo:
 
@@ -154,7 +154,7 @@ class OMEVVVCenterInfo:
         result = self.get_all_vcenter_info()
         vcenter_id = self.module.params.get("vcenter_hostname")
         if vcenter_id:
-          result = self.get_vcenter_info(result, vcenter_id)
+            result = self.get_vcenter_info(result, vcenter_id)
         return result
 
 
@@ -163,7 +163,7 @@ def main():
         "vcenter_hostname": {"type": 'str'}
     }
     module = OMEVVAnsibleModule(argument_spec=argument_spec,
-                              supports_check_mode=True)
+                                supports_check_mode=True)
     try:
         with RestOMEVV(module.params) as rest_obj:
             omevv_obj = OMEVVVCenterInfo(module, rest_obj)
@@ -171,14 +171,14 @@ def main():
             if resp['op'] == 'success':
                 module.exit_json(msg=resp['msg'], vcenter_info=resp['vcenter_info'])
             else:
-                module.fail_json(msg=resp['msg'], skipped=True)
+                module.exit_json(msg=resp['msg'], skipped=True)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLError, TypeError, ConnectionError,
             AttributeError, IndexError, KeyError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
