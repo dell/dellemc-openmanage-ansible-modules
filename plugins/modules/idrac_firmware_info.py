@@ -106,7 +106,7 @@ error_info:
   }
 '''
 
-
+import json
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key
@@ -146,11 +146,11 @@ def main():
         with iDRACRedfishAPI(module.params) as idrac:
             firmware_info = get_idrac_firmware_info(idrac, module)
     except HTTPError as err:
-        module.fail_json(msg="HTTP error occurred", error_info=str(err))
+        module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
-        module.fail_json(msg="Network error occurred", unreachable=True, error_info=str(err))
+        module.fail_json(msg=str(err), unreachable=True)
     except (RuntimeError, SSLValidationError, IOError, ValueError, TypeError, ConnectionError) as e:
-        module.fail_json(msg="An error occurred", error_info=str(e))
+        module.fail_json(msg=str(e))
     module.exit_json(
         msg="Successfully fetched the firmware inventory details.",
         firmware_info=firmware_info
