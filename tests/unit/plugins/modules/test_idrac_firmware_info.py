@@ -23,6 +23,7 @@ from urllib.error import URLError, HTTPError
 from io import StringIO
 from ansible.module_utils._text import to_text
 
+
 importorskip("omsdk.sdkfile")
 importorskip("omsdk.sdkcreds")
 
@@ -54,6 +55,33 @@ class TestFirmware(FakeAnsibleModule):
                                          return_value=redfish_mock)
         redfish_conn_mock.return_value.__enter__.return_value = redfish_mock
         return redfish_mock
+
+    def test_remove_key_functionality(self, mocker, idrac_redfish_mock, idrac_default_args):
+        mock_data = {
+            "Members": [
+                {"KeyToRemove": "Data", "FirmwareVersion": "1.10.05.00"},
+                {"KeyToRemove": "Data", "FirmwareVersion": "1.20.05.00"}
+            ]
+        }
+
+        mock_remove_key = mocker.patch(MODULE_PATH + 'idrac_firmware_info.remove_key', return_value={
+            "Members": [
+                {"FirmwareVersion": "1.10.05.00"},
+                {"FirmwareVersion": "1.20.05.00"}
+            ]
+        })
+
+        idrac_redfish_mock.invoke_request.return_value.status_code = 200
+        idrac_redfish_mock.invoke_request.return_value.json_data = mock_data
+        result = self._run_module(idrac_default_args)
+        mock_remove_key.assert_called_once_with(mock_data)
+
+        assert result['firmware_info'] == {
+            "Members": [
+                {"FirmwareVersion": "1.10.05.00"},
+                {"FirmwareVersion": "1.20.05.00"}
+            ]
+        }
 
     def test_main_idrac_get_firmware_info_success_case01(self, idrac_firmware_info_connection_mock,
                                                          idrac_default_args):
