@@ -75,7 +75,7 @@ class RestOMEVV(RestAPI):
 
 
 class OMEVVAnsibleModule(AnsibleModule):
-    def __init__(self, argument_spec={}, bypass_checks=False, no_log=False,
+    def __init__(self, argument_spec, bypass_checks=False, no_log=False,
                  mutually_exclusive=None, required_together=None,
                  required_one_of=None, add_file_common_args=False,
                  supports_check_mode=False, required_if=None, required_by=None,
