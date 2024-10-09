@@ -75,24 +75,23 @@ class RestOMEVV(RestAPI):
 
 
 class OMEVVAnsibleModule(AnsibleModule):
-    def __init__(self, argument_spec, bypass_checks=False, no_log=False,
+    def __init__(self, argument_spec={}, bypass_checks=False, no_log=False,
                  mutually_exclusive=None, required_together=None,
                  required_one_of=None, add_file_common_args=False,
                  supports_check_mode=False, required_if=None, required_by=None,
                  uuid_required=True):
-        temp_argument_spec = {
-            "hostname": {"required": True, "type": "str"},
-            "vcenter_username": {"required": False, "type": "str", "fallback": (env_fallback, ['OMEVV_VCENTER_USERNAME'])},
-            "vcenter_password": {"required": False, "type": "str", "no_log": True, "fallback": (env_fallback, ['OMEVV_VCENTER_PASSWORD'])},
-            "port": {"type": "int", "default": 443},
-            "validate_certs": {"type": "bool", "default": True},
+        omevv_argument_spec = {
+            "hostname": {"required": True},
+            "vcenter_username": {"fallback": (env_fallback, ['OMEVV_VCENTER_USERNAME'])},
+            "vcenter_password": {"no_log": True, "fallback": (env_fallback, ['OMEVV_VCENTER_PASSWORD'])},
+            "port": {"default": 443, "type": "int"},
+            "validate_certs": {"default": True, "type": "bool"},
             "ca_path": {"type": "path"},
-            "timeout": {"type": "int", "default": 30},
+            "timeout": {"default": 30, "type": "int"}
         }
-        argument_spec.update(temp_argument_spec)
+        argument_spec.update(omevv_argument_spec)
         if uuid_required:
-            argument_spec.update({"vcenter_uuid": {"required": False, "type": "str",
-                                                   "fallback": (env_fallback, ['OMEVV_VCENTER_UUID'])}})
+            argument_spec["vcenter_uuid"] = {"fallback": (env_fallback, ['OMEVV_VCENTER_UUID']), "type": "str"}
         auth_required_together = [("vcenter_username", "vcenter_password")]
 
         if mutually_exclusive is None:

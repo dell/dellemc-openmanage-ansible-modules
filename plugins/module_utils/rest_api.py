@@ -142,19 +142,16 @@ class RestAPI:
         :arg dump: (Optional) boolean value for dumping payload data.
         :returns: OpenURLResponse
         """
-        try:
-            if self.req_session and auth_token_header in self._headers:
-                url_kwargs = self._args_with_session(method, api_timeout, headers=headers)
-            else:
-                url_kwargs = self._args_without_session(method, api_timeout, headers=headers)
-            if data and dump:
-                data = json.dumps(data)
-            path = self.root_uri + path
-            url = self.__build_url(path, query_param=query_param)
-            resp = open_url(url, data=data, **url_kwargs)
-            resp_data = OpenURLResponse(resp)
-        except (HTTPError, URLError, SSLValidationError, ConnectionError) as err:
-            raise err
+        if self.req_session and auth_token_header in self._headers:
+            url_kwargs = self._args_with_session(method, api_timeout, headers=headers)
+        else:
+            url_kwargs = self._args_without_session(method, api_timeout, headers=headers)
+        if data and dump:
+            data = json.dumps(data)
+        path = self.root_uri + path
+        url = self.__build_url(path, query_param=query_param)
+        resp = open_url(url, data=data, **url_kwargs)
+        resp_data = OpenURLResponse(resp)
         return resp_data
 
     def __enter__(self):

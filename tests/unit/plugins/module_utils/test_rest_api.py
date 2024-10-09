@@ -32,7 +32,7 @@ BAD_REQUEST = 'Bad Request Error'
 ODATA_COUNT = "@odata.count"
 ODATA_TYPE = "@odata.type"
 DDEVICE_TYPE = "#DeviceService.DeviceType"
-
+URI = "/uri/v1"
 
 class TestRestAPI(object):
 
@@ -63,7 +63,7 @@ class TestRestAPI(object):
         module_params = {'hostname': '[2001:db8:3333:4444:5555:6666:7777:8888]', 'username': 'username',
                          'password': 'password', "port": 443}
         req_session = True
-        with RestAPI("/uri/v1", module_params, req_session) as obj:
+        with RestAPI(URI, module_params, req_session) as obj:
             response = obj._base_invoke_request(TEST_PATH, "GET")
         assert response.status_code == 200
         assert response.json_data == {"value": "data"}
@@ -72,7 +72,7 @@ class TestRestAPI(object):
     def test_invoke_request_without_session(self, mock_response, mocker, module_params):
         mocker.patch(MODULE_UTIL_PATH + OMEVV_OPENURL,
                      return_value=mock_response)
-        with RestAPI("/uri/v1", module_params) as obj:
+        with RestAPI(URI, module_params) as obj:
             response = obj._base_invoke_request(TEST_PATH, "GET")
         assert response.status_code == 200
         assert response.json_data == {"value": "data"}
@@ -81,7 +81,7 @@ class TestRestAPI(object):
     def test_invoke_request_without_session_with_header(self, mock_response, mocker, module_params):
         mocker.patch(MODULE_UTIL_PATH + OMEVV_OPENURL,
                      return_value=mock_response)
-        with RestAPI("/uri/v1", module_params) as obj:
+        with RestAPI(URI, module_params) as obj:
             response = obj._base_invoke_request(TEST_PATH, "POST",
                                                 headers={"application": "octstream"})
         assert response.status_code == 200
@@ -95,7 +95,7 @@ class TestRestAPI(object):
         open_url_mock.side_effect = exc("test")
         req_session = True
         with pytest.raises(exc):
-            with RestAPI("/uri/v1", module_params, req_session) as obj:
+            with RestAPI(URI, module_params, req_session) as obj:
                 obj._base_invoke_request(TEST_PATH, "GET")
 
     def test_invoke_request_http_error_handling(self, mock_response, mocker, module_params):
@@ -104,7 +104,7 @@ class TestRestAPI(object):
         open_url_mock.side_effect = HTTPError(TEST_HOST, 400,
                                               BAD_REQUEST, {}, None)
         with pytest.raises(HTTPError):
-            with RestAPI("/uri/v1", module_params) as obj:
+            with RestAPI(URI, module_params) as obj:
                 obj._base_invoke_request(TEST_PATH, "GET")
 
     @pytest.mark.parametrize("query_param", [

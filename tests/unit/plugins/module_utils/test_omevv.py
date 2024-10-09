@@ -17,9 +17,8 @@ __metaclass__ = type
 import pytest
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv import RestOMEVV
+from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv import RestOMEVV, OMEVVAnsibleModule, AnsibleModule
 from mock import MagicMock
-import json
 
 MODULE_UTIL_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.'
 OMEVV_OPENURL = 'omevv.RestOMEVV._base_invoke_request'
@@ -101,3 +100,11 @@ class TestRestOMEVV(object):
         with pytest.raises(HTTPError):
             with RestOMEVV(module_params) as obj:
                 obj.invoke_request(TEST_PATH, "GET")
+
+
+class TestOMEVVAnsibleModule(object):
+
+    def test_omevv_ansible_module(self, mocker):
+        mocker.patch.object(AnsibleModule, '__init__', return_value=None)
+        module = OMEVVAnsibleModule()
+        assert module
