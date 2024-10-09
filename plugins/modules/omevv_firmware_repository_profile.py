@@ -85,7 +85,6 @@ attributes:
         support: full
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
-    - This module supports IPv4 and IPv6 addresses.
 """
 
 EXAMPLES = r"""
@@ -142,17 +141,17 @@ error_info:
     }
 '''
 import json
-from ssl import SSLError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv import RestOMEVV, OMEVVAnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key
 
 ODATA_REGEX = "(.*?)@odata"
 ODATA = "@odata.id"
 XML_EXT = ".xml"
 GZ_EXT = ".gz"
 XML_GZ_EXT = ".xml.gz"
+HTTP_PATH = "http://"
+HTTPS_PATH = "https://"
 MESSAGE_EXTENDED_INFO = "@Message.ExtendedInfo"
 TEST_CONNECTION_URI = "/RepositoryProfiles/TestConnection"
 PROFILE_URI = "/RepositoryProfiles"
@@ -161,6 +160,9 @@ SAME_PROFILE_MSG = "Firmware repository profile with name {profile_name} already
 FAILED_CREATION_MSG = "Unable to create the OMEVV firmware repository profile."
 SUCCESS_MODIFY_MSG = "Successfully modified the OMEVV firmware repository profile."
 FAILED_MODIFY_MSG = "Unable to modify the OMEVV firmware repository profile as the details are same."
+SUCCESS_DELETION_MSG = "Successfully deleted the OMEVV firmware repository profile."
+FAILED_DELETION_MSG = "Unable to delete the OMEVV firmware repository profile."
+PROFILE_NOT_FOUND_MSG = "Unable to delete the profile {profile_name} because the profile name is invalid. Enter a valid profile name and retry the operation."
 FAILED_CONN_MSG = "Unable to complete the operation. Please check the connection details."
 CHANGES_FOUND_MSG = "Changes found to be applied."
 CHANGES_NOT_FOUND_MSG = "No changes found to be applied."
@@ -233,8 +235,8 @@ class FirmwareRepositoryProfile:
         protocol_mapping = {
             'CIFS': (lambda path: path.endswith(XML_EXT) or path.endswith(GZ_EXT) or path.endswith(XML_GZ_EXT)),
             'NFS': (lambda path: path.endswith(XML_EXT) or path.endswith(GZ_EXT) or path.endswith(XML_GZ_EXT)),
-            'HTTP': (lambda path: path.startswith('http://') and (path.endswith(XML_EXT) or path.endswith(GZ_EXT) or path.endswith(XML_GZ_EXT))),
-            "HTTPS": (lambda path: path.startswith('https://') and (path.endswith(XML_EXT) or path.endswith(GZ_EXT) or path.endswith(XML_GZ_EXT)))
+            'HTTP': (lambda path: path.startswith(HTTP_PATH) and (path.endswith(XML_EXT) or path.endswith(GZ_EXT) or path.endswith(XML_GZ_EXT))),
+            "HTTPS": (lambda path: path.startswith(HTTPS_PATH) and (path.endswith(XML_EXT) or path.endswith(GZ_EXT) or path.endswith(XML_GZ_EXT)))
         }
         validator = protocol_mapping.get(protocol_type)
         if validator is None:
@@ -348,6 +350,46 @@ class ModifyFirmwareRepositoryProfile(FirmwareRepositoryProfile):
             self.module.exit_json(msg=SAME_PROFILE_MSG.format(profile_name=profile), skipped=True)
 
 
+class DeleteFirmwareRepositoryProfile(FirmwareRepositoryProfile):
+
+    def __init__(self, module, rest_obj):
+        self.module = module
+        self.obj = rest_obj
+
+    def delete_firmware_repository_profile(self, api_response):
+        diff = {}
+        payload = self.get_payload_details()
+        DELETE_PROFILE_URI = PROFILE_URI + "/" + str(api_response["id"])
+        res = FirmwareRepositoryProfile.execute(self)
+        if res:
+            if self.module._diff:
+                diff = dict(
+                    before=payload,
+                    after={}
+                )
+                self.module.exit_json(changed=True, diff=diff)
+            resp = self.obj.invoke_request("DELETE", DELETE_PROFILE_URI)
+            if resp.success:
+                self.module.exit_json(msg=SUCCESS_DELETION_MSG, changed=True)
+            else:
+                self.module.exit_json(msg=FAILED_DELETION_MSG, failed=True)
+
+    def execute(self):
+        result = self.get_firmware_repository_profile()
+        profile = self.module.params.get('name')
+        api_response = self.search_profile_name(result, profile)
+        profile_exists = self.search_profile_name(result, profile)
+        if not profile_exists and self.module.check_mode:
+            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
+        if not profile_exists and not self.module.check_mode:
+            self.module.exit_json(msg=PROFILE_NOT_FOUND_MSG.format(profile_name=profile), changed=False)
+        if profile_exists and not self.module.check_mode:
+            result = self.delete_firmware_repository_profile(api_response)
+            return result
+        if profile_exists and self.module.check_mode:
+            self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
+
+
 def main():
     argument_spec = {
         "state": {"type": 'str', "choices": ['present', 'absent'], "default": 'present'},
@@ -373,22 +415,25 @@ def main():
         supports_check_mode=True)
     try:
         with RestOMEVV(module.params) as rest_obj:
-            omevv_obj = CreateFirmwareRepositoryProfile(module, rest_obj)
+            if module.params.get('state') == 'present':
+                omevv_obj = CreateFirmwareRepositoryProfile(module, rest_obj)
+            if module.params.get('state') == 'absent':
+                omevv_obj = DeleteFirmwareRepositoryProfile(module, rest_obj)
             omevv_obj.execute()
     except HTTPError as err:
-        filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
-        code = filter_err.get('errorCode')
-        message = filter_err.get('message')
+        error_info = json.load(err)
+        code = error_info.get('errorCode')
+        message = error_info.get('message')
         if '18001' in code:
             module.exit_json(msg=message, skipped=True)
         if '500' in code:
             module.exit_json(msg=message, skipped=True)
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=message, error_info=error_info, failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError,
+    except (IOError, ValueError, TypeError, ConnectionError,
             AttributeError, IndexError, KeyError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
