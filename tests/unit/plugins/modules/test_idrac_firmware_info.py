@@ -55,15 +55,15 @@ class TestFirmware(FakeAnsibleModule):
     def test_remove_key_functionality(self, mocker, idrac_redfish_mock, idrac_default_args):
         mock_data = {
             "Members": [
-                {"KeyToRemove": "Data", "FirmwareVersion": "1.10.05.00"},
-                {"KeyToRemove": "Data", "FirmwareVersion": "1.20.05.00"}
+                {"KeyToRemove": "Data", "FirmwareVersion": "1.10"},
+                {"KeyToRemove": "Data", "FirmwareVersion": "1.20"}
             ]
         }
 
         mock_remove_key = mocker.patch(MODULE_PATH + 'idrac_firmware_info.remove_key', return_value={
             "Members": [
-                {"FirmwareVersion": "1.10.05.00"},
-                {"FirmwareVersion": "1.20.05.00"}
+                {"FirmwareVersion": "1.10"},
+                {"FirmwareVersion": "1.20"}
             ]
         })
 
@@ -74,8 +74,8 @@ class TestFirmware(FakeAnsibleModule):
 
         assert result['firmware_info'] == {
             "Members": [
-                {"FirmwareVersion": "1.10.05.00"},
-                {"FirmwareVersion": "1.20.05.00"}
+                {"FirmwareVersion": "1.10"},
+                {"FirmwareVersion": "1.20"}
             ]
         }
 

@@ -125,7 +125,7 @@ def get_idrac_firmware_info(idrac, module):
             if details_response and details_response.status_code == 200 and details_response.json_data:
                 filtered_data = remove_key(details_response.json_data)
                 return filtered_data
-    except Exception as e:
+    except Exception:
         with iDRACConnection(module.params) as idrac:
             firmware_details = idrac.update_mgr.InstalledFirmware
             return firmware_details
