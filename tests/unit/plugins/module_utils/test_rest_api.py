@@ -62,7 +62,7 @@ class TestRestAPI(object):
         mocker.patch(MODULE_UTIL_PATH + OMEVV_OPENURL,
                      return_value=mock_response_1)
         module_params_1 = {'hostname': '[2001:db8:3333:4444:5555:6666:7777:8888]', 'username': 'username',
-                         'password': 'password', "port": 443}
+                           'password': 'password', "port": 443}
         req_session = True
         with RestAPI(URI, module_params_1, req_session) as obj:
             response = obj._base_invoke_request(TEST_PATH, "GET")

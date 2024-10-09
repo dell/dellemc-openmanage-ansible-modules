@@ -40,14 +40,32 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import co
 class OpenURLResponse(object):
     """Handles HTTPResponse"""
 
-    def __init__(self, resp):
+    def __init__(self, response):
+        """
+        Initializes a new instance of the class.
+
+        Args:
+            response (object): The response object to read the body from.
+
+        Returns:
+            None
+        """
         self.body = None
-        self.resp = resp
+        self.resp = response
         if self.resp:
             self.body = self.resp.read()
 
     @property
     def json_data(self):
+        """
+        Returns the JSON data parsed from the `body` attribute of the object.
+
+        Returns:
+            dict: The parsed JSON data.
+
+        Raises:
+            ValueError: If the `body` attribute cannot be parsed as JSON.
+        """
         try:
             return json.loads(self.body)
         except ValueError:
