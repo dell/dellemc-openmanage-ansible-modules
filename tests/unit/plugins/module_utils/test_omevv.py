@@ -107,5 +107,5 @@ class TestOMEVVAnsibleModule(object):
 
     def test_omevv_ansible_module(self, mocker):
         mocker.patch.object(AnsibleModule, '__init__', return_value=None)
-        module = OMEVVAnsibleModule()
+        module = OMEVVAnsibleModule({})
         assert module
