@@ -109,21 +109,18 @@ error_info:
 import json
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import GET_IDRAC_FIRMWARE_DETAILS_URI_10, GET_IDRAC_FIRMWARE_URI_10, remove_key
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from urllib.error import URLError, HTTPError
 
-GET_IDRAC_FIRMWARE_DETAILS_URI = "/redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory?$select=Members"
-GET_IDRAC_FIRMWARE_URI = "/redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory"
-
 
 def get_idrac_firmware_info(idrac, module):
     try:
-        response = idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_URI)
+        response = idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_URI_10)
 
         if response.status_code == 200:
-            details_response = idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_DETAILS_URI)
+            details_response = idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_DETAILS_URI_10)
 
             if details_response and details_response.status_code == 200 and details_response.json_data:
                 filtered_data = remove_key(details_response.json_data)
@@ -146,11 +143,11 @@ def main():
         with iDRACRedfishAPI(module.params) as idrac:
             firmware_info = get_idrac_firmware_info(idrac, module)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
-        module.fail_json(msg=str(err), unreachable=True)
+        module.exit_json(msg=str(err), unreachable=True)
     except (RuntimeError, SSLValidationError, IOError, ValueError, TypeError, ConnectionError) as e:
-        module.fail_json(msg=str(e))
+        module.exit_json(msg=str(e), failed=True)
     module.exit_json(
         msg="Successfully fetched the firmware inventory details.",
         firmware_info=firmware_info
