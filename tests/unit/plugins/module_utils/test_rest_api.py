@@ -38,51 +38,51 @@ URI = "/uri/v1"
 class TestRestAPI(object):
 
     @pytest.fixture
-    def mock_response(self):
-        mock_response = MagicMock()
-        mock_response.getcode.return_value = 200
-        mock_response.headers = mock_response.getheaders.return_value = {
+    def mock_response_1(self):
+        mock_response_1 = MagicMock()
+        mock_response_1.getcode.return_value = 200
+        mock_response_1.headers = mock_response_1.getheaders.return_value = {
             'X-Auth-Token': 'token_id'}
-        mock_response.read.return_value = json.dumps({"value": "data"})
-        return mock_response
+        mock_response_1.read.return_value = json.dumps({"value": "data"})
+        return mock_response_1
 
     @pytest.fixture
-    def module_params(self):
+    def module_params_1(self):
         module_parameters = {'hostname': 'xxx.xxx.x.x', 'username': 'username',
                              'password': 'password', "port": 443}
         return module_parameters
 
     @pytest.fixture
-    def ome_object(self, module_params):
-        ome_obj = RestAPI(module_params=module_params)
+    def ome_object(self, module_params_1):
+        ome_obj = RestAPI(module_params=module_params_1)
         return ome_obj
 
-    def test_invoke_request_with_session(self, mock_response, mocker):
+    def test_invoke_request_with_session(self, mock_response_1, mocker):
 
         mocker.patch(MODULE_UTIL_PATH + OMEVV_OPENURL,
-                     return_value=mock_response)
-        module_params = {'hostname': '[2001:db8:3333:4444:5555:6666:7777:8888]', 'username': 'username',
+                     return_value=mock_response_1)
+        module_params_1 = {'hostname': '[2001:db8:3333:4444:5555:6666:7777:8888]', 'username': 'username',
                          'password': 'password', "port": 443}
         req_session = True
-        with RestAPI(URI, module_params, req_session) as obj:
+        with RestAPI(URI, module_params_1, req_session) as obj:
             response = obj._base_invoke_request(TEST_PATH, "GET")
         assert response.status_code == 200
         assert response.json_data == {"value": "data"}
         assert response.success is True
 
-    def test_invoke_request_without_session(self, mock_response, mocker, module_params):
+    def test_invoke_request_without_session(self, mock_response_1, mocker, module_params_1):
         mocker.patch(MODULE_UTIL_PATH + OMEVV_OPENURL,
-                     return_value=mock_response)
-        with RestAPI(URI, module_params) as obj:
+                     return_value=mock_response_1)
+        with RestAPI(URI, module_params_1) as obj:
             response = obj._base_invoke_request(TEST_PATH, "GET")
         assert response.status_code == 200
         assert response.json_data == {"value": "data"}
         assert response.success is True
 
-    def test_invoke_request_without_session_with_header(self, mock_response, mocker, module_params):
+    def test_invoke_request_without_session_with_header(self, mock_response_1, mocker, module_params_1):
         mocker.patch(MODULE_UTIL_PATH + OMEVV_OPENURL,
-                     return_value=mock_response)
-        with RestAPI(URI, module_params) as obj:
+                     return_value=mock_response_1)
+        with RestAPI(URI, module_params_1) as obj:
             response = obj._base_invoke_request(TEST_PATH, "POST",
                                                 headers={"application": "octstream"})
         assert response.status_code == 200
@@ -90,22 +90,22 @@ class TestRestAPI(object):
         assert response.success is True
 
     @pytest.mark.parametrize("exc", [URLError, SSLValidationError, ConnectionError])
-    def test_invoke_request_error_case_handling(self, exc, mock_response, mocker, module_params):
+    def test_invoke_request_error_case_handling(self, exc, mock_response_1, mocker, module_params_1):
         open_url_mock = mocker.patch(MODULE_UTIL_PATH + OMEVV_OPENURL,
-                                     return_value=mock_response)
+                                     return_value=mock_response_1)
         open_url_mock.side_effect = exc("test")
         req_session = True
         with pytest.raises(exc):
-            with RestAPI(URI, module_params, req_session) as obj:
+            with RestAPI(URI, module_params_1, req_session) as obj:
                 obj._base_invoke_request(TEST_PATH, "GET")
 
-    def test_invoke_request_http_error_handling(self, mock_response, mocker, module_params):
+    def test_invoke_request_http_error_handling(self, mock_response_1, mocker, module_params_1):
         open_url_mock = mocker.patch(MODULE_UTIL_PATH + OMEVV_OPENURL,
-                                     return_value=mock_response)
+                                     return_value=mock_response_1)
         open_url_mock.side_effect = HTTPError(TEST_HOST, 400,
                                               BAD_REQUEST, {}, None)
         with pytest.raises(HTTPError):
-            with RestAPI(URI, module_params) as obj:
+            with RestAPI(URI, module_params_1) as obj:
                 obj._base_invoke_request(TEST_PATH, "GET")
 
     @pytest.mark.parametrize("query_param", [
@@ -115,13 +115,13 @@ class TestRestAPI(object):
             "%24top=1&%24skip=2&%24filter=JobType%2FId%20eq%208"},
         {"inp": {"$top": 1, "$skip": 3}, "out": "%24top=1&%24skip=3"}
     ])
-    def test_build_url(self, query_param, mocker, module_params):
+    def test_build_url(self, query_param, mocker, module_params_1):
         """builds complete url"""
         base_uri = "https://xxx.xxx.x.x:443"
         path = "/AccountService/Accounts"
         inp = query_param["inp"]
         out = query_param["out"]
-        url = RestAPI("url/v1", module_params)._RestAPI__build_url(
+        url = RestAPI("url/v1", module_params_1)._RestAPI__build_url(
             path, query_param=inp)
         assert url == base_uri + path + "?" + out
         assert "+" not in url
