@@ -34,6 +34,7 @@ ODATA_TYPE = "@odata.type"
 DDEVICE_TYPE = "#DeviceService.DeviceType"
 URI = "/uri/v1"
 
+
 class TestRestAPI(object):
 
     @pytest.fixture
