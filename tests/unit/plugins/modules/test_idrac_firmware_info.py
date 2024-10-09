@@ -17,15 +17,11 @@ import json
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_firmware_info
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from mock import MagicMock, PropertyMock
-from pytest import importorskip
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from urllib.error import URLError, HTTPError
 from io import StringIO
 from ansible.module_utils._text import to_text
 
-
-importorskip("omsdk.sdkfile")
-importorskip("omsdk.sdkcreds")
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 
@@ -109,9 +105,9 @@ class TestFirmware(FakeAnsibleModule):
                                                                              {"accept-type": "application/json"}, StringIO(json_str)))
 
         if not exc_type == URLError:
-            result = self._run_module_with_fail_json(idrac_default_args)
+            result = self._run_module(idrac_default_args)
             assert result['failed'] is True
         else:
-            result = self._run_module_with_fail_json(idrac_default_args)
+            result = self._run_module(idrac_default_args)
             assert result['unreachable'] is True
         assert 'msg' in result
