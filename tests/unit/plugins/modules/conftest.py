@@ -63,7 +63,8 @@ def ome_default_args():
 
 @pytest.fixture
 def omevv_default_args():
-    default_args = {'hostname': 'XX.XX.XX.XX', 'vcenter_uuid': 'vcenter_uuid', 'vcenter_username': 'vcenter_username', 'vcenter_password': 'vcenter_password', "ca_path": "/path/ca_bundle"}
+    default_args = {'hostname': 'XX.XX.XX.XX', 'vcenter_uuid': 'vcenter_uuid', 'vcenter_username': 'vcenter_username',
+                    'vcenter_password': 'vcenter_password', "ca_path": "/path/ca_bundle"}
     return default_args
 
 
