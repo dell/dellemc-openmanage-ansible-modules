@@ -27,7 +27,7 @@ SUCCESS_MSG = "Successfully retrieved the vCenter information."
 NO_VCENTER_MSG = "Unable to complete the operation because the '{vcenter_hostname}' is not a valid 'vcenter_hostname'."
 FAILED_MSG = "Unable to fetch the vCenter information."
 INVOKE_REQ_KEY = "omevv_vcenter_info.RestOMEVV.invoke_request"
-GET_ALL_VCENTER_INFO_KEY = "omevv_vcenter_info.OMEVVVCenterInfo.get_all_vcenter_info"
+GET_ALL_VCENTER_INFO_KEY = "omevv_vcenter_info.OMEVVINFO.get_all_vcenter_info"
 PERFORM_OPERATION_KEY = "omevv_vcenter_info.OMEVVVCenterInfo.perform_module_operation"
 
 
@@ -76,28 +76,31 @@ class TestOMEVVVCENTERINFO(FakeAnsibleModule):
         obj = MagicMock()
         obj.success = 'OK'
         obj.json_data = sample_resp
-        mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, return_value=obj)
+        mocker.patch(MODULE_PATH + GET_ALL_VCENTER_INFO_KEY, return_value=obj)
         resp = self._run_module(ome_default_args)
         assert resp['msg'] == SUCCESS_MSG
         assert resp['changed'] is False
 
-        # Scenario 2: Retrieve not successfull vcenter information
+        # Scenario 2: Retrieve single vcenter information
         ome_default_args.update({'vcenter_hostname': 'hostname1'})
-        mocker.patch(MODULE_PATH + GET_ALL_VCENTER_INFO_KEY, return_value={"msg": SUCCESS_MSG,
-                                                                           "vcenter_info": [],
-                                                                           "op": "success"})
+        resp = self._run_module(ome_default_args)
+        assert resp['msg'] == SUCCESS_MSG
+        assert resp['changed'] is False
+
+        # Scenario 3: Retrieve not successfull vcenter information
+        obj.json_data = [sample_resp[1]]
+        ome_default_args.update({'vcenter_hostname': 'hostname1'})
+        mocker.patch(MODULE_PATH + GET_ALL_VCENTER_INFO_KEY, return_value=obj)
         resp = self._run_module(ome_default_args)
         assert resp['msg'] == "Unable to complete the operation because the 'hostname1' is not a valid 'vcenter_hostname'."
         assert resp['skipped'] is True
 
-        # Scenario 3: Retrieve single vcenter information
-        ome_default_args.update({'vcenter_hostname': 'hostname1'})
-        mocker.patch(MODULE_PATH + GET_ALL_VCENTER_INFO_KEY, return_value={"msg": SUCCESS_MSG,
-                                                                           "vcenter_info": sample_resp,
-                                                                           "op": "success"})
+        # Scenario 4: Retrieve not successfull vcenter information when no vcenter is registered
+        obj.json_data = []
+        mocker.patch(MODULE_PATH + GET_ALL_VCENTER_INFO_KEY, return_value=obj)
         resp = self._run_module(ome_default_args)
-        assert resp['msg'] == SUCCESS_MSG
-        assert resp['changed'] is False
+        assert resp['msg'] == "Unable to complete the operation because the 'hostname1' is not a valid 'vcenter_hostname'."
+        assert resp['skipped'] is True
 
     @pytest.mark.parametrize("exc_type",
                              [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])

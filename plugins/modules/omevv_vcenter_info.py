@@ -39,6 +39,7 @@ notes:
   - This module supports IPv4 and IPv6 addresses.
 '''
 
+
 EXAMPLES = r'''
 ---
 - name: Retrieve all vCenter information.
@@ -63,7 +64,7 @@ msg:
   description: Status of the vCenter information for the retrieve operation.
   returned: always
   type: str
-  sample: "Successfully fetched the vCenter information."
+  sample: "Successfully retrieved the vCenter information."
 vcenter_info:
   description: Information on the vCenter.
   returned: success
@@ -117,13 +118,12 @@ error_info:
 '''
 
 import json
-from ssl import SSLError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
-from ansible.module_utils.urls import ConnectionError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv import RestOMEVV
+from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv_utils import OMEVVINFO
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import OmeAnsibleModule
 
-BASE_URI = "/omevv/GatewayService/v1/Consoles"
 SUCCESS_MSG = "Successfully retrieved the vCenter information."
 NO_VCENTER_MSG = "Unable to complete the operation because the '{vcenter_hostname}' is not a valid 'vcenter_hostname'."
 FAILED_MSG = "Unable to fetch the vCenter information."
@@ -135,31 +135,33 @@ class OMEVVVCenterInfo:
         self.module = module
         self.obj = rest_obj
 
-    def get_all_vcenter_info(self) -> dict:
-        resp = self.obj.invoke_request("GET", "/Consoles")
-        vcenter_info = resp.json_data
-        if resp.success:
-            output_all = {'msg': SUCCESS_MSG, 'vcenter_info': vcenter_info, 'op': 'success'}
-            return output_all
-        return {'msg': FAILED_MSG, 'op': 'failed'}
+    def search_vcenter_hostname(self, vcenter_data, vcenter_id):
+        for vcenter in vcenter_data:
+            if vcenter.get('consoleAddress') == vcenter_id:
+                return vcenter
+        return {}
 
     def get_vcenter_info(self, result, vcenter_id) -> dict:
         output_not_found_or_empty = {'msg': NO_VCENTER_MSG.format(vcenter_hostname=vcenter_id),
                                      'vcenter_info': [], 'op': 'skipped'}
         if vcenter_id is not None or vcenter_id != "":
-            for each_element in result.get('vcenter_info', []):
-                if each_element.get('consoleAddress') == vcenter_id:
-                    output_specific = {'msg': SUCCESS_MSG,
-                                       'vcenter_info': [each_element], 'op': 'success'}
-                    return output_specific
+            data = self.search_vcenter_hostname(result, vcenter_id)
+            if data:
+                output_specific = {'msg': SUCCESS_MSG,
+                                   'vcenter_info': data, 'op': 'success'}
+                return output_specific
         return output_not_found_or_empty
 
     def perform_module_operation(self) -> dict:
-        result = self.get_all_vcenter_info()
+        self.omevv_utils_obj = OMEVVINFO(self.obj, self.module)
+        resp = self.omevv_utils_obj.get_all_vcenter_info()
+        result = {'msg': FAILED_MSG, 'op': 'failed'}
+        if resp.success:
+            result = {'msg': SUCCESS_MSG, 'vcenter_info': resp.json_data, 'op': 'success'}
         vcenter_id = self.module.params.get("vcenter_hostname")
         if vcenter_id is None or result['op'] == 'failed':
             return result
-        result = self.get_vcenter_info(result, vcenter_id)
+        result = self.get_vcenter_info(resp.json_data, vcenter_id)
         return result
 
 
@@ -171,6 +173,8 @@ def main():
                               supports_check_mode=True)
     try:
         with RestOMEVV(module.params) as rest_obj:
+            rest_obj.username = module.params.get("username")
+            rest_obj.password = module.params.get("password")
             omevv_obj = OMEVVVCenterInfo(module, rest_obj)
             resp = omevv_obj.perform_module_operation()
             if resp['op'] == 'success':
@@ -183,7 +187,7 @@ def main():
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError,
+    except (IOError, ValueError, SSLValidationError, TypeError, ConnectionError,
             AttributeError, IndexError, KeyError, OSError) as err:
         module.exit_json(msg=str(err), failed=True)
 

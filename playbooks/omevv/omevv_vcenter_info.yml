@@ -17,5 +17,5 @@
         username: "{{ username }}"
         password: "{{ password }}"
         ca_path: "path/to/ca_file"
-        vcenter_hostname: xx.xx.xx.xx
+        vcenter_hostname: "{{ vcenter_hostname }}"
       delegate_to: localhost
