@@ -1,8 +1,8 @@
 .. _omevv_vcenter_info_module:
 
 
-omevv_vcenter_info -- Retrieve all or specific vCenter information.
-===================================================================
+omevv_vcenter_info -- Retrieve all or specific OpenManage Enterprise vCenter information.
+=========================================================================================
 
 .. contents::
    :local:
@@ -12,7 +12,7 @@ omevv_vcenter_info -- Retrieve all or specific vCenter information.
 Synopsis
 --------
 
-This module allows you to retrieve all or specific vCenter information.
+This module allows you to retrieve all or specific vCenter information from OpenManage Enterprise.
 
 
 

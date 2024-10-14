@@ -16,16 +16,16 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 ---
 module: omevv_firmware_repository_profile_info
-short_description: Retrieve firmware repository profile information.
+short_description: Retrieve OMEVV firmware repository profile information.
 version_added: "9.8.0"
 description:
-  - This module allows you to retrieve the firmware repository profile information.
+  - This module allows you to retrieve the OMEVV firmware repository profile information.
 extends_documentation_fragment:
   - dellemc.openmanage.omevv_auth_options
 options:
   name:
     description:
-      - Name of the firmware repository profile.
+      - Name of the OMEVV firmware repository profile.
       - If I(name) is provided, the module retrieves only specified firmware repository profile information.
     type: str
 requirements:

@@ -35,16 +35,16 @@ PROFILE_URI = "/RepositoryProfiles"
 VCENTER_ERROR_MSG = "Unable to fetch the vCenter information."
 PROFILE_ERROR_MSG = "Unable to fetch the firmware respository profile information."
 
+
 class OMEVVINFO:
-    def __init__(self, omevv, module ):
+    def __init__(self, omevv, module):
         self.omevv = omevv
         self.module = module
 
-    
     def get_all_vcenter_info(self):
         """
         Retrieves all the vCenter Information.
-        
+
         """
         resp = self.omevv.invoke_request('GET', VCENTER_INFO_URI)
         return resp
@@ -52,7 +52,7 @@ class OMEVVINFO:
     def get_firmware_repository_profile(self):
         """
         Retrieves all firmware repository profile Information.
-        
+
         """
         resp = self.omevv.invoke_request("GET", PROFILE_URI)
         return resp

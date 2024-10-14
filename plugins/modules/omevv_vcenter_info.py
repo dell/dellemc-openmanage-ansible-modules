@@ -15,10 +15,10 @@ __metaclass__ = type
 DOCUMENTATION = r'''
 ---
 module: omevv_vcenter_info
-short_description: Retrieve all or specific vCenter information.
+short_description: Retrieve all or specific OpenManage Enterprise vCenter information.
 version_added: "9.8.0"
 description:
-  - This module allows you to retrieve all or specific vCenter information.
+  - This module allows you to retrieve all or specific vCenter information from OpenManage Enterprise.
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
 options:
