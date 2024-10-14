@@ -12,7 +12,8 @@
         ca_path: "path/to/ca_file"
       delegate_to: localhost
 
-    - name: Retrieve specific firmware repository profile information using profile name.
+    - name: Retrieve specific firmware repository profile information
+            using profile name.
       dellemc.openmanage.omevv_firmware_repository_profile_info:
         hostname: "{{ hostname }}"
         vcenter_uuid: "{{ vcenter_uuid }}"

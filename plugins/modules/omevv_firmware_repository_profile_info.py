@@ -204,7 +204,7 @@ def main():
         message = error_info.get('message')
         if code in ERROR_CODES:
             module.exit_json(msg=message, skipped=True)
-        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
+        module.exit_json(msg=str(err), error_info=error_info, failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLValidationError, TypeError, ConnectionError,

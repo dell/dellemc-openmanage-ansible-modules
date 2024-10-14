@@ -120,7 +120,7 @@ Examples
 Return Values
 -------------
 
-msg (always, str, Successfully fetched the vCenter information.)
+msg (always, str, Successfully retrieved the vCenter information.)
   Status of the vCenter information for the retrieve operation.
 
 

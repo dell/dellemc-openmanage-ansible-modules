@@ -29,6 +29,10 @@ FAILED_MSG = "Unable to fetch the firmware repository profile information."
 INVOKE_REQ_KEY = "omevv_firmware_repository_profile_info.RestOMEVV.invoke_request"
 GET_PROFILE_INFO_KEY = "omevv_firmware_repository_profile_info.OMEVVINFO.get_firmware_repository_profile"
 PERFORM_OPERATION_KEY = "omevv_firmware_repository_profile_info.OmevvFirmwareProfileInfo.perform_module_operation"
+VCENTER_ERROR = "vCenter with UUID xx is not registered."
+HTTP_ERROR = "http error message"
+HTTP_ERROR_URL = 'https://testhost.com'
+RETURN_TYPE = "application/json"
 
 
 class TestOMEVVFirmwareRepositoryProfileInfo(FakeAnsibleModule):
@@ -46,7 +50,7 @@ class TestOMEVVFirmwareRepositoryProfileInfo(FakeAnsibleModule):
         omevv_conn_mock.return_value.__enter__.return_value = omevv_firmware_repository_profile_info_mock
         return omevv_conn_mock
 
-    def test_perform_operation(self, ome_default_args, omevv_connection_vcenter_info,
+    def test_perform_operation(self, omevv_default_args, omevv_connection_vcenter_info,
                                omevv_firmware_repository_profile_info_mock, mocker):
         sample_resp = [
             {
@@ -88,46 +92,60 @@ class TestOMEVVFirmwareRepositoryProfileInfo(FakeAnsibleModule):
             }
         ]
         # Scenario 1: Retrieve all profile information
-        # obj = MagicMock()
-        # obj.success = 'OK'
-        # obj.json_data = sample_resp
-        # mocker.patch(MODULE_PATH + GET_PROFILE_INFO_KEY, return_value=obj)
-        # resp = self._run_module(ome_default_args)
-        # assert resp['msg'] == SUCCESS_MSG
-        # assert resp['changed'] is False
+        obj = MagicMock()
+        obj.success = 'OK'
+        obj.json_data = sample_resp
+        mocker.patch(MODULE_PATH + GET_PROFILE_INFO_KEY, return_value=obj)
+        resp = self._run_module(omevv_default_args)
+        assert resp['msg'] == SUCCESS_MSG
+        assert resp['changed'] is False
 
-        # # Scenario 2: Retrieve single vcenter information
-        # ome_default_args.update({'vcenter_hostname': 'hostname1'})
-        # resp = self._run_module(ome_default_args)
-        # assert resp['msg'] == SUCCESS_MSG
-        # assert resp['changed'] is False
+        # Scenario 2: Retrieve single profile information
+        omevv_default_args.update({'name': 'Dell Default Catalog'})
+        resp = self._run_module(omevv_default_args)
+        assert resp['msg'] == SUCCESS_MSG
+        assert resp['changed'] is False
 
-        # # Scenario 3: Retrieve not successfull vcenter information
-        # ome_default_args.update({'vcenter_hostname': 'hostname1'})
-        # mocker.patch(MODULE_PATH + GET_PROFILE_INFO_KEY, return_value=[sample_resp[1]])
-        # resp = self._run_module(ome_default_args)
-        # assert resp['msg'] == "Unable to complete the operation because the 'hostname1' is not a valid 'vcenter_hostname'."
-        # assert resp['skipped'] is True
+        # Scenario 3: Retrieve not successfull profile information
+        omevv_default_args.update({'name': 'hostname1'})
+        resp = self._run_module(omevv_default_args)
+        assert resp['msg'] == "Unable to complete the operation because the 'hostname1' is not a valid 'profile_name'."
+        assert resp['skipped'] is True
 
     @pytest.mark.parametrize("exc_type",
                              [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
-    def test_omevv_firmware_repository_profile_info_main_exception_handling_case(self, exc_type, mocker, ome_default_args,
+    def test_omevv_firmware_repository_profile_info_main_exception_handling_case(self, exc_type, mocker, omevv_default_args,
                                                                                  omevv_connection_vcenter_info, omevv_firmware_repository_profile_info_mock):
         omevv_firmware_repository_profile_info_mock.status_code = 400
         omevv_firmware_repository_profile_info_mock.success = False
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + PERFORM_OPERATION_KEY,
-                         side_effect=exc_type('https://testhost.com', 400,
-                                              'http error message',
-                                              {"accept-type": "application/json"},
+                         side_effect=exc_type(HTTP_ERROR_URL, 400,
+                                              HTTP_ERROR,
+                                              {"accept-type": RETURN_TYPE},
                                               StringIO(json_str)))
         else:
             mocker.patch(MODULE_PATH + PERFORM_OPERATION_KEY,
                          side_effect=exc_type('test'))
-        result = self._run_module(ome_default_args)
+        result = self._run_module(omevv_default_args)
         if exc_type == URLError:
             assert result['unreachable'] is True
         else:
             assert result['failed'] is True
         assert 'msg' in result
+
+        # Scenario: When HTTPError gives SYS011
+        error_string = to_text(json.dumps({"error": {'errorCode':
+                                                     {
+                                                         'MessageId': "12027",
+                                                         "Message": VCENTER_ERROR
+                                                     }}}))
+        if exc_type in [HTTPError, SSLValidationError]:
+            mocker.patch(MODULE_PATH + PERFORM_OPERATION_KEY,
+                         side_effect=exc_type(HTTP_ERROR_URL, 400,
+                                              HTTP_ERROR,
+                                              {"accept-type": RETURN_TYPE},
+                                              StringIO(error_string)))
+        res_out = self._run_module(omevv_default_args)
+        assert 'msg' in res_out
