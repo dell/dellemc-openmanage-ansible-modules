@@ -6,15 +6,17 @@
 ---
 - name: Test that we have an OMEVV host, OMEVV username and OMEVV password
   ansible.builtin.fail:
-    msg: 'Please define the following variables: hostname, vcenter_uuid,
+    msg: 'Please define the following variables: hostname,
      vcenter_username and vcenter_password.'
-  when: 'hostname is not defined or vcenter_uuid is not defined or vcenter_username
-   is not defined or vcenter_password is nor defined'
+  when: 'hostname is not defined or vcenter_username is not defined or
+         vcenter_password is not defined'
 
 - block:
     - name: Negative - unsupported argument
       dellemc.openmanage.omevv_firmware_repository_profile:
         unsupported_argument: unsupported
+        state: absent
+        name: "Profile Name"
       register: invalid_unsupported_argument
       ignore_errors: true
 
@@ -23,14 +25,19 @@
         that:
           - invalid_unsupported_argument.failed
           - not invalid_unsupported_argument.changed
-          # - 'invalid_unsupported_argument.msg == "Unsupported parameters for
-          #    (dellemc.openmanage.omevv_firmware_repository_profile) module:
-          #    unsupported_argument. Supported parameters include:
-          #    ca_path,."'
+          - 'invalid_unsupported_argument.msg == "Unsupported parameters for
+            (dellemc.openmanage.omevv_firmware_repository_profile) module:
+            unsupported_argument. Supported parameters include: ca_path,
+            catalog_path, description, hostname, name, new_name, port,
+            protocol_type, share_domain, share_password, share_username, state,
+            timeout, validate_certs, vcenter_password, vcenter_username,
+            vcenter_uuid."'
 
     - name: Negative - unreachable host
       dellemc.openmanage.omevv_firmware_repository_profile:
         hostname: 999.999.999.999
+        state: absent
+        name: "Profile Name"
       register: invalid_unreachable
       ignore_unreachable: true
 
@@ -45,7 +52,7 @@
 
     - name: Negative - invalid port
       dellemc.openmanage.omevv_firmware_repository_profile:
-        port: "{{ idrac_ip|ansible.utils.ipwrap }}:65536"
+        port: -1
         state: absent
         name: "Profile Name"
       register: invalid_port
@@ -72,7 +79,7 @@
         that:
           - invalid_username.failed
           - not invalid_username.changed
-          - 'invalid_username.msg == "HTTP Error 401: Unauthorized" or
+          - 'invalid_username.msg == "Invalid Credentials." or
              invalid_username.msg == "<urlopen error timed out>"'
 
     - name: Negative - invalid password
@@ -88,7 +95,7 @@
         that:
           - invalid_password.failed
           - not invalid_password.changed
-          - 'invalid_password.msg == "HTTP Error 401: Unauthorized" or
+          - 'invalid_password.msg == "Invalid Credentials." or
              invalid_password.msg == "<urlopen error timed out>"'
 
     - name: Negative - invalid validate_certs
@@ -164,12 +171,21 @@
         vcenter_uuid: invalid
         state: absent
         name: "Profile Name"
-      register: invalid_vcenter_uuid
+      register: invalid_uuid
       ignore_errors: true
 
     - name: Verify task status - Negative - invalid vcenter uuid
       ansible.builtin.assert:
         that:
-          - invalid_vcenter_uuid.failed
-          - not invalid_vcenter_uuid.changed
-          - 'invalid_vcenter_uuid.msg == "HTTP Error 404: Not Found"'
+          - invalid_uuid.failed
+          - not invalid_uuid.changed
+          - 'invalid_uuid.msg == "vCenter with UUID invalid is not
+            registered."'
+
+  module_defaults:
+    dellemc.openmanage.omevv_firmware_repository_profile:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname | ansible.utils.ipwrap }}"
+      vcenter_username: "{{ vcenter_username }}"
+      vcenter_password: "{{ vcenter_password }}"
+      vcenter_uuid: "{{ uuid }}"

@@ -6,44 +6,32 @@
 ---
 - name: Test that we have an OMEVV host, OMEVV username and OMEVV password
   ansible.builtin.fail:
-    msg: 'Please define the following variables: hostname, vcenter_uuid,
+    msg: 'Please define the following variables: hostname,
      vcenter_username and vcenter_password.'
-  when: 'hostname is not defined or vcenter_uuid is not defined or vcenter_username
-   is not defined or vcenter_password is nor defined'
+  when: 'hostname is not defined or vcenter_username is not defined or
+         vcenter_password is not defined'
 
 - block:
-    - name: Pre-requisite - Create a profile to be deleted
-      dellemc.openmanage.omevv_firmware_repository_profile:
-        hostname: "{{ hostname }}"
-        vcenter_uuid: "{{ vcenter_uuid }}"
-        vcenter_username: "{{ vcenter_username }}"
-        vcenter_password: "{{ vcenter_password }}"
-        state: "present"
-        protocol_type: "CIFS"
-        share_username: "{{ cifs_share_user }}"
-        share_password: "{{ cifs_share_password }}"
-        catalog_name: "{{ cifs_share_name |  regex_replace('\\', '\') }}"
-        repository_profile_name: "temp_profile"
-      register: create_result
-      no_log: true
-    
-    - name: Verify task status - Create profile
-      ansible.builtin.assert:
-        that:
-          - create_result.changed
-          - create_result.msg == "Successfully created the OMEVV firmware repository profile."
+    - name: Including helper file for creating firmware repo profile
+      ansible.builtin.include_tasks: ../__pre_req_create.yml
+      vars:
+        profile_name: "temp_profile"
+        protocol: "CIFS"
+        share__username: "{{ cifs_share_user  }}"
+        share__password: "{{ cifs_share_password  }}"
+        path: "{{ cifs_share_name }}"
 
     - name: Delete the profile (Check mode - Changes expected)
       dellemc.openmanage.omevv_firmware_repository_profile: &delete_profile
         hostname: "{{ hostname }}"
-        vcenter_uuid: "{{ vcenter_uuid }}"
+        vcenter_uuid: "{{ uuid }}"
         vcenter_username: "{{ vcenter_username }}"
         vcenter_password: "{{ vcenter_password }}"
         state: "absent"
-        repository_profile_name: "temp_profile"
+        name: "temp_profile"
       register: cm_delete_result
       check_mode: true
-    
+
     - name: Verify task status - Delete profile (Check mode)
       ansible.builtin.assert:
         that:
@@ -56,23 +44,29 @@
       register: cm_diff_delete_result
       check_mode: true
       diff: true
-    
+
     - name: Verify task status - Delete profile (Check and Diff modes)
       ansible.builtin.assert:
         that:
           - cm_diff_delete_result.changed
-          # - cm_diff_delete_result.msg == "Changes found to be applied."
+          - cm_diff_delete_result.msg == "Changes found to be applied."
+          - cm_diff_delete_result.diff.after | length == 0
+          - cm_diff_delete_result.diff.before | length > 0
 
-    - name: Delete the profile (Normal Mode)
+    - name: Delete the profile (Normal and Diff Mode)
       dellemc.openmanage.omevv_firmware_repository_profile:
         <<: *delete_profile
       register: delete_result
-    
-    - name: Verify task status - Delete profile (Normal Mode)
+      diff: true
+
+    - name: Verify task status - Delete profile (Normal and Diff Mode)
       ansible.builtin.assert:
         that:
           - delete_result.changed
-          - delete_result.msg == "Successfully deleted the OMEVV firmware repository profile."
+          - delete_result.msg == "Successfully deleted the OMEVV firmware
+            repository profile."
+          - delete_result.diff.after | length == 0
+          - delete_result.diff.before | length > 0
 
     - name: Delete a profile (Idempotence)
       dellemc.openmanage.omevv_firmware_repository_profile:
@@ -91,3 +85,19 @@
         that:
           - not idempotence_result_delete.changed
           - idempotence_result_delete.msg == expected_msg
+
+  always:
+    - name: Cleanup
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        name: "temp_profile"
+        state: absent
+      ignore_errors: true
+      no_log: true
+
+  module_defaults:
+    dellemc.openmanage.omevv_firmware_repository_profile:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname | ansible.utils.ipwrap }}"
+      vcenter_username: "{{ vcenter_username }}"
+      vcenter_password: "{{ vcenter_password }}"
+      vcenter_uuid: "{{ uuid }}"
