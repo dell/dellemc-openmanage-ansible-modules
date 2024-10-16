@@ -25,7 +25,8 @@
   check_mode: true
   register: check_and_diff_firm_repo
 
-- name: Assertion for modification firmware repository profile - Check and Diff Mode
+- name: Assertion for modification firmware repository profile - Check and
+   Diff Mode
   ansible.builtin.assert:
     that:
       - check_and_diff_firm_repo.changed is true
@@ -42,7 +43,8 @@
   ansible.builtin.assert:
     that:
       - normal_and_diff_firm_repo.changed is true
-      - normal_and_diff_firm_repo.msg == "Successfully modified the OMEVV firmware repository profile."
+      - normal_and_diff_firm_repo.msg == "Successfully modified the OMEVV
+       firmware repository profile."
       - normal_and_diff_firm_repo.diff.after | length == 1
       - normal_and_diff_firm_repo.diff.before | length == 0
 
@@ -52,7 +54,8 @@
   diff: true
   register: idemp_and_diff_firm_repo
 
-- name: Assertion for modification firmware repository profile - Idempotency Mode
+- name: Assertion for modification firmware repository profile - Idempotency
+   Mode
   ansible.builtin.assert:
     that:
       - idemp_and_diff_firm_repo.changed is false

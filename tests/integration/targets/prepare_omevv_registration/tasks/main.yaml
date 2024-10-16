@@ -13,7 +13,8 @@
       timeout: 30
 
   vars:
-    get_consoles_uri: "https://{{ hostname }}:{{ port }}/omevv/GatewayService/v1/Consoles"
+    console_uri: "/omevv/GatewayService/v1/Consoles"
+    get_consoles_uri: "https://{{ hostname }}:{{ port }}{{ console_uri }}"
     omevv_response_body_format: "json"
     omevv_api_headers:
       x_omivv-api-vcenter-identifier: "{{ uuid | default(omit) }}"

@@ -9,28 +9,23 @@
     msg: "Please define the following variables: hostname, vcenter_username
       and vcenter_password."
   when:
-    hostname is not defined or vcenter_username is not defined or vcenter_password
-    is not defined
+    hostname is undefined or vcenter_username is undefined or vcenter_password
+    is undefined
 
 - vars:
-    - payload:
-        - { "protocol": "NFS", "path": "{{ nfs_share_name }}" }
-        - {
-            "protocol": "CIFS",
-            "path": "{{ cifs_share_name }}",
-            "username": "{{ cifs_share_user }}",
-            "password": "{{ cifs_share_password }}",
-          }
-        - {
-            "protocol": "HTTP",
-            "path": "{{ http_share }}{{ http_share_dir_path }}",
-          }
-        - {
-            "protocol": "HTTPS",
-            "path": "{{ https_share_ip }}",
-            "username": "{{ https_share_username }}",
-            "password": "{{ https_share_password }}",
-          }
+    payload:
+      - protocol: "NFS"
+        path: "{{ nfs_share_name }}"
+      - protocol: "CIFS"
+        path: "{{ cifs_share_name }}"
+        username: "{{ cifs_share_user }}"
+        password: "{{ cifs_share_password }}"
+      - protocol: "HTTP"
+        path: "{{ http_share }}{{ http_share_dir_path }}"
+      - protocol: "HTTPS"
+        path: "{{ https_share_ip }}"
+        username: "{{ https_share_username }}"
+        password: "{{ https_share_password }}"
   block:
     - name: Including helper file for creating firmware repo profile
       ansible.builtin.include_tasks: ../__helper_create.yml

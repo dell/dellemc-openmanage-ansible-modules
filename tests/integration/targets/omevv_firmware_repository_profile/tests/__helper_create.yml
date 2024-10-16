@@ -36,16 +36,17 @@
   dellemc.openmanage.omevv_firmware_repository_profile:
     <<: *firm1
   diff: true
-  register: normal_and_diff_firm_repo
+  register: normal_mode
 
 - name: Assertion for creating firmware repository profile - Normal Mode
   ansible.builtin.assert:
     that:
-      - normal_and_diff_firm_repo.changed is true
-      - normal_and_diff_firm_repo.msg == "Successfully created the OMEVV firmware repository profile."
-      - normal_and_diff_firm_repo.profile_info.status == "Success"
-      - normal_and_diff_firm_repo.diff.after | length > 1
-      - normal_and_diff_firm_repo.diff.before | length == 0
+      - normal_mode.changed is true
+      - normal_mode.msg == "Successfully created the OMEVV firmware repository
+        profile."
+      - normal_mode.profile_info.status == "Success"
+      - normal_mode.diff.after | length > 1
+      - normal_mode.diff.before | length == 0
 
 - name: Creating firmware repository profile - Idempotency and Diff Mode
   dellemc.openmanage.omevv_firmware_repository_profile:
