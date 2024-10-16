@@ -13,7 +13,7 @@
       timeout: 30
 
   vars:
-    GET_CONSOLES_URI: "https://{{ hostname }}:{{ port }}/omevv/GatewayService/v1/Consoles"
+    get_consoles_uri: "https://{{ hostname }}:{{ port }}/omevv/GatewayService/v1/Consoles"
     omevv_response_body_format: "json"
     omevv_api_headers:
       x_omivv-api-vcenter-identifier: "{{ uuid | default(omit) }}"
@@ -22,13 +22,13 @@
   block:
     - name: Checking if vcenter plugin is regesterd in OME
       ansible.builtin.uri:
-        url: "{{ GET_CONSOLES_URI }}"
+        url: "{{ get_consoles_uri }}"
         method: GET
       register: get_vcenter_plugin
 
     - name: Registering vcenter plugin in OME
       ansible.builtin.uri:
-        url: "{{ GET_CONSOLES_URI }}"
+        url: "{{ get_consoles_uri }}"
         method: POST
         timeout: 300
         status_code:
@@ -48,7 +48,7 @@
 
     - name: Fetching uuid
       ansible.builtin.uri:
-        url: "{{ GET_CONSOLES_URI }}"
+        url: "{{ get_consoles_uri }}"
         method: GET
       register: console_details
 
