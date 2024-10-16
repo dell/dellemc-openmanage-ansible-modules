@@ -114,6 +114,14 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from urllib.error import URLError, HTTPError
 
+ERR_STATUS = 404
+
+
+def get_from_WSMAN(module):
+    with iDRACConnection(module.params) as idrac:
+        firmware_details = idrac.update_mgr.InstalledFirmware
+        return firmware_details
+
 
 def get_idrac_firmware_info(idrac, module):
     try:
@@ -125,10 +133,10 @@ def get_idrac_firmware_info(idrac, module):
             if details_response and details_response.status_code == 200 and details_response.json_data:
                 filtered_data = remove_key(details_response.json_data)
                 return filtered_data
-    except Exception:
-        with iDRACConnection(module.params) as idrac:
-            firmware_details = idrac.update_mgr.InstalledFirmware
-            return firmware_details
+
+    except HTTPError as err:
+        if err.status == 404:
+            return get_from_WSMAN(module)
 
 
 def main():

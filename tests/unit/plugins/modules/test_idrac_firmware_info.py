@@ -79,15 +79,47 @@ class TestFirmware(FakeAnsibleModule):
             ]
         }
 
-    def test_main_idrac_get_firmware_info_success_case01(self, idrac_firmware_info_connection_mock,
+    def test_main_idrac_get_firmware_info_success_case01(self, idrac_redfish_mock,
                                                          idrac_default_args):
-        obj2 = MagicMock()
-        idrac_firmware_info_connection_mock.update_mgr = obj2
-        type(obj2).InstalledFirmware = PropertyMock(return_value={"Status": "Success"})
+        mock_data = {
+            "Members": [
+                {"KeyToRemove": "Data", "FirmwareVersion": "1.10"},
+                {"KeyToRemove": "Data", "FirmwareVersion": "1.20"}
+            ]
+        }
+
+        idrac_redfish_mock.invoke_request.return_value.status_code = 200
+        idrac_redfish_mock.invoke_request.return_value.json_data = mock_data
         result = self._run_module(idrac_default_args)
-        assert result == {"firmware_info": {"Status": "Success"},
-                          "msg": "Successfully fetched the firmware inventory details.",
-                          "changed": False}
+        expected_result = {
+            "msg": "Successfully fetched the firmware inventory details.",
+            "firmware_info": mock_data,
+            "changed": False
+        }
+
+        assert result == expected_result
+
+    def test_idrac_get_firmware_info_get_from_wsman(self, idrac_redfish_mock, idrac_firmware_info_connection_mock,
+                                                    idrac_default_args):
+        idrac_redfish_mock.invoke_request.return_value.status_code = 404
+
+        mock_firmware_data = {
+            "Members": [
+                {"FirmwareVersion": "1.10"},
+                {"FirmwareVersion": "1.20"}
+            ]
+        }
+
+        idrac_firmware_info_connection_mock.update_mgr.InstalledFirmware = mock_firmware_data
+        result = self._run_module(idrac_default_args)
+
+        expected_result = {
+            "msg": "Successfully fetched the firmware inventory details.",
+            "firmware_info": None,
+            "changed": False
+        }
+
+        assert result == expected_result
 
     @pytest.mark.parametrize("exc_type", [SSLValidationError, URLError, ValueError, TypeError, ConnectionError, HTTPError])
     def test_idrac_get_firmware_info_exception_handling_case(self, idrac_firmware_info_connection_mock,
@@ -109,5 +141,5 @@ class TestFirmware(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             result = self._run_module(idrac_default_args)
-            assert result['unreachable'] is True
+            assert result['failed'] is True
         assert 'msg' in result
