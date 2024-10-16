@@ -29,7 +29,7 @@
   ansible.builtin.assert:
     that:
       - check_and_diff_firm_repo.changed is true
-      - check_and_diff_firm_repo.diff.after | length == 1
+      - check_and_diff_firm_repo.diff.after | length > 1
       - check_and_diff_firm_repo.diff.before | length == 0
 
 - name: Creating firmware repository profile - Normal and Diff Mode
@@ -43,7 +43,8 @@
     that:
       - normal_and_diff_firm_repo.changed is true
       - normal_and_diff_firm_repo.msg == "Successfully created the OMEVV firmware repository profile."
-      - normal_and_diff_firm_repo.diff.after | length == 1
+      - normal_and_diff_firm_repo.profile_info.status == "Success"
+      - normal_and_diff_firm_repo.diff.after | length > 1
       - normal_and_diff_firm_repo.diff.before | length == 0
 
 - name: Creating firmware repository profile - Idempotency and Diff Mode
@@ -57,5 +58,5 @@
     that:
       - idemp_and_diff_firm_repo.changed is false
       - idemp_and_diff_firm_repo.msg == "No changes found to be applied."
-      - idemp_and_diff_firm_repo.diff.after | length == 1
+      - idemp_and_diff_firm_repo.diff.after | length == 0
       - idemp_and_diff_firm_repo.diff.before | length == 0
