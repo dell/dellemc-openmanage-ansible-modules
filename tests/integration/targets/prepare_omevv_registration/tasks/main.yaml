@@ -1,0 +1,58 @@
+---
+- name: Module defaults
+  module_defaults:
+    ansible.builtin.uri:
+      user: "{{ ome_username }}"
+      password: "{{ ome_password }}"
+      headers: "{{ omevv_api_headers }}"
+      force_basic_auth: true
+      body_format: "{{ omevv_response_body_format }}"
+      return_content: true
+      validate_certs: "{{ validate_certs }}"
+      ca_path: "{{ ca_path | default(omit) }}"
+      timeout: 30
+
+  vars:
+    console_uri: "/omevv/GatewayService/v1/Consoles"
+    get_consoles_uri: "https://{{ hostname }}:{{ port }}{{ console_uri }}"
+    omevv_response_body_format: "json"
+    omevv_api_headers:
+      x_omivv-api-vcenter-identifier: "{{ uuid | default(omit) }}"
+      Accept: "*/*"
+      Content-Type: "application/json"
+  block:
+    - name: Checking if vcenter plugin is regesterd in OME
+      ansible.builtin.uri:
+        url: "{{ get_consoles_uri }}"
+        method: GET
+      register: get_vcenter_plugin
+
+    - name: Registering vcenter plugin in OME
+      ansible.builtin.uri:
+        url: "{{ get_consoles_uri }}"
+        method: POST
+        timeout: 300
+        status_code:
+          - 201
+      when: get_vcenter_plugin.json | length == 0
+      vars:
+        payload:
+          consoleAddress: "{{ vcenter_hostname }}"
+          description: "Registering vcenter from API"
+          extensions: ["WEBCLIENT", "PHM", "PHA", "VLCM"]
+          credential:
+            {
+              "username": "{{ vcenter_username }}",
+              "password": "{{ vcenter_password }}",
+            }
+          disableCNcheck: true
+
+    - name: Fetching uuid
+      ansible.builtin.uri:
+        url: "{{ get_consoles_uri }}"
+        method: GET
+      register: console_details
+
+    - name: Set fact of uuid
+      ansible.builtin.set_fact:
+        uuid: "{{ console_details.json[0].uuid }}"
