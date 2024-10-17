@@ -53,6 +53,8 @@ OME_INFO = "ApplicationService/Info"
 ODATA_ID = "@odata.id"
 POWER_CHECK_RETRIES = 30
 POWER_CHECK_INTERVAL = 10
+GET_IDRAC_FIRMWARE_DETAILS_URI_10 = "/redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory?$select=Members"
+GET_IDRAC_FIRMWARE_URI_10 = "/redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory"
 
 import time
 from datetime import datetime
