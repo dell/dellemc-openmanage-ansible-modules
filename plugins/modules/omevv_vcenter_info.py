@@ -121,47 +121,41 @@ import json
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv import RestOMEVV
-from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv_utils import OMEVVINFO
+from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv_utils import OMEVVInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import OmeAnsibleModule
 
 SUCCESS_MSG = "Successfully retrieved the vCenter information."
-NO_VCENTER_MSG = "Unable to complete the operation because the '{vcenter_hostname}' is not a valid 'vcenter_hostname'."
-FAILED_MSG = "Unable to fetch the vCenter information."
+NO_VCENTER_MSG = "'{vcenter_hostname}' vCenter is not registered in OME."
 
 
 class OMEVVVCenterInfo:
 
     def __init__(self, module, rest_obj) -> None:
+        """
+        Initializes a new instance of the class.
+        Args:
+            module (Module): The module object.
+            rest_obj (object): The REST object.
+        Returns:
+            None
+        """
         self.module = module
         self.obj = rest_obj
 
-    def search_vcenter_hostname(self, vcenter_data, vcenter_id):
-        for vcenter in vcenter_data:
-            if vcenter.get('consoleAddress') == vcenter_id:
-                return vcenter
-        return {}
-
-    def get_vcenter_info(self, result, vcenter_id) -> dict:
-        output_not_found_or_empty = {'msg': NO_VCENTER_MSG.format(vcenter_hostname=vcenter_id),
-                                     'vcenter_info': [], 'op': 'skipped'}
-        if vcenter_id is not None or vcenter_id != "":
-            data = self.search_vcenter_hostname(result, vcenter_id)
-            if data:
-                output_specific = {'msg': SUCCESS_MSG,
-                                   'vcenter_info': data, 'op': 'success'}
-                return output_specific
-        return output_not_found_or_empty
-
     def perform_module_operation(self) -> dict:
-        self.omevv_utils_obj = OMEVVINFO(self.obj, self.module)
-        resp = self.omevv_utils_obj.get_all_vcenter_info()
-        result = {'msg': FAILED_MSG, 'op': 'failed'}
-        if resp.success:
-            result = {'msg': SUCCESS_MSG, 'vcenter_info': resp.json_data, 'op': 'success'}
+        """
+        Perform the module operation to retrieve the vCenter information.
+        Returns:
+            dict: A dictionary containing the message and the vCenter information.
+                - msg (str): The success message or the error message.
+                - vcenter_info (list): The list of vCenter information.
+        """
         vcenter_id = self.module.params.get("vcenter_hostname")
-        if vcenter_id is None or result['op'] == 'failed':
-            return result
-        result = self.get_vcenter_info(resp.json_data, vcenter_id)
+        self.omevv_utils_obj = OMEVVInfo(self.obj)
+        resp = self.omevv_utils_obj.get_vcenter_info(vcenter_id)
+        result = {'msg': SUCCESS_MSG, 'vcenter_info': resp}
+        if (vcenter_id or vcenter_id == "") and (not resp):
+            result['msg'] = NO_VCENTER_MSG.format(vcenter_hostname=vcenter_id)
         return result
 
 
@@ -177,12 +171,7 @@ def main():
             rest_obj.password = module.params.get("password")
             omevv_obj = OMEVVVCenterInfo(module, rest_obj)
             resp = omevv_obj.perform_module_operation()
-            if resp['op'] == 'success':
-                module.exit_json(msg=resp['msg'], vcenter_info=resp['vcenter_info'])
-            elif resp['op'] == 'skipped':
-                module.exit_json(msg=resp['msg'], vcenter_info=resp['vcenter_info'], skipped=True)
-            else:
-                module.exit_json(msg=resp['msg'], failed=True)
+            module.exit_json(msg=resp['msg'], vcenter_info=resp['vcenter_info'])
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:

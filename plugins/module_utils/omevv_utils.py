@@ -32,27 +32,36 @@ __metaclass__ = type
 
 VCENTER_INFO_URI = "/Consoles"
 PROFILE_URI = "/RepositoryProfiles"
-VCENTER_ERROR_MSG = "Unable to fetch the vCenter information."
-PROFILE_ERROR_MSG = "Unable to fetch the firmware respository profile information."
 
 
-class OMEVVINFO:
-    def __init__(self, omevv, module):
-        self.omevv = omevv
-        self.module = module
+class OMEVVInfo:
+    def __init__(self, omevv_obj):
+        self.omevv_obj = omevv_obj
 
-    def get_all_vcenter_info(self):
+    def search_vcenter_hostname(self, vcenter_data, vcenter_id):
         """
-        Retrieves all the vCenter Information.
-
+        Searches for a vCenter hostname in the given vcenter_data list.
+        Parameters:
+            vcenter_data (list): A list of vCenter data.
+            vcenter_id (str): The hostname of the vCenter to search for.
+        Returns:
+            dict: The vCenter data that matches the given vcenter_id. If no match is found, an empty dictionary is returned.
         """
-        resp = self.omevv.invoke_request('GET', VCENTER_INFO_URI)
-        return resp
+        vcenter_info_spec = [vcenter for vcenter in vcenter_data if vcenter.get('consoleAddress') == vcenter_id]
+        return vcenter_info_spec
 
-    def get_firmware_repository_profile(self):
+    def get_vcenter_info(self, vcenter_id=None):
         """
-        Retrieves all firmware repository profile Information.
-
+        Retrieves the vCenter information.
+        Parameters:
+            vcenter_id (str, optional): The hsotname of the vCenter. If provided, retrieves the information for the specified vCenter.
+        Returns:
+            list: A list of vCenter information. If `vcenter_id` is provided, the list contains the information for the specified vCenter.
         """
-        resp = self.omevv.invoke_request("GET", PROFILE_URI)
-        return resp
+        resp = self.omevv_obj.invoke_request('GET', VCENTER_INFO_URI)
+        vcenter_info = []
+        if resp.success:
+            vcenter_info = resp.json_data
+            if vcenter_id or vcenter_id == "":
+                vcenter_info = self.search_vcenter_hostname(vcenter_info, vcenter_id)
+        return vcenter_info

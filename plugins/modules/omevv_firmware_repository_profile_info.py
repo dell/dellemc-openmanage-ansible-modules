@@ -138,7 +138,7 @@ import json
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv import RestOMEVV, OMEVVAnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv_utils import OMEVVINFO
+from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv_utils import OMEVVInfo
 
 SUCCESS_MSG = "Successfully retrieved the firmware repository profile information."
 NO_PROFILE_MSG = "Unable to complete the operation because the '{profile_name}' is not a valid 'profile_name'."
@@ -170,7 +170,7 @@ class OmevvFirmwareProfileInfo:
         return output_not_found_or_empty
 
     def perform_module_operation(self) -> dict:
-        self.omevv_utils_obj = OMEVVINFO(self.obj, self.module)
+        self.omevv_utils_obj = OMEVVInfo(self.obj, self.module)
         resp = self.omevv_utils_obj.get_firmware_repository_profile()
         result = {'msg': FAILED_MSG, 'op': 'failed'}
         if resp.success:
