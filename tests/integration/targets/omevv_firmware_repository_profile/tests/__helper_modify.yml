@@ -30,8 +30,8 @@
   ansible.builtin.assert:
     that:
       - check_and_diff_firm_repo.changed is true
-      - check_and_diff_firm_repo.diff.after | length == 1
-      - check_and_diff_firm_repo.diff.before | length == 0
+      - check_and_diff_firm_repo.diff.after | length == 2
+      - check_and_diff_firm_repo.diff.before | length == 2
 
 - name: Modifying firmware repository profile - Normal and Diff Mode
   dellemc.openmanage.omevv_firmware_repository_profile:
@@ -45,8 +45,8 @@
       - normal_and_diff_firm_repo.changed is true
       - normal_and_diff_firm_repo.msg == "Successfully modified the OMEVV
        firmware repository profile."
-      - normal_and_diff_firm_repo.diff.after | length == 1
-      - normal_and_diff_firm_repo.diff.before | length == 0
+      - normal_and_diff_firm_repo.diff.after | length == 2
+      - normal_and_diff_firm_repo.diff.before | length == 2
 
 - name: Modifying firmware repository profile - Idempotency and Diff Mode
   dellemc.openmanage.omevv_firmware_repository_profile:
@@ -60,5 +60,5 @@
     that:
       - idemp_and_diff_firm_repo.changed is false
       - idemp_and_diff_firm_repo.msg == "No changes found to be applied."
-      - idemp_and_diff_firm_repo.diff.after | length == 1
-      - idemp_and_diff_firm_repo.diff.before | length == 0
+      - idemp_and_diff_firm_repo.diff.after | length == 2
+      - idemp_and_diff_firm_repo.diff.before | length == 2

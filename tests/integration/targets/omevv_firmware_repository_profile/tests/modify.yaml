@@ -55,8 +55,8 @@
         that:
           - modify_1_check_and_diff.changed
           - modify_1_check_and_diff.msg == "Changes found to be applied."
-          - modify_1_check_and_diff.diff.after | length == 1
-          - modify_1_check_and_diff.diff.before | length == 0
+          - modify_1_check_and_diff.diff.after | length == 2
+          - modify_1_check_and_diff.diff.before | length == 2
 
     - name: Modifying firm repo profile with new name and description -
         Normal and diff Mode
@@ -71,8 +71,8 @@
           - modify_1_normal_and_diff.changed
           - modify_1_normal_and_diff.msg == "Successfully modified the OMEVV
             firmware repository profile."
-          - modify_1_normal_and_diff.diff.after | length == 1
-          - modify_1_normal_and_diff.diff.before | length == 0
+          - modify_1_normal_and_diff.diff.after | length == 2
+          - modify_1_normal_and_diff.diff.before | length == 2
 
     - name: Modifying firm repo profile with new name and description -
         Idempotency and diff Mode
