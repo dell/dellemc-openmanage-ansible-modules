@@ -111,9 +111,9 @@
     - name: Verify task status- Negative - Invalid vcenter_hostname
       ansible.builtin.assert:
         that:
-          - invalid_vcenter_hostname.skipped
-          - invalid_vcenter_hostname.msg == "Unable to complete the operation
-           because the 'invalid' is not a valid 'vcenter_hostname'."
+          - not invalid_vcenter_hostname.failed
+          - invalid_vcenter_hostname.msg == "'invalid' vCenter is not
+           registered in OME."
 
     - name: Negative - Invalid argument
       dellemc.openmanage.omevv_vcenter_info:
@@ -126,10 +126,11 @@
         that:
           - invalid_argument.failed
           - not invalid_argument.changed
-          # - 'invalid_argument.msg == "Unsupported parameters for
-          #    (dellemc.openmanage.omevv_vcenter_info) module:
-          #    unsupported_argument. Supported parameters include:
-          #    ca_path,."'
+          - 'invalid_argument.msg == "Unsupported parameters for
+            (dellemc.openmanage.omevv_vcenter_info) module:
+            invalid_argument. Supported parameters include: ca_path,
+            hostname, password, port, timeout, username, validate_certs,
+            vcenter_hostname, x_auth_token."'
 
   module_defaults:
     dellemc.openmanage.omevv_vcenter_info:

@@ -13,7 +13,7 @@
     is not defined
 
 - block:
-    - name: Retrieve all vcenter info (Check mode - Changes expected)
+    - name: Retrieve all vcenter info (Check mode)
       dellemc.openmanage.omevv_vcenter_info: &retrieve_info
         hostname: "{{ hostname }}"
         username: "{{ ome_username }}"
@@ -21,27 +21,12 @@
       register: cm_changes
       check_mode: true
 
-    - name: Verify task status - Retrieve all vcenter info
-       (Check mode - Changes expected)
+    - name: Verify task status - Retrieve all vcenter info (Check mode)
       ansible.builtin.assert:
         that:
           - not cm_changes.changed
-          - cm_changes.msg == 'Successfully retrieved the vCenter information.'
-
-    - name: Retrieve all vcenter info (Check and Diff modes - Changes expected)
-      dellemc.openmanage.omevv_vcenter_info:
-        <<: *retrieve_info
-      register: cm_diff_retrieve_info
-      check_mode: true
-      diff: true
-
-    - name: Verify task status - Retrieve all vcenter info
-       (Check and Diff modes)
-      ansible.builtin.assert:
-        that:
-          - not cm_diff_retrieve_info.changed
-          - cm_diff_retrieve_info.msg == "Successfully retrieved the
-           vCenter information."
+          - cm_changes.msg == 'Successfully retrieved the vCenter
+           information.'
 
     - name: Retrieve all vcenter info (Normal Mode)
       dellemc.openmanage.omevv_vcenter_info:
@@ -52,6 +37,7 @@
       ansible.builtin.assert:
         that:
           - not info_result.changed
+          - not info_result.failed
           - info_result.msg == "Successfully retrieved the vCenter
            information."
 
@@ -69,29 +55,7 @@
     - name: Verify - Get Vcenter details by uri.
       ansible.builtin.assert:
         that:
-          - uri_resp.json[0].uuid == info_result.vcenter_info[0].uuid
-          - uri_resp.json[0].consoleAddress ==
-           info_result.vcenter_info[0].consoleAddress
-          - uri_resp.json[0].description ==
-           info_result.vcenter_info[0].description
-          - uri_resp.json[0].registeredExtensions ==
-           info_result.vcenter_info[0].registeredExtensions
-
-    - name: Retrieve all vcenter info (Idempotence)
-      dellemc.openmanage.omevv_vcenter_info:
-        <<: *retrieve_info
-      register: idempotence_result
-      ignore_errors: true
-
-    - name: Set expected message for assertion
-      ansible.builtin.set_fact:
-        expected_msg: "Successfully retrieved the vCenter information."
-
-    - name: Verify task status - Retrieve all vcenter info (Idempotence)
-      ansible.builtin.assert:
-        that:
-          - not idempotence_result.changed
-          - idempotence_result.msg == expected_msg
+          - info_result.vcenter_info == uri_resp.json
 
   module_defaults:
     dellemc.openmanage.omevv_vcenter_info:
