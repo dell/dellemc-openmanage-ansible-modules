@@ -116,6 +116,7 @@ from urllib.error import URLError, HTTPError
 
 ERR_STATUS = 404
 
+
 def get_from_wsman(module):
     with iDRACConnection(module.params) as idrac:
         firmware_details = idrac.update_mgr.InstalledFirmware
@@ -132,7 +133,7 @@ def get_idrac_firmware_info(idrac, module):
 
             if details_response and details_response.status_code == 200 and details_response.json_data:
                 filtered_data = remove_key(details_response.json_data.get("Members"))
-        resp = {"Firmware": filtered_data}    
+        resp = {"Firmware": filtered_data}
         resp.update(tmp)
         return resp
 

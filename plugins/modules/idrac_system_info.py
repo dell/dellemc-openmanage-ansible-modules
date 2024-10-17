@@ -124,12 +124,6 @@ GET_IDRAC_SYSTEM_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1"
 # SystemMetrics
 GET_IDRAC_VIDEO_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellVideo"
 
-def extract_fqdd(firmware_path):
-    # Split the string by '___' and take the last part
-    parts = firmware_path.split('___')
-    if len(parts) > 1:
-        return parts[-1]  # Return the part after the last '___'
-    return None
 
 def extract_bios_data(response):
     keys_to_search = {
@@ -285,16 +279,16 @@ def extract_controller_battery_data(response):
     }
 
     battery_list = []
-    
+
     if "Members" in response and response["Members"]:
         for member in response["Members"]:
             battery_data = {}
-            
+
             for key, response_key in keys_to_search.items():
                 battery_data[key] = member.get(response_key, "Not Available")
-            
+
             battery_list.append(battery_data)
-    
+
     return {"ControllerBattery": battery_list}
 
 
@@ -307,12 +301,12 @@ def extract_controller_sensor_data(response):
     if "Members" in response and response["Members"]:
         for member in response["Members"]:
             sensor_data = {}
-            
+
             for key, response_key in keys_to_search.items():
                 sensor_data[key] = member.get(response_key, "Not Available")
-            
+
             sensor_list.append(sensor_data)
-    
+
     return {"ControllerSensor": sensor_list}
 
 
@@ -337,16 +331,16 @@ def extract_enclosure_data(response):
 
     enclosure_list = []
     for each_data in response:
-      if "Members" in each_data and each_data["Members"]:
-          for member in each_data["Members"]:
-              enclosure_data = {}
+        if "Members" in each_data and each_data["Members"]:
+            for member in each_data["Members"]:
+                enclosure_data = {}
 
-              for key, response_key in keys_to_search.items():
-                enclosure_data[key] = member.get(response_key, "Not Available")
+                for key, response_key in keys_to_search.items():
+                    enclosure_data[key] = member.get(response_key, "Not Available")
 
-      enclosure_list.append(enclosure_data)
+        enclosure_list.append(enclosure_data)
 
-    return {"Enclosure": enclosure_list}
+        return {"Enclosure": enclosure_list}
 
 
 def extract_enclosure_fan_data(response):
@@ -413,9 +407,9 @@ def extract_fan_data(response):
                 value = member
                 for k in keys:
                     value = value.get(k, "Not Available") if isinstance(value, dict) else "Not Available"
-                
+
                 fan_data[key] = value
-            
+
             fan_list.append(fan_data)
 
     return {"Fan": fan_list}
@@ -423,13 +417,13 @@ def extract_fan_data(response):
 
 def extract_license_data(response, Subsystem):
     keys_to_search = {
-        "InstanceID": "Id",  
-        "Key": "Id",         
-        "LicenseDescription": "Description",  
-        "LicenseInstallDate": "InstallDate",  
-        "LicenseSoldDate": "ExpirationDate",   
-        "LicenseType": "LicenseType",  
-        "PrimaryStatus": "Health"  
+        "InstanceID": "Id",
+        "Key": "Id",
+        "LicenseDescription": "Description",
+        "LicenseInstallDate": "InstallDate",
+        "LicenseSoldDate": "ExpirationDate",
+        "LicenseType": "LicenseType",
+        "PrimaryStatus": "Health"
     }
 
     license_list = []
@@ -776,7 +770,7 @@ def extract_sensors_fan_data(response, subsystem):
 
             for key, response_key in keys_to_search.items():
                 sensor_fan_data[key] = member.get(response_key, "Not Available")
-            
+
             sensor_fan_list.append(sensor_fan_data)
 
             primary_status = sensor_fan_data.get("PrimaryStatus", "Unknown")
@@ -871,16 +865,16 @@ def extract_video_data(response):
         "Key": "Key",
         "Manufacturer": "Manufacturer"
     }
-    
+
     video_list = []
-    
+
     if "Members" in response and response["Members"]:
         for member in response["Members"]:
             video_data = {}
 
             for key, response_key in keys_to_search.items():
                 video_data[key] = member.get(response_key, "Not Available")
-            
+
             video_list.append(video_data)
 
     return {"Video": video_list}
@@ -902,9 +896,8 @@ def extract_virtual_disk_data(response):
         "ReadCachePolicy": "ReadCachePolicy",
         "WriteCachePolicy": "WriteCachePolicy"
     }
-    
-    virtual_disk_list = []
 
+    virtual_disk_list = []
 
     if "Members" in response and response["Members"]:
         for member in response["Members"]:
@@ -913,14 +906,14 @@ def extract_virtual_disk_data(response):
             for key, response_key in keys_to_search.items():
                 keys = response_key.split('.')
                 value = member
-                
+
                 for k in keys:
                     value = value.get(k, "Not Available")
                     if value == "Not Available":
                         break
-                
+
                 virtual_disk_data[key] = value
-            
+
             virtual_disk_list.append(virtual_disk_data)
 
     return {"VirtualDisk": virtual_disk_list}
@@ -930,7 +923,7 @@ def get_storage_controllers(idrac, module):
 
     storage_uri = '/redfish/v1/Systems/System.Embedded.1/Storage'
     response = idrac.invoke_request(method='GET', uri=storage_uri)
-    
+
     if response.status_code == 200:
         storage_data = response.json_data
         controllers = storage_data.get("Members", [])
@@ -943,10 +936,11 @@ def get_storage_controllers(idrac, module):
 
         return controller_uris
 
+
 def get_enclosure_uris(idrac, module):
     chassis_uri = '/redfish/v1/Chassis'
     response = idrac.invoke_request(method='GET', uri=chassis_uri)
-    
+
     if response.status_code == 200:
         chassis_data = response.json_data
         members = chassis_data.get("Members", [])
@@ -960,6 +954,7 @@ def get_enclosure_uris(idrac, module):
         return enclosure_uris
 
     return []
+
 
 def extract_physical_disk_data(response):
     keys_to_search = {
@@ -984,13 +979,13 @@ def extract_physical_disk_data(response):
         "SerialNumber": "SerialNumber",
         "Status": "Status",
     }
-    
+
     physical_disk_list = []
 
     if "Members" in response and response["Members"]:
         for member in response["Members"]:
             physical_disk_data = {}
-            
+
             for key, response_key in keys_to_search.items():
                 physical_disk_data[key] = member.get(response_key, "Not Available")
 
@@ -1016,11 +1011,11 @@ def extract_idrac_data(response):
     }
 
     idrac_list = []
-    
+
     if "Members" in response and response["Members"]:
         for member in response["Members"]:
             idrac_data = {}
-            
+
             for key, response_key in keys_to_search.items():
                 if response_key == "IPv4Addresses":
                     ipv4_list = member.get("IPv4Addresses", [])
@@ -1034,9 +1029,9 @@ def extract_idrac_data(response):
                     idrac_data["State"] = status.get("State", "Not Available")
                 else:
                     idrac_data[key] = member.get(response_key, "Not Available")
-            
+
             idrac_list.append(idrac_data)
-    
+
     return {"iDRAC": idrac_list}
 
 
@@ -1059,11 +1054,11 @@ def extract_idrac_nic_data(response):
     }
 
     idrac_nic_list = []
-    
+
     if "Members" in response and response["Members"]:
         for member in response["Members"]:
             nic_data = {}
-            
+
             for key, response_key in keys_to_search.items():
                 if response_key == "IPv4Addresses":
                     ipv4_list = member.get("IPv4Addresses", [])
@@ -1076,9 +1071,9 @@ def extract_idrac_nic_data(response):
                     nic_data["PrimaryStatus"] = status.get("Health", "Not Available")
                 else:
                     nic_data[key] = member.get(response_key, response_key) if response_key != "Not Available" else "Not Available"
-            
+
             idrac_nic_list.append(nic_data)
-    
+
     return {"iDRACNIC": idrac_nic_list}
 
 
@@ -1102,7 +1097,7 @@ def get_idrac_system_info(idrac, module):
                 "nic": GET_IDRAC_NIC_DETAILS_URI_10,
                 "pci": GET_IDRAC_PCI_DETAILS_URI_10,
                 "physical_disk": GET_IDRAC_STORAGE_DETAILS_URI_10,
-                "power_supply": GET_IDRAC_POWER_SUPPLY_DETAILS_URI_10,            
+                "power_supply": GET_IDRAC_POWER_SUPPLY_DETAILS_URI_10,
                 "sensors_voltage": GET_IDRAC_SENSOR_VOLTAGE_DETAILS_URI_10,
                 "sensors_battery": GET_IDRAC_SENSOR_BATTERY_DETAILS_URI_10,
                 "sensor_fan": GET_IDRAC_SENSOR_FAN_DETAILS_URI_10,
@@ -1124,7 +1119,7 @@ def get_idrac_system_info(idrac, module):
 
                     if key == "bios":
                         bios_data = extract_bios_data(data)
-                        filter_data= remove_key(bios_data)
+                        filter_data = remove_key(bios_data)
                         combined_data.update(filter_data)
                     elif key == "cpu":
                         cpu_data = extract_cpu_data(data, Subsystem)
@@ -1139,21 +1134,20 @@ def get_idrac_system_info(idrac, module):
                         controller_sensor_data = extract_controller_sensor_data(data)
                         combined_data.update(controller_sensor_data)
                     elif key == "enclosure":
-                      enclosure_uris = get_enclosure_uris(idrac, module)
+                        enclosure_uris = get_enclosure_uris(idrac, module)
+                        all_enclosure_data = []
+                        if enclosure_uris:
+                            for enclosure_uri in enclosure_uris:
+                                oem_uri = f"{enclosure_uri}/Oem/Dell/DellEnclosures"
+                                oem_response = []
+                                oem_response = idrac.invoke_request(method='GET', uri=oem_uri)
+                                if oem_response.status_code == 200:
+                                    all_enclosure_data.append(oem_response.json_data)
 
-                      all_enclosure_data = []
-                      if enclosure_uris:
-                          for enclosure_uri in enclosure_uris:
-                              oem_uri = f"{enclosure_uri}/Oem/Dell/DellEnclosures"
-                              oem_response= []
-                              oem_response = idrac.invoke_request(method='GET', uri=oem_uri)
-                              if oem_response.status_code == 200:
-                                  all_enclosure_data.append(oem_response.json_data)
-
-                          extracted_enclosure_data = extract_enclosure_data(all_enclosure_data)
-                          combined_data.update(extracted_enclosure_data)
-                      else:
-                          combined_data["Enclosures"] = []
+                            extracted_enclosure_data = extract_enclosure_data(all_enclosure_data)
+                            combined_data.update(extracted_enclosure_data)
+                        else:
+                            combined_data["Enclosures"] = []
 
                     elif key == "enclosure_sensor":
                         enclosure_fan_data = extract_enclosure_fan_data(data)
@@ -1228,11 +1222,11 @@ def get_idrac_system_info(idrac, module):
                         sensors_intrusion_data = extract_sensors_intrusion_data(data, Subsystem)
                         combined_data.update(sensors_intrusion_data)
                     elif key == "sensors_temp":
-                        sensors_temp_data = extract_sensors_temperature_data(data,Subsystem)
+                        sensors_temp_data = extract_sensors_temperature_data(data, Subsystem)
                         combined_data.update(sensors_temp_data)
                     elif key == "system":
                         system_data = extract_system_data(data, Subsystem)
-                        filter_data= remove_key(system_data)
+                        filter_data = remove_key(system_data)
                         combined_data.update(filter_data)
                     elif key == "video":
                         video_data = extract_video_data(data)
@@ -1260,8 +1254,7 @@ def get_idrac_system_info(idrac, module):
             }
 
             combined_data["Subsystem"] = Subsystem
-            return combined_data               
-
+            return combined_data
 
     except Exception:
         with iDRACConnection(module.params) as idrac:
@@ -1269,7 +1262,7 @@ def get_idrac_system_info(idrac, module):
             msg = idrac.get_json_device()
             return msg
 
-# Main
+
 def main():
     specs = {}
     specs.update(idrac_auth_params)
