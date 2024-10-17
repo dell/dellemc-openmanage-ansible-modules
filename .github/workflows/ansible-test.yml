@@ -76,7 +76,7 @@ jobs:
         run: ansible-galaxy collection install ansible.posix
 
       - name: Download migrated collection artifacts
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v4.1.8
         with:
           name: collection
           path: .cache/collection-tarballs
