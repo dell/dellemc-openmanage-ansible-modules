@@ -1,0 +1,65 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: hostname, vcenter_username
+      and vcenter_password."
+  when:
+    hostname is not defined or ome_username is not defined or ome_password
+    is not defined
+
+- block:
+    - name: Retrieve all vcenter info (Check mode - Changes expected)
+      dellemc.openmanage.omevv_firmware_repository_profile_info: &retrieve_info
+        hostname: "{{ hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_uuid: "971d1cd1-7377-448c-a0c5-e0f599b15433"
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify task status - Retrieve all vcenter info
+       (Check mode - Changes expected)
+      ansible.builtin.assert:
+        that:
+          - not cm_changes.changed
+          - cm_changes.msg == "Successfully retrieved the firmware repository profile information."
+
+    - name: Retrieve all vcenter info (Normal Mode)
+      dellemc.openmanage.omevv_firmware_repository_profile_info:
+        <<: *retrieve_info
+      register: info_result
+
+    - name: Verify task status - Retrieve all vcenter info (Normal Mode)
+      ansible.builtin.assert:
+        that:
+          - not info_result.changed
+          - info_result.msg == "Successfully retrieved the firmware repository profile information."
+
+    - name: Get Vcenter details by uri.
+      ansible.builtin.uri:
+        url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
+         }}/omevv/GatewayService/v1/RepositoryProfiles
+        user: "{{ ome_username }}"
+        password: "{{ ome_password }}"
+        validate_certs: false
+        force_basic_auth: true
+        status_code: 200
+      register: uri_resp
+
+    - name: Verify - Get Vcenter details by uri.
+      ansible.builtin.assert:
+        that:
+          - info_result.profile_info == uri_resp.json
+
+  module_defaults:
+    dellemc.openmanage.omevv_firmware_repository_profile_info:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      vcenter_username: "{{ vcenter_username }}"
+      vcenter_password: "{{ vcenter_password }}"
+      port: "{{ port }}"
