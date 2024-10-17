@@ -27,7 +27,7 @@ SUCCESS_MSG = "Successfully retrieved the firmware repository profile informatio
 NO_PROFILE_MSG = "Unable to complete the operation because the '{profile_name}' is not a valid 'profile_name'."
 FAILED_MSG = "Unable to fetch the firmware repository profile information."
 INVOKE_REQ_KEY = "omevv_firmware_repository_profile_info.RestOMEVV.invoke_request"
-GET_PROFILE_INFO_KEY = "omevv_firmware_repository_profile_info.OMEVVINFO.get_firmware_repository_profile"
+GET_PROFILE_INFO_KEY = "omevv_firmware_repository_profile_info.OMEVVFirmwareProfile.get_firmware_repository_profile"
 PERFORM_OPERATION_KEY = "omevv_firmware_repository_profile_info.OmevvFirmwareProfileInfo.perform_module_operation"
 VCENTER_ERROR = "vCenter with UUID xx is not registered."
 HTTP_ERROR = "http error message"
@@ -74,7 +74,7 @@ class TestOMEVVFirmwareRepositoryProfileInfo(FakeAnsibleModule):
 
             {
                 "id": 1001,
-                "profileName": "Dell Default Catalog",
+                "profileName": "Dell Default",
                 "description": "Latest Firmware From Dell",
                 "profileType": "Firmware",
                 "sharePath": "https://downloads.dell.com//catalog/catalog.xml.gz",
@@ -92,25 +92,24 @@ class TestOMEVVFirmwareRepositoryProfileInfo(FakeAnsibleModule):
             }
         ]
         # Scenario 1: Retrieve all profile information
-        obj = MagicMock()
-        obj.success = 'OK'
-        obj.json_data = sample_resp
-        mocker.patch(MODULE_PATH + GET_PROFILE_INFO_KEY, return_value=obj)
+        mocker.patch(MODULE_PATH + GET_PROFILE_INFO_KEY, return_value=sample_resp)
         resp = self._run_module(omevv_default_args)
         assert resp['msg'] == SUCCESS_MSG
         assert resp['changed'] is False
 
         # Scenario 2: Retrieve single profile information
         omevv_default_args.update({'name': 'Dell Default Catalog'})
+        mocker.patch(MODULE_PATH + GET_PROFILE_INFO_KEY, return_value=[sample_resp[0]])
         resp = self._run_module(omevv_default_args)
         assert resp['msg'] == SUCCESS_MSG
         assert resp['changed'] is False
 
         # Scenario 3: Retrieve not successfull profile information
-        omevv_default_args.update({'name': 'hostname1'})
+        omevv_default_args.update({'name': 'Invalid_profile'})
+        mocker.patch(MODULE_PATH + GET_PROFILE_INFO_KEY, return_value=[])
         resp = self._run_module(omevv_default_args)
-        assert resp['msg'] == "Unable to complete the operation because the 'hostname1' is not a valid 'profile_name'."
-        assert resp['skipped'] is True
+        assert resp['msg'] == "'Invalid_profile' firmware repository profile name does not exist in OMEVV."
+        assert resp['changed'] is False
 
     @pytest.mark.parametrize("exc_type",
                              [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])

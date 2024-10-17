@@ -138,51 +138,56 @@ import json
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv import RestOMEVV, OMEVVAnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv_utils import OMEVVInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv_utils.omevv_firmware_utils import OMEVVFirmwareProfile
 
 SUCCESS_MSG = "Successfully retrieved the firmware repository profile information."
-NO_PROFILE_MSG = "Unable to complete the operation because the '{profile_name}' is not a valid 'profile_name'."
-FAILED_MSG = "Unable to fetch the firmware repository profile information."
-ERROR_CODES = ["11008", "12027"]
+NO_PROFILE_MSG = "'{profile_name}' firmware repository profile name does not exist in OMEVV."
+ERROR_CODES = ["12027"]
 
 
 class OmevvFirmwareProfileInfo:
 
     def __init__(self, module, rest_obj) -> None:
+        """
+        Initializes a new instance of the class.
+        Args:
+            module (object): The module object.
+            rest_obj (object): The REST object.
+        Returns:
+            None
+        """
         self.module = module
         self.obj = rest_obj
 
-    def search_profile_name(self, profiles_data, profile_name):
-        for profile in profiles_data:
-            if profile.get('profileName') == profile_name:
-                return profile
-        return {}
-
-    def get_profile_info(self, profiles_data, profile_name) -> dict:
-        output_not_found_or_empty = {'msg': NO_PROFILE_MSG.format(profile_name=profile_name),
-                                     'profile_info': [], 'op': 'skipped'}
-        if profile_name is not None or profile_name != "":
-            data = self.search_profile_name(profiles_data, profile_name)
-            if data:
-                output_specific = {'msg': SUCCESS_MSG,
-                                   'profile_info': data, 'op': 'success'}
-                return output_specific
-        return output_not_found_or_empty
-
     def perform_module_operation(self) -> dict:
-        self.omevv_utils_obj = OMEVVInfo(self.obj, self.module)
-        resp = self.omevv_utils_obj.get_firmware_repository_profile()
-        result = {'msg': FAILED_MSG, 'op': 'failed'}
-        if resp.success:
-            result = {'msg': SUCCESS_MSG, 'profile_info': resp.json_data, 'op': 'success'}
+        """
+        Retrieves the firmware repository profile information.
+        Returns:
+            dict: A dictionary containing the message and the firmware repository profile information.
+                - msg (str): The success message or the error message.
+                - profile_info (list): The list of firmware repository profile information.
+        """
         profile_name = self.module.params.get("name")
-        if profile_name is None or result['op'] == 'failed':
-            return result
-        result = self.get_profile_info(resp.json_data, profile_name)
+        self.omevv_utils_obj = OMEVVFirmwareProfile(self.obj)
+        resp = self.omevv_utils_obj.get_firmware_repository_profile(profile_name)
+        result = {'msg': SUCCESS_MSG, 'profile_info': resp}
+        if (profile_name or profile_name == "") and (not resp):
+            result['msg'] = NO_PROFILE_MSG.format(profile_name=profile_name)
         return result
 
 
 def main():
+    """
+    Retrieves the firmware repository profile information.
+
+    Returns:
+        dict: A dictionary containing the message and the firmware repository profile information.
+            - msg (str): The success message or the error message.
+            - profile_info (list): The list of firmware repository profile information.
+
+    Error Codes:
+        - 12027: The specified vCenter UUID is not registered in OME.
+    """
     argument_spec = {
         "name": {"type": 'str'}
     }
@@ -192,12 +197,7 @@ def main():
         with RestOMEVV(module.params) as rest_obj:
             omevv_obj = OmevvFirmwareProfileInfo(module, rest_obj)
             resp = omevv_obj.perform_module_operation()
-            if resp['op'] == 'success':
-                module.exit_json(msg=resp['msg'], profile_info=resp['profile_info'])
-            elif resp['op'] == 'skipped':
-                module.exit_json(msg=resp['msg'], profile_info=resp['profile_info'], skipped=True)
-            else:
-                module.exit_json(msg=resp['msg'], failed=True)
+            module.exit_json(msg=resp['msg'], profile_info=resp['profile_info'])
     except HTTPError as err:
         error_info = json.load(err)
         code = error_info.get('errorCode')
