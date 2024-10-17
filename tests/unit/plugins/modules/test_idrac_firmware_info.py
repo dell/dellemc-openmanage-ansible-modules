@@ -82,10 +82,14 @@ class TestFirmware(FakeAnsibleModule):
     def test_main_idrac_get_firmware_info_success_case01(self, idrac_redfish_mock,
                                                          idrac_default_args):
         mock_data = {
-            "Members": [
+            
                 {"KeyToRemove": "Data", "FirmwareVersion": "1.10"},
-                {"KeyToRemove": "Data", "FirmwareVersion": "1.20"}
-            ]
+                {"KeyToRemove": "Data", "FirmwareVersion": "1.20"},
+
+            'Subsystem': [],
+            'System': [],
+            'iDRAC': [],
+            'iDRACString': [],
         }
 
         idrac_redfish_mock.invoke_request.return_value.status_code = 200
