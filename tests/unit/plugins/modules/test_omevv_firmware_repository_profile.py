@@ -23,6 +23,7 @@ from mock import MagicMock
 from ansible.module_utils._text import to_text
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.omevv_firmware_repository_profile.'
+MODULE_UTILS_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.omevv_firmware_utils.'
 SUCCESS_MSG = "Successfully retrieved the firmware repository profile information."
 NO_PROFILE_MSG = "Unable to complete the operation because the '{profile_name}' is not a valid 'profile_name'."
 FAILED_MSG = "Unable to fetch the firmware repository profile information."
@@ -32,6 +33,7 @@ PERFORM_OPERATION_KEY = "FirmwareRepositoryProfile.execute"
 HTTP_ERROR = "http error message"
 HTTP_ERROR_URL = 'https://testhost.com'
 RETURN_TYPE = "application/json"
+SHARE_PATH = "https://downloads.dell.com//catalog/catalog.xml.gz"
 
 
 class TestFirmwareRepositoryProfile(FakeAnsibleModule):
@@ -49,22 +51,6 @@ class TestFirmwareRepositoryProfile(FakeAnsibleModule):
         omevv_conn_mock.return_value.__enter__.return_value = omevv_firmware_repository_profile_mock
         return omevv_conn_mock
 
-    def test_connection(self, omevv_connection_firmware_repository_profile, omevv_default_args, mocker):
-        payload = {
-            "profileName": "test",
-            "description": "Test6",
-            "protocolType": "HTTPS",
-            "profileType": "Firmware",
-            "sharePath": "https://downloads.dell.com////catalog/catalog.xml.gz",
-            "catalogPath": "https://downloads.dell.com////catalog/catalog.xml.gz",
-            "checkCertificate": False}
-        mocker.patch(MODULE_PATH + 'FirmwareRepositoryProfile.get_payload_details', return_value=payload)
-        f_module = self.get_module_mock(
-            params=omevv_default_args)
-        obj = self.module.FirmwareRepositoryProfile(omevv_connection_firmware_repository_profile, f_module)
-        result = obj.test_connection()
-        assert result == True
-
     def test_get_firmware_repository_profile(self, omevv_connection_firmware_repository_profile, omevv_default_args, mocker):
         obj = MagicMock()
         sample_resp = [
@@ -73,7 +59,7 @@ class TestFirmwareRepositoryProfile(FakeAnsibleModule):
                 "profileName": "Dell Default Catalog",
                 "description": "Latest Firmware From Dell",
                 "profileType": "Firmware",
-                "sharePath": "https://downloads.dell.com//catalog/catalog.xml.gz",
+                "sharePath": SHARE_PATH,
                 "fileName": "catalog.xml",
                 "status": "Success",
                 "factoryCreated": True,
@@ -88,67 +74,13 @@ class TestFirmwareRepositoryProfile(FakeAnsibleModule):
             }
         ]
         obj.json_data = sample_resp
-        mocker.patch(MODULE_PATH + 'FirmwareRepositoryProfile.execute', return_value=True)
+        mocker.patch(MODULE_PATH + PERFORM_OPERATION_KEY, return_value=True)
         mocker.patch(MODULE_PATH + GET_PROFILE_INFO_KEY, return_value=obj)
         f_module = self.get_module_mock(
             params=omevv_default_args)
         obj = self.module.FirmwareRepositoryProfile(omevv_connection_firmware_repository_profile, f_module)
         result = obj.get_firmware_repository_profile()
         assert result == sample_resp
-
-    def test_search_profile_name(self, omevv_connection_firmware_repository_profile, omevv_default_args):
-        data = [
-            {
-                "id": 1000,
-                "profileName": "Dell Default Catalog",
-                "description": "Latest Firmware From Dell",
-                "profileType": "Firmware",
-                "sharePath": "https://downloads.dell.com//catalog/catalog.xml.gz",
-                "fileName": "catalog.xml",
-                "status": "Success",
-                "factoryCreated": True,
-                "factoryType": "Default",
-                "catalogCreatedDate": "2024-08-27T01:58:10Z",
-                "catalogLastChecked": "2024-09-09T19:30:16Z",
-                "checkCertificate": "",
-                "protocolType": "HTTPS",
-                "createdBy": "OMEVV Default",
-                "modifiedBy": "",
-                "owner": "OMEVV"
-            }
-        ]
-        # Scenario 1: When profile name is present in the list
-        profile_name = "Dell Default Catalog"
-        f_module = self.get_module_mock(
-            params=omevv_default_args)
-        obj = self.module.FirmwareRepositoryProfile(omevv_connection_firmware_repository_profile, f_module)
-        result = obj.search_profile_name(data, profile_name)
-        assert result == data[0]
-
-        # Scenario 2: When profile name is not present in the list
-        profile_name = "Dell"
-        f_module = self.get_module_mock(
-            params=omevv_default_args)
-        obj = self.module.FirmwareRepositoryProfile(omevv_connection_firmware_repository_profile, f_module)
-        result = obj.search_profile_name(data, profile_name)
-        assert result == {}
-
-    def test_validate_catalog_path(self, omevv_connection_firmware_repository_profile, omevv_default_args):
-        protocol_type = "HTTPS"        
-        # Scenario 1: When catalog path is valid
-        catalog_path = "https://downloads.dell.com//catalog/catalog.xml.gz"
-        f_module = self.get_module_mock(
-            params=omevv_default_args)
-        obj = self.module.FirmwareRepositoryProfile(omevv_connection_firmware_repository_profile, f_module)
-        obj.validate_catalog_path(protocol_type, catalog_path)
-
-        # Scenario 2: When catalog path is not valid
-        protocol_type = "HTTPS"
-        catalog_path = "https://downloads.dell.com//catalog/catalog"
-        f_module = self.get_module_mock(
-            params=omevv_default_args)
-        obj = self.module.FirmwareRepositoryProfile(omevv_connection_firmware_repository_profile, f_module)
-        assert obj.validate_catalog_path(protocol_type, catalog_path) is None
 
 
 class TestCreateFirmwareRepositoryProfile(FakeAnsibleModule):
@@ -165,7 +97,7 @@ class TestCreateFirmwareRepositoryProfile(FakeAnsibleModule):
                                        return_value=omevv_firmware_repository_profile_mock)
         omevv_conn_mock.return_value.__enter__.return_value = omevv_firmware_repository_profile_mock
         return omevv_conn_mock
-    
+
     def test_create_firmware_repository_profile(self, omevv_connection_firmware_repository_profile, omevv_default_args, mocker):
         obj = MagicMock()
         # Scenario 1: When creation is success
@@ -175,9 +107,9 @@ class TestCreateFirmwareRepositoryProfile(FakeAnsibleModule):
             "description": "Test6",
             "protocolType": "HTTPS",
             "profileType": "Firmware",
-            "sharePath": "https://downloads.dell.com////catalog/catalog.xml.gz"}
-        mocker.patch(MODULE_PATH + 'FirmwareRepositoryProfile.get_payload_details', return_value=payload)
-        mocker.patch(MODULE_PATH + 'FirmwareRepositoryProfile.execute', return_value=True)
+            "sharePath": SHARE_PATH}
+        mocker.patch(MODULE_UTILS_PATH + 'OMEVVFirmwareProfile.get_payload_details', return_value=payload)
+        mocker.patch(MODULE_PATH + PERFORM_OPERATION_KEY, return_value=True)
         mocker.patch(MODULE_PATH + GET_PROFILE_INFO_KEY, return_value=obj)
         f_module = self.get_module_mock(
             params=omevv_default_args)
@@ -187,8 +119,8 @@ class TestCreateFirmwareRepositoryProfile(FakeAnsibleModule):
         # Scenario 2: When creation is failed
         obj2 = MagicMock()
         obj2.status_code = 400
-        mocker.patch(MODULE_PATH + 'FirmwareRepositoryProfile.get_payload_details', return_value=payload)
-        mocker.patch(MODULE_PATH + 'FirmwareRepositoryProfile.execute', return_value=True)
+        mocker.patch(MODULE_UTILS_PATH + 'OMEVVFirmwareProfile.get_payload_details', return_value=payload)
+        mocker.patch(MODULE_PATH + PERFORM_OPERATION_KEY, return_value=True)
         mocker.patch(MODULE_PATH + GET_PROFILE_INFO_KEY, return_value=obj2)
         f_module = self.get_module_mock(
             params=omevv_default_args)
@@ -198,7 +130,7 @@ class TestCreateFirmwareRepositoryProfile(FakeAnsibleModule):
     @pytest.mark.parametrize("exc_type",
                              [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
     def test_omevv_firmware_repository_profile_main_exception_handling_case(self, exc_type, mocker, omevv_default_args,
-                                                                                 omevv_connection_firmware_repository_profile, omevv_firmware_repository_profile_mock):
+                                                                            omevv_firmware_repository_profile_mock):
         omevv_firmware_repository_profile_mock.status_code = 400
         omevv_firmware_repository_profile_mock.success = False
         json_str = to_text(json.dumps({"errorCode": "501", "message": "Error"}))
@@ -214,7 +146,7 @@ class TestCreateFirmwareRepositoryProfile(FakeAnsibleModule):
                          side_effect=exc_type('test'))
         result = self._run_module(omevv_default_args)
         if exc_type == URLError:
-            assert result['unreachable'] is True
+            assert result['changed'] is False
         else:
             assert result['failed'] is True
         assert 'msg' in result
