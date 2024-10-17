@@ -132,7 +132,7 @@ def get_idrac_firmware_info(idrac, module):
 
             if details_response and details_response.status_code == 200 and details_response.json_data:
                 filtered_data = remove_key(details_response.json_data)
-                return filtered_data
+            return filtered_data
 
     except HTTPError as err:
         if err.status == 404:
