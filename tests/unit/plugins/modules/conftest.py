@@ -62,6 +62,13 @@ def ome_default_args():
 
 
 @pytest.fixture
+def omevv_default_args():
+    default_args = {'hostname': 'XX.XX.XX.XX', 'vcenter_uuid': 'vcenter_uuid', 'vcenter_username': 'vcenter_username',
+                    'vcenter_password': 'vcenter_password', "ca_path": "/path/ca_bundle"}
+    return default_args
+
+
+@pytest.fixture
 def idrac_default_args():
     default_args = {"idrac_ip": "idrac_ip", "idrac_user": "idrac_user", "idrac_password": "idrac_password",
                     "ca_path": "/path/to/ca_cert.pem"}
