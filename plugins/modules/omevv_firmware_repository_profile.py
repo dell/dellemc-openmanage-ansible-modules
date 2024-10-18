@@ -140,10 +140,12 @@ error_info:
     }
 '''
 import json
+import time
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv import RestOMEVV, OMEVVAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv_firmware_utils import OMEVVFirmwareProfile
+from ansible.module_utils.common.dict_transformations import recursive_diff
 
 ODATA_REGEX = "(.*?)@odata"
 ODATA = "@odata.id"
@@ -169,18 +171,31 @@ class FirmwareRepositoryProfile:
         self.obj = rest_obj
         self.omevv_profile_obj = OMEVVFirmwareProfile(self.obj)
 
-    def module_params(self):
-        module_params = {}
-        params_list = ['name', 'new_name', 'catalog_path', 'description', 'protocol_type', 'share_username', 'share_password', 'share_domain']
-        for param in params_list:
-            value = self.module.params.get(param)
-            module_params[param] = value if value is not None else ""
-        return module_params
+    def get_payload_details(self):
+        payload = {}
+        payload["profileName"] = self.module.params.get('name')
+        payload["protocolType"] = self.module.params.get('protocol_type').upper()
+        payload["sharePath"] = self.module.params.get('catalog_path')
+        if self.module.params.get('description') is None:
+            payload["description"] = ""
+        else:
+            payload["description"] = self.module.params.get('description')
+        payload["profileType"] = "Firmware"
+        payload["shareCredential"] = {
+            "username": self.module.params.get('share_username'),
+            "password": self.module.params.get('share_password'),
+            "domain": self.module.params.get('share_dommain')
+        }
+        return payload
 
     def test_connection(self):
-        module_params = self.module_params()
-        payload = self.omevv_profile_obj.form_conn_payload(**module_params)
-        resp = self.omevv_profile_obj.test_connection(payload)
+        resp = self.omevv_profile_obj.test_connection(
+            protocol_type=self.module.params.get('protocol_type'),
+            catalog_path=self.module.params.get('catalog_path'),
+            share_username=self.module.params.get('share_username'),
+            share_password=self.module.params.get('share_password'),
+            share_domain=self.module.params.get('share_domain')
+        )
         if resp.success:
             return True
         else:
@@ -206,6 +221,7 @@ class CreateFirmwareRepositoryProfile(FirmwareRepositoryProfile):
 
     def diff_mode_check(self, payload):
         diff = {}
+        del payload["shareCredential"]
         diff = dict(
             before={},
             after=payload
@@ -214,14 +230,24 @@ class CreateFirmwareRepositoryProfile(FirmwareRepositoryProfile):
 
     def create_firmware_repository_profile(self):
         diff = {}
-        module_params = self.module_params()
-        payload = self.omevv_profile_obj.get_payload_details(**module_params)
+        payload = self.get_payload_details()
         res = FirmwareRepositoryProfile.execute(self)
         if res:
             diff = self.diff_mode_check(payload)
-            resp = self.omevv_profile_obj.create_firmware_repository_profile(payload)
+            resp, err_msg = self.omevv_profile_obj.create_firmware_repository_profile(
+                name=self.module.params.get('name'),
+                catalog_path=self.module.params.get('catalog_path'),
+                description=self.module.params.get('description'),
+                protocol_type=self.module.params.get('protocol_type'),
+                share_username=self.module.params.get('share_username'),
+                share_password=self.module.params.get('share_password'),
+                share_domain=self.module.params.get('share_domain')
+            )
             if resp.success:
                 profile_resp = self.omevv_profile_obj.get_firmware_repository_profile_by_id(resp.json_data)
+                while profile_resp.json_data["status"] != "Success":
+                    time.sleep(1)
+                    profile_resp = self.omevv_profile_obj.get_firmware_repository_profile_by_id(resp.json_data)
                 if self.module._diff:
                     self.module.exit_json(msg=SUCCESS_CREATION_MSG, profile_info=profile_resp.json_data, diff=diff, changed=True)
                 self.module.exit_json(msg=SUCCESS_CREATION_MSG, profile_info=profile_resp.json_data, changed=True)
@@ -229,8 +255,7 @@ class CreateFirmwareRepositoryProfile(FirmwareRepositoryProfile):
                 self.module.exit_json(msg=FAILED_CREATION_MSG, failed=True)
 
     def execute(self):
-        module_params = self.module_params()
-        payload = self.omevv_profile_obj.get_payload_details(**module_params)
+        payload = self.get_payload_details()
         result = self.get_firmware_repository_profile()
         profile = self.module.params.get('name')
         new_profile = self.module.params.get('new_name')
@@ -262,8 +287,6 @@ class ModifyFirmwareRepositoryProfile(FirmwareRepositoryProfile):
 
     def diff_check(self, api_response, module_response):
         diff = {}
-        del module_response["protocolType"]
-        del module_response["shareCredential"]
         api_response["sharePath"] = api_response["sharePath"] + '/' + api_response["fileName"]
         for key in module_response.keys():
             if key not in api_response or api_response[key] != module_response[key]:
@@ -277,26 +300,38 @@ class ModifyFirmwareRepositoryProfile(FirmwareRepositoryProfile):
         trimmed_resp["description"] = api_response["description"]
         return trimmed_resp
 
-    def diff_mode_check(self, payload, api_response):
-        diff = {}
+    def rec_diff(self, api_response, payload):
+        trim = self.trim_api_response(api_response)
         del payload["shareCredential"]
-        payload["profileName"] = self.module.params.get('new_name')
+        output = recursive_diff(trim, payload)
         if self.module._diff:
             diff = dict(
-                before=self.diff_check(api_response, payload),
-                after=payload
+                before=output[0],
+                after=output[1]
             )
         return diff
 
     def modify_firmware_repository_profile(self, api_response):
-        module_params = self.module_params()
-        payload = self.omevv_profile_obj.get_modify_payload_details(**module_params)
+        payload = self.get_payload_details()
+        del payload["profileType"]
+        del payload["protocolType"]
         res = FirmwareRepositoryProfile.execute(self)
         if res:
-            diff = self.diff_mode_check(payload, self.trim_api_response(api_response))
-            resp = self.omevv_profile_obj.modify_firmware_repository_profile(api_response["id"], payload)
+            diff = self.rec_diff(api_response, payload)
+            resp, err_msg = self.omevv_profile_obj.modify_firmware_repository_profile(
+                api_response["id"],
+                name=self.module.params.get('new_name'),
+                catalog_path=self.module.params.get('catalog_path'),
+                description=self.module.params.get('description'),
+                share_username=self.module.params.get('share_username'),
+                share_password=self.module.params.get('share_password'),
+                share_domain=self.module.params.get('share_domain')
+            )
             if resp.success:
                 profile_resp = self.omevv_profile_obj.get_firmware_repository_profile_by_id(api_response["id"])
+                while profile_resp.json_data["status"] != "Success":
+                    time.sleep(1)
+                    profile_resp = self.omevv_profile_obj.get_firmware_repository_profile_by_id(api_response["id"])
                 if self.module._diff:
                     self.module.exit_json(msg=SUCCESS_MODIFY_MSG, profile_info=profile_resp.json_data, diff=diff, changed=True)
                 self.module.exit_json(msg=SUCCESS_MODIFY_MSG, profile_info=profile_resp.json_data, changed=True)
@@ -304,16 +339,17 @@ class ModifyFirmwareRepositoryProfile(FirmwareRepositoryProfile):
                 self.module.exit_json(msg=FAILED_MODIFY_MSG, failed=True)
 
     def execute(self):
-        module_params = self.module_params()
-        payload = self.omevv_profile_obj.get_modify_payload_details()
+        payload = self.get_payload_details()
+        del payload["profileType"]
+        del payload["protocolType"]
         result = self.get_firmware_repository_profile()
         profile = self.module.params.get('name')
         api_response = self.omevv_profile_obj.search_profile_name(result, profile)
-        module_response = self.omevv_profile_obj.get_payload_details(**module_params)
+        module_response = self.get_payload_details()
         module_response["profileName"] = self.module.params.get('new_name')
         diff = self.diff_check(api_response, module_response)
         if diff and self.module.check_mode and self.module._diff:
-            diff = self.diff_mode_check(payload, self.trim_api_response(api_response))
+            diff = self.rec_diff(api_response, payload)
             self.module.exit_json(msg=CHANGES_FOUND_MSG, diff=diff, changed=True)
         if diff and self.module.check_mode:
             self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
@@ -367,9 +403,9 @@ class DeleteFirmwareRepositoryProfile(FirmwareRepositoryProfile):
         if not profile_exists and self.module.check_mode:
             self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
         if not profile_exists and not self.module.check_mode and self.module._diff:
-            self.module.exit_json(msg=PROFILE_NOT_FOUND_MSG.format(profile_name=profile), diff={"before": {}, "after": {}}, profile_info={}, changed=False)
+            self.module.exit_json(msg=PROFILE_NOT_FOUND_MSG.format(profile_name=profile), diff={"before": {}, "after": {}}, profile_info={}, failed=True)
         if not profile_exists and not self.module.check_mode:
-            self.module.exit_json(msg=PROFILE_NOT_FOUND_MSG.format(profile_name=profile), profile_info={}, changed=False)
+            self.module.exit_json(msg=PROFILE_NOT_FOUND_MSG.format(profile_name=profile), profile_info={}, failed=True)
         if profile_exists and not self.module.check_mode:
             self.delete_firmware_repository_profile(api_response)
         if profile_exists and self.module.check_mode:
