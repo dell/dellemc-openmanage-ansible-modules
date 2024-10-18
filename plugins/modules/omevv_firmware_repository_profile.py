@@ -201,6 +201,13 @@ class FirmwareRepositoryProfile:
         else:
             self.module.exit_json(msg=FAILED_CONN_MSG, failed=True)
 
+    def trim_api_response(self, api_response):
+        trimmed_resp = {}
+        trimmed_resp["profileName"] = api_response["profileName"]
+        trimmed_resp["sharePath"] = api_response["sharePath"]
+        trimmed_resp["description"] = api_response["description"]
+        return trimmed_resp
+
     def get_firmware_repository_profile(self):
         resp = self.omevv_profile_obj.get_firmware_repository_profile()
         data = resp.json_data
@@ -260,6 +267,12 @@ class CreateFirmwareRepositoryProfile(FirmwareRepositoryProfile):
         profile = self.module.params.get('name')
         new_profile = self.module.params.get('new_name')
         profile_exists = self.omevv_profile_obj.search_profile_name(result, profile)
+        modified_payload = payload
+        del modified_payload["protocolType"]
+        del modified_payload["profileType"]
+        del modified_payload["shareCredential"]
+        trimmed_resp = FirmwareRepositoryProfile.trim_api_response(self, profile_exists)
+        diff = recursive_diff(modified_payload, trimmed_resp)
         if not profile_exists and self.module.check_mode and self.module._diff:
             diff = self.diff_mode_check(payload)
             self.module.exit_json(msg=CHANGES_FOUND_MSG, diff=diff, changed=True)
@@ -271,7 +284,7 @@ class CreateFirmwareRepositoryProfile(FirmwareRepositoryProfile):
             self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False, diff={"before": {}, "after": {}})
         if profile_exists and self.module.check_mode and not new_profile:
             self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
-        if profile_exists and new_profile:
+        if profile_exists and (new_profile or diff[0] != diff[1]):
             omevv_obj = ModifyFirmwareRepositoryProfile(self.module, self.obj)
             omevv_obj.execute()
         else:
@@ -301,6 +314,7 @@ class ModifyFirmwareRepositoryProfile(FirmwareRepositoryProfile):
         return trimmed_resp
 
     def rec_diff(self, api_response, payload):
+        diff = {}
         trim = self.trim_api_response(api_response)
         del payload["shareCredential"]
         output = recursive_diff(trim, payload)
@@ -316,11 +330,12 @@ class ModifyFirmwareRepositoryProfile(FirmwareRepositoryProfile):
         del payload["profileType"]
         del payload["protocolType"]
         res = FirmwareRepositoryProfile.execute(self)
+        name = self.module.params.get('new_name') if self.module.params.get('new_name') is not None else self.module.params.get('name')
         if res:
             diff = self.rec_diff(api_response, payload)
             resp, err_msg = self.omevv_profile_obj.modify_firmware_repository_profile(
                 api_response["id"],
-                name=self.module.params.get('new_name'),
+                name=name,
                 catalog_path=self.module.params.get('catalog_path'),
                 description=self.module.params.get('description'),
                 share_username=self.module.params.get('share_username'),

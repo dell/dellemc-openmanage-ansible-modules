@@ -59,7 +59,7 @@ class OMEVVFirmwareProfile:
             "domain": share_domain
         }
         return payload
-    
+
     def get_modify_payload_details(self, name, catalog_path, description, share_username, share_password, share_domain):
         payload = {}
         payload["profileName"] = name
@@ -135,7 +135,8 @@ class OMEVVFirmwareProfile:
         Tests the connection to the vCenter server.
 
         """
-        payload = self.form_conn_payload(protocol_type, catalog_path, share_username, share_password, share_domain)
+        payload = self.form_conn_payload(
+            protocol_type, catalog_path, share_username, share_password, share_domain)
         resp = self.omevv.invoke_request("POST", TEST_CONNECTION_URI, payload)
         return resp
 
@@ -152,26 +153,27 @@ class OMEVVFirmwareProfile:
         Retrieves all firmware repository profile Information.
 
         """
-        resp = self.omevv.invoke_request("GET", PROFILE_URI + "/" + str(profile_id))
+        resp = self.omevv.invoke_request(
+            "GET", PROFILE_URI + "/" + str(profile_id))
         return resp
 
-    def create_firmware_repository_profile(self, name, catalog_path, 
-                                           description, protocol_type, 
+    def create_firmware_repository_profile(self, name, catalog_path,
+                                           description, protocol_type,
                                            share_username, share_password,
                                            share_domain):
         err_msg = None
         if name is None:
             err_msg = ""
 
-        payload = self.get_create_payload_details(name, catalog_path, 
-                                           description, protocol_type, 
-                                           share_username, share_password,
-                                           share_domain)
+        payload = self.get_create_payload_details(name, catalog_path,
+                                                  description, protocol_type,
+                                                  share_username, share_password,
+                                                  share_domain)
         resp = self.omevv.invoke_request("POST", PROFILE_URI, payload)
         return resp, err_msg
 
-    def modify_firmware_repository_profile(self, profile_id, name, catalog_path, 
-                                           description, 
+    def modify_firmware_repository_profile(self, profile_id, name, catalog_path,
+                                           description,
                                            share_username, share_password,
                                            share_domain):
         """
@@ -181,11 +183,12 @@ class OMEVVFirmwareProfile:
         err_msg = None
         if name is None:
             err_msg = ""
-        payload = self.get_modify_payload_details(name, catalog_path, 
-                                           description,
-                                           share_username, share_password,
-                                           share_domain)
-        resp = self.omevv.invoke_request("PUT", PROFILE_URI + "/" + str(profile_id), payload)
+        payload = self.get_modify_payload_details(name, catalog_path,
+                                                  description,
+                                                  share_username, share_password,
+                                                  share_domain)
+        resp = self.omevv.invoke_request(
+            "PUT", PROFILE_URI + "/" + str(profile_id), payload)
         return resp, err_msg
 
     def delete_firmware_repository_profile(self, profile_id):
@@ -193,5 +196,6 @@ class OMEVVFirmwareProfile:
         Deletes a firmware repository profile.
 
         """
-        resp = self.omevv.invoke_request("DELETE", PROFILE_URI + "/" + str(profile_id))
+        resp = self.omevv.invoke_request(
+            "DELETE", PROFILE_URI + "/" + str(profile_id))
         return resp
