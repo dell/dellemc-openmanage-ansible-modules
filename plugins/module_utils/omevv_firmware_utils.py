@@ -43,100 +43,49 @@ class OMEVVFirmwareProfile:
     def __init__(self, omevv):
         self.omevv = omevv
 
-    def get_payload_details(self, **kwargs):
-        """
-        Returns a dictionary containing the payload details.
-
-        Args:
-            **kwargs: The keyword arguments.
-                - name (str): The name of the profile.
-                - protocol_type (str): The protocol type.
-                - catalog_path (str): The share path.
-                - description (str, optional): The description.
-                - share_username (str): The share username.
-                - share_password (str): The share password.
-                - share_domain (str): The share domain.
-
-        Returns:
-            dict: The payload details.
-        """
+    def get_create_payload_details(self, name, catalog_path, description, protocol_type, share_username, share_password, share_domain):
         payload = {}
-        payload["profileName"] = kwargs.get('name')
-        payload["protocolType"] = kwargs.get('protocol_type')
-        payload["sharePath"] = kwargs.get('catalog_path')
-        if kwargs.get('description') is None:
+        payload["profileName"] = name
+        payload["protocolType"] = protocol_type
+        payload["sharePath"] = catalog_path
+        if description is None:
             payload["description"] = ""
         else:
-            payload["description"] = kwargs.get('description')
+            payload["description"] = description
         payload["profileType"] = "Firmware"
         payload["shareCredential"] = {
-            "username": kwargs.get('share_username'),
-            "password": kwargs.get('share_password'),
-            "domain": kwargs.get('share_dommain')
+            "username": share_username,
+            "password": share_password,
+            "domain": share_domain
         }
         return payload
-
-    def form_conn_payload(self, **kwargs):
-        """
-        Generates a payload for forming a test connection.
-
-        Args:
-            **kwargs: Keyword arguments.
-                - name (str): The name of the profile.
-                - protocol_type (str): The protocol type.
-                - catalog_path (str): The share path.
-                - description (str, optional): The description.
-                - share_username (str): The share username.
-                - share_password (str): The share password.
-                - share_dommain (str): The share domain.
-
-        Returns:
-            dict: The payload for forming a connection.
-                - catalogPath (str): The share path.
-                - checkCertificate (bool): Whether to check the certificate.
-
-        """
-        payload = self.get_payload_details(**kwargs)
-        del payload["profileName"]
-        del payload["sharePath"]
-        payload["catalogPath"] = kwargs.get('catalog_path')
-        del payload["description"]
-        del payload["profileType"]
-        payload["checkCertificate"] = False
-        return payload
-
-    def get_modify_payload_details(self, **kwargs):
-        """
-        Returns a dictionary containing the payload details for modifying a firmware profile.
-
-        Args:
-            **kwargs: Keyword arguments.
-                - new_name (str): The new name of the profile.
-                - catalog_path (str): The new share path.
-                - description (str): The new description.
-                - share_username (str): The new share username.
-                - share_password (str): The new share password.
-                - share_dommain (str): The new share domain.
-
-        Returns:
-            dict: The payload details.
-                - profileName (str): The new name of the profile.
-                - sharePath (str): The new share path.
-                - description (str): The new description.
-                - shareCredential (dict): The new share credentials.
-                    - username (str): The new share username.
-                    - password (str): The new share password.
-                    - domain (str): The new share domain.
-        """
+    
+    def get_modify_payload_details(self, name, catalog_path, description, share_username, share_password, share_domain):
         payload = {}
-        payload["profileName"] = kwargs.get('new_name')
-        payload["sharePath"] = kwargs.get('catalog_path')
-        payload["description"] = kwargs.get('description')
+        payload["profileName"] = name
+        payload["sharePath"] = catalog_path
+        if description is None:
+            payload["description"] = ""
+        else:
+            payload["description"] = description
+        payload["profileType"] = "Firmware"
         payload["shareCredential"] = {
-            "username": kwargs.get('share_username'),
-            "password": kwargs.get('share_password'),
-            "domain": kwargs.get('share_dommain')
+            "username": share_username,
+            "password": share_password,
+            "domain": share_domain
         }
+        return payload
+
+    def form_conn_payload(self, protocol_type, catalog_path, share_username, share_password, share_domain):
+        payload = {}
+        payload["protocolType"] = protocol_type
+        payload["catalogPath"] = catalog_path
+        payload["shareCredential"] = {
+            "username": share_username if share_username is not None else "",
+            "password": share_password if share_password is not None else "",
+            "domain": share_domain if share_domain is not None else ""
+        }
+        payload["checkCertificate"] = False
         return payload
 
     def search_profile_name(self, data, profile_name):
@@ -181,11 +130,12 @@ class OMEVVFirmwareProfile:
         if not validator(catalog_path):
             self.module.exit_json(msg="Invalid catalog_path", failed=True)
 
-    def test_connection(self, payload):
+    def test_connection(self, protocol_type, catalog_path, share_username, share_password, share_domain):
         """
         Tests the connection to the vCenter server.
 
         """
+        payload = self.form_conn_payload(protocol_type, catalog_path, share_username, share_password, share_domain)
         resp = self.omevv.invoke_request("POST", TEST_CONNECTION_URI, payload)
         return resp
 
@@ -205,21 +155,38 @@ class OMEVVFirmwareProfile:
         resp = self.omevv.invoke_request("GET", PROFILE_URI + "/" + str(profile_id))
         return resp
 
-    def create_firmware_repository_profile(self, payload):
-        """
-        Creates a firmware repository profile.
+    def create_firmware_repository_profile(self, name, catalog_path, 
+                                           description, protocol_type, 
+                                           share_username, share_password,
+                                           share_domain):
+        err_msg = None
+        if name is None:
+            err_msg = ""
 
-        """
+        payload = self.get_create_payload_details(name, catalog_path, 
+                                           description, protocol_type, 
+                                           share_username, share_password,
+                                           share_domain)
         resp = self.omevv.invoke_request("POST", PROFILE_URI, payload)
-        return resp
+        return resp, err_msg
 
-    def modify_firmware_repository_profile(self, profile_id, payload):
+    def modify_firmware_repository_profile(self, profile_id, name, catalog_path, 
+                                           description, 
+                                           share_username, share_password,
+                                           share_domain):
         """
         Modifies a firmware repository profile.
 
         """
+        err_msg = None
+        if name is None:
+            err_msg = ""
+        payload = self.get_modify_payload_details(name, catalog_path, 
+                                           description,
+                                           share_username, share_password,
+                                           share_domain)
         resp = self.omevv.invoke_request("PUT", PROFILE_URI + "/" + str(profile_id), payload)
-        return resp
+        return resp, err_msg
 
     def delete_firmware_repository_profile(self, profile_id):
         """
