@@ -93,36 +93,17 @@ error_info:
 import json
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
+    GET_IDRAC_FIRMWARE_URI_10, GET_IDRAC_BIOS_DETAILS_URI_10, GET_IDRAC_CPU_DETAILS_URI_10, GET_IDRAC_CONTROLLER_DETAILS_URI_10,
+    GET_IDRAC_CONTROLLER_BATTERY_DETAILS_URI_10, GET_IDRAC_CHASSIS_URI_10, GET_IDRAC_ENCLOSURE_FAN_SENSOR_DETAILS_URI_10,
+    GET_IDRAC_ENCLOSURE_TEMP_SENSOR_DETAILS_URI_10, GET_IDRAC_FAN_DETAILS_URI_10, GET_IDRAC_LICENSE_DETAILS_URI_10, GET_IDRAC_MEMORY_DETAILS_URI_10,
+    GET_IDRAC_NIC_DETAILS_URI_10, GET_IDRAC_PCI_DETAILS_URI_10, GET_IDRAC_STORAGE_DETAILS_URI_10, GET_IDRAC_POWER_SUPPLY_DETAILS_URI_10,
+    GET_IDRAC_SENSOR_VOLTAGE_DETAILS_URI_10, GET_IDRAC_SENSOR_BATTERY_DETAILS_URI_10, GET_IDRAC_SENSOR_FAN_DETAILS_URI_10,
+    GET_IDRAC_SENSOR_INTRUSION_DETAILS_URI_10, GET_IDRAC_SENSOR_TEMPERATURE_DETAILS_URI_10, GET_IDRAC_SYSTEM_DETAILS_URI_10, GET_IDRAC_VIDEO_DETAILS_URI_10,
+    remove_key)
 from ansible.module_utils.basic import AnsibleModule
 from urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-
-GET_IDRAC_FIRMWARE_URI_10 = "/redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory"
-GET_IDRAC_BIOS_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Bios"
-GET_IDRAC_CPU_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Processors?$expand=*($levels=1)"
-GET_IDRAC_CONTROLLER_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellControllers"
-GET_IDRAC_CONTROLLER_BATTERY_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/PowerSubsystem/Oem/Dell/DellControllerBattery"
-# GET_IDRAC_CONTROLLER_SENSOR_DETAILS_URI_10= ""
-GET_IDRAC_CHASSIS_URI_10 = "/redfish/v1/Chassis"
-GET_IDRAC_ENCLOSURE_FAN_SENSOR_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Oem/Dell/DellEnclosureFanSensors"
-GET_IDRAC_ENCLOSURE_TEMP_SENSOR_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Oem/Dell/DellEnclosureTemperatureSensors"
-GET_IDRAC_FAN_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/ThermalSubsystem/Fans?$expand=*($levels=1)"
-GET_IDRAC_LICENSE_DETAILS_URI_10 = "/redfish/v1/LicenseService/Licenses?$expand=*($levels=1)"
-GET_IDRAC_MEMORY_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Memory?%24expand=*(%24levels%3D1)"
-GET_IDRAC_NIC_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/EthernetInterfaces?$expand=*($levels=1)"
-GET_IDRAC_PCI_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/PCIeDevices?$expand=*($levels=1)"
-GET_IDRAC_STORAGE_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Storage/"
-GET_IDRAC_POWER_SUPPLY_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/PowerSubsystem/PowerSupplies?$expand=*($levels=1)"
-GET_IDRAC_SENSOR_VOLTAGE_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Power#/Voltages"
-GET_IDRAC_SENSOR_BATTERY_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellSensors/iDRAC.Embedded.1_0x23_SystemBoardCMOSBattery"
-GET_IDRAC_SENSOR_FAN_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Oem/Dell/DellEnclosureFanSensors"
-GET_IDRAC_SENSOR_INTRUSION_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1?$select=PhysicalSecurity/IntrusionSensor"
-GET_IDRAC_SENSOR_TEMPERATURE_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Oem/Dell/DellEnclosureTemperatureSensors"
-GET_IDRAC_SYSTEM_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1"
-# SystemBoardMetrics
-# SystemMetrics
-GET_IDRAC_VIDEO_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellVideo"
 
 
 def extract_bios_data(response):
@@ -130,7 +111,7 @@ def extract_bios_data(response):
         "BIOSReleaseDate": "BIOSReleaseDate",
         "FQDD": "FQDD",
         "InstanceID": "InstanceID",
-        "Key": "Not Available",
+        "Key": "InstanceID",
         "SMBIOSPresent": "SMBIOSPresent",
         "VersionString": "SystemBiosVersion"
     }
@@ -147,17 +128,13 @@ def extract_bios_data(response):
     software_images = response.get("Links", {}).get("SoftwareImages", [])
     if software_images:
         odata_id = software_images[0].get("@odata.id", "")
-        # Extract FQDD from odata_id
-        fqdd_parts = odata_id.split("___")
+        fqdd_parts = odata_id.split("__")
         bios_data["FQDD"] = fqdd_parts[-1] if len(fqdd_parts) > 1 else "Not Available"
     else:
         bios_data["FQDD"] = "Not Available"
 
     version_string = bios_attributes.get("SystemBiosVersion")
-    if version_string:
-        bios_data["SMBIOSPresent"] = "True"
-    else:
-        bios_data["SMBIOSPresent"] = "False"
+    bios_data["SMBIOSPresent"] = "True" if version_string else "False"
 
     bios_list.append(bios_data)
 
@@ -996,18 +973,29 @@ def extract_physical_disk_data(response):
 
 def extract_idrac_data(response):
     keys_to_search = {
-        "DeviceDescription": "Description",
-        "FQDD": "Id",
-        "MACAddress": "MACAddress",
-        "PermanentMACAddress": "PermanentMACAddress",
-        "NICSpeed": "SpeedMbps",
-        "NICDuplex": "FullDuplex",
+        "DNSDomainName": "DNSDomainName",
+        "DNSRacName": "DNSRacName",
+        "DeviceDescription": "DeviceDescription",
+        "FQDD": "FQDD",
+        "FirmwareVersion": "FirmwareVersion",
+        "GUID": "GUID",
+        "GroupName": "GroupName",
+        "GroupStatus": "GroupStatus",
+        "IPMIVersion": "IPMIVersion",
+        "IPv4Address": "IPv4Address",
+        "IPv6Address": "IPv6Address",
+        "Key": "Id",
         "LANEnabledState": "InterfaceEnabled",
-        "IPv4Address": "IPv4Addresses",
-        "IPv6Address": "IPv6Addresses",
-        "LinkStatus": "LinkStatus",
-        "Health": "Status",
-        "AutoNegotiation": "AutoNeg"
+        "MACAddress": "MACAddress",
+        "Model": "EthernetInterfaceType",
+        "NICDuplex": "FullDuplex",
+        "NICSpeed": "SpeedMbps",
+        "PermanentMACAddress": "PermanentMACAddress",
+        "ProductDescription": "Description",
+        "ProductInfo": "Name",
+        "SOLEnabledState": "Not Applicable",
+        "SystemLockDown": "LinkStatus",
+        "URLString": "UefiDevicePath"
     }
 
     idrac_list = []
@@ -1025,8 +1013,7 @@ def extract_idrac_data(response):
                     idrac_data[key] = ipv6_list[0]["Address"] if ipv6_list else "Not Available"
                 elif response_key == "Status":
                     status = member.get("Status", {})
-                    idrac_data["Health"] = status.get("Health", "Not Available")
-                    idrac_data["State"] = status.get("State", "Not Available")
+                    idrac_data["PrimaryStatus"] = status.get("Health", "Not Available")
                 else:
                     idrac_data[key] = member.get(response_key, "Not Available")
 
@@ -1090,7 +1077,7 @@ def get_idrac_system_info(idrac, module):
                 "controller_battery": GET_IDRAC_CONTROLLER_BATTERY_DETAILS_URI_10,
                 "enclosure": GET_IDRAC_CHASSIS_URI_10,
                 "enclosure_fan": GET_IDRAC_ENCLOSURE_FAN_SENSOR_DETAILS_URI_10,
-                "enclosure_temp": GET_IDRAC_ENCLOSURE_FAN_SENSOR_DETAILS_URI_10,
+                "enclosure_temp": GET_IDRAC_ENCLOSURE_TEMP_SENSOR_DETAILS_URI_10,
                 "fan": GET_IDRAC_FAN_DETAILS_URI_10,
                 "license": GET_IDRAC_LICENSE_DETAILS_URI_10,
                 "memory": GET_IDRAC_MEMORY_DETAILS_URI_10,
@@ -1110,7 +1097,6 @@ def get_idrac_system_info(idrac, module):
                 "iDRACNIC": GET_IDRAC_NIC_DETAILS_URI_10
             }
 
-            # Iterate over each URI to fetch and combine data
             for key, uri in uris.items():
                 system_response = idrac.invoke_request(method='GET', uri=uri)
 
@@ -1165,8 +1151,7 @@ def get_idrac_system_info(idrac, module):
                         combined_data.update(fan_data)
                     elif key == "license":
                         license_data = extract_license_data(data, Subsystem)
-                        if not license_data:
-                            combined_data.update(license_data)
+                        combined_data.update(license_data)
                     elif key == "memory":
                         memory_data = extract_memory_data(data, Subsystem)
                         combined_data.update(memory_data)
@@ -1175,8 +1160,7 @@ def get_idrac_system_info(idrac, module):
                         combined_data.update(nic_data)
                     elif key == "pci":
                         pci_data = extract_pci_data(data)
-                        if not pci_data:
-                            combined_data.update(pci_data)
+                        combined_data.update(pci_data)
                     elif key == "physical_disk":
                         controller_uris = get_storage_controllers(idrac, module)
                         all_physical_disk_data = {}
@@ -1256,11 +1240,15 @@ def get_idrac_system_info(idrac, module):
             combined_data["Subsystem"] = Subsystem
             return combined_data
 
-    except Exception:
-        with iDRACConnection(module.params) as idrac:
-            idrac.get_entityjson()
-            msg = idrac.get_json_device()
-            return msg
+    except HTTPError as err:
+        return get_from_wsman(module)
+
+
+def get_from_wsman(module):
+    with iDRACConnection(module.params) as idrac:
+        idrac.get_entityjson()
+        msg = idrac.get_json_device()
+        return msg
 
 
 def main():
