@@ -1,0 +1,37 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OMEVV host, OMEVV username and OMEVV password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: hostname,
+     vcenter_username and vcenter_password.'
+  when: 'hostname is not defined or vcenter_username is not defined or
+         vcenter_password is not defined'
+
+- block:
+    - name: Negative - invalid profile name
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        name: "Invalid"
+        state: absent
+      register: invalid_profile_name
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid profile name
+      ansible.builtin.assert:
+        that:
+          - not invalid_profile_name.failed
+          - not invalid_profile_name.changed
+          - 'invalid_profile_name.msg == "Unable to delete the profile Invalid
+            because the profile name is invalid. Enter a valid profile name
+            and retry the operation."'
+
+  module_defaults:
+    dellemc.openmanage.omevv_firmware_repository_profile:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname | ansible.utils.ipwrap }}"
+      vcenter_username: "{{ vcenter_username }}"
+      vcenter_password: "{{ vcenter_password }}"
+      vcenter_uuid: "{{ uuid }}"
