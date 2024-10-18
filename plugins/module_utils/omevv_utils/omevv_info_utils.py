@@ -53,7 +53,7 @@ class OMEVVInfo:
         """
         Retrieves the vCenter information.
         Parameters:
-            vcenter_id (str, optional): The hsotname of the vCenter. If provided, retrieves the information for the specified vCenter.
+            vcenter_id (str, optional): The hostname of the vCenter. If provided, retrieves the information for the specified vCenter.
         Returns:
             list: A list of vCenter information. If `vcenter_id` is provided, the list contains the information for the specified vCenter.
         """
@@ -61,6 +61,6 @@ class OMEVVInfo:
         vcenter_info = []
         if resp.success:
             vcenter_info = resp.json_data
-            if vcenter_id or vcenter_id == "":
+            if vcenter_id or vcenter_id != "":
                 vcenter_info = self.search_vcenter_hostname(vcenter_info, vcenter_id)
         return vcenter_info
