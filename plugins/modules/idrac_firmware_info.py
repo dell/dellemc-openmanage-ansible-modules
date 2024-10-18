@@ -123,19 +123,75 @@ def get_from_wsman(module):
         return firmware_details
 
 
+def transform_firmware_data(filtered_data):
+    """
+    Transform the filtered firmware data to the required structure.
+
+    :param filtered_data: The firmware data filtered from the response.
+    :return: Transformed firmware data.
+    """
+    transformed_data = []
+
+    for member in filtered_data:
+        major_version = member.get("MajorVersion")
+        minor_version = member.get("MinorVersion")
+        revision_number = member.get("RevisionNumber")
+
+        if major_version is None or minor_version is None or revision_number is None:
+            version_string = "Not Available"
+        else:
+            version_string = f"{major_version}.{minor_version}.{revision_number}"
+
+        transformed_member = {
+            "BuildNumber": str(member.get("BuildNumber", "0")),
+            "Classifications": "10",
+            "ComponentID": str(member.get("ComponentID")),
+            "ComponentType": member.get("ComponentType"),
+            "DeviceID": member.get("DeviceID"),
+            "ElementName": member.get("ElementName"),
+            "FQDD": member.get("Id"),
+            "HashValue": member.get("HashValue"),
+            "IdentityInfoType": ":".join(member.get("IdentityInfoType", [])),
+            "IdentityInfoValue": ":".join(member.get("IdentityInfoValue", [])),
+            "InstallationDate": member.get("InstallationDate"),
+            "InstanceID": member.get("Id"),
+            "IsEntity": str(member.get("IsEntity")).lower(),
+            "Key": member.get("Id"),
+            "MajorVersion": str(major_version) if major_version is not None else None,
+            "MinorVersion": str(minor_version) if minor_version is not None else None,
+            "RevisionNumber": str(revision_number) if revision_number is not None else None,
+            "RevisionString": member.get("RevisionString"),
+            "Status": member.get("Status"),
+            "SubDeviceID": member.get("SubDeviceID"),
+            "SubVendorID": member.get("SubVendorID"),
+            "Updateable": str(member.get("SidebandUpdateCapable")).lower(),
+            "VendorID": member.get("VendorID"),
+            "VersionString": version_string,
+            "impactsTPMmeasurements": str(member.get("impactsTPMmeasurements")).lower()
+        }
+        transformed_data.append(transformed_member)
+
+    return transformed_data
+
+
 def get_idrac_firmware_info(idrac, module):
     try:
         response = idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_URI_10)
-        filtered_data = []
-        tmp = {"Subsystem": [], "System": [], "iDRAC": [], "iDRACString": []}
         if response.status_code == 200:
             details_response = idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_DETAILS_URI_10)
 
             if details_response and details_response.status_code == 200 and details_response.json_data:
                 filtered_data = remove_key(details_response.json_data.get("Members"))
-        resp = {"Firmware": filtered_data}
-        resp.update(tmp)
-        return resp
+
+                transformed_firmware_data = transform_firmware_data(filtered_data)
+
+                tmp = {"Subsystem": [], "System": [], "iDRAC": [], "iDRACString": []}
+                resp = {"Firmware": transformed_firmware_data}
+                resp.update(tmp)
+
+                return resp
+
+        return {"Firmware": [], "Subsystem": [], "System": [], "iDRAC": [], "iDRACString": []}
 
     except HTTPError as err:
         if err.status == 404:
