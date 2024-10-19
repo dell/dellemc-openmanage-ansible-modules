@@ -13,45 +13,63 @@
     is not defined
 
 - block:
-    - name: Retrieve all vcenter info (Check mode - Changes expected)
+    - name: Retrieve particular profile info (Check mode - Changes expected)
       dellemc.openmanage.omevv_firmware_repository_profile_info: &retrieve_info
         hostname: "{{ hostname }}"
         vcenter_username: "{{ vcenter_username }}"
         vcenter_password: "{{ vcenter_password }}"
         vcenter_uuid: "971d1cd1-7377-448c-a0c5-e0f599b15433"
+        name: "Dell Default Catalog"
       register: cm_changes
       check_mode: true
 
-    - name: Verify task status - Retrieve all vcenter info
+    - name: Verify task status - Retrieve particular profile info
        (Check mode - Changes expected)
       ansible.builtin.assert:
         that:
           - not cm_changes.changed
-          - cm_changes.msg == 'Successfully retrieved the firmware repository
-           profile information.
+          - cm_changes.msg == "Successfully retrieved the firmware repository
+           profile information."
 
-    - name: Verify task status - Retrieve all vcenter info (Normal Mode)
+    - name: Retrieve particular profile info (Normal Mode)
+      dellemc.openmanage.omevv_firmware_repository_profile_info:
+        <<: *retrieve_info
+      register: info_result
+
+    - name: Verify task status - Retrieve particular profile info (Normal Mode)
       ansible.builtin.assert:
         that:
           - not info_result.changed
           - info_result.msg == "Successfully retrieved the firmware repository
            profile information."
 
-    - name: Get Vcenter details by uri.
+    - name: Loop through profile_info to extract Id for specific profile
+      set_fact:
+        profile_id: "{{ item.id }}"
+      when: item.profileName == info_result.profile_info[0].profileName
+      with_items: "{{ info_result.profile_info }}"
+
+    - name: Get profile details by uri.
       ansible.builtin.uri:
         url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
-         }}/omevv/GatewayService/v1/RepositoryProfiles
-        user: "{{ ome_username }}"
-        password: "{{ ome_password }}"
+         }}/omevv/GatewayService/v1/RepositoryProfiles/{{ profile_id }}
+        user: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
         validate_certs: false
         force_basic_auth: true
         status_code: 200
+        headers:
+          x_omivv-api-vcenter-identifier: "{{ uuid }}"
       register: uri_resp
 
-    - name: Verify - Get Vcenter details by uri.
+    - name: Convert profile info to dict
+      set_fact:
+        selected_profile: "{{ info_result.profile_info[0] }}"
+
+    - name: Verify - Get profile details by uri.
       ansible.builtin.assert:
         that:
-          - info_result.vcenter_info == uri_resp.json
+          - selected_profile == uri_resp.json
 
   module_defaults:
     dellemc.openmanage.omevv_firmware_repository_profile_info:

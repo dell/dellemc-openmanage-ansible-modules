@@ -110,9 +110,10 @@
       ansible.builtin.assert:
         that:
           - invalid_vcenter_uuid.skipped
-          # - 'invalid_vcenter_uuid.msg == "vCenter with UUID invalid is not registered."'
+          - 'invalid_vcenter_uuid.msg == "vCenter with UUID invalid is
+           not registered."'
 
-    - name: Negative - Invalid name for vcenter
+    - name: Negative - Invalid profile name
       dellemc.openmanage.omevv_firmware_repository_profile_info:
         hostname: "{{ hostname }}"
         vcenter_username: "{{ vcenter_username }}"
@@ -121,11 +122,11 @@
       ignore_errors: true
       register: invalid_vcenter_name
 
-    - name: Verify task status- Negative - Invalid name for vcenter
+    - name: Verify task status- Negative - Invalid profile name
       ansible.builtin.assert:
         that:
           - invalid_vcenter_name.failed
-          - 'invalid_vcenter_name.msg == "HTTP Error 409: 409"'
+          - 'invalid_vcenter_name.msg == "HTTP Error 403: 403"'
 
     - name: Negative - Invalid argument
       dellemc.openmanage.omevv_firmware_repository_profile_info:
