@@ -5,7 +5,6 @@
     state: present
     catalog_path: "{{ path }}"
     protocol_type: "{{ protocol }}"
-    description: "New description"
     share_username: "{{ share__username | default(omit) }}"
     share_password: "{{ share__password | default(omit) }}"
     share_domain: ""
@@ -26,7 +25,7 @@
   register: check_and_diff_firm_repo
 
 - name: Assertion for modification firmware repository profile - Check and
-   Diff Mode
+    Diff Mode
   ansible.builtin.assert:
     that:
       - check_and_diff_firm_repo.changed is true
@@ -44,7 +43,7 @@
     that:
       - normal_and_diff_firm_repo.changed is true
       - normal_and_diff_firm_repo.msg == "Successfully modified the OMEVV
-       firmware repository profile."
+        firmware repository profile."
       - normal_and_diff_firm_repo.diff.after | length == 2
       - normal_and_diff_firm_repo.diff.before | length == 2
 
@@ -55,10 +54,10 @@
   register: idemp_and_diff_firm_repo
 
 - name: Assertion for modification firmware repository profile - Idempotency
-   Mode
+    Mode
   ansible.builtin.assert:
     that:
       - idemp_and_diff_firm_repo.changed is false
       - idemp_and_diff_firm_repo.msg == "No changes found to be applied."
-      - idemp_and_diff_firm_repo.diff.after | length == 2
-      - idemp_and_diff_firm_repo.diff.before | length == 2
+      - idemp_and_diff_firm_repo.diff.after | length == 0
+      - idemp_and_diff_firm_repo.diff.before | length == 0

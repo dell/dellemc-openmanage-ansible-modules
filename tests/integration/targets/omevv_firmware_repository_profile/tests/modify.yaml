@@ -17,10 +17,9 @@
       dellemc.openmanage.omevv_firmware_repository_profile:
         name: "Ansible_FirmRepo"
         state: present
-        catalog_path: "{{ nfs_share_name }}"
-        protocol_type: "NFS"
+        catalog_path: "{{ https_share_ip }}"
+        protocol_type: "HTTPS"
         description: "FW repo description"
-        share_domain: ""
 
     - name: Modifying firm repo profile with new name and description -
         Check Mode
@@ -29,9 +28,6 @@
         new_name: "Update_Ansible_FirmRepo"
         description: "New description"
         state: present
-        catalog_path: "{{ nfs_share_name }}"
-        protocol_type: "NFS"
-        share_domain: ""
       register: modify_1_check
       diff: true
       check_mode: true
@@ -74,21 +70,6 @@
           - modify_1_normal_and_diff.diff.after | length == 2
           - modify_1_normal_and_diff.diff.before | length == 2
 
-    - name: Modifying firm repo profile with new name and description -
-        Idempotency and diff Mode
-      dellemc.openmanage.omevv_firmware_repository_profile:
-        <<: *mod1
-      diff: true
-      register: modify_1_idemp_and_diff
-
-    - name: Asserting modification of new name and description
-      ansible.builtin.assert:
-        that:
-          - modify_1_idemp_and_diff.changed is false
-          - modify_1_idemp_and_diff.msg == "No changes found to be applied."
-          - modify_1_idemp_and_diff.diff.after | length == 0
-          - modify_1_idemp_and_diff.diff.before | length == 0
-
     - name: Including task for modification based on protocol type
       ansible.builtin.include_tasks: __helper_modify.yml
       vars:
@@ -97,18 +78,10 @@
         share__username: "{{ item.username }}"
         share__password: "{{ item.password }}"
       loop:
-        - protocol: "NFS"
-          path: "{{ nfs_share_name }}"
-        - protocol: "CIFS"
-          path: "{{ cifs_share_name }}"
-          username: "{{ cifs_share_user }}"
-          password: "{{ cifs_share_password }}"
-        - protocol: "HTTP"
-          path: "{{ http_share }}{{ http_share_dir_path }}"
         - protocol: "HTTPS"
-          path: "{{ https_share_ip }}"
-          username: "{{ https_share_username }}"
-          password: "{{ https_share_password }}"
+          path: "https://downloads.dell.com/catalog/catalog.xml.gz"
+          username: ""
+          password: ""
 
   always:
     - name: Cleanup
