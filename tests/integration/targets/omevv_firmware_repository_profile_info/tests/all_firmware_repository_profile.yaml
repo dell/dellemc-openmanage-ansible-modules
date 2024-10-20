@@ -13,29 +13,31 @@
     is not defined
 
 - block:
-    - name: Retrieve all profile info (Check mode - Changes expected)
+    - name: Retrieve all firmware repository profile information.
+       (Check mode)
       dellemc.openmanage.omevv_firmware_repository_profile_info: &retrieve_info
         hostname: "{{ hostname }}"
         vcenter_username: "{{ vcenter_username }}"
         vcenter_password: "{{ vcenter_password }}"
-        vcenter_uuid: "971d1cd1-7377-448c-a0c5-e0f599b15433"
+        vcenter_uuid: "{{ uuid }}"
       register: cm_changes
       check_mode: true
 
-    - name: Verify task status - Retrieve all profile info
-       (Check mode - Changes expected)
+    - name: Verify task status - Retrieve all firmware repository profile
+       information. (Check mode)
       ansible.builtin.assert:
         that:
           - not cm_changes.changed
           - cm_changes.msg == "Successfully retrieved the firmware repository
            profile information."
 
-    - name: Retrieve all profile info (Normal Mode)
+    - name: Retrieve all firmware repository profile information. (Normal Mode)
       dellemc.openmanage.omevv_firmware_repository_profile_info:
         <<: *retrieve_info
       register: info_result
 
-    - name: Verify task status - Retrieve all profile info (Normal Mode)
+    - name: Verify task status - Retrieve all firmware repository profile
+       information. (Normal Mode)
       ansible.builtin.assert:
         that:
           - not info_result.changed
