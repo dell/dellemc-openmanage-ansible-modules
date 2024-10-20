@@ -23,7 +23,6 @@ extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options
 
 requirements:
-    - "omsdk >= 1.2.488"
     - "python >= 3.9.6"
 author:
   - "Rajeev Arakkal (@rajeevarakkal)"
@@ -124,15 +123,11 @@ def get_from_wsman(module):
 
 
 def transform_firmware_data(filtered_data):
-    """
-    Transform the filtered firmware data to the required structure.
-
-    :param filtered_data: The firmware data filtered from the response.
-    :return: Transformed firmware data.
-    """
     transformed_data = []
 
     for member in filtered_data:
+        if member.get("Id", "").startswith("DCIM:PREVIOUS"):
+            continue
         major_version = member.get("MajorVersion")
         minor_version = member.get("MinorVersion")
         revision_number = member.get("RevisionNumber")
@@ -178,24 +173,22 @@ def get_idrac_firmware_info(idrac, module):
     try:
         response = idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_URI_10)
         if response.status_code == 200:
+            transformed_firmware_data = []
+            tmp = {"Subsystem": [], "System": [], "iDRAC": [], "iDRACString": []}
             details_response = idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_DETAILS_URI_10)
 
-            if details_response and details_response.status_code == 200 and details_response.json_data:
+            if details_response and details_response.status_code == 200 and details_response.json_data["Members"]:
                 filtered_data = remove_key(details_response.json_data.get("Members"))
-
                 transformed_firmware_data = transform_firmware_data(filtered_data)
-
-                tmp = {"Subsystem": [], "System": [], "iDRAC": [], "iDRACString": []}
-                resp = {"Firmware": transformed_firmware_data}
-                resp.update(tmp)
-
-                return resp
-
-        return {"Firmware": [], "Subsystem": [], "System": [], "iDRAC": [], "iDRACString": []}
+        resp = {"Firmware": transformed_firmware_data}
+        resp.update(tmp)
+        return resp
 
     except HTTPError as err:
-        if err.status == 404:
+        if err.status == ERR_STATUS:
             return get_from_wsman(module)
+
+        raise
 
 
 def main():
@@ -217,8 +210,7 @@ def main():
         module.exit_json(msg=str(e), failed=True)
     module.exit_json(
         msg="Successfully fetched the firmware inventory details.",
-        firmware_info=firmware_info
-    )
+        firmware_info=firmware_info)
 
 
 if __name__ == '__main__':

@@ -22,7 +22,6 @@ from urllib.error import URLError, HTTPError
 from io import StringIO
 from ansible.module_utils._text import to_text
 
-
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 
 
@@ -52,99 +51,81 @@ class TestFirmware(FakeAnsibleModule):
         redfish_conn_mock.return_value.__enter__.return_value = redfish_mock
         return redfish_mock
 
-    def test_remove_key_functionality(self, mocker, idrac_redfish_mock, idrac_default_args):
+    def test_get_idrac_firmware_info_success(self, mocker, idrac_redfish_mock, idrac_default_args):
+
         mock_data = {
             "Members": [
-                {"KeyToRemove": "Data", "FirmwareVersion": "1.10"},
-                {"KeyToRemove": "Data", "FirmwareVersion": "1.20"}
+                {"Id": "Component1", "MajorVersion": 1, "MinorVersion": 2, "BuildNumber": 123, "RevisionNumber": 5, "VersionString": "1.2.5"},
+                {"Id": "Component2", "MajorVersion": 1, "MinorVersion": 3, "BuildNumber": 456, "RevisionNumber": 5, "VersionString": "1.3.5"}
             ]
-        }
-
-        mock_remove_key = mocker.patch(MODULE_PATH + 'idrac_firmware_info.remove_key', return_value={
-            "Members": [
-                {"FirmwareVersion": "1.10"},
-                {"FirmwareVersion": "1.20"}
-            ]
-        })
-
-        idrac_redfish_mock.invoke_request.return_value.status_code = 200
-        idrac_redfish_mock.invoke_request.return_value.json_data = mock_data
-        result = self._run_module(idrac_default_args)
-        mock_remove_key.assert_called_once_with(mock_data)
-
-        assert result['firmware_info'] == {
-            "Members": [
-                {"FirmwareVersion": "1.10"},
-                {"FirmwareVersion": "1.20"}
-            ]
-        }
-
-    def test_main_idrac_get_firmware_info_success_case01(self, idrac_redfish_mock,
-                                                         idrac_default_args):
-        mock_data = {
-            
-                {"KeyToRemove": "Data", "FirmwareVersion": "1.10"},
-                {"KeyToRemove": "Data", "FirmwareVersion": "1.20"},
-
-            'Subsystem': [],
-            'System': [],
-            'iDRAC': [],
-            'iDRACString': [],
         }
 
         idrac_redfish_mock.invoke_request.return_value.status_code = 200
         idrac_redfish_mock.invoke_request.return_value.json_data = mock_data
+
         result = self._run_module(idrac_default_args)
-        expected_result = {
-            "msg": "Successfully fetched the firmware inventory details.",
-            "firmware_info": mock_data,
-            "changed": False
-        }
 
-        assert result == expected_result
+        firmware_info_filtered = [
+            {
+                "BuildNumber": str(fw["BuildNumber"]),
+                "MajorVersion": str(fw["MajorVersion"]),
+                "MinorVersion": str(fw["MinorVersion"]),
+                "RevisionNumber": str(fw.get("RevisionNumber", "Not Available")),
+                "VersionString": fw.get("VersionString", "Not Available")
+            }
+            for fw in result['firmware_info']['Firmware']
+        ]
 
-    def test_idrac_get_firmware_info_get_from_wsman_success(self, idrac_redfish_mock, idrac_firmware_info_connection_mock,
-                                                            idrac_default_args):
+        expected_firmware_info = [
+            {
+                "BuildNumber": "123",
+                "MajorVersion": "1",
+                "MinorVersion": "2",
+                "RevisionNumber": "5",
+                "VersionString": "1.2.5"
+            },
+            {
+                "BuildNumber": "456",
+                "MajorVersion": "1",
+                "MinorVersion": "3",
+                "RevisionNumber": "5",
+                "VersionString": "1.3.5"
+            }
+        ]
 
-        json_str = to_text(json.dumps({"data": "out"}))
+        assert firmware_info_filtered == expected_firmware_info
+
+    def test_get_idrac_firmware_info__get_from_wsman_success(self, mocker, idrac_redfish_mock, idrac_firmware_info_connection_mock, idrac_default_args):
+
         idrac_redfish_mock.invoke_request.side_effect = HTTPError('https://testhost.com', 404, 'http error message',
-                                                                  {"accept-type": "application/json"}, StringIO(json_str))
-
-        mock_firmware_data = {
-            "Members": [
-                {"FirmwareVersion": "1.10"},
-                {"FirmwareVersion": "1.20"}
-            ]
+                                                                  {"accept-type": "application/json"}, StringIO(to_text(json.dumps({"data": "out"}))))
+        wsman_firmware_data = {
+            "Firmware": {
+                "Members": [
+                    {"FirmwareVersion": "1.10"},
+                    {"FirmwareVersion": "1.20"}
+                ]
+            }
         }
 
-        idrac_firmware_info_connection_mock.update_mgr.InstalledFirmware = mock_firmware_data
+        idrac_firmware_info_connection_mock.update_mgr.InstalledFirmware = wsman_firmware_data["Firmware"]
         result = self._run_module(idrac_default_args)
 
         expected_result = {
             "msg": "Successfully fetched the firmware inventory details.",
-            "firmware_info": mock_firmware_data,
+            "firmware_info": wsman_firmware_data["Firmware"],
             "changed": False
         }
 
         assert result == expected_result
 
-    def test_idrac_get_firmware_info_get_from_wsman_failure(self, idrac_redfish_mock, idrac_firmware_info_connection_mock,
-                                                            idrac_default_args):
+    def test_idrac_get_firmware_info_get_from_wsman_failure(self, idrac_redfish_mock, idrac_default_args):
 
-        idrac_redfish_mock.invoke_request.side_effect = URLError('https://idrac-mock-url')
-
-        mock_firmware_data = {
-            "Members": [
-                {"FirmwareVersion": "1.10"},
-                {"FirmwareVersion": "1.20"}
-            ]
-        }
-
-        idrac_firmware_info_connection_mock.update_mgr.InstalledFirmware = mock_firmware_data
+        idrac_redfish_mock.invoke_request.side_effect = URLError('idrac-mock-url')
         result = self._run_module(idrac_default_args)
 
         expected_result = {
-            "msg": "<urlopen error https://idrac-mock-url>",
+            "msg": "<urlopen error idrac-mock-url>",
             "changed": False,
             "unreachable": True
         }
