@@ -1,0 +1,63 @@
+---
+- name: Modifying firmware repository profile based on protocol type- Check Mode
+  dellemc.openmanage.omevv_firmware_repository_profile: &firm1
+    name: "Update_Ansible_FirmRepo"
+    state: present
+    catalog_path: "{{ path }}"
+    protocol_type: "{{ protocol }}"
+    share_username: "{{ share__username | default(omit) }}"
+    share_password: "{{ share__password | default(omit) }}"
+    share_domain: ""
+  check_mode: true
+  register: check_firm_repo
+
+- name: Assertion for modification firmware repository profile - Check Mode
+  ansible.builtin.assert:
+    that:
+      - check_firm_repo.changed
+      - check_firm_repo.msg == "Changes found to be applied."
+
+- name: Modifying firmware repository profile - Check and Diff Mode
+  dellemc.openmanage.omevv_firmware_repository_profile:
+    <<: *firm1
+  diff: true
+  check_mode: true
+  register: check_and_diff_firm_repo
+
+- name: Assertion for modification firmware repository profile - Check and
+    Diff Mode
+  ansible.builtin.assert:
+    that:
+      - check_and_diff_firm_repo.changed is true
+      - check_and_diff_firm_repo.diff.after | length == 1
+      - check_and_diff_firm_repo.diff.before | length == 1
+
+- name: Modifying firmware repository profile - Normal and Diff Mode
+  dellemc.openmanage.omevv_firmware_repository_profile:
+    <<: *firm1
+  diff: true
+  register: normal_and_diff_firm_repo
+
+- name: Assertion for modification firmware repository profile - Normal Mode
+  ansible.builtin.assert:
+    that:
+      - normal_and_diff_firm_repo.changed is true
+      - normal_and_diff_firm_repo.msg == "Successfully modified the OMEVV
+        firmware repository profile."
+      - normal_and_diff_firm_repo.diff.after | length == 1
+      - normal_and_diff_firm_repo.diff.before | length == 1
+
+- name: Modifying firmware repository profile - Idempotency and Diff Mode
+  dellemc.openmanage.omevv_firmware_repository_profile:
+    <<: *firm1
+  diff: true
+  register: idemp_and_diff_firm_repo
+
+- name: Assertion for modification firmware repository profile - Idempotency
+    Mode
+  ansible.builtin.assert:
+    that:
+      - idemp_and_diff_firm_repo.changed is false
+      - idemp_and_diff_firm_repo.msg == "No changes found to be applied."
+      - idemp_and_diff_firm_repo.diff.after | length == 0
+      - idemp_and_diff_firm_repo.diff.before | length == 0

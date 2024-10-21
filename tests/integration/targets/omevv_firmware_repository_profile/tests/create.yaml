@@ -1,0 +1,53 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: hostname, vcenter_username
+      and vcenter_password."
+  when:
+    hostname is undefined or vcenter_username is undefined or vcenter_password
+    is undefined
+
+- vars:
+    payload:
+      - protocol: "NFS"
+        path: "{{ nfs_share_name }}"
+      - protocol: "CIFS"
+        path: "{{ cifs_share_name }}"
+        username: "{{ cifs_share_user }}"
+        password: "{{ cifs_share_password }}"
+      - protocol: "HTTP"
+        path: "{{ http_share }}{{ http_share_dir_path }}"
+      - protocol: "HTTPS"
+        path: "{{ https_share_ip }}"
+        username: "{{ https_share_username }}"
+        password: "{{ https_share_password }}"
+  block:
+    - name: Including helper file for creating firmware repo profile
+      ansible.builtin.include_tasks: ../__helper_create.yml
+      vars:
+        protocol: "{{ item.protocol }}"
+        path: "{{ item.path }}"
+        share__username: "{{ item.username }}"
+        share__password: "{{ item.password }}"
+      loop: "{{ payload }}"
+  always:
+    - name: Cleanup
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        name: "Ansible_FirmRepo_{{ item.protocol }}"
+        state: absent
+      ignore_errors: true
+      loop: "{{ payload }}"
+      no_log: true
+
+  module_defaults:
+    dellemc.openmanage.omevv_firmware_repository_profile:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname | ansible.utils.ipwrap }}"
+      vcenter_username: "{{ vcenter_username }}"
+      vcenter_password: "{{ vcenter_password }}"
+      vcenter_uuid: "{{ uuid }}"
