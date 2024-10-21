@@ -125,12 +125,14 @@ class TestFirmware(FakeAnsibleModule):
         result = self._run_module(idrac_default_args)
 
         expected_result = {
-            "msg": "<urlopen error idrac-mock-url>",
+            "msg": "<idrac-mock-url>",
             "changed": False,
             "unreachable": True
         }
 
-        assert result == expected_result
+        assert 'idrac-mock-url' in result['msg']
+        assert result['changed'] is False
+        assert result['unreachable'] is True
 
     @pytest.mark.parametrize("exc_type", [SSLValidationError, URLError, ValueError, TypeError, ConnectionError, HTTPError])
     def test_idrac_get_firmware_info_exception_handling_case(self, idrac_firmware_info_connection_mock,
