@@ -46,16 +46,10 @@
           - info_result.msg == "Successfully retrieved the firmware repository
            profile information."
 
-    - name: Loop through profile_info to extract Id for specific profile
-      set_fact:
-        profile_id: "{{ item.id }}"
-      when: item.profileName == info_result.profile_info[0].profileName
-      with_items: "{{ info_result.profile_info }}"
-
     - name: Get profile details by uri.
       ansible.builtin.uri:
         url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
-         }}/omevv/GatewayService/v1/RepositoryProfiles/{{ profile_id }}
+         }}/omevv/GatewayService/v1/RepositoryProfiles/{{ info_result.profile_info.id }}
         user: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
         validate_certs: false
@@ -65,14 +59,10 @@
           x_omivv-api-vcenter-identifier: "{{ uuid }}"
       register: uri_resp
 
-    - name: Convert profile info to dict
-      set_fact:
-        selected_profile: "{{ info_result.profile_info[0] }}"
-
     - name: Verify - Get profile details by uri.
       ansible.builtin.assert:
         that:
-          - selected_profile == uri_resp.json
+          - info_result.profile_info == uri_resp.json
 
   module_defaults:
     dellemc.openmanage.omevv_firmware_repository_profile_info:
