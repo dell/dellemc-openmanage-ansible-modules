@@ -29,7 +29,7 @@
         hostname: "{{ hostname }}"
         vcenter_username: "{{ vcenter_username }}"
         vcenter_password: "{{ vcenter_password }}"
-        vcenter_uuid: 971d1cd1-7377-448c-a0c5-e0f599b15433
+        vcenter_uuid: "{{ uuid }}"
         name: temp_profile
       register: cm_changes
       check_mode: true
@@ -66,7 +66,7 @@
         force_basic_auth: true
         status_code: 200
         headers:
-          x_omivv-api-vcenter-identifier: 971d1cd1-7377-448c-a0c5-e0f599b15433
+          x_omivv-api-vcenter-identifier: "{{ uuid }}"
       register: uri_resp
 
     - name: Verify - Get profile details by uri.
