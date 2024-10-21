@@ -123,13 +123,6 @@ class TestFirmware(FakeAnsibleModule):
 
         idrac_redfish_mock.invoke_request.side_effect = URLError('idrac-mock-url')
         result = self._run_module(idrac_default_args)
-
-        expected_result = {
-            "msg": "<idrac-mock-url>",
-            "changed": False,
-            "unreachable": True
-        }
-
         assert 'idrac-mock-url' in result['msg']
         assert result['changed'] is False
         assert result['unreachable'] is True
