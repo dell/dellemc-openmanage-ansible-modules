@@ -1,0 +1,37 @@
+---
+- name: Dell OpenManage Ansible device inventory details.
+  hosts: omevv
+  gather_facts: false
+  tasks:
+    - name: Create an OMEVV firmware repository profile
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        hostname: "192.168.0.1"
+        vcenter_uuid: "xxxxx"
+        vcenter_username: "username"
+        vcenter_password: "password"
+        ca_path: "path/to/ca_file"
+        state: present
+        name: profile-1
+        catalog_path: http://xx.xx.xx.xx/share/Catalog/Catalog.xml
+
+    - name: Modify an OMEVV firmware repository profile
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        hostname: "192.168.0.1"
+        vcenter_uuid: "xxxxx"
+        vcenter_username: "username"
+        vcenter_password: "password"
+        ca_path: "path/to/ca_file"
+        state: present
+        name: profile-1
+        new_name: profile-2
+        catalog_path: http://xx.xx.xx.xx/new_share/Catalog/Catalog.xml
+
+    - name: Delete an OMEVV firmware repository profile
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        hostname: "192.168.0.1"
+        vcenter_uuid: "xxxxx"
+        vcenter_username: "username"
+        vcenter_password: "password"
+        ca_path: "path/to/ca_file"
+        state: absent
+        name: profile-1

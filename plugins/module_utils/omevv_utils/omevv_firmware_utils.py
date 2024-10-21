@@ -30,11 +30,6 @@ from __future__ import (absolute_import, division, print_function)
 
 __metaclass__ = type
 
-XML_EXT = ".xml"
-GZ_EXT = ".gz"
-XML_GZ_EXT = ".xml.gz"
-HTTP_PATH = "http"
-HTTPS_PATH = "https://"
 PROFILE_URI = "/RepositoryProfiles"
 TEST_CONNECTION_URI = "/RepositoryProfiles/TestConnection"
 
@@ -43,14 +38,45 @@ class OMEVVFirmwareProfile:
     def __init__(self, omevv):
         self.omevv = omevv
 
+    def get_firmware_repository_profile(self, profile_name=None):
+        """
+        Retrieves the firmware repository profile information.
+
+        Args:
+            profile_name (str, optional): The name of the profile to search for. Defaults to None.
+
+        Returns:
+            list: The list of firmware repository profile information.
+        """
+        resp = self.omevv.invoke_request('GET', PROFILE_URI)
+        profile_info = []
+        if resp.success:
+            profile_info = resp.json_data
+            if profile_name:
+                profile_info = self.search_profile_name(profile_info, profile_name)
+        return profile_info
+
     def get_create_payload_details(self, name, catalog_path, description, protocol_type, share_username, share_password, share_domain):
+        """
+        Returns a dictionary containing the payload details for creating a firmware repository profile.
+
+        Args:
+            name (str): The name of the firmware repository profile.
+            catalog_path (str): The path to the firmware catalog.
+            description (str, optional): The description of the firmware repository profile.
+            protocol_type (str): The protocol type of the firmware repository profile.
+            share_username (str): The username for the share credential.
+            share_password (str): The password for the share credential.
+            share_domain (str): The domain for the share credential.
+
+        Returns:
+            dict: A dictionary containing the payload details for creating a firmware repository profile.
+        """
         payload = {}
         payload["profileName"] = name
         payload["protocolType"] = protocol_type
         payload["sharePath"] = catalog_path
-        if description is None:
-            payload["description"] = ""
-        else:
+        if description is not None:
             payload["description"] = description
         payload["profileType"] = "Firmware"
         payload["shareCredential"] = {
@@ -61,14 +87,25 @@ class OMEVVFirmwareProfile:
         return payload
 
     def get_modify_payload_details(self, name, catalog_path, description, share_username, share_password, share_domain):
+        """
+        Returns a dictionary containing the payload details for modifying a firmware repository profile.
+
+        Args:
+            name (str): The name of the firmware repository profile.
+            catalog_path (str): The path to the firmware catalog.
+            description (str, optional): The description of the firmware repository profile.
+            share_username (str): The username for the share credential.
+            share_password (str): The password for the share credential.
+            share_domain (str): The domain for the share credential.
+
+        Returns:
+            dict: A dictionary containing the payload details for modifying a firmware repository profile.
+        """
         payload = {}
         payload["profileName"] = name
         payload["sharePath"] = catalog_path
-        if description is None:
-            payload["description"] = ""
-        else:
+        if description is not None:
             payload["description"] = description
-        payload["profileType"] = "Firmware"
         payload["shareCredential"] = {
             "username": share_username,
             "password": share_password,
@@ -77,6 +114,19 @@ class OMEVVFirmwareProfile:
         return payload
 
     def form_conn_payload(self, protocol_type, catalog_path, share_username, share_password, share_domain):
+        """
+        Returns a dictionary containing the payload details for testing the connection to a firmware repository.
+
+        Args:
+            protocol_type (str): The protocol type of the firmware repository.
+            catalog_path (str): The path to the firmware catalog.
+            share_username (str): The username for the share credential.
+            share_password (str): The password for the share credential.
+            share_domain (str): The domain for the share credential.
+
+        Returns:
+            dict: A dictionary containing the payload details for testing the connection to a firmware repository.
+        """
         payload = {}
         payload["protocolType"] = protocol_type
         payload["catalogPath"] = catalog_path
@@ -104,32 +154,6 @@ class OMEVVFirmwareProfile:
                 return d
         return {}
 
-    def validate_catalog_path(self, protocol_type, catalog_path):
-        """
-        Validates the catalog path based on the protocol type.
-
-        Args:
-            protocol_type (str): The type of protocol used for the catalog path.
-            catalog_path (str): The path to the catalog.
-
-        Raises:
-            SystemExit: If the catalog path is invalid.
-
-        Returns:
-            None
-        """
-        protocol_mapping = {
-            'CIFS': (lambda path: path.endswith(XML_EXT) or path.endswith(GZ_EXT) or path.endswith(XML_GZ_EXT)),
-            'NFS': (lambda path: path.endswith(XML_EXT) or path.endswith(GZ_EXT) or path.endswith(XML_GZ_EXT)),
-            'HTTP': (lambda path: path.startswith(HTTP_PATH) and (path.endswith(XML_EXT) or path.endswith(GZ_EXT) or path.endswith(XML_GZ_EXT))),
-            "HTTPS": (lambda path: path.startswith(HTTPS_PATH) and (path.endswith(XML_EXT) or path.endswith(GZ_EXT) or path.endswith(XML_GZ_EXT)))
-        }
-        validator = protocol_mapping.get(protocol_type)
-        if validator is None:
-            self.module.exit_json(msg="Invalid catalog_path", failed=True)
-        if not validator(catalog_path):
-            self.module.exit_json(msg="Invalid catalog_path", failed=True)
-
     def test_connection(self, protocol_type, catalog_path, share_username, share_password, share_domain):
         """
         Tests the connection to the vCenter server.
@@ -138,14 +162,6 @@ class OMEVVFirmwareProfile:
         payload = self.form_conn_payload(
             protocol_type, catalog_path, share_username, share_password, share_domain)
         resp = self.omevv.invoke_request("POST", TEST_CONNECTION_URI, payload)
-        return resp
-
-    def get_firmware_repository_profile(self):
-        """
-        Retrieves all firmware repository profile Information.
-
-        """
-        resp = self.omevv.invoke_request("GET", PROFILE_URI)
         return resp
 
     def get_firmware_repository_profile_by_id(self, profile_id):
@@ -161,9 +177,30 @@ class OMEVVFirmwareProfile:
                                            description, protocol_type,
                                            share_username, share_password,
                                            share_domain):
+        """
+        Creates a firmware repository profile.
+
+        Args:
+            name (str): The name of the firmware repository profile.
+            catalog_path (str): The path to the firmware catalog.
+            description (str, optional): The description of the firmware repository profile.
+            protocol_type (str): The protocol type of the firmware repository profile.
+            share_username (str): The username for the share credential.
+            share_password (str): The password for the share credential.
+            share_domain (str): The domain for the share credential.
+
+        Returns:
+            tuple: A tuple containing the response and an error message.
+
+        Raises:
+            None.
+
+        """
         err_msg = None
-        if name is None:
-            err_msg = ""
+        required_params = [name, catalog_path, protocol_type]
+        missing_params = [param for param in required_params if param is None]
+        if missing_params:
+            err_msg = "Required parameters such as: " + ", ".join(missing_params)
 
         payload = self.get_create_payload_details(name, catalog_path,
                                                   description, protocol_type,
@@ -179,10 +216,28 @@ class OMEVVFirmwareProfile:
         """
         Modifies a firmware repository profile.
 
+        Args:
+            profile_id (int): The ID of the firmware repository profile.
+            name (str): The new name of the firmware repository profile.
+            catalog_path (str): The new path to the firmware catalog.
+            description (str, optional): The new description of the firmware repository profile.
+            share_username (str): The new username for the share credential.
+            share_password (str): The new password for the share credential.
+            share_domain (str): The new domain for the share credential.
+
+        Returns:
+            tuple: A tuple containing the response and an error message.
+
+        Raises:
+            None.
+
         """
         err_msg = None
-        if name is None:
-            err_msg = ""
+        required_params = [name, catalog_path]
+        missing_params = [param for param in required_params if param is None]
+        if missing_params:
+            err_msg = "Required parameters such as: " + ", ".join(missing_params)
+
         payload = self.get_modify_payload_details(name, catalog_path,
                                                   description,
                                                   share_username, share_password,
