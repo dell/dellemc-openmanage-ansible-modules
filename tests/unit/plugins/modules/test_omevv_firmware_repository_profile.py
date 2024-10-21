@@ -32,10 +32,21 @@ INVOKE_REQ_KEY = "RestOMEVV.invoke_request"
 GET_PAYLOAD_DETAILS = "FirmwareRepositoryProfile.get_payload_details"
 GET_PROFILE_INFO_KEY = "OMEVVFirmwareProfile.get_firmware_repository_profile"
 PERFORM_OPERATION_KEY = "FirmwareRepositoryProfile.execute"
+PERFORM_TEST_CONNECTION = "FirmwareRepositoryProfile.test_connection"
+PERFORM_CREATE_PROFILE = "OMEVVFirmwareProfile.create_firmware_repository_profile"
+PERFORM_MODIFY_PROFILE = "OMEVVFirmwareProfile.modify_firmware_repository_profile"
+PERFORM_DELETE_PROFILE = "OMEVVFirmwareProfile.delete_firmware_repository_profile"
+PERFORM_TRIM = "ModifyFirmwareRepositoryProfile.trim_api_response"
+GET_PROFILE_BY_ID = "OMEVVFirmwareProfile.get_firmware_repository_profile_by_id"
+SEARCH_PROFILE_NAME = "OMEVVFirmwareProfile.search_profile_name"
+CREATE_DIFF_MODE_CHECK = "CreateFirmwareRepositoryProfile.diff_mode_check"
+DELETE_DIFF_MODE_CHECK = "DeleteFirmwareRepositoryProfile.diff_mode_check"
 HTTP_ERROR = "http error message"
 HTTP_ERROR_URL = 'https://testhost.com'
 RETURN_TYPE = "application/json"
 SHARE_PATH = "https://downloads.dell.com//catalog/catalog.xml.gz"
+PROFILE_NAME = "Dell Default Catalog"
+DESCRIPTION = "Latest Firmware From Dell"
 
 
 class TestFirmwareRepositoryProfile(FakeAnsibleModule):
@@ -116,8 +127,8 @@ class TestFirmwareRepositoryProfile(FakeAnsibleModule):
         # Scenario 1: Complete api_response
         api_response = {
             "id": 1000,
-            "profileName": "Dell Default Catalog",
-            "description": "Latest Firmware From Dell",
+            "profileName": PROFILE_NAME,
+            "description": DESCRIPTION,
             "protocolType": "HTTPS",
             "sharePath": SHARE_PATH
         }
@@ -131,7 +142,7 @@ class TestFirmwareRepositoryProfile(FakeAnsibleModule):
         # Scenario 2: api_response without description
         api_response = {
             "id": 1000,
-            "profileName": "Dell Default Catalog",
+            "profileName": PROFILE_NAME,
             "protocolType": "HTTPS",
             "sharePath": SHARE_PATH,
             "description": None
@@ -146,7 +157,7 @@ class TestFirmwareRepositoryProfile(FakeAnsibleModule):
         # Scenario 3: api_response without sharePath
         api_response = {
             "id": 1000,
-            "profileName": "Dell Default Catalog",
+            "profileName": PROFILE_NAME,
             "protocolType": "CIFS",
             "sharePath": "/catalog/",
             "fileName": "catalog",
@@ -231,34 +242,34 @@ class TestCreateFirmwareRepositoryProfile(FakeAnsibleModule):
         }
         obj2.json_data = {
             "id": 1000,
-            "profileName": "Dell Default Catalog",
+            "profileName": PROFILE_NAME,
             "protocolType": "HTTPS",
             "sharePath": SHARE_PATH,
-            "description": "Latest Firmware From Dell",
+            "description": DESCRIPTION,
             "status": "Success"
         }
         obj3.json_data = {
             "id": 1000,
-            "profileName": "Dell Default Catalog",
+            "profileName": PROFILE_NAME,
             "protocolType": "HTTPS",
             "sharePath": SHARE_PATH,
-            "description": "Latest Firmware From Dell",
+            "description": DESCRIPTION,
             "status": "Parsing"
         }
         mocker.patch(
-            MODULE_PATH + 'FirmwareRepositoryProfile.get_payload_details', return_value=payload)
+            MODULE_PATH + GET_PAYLOAD_DETAILS, return_value=payload)
         mocker.patch(
-            MODULE_PATH + 'FirmwareRepositoryProfile.test_connection', return_value=True)
+            MODULE_PATH + PERFORM_TEST_CONNECTION, return_value=True)
         mocker.patch(
-            MODULE_PATH + 'CreateFirmwareRepositoryProfile.diff_mode_check', return_value={})
+            MODULE_PATH + CREATE_DIFF_MODE_CHECK, return_value={})
         mocker.patch(MODULE_UTILS_PATH +
-                     'OMEVVFirmwareProfile.create_firmware_repository_profile', return_value=(obj, ""))
+                     PERFORM_CREATE_PROFILE, return_value=(obj, ""))
         mocker.patch(MODULE_UTILS_PATH +
-                     'OMEVVFirmwareProfile.get_firmware_repository_profile_by_id', return_value=obj3)
+                     GET_PROFILE_BY_ID, return_value=obj3)
         mocker.patch(MODULE_PATH +
                      'time.sleep', return_value=None)
         mocker.patch(MODULE_UTILS_PATH +
-                     'OMEVVFirmwareProfile.get_firmware_repository_profile', return_value=obj2)
+                     GET_PROFILE_INFO_KEY, return_value=obj2)
         f_module = self.get_module_mock(params=omevv_default_args)
         obj = self.module.CreateFirmwareRepositoryProfile(
             omevv_connection_firmware_repository_profile, f_module)
@@ -280,13 +291,13 @@ class TestCreateFirmwareRepositoryProfile(FakeAnsibleModule):
             }
         }
         mocker.patch(
-            MODULE_PATH + 'FirmwareRepositoryProfile.get_payload_details', return_value=payload)
+            MODULE_PATH + GET_PAYLOAD_DETAILS, return_value=payload)
         mocker.patch(
-            MODULE_PATH + 'FirmwareRepositoryProfile.test_connection', return_value=True)
+            MODULE_PATH + PERFORM_TEST_CONNECTION, return_value=True)
         mocker.patch(
-            MODULE_PATH + 'CreateFirmwareRepositoryProfile.diff_mode_check', return_value={})
+            MODULE_PATH + CREATE_DIFF_MODE_CHECK, return_value={})
         mocker.patch(MODULE_UTILS_PATH +
-                     'OMEVVFirmwareProfile.create_firmware_repository_profile', return_value=(obj, ""))
+                     PERFORM_CREATE_PROFILE, return_value=(obj, ""))
         f_module = self.get_module_mock(
             params=omevv_default_args)
         obj = self.module.CreateFirmwareRepositoryProfile(
@@ -298,22 +309,22 @@ class TestCreateFirmwareRepositoryProfile(FakeAnsibleModule):
         obj = MagicMock()
         obj.json_data = {
             "id": 1000,
-            "profileName": "Dell Default Catalog",
+            "profileName": PROFILE_NAME,
             "protocolType": "HTTPS",
             "sharePath": SHARE_PATH,
-            "description": "Latest Firmware From Dell",
+            "description": DESCRIPTION,
             "status": "Failed"
         }
         mocker.patch(
-            MODULE_PATH + 'FirmwareRepositoryProfile.get_payload_details', return_value=payload)
+            MODULE_PATH + GET_PAYLOAD_DETAILS, return_value=payload)
         mocker.patch(
-            MODULE_PATH + 'FirmwareRepositoryProfile.test_connection', return_value=True)
+            MODULE_PATH + PERFORM_TEST_CONNECTION, return_value=True)
         mocker.patch(
-            MODULE_PATH + 'CreateFirmwareRepositoryProfile.diff_mode_check', return_value={})
+            MODULE_PATH + CREATE_DIFF_MODE_CHECK, return_value={})
         mocker.patch(MODULE_UTILS_PATH +
-                     'OMEVVFirmwareProfile.create_firmware_repository_profile', return_value=(obj, ""))
+                     PERFORM_CREATE_PROFILE, return_value=(obj, ""))
         mocker.patch(MODULE_UTILS_PATH +
-                     'OMEVVFirmwareProfile.get_firmware_repository_profile_by_id', return_value=obj)
+                     GET_PROFILE_BY_ID, return_value=obj)
         f_module = self.get_module_mock(params=omevv_default_args)
         obj = self.module.CreateFirmwareRepositoryProfile(
             omevv_connection_firmware_repository_profile, f_module)
@@ -322,7 +333,7 @@ class TestCreateFirmwareRepositoryProfile(FakeAnsibleModule):
 
         # Scenario 4: When test connection is not successful
         mocker.patch(
-            MODULE_PATH + 'FirmwareRepositoryProfile.test_connection', return_value=False)
+            MODULE_PATH + PERFORM_TEST_CONNECTION, return_value=False)
         f_module = self.get_module_mock(
             params=omevv_default_args)
         obj = self.module.CreateFirmwareRepositoryProfile(
@@ -347,22 +358,22 @@ class TestCreateFirmwareRepositoryProfile(FakeAnsibleModule):
         }
         obj.json_data = {
             "id": 1000,
-            "profileName": "Dell Default Catalog",
+            "profileName": PROFILE_NAME,
             "protocolType": "HTTPS",
             "sharePath": SHARE_PATH,
-            "description": "Latest Firmware From Dell",
+            "description": DESCRIPTION,
             "status": "Success"
         }
         mocker.patch(
-            MODULE_PATH + 'FirmwareRepositoryProfile.get_payload_details', return_value=payload)
+            MODULE_PATH + GET_PAYLOAD_DETAILS, return_value=payload)
         mocker.patch(MODULE_UTILS_PATH +
-                     'OMEVVFirmwareProfile.get_firmware_repository_profile', return_value=obj)
+                     GET_PROFILE_INFO_KEY, return_value=obj)
         mocker.patch(MODULE_UTILS_PATH +
-                     'OMEVVFirmwareProfile.search_profile_name', return_value=obj)
+                     SEARCH_PROFILE_NAME, return_value=obj)
         mocker.patch(
             MODULE_PATH + 'FirmwareRepositoryProfile.trim_api_response', return_value=(obj, ""))
         mocker.patch(
-            MODULE_PATH + 'CreateFirmwareRepositoryProfile.diff_mode_check', return_value={})
+            MODULE_PATH + CREATE_DIFF_MODE_CHECK, return_value={})
         mocker.patch(MODULE_PATH + 'recursive_diff', return_value=(obj, ""))
         f_module = self.get_module_mock(
             params=omevv_default_args)
@@ -386,15 +397,15 @@ class TestCreateFirmwareRepositoryProfile(FakeAnsibleModule):
             }
         }
         mocker.patch(
-            MODULE_PATH + 'FirmwareRepositoryProfile.get_payload_details', return_value=payload)
+            MODULE_PATH + GET_PAYLOAD_DETAILS, return_value=payload)
         mocker.patch(MODULE_UTILS_PATH +
-                     'OMEVVFirmwareProfile.get_firmware_repository_profile', return_value={})
+                     GET_PROFILE_INFO_KEY, return_value={})
         mocker.patch(MODULE_UTILS_PATH +
-                     'OMEVVFirmwareProfile.search_profile_name', return_value={})
+                     SEARCH_PROFILE_NAME, return_value={})
         mocker.patch(
             MODULE_PATH + 'FirmwareRepositoryProfile.trim_api_response', return_value=(obj, ""))
         mocker.patch(
-            MODULE_PATH + 'CreateFirmwareRepositoryProfile.diff_mode_check', return_value={})
+            MODULE_PATH + CREATE_DIFF_MODE_CHECK, return_value={})
         mocker.patch(MODULE_PATH + 'recursive_diff', return_value=(obj, ""))
         f_module = self.get_module_mock(
             params=omevv_default_args, check_mode=True)
@@ -435,10 +446,10 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
         }
         api_response = {
             "id": 1000,
-            "profileName": "Dell Default Catalog",
+            "profileName": PROFILE_NAME,
             "protocolType": "HTTPS",
             "sharePath": SHARE_PATH,
-            "description": "Latest Firmware From Dell",
+            "description": DESCRIPTION,
             "status": "Success"
         }
         diff = {'description': 'Latest Firmware From Dell', 'id': 1000,
@@ -455,10 +466,10 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
         # Scenario 2: api_response with CIFS
         api_response = {
             "id": 1000,
-            "profileName": "Dell Default Catalog",
+            "profileName": PROFILE_NAME,
             "protocolType": "CIFS",
             "sharePath": "/catalog/",
-            "description": "Latest Firmware From Dell",
+            "description": DESCRIPTION,
             "status": "Success",
             "fileName": "Catalog.xml"
         }
@@ -490,19 +501,19 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
         # Scenario 1: Complete api_response
         api_response = {
             "id": 1000,
-            "profileName": "Dell Default Catalog",
+            "profileName": PROFILE_NAME,
             "protocolType": "HTTPS",
             "sharePath": SHARE_PATH,
-            "description": "Latest Firmware From Dell",
+            "description": DESCRIPTION,
             "status": "Success"
         }
         trimmed_resp = {
-            "profileName": "Dell Default Catalog",
+            "profileName": PROFILE_NAME,
             "sharePath": SHARE_PATH,
-            "description": "Latest Firmware From Dell"
+            "description": DESCRIPTION
         }
         mocker.patch(
-            MODULE_PATH + 'ModifyFirmwareRepositoryProfile.trim_api_response', return_value=trimmed_resp)
+            MODULE_PATH + PERFORM_TRIM, return_value=trimmed_resp)
         f_module = self.get_module_mock(
             params=omevv_default_args)
         obj = self.module.ModifyFirmwareRepositoryProfile(
@@ -513,7 +524,7 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
         # Scenario 2: payload without description
         api_response = {
             "id": 1000,
-            "profileName": "Dell Default Catalog",
+            "profileName": PROFILE_NAME,
             "protocolType": "HTTPS",
             "sharePath": SHARE_PATH,
             "status": "Success"
@@ -530,11 +541,11 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
             }
         }
         trimmed_resp = {
-            "profileName": "Dell Default Catalog",
+            "profileName": PROFILE_NAME,
             "sharePath": SHARE_PATH
         }
         mocker.patch(
-            MODULE_PATH + 'ModifyFirmwareRepositoryProfile.trim_api_response', return_value=trimmed_resp)
+            MODULE_PATH + PERFORM_TRIM, return_value=trimmed_resp)
         f_module = self.get_module_mock(
             params=omevv_default_args)
         obj = self.module.ModifyFirmwareRepositoryProfile(
@@ -545,10 +556,10 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
     def test_rec_diff(self, mocker, omevv_default_args, omevv_connection_firmware_repository_profile):
         api_response = {
             "id": 1000,
-            "profileName": "Dell Default Catalog",
+            "profileName": PROFILE_NAME,
             "protocolType": "HTTPS",
             "sharePath": SHARE_PATH,
-            "description": "Latest Firmware From Dell",
+            "description": DESCRIPTION,
             "status": "Success"
         }
         payload = {
@@ -564,7 +575,7 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
             'after': {'profileName': 'test', 'sharePath': SHARE_PATH},
             'before': {}}
         mocker.patch(
-            MODULE_PATH + 'ModifyFirmwareRepositoryProfile.trim_api_response', return_value={})
+            MODULE_PATH + PERFORM_TRIM, return_value={})
         f_module = self.get_module_mock(
             params=omevv_default_args)
         obj = self.module.ModifyFirmwareRepositoryProfile(
@@ -590,20 +601,20 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
         }
         api_response = {
             "id": 1996,
-            "profileName": "Dell Default Catalog",
+            "profileName": PROFILE_NAME,
             "protocolType": "HTTPS",
             "sharePath": SHARE_PATH,
-            "description": "Latest Firmware From Dell",
+            "description": DESCRIPTION,
             "status": "Success"
         }
         mocker.patch(
-            MODULE_PATH + 'FirmwareRepositoryProfile.get_payload_details', return_value=payload)
+            MODULE_PATH + GET_PAYLOAD_DETAILS, return_value=payload)
         mocker.patch(
-            MODULE_PATH + 'FirmwareRepositoryProfile.test_connection', return_value=True)
+            MODULE_PATH + PERFORM_TEST_CONNECTION, return_value=True)
         mocker.patch(MODULE_PATH + 'ModifyFirmwareRepositoryProfile.rec_diff',
                      return_value={"profileName": "test"})
         mocker.patch(MODULE_UTILS_PATH +
-                     'OMEVVFirmwareProfile.modify_firmware_repository_profile', return_value=(obj, ""))
+                     PERFORM_MODIFY_PROFILE, return_value=(obj, ""))
         mocker.patch(
             MODULE_PATH + 'ModifyFirmwareRepositoryProfile.output_modify_response', return_value=None)
         f_module = self.get_module_mock(params=omevv_default_args)
@@ -615,7 +626,7 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
         # Scenario 2: When modification is not successful
         obj.success = False
         mocker.patch(MODULE_UTILS_PATH +
-                     'OMEVVFirmwareProfile.modify_firmware_repository_profile', return_value=(obj, ""))
+                     PERFORM_MODIFY_PROFILE, return_value=(obj, ""))
         mocker.patch(
             MODULE_PATH + 'ModifyFirmwareRepositoryProfile.output_modify_response', return_value=None)
         f_module = self.get_module_mock(params=omevv_default_args)
@@ -627,7 +638,7 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
         # Scenario 3: When test connection is not successful
         obj.success = False
         mocker.patch(
-            MODULE_PATH + 'FirmwareRepositoryProfile.test_connection', return_value=False)
+            MODULE_PATH + PERFORM_TEST_CONNECTION, return_value=False)
         f_module = self.get_module_mock(
             params=omevv_default_args)
         obj = self.module.ModifyFirmwareRepositoryProfile(
@@ -642,35 +653,35 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
         obj.success = True
         obj.json_data = {
             "id": 1000,
-            "profileName": "Dell Default Catalog",
+            "profileName": PROFILE_NAME,
             "protocolType": "HTTPS",
             "sharePath": SHARE_PATH,
-            "description": "Latest Firmware From Dell",
+            "description": DESCRIPTION,
             "status": "Parsing"
         }
         obj2.json_data = {
             "id": 1000,
-            "profileName": "Dell Default Catalog",
+            "profileName": PROFILE_NAME,
             "protocolType": "HTTPS",
             "sharePath": SHARE_PATH,
-            "description": "Latest Firmware From Dell",
+            "description": DESCRIPTION,
             "status": "Success"
         }
         api_response = {
             "id": 1996,
-            "profileName": "Dell Default Catalog",
+            "profileName": PROFILE_NAME,
             "protocolType": "HTTPS",
             "sharePath": SHARE_PATH,
-            "description": "Latest Firmware From Dell",
+            "description": DESCRIPTION,
             "status": "Success"
         }
         diff = {'profileName': 'Dell Default'}
         mocker.patch(MODULE_UTILS_PATH +
-                     'OMEVVFirmwareProfile.get_firmware_repository_profile_by_id', side_effect=[obj, obj2])
+                     GET_PROFILE_BY_ID, side_effect=[obj, obj2])
         mocker.patch(MODULE_PATH +
                      'time.sleep', return_value={})
         mocker.patch(MODULE_UTILS_PATH +
-                     'OMEVVFirmwareProfile.modify_firmware_repository_profile', return_value=(obj, ""))
+                     PERFORM_MODIFY_PROFILE, return_value=(obj, ""))
         f_module = self.get_module_mock(
             params=omevv_default_args)
         obj = self.module.ModifyFirmwareRepositoryProfile(
@@ -681,17 +692,17 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
         # Scenario 2: When modification is not successful
         obj.json_data = {
             "id": 1000,
-            "profileName": "Dell Default Catalog",
+            "profileName": PROFILE_NAME,
             "protocolType": "HTTPS",
             "sharePath": SHARE_PATH,
-            "description": "Latest Firmware From Dell",
+            "description": DESCRIPTION,
             "status": "Failed"
         }
         diff = {'profileName': 'Dell Default'}
         mocker.patch(MODULE_UTILS_PATH +
-                     'OMEVVFirmwareProfile.get_firmware_repository_profile_by_id', return_value=obj)
+                     GET_PROFILE_BY_ID, return_value=obj)
         mocker.patch(MODULE_UTILS_PATH +
-                     'OMEVVFirmwareProfile.modify_firmware_repository_profile', return_value=(obj, ""))
+                     PERFORM_MODIFY_PROFILE, return_value=(obj, ""))
         f_module = self.get_module_mock(
             params=omevv_default_args)
         obj = self.module.ModifyFirmwareRepositoryProfile(
@@ -737,16 +748,16 @@ class TestDeleteFirmwareRepositoryProfile(FakeAnsibleModule):
         obj.success = True
         api_response = {
             "id": 1996,
-            "profileName": "Dell Default Catalog",
+            "profileName": PROFILE_NAME,
             "protocolType": "HTTPS",
             "sharePath": SHARE_PATH,
-            "description": "Latest Firmware From Dell",
+            "description": DESCRIPTION,
             "status": "Success"
         }
         mocker.patch(
-            MODULE_PATH + 'DeleteFirmwareRepositoryProfile.diff_mode_check', return_value={})
+            MODULE_PATH + DELETE_DIFF_MODE_CHECK, return_value={})
         mocker.patch(MODULE_UTILS_PATH +
-                     'OMEVVFirmwareProfile.delete_firmware_repository_profile', return_value=obj)
+                     PERFORM_DELETE_PROFILE, return_value=obj)
         f_module = self.get_module_mock(
             params=omevv_default_args)
         obj = self.module.DeleteFirmwareRepositoryProfile(
@@ -757,7 +768,7 @@ class TestDeleteFirmwareRepositoryProfile(FakeAnsibleModule):
         # Scenario 2: When delete is not successful
         obj.success = False
         mocker.patch(MODULE_UTILS_PATH +
-                     'OMEVVFirmwareProfile.delete_firmware_repository_profile', return_value=obj)
+                     PERFORM_DELETE_PROFILE, return_value=obj)
         f_module = self.get_module_mock(
             params=omevv_default_args)
         obj = self.module.DeleteFirmwareRepositoryProfile(
@@ -769,13 +780,13 @@ class TestDeleteFirmwareRepositoryProfile(FakeAnsibleModule):
         # Scenario 1: When profile does not exist
         obj = MagicMock()
         mocker.patch(MODULE_UTILS_PATH +
-                     'OMEVVFirmwareProfile.get_firmware_repository_profile', return_value={})
+                     GET_PROFILE_INFO_KEY, return_value={})
         mocker.patch(MODULE_UTILS_PATH +
-                     'OMEVVFirmwareProfile.search_profile_name', return_value={})
+                     SEARCH_PROFILE_NAME, return_value={})
         mocker.patch(
-            MODULE_PATH + 'DeleteFirmwareRepositoryProfile.diff_mode_check', return_value={})
+            MODULE_PATH + DELETE_DIFF_MODE_CHECK, return_value={})
         mocker.patch(MODULE_UTILS_PATH +
-                     'OMEVVFirmwareProfile.delete_firmware_repository_profile', return_value=obj)
+                     PERFORM_DELETE_PROFILE, return_value=obj)
         f_module = self.get_module_mock(
             params=omevv_default_args)
         obj = self.module.DeleteFirmwareRepositoryProfile(
@@ -796,20 +807,20 @@ class TestDeleteFirmwareRepositoryProfile(FakeAnsibleModule):
         obj.success = True
         res = {
             "id": 1996,
-            "profileName": "Dell Default Catalog",
+            "profileName": PROFILE_NAME,
             "protocolType": "HTTPS",
             "sharePath": SHARE_PATH,
-            "description": "Latest Firmware From Dell",
+            "description": DESCRIPTION,
             "status": "Success"
         }
         mocker.patch(MODULE_UTILS_PATH +
-                     'OMEVVFirmwareProfile.get_firmware_repository_profile', return_value=res)
+                     GET_PROFILE_INFO_KEY, return_value=res)
         mocker.patch(MODULE_UTILS_PATH +
-                     'OMEVVFirmwareProfile.search_profile_name', return_value=res)
+                     SEARCH_PROFILE_NAME, return_value=res)
         mocker.patch(
-            MODULE_PATH + 'DeleteFirmwareRepositoryProfile.diff_mode_check', return_value={})
+            MODULE_PATH + DELETE_DIFF_MODE_CHECK, return_value={})
         mocker.patch(MODULE_UTILS_PATH +
-                     'OMEVVFirmwareProfile.delete_firmware_repository_profile', return_value=obj)
+                     PERFORM_DELETE_PROFILE, return_value=obj)
         f_module = self.get_module_mock(
             params=omevv_default_args, check_mode=True)
         obj = self.module.DeleteFirmwareRepositoryProfile(
