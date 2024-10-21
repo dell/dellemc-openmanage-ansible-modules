@@ -13,14 +13,24 @@
     is not defined
 
 - block:
+    - name: Including helper file for creating firmware repo profile
+      ansible.builtin.include_tasks: ../__pre_req_create.yml
+      vars:
+        profile_name: "temp_profile"
+        protocol: "HTTP"
+        share__username: "{{ http_share_user  }}"
+        share__password: "{{ http_share_password  }}"
+        path: "{{ http_share }}{{ http_share_dir_path }}"
+        state: present
+
     - name: Retrieve specific firmware repository profile information
        using profile name. (Check mode)
       dellemc.openmanage.omevv_firmware_repository_profile_info: &retrieve_info
         hostname: "{{ hostname }}"
         vcenter_username: "{{ vcenter_username }}"
         vcenter_password: "{{ vcenter_password }}"
-        vcenter_uuid: "{{ uuid }}"
-        name: profile-1
+        vcenter_uuid: 971d1cd1-7377-448c-a0c5-e0f599b15433
+        name: temp_profile
       register: cm_changes
       check_mode: true
 
@@ -56,13 +66,21 @@
         force_basic_auth: true
         status_code: 200
         headers:
-          x_omivv-api-vcenter-identifier: "{{ uuid }}"
+          x_omivv-api-vcenter-identifier: 971d1cd1-7377-448c-a0c5-e0f599b15433
       register: uri_resp
 
     - name: Verify - Get profile details by uri.
       ansible.builtin.assert:
         that:
           - info_result.profile_info == uri_resp.json
+
+  always:
+    - name: Cleanup
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        name: "temp_profile"
+        state: absent
+      ignore_errors: true
+      no_log: true
 
   module_defaults:
     dellemc.openmanage.omevv_firmware_repository_profile_info:
