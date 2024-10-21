@@ -1,0 +1,103 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: hostname, vcenter_username
+      and vcenter_password."
+  when:
+    hostname is undefined or vcenter_username is undefined or vcenter_password
+    is undefined
+
+- block:
+    - name: Creating firmware repository profile
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        name: "Ansible_FirmRepo"
+        state: present
+        catalog_path: "{{ https_share_ip }}"
+        protocol_type: "HTTPS"
+        description: "FW repo description"
+
+    - name: Modifying firm repo profile with new name and description -
+        Check Mode
+      dellemc.openmanage.omevv_firmware_repository_profile: &mod1
+        name: "Ansible_FirmRepo"
+        new_name: "Update_Ansible_FirmRepo"
+        description: "New description"
+        state: present
+      register: modify_1_check
+      diff: true
+      check_mode: true
+
+    - name: Asserting modification of new name and description
+      ansible.builtin.assert:
+        that:
+          - modify_1_check.changed
+          - modify_1_check.msg == "Changes found to be applied."
+
+    - name: Modifying firm repo profile with new name and description -
+        Check and Diff Mode
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        <<: *mod1
+      diff: true
+      check_mode: true
+      register: modify_1_check_and_diff
+
+    - name: Asserting modification of new name and description
+      ansible.builtin.assert:
+        that:
+          - modify_1_check_and_diff.changed
+          - modify_1_check_and_diff.msg == "Changes found to be applied."
+          - modify_1_check_and_diff.diff.after | length == 2
+          - modify_1_check_and_diff.diff.before | length == 2
+
+    - name: Modifying firm repo profile with new name and description -
+        Normal and diff Mode
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        <<: *mod1
+      diff: true
+      register: modify_1_normal_and_diff
+
+    - name: Asserting modification of new name and description
+      ansible.builtin.assert:
+        that:
+          - modify_1_normal_and_diff.changed
+          - modify_1_normal_and_diff.msg == "Successfully modified the OMEVV
+            firmware repository profile."
+          - modify_1_normal_and_diff.diff.after | length == 2
+          - modify_1_normal_and_diff.diff.before | length == 2
+
+    - name: Including task for modification based on protocol type
+      ansible.builtin.include_tasks: __helper_modify.yml
+      vars:
+        protocol: "{{ item.protocol }}"
+        path: "{{ item.path }}"
+        share__username: "{{ item.username }}"
+        share__password: "{{ item.password }}"
+      loop:
+        - protocol: "HTTPS"
+          path: "https://downloads.dell.com/catalog/catalog.xml.gz"
+          username: ""
+          password: ""
+
+  always:
+    - name: Cleanup
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        name: "{{ item }}"
+        state: absent
+      ignore_errors: true
+      loop:
+        - "Ansible_FirmRepo"
+        - "Update_Ansible_FirmRepo"
+      no_log: true
+
+  module_defaults:
+    dellemc.openmanage.omevv_firmware_repository_profile:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname | ansible.utils.ipwrap }}"
+      vcenter_username: "{{ vcenter_username }}"
+      vcenter_password: "{{ vcenter_password }}"
+      vcenter_uuid: "{{ uuid }}"
