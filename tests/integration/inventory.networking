@@ -6,13 +6,13 @@ iDRAC idrac_ip=xx.xx.xx.xx idrac_user=username idrac_password=password idrac_por
 OME hostname=xx.xx.xx.xx username=username password=password port=443 validate_certs=false
 
 [omevv]
-OMEVV hostname=xx.xx.xx.xx vcenter_username=username vcenter_password=password port=443 validate_certs=false
+OMEVV hostname=100.96.37.73 vcenter_username="Administrator@vsphere.local" vcenter_password="Dell_123$" port=443 validate_certs=false
 
 [omevv:vars]
 # Credentials
 vcenter_hostname=xx.xx.xx.xx
-ome_username=username
-ome_password=password
+ome_username=admin
+ome_password=Dell_123$
 
 [ome:vars]
 # Credentials
@@ -27,24 +27,24 @@ ansible_connection=local
 ansible_become_pass=password
 idrac_reset_default_username=default_username
 idrac_reset_default_password=default_password
-http_share=http_share_ip
-http_share_dir_path=http_share_path
+http_share=http://100.96.37.71/
+http_share_dir_path=myrepo/Catalog/Catalog.xml
 http_share_user=http_share_user
 http_share_password=http_share_password
 idrac_firmware_dup_file=idrac_firmware_dup_file
 bios_firmware_dup_file=bios_firmware_dup_file
-https_share_ip=https_share_ip
-https_share_username=https_share_username
-https_share_password=https_share_password
+https_share_ip=https://100.96.37.71/myrepo/Catalog/Catalog.xml
+https_share_username=""
+https_share_password=""
 ome_application_certificate_certificate_remote_share_path=remote_share_path
 ome_application_certificate_certificate_chain_filename=certificate_chain_filename
 ome_application_certificate_local_temp_path=local_temp_path
 idrac_secure_boot_cert_path_1=secure_boot_certitifate_path_1
 idrac_secure_boot_cert_path_2=secure_boot_certitifate_path_1
-nfs_share_name=nfs_share_name
-cifs_share_name=cifs_share_name
-cifs_share_user=cifs_share_user
-cifs_share_password=cifs_share_password
+nfs_share_name=100.96.16.123:/nfsshare/firmwares/R750/Catalog.xml
+cifs_share_name=\\100.96.37.71\cifsshare\firmwares\R760xs\Catalog.xml
+cifs_share_user=administrator
+cifs_share_password=Dell123
 ftp_share_ip=ftp_share_ip
 ftp_share_dir_path=ftp_share_dir_path
 ftp_share_username=ftp_share_username
