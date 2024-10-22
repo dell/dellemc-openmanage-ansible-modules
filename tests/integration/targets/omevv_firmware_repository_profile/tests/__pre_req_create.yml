@@ -1,0 +1,17 @@
+---
+- name: Pre-requisite - Create a profile to be deleted
+  dellemc.openmanage.omevv_firmware_repository_profile:
+    hostname: "{{ hostname }}"
+    vcenter_uuid: "{{ uuid }}"
+    vcenter_username: "{{ vcenter_username }}"
+    vcenter_password: "{{ vcenter_password }}"
+    state: "present"
+    protocol_type: "{{ protocol }}"
+    share_username: "{{ share__username | default(omit) }}"
+    share_password: "{{ share__password | default(omit) }}"
+    catalog_path: "{{ path }}"
+    name: "{{ profile_name }}"
+    validate_certs: false
+    description: "Firmware repository profile created by Module"
+  register: create_result
+  no_log: true
