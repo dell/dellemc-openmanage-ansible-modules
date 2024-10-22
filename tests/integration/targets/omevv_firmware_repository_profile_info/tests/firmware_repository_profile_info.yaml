@@ -1,0 +1,91 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: hostname, vcenter_username
+      and vcenter_password."
+  when:
+    hostname is not defined or ome_username is not defined or ome_password
+    is not defined
+
+- block:
+    - name: Including helper file for creating firmware repo profile
+      ansible.builtin.include_tasks: ../__pre_req_create.yml
+      vars:
+        profile_name: "temp_profile"
+        protocol: "HTTP"
+        share__username: "{{ http_share_user  }}"
+        share__password: "{{ http_share_password  }}"
+        path: "{{ http_share }}{{ http_share_dir_path }}"
+        state: present
+
+    - name: Retrieve specific firmware repository profile information
+       using profile name. (Check mode)
+      dellemc.openmanage.omevv_firmware_repository_profile_info: &retrieve_info
+        hostname: "{{ hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_uuid: "{{ uuid }}"
+        name: temp_profile
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify task status - Retrieve specific firmware repository profile
+       information using profile name. (Check mode)
+      ansible.builtin.assert:
+        that:
+          - not cm_changes.changed
+          - cm_changes.msg == "Successfully retrieved the firmware repository
+           profile information."
+
+    - name: Retrieve specific firmware repository profile information
+       using profile name. (Normal Mode)
+      dellemc.openmanage.omevv_firmware_repository_profile_info:
+        <<: *retrieve_info
+      register: info_result
+
+    - name: Verify task status - Retrieve specific firmware repository profile
+       information using profile name. (Normal Mode)
+      ansible.builtin.assert:
+        that:
+          - not info_result.changed
+          - info_result.msg == "Successfully retrieved the firmware repository
+           profile information."
+
+    - name: Get profile details by uri.
+      ansible.builtin.uri:
+        url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
+         }}/omevv/GatewayService/v1/RepositoryProfiles/{{ info_result.profile_info.id }}
+        user: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: false
+        force_basic_auth: true
+        status_code: 200
+        headers:
+          x_omivv-api-vcenter-identifier: "{{ uuid }}"
+      register: uri_resp
+
+    - name: Verify - Get profile details by uri.
+      ansible.builtin.assert:
+        that:
+          - info_result.profile_info == uri_resp.json
+
+  always:
+    - name: Cleanup
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        name: "temp_profile"
+        state: absent
+      ignore_errors: true
+      no_log: true
+
+  module_defaults:
+    dellemc.openmanage.omevv_firmware_repository_profile_info:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      vcenter_username: "{{ vcenter_username }}"
+      vcenter_password: "{{ vcenter_password }}"
+      port: "{{ port }}"

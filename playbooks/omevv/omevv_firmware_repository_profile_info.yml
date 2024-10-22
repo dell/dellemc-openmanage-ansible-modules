@@ -1,0 +1,24 @@
+---
+- name: Dell OpenManage Ansible device inventory details.
+  hosts: omevv
+  gather_facts: false
+  tasks:
+    - name: Retrieve all firmware repository profile information.
+      dellemc.openmanage.omevv_firmware_repository_profile_info:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ vcenter_uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        ca_path: "path/to/ca_file"
+      delegate_to: localhost
+
+    - name: Retrieve specific firmware repository profile information
+            using profile name.
+      dellemc.openmanage.omevv_firmware_repository_profile_info:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ vcenter_uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        ca_path: "path/to/ca_file"
+        name: "{{ profile_name }}"
+      delegate_to: localhost

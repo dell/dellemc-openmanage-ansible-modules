@@ -1,6 +1,6 @@
 namespace: dellemc
 name: openmanage
-version: 9.7.0
+version: 9.8.0
 readme: README.md
 authors:
   - Jagadeesh N V <Jagadeesh.N.V@Dell.com>
@@ -20,7 +20,8 @@ description: Dell OpenManage Ansible Modules allows data center and IT
   configuration, deployment, and update of Dell PowerEdge Servers and
   modular infrastructure by leveraging the management automation
   capabilities in-built into the Integrated Dell Remote Access Controller
-  (iDRAC), OpenManage Enterprise and OpenManage Enterprise Modular.
+  (iDRAC), OpenManage Enterprise, OpenManage Enterprise Modular and
+  OpenManage Enterprise Integration for VMWare vCenter Plug-in.
 
 license_file: LICENSE
 
@@ -38,6 +39,8 @@ tags:
     "poweredge_servers",
     "automation",
     "devops",
+    "vCenter",
+    "VMware",
   ]
 
 dependencies: {
