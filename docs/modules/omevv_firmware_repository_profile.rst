@@ -1,8 +1,8 @@
 .. _omevv_firmware_repository_profile_module:
 
 
-omevv_firmware_repository_profile -- Create, modify, and delete OMEVV firmware repository profile
-=================================================================================================
+omevv_firmware_repository_profile -- Create, modify, or delete OMEVV firmware repository profile
+================================================================================================
 
 .. contents::
    :local:
@@ -86,11 +86,11 @@ Parameters
 
 
   hostname (True, str, None)
-    OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
+    IP address or hostname of the OpenManage Enterprise Modular.
 
 
   vcenter_username (False, str, None)
-    OpenManage Enterprise Integration for VMware vCenter username.
+    Username for OpenManage Enterprise Integration for VMware vCenter (OMEVV).
 
     If the username is not provided, then the environment variable \ :envvar:`OMEVV\_VCENTER\_USERNAME`\  is used.
 
@@ -98,7 +98,7 @@ Parameters
 
 
   vcenter_password (False, str, None)
-    OpenManage Enterprise Integration for VMware vCenter password.
+    Password for OpenManage Enterprise Integration for VMware vCenter (OMEVV).
 
     If the password is not provided, then the environment variable \ :envvar:`OMEVV\_VCENTER\_PASSWORD`\  is used.
 
@@ -106,11 +106,11 @@ Parameters
 
 
   vcenter_uuid (False, str, None)
-    Universally unique identifier (uuid) of vCenter.
+    Universally Unique Identifier (UUID) of vCenter.
 
-    vCenter uuid details can be fetched using \ :ref:`dellemc.openmanage.omevv\_vcenter\_info <ansible_collections.dellemc.openmanage.omevv_vcenter_info_module>`\  module.
+    vCenter UUID details can be retrieved using \ :ref:`dellemc.openmanage.omevv\_vcenter\_info <ansible_collections.dellemc.openmanage.omevv_vcenter_info_module>`\  module.
 
-    If the uuid is not provided, then the environment variable \ :envvar:`OMEVV\_VCENTER\_UUID`\  is used.
+    If UUID is not provided, then the environment variable \ :envvar:`OMEVV\_VCENTER\_UUID`\  is used.
 
     Example: export OMEVV\_VCENTER\_UUID=uuid
 

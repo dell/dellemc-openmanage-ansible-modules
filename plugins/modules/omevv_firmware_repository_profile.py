@@ -17,7 +17,7 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 ---
 module: omevv_firmware_repository_profile
-short_description: Create, modify, and delete OMEVV firmware repository profile
+short_description: Create, modify, or delete OMEVV firmware repository profile
 version_added: "9.8.0"
 description: This module allows you to create, modify, or delete an OpenManage Enterprise Integration for VMware Center (OMEVV) firmware repository profile.
 extends_documentation_fragment:
