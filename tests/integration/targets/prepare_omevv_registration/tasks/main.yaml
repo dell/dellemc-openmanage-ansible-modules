@@ -56,3 +56,8 @@
     - name: Set fact of uuid
       ansible.builtin.set_fact:
         uuid: "{{ console_details.json[0].uuid }}"
+        vcenter_hostname: "{{ console_details.json[0].consoleAddress }}"
+
+    - name: Set fact of consoleAddress
+      ansible.builtin.set_fact:
+        vcenter_hostname: "{{ console_details.json[0].consoleAddress }}"

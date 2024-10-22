@@ -1,0 +1,66 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: hostname, vcenter_username
+      and vcenter_password."
+  when:
+    hostname is not defined or ome_username is not defined or ome_password
+    is not defined
+
+- block:
+    - name: Retrieve all vcenter info (Check mode)
+      dellemc.openmanage.omevv_vcenter_info: &retrieve_info
+        hostname: "{{ hostname }}"
+        username: "{{ ome_username }}"
+        password: "{{ ome_password }}"
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify task status - Retrieve all vcenter info (Check mode)
+      ansible.builtin.assert:
+        that:
+          - not cm_changes.changed
+          - cm_changes.msg == 'Successfully retrieved the vCenter
+           information.'
+
+    - name: Retrieve all vcenter info (Normal Mode)
+      dellemc.openmanage.omevv_vcenter_info:
+        <<: *retrieve_info
+      register: info_result
+
+    - name: Verify task status - Retrieve all vcenter info (Normal Mode)
+      ansible.builtin.assert:
+        that:
+          - not info_result.changed
+          - not info_result.failed
+          - info_result.msg == "Successfully retrieved the vCenter
+           information."
+
+    - name: Get Vcenter details by uri.
+      ansible.builtin.uri:
+        url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
+         }}/omevv/GatewayService/v1/Consoles
+        user: "{{ ome_username }}"
+        password: "{{ ome_password }}"
+        validate_certs: false
+        force_basic_auth: true
+        status_code: 200
+      register: uri_resp
+
+    - name: Verify - Get Vcenter details by uri.
+      ansible.builtin.assert:
+        that:
+          - info_result.vcenter_info == uri_resp.json
+
+  module_defaults:
+    dellemc.openmanage.omevv_vcenter_info:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ ome_username }}"
+      password: "{{ ome_password }}"
+      port: "{{ port }}"
