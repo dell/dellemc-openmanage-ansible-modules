@@ -10,18 +10,14 @@ v9.8.0
 Release Summary
 ---------------
 
-- Modules are added to support OpenManage Enterprise Integration for VMWare vCenter Plug-in.
-- The ``omevv_vcenter_info`` module is added to support retrieval of vCenter information.
-- The ``omevv_firmware_repository_profile_info`` module is added to support retrieval of firmware repository profile information.
-- The ``omevv_firmware_repository_profile`` module is added to support management of firmware repository profile.
-- The ``idrac_firmware_info`` module is enhanced to support iDRAC10 and OMSDK dependency is removed.'
+- Modules are added to support OpenManage Enterprise Integration for VMWare vCenter Plug-in. - The ``omevv_vcenter_info`` module is added to support retrieval of vCenter information. - The ``omevv_firmware_repository_profile_info`` module is added to support retrieval of firmware repository profile information. - The ``omevv_firmware_repository_profile`` module is added to support management of firmware repository profile. - The ``idrac_firmware_info`` module is enhanced to support iDRAC10 and OMSDK dependency is removed.
 
 Major Changes
 -------------
 
-- omevv_vcenter_info - This module allows to retrieve vCenter information.
-- omevv_firmware_repository_profile_info - This module allows to retrieve firmware repository profile information.
 - omevv_firmware_repository_profile - This module allows to manage firmware repository profile.
+- omevv_firmware_repository_profile_info - This module allows to retrieve firmware repository profile information.
+- omevv_vcenter_info - This module allows to retrieve vCenter information.
 
 Minor Changes
 -------------
@@ -32,8 +28,8 @@ Bugfixes
 --------
 
 - idrac_storage_volume - Issue(290766) - The module will report success instead of showing failure for new virtual creation on the BOSS-N1 controller if a virtual disk is already present on the same controller.
-- ome_diagnostics - Issue(279193) - Export of SupportAssist collection logs to the share location fails on OME version 4.0.0.
 - idrac_support_assist - Issue(308550) - This module fails when the NFS share path contains sub directory.
+- ome_diagnostics - Issue(279193) - Export of SupportAssist collection logs to the share location fails on OME version 4.0.0.
 
 Known Issues
 ------------

@@ -56,10 +56,15 @@
           - info_result.msg == "Successfully retrieved the firmware repository
            profile information."
 
+    - name: Constructing url
+      ansible.builtin.set_fact:
+        url_1: "https://{{ hostname | ansible.utils.ipwrap }}:"
+        url_2: "{{ port }}/omevv/GatewayService/v1/"
+        url_3: "RepositoryProfiles/{{ info_result.profile_info.id }}"
+
     - name: Get profile details by uri.
       ansible.builtin.uri:
-        url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
-         }}/omevv/GatewayService/v1/RepositoryProfiles/{{ info_result.profile_info.id }}
+        url: "{{ url_1 }}{{ url_2 }}{{ url_3 }}"
         user: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
         validate_certs: false
