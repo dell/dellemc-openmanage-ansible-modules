@@ -18,28 +18,28 @@ class ModuleDocFragment(object):
     DOCUMENTATION = r'''
 options:
   hostname:
-    description: OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
+    description: IP address or hostname of the OpenManage Enterprise Modular.
     type: str
     required: true
   vcenter_username:
     description:
-      - OpenManage Enterprise Integration for VMware vCenter username.
+      - Username for OpenManage Enterprise Integration for VMware vCenter (OMEVV).
       - If the username is not provided, then the environment variable E(OMEVV_VCENTER_USERNAME) is used.
       - "Example: export OMEVV_VCENTER_USERNAME=username"
     type: str
     required: false
   vcenter_password:
     description:
-      - OpenManage Enterprise Integration for VMware vCenter password.
+      - Password for OpenManage Enterprise Integration for VMware vCenter (OMEVV).
       - If the password is not provided, then the environment variable E(OMEVV_VCENTER_PASSWORD) is used.
       - "Example: export OMEVV_VCENTER_PASSWORD=password"
     type: str
     required: false
   vcenter_uuid:
     description:
-     - Universally unique identifier (uuid) of vCenter.
-     - vCenter uuid details can be fetched using M(dellemc.openmanage.omevv_vcenter_info) module.
-     - If the uuid is not provided, then the environment variable E(OMEVV_VCENTER_UUID) is used.
+     - Universally Unique Identifier (UUID) of vCenter.
+     - vCenter UUID details can be retrieved using M(dellemc.openmanage.omevv_vcenter_info) module.
+     - If UUID is not provided, then the environment variable E(OMEVV_VCENTER_UUID) is used.
      - "Example: export OMEVV_VCENTER_UUID=uuid"
     type: str
     required: false
