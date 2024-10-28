@@ -39,8 +39,8 @@ tags:
     "poweredge_servers",
     "automation",
     "devops",
-    "vCenter",
-    "VMware",
+    "vcenter",
+    "vmware",
   ]
 
 dependencies: {
