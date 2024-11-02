@@ -15,11 +15,11 @@ __metaclass__ = type
 import pytest
 import json
 from ansible_collections.dellemc.openmanage.plugins.modules import omevv_firmware_compliance_info
-from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
+from urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from io import StringIO
-from mock import MagicMock
+from unittest.mock import MagicMock
 from ansible.module_utils._text import to_text
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.omevv_firmware_compliance_info.'
@@ -34,9 +34,6 @@ FIRMWARE_COMPLIANCE = 'FirmwareComplianceInfo'
 HTTP_ERROR = "http error message"
 HTTP_ERROR_URL = 'https://testhost.com'
 RETURN_TYPE = "application/json"
-SHARE_PATH = "https://downloads.dell.com//catalog/catalog.xml.gz"
-PROFILE_NAME = "Dell Default Catalog"
-DESCRIPTION = "Latest Firmware From Dell"
 
 
 class TestFirmwareComplianceInfo(FakeAnsibleModule):

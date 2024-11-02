@@ -132,7 +132,7 @@ error_info:
 '''
 import json
 from copy import deepcopy
-from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
+from urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv import RestOMEVV, OMEVVAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv_utils.omevv_info_utils import OMEVVInfo
