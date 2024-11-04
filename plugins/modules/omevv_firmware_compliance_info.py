@@ -137,7 +137,8 @@ from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv import RestOMEVV, OMEVVAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv_utils.omevv_info_utils import OMEVVInfo
 
-PARTIAL_HOST_WARN_MSG = "Unable to fetch the firmware compliance report of few of the hosts - {0}"
+PARTIAL_HOST_WARN_MSG = "Unable to fetch the firmware compliance report of few of the host(s) - {0}"
+PARTIAL_CLUSTER_WARN_MSG = "Unable to fetch the firmware compliance report of few of the cluster(s) - {0}"
 CLUSTER_NOT_VALID_MSG = "Unable to complete the operation because the {cluster_name} is not valid cluster name."
 ALL_HOST_CLUSTER_NOT_VALID_MSG = "Unable to complete the operation because none of clusters or hosts are valid."
 SUCCESS_FETCHED_MSG = "Successfully fetched the firmware compliance report."
@@ -171,6 +172,7 @@ class FirmwareComplianceInfo:
         flatten_data = {}
         clusters = self.module.params.get("clusters")
         uuid = self.module.params.get("vcenter_uuid")
+        invalid_cluster_name = []
         if clusters:
             for cluster in clusters:
                 cluster_name = cluster.get("cluster_name")
@@ -178,7 +180,7 @@ class FirmwareComplianceInfo:
                 hostname = cluster.get("hosts")
                 group_id = self.info.get_group_id_of_cluster(uuid, cluster_name)
                 if group_id == -1:
-                    self.module.warn(CLUSTER_NOT_VALID_MSG.format(cluster_name=cluster_name))
+                    invalid_cluster_name.append(cluster_name)
                     continue
                 host_id = self.extract_host_id(svctag, hostname, cluster_name)
                 for each_host_id in host_id:
@@ -187,6 +189,9 @@ class FirmwareComplianceInfo:
                                                       "groupId": group_id}
                     else:
                         flatten_data[cluster_name]["hostId"].append(each_host_id)
+            if invalid_cluster_name:
+                inv_cls = ', '.join(invalid_cluster_name)
+                self.module.warn(PARTIAL_CLUSTER_WARN_MSG.format(inv_cls))
         return flatten_data
 
     def execute(self):
