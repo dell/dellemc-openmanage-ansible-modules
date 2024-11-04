@@ -139,8 +139,8 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv_utils.ome
 
 PARTIAL_HOST_WARN_MSG = "Unable to fetch the firmware compliance report of few of the host(s) - {0}"
 PARTIAL_CLUSTER_WARN_MSG = "Unable to fetch the firmware compliance report of few of the cluster(s) - {0}"
-CLUSTER_NOT_VALID_MSG = "Unable to complete the operation because the {cluster_name} is not valid cluster name."
-ALL_HOST_CLUSTER_NOT_VALID_MSG = "Unable to complete the operation because none of clusters or hosts are valid."
+CLUSTER_NOT_VALID_MSG = "Unable to complete the operation because the {cluster_name} is not valid."
+ALL_HOST_CLUSTER_NOT_VALID_MSG = "Unable to complete the operation because none of clusters and hosts are valid."
 SUCCESS_FETCHED_MSG = "Successfully fetched the firmware compliance report."
 
 
@@ -182,23 +182,23 @@ class FirmwareComplianceInfo:
                 if group_id == -1:
                     invalid_cluster_name.append(cluster_name)
                     continue
-                host_id = self.extract_host_id(svctag, hostname, cluster_name)
-                for each_host_id in host_id:
+                host_id_list = self.extract_host_id(svctag, hostname, cluster_name)
+                for each_host_id in host_id_list:
                     if cluster_name not in flatten_data:
                         flatten_data[cluster_name] = {"hostId": [each_host_id],
                                                       "groupId": group_id}
                     else:
                         flatten_data[cluster_name]["hostId"].append(each_host_id)
-            if invalid_cluster_name:
-                inv_cls = ', '.join(invalid_cluster_name)
-                self.module.warn(PARTIAL_CLUSTER_WARN_MSG.format(inv_cls))
-        return flatten_data
+        return flatten_data, invalid_cluster_name
 
     def execute(self):
         output = None
         uuid = self.module.params.get("vcenter_uuid")
         clusters = self.module.params.get("clusters")
-        flattend_data = self.get_hostid_groupid_and_cluster_name()
+        flattend_data, invalid_cluster_name = self.get_hostid_groupid_and_cluster_name()
+        if invalid_cluster_name:
+            inv_cls = ', '.join(invalid_cluster_name)
+            self.module.warn(PARTIAL_CLUSTER_WARN_MSG.format(inv_cls))
         if not flattend_data:
             if clusters is None:
                 output = self.get_all_cluster_drift_info(uuid)

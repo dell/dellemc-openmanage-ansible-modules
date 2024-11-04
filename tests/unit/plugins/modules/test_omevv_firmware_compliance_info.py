@@ -26,8 +26,8 @@ MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.omevv_firm
 MODULE_UTILS_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.omevv_utils.omevv_info_utils.OMEVVInfo.'
 
 PARTIAL_HOST_WARN_MSG = "Unable to fetch the firmware compliance report of few of the hosts - {0}"
-CLUSTER_NOT_VALID_MSG = "Unable to complete the operation because the {cluster_name} is not valid cluster name."
-ALL_HOST_CLUSTER_NOT_VALID_MSG = "Unable to complete the operation because none of clusters or hosts are valid."
+CLUSTER_NOT_VALID_MSG = "Unable to complete the operation because the {cluster_name} is not valid."
+ALL_HOST_CLUSTER_NOT_VALID_MSG = "Unable to complete the operation because none of clusters and hosts are valid."
 SUCCESS_FETCHED_MSG = "Successfully fetched the firmware compliance report."
 
 FIRMWARE_COMPLIANCE = 'FirmwareComplianceInfo'
@@ -65,7 +65,7 @@ class TestFirmwareComplianceInfo(FakeAnsibleModule):
         f_module = self.get_module_mock(params=omevv_default_args)
         firm_compliance_obj = self.module.FirmwareComplianceInfo(f_module, omevv_connection_compliance_info)
         flat_data = firm_compliance_obj.get_hostid_groupid_and_cluster_name()
-        assert flat_data == {}
+        assert flat_data == ({}, [])
 
     def test_get_hostid_groupid_and_cluster_name_with_only_cluster_input(self, omevv_default_args,
                                                                          omevv_connection_compliance_info,
@@ -76,7 +76,7 @@ class TestFirmwareComplianceInfo(FakeAnsibleModule):
         f_module = self.get_module_mock(params=omevv_default_args)
         firm_compliance_obj = self.module.FirmwareComplianceInfo(f_module, omevv_connection_compliance_info)
         flat_data = firm_compliance_obj.get_hostid_groupid_and_cluster_name()
-        assert flat_data == {'JHI Cluster': {'groupId': 1005, 'hostId': [10, 12]}}
+        assert flat_data == ({'JHI Cluster': {'groupId': 1005, 'hostId': [10, 12]}}, [])
 
     def test_get_hostid_groupid_and_cluster_name_with_invalid_cluster_input(self, omevv_default_args,
                                                                             omevv_connection_compliance_info,
@@ -87,13 +87,13 @@ class TestFirmwareComplianceInfo(FakeAnsibleModule):
         f_module = self.get_module_mock(params=omevv_default_args)
         firm_compliance_obj = self.module.FirmwareComplianceInfo(f_module, omevv_connection_compliance_info)
         flat_data = firm_compliance_obj.get_hostid_groupid_and_cluster_name()
-        assert flat_data == {}
+        assert flat_data == ({}, ['Invalid Cluster'])
 
     def test_execute_when_no_cluster(self, omevv_default_args,
                                      omevv_connection_compliance_info,
                                      mocker):
         cluster_detail = [{'cluster': 'PQR Cluster'}]
-        mocker.patch(MODULE_PATH + FIRMWARE_COMPLIANCE + '.get_hostid_groupid_and_cluster_name', return_value={})
+        mocker.patch(MODULE_PATH + FIRMWARE_COMPLIANCE + '.get_hostid_groupid_and_cluster_name', return_value=({}, []))
         mocker.patch(MODULE_PATH + FIRMWARE_COMPLIANCE + '.get_all_cluster_drift_info', return_value=cluster_detail)
         resp = self._run_module(omevv_default_args)
         assert resp["msg"] == SUCCESS_FETCHED_MSG
@@ -103,7 +103,7 @@ class TestFirmwareComplianceInfo(FakeAnsibleModule):
                                         omevv_connection_compliance_info,
                                         mocker):
         host_detail = [{'cluster': 'PQR Cluster', 'host': 'xx.xx.xx.xx'}]
-        mocker.patch(MODULE_PATH + FIRMWARE_COMPLIANCE + '.get_hostid_groupid_and_cluster_name', return_value=True)
+        mocker.patch(MODULE_PATH + FIRMWARE_COMPLIANCE + '.get_hostid_groupid_and_cluster_name', return_value=(True, []))
         mocker.patch(MODULE_PATH + FIRMWARE_COMPLIANCE + '.get_host_drift_info', return_value=host_detail)
         resp = self._run_module(omevv_default_args)
         assert resp["msg"] == SUCCESS_FETCHED_MSG
@@ -113,7 +113,7 @@ class TestFirmwareComplianceInfo(FakeAnsibleModule):
                                                   omevv_connection_compliance_info,
                                                   mocker):
         host_detail = []
-        mocker.patch(MODULE_PATH + FIRMWARE_COMPLIANCE + '.get_hostid_groupid_and_cluster_name', return_value={})
+        mocker.patch(MODULE_PATH + FIRMWARE_COMPLIANCE + '.get_hostid_groupid_and_cluster_name', return_value=({}, []))
         mocker.patch(MODULE_PATH + FIRMWARE_COMPLIANCE + '.get_host_drift_info', return_value=host_detail)
         resp = self._run_module(omevv_default_args)
         assert resp["msg"] == ALL_HOST_CLUSTER_NOT_VALID_MSG
