@@ -188,13 +188,12 @@ class BaselineProfile:
     def validate_common_params(self):
 
         validate_job_wait(self.module)
-        
+
         time = self.module.params.get('time')
         validate_time(time, self.module)
-        
+
         repository_profile = self.module.params.get('repository_profile')
         self.omevv_baseline_obj.validate_repository_profile(repository_profile, self.module)
-        
         cluster_names = self.module.params.get('cluster')
         self.omevv_baseline_obj.validate_cluster_names(cluster_names, self.module)
 
