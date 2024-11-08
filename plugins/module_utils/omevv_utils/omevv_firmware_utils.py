@@ -40,6 +40,7 @@ BASELINE_PROFILE_URI = "/Consoles/{vcenter_uuid}/BaselineProfiles"
 TEST_CONNECTION_URI = "/RepositoryProfiles/TestConnection"
 CLUSTER_URI = "/Consoles/{vcenter_uuid}/Clusters"
 CLUSTER_IDS_URI = "/Consoles/{vcenter_uuid}/Groups/getGroupsForClusters"
+DRIFT_URI = "/Consoles/{vcenter_uuid}/UpdateJobs"
 
 
 class OMEVVFirmwareProfile:
@@ -383,7 +384,7 @@ class OMEVVBaselineProfile:
 
         return group_ids
 
-    def get_repo_id(self, repository_profile):
+    def get_repo_id_by_name(self, repository_profile):
         repo_profile_info = self.omevv_profile_obj.get_firmware_repository_profile(
             profile_name=repository_profile
         )
@@ -429,9 +430,6 @@ class OMEVVBaselineProfile:
         profiles = self.get_baseline_profiles(vcenter_uuid)
         profile_exists = self.search_baseline_profile_name(profiles, profile_name)
 
-        # existing_profile = next((profile for profile in profiles if profile['name'] == profile_name), None)
-        # return existing_profile
-
         if profile_exists:
             return profile_exists
 
@@ -476,6 +474,22 @@ class OMEVVBaselineProfile:
                 }
         return None
 
+    def get_current_job_schedule(self, profile_id, vcenter_uuid):
+        """
+        Retrieves the current job schedule for a baseline profile.
+
+        Args:
+            profile_id (str): The ID of the profile for which to retrieve the schedule.
+            vcenter_uuid (str): The UUID of the vCenter.
+
+        Returns:
+            dict: Job schedule details if available.
+        """
+        resp = self.omevv.invoke_request(
+            "GET", DRIFT_URI.format(vcenter_uuid=vcenter_uuid) + "/" + str(profile_id)
+        )
+        return resp
+
     def search_baseline_profile_name(self, data, profile_name):
         """
         Searches for a profile with the given name in the provided data.
@@ -491,6 +505,21 @@ class OMEVVBaselineProfile:
             if d.get('name') == profile_name:
                 return d
         return {}
+
+    def get_add_remove_group_ids(self, existing_profile, vcenter_uuid, cluster_names):
+        """Determine groups to add or remove based on the cluster names"""
+        current_group_ids = {group['omevv_groupID'] for group in existing_profile.get('clusterGroups', [])}
+
+        new_group_ids = set(self.get_group_ids_for_clusters(
+            vcenter_uuid=vcenter_uuid,
+            cluster_names=cluster_names
+        ))
+
+        # Determine the groups that need to be added or removed
+        add_group_ids = list(new_group_ids - current_group_ids)
+        remove_group_ids = list(current_group_ids - new_group_ids)
+
+        return add_group_ids, remove_group_ids
 
     def get_create_payload_details(self, name, firmware_repo_id, group_ids, job_schedule, description=None):
         """
@@ -543,3 +572,39 @@ class OMEVVBaselineProfile:
 
         resp = self.omevv.invoke_request("POST", BASELINE_PROFILE_URI.format(vcenter_uuid=vcenter_uuid), payload)
         return resp, err_msg
+
+    def modify_baseline_profile(self, profile_id, vcenter_uuid, payload):
+        """
+        Modifies an existing baseline profile.
+
+        Args:
+            profile_id (str): The ID of the baseline profile to modify.
+            vcenter_uuid (str): The UUID of the vCenter environment.
+            payload (dict): A dictionary containing the fields to modify in the baseline profile.
+
+        Returns:
+            tuple: A tuple containing the response and an error message.
+
+        Raises:
+            None.
+        """
+        err_msg = None
+        if not profile_id or not vcenter_uuid or not payload:
+            err_msg = "Required parameters: profile_id, vcenter_uuid, or payload are missing."
+
+        # Construct the URL for the PATCH request
+        url = BASELINE_PROFILE_URI.format(vcenter_uuid=vcenter_uuid) + f"/{profile_id}"
+
+        # Send the PATCH request using the appropriate method (e.g., self.omevv.invoke_request)
+        resp = self.omevv.invoke_request("PATCH", url, payload)
+
+        return resp, err_msg
+
+    def delete_baseline_profile(self, profile_id, vcenter_uuid):
+        """
+        Deletes a baseline profile.
+
+        """
+        resp = self.omevv.invoke_request(
+            "DELETE", BASELINE_PROFILE_URI.format(vcenter_uuid=vcenter_uuid) + "/" + str(profile_id))
+        return resp

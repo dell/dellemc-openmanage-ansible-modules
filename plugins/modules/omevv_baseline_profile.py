@@ -42,9 +42,6 @@ options:
     description:
       - Description of OMEVV baseline profile.
     type: str
-  new_name:
-    description: Name of the new OMEVV profile name when modify operation is performed.
-    type: str
   cluster:
     description:
       - List of cluster(s) for baseline profile creation.
@@ -176,7 +173,6 @@ FAILED_MODIFY_MSG = "Unable to modify the OMEVV baseline profile."
 SUCCESS_DELETION_MSG = "Successfully deleted the OMEVV baseline profile."
 FAILED_DELETION_MSG = "Unable to delete the OMEVV baseline profile."
 PROFILE_NOT_FOUND_MSG = "Unable to delete the profile {profile_name} because the profile name is invalid. Enter a valid profile name and retry the operation."
-FAILED_CONN_MSG = "Unable to complete the operation. Please check the connection details."
 CHANGES_FOUND_MSG = "Changes found to be applied."
 CHANGES_NOT_FOUND_MSG = "No changes found to be applied."
 
@@ -218,6 +214,7 @@ class CreateBaselineProfile(BaselineProfile):
     def diff_mode_check(self, payload):
         cluster_names = self.module.params.get('cluster', [])
         vcenter_uuid = self.module.params.get('vcenter_uuid')
+        description = self.module.params.get('description')
         cluster_ids = self.omevv_baseline_obj.get_cluster_id(cluster_names, vcenter_uuid)
         group_ids = self.omevv_baseline_obj.get_group_ids_for_clusters(vcenter_uuid, cluster_names)
 
@@ -234,7 +231,9 @@ class CreateBaselineProfile(BaselineProfile):
             "name": payload.get("name"),
             "firmwareRepoId": payload.get("firmwareRepoId"),
             "firmwareRepoName": self.module.params.get('repository_profile'),
-            "clusterGroups": cluster_groups
+            "clusterGroups": cluster_groups,
+            "description": description,
+            "jobSchedule": payload.get('jobSchedule')
         }
 
         diff = {
@@ -279,7 +278,7 @@ class CreateBaselineProfile(BaselineProfile):
         self.omevv_baseline_obj.validate_repository_profile(repository_profile, self.module)
         cluster_names = self.module.params.get('cluster')
         self.omevv_baseline_obj.validate_cluster_names(cluster_names, self.module)
-        firmware_repo_id = self.omevv_baseline_obj.get_repo_id(repository_profile)
+        firmware_repo_id = self.omevv_baseline_obj.get_repo_id_by_name(repository_profile)
         group_ids = self.omevv_baseline_obj.get_group_ids_for_clusters(
             vcenter_uuid=self.module.params.get('vcenter_uuid'),
             cluster_names=cluster_names
@@ -301,15 +300,188 @@ class CreateBaselineProfile(BaselineProfile):
         if self.module.check_mode:
             self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
 
-        # Proceed to create the baseline profile
         self.create_baseline_profile(payload)
+
+
+class ModifyBaselineProfile(BaselineProfile):
+
+    def __init__(self, module, rest_obj, existing_profile):
+        super().__init__(module, rest_obj)
+        self.existing_profile = existing_profile
+
+    def diff_mode_check(self, payload):
+        cluster_names = self.module.params.get('cluster', [])
+        vcenter_uuid = self.module.params.get('vcenter_uuid')
+        description = self.module.params.get('description', self.existing_profile.get("description"))
+
+        # Fetch cluster and group IDs for new clusters
+        cluster_ids = self.omevv_baseline_obj.get_cluster_id(cluster_names, vcenter_uuid)
+        group_ids = self.omevv_baseline_obj.get_group_ids_for_clusters(vcenter_uuid, cluster_names)
+        cluster_groups = [
+            {
+                "clusterID": cluster_id,
+                "clusterName": cluster_name,
+                "omevv_groupID": group_id
+            }
+            for cluster_name, cluster_id, group_id in zip(cluster_names, cluster_ids, group_ids)
+        ]
+
+        # Retrieve job_schedule from another API call
+        old_job_schedule_resp = self.omevv_baseline_obj.get_current_job_schedule(self.existing_profile.get("driftJobId"), vcenter_uuid)
+        old_job_schedule = old_job_schedule_resp.json_data.get("schedule")
+
+        new_job_schedule = payload['jobSchedule']
+
+        # Construct the 'after' payload for comparison
+        modified_payload = {
+            "name": self.module.params.get("name"),
+            "firmwareRepoId": payload.get("firmwareRepoId"),
+            "firmwareRepoName": self.module.params.get('repository_profile'),
+            "clusterGroups": cluster_groups,
+            "description": description,
+            "jobSchedule": new_job_schedule
+        }
+        filtered_existing_profile = {
+            k: v for k, v in self.existing_profile.items() if k in modified_payload
+        }
+        filtered_existing_profile["jobSchedule"] = old_job_schedule
+
+        # Determine if there are any differences
+        if filtered_existing_profile == modified_payload:
+            return {"before": {}, "after": {}}
+        else:
+            return {
+                "before": {k: v for k, v in filtered_existing_profile.items() if v is not None},
+                "after": {k: v for k, v in modified_payload.items() if v is not None}
+            }
+
+    def modify_baseline_profile(self, payload, diff_before_modify):
+        diff = diff_before_modify
+        profile_id = self.existing_profile.get('id')
+        vcenter_uuid = self.module.params.get('vcenter_uuid')
+
+        response, err_msg = self.omevv_baseline_obj.modify_baseline_profile(profile_id, vcenter_uuid, payload)
+        if response.success:
+            profile_resp = self.omevv_baseline_obj.get_baseline_profile_by_id(profile_id, vcenter_uuid)
+            while profile_resp.json_data["status"] not in ["SUCCESSFUL", "FAILED"]:
+                threading.Event().wait(3)
+                profile_resp = self.omevv_baseline_obj.get_baseline_profile_by_id(profile_id, vcenter_uuid)
+
+            if self.module._diff and profile_resp.json_data["status"] == "SUCCESSFUL":
+                self.module.exit_json(msg=SUCCESS_CREATION_MSG, profile_info=profile_resp.json_data, diff=diff, changed=True)
+            elif profile_resp.json_data["status"] == "SUCCESSFUL":
+                self.module.exit_json(msg=SUCCESS_MODIFY_MSG, profile_info=profile_resp.json_data, changed=True)
+            else:
+                self.module.exit_json(msg=FAILED_MODIFY_MSG, profile_info=profile_resp.json_data, failed=True)
+        else:
+            self.module.exit_json(msg=FAILED_MODIFY_MSG, failed=True)
+
+    def execute(self):
+        validate_job_wait(self.module)
+        time = self.module.params.get('time')
+        validate_time(time, self.module)
+        repository_profile = self.module.params.get('repository_profile')
+        self.omevv_baseline_obj.validate_repository_profile(repository_profile, self.module)
+        cluster_names = self.module.params.get('cluster')
+        self.omevv_baseline_obj.validate_cluster_names(cluster_names, self.module)
+
+        # Get the add and remove group IDs based on current and new cluster names
+        add_group_ids, remove_group_ids = self.omevv_baseline_obj.get_add_remove_group_ids(
+            self.existing_profile,
+            self.module.params.get('vcenter_uuid'),
+            cluster_names
+        )
+
+        job_schedule = self.omevv_baseline_obj.create_job_schedule(
+            self.module.params.get('days'),
+            self.module.params.get('time')
+        )
+
+        repository_name = self.module.params.get("repository_profile")
+        firmwareRepoId = self.omevv_baseline_obj.get_repo_id_by_name(repository_name)
+
+        # Prepare the new payload
+        new_payload = {
+            "addgroupIds": add_group_ids,
+            "removeGroupIds": remove_group_ids,
+            "jobSchedule": job_schedule,
+            "description": self.module.params.get("description", self.existing_profile.get("description")),
+            "configurationRepoId": self.module.params.get("configurationRepoId", 0),
+            "firmwareRepoId": firmwareRepoId,
+            "driverRepoId": self.module.params.get("driverRepoId", 0),
+            "modifiedBy": "Administrator@VSPHERE.LOCAL"
+        }
+
+        diff = self.diff_mode_check(new_payload)
+        if not diff["before"] and not diff["after"]:
+            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
+
+        if self.module.check_mode and self.module._diff:
+            self.module.exit_json(msg=CHANGES_FOUND_MSG, diff=diff, changed=True)
+
+        if self.module.check_mode:
+            self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
+
+        self.modify_baseline_profile(new_payload, diff)
+
+
+class DeleteBaselineProfile(BaselineProfile):
+
+    def __init__(self, module, rest_obj, profile_name):
+        super().__init__(module, rest_obj)
+        self.profile_name = profile_name
+
+    def diff_mode_check(self, payload):
+        diff = {}
+        diff_dict = {}
+        diff_dict["name"] = payload["name"]
+        diff_dict["description"] = payload["description"]
+        diff_dict["firmwareRepoId"] = payload["firmwareRepoId"]
+        diff_dict["firmwareRepoName"] = payload["firmwareRepoName"]
+        diff_dict["clusterGroups"] = payload["clusterGroups"]
+        if self.module._diff:
+            diff = dict(
+                before=diff_dict,
+                after={}
+            )
+        return diff
+
+    def delete_baseline_profile(self, profile_resp):
+        diff = {}
+        diff = self.diff_mode_check(profile_resp)
+        vcenter_uuid = self.module.params.get('vcenter_uuid')
+        resp = self.omevv_baseline_obj.delete_baseline_profile(profile_resp["id"], vcenter_uuid)
+        if resp.success:
+            if self.module._diff:
+                self.module.exit_json(msg=SUCCESS_DELETION_MSG, profile_info={}, diff=diff, changed=True)
+            self.module.exit_json(msg=SUCCESS_DELETION_MSG, profile_info={}, changed=True)
+        else:
+            self.module.exit_json(msg=FAILED_DELETION_MSG, failed=True)
+
+    def execute(self):
+        vcenter_uuid = self.module.params.get('vcenter_uuid')
+        profile_exists = self.omevv_baseline_obj.get_baseline_profile_by_name(self.profile_name, vcenter_uuid)
+        profile = self.module.params.get('name')
+
+        if profile_exists and self.module.check_mode and self.module._diff:
+            diff = self.diff_mode_check(profile_exists)
+            self.module.exit_json(msg=CHANGES_FOUND_MSG, diff=diff, changed=True)
+        if not profile_exists and self.module.check_mode:
+            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
+        if not profile_exists and not self.module.check_mode and self.module._diff:
+            self.module.exit_json(msg=PROFILE_NOT_FOUND_MSG.format(profile_name=profile), diff={"before": {}, "after": {}}, profile_info={}, failed=True)
+        if not profile_exists and not self.module.check_mode:
+            self.module.exit_json(msg=PROFILE_NOT_FOUND_MSG.format(profile_name=profile), profile_info={}, failed=True)
+        if profile_exists and not self.module.check_mode:
+            self.delete_baseline_profile(profile_exists)
+        if profile_exists and self.module.check_mode:
+            self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
 
 
 def main():
     argument_spec = {
         "state": {"type": 'str', "choices": ['present', 'absent'], "default": 'present'},
         "name": {"required": True, "type": 'str'},
-        "new_name": {"type": 'str'},
         "cluster": {"type": 'list', "elements": 'str'},
         "description": {"type": 'str'},
         "days": {
@@ -334,10 +506,10 @@ def main():
     )
     try:
         with RestOMEVV(module.params) as rest_obj:
+            profile_name = module.params.get('name')
+            vcenter_uuid = module.params.get('vcenter_uuid')
+            omevv_baseline_profile = OMEVVBaselineProfile(rest_obj)
             if module.params.get('state') == 'present':
-                profile_name = module.params.get('name')
-                vcenter_uuid = module.params.get('vcenter_uuid')
-                omevv_baseline_profile = OMEVVBaselineProfile(rest_obj)
                 existing_profile = omevv_baseline_profile.get_baseline_profile_by_name(profile_name, vcenter_uuid)
 
                 if existing_profile:
@@ -348,7 +520,7 @@ def main():
                 omevv_obj.execute()
 
             elif module.params.get('state') == 'absent':
-                omevv_obj = DeleteBaselineProfile(module, rest_obj, profile_name, vcenter_uuid)
+                omevv_obj = DeleteBaselineProfile(module, rest_obj, profile_name)
                 omevv_obj.execute()
 
     except HTTPError as err:
