@@ -549,7 +549,7 @@ class OMEVVBaselineProfile:
 
         return payload
 
-    def create_baseline_profile(self, name, firmware_repo_id, group_ids, vcenter_uuid, job_schedule, payload, description=None):
+    def create_baseline_profile(self, name, firmware_repo_id, group_ids, vcenter_uuid, payload):
         """
         Creates a baseline profile.
 

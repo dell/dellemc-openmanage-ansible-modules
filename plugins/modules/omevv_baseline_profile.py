@@ -185,6 +185,19 @@ class BaselineProfile:
         self.omevv_baseline_obj = OMEVVBaselineProfile(self.obj)
         self.omevv_profile_obj = OMEVVFirmwareProfile(self.obj)
 
+    def validate_common_params(self):
+
+        validate_job_wait(self.module)
+        
+        time = self.module.params.get('time')
+        validate_time(time, self.module)
+        
+        repository_profile = self.module.params.get('repository_profile')
+        self.omevv_baseline_obj.validate_repository_profile(repository_profile, self.module)
+        
+        cluster_names = self.module.params.get('cluster')
+        self.omevv_baseline_obj.validate_cluster_names(cluster_names, self.module)
+
     def execute(self):
         """To be overridden by subclasses to implement specific profile creation or deletion logic."""
         pass
@@ -250,9 +263,7 @@ class CreateBaselineProfile(BaselineProfile):
             firmware_repo_id=payload.get('firmwareRepoId'),
             group_ids=payload.get('groupIds'),
             vcenter_uuid=vcenter_uuid,
-            job_schedule=payload.get('jobSchedule'),
-            payload=payload,
-            description=self.module.params.get('description'),
+            payload=payload
         )
         if response.success:
             profile_resp = self.omevv_baseline_obj.get_baseline_profile_by_id(response.json_data, vcenter_uuid)
@@ -271,20 +282,13 @@ class CreateBaselineProfile(BaselineProfile):
             self.module.exit_json(msg=FAILED_CREATION_MSG, failed=True)
 
     def execute(self):
-        validate_job_wait(self.module)
-        time = self.module.params.get('time')
-        validate_time(time, self.module)
-        repository_profile = self.module.params.get('repository_profile')
-        self.omevv_baseline_obj.validate_repository_profile(repository_profile, self.module)
-        cluster_names = self.module.params.get('cluster')
-        self.omevv_baseline_obj.validate_cluster_names(cluster_names, self.module)
-        firmware_repo_id = self.omevv_baseline_obj.get_repo_id_by_name(repository_profile)
+        self.validate_common_params()
+        firmware_repo_id = self.omevv_baseline_obj.get_repo_id_by_name(self.module.params.get('repository_profile'))
         group_ids = self.omevv_baseline_obj.get_group_ids_for_clusters(
             vcenter_uuid=self.module.params.get('vcenter_uuid'),
-            cluster_names=cluster_names
+            cluster_names=self.module.params.get('cluster')
         )
-        days = self.module.params.get('days')
-        job_schedule = self.omevv_baseline_obj.create_job_schedule(days, time)
+        job_schedule = self.omevv_baseline_obj.create_job_schedule(self.module.params.get('days'), self.module.params.get('time'))
         payload = self.omevv_baseline_obj.get_create_payload_details(
             name=self.module.params.get('name'),
             firmware_repo_id=firmware_repo_id,
@@ -326,7 +330,7 @@ class ModifyBaselineProfile(BaselineProfile):
             for cluster_name, cluster_id, group_id in zip(cluster_names, cluster_ids, group_ids)
         ]
 
-        # Retrieve job_schedule from another API call
+        # Retrieve job_schedule from drift API call
         old_job_schedule_resp = self.omevv_baseline_obj.get_current_job_schedule(self.existing_profile.get("driftJobId"), vcenter_uuid)
         old_job_schedule = old_job_schedule_resp.json_data.get("schedule")
 
@@ -346,7 +350,6 @@ class ModifyBaselineProfile(BaselineProfile):
         }
         filtered_existing_profile["jobSchedule"] = old_job_schedule
 
-        # Determine if there are any differences
         if filtered_existing_profile == modified_payload:
             return {"before": {}, "after": {}}
         else:
@@ -368,7 +371,7 @@ class ModifyBaselineProfile(BaselineProfile):
                 profile_resp = self.omevv_baseline_obj.get_baseline_profile_by_id(profile_id, vcenter_uuid)
 
             if self.module._diff and profile_resp.json_data["status"] == "SUCCESSFUL":
-                self.module.exit_json(msg=SUCCESS_CREATION_MSG, profile_info=profile_resp.json_data, diff=diff, changed=True)
+                self.module.exit_json(msg=SUCCESS_MODIFY_MSG, profile_info=profile_resp.json_data, diff=diff, changed=True)
             elif profile_resp.json_data["status"] == "SUCCESSFUL":
                 self.module.exit_json(msg=SUCCESS_MODIFY_MSG, profile_info=profile_resp.json_data, changed=True)
             else:
@@ -377,19 +380,11 @@ class ModifyBaselineProfile(BaselineProfile):
             self.module.exit_json(msg=FAILED_MODIFY_MSG, failed=True)
 
     def execute(self):
-        validate_job_wait(self.module)
-        time = self.module.params.get('time')
-        validate_time(time, self.module)
-        repository_profile = self.module.params.get('repository_profile')
-        self.omevv_baseline_obj.validate_repository_profile(repository_profile, self.module)
-        cluster_names = self.module.params.get('cluster')
-        self.omevv_baseline_obj.validate_cluster_names(cluster_names, self.module)
-
-        # Get the add and remove group IDs based on current and new cluster names
+        self.validate_common_params()
         add_group_ids, remove_group_ids = self.omevv_baseline_obj.get_add_remove_group_ids(
             self.existing_profile,
             self.module.params.get('vcenter_uuid'),
-            cluster_names
+            self.module.params.get('cluster')
         )
 
         job_schedule = self.omevv_baseline_obj.create_job_schedule(
@@ -398,7 +393,7 @@ class ModifyBaselineProfile(BaselineProfile):
         )
 
         repository_name = self.module.params.get("repository_profile")
-        firmwareRepoId = self.omevv_baseline_obj.get_repo_id_by_name(repository_name)
+        firmware_repo_id = self.omevv_baseline_obj.get_repo_id_by_name(repository_name)
 
         # Prepare the new payload
         new_payload = {
@@ -407,7 +402,7 @@ class ModifyBaselineProfile(BaselineProfile):
             "jobSchedule": job_schedule,
             "description": self.module.params.get("description", self.existing_profile.get("description")),
             "configurationRepoId": self.module.params.get("configurationRepoId", 0),
-            "firmwareRepoId": firmwareRepoId,
+            "firmwareRepoId": firmware_repo_id,
             "driverRepoId": self.module.params.get("driverRepoId", 0),
             "modifiedBy": "Administrator@VSPHERE.LOCAL"
         }
