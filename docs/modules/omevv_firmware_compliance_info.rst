@@ -165,12 +165,12 @@ Examples
 Return Values
 -------------
 
-msg (always, str, Successfully created the OMEVV firmware repository profile.)
-  Status of the profile operation.
+msg (always, str, Successfully fetched the firmware compliance report.)
+  Retrive the firmware compliance report.
 
 
-error_info (on HTTP error, dict, {'errorCode': '18001', 'message': 'Repository profile with name Test already exists.'})
-  Details of the HTTP Error.
+firmware_compliance_info (on HTTP error, list, [{'complianceStatus': 'NonCompliant', 'cluster': 'cluster_a', 'hostComplianceReports': [{'hostId': 1002, 'hostAddress': 'XX.XX.XX.XX', 'serviceTag': 'SVCTAG', 'deviceModel': 'PowerEdge R660xs', 'complianceStatus': 'WARNING', 'componentCompliances': [{'driftStatus': 'NonCompliant', 'componentName': 'Enterprise UEFI Diagnostics', 'currentValue': '4303A15', 'baselineValue': '4303A19', 'criticality': 'Optional', 'updateAction': 'UPGRADE', 'sourceName': 'DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1', 'complianceStatus': 'WARNING', 'rebootRequired': False}]}]}])
+  Details of the compliance report.
 
 
 
