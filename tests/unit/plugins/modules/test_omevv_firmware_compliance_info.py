@@ -34,6 +34,7 @@ FIRMWARE_COMPLIANCE = 'FirmwareComplianceInfo'
 HTTP_ERROR = "http error message"
 HTTP_ERROR_URL = 'https://testhost.com'
 RETURN_TYPE = "application/json"
+GET_HOST_GROUP_ID_AND_CLUSTER_NAME = ".get_hostid_groupid_and_cluster_name"
 
 
 class TestFirmwareComplianceInfo(FakeAnsibleModule):
@@ -93,7 +94,7 @@ class TestFirmwareComplianceInfo(FakeAnsibleModule):
                                      omevv_connection_compliance_info,
                                      mocker):
         cluster_detail = [{'cluster': 'PQR Cluster'}]
-        mocker.patch(MODULE_PATH + FIRMWARE_COMPLIANCE + '.get_hostid_groupid_and_cluster_name', return_value=({}, []))
+        mocker.patch(MODULE_PATH + FIRMWARE_COMPLIANCE + GET_HOST_GROUP_ID_AND_CLUSTER_NAME, return_value=({}, []))
         mocker.patch(MODULE_PATH + FIRMWARE_COMPLIANCE + '.get_all_cluster_drift_info', return_value=cluster_detail)
         resp = self._run_module(omevv_default_args)
         assert resp["msg"] == SUCCESS_FETCHED_MSG
@@ -103,7 +104,7 @@ class TestFirmwareComplianceInfo(FakeAnsibleModule):
                                         omevv_connection_compliance_info,
                                         mocker):
         host_detail = [{'cluster': 'PQR Cluster', 'host': 'xx.xx.xx.xx'}]
-        mocker.patch(MODULE_PATH + FIRMWARE_COMPLIANCE + '.get_hostid_groupid_and_cluster_name', return_value=(True, []))
+        mocker.patch(MODULE_PATH + FIRMWARE_COMPLIANCE + GET_HOST_GROUP_ID_AND_CLUSTER_NAME, return_value=(True, []))
         mocker.patch(MODULE_PATH + FIRMWARE_COMPLIANCE + '.get_host_drift_info', return_value=host_detail)
         resp = self._run_module(omevv_default_args)
         assert resp["msg"] == SUCCESS_FETCHED_MSG
@@ -113,7 +114,7 @@ class TestFirmwareComplianceInfo(FakeAnsibleModule):
                                                   omevv_connection_compliance_info,
                                                   mocker):
         host_detail = []
-        mocker.patch(MODULE_PATH + FIRMWARE_COMPLIANCE + '.get_hostid_groupid_and_cluster_name', return_value=({}, []))
+        mocker.patch(MODULE_PATH + FIRMWARE_COMPLIANCE + GET_HOST_GROUP_ID_AND_CLUSTER_NAME, return_value=({}, []))
         mocker.patch(MODULE_PATH + FIRMWARE_COMPLIANCE + '.get_host_drift_info', return_value=host_detail)
         resp = self._run_module(omevv_default_args)
         assert resp["msg"] == ALL_HOST_CLUSTER_NOT_VALID_MSG
