@@ -286,18 +286,16 @@ class OMEVVBaselineProfile:
         available_repo_profiles = self.omevv_profile_obj.get_all_repository_profiles()
 
         if not available_repo_profiles:
-            module.exit_json(msg=NO_REPO_PROFILE_MSG, failed=True)
+            return {"error": NO_REPO_PROFILE_MSG}
 
-        # Extract the profile names from the available repository profiles
         available_repo_profile_names = [profile.get('profileName') for profile in available_repo_profiles.json_data]
 
-        # Check if the provided repository_profile is in the list of available profiles
         if repository_profile not in available_repo_profile_names:
-            module.exit_json(
-                msg=INVALID_REPO_PROFILE_MSG.format(repository_profile=repository_profile),
-                failed=True)
+            return {"error": INVALID_REPO_PROFILE_MSG.format(repository_profile=repository_profile)}
 
-    def validate_cluster_names(self, cluster_names, module):
+        return {"success": True}
+
+    def validate_cluster_names(self, cluster_names, vcenter_uuid):
         """
         Validates the provided cluster names against the available clusters.
 
@@ -305,24 +303,19 @@ class OMEVVBaselineProfile:
             cluster_names (list): List of cluster names to validate.
             module: The Ansible module instance for logging and exiting.
         """
-        # Fetch the list of available clusters via the API
-        vcenter_uuid = module.params.get('vcenter_uuid')
+
         available_clusters = self.get_all_clusters(vcenter_uuid)
 
-        # Check if no clusters are available
         if not available_clusters:
-            module.exit_json(msg=NO_CLUSTERS_FOUND_MSG, failed=True)
+            return {"error": NO_CLUSTERS_FOUND_MSG}
 
-        # Extract the cluster names from the available clusters
         available_cluster_names = [cluster.get('name') for cluster in available_clusters.json_data]
-
-        # Check if any provided cluster names are invalid
         invalid_clusters = [cluster for cluster in cluster_names if cluster not in available_cluster_names]
+
         if invalid_clusters:
-            module.exit_json(
-                msg=INVALID_CLUSTER_NAMES_MSG.format(cluster_names=', '.join(invalid_clusters)),
-                failed=True
-            )
+            return {"error": INVALID_CLUSTER_NAMES_MSG.format(cluster_names=', '.join(invalid_clusters))}
+
+        return {"success": True}
 
     def get_all_clusters(self, vcenter_uuid):
         """
@@ -410,8 +403,8 @@ class OMEVVBaselineProfile:
         response = self.omevv.invoke_request('GET', BASELINE_PROFILE_URI.format(vcenter_uuid=vcenter_uuid))
         if response.success:
             return response.json_data
-        else:
-            return []
+
+        return []
 
     def get_baseline_profile_by_id(self, profile_id, vcenter_uuid):
         """
@@ -424,17 +417,22 @@ class OMEVVBaselineProfile:
 
     def get_baseline_profile_by_name(self, profile_name, vcenter_uuid):
         """
-        Retrieves all baseline profile Information.
+        Retrieves all baseline profile information and checks for a profile with the given name.
 
+        Args:
+            profile_name (str): The name of the profile to search for.
+            vcenter_uuid (str): The UUID of the vCenter to retrieve profiles from.
+
+        Returns:
+            dict: The dictionary representing the profile if found, or an empty dictionary if not found.
         """
         profiles = self.get_baseline_profiles(vcenter_uuid)
-        profile_exists = self.search_baseline_profile_name(profiles, profile_name)
 
-        if profile_exists:
-            return profile_exists
+        for profile in profiles:
+            if profile.get('name') == profile_name:
+                return profile
 
-        else:
-            return {}
+        return {}
 
     def create_job_schedule(self, days, time):
         """
@@ -490,22 +488,6 @@ class OMEVVBaselineProfile:
         )
         return resp
 
-    def search_baseline_profile_name(self, data, profile_name):
-        """
-        Searches for a profile with the given name in the provided data.
-
-        Args:
-            data (list): A list of dictionaries representing profiles.
-            profile_name (str): The name of the profile to search for.
-
-        Returns:
-            dict: The dictionary representing the profile if found, or an empty dictionary if not found.
-        """
-        for d in data:
-            if d.get('name') == profile_name:
-                return d
-        return {}
-
     def get_add_remove_group_ids(self, existing_profile, vcenter_uuid, cluster_names):
         """Determine groups to add or remove based on the cluster names"""
         current_group_ids = {group['omevv_groupID'] for group in existing_profile.get('clusterGroups', [])}
@@ -520,34 +502,6 @@ class OMEVVBaselineProfile:
         remove_group_ids = list(current_group_ids - new_group_ids)
 
         return add_group_ids, remove_group_ids
-
-    def get_create_payload_details(self, name, firmware_repo_id, group_ids, job_schedule, description=None):
-        """
-        Returns a dictionary containing the payload details for creating a baseline profile.
-
-        Args:
-            name (str): The name of the baseline profile.
-            firmware_repo_id (str): The ID of the firmware repository.
-            group_ids (list): List of group IDs.
-            job_schedule (dict, optional): Schedule dictionary with days and time.
-            description (str, optional): Description for the baseline profile.
-
-        Returns:
-            dict: A dictionary representing the payload for creating a baseline profile.
-        """
-        payload = {
-            "name": name,
-            "firmwareRepoId": firmware_repo_id,
-            "groupIds": group_ids
-        }
-
-        if description is not None:
-            payload["description"] = description
-
-        if job_schedule:
-            payload["jobSchedule"] = job_schedule
-
-        return payload
 
     def create_baseline_profile(self, name, firmware_repo_id, group_ids, vcenter_uuid, payload):
         """

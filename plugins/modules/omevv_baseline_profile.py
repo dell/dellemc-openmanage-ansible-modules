@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.8.0
+# Version 9.9.0
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -186,16 +186,19 @@ class BaselineProfile:
         self.omevv_profile_obj = OMEVVFirmwareProfile(self.obj)
 
     def validate_common_params(self):
-
         validate_job_wait(self.module)
-
-        time = self.module.params.get('time')
-        validate_time(time, self.module)
+        validate_time(self.module.params.get('time'), self.module)
 
         repository_profile = self.module.params.get('repository_profile')
-        self.omevv_baseline_obj.validate_repository_profile(repository_profile, self.module)
+        repo_validation = self.omevv_baseline_obj.validate_repository_profile(repository_profile, self.module)
+        if "error" in repo_validation:
+            self.module.exit_json(msg=repo_validation["error"], failed=True)
+
         cluster_names = self.module.params.get('cluster')
-        self.omevv_baseline_obj.validate_cluster_names(cluster_names, self.module)
+        vcenter_uuid = self.module.params.get('vcenter_uuid')
+        cluster_validation = self.omevv_baseline_obj.validate_cluster_names(cluster_names, vcenter_uuid)
+        if "error" in cluster_validation:
+            self.module.exit_json(msg=cluster_validation["error"], failed=True)
 
     def execute(self):
         """To be overridden by subclasses to implement specific profile creation or deletion logic."""
@@ -288,13 +291,17 @@ class CreateBaselineProfile(BaselineProfile):
             cluster_names=self.module.params.get('cluster')
         )
         job_schedule = self.omevv_baseline_obj.create_job_schedule(self.module.params.get('days'), self.module.params.get('time'))
-        payload = self.omevv_baseline_obj.get_create_payload_details(
-            name=self.module.params.get('name'),
-            firmware_repo_id=firmware_repo_id,
-            group_ids=group_ids,
-            job_schedule=job_schedule,
-            description=self.module.params.get('description')
-        )
+        payload = {
+            "name": self.module.params.get('name'),
+            "firmwareRepoId": firmware_repo_id,
+            "groupIds": group_ids
+        }
+
+        description = self.module.params.get('description')
+        if description is not None:
+            payload["description"] = description
+        if job_schedule:
+            payload["jobSchedule"] = job_schedule
 
         if self.module.check_mode and self.module._diff:
             diff = self.diff_mode_check(payload)
