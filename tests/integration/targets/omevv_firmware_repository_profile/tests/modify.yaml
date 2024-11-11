@@ -15,7 +15,7 @@
 - block:
     - name: Creating firmware repository profile
       dellemc.openmanage.omevv_firmware_repository_profile:
-        name: "Ansible_FirmRepo"
+        name: "Ansible_Repo_Modify_HTTPS"
         state: present
         catalog_path: "{{ https_share_ip }}"
         protocol_type: "HTTPS"
@@ -24,8 +24,8 @@
     - name: Modifying firm repo profile with new name and description -
         Check Mode
       dellemc.openmanage.omevv_firmware_repository_profile: &mod1
-        name: "Ansible_FirmRepo"
-        new_name: "Update_Ansible_FirmRepo"
+        name: "Ansible_Repo_Modify_HTTPS"
+        new_name: "Upd_Ansible_Repo_Modify_HTTPS"
         description: "New description"
         state: present
       register: modify_1_check
@@ -70,29 +70,53 @@
           - modify_1_normal_and_diff.diff.after | length == 2
           - modify_1_normal_and_diff.diff.before | length == 2
 
+    - name: Cleanup after modification of new name and description
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        name: "Upd_Ansible_Repo_Modify_HTTPS"
+        state: absent
+      ignore_errors: true
+
     - name: Including task for modification based on protocol type
       ansible.builtin.include_tasks: __helper_modify.yml
       vars:
+        name: "Ansible_Repo_Modify_{{ item.protocol }}"
         protocol: "{{ item.protocol }}"
-        path: "{{ item.path }}"
-        share__username: "{{ item.username }}"
-        share__password: "{{ item.password }}"
+        first_path: "{{ item.first_path }}"
+        first_share__username: "{{ item.first_username }}"
+        first_share__password: "{{ item.first_password }}"
+        second_path: "{{ item.second_path }}"
+        second_share__username: "{{ item.second_username }}"
+        second_share__password: "{{ item.second_password }}"
       loop:
         - protocol: "HTTPS"
-          path: "https://downloads.dell.com/catalog/catalog.xml.gz"
-          username: ""
-          password: ""
+          first_path: "{{ https_share_ip }}"
+          second_path: "https://downloads.dell.com/catalog/catalog.xml.gz"
+        - protocol: "HTTP"
+          first_path: "{{ http_share }}{{ http_share_dir_path }}"
+          second_path: "http://downloads.dell.com/catalog/catalog.xml.gz"
+        - protocol: "CIFS"
+          first_path: "{{ cifs_share_name }}"
+          second_path: "{{ modify_cifs_share_name }}"
+          first_username: "{{ cifs_share_user }}"
+          second_username: "{{ modify_cifs_share_user }}"
+          first_password: "{{ cifs_share_password }}"
+          second_password: "{{ modify_cifs_share_password }}"
+        - protocol: "NFS"
+          first_path: "{{ nfs_share_name }}"
+          second_path: "{{ modify_nfs_share_name }}"
 
   always:
     - name: Cleanup
       dellemc.openmanage.omevv_firmware_repository_profile:
-        name: "{{ item }}"
+        name: "Ansible_Repo_Modify_{{ item }}"
         state: absent
       ignore_errors: true
       loop:
-        - "Ansible_FirmRepo"
-        - "Update_Ansible_FirmRepo"
-      no_log: true
+        - "HTTPS"
+        - "HTTP"
+        - "NFS"
+        - "CIFS"
+      # no_log: true
 
   module_defaults:
     dellemc.openmanage.omevv_firmware_repository_profile:
