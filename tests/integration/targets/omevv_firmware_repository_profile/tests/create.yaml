@@ -42,7 +42,6 @@
         state: absent
       ignore_errors: true
       loop: "{{ payload }}"
-      no_log: true
 
   module_defaults:
     dellemc.openmanage.omevv_firmware_repository_profile:

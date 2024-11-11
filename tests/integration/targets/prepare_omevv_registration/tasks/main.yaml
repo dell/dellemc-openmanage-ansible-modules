@@ -34,6 +34,7 @@
         timeout: 300
         status_code:
           - 201
+        body: "{{ payload }}"
       when: get_vcenter_plugin.json | length == 0
       vars:
         payload:
@@ -56,8 +57,4 @@
     - name: Set fact of uuid
       ansible.builtin.set_fact:
         uuid: "{{ console_details.json[0].uuid }}"
-        vcenter_hostname: "{{ console_details.json[0].consoleAddress }}"
-
-    - name: Set fact of consoleAddress
-      ansible.builtin.set_fact:
-        vcenter_hostname: "{{ console_details.json[0].consoleAddress }}"
+      when: vcenter_hostname == console_details.json[0].consoleAddress
