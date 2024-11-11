@@ -12,7 +12,7 @@
             ca_path: "path/to/ca_file"
 
       - name: Fetch firmware compliance report of all the hosts in the specific
-        cluster
+            cluster
         dellemc.openmanage.omevv_firmware_compliance_info:
             hostname: "{{ hostname }}"
             vcenter_uuid: "{{ vcenter_uuid }}"
@@ -23,7 +23,7 @@
                 - cluster_name: cluster_a
 
       - name: Fetch firmware compliance report of a specific hosts in the
-        specific cluster
+            specific cluster
         dellemc.openmanage.omevv_firmware_compliance_info:
             hostname: "{{ hostname }}"
             vcenter_uuid: "{{ vcenter_uuid }}"
@@ -40,7 +40,7 @@
                       - xx.xx.xx.xx
 
       - name: Fetch firmware compliance report of a specific hosts in of
-        multiple cluster
+            multiple cluster
         dellemc.openmanage.omevv_firmware_compliance_info:
             hostname: "{{ hostname }}"
             vcenter_uuid: "{{ vcenter_uuid }}"
