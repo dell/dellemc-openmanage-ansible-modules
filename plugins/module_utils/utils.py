@@ -56,7 +56,7 @@ POWER_CHECK_INTERVAL = 10
 GET_IDRAC_FIRMWARE_DETAILS_URI_10 = "/redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory?$select=Members"
 GET_IDRAC_FIRMWARE_URI_10 = "/redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory"
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be negative or zero."
-INVALID_TIME_FORMAT_MSG = "Invalid time format. Please provide time in HH:MM format (24-hour)."
+INVALID_TIME_FORMAT_MSG = "Invalid value for time. Enter the value in positive integer."
 
 import time
 from datetime import datetime
@@ -753,18 +753,20 @@ def reset_host(idrac, restart_type, system_uri, base_uri):
     return state_achieved
 
 
-def validate_job_wait(module, job_wait_param="job_wait", job_wait_timeout_param="job_wait_timeout"):
+def validate_job_wait(module):
     """
     Validates job_wait and job_wait_timeout parameters.
     :param module: The Ansible module instance.
     :param job_wait_param: The name of the job wait parameter to check (default is "job_wait").
     :param job_wait_timeout_param: The name of the job wait timeout parameter to check (default is "job_wait_timeout").
     """
-    job_wait = module.params.get(job_wait_param)
-    job_wait_timeout = module.params.get(job_wait_timeout_param)
+    job_wait = module.params.get('job_wait')
+    job_wait_timeout = module.params.get('job_wait_timeout')
 
     if job_wait and (job_wait_timeout is None or job_wait_timeout <= 0):
-        module.exit_json(msg=TIMEOUT_NEGATIVE_OR_ZERO_MSG, failed=True)
+        return True
+
+    return False
 
 
 def validate_time(time, module):

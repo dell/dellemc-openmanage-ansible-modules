@@ -32,7 +32,7 @@ __metaclass__ = type
 
 INVALID_REPO_PROFILE_MSG = "Invalid repository profile: {repository_profile}. Please provide a valid profile."
 NO_REPO_PROFILE_MSG = "No repository profiles found."
-INVALID_CLUSTER_NAMES_MSG = "Invalid cluster names: {cluster_names}. Please provide valid clusters."
+INVALID_CLUSTER_NAMES_MSG = "Invalid cluster names: {cluster_names}. Please provide valid cluster(s)."
 NO_CLUSTERS_FOUND_MSG = "No clusters found."
 PROFILE_URI = "/RepositoryProfiles"
 TEST_CONNECTION_URI = "/RepositoryProfiles/TestConnection"
@@ -281,7 +281,7 @@ class OMEVVBaselineProfile:
         self.omevv = omevv
         self.omevv_profile_obj = OMEVVFirmwareProfile(self.omevv)
 
-    def validate_repository_profile(self, repository_profile, module):
+    def validate_repository_profile(self, repository_profile):
         # Fetch the list of available repository profiles or check via API
         available_repo_profiles = self.omevv_profile_obj.get_all_repository_profiles()
 
@@ -301,7 +301,7 @@ class OMEVVBaselineProfile:
 
         Args:
             cluster_names (list): List of cluster names to validate.
-            module: The Ansible module instance for logging and exiting.
+            vcenter_uuid (str): The UUID of the vCenter for cluster lookup.
         """
 
         available_clusters = self.get_all_clusters(vcenter_uuid)
@@ -313,9 +313,12 @@ class OMEVVBaselineProfile:
         invalid_clusters = [cluster for cluster in cluster_names if cluster not in available_cluster_names]
 
         if invalid_clusters:
-            return {"error": INVALID_CLUSTER_NAMES_MSG.format(cluster_names=', '.join(invalid_clusters))}
+            # Format the message with the invalid cluster names
+            error_message = INVALID_CLUSTER_NAMES_MSG.format(cluster_names=', '.join(invalid_clusters))
+            return {"error": error_message}
 
         return {"success": True}
+
 
     def get_all_clusters(self, vcenter_uuid):
         """

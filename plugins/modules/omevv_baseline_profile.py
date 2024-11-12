@@ -158,7 +158,7 @@ error_info:
     }
 '''
 import json
-import threading
+import time
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv import RestOMEVV, OMEVVAnsibleModule
@@ -166,15 +166,17 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import va
 from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv_utils.omevv_firmware_utils import OMEVVFirmwareProfile, OMEVVBaselineProfile
 
 
-SUCCESS_CREATION_MSG = "Successfully created OMEVV the baseline profile."
-FAILED_CREATION_MSG = "Unable to create the OMEVV baseline profile."
-SUCCESS_MODIFY_MSG = "Successfully modified the OMEVV baseline profile."
-FAILED_MODIFY_MSG = "Unable to modify the OMEVV baseline profile."
-SUCCESS_DELETION_MSG = "Successfully deleted the OMEVV baseline profile."
-FAILED_DELETION_MSG = "Unable to delete the OMEVV baseline profile."
+SUCCESS_CREATION_MSG = "Successfully created the baseline profile."
+FAILED_CREATION_MSG = "Unable to create the baseline profile."
+SUCCESS_MODIFY_MSG = "Successfully modified the baseline profile."
+FAILED_MODIFY_MSG = "Unable to modify the baseline profile."
+SUCCESS_DELETION_MSG = "Successfully deleted the baseline profile."
+FAILED_DELETION_MSG = "Unable to delete the baseline profile."
 PROFILE_NOT_FOUND_MSG = "Unable to delete the profile {profile_name} because the profile name is invalid. Enter a valid profile name and retry the operation."
 CHANGES_FOUND_MSG = "Changes found to be applied."
 CHANGES_NOT_FOUND_MSG = "No changes found to be applied."
+TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be negative or zero."
+INVALID_TIME_FORMAT_MSG = "Invalid value for time. Enter the value in positive integer."
 
 
 class BaselineProfile:
@@ -186,11 +188,13 @@ class BaselineProfile:
         self.omevv_profile_obj = OMEVVFirmwareProfile(self.obj)
 
     def validate_common_params(self):
-        validate_job_wait(self.module)
+        resp = validate_job_wait(self.module)
+        if resp:
+            self.module.exit_json(msg=TIMEOUT_NEGATIVE_OR_ZERO_MSG, failed=True)
         validate_time(self.module.params.get('time'), self.module)
 
         repository_profile = self.module.params.get('repository_profile')
-        repo_validation = self.omevv_baseline_obj.validate_repository_profile(repository_profile, self.module)
+        repo_validation = self.omevv_baseline_obj.validate_repository_profile(repository_profile)
         if "error" in repo_validation:
             self.module.exit_json(msg=repo_validation["error"], failed=True)
 
@@ -257,7 +261,7 @@ class CreateBaselineProfile(BaselineProfile):
         }
         return diff
 
-    def create_baseline_profile(self, payload):
+    def perform_create_baseline_profile(self, payload):
         diff = {}
         vcenter_uuid = self.module.params.get('vcenter_uuid')
         response, err_msg = self.omevv_baseline_obj.create_baseline_profile(
@@ -270,16 +274,16 @@ class CreateBaselineProfile(BaselineProfile):
         if response.success:
             profile_resp = self.omevv_baseline_obj.get_baseline_profile_by_id(response.json_data, vcenter_uuid)
             while profile_resp.json_data["status"] not in ["SUCCESSFUL", "FAILED"]:
-                threading.Event().wait(3)
+                time.sleep(3)
                 profile_resp = self.omevv_baseline_obj.get_baseline_profile_by_id(response.json_data, vcenter_uuid)
 
             diff = self.diff_mode_check(payload)
             if self.module._diff and profile_resp.json_data["status"] == "SUCCESSFUL":
-                self.module.exit_json(msg=SUCCESS_CREATION_MSG, profile_info=profile_resp.json_data, diff=diff, changed=True)
+                self.module.exit_json(msg=SUCCESS_CREATION_MSG, baseline_profile_info=profile_resp.json_data, diff=diff, changed=True)
             elif profile_resp.json_data["status"] == "SUCCESSFUL":
-                self.module.exit_json(msg=SUCCESS_CREATION_MSG, profile_info=profile_resp.json_data, changed=True)
+                self.module.exit_json(msg=SUCCESS_CREATION_MSG, baseline_profile_info=profile_resp.json_data, changed=True)
             else:
-                self.module.exit_json(msg=FAILED_CREATION_MSG, profile_info=profile_resp.json_data, failed=True)
+                self.module.exit_json(msg=FAILED_CREATION_MSG, baseline_profile_info=profile_resp.json_data, failed=True)
         else:
             self.module.exit_json(msg=FAILED_CREATION_MSG, failed=True)
 
@@ -364,7 +368,7 @@ class ModifyBaselineProfile(BaselineProfile):
                 "after": {k: v for k, v in modified_payload.items() if v is not None}
             }
 
-    def modify_baseline_profile(self, payload, diff_before_modify):
+    def perform_modify_baseline_profile(self, payload, diff_before_modify):
         diff = diff_before_modify
         profile_id = self.existing_profile.get('id')
         vcenter_uuid = self.module.params.get('vcenter_uuid')
@@ -373,15 +377,15 @@ class ModifyBaselineProfile(BaselineProfile):
         if response.success:
             profile_resp = self.omevv_baseline_obj.get_baseline_profile_by_id(profile_id, vcenter_uuid)
             while profile_resp.json_data["status"] not in ["SUCCESSFUL", "FAILED"]:
-                threading.Event().wait(3)
+                time.sleep(3)
                 profile_resp = self.omevv_baseline_obj.get_baseline_profile_by_id(profile_id, vcenter_uuid)
 
             if self.module._diff and profile_resp.json_data["status"] == "SUCCESSFUL":
-                self.module.exit_json(msg=SUCCESS_MODIFY_MSG, profile_info=profile_resp.json_data, diff=diff, changed=True)
+                self.module.exit_json(msg=SUCCESS_MODIFY_MSG, baseline_profile_info=profile_resp.json_data, diff=diff, changed=True)
             elif profile_resp.json_data["status"] == "SUCCESSFUL":
-                self.module.exit_json(msg=SUCCESS_MODIFY_MSG, profile_info=profile_resp.json_data, changed=True)
+                self.module.exit_json(msg=SUCCESS_MODIFY_MSG, baseline_profile_info=profile_resp.json_data, changed=True)
             else:
-                self.module.exit_json(msg=FAILED_MODIFY_MSG, profile_info=profile_resp.json_data, failed=True)
+                self.module.exit_json(msg=FAILED_MODIFY_MSG, baseline_profile_info=profile_resp.json_data, failed=True)
         else:
             self.module.exit_json(msg=FAILED_MODIFY_MSG, failed=True)
 
@@ -447,15 +451,15 @@ class DeleteBaselineProfile(BaselineProfile):
             )
         return diff
 
-    def delete_baseline_profile(self, profile_resp):
+    def perform_delete_baseline_profile(self, profile_resp):
         diff = {}
         diff = self.diff_mode_check(profile_resp)
         vcenter_uuid = self.module.params.get('vcenter_uuid')
         resp = self.omevv_baseline_obj.delete_baseline_profile(profile_resp["id"], vcenter_uuid)
         if resp.success:
             if self.module._diff:
-                self.module.exit_json(msg=SUCCESS_DELETION_MSG, profile_info={}, diff=diff, changed=True)
-            self.module.exit_json(msg=SUCCESS_DELETION_MSG, profile_info={}, changed=True)
+                self.module.exit_json(msg=SUCCESS_DELETION_MSG, baseline_profile_info={}, diff=diff, changed=True)
+            self.module.exit_json(msg=SUCCESS_DELETION_MSG, baseline_profile_info={}, changed=True)
         else:
             self.module.exit_json(msg=FAILED_DELETION_MSG, failed=True)
 
@@ -470,9 +474,9 @@ class DeleteBaselineProfile(BaselineProfile):
         if not profile_exists and self.module.check_mode:
             self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
         if not profile_exists and not self.module.check_mode and self.module._diff:
-            self.module.exit_json(msg=PROFILE_NOT_FOUND_MSG.format(profile_name=profile), diff={"before": {}, "after": {}}, profile_info={}, failed=True)
+            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, diff={"before": {}, "after": {}}, changed=False)
         if not profile_exists and not self.module.check_mode:
-            self.module.exit_json(msg=PROFILE_NOT_FOUND_MSG.format(profile_name=profile), profile_info={}, failed=True)
+            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
         if profile_exists and not self.module.check_mode:
             self.delete_baseline_profile(profile_exists)
         if profile_exists and self.module.check_mode:
@@ -501,8 +505,7 @@ def main():
         required_if=[
             ["state", "present", ["repository_profile", "cluster", "days", "time"]],
             ["state", "absent", ["name"]]
-        ],
-        supports_check_mode=True
+        ],        supports_check_mode=True
 
     )
     try:
@@ -518,11 +521,10 @@ def main():
                 else:
                     omevv_obj = CreateBaselineProfile(module, rest_obj, existing_profile)
 
-                omevv_obj.execute()
-
             elif module.params.get('state') == 'absent':
                 omevv_obj = DeleteBaselineProfile(module, rest_obj, profile_name)
-                omevv_obj.execute()
+            
+            omevv_obj.execute()
 
     except HTTPError as err:
         if err.code == 500:
