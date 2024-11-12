@@ -37,7 +37,7 @@ attributes:
         description: Runs task to validate without performing action on the target machine.
         support: full
 notes:
-  - This module supports IPv4 and IPv6 addresses.
+  - Run this module from a system that has direct access to Dell OpenManage Enterprise.
 """
 
 
