@@ -7,7 +7,6 @@
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-#
 
 from __future__ import (absolute_import, division, print_function)
 
@@ -220,18 +219,18 @@ def main():
             omevv_obj = OMEVVBaselineProfileInfo(module, rest_obj)
             resp = omevv_obj.perform_module_operation()
             module.exit_json(msg=resp['msg'], profile_info=resp['profile_info'])
-    except HTTPError as err:
-        error_info = json.load(err)
-        code = error_info.get('errorCode')
-        message = error_info.get('message')
-        if code in ERROR_CODES:
-            module.exit_json(msg=message, skipped=True)
-        module.exit_json(msg=str(err), error_info=error_info, failed=True)
-    except URLError as err:
-        module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLValidationError, TypeError, ConnectionError,
             AttributeError, IndexError, KeyError, OSError) as err:
         module.exit_json(msg=str(err), failed=True)
+    except URLError as err:
+        module.exit_json(msg=str(err), unreachable=True)
+    except HTTPError as err:
+        error_info = json.load(err)
+        message = error_info.get('message')
+        code = error_info.get('errorCode')
+        if code in ERROR_CODES:
+            module.exit_json(msg=message, skipped=True)
+        module.exit_json(msg=str(err), error_info=error_info, failed=True)
 
 
 if __name__ == '__main__':
