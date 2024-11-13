@@ -137,33 +137,31 @@ class TestOMEVVBaselineProfileInfo(FakeAnsibleModule):
         omevv_baseline_profile_info_mock.status_code = 400
         omevv_baseline_profile_info_mock.success = False
         json_str = to_text(json.dumps({"data": "out"}))
-        if exc_type in [HTTPError, SSLValidationError]:
+        if exc_type not in [HTTPError, SSLValidationError]:
+            mocker.patch(MODULE_PATH + PERFORM_OPERATION_KEY,
+                         side_effect=exc_type('test'))
+        else:
             mocker.patch(MODULE_PATH + PERFORM_OPERATION_KEY,
                          side_effect=exc_type(HTTP_ERROR_URL, 400,
                                               HTTP_ERROR,
                                               {"accept-type": RETURN_TYPE},
                                               StringIO(json_str)))
-        else:
-            mocker.patch(MODULE_PATH + PERFORM_OPERATION_KEY,
-                         side_effect=exc_type('test'))
         result = self._run_module(omevv_default_args)
-        if exc_type == URLError:
-            assert result['unreachable'] is True
-        else:
+        if exc_type != URLError:
             assert result['failed'] is True
+        else:
+            assert result['unreachable'] is True
         assert 'msg' in result
 
         # Scenario: When HTTPError gives SYS011
-        error_string = to_text(json.dumps({"error": {'errorCode':
-                                                     {
-                                                         'MessageId': "12027",
-                                                         "Message": VCENTER_ERROR
-                                                     }}}))
+        error_msg = to_text(json.dumps(
+            {"error": {'errorCode': {'MessageId': "12027", "Message": VCENTER_ERROR}}})
+        )
         if exc_type in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + PERFORM_OPERATION_KEY,
                          side_effect=exc_type(HTTP_ERROR_URL, 400,
                                               HTTP_ERROR,
                                               {"accept-type": RETURN_TYPE},
-                                              StringIO(error_string)))
-        res_out = self._run_module(omevv_default_args)
-        assert 'msg' in res_out
+                                              StringIO(error_msg)))
+        result_out = self._run_module(omevv_default_args)
+        assert 'msg' in result_out
