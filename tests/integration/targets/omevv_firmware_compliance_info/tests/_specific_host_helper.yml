@@ -1,0 +1,26 @@
+---
+- name: Get cluster drift info.
+  ansible.builtin.uri:
+    url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
+      }}/omevv/GatewayService/v1/Consoles/{{ uuid
+      }}/Groups/{{ group_id }}/FirmwareDriftReport
+    user: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    validate_certs: false
+    method: GET
+    force_basic_auth: true
+    status_code: 200
+    headers:
+      x_omivv-api-vcenter-identifier: "{{ uuid }}"
+  register: specific_cluster_drift_info
+  ignore_errors: true
+
+- name: Initialize cluster_drift_info
+  ansible.builtin.set_fact:
+    cluster_drift_info: "{{ specific_cluster_drift_info.json }}"
+
+- name: Remove cluster key from module response
+  ansible.builtin.set_fact:
+    modified_response: "{{ info_result.firmware_compliance_info |
+     ansible.utils.remove_keys(target=['cluster', 'error_code', 'message'],
+     matching_parameter='regex') }}"
