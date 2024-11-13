@@ -302,23 +302,31 @@ class OMEVVBaselineProfile:
         Args:
             cluster_names (list): List of cluster names to validate.
             vcenter_uuid (str): The UUID of the vCenter for cluster lookup.
-        """
 
+        Returns:
+            dict: A dictionary indicating success or error message.
+        """
+        # Check if cluster_names is None or empty
+        if not cluster_names:
+            return {"error": INVALID_CLUSTER_NAMES_MSG.format(cluster_names="")}
+
+        # Fetch all available clusters
         available_clusters = self.get_all_clusters(vcenter_uuid)
 
-        if not available_clusters:
+        # Check if available_clusters is None or has no json_data
+        if not available_clusters or not available_clusters.json_data:
             return {"error": NO_CLUSTERS_FOUND_MSG}
 
-        available_cluster_names = [cluster.get('name') for cluster in available_clusters.json_data]
+        available_cluster_names = [
+            cluster.get('name') for cluster in available_clusters.json_data if cluster.get('name') is not None
+        ]
         invalid_clusters = [cluster for cluster in cluster_names if cluster not in available_cluster_names]
 
         if invalid_clusters:
-            # Format the message with the invalid cluster names
             error_message = INVALID_CLUSTER_NAMES_MSG.format(cluster_names=', '.join(invalid_clusters))
             return {"error": error_message}
 
         return {"success": True}
-
 
     def get_all_clusters(self, vcenter_uuid):
         """
