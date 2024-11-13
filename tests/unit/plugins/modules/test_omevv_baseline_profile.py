@@ -15,7 +15,7 @@ __metaclass__ = type
 import pytest
 import json
 from ansible_collections.dellemc.openmanage.plugins.modules import omevv_baseline_profile
-from ansible_collections.dellemc.openmanage.plugins.modules.omevv_baseline_profile import BaselineProfile, CreateBaselineProfile
+from ansible_collections.dellemc.openmanage.plugins.modules.omevv_baseline_profile import BaselineProfile, CreateBaselineProfile, ModifyBaselineProfile
 from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv_utils.omevv_firmware_utils import OMEVVBaselineProfile
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -89,7 +89,20 @@ class TestCreateBaselineProfile(FakeAnsibleModule):
         omevv_conn_mock.return_value.__enter__.return_value = omevv_baseline_profile_mock
         return omevv_conn_mock
 
-    def test_diff_mode_check(self, omevv_connection_baseline_profile, omevv_default_args,mocker):
+    def test_get_cluster_groups_success(self, omevv_connection_baseline_profile, omevv_default_args,mocker):
+        obj=MagicMock()
+        mocker.patch(MODULE_UTILS_PATH +
+                GET_GROUP_ID, return_value=[12,34])
+        mocker.patch(MODULE_UTILS_PATH +
+                GET_CLUSTER_ID, return_value=12)
+        f_module = self.get_module_mock(
+            params=omevv_default_args)
+        obj = self.module.CreateBaselineProfile(
+            omevv_connection_baseline_profile, f_module)
+        result = obj.get_cluster_groups([12])
+        assert result
+           
+    def test_diff_mode_check(self, omevv_connection_baseline_profile, omevv_default_args):
 
         payload = {
             "name": "baseline_profile_test",
@@ -100,10 +113,6 @@ class TestCreateBaselineProfile(FakeAnsibleModule):
                 "time": "12:00"
             }
         }
-        mocker.patch(MODULE_UTILS_PATH +
-                     GET_CLUSTER_ID, return_value={})
-        mocker.patch(MODULE_UTILS_PATH +
-                     GET_GROUP_ID, return_value=[1234, 5678])
         f_module = self.get_module_mock(
             params=omevv_default_args)
         obj = self.module.CreateBaselineProfile(
@@ -122,10 +131,6 @@ class TestCreateBaselineProfile(FakeAnsibleModule):
                 "time": "12:00"
             }
         }
-        mocker.patch(MODULE_UTILS_PATH +
-                     GET_CLUSTER_ID, return_value={})
-        mocker.patch(MODULE_UTILS_PATH +
-                     GET_GROUP_ID, return_value=[1234, 5678])
         f_module = self.get_module_mock(
             params=omevv_default_args)
         obj = self.module.CreateBaselineProfile(
@@ -133,7 +138,7 @@ class TestCreateBaselineProfile(FakeAnsibleModule):
         result = obj.diff_mode_check(payload)
         assert result
 
-    def test_perform_create_baseline_profile(self, omevv_connection_baseline_profile, omevv_default_args, mocker):
+    def test_perform_create_baseline_profile_success(self, omevv_connection_baseline_profile, omevv_default_args, mocker):
         obj = MagicMock()
         obj2 = MagicMock()
         obj3 = MagicMock()
@@ -220,7 +225,9 @@ class TestCreateBaselineProfile(FakeAnsibleModule):
         result = obj.perform_create_baseline_profile(payload)
         assert result is None
 
-        # Scenario 2: When creation is failed
+    def test_perform_create_baseline_profile_failure(self, omevv_connection_baseline_profile, omevv_default_args, mocker):
+    
+        obj=MagicMock()
         obj.success = False
         payload = {
             "name": "Baseline Profile",
@@ -251,37 +258,42 @@ class TestCreateBaselineProfile(FakeAnsibleModule):
         result = obj.perform_create_baseline_profile(payload)
         assert result is None
 
+    def test_perform_create_baseline_profile_api_response_failure(self, omevv_connection_baseline_profile, omevv_default_args, mocker):
         # Senario 3: When creation is failed because api_response's status is failed
-        obj = MagicMock()
-        obj.json_data = {'id': 1124,
+        # obj = MagicMock()
+        payload = {
+            "name": "Baseline Profile",
+            "description": "API",
+            "firmwareRepoId": 1000,
+            "groupIds": [
+                1012
+            ],
+            "jobSchedule": {
+                "monday": False,
+                "tuesday": False,
+                "wednesday": False,
+                "thursday": True,
+                "friday": True,
+                "saturday": True,
+                "time": "05:30",
+                "sunday": True
+            }
+        }
+
+        failed_resp = {'id': 1124,
          'name': 'profile-test',
          'description': 'TEST',
          'consoleId': '1234-5678',
          'consoleAddress': 'xx.xx.xx.xx',
          'firmwareRepoId': 1000,
-         'firmwareRepoName': 'Dell Default Catalog',
-         'configurationRepoId': None,
-         'configurationRepoName': None,
-         'driverRepoId': None,
-         'driverRepoName': None,
-         'driftJobId': None,
-         'driftJobName': None,
-         'dateCreated': '2024-11-12T15:17:28.126Z',
-         "dateModified": None,
-         "lastmodifiedBy": "OMEVV",
-         "version": "1.0.0-0",
-         "lastSuccessfulUpdatedTime": "2024-11-12T15:26:25.541Z",
-         "clusterGroups": [{"clusterID": "domain-c1048", "clusterName": "Test Cluster", "omevv_groupID": 1038}],
-         "datacenter_standAloneHostsGroups": [],
-         "baselineType": "CLUSTER",
          "status": "FAILED"}
 
         mocker.patch(
             MODULE_PATH + CREATE_DIFF_MODE_CHECK, return_value={})
+        # mocker.patch(MODULE_UTILS_PATH +
+        #              PERFORM_CREATE_PROFILE, return_value=(failed_resp, ""))
         mocker.patch(MODULE_UTILS_PATH +
-                     PERFORM_CREATE_PROFILE, return_value=(obj, ""))
-        mocker.patch(MODULE_UTILS_PATH +
-                     GET_PROFILE_BY_ID, return_value=obj) 
+                     GET_PROFILE_BY_ID, return_value=failed_resp) 
         f_module = self.get_module_mock(params=omevv_default_args)
         obj = self.module.CreateBaselineProfile(
             omevv_connection_baseline_profile, f_module)
@@ -289,9 +301,8 @@ class TestCreateBaselineProfile(FakeAnsibleModule):
         assert result is None
 
     def test_execute(self, omevv_connection_baseline_profile, omevv_default_args, mocker):
-        # Scenario 1: When profile exists
         ob = MagicMock()
-        ob.profile_resp = {'id': 1124, 'status': 'SUCCESSFUL'}
+        ob = {'id': 1124, 'status': 'SUCCESSFUL'}
         job_schedule = {'monday': False,
         'tuesday': False,
         'wednesday': True,
@@ -306,37 +317,7 @@ class TestCreateBaselineProfile(FakeAnsibleModule):
         mocker.patch(MODULE_UTILS_PATH +
                      GET_REPO_ID, return_value=1234)
         mocker.patch(MODULE_UTILS_PATH +
-                     GET_GROUP_ID, return_value=[1234, 5678])
-        mocker.patch(MODULE_UTILS_PATH +
-                     GET_JOB_SCHEDULE, return_value=job_schedule)
-        mocker.patch(
-            MODULE_PATH + CREATE_DIFF_MODE_CHECK, return_value={})
-        mocker.patch(
-            MODULE_PATH + 'CreateBaselineProfile.perform_create_baseline_profile', return_value = ob)
-        f_module = self.get_module_mock(params=omevv_default_args)
-        obj = self.module.CreateBaselineProfile(
-            omevv_connection_baseline_profile, f_module)
-        result = obj.execute()
-        assert result is None
-
-        # Scenario 2: When profile does not exists and check_mode is true
-        ob = MagicMock()
-        ob.profile_resp = {'id': 1124, 'status': 'SUCCESSFUL'}
-        job_schedule = {'monday': False,
-        'tuesday': False,
-        'wednesday': True,
-        'thursday': False,
-        'friday': False,
-        'saturday': True,
-        'sunday': False,
-        'time': '08:00'
-        }
-        mocker.patch(
-            MODULE_PATH + 'BaselineProfile.validate_common_params', return_value = None)
-        mocker.patch(MODULE_UTILS_PATH +
-                     GET_REPO_ID, return_value=1234)
-        mocker.patch(MODULE_UTILS_PATH +
-                     GET_GROUP_ID, return_value=[1234, 5678])
+                     GET_CLUSTER_ID, return_value=[1234, 5678])
         mocker.patch(MODULE_UTILS_PATH +
                      GET_JOB_SCHEDULE, return_value=job_schedule)
         mocker.patch(
@@ -423,7 +404,7 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
         result = obj.diff_mode_check(payload_with_description)
         assert result
 
-    def test_perform_modify_baseline_profile(self, omevv_connection_baseline_profile, omevv_default_args, mocker):
+    def test_perform_modify_baseline_profile_success(self, omevv_connection_baseline_profile, omevv_default_args, mocker):
         obj = MagicMock()
         # Scenario 1: When modification is required
         obj.success = True
@@ -507,7 +488,52 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
         result = obj.perform_modify_baseline_profile(payload, existing_profile)
         assert result is None
 
+    def test_perform_modify_baseline_profile_failure(self, omevv_connection_baseline_profile, omevv_default_args, mocker):
         # Scenario 2: When modification is not successful
+        payload ={
+        "addgroupIds": [1038],
+        "removeGroupIds": [1032],
+        "jobSchedule": {
+            "monday": False,
+            "tuesday": False,
+            "wednesday": False,
+            "thursday": True,
+            "friday": True,
+            "saturday": True,
+            "time": "05:30",
+            "sunday": True
+        },
+        "description": "SUCCESS TEST",
+        "configurationRepoId": 0,
+        "firmwareRepoId": 1000,
+        "driverRepoId": 0,
+        "modifiedBy": "Administrator@VSPHERE.LOCAL"
+        }
+
+        existing_profile= {'id': 1124,
+         'name': 'profile-test',
+         'description': 'TEST',
+         'consoleId': '1234-5678',
+         'consoleAddress': 'xx.xx.xx.xx',
+         'firmwareRepoId': 1000,
+         'firmwareRepoName': 'Dell Default Catalog',
+         'configurationRepoId': None,
+         'configurationRepoName': None,
+         'driverRepoId': None,
+         'driverRepoName': None,
+         'driftJobId': None,
+         'driftJobName': None,
+         'dateCreated': '2024-11-12T15:17:28.126Z',
+         "dateModified": None,
+         "lastmodifiedBy": "OMEVV",
+         "version": "1.0.0-0",
+         "lastSuccessfulUpdatedTime": "2024-11-12T15:26:25.541Z",
+         "clusterGroups": [{"clusterID": "domain-c1020", "clusterName": "My Cluster", "omevv_groupID": 1032}],
+         "datacenter_standAloneHostsGroups": [],
+         "baselineType": "CLUSTER",
+         "status": "SUCCESSFUL"}
+
+        obj=MagicMock()
         obj.success = False
         mocker.patch(
             MODULE_PATH + MODIFY_DIFF_MODE_CHECK, return_value={})
@@ -519,41 +545,10 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
         result = obj.perform_modify_baseline_profile(payload, existing_profile)
         assert result is None
 
-    # def test_execute(self, omevv_connection_baseline_profile, omevv_default_args, mocker):
-    #     # Scenario 1: When modificaton is required
-    #     ob = MagicMock()
-    #     ob = {'id': 1124, 'status': 'SUCCESSFUL'}
-    #     job_schedule = {'monday': False,
-    #     'tuesday': False,
-    #     'wednesday': True,
-    #     'thursday': False,
-    #     'friday': False,
-    #     'saturday': True,
-    #     'sunday': False,
-    #     'time': '08:00'
-    #     }
-
-    #     mocker.patch(
-    #         MODULE_PATH + 'BaselineProfile.validate_common_params', return_value = None)
-    #     mocker.patch(MODULE_UTILS_PATH +
-    #                  ADD_REMOVE_GROUP_ID, return_value={})
-    #     mocker.patch(MODULE_UTILS_PATH +
-    #                  GET_REPO_ID, return_value=1234)
-    #     mocker.patch(MODULE_UTILS_PATH +
-    #                  GET_JOB_SCHEDULE, return_value=job_schedule)
-    #     mocker.patch(
-    #         MODULE_PATH + MODIFY_DIFF_MODE_CHECK, return_value={})
-    #     mocker.patch(
-    #         MODULE_PATH + 'ModifyBaselineProfile.perform_modify_baseline_profile', return_value = ob)
-    #     f_module = self.get_module_mock(params=omevv_default_args)
-    #     obj = self.module.CreateBaselineProfile(
-    #         omevv_connection_baseline_profile, f_module)
-    #     result = obj.execute()
-    #     assert result is None
-
-        # Scenario 2: When profile does not exists and check_mode is true
+    def test_execute(self, omevv_connection_baseline_profile, omevv_default_args, mocker):
+        # Scenario 1: When modificaton is required
         ob = MagicMock()
-        ob.json_data = {'id': 1124, 'status': 'SUCCESSFUL'}
+        ob = {'id': 1124, 'status': 'SUCCESSFUL'}
         job_schedule = {'monday': False,
         'tuesday': False,
         'wednesday': True,
@@ -563,21 +558,47 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
         'sunday': False,
         'time': '08:00'
         }
+
+        existing_profile= {'id': 1124,
+         'name': 'profile-test',
+         'description': 'TEST',
+         'consoleId': '1234-5678',
+         'consoleAddress': 'xx.xx.xx.xx',
+         'firmwareRepoId': 1000,
+         'firmwareRepoName': 'Dell Default Catalog',
+         'configurationRepoId': None,
+         'configurationRepoName': None,
+         'driverRepoId': None,
+         'driverRepoName': None,
+         'driftJobId': None,
+         'driftJobName': None,
+         'dateCreated': '2024-11-12T15:17:28.126Z',
+         "dateModified": None,
+         "lastmodifiedBy": "OMEVV",
+         "version": "1.0.0-0",
+         "lastSuccessfulUpdatedTime": "2024-11-12T15:26:25.541Z",
+         "clusterGroups": [{"clusterID": "domain-c1020", "clusterName": "My Cluster", "omevv_groupID": 1032}],
+         "datacenter_standAloneHostsGroups": [],
+         "baselineType": "CLUSTER",
+         "status": "SUCCESSFUL"}
+
         mocker.patch(
-            MODULE_PATH + 'BaselineProfile.validate_common_params', return_value = None)
-        mocker.patch(MODULE_UTILS_PATH +
-                     GET_REPO_ID, return_value=1234)
-        mocker.patch(MODULE_UTILS_PATH +
-                     GET_GROUP_ID, return_value=[1234, 5678])
+            MODULE_PATH + 'ModifyBaselineProfile.perform_modify_baseline_profile', return_value = ob)
+        omevv_default_args.update({"vcenter_uuid":"1234-5678" , "cluster": "abcd"})
+        f_module = self.get_module_mock(params=omevv_default_args,check_mode=True)
+        obj = ModifyBaselineProfile(
+            omevv_connection_baseline_profile, f_module, existing_profile)
+        obj.validate_common_params = MagicMock(return_value=None)
+        obj.omevv_baseline_obj.get_add_remove_group_ids = MagicMock(return_value=(None, None))
+        omevv_default_args.update({"vcenter_uuid":"1234-5678" , "cluster": "abcd"})
         mocker.patch(MODULE_UTILS_PATH +
                      GET_JOB_SCHEDULE, return_value=job_schedule)
-        mocker.patch(
-            MODULE_PATH + CREATE_DIFF_MODE_CHECK, return_value={})
-        mocker.patch(
-            MODULE_PATH + 'CreateBaselineProfile.perform_create_baseline_profile', return_value = ob)
-        f_module = self.get_module_mock(params=omevv_default_args, check_mode=True)
-        obj = self.module.CreateBaselineProfile(
-            omevv_connection_baseline_profile, f_module)
+        obj.omevv_baseline_obj.get_repo_id_by_name = MagicMock(return_value = 1234)
+        obj.omevv_baseline_obj.create_job_schedule = MagicMock(return_value = job_schedule)
+        obj.diff_mode_check = MagicMock(return_value={
+        "before": {"description": "old_description", "jobSchedule": "old_schedule"},
+        "after": {"description": "new_description", "jobSchedule": "new_schedule"}
+       })
         result = obj.execute()
         assert result is None
 

@@ -528,10 +528,13 @@ def main():
 
     except HTTPError as err:
         if err.code == 500:
-            module.exit_json(msg=json.load(err), failed=True)
+            error_info = json.load(err)
+            message = error_info.get('message', str(error_info))
+            module.exit_json(msg=message, failed=True)
+
         error_info = json.load(err)
         code = error_info.get('errorCode')
-        message = error_info.get('message')
+        message = error_info.get('message', str(error_info))
         if '18001' in code and module.check_mode:
             module.exit_json(msg=CHANGES_NOT_FOUND_MSG)
         if '500' in code:
