@@ -273,17 +273,17 @@ class CreateBaselineProfile(BaselineProfile):
         )
         if response.success:
             profile_resp = self.omevv_baseline_obj.get_baseline_profile_by_id(response.json_data, vcenter_uuid)
-            while profile_resp.json_data["status"] not in ["SUCCESSFUL", "FAILED"]:
+            while profile_resp["status"] not in ["SUCCESSFUL", "FAILED"]:
                 time.sleep(3)
                 profile_resp = self.omevv_baseline_obj.get_baseline_profile_by_id(response.json_data, vcenter_uuid)
 
             diff = self.diff_mode_check(payload)
-            if self.module._diff and profile_resp.json_data["status"] == "SUCCESSFUL":
-                self.module.exit_json(msg=SUCCESS_CREATION_MSG, baseline_profile_info=profile_resp.json_data, diff=diff, changed=True)
-            elif profile_resp.json_data["status"] == "SUCCESSFUL":
-                self.module.exit_json(msg=SUCCESS_CREATION_MSG, baseline_profile_info=profile_resp.json_data, changed=True)
+            if self.module._diff and profile_resp["status"] == "SUCCESSFUL":
+                self.module.exit_json(msg=SUCCESS_CREATION_MSG, baseline_profile_info=profile_resp, diff=diff, changed=True)
+            elif profile_resp["status"] == "SUCCESSFUL":
+                self.module.exit_json(msg=SUCCESS_CREATION_MSG, baseline_profile_info=profile_resp, changed=True)
             else:
-                self.module.exit_json(msg=FAILED_CREATION_MSG, baseline_profile_info=profile_resp.json_data, failed=True)
+                self.module.exit_json(msg=FAILED_CREATION_MSG, baseline_profile_info=profile_resp, failed=True)
         else:
             self.module.exit_json(msg=FAILED_CREATION_MSG, failed=True)
 
@@ -314,7 +314,7 @@ class CreateBaselineProfile(BaselineProfile):
         if self.module.check_mode:
             self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
 
-        self.create_baseline_profile(payload)
+        self.perform_create_baseline_profile(payload)
 
 
 class ModifyBaselineProfile(BaselineProfile):
@@ -376,16 +376,16 @@ class ModifyBaselineProfile(BaselineProfile):
         response, err_msg = self.omevv_baseline_obj.modify_baseline_profile(profile_id, vcenter_uuid, payload)
         if response.success:
             profile_resp = self.omevv_baseline_obj.get_baseline_profile_by_id(profile_id, vcenter_uuid)
-            while profile_resp.json_data["status"] not in ["SUCCESSFUL", "FAILED"]:
+            while profile_resp["status"] not in ["SUCCESSFUL", "FAILED"]:
                 time.sleep(3)
                 profile_resp = self.omevv_baseline_obj.get_baseline_profile_by_id(profile_id, vcenter_uuid)
 
-            if self.module._diff and profile_resp.json_data["status"] == "SUCCESSFUL":
-                self.module.exit_json(msg=SUCCESS_MODIFY_MSG, baseline_profile_info=profile_resp.json_data, diff=diff, changed=True)
-            elif profile_resp.json_data["status"] == "SUCCESSFUL":
-                self.module.exit_json(msg=SUCCESS_MODIFY_MSG, baseline_profile_info=profile_resp.json_data, changed=True)
+            if self.module._diff and profile_resp["status"] == "SUCCESSFUL":
+                self.module.exit_json(msg=SUCCESS_MODIFY_MSG, baseline_profile_info=profile_resp, diff=diff, changed=True)
+            elif profile_resp["status"] == "SUCCESSFUL":
+                self.module.exit_json(msg=SUCCESS_MODIFY_MSG, baseline_profile_info=profile_resp, changed=True)
             else:
-                self.module.exit_json(msg=FAILED_MODIFY_MSG, baseline_profile_info=profile_resp.json_data, failed=True)
+                self.module.exit_json(msg=FAILED_MODIFY_MSG, baseline_profile_info=profile_resp, failed=True)
         else:
             self.module.exit_json(msg=FAILED_MODIFY_MSG, failed=True)
 
@@ -427,7 +427,7 @@ class ModifyBaselineProfile(BaselineProfile):
         if self.module.check_mode:
             self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
 
-        self.modify_baseline_profile(new_payload, diff)
+        self.perform_modify_baseline_profile(new_payload, diff)
 
 
 class DeleteBaselineProfile(BaselineProfile):
@@ -466,7 +466,7 @@ class DeleteBaselineProfile(BaselineProfile):
     def execute(self):
         vcenter_uuid = self.module.params.get('vcenter_uuid')
         profile_exists = self.omevv_baseline_obj.get_baseline_profile_by_name(self.profile_name, vcenter_uuid)
-        profile = self.module.params.get('name')
+        # profile = self.module.params.get('name')
 
         if profile_exists and self.module.check_mode and self.module._diff:
             diff = self.diff_mode_check(profile_exists)
@@ -478,7 +478,7 @@ class DeleteBaselineProfile(BaselineProfile):
         if not profile_exists and not self.module.check_mode:
             self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
         if profile_exists and not self.module.check_mode:
-            self.delete_baseline_profile(profile_exists)
+            self.perform_delete_baseline_profile(profile_exists)
         if profile_exists and self.module.check_mode:
             self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
 

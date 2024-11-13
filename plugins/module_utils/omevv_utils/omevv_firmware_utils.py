@@ -416,7 +416,7 @@ class OMEVVBaselineProfile:
         """
         resp = self.omevv.invoke_request(
             "GET", BASELINE_PROFILE_URI.format(vcenter_uuid=vcenter_uuid) + "/" + str(profile_id))
-        return resp
+        return resp.json_data
 
     def get_baseline_profile_by_name(self, profile_name, vcenter_uuid):
         """
