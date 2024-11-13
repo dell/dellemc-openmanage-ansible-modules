@@ -1,7 +1,7 @@
 .. _omevv_firmware_compliance_info_module:
 
 
-omevv_firmware_compliance_info -- Fetch the firmware compliance report
+omevv_firmware_compliance_info -- Retrieve firmware compliance report.
 ======================================================================
 
 .. contents::
@@ -12,7 +12,7 @@ omevv_firmware_compliance_info -- Fetch the firmware compliance report
 Synopsis
 --------
 
-This module allows to fetch the firmware compliance report of all the hosts of the cluster, or a specific host of the cluster, or multiple clusters.
+This module allows you to retrieve firmware compliance reports of all the hosts of the cluster, a specific host of the cluster, or multiple clusters.
 
 
 
@@ -28,25 +28,21 @@ Parameters
 ----------
 
   clusters (optional, list, None)
-    The cluster details to retrieve the firmware compliance report.
+    Cluster details to retrieve the firmware compliance report.
 
 
     cluster_name (True, str, None)
-      The cluster name of the hosts for which the firmware compliance report needs to be fetched.
+      Cluster name of the hosts for which the firmware compliance report should be retrieved.
 
-      If \ :emphasis:`servicetags`\  or \ :emphasis:`hosts`\  is provided, then firmware compliance report of only the specified hosts will be fetched and shown.
+      If \ :emphasis:`servicetags`\  or \ :emphasis:`hosts`\  is provided, then the firmware compliance report of only the specified hosts is retrieved and displayed.
 
 
     servicetags (optional, list, None)
-      The service tag of the hosts.
-
-      The hosts for which the firmware compliance reports needs to be fetched.
+      The service tag of the hosts for which the firmware compliance reports must be retrieved.
 
 
     hosts (optional, list, None)
-      The IP address or hostname of the hosts.
-
-      The hosts for which the firmware compliance reports needs to be fetched.
+      The IP address or hostname of the hosts for which the firmware compliance reports must be retrieved.
 
 
 
@@ -115,7 +111,7 @@ Examples
 
     
     ---
-    - name: Fetch firmware compliance report of all the cluster
+    - name: Retrieve a firmware compliance report of all the clusters
       dellemc.openmanage.omevv_firmware_compliance_info:
         hostname: "192.168.0.1"
         vcenter_uuid: "xxxxx"
@@ -123,7 +119,7 @@ Examples
         vcenter_password: "password"
         ca_path: "path/to/ca_file"
 
-    - name: Fetch firmware compliance report of all the hosts in the specific cluster
+    - name: Retrieve a firmware compliance report of all the hosts in a specific cluster
       dellemc.openmanage.omevv_firmware_compliance_info:
         hostname: "192.168.0.1"
         vcenter_uuid: "xxxxx"
@@ -133,7 +129,7 @@ Examples
         clusters:
           - cluster_name: cluster_a
 
-    - name: Fetch firmware compliance report of a specific hosts in the cluster
+    - name: Retrieve a firmware compliance report of specific hosts in the cluster
       dellemc.openmanage.omevv_firmware_compliance_info:
         hostname: "192.168.0.1"
         vcenter_uuid: "xxxxx"
@@ -149,7 +145,7 @@ Examples
               - host1
               - xx.xx.xx.xx
 
-    - name: Fetch firmware compliance report of multiple cluster
+    - name: Retrieve a firmware compliance report of multiple clusters
       dellemc.openmanage.omevv_firmware_compliance_info:
         hostname: "192.168.0.1"
         vcenter_uuid: "xxxxx"

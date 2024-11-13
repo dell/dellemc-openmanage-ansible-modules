@@ -17,37 +17,37 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 ---
 module: omevv_firmware_compliance_info
-short_description: Fetch the firmware compliance report
+short_description: Retrieve firmware compliance report.
 version_added: "9.9.0"
 description:
-  - This module allows to fetch the firmware compliance report of all the hosts
-    of the cluster, or a specific host of the cluster, or multiple clusters.
+  - This module allows you to retrieve firmware compliance reports of all the
+    hosts of the cluster, a specific host of the cluster, or multiple clusters.
 extends_documentation_fragment:
   - dellemc.openmanage.omevv_auth_options
 options:
   clusters:
     description:
-      - The cluster details to retrieve the firmware compliance report.
+      - Cluster details to retrieve the firmware compliance report.
     type: list
     elements: dict
     suboptions:
       cluster_name:
         description:
-          - The cluster name of the hosts for which the firmware compliance report needs to be fetched.
-          - If I(servicetags) or I(hosts) is provided, then firmware compliance report of only the
-            specified hosts will be fetched and shown.
+          - Cluster name of the hosts for which the firmware compliance report should be retrieved.
+          - If I(servicetags) or I(hosts) is provided, then the firmware compliance report of only the specified hosts
+            is retrieved and displayed.
         required: true
         type: str
       servicetags:
         description:
-          - The service tag of the hosts.
-          - The hosts for which the firmware compliance reports needs to be fetched.
+          - The service tag of the hosts for which the firmware compliance
+            reports must be retrieved.
         type: list
         elements: str
       hosts:
         description:
-          - The IP address or hostname of the hosts.
-          - The hosts for which the firmware compliance reports needs to be fetched.
+          - The IP address or hostname of the hosts for which the firmware
+            compliance reports must be retrieved.
         type: list
         elements: str
 requirements:
@@ -67,7 +67,7 @@ notes:
 
 EXAMPLES = r"""
 ---
-- name: Fetch firmware compliance report of all the cluster
+- name: Retrieve a firmware compliance report of all the clusters
   dellemc.openmanage.omevv_firmware_compliance_info:
     hostname: "192.168.0.1"
     vcenter_uuid: "xxxxx"
@@ -75,7 +75,7 @@ EXAMPLES = r"""
     vcenter_password: "password"
     ca_path: "path/to/ca_file"
 
-- name: Fetch firmware compliance report of all the hosts in the specific cluster
+- name: Retrieve a firmware compliance report of all the hosts in a specific cluster
   dellemc.openmanage.omevv_firmware_compliance_info:
     hostname: "192.168.0.1"
     vcenter_uuid: "xxxxx"
@@ -85,7 +85,7 @@ EXAMPLES = r"""
     clusters:
       - cluster_name: cluster_a
 
-- name: Fetch firmware compliance report of a specific hosts in the cluster
+- name: Retrieve a firmware compliance report of specific hosts in the cluster
   dellemc.openmanage.omevv_firmware_compliance_info:
     hostname: "192.168.0.1"
     vcenter_uuid: "xxxxx"
@@ -101,7 +101,7 @@ EXAMPLES = r"""
           - host1
           - xx.xx.xx.xx
 
-- name: Fetch firmware compliance report of multiple cluster
+- name: Retrieve a firmware compliance report of multiple clusters
   dellemc.openmanage.omevv_firmware_compliance_info:
     hostname: "192.168.0.1"
     vcenter_uuid: "xxxxx"
@@ -279,7 +279,8 @@ def main():
             obj = FirmwareComplianceInfo(module, rest_obj)
             obj.execute()
     except HTTPError as err:
-        module.exit_json(msg=json.load(err), failed=True)
+        msg = json.load(err) if isinstance(err, dict) else err
+        module.exit_json(msg=str(msg), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, TypeError, ConnectionError,
