@@ -281,7 +281,7 @@ class OMEVVBaselineProfile:
         self.omevv = omevv
         self.omevv_profile_obj = OMEVVFirmwareProfile(self.omevv)
 
-    def validate_repository_profile(self, repository_profile, module):
+    def validate_repository_profile(self, repository_profile):
         # Fetch the list of available repository profiles or check via API
         available_repo_profiles = self.omevv_profile_obj.get_all_repository_profiles()
 

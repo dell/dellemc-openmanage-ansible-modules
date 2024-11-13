@@ -219,11 +219,6 @@ def main():
             omevv_obj = OMEVVBaselineProfileInfo(module, rest_obj)
             resp = omevv_obj.perform_module_operation()
             module.exit_json(msg=resp['msg'], profile_info=resp['profile_info'])
-    except (IOError, ValueError, SSLValidationError, TypeError, ConnectionError,
-            AttributeError, IndexError, KeyError, OSError) as err:
-        module.exit_json(msg=str(err), failed=True)
-    except URLError as err:
-        module.exit_json(msg=str(err), unreachable=True)
     except HTTPError as err:
         error_info = json.load(err)
         message = error_info.get('message')
@@ -231,6 +226,11 @@ def main():
         if code in ERROR_CODES:
             module.exit_json(msg=message, skipped=True)
         module.exit_json(msg=str(err), error_info=error_info, failed=True)
+    except URLError as err:
+        module.exit_json(msg=str(err), unreachable=True)
+    except (SSLValidationError, TypeError, ConnectionError, IOError, ValueError,
+            AttributeError, OSError, IndexError, KeyError,) as err:
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
