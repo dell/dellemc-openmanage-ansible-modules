@@ -482,6 +482,56 @@ class DeleteBaselineProfile(BaselineProfile):
             self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
 
 
+def handle_http_error(err, module):
+    """Handle HTTPError responses and structure the response data."""
+    response_data = {"msg": str(err), "failed": True}
+    error_info = {}
+
+    try:
+        error_info = json.load(err)
+    except ValueError:
+        # If the error can't be loaded as JSON, capture it as a plain string
+        error_info["message"] = str(err)
+        error_info["type"] = "HTTPError"
+
+    if err.code == 500:
+        response_data["msg"] = error_info.get("message", str(error_info))
+    elif err.code == 404:
+        response_data["msg"] = SOURCE_NOT_FOUND_MSG
+    else:
+        code = error_info.get("errorCode") if error_info else None
+        response_data.update({
+            "msg": error_info.get("message", str(error_info)),
+            "error_info": error_info  # Add the full error info
+        })
+        if "18001" in code and module.check_mode:
+            response_data.update({"msg": CHANGES_NOT_FOUND_MSG, "failed": False})
+        elif "500" in code:
+            response_data.update({"skipped": True, "failed": False})
+
+    module.exit_json(**response_data)
+
+
+def handle_url_error(err, module):
+    """Handle URLError responses and provide structured error info."""
+    response_data = {
+        "msg": f"The URL with IP {module.params.get('hostname')} and port {module.params.get('port')} cannot be reached.",
+        "unreachable": True,
+        "error_info": {"message": str(err), "type": "URLError"}
+    }
+    module.exit_json(**response_data)
+
+
+def handle_generic_error(err, module):
+    """Handle other common errors and provide structured error info."""
+    response_data = {
+        "msg": str(err),
+        "failed": True,
+        "error_info": {"message": str(err), "type": type(err).__name__}
+    }
+    module.exit_json(**response_data)
+
+
 def main():
     argument_spec = {
         "state": {"type": 'str', "choices": ['present', 'absent'], "default": 'present'},
@@ -492,13 +542,12 @@ def main():
             "type": 'list', "elements": 'str',
             "choices": ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'all']
         },
-        "time": {
-            "type": 'str', "required": False
-        },
+        "time": {"type": 'str', "required": False},
         "repository_profile": {"type": 'str'},
         "job_wait": {"type": 'bool', "default": True},
         "job_wait_timeout": {"type": 'int', "default": 1200}
     }
+
     module = OMEVVAnsibleModule(
         argument_spec=argument_spec,
         required_if=[
@@ -506,20 +555,22 @@ def main():
             ["state", "absent", ["name"]]
         ],
         supports_check_mode=True
-
     )
+
     try:
         with RestOMEVV(module.params) as rest_obj:
             profile_name = module.params.get('name')
             vcenter_uuid = module.params.get('vcenter_uuid')
             omevv_baseline_profile = OMEVVBaselineProfile(rest_obj)
+
+            omevv_obj = None
             if module.params.get('state') == 'present':
                 existing_profile = omevv_baseline_profile.get_baseline_profile_by_name(profile_name, vcenter_uuid)
-
-                if existing_profile:
-                    omevv_obj = ModifyBaselineProfile(module, rest_obj, existing_profile)
-                else:
-                    omevv_obj = CreateBaselineProfile(module, rest_obj, existing_profile)
+                omevv_obj = (
+                    ModifyBaselineProfile(module, rest_obj, existing_profile)
+                    if existing_profile
+                    else CreateBaselineProfile(module, rest_obj, existing_profile)
+                )
 
             elif module.params.get('state') == 'absent':
                 omevv_obj = DeleteBaselineProfile(module, rest_obj, profile_name)
@@ -527,60 +578,11 @@ def main():
             omevv_obj.execute()
 
     except HTTPError as err:
-        response_data = {
-            "msg": str(err),
-            "failed": True
-        }
-
-        error_info = {}
-        try:
-            error_info = json.load(err)
-        except ValueError:
-            # If the error can't be loaded as JSON, capture it as a plain string
-            error_info["message"] = str(err)
-            error_info["type"] = "HTTPError"
-
-        if err.code == 500:
-            response_data["msg"] = error_info.get("message", str(error_info))
-        elif err.code == 404:
-            response_data["msg"] = SOURCE_NOT_FOUND_MSG
-        else:
-            code = error_info.get("errorCode") if error_info else None
-            response_data["msg"] = error_info.get("message", str(error_info))
-            response_data["error_info"] = error_info  # Add the full error info
-
-            if "18001" in code and module.check_mode:
-                response_data["msg"] = CHANGES_NOT_FOUND_MSG
-                response_data["failed"] = False
-            elif "500" in code:
-                response_data["skipped"] = True
-                response_data["failed"] = False
-
-        module.exit_json(**response_data)
-
+        handle_http_error(err, module)
     except URLError as err:
-        response_data = {
-            "msg": f"The URL with IP {module.params.get('hostname')} and port {module.params.get('port')} cannot be reached.",
-            "unreachable": True,
-            "error_info": {
-                "message": str(err),
-                "type": "URLError"
-            }
-        }
-        module.exit_json(**response_data)
-
-    except (IOError, ValueError, TypeError, ConnectionError,
-            AttributeError, IndexError, KeyError, OSError) as err:
-        # For validation errors like invalid port number, add error_info as a dictionary
-        response_data = {
-            "msg": str(err),
-            "failed": True,
-            "error_info": {
-                "message": str(err),
-                "type": type(err).__name__
-            }
-        }
-        module.exit_json(**response_data)
+        handle_url_error(err, module)
+    except (IOError, ValueError, TypeError, ConnectionError, AttributeError, IndexError, KeyError, OSError) as err:
+        handle_generic_error(err, module)
 
 
 if __name__ == '__main__':
