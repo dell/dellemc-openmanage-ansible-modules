@@ -31,25 +31,16 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 VCENTER_INFO_URI = "/Consoles"
+CLUSTER_INFO_URI = "/Consoles/{uuid}/Clusters"
+GROUP_ID_CLUSTER_INFO_URI = "/Consoles/{uuid}/Groups/getGroupsForClusters"
+MANAGED_HOST_INFO_URI = "/Consoles/{uuid}/ManagedHosts"
+HOST_FIRMWARE_DRIFT_INFO_URI = "/Consoles/{uuid}/Groups/{groupId}/ManagedHosts/{hostId}/FirmwareDriftReport"
+CLUSTER_FIRMWARE_DRIFT_INFO_URI = "/Consoles/{uuid}/Groups/{groupId}/FirmwareDriftReport"
 
 
 class OMEVVInfo:
     def __init__(self, omevv_obj):
         self.omevv_obj = omevv_obj
-
-    def search_vcenter_hostname(self, vcenter_data, vcenter_id):
-        """
-        Searches for a vCenter hostname in the given vcenter_data list.
-        Parameters:
-            vcenter_data (list): A list of vCenter data.
-            vcenter_id (str): The hostname of the vCenter to search for.
-        Returns:
-            dict: The vCenter data that matches the given vcenter_id. If no match is found, an empty dictionary is returned.
-        """
-        for vcenter in vcenter_data:
-            if vcenter.get('consoleAddress') == vcenter_id:
-                return vcenter
-        return {}
 
     def get_vcenter_info(self, vcenter_id=None):
         """
@@ -64,6 +55,101 @@ class OMEVVInfo:
         vcenter_info = []
         if resp.success:
             vcenter_info = resp.json_data
-            if vcenter_id:
-                vcenter_info = self.search_vcenter_hostname(vcenter_info, vcenter_id)
+            if vcenter_id and vcenter_info:
+                for each_vcenter in vcenter_info:
+                    if each_vcenter.get('consoleAddress') == vcenter_id:
+                        return each_vcenter
+                return {}
         return vcenter_info
+
+    def get_cluster_info(self, uuid, cluster_name=""):
+        uri = CLUSTER_INFO_URI.format(uuid=uuid)
+        resp = self.omevv_obj.invoke_request('GET', uri)
+        cluster_info = []
+        if resp.success:
+            cluster_info = resp.json_data
+            if cluster_name and cluster_info:
+                for each_cluster in cluster_info:
+                    if each_cluster.get('name') == cluster_name:
+                        return each_cluster
+                return {}
+        return cluster_info
+
+    def get_group_id_of_cluster(self, uuid, cluster_name):
+        group_id = -1
+        uri = GROUP_ID_CLUSTER_INFO_URI.format(uuid=uuid)
+        cluster_info = self.get_cluster_info(uuid, cluster_name)
+        if cluster_info:
+            entity_id = cluster_info.get('entityId')
+            payload = {"clustIds": [entity_id]}
+            resp = self.omevv_obj.invoke_request('POST', uri, data=payload)
+            if resp.success:
+                group_id = resp.json_data[0].get('groupId')
+        return group_id
+
+    def get_managed_host_details(self, uuid, servicetags=None, hostnames=None):
+        servicetags = [] if servicetags is None else servicetags
+        hostnames = [] if hostnames is None else hostnames
+        uri = MANAGED_HOST_INFO_URI.format(uuid=uuid)
+        resp = self.omevv_obj.invoke_request('GET', uri)
+        managed_hosts = resp.json_data
+        if not (servicetags or hostnames):
+            return managed_hosts, {}
+
+        if servicetags:
+            managed_hosts = [
+                host for host in managed_hosts
+                if host.get("serviceTag") in servicetags
+            ]
+
+        if hostnames:
+            managed_hosts = [
+                host for host in managed_hosts
+                if host.get("hostName") in hostnames
+            ]
+
+        invalid_result = {
+            "servicetags": [
+                tag for tag in servicetags
+                if not any(host.get("serviceTag") == tag for host in managed_hosts)
+            ],
+            "hostnames": [
+                name for name in hostnames
+                if not any(host.get("hostName") == name for host in managed_hosts)
+            ]
+        }
+        return managed_hosts, invalid_result
+
+    def get_firmware_drift_info_for_single_host(self, uuid, groupid, hostid):
+        result = []
+        uri = HOST_FIRMWARE_DRIFT_INFO_URI.format(uuid=uuid,
+                                                  groupId=str(groupid),
+                                                  hostId=str(hostid))
+        resp = self.omevv_obj.invoke_request('GET', uri)
+        if resp.success:
+            result = resp.json_data
+        return result
+
+    def get_firmware_drift_info_for_multiple_host(self, uuid, groupid, hostidlist):
+        result = []
+        for each_host in hostidlist:
+            output = self.get_firmware_drift_info_for_single_host(uuid, groupid, each_host)
+            result.append(output)
+        return result
+
+    def get_firmware_drift_info_for_single_cluster(self, uuid, groupid):
+        result = []
+        uri = CLUSTER_FIRMWARE_DRIFT_INFO_URI.format(uuid=uuid,
+                                                     groupId=str(groupid))
+        resp = self.omevv_obj.invoke_request('GET', uri)
+        if resp.success:
+            result = resp.json_data
+        return result
+
+    def get_firmware_drift_info_for_multiple_cluster(self, uuid, groupidlist):
+        result = []
+        for each_group in groupidlist:
+            output = self.get_firmware_drift_info_for_single_cluster(uuid=uuid,
+                                                                     groupid=each_group)
+            result.append(output)
+        return result
