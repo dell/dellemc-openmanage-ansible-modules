@@ -55,6 +55,7 @@ HTTP_ERROR_URL = 'https://testhost.com'
 RETURN_TYPE = "application/json"
 PROFILE_NAME = "Dell Default Catalog"
 DESCRIPTION = "Latest Baseline From Dell"
+CHANGES_NOT_FOUND_MSG = "No changes found to be applied."
 
 
 class TestBaselineProfile(FakeAnsibleModule):
@@ -251,7 +252,7 @@ class TestCreateBaselineProfile(FakeAnsibleModule):
 
     def test_perform_create_baseline_profile_api_response_failure(self, omevv_connection_baseline_profile, omevv_default_args, mocker):
         # Senario 3: When creation is failed because api_response's status is failed
-        # obj = MagicMock()
+        obj = MagicMock()
         payload = {
             "name": "Baseline Profile",
             "description": "API",
@@ -282,8 +283,8 @@ class TestCreateBaselineProfile(FakeAnsibleModule):
 
         mocker.patch(
             MODULE_PATH + CREATE_DIFF_MODE_CHECK, return_value={})
-        # mocker.patch(MODULE_UTILS_PATH +
-        #              PERFORM_CREATE_PROFILE, return_value=(failed_resp, ""))
+        mocker.patch(MODULE_UTILS_PATH +
+                     PERFORM_CREATE_PROFILE, return_value=(obj, ""))
         mocker.patch(MODULE_UTILS_PATH +
                      GET_PROFILE_BY_ID, return_value=failed_resp)
         f_module = self.get_module_mock(params=omevv_default_args)
@@ -750,45 +751,58 @@ class TestDeleteBaselineProfile(FakeAnsibleModule):
                                                                  omevv_baseline_profile_mock):
         omevv_baseline_profile_mock.status_code = 400
         omevv_baseline_profile_mock.success = False
-        json_str = to_text(json.dumps(
-            {"errorCode": "501", "message": "Error"}))
+        error_string = to_text(json.dumps({"errorCode": "501", "message": "Error"}))
         omevv_default_args.update({'state': 'absent', 'name': 'test'})
+
+        # Mock the perform operation based on the exception type
         if exc_type in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + PERFORM_OPERATION_KEY,
-                         side_effect=exc_type(HTTP_ERROR_URL, 400,
-                                              HTTP_ERROR,
-                                              {"accept-type": RETURN_TYPE},
-                                              StringIO(json_str)))
+                         side_effect=exc_type(HTTP_ERROR_URL, 400, HTTP_ERROR, {"accept-type": RETURN_TYPE}, StringIO(error_string)))
         else:
             mocker.patch(MODULE_PATH + PERFORM_OPERATION_KEY,
                          side_effect=exc_type('test'))
+
         result = self._run_module(omevv_default_args)
+
         if exc_type == URLError:
-            assert result['changed'] is False
+            assert result['unreachable'] is True
+            assert 'msg' in result
+            assert "The URL with IP" in result['msg']
         else:
             assert result['failed'] is True
         assert 'msg' in result
 
         # Scenario 1: When errorCode is 18001
-        error_string = to_text(json.dumps(
-            {'errorCode': '18001', 'message': "Error"}))
+        error_string = to_text(json.dumps({'errorCode': '18001', 'message': "No changes found to be applied."}))
         if exc_type in [HTTPError]:
             mocker.patch(MODULE_PATH + PERFORM_OPERATION_KEY,
-                         side_effect=exc_type(HTTP_ERROR_URL, 400,
-                                              HTTP_ERROR,
-                                              {"accept-type": RETURN_TYPE},
-                                              StringIO(error_string)))
+                         side_effect=exc_type(HTTP_ERROR_URL, 400, HTTP_ERROR, {"accept-type": RETURN_TYPE}, StringIO(error_string)))
         res_out = self._run_module(omevv_default_args)
         assert 'msg' in res_out
+        assert res_out['msg'] == CHANGES_NOT_FOUND_MSG  # Verify the specific message for errorCode 18001
 
         # Scenario 2: When errorCode is 500
-        error_string = to_text(json.dumps(
-            {'errorCode': '500', 'message': "Error"}))
+        error_string = to_text(json.dumps({'errorCode': '500', 'message': "Error"}))
         if exc_type in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + PERFORM_OPERATION_KEY,
-                         side_effect=exc_type(HTTP_ERROR_URL, 400,
-                                              HTTP_ERROR,
-                                              {"accept-type": RETURN_TYPE},
-                                              StringIO(error_string)))
+                         side_effect=exc_type(HTTP_ERROR_URL, 400, HTTP_ERROR, {"accept-type": RETURN_TYPE}, StringIO(error_string)))
         res_out = self._run_module(omevv_default_args)
         assert 'msg' in res_out
+        assert res_out['msg'] == "Error"  # Check that the message from errorCode 500 is correctly returned
+
+        # Scenario 3: When 404 error code occurs
+        error_string = to_text(json.dumps({'errorCode': '404', 'message': "Not Found"}))
+        if exc_type in [HTTPError]:
+            mocker.patch(MODULE_PATH + PERFORM_OPERATION_KEY,
+                         side_effect=exc_type(HTTP_ERROR_URL, 404, HTTP_ERROR, {"accept-type": RETURN_TYPE}, StringIO(error_string)))
+        res_out = self._run_module(omevv_default_args)
+        assert 'msg' in res_out
+        assert res_out['msg'] == "Not Found"  # Check that the 404 error message is correctly returned
+
+        # Scenario 4: Test for other exceptions like IOError, ValueError
+        for error in [IOError, ValueError, TypeError, ConnectionError, AttributeError, IndexError, KeyError, OSError]:
+            mocker.patch(MODULE_PATH + PERFORM_OPERATION_KEY,
+                         side_effect=error('test'))
+            res_out = self._run_module(omevv_default_args)
+            assert 'msg' in res_out
+            assert res_out['failed'] is True

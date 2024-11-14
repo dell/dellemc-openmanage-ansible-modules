@@ -144,10 +144,10 @@ class RestAPI:
         return url_kwargs
 
     def validate_input(self):
-        if self.port <= 0:
-            raise ValueError("Invalid port number. Enter the valid positive integer.")
+        if not (1 <= self.port <= 65535):
+            raise ValueError("Invalid port number. Enter the valid port number.")
         if self.timeout <= 0:
-            raise ValueError("Invalid port number. Enter the valid positive integer.")
+            raise ValueError("Invalid port number. Enter the valid port number.")
 
     def _base_invoke_request(self, method, path, data=None, query_param=None, headers=None,
                              api_timeout=None, dump=True, auth_token_header='X-Auth-Token'):

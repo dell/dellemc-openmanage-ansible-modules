@@ -177,7 +177,8 @@ PROFILE_NOT_FOUND_MSG = "Unable to delete the profile {profile_name} because the
 CHANGES_FOUND_MSG = "Changes found to be applied."
 CHANGES_NOT_FOUND_MSG = "No changes found to be applied."
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be negative or zero."
-INVALID_TIME_FORMAT_MSG = "Invalid value for time. Enter the value in positive integer."
+UNREACHABLE_MSG = "The URL with the {ip}:{port} cannot be reached."
+SOURCE_NOT_FOUND_MSG = "The Requested resource cannot be found."
 
 
 class BaselineProfile:
@@ -465,7 +466,6 @@ class DeleteBaselineProfile(BaselineProfile):
     def execute(self):
         vcenter_uuid = self.module.params.get('vcenter_uuid')
         profile_exists = self.omevv_baseline_obj.get_baseline_profile_by_name(self.profile_name, vcenter_uuid)
-        # profile = self.module.params.get('name')
 
         if profile_exists and self.module.check_mode and self.module._diff:
             diff = self.diff_mode_check(profile_exists)
@@ -527,24 +527,60 @@ def main():
             omevv_obj.execute()
 
     except HTTPError as err:
-        if err.code == 500:
-            error_info = json.load(err)
-            message = error_info.get('message', str(error_info))
-            module.exit_json(msg=message, failed=True)
+        response_data = {
+            "msg": str(err),
+            "failed": True
+        }
 
-        error_info = json.load(err)
-        code = error_info.get('errorCode')
-        message = error_info.get('message', str(error_info))
-        if '18001' in code and module.check_mode:
-            module.exit_json(msg=CHANGES_NOT_FOUND_MSG)
-        if '500' in code:
-            module.exit_json(msg=message, skipped=True)
-        module.exit_json(msg=message, error_info=error_info, failed=True)
+        error_info = {}
+        try:
+            error_info = json.load(err)
+        except ValueError:
+            # If the error can't be loaded as JSON, capture it as a plain string
+            error_info["message"] = str(err)
+            error_info["type"] = "HTTPError"
+
+        if err.code == 500:
+            response_data["msg"] = error_info.get("message", str(error_info))
+        elif err.code == 404:
+            response_data["msg"] = SOURCE_NOT_FOUND_MSG
+        else:
+            code = error_info.get("errorCode") if error_info else None
+            response_data["msg"] = error_info.get("message", str(error_info))
+            response_data["error_info"] = error_info  # Add the full error info
+
+            if "18001" in code and module.check_mode:
+                response_data["msg"] = CHANGES_NOT_FOUND_MSG
+                response_data["failed"] = False
+            elif "500" in code:
+                response_data["skipped"] = True
+                response_data["failed"] = False
+
+        module.exit_json(**response_data)
+
     except URLError as err:
-        module.exit_json(msg=str(err), unreachable=True)
+        response_data = {
+            "msg": f"The URL with IP {module.params.get('hostname')} and port {module.params.get('port')} cannot be reached.",
+            "unreachable": True,
+            "error_info": {
+                "message": str(err),
+                "type": "URLError"
+            }
+        }
+        module.exit_json(**response_data)
+
     except (IOError, ValueError, TypeError, ConnectionError,
             AttributeError, IndexError, KeyError, OSError) as err:
-        module.exit_json(msg=str(err), failed=True)
+        # For validation errors like invalid port number, add error_info as a dictionary
+        response_data = {
+            "msg": str(err),
+            "failed": True,
+            "error_info": {
+                "message": str(err),
+                "type": type(err).__name__
+            }
+        }
+        module.exit_json(**response_data)
 
 
 if __name__ == '__main__':
