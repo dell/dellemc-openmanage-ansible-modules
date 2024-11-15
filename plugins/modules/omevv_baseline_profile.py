@@ -271,6 +271,7 @@ class CreateBaselineProfile(BaselineProfile):
             vcenter_uuid=vcenter_uuid,
             description=payload.get('description') if 'description' in payload else None
         )
+        profile_resp = None
         if response.success:
             profile_resp = self.omevv_baseline_obj.get_baseline_profile_by_id(response.json_data, vcenter_uuid)
             job_wait = self.module.params.get('job_wait')
@@ -396,6 +397,7 @@ class ModifyBaselineProfile(BaselineProfile):
             description=payload.get('description') if 'description' in payload else None
         )
         job_wait = self.module.params.get('job_wait')
+        profile_resp = None
         if response.success:
             profile_resp = self.omevv_baseline_obj.get_baseline_profile_by_id(profile_id, vcenter_uuid)
             if job_wait:
