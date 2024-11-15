@@ -569,7 +569,6 @@ def main():
         elif err.code == 404:
             response_data["msg"] = SOURCE_NOT_FOUND_MSG
         else:
-            code = error_info.get("errorCode") if error_info else None
             response_data.update({
                 "msg": error_info.get("message", str(error_info)),
                 "error_info": error_info
