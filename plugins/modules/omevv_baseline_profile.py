@@ -272,8 +272,8 @@ class CreateBaselineProfile(BaselineProfile):
             description=payload.get('description') if 'description' in payload else None
         )
         if response.success:
-            job_wait = self.module.params.get('job_wait')
             profile_resp = self.omevv_baseline_obj.get_baseline_profile_by_id(response.json_data, vcenter_uuid)
+            job_wait = self.module.params.get('job_wait')
             if job_wait:
                 while profile_resp["status"] not in ["SUCCESSFUL", "FAILED"]:
                     time.sleep(3)
