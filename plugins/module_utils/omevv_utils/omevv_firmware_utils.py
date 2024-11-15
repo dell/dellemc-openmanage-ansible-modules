@@ -282,18 +282,26 @@ class OMEVVBaselineProfile:
         self.omevv_profile_obj = OMEVVFirmwareProfile(self.omevv)
 
     def validate_repository_profile(self, repository_profile):
-        # Fetch the list of available repository profiles or check via API
+        """
+        Validates the repository profile against available repository profiles.
+
+        Args:
+            repository_profile (str): The repository profile name to validate.
+
+        Returns:
+            tuple: A tuple containing a success flag (bool) and an error message (str).
+        """
         available_repo_profiles = self.omevv_profile_obj.get_all_repository_profiles()
 
         if not available_repo_profiles:
-            return {"error": NO_REPO_PROFILE_MSG}
+            return False, NO_REPO_PROFILE_MSG
 
         available_repo_profile_names = [profile.get('profileName') for profile in available_repo_profiles.json_data]
 
         if repository_profile not in available_repo_profile_names:
-            return {"error": INVALID_REPO_PROFILE_MSG.format(repository_profile=repository_profile)}
+            return False, INVALID_REPO_PROFILE_MSG.format(repository_profile=repository_profile)
 
-        return {"success": True}
+        return True, ""
 
     def validate_cluster_names(self, cluster_names, vcenter_uuid):
         """
@@ -304,29 +312,28 @@ class OMEVVBaselineProfile:
             vcenter_uuid (str): The UUID of the vCenter for cluster lookup.
 
         Returns:
-            dict: A dictionary indicating success or error message.
+            tuple: A tuple containing a success flag (bool) and an error message (str).
         """
         # Check if cluster_names is None or empty
         if not cluster_names:
-            return {"error": INVALID_CLUSTER_NAMES_MSG.format(cluster_names="")}
+            return False, INVALID_CLUSTER_NAMES_MSG.format(cluster_names="")
 
         # Fetch all available clusters
         available_clusters = self.get_all_clusters(vcenter_uuid)
 
-        # Check if available_clusters is None or has no json_data
-        if not available_clusters or not available_clusters.json_data:
-            return {"error": NO_CLUSTERS_FOUND_MSG}
+        if not available_clusters:
+            return False, NO_CLUSTERS_FOUND_MSG
 
         available_cluster_names = [
-            cluster.get('name') for cluster in available_clusters.json_data if cluster.get('name') is not None
+            cluster.get('name') for cluster in available_clusters if cluster.get('name') is not None
         ]
         invalid_clusters = [cluster for cluster in cluster_names if cluster not in available_cluster_names]
 
         if invalid_clusters:
             error_message = INVALID_CLUSTER_NAMES_MSG.format(cluster_names=', '.join(invalid_clusters))
-            return {"error": error_message}
+            return False, error_message
 
-        return {"success": True}
+        return True, ""
 
     def get_all_clusters(self, vcenter_uuid):
         """
@@ -338,23 +345,27 @@ class OMEVVBaselineProfile:
         Returns:
             list: The list of all cluster information.
         """
+        clusters_resp = self.omevv.invoke_request('GET', CLUSTER_URI.format(vcenter_uuid=vcenter_uuid))
 
-        resp = self.omevv.invoke_request('GET', CLUSTER_URI.format(vcenter_uuid=vcenter_uuid))
-        return resp
+        # If the response is a list (as per the error), return it directly
+        if isinstance(clusters_resp, list):
+            return clusters_resp
+
+        # If the response has a json_data attribute, return json_data
+        return clusters_resp.json_data if hasattr(clusters_resp, 'json_data') else []
 
     def get_cluster_id(self, cluster_names, vcenter_uuid):
         """
-        Fetch cluster IDs for the given clusters.
+        Fetch cluster IDs for the given cluster names.
 
         Args:
-            vcenter_uuid: UUID of the vCenter.
-            cluster_names: List of cluster names to fetch group IDs for.
+            vcenter_uuid (str): UUID of the vCenter.
+            cluster_names (list): List of cluster names to fetch IDs for.
 
         Returns:
             list: A list of cluster IDs.
         """
-        clusters_resp = self.omevv.invoke_request('GET', CLUSTER_URI.format(vcenter_uuid=vcenter_uuid))
-        clusters = clusters_resp.json_data if clusters_resp.success else []
+        clusters = self.get_all_clusters(vcenter_uuid=vcenter_uuid)
 
         # Map cluster name to entity ID (clustId)
         cluster_ids = [c['entityId'] for c in clusters if c['name'] in cluster_names]
@@ -362,7 +373,6 @@ class OMEVVBaselineProfile:
         return cluster_ids
 
     def get_group_ids_for_clusters(self, vcenter_uuid, cluster_names):
-
         """
         Fetch group IDs for the given clusters.
 
@@ -373,8 +383,7 @@ class OMEVVBaselineProfile:
         Returns:
             list: A list of group IDs.
         """
-        clusters_resp = self.omevv.invoke_request('GET', CLUSTER_URI.format(vcenter_uuid=vcenter_uuid))
-        clusters = clusters_resp.json_data if clusters_resp.success else []
+        clusters = self.get_all_clusters(vcenter_uuid=vcenter_uuid)
 
         # Map cluster name to entity ID (clustId)
         cluster_ids = [c['entityId'] for c in clusters if c['name'] in cluster_names]
@@ -384,7 +393,7 @@ class OMEVVBaselineProfile:
         if cluster_ids:
             payload = {"clustIds": cluster_ids}
             group_resp = self.omevv.invoke_request('POST', CLUSTER_IDS_URI.format(vcenter_uuid=vcenter_uuid), payload)
-            group_ids = [g['groupId'] for g in group_resp.json_data] if group_resp.success else []
+            group_ids = [g['groupId'] for g in group_resp.json_data] if hasattr(group_resp, 'json_data') and group_resp.success else []
 
         return group_ids
 
@@ -497,7 +506,7 @@ class OMEVVBaselineProfile:
         resp = self.omevv.invoke_request(
             "GET", DRIFT_URI.format(vcenter_uuid=vcenter_uuid) + "/" + str(profile_id)
         )
-        return resp
+        return resp.json_data
 
     def get_add_remove_group_ids(self, existing_profile, vcenter_uuid, cluster_names):
         """Determine groups to add or remove based on the cluster names"""
@@ -514,7 +523,7 @@ class OMEVVBaselineProfile:
 
         return add_group_ids, remove_group_ids
 
-    def create_baseline_profile(self, name, firmware_repo_id, group_ids, vcenter_uuid, payload):
+    def create_baseline_profile(self, name, firmware_repo_id, group_ids, job_schedule, vcenter_uuid, description=None):
         """
         Creates a baseline profile.
 
@@ -522,8 +531,9 @@ class OMEVVBaselineProfile:
             name (str): The name of the baseline profile.
             firmware_repo_id (str): The ID of the firmware repository to associate with the baseline profile.
             group_ids (list): List of group IDs (clusters) associated with the baseline profile.
+            job_schedule (dict): A dictionary specifying the job schedule details, including selected days and time.
+            vcenter_uuid (str): The UUID of the vCenter instance.
             description (str, optional): A description of the baseline profile.
-            job_schedule (dict, optional): A dictionary specifying the job schedule details, including selected days and time.
 
         Returns:
             tuple: A tuple containing the response and an error message.
@@ -532,13 +542,27 @@ class OMEVVBaselineProfile:
             None.
         """
         err_msg = None
-        if not name or not firmware_repo_id or not group_ids:
-            err_msg = "Required parameters: name, firmware_repo_id, or group_ids are missing."
+        required_params = [name, firmware_repo_id, group_ids, job_schedule]
+        missing_params = [param_name for param_name, param in zip(
+            ["name", "firmware_repo_id", "group_ids", "job_schedule"], required_params) if param is None]
+
+        if missing_params:
+            err_msg = "Required parameters missing: " + ", ".join(missing_params)
+            return None, err_msg
+
+        payload = {
+            "name": name,
+            "firmwareRepoId": firmware_repo_id,
+            "groupIds": group_ids,
+            "jobSchedule": job_schedule
+        }
+        if description is not None:
+            payload["description"] = description
 
         resp = self.omevv.invoke_request("POST", BASELINE_PROFILE_URI.format(vcenter_uuid=vcenter_uuid), payload)
         return resp, err_msg
 
-    def modify_baseline_profile(self, profile_id, vcenter_uuid, payload):
+    def modify_baseline_profile(self, add_group_ids, remove_group_ids, profile_id, vcenter_uuid, firmware_repo_id=None, job_schedule=None, description=None):
         """
         Modifies an existing baseline profile.
 
@@ -554,8 +578,25 @@ class OMEVVBaselineProfile:
             None.
         """
         err_msg = None
-        if not profile_id or not vcenter_uuid or not payload:
-            err_msg = "Required parameters: profile_id, vcenter_uuid, or payload are missing."
+
+        # Check if the required parameters are provided
+        if profile_id is None or vcenter_uuid is None:
+            err_msg = "Required parameters: profile_id or vcenter_uuid are missing."
+            return None, err_msg
+
+        # Construct the payload for the PATCH request
+        payload = {
+            "addgroupIds": add_group_ids if add_group_ids is not None else [],
+            "removeGroupIds": remove_group_ids if remove_group_ids is not None else []
+        }
+
+        # Add the optional parameters if provided
+        if firmware_repo_id is not None:
+            payload["firmwareRepoId"] = firmware_repo_id
+        if job_schedule is not None:
+            payload["jobSchedule"] = job_schedule
+        if description is not None:
+            payload["description"] = description
 
         # Construct the URL for the PATCH request
         url = BASELINE_PROFILE_URI.format(vcenter_uuid=vcenter_uuid) + f"/{profile_id}"

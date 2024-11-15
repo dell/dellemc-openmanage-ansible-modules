@@ -25,8 +25,8 @@ extends_documentation_fragment:
 options:
   state:
     description:
-      - C(present) creates an OMEVV baseline profile or modifies an existing profile if the profile with the same name already exists.
-      - C(absent) deletes the OMEVV baseline profile.
+      - C(present) creates a baseline profile or modifies an existing profile if the profile with the same name already exists.
+      - C(absent) deletes the baseline profile.
       - I(repository_profile), I(cluster), I(days) and I(time) is required when creating a new baseline profile.
       - Either I(profile_name) or I(profile_id) is required when I(state) is C(absent).
     type: str
@@ -34,13 +34,12 @@ options:
     default: present
   name:
     description:
-      - Name of the OMEVV baseline profile.
-      - This parameter is required for modification operation when I(state) is C(absent).
+      - Name of the baseline profile.
     type: str
     required: true
   description:
     description:
-      - Description of OMEVV baseline profile.
+      - Description of the baseline profile.
     type: str
   cluster:
     description:
@@ -148,7 +147,7 @@ msg:
   returned: always
   sample: "Successfully created the OMEVV baseline profile."
 error_info:
-  description: Details of the HTTP Error.
+  description: Details of the module HTTP Error.
   returned: on HTTP error
   type: dict
   sample:
@@ -179,6 +178,8 @@ CHANGES_NOT_FOUND_MSG = "No changes found to be applied."
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be negative or zero."
 UNREACHABLE_MSG = "The URL with the {ip}:{port} cannot be reached."
 SOURCE_NOT_FOUND_MSG = "The Requested resource cannot be found."
+JOB_WAIT_CREATION_MSG = "Successfully submitted the baseline profile creation job."
+JOB_WAIT_MODIFICATION_MSG = "Successfully submitted the baseline profile modification job."
 
 
 class BaselineProfile:
@@ -191,21 +192,31 @@ class BaselineProfile:
         self.omevv_info_obj = OMEVVInfo(self.obj)
 
     def validate_common_params(self):
-        resp = validate_job_wait(self.module)
-        if resp:
+        """
+        Validates the common parameters required for baseline profile operations.
+
+        Returns:
+            None: Exits the module with a failure message if validation fails.
+        """
+        # Validate the job wait parameter
+        if validate_job_wait(self.module):
             self.module.exit_json(msg=TIMEOUT_NEGATIVE_OR_ZERO_MSG, failed=True)
+
+        # Validate the time parameter
         validate_time(self.module.params.get('time'), self.module)
 
+        # Validate the repository profile
         repository_profile = self.module.params.get('repository_profile')
-        repo_validation = self.omevv_baseline_obj.validate_repository_profile(repository_profile)
-        if "error" in repo_validation:
-            self.module.exit_json(msg=repo_validation["error"], failed=True)
+        is_valid_repo, err_msg_repo = self.omevv_baseline_obj.validate_repository_profile(repository_profile)
+        if not is_valid_repo:
+            self.module.exit_json(msg=err_msg_repo, failed=True)
 
+        # Validate the cluster names
         cluster_names = self.module.params.get('cluster')
         vcenter_uuid = self.module.params.get('vcenter_uuid')
-        cluster_validation = self.omevv_baseline_obj.validate_cluster_names(cluster_names, vcenter_uuid)
-        if "error" in cluster_validation:
-            self.module.exit_json(msg=cluster_validation["error"], failed=True)
+        is_valid_cluster, err_msg_cluster = self.omevv_baseline_obj.validate_cluster_names(cluster_names, vcenter_uuid)
+        if not is_valid_cluster:
+            self.module.exit_json(msg=err_msg_cluster, failed=True)
 
     def execute(self):
         """To be overridden by subclasses to implement specific profile creation or deletion logic."""
@@ -236,7 +247,7 @@ class CreateBaselineProfile(BaselineProfile):
 
         filtered_payload = {
             "name": payload.get("name"),
-            "firmwareRepoId": payload.get("firmwareRepoId"),
+            # "firmwareRepoId": payload.get("firmwareRepoId"),
             "repository_profile": self.module.params.get('repository_profile'),
             "clusterGroups": cluster_groups,
             "description": description,
@@ -256,24 +267,29 @@ class CreateBaselineProfile(BaselineProfile):
             name=payload.get('name'),
             firmware_repo_id=payload.get('firmwareRepoId'),
             group_ids=payload.get('groupIds'),
+            job_schedule=payload.get('jobSchedule'),
             vcenter_uuid=vcenter_uuid,
-            payload=payload
+            description=payload.get('description') if 'description' in payload else None
         )
         if response.success:
+            job_wait = self.module.params.get('job_wait')
             profile_resp = self.omevv_baseline_obj.get_baseline_profile_by_id(response.json_data, vcenter_uuid)
-            while profile_resp["status"] not in ["SUCCESSFUL", "FAILED"]:
-                time.sleep(3)
-                profile_resp = self.omevv_baseline_obj.get_baseline_profile_by_id(response.json_data, vcenter_uuid)
+            if job_wait:
+                while profile_resp["status"] not in ["SUCCESSFUL", "FAILED"]:
+                    time.sleep(3)
+                    profile_resp = self.omevv_baseline_obj.get_baseline_profile_by_id(response.json_data, vcenter_uuid)
 
-            diff = self.diff_mode_check(payload)
-            if self.module._diff and profile_resp["status"] == "SUCCESSFUL":
-                self.module.exit_json(msg=SUCCESS_CREATION_MSG, baseline_profile_info=profile_resp, diff=diff, changed=True)
-            elif profile_resp["status"] == "SUCCESSFUL":
-                self.module.exit_json(msg=SUCCESS_CREATION_MSG, baseline_profile_info=profile_resp, changed=True)
+                diff = self.diff_mode_check(payload)
+                if self.module._diff and profile_resp["status"] == "SUCCESSFUL":
+                    self.module.exit_json(msg=SUCCESS_CREATION_MSG, baseline_profile_info=profile_resp, diff=diff, changed=True)
+                elif profile_resp["status"] == "SUCCESSFUL":
+                    self.module.exit_json(msg=SUCCESS_CREATION_MSG, baseline_profile_info=profile_resp, changed=True)
+                else:
+                    self.module.exit_json(msg=FAILED_CREATION_MSG, baseline_profile_info=profile_resp, failed=True)
             else:
-                self.module.exit_json(msg=FAILED_CREATION_MSG, baseline_profile_info=profile_resp, failed=True)
+                self.module.exit_json(msg=JOB_WAIT_CREATION_MSG, baseline_profile_info=profile_resp, changed=True)
         else:
-            self.module.exit_json(msg=FAILED_CREATION_MSG, failed=True)
+            self.module.exit_json(msg=FAILED_CREATION_MSG, baseline_profile_info=profile_resp, failed=True)
 
     def execute(self):
         self.validate_common_params()
@@ -318,12 +334,9 @@ class ModifyBaselineProfile(BaselineProfile):
 
         cluster_groups = []
 
-        # Loop through each cluster name individually
         for name in cluster_names:
-            # Fetch information for each cluster name
             cluster_info = self.omevv_info_obj.get_cluster_info(uuid=vcenter_uuid, cluster_name=name)
 
-            # Proceed if a valid cluster_info was returned
             if cluster_info:
                 group_id = self.omevv_info_obj.get_group_id_of_cluster(vcenter_uuid, name)
                 cluster_groups.append({
@@ -336,7 +349,7 @@ class ModifyBaselineProfile(BaselineProfile):
         old_job_schedule_resp = self.omevv_baseline_obj.get_current_job_schedule(
             self.existing_profile.get("driftJobId"), vcenter_uuid
         )
-        old_job_schedule = old_job_schedule_resp.json_data.get("schedule")
+        old_job_schedule = old_job_schedule_resp.get("schedule")
         new_job_schedule = payload['jobSchedule']
 
         # Construct the 'after' payload for comparison
@@ -373,19 +386,31 @@ class ModifyBaselineProfile(BaselineProfile):
         profile_id = self.existing_profile.get('id')
         vcenter_uuid = self.module.params.get('vcenter_uuid')
 
-        response, err_msg = self.omevv_baseline_obj.modify_baseline_profile(profile_id, vcenter_uuid, payload)
+        response, err_msg = self.omevv_baseline_obj.modify_baseline_profile(
+            add_group_ids=payload.get('addgroupIds'),
+            remove_group_ids=payload.get('removeGroupIds'),
+            profile_id=profile_id,
+            vcenter_uuid=vcenter_uuid,
+            firmware_repo_id=payload.get('firmwareRepoId'),
+            job_schedule=payload.get('jobSchedule'),
+            description=payload.get('description') if 'description' in payload else None
+        )
+        job_wait = self.module.params.get('job_wait')
         if response.success:
             profile_resp = self.omevv_baseline_obj.get_baseline_profile_by_id(profile_id, vcenter_uuid)
-            while profile_resp["status"] not in ["SUCCESSFUL", "FAILED"]:
-                time.sleep(3)
-                profile_resp = self.omevv_baseline_obj.get_baseline_profile_by_id(profile_id, vcenter_uuid)
+            if job_wait:
+                while profile_resp["status"] not in ["SUCCESSFUL", "FAILED"]:
+                    time.sleep(3)
+                    profile_resp = self.omevv_baseline_obj.get_baseline_profile_by_id(profile_id, vcenter_uuid)
 
-            if self.module._diff and profile_resp["status"] == "SUCCESSFUL":
-                self.module.exit_json(msg=SUCCESS_MODIFY_MSG, baseline_profile_info=profile_resp, diff=diff, changed=True)
-            elif profile_resp["status"] == "SUCCESSFUL":
-                self.module.exit_json(msg=SUCCESS_MODIFY_MSG, baseline_profile_info=profile_resp, changed=True)
+                if self.module._diff and profile_resp["status"] == "SUCCESSFUL":
+                    self.module.exit_json(msg=SUCCESS_MODIFY_MSG, baseline_profile_info=profile_resp, diff=diff, changed=True)
+                elif profile_resp["status"] == "SUCCESSFUL":
+                    self.module.exit_json(msg=SUCCESS_MODIFY_MSG, baseline_profile_info=profile_resp, changed=True)
+                else:
+                    self.module.exit_json(msg=FAILED_MODIFY_MSG, baseline_profile_info=profile_resp, failed=True)
             else:
-                self.module.exit_json(msg=FAILED_MODIFY_MSG, baseline_profile_info=profile_resp, failed=True)
+                self.module.exit_json(msg=JOB_WAIT_MODIFICATION_MSG, baseline_profile_info=profile_resp, changed=True)
         else:
             self.module.exit_json(msg=FAILED_MODIFY_MSG, failed=True)
 
@@ -411,9 +436,7 @@ class ModifyBaselineProfile(BaselineProfile):
             "removeGroupIds": remove_group_ids,
             "jobSchedule": job_schedule,
             "description": self.module.params.get("description", self.existing_profile.get("description")),
-            "configurationRepoId": self.module.params.get("configurationRepoId", 0),
             "firmwareRepoId": firmware_repo_id,
-            "driverRepoId": self.module.params.get("driverRepoId", 0),
             "modifiedBy": "Administrator@VSPHERE.LOCAL"
         }
 
@@ -482,56 +505,6 @@ class DeleteBaselineProfile(BaselineProfile):
             self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
 
 
-def handle_http_error(err, module):
-    """Handle HTTPError responses and structure the response data."""
-    response_data = {"msg": str(err), "failed": True}
-    error_info = {}
-
-    try:
-        error_info = json.load(err)
-    except ValueError:
-        # If the error can't be loaded as JSON, capture it as a plain string
-        error_info["message"] = str(err)
-        error_info["type"] = "HTTPError"
-
-    if err.code == 500:
-        response_data["msg"] = error_info.get("message", str(error_info))
-    elif err.code == 404:
-        response_data["msg"] = SOURCE_NOT_FOUND_MSG
-    else:
-        code = error_info.get("errorCode") if error_info else None
-        response_data.update({
-            "msg": error_info.get("message", str(error_info)),
-            "error_info": error_info  # Add the full error info
-        })
-        if "18001" in code and module.check_mode:
-            response_data.update({"msg": CHANGES_NOT_FOUND_MSG, "failed": False})
-        elif "500" in code:
-            response_data.update({"skipped": True, "failed": False})
-
-    module.exit_json(**response_data)
-
-
-def handle_url_error(err, module):
-    """Handle URLError responses and provide structured error info."""
-    response_data = {
-        "msg": f"The URL with IP {module.params.get('hostname')} and port {module.params.get('port')} cannot be reached.",
-        "unreachable": True,
-        "error_info": {"message": str(err), "type": "URLError"}
-    }
-    module.exit_json(**response_data)
-
-
-def handle_generic_error(err, module):
-    """Handle other common errors and provide structured error info."""
-    response_data = {
-        "msg": str(err),
-        "failed": True,
-        "error_info": {"message": str(err), "type": type(err).__name__}
-    }
-    module.exit_json(**response_data)
-
-
 def main():
     argument_spec = {
         "state": {"type": 'str', "choices": ['present', 'absent'], "default": 'present'},
@@ -565,7 +538,8 @@ def main():
 
             omevv_obj = None
             if module.params.get('state') == 'present':
-                existing_profile = omevv_baseline_profile.get_baseline_profile_by_name(profile_name, vcenter_uuid)
+                existing_profile = omevv_baseline_profile.get_baseline_profile_by_name(
+                    profile_name, vcenter_uuid)
                 omevv_obj = (
                     ModifyBaselineProfile(module, rest_obj, existing_profile)
                     if existing_profile
@@ -573,16 +547,45 @@ def main():
                 )
 
             elif module.params.get('state') == 'absent':
-                omevv_obj = DeleteBaselineProfile(module, rest_obj, profile_name)
+                omevv_obj = DeleteBaselineProfile(
+                    module, rest_obj, profile_name)
 
             omevv_obj.execute()
 
     except HTTPError as err:
-        handle_http_error(err, module)
+        """Handle HTTPError responses and structure the response data."""
+        response_data = {"msg": str(err), "failed": True}
+        error_info = {}
+
+        try:
+            error_info = json.load(err)
+        except ValueError:
+            # If the error can't be loaded as JSON, capture it as a plain string
+            error_info["message"] = str(err)
+            error_info["type"] = "HTTPError"
+
+        if err.code == 500:
+            response_data["msg"] = error_info.get("message", str(error_info))
+        elif err.code == 404:
+            response_data["msg"] = SOURCE_NOT_FOUND_MSG
+        else:
+            code = error_info.get("errorCode") if error_info else None
+            response_data.update({
+                "msg": error_info.get("message", str(error_info)),
+                "error_info": error_info
+            })
+        module.exit_json(**response_data)
     except URLError as err:
-        handle_url_error(err, module)
-    except (IOError, ValueError, TypeError, ConnectionError, AttributeError, IndexError, KeyError, OSError) as err:
-        handle_generic_error(err, module)
+        """Handle URLError responses and provide structured error info."""
+        response_data = {
+            "msg": f"The URL with IP {module.params.get('hostname')} and port {module.params.get('port')} cannot be reached.",
+            "unreachable": True,
+            "error_info": {"message": str(err), "type": "URLError"}
+        }
+        module.exit_json(**response_data)
+    except (IOError, ValueError, TypeError, ConnectionError,
+            AttributeError, IndexError, KeyError, OSError) as err:
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
