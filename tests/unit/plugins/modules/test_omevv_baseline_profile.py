@@ -16,7 +16,7 @@ import pytest
 import json
 from ansible_collections.dellemc.openmanage.plugins.modules import omevv_baseline_profile
 from ansible_collections.dellemc.openmanage.plugins.modules.omevv_baseline_profile import ModifyBaselineProfile
-from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
+from urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.modules.omevv_baseline_profile import main
@@ -41,6 +41,7 @@ GET_PROFILE_BY_ID = "OMEVVBaselineProfile.get_baseline_profile_by_id"
 CREATE_DIFF_MODE_CHECK = "CreateBaselineProfile.diff_mode_check"
 MODIFY_DIFF_MODE_CHECK = "ModifyBaselineProfile.diff_mode_check"
 DELETE_DIFF_MODE_CHECK = "DeleteBaselineProfile.diff_mode_check"
+DELETE_EXECUTE = "DeleteBaselineProfile.execute"
 COMMON = "BaselineProfile.validate_common_params"
 CHANGES_FOUND_MSG = "Changes found to be applied."
 GET_REPO_ID = "OMEVVBaselineProfile.get_repo_id_by_name"
@@ -55,7 +56,8 @@ HTTP_ERROR = "http error message"
 HTTP_ERROR_URL = 'https://testhost.com'
 RETURN_TYPE = "application/json"
 PROFILE_NAME = "Dell Default Catalog"
-CLUSTER_NAME =  "My Cluster"
+PROFILE_TEST = "profile-test"
+CLUSTER_NAME = "My Cluster"
 BASELINE_PROFILE = "Baseline profile for testing"
 DESCRIPTION = "Latest Baseline From Dell"
 JOB_SCHEDULE = {"monday": False, "tuesday": False, "wednesday": False,
@@ -195,26 +197,26 @@ class TestCreateBaselineProfile(FakeAnsibleModule):
 
         obj2 = {
             'id': 1124,
-            'name': 'profile-test',
+            'name': PROFILE_TEST,
             'description': 'TEST',
             'consoleId': '1234-5678',
             'firmwareRepoId': 1000,
             'firmwareRepoName': PROFILE_NAME,
             "lastmodifiedBy": "OMEVV",
             "version": "1.0.0-0",
-            "clusterGroups": [{"clusterID": "domain-c1048", "clusterName": "Test Cluster", "omevv_groupID": 1038}],
+            "clusterGroups": [{"clusterID": "domain-c1048", "clusterName": CLUSTER_NAME, "omevv_groupID": 1038}],
             "baselineType": "CLUSTER",
             "status": "SUCCESSFUL"}
 
         obj3 = {
             'id': 1124,
-            'name': 'profile-test',
+            'name': PROFILE_TEST,
             'description': 'TEST',
             'consoleId': '1234-5678',
             'firmwareRepoId': 1000,
             'firmwareRepoName': PROFILE_NAME,
             "lastmodifiedBy": "OMEVV",
-            "clusterGroups": [{"clusterID": "domain-c1048", "clusterName": "Test Cluster", "omevv_groupID": 1038}],
+            "clusterGroups": [{"clusterID": "domain-c1048", "clusterName": CLUSTER_NAME, "omevv_groupID": 1038}],
             "baselineType": "CLUSTER",
             "status": "CREATING"}
 
@@ -269,7 +271,7 @@ class TestCreateBaselineProfile(FakeAnsibleModule):
         }
         failed_resp = {
             'id': 1124,
-            'name': 'profile-test',
+            'name': PROFILE_TEST,
             'description': 'TEST',
             'consoleId': '1234-5678',
             'firmwareRepoId': 1000,
@@ -409,7 +411,7 @@ class TestModifyBaselineProfile(FakeAnsibleModule):
 
         existing_profile = {
             'id': 1124,
-            'name': 'profile-test',
+            'name': PROFILE_TEST,
             'description': 'TEST',
             'consoleId': '1234-5678',
             'firmwareRepoId': 1000,
@@ -421,14 +423,14 @@ class TestModifyBaselineProfile(FakeAnsibleModule):
 
         api_response = {
             'id': 1124,
-            'name': 'profile-test',
+            'name': PROFILE_TEST,
             'description': 'SUCCESS TEST',
             'consoleId': '1234-5678',
             'firmwareRepoId': 1000,
             'firmwareRepoName': PROFILE_NAME,
             "lastmodifiedBy": "OMEVV",
             "lastSuccessfulUpdatedTime": "2024-11-12T15:26:25.541Z",
-            "clusterGroups": [{"clusterID": "domain-c1048", "clusterName": "Test Cluster", "omevv_groupID": 1038}],
+            "clusterGroups": [{"clusterID": "domain-c1048", "clusterName": CLUSTER_NAME, "omevv_groupID": 1038}],
             "baselineType": "CLUSTER",
             "status": "MODIFYING"}
 
@@ -461,7 +463,7 @@ class TestModifyBaselineProfile(FakeAnsibleModule):
 
         existing_profile = {
             'id': 1124,
-            'name': 'profile-test',
+            'name': PROFILE_TEST,
             'description': 'TEST',
             'consoleId': '1234-5678',
             'firmwareRepoId': 1000,
@@ -490,7 +492,7 @@ class TestModifyBaselineProfile(FakeAnsibleModule):
 
         existing_profile = {
             'id': 1124,
-            'name': 'profile-test',
+            'name': PROFILE_TEST,
             'description': 'TEST',
             'consoleId': '1234-5678',
             'firmwareRepoId': 1000,
@@ -508,7 +510,7 @@ class TestModifyBaselineProfile(FakeAnsibleModule):
         omevv_default_args.update(
             {"vcenter_uuid": "1234-5678", "cluster": "abcd"})
         f_module = self.get_module_mock(
-            params=omevv_default_args, check_mode=True)
+            params=omevv_default_args, check_mode=False)
         obj = ModifyBaselineProfile(
             omevv_connection_baseline_profile, f_module, existing_profile)
         obj.validate_common_params = MagicMock(return_value=None)
@@ -658,15 +660,15 @@ class TestDeleteBaselineProfile(FakeAnsibleModule):
         omevv_baseline_profile_mock.success = False
         json_str = to_text(json.dumps(
             {"errorCode": "501", "message": "Error"}))
-        omevv_default_args.update({'state': 'absent', 'name': 'test'})
+        omevv_default_args.update({'state': 'absent', 'name': 'test', 'validate_certs': False})
         if exc_type in [HTTPError, SSLValidationError]:
-            mocker.patch(MODULE_PATH + PERFORM_OPERATION_KEY,
+            mocker.patch(MODULE_PATH + DELETE_EXECUTE,
                          side_effect=exc_type(HTTP_ERROR_URL, 400,
                                               HTTP_ERROR,
                                               {"accept-type": RETURN_TYPE},
                                               StringIO(json_str)))
         else:
-            mocker.patch(MODULE_PATH + PERFORM_OPERATION_KEY,
+            mocker.patch(MODULE_PATH + DELETE_EXECUTE,
                          side_effect=exc_type('test'))
         result = self._run_module(omevv_default_args)
         if exc_type == URLError:
@@ -676,11 +678,13 @@ class TestDeleteBaselineProfile(FakeAnsibleModule):
         assert 'msg' in result
 
         # Scenario 1: When errorCode is 404
+        omevv_baseline_profile_mock.status_code = 404
+        omevv_default_args.update({'state': 'absent', 'name': 'test', 'validate_certs': False})
         error_string = to_text(json.dumps(
             {'errorCode': '404', 'message': "The Requested resource cannot be found."}))
         if exc_type in [HTTPError]:
-            mocker.patch(MODULE_PATH + PERFORM_OPERATION_KEY,
-                         side_effect=exc_type(HTTP_ERROR_URL, 400,
+            mocker.patch(MODULE_PATH + DELETE_EXECUTE,
+                         side_effect=exc_type(HTTP_ERROR_URL, 404,
                                               HTTP_ERROR,
                                               {"accept-type": RETURN_TYPE},
                                               StringIO(error_string)))
@@ -690,11 +694,24 @@ class TestDeleteBaselineProfile(FakeAnsibleModule):
         # Scenario 2: When errorCode is 500
         error_string = to_text(json.dumps(
             {'errorCode': '500', 'message': "Error"}))
-        if exc_type in [HTTPError, SSLValidationError]:
-            mocker.patch(MODULE_PATH + PERFORM_OPERATION_KEY,
-                         side_effect=exc_type(HTTP_ERROR_URL, 400,
+        if exc_type in [HTTPError]:
+            mocker.patch(MODULE_PATH + DELETE_EXECUTE,
+                         side_effect=exc_type(HTTP_ERROR_URL, 500,
                                               HTTP_ERROR,
                                               {"accept-type": RETURN_TYPE},
                                               StringIO(error_string)))
+        res_out = self._run_module(omevv_default_args)
+        assert 'msg' in res_out
+
+        # Scenario 3: When state is present
+        params = {
+            'state': 'present',
+            'name': PROFILE_TEST,
+            "repository_profile": "repository-profile",
+            "cluster": ["cluster-1", "cluster-2"],
+            "days": ["sunday", "wednesday"],
+            "time": "22:10"}
+        omevv_default_args.update(params)
+        mocker.patch(MODULE_UTILS_PATH + GET_PROFILE_INFO_KEY, return_value={})
         res_out = self._run_module(omevv_default_args)
         assert 'msg' in res_out
