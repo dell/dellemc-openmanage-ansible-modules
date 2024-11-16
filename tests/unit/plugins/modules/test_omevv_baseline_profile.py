@@ -19,7 +19,6 @@ from ansible_collections.dellemc.openmanage.plugins.modules.omevv_baseline_profi
 from urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
-# from ansible_collections.dellemc.openmanage.plugins.modules.omevv_baseline_profile import main
 from io import StringIO
 from mock import MagicMock
 from ansible.module_utils._text import to_text
