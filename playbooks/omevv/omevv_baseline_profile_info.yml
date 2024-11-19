@@ -3,6 +3,15 @@
   hosts: omevv
   gather_facts: false
   tasks:
+    - name: Retrieve specific vCenter information.
+      dellemc.openmanage.omevv_vcenter_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "path/to/ca_file"
+        vcenter_hostname: "{{ vcenter_hostname }}"
+      delegate_to: localhost
+
     - name: Retrieve all baseline profile information.
       dellemc.openmanage.omevv_baseline_profile_info:
         hostname: "{{ hostname }}"
