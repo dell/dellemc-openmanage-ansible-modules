@@ -3,14 +3,18 @@
   hosts: omevv
   gather_facts: false
   tasks:
-    - name: Retrieve specific vCenter information.
+    - name: Retrieve all vCenter information.
       dellemc.openmanage.omevv_vcenter_info:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
         ca_path: "path/to/ca_file"
-        vcenter_hostname: "{{ vcenter_hostname }}"
       delegate_to: localhost
+      register: vcenter_info
+
+    - name: Extract vcenter uuid
+      ansible.builtin.set_fact:
+        vcenter_uuid: "{{ (vcenter_info | dict2items)[1].value[0].uuid }}"
 
     - name: Retrieve all baseline profile information.
       dellemc.openmanage.omevv_baseline_profile_info:
