@@ -94,7 +94,7 @@ class RestAPI:
         self.port = module_params.get("port")
         self.validate_certs = module_params.get("validate_certs")
         self.ca_path = module_params.get("ca_path")
-        self.timeout = module_params.get("timeout")
+        self.timeout = module_params.get("timeout", 30)
         self.req_session = req_session
         self.session_id = None
         self.protocol = protocol
@@ -146,7 +146,7 @@ class RestAPI:
     def validate_input(self):
         if not (1 <= self.port <= 65535):
             raise ValueError("Invalid port number. Enter the valid port number.")
-        if self.timeout <= 0:
+        if self.timeout is None or self.timeout <= 0:
             raise ValueError("Invalid timeout value. Enter the valid positive integer.")
 
     def _base_invoke_request(self, method, path, data=None, query_param=None, headers=None,
