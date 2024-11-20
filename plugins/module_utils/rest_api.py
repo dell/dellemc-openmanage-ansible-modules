@@ -94,7 +94,7 @@ class RestAPI:
         self.port = module_params.get("port")
         self.validate_certs = module_params.get("validate_certs")
         self.ca_path = module_params.get("ca_path")
-        self.timeout = module_params.get("timeout", 30)
+        self.timeout = module_params.get("timeout")
         self.req_session = req_session
         self.session_id = None
         self.protocol = protocol
