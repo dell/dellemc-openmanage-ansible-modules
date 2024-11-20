@@ -4,6 +4,28 @@ Dell OpenManage Ansible Modules Release Notes
 
 .. contents:: Topics
 
+v9.9.0
+======
+
+Release Summary
+---------------
+
+- Modules are added to support OpenManage Enterprise Integration for VMWare vCenter Plug-in. - The ``omevv_baseline_profile_info`` module is added to support retrieval of baseline profile information. - The ``omevv_compliance_info`` module is added to support retrieval of firmware compliance reports. - The ``omevv_baseline_profile`` module is added to support management of baseline profile.
+
+Major Changes
+-------------
+
+- omevv_baseline_profile - This module allows to manage baseline profile.
+- omevv_baseline_profile_info - This module allows to retrieve baseline profile information.
+- omevv_compliance_info - This module allows to retrieve firmware compliance reports.
+
+Known Issues
+------------
+
+- idrac_diagnostics - Issue(285322) - This module doesn't support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
+- idrac_firmware - Issue(279282) - This module does not support firmware update using HTTP, HTTPS, and FTP shares with authentication on iDRAC8.
+- ome_smart_fabric_uplink - Issue(186024) - The module supported by OpenManage Enterprise Modular, however it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, then the existing uplink is modified.
+
 v9.8.0
 ======
 
