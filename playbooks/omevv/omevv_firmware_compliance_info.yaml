@@ -1,0 +1,75 @@
+---
+- name: Firmware compliance report
+  hosts: omevv
+  gather_facts: false
+  tasks:
+      - name: Fetch firmware compliance report of all the cluster
+        dellemc.openmanage.omevv_firmware_compliance_info:
+            hostname: "{{ hostname }}"
+            vcenter_uuid: "{{ vcenter_uuid }}"
+            vcenter_username: "{{ vcenter_username }}"
+            vcenter_password: "{{ vcenter_password }}"
+            ca_path: "path/to/ca_file"
+
+      - name: Fetch firmware compliance report of all the hosts in the specific
+            cluster
+        dellemc.openmanage.omevv_firmware_compliance_info:
+            hostname: "{{ hostname }}"
+            vcenter_uuid: "{{ vcenter_uuid }}"
+            vcenter_username: "{{ vcenter_username }}"
+            vcenter_password: "{{ vcenter_password }}"
+            ca_path: "path/to/ca_file"
+            clusters:
+                - cluster_name: cluster_a
+
+      - name: Fetch firmware compliance report of a specific hosts in the
+            specific cluster
+        dellemc.openmanage.omevv_firmware_compliance_info:
+            hostname: "{{ hostname }}"
+            vcenter_uuid: "{{ vcenter_uuid }}"
+            vcenter_username: "{{ vcenter_username }}"
+            vcenter_password: "{{ vcenter_password }}"
+            ca_path: "path/to/ca_file"
+            clusters:
+                - cluster_name: cluster_a
+                  servicetags:
+                      - SVCTAG1
+                      - SVCTAG2
+                  hosts:
+                      - host1
+                      - xx.xx.xx.xx
+
+      - name: Fetch firmware compliance report of a specific hosts in of
+            multiple cluster
+        dellemc.openmanage.omevv_firmware_compliance_info:
+            hostname: "{{ hostname }}"
+            vcenter_uuid: "{{ vcenter_uuid }}"
+            vcenter_username: "{{ vcenter_username }}"
+            vcenter_password: "{{ vcenter_password }}"
+            ca_path: "path/to/ca_file"
+            clusters:
+                - cluster_name: cluster_a
+                  servicetags:
+                      - SVCTAG1
+                      - SVCTAG2
+                  hosts:
+                      - host1
+                      - xx.xx.xx.xx
+                - cluster_name: cluster_b
+                  servicetags:
+                      - SVCTAG3
+                      - SVCTAG4
+                  hosts:
+                      - host2
+                      - xx.xx.xx.yy
+
+      - name: Fetch firmware compliance report of multiple cluster
+        dellemc.openmanage.omevv_firmware_compliance_info:
+            hostname: "{{ hostname }}"
+            vcenter_uuid: "{{ vcenter_uuid }}"
+            vcenter_username: "{{ vcenter_username }}"
+            vcenter_password: "{{ vcenter_password }}"
+            ca_path: "path/to/ca_file"
+            clusters:
+                - cluster_name: cluster_a
+                - cluster_name: cluster_b

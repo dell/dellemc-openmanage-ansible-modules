@@ -143,6 +143,12 @@ class RestAPI:
         url_kwargs["force_basic_auth"] = False
         return url_kwargs
 
+    def validate_input(self):
+        if not (1 <= self.port <= 65535):
+            raise ValueError("Invalid port number. Enter the valid port number.")
+        if self.timeout is None or self.timeout <= 0:
+            raise ValueError("Invalid timeout value. Enter the valid positive integer.")
+
     def _base_invoke_request(self, method, path, data=None, query_param=None, headers=None,
                              api_timeout=None, dump=True, auth_token_header='X-Auth-Token'):
         """
@@ -159,6 +165,7 @@ class RestAPI:
         :arg dump: (Optional) boolean value for dumping payload data.
         :returns: OpenURLResponse
         """
+        self.validate_input()
         if self.req_session and auth_token_header in self._headers:
             url_kwargs = self._args_with_session(method, api_timeout, headers=headers)
         else:
