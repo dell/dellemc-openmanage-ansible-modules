@@ -1,0 +1,64 @@
+---
+- name: Dell OpenManage Ansible device inventory details.
+  hosts: omevv
+  gather_facts: false
+  tasks:
+    - name: Retrieve specific vCenter information.
+      dellemc.openmanage.omevv_vcenter_info:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        validate_certs: false
+        ca_path: "path/to/ca_file"
+        vcenter_hostname: "{{ vcenter_hostname }}"
+      register: vcenter_info_output
+      delegate_to: localhost
+
+    - name: Create a baseline profile for multiple cluster
+      dellemc.openmanage.omevv_baseline_profile:
+        hostname: "192.168.0.1"
+        vcenter_uuid: "{{ vcenter_info_output.vcenter_info.uuid }}"
+        vcenter_username: "username"
+        vcenter_password: "password"
+        ca_path: "path/to/ca_file"
+        state: "present"
+        name: "profile-1"
+        repository_profile: "repository-profile"
+        cluster:
+          - "cluster-1"
+          - "cluster-2"
+        days:
+          - "sunday"
+          - "wednesday"
+        time: "22:10"
+      delegate_to: localhost
+
+    - name: Modify a baseline profile
+      dellemc.openmanage.omevv_baseline_profile:
+        hostname: "192.168.0.1"
+        vcenter_uuid: "{{ vcenter_info_output.vcenter_info.uuid }}"
+        vcenter_username: "username"
+        vcenter_password: "password"
+        ca_path: "path/to/ca_file"
+        state: "present"
+        name: "profile-1"
+        new_name: "profile-newname"
+        repository_profile: "repository-profile"
+        cluster:
+          - "cluster-1"
+          - "cluster-2"
+        days:
+          - "sunday"
+        time: "05:00"
+      delegate_to: localhost
+
+    - name: Delete a specific baseline profile
+      dellemc.openmanage.omevv_baseline_profile:
+        hostname: "192.168.0.1"
+        vcenter_uuid: "{{ vcenter_info_output.vcenter_info.uuid }}"
+        vcenter_username: "username"
+        vcenter_password: "password"
+        ca_path: "path/to/ca_file"
+        state: "absent"
+        name: "profile-1"
+      delegate_to: localhost
