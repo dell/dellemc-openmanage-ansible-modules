@@ -1,6 +1,6 @@
 ---
 - name: Get group details
-  ansible.builtin.uri:
+  ansible.builtin.uri: &uri_params
     url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
       }}/omevv/GatewayService/v1/Consoles/{{ uuid }}/Groups
     user: "{{ vcenter_username }}"
@@ -27,13 +27,7 @@
   ansible.builtin.uri:
     url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
       }}/omevv/GatewayService/v1/Consoles/{{ uuid }}/ManagedHosts
-    user: "{{ vcenter_username }}"
-    password: "{{ vcenter_password }}"
-    validate_certs: false
-    force_basic_auth: true
-    status_code: 200
-    headers:
-      x_omivv-api-vcenter-identifier: "{{ uuid }}"
+    <<: *uri_params
   register: host_details
 
 - name: Find the host and its servicetag

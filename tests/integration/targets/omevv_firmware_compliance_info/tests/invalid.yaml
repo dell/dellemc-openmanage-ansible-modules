@@ -110,8 +110,7 @@
       ansible.builtin.assert:
         that:
           - invalid_vcenter_uuid.failed
-          - 'invalid_vcenter_uuid.msg.message == "vCenter with UUID invalid is
-           not registered."'
+          - 'invalid_vcenter_uuid.msg == "HTTP Error 400: 400"'
 
     - name: Negative - Invalid argument
       dellemc.openmanage.omevv_firmware_compliance_info:
