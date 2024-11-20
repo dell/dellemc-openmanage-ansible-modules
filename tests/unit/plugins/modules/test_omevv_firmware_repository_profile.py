@@ -265,11 +265,9 @@ class TestCreateFirmwareRepositoryProfile(FakeAnsibleModule):
         mocker.patch(MODULE_UTILS_PATH +
                      PERFORM_CREATE_PROFILE, return_value=(obj, ""))
         mocker.patch(MODULE_UTILS_PATH +
-                     GET_PROFILE_BY_ID, return_value=obj3)
+                     GET_PROFILE_BY_ID, side_effect=[obj3, obj2])
         mocker.patch(MODULE_PATH +
                      'time.sleep', return_value=None)
-        mocker.patch(MODULE_UTILS_PATH +
-                     GET_PROFILE_INFO_KEY, return_value=obj2)
         f_module = self.get_module_mock(params=omevv_default_args)
         obj = self.module.CreateFirmwareRepositoryProfile(
             omevv_connection_firmware_repository_profile, f_module)
