@@ -14,10 +14,10 @@
 
 - block:
     - name: Including helper file for creating baseline profile
-      ansible.builtin.include_tasks: ../__helper.yml
+      ansible.builtin.include_tasks: ../_helper.yml
 
     - name: Including helper file for creating firmware repo profile
-      ansible.builtin.include_tasks: ../__pre_req_create.yml
+      ansible.builtin.include_tasks: ../_pre_req_create.yml
 
     - name: Retrieve specific baseline profile information
        using profile name. (Check mode)

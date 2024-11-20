@@ -35,7 +35,7 @@
       ignore_errors: true
       register: invalid_user
 
-    - name: Verify task status - Negative - Invalid user
+    - name: Verify task status - Negative - Invalid vcenter_username
       ansible.builtin.assert:
         that:
           - invalid_user.failed
