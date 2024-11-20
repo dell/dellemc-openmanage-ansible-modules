@@ -1,0 +1,37 @@
+---
+- name: Dell OpenManage Ansible device inventory details.
+  hosts: omevv
+  gather_facts: false
+  tasks:
+    - name: Retrieve all vCenter information.
+      dellemc.openmanage.omevv_vcenter_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "path/to/ca_file"
+      delegate_to: localhost
+      register: vcenter_info
+
+    - name: Extract vcenter uuid
+      ansible.builtin.set_fact:
+        vcenter_uuid: "{{ (vcenter_info | dict2items)[1].value[0].uuid }}"
+
+    - name: Retrieve all baseline profile information.
+      dellemc.openmanage.omevv_baseline_profile_info:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ vcenter_uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        ca_path: "path/to/ca_file"
+      delegate_to: localhost
+
+    - name: Retrieve specific baseline profile information
+            using profile name.
+      dellemc.openmanage.omevv_baseline_profile_info:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ vcenter_uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        ca_path: "path/to/ca_file"
+        name: "{{ profile_name }}"
+      delegate_to: localhost
