@@ -9,8 +9,8 @@
     msg: "Please define the following variables: hostname, vcenter_username
       and vcenter_password."
   when:
-    hostname is not defined or ome_username is not defined or ome_password
-    is not defined
+    hostname is not defined or vcenter_username is not defined or
+    vcenter_password is not defined
 
 - block:
     - name: Negative - Invalid hostname
