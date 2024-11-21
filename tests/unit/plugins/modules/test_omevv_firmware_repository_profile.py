@@ -121,7 +121,7 @@ class TestFirmwareRepositoryProfile(FakeAnsibleModule):
         obj = self.module.FirmwareRepositoryProfile(
             omevv_connection_firmware_repository_profile, f_module)
         result = obj.test_connection(None, None)
-        assert result is None
+        assert result is True
 
     def test_trim_api_response(self, omevv_connection_firmware_repository_profile, omevv_default_args):
         # Scenario 1: Complete api_response
@@ -371,6 +371,8 @@ class TestCreateFirmwareRepositoryProfile(FakeAnsibleModule):
         mocker.patch(
             MODULE_PATH + 'FirmwareRepositoryProfile.trim_api_response', return_value=(obj, ""))
         mocker.patch(
+            MODULE_PATH + 'FirmwareRepositoryProfile.test_connection', return_value=True)
+        mocker.patch(
             MODULE_PATH + CREATE_DIFF_MODE_CHECK, return_value={})
         mocker.patch(MODULE_PATH + 'recursive_diff', return_value=(obj, ""))
         f_module = self.get_module_mock(
@@ -402,6 +404,8 @@ class TestCreateFirmwareRepositoryProfile(FakeAnsibleModule):
                      SEARCH_PROFILE_NAME, return_value={})
         mocker.patch(
             MODULE_PATH + 'FirmwareRepositoryProfile.trim_api_response', return_value=(obj, ""))
+        mocker.patch(
+            MODULE_PATH + 'FirmwareRepositoryProfile.test_connection', return_value=True)
         mocker.patch(
             MODULE_PATH + CREATE_DIFF_MODE_CHECK, return_value={})
         mocker.patch(MODULE_PATH + 'recursive_diff', return_value=(obj, ""))

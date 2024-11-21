@@ -194,7 +194,7 @@ class FirmwareRepositoryProfile:
             share_password=self.module.params.get('share_password'),
             share_domain=self.module.params.get('share_domain')
         )
-        if resp.success:
+        if resp:
             return True
         else:
             self.module.exit_json(msg=FAILED_CONN_MSG, failed=True)
