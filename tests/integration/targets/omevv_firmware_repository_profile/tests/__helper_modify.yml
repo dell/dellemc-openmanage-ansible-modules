@@ -1,12 +1,23 @@
 ---
+- name: Creating firmware repository profile
+  dellemc.openmanage.omevv_firmware_repository_profile:
+    name: "{{ name }}"
+    state: present
+    catalog_path: "{{ first_path }}"
+    protocol_type: "{{ protocol }}"
+    share_username: "{{ first_share__username | default(omit) }}"
+    share_password: "{{ first_share__password | default(omit) }}"
+    share_domain: ""
+    description: "FW repo description"
+
 - name: Modifying firmware repository profile based on protocol type- Check Mode
   dellemc.openmanage.omevv_firmware_repository_profile: &firm1
-    name: "Update_Ansible_FirmRepo"
+    name: "Ansible_Repo_Modify_{{ protocol }}"
     state: present
-    catalog_path: "{{ path }}"
+    catalog_path: "{{ second_path }}"
     protocol_type: "{{ protocol }}"
-    share_username: "{{ share__username | default(omit) }}"
-    share_password: "{{ share__password | default(omit) }}"
+    share_username: "{{ second_share__username | default(omit) }}"
+    share_password: "{{ second_share__password | default(omit) }}"
     share_domain: ""
   check_mode: true
   register: check_firm_repo
