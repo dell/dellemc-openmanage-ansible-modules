@@ -194,7 +194,7 @@ class FirmwareRepositoryProfile:
             share_password=self.module.params.get('share_password'),
             share_domain=self.module.params.get('share_domain')
         )
-        if resp.success:
+        if resp:
             return True
         else:
             self.module.exit_json(msg=FAILED_CONN_MSG, failed=True)
@@ -252,7 +252,7 @@ class CreateFirmwareRepositoryProfile(FirmwareRepositoryProfile):
                 profile_resp = self.omevv_profile_obj.get_firmware_repository_profile_by_id(resp.json_data)
                 while profile_resp.json_data["status"] != "Success" and profile_resp.json_data["status"] != "Failed":
                     time.sleep(3)
-                    profile_resp = self.omevv_profile_obj.get_firmware_repository_profile(resp.json_data["profileName"])
+                    profile_resp = self.omevv_profile_obj.get_firmware_repository_profile_by_id(resp.json_data)
                 if self.module._diff and profile_resp.json_data["status"] == "Success":
                     self.module.exit_json(msg=SUCCESS_CREATION_MSG, profile_info=profile_resp.json_data, diff=diff, changed=True)
                 elif profile_resp.json_data["status"] == "Success":
@@ -393,7 +393,7 @@ class ModifyFirmwareRepositoryProfile(FirmwareRepositoryProfile):
         if diff and not self.module.check_mode:
             self.modify_firmware_repository_profile(api_response, module_response)
         else:
-            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
+            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, diff={"before": {}, "after": {}}, changed=False)
 
 
 class DeleteFirmwareRepositoryProfile(FirmwareRepositoryProfile):
@@ -424,8 +424,8 @@ class DeleteFirmwareRepositoryProfile(FirmwareRepositoryProfile):
         resp = self.omevv_profile_obj.delete_firmware_repository_profile(api_response["id"])
         if resp.success:
             if self.module._diff:
-                self.module.exit_json(msg=SUCCESS_DELETION_MSG, profile_info={}, diff=diff, changed=True)
-            self.module.exit_json(msg=SUCCESS_DELETION_MSG, profile_info={}, changed=True)
+                self.module.exit_json(msg=SUCCESS_DELETION_MSG, diff=diff, changed=True)
+            self.module.exit_json(msg=SUCCESS_DELETION_MSG, changed=True)
         else:
             self.module.exit_json(msg=FAILED_DELETION_MSG, failed=True)
 
@@ -440,9 +440,9 @@ class DeleteFirmwareRepositoryProfile(FirmwareRepositoryProfile):
         if not profile_exists and self.module.check_mode:
             self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
         if not profile_exists and not self.module.check_mode and self.module._diff:
-            self.module.exit_json(msg=PROFILE_NOT_FOUND_MSG.format(profile_name=profile), diff={"before": {}, "after": {}}, profile_info={}, failed=True)
+            self.module.exit_json(msg=PROFILE_NOT_FOUND_MSG.format(profile_name=profile), diff={"before": {}, "after": {}}, failed=True)
         if not profile_exists and not self.module.check_mode:
-            self.module.exit_json(msg=PROFILE_NOT_FOUND_MSG.format(profile_name=profile), profile_info={}, failed=True)
+            self.module.exit_json(msg=PROFILE_NOT_FOUND_MSG.format(profile_name=profile), failed=True)
         if profile_exists and not self.module.check_mode:
             self.delete_firmware_repository_profile(api_response)
         if profile_exists and self.module.check_mode:
