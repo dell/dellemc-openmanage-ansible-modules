@@ -185,7 +185,7 @@ class OMEVVFirmwareProfile:
             protocol_type, catalog_path, share_username, share_password, share_domain)
         resp = self.omevv.invoke_request("POST", TEST_CONNECTION_URI, payload)
         if resp.success:
-            time.sleep(5) #Waiting here because response comes as empty at first call
+            time.sleep(5)  # Waiting here because response comes as empty at first call
             job_id = resp.json_data
             resp_history = self.omevv.invoke_request("GET", TEST_CONNECTION_HISTORY.format(job_id=job_id))
             while resp_history.json_data[0]["statusSummary"] != "SUCCESSFUL" and resp_history.json_data[0]["statusSummary"] != "FAILED":
