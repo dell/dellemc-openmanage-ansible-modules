@@ -27,6 +27,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
+import time
 
 __metaclass__ = type
 
@@ -36,6 +37,7 @@ INVALID_CLUSTER_NAMES_MSG = "Invalid cluster names: {cluster_names}. Please prov
 NO_CLUSTERS_FOUND_MSG = "No clusters found."
 PROFILE_URI = "/RepositoryProfiles"
 TEST_CONNECTION_URI = "/RepositoryProfiles/TestConnection"
+TEST_CONNECTION_HISTORY = "/TestConnectionJobs/{job_id}/ExecutionHistories"
 BASELINE_PROFILE_URI = "/Consoles/{vcenter_uuid}/BaselineProfiles"
 TEST_CONNECTION_URI = "/RepositoryProfiles/TestConnection"
 CLUSTER_URI = "/Consoles/{vcenter_uuid}/Clusters"
@@ -182,7 +184,17 @@ class OMEVVFirmwareProfile:
         payload = self.form_conn_payload(
             protocol_type, catalog_path, share_username, share_password, share_domain)
         resp = self.omevv.invoke_request("POST", TEST_CONNECTION_URI, payload)
-        return resp
+        if resp.success:
+            time.sleep(5)  # Waiting here because response comes as empty at first call
+            job_id = resp.json_data
+            resp_history = self.omevv.invoke_request("GET", TEST_CONNECTION_HISTORY.format(job_id=job_id))
+            while resp_history.json_data[0]["statusSummary"] != "SUCCESSFUL" and resp_history.json_data[0]["statusSummary"] != "FAILED":
+                time.sleep(3)
+                resp_history = self.omevv.invoke_request("GET", TEST_CONNECTION_HISTORY.format(job_id=job_id))
+            if resp_history.json_data[0]["statusSummary"] == "SUCCESSFUL":
+                return True
+            else:
+                return False
 
     def get_firmware_repository_profile_by_id(self, profile_id):
         """
