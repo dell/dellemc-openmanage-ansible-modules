@@ -1,0 +1,75 @@
+---
+- name: Get all clusters by uri.
+  ansible.builtin.uri: &uri_param
+    url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
+      }}/omevv/GatewayService/v1/Consoles/{{ uuid }}/Clusters
+    user: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    validate_certs: false
+    force_basic_auth: true
+    status_code: 200
+    headers:
+      x_omivv-api-vcenter-identifier: "{{ uuid }}"
+  register: all_clusters_resp
+
+- name: Extract entityIds
+  ansible.builtin.set_fact:
+    entity_ids: "{{ entity_ids | default([]) + [item.entityId] }}"
+  loop: "{{ all_clusters_resp.json }}"
+
+- name: Extract cluster names
+  ansible.builtin.set_fact:
+    cluster_names: "{{ cluster_names | default([]) + [item.name] }}"
+  loop: "{{ all_clusters_resp.json }}"
+
+- name: Create payload
+  ansible.builtin.set_fact:
+    payload:
+      clustIds: "{{ entity_ids }}"
+
+- name: Get list of groupIDs for given cluster IDs.
+  ansible.builtin.uri:
+    url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
+      }}/omevv/GatewayService/v1/Consoles/{{ uuid
+      }}/Groups/getGroupsForClusters
+    method: POST
+    body: "{{ payload | to_json }}"
+    body_format: json
+    <<: *uri_param
+  register: group_ids_resp
+
+- name: Set fact for groupIds
+  ansible.builtin.set_fact:
+    group_ids: "{{ group_ids_resp.json | map(attribute='groupId') | list }}"
+
+- name: Get cluster drift info.
+  ansible.builtin.uri:
+    url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
+      }}/omevv/GatewayService/v1/Consoles/{{ uuid
+      }}/Groups/{{ item }}/FirmwareDriftReport
+    <<: *uri_param
+  loop: "{{ group_ids }}"
+  register: cluster_drift_info
+  ignore_errors: true
+
+- name: Initialize all_cluster_drift_info
+  ansible.builtin.set_fact:
+    all_cluster_drift_info: []
+
+- name: Set fact to store all drift info
+  ansible.builtin.set_fact:
+    all_cluster_drift_info: "{{ all_cluster_drift_info + [item.json] }}"
+  loop: "{{ cluster_drift_info.results }}"
+  when: item.json is defined
+
+- name: Remove error and message from all_cluster_drift_info response
+  ansible.builtin.set_fact:
+    all_cluster_drift_info: "{{ all_cluster_drift_info | ansible.utils.
+     remove_keys(target=['errorCode', 'message'],
+     matching_parameter='regex') }}"
+
+- name: Remove cluster key from module response
+  ansible.builtin.set_fact:
+    modified_response: "{{ info_result.firmware_compliance_info |
+     ansible.utils.remove_keys(target=['cluster', 'error_code', 'message'],
+     matching_parameter='regex') }}"

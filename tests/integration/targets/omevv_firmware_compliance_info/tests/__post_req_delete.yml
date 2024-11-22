@@ -1,0 +1,13 @@
+---
+- name: Post-requisite - Delete a baseline profile
+  dellemc.openmanage.omevv_baseline_profile:
+    hostname: "{{ hostname }}"
+    vcenter_uuid: "{{ uuid }}"
+    vcenter_username: "{{ vcenter_username }}"
+    vcenter_password: "{{ vcenter_password }}"
+    name: "AnsibleTest"
+    state: "absent"
+    validate_certs: false
+  register: delete_result
+  no_log: true
+  ignore_errors: true

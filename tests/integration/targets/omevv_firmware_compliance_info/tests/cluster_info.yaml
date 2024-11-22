@@ -1,0 +1,69 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: hostname, vcenter_username
+      and vcenter_password."
+  when:
+    hostname is not defined or vcenter_username is not defined or
+    vcenter_password is not defined
+
+- block:
+    - name: Get Cluster name, hosts and servicetags
+      ansible.builtin.include_tasks: _hosts_helper.yml
+
+    - ansible.builtin.include_tasks: __pre_req_create.yml
+
+    - name: Fetch firmware compliance report of all the cluster.
+       (Check mode)
+      dellemc.openmanage.omevv_firmware_compliance_info: &retrieve_info
+        hostname: "{{ hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_uuid: "{{ uuid }}"
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify task status - Fetch firmware compliance report of all
+       the cluster. (Check mode)
+      ansible.builtin.assert:
+        that:
+          - not cm_changes.changed
+          - cm_changes.msg == "Successfully fetched the firmware compliance
+           report."
+
+    - name: Fetch firmware compliance report of all the cluster. (Normal Mode)
+      dellemc.openmanage.omevv_firmware_compliance_info:
+        <<: *retrieve_info
+      register: info_result
+
+    - name: Verify task status - Fetch firmware compliance report of all
+       the cluster. (Normal Mode)
+      ansible.builtin.assert:
+        that:
+          - not info_result.changed
+          - info_result.msg == "Successfully fetched the firmware compliance
+           report."
+
+    - ansible.builtin.include_tasks: _cluster_helper.yml
+
+    - name: Verify - Whether module output matches with api details by uri.
+      ansible.builtin.assert:
+        that:
+          - modified_response == all_cluster_drift_info
+
+  always:
+    - name: Cleanup
+      ansible.builtin.include_tasks: __post_req_delete.yml
+
+  module_defaults:
+    dellemc.openmanage.omevv_firmware_compliance_info:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      vcenter_username: "{{ vcenter_username }}"
+      vcenter_password: "{{ vcenter_password }}"
+      port: "{{ port }}"
