@@ -1,0 +1,97 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: hostname, vcenter_username
+      and vcenter_password."
+  when:
+    hostname is not defined or vcenter_username is not defined or
+    vcenter_password is not defined
+
+- block:
+    - name: Including helper file for creating baseline profile
+      ansible.builtin.include_tasks: ../_helper.yml
+
+    - name: Including helper file for creating firmware repo profile
+      ansible.builtin.include_tasks: ../_pre_req_create.yml
+
+    - name: Retrieve specific baseline profile information
+       using profile name. (Check mode)
+      dellemc.openmanage.omevv_baseline_profile_info: &retrieve_info
+        hostname: "{{ hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_uuid: "{{ uuid }}"
+        name: "AnsibleTest"
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify task status - Retrieve specific baseline profile
+       information using profile name. (Check mode)
+      ansible.builtin.assert:
+        that:
+          - not cm_changes.changed
+          - cm_changes.msg == "Successfully retrieved the baseline profile
+           information."
+
+    - name: Retrieve specific firmware repository profile information
+       using profile name. (Normal Mode)
+      dellemc.openmanage.omevv_baseline_profile_info:
+        <<: *retrieve_info
+      register: info_result
+
+    - name: Verify task status - Retrieve specific firmware repository profile
+       information using profile name. (Normal Mode)
+      ansible.builtin.assert:
+        that:
+          - not info_result.changed
+          - info_result.msg == "Successfully retrieved the baseline profile
+           information."
+
+    - name: Constructing url
+      ansible.builtin.set_fact:
+        url_1: "https://{{ hostname | ansible.utils.ipwrap }}:"
+        url_2: "{{ port }}/omevv/GatewayService/v1/Consoles/"
+        url_3: "{{ uuid }}/BaselineProfiles/{{ info_result.profile_info.id }}"
+
+    - name: Get profile details by uri.
+      ansible.builtin.uri:
+        url: "{{ url_1 }}{{ url_2 }}{{ url_3 }}"
+        user: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: false
+        force_basic_auth: true
+        status_code: 200
+        headers:
+          x_omivv-api-vcenter-identifier: "{{ uuid }}"
+      register: uri_resp
+
+    - name: Verify - Get profile details by uri.
+      ansible.builtin.assert:
+        that:
+          - info_result.profile_info == uri_resp.json
+
+  always:
+    - name: Cleanup
+      dellemc.openmanage.omevv_baseline_profile:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ uuid}}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        validate_certs: false
+        name: "AnsibleTest"
+        state: absent
+      ignore_errors: true
+      no_log: false
+
+  module_defaults:
+    dellemc.openmanage.omevv_baseline_profile_info:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      vcenter_username: "{{ vcenter_username }}"
+      vcenter_password: "{{ vcenter_password }}"
+      port: "{{ port }}"

@@ -1,0 +1,18 @@
+---
+- name: Pre-requisite - Create a baseline profile
+  dellemc.openmanage.omevv_baseline_profile:
+    hostname: "{{ hostname }}"
+    vcenter_uuid: "{{ uuid }}"
+    vcenter_username: "{{ vcenter_username }}"
+    vcenter_password: "{{ vcenter_password }}"
+    name: "AnsibleTest"
+    repository_profile: "Dell Default Catalog"
+    validate_certs: false
+    description: "Firmware repository profile created by Module"
+    cluster:
+      - "{{ cluster_name }}"
+    days:
+      - "sunday"
+    time: "03:59"
+  register: create_result
+  no_log: true

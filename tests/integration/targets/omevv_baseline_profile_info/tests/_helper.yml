@@ -1,0 +1,48 @@
+---
+- name: Get group details
+  ansible.builtin.uri:
+    url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
+      }}/omevv/GatewayService/v1/Consoles/{{ uuid }}/Groups
+    user: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    validate_certs: false
+    force_basic_auth: true
+    status_code: 200
+    headers:
+      x_omivv-api-vcenter-identifier: "{{ uuid }}"
+  register: group_details
+
+- name: Find the CLUSTER group
+  ansible.builtin.set_fact:
+    cluster_name: "{{ item.consoleEntityName }}"
+    group_id: "{{ item.groupId }}"
+  loop: "{{ group_details.json }}"
+  when: item.groupType == "CLUSTER"
+  register: cluster_result
+  until: cluster_result is defined
+  retries: 1
+  delay: 0
+
+- name: Find hosts details
+  ansible.builtin.uri:
+    url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
+      }}/omevv/GatewayService/v1/Consoles/{{ uuid }}/ManagedHosts
+    user: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    validate_certs: false
+    force_basic_auth: true
+    status_code: 200
+    headers:
+      x_omivv-api-vcenter-identifier: "{{ uuid }}"
+  register: host_details
+
+- name: Find the host and its servicetag
+  ansible.builtin.set_fact:
+    host: "{{ item.hostName }}"
+    servicetag: "{{ item.serviceTag }}"
+  loop: "{{ host_details.json }}"
+  when: item.omevvpGroupId|string == group_id
+  register: host_result
+  until: host_result is defined
+  retries: 1
+  delay: 0
