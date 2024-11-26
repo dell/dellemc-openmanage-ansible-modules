@@ -1,0 +1,112 @@
+# Create repository profile and baseline profile
+---
+- block:
+    - name: Get group details
+      ansible.builtin.uri:
+        url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
+          }}/omevv/GatewayService/v1/Consoles/{{ uuid }}/Groups
+        user: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: false
+        force_basic_auth: true
+        status_code: 200
+        headers:
+          x_omivv-api-vcenter-identifier: "{{ uuid }}"
+      register: group_details
+      when: fetch_cluster_trigger is defined
+
+    - name: Intializing cluster_name variable
+      ansible.builtin.set_fact:
+        cluster_name: []
+        group_id: []
+        cluster_id: []
+      when: fetch_cluster_trigger is defined
+
+    - name: Find the CLUSTER group
+      ansible.builtin.set_fact:
+        cluster_name: "{{ cluster_name + [item.consoleEntityName] }}"
+        group_id: "{{ group_id + [item.groupId] }}"
+        cluster_id: "{{ cluster_id + [item.consoleEntityId] }}"
+      loop: "{{ group_details.json }}"
+      when:
+        - item.groupType == "CLUSTER"
+        - fetch_cluster_trigger is defined
+      register: cluster_result
+      until: cluster_result is defined
+      retries: 1
+      delay: 0
+
+    - name: Create firmware repository profile - 1
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        name: "OMAM_Firm_Repo"
+        description: "Firmware repository profile created by OMAM"
+        state: present
+        catalog_path: "{{
+          http_share_dir_path }}/omevv_baseline_profile_catalog.xml"
+        protocol_type: HTTP
+      register: firm_repo_1
+      when: repository_profile_1_trigger is defined
+
+    - name: Verify task status - Create firmware repository profile - 1
+      ansible.builtin.assert:
+        that:
+          - firm_repo_1.changed is true
+          - 'firm_repo_1.msg == "Successfully created the OMEVV firmware
+            repository profile."'
+          - firm_repo_1.profile_info.status == "Success"
+      when: repository_profile_1_trigger is defined
+
+    - name: Create firmware repository profile - 2
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        name: "OMAM_Modify_Firm_Repo"
+        description: "Firmware repository profile created by OMAM"
+        state: present
+        catalog_path: "{{
+          http_share_dir_path }}/omevv_baseline_profile_catalog.xml"
+        protocol_type: HTTP
+      register: firm_repo_2
+      when: repository_profile_2_trigger is defined
+
+    - name: Verify task status - Create firmware repository profile - 2
+      ansible.builtin.assert:
+        that:
+          - firm_repo_2.changed is true
+          - 'firm_repo_2.msg == "Successfully created the OMEVV firmware
+            repository profile."'
+          - firm_repo_2.profile_info.status == "Success"
+      when: repository_profile_2_trigger is defined
+
+    - name: Create a baseline profile with single cluster
+      dellemc.openmanage.omevv_baseline_profile:
+        state: present
+        name: OMAM_Baseline_Profile
+        repository_profile: OMAM_Firm_Repo
+        cluster: "{{ cluster_name[0] }}"
+        days:
+          - all
+        time: "12:00"
+      register: result_baseline
+      when: baseline_trigger is defined
+
+    - name: Verify task status - Create a baseline profile with single cluster
+      ansible.builtin.assert:
+        that:
+          - result_baseline.changed is true
+          - result_baseline.msg == "Successfully created the baseline profile."
+          - result_baseline.baseline_profile_info
+      when: baseline_trigger is defined
+
+  module_defaults:
+    dellemc.openmanage.omevv_firmware_repository_profile:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname | ansible.utils.ipwrap }}"
+      vcenter_username: "{{ vcenter_username }}"
+      vcenter_password: "{{ vcenter_password }}"
+      vcenter_uuid: "{{ uuid }}"
+
+    dellemc.openmanage.omevv_baseline_profile:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname | ansible.utils.ipwrap }}"
+      vcenter_username: "{{ vcenter_username }}"
+      vcenter_password: "{{ vcenter_password }}"
+      vcenter_uuid: "{{ uuid }}"

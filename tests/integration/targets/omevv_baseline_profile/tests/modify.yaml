@@ -1,0 +1,185 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: hostname, vcenter_username
+      and vcenter_password."
+  when:
+    hostname is undefined or vcenter_username is undefined or vcenter_password
+    is undefined
+
+- name: Set prerequisite
+  ansible.builtin.include_tasks: _helper.yml
+  vars:
+    repository_profile_1_trigger: 1
+    repository_profile_2_trigger: 1
+    fetch_cluster_trigger: 1
+    baseline_trigger: 1
+
+- block:
+    - name: Modify a baseline profile (Check mode - Changes expected)
+      dellemc.openmanage.omevv_baseline_profile: &bp_multiple_cluster
+        state: present
+        name: OMAM_Baseline_Profile
+        repository_profile: OMAM_Modify_Firm_Repo
+        cluster:
+          - "{{ cluster_name[0] }}"
+          - "{{ cluster_name[1] }}"
+        days:
+          - sunday
+          - wednesday
+          - saturday
+        time: "00:00"
+      register: cm_result_baseline
+      check_mode: true
+
+    - name: Verify task status - Modify a baseline profile (Check mode - Changes
+        expected)
+      ansible.builtin.assert:
+        that:
+          - cm_result_baseline.changed
+          - 'cm_result_baseline.msg == "Changes found to be applied."'
+
+    - name: Modify a baseline profile (Check and Diff mode)
+      dellemc.openmanage.omevv_baseline_profile:
+        <<: *bp_multiple_cluster
+      check_mode: true
+      diff: true
+      register: cm_dm_result_baseline
+
+    - name: Store cluster details for verification
+      ansible.builtin.set_fact:
+        cluster_name_1: "{{ cluster_name[0] }}"
+        cluster_name_2: "{{ cluster_name[1] }}"
+        cluster_id_1: "{{ cluster_id[0] }}"
+        cluster_id_2: "{{ cluster_id[1] }}"
+        group_id_1: "{{ group_id[0] }}"
+        group_id_2: "{{ group_id[1] }}"
+        module_group_id_1: "{{
+          cm_dm_result_baseline.diff.after.clusterGroups[0].omevv_groupID }}"
+        module_group_id_2: "{{
+          cm_dm_result_baseline.diff.after.clusterGroups[1].omevv_groupID }}"
+        firmware_repo_id_1: "{{
+          firm_repo_1.profile_info.id }}"
+        firmware_repo_id_2: "{{
+          firm_repo_2.profile_info.id }}"
+
+    - name: Verify task status - Modify a baseline profile (Check and Diff mode)
+      ansible.builtin.assert:
+        that:
+          - cm_dm_result_baseline.changed
+          - 'cm_dm_result_baseline.msg == "Changes found to be applied."'
+          - cm_dm_result_baseline.diff.before | length > 1
+          - cm_dm_result_baseline.diff.after | length > 1
+          - >
+            cm_dm_result_baseline.diff.after.clusterGroups[0].clusterID
+            == cluster_id_1
+          - >
+            cm_dm_result_baseline.diff.after.clusterGroups[1].clusterID
+            == cluster_id_2
+          - >
+            cm_dm_result_baseline.diff.after.clusterGroups[0].clusterName
+            == cluster_name_1
+          - >
+            cm_dm_result_baseline.diff.after.clusterGroups[1].clusterName
+            == cluster_name_2
+          - module_group_id_1 == group_id_1
+          - module_group_id_2 == group_id_2
+          - >
+            cm_dm_result_baseline.diff.after.firmwareRepoId
+            == firmware_repo_id_2
+          - >
+            'cm_dm_result_baseline.diff.after.repository_profile
+            == "OMAM_Modify_Firm_Repo"'
+          - cm_dm_result_baseline.diff.after.jobSchedule.friday == false
+          - cm_dm_result_baseline.diff.after.jobSchedule.monday == false
+          - cm_dm_result_baseline.diff.after.jobSchedule.saturday == true
+          - cm_dm_result_baseline.diff.after.jobSchedule.sunday == true
+          - cm_dm_result_baseline.diff.after.jobSchedule.thursday == false
+          - 'cm_dm_result_baseline.diff.after.jobSchedule.time == "00:00"'
+          - cm_dm_result_baseline.diff.after.jobSchedule.tuesday == false
+          - cm_dm_result_baseline.diff.after.jobSchedule.wednesday == true
+          - 'cm_dm_result_baseline.diff.after.name == "OMAM_Baseline_Profile"'
+          - >
+            cm_dm_result_baseline.diff.before.clusterGroups[0].clusterID
+            == cluster_id_1
+          - >
+            cm_dm_result_baseline.diff.before.clusterGroups[0].clusterName
+            == cluster_name_1
+          - module_group_id_1 == group_id_1
+          - >
+            cm_dm_result_baseline.diff.before.firmwareRepoId
+            == firmware_repo_id_1
+          - >
+            'cm_dm_result_baseline.diff.before.repository_profile
+            == "OMAM_Firm_Repo"'
+          - cm_dm_result_baseline.diff.before.jobSchedule.friday == true
+          - cm_dm_result_baseline.diff.before.jobSchedule.monday == true
+          - cm_dm_result_baseline.diff.before.jobSchedule.saturday == true
+          - cm_dm_result_baseline.diff.before.jobSchedule.sunday == true
+          - cm_dm_result_baseline.diff.before.jobSchedule.thursday == true
+          - 'cm_dm_result_baseline.diff.before.jobSchedule.time == "12:00"'
+          - cm_dm_result_baseline.diff.before.jobSchedule.tuesday == true
+          - cm_dm_result_baseline.diff.before.jobSchedule.wednesday == true
+          - 'cm_dm_result_baseline.diff.before.name == "OMAM_Baseline_Profile"'
+
+    - name: Set prerequisite
+      ansible.builtin.include_tasks: _helper.yml
+      vars:
+        repository_profile_1_trigger: 1
+        repository_profile_2_trigger: 1
+        fetch_cluster_trigger: 1
+        baseline_trigger: 1
+
+    - name: Modify a baseline profile (Normal mode)
+      dellemc.openmanage.omevv_baseline_profile:
+        <<: *bp_multiple_cluster
+      register: normal_result_baseline
+
+    - name: Verify task status - Modify a baseline profile (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - normal_result_baseline.changed
+          - 'normal_result_baseline.msg == "Successfully modified the baseline
+            profile."'
+          - normal_result_baseline.baseline_profile_info
+
+    - name: Store baseline_profile_info data to a variable for verification
+      ansible.builtin.set_fact:
+        profile_info: "{{ normal_result_baseline.baseline_profile_info }}"
+
+    - name: Verify baseline details
+      ansible.builtin.include_tasks: _verify_baseline.yml
+
+    - name: Modify a baseline profile (Idempotence)
+      dellemc.openmanage.omevv_baseline_profile:
+        <<: *bp_multiple_cluster
+      register: idempotence_result_baseline
+
+    - name: Verify task status - Modify a baseline profile (Idempotence)
+      ansible.builtin.assert:
+        that:
+          - not idempotence_result_baseline.changed
+          - 'idempotence_result_baseline.msg == "No changes found to be
+            applied."'
+
+  always:
+    - name: Post clean up
+      ansible.builtin.include_tasks: _cleanup.yml
+      vars:
+        baseline_profile_trigger: 1
+        delete_baseline_trigger: 1
+        delete_repository_profile_1_trigger: 1
+        delete_repository_profile_2_trigger: 1
+
+  module_defaults:
+    dellemc.openmanage.omevv_baseline_profile:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname | ansible.utils.ipwrap }}"
+      vcenter_username: "{{ vcenter_username }}"
+      vcenter_password: "{{ vcenter_password }}"
+      vcenter_uuid: "{{ uuid }}"

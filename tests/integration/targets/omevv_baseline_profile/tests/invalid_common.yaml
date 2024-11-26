@@ -1,0 +1,235 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OMEVV host, OMEVV username and OMEVV password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: hostname,
+     vcenter_username and vcenter_password.'
+  when: 'hostname is not defined or vcenter_username is not defined or
+         vcenter_password is not defined'
+
+- block:
+    - name: Negative - unsupported argument
+      dellemc.openmanage.omevv_baseline_profile:
+        unsupported_argument: unsupported
+        state: absent
+        name: "Profile Name"
+      register: invalid_unsupported_argument
+      ignore_errors: true
+
+    - name: Verify task status - Negative - unsupported argument
+      ansible.builtin.assert:
+        that:
+          - invalid_unsupported_argument.failed
+          - not invalid_unsupported_argument.changed
+          - 'invalid_unsupported_argument.msg == "Unsupported parameters for
+            (dellemc.openmanage.omevv_baseline_profile) module:
+            unsupported_argument. Supported parameters include: ca_path,
+            cluster, days, description, hostname, job_wait, job_wait_timeout,
+            name, port, repository_profile, state, time, timeout,
+            validate_certs, vcenter_password, vcenter_username, vcenter_uuid."'
+
+    - name: Negative - unreachable host
+      dellemc.openmanage.omevv_baseline_profile:
+        hostname: 999.999.999.999
+        state: absent
+        name: "Profile Name"
+      register: invalid_unreachable
+      ignore_unreachable: true
+
+    - name: Verify task status - Negative - unreachable host
+      ansible.builtin.assert:
+        that:
+          - invalid_unreachable.unreachable
+          - not invalid_unreachable.changed
+          - 'invalid_unreachable.msg == "The URL with IP 999.999.999.999 and
+             port 443 cannot be reached."'
+
+    - name: Negative - invalid port - 1
+      dellemc.openmanage.omevv_baseline_profile:
+        port: 0
+        state: absent
+        name: "Profile Name"
+      register: invalid_port_1
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid port - 1
+      ansible.builtin.assert:
+        that:
+          - invalid_port_1.failed
+          - not invalid_port_1.changed
+          - 'invalid_port_1.msg == "Invalid port number. Enter the valid port
+            number."'
+          - 'invalid_port_1.error_info.message == "Invalid port number. Enter
+            the valid port number."'
+
+    - name: Negative - invalid port - 2
+      dellemc.openmanage.omevv_baseline_profile:
+        port: -1
+        state: absent
+        name: "Profile Name"
+      register: invalid_port_2
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid port - 2
+      ansible.builtin.assert:
+        that:
+          - invalid_port_2.failed
+          - not invalid_port_2.changed
+          - 'invalid_port_2.msg == "Invalid port number. Enter the valid port
+            number."'
+          - 'invalid_port_2.error_info.message == "Invalid port number. Enter
+            the valid port number."'
+
+    - name: Negative - unconfigured port
+      dellemc.openmanage.omevv_baseline_profile:
+        port: 444
+        state: absent
+        name: "Profile Name"
+      register: unconfigured_port
+      ignore_unreachable: true
+
+    - name: Set facts for uncfigured posrt msg assertion
+      ansible.builtin.set_fact:
+        expected_unconfigured_port_msg: "The URL with IP {{ hostname }} and port
+          444 cannot be reached."
+
+    - name: Verify task status - Negative - unconfigured port
+      ansible.builtin.assert:
+        that:
+          - unconfigured_port.unreachable
+          - not unconfigured_port.failed
+          - not unconfigured_port.changed
+          - 'unconfigured_port.msg == expected_unconfigured_port_msg'
+          - 'unconfigured_port.error_info.message == "<urlopen error [Errno 113]
+            No route to host>"'
+          - 'unconfigured_port.error_info.type == "URLError"'
+
+    - name: Negative - invalid username
+      dellemc.openmanage.omevv_baseline_profile:
+        vcenter_username: invalid
+        state: absent
+        name: "Profile Name"
+      register: invalid_username
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid username
+      ansible.builtin.assert:
+        that:
+          - invalid_username.failed
+          - not invalid_username.changed
+          - 'invalid_username.msg == "Invalid Credentials."'
+
+    - name: Negative - invalid password
+      dellemc.openmanage.omevv_baseline_profile:
+        vcenter_password: invalid
+        state: absent
+        name: "Profile Name"
+      register: invalid_password
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid password
+      ansible.builtin.assert:
+        that:
+          - invalid_password.failed
+          - not invalid_password.changed
+          - 'invalid_password.msg == "Invalid Credentials."'
+
+    - name: Negative - invalid validate_certs
+      dellemc.openmanage.omevv_baseline_profile:
+        validate_certs: invalid
+        state: absent
+        name: "Profile Name"
+      register: invalid_validate_certs
+      ignore_errors: true
+
+    - ansible.builtin.set_fact:
+        invalid_validate_certs_expected_msg: "argument 'validate_certs' is of
+          type <class 'str'> and we were unable to convert to bool: The value
+          'invalid' is not a valid boolean.  Valid booleans include: "
+
+    - name: Verify task status - Negative - invalid validate_certs
+      ansible.builtin.assert:
+        that:
+          - invalid_validate_certs.failed
+          - not invalid_validate_certs.changed
+          - invalid_validate_certs_expected_msg in invalid_validate_certs.msg
+
+    - name: Negative - invalid ca_path path
+      dellemc.openmanage.omevv_baseline_profile:
+        ca_path: /invalid/path
+        state: absent
+        name: "Profile Name"
+      register: invalid_ca_path
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid ca_path path
+      ansible.builtin.assert:
+        that:
+          - invalid_ca_path.failed
+          - not invalid_ca_path.changed
+          - 'invalid_ca_path.msg == "[Errno 2] No such file or
+            directory: b''/invalid/path''"'
+
+    - name: Negative - invalid timeout type
+      dellemc.openmanage.omevv_baseline_profile:
+        timeout: invalid
+        state: absent
+        name: "Profile Name"
+      register: invalid_timeout_type
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid timeout type
+      ansible.builtin.assert:
+        that:
+          - invalid_timeout_type.failed
+          - not invalid_timeout_type.changed
+          - 'invalid_timeout_type.msg == "argument ''timeout'' is of type
+            <class ''str''> and we were unable to convert to
+            int: <class ''str''> cannot be converted to an int"'
+
+    - name: Negative - invalid timeout value
+      dellemc.openmanage.omevv_baseline_profile:
+        timeout: 0
+        state: absent
+        name: "Profile Name"
+      register: invalid_timeout_value
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid timeout value
+      ansible.builtin.assert:
+        that:
+          - invalid_timeout_value.failed
+          - not invalid_timeout_value.changed
+          - 'invalid_timeout_value.msg == "Invalid timeout value. Enter the
+            valid positive integer."'
+
+    - name: Negative - invalid vcenter uuid
+      dellemc.openmanage.omevv_baseline_profile:
+        vcenter_uuid: invalid
+        state: absent
+        name: "Profile Name"
+      register: invalid_uuid
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid vcenter uuid
+      ansible.builtin.assert:
+        that:
+          - invalid_uuid.failed
+          - not invalid_uuid.changed
+          - 'invalid_uuid.msg == "vCenter with UUID invalid is not
+            registered."'
+          - 'invalid_uuid.error_info.errorCode == "12027"'
+          - 'invalid_uuid.error_info.message == "vCenter with UUID invalid is
+            not registered."'
+
+  module_defaults:
+    dellemc.openmanage.omevv_baseline_profile:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname | ansible.utils.ipwrap }}"
+      vcenter_username: "{{ vcenter_username }}"
+      vcenter_password: "{{ vcenter_password }}"
+      vcenter_uuid: "{{ uuid }}"

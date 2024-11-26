@@ -1,0 +1,61 @@
+---
+- block:
+    - name: Delete baseline profile
+      dellemc.openmanage.omevv_baseline_profile:
+        state: absent
+        name: OMAM_Baseline_Profile
+      register: delete_baseline_profile
+      when: delete_baseline_trigger is defined
+
+    - name: Verify task status - Delete baseline profile
+      ansible.builtin.assert:
+        that:
+          - delete_baseline_profile.changed
+          - 'delete_baseline_profile.msg == "Successfully deleted the baseline
+            profile."'
+      when: delete_baseline_trigger is defined
+
+    - name: Delete Repository profile - 1
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        state: absent
+        name: OMAM_Firm_Repo
+      register: delete_firm_repo_profile
+      when: delete_repository_profile_1_trigger is defined
+
+    - name: Verify task status - Delete Repository profile - 1
+      ansible.builtin.assert:
+        that:
+          - delete_firm_repo_profile.changed
+          - 'delete_firm_repo_profile.msg == "Successfully deleted the OMEVV
+            firmware repository profile."'
+      when: delete_repository_profile_1_trigger is defined
+
+    - name: Delete Repository profile - 2
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        state: absent
+        name: OMAM_Modify_Firm_Repo
+      register: delete_firm_repo_profile
+      when: delete_repository_profile_2_trigger is defined
+
+    - name: Verify task status - Delete baseline profile
+      ansible.builtin.assert:
+        that:
+          - delete_firm_repo_profile.changed
+          - 'delete_firm_repo_profile.msg == "Successfully deleted the OMEVV
+            firmware repository profile."'
+      when: delete_repository_profile_2_trigger is defined
+
+  module_defaults:
+    dellemc.openmanage.omevv_baseline_profile:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname | ansible.utils.ipwrap }}"
+      vcenter_username: "{{ vcenter_username }}"
+      vcenter_password: "{{ vcenter_password }}"
+      vcenter_uuid: "{{ uuid }}"
+
+    dellemc.openmanage.omevv_firmware_repository_profile:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname | ansible.utils.ipwrap }}"
+      vcenter_username: "{{ vcenter_username }}"
+      vcenter_password: "{{ vcenter_password }}"
+      vcenter_uuid: "{{ uuid }}"

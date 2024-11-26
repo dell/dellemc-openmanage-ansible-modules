@@ -1,0 +1,20 @@
+# Retrieve baseline information from OMEVV and verify against module output
+---
+- block:
+    - name: Retrieve Baseline information
+      dellemc.openmanage.omevv_baseline_profile_info:
+        name: OMAM_Baseline_Profile
+      register: baseline_info
+
+    - name: Verify task status - Retrieve Baseline information
+      ansible.builtin.assert:
+        that:
+          - "baseline_info.profile_info == profile_info"
+
+  module_defaults:
+    dellemc.openmanage.omevv_baseline_profile_info:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname | ansible.utils.ipwrap }}"
+      vcenter_username: "{{ vcenter_username }}"
+      vcenter_password: "{{ vcenter_password }}"
+      vcenter_uuid: "{{ uuid }}"
