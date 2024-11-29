@@ -82,10 +82,15 @@
   always:
     - name: Cleanup
       dellemc.openmanage.omevv_firmware_repository_profile:
+        validate_certs: "{{ validate_certs }}"
+        hostname: "{{ hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        port: "{{ port }}"
+        vcenter_uuid: "{{ uuid }}"
         name: "temp_profile"
         state: absent
       ignore_errors: true
-      no_log: true
 
   module_defaults:
     dellemc.openmanage.omevv_firmware_repository_profile_info:

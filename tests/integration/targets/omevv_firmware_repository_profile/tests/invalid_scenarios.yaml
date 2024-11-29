@@ -56,15 +56,15 @@
         state: absent
         name: "Profile Name"
       register: invalid_port
-      ignore_unreachable: true
+      ignore_errors: true
 
     - name: Verify task status - Negative - invalid port
       ansible.builtin.assert:
         that:
-          - invalid_port.unreachable
+          - invalid_port.failed
           - not invalid_port.changed
-          - ('invalid_port.msg == "<urlopen error [Errno 111] Connection
-            refused>"') or ('invalid_port.msg == "<urlopen error timed out>"')
+          - 'invalid_port.msg == "Invalid port number. Enter the valid port
+            number."'
 
     - name: Negative - invalid username
       dellemc.openmanage.omevv_firmware_repository_profile:
@@ -166,7 +166,8 @@
         that:
           - invalid_timeout_value.failed
           - not invalid_timeout_value.changed
-          - 'invalid_timeout_value.msg == "Timeout value out of range"'
+          - 'invalid_timeout_value.msg == "Invalid timeout value. Enter the
+            valid positive integer."'
 
     - name: Negative - invalid vcenter uuid
       dellemc.openmanage.omevv_firmware_repository_profile:
