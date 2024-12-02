@@ -23,7 +23,7 @@ from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_certificates
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
-from mock import MagicMock
+from unittest.mock import MagicMock
 
 IMPORT_SSL_CERTIFICATE = "#DelliDRACCardService.ImportSSLCertificate"
 EXPORT_SSL_CERTIFICATE = "#DelliDRACCardService.ExportSSLCertificate"

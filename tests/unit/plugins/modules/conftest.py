@@ -18,7 +18,7 @@ import pytest
 from ansible.module_utils import basic
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.utils import exit_json, \
     fail_json, AnsibleFailJson, AnsibleExitJson
-from mock import MagicMock
+from unittest.mock import MagicMock
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 MODULE_UTIL_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.'

@@ -17,7 +17,7 @@ __metaclass__ = type
 import os
 import json
 import pytest
-from mock import MagicMock
+from unittest.mock import MagicMock
 from ansible.module_utils.urls import SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.session_utils import SessionAPI, OpenURLResponse

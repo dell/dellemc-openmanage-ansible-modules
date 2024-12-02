@@ -15,7 +15,7 @@ __metaclass__ = type
 import json
 from io import StringIO
 import pytest
-from mock import mock_open
+from unittest.mock import mock_open
 from ansible.module_utils._text import to_text
 from urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -23,7 +23,7 @@ from ansible_collections.dellemc.openmanage.plugins.modules import \
     idrac_secure_boot
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import \
     FakeAnsibleModule
-from mock import MagicMock
+from unittest.mock import MagicMock
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 
