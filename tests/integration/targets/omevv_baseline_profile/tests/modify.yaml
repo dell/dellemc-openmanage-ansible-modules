@@ -90,8 +90,8 @@
           - module_group_id_1 == group_id_1
           - module_group_id_2 == group_id_2
           - >
-            cm_dm_result_baseline.diff.after.firmwareRepoId
-            == firmware_repo_id_2
+            'cm_dm_result_baseline.diff.after.firmwareRepoId
+            == "firmware_repo_id_2"'
           - >
             'cm_dm_result_baseline.diff.after.repository_profile
             == "OMAM_Modify_Firm_Repo"'
@@ -112,8 +112,8 @@
             == cluster_name_1
           - module_group_id_1 == group_id_1
           - >
-            cm_dm_result_baseline.diff.before.firmwareRepoId
-            == firmware_repo_id_1
+            'cm_dm_result_baseline.diff.before.firmwareRepoId
+            == "firmware_repo_id_1"'
           - >
             'cm_dm_result_baseline.diff.before.repository_profile
             == "OMAM_Firm_Repo"'
@@ -130,10 +130,7 @@
     - name: Set prerequisite
       ansible.builtin.include_tasks: _helper.yml
       vars:
-        repository_profile_1_trigger: 1
-        repository_profile_2_trigger: 1
         fetch_cluster_trigger: 1
-        baseline_trigger: 1
 
     - name: Modify a baseline profile (Normal mode)
       dellemc.openmanage.omevv_baseline_profile:
