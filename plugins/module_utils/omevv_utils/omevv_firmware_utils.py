@@ -43,6 +43,8 @@ TEST_CONNECTION_URI = "/RepositoryProfiles/TestConnection"
 CLUSTER_URI = "/Consoles/{vcenter_uuid}/Clusters"
 CLUSTER_IDS_URI = "/Consoles/{vcenter_uuid}/Groups/getGroupsForClusters"
 DRIFT_URI = "/Consoles/{vcenter_uuid}/UpdateJobs"
+FIRMARE_UPDATE_URI = "/Consoles/{vcenter_uuid}/Groups/{cluster_group_id}/Update"
+FIRMWARE_UPDATE_JOB_TRACK_URI = "/Consoles/{vcenter_uuid}/UpdateJobs/{job_id}"
 
 
 class OMEVVFirmwareProfile:
@@ -626,3 +628,18 @@ class OMEVVBaselineProfile:
         resp = self.omevv.invoke_request(
             "DELETE", BASELINE_PROFILE_URI.format(vcenter_uuid=vcenter_uuid) + "/" + str(profile_id))
         return resp
+
+
+class OMEVVFirmwareUpdate:
+    def __init__(self, omevv):
+        self.omevv = omevv
+
+    def update_cluster(self, payload, vcenter_uuid, cluster_group_id):
+        err_msg = None
+        resp = self.omevv.invoke_request("POST", FIRMARE_UPDATE_URI.format(vcenter_uuid=vcenter_uuid, cluster_group_id=cluster_group_id), payload)
+        return resp, err_msg
+
+    def firmware_update_job_track(self, vcenter_uuid, job_id):
+        err_msg = None
+        resp = self.omevv.invoke_request("GET", FIRMWARE_UPDATE_JOB_TRACK_URI.format(vcenter_uuid=vcenter_uuid, job_id=job_id))
+        return resp.json_data, err_msg
