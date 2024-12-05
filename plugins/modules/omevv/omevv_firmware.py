@@ -17,9 +17,9 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 ---
 module: omevv_firmware
-short_description: Update firmware of specific host in the cluster
+short_description: Update the firmware of a specific host in the cluster
 version_added: "9.10.0"
-description: This module allows you to update firmware of specific host in the cluster.
+description: This module allows you to update the firmware of a specific host in the cluster.
 extends_documentation_fragment:
   - dellemc.openmanage.omevv_auth_options
 options:
@@ -32,7 +32,7 @@ options:
   date_time:
     description:
       - Date and time when the job must run. This is applicable when I(run_now) is C(false).
-      - The format is YYYY-MM-DDThh:mm:ss<UTC>.
+      - The format is YYYY-MM-DDThh:mm:ss<offset>.
     type: str
   delete_job_queue:
     description:
@@ -49,7 +49,7 @@ options:
     default: false
   enter_maintenance_mode_options:
     description:
-      - VM migration policy during MM mode.
+      - VM migration policy during management mode.
       - C(FULL_DATA_MIGRATION) for full data migration.
       - C(ENSURE_ACCESSIBILITY) for ensuring accessibility.
       - C(NO_DATA_MIGRATION) does not migrate any data.
@@ -69,9 +69,9 @@ options:
     default: false
   exit_maintenance_mode:
     description:
-      - Whether to exit MM mode after Update.
-      - C(true) exits the MM mode after Update.
-      - C(false) does not exit the MM mode after Update.
+      - Whether to exit management mode after Update.
+      - C(true) exits the management mode after Update.
+      - C(false) does not exit the management mode after Update.
     type: bool
     default: false
   job_description:
@@ -97,9 +97,9 @@ options:
     default: 1200
   maintenance_mode_count_check:
     description:
-      - Allows to check if any host in cluster is in MM mode.
-      - C(true) checks if any host in cluster is in MM mode.
-      - C(false) does not check if any host in cluster is in MM mode.
+      - Allows to check if any host in cluster is in management mode.
+      - C(true) checks if any host in cluster is in management mode.
+      - C(false) does not check if any host in cluster is in management mode.
     type: bool
   reboot_options:
     description:
@@ -123,7 +123,7 @@ options:
       - C(false) will run the update at the specified I(date_time).
     type: bool
     required: true
-  target:
+  targets:
     description:
       - The target details for the firmware update operation.
       - Either I(servicetag) or I(host) is required for the firmware update operation.
@@ -131,11 +131,6 @@ options:
     elements: dict
     required: true
     suboptions:
-      cluster:
-        description:
-          - Name of the cluster the hosts belong to.
-        type: str
-        required: true
       firmware_components:
         description:
           - List of host firmware components to update.
@@ -176,8 +171,8 @@ notes:
 
 EXAMPLES = r"""
 ---
-- name: Update firmware at the scheduled time for a specific host
-  dellemc.openmanage.omevv_firmware:
+- name: Update the firmware of single component immediately for a specific host
+  dellemc.openmanage.omevv.omevv_firmware:
     hostname: "192.168.0.1"
     vcenter_uuid: "xxxxx"
     vcenter_username: "username"
@@ -186,19 +181,45 @@ EXAMPLES = r"""
     run_now: false
     date_time: "2024-09-10T20:50:00Z"
     enter_maintenance_mode_timeout: 60
+    enter_maintenance_mode_options: FULL_DATA_MIGRATION
     drs_check: true
     evacuate_VMs: true
     exit_maintenance_mode: true
-    reboot_options: SAFEREBOOT
+    reboot_options: NEXTREBOOT
     maintenance_mode_count_check: true
     check_vSAN_health: true
     reset_idrac: true
     delete_job_queue: true
-    target:
-      - cluster: cluster_a
-        servicetag: SVCTAG1
+    targets:
+      - servicetag: SVCTAG1
         firmware_components:
           - "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+
+- name: Update the firmware of multiple components at scheduled time for a specific host
+  dellemc.openmanage.omevv.omevv_firmware:
+    hostname: "192.168.0.1"
+    vcenter_uuid: "xxxxx"
+    vcenter_username: "username"
+    vcenter_password: "password"
+    ca_path: "path/to/ca_file"
+    run_now: false
+    date_time: "2024-09-10T20:50:00+05:30"
+    enter_maintenance_mode_timeout: 60
+    enter_maintenance_mode_options: ENSURE_ACCESSIBILITY
+    drs_check: true
+    evacuate_VMs: true
+    exit_maintenance_mode: true
+    reboot_options: FORCEREBOOT
+    maintenance_mode_count_check: true
+    check_vSAN_health: true
+    reset_idrac: false
+    delete_job_queue: false
+    targets:
+      - host: 192.168.0.2
+        firmware_components:
+          - "DCIM:INSTALLED#iDRAC.Embedded.1-1#IDRACinfo"
+          - "DCIM:INSTALLED#301_C_BOSS.SL.14-1"
+          - "DCIM:INSTALLED#807__TPM.Integrated.1-1"
 
 - name: Fetch firmware compliance report of all the hosts in the specific cluster
   dellemc.openmanage.omevv_firmware_compliance_info:
@@ -220,7 +241,7 @@ EXAMPLES = r"""
     source_name: "{{ compliance_data.hostComplianceReports[0].componentCompliances[0].sourceName }}"
 
 - name: Update firmware at the scheduled time for a specific host
-  dellemc.openmanage.omevv_firmware:
+  dellemc.openmanage.omevv.omevv_firmware:
     hostname: "192.168.0.1"
     vcenter_uuid: "xxxxx"
     vcenter_username: "username"
@@ -229,15 +250,16 @@ EXAMPLES = r"""
     run_now: false
     date_time: "2024-09-10T20:50:00Z"
     enter_maintenance_mode_timeout: 60
+    enter_maintenance_mode_options: NO_DATA_MIGRATION
     drs_check: true
-    evacuate_VMs: true
+    evacuate_VMs: false
     exit_maintenance_mode: true
     reboot_options: SAFEREBOOT
     maintenance_mode_count_check: true
     check_vSAN_health: true
     reset_idrac: true
     delete_job_queue: true
-    target:
+    targets:
       - servicetag: SVCTAG1
         firmware_components:
           - "{{ source_name }}"
@@ -256,8 +278,8 @@ error_info:
   type: dict
   sample:
     {
-      "errorCode": "18001",
-      "message": "Baseline profile with name Test already exists."
+        "errorCode": "20058",
+        "message": "Update Job already running for group id 1004 corresponding to cluster OMAM-Cluster-1. Wait for its completion and trigger."
     }
 '''
 import json
@@ -279,12 +301,19 @@ INVALID_DATE_TIME_MSG = "Invalid date time. Enter a valid date time in the forma
                         "YYYY-MM-DDTHH:MM:SSZ."
 MAINTENANCE_MODE_TIMEOUT_INVALID_MSG = "The value for the 'enter_maintenance_mode_timeout' " \
                                        "parameter must be between 60 and 1440."
+HOST_SERVICETSAG_MUTUAL_EXCLUSIVE_MSG = "parameters are mutually exclusive: host|servicetag"
+HOST_SERVICETSAG_REQUIRED_MSG = "Either 'host' or 'servicetag' must be specified."
+UPDATE_JOB_PRESENT_MSG = "Update Job already running for group id {group_id} corresponding to " \
+                         "cluster {cluster_name}. Wait for its completion and trigger."
+JOB_NAME_ALREADY_EXISTS_MSG = "Job with name {job_name} already exists. Provide different name"
+HOST_NOT_FOUND_MSG = "Host not found under managed hosts."
 CHANGES_FOUND_MSG = "Changes found to be applied."
 CHANGES_NOT_FOUND_MSG = "No changes found to be applied."
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be " \
                                "negative or zero."
 UNREACHABLE_MSG = "The URL with the {ip}:{port} cannot be reached."
 SOURCE_NOT_FOUND_MSG = "The Requested resource cannot be found."
+TRIGGER_UPDATE_CHECK_URI = "/Consoles/{vcenter_uuid}/CanTriggerUpdate"
 
 
 class FirmwareUpdate():
@@ -296,29 +325,10 @@ class FirmwareUpdate():
         self.omevv_update_obj = OMEVVFirmwareUpdate(self.obj)
         self.omevv_baseline_obj = OMEVVBaselineProfile(self.obj)
 
-    def extract_host_id(self, svctag, hostname, cluster_name):
-        host_id = []
-        uuid = self.module.params.get('vcenter_uuid')
-        managed_hosts, invalid_result = self.omevv_info_obj.get_managed_host_details(
-            uuid=uuid,
-            servicetags=svctag,
-            hostnames=hostname)
-        if invalid_result:
-            hostnames = invalid_result["hostnames"]
-            servicetags = invalid_result["servicetags"]
-            # if hostnames or servicetags:
-            #     host_invalid_list = ', '.join(hostnames + servicetags)
-            #     self.module.warn(PARTIAL_HOST_WARN_MSG.format(host_invalid_list))
-
-        for each_host in managed_hosts:
-            if each_host.get('clusterName') == cluster_name:
-                host_id.append(each_host.get('id'))
-        return host_id
-
     def get_payload_details(self, host_id):
         device_id = host_id
         parameters = self.module.params
-        target_list = parameters['target']
+        target_list = parameters['targets']
         firmware = {
             "targets": []
         }
@@ -388,9 +398,20 @@ class FirmwareUpdate():
 
         return payload
 
+    def host_servicetag_existance(self):
+        for target in self.module.params.get('targets', []):
+            host = target.get('host')
+            servicetag = target.get('servicetag')
+
+            if host and servicetag:
+                self.module.exit_json(msg=HOST_SERVICETSAG_MUTUAL_EXCLUSIVE_MSG, failed=True)
+            if not host and not servicetag:
+                self.module.exit_json(msg=HOST_SERVICETSAG_REQUIRED_MSG, failed=True)
+        return True
+
     def validate_date_time(self):
         try:
-            ftime = datetime.strptime(self.module.params.get('date_time'), "%Y-%m-%dT%H:%M:%SZ")
+            ftime = datetime.strptime(self.module.params.get('date_time'), "%Y-%m-%dT%H:%M:%S%z")
         except ValueError:
             self.module.exit_json(msg=INVALID_DATE_TIME_MSG, failed=True)
         return ftime
@@ -401,28 +422,23 @@ class FirmwareUpdate():
             self.module.exit_json(msg=MAINTENANCE_MODE_TIMEOUT_INVALID_MSG, failed=True)
 
     def validate_params(self):
-        # Validate the job wait parameter
+
+        # Validate the 'host' and 'servicetag' parameter existence
+        self.host_servicetag_existance()
+
+        # Validate the job_wait parameter
         if validate_job_wait(self.module):
             self.module.exit_json(msg=TIMEOUT_NEGATIVE_OR_ZERO_MSG, failed=True)
 
         # Validate the date_time parameter
-        self.validate_date_time()
+        if self.module.params.get('date_time'):
+            self.validate_date_time()
 
         # Validate the enter_maintenance_mode_timeout parameter
-        self.enter_maintenance_mode_timeout()
-
-        # Validate the cluster names
-        parameters = self.module.params
-        target_list = parameters['target']
-        for target in target_list:
-            cluster_name = target['cluster']
-        vcenter_uuid = self.module.params.get('vcenter_uuid')
-        is_valid_cluster, invalid_cluster_err_msg = self.omevv_baseline_obj.validate_cluster_names(cluster_name, vcenter_uuid)
-        if not is_valid_cluster:
-            self.module.exit_json(msg=invalid_cluster_err_msg, failed=True)
+        if self.module.params.get('enter_maintenance_mode_timeout'):
+            self.enter_maintenance_mode_timeout()
 
     def execute(self):
-        """To be overridden by subclasses to implement specific profile creation or deletion logic."""
         pass
 
 
@@ -432,17 +448,26 @@ class UpdateCluster(FirmwareUpdate):
         self.validate_params()
         vcenter_uuid = self.module.params.get('vcenter_uuid')
         parameters = self.module.params
-        target_list = parameters['target']
+        target_list = parameters['targets']
         for target in target_list:
-            cluster_name = target['cluster']
             service_tag = target['servicetag']
             host = target['host']
-        cluster_group_id = self.omevv_info_obj.get_group_id_of_cluster(vcenter_uuid, cluster_name)
         if service_tag:
-            host_id = self.extract_host_id(svctag=service_tag, cluster_name=cluster_name, hostname=None)
+            host_id = self.omevv_info_obj.get_host_id(vcenter_uuid, hostname=None, servicetag=service_tag)
         else:
-            host_id = self.extract_host_id(svctag=None, cluster_name=cluster_name, hostname=host)
-        payload = self.get_payload_details(host_id=host_id[0])
+            host_id = self.omevv_info_obj.get_host_id(vcenter_uuid, hostname=host, servicetag=None)
+        if host_id is None:
+            self.module.exit_json(msg=HOST_NOT_FOUND_MSG, failed=True)
+        cluster_name = self.omevv_info_obj.get_cluster_name(vcenter_uuid, host_id)
+        cluster_group_id = self.omevv_info_obj.get_group_id_of_cluster(vcenter_uuid, cluster_name)
+        update_job_status = self.omevv_update_obj.check_existing_update_job(vcenter_uuid, cluster_group_id)
+        if update_job_status.json_data is not True:
+            self.module.exit_json(msg=UPDATE_JOB_PRESENT_MSG.format(group_id=cluster_group_id, cluster_name=cluster_name), skipped=True)
+        payload = self.get_payload_details(host_id=host_id)
+        job_name = self.module.params.get('job_name')
+        job_exist_status = self.omevv_update_obj.check_existing_job_name(vcenter_uuid, job_name)
+        if job_exist_status is True:
+            self.module.exit_json(msg=JOB_NAME_ALREADY_EXISTS_MSG.format(job_name=job_name), failed=True)
         resp, error_msg = self.omevv_update_obj.update_cluster(payload, vcenter_uuid, cluster_group_id)
         if resp.success:
             job_resp, err_msg = self.omevv_update_obj.firmware_update_job_track(vcenter_uuid, resp.json_data)
@@ -497,12 +522,11 @@ def main():
         },
         "reset_idrac": {"type": 'bool'},
         "run_now": {"type": 'bool', "required": True},
-        "target": {
+        "targets": {
             "type": 'list',
             "elements": 'dict',
             "required": True,
             "options": {
-                "cluster": {"type": 'str', "required": True},
                 "firmware_components": {
                     "type": 'list',
                     "elements": 'str',
@@ -516,22 +540,15 @@ def main():
 
     module = OMEVVAnsibleModule(
         argument_spec=argument_spec,
-        # mutually_exclusive=[
-        #     [('servicetag", "host')],
-        # ],
         required_if=[
-            ["run_now", "true", ["date_time"]],
+            ["run_now", False, ("date_time",)]
         ],
         supports_check_mode=True
     )
 
     try:
         with RestOMEVV(module.params) as rest_obj:
-            # if module.params.get('target').get('servicetag') or module.params.get('target').get('host'):
-            #     omevv_obj = UpdateSingleHost(module, rest_obj)
-            # else:
             omevv_obj = UpdateCluster(module, rest_obj)
-
             omevv_obj.execute()
 
     except HTTPError as err:
@@ -545,9 +562,17 @@ def main():
             error_info["message"] = str(err)
             error_info["type"] = "HTTPError"
 
-        if err.code == 404:
+        if err.code == 500:
+            response_data["msg"] = error_info.get("message", str(error_info))
+        elif err.code == 404:
             response_data["msg"] = SOURCE_NOT_FOUND_MSG
+        else:
+            response_data.update({
+                "msg": error_info.get("message", str(error_info)),
+                "error_info": error_info
+            })
         module.exit_json(**response_data)
+
     except URLError as err:
         response_data = {
             "msg": f"The URL with IP {module.params.get('hostname')} and port {module.params.get('port')} cannot be reached.",
@@ -555,6 +580,7 @@ def main():
             "error_info": {"message": str(err), "type": "URLError"}
         }
         module.exit_json(**response_data)
+
     except (IOError, ValueError, TypeError, ConnectionError,
             AttributeError, IndexError, KeyError, OSError) as err:
         module.exit_json(msg=str(err), failed=True)

@@ -153,3 +153,25 @@ class OMEVVInfo:
                                                                      groupid=each_group)
             result.append(output)
         return result
+
+    def get_cluster_name(self, uuid, host_id):
+        uri = MANAGED_HOST_INFO_URI.format(uuid=uuid)
+        resp = self.omevv_obj.invoke_request('GET', uri)
+        managed_hosts = resp.json_data
+        for host in managed_hosts:
+            if host['id'] == host_id:
+                return host['clusterName']
+        return None
+
+    def get_host_id(self, uuid, hostname=None, servicetag=None):
+        uri = MANAGED_HOST_INFO_URI.format(uuid=uuid)
+        resp = self.omevv_obj.invoke_request('GET', uri)
+        managed_hosts = resp.json_data
+        for host in managed_hosts:
+            if hostname:
+                if host['hostName'] == hostname:
+                    return host['id']
+            if servicetag:
+                if host['serviceTag'] == servicetag:
+                    return host['id']
+        return None

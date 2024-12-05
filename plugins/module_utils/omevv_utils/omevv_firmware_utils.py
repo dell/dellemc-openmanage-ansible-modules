@@ -45,6 +45,8 @@ CLUSTER_IDS_URI = "/Consoles/{vcenter_uuid}/Groups/getGroupsForClusters"
 DRIFT_URI = "/Consoles/{vcenter_uuid}/UpdateJobs"
 FIRMARE_UPDATE_URI = "/Consoles/{vcenter_uuid}/Groups/{cluster_group_id}/Update"
 FIRMWARE_UPDATE_JOB_TRACK_URI = "/Consoles/{vcenter_uuid}/UpdateJobs/{job_id}"
+TRIGGER_UPDATE_CHECK_URI = "/Consoles/{vcenter_uuid}/CanTriggerUpdate"
+FIRMWARE_UPDATE_JOB_NAME_CHECK_URI = "/Consoles/{vcenter_uuid}/UpdateJobs?jobtype=FWUpdate"
 
 
 class OMEVVFirmwareProfile:
@@ -636,10 +638,28 @@ class OMEVVFirmwareUpdate:
 
     def update_cluster(self, payload, vcenter_uuid, cluster_group_id):
         err_msg = None
-        resp = self.omevv.invoke_request("POST", FIRMARE_UPDATE_URI.format(vcenter_uuid=vcenter_uuid, cluster_group_id=cluster_group_id), payload)
+        uri = FIRMARE_UPDATE_URI.format(vcenter_uuid=vcenter_uuid, cluster_group_id=cluster_group_id)
+        resp = self.omevv.invoke_request("POST", uri, payload)
         return resp, err_msg
 
     def firmware_update_job_track(self, vcenter_uuid, job_id):
         err_msg = None
         resp = self.omevv.invoke_request("GET", FIRMWARE_UPDATE_JOB_TRACK_URI.format(vcenter_uuid=vcenter_uuid, job_id=job_id))
         return resp.json_data, err_msg
+
+    def check_existing_update_job(self, vcenter_uuid, cluster_group_id):
+        uri = TRIGGER_UPDATE_CHECK_URI.format(vcenter_uuid=vcenter_uuid)
+        try:
+            resp = self.omevv.invoke_request("POST", uri, cluster_group_id)
+            return resp
+        except Exception:
+            return None
+
+    def check_existing_job_name(self, vcenter_uuid, job_name):
+        uri = FIRMWARE_UPDATE_JOB_NAME_CHECK_URI.format(vcenter_uuid=vcenter_uuid)
+        resp = self.omevv.invoke_request("GET", uri)
+        jobs = resp.json_data
+        for job in jobs:
+            if job['jobName'] == job_name:
+                return True
+        return False
