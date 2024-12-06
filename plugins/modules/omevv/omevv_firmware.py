@@ -325,51 +325,59 @@ class FirmwareUpdate():
         self.omevv_update_obj = OMEVVFirmwareUpdate(self.obj)
         self.omevv_baseline_obj = OMEVVBaselineProfile(self.obj)
 
+    def execute(self):
+        """
+        Executes the function with the given module.
+
+        :param module: The module to execute.
+        :type module: Any
+        :return: None
+        """
+
     def get_payload_details(self, host_id):
         device_id = host_id
         parameters = self.module.params
         target_list = parameters['targets']
-        firmware = {
-            "targets": []
-        }
-        payload = {}
+        payload = {"firmware": {"targets": []}}
+        firmware = payload["firmware"]
 
-        if parameters.get('check_vSAN_health') is not None:
-            firmware['checkvSANHealth'] = parameters.get('check_vSAN_health')
+        self._add_optional_fields(firmware, parameters)
+        self._set_schedule(payload, parameters)
+        self._set_job_details(payload, parameters)
+        self._add_targets(firmware, target_list, device_id)
 
-        if parameters.get('run_now') is True:
-            payload["schedule"] = {
-                "runNow": parameters.get('run_now')
-            }
-        else:
-            payload["schedule"] = {
-                "runNow": parameters.get('run_now'),
-                "dateTime": parameters.get('date_time')
-            }
+        return payload
 
-        if parameters.get('delete_job_queue') is not None:
-            firmware['deleteJobsQueue'] = parameters.get('delete_job_queue')
+    def _add_optional_fields(self, firmware, parameters):
+        optional_fields = [
+            ('check_vSAN_health', 'checkvSANHealth'),
+            ('delete_job_queue', 'deleteJobsQueue'),
+            ('drs_check', 'drsCheck'),
+            ('enter_maintenance_mode_options', 'enterMaintenanceModeOption'),
+            ('enter_maintenance_mode_timeout', 'enterMaintenanceModetimeout'),
+            ('evacuate_VMs', 'evacuateVMs'),
+            ('exit_maintenance_mode', 'exitMaintenanceMode'),
+            ('maintenance_mode_count_check', 'maintenanceModeCountCheck'),
+            ('reboot_options', 'rebootOptions'),
+            ('reset_idrac', 'resetIDrac'),
+        ]
 
-        if parameters.get('drs_check') is not None:
-            firmware['drsCheck'] = parameters.get('drs_check')
+        for param_key, firmware_key in optional_fields:
+            if parameters.get(param_key) is not None:
+                firmware[firmware_key] = parameters.get(param_key)
 
-        if parameters.get('enter_maintenance_mode_options') is not None:
-            firmware['enterMaintenanceModeOption'] = parameters.get('enter_maintenance_mode_options')
+    def _set_schedule(self, payload, parameters):
+        payload["schedule"] = {"runNow": parameters.get('run_now')}
 
-        if parameters.get('enter_maintenance_mode_timeout') is not None:
-            firmware['enterMaintenanceModetimeout'] = parameters.get('enter_maintenance_mode_timeout')
+        if not payload["schedule"]["runNow"]:
+            payload["schedule"]["dateTime"] = parameters.get('date_time')
 
-        if parameters.get('evacuate_VMs') is not None:
-            firmware['evacuateVMs'] = parameters.get('evacuate_VMs')
+    def _set_job_details(self, payload, parameters):
+        if parameters.get('job_description'):
+            payload["jobDescription"] = parameters.get('job_description')
 
-        if parameters.get('exit_maintenance_mode') is not None:
-            firmware['exitMaintenanceMode'] = parameters.get('exit_maintenance_mode')
-
-        if self.module.params.get('job_description'):
-            payload["jobDescription"] = self.module.params.get('job_description')
-
-        if self.module.params.get('job_name'):
-            payload["jobName"] = self.module.params.get('job_name')
+        if parameters.get('job_name'):
+            payload["jobName"] = parameters.get('job_name')
         else:
             date_time = datetime.now()
             job_name = (
@@ -377,26 +385,13 @@ class FirmwareUpdate():
                 f"{date_time.hour:02}{date_time.minute:02}{date_time.second:02}")
             payload["jobName"] = job_name
 
-        if parameters.get('maintenance_mode_count_check') is not None:
-            firmware['maintenanceModeCountCheck'] = parameters.get('maintenance_mode_count_check')
-
-        if parameters.get('reboot_options') is not None:
-            firmware['rebootOptions'] = parameters.get('reboot_options')
-
-        if parameters.get('reset_idrac') is not None:
-            firmware['resetIDrac'] = parameters.get('reset_idrac')
-
+    def _add_targets(self, firmware, target_list, device_id):
         for target in target_list:
             actual_target = {
                 "firmwarecomponents": target['firmware_components'],
                 "id": device_id
             }
-
-        firmware['targets'].append(actual_target)
-
-        payload["firmware"] = firmware
-
-        return payload
+            firmware['targets'].append(actual_target)
 
     def host_servicetag_existance(self):
         for target in self.module.params.get('targets', []):
@@ -438,9 +433,6 @@ class FirmwareUpdate():
         if self.module.params.get('enter_maintenance_mode_timeout'):
             self.enter_maintenance_mode_timeout()
 
-    def execute(self):
-        pass
-
 
 class UpdateCluster(FirmwareUpdate):
 
@@ -448,45 +440,90 @@ class UpdateCluster(FirmwareUpdate):
         self.validate_params()
         vcenter_uuid = self.module.params.get('vcenter_uuid')
         parameters = self.module.params
-        target_list = parameters['targets']
-        for target in target_list:
-            service_tag = target['servicetag']
-            host = target['host']
-        if service_tag:
-            host_id = self.omevv_info_obj.get_host_id(vcenter_uuid, hostname=None, servicetag=service_tag)
-        else:
-            host_id = self.omevv_info_obj.get_host_id(vcenter_uuid, hostname=host, servicetag=None)
+
+        target = self._get_target(parameters['targets'])
+        host_id = self._get_host_id(vcenter_uuid, target)
+
         if host_id is None:
             self.module.exit_json(msg=HOST_NOT_FOUND_MSG, failed=True)
+
         cluster_name = self.omevv_info_obj.get_cluster_name(vcenter_uuid, host_id)
         cluster_group_id = self.omevv_info_obj.get_group_id_of_cluster(vcenter_uuid, cluster_name)
-        update_job_status = self.omevv_update_obj.check_existing_update_job(vcenter_uuid, cluster_group_id)
-        if update_job_status is not True:
-            self.module.exit_json(msg=UPDATE_JOB_PRESENT_MSG.format(group_id=cluster_group_id, cluster_name=cluster_name), skipped=True)
+
+        if not self._is_update_job_allowed(vcenter_uuid, cluster_group_id, cluster_name):
+            return
+
         payload = self.get_payload_details(host_id=host_id)
-        job_name = self.module.params.get('job_name')
+
+        if self._is_job_name_existing(vcenter_uuid, self.module.params.get('job_name')):
+            return
+
+        self._execute_update_job(vcenter_uuid, cluster_group_id, payload, parameters)
+
+    def _get_target(self, target_list):
+        for target in target_list:
+            return target
+
+    def _get_host_id(self, vcenter_uuid, target):
+        service_tag = target['servicetag']
+        host = target['host']
+
+        if service_tag:
+            return self.omevv_info_obj.get_host_id(vcenter_uuid, hostname=None,
+                                                   servicetag=service_tag)
+        else:
+            return self.omevv_info_obj.get_host_id(vcenter_uuid, hostname=host, servicetag=None)
+
+    def _is_update_job_allowed(self, vcenter_uuid, cluster_group_id, cluster_name):
+        update_job_status = self.omevv_update_obj.check_existing_update_job(vcenter_uuid,
+                                                                            cluster_group_id)
+        if update_job_status is not True:
+            self.module.exit_json(msg=UPDATE_JOB_PRESENT_MSG.format(
+                group_id=cluster_group_id, cluster_name=cluster_name), skipped=True)
+            return False
+        return True
+
+    def _is_job_name_existing(self, vcenter_uuid, job_name):
         job_exist_status = self.omevv_update_obj.check_existing_job_name(vcenter_uuid, job_name)
         if job_exist_status is True:
-            self.module.exit_json(msg=JOB_NAME_ALREADY_EXISTS_MSG.format(job_name=job_name), failed=True)
-        resp, error_msg = self.omevv_update_obj.update_cluster(payload, vcenter_uuid, cluster_group_id)
+            self.module.exit_json(msg=JOB_NAME_ALREADY_EXISTS_MSG.format(
+                job_name=job_name), failed=True)
+            return True
+        return False
+
+    def _execute_update_job(self, vcenter_uuid, cluster_group_id, payload, parameters):
+        resp, error_msg = self.omevv_update_obj.update_cluster(payload, vcenter_uuid,
+                                                               cluster_group_id)
         if resp.success:
-            job_resp, err_msg = self.omevv_update_obj.firmware_update_job_track(vcenter_uuid, resp.json_data)
-            if parameters.get('run_now') is False:
-                self.module.exit_json(msg=SUCCESS_UPDATE_SCHEDULED_MSG, changed=True, job_details=job_resp)
-            else:
-                job_wait = self.module.params.get('job_wait')
-                if job_wait:
-                    while job_resp["state"] not in ["COMPLETED", "FAILED"]:
-                        time.sleep(3)
-                        job_resp, err_msg = self.omevv_update_obj.firmware_update_job_track(vcenter_uuid, resp.json_data)
-                    if job_resp["state"] == "COMPLETED":
-                        self.module.exit_json(msg=SUCCESS_UPDATE_MSG, changed=True, job_details=job_resp)
-                    else:
-                        self.module.exit_json(msg=FAILED_UPDATE_MSG, failed=True, error_info=err_msg)
-                else:
-                    self.module.exit_json(msg=SUCCESS_UPDATE_SUBMIT_MSG, changed=True, job_details=job_resp)
+            job_resp, err_msg = self.omevv_update_obj.firmware_update_job_track(vcenter_uuid,
+                                                                                resp.json_data)
+            self._handle_job_response(parameters, vcenter_uuid, resp, job_resp, err_msg)
         else:
             self.module.exit_json(msg=FAILED_UPDATE_MSG, failed=True, error_info=error_msg)
+
+    def _handle_job_response(self, parameters, vcenter_uuid, resp, job_resp, err_msg):
+        run_now = parameters.get('run_now')
+        if run_now is False:
+            self.module.exit_json(msg=SUCCESS_UPDATE_SCHEDULED_MSG, changed=True,
+                                  job_details=job_resp)
+        else:
+            job_wait = self.module.params.get('job_wait')
+            if job_wait:
+                self._wait_for_job_completion(vcenter_uuid, resp, job_resp, err_msg)
+            else:
+                self.module.exit_json(msg=SUCCESS_UPDATE_SUBMIT_MSG, changed=True,
+                                      job_details=job_resp)
+
+    def _wait_for_job_completion(self, vcenter_uuid, resp, job_resp, err_msg):
+        while job_resp["state"] not in ["COMPLETED", "FAILED"]:
+            time.sleep(3)
+            job_resp, err_msg = self.omevv_update_obj.firmware_update_job_track(vcenter_uuid,
+                                                                                resp.json_data)
+
+        if job_resp["state"] == "COMPLETED":
+            self.module.exit_json(msg=SUCCESS_UPDATE_MSG, changed=True, job_details=job_resp)
+        else:
+            self.module.exit_json(msg=FAILED_UPDATE_MSG, failed=True, error_info=err_msg)
 
 
 def main():

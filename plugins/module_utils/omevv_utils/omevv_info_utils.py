@@ -168,10 +168,8 @@ class OMEVVInfo:
         resp = self.omevv_obj.invoke_request('GET', uri)
         managed_hosts = resp.json_data
         for host in managed_hosts:
-            if hostname:
-                if host['hostName'] == hostname:
-                    return host['id']
-            if servicetag:
-                if host['serviceTag'] == servicetag:
-                    return host['id']
+            if hostname and host['hostName'] == hostname:
+                return host['id']
+            if servicetag and host['serviceTag'] == servicetag:
+                return host['id']
         return None
