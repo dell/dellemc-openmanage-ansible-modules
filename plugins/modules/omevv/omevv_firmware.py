@@ -305,7 +305,7 @@ HOST_SERVICETSAG_MUTUAL_EXCLUSIVE_MSG = "parameters are mutually exclusive: host
 HOST_SERVICETSAG_REQUIRED_MSG = "Either 'host' or 'servicetag' must be specified."
 UPDATE_JOB_PRESENT_MSG = "Update Job already running for group id {group_id} corresponding to " \
                          "cluster {cluster_name}. Wait for its completion and trigger."
-JOB_NAME_ALREADY_EXISTS_MSG = "Job with name {job_name} already exists. Provide different name"
+JOB_NAME_ALREADY_EXISTS_MSG = "Job with name {job_name} already exists. Provide different name."
 HOST_NOT_FOUND_MSG = "Host not found under managed hosts."
 CHANGES_FOUND_MSG = "Changes found to be applied."
 CHANGES_NOT_FOUND_MSG = "No changes found to be applied."
@@ -461,7 +461,7 @@ class UpdateCluster(FirmwareUpdate):
         cluster_name = self.omevv_info_obj.get_cluster_name(vcenter_uuid, host_id)
         cluster_group_id = self.omevv_info_obj.get_group_id_of_cluster(vcenter_uuid, cluster_name)
         update_job_status = self.omevv_update_obj.check_existing_update_job(vcenter_uuid, cluster_group_id)
-        if update_job_status.json_data is not True:
+        if update_job_status is not True:
             self.module.exit_json(msg=UPDATE_JOB_PRESENT_MSG.format(group_id=cluster_group_id, cluster_name=cluster_name), skipped=True)
         payload = self.get_payload_details(host_id=host_id)
         job_name = self.module.params.get('job_name')

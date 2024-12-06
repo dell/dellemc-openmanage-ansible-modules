@@ -651,7 +651,8 @@ class OMEVVFirmwareUpdate:
         uri = TRIGGER_UPDATE_CHECK_URI.format(vcenter_uuid=vcenter_uuid)
         try:
             resp = self.omevv.invoke_request("POST", uri, cluster_group_id)
-            return resp
+            response = resp.json_data
+            return response
         except Exception:
             return None
 
