@@ -71,6 +71,22 @@ options:
   share_domain:
     description: Domain of the share.
     type: str
+  resync:
+    description: Sync the repository profile from the UMP plugin.
+    type: bool
+    default: false
+  username:
+    description:
+    - OpenManage Enterprise or OpenManage Enterprise Modular username.
+    - If I(resync) is true, then I(username) is required.
+    type: str
+    required: false
+  password:
+    description:
+    - OpenManage Enterprise or OpenManage Enterprise Modular password.
+    - If I(resync) is true, then I(password) is required.
+    type: str
+    required: false
 requirements:
   - "python >= 3.9.6"
 author:
@@ -145,6 +161,7 @@ from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv import RestOMEVV, OMEVVAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv_utils.omevv_firmware_utils import OMEVVFirmwareProfile
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
 from ansible.module_utils.common.dict_transformations import recursive_diff
 
 ODATA_REGEX = "(.*?)@odata"
@@ -162,6 +179,10 @@ PROFILE_NOT_FOUND_MSG = "Unable to delete the profile {profile_name} because the
 FAILED_CONN_MSG = "Unable to complete the operation. Please check the connection details."
 CHANGES_FOUND_MSG = "Changes found to be applied."
 CHANGES_NOT_FOUND_MSG = "No changes found to be applied."
+UMP_PLUGIN_NOT_FOUND_MSG = "Update Manager Plug-in (UMP) is not installed. Please install the UMP plugin and retry the operation."
+SUCCESS_RESYNC_MSG = "Successfully resynced the OMEVV firmware repository profile."
+FAILED_RESYNC_MSG = "Unable to resync the OMEVV firmware repository profile."
+NO_OPERATION_SKIP_MSG = "The operation is skipped."
 
 
 class FirmwareRepositoryProfile:
@@ -396,6 +417,59 @@ class ModifyFirmwareRepositoryProfile(FirmwareRepositoryProfile):
             self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, diff={"before": {}, "after": {}}, changed=False)
 
 
+class ResyncFirmwareRepositoryProfile(FirmwareRepositoryProfile):
+
+    def __init__(self, module, rest_obj, rest_ome_obj):
+        self.module = module
+        super().__init__(module, rest_obj)
+        self.rest_obj = rest_obj
+        self.ome_obj = rest_ome_obj
+
+    def check_plugin_availability(self):
+        ump_plugin = 0
+        details = self.ome_obj.invoke_request("GET", "PluginService/Plugins")
+        resp = details.json_data["value"]
+        for item in resp:
+            if item.get("Name") == "Update Manager":
+                ump_plugin = 1
+                break
+        if not ump_plugin:
+            self.module.fail_json(msg=UMP_PLUGIN_NOT_FOUND_MSG, failed=True)
+
+    def diff_check(self, presync_result, postsync_result):
+        diff_dict = {}
+        diff = 0
+        if len(presync_result) != len(postsync_result):
+            diff = 1
+            longer_list = presync_result if len(presync_result) > len(postsync_result) else postsync_result
+            shorter_list = postsync_result if len(presync_result) > len(postsync_result) else presync_result
+            shorter_set = {frozenset(d.items()) for d in shorter_list}
+            after_dict = [d for d in longer_list if frozenset(d.items()) not in shorter_set]
+        if self.module._diff and diff:
+            diff_dict = dict(
+                before=presync_result,
+                after=after_dict
+            )
+        return diff, diff_dict
+
+    def execute(self):
+        self.check_plugin_availability()
+        presync_result = self.omevv_profile_obj.get_firmware_repository_profile()
+        resp = self.omevv_profile_obj.resync_repository_profiles_from_ump()
+        if resp.success:
+            time.sleep(14)
+            postsync_result = self.omevv_profile_obj.get_firmware_repository_profile()
+            diff, diff_dict = self.diff_check(presync_result, postsync_result)
+            if diff and self.module._diff and self.module.params.get('name') is None:
+                self.module.exit_json(msg=SUCCESS_RESYNC_MSG, diff=diff_dict, firmware_repository_profile=postsync_result, changed=True)
+            if diff and self.module.params.get('name') is None:
+                self.module.exit_json(msg=SUCCESS_RESYNC_MSG, firmware_repository_profile=postsync_result, changed=True)
+            if not diff and self.module.params.get('name') is None:
+                self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
+        else:
+            self.module.exit_json(msg=FAILED_RESYNC_MSG, failed=True)
+
+
 class DeleteFirmwareRepositoryProfile(FirmwareRepositoryProfile):
 
     def __init__(self, module, rest_obj):
@@ -430,8 +504,10 @@ class DeleteFirmwareRepositoryProfile(FirmwareRepositoryProfile):
             self.module.exit_json(msg=FAILED_DELETION_MSG, failed=True)
 
     def execute(self):
-        result = self.omevv_profile_obj.get_firmware_repository_profile()
         profile = self.module.params.get('name')
+        if profile is None:
+            self.module.exit_json(msg=NO_OPERATION_SKIP_MSG, skipped=True)
+        result = self.omevv_profile_obj.get_firmware_repository_profile()
         api_response = self.omevv_profile_obj.search_profile_name(result, profile)
         profile_exists = self.omevv_profile_obj.search_profile_name(result, profile)
         if profile_exists and self.module.check_mode and self.module._diff:
@@ -451,6 +527,8 @@ class DeleteFirmwareRepositoryProfile(FirmwareRepositoryProfile):
 
 def main():
     argument_spec = {
+        "username": {"type": 'str'},
+        "password": {"type": 'str', "no_log": True},
         "state": {"type": 'str', "choices": ['present', 'absent'], "default": 'present'},
         "share_username": {"type": 'str'},
         "share_password": {"type": 'str', "no_log": True},
@@ -459,7 +537,8 @@ def main():
         "catalog_path": {"type": 'str'},
         "description": {"type": 'str'},
         "protocol_type": {"type": 'str', "choices": ['NFS', 'CIFS', 'HTTP', 'HTTPS']},
-        "share_domain": {"type": 'str'}
+        "share_domain": {"type": 'str'},
+        "resync": {"type": 'bool', "default": False}
     }
     module = OMEVVAnsibleModule(
         argument_spec=argument_spec,
@@ -468,12 +547,19 @@ def main():
             ["protocol_type", "CIFS", ("catalog_path", "share_username", "share_password")],
             ["protocol_type", "HTTP", ("catalog_path",)],
             ["protocol_type", "HTTPS", ("catalog_path",)],
-            ["state", 'absent', ("name",)]
         ],
         supports_check_mode=True)
     try:
         with RestOMEVV(module.params) as rest_obj:
+            if module.params.get('resync'):
+                ome_module = OmeAnsibleModule(argument_spec,
+                                  supports_check_mode=True)
+                with RestOME(ome_module.params, req_session=True) as rest_ome_obj:
+                    omevv_obj = ResyncFirmwareRepositoryProfile(module, rest_obj, rest_ome_obj)
+                    omevv_obj.execute()
             if module.params.get('state') == 'present':
+                if module.params.get('name') is None:
+                    module.exit_json(msg=NO_OPERATION_SKIP_MSG, skipped=True)
                 omevv_obj = CreateFirmwareRepositoryProfile(module, rest_obj)
             if module.params.get('state') == 'absent':
                 omevv_obj = DeleteFirmwareRepositoryProfile(module, rest_obj)

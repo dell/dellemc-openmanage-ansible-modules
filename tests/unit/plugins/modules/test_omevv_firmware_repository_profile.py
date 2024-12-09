@@ -29,6 +29,7 @@ NO_PROFILE_MSG = "Unable to complete the operation because the '{profile_name}' 
 FAILED_CONN_MSG = "Unable to complete the operation. Please check the connection details."
 FAILED_MSG = "Unable to fetch the firmware repository profile information."
 INVOKE_REQ_KEY = "RestOMEVV.invoke_request"
+OME_INVOKE_REQ = "ansible_collections.dellemc.openmanage.plugins.module_utils.ome.RestOME.invoke_request"
 GET_PAYLOAD_DETAILS = "FirmwareRepositoryProfile.get_payload_details"
 GET_PROFILE_INFO_KEY = "OMEVVFirmwareProfile.get_firmware_repository_profile"
 PERFORM_OPERATION_KEY = "FirmwareRepositoryProfile.execute"
@@ -710,6 +711,148 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
         obj = self.module.ModifyFirmwareRepositoryProfile(
             omevv_connection_firmware_repository_profile, f_module)
         result = obj.output_modify_response(api_response, diff)
+        assert result is None
+
+
+class TestResyncFirmwareRepositoryProfile(FakeAnsibleModule):
+    module = omevv_firmware_repository_profile
+
+    @pytest.fixture
+    def omevv_firmware_repository_profile_mock(self):
+        omevv_obj = MagicMock()
+        return omevv_obj
+    
+    @pytest.fixture
+    def ome_mock(self):
+        ome_obj = MagicMock()
+        return ome_obj
+
+    @pytest.fixture
+    def omevv_connection_firmware_repository_profile(self, mocker, omevv_firmware_repository_profile_mock):
+        omevv_conn_mock = mocker.patch(MODULE_PATH + 'RestOMEVV',
+                                       return_value=omevv_firmware_repository_profile_mock)
+        omevv_conn_mock.return_value.__enter__.return_value = omevv_firmware_repository_profile_mock
+        return omevv_conn_mock
+    
+    @pytest.fixture
+    def ome_connection(self, mocker, ome_mock):
+        ome_conn_mock = mocker.patch(MODULE_PATH + 'RestOME',
+                                       return_value=ome_mock)
+        ome_conn_mock.return_value.__enter__.return_value = ome_mock
+        return ome_conn_mock
+
+    def test_check_plugin_availability(self, mocker, omevv_default_args, omevv_connection_firmware_repository_profile, ome_connection):
+        # Scenario 1: When plugin is available
+        obj = MagicMock()
+        obj.json_data = {
+            "value": [
+                {
+                    "Name": "Update Manager",
+                    "Publisher": "DELL",
+                    "CurrentVersion": "1.5.1.436",
+                    "Description": "Dell OpenManage Update Manager facilitates the creation and management of custom Repositories and Catalogs."
+                }]}
+        mocker.patch(OME_INVOKE_REQ, return_value=obj.json_data)
+        f_module = self.get_module_mock(
+            params=omevv_default_args)
+        obj = self.module.ResyncFirmwareRepositoryProfile(
+            omevv_connection_firmware_repository_profile, ome_connection, f_module)
+        result = obj.check_plugin_availability()
+        assert result is None
+
+        # Scenario 2: When plugin is not available
+        obj = MagicMock()
+        obj.json_data = {"value": []}
+        mocker.patch(OME_INVOKE_REQ, return_value=obj)
+        f_module = self.get_module_mock(
+            params=omevv_default_args)
+        obj = self.module.ResyncFirmwareRepositoryProfile(
+            omevv_connection_firmware_repository_profile, ome_connection, f_module)
+        result = obj.check_plugin_availability()
+        assert result is None
+
+    def test_diff_check(self, mocker, omevv_default_args, omevv_connection_firmware_repository_profile, ome_connection):
+        # Scenario 1: When presync and post sync are different
+        presync_result =[
+            {
+                "id": 1000,
+                "owner": "OMEVV",
+                "profileName": PROFILE_NAME,
+                "profileType": "Firmware",
+                "protocolType": "HTTPS",
+                "sharePath": SHARE_PATH,
+                "status": "Success"
+            }]
+        
+        postsync_result = [
+            {
+                "id": 1000,
+                "owner": "OMEVV",
+                "profileName": PROFILE_NAME,
+                "profileType": "Firmware",
+                "protocolType": "HTTPS",
+                "sharePath": SHARE_PATH,
+                "status": "Success"
+            },
+            {
+                "id": 1086,
+                "owner": "UMP",
+                "profileName": "Check",
+                "profileType": "Firmware",
+                "protocolType": "Not Applicable",
+                "sharePath": "//shared/dell/omc/cifs/idrac/RepositoryStore",
+                "status": "Success"
+            }
+        ]
+        f_module = self.get_module_mock(
+            params=omevv_default_args)
+        obj = self.module.ResyncFirmwareRepositoryProfile(
+            omevv_connection_firmware_repository_profile, ome_connection, f_module)
+        diff, _diff_dict = obj.diff_check(presync_result, postsync_result)
+        assert diff == 1
+
+        # Scenario 2: When presync and post sync are same
+        postsync_result = presync_result
+        f_module = self.get_module_mock(
+            params=omevv_default_args)
+        obj = self.module.ResyncFirmwareRepositoryProfile(
+            omevv_connection_firmware_repository_profile, ome_connection, f_module)
+        diff, _diff_dict = obj.diff_check(presync_result, postsync_result)
+        assert diff == 0
+
+    def test_execute(self, mocker, omevv_default_args, omevv_connection_firmware_repository_profile, ome_connection):
+        # Scenario 1: When plugin is available
+        obj = MagicMock()
+        obj.resp = 200
+        mocker.patch(
+            MODULE_PATH + 'ResyncFirmwareRepositoryProfile.check_plugin_availability', return_value=None)
+        mocker.patch(MODULE_UTILS_PATH +
+                     GET_PROFILE_INFO_KEY, return_value={})
+        mocker.patch(MODULE_UTILS_PATH +
+                     'OMEVVFirmwareProfile.resync_repository_profiles_from_ump', return_value=obj)
+        mocker.patch(MODULE_PATH +
+                     'time.sleep', return_value=None)
+        mocker.patch(MODULE_UTILS_PATH +
+                     GET_PROFILE_INFO_KEY, return_value={})
+        mocker.patch(
+            MODULE_PATH + 'ResyncFirmwareRepositoryProfile.diff_check', return_value=(0, {}))
+        f_module = self.get_module_mock(
+            params=omevv_default_args)
+        obj = self.module.ResyncFirmwareRepositoryProfile(
+            omevv_connection_firmware_repository_profile, ome_connection, f_module)
+        result = obj.execute()
+        assert result is None
+
+        # Scenario 2: When plugin is not available
+        obj = MagicMock()
+        obj.success = False
+        mocker.patch(MODULE_UTILS_PATH +
+                     'OMEVVFirmwareProfile.resync_repository_profiles_from_ump', return_value=obj)
+        f_module = self.get_module_mock(
+            params=omevv_default_args)
+        obj = self.module.ResyncFirmwareRepositoryProfile(
+            omevv_connection_firmware_repository_profile, ome_connection, f_module)
+        result = obj.execute()
         assert result is None
 
 

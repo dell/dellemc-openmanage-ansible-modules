@@ -36,6 +36,7 @@ NO_REPO_PROFILE_MSG = "No repository profiles found."
 INVALID_CLUSTER_NAMES_MSG = "Invalid cluster names: {cluster_names}. Please provide valid cluster(s)."
 NO_CLUSTERS_FOUND_MSG = "No clusters found."
 PROFILE_URI = "/RepositoryProfiles"
+RESYNC_UMP_URI = "/RepositoryProfiles/ResyncRepository"
 TEST_CONNECTION_URI = "/RepositoryProfiles/TestConnection"
 TEST_CONNECTION_HISTORY = "/TestConnectionJobs/{job_id}/ExecutionHistories"
 BASELINE_PROFILE_URI = "/Consoles/{vcenter_uuid}/BaselineProfiles"
@@ -285,6 +286,14 @@ class OMEVVFirmwareProfile:
         """
         resp = self.omevv.invoke_request(
             "DELETE", PROFILE_URI + "/" + str(profile_id))
+        return resp
+    
+    def resync_repository_profiles_from_ump(self):
+        """
+        Resyncs the repository profiles from UMP.
+
+        """
+        resp = self.omevv.invoke_request("POST", RESYNC_UMP_URI, {})
         return resp
 
 
