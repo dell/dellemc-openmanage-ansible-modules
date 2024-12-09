@@ -552,8 +552,7 @@ def main():
     try:
         with RestOMEVV(module.params) as rest_obj:
             if module.params.get('resync'):
-                ome_module = OmeAnsibleModule(argument_spec,
-                                  supports_check_mode=True)
+                ome_module = OmeAnsibleModule(argument_spec, supports_check_mode=True)
                 with RestOME(ome_module.params, req_session=True) as rest_ome_obj:
                     omevv_obj = ResyncFirmwareRepositoryProfile(module, rest_obj, rest_ome_obj)
                     omevv_obj.execute()

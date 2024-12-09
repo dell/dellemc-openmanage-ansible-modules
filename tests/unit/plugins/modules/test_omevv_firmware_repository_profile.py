@@ -721,7 +721,7 @@ class TestResyncFirmwareRepositoryProfile(FakeAnsibleModule):
     def omevv_firmware_repository_profile_mock(self):
         omevv_obj = MagicMock()
         return omevv_obj
-    
+
     @pytest.fixture
     def ome_mock(self):
         ome_obj = MagicMock()
@@ -733,11 +733,11 @@ class TestResyncFirmwareRepositoryProfile(FakeAnsibleModule):
                                        return_value=omevv_firmware_repository_profile_mock)
         omevv_conn_mock.return_value.__enter__.return_value = omevv_firmware_repository_profile_mock
         return omevv_conn_mock
-    
+
     @pytest.fixture
     def ome_connection(self, mocker, ome_mock):
         ome_conn_mock = mocker.patch(MODULE_PATH + 'RestOME',
-                                       return_value=ome_mock)
+                                     return_value=ome_mock)
         ome_conn_mock.return_value.__enter__.return_value = ome_mock
         return ome_conn_mock
 
@@ -773,7 +773,7 @@ class TestResyncFirmwareRepositoryProfile(FakeAnsibleModule):
 
     def test_diff_check(self, mocker, omevv_default_args, omevv_connection_firmware_repository_profile, ome_connection):
         # Scenario 1: When presync and post sync are different
-        presync_result =[
+        presync_result = [
             {
                 "id": 1000,
                 "owner": "OMEVV",
@@ -783,7 +783,7 @@ class TestResyncFirmwareRepositoryProfile(FakeAnsibleModule):
                 "sharePath": SHARE_PATH,
                 "status": "Success"
             }]
-        
+
         postsync_result = [
             {
                 "id": 1000,
