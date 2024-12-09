@@ -29,6 +29,7 @@ NO_PROFILE_MSG = "Unable to complete the operation because the '{profile_name}' 
 FAILED_CONN_MSG = "Unable to complete the operation. Please check the connection details."
 FAILED_MSG = "Unable to fetch the firmware repository profile information."
 INVOKE_REQ_KEY = "RestOMEVV.invoke_request"
+TIME_SLEEP = "time.sleep"
 OME_INVOKE_REQ = "ansible_collections.dellemc.openmanage.plugins.module_utils.ome.RestOME.invoke_request"
 GET_PAYLOAD_DETAILS = "FirmwareRepositoryProfile.get_payload_details"
 GET_PROFILE_INFO_KEY = "OMEVVFirmwareProfile.get_firmware_repository_profile"
@@ -268,7 +269,7 @@ class TestCreateFirmwareRepositoryProfile(FakeAnsibleModule):
         mocker.patch(MODULE_UTILS_PATH +
                      GET_PROFILE_BY_ID, side_effect=[obj3, obj2])
         mocker.patch(MODULE_PATH +
-                     'time.sleep', return_value=None)
+                     TIME_SLEEP, return_value=None)
         f_module = self.get_module_mock(params=omevv_default_args)
         obj = self.module.CreateFirmwareRepositoryProfile(
             omevv_connection_firmware_repository_profile, f_module)
@@ -682,7 +683,7 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
         mocker.patch(MODULE_UTILS_PATH +
                      GET_PROFILE_BY_ID, side_effect=[obj, obj2])
         mocker.patch(MODULE_PATH +
-                     'time.sleep', return_value={})
+                     TIME_SLEEP, return_value={})
         mocker.patch(MODULE_UTILS_PATH +
                      PERFORM_MODIFY_PROFILE, return_value=(obj, ""))
         f_module = self.get_module_mock(
@@ -831,7 +832,7 @@ class TestResyncFirmwareRepositoryProfile(FakeAnsibleModule):
         mocker.patch(MODULE_UTILS_PATH +
                      'OMEVVFirmwareProfile.resync_repository_profiles_from_ump', return_value=obj)
         mocker.patch(MODULE_PATH +
-                     'time.sleep', return_value=None)
+                     TIME_SLEEP, return_value=None)
         mocker.patch(MODULE_UTILS_PATH +
                      GET_PROFILE_INFO_KEY, return_value={})
         mocker.patch(
