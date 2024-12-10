@@ -19,7 +19,7 @@
 
     - name: Including helper file for creating firmware repo profile
       ansible.builtin.include_tasks: ../_pre_req_create.yml
-    
+
     - name: Checking if firmware components is there for downgrade
       ansible.builtin.fail:
         msg: "There is no multiple firmware component available for downgrade."

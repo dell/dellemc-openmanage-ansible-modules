@@ -56,7 +56,7 @@
     validate_certs: false
     image_uri: "{{ omevv_firmware_idrac_upgrade_local_path }}"
   when:
-    - omevv_firmware_idrac_upgrade_local_path is defined and 
+    - omevv_firmware_idrac_upgrade_local_path is defined and
       omevv_firmware_idrac_upgrade_local_path != ''
     - upgrade is defined and upgrade is true
 

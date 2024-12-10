@@ -54,19 +54,3 @@
   when: item.updateAction | lower == 'downgrade' and not item.rebootRequired
   loop: "{{ drift_info.firmware_compliance_info[0].hostComplianceReports[0].componentCompliances }}"
   no_log: true
-
-# - name: Debug upgrade 
-#   ansible.builtin.debug:
-#     var: up_reboot_firm_list
-
-# - name: Debug upgrade 
-#   ansible.builtin.debug:
-#     var: up_non_reboot_firm_list
-
-# - name: Debug downgrade
-#   ansible.builtin.debug:
-#     var: down_reboot_firm_list
-
-# - name: Debug downgrade
-#   ansible.builtin.debug:
-#     var: down_non_reboot_firm_list
