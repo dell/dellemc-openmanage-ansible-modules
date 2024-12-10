@@ -1,0 +1,72 @@
+---
+- name: Pre-requisite - Create a baseline profile
+  dellemc.openmanage.omevv_baseline_profile:
+    hostname: "{{ hostname }}"
+    vcenter_uuid: "{{ uuid }}"
+    vcenter_username: "{{ vcenter_username }}"
+    vcenter_password: "{{ vcenter_password }}"
+    name: "AnsibleTest"
+    repository_profile: "Dell Default Catalog"
+    validate_certs: false
+    description: "Firmware repository profile created by Module"
+    cluster:
+      - "{{ cluster_name }}"
+    days:
+      - "all"
+    time: "03:59"
+  register: create_result
+
+- name: Fetch the firmware drift
+  dellemc.openmanage.omevv_firmware_compliance_info:
+    hostname: "{{ hostname }}"
+    vcenter_username: "{{ vcenter_username }}"
+    vcenter_password: "{{ vcenter_password }}"
+    vcenter_uuid: "{{ uuid }}"
+    validate_certs: false
+    clusters:
+      - cluster_name: "{{ cluster_name }}"
+  register: drift_info
+
+- name: Extracting upgrade reboot required firmware drift
+  ansible.builtin.set_fact:
+    up_reboot_firm_list: "{{ up_firmware_list | default([]) + [item.sourceName] }}"
+  when: item.updateAction | lower == 'upgrade' and item.rebootRequired
+  loop: "{{ drift_info.firmware_compliance_info[0].hostComplianceReports[0].componentCompliances }}"
+  no_log: true
+
+- name: Extracting upgrade non reboot required firmware drift
+  ansible.builtin.set_fact:
+    up_non_reboot_firm_list: "{{ up_firmware_list | default([]) + [item.sourceName] }}"
+  when: item.updateAction | lower == 'upgrade' and not item.rebootRequired
+  loop: "{{ drift_info.firmware_compliance_info[0].hostComplianceReports[0].componentCompliances }}"
+  no_log: true
+
+- name: Extracting downgrade reboot required firmware drift
+  ansible.builtin.set_fact:
+    down_reboot_firm_list: "{{ down_reboot_firm_list | default([]) + [item.sourceName] }}"
+  when: item.updateAction | lower == 'downgrade' and item.rebootRequired
+  loop: "{{ drift_info.firmware_compliance_info[0].hostComplianceReports[0].componentCompliances }}"
+  no_log: true
+
+- name: Extracting downgrade non reboot required firmware drift
+  ansible.builtin.set_fact:
+    down_non_reboot_firm_list: "{{ down_non_reboot_firm_list | default([]) + [item.sourceName] }}"
+  when: item.updateAction | lower == 'downgrade' and not item.rebootRequired
+  loop: "{{ drift_info.firmware_compliance_info[0].hostComplianceReports[0].componentCompliances }}"
+  no_log: true
+
+# - name: Debug upgrade 
+#   ansible.builtin.debug:
+#     var: up_reboot_firm_list
+
+# - name: Debug upgrade 
+#   ansible.builtin.debug:
+#     var: up_non_reboot_firm_list
+
+# - name: Debug downgrade
+#   ansible.builtin.debug:
+#     var: down_reboot_firm_list
+
+# - name: Debug downgrade
+#   ansible.builtin.debug:
+#     var: down_non_reboot_firm_list
