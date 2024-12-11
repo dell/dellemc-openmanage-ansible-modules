@@ -23,7 +23,7 @@ from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_certificates
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 IMPORT_SSL_CERTIFICATE = "#DelliDRACCardService.ImportSSLCertificate"
 EXPORT_SSL_CERTIFICATE = "#DelliDRACCardService.ExportSSLCertificate"
@@ -311,12 +311,13 @@ class TestIdracCertificates(FakeAnsibleModule):
         idrac, value = MagicMock(), MagicMock()
         value.json_data = {"CSRString": "value"}
         err_info = '{"error":{"@Message.ExtendedInfo":[{"MessageId": "IDRAC.2.9.SYS537"}]}}'
+
         def mock_invoke_request(*args, **kwargs):
             if args[1] == 'POST':
                 return value
             else:
                 raise HTTPError('https://testhost.com', 503, "http error message",
-                                 {"accept-type": "application/json"}, StringIO(err_info))
+                                {"accept-type": "application/json"}, StringIO(err_info))
         idrac.invoke_request = MagicMock(side_effect=mock_invoke_request)
         mocker.patch(MODULE_PATH + 'time.sleep', return_value=None)
         idrac_default_args.update({"timeout": 120})
