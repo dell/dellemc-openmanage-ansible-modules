@@ -24,6 +24,7 @@ from ansible.module_utils._text import to_text
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.omevv_firmware_repository_profile.'
 MODULE_UTILS_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.omevv_utils.omevv_firmware_utils.'
+OME_UTILS_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.ome.'
 SUCCESS_MSG = "Successfully retrieved the firmware repository profile information."
 NO_PROFILE_MSG = "Unable to complete the operation because the '{profile_name}' is not a valid 'profile_name'."
 FAILED_CONN_MSG = "Unable to complete the operation. Please check the connection details."
@@ -207,7 +208,7 @@ class TestCreateFirmwareRepositoryProfile(FakeAnsibleModule):
         obj = self.module.CreateFirmwareRepositoryProfile(
             omevv_connection_firmware_repository_profile, f_module)
         result = obj.diff_mode_check(payload)
-        assert result
+        assert result is None
 
         # Scenario 2: payload without shareCredential
         payload = {
@@ -222,7 +223,7 @@ class TestCreateFirmwareRepositoryProfile(FakeAnsibleModule):
         obj = self.module.CreateFirmwareRepositoryProfile(
             omevv_connection_firmware_repository_profile, f_module)
         result = obj.diff_mode_check(payload)
-        assert result
+        assert result is None
 
     def test_create_firmware_repository_profile(self, omevv_connection_firmware_repository_profile, omevv_default_args, mocker):
         obj = MagicMock()
@@ -575,9 +576,6 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
                 "domain": ""
             }
         }
-        diff = {
-            'after': {'profileName': 'test', 'sharePath': SHARE_PATH},
-            'before': {}}
         mocker.patch(
             MODULE_PATH + PERFORM_TRIM, return_value={})
         f_module = self.get_module_mock(
@@ -585,7 +583,7 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
         obj = self.module.ModifyFirmwareRepositoryProfile(
             omevv_connection_firmware_repository_profile, f_module)
         result = obj.rec_diff(api_response, payload)
-        assert result == diff
+        assert result is None
 
     def test_modify_firmware_repository_profile(self, mocker, omevv_default_args, omevv_connection_firmware_repository_profile):
         obj = MagicMock()
@@ -679,7 +677,6 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
             "description": DESCRIPTION,
             "status": "Success"
         }
-        diff = {'profileName': 'Dell Default'}
         mocker.patch(MODULE_UTILS_PATH +
                      GET_PROFILE_BY_ID, side_effect=[obj, obj2])
         mocker.patch(MODULE_PATH +
@@ -690,7 +687,7 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
             params=omevv_default_args)
         obj = self.module.ModifyFirmwareRepositoryProfile(
             omevv_connection_firmware_repository_profile, f_module)
-        result = obj.output_modify_response(api_response, diff)
+        result = obj.output_modify_response(api_response)
         assert result is None
 
         # Scenario 2: When modification is not successful
@@ -711,7 +708,7 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
             params=omevv_default_args)
         obj = self.module.ModifyFirmwareRepositoryProfile(
             omevv_connection_firmware_repository_profile, f_module)
-        result = obj.output_modify_response(api_response, diff)
+        result = obj.output_modify_response(api_response)
         assert result is None
 
 
@@ -753,7 +750,7 @@ class TestResyncFirmwareRepositoryProfile(FakeAnsibleModule):
                     "CurrentVersion": "1.5.1.436",
                     "Description": "Dell OpenManage Update Manager facilitates the creation and management of custom Repositories and Catalogs."
                 }]}
-        mocker.patch(OME_INVOKE_REQ, return_value=obj.json_data)
+        mocker.patch(OME_INVOKE_REQ, return_value=obj)
         f_module = self.get_module_mock(
             params=omevv_default_args)
         obj = self.module.ResyncFirmwareRepositoryProfile(
@@ -772,8 +769,21 @@ class TestResyncFirmwareRepositoryProfile(FakeAnsibleModule):
         result = obj.check_plugin_availability()
         assert result is None
 
-    def test_diff_check(self, mocker, omevv_default_args, omevv_connection_firmware_repository_profile, ome_connection):
-        # Scenario 1: When presync and post sync are different
+    def test_check_mode_support(self, mocker, omevv_default_args, omevv_connection_firmware_repository_profile, ome_connection):
+        # Scenario 1: When changes are found to be applied
+        obj = MagicMock()
+        obj.json_data = {
+            "value": [
+                {
+                    "Id": 10022,
+                    "Name": "vSAN Catalog",
+                    "Description": "null",
+                    "DateModified": "2024-12-10 15:14:45.061",
+                    "Owner": "admin",
+                    "LastModifiedBy": "admin",
+                    "CatalogType": "vSAN Catalog for Enterprise Servers",
+                }
+            ]}
         presync_result = [
             {
                 "id": 1000,
@@ -787,39 +797,66 @@ class TestResyncFirmwareRepositoryProfile(FakeAnsibleModule):
 
         postsync_result = [
             {
-                "id": 1000,
-                "owner": "OMEVV",
-                "profileName": PROFILE_NAME,
-                "profileType": "Firmware",
-                "protocolType": "HTTPS",
-                "sharePath": SHARE_PATH,
-                "status": "Success"
-            },
-            {
                 "id": 1086,
                 "owner": "UMP",
-                "profileName": "Check",
+                "profileName": "vSAN Catalog",
                 "profileType": "Firmware",
                 "protocolType": "Not Applicable",
                 "sharePath": "//shared/dell/omc/cifs/idrac/RepositoryStore",
                 "status": "Success"
             }
         ]
+        mocker.patch(MODULE_UTILS_PATH +
+                     GET_PROFILE_INFO_KEY, return_value=presync_result)
+        mocker.patch(OME_INVOKE_REQ, return_value=obj)
+        mocker.patch(MODULE_PATH +
+                     'ResyncFirmwareRepositoryProfile.remove_keys', return_value=None)
         f_module = self.get_module_mock(
             params=omevv_default_args)
         obj = self.module.ResyncFirmwareRepositoryProfile(
             omevv_connection_firmware_repository_profile, ome_connection, f_module)
-        diff, _diff_dict = obj.diff_check(presync_result, postsync_result)
-        assert diff == 1
+        result = obj.check_mode_support()
+        assert result is None
 
-        # Scenario 2: When presync and post sync are same
-        postsync_result = presync_result
+        # Scenario 2: When no changes are found to be applied
+        mocker.patch(MODULE_UTILS_PATH +
+                     GET_PROFILE_INFO_KEY, return_value=postsync_result)
         f_module = self.get_module_mock(
             params=omevv_default_args)
         obj = self.module.ResyncFirmwareRepositoryProfile(
             omevv_connection_firmware_repository_profile, ome_connection, f_module)
-        diff, _diff_dict = obj.diff_check(presync_result, postsync_result)
-        assert diff == 0
+        result = obj.check_mode_support()
+        assert result is None
+
+    def test_remove_keys(self, mocker, omevv_default_args, omevv_connection_firmware_repository_profile, ome_connection):
+        ump_profiles = [
+            {
+                "@odata.type": "#UpdateManagementService.Repository",
+                "@odata.id": "/api/UpdateManagementService/Repositories(10024)",
+                "UrgentComponentsCount": 0,
+                "RecommendedComponentsCount": 5,
+                "OptionalComponentsCount": 3,
+                "BaselineId": "133",
+                "BaselineName": "Check",
+                "BaselineDescription": "null",
+                "BaselineVersion": "null",
+                "RefreshedVersion": "null"
+            }
+        ]
+        f_module = self.get_module_mock(
+            params=omevv_default_args)
+        obj = self.module.ResyncFirmwareRepositoryProfile(
+            omevv_connection_firmware_repository_profile, ome_connection, f_module)
+        result = obj.remove_keys(ump_profiles, ump_profiles)
+        assert result is None
+
+    def test_sort_profiles(self, mocker, omevv_default_args, omevv_connection_firmware_repository_profile, ome_connection):
+        f_module = self.get_module_mock(
+            params=omevv_default_args)
+        obj = self.module.ResyncFirmwareRepositoryProfile(
+            omevv_connection_firmware_repository_profile, ome_connection, f_module)
+        result = obj.sort_profiles([])
+        assert result == []
 
     def test_execute(self, mocker, omevv_default_args, omevv_connection_firmware_repository_profile, ome_connection):
         # Scenario 1: When plugin is available
@@ -835,8 +872,8 @@ class TestResyncFirmwareRepositoryProfile(FakeAnsibleModule):
                      TIME_SLEEP, return_value=None)
         mocker.patch(MODULE_UTILS_PATH +
                      GET_PROFILE_INFO_KEY, return_value={})
-        mocker.patch(
-            MODULE_PATH + 'ResyncFirmwareRepositoryProfile.diff_check', return_value=(0, {}))
+        # mocker.patch(
+        #     MODULE_PATH + 'ResyncFirmwareRepositoryProfile.diff_check', return_value=(0, {}))
         f_module = self.get_module_mock(
             params=omevv_default_args)
         obj = self.module.ResyncFirmwareRepositoryProfile(
@@ -886,7 +923,7 @@ class TestDeleteFirmwareRepositoryProfile(FakeAnsibleModule):
         obj = self.module.DeleteFirmwareRepositoryProfile(
             omevv_connection_firmware_repository_profile, f_module)
         result = obj.diff_mode_check(payload)
-        assert result
+        assert result is None
 
     def test_delete_firmware_repository_profile(self, mocker, omevv_default_args, omevv_connection_firmware_repository_profile):
         obj = MagicMock()

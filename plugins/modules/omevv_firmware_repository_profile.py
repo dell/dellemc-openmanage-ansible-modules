@@ -170,10 +170,13 @@ XML_EXT = ".xml"
 GZ_EXT = ".gz"
 MESSAGE_EXTENDED_INFO = "@Message.ExtendedInfo"
 SUCCESS_CREATION_MSG = "Successfully created the OMEVV firmware repository profile."
+SUCCESS_CREATION_RESYNC_MSG = "Successfully resynced and created the OMEVV firmware repository profile."
 FAILED_CREATION_MSG = "Unable to create the OMEVV firmware repository profile."
 SUCCESS_MODIFY_MSG = "Successfully modified the OMEVV firmware repository profile."
+SUCCESS_MODIFY_RESYNC_MSG = "Successfully resynced and modified the OMEVV firmware repository profile."
 FAILED_MODIFY_MSG = "Unable to modify the OMEVV firmware repository profile"
 SUCCESS_DELETION_MSG = "Successfully deleted the OMEVV firmware repository profile."
+SUCCESS_DELETION_RESYNC_MSG = "Successfully resynced and deleted the OMEVV firmware repository profile."
 FAILED_DELETION_MSG = "Unable to delete the OMEVV firmware repository profile."
 PROFILE_NOT_FOUND_MSG = "Unable to delete the profile {profile_name} because the profile name is invalid. Enter a valid profile name and retry the operation."
 FAILED_CONN_MSG = "Unable to complete the operation. Please check the connection details."
@@ -186,6 +189,10 @@ NO_OPERATION_SKIP_MSG = "The operation is skipped."
 
 
 class FirmwareRepositoryProfile:
+    diff_dict = {
+        'before': {},
+        'after': {}
+    }
 
     def __init__(self, module, rest_obj):
         self.module = module
@@ -245,21 +252,16 @@ class CreateFirmwareRepositoryProfile(FirmwareRepositoryProfile):
         super().__init__(module, rest_obj)
 
     def diff_mode_check(self, payload):
-        diff = {}
         if "shareCredential" in payload:
             payload.pop("shareCredential")
-        diff = dict(
-            before={},
-            after=payload
-        )
-        return diff
+        self.diff_dict['before'].update({})
+        self.diff_dict['after'].update(payload)
 
     def create_firmware_repository_profile(self):
-        diff = {}
         payload = self.get_payload_details()
         res = FirmwareRepositoryProfile.test_connection(self, None, None)
         if res:
-            diff = self.diff_mode_check(payload)
+            self.diff_mode_check(payload)
             resp, _err_msg = self.omevv_profile_obj.create_firmware_repository_profile(
                 name=self.module.params.get('name'),
                 catalog_path=self.module.params.get('catalog_path'),
@@ -270,18 +272,25 @@ class CreateFirmwareRepositoryProfile(FirmwareRepositoryProfile):
                 share_domain=self.module.params.get('share_domain')
             )
             if resp.success:
-                profile_resp = self.omevv_profile_obj.get_firmware_repository_profile_by_id(resp.json_data)
-                while profile_resp.json_data["status"] != "Success" and profile_resp.json_data["status"] != "Failed":
-                    time.sleep(3)
-                    profile_resp = self.omevv_profile_obj.get_firmware_repository_profile_by_id(resp.json_data)
-                if self.module._diff and profile_resp.json_data["status"] == "Success":
-                    self.module.exit_json(msg=SUCCESS_CREATION_MSG, profile_info=profile_resp.json_data, diff=diff, changed=True)
-                elif profile_resp.json_data["status"] == "Success":
-                    self.module.exit_json(msg=SUCCESS_CREATION_MSG, profile_info=profile_resp.json_data, changed=True)
-                else:
-                    self.module.exit_json(msg=FAILED_CREATION_MSG, profile_info=profile_resp.json_data, failed=True)
+                self.diff_mode_behaviour(resp)
             else:
                 self.module.exit_json(msg=FAILED_CREATION_MSG, failed=True)
+
+    def diff_mode_behaviour(self, resp):
+        profile_resp = self.omevv_profile_obj.get_firmware_repository_profile_by_id(resp.json_data)
+        while profile_resp.json_data["status"] != "Success" and profile_resp.json_data["status"] != "Failed":
+            time.sleep(3)
+            profile_resp = self.omevv_profile_obj.get_firmware_repository_profile_by_id(resp.json_data)
+        if self.module._diff and profile_resp.json_data["status"] == "Success" and self.module.params.get('resync'):
+            self.module.exit_json(msg=SUCCESS_CREATION_RESYNC_MSG, profile_info=profile_resp.json_data, diff=self.diff_dict, changed=True)
+        if self.module._diff and profile_resp.json_data["status"] == "Success":
+            self.module.exit_json(msg=SUCCESS_CREATION_MSG, profile_info=profile_resp.json_data, diff=self.diff_dict, changed=True)
+        if profile_resp.json_data["status"] == "Success" and self.module.params.get('resync'):
+            self.module.exit_json(msg=SUCCESS_CREATION_RESYNC_MSG, profile_info=profile_resp.json_data, changed=True)
+        if profile_resp.json_data["status"] == "Success":
+            self.module.exit_json(msg=SUCCESS_CREATION_MSG, profile_info=profile_resp.json_data, changed=True)
+        else:
+            self.module.exit_json(msg=FAILED_CREATION_MSG, profile_info=profile_resp.json_data, failed=True)
 
     def execute(self):
         modified_payload = {}
@@ -299,8 +308,8 @@ class CreateFirmwareRepositoryProfile(FirmwareRepositoryProfile):
             new_profile = diff and (diff[0] != diff[1])
         if not profile_exists and self.module.check_mode and self.module._diff:
             FirmwareRepositoryProfile.test_connection(self, None, None)
-            diff = self.diff_mode_check(payload)
-            self.module.exit_json(msg=CHANGES_FOUND_MSG, diff=diff, changed=True)
+            self.diff_mode_check(payload)
+            self.module.exit_json(msg=CHANGES_FOUND_MSG, diff=self.diff_dict, changed=True)
         if not profile_exists and self.module.check_mode:
             self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
         if not profile_exists and not self.module.check_mode:
@@ -345,17 +354,12 @@ class ModifyFirmwareRepositoryProfile(FirmwareRepositoryProfile):
         return trimmed_resp
 
     def rec_diff(self, api_response, payload):
-        diff = {}
         trim = self.trim_api_response(api_response, payload)
         if payload.get("shareCredential") is not None:
             del payload["shareCredential"]
         output = recursive_diff(trim, payload)
-        if self.module._diff:
-            diff = dict(
-                before=output[0],
-                after=output[1]
-            )
-        return diff
+        self.diff_dict['before'].update(output[0])
+        self.diff_dict['after'].update(output[1])
 
     def modify_firmware_repository_profile(self, api_response, module_response):
         protocol_type = api_response["protocolType"]
@@ -363,7 +367,7 @@ class ModifyFirmwareRepositoryProfile(FirmwareRepositoryProfile):
         res = FirmwareRepositoryProfile.test_connection(self, protocol_type, catalog_path)
         name = self.module.params.get('new_name') if self.module.params.get('new_name') is not None else self.module.params.get('name')
         if res:
-            diff = self.rec_diff(api_response, module_response)
+            self.rec_diff(api_response, module_response)
             resp, _err_msg = self.omevv_profile_obj.modify_firmware_repository_profile(
                 api_response["id"],
                 name=name,
@@ -374,18 +378,22 @@ class ModifyFirmwareRepositoryProfile(FirmwareRepositoryProfile):
                 share_domain=self.module.params.get('share_domain')
             )
             if resp.success:
-                self.output_modify_response(api_response, diff)
+                self.output_modify_response(api_response)
             else:
                 self.module.exit_json(msg=FAILED_MODIFY_MSG, failed=True)
 
-    def output_modify_response(self, api_response, diff):
+    def output_modify_response(self, api_response):
         profile_resp = self.omevv_profile_obj.get_firmware_repository_profile_by_id(api_response["id"])
         while profile_resp.json_data["status"] != "Success" and profile_resp.json_data["status"] != "Failed":
             time.sleep(3)
             profile_resp = self.omevv_profile_obj.get_firmware_repository_profile_by_id(api_response["id"])
+        if self.module._diff and profile_resp.json_data["status"] == "Success" and self.module.params.get('resync'):
+            self.module.exit_json(msg=SUCCESS_MODIFY_RESYNC_MSG, profile_info=profile_resp.json_data, diff=self.diff_dict, changed=True)
         if self.module._diff and profile_resp.json_data["status"] == "Success":
-            self.module.exit_json(msg=SUCCESS_MODIFY_MSG, profile_info=profile_resp.json_data, diff=diff, changed=True)
-        elif profile_resp.json_data["status"] == "Success":
+            self.module.exit_json(msg=SUCCESS_MODIFY_MSG, profile_info=profile_resp.json_data, diff=self.diff_dict, changed=True)
+        if profile_resp.json_data["status"] == "Success" and self.module.params.get('resync'):
+            self.module.exit_json(msg=SUCCESS_MODIFY_RESYNC_MSG, profile_info=profile_resp.json_data, changed=True)
+        if profile_resp.json_data["status"] == "Success":
             self.module.exit_json(msg=SUCCESS_MODIFY_MSG, profile_info=profile_resp.json_data, changed=True)
         else:
             self.module.exit_json(msg=FAILED_MODIFY_MSG, profile_info=profile_resp.json_data, failed=True)
@@ -436,38 +444,77 @@ class ResyncFirmwareRepositoryProfile(FirmwareRepositoryProfile):
         if not ump_plugin:
             self.module.fail_json(msg=UMP_PLUGIN_NOT_FOUND_MSG, failed=True)
 
-    def diff_check(self, presync_result, postsync_result):
-        diff_dict = {}
-        diff = 0
-        if len(presync_result) != len(postsync_result):
-            diff = 1
-            longer_list = presync_result if len(presync_result) > len(postsync_result) else postsync_result
-            shorter_list = postsync_result if len(presync_result) > len(postsync_result) else presync_result
-            shorter_set = {frozenset(d.items()) for d in shorter_list}
-            after_dict = [d for d in longer_list if frozenset(d.items()) not in shorter_set]
-        if self.module._diff and diff:
-            diff_dict = dict(
-                before=presync_result,
-                after=after_dict
-            )
-        return diff, diff_dict
+    def check_mode_support(self):
+        omevv_profiles = self.omevv_profile_obj.get_firmware_repository_profile()
+        res = self.ome_obj.invoke_request("GET", "UpdateManagementService/Repositories")
+        ump_profiles = res.json_data["value"]
+        relevant_catalog_types = {"ESXi Catalog for Enterprise Servers", "vSAN Catalog for Enterprise Servers"}
+        filtered_ump_profiles = [p for p in ump_profiles if p["CatalogType"] in relevant_catalog_types]
+        not_avail = []
+        omevv_profile_names = {p["profileName"] for p in omevv_profiles}
+        for profile in filtered_ump_profiles:
+            if profile["Name"] not in omevv_profile_names:
+                not_avail.append(profile)
+        self.remove_keys(filtered_ump_profiles, not_avail)
+        if len(not_avail) > 0 and self.module._diff:
+            self.diff_dict['after'].update({"ump_profiles": not_avail})
+            self.module.exit_json(msg=CHANGES_FOUND_MSG, diff=self.diff_dict, changed=True)
+        if len(not_avail) > 0:
+            self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
+        if len(not_avail) == 0 and self.module._diff:
+            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, diff={"before": {}, "after": {}}, changed=False)
+        if len(not_avail) == 0:
+            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
+
+    def remove_keys(self, filtered_ump_profiles, not_avail):
+        keys_to_remove = {"@odata.type", "@odata.id", "BaseCatalogID", "BaseCatalogName", "AvailableVersions", "DevicesRepo", "UrgentComponentsCount",
+                          "RecommendedComponentsCount", "OptionalComponentsCount", "BaselineId", "BaselineName", "BaselineDescription", "BaselineVersion",
+                          "RefreshedVersion", "Details@odata.navigationLink", "Size", "Label", "ComponentsCount", "AvailableCatalog"}
+        for profile in not_avail:
+            for key in keys_to_remove:
+                if key in profile:
+                    del profile[key]
+        for profile in filtered_ump_profiles:
+            for key in keys_to_remove:
+                if key in profile:
+                    del profile[key]
+
+    def sort_profiles(self, profiles):
+        return sorted(profiles, key=lambda x: x["id"])
 
     def execute(self):
         self.check_plugin_availability()
+        if self.module.check_mode:
+            self.check_mode_support()
         presync_result = self.omevv_profile_obj.get_firmware_repository_profile()
         resp = self.omevv_profile_obj.resync_repository_profiles_from_ump()
         if resp.success:
             time.sleep(14)
             postsync_result = self.omevv_profile_obj.get_firmware_repository_profile()
-            diff, diff_dict = self.diff_check(presync_result, postsync_result)
-            if diff and self.module._diff and self.module.params.get('name') is None:
-                self.module.exit_json(msg=SUCCESS_RESYNC_MSG, diff=diff_dict, firmware_repository_profile=postsync_result, changed=True)
-            if diff and self.module.params.get('name') is None:
-                self.module.exit_json(msg=SUCCESS_RESYNC_MSG, firmware_repository_profile=postsync_result, changed=True)
-            if not diff and self.module.params.get('name') is None:
-                self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
+            presync_ump_profiles = [profile for profile in presync_result if profile.get("owner") == "UMP"]
+            postsync_ump_profiles = [profile for profile in postsync_result if profile.get("owner") == "UMP"]
+            presync_ump_profiles = self.sort_profiles(presync_ump_profiles)
+            postsync_ump_profiles = self.sort_profiles(postsync_ump_profiles)
+            difference = [item for item in postsync_ump_profiles if item not in presync_ump_profiles]
+            diff = presync_ump_profiles != postsync_ump_profiles
+            self.diff_mode_behaviour(presync_ump_profiles, postsync_ump_profiles, difference, diff)
         else:
             self.module.exit_json(msg=FAILED_RESYNC_MSG, failed=True)
+
+    def diff_mode_behaviour(self, presync_ump_profiles, postsync_ump_profiles, difference, diff):
+        if diff and self.module._diff and self.module.params.get('name') is None:
+            self.diff_dict['after'].update({"ump_profiles": difference})
+            self.module.exit_json(msg=SUCCESS_RESYNC_MSG, diff=self.diff_dict, firmware_repository_profile=difference, changed=True)
+        if diff and self.module.params.get('name') is None:
+            self.module.exit_json(msg=SUCCESS_RESYNC_MSG, firmware_repository_profile=postsync_ump_profiles, changed=True)
+        if diff and self.module._diff:
+            self.diff_dict['after'].update({"ump_profiles": difference})
+        if not diff and self.module.params.get('name') is None and self.module._diff:
+            self.diff_dict['before'].update({"ump_profiles": presync_ump_profiles})
+            self.diff_dict['after'].update({"ump_profiles": postsync_ump_profiles})
+            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, diff=self.diff_dict, changed=False)
+        if not diff and self.module.params.get('name') is None:
+            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
 
 
 class DeleteFirmwareRepositoryProfile(FirmwareRepositoryProfile):
@@ -478,27 +525,24 @@ class DeleteFirmwareRepositoryProfile(FirmwareRepositoryProfile):
         super().__init__(module, rest_obj)
 
     def diff_mode_check(self, payload):
-        diff = {}
         diff_dict = {}
         diff_dict["profileName"] = payload["profileName"]
         diff_dict["description"] = payload["description"]
         diff_dict["profileType"] = payload["profileType"]
         diff_dict["sharePath"] = payload["sharePath"]
         diff_dict["protocolType"] = payload["protocolType"]
-        if self.module._diff:
-            diff = dict(
-                before=diff_dict,
-                after={}
-            )
-        return diff
+        self.diff_dict['before'].update(diff_dict)
 
     def delete_firmware_repository_profile(self, api_response):
-        diff = {}
-        diff = self.diff_mode_check(api_response)
+        self.diff_mode_check(api_response)
         resp = self.omevv_profile_obj.delete_firmware_repository_profile(api_response["id"])
         if resp.success:
+            if self.module._diff and self.module.params.get('resync'):
+                self.module.exit_json(msg=SUCCESS_DELETION_RESYNC_MSG, diff=self.diff_dict, changed=True)
+            if self.module._diff and self.module.params.get('resync'):
+                self.module.exit_json(msg=SUCCESS_DELETION_RESYNC_MSG, diff=self.diff_dict, changed=True)
             if self.module._diff:
-                self.module.exit_json(msg=SUCCESS_DELETION_MSG, diff=diff, changed=True)
+                self.module.exit_json(msg=SUCCESS_DELETION_MSG, changed=True)
             self.module.exit_json(msg=SUCCESS_DELETION_MSG, changed=True)
         else:
             self.module.exit_json(msg=FAILED_DELETION_MSG, failed=True)
