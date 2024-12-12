@@ -522,6 +522,7 @@ def perform_operation_and_download_csr(idrac, cert_url, method, cert_payload):
         json_err = json.load(err)
         if err.code == 503 and json_err.get("error").get("@Message.ExtendedInfo")[0].get("MessageId") == "IDRAC.2.9.SYS537":
             body = {'CertificateCollection': {'@odata.id': '/redfish/v1/Managers/iDRAC.Embedded.1/NetworkProtocol/HTTPS/Certificates'}}
+            # Adding 60 secs sleep time because iDRAC takes time to generate CSR for 4096 key size
             time.sleep(60)
             resp = idrac.invoke_request(GET_LAST_GENERATED_CSR, "POST", data=body)
     return resp
