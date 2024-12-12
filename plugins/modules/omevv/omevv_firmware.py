@@ -32,7 +32,7 @@ options:
   date_time:
     description:
       - Date and time when the job must run. This is applicable when I(run_now) is C(false).
-      - The format is YYYY-MM-DDThh:mm:ss<offset>.
+      - The supported format is YYYY-MM-DDThh:mm:ss<offset>.
     type: str
   delete_job_queue:
     description:
@@ -477,7 +477,8 @@ class UpdateCluster(FirmwareUpdate):
             self.handle_firmware_update(vcenter_uuid, cluster_group_id, payload, parameters,
                                         diff_before, diff_after)
         else:
-            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
+            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG,
+                                  diff={"before": diff_before, "after": diff_after}, changed=False)
 
     def get_host_from_parameters(self, vcenter_uuid, parameters):
         target = self.get_target(parameters['targets'])
@@ -521,8 +522,12 @@ class UpdateCluster(FirmwareUpdate):
     def is_firmware_update_needed(self, vcenter_uuid, cluster_group_id, host_id, target):
         before_dict = {}
         after_dict = {}
+        before_no_change_dict = {}
+        after_no_change_dict = {}
         diff_before = json.dumps(before_dict)
         diff_after = json.dumps(after_dict)
+        diff_no_change_before = json.dumps(before_no_change_dict)
+        diff_no_change_after = json.dumps(after_no_change_dict)
         firmware_drift_info = self.omevv_info_obj.get_firmware_drift_info_for_single_host(
             vcenter_uuid, cluster_group_id, host_id)
         current_firmware_components = firmware_drift_info.get(
@@ -531,8 +536,6 @@ class UpdateCluster(FirmwareUpdate):
         required_firmware_components = target[0]['firmware_components']
 
         firmware_update_needed = False
-        before_dict = {}
-        after_dict = {}
 
         for component in required_firmware_components:
             for current_component in current_firmware_components:
@@ -542,12 +545,21 @@ class UpdateCluster(FirmwareUpdate):
                     after_dict[current_component["sourceName"]] = {
                         "firmwareversion": current_component["baselineValue"]}
                     firmware_update_needed = True
+                elif current_component['sourceName'] == component and current_component['driftStatus'] == 'Compliant':
+                    before_no_change_dict[current_component["sourceName"]] = {
+                        "firmwareversion": current_component["currentValue"]}
+                    after_no_change_dict[current_component["sourceName"]] = {
+                        "firmwareversion": current_component["baselineValue"]}
 
         if firmware_update_needed:
             diff_before = before_dict
             diff_after = after_dict
+            return firmware_update_needed, diff_before, diff_after
 
-        return firmware_update_needed, diff_before, diff_after
+        else:
+            diff_no_change_before = before_no_change_dict
+            diff_no_change_after = after_no_change_dict
+            return firmware_update_needed, diff_no_change_before, diff_no_change_after
 
     def is_update_job_allowed(self, vcenter_uuid, cluster_group_id, cluster_name):
         update_job_status = self.omevv_update_obj.check_existing_update_job(vcenter_uuid,
