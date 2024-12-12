@@ -26,12 +26,12 @@
           - invalid_unsupported_argument.failed
           - not invalid_unsupported_argument.changed
           - 'invalid_unsupported_argument.msg == "Unsupported parameters for
-            (dellemc.openmanage.omevv_firmware_repository_profile) module:
-            unsupported_argument. Supported parameters include: ca_path,
-            catalog_path, description, hostname, name, new_name, port,
-            protocol_type, share_domain, share_password, share_username, state,
-            timeout, validate_certs, vcenter_password, vcenter_username,
-            vcenter_uuid."'
+            (dellemc.openmanage.omevv_firmware_repository_profile)
+            module: unsupported_argument. Supported parameters include:
+            ca_path, catalog_path, description, hostname, name, new_name,
+            password, port, protocol_type, resync, share_domain,
+            share_password, share_username, state, timeout, username,
+            validate_certs, vcenter_password, vcenter_username, vcenter_uuid."'
 
     - name: Negative - unreachable host
       dellemc.openmanage.omevv_firmware_repository_profile:
@@ -184,6 +184,29 @@
           - not invalid_uuid.changed
           - 'invalid_uuid.msg == "vCenter with UUID invalid is not
             registered."'
+
+    - name: Negative - invalid Resync
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        hostname: "192.168.0.1"
+        vcenter_uuid: "xxxxx"
+        vcenter_username: "username"
+        vcenter_password: "password"
+        resync: invalid
+      register: invalid_resync
+      ignore_errors: true
+
+    - name: Set fact for invalid resync message
+      ansible.builtin.set_fact:
+        invalid_msg: "argument 'resync' is of type <class 'str'> and we were
+        unable to convert to bool: The value 'invalid' is not a valid
+        boolean.  Valid booleans include:"
+
+    - name: Verify task status - Negative - invalid Resync
+      ansible.builtin.assert:
+        that:
+          - invalid_resync.failed
+          - not invalid_resync.changed
+          - invalid_msg in invalid_resync.msg
 
   module_defaults:
     dellemc.openmanage.omevv_firmware_repository_profile:
