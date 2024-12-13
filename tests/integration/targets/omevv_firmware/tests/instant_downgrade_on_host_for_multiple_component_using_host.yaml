@@ -15,7 +15,7 @@
     - name: Fetch pre-requisite details
       ansible.builtin.include_tasks: ../_helper.yml
       vars:
-        downgrade: true
+        upgrade: true
 
     - name: Including helper file for creating firmware repo profile
       ansible.builtin.include_tasks: ../_pre_req_create.yml
@@ -23,7 +23,7 @@
     - name: Checking if firmware components is there for downgrade
       ansible.builtin.fail:
         msg: "There is no multiple firmware component available for downgrade."
-      when: down_non_reboot_firm_list is undefined
+      when: down_firm_list is undefined
 
     - name: Instant downgrade on cluster for multiple non reboot component
         (Check mode and Diff mode)
@@ -40,8 +40,8 @@
         reset_idrac: true
         reboot_options: FORCEREBOOT
         targets:
-          - host: "{{ host }}"
-            firmware_components: "{{ down_non_reboot_firm_list }}"
+          - host: "{{ host_ip_list[0] }}"
+            firmware_components: "{{ down_firm_list }}"
       register: cm_changes
       check_mode: true
       diff: true
@@ -52,8 +52,8 @@
         that:
           - cm_changes.changed
           - cm_changes.msg == "Changes found to be applied."
-          - cm_changes.diff.before[up_reboot_firm_list[0]].firmwareversion >
-            cm_changes.diff.after[up_reboot_firm_list[0]].firmwareversion
+          - cm_changes.diff.before[down_firm_list[0]].firmwareversion >
+            cm_changes.diff.after[down_firm_list[0]].firmwareversion
 
     - name: Instant downgrade on cluster for multiple non reboot component.
         (Normal and Diff Mode)
@@ -68,9 +68,9 @@
         that:
           - down_result.changed
           - down_result.msg ==
-            "Successfully Instantd the firmware update job."
-          - down_result.diff.before[up_reboot_firm_list[0]].firmwareversion >
-            down_result.diff.after[up_reboot_firm_list[0]].firmwareversion
+            "Successfully completed the firmware update."
+          - down_result.diff.before[down_firm_list[0]].firmwareversion >
+            down_result.diff.after[down_firm_list[0]].firmwareversion
 
     - name: Instant downgrade on cluster for multiple non reboot component.
         (Idempotency and Diff Mode)
@@ -84,21 +84,12 @@
       ansible.builtin.assert:
         that:
           - not downgrade_result_idemp.changed
-          - downgrade_result_idemp.skipped
           - downgrade_result_idemp.msg == idemp_msg
           # - downgrade_result_idemp.diff.after == {}
           # - downgrade_result_idemp.diff.before == {}
       vars:
-        idemp_msg: "Update Job already running for
-          group id {{ group_id }} corresponding to cluster {{ cluster_name }}.
-          Wait for its completion and trigger."
+        idemp_msg: "No changes found to be applied."
   always:
-    - name: Canceling Instantd job.
-      ansible.builtin.include_tasks: ../_cancel_firm_update_job.yml
-      vars:
-        job_id: "{{ down_result.job_details.jobId }}"
-      when: down_result is defined
-
     - name: Deleting baseling profile
       dellemc.openmanage.omevv_baseline_profile:
         hostname: "{{ hostname }}"

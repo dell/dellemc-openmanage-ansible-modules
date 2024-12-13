@@ -22,12 +22,8 @@
 
     - name: Checking if firmware components is there for upgrade
       ansible.builtin.fail:
-        msg: "There is no single firmware component available for upgrade."
-      when: up_reboot_firm_list is undefined
-
-    - name: Gather_fact
-      ansible.builtin.gather_facts:
-      register: facts
+        msg: "There is no multiple firmware component available for upgrade."
+      when: up_firm_list is undefined
 
     - name: Adding 24 hours from current time
       ansible.builtin.set_fact:
@@ -36,7 +32,7 @@
         time_format: "%Y-%m-%dT%H:%M:%S%z"
         epoch: "{{ facts.ansible_facts.ansible_date_time.epoch }}"
 
-    - name: Schedule upgrade on cluster for single reboot component
+    - name: Instant upgrade on cluster for multiple component
         (Check mode and Diff mode)
       dellemc.openmanage.omevv.omevv_firmware: &upgrade_firmware
         run_now: false
@@ -49,59 +45,58 @@
         maintenance_mode_count_check: true
         check_vSAN_health: true
         delete_job_queue: true
+        reset_idrac: true
+        reboot_options: FORCEREBOOT
         targets:
-          - servicetag: "{{ servicetag }}"
-            firmware_components: "{{ up_reboot_firm_list[0] }}"
+          - cluster_name: "{{ cluster_name }}"
+            firmware_components: "{{ up_firm_list }}"
       register: cm_changes
       check_mode: true
       diff: true
 
-    - name: Verify task status - Schedule upgrade on cluster for single
-        reboot component (Check mode)
+    - name: Verify task status - Instant upgrade on cluster for multiple
+        component (Check mode)
       ansible.builtin.assert:
         that:
           - cm_changes.changed
           - cm_changes.msg == "Changes found to be applied."
-          - cm_changes.diff.before[up_reboot_firm_list[0]].firmwareversion <
-            cm_changes.diff.after[up_reboot_firm_list[0]].firmwareversion
+          - cm_changes.diff.before[up_firm_list[0]].firmwareversion <
+            cm_changes.diff.after[up_firm_list[0]].firmwareversion
 
-    - name: Schedule upgrade on cluster for single reboot component.
+    - name: Instant upgrade on cluster for multiple component.
         (Normal and Diff Mode)
       dellemc.openmanage.omevv.omevv_firmware:
         <<: *upgrade_firmware
       diff: true
       register: upgrade_result
 
-    - name: Verify task status - Schedule upgrade on cluster for single
-        reboot component. (Normal Mode)
+    - name: Verify task status - Instant upgrade on cluster for multiple
+        component. (Normal and Diff Mode)
       ansible.builtin.assert:
         that:
           - upgrade_result.changed
           - upgrade_result.msg ==
-            "Successfully scheduled the firmware update job."
-          - upgrade_result.diff.before[up_reboot_firm_list[0]].firmwareversion <
-            upgrade_result.diff.after[up_reboot_firm_list[0]].firmwareversion
+            "Successfully completed the firmware update."
+          - upgrade_result.diff.before[up_firm_list[0]].firmwareversion <
+            upgrade_result.diff.after[up_firm_list[0]].firmwareversion
 
-    - name: Schedule upgrade on cluster for single reboot component.
+    - name: Instant upgrade on cluster for multiple component.
         (Idempotency and Diff Mode)
       dellemc.openmanage.omevv.omevv_firmware:
         <<: *upgrade_firmware
       diff: true
       register: upgrade_result_idemp
 
-    - name: Verify task status - Schedule upgrade on cluster for single
-        reboot component. (Idempotency and diff Mode)
+    - name: Verify task status - Instant upgrade on cluster for multiple
+        component. (Idempotency and diff Mode)
       ansible.builtin.assert:
         that:
           - not upgrade_result_idemp.changed
-          - upgrade_result_idemp.skipped
           - upgrade_result_idemp.msg == idemp_msg
           # - upgrade_result_idemp.diff.after == {}
           # - upgrade_result_idemp.diff.before == {}
       vars:
-        idemp_msg: "Update Job already running for
-          group id {{ group_id }} corresponding to cluster {{ cluster_name }}.
-          Wait for its completion and trigger."
+        idemp_msg: "No changes found to be applied."
   always:
     - name: Canceling scheduled job.
       ansible.builtin.include_tasks: ../_cancel_firm_update_job.yml
