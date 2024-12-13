@@ -116,8 +116,6 @@
     repository_id: "{{ repository_id }}"
     version: "{{ version }}"
     repository_name: "{{ repository_name }}"
-    is_remove_all_components: false
-    is_remove_all_versions: false
 
   module_defaults:
     dellemc.openmanage.omevv_firmware_repository_profile:
