@@ -34,6 +34,7 @@ VCENTER_INFO_URI = "/Consoles"
 CLUSTER_INFO_URI = "/Consoles/{uuid}/Clusters"
 GROUP_ID_CLUSTER_INFO_URI = "/Consoles/{uuid}/Groups/getGroupsForClusters"
 MANAGED_HOST_INFO_URI = "/Consoles/{uuid}/ManagedHosts"
+CLUSTER_MANAGED_HOST_INFO_URI = "/Consoles/{uuid}/Groups/{groupId}/ManagedHosts"
 HOST_FIRMWARE_DRIFT_INFO_URI = "/Consoles/{uuid}/Groups/{groupId}/ManagedHosts/{hostId}/FirmwareDriftReport"
 CLUSTER_FIRMWARE_DRIFT_INFO_URI = "/Consoles/{uuid}/Groups/{groupId}/FirmwareDriftReport"
 
@@ -169,7 +170,21 @@ class OMEVVInfo:
         managed_hosts = resp.json_data
         for host in managed_hosts:
             if hostname and host['hostName'] == hostname:
-                return host['id']
+                return host['id'], host['serviceTag']
             if servicetag and host['serviceTag'] == servicetag:
-                return host['id']
+                return host['id'], host['serviceTag']
         return None
+
+    def get_cluster_managed_host_details(self, uuid, cluster_group_id):
+        uri = CLUSTER_MANAGED_HOST_INFO_URI.format(uuid=uuid, groupId=cluster_group_id)
+        resp = self.omevv_obj.invoke_request('GET', uri)
+        managed_hosts = resp.json_data
+
+        host_ids = []
+        host_service_tags = []
+
+        for host in managed_hosts:
+            host_ids.append(host.get('id'))
+            host_service_tags.append(host.get('serviceTag'))
+
+        return host_ids, host_service_tags
