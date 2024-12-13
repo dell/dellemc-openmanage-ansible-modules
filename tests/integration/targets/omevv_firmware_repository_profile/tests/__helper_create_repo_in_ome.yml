@@ -1,0 +1,27 @@
+---
+- block:
+    - name: Create repository using API
+      ansible.builtin.uri:
+        url: "{{ api_url }}"
+        method: POST
+        user: "{{ username }}"
+        password: "{{ password }}"
+        force_basic_auth: true
+        headers:
+          Content-Type: "application/json"
+        body_format: json
+        body: >
+          {
+            "BaseCatalogID": "{{ base_catalog_id }}",
+            "BaseCatalogName": "{{ base_catalog_name }}",
+            "Name": "{{ name }}",
+            "Description": "{{ description }}",
+            "DeviceSelectionType": "{{ device_selection_type }}",
+            "DeviceIDs": {{ device_ids | to_json }},
+            "IsBaseline": "{{ is_baseline }}",
+            "BaselineName": "{{ baseline_name }}",
+            "BaselineDescription": "{{ baseline_description }}"
+          }
+        status_code: 201
+        return_content: true
+      register: create_repo_response

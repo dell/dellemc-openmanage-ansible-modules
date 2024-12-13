@@ -12,6 +12,23 @@
          vcenter_password is not defined'
 
 - block:
+    - name: Including helper file for creating firmware repo profile
+      ansible.builtin.include_tasks: ../__helper_create_repo_in_ome.yml
+      vars:
+        api_url: "https://{{ hostname | ansible.utils.ipwrap }}:{{ port
+         }}/api/UpdateManagementService/Repositories"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        base_catalog_id: "{{ base_catalog_id }}"
+        base_catalog_name: "{{ base_catalog_name }}"
+        name: "test_repo"
+        description: "Repo_profile"
+        device_selection_type: "{{ device_selection_type }}"
+        device_ids: "{{ device_ids }}"
+        is_baseline: "{{ is_baseline }}"
+        baseline_name: "{{ baseline_name }}"
+        baseline_description: "{{ baseline_description }}"
+
     - name: Resync firmware repository profiles - (Check mode -
         Changes expected)
       dellemc.openmanage.omevv_firmware_repository_profile: &resync_profiles
@@ -67,13 +84,40 @@
           - idempotence_result_resync.diff.before | length ==
             idempotence_result_resync.diff.after | length
 
-  # always:
-  #   - name: Cleanup
-  #     dellemc.openmanage.omevv_firmware_repository_profile:
-  #       name: "temp_profile"
-  #       state: absent
-  #     ignore_errors: true
-  #     no_log: true
+  always:
+    - name: Cleanup
+      ansible.builtin.uri:
+        url: "https://{{ hostname | ansible.utils.ipwrap }}:{{ port
+         }}/api/UpdateManagementService/Actions/
+         UpdateManagementService.DeleteRepositories"
+        method: POST
+        body: >
+          {
+            "DeleteRepositoryInfo": [
+              {
+                "RepositoryID": {{ repository_id }},
+                "Version": [
+                  {% if version %}"{{ version }}"{% else %}[] {% endif %}
+                ],
+                "RepositoryName": "{{ repository_name }}",
+                "BundleList": [],
+                "IsRemoveAllComponents": false,
+                "IsRemoveAllVersions": false
+              }
+            ]
+          }
+        body_format: json
+        headers:
+          Content-Type: application/json
+        status_code: 200
+      ignore_errors: true
+      no_log: true
+  vars:
+    repository_id: "{{ repository_id }}"
+    version: "{{ version }}"
+    repository_name: "{{ repository_name }}"
+    is_remove_all_components: false
+    is_remove_all_versions: false
 
   module_defaults:
     dellemc.openmanage.omevv_firmware_repository_profile:
