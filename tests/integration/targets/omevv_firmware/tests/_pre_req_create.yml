@@ -30,20 +30,38 @@
     vcenter_password: "{{ vcenter_password }}"
     vcenter_uuid: "{{ uuid }}"
     validate_certs: false
-    clusters:
-      - cluster_name: "{{ cluster_name }}"
   register: drift_info
 
 - name: Extracting upgrade firmware drift
   ansible.builtin.set_fact:
-    up_firm_list: "{{ up_firmware_list | default([]) + [item.sourceName] }}"
-  when: item.updateAction | lower == 'upgrade'
-  loop: "{{ drift_info.firmware_compliance_info[0].hostComplianceReports[0].componentCompliances }}"
-  no_log: true
+    up_firm_list: >-
+          {%- set up_firm_list = [] -%}
+          {%- for each_cluster in drift_info.firmware_compliance_info -%}
+          {%- if each_cluster.cluster == cluster_name -%}
+          {%- for eachhostcompliance in each_cluster.hostComplianceReports -%}
+          {%- for eachcompliance in eachhostcompliance.componentCompliances -%}
+          {%- if eachcompliance.updateAction == 'UPGRADE' -%}
+          {{ up_firm_list.append(eachcompliance.sourceName) }}
+          {%- endif -%}
+          {%- endfor -%}
+          {%- endfor -%}
+          {%- endif -%}
+          {%- endfor -%}
+          {{ up_firm_list | unique }}
 
-- name: Extracting downgrade reboot required firmware drift
+- name: Extracting downgrade firmware drift
   ansible.builtin.set_fact:
-    down_firm_list: "{{ down_reboot_firm_list | default([]) + [item.sourceName] }}"
-  when: item.updateAction | lower == 'downgrade'
-  loop: "{{ drift_info.firmware_compliance_info[0].hostComplianceReports[0].componentCompliances }}"
-  no_log: true
+    down_firm_list: >-
+          {%- set down_firm_list = [] -%}
+          {%- for each_cluster in drift_info.firmware_compliance_info -%}
+          {%- if each_cluster.cluster == cluster_name -%}
+          {%- for eachhostcompliance in each_cluster.hostComplianceReports -%}
+          {%- for eachcompliance in eachhostcompliance.componentCompliances -%}
+          {%- if eachcompliance.updateAction == 'DOWNGRADE' -%}
+          {{ down_firm_list.append(eachcompliance.sourceName) }}
+          {%- endif -%}
+          {%- endfor -%}
+          {%- endfor -%}
+          {%- endif -%}
+          {%- endfor -%}
+          {{ down_firm_list | unique }}

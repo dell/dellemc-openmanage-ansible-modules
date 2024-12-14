@@ -23,7 +23,7 @@
     - name: Checking if firmware components is there for upgrade
       ansible.builtin.fail:
         msg: "There is no multiple firmware component available for upgrade."
-      when: up_firm_list is undefined
+      when: up_firm_list | length > 1
 
     - name: Adding 24 hours from current time
       ansible.builtin.set_fact:
@@ -48,8 +48,10 @@
         reset_idrac: true
         reboot_options: FORCEREBOOT
         targets:
-          - cluster_name: "{{ cluster_name }}"
-            firmware_components: "{{ up_firm_list }}"
+          - cluster: "{{ cluster_name }}"
+            firmware_components:
+              - "{{ up_firm_list[0] }}"
+              - "{{ up_firm_list[1] }}"
       register: cm_changes
       check_mode: true
       diff: true

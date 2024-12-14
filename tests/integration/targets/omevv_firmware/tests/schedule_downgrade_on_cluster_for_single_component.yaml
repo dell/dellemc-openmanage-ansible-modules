@@ -23,7 +23,7 @@
     - name: Checking if firmware components is there for downgrade
       ansible.builtin.fail:
         msg: "There is no single firmware component available for downgrade."
-      when: down_firm_list is undefined
+      when: down_firm_list == []
 
     - name: Adding 24 hours from current time
       ansible.builtin.set_fact:
@@ -48,7 +48,7 @@
         reset_idrac: true
         reboot_options: SAFEREBOOT
         targets:
-          - cluster_name: "{{ cluster_name }}"
+          - cluster: "{{ cluster_name }}"
             firmware_components: "{{ down_firm_list[0] }}"
       register: cm_changes
       check_mode: true

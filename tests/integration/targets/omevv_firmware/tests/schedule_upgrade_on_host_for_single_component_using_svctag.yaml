@@ -23,7 +23,7 @@
     - name: Checking if firmware components is there for upgrade
       ansible.builtin.fail:
         msg: "There is no single firmware component available for upgrade."
-      when: up_firm_list is undefined
+      when: up_firm_list == []
 
     - name: Adding 24 hours from current time
       ansible.builtin.set_fact:

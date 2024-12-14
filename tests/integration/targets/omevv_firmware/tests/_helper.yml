@@ -36,6 +36,11 @@
       x_omivv-api-vcenter-identifier: "{{ uuid }}"
   register: host_details
 
+- name: Check if there is managed hosts
+  ansible.builtin.fail:
+    msg: "No managed hosts found in the cluster"
+  when: host_details.json == []
+
 - name: Fetch all the hosts and servicetags
   ansible.builtin.set_fact:
     host_ip_list: "{{ host_ip_list | default([]) + [item.hostName] }}"
