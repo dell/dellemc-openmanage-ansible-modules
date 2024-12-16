@@ -33,35 +33,31 @@
   register: drift_info
 
 - name: Extracting upgrade firmware drift
-  ansible.builtin.set_fact:
-    up_firm_list: >-
-          {%- set up_firm_list = [] -%}
-          {%- for each_cluster in drift_info.firmware_compliance_info -%}
-          {%- if each_cluster.cluster == cluster_name -%}
-          {%- for eachhostcompliance in each_cluster.hostComplianceReports -%}
-          {%- for eachcompliance in eachhostcompliance.componentCompliances -%}
-          {%- if eachcompliance.updateAction == 'UPGRADE' -%}
-          {{ up_firm_list.append(eachcompliance.sourceName) }}
-          {%- endif -%}
-          {%- endfor -%}
-          {%- endfor -%}
-          {%- endif -%}
-          {%- endfor -%}
-          {{ up_firm_list | unique }}
+  ansible.builtin.command:
+    cmd: >
+      python find_component.py '{{
+      drift_info.firmware_compliance_info | to_json }}' upgrade
+    chdir: "{{ playbook_dir }}/targets/omevv_firmware/tests"
+  register: upgrade_dict
+  no_log: true
+  delegate_to: localhost
 
 - name: Extracting downgrade firmware drift
+  ansible.builtin.command:
+    cmd: >
+      python find_component.py '{{
+      drift_info.firmware_compliance_info | to_json }}' downgrade
+    chdir: "{{ playbook_dir }}/targets/omevv_firmware/tests"
+  register: downgrade_dict
+  no_log: true
+  delegate_to: localhost
+
+- name: Parsing the string from python script
   ansible.builtin.set_fact:
-    down_firm_list: >-
-          {%- set down_firm_list = [] -%}
-          {%- for each_cluster in drift_info.firmware_compliance_info -%}
-          {%- if each_cluster.cluster == cluster_name -%}
-          {%- for eachhostcompliance in each_cluster.hostComplianceReports -%}
-          {%- for eachcompliance in eachhostcompliance.componentCompliances -%}
-          {%- if eachcompliance.updateAction == 'DOWNGRADE' -%}
-          {{ down_firm_list.append(eachcompliance.sourceName) }}
-          {%- endif -%}
-          {%- endfor -%}
-          {%- endfor -%}
-          {%- endif -%}
-          {%- endfor -%}
-          {{ down_firm_list | unique }}
+    up_firm_parse: "{{ upgrade_dict.stdout | from_json }}"
+    down_firm_parse: "{{ downgrade_dict.stdout | from_json }}"
+
+- name: Setting up variable to use in testcase
+  ansible.builtin.set_fact:
+    up_firm_list: "{{ up_firm_parse.common }}"
+    down_firm_list: "{{ down_firm_parse.common }}"

@@ -23,7 +23,7 @@
     - name: Checking if firmware components is there for downgrade
       ansible.builtin.fail:
         msg: "There is no multiple firmware component available for downgrade."
-      when: down_firm_list | length > 1
+      when: down_firm_list | length < 2
 
     - name: Instant downgrade on cluster for multiple non reboot component
         (Check mode and Diff mode)
