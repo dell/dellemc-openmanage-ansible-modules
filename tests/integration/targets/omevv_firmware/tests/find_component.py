@@ -2,12 +2,13 @@
 import sys
 import json
 
-input_list = json.loads(sys.argv[1])
+cluster_name = sys.argv[1]
 update_operation = sys.argv[2]
+input_list = json.loads(sys.argv[3])
 
 result_dict = {}
 for each_cluster in input_list:
-    if each_cluster.get('cluster') == "Cluster B":
+    if each_cluster.get('cluster') == cluster_name:
         for eachReport in each_cluster.get('hostComplianceReports'):
             tmp_dict = {eachReport.get('serviceTag'): []}
             for eachCompliance in eachReport.get('componentCompliances'):

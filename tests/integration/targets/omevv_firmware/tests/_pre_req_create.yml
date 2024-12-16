@@ -35,8 +35,8 @@
 - name: Extracting upgrade firmware drift
   ansible.builtin.command:
     cmd: >
-      python find_component.py '{{
-      drift_info.firmware_compliance_info | to_json }}' upgrade
+      python find_component.py '{{ cluster_name }}' upgrade '{{
+      drift_info.firmware_compliance_info | to_json }}'
     chdir: "{{ playbook_dir }}/targets/omevv_firmware/tests"
   register: upgrade_dict
   no_log: true
@@ -45,8 +45,8 @@
 - name: Extracting downgrade firmware drift
   ansible.builtin.command:
     cmd: >
-      python find_component.py '{{
-      drift_info.firmware_compliance_info | to_json }}' downgrade
+      python find_component.py '{{ cluster_name }}' downgrade '{{
+      drift_info.firmware_compliance_info | to_json }}'
     chdir: "{{ playbook_dir }}/targets/omevv_firmware/tests"
   register: downgrade_dict
   no_log: true
