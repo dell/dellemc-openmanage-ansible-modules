@@ -87,16 +87,15 @@
       dellemc.openmanage.omevv.omevv_firmware:
         <<: *upgrade_firmware
       diff: true
-      register: upgrade_result_idemp
+      register: idemp
 
     - name: Verify task status - Instant upgrade on cluster for multiple
         component. (Idempotency and diff Mode)
       ansible.builtin.assert:
         that:
-          - not upgrade_result_idemp.changed
-          - upgrade_result_idemp.msg == idemp_msg
-          # - upgrade_result_idemp.diff.after == {}
-          # - upgrade_result_idemp.diff.before == {}
+          - not idemp.changed
+          - idemp.msg == idemp_msg
+          - idemp.diff.after == idemp.diff.before
       vars:
         idemp_msg: "No changes found to be applied."
   always:

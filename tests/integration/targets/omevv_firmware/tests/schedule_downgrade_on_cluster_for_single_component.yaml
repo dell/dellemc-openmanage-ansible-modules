@@ -85,17 +85,15 @@
       dellemc.openmanage.omevv.omevv_firmware:
         <<: *downgrade_firmware
       diff: true
-      register: downgrade_result_idemp
+      register: idemp
 
     - name: Verify task status - Schedule downgrade on cluster for single
         component. (Idempotency and diff Mode)
       ansible.builtin.assert:
         that:
-          - not downgrade_result_idemp.changed
-          - downgrade_result_idemp.skipped
-          - downgrade_result_idemp.msg == idemp_msg
-          # - downgrade_result_idemp.diff.after == {}
-          # - downgrade_result_idemp.diff.before == {}
+          - not idemp.changed
+          - idemp.skipped
+          - idemp.msg == idemp_msg
       vars:
         idemp_msg: "Update Job already running for cluster {{ cluster_name }}.
           Wait for its completion and trigger."

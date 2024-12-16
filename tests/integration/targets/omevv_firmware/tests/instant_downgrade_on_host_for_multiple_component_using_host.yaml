@@ -79,16 +79,15 @@
       dellemc.openmanage.omevv.omevv_firmware:
         <<: *downgrade_firmware
       diff: true
-      register: downgrade_result_idemp
+      register: idemp
 
     - name: Verify task status - Instant downgrade on cluster for multiple
         non reboot component. (Idempotency and diff Mode)
       ansible.builtin.assert:
         that:
-          - not downgrade_result_idemp.changed
-          - downgrade_result_idemp.msg == idemp_msg
-          # - downgrade_result_idemp.diff.after == {}
-          # - downgrade_result_idemp.diff.before == {}
+          - not idemp.changed
+          - idemp.msg == idemp_msg
+          - idemp.diff.after == idemp.diff.before
       vars:
         idemp_msg: "No changes found to be applied."
   always:
