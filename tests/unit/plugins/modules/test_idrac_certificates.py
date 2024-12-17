@@ -309,7 +309,7 @@ class TestIdracCertificates(FakeAnsibleModule):
 
     def test_check_csr_generated(self, mocker):
         idrac, value = MagicMock(), MagicMock()
-        value.json_data = {"Attributes": {"Security.1.ConfigCertStatus": 2}} 
+        value.json_data = {"Attributes": {"Security.1.ConfigCertStatus": 2}}
         idrac.invoke_request = MagicMock(return_value=value)
         mocker.patch(MODULE_PATH + 'time.sleep', return_value=None)
         payload = self.module.check_csr_generated(idrac)
