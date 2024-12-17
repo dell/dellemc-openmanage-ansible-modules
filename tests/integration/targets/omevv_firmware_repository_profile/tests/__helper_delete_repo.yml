@@ -1,0 +1,51 @@
+---
+- block:
+    - name: Call the API to get repository details
+      uri:
+        url: "https://{{ hostname | ansible.utils.ipwrap }}:{{ port
+         }}/api/UpdateManagementService/Repositories"
+        method: GET
+        url_username: "{{ username }}"
+        url_password: "{{ password }}"
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+      register: api_response
+
+    - name: Parse the JSON response and find the "testrepo"
+      set_fact:
+        repo_id: "{{ item.Id }}"
+      loop: "{{ api_response.json.value }}"
+      when: item.Name == 'testrepo'
+
+    - name: Cleanup
+      ansible.builtin.uri:
+        url: "https://{{ hostname | ansible.utils.ipwrap }}:{{ port
+         }}/api/UpdateManagementService/Actions/UpdateManagementService.DeleteRepositories"
+        method: POST
+        url_username: "{{ username }}"
+        url_password: "{{ password }}"
+        validate_certs: false
+        body: >
+          {
+            "DeleteRepositoryInfo": [
+              {
+                "RepositoryID": {{ repository_id }},
+                "Version": [
+                ],
+                "RepositoryName": "{{ repository_name }}",
+                "BundleList": [],
+                "IsRemoveAllComponents": false,
+                "IsRemoveAllVersions": true
+              }
+            ]
+          }
+        body_format: json
+        headers:
+          Content-Type: application/json
+        status_code: 200
+      ignore_errors: true
+  vars:
+    repository_id: "{{ repo_id }}"
+    version: "{{ repo_version }}"
+    repository_name: "testrepo"

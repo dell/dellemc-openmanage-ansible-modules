@@ -1,27 +1,89 @@
 ---
 - block:
-    - name: Create repository using API
+    - name: Call API to get catalog list
       ansible.builtin.uri:
-        url: "{{ api_url }}"
+        url: "https://{{ hostname }}:{{ port
+         }}/api/UpdateManagementService/Catalogs"
+        method: GET
+        headers:
+          Accept: "application/json"
+        url_username: "{{ username }}"
+        url_password: "{{ password }}"
+        validate_certs: false
+      register: catalog_response
+
+    - name: Extract VSAN Catalog ID from nested values
+      set_fact:
+        vsan_catalog_id: >-
+          {{
+            catalog_response.json.value[1].Value
+            | selectattr('Key', 'equalto', "vSAN Catalog for Enterprise Servers")
+            | map(attribute='Value')
+            | first
+            | map(attribute='Id')
+            | first
+          }}
+
+    - name: Call API to get supported devices
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}:{{ port
+         }}/api/UpdateManagementService/Actions/UpdateManagementService.GetDevices"
         method: POST
-        user: "{{ username }}"
-        password: "{{ password }}"
-        force_basic_auth: true
+        url_username: "{{ username }}"
+        url_password: "{{ password }}"
+        validate_certs: false
         headers:
           Content-Type: "application/json"
+          Accept: "application/json"
         body_format: json
-        body: >
-          {
-            "BaseCatalogID": "{{ base_catalog_id }}",
-            "BaseCatalogName": "{{ base_catalog_name }}",
-            "Name": "{{ name }}",
-            "Description": "{{ description }}",
-            "DeviceSelectionType": "{{ device_selection_type }}",
-            "DeviceIDs": {{ device_ids | to_json }},
-            "IsBaseline": "{{ is_baseline }}",
-            "BaselineName": "{{ baseline_name }}",
-            "BaselineDescription": "{{ baseline_description }}"
-          }
-        status_code: 201
-        return_content: true
-      register: create_repo_response
+        body:
+          Params:
+            - Type: "INDEXCATALOG"
+              Value: "{{ vsan_catalog_id }}"
+      register: devices_response
+
+    - name: Extract first device ID if available
+      ansible.builtin.set_fact:
+        first_device_id: "{{ devices_response.json.Devices[0].Id }}"
+
+    - name: Create a repository
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}:{{ port
+         }}/api/UpdateManagementService/Repositories"
+        method: POST
+        url_username: "{{ username }}"
+        url_password: "{{ password }}"
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+          Accept: "application/json"
+        body_format: json
+        body:
+          BaseCatalogID: "{{ vsan_catalog_id }}"
+          BaseCatalogName: "Index Catalog-24.12.13"
+          Name: "testrepo"
+          DeviceSelectionType: "device"
+          BaselineName: "testrepo"
+          IsBaseline: "true"
+          DeviceIDs: ["{{ first_device_id }}"]
+        status_code: [200, 201]
+      register: repository_response
+
+    - name: Extract Job ID from repository response
+      ansible.builtin.set_fact:
+        job_id: "{{ repository_response.json.JobID }}"
+
+    - name: Check job status until completed
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}/api/JobService/Jobs({{ job_id }})"
+        method: GET
+        url_username: "{{ username }}"
+        url_password: "{{ password }}"
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+        status_code: 200
+      register: job_response
+      until: job_response.json.LastRunStatus.Name == "Completed"
+      retries: 10
+      delay: 30
