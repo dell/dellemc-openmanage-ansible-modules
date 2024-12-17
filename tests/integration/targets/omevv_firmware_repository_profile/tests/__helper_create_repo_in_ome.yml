@@ -2,7 +2,7 @@
 - block:
     - name: Call API to get catalog list
       ansible.builtin.uri:
-        url: "https://{{ hostname }}:{{ port
+        url: "https://{{ hostname | ansible.utils.ipwrap }}:{{ port
          }}/api/UpdateManagementService/Catalogs"
         method: GET
         headers:
@@ -12,12 +12,16 @@
         validate_certs: false
       register: catalog_response
 
+    - name: Set vsan_catalog_key
+      set_fact:
+        vsan_catalog_key: "vSAN Catalog for Enterprise Servers"
+
     - name: Extract VSAN Catalog ID from nested values
       set_fact:
         vsan_catalog_id: >-
           {{
             catalog_response.json.value[1].Value
-            | selectattr('Key', 'equalto', "vSAN Catalog for Enterprise Servers")
+            | selectattr('Key', 'equalto', vsan_catalog_key)
             | map(attribute='Value')
             | first
             | map(attribute='Id')
@@ -25,9 +29,12 @@
           }}
 
     - name: Call API to get supported devices
+      vars:
+        url1: "https://{{ hostname | ansible.utils.ipwrap }}:{{ port }}"
+        url2: "/api/UpdateManagementService"
+        url3: "/Actions/UpdateManagementService.GetDevices"
       ansible.builtin.uri:
-        url: "https://{{ hostname }}:{{ port
-         }}/api/UpdateManagementService/Actions/UpdateManagementService.GetDevices"
+        url: "{{ url1 }}{{ url2 }}{{ url3 }}"
         method: POST
         url_username: "{{ username }}"
         url_password: "{{ password }}"
@@ -48,7 +55,7 @@
 
     - name: Create a repository
       ansible.builtin.uri:
-        url: "https://{{ hostname }}:{{ port
+        url: "https://{{ hostname | ansible.utils.ipwrap }}:{{ port
          }}/api/UpdateManagementService/Repositories"
         method: POST
         url_username: "{{ username }}"
