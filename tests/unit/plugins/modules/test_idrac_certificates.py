@@ -307,6 +307,14 @@ class TestIdracCertificates(FakeAnsibleModule):
         payload = self.module.perform_operation_and_download_csr(idrac, None, None, None)
         assert "CSRString" in payload.json_data
 
+    def test_check_csr_generated(self, mocker):
+        idrac, value = MagicMock(), MagicMock()
+        value.json_data = {"Attributes": {"Security.1.ConfigCertStatus": 2}} 
+        idrac.invoke_request = MagicMock(return_value=value)
+        mocker.patch(MODULE_PATH + 'time.sleep', return_value=None)
+        payload = self.module.check_csr_generated(idrac)
+        assert payload is True
+
     def test_perform_operation_and_download_csr_with_HTTPError(self, idrac_default_args, mocker):
         idrac, value = MagicMock(), MagicMock()
         value.json_data = {"CSRString": "value"}
@@ -320,6 +328,7 @@ class TestIdracCertificates(FakeAnsibleModule):
                                 {"accept-type": "application/json"}, StringIO(err_info))
         idrac.invoke_request = MagicMock(side_effect=mock_invoke_request)
         mocker.patch(MODULE_PATH + 'time.sleep', return_value=None)
+        mocker.patch(MODULE_PATH + 'check_csr_generated', return_value=True)
         idrac_default_args.update({"timeout": 120})
         payload = self.module.perform_operation_and_download_csr(idrac, None, "GET", None)
         assert payload.json_data["CSRString"] == "value"

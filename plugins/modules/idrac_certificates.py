@@ -277,6 +277,7 @@ EXPORT_SSL = f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.ExportSSLCer
 RESET_SSL = f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.SSLResetCfg"
 IDRAC_RESET = "/redfish/v1/Managers/{res_id}/Actions/Manager.Reset"
 GET_LAST_GENERATED_CSR = "/redfish/v1/CertificateService/Actions/Oem/DellCertificateService.GetLastGeneratedCSR"
+CERT_STATUS = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1?$select=Security.1.ConfigCertStatus"
 
 idrac_service_actions = {
     "#DelliDRACCardService.DeleteCertificate": f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.DeleteCertificate",
@@ -514,6 +515,15 @@ def get_export_data(idrac, cert_type, res_id):
         cert_data = {"CertificateFile": ""}
     return cert_data.get("CertificateFile")
 
+def check_csr_generated(idrac):
+    generated = False
+    count = 24 # Wating max 120(24*5) seconds for CSR to be generated
+    while not generated and count > 0:
+        resp = idrac.invoke_request(CERT_STATUS, "GET")
+        generated = True if resp.json_data.get("Attributes").get("Security.1.ConfigCertStatus") == 2 else False
+        time.sleep(5)
+        count -= 1
+    return generated
 
 def perform_operation_and_download_csr(idrac, cert_url, method, cert_payload):
     try:
@@ -521,10 +531,9 @@ def perform_operation_and_download_csr(idrac, cert_url, method, cert_payload):
     except HTTPError as err:
         json_err = json.load(err)
         if err.code == 503 and json_err.get("error").get("@Message.ExtendedInfo")[0].get("MessageId") == "IDRAC.2.9.SYS537":
-            body = {'CertificateCollection': {'@odata.id': '/redfish/v1/Managers/iDRAC.Embedded.1/NetworkProtocol/HTTPS/Certificates'}}
-            # Adding 60 secs sleep time because iDRAC takes time to generate CSR for 4096 key size
-            time.sleep(60)
-            resp = idrac.invoke_request(GET_LAST_GENERATED_CSR, "POST", data=body)
+            body = {'CertificateCollection': rfish_cert_coll['Server']}
+            if check_csr_generated(idrac):
+                resp = idrac.invoke_request(GET_LAST_GENERATED_CSR, "POST", data=body)
     return resp
 
 
