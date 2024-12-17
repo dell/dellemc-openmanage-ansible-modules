@@ -168,6 +168,8 @@ ODATA_REGEX = "(.*?)@odata"
 ODATA = "@odata.id"
 XML_EXT = ".xml"
 GZ_EXT = ".gz"
+PLUGINS_URI = "PluginService/Plugins"
+UMP_URI = "UpdateManagementService/Repositories"
 MESSAGE_EXTENDED_INFO = "@Message.ExtendedInfo"
 SUCCESS_CREATION_MSG = "Successfully created the OMEVV firmware repository profile."
 SUCCESS_CREATION_RESYNC_MSG = "Successfully resynced and created the OMEVV firmware repository profile."
@@ -435,18 +437,18 @@ class ResyncFirmwareRepositoryProfile(FirmwareRepositoryProfile):
 
     def check_plugin_availability(self):
         ump_plugin = 0
-        details = self.ome_obj.invoke_request("GET", "PluginService/Plugins")
+        details = self.ome_obj.invoke_request("GET", PLUGINS_URI)
         resp = details.json_data["value"]
         for item in resp:
             if item.get("Name") == "Update Manager":
                 ump_plugin = 1
                 break
         if not ump_plugin:
-            self.module.fail_json(msg=UMP_PLUGIN_NOT_FOUND_MSG, failed=True)
+            self.module.exit_json(msg=UMP_PLUGIN_NOT_FOUND_MSG, failed=True)
 
     def check_mode_support(self):
         omevv_profiles = self.omevv_profile_obj.get_firmware_repository_profile()
-        res = self.ome_obj.invoke_request("GET", "UpdateManagementService/Repositories")
+        res = self.ome_obj.invoke_request("GET", UMP_URI)
         ump_profiles = res.json_data["value"]
         relevant_catalog_types = {"ESXi Catalog for Enterprise Servers", "vSAN Catalog for Enterprise Servers"}
         filtered_ump_profiles = [p for p in ump_profiles if p["CatalogType"] in relevant_catalog_types]
