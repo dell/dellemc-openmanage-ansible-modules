@@ -515,15 +515,18 @@ def get_export_data(idrac, cert_type, res_id):
         cert_data = {"CertificateFile": ""}
     return cert_data.get("CertificateFile")
 
+
 def check_csr_generated(idrac):
     generated = False
-    count = 24 # Wating max 120(24*5) seconds for CSR to be generated
+    #  Wating max 120(24*5) seconds for CSR to be generated
+    count = 24
     while not generated and count > 0:
         resp = idrac.invoke_request(CERT_STATUS, "GET")
         generated = True if resp.json_data.get("Attributes").get("Security.1.ConfigCertStatus") == 2 else False
         time.sleep(5)
         count -= 1
     return generated
+
 
 def perform_operation_and_download_csr(idrac, cert_url, method, cert_payload):
     try:
