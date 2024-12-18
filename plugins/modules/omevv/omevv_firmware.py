@@ -518,7 +518,7 @@ class UpdateCluster(FirmwareUpdate):
         else:
             host_id, host_service_tags = self.get_host_from_parameters(vcenter_uuid, parameters)
             if host_id is None:
-                self.module.exit_json(msg=HOST_NOT_FOUND_MSG, failed=True)
+                self.module.exit_json(msg=HOST_NOT_FOUND_MSG, skipped=True)
             else:
                 cluster_name = self.omevv_info_obj.get_cluster_name(vcenter_uuid, host_id)
                 cluster_group_id = self.omevv_info_obj.get_group_id_of_cluster(vcenter_uuid,
@@ -559,8 +559,8 @@ class UpdateCluster(FirmwareUpdate):
         if target['cluster']:
             return host_ids, host_service_tags
         else:
-            host_id, host_service_tag = self.get_host_id(vcenter_uuid, target)
-            return host_id, host_service_tag
+            host_ids, host_service_tags = self.get_host_id(vcenter_uuid, target)
+            return host_ids, host_service_tags
 
     def handle_check_mode(self, firmware_update_needed, before_dict, after_dict):
         if firmware_update_needed:

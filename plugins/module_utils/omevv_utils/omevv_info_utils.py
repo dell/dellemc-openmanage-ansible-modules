@@ -173,7 +173,7 @@ class OMEVVInfo:
                 return host['id'], host['serviceTag']
             if servicetag and host['serviceTag'] == servicetag:
                 return host['id'], host['serviceTag']
-        return None
+        return None, None
 
     def get_cluster_managed_host_details(self, uuid, cluster_group_id):
         uri = CLUSTER_MANAGED_HOST_INFO_URI.format(uuid=uuid, groupId=cluster_group_id)
