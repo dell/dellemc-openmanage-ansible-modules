@@ -501,30 +501,32 @@ class UpdateCluster(FirmwareUpdate):
         self.validate_params()
         vcenter_uuid = self.module.params.get('vcenter_uuid')
         parameters = self.module.params
-
         target = self.get_target(parameters['targets'])
 
-        if target['cluster']:
+        def process_cluster_target(target):
+            nonlocal cluster_name, payload, new_host_id, host_service_tags, cluster_group_id
             host_ids, host_service_tags = self.get_host_id(vcenter_uuid, target)
             if host_ids is None or not host_ids:
                 self.module.exit_json(msg=CLUSTER_HOST_NOT_FOUND_MSG, failed=True)
-            else:
-                cluster_name = target['cluster']
-                cluster_group_id = self.omevv_info_obj.get_group_id_of_cluster(vcenter_uuid,
-                                                                               cluster_name)
-                payload = self.get_payload_details(host_id=host_ids)
-                new_host_id = host_ids
+            cluster_name = target['cluster']
+            cluster_group_id = self.omevv_info_obj.get_group_id_of_cluster(vcenter_uuid, cluster_name)
+            payload = self.get_payload_details(host_id=host_ids)
+            new_host_id = host_ids
 
-        else:
+        def process_non_cluster_target(parameters):
+            nonlocal cluster_name, payload, new_host_id, host_service_tags, cluster_group_id
             host_id, host_service_tags = self.get_host_from_parameters(vcenter_uuid, parameters)
             if host_id is None:
                 self.module.exit_json(msg=HOST_NOT_FOUND_MSG, skipped=True)
-            else:
-                cluster_name = self.omevv_info_obj.get_cluster_name(vcenter_uuid, host_id)
-                cluster_group_id = self.omevv_info_obj.get_group_id_of_cluster(vcenter_uuid,
-                                                                               cluster_name)
-                payload = self.get_payload_details(host_id=host_id)
-                new_host_id = host_id
+            cluster_name = self.omevv_info_obj.get_cluster_name(vcenter_uuid, host_id)
+            cluster_group_id = self.omevv_info_obj.get_group_id_of_cluster(vcenter_uuid, cluster_name)
+            payload = self.get_payload_details(host_id=host_id)
+            new_host_id = host_id
+
+        if target['cluster']:
+            process_cluster_target(target)
+        else:
+            process_non_cluster_target(parameters)
 
         if not self.is_update_job_allowed(vcenter_uuid, cluster_group_id, cluster_name):
             return
@@ -532,16 +534,12 @@ class UpdateCluster(FirmwareUpdate):
         if self.is_job_name_existing(vcenter_uuid, self.module.params.get('job_name')):
             return
 
-        # Ensure host_service_tags is a list when host_ids is an int
         if isinstance(new_host_id, int):
             new_host_id = [new_host_id]
             host_service_tags = [host_service_tags]
 
         firmware_update_needed, before_dict, after_dict = self.is_firmware_update_needed(
-            vcenter_uuid,
-            cluster_group_id,
-            new_host_id, parameters['targets'],
-            host_service_tags)
+            vcenter_uuid, cluster_group_id, new_host_id, parameters['targets'], host_service_tags)
 
         if self.module.check_mode or self.module.params.get('_ansible_check_mode'):
             self.handle_check_mode(firmware_update_needed, before_dict, after_dict)
@@ -790,19 +788,18 @@ def main():
         with RestOMEVV(module.params) as rest_obj:
             omevv_obj = UpdateCluster(module, rest_obj)
             omevv_obj.execute()
-    except HTTPError as err:
-        response_data = {"msg": str(err), "failed": True}
+    except HTTPError as httperr:
+        response_data = {"msg": str(httperr), "failed": True}
         error_info = {}
         try:
-            error_info = json.load(err)
+            error_info = json.load(httperr)
         except ValueError:
-            # If the error can't be loaded as JSON, capture it as a plain string
-            error_info["message"] = str(err)
+            error_info["message"] = str(httperr)
             error_info["type"] = "HTTPError"
 
-        if err.code == 500:
+        if httperr.code == 500:
             response_data["msg"] = error_info.get("message", str(error_info))
-        elif err.code == 404:
+        elif httperr.code == 404:
             response_data["msg"] = SOURCE_NOT_FOUND_MSG
         else:
             response_data.update({
@@ -811,17 +808,17 @@ def main():
             })
         module.exit_json(**response_data)
 
-    except URLError as err:
+    except URLError as urlerr:
         response_data = {
             "msg": f"The URL with IP {module.params.get('hostname')} and port {module.params.get('port')} cannot be reached.",
             "unreachable": True,
-            "error_info": {"message": str(err), "type": "URLError"}
+            "error_info": {"message": str(urlerr), "type": "URLError"}
         }
         module.exit_json(**response_data)
 
     except (IOError, ValueError, TypeError, ConnectionError,
-            AttributeError, IndexError, KeyError, OSError) as err:
-        module.exit_json(msg=str(err), failed=True)
+            AttributeError, IndexError, KeyError, OSError) as generr:
+        module.exit_json(msg=str(generr), failed=True)
 
 
 if __name__ == '__main__':
