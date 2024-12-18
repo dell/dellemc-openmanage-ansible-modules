@@ -109,8 +109,8 @@
           - idemp.skipped
           - idemp.msg == idemp_msg
       vars:
-        idemp_msg: "Update Job already running for cluster {{ cluster_name }}.
-          Wait for its completion and trigger."
+        idemp_msg: "Update job is either running or in a scheduled state for
+         cluster {{ cluster_name }}. Wait for its completion and trigger."
   always:
     - name: Canceling scheduled job.
       ansible.builtin.include_tasks: ../_cancel_firm_update_job.yml

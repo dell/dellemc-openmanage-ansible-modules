@@ -22,8 +22,8 @@
 
     - name: Checking if firmware components is there for downgrade
       ansible.builtin.fail:
-        msg: "There is no multiple firmware component available for downgrade."
-      when: down_firm_list | length < 2
+        msg: "There is no single firmware component available for downgrade."
+      when: down_firm_list == []
 
     - name: Adding 24 hours from current time
       ansible.builtin.set_fact:
@@ -32,7 +32,7 @@
         time_format: "%Y-%m-%dT%H:%M:%S%z"
         epoch: "{{ facts.ansible_facts.ansible_date_time.epoch }}"
 
-    - name: Schedule downgrade on cluster for multiple component
+    - name: Schedule downgrade on cluster for single component
         (Check mode and Diff mode)
       dellemc.openmanage.omevv.omevv_firmware: &downgrade_firmware
         run_now: false
@@ -51,12 +51,11 @@
           - cluster: "{{ cluster_name }}"
             firmware_components:
               - "{{ down_firm_list[0] }}"
-              - "{{ down_firm_list[1] }}"
       register: check
       check_mode: true
       diff: true
 
-    - name: Verify task status - Schedule downgrade on cluster for multiple
+    - name: Verify task status - Schedule downgrade on cluster for single
         component (Check mode)
       ansible.builtin.assert:
         that:
@@ -69,14 +68,14 @@
         after: "{{ check.diff.after[servicetag_list[0]][down_firm_list[0]]
           .firmwareversion }}"
 
-    - name: Schedule downgrade on cluster for multiple component.
+    - name: Schedule downgrade on cluster for single component.
         (Normal and Diff Mode)
       dellemc.openmanage.omevv.omevv_firmware:
         <<: *downgrade_firmware
       diff: true
       register: norm_ch
 
-    - name: Verify task status - Schedule downgrade on cluster for multiple
+    - name: Verify task status - Schedule downgrade on cluster for single
         component. (Normal and Diff Mode)
       ansible.builtin.assert:
         that:
@@ -90,14 +89,14 @@
         after: "{{ norm_ch.diff.after[servicetag_list[0]][down_firm_list[0]]
           .firmwareversion }}"
 
-    - name: Schedule downgrade on cluster for multiple component.
+    - name: Schedule downgrade on cluster for single component.
         (Idempotency and Diff Mode)
       dellemc.openmanage.omevv.omevv_firmware:
         <<: *downgrade_firmware
       diff: true
       register: idemp
 
-    - name: Verify task status - Schedule downgrade on cluster for multiple
+    - name: Verify task status - Schedule downgrade on cluster for single
         component. (Idempotency and diff Mode)
       ansible.builtin.assert:
         that:
@@ -105,8 +104,8 @@
           - idemp.skipped
           - idemp.msg == idemp_msg
       vars:
-        idemp_msg: "Update Job already running for cluster {{ cluster_name }}.
-          Wait for its completion and trigger."
+        idemp_msg: "Update job is either running or in a scheduled state for
+          cluster {{ cluster_name }}. Wait for its completion and trigger."
   always:
     - name: Canceling scheduled job.
       ansible.builtin.include_tasks: ../_cancel_firm_update_job.yml
