@@ -50,7 +50,7 @@
         targets:
           - cluster: "{{ cluster_name }}"
             firmware_components: "{{ down_firm_list[0] }}"
-      register: cm_changes
+      register: check
       check_mode: true
       diff: true
 
@@ -58,27 +58,35 @@
         component (Check mode)
       ansible.builtin.assert:
         that:
-          - cm_changes.changed
-          - cm_changes.msg == "Changes found to be applied."
-          - cm_changes.diff.before[down_firm_list[0]].firmwareversion <
-            cm_changes.diff.after[down_firm_list[0]].firmwareversion
+          - check.changed
+          - check.msg == "Changes found to be applied."
+          - before is version(after, '>')
+      vars:
+        before: "{{ check.diff.before[servicetag_list[0]][down_firm_list[0]]
+          .firmwareversion }}"
+        after: "{{ check.diff.after[servicetag_list[0]][down_firm_list[0]]
+          .firmwareversion }}"
 
     - name: Schedule downgrade on cluster for single component.
         (Normal and Diff Mode)
       dellemc.openmanage.omevv.omevv_firmware:
         <<: *downgrade_firmware
       diff: true
-      register: downgrade_result
+      register: norm_ch
 
     - name: Verify task status - Schedule downgrade on cluster for single
         component. (Normal and Diff Mode)
       ansible.builtin.assert:
         that:
-          - downgrade_result.changed
-          - downgrade_result.msg ==
+          - norm_ch.changed
+          - norm_ch.msg ==
             "Successfully scheduled the firmware update job."
-          - downgrade_result.diff.before[down_firm_list[0]].firmwareversion <
-            downgrade_result.diff.after[down_firm_list[0]].firmwareversion
+          - before is version(after, '>')
+      vars:
+        before: "{{ norm_ch.diff.before[servicetag_list[0]][down_firm_list[0]]
+          .firmwareversion }}"
+        after: "{{ norm_ch.diff.after[servicetag_list[0]][down_firm_list[0]]
+          .firmwareversion }}"
 
     - name: Schedule downgrade on cluster for single component.
         (Idempotency and Diff Mode)
@@ -101,8 +109,8 @@
     - name: Canceling scheduled job.
       ansible.builtin.include_tasks: ../_cancel_firm_update_job.yml
       vars:
-        job_id: "{{ downgrade_result.job_details.jobId }}"
-      when: downgrade_result is defined
+        job_id: "{{ norm_ch.job_details.jobId }}"
+      when: norm_ch is defined
 
     - name: Deleting baseline profile
       dellemc.openmanage.omevv_baseline_profile:

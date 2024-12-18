@@ -20,6 +20,10 @@
     - name: Including helper file for creating firmware repo profile
       ansible.builtin.include_tasks: ../_pre_req_create.yml
 
+    - name: Setfact for up_firm_list
+      ansible.builtin.set_fact:
+        up_firm_list: "{{ up_firm_parse[servicetag_list[0]] }}"
+
     - name: Checking if firmware components is there for upgrade
       ansible.builtin.fail:
         msg: "There is no single firmware component available for upgrade."
@@ -60,49 +64,57 @@
         that:
           - cm_changes.changed
           - cm_changes.msg == "Changes found to be applied."
-          - cm_changes.diff.before[up_firm_list[0]].firmwareversion <
-            cm_changes.diff.after[up_firm_list[0]].firmwareversion
+          - before is version(after, '<')
+      vars:
+        before: "{{ cm_changes.diff.before[servicetag_list[0]][up_firm_list[0]]
+          .firmwareversion }}"
+        after: "{{ cm_changes.diff.after[servicetag_list[0]][up_firm_list[0]]
+          .firmwareversion }}"
 
     - name: Schedule upgrade on host for single component.
         (Normal and Diff Mode)
       dellemc.openmanage.omevv.omevv_firmware:
         <<: *upgrade_firmware
       diff: true
-      register: upgrade_result
+      register: norm_chg
 
     - name: Verify task status - Schedule upgrade on host for single
         component. (Normal and Diff Mode)
       ansible.builtin.assert:
         that:
-          - upgrade_result.changed
-          - upgrade_result.msg ==
+          - norm_chg.changed
+          - norm_chg.msg ==
             "Successfully scheduled the firmware update job."
-          - upgrade_result.diff.before[up_firm_list[0]].firmwareversion <
-            upgrade_result.diff.after[up_firm_list[0]].firmwareversion
+          - before is version(after, '<')
+      vars:
+        before: "{{ norm_chg.diff.before[servicetag_list[0]][up_firm_list[0]]
+          .firmwareversion }}"
+        after: "{{ norm_chg.diff.after[servicetag_list[0]][up_firm_list[0]]
+          .firmwareversion }}"
 
     - name: Schedule upgrade on host for single component.
         (Idempotency and Diff Mode)
       dellemc.openmanage.omevv.omevv_firmware:
         <<: *upgrade_firmware
       diff: true
-      register: upgrade_result_idemp
+      register: idemp
 
     - name: Verify task status - Schedule upgrade on host for single
         component. (Idempotency and diff Mode)
       ansible.builtin.assert:
         that:
-          - not upgrade_result_idemp.changed
-          - upgrade_result_idemp.skipped
-          - upgrade_result_idemp.msg == idemp_msg
+          - not idemp.changed
+          - idemp.skipped
+          - idemp.msg == idemp_msg
       vars:
-        idemp_msg: "Update Job already running for host {{ host_name }}.
+        idemp_msg: "Update Job already running for cluster {{ cluster_name }}.
           Wait for its completion and trigger."
   always:
     - name: Canceling scheduled job.
       ansible.builtin.include_tasks: ../_cancel_firm_update_job.yml
       vars:
-        job_id: "{{ upgrade_result.job_details.jobId }}"
-      when: upgrade_result is defined
+        job_id: "{{ norm_chg.job_details.jobId }}"
+      when: norm_chg is defined
 
     - name: Deleting baseline profile
       dellemc.openmanage.omevv_baseline_profile:
