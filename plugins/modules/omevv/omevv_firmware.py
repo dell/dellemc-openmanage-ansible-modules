@@ -509,7 +509,8 @@ class UpdateCluster(FirmwareUpdate):
             if host_ids is None or not host_ids:
                 self.module.exit_json(msg=CLUSTER_HOST_NOT_FOUND_MSG, failed=True)
             cluster_name = target['cluster']
-            cluster_group_id = self.omevv_info_obj.get_group_id_of_cluster(vcenter_uuid, cluster_name)
+            cluster_group_id = self.omevv_info_obj.get_group_id_of_cluster(vcenter_uuid,
+                                                                           cluster_name)
             payload = self.get_payload_details(host_id=host_ids)
             new_host_id = host_ids
 
@@ -519,7 +520,8 @@ class UpdateCluster(FirmwareUpdate):
             if host_id is None:
                 self.module.exit_json(msg=HOST_NOT_FOUND_MSG, skipped=True)
             cluster_name = self.omevv_info_obj.get_cluster_name(vcenter_uuid, host_id)
-            cluster_group_id = self.omevv_info_obj.get_group_id_of_cluster(vcenter_uuid, cluster_name)
+            cluster_group_id = self.omevv_info_obj.get_group_id_of_cluster(vcenter_uuid,
+                                                                           cluster_name)
             payload = self.get_payload_details(host_id=host_id)
             new_host_id = host_id
 
@@ -528,7 +530,7 @@ class UpdateCluster(FirmwareUpdate):
         else:
             process_non_cluster_target(parameters)
 
-        if isinstance(new_host_id, int):
+        if not isinstance(new_host_id, list):
             new_host_id = [new_host_id]
             host_service_tags = [host_service_tags]
 
@@ -675,7 +677,6 @@ class UpdateCluster(FirmwareUpdate):
         if update_job_status is not True:
             self.module.exit_json(msg=UPDATE_JOB_PRESENT_MSG.format(cluster_name=cluster_name),
                                   skipped=True)
-            return False
         return True
 
     def is_job_name_existing(self, vcenter_uuid, job_name):
@@ -683,7 +684,6 @@ class UpdateCluster(FirmwareUpdate):
         if job_exist_status is True:
             self.module.exit_json(msg=JOB_NAME_ALREADY_EXISTS_MSG.format(job_name=job_name),
                                   skipped=True)
-            return True
         return False
 
     def execute_update_job(self, vcenter_uuid, cluster_group_id, payload, parameters,
