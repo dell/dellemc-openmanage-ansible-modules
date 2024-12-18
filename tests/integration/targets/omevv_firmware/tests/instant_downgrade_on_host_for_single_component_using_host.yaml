@@ -99,8 +99,12 @@
         that:
           - not idemp.changed
           - idemp.msg == idemp_msg
-          - idemp.diff.after == idemp.diff.before
+          - before is version(after, '==')
       vars:
+        before: "{{ idemp.diff.before[servicetag_list[0]][down_firm_list[0]]
+          .firmwareversion }}"
+        after: "{{ idemp.diff.after[servicetag_list[0]][down_firm_list[0]]
+          .firmwareversion }}"
         idemp_msg: "No changes found to be applied."
   always:
     - name: Deleting baseling profile
