@@ -49,7 +49,9 @@
         reboot_options: SAFEREBOOT
         targets:
           - cluster: "{{ cluster_name }}"
-            firmware_components: "{{ down_firm_list[0] }}"
+            firmware_components:
+              - "{{ down_firm_list[0] }}"
+              - "{{ down_firm_list[1] }}"
       register: check
       check_mode: true
       diff: true

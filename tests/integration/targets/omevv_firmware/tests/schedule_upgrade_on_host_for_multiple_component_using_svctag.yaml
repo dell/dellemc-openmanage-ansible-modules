@@ -53,7 +53,9 @@
         reboot_options: NEXTREBOOT
         targets:
           - servicetag: "{{ servicetag_list[0] }}"
-            firmware_components: "{{ up_firm_list[0] }}"
+            firmware_components:
+              - "{{ up_firm_list[0] }}"
+              - "{{ up_firm_list[1] }}"
       register: cm_changes
       check_mode: true
       diff: true

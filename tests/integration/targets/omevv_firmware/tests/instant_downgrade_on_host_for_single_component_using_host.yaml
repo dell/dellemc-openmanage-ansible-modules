@@ -43,7 +43,6 @@
           - host: "{{ host_ip_list[0] }}"
             firmware_components:
               - "{{ down_firm_list[0] }}"
-              - "{{ down_firm_list[1] }}"
       register: cm_changes
       check_mode: true
       diff: true

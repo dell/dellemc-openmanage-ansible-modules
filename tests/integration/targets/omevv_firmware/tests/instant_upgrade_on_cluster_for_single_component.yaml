@@ -42,7 +42,6 @@
           - cluster: "{{ cluster_name }}"
             firmware_components:
               - "{{ up_firm_list[0] }}"
-              - "{{ up_firm_list[1] }}"
       register: cm_changes
       check_mode: true
       diff: true
