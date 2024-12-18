@@ -22,9 +22,9 @@
 
     - name: Checking if firmware components is there for upgrade
       ansible.builtin.fail:
-        msg: "There is no multiple firmware component available for upgrade."
+        msg: "There is no single firmware component available for upgrade."
       when: up_firm_list == []
-    - name: Instant upgrade on cluster for multiple component
+    - name: Instant upgrade on cluster for single component
         (Check mode and Diff mode)
       dellemc.openmanage.omevv.omevv_firmware: &upgrade_firmware
         run_now: true
@@ -46,40 +46,48 @@
       check_mode: true
       diff: true
 
-    - name: Verify task status - Instant upgrade on cluster for multiple
+    - name: Verify task status - Instant upgrade on cluster for single
         component (Check mode)
       ansible.builtin.assert:
         that:
           - cm_changes.changed
           - cm_changes.msg == "Changes found to be applied."
-          - cm_changes.diff.before[up_firm_list[0]].firmwareversion <
-            cm_changes.diff.after[up_firm_list[0]].firmwareversion
+          - before is version(after, '<')
+      vars:
+        before: "{{ cm_changes.diff.before[servicetag_list[0]][up_firm_list[0]]
+          .firmwareversion }}"
+        after: "{{ cm_changes.diff.after[servicetag_list[0]][up_firm_list[0]]
+          .firmwareversion }}"
 
-    - name: Instant upgrade on cluster for multiple component.
+    - name: Instant upgrade on cluster for single component.
         (Normal and Diff Mode)
       dellemc.openmanage.omevv.omevv_firmware:
         <<: *upgrade_firmware
       diff: true
-      register: upgrade_result
+      register: normal
 
-    - name: Verify task status - Instant upgrade on cluster for multiple
+    - name: Verify task status - Instant upgrade on cluster for single
         component. (Normal and Diff Mode)
       ansible.builtin.assert:
         that:
-          - upgrade_result.changed
-          - upgrade_result.msg ==
+          - normal.changed
+          - normal.msg ==
             "Successfully completed the firmware update."
-          - upgrade_result.diff.before[up_firm_list[0]].firmwareversion <
-            upgrade_result.diff.after[up_firm_list[0]].firmwareversion
+          - before is version(after, '<')
+      vars:
+        before: "{{ normal.diff.before[servicetag_list[0]][up_firm_list[0]]
+          .firmwareversion }}"
+        after: "{{ normal.diff.after[servicetag_list[0]][up_firm_list[0]]
+          .firmwareversion }}"
 
-    - name: Instant upgrade on cluster for multiple component.
+    - name: Instant upgrade on cluster for single component.
         (Idempotency and Diff Mode)
       dellemc.openmanage.omevv.omevv_firmware:
         <<: *upgrade_firmware
       diff: true
       register: idemp
 
-    - name: Verify task status - Instant upgrade on cluster for multiple
+    - name: Verify task status - Instant upgrade on cluster for single
         component. (Idempotency and diff Mode)
       ansible.builtin.assert:
         that:

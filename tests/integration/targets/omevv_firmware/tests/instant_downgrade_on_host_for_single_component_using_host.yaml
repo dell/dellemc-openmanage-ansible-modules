@@ -43,7 +43,7 @@
           - host: "{{ host_ip_list[0] }}"
             firmware_components:
               - "{{ down_firm_list[0] }}"
-      register: cm_changes
+      register: check_cm
       check_mode: true
       diff: true
 
@@ -51,27 +51,35 @@
         non reboot component (Check mode)
       ansible.builtin.assert:
         that:
-          - cm_changes.changed
-          - cm_changes.msg == "Changes found to be applied."
-          - cm_changes.diff.before[down_firm_list[0]].firmwareversion >
-            cm_changes.diff.after[down_firm_list[0]].firmwareversion
+          - check_cm.changed
+          - check_cm.msg == "Changes found to be applied."
+          - before is version(after, '>')
+      vars:
+        before: "{{ check_cm.diff.before[servicetag_list[0]][down_firm_list[0]]
+          .firmwareversion }}"
+        after: "{{ check_cm.diff.after[servicetag_list[0]][down_firm_list[0]]
+          .firmwareversion }}"
 
     - name: Instant downgrade on cluster for single non reboot component.
         (Normal and Diff Mode)
       dellemc.openmanage.omevv.omevv_firmware:
         <<: *downgrade_firmware
       diff: true
-      register: down_result
+      register: normal
 
     - name: Verify task status - Instant downgrade on cluster for single
-        non reboot component. (Normal Mode)
+        non reboot component. (Normal and Diff Mode)
       ansible.builtin.assert:
         that:
-          - down_result.changed
-          - down_result.msg ==
+          - normal.changed
+          - normal.msg ==
             "Successfully completed the firmware update."
-          - down_result.diff.before[down_firm_list[0]].firmwareversion >
-            down_result.diff.after[down_firm_list[0]].firmwareversion
+          - before is version(after, '>')
+      vars:
+        before: "{{ normal.diff.before[servicetag_list[0]][down_firm_list[0]]
+          .firmwareversion }}"
+        after: "{{ normal.diff.after[servicetag_list[0]][down_firm_list[0]]
+          .firmwareversion }}"
 
     - name: Instant downgrade on cluster for single non reboot component.
         (Idempotency and Diff Mode)
@@ -90,17 +98,17 @@
       vars:
         idemp_msg: "No changes found to be applied."
   always:
-    # - name: Deleting baseling profile
-    #   dellemc.openmanage.omevv_baseline_profile:
-    #     hostname: "{{ hostname }}"
-    #     vcenter_uuid: "{{ uuid}}"
-    #     vcenter_username: "{{ vcenter_username }}"
-    #     vcenter_password: "{{ vcenter_password }}"
-    #     validate_certs: false
-    #     name: "AnsibleTest"
-    #     state: absent
-    #   ignore_errors: true
-    #   no_log: false
+    - name: Deleting baseling profile
+      dellemc.openmanage.omevv_baseline_profile:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ uuid}}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        validate_certs: false
+        name: "AnsibleTest"
+        state: absent
+      ignore_errors: true
+      no_log: false
 
   module_defaults:
     dellemc.openmanage.omevv.omevv_firmware:
