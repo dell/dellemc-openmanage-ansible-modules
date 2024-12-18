@@ -22,10 +22,10 @@
 
     - name: Checking if firmware components is there for downgrade
       ansible.builtin.fail:
-        msg: "There is no multiple firmware component available for downgrade."
-      when: down_firm_list | length < 2
+        msg: "There is no single firmware component available for downgrade."
+      when: down_firm_list == []
 
-    - name: Instant downgrade on cluster for multiple non reboot component
+    - name: Instant downgrade on cluster for single non reboot component
         (Check mode and Diff mode)
       dellemc.openmanage.omevv.omevv_firmware: &downgrade_firmware
         run_now: true
@@ -48,7 +48,7 @@
       check_mode: true
       diff: true
 
-    - name: Verify task status - Instant downgrade on cluster for multiple
+    - name: Verify task status - Instant downgrade on cluster for single
         non reboot component (Check mode)
       ansible.builtin.assert:
         that:
@@ -57,14 +57,14 @@
           - cm_changes.diff.before[down_firm_list[0]].firmwareversion >
             cm_changes.diff.after[down_firm_list[0]].firmwareversion
 
-    - name: Instant downgrade on cluster for multiple non reboot component.
+    - name: Instant downgrade on cluster for single non reboot component.
         (Normal and Diff Mode)
       dellemc.openmanage.omevv.omevv_firmware:
         <<: *downgrade_firmware
       diff: true
       register: down_result
 
-    - name: Verify task status - Instant downgrade on cluster for multiple
+    - name: Verify task status - Instant downgrade on cluster for single
         non reboot component. (Normal Mode)
       ansible.builtin.assert:
         that:
@@ -74,14 +74,14 @@
           - down_result.diff.before[down_firm_list[0]].firmwareversion >
             down_result.diff.after[down_firm_list[0]].firmwareversion
 
-    - name: Instant downgrade on cluster for multiple non reboot component.
+    - name: Instant downgrade on cluster for single non reboot component.
         (Idempotency and Diff Mode)
       dellemc.openmanage.omevv.omevv_firmware:
         <<: *downgrade_firmware
       diff: true
       register: idemp
 
-    - name: Verify task status - Instant downgrade on cluster for multiple
+    - name: Verify task status - Instant downgrade on cluster for single
         non reboot component. (Idempotency and diff Mode)
       ansible.builtin.assert:
         that:
@@ -91,17 +91,17 @@
       vars:
         idemp_msg: "No changes found to be applied."
   always:
-    - name: Deleting baseling profile
-      dellemc.openmanage.omevv_baseline_profile:
-        hostname: "{{ hostname }}"
-        vcenter_uuid: "{{ uuid}}"
-        vcenter_username: "{{ vcenter_username }}"
-        vcenter_password: "{{ vcenter_password }}"
-        validate_certs: false
-        name: "AnsibleTest"
-        state: absent
-      ignore_errors: true
-      no_log: false
+    # - name: Deleting baseling profile
+    #   dellemc.openmanage.omevv_baseline_profile:
+    #     hostname: "{{ hostname }}"
+    #     vcenter_uuid: "{{ uuid}}"
+    #     vcenter_username: "{{ vcenter_username }}"
+    #     vcenter_password: "{{ vcenter_password }}"
+    #     validate_certs: false
+    #     name: "AnsibleTest"
+    #     state: absent
+    #   ignore_errors: true
+    #   no_log: false
 
   module_defaults:
     dellemc.openmanage.omevv.omevv_firmware:

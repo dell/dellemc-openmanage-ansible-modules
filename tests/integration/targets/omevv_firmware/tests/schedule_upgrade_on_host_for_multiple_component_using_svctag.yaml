@@ -26,8 +26,8 @@
 
     - name: Checking if firmware components is there for upgrade
       ansible.builtin.fail:
-        msg: "There is no single firmware component available for upgrade."
-      when: up_firm_list == []
+        msg: "There is no multiple firmware component available for upgrade."
+      when: up_firm_list | length < 2
 
     - name: Adding 24 hours from current time
       ansible.builtin.set_fact:
@@ -36,7 +36,7 @@
         time_format: "%Y-%m-%dT%H:%M:%S%z"
         epoch: "{{ facts.ansible_facts.ansible_date_time.epoch }}"
 
-    - name: Schedule upgrade on host for single component
+    - name: Schedule upgrade on host for multiple component
         (Check mode and Diff mode)
       dellemc.openmanage.omevv.omevv_firmware: &upgrade_firmware
         run_now: false
@@ -58,7 +58,7 @@
       check_mode: true
       diff: true
 
-    - name: Verify task status - Schedule upgrade on host for single
+    - name: Verify task status - Schedule upgrade on host for multiple
         component (Check mode)
       ansible.builtin.assert:
         that:
@@ -71,14 +71,14 @@
         after: "{{ cm_changes.diff.after[servicetag_list[0]][up_firm_list[0]]
           .firmwareversion }}"
 
-    - name: Schedule upgrade on host for single component.
+    - name: Schedule upgrade on host for multiple component.
         (Normal and Diff Mode)
       dellemc.openmanage.omevv.omevv_firmware:
         <<: *upgrade_firmware
       diff: true
       register: norm_chg
 
-    - name: Verify task status - Schedule upgrade on host for single
+    - name: Verify task status - Schedule upgrade on host for multiple
         component. (Normal and Diff Mode)
       ansible.builtin.assert:
         that:
@@ -92,14 +92,14 @@
         after: "{{ norm_chg.diff.after[servicetag_list[0]][up_firm_list[0]]
           .firmwareversion }}"
 
-    - name: Schedule upgrade on host for single component.
+    - name: Schedule upgrade on host for multiple component.
         (Idempotency and Diff Mode)
       dellemc.openmanage.omevv.omevv_firmware:
         <<: *upgrade_firmware
       diff: true
       register: idemp
 
-    - name: Verify task status - Schedule upgrade on host for single
+    - name: Verify task status - Schedule upgrade on host for multiple
         component. (Idempotency and diff Mode)
       ansible.builtin.assert:
         that:
