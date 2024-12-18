@@ -80,6 +80,11 @@
         after: "{{ normal.diff.after[servicetag_list[0]][up_firm_list[0]]
           .firmwareversion }}"
 
+    - name: Waiting for 5 mins for inventory job to completed
+      ansible.builtin.wait_for:
+        timeout: 300
+      when: normal.changed
+
     - name: Instant upgrade on cluster for single component.
         (Idempotency and Diff Mode)
       dellemc.openmanage.omevv.omevv_firmware:

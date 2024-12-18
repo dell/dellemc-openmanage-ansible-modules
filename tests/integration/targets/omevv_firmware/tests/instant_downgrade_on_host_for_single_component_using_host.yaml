@@ -81,6 +81,11 @@
         after: "{{ normal.diff.after[servicetag_list[0]][down_firm_list[0]]
           .firmwareversion }}"
 
+    - name: Waiting for 5 mins for inventory job to completed
+      ansible.builtin.wait_for:
+        timeout: 300
+      when: normal.changed
+
     - name: Instant downgrade on cluster for single non reboot component.
         (Idempotency and Diff Mode)
       dellemc.openmanage.omevv.omevv_firmware:
