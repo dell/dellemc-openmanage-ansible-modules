@@ -135,6 +135,7 @@ options:
         description:
           - Name of the cluster to which firmware needs to updated.
           - I(cluster) is mutually exclusive with I(servicetag) and I(host).
+          - This module supports only single cluster update.
         type: str
         required: false
       firmware_components:
@@ -540,7 +541,7 @@ class UpdateCluster(FirmwareUpdate):
         if self.is_job_name_existing(vcenter_uuid, self.module.params.get('job_name')):
             return
 
-        firmware_update_needed, before_dict, after_dict = self.is_firmware_update_needed(
+        firmware_update_needed, before_no_change_dict, after_no_change_dict, before_dict, after_dict = self.is_firmware_update_needed(
             vcenter_uuid, cluster_group_id, new_host_id, parameters['targets'], host_service_tags)
 
         if self.module.check_mode or self.module.params.get('_ansible_check_mode'):
@@ -551,7 +552,8 @@ class UpdateCluster(FirmwareUpdate):
                                         before_dict, after_dict)
         else:
             self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG,
-                                  diff={"before": before_dict, "after": after_dict}, changed=False)
+                                  diff={"before": before_no_change_dict,
+                                        "after": after_no_change_dict}, changed=False)
 
     def get_host_from_parameters(self, vcenter_uuid, parameters, host_ids=None,
                                  host_service_tags=None):
@@ -625,15 +627,19 @@ class UpdateCluster(FirmwareUpdate):
 
         main_before_dict = {}
         main_after_dict = {}
+        main_before_no_change_dict = {}
+        main_after_no_change_dict = {}
         for idx, one_host_id in enumerate(host_ids):
-            update_needed, before_dict, after_dict, current_host_st = self.check_firmware_update(
+            update_needed, before_no_change_dict, after_no_change_dict, before_dict, after_dict, current_host_st = self.check_firmware_update(
                 vcenter_uuid, cluster_group_id, one_host_id, target)
             main_before_dict[current_host_st] = before_dict
             main_after_dict[current_host_st] = after_dict
+            main_before_no_change_dict[current_host_st] = before_no_change_dict
+            main_after_no_change_dict[current_host_st] = after_no_change_dict
 
             firmware_update_needed = firmware_update_needed or update_needed
 
-        return firmware_update_needed, main_before_dict, main_after_dict
+        return firmware_update_needed, main_before_no_change_dict, main_after_no_change_dict, main_before_dict, main_after_dict
 
     def check_firmware_update(self, vcenter_uuid, cluster_group_id, host_id, target):
         current_host_st = None
@@ -669,7 +675,7 @@ class UpdateCluster(FirmwareUpdate):
                     after_no_change_dict[current_component["sourceName"]] = {
                         "firmwareversion": current_component["baselineValue"]}
 
-        return firmware_update_needed, before_dict, after_dict, current_host_st
+        return firmware_update_needed, before_no_change_dict, after_no_change_dict, before_dict, after_dict, current_host_st
 
     def is_update_job_allowed(self, vcenter_uuid, cluster_group_id, cluster_name):
         update_job_status = self.omevv_update_obj.check_existing_update_job(vcenter_uuid,
