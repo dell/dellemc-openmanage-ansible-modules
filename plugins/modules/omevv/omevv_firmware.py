@@ -709,19 +709,23 @@ class UpdateCluster(FirmwareUpdate):
         else:
             job_wait = self.module.params.get('job_wait')
             if job_wait:
-                self.wait_for_job_completion(vcenter_uuid, resp, job_resp, err_msg)
+                self.wait_for_job_completion(vcenter_uuid, resp, job_resp, err_msg,
+                                             before_dict, after_dict)
             else:
                 self.module.exit_json(msg=SUCCESS_UPDATE_SUBMIT_MSG, changed=True,
-                                      job_details=job_resp)
+                                      job_details=job_resp,
+                                      diff={"before": before_dict, "after": after_dict})
 
-    def wait_for_job_completion(self, vcenter_uuid, resp, job_resp, err_msg):
+    def wait_for_job_completion(self, vcenter_uuid, resp, job_resp, err_msg,
+                                before_dict, after_dict):
         while job_resp["state"] not in ["COMPLETED", "FAILED"]:
             time.sleep(3)
             job_resp, err_msg = self.omevv_update_obj.firmware_update_job_track(vcenter_uuid,
                                                                                 resp.json_data)
 
         if job_resp["state"] == "COMPLETED" and job_resp["lastExecutionHistory"]["statusSummary"] == "SUCCESSFUL":
-            self.module.exit_json(msg=SUCCESS_UPDATE_MSG, changed=True, job_details=job_resp)
+            self.module.exit_json(msg=SUCCESS_UPDATE_MSG, changed=True, job_details=job_resp,
+                                  diff={"before": before_dict, "after": after_dict})
         else:
             self.module.exit_json(msg=FAILED_UPDATE_MSG, failed=True, error_info=err_msg)
 
