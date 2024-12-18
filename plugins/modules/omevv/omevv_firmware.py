@@ -337,8 +337,8 @@ CLUSTER_HOST_SERVICETAG_MUTUAL_EXCLUSIVE_MSG = "parameters are mutually " \
                                                "exclusive: cluster|host|servicetag."
 CLUSTER_HOST_SERVICETSAG_REQUIRED_MSG = "Either 'cluster' or 'host' or 'servicetag' must " \
                                         "be specified."
-UPDATE_JOB_PRESENT_MSG = "Update Job already running for cluster {cluster_name}. Wait for its " \
-                         "completion and trigger."
+UPDATE_JOB_PRESENT_MSG = "Update job is either running or in a scheduled state for cluster " \
+                         "{cluster_name}. Wait for its completion and trigger."
 JOB_NAME_ALREADY_EXISTS_MSG = "Job with name {job_name} already exists. Provide different name."
 CLUSTER_HOST_NOT_FOUND_MSG = "No managed hosts found in the cluster."
 HOST_NOT_FOUND_MSG = "Host not found under managed hosts."
@@ -528,15 +528,15 @@ class UpdateCluster(FirmwareUpdate):
         else:
             process_non_cluster_target(parameters)
 
+        if isinstance(new_host_id, int):
+            new_host_id = [new_host_id]
+            host_service_tags = [host_service_tags]
+
         if not self.is_update_job_allowed(vcenter_uuid, cluster_group_id, cluster_name):
             return
 
         if self.is_job_name_existing(vcenter_uuid, self.module.params.get('job_name')):
             return
-
-        if isinstance(new_host_id, int):
-            new_host_id = [new_host_id]
-            host_service_tags = [host_service_tags]
 
         firmware_update_needed, before_dict, after_dict = self.is_firmware_update_needed(
             vcenter_uuid, cluster_group_id, new_host_id, parameters['targets'], host_service_tags)
