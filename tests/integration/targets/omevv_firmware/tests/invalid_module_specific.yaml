@@ -55,9 +55,9 @@
         that:
           - invalid_cluster_result.skipped
           - not invalid_cluster_result.changed
-          - 'invalid_cluster_result.msg == "Provided cluster name Invalid_cluster is not valid."'
+          - 'invalid_cluster_result.msg == "Provided cluster name ''Invalid_cluster'' is not valid."'
 
-    - name: Create the expected error message
+    - name: Create the expected error message for partial cluster_name
       set_fact:
         expected_msg_for_partial_cluster_name:
           "Provided cluster name '{{ cluster_name[:5] }}' is not valid."
@@ -100,7 +100,16 @@
         that:
           - invalid_cluster_result.skipped
           - not invalid_cluster_result.changed
-          - 'invalid_cluster_result.msg == "Host not found under managed hosts."'
+          - 'invalid_cluster_result.msg == "Host ''Invalid_host'' not found under managed hosts."'
+
+    - name: Set partial host
+      set_fact:
+        partial_host: "{{ host_ip_list[0].split('.')[0:3] | join('.') }}"
+
+    - name: Create the expected error message for partial host
+      set_fact:
+        expected_msg_for_partial_host:
+          "Host '{{ partial_host }}' not found under managed hosts."
 
     - name: Negative - Update the firmware by passing partial host.
       dellemc.openmanage.omevv.omevv_firmware:
@@ -110,7 +119,7 @@
         vcenter_password: "{{ vcenter_password }}"
         run_now: true
         targets:
-          - host: host_ip_list[0][:5]
+          - host: "{{ partial_host }}"
             firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_cluster_result
       ignore_errors: true
@@ -120,7 +129,7 @@
         that:
           - invalid_cluster_result.skipped
           - not invalid_cluster_result.changed
-          - 'invalid_cluster_result.msg == "Host not found under managed hosts."'
+          - invalid_cluster_result.msg == expected_msg_for_partial_host
 
     - name: Negative - Update the firmware by passing invalid servicetag.
       dellemc.openmanage.omevv.omevv_firmware:
@@ -140,7 +149,16 @@
         that:
           - invalid_cluster_result.skipped
           - not invalid_cluster_result.changed
-          - 'invalid_cluster_result.msg == "Host not found under managed hosts."'
+          - 'invalid_cluster_result.msg ==  "Host ''Invalidservicetag'' not found under managed hosts."'
+
+    - name: Set partial host
+      set_fact:
+        partial_servicetag: "{{ servicetag_list[0][0:3] }}"
+
+    - name: Create the expected error message for partial host
+      set_fact:
+        expected_msg_for_partial_servicetag:
+          "Host '{{ partial_servicetag }}' not found under managed hosts."
 
     - name: Negative - Update the firmware by passing partial servicetag.
       dellemc.openmanage.omevv.omevv_firmware:
@@ -150,7 +168,7 @@
         vcenter_password: "{{ vcenter_password }}"
         run_now: true
         targets:
-          - servicetag: "Invalidservicetag"
+          - servicetag: "{{ partial_servicetag }}"
             firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_cluster_result
       ignore_errors: true
@@ -160,7 +178,7 @@
         that:
           - invalid_cluster_result.skipped
           - not invalid_cluster_result.changed
-          - 'invalid_cluster_result.msg == "Host not found under managed hosts."'
+          - 'invalid_cluster_result.msg == expected_msg_for_partial_servicetag'
 
     - name: Negative - Update the firmware by passing invalid date time.
       dellemc.openmanage.omevv.omevv_firmware:
