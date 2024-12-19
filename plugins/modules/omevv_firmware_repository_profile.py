@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.8.0
+# Version 9.10.0
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -471,7 +471,8 @@ class ResyncFirmwareRepositoryProfile(FirmwareRepositoryProfile):
     def remove_keys(self, filtered_ump_profiles, not_avail):
         keys_to_remove = {"@odata.type", "@odata.id", "BaseCatalogID", "BaseCatalogName", "AvailableVersions", "DevicesRepo", "UrgentComponentsCount",
                           "RecommendedComponentsCount", "OptionalComponentsCount", "BaselineId", "BaselineName", "BaselineDescription", "BaselineVersion",
-                          "RefreshedVersion", "Details@odata.navigationLink", "Size", "Label", "ComponentsCount", "AvailableCatalog"}
+                          "RefreshedVersion", "Details@odata.navigationLink", "Size", "Label", "ComponentsCount", "AvailableCatalog", "CatalogType",
+                          "Owner", "LastModifiedBy", "DateModified", "Id"}
         for profile in not_avail:
             for key in keys_to_remove:
                 if key in profile:
@@ -480,6 +481,26 @@ class ResyncFirmwareRepositoryProfile(FirmwareRepositoryProfile):
             for key in keys_to_remove:
                 if key in profile:
                     del profile[key]
+        for item in not_avail:
+            name = item.get('Name', '')
+            version = item.get('Version', '')
+            profilename = name
+            sharepath = "//shared/dell/omc/cifs/idrac/RepositoryStore"
+            profiletype = "Firmware"
+            filename = f"{name}_{version}_Catalog.xml"
+            del item['Name']
+            del item['Version']
+            item['profileName'] = profilename
+            item['sharePath'] = sharepath
+            item['profileType'] = profiletype
+            item['fileName'] = filename
+            item['factoryCreated'] = False
+            item['factoryType'] = "Custom"
+            item['checkCertificate'] = None
+            item['protocolType'] = "Not Applicable"
+            item['createdBy'] = "Not Available"
+            item['modifiedBy'] = "Not Available"
+            item['owner'] = "UMP"
 
     def sort_profiles(self, profiles):
         return sorted(profiles, key=lambda x: x["id"])
