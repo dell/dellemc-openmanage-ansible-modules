@@ -53,9 +53,34 @@
     - name: Verify task status - Negative - Update the firmware by passing invalid cluster.
       ansible.builtin.assert:
         that:
-          - invalid_cluster_result.failed
+          - invalid_cluster_result.skipped
           - not invalid_cluster_result.changed
-          - 'invalid_cluster_result.msg == ""'
+          - 'invalid_cluster_result.msg == "Provided cluster name Invalid_cluster is not valid."'
+
+    - name: Create the expected error message
+      set_fact:
+        expected_msg_for_partial_cluster_name:
+          "Provided cluster name '{{ cluster_name[:5] }}' is not valid."
+
+    - name: Negative - Update the firmware by passing passing partial cluster_name.
+      dellemc.openmanage.omevv.omevv_firmware:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        run_now: true
+        targets:
+          - cluster: "{{ cluster_name[:5] }}"
+            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+      register: partial_cluster_result
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Update the firmware by passing passing partial cluster_name.
+      ansible.builtin.assert:
+        that:
+          - partial_cluster_result.skipped
+          - not partial_cluster_result.changed
+          - partial_cluster_result.msg
 
     - name: Negative - Update the firmware by passing invalid host.
       dellemc.openmanage.omevv.omevv_firmware:
@@ -65,8 +90,7 @@
         vcenter_password: "{{ vcenter_password }}"
         run_now: true
         targets:
-          - cluster: "{{ cluster_name }}"
-            host: "Invalid_host"
+          - host: "Invalid_host"
             firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_cluster_result
       ignore_errors: true
@@ -74,11 +98,11 @@
     - name: Verify task status - Negative - Update the firmware by passing invalid host.
       ansible.builtin.assert:
         that:
-          - invalid_cluster_result.failed
+          - invalid_cluster_result.skipped
           - not invalid_cluster_result.changed
-          - 'invalid_cluster_result.msg == ""'
+          - 'invalid_cluster_result.msg == "Host not found under managed hosts."'
 
-    - name: Negative - Update the firmware by passing non-existent host IP in the cluster.
+    - name: Negative - Update the firmware by passing partial host.
       dellemc.openmanage.omevv.omevv_firmware:
         hostname: "{{ hostname }}"
         vcenter_uuid: "{{ uuid }}"
@@ -86,20 +110,19 @@
         vcenter_password: "{{ vcenter_password }}"
         run_now: true
         targets:
-          - cluster: "{{ cluster_name }}"
-            host: "random_host"
+          - host: host_ip_list[0][:5]
             firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_cluster_result
       ignore_errors: true
 
-    - name: Verify task status - Negative - Update the firmware by passing non-existent host IP in the cluster.
+    - name: Verify task status - Negative - Update the firmware by passing partial host.
       ansible.builtin.assert:
         that:
-          - invalid_cluster_result.failed
+          - invalid_cluster_result.skipped
           - not invalid_cluster_result.changed
-          - 'invalid_cluster_result.msg == ""'
+          - 'invalid_cluster_result.msg == "Host not found under managed hosts."'
 
-    - name: Negative - Update the firmware by passing non-existent service tag in the cluster.
+    - name: Negative - Update the firmware by passing invalid servicetag.
       dellemc.openmanage.omevv.omevv_firmware:
         hostname: "{{ hostname }}"
         vcenter_uuid: "{{ uuid }}"
@@ -107,8 +130,7 @@
         vcenter_password: "{{ vcenter_password }}"
         run_now: true
         targets:
-          - cluster: "{{ cluster_name }}"
-            servicetag: "randomservicetag"
+          - servicetag: "Invalidservicetag"
             firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_cluster_result
       ignore_errors: true
@@ -116,9 +138,29 @@
     - name: Verify task status - Negative - Update the firmware by passing non-existent service tag in the cluster.
       ansible.builtin.assert:
         that:
-          - invalid_cluster_result.failed
+          - invalid_cluster_result.skipped
           - not invalid_cluster_result.changed
-          - 'invalid_cluster_result.msg == ""'
+          - 'invalid_cluster_result.msg == "Host not found under managed hosts."'
+
+    - name: Negative - Update the firmware by passing partial servicetag.
+      dellemc.openmanage.omevv.omevv_firmware:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        run_now: true
+        targets:
+          - servicetag: "Invalidservicetag"
+            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+      register: invalid_cluster_result
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Update the firmware by passing partial servicetag.
+      ansible.builtin.assert:
+        that:
+          - invalid_cluster_result.skipped
+          - not invalid_cluster_result.changed
+          - 'invalid_cluster_result.msg == "Host not found under managed hosts."'
 
     - name: Negative - Update the firmware by passing invalid date time.
       dellemc.openmanage.omevv.omevv_firmware:
