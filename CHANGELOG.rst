@@ -4,6 +4,32 @@ Dell OpenManage Ansible Modules Release Notes
 
 .. contents:: Topics
 
+v9.10.0
+=======
+
+Release Summary
+---------------
+
+- Modules are added to support OpenManage Enterprise Integration for VMWare vCenter Plug-in. - The ``omevv_firmware`` module is added to support the firmware update on the host and single cluster. - The ``omevv_firmware_repository_profile`` module is enhanced to support resync of repository profiles from the UMP plugin. - The ``idrac_certificates`` module is enhanced to support SSL CSR generation for 4096 key size. (Issue #737) 
+
+Major Changes
+-------------
+
+- omevv_firmware - This module allows to update firmware on the host and single cluster.
+- omevv_firmware_repository_profile - This module allows to resync the repository profiles from the UMP plugin.
+
+Bugfixes
+--------
+
+- idrac_certificates - (Issue 737) - Fixed SSL CSR generation for 4096 key size.
+
+Known Issues
+------------
+
+- idrac_diagnostics - Issue(285322) - This module doesn't support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
+- idrac_firmware - Issue(279282) - This module does not support firmware update using HTTP, HTTPS, and FTP shares with authentication on iDRAC8.
+- ome_smart_fabric_uplink - Issue(186024) - The module supported by OpenManage Enterprise Modular, however it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, then the existing uplink is modified.
+
 v9.9.0
 ======
 
