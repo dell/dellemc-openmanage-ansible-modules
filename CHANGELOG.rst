@@ -10,12 +10,18 @@ v9.10.0
 Release Summary
 ---------------
 
-- Modules are added to support OpenManage Enterprise Integration for VMWare vCenter Plug-in. - The ``omevv_firmware`` module is added to support the firmware update on the host and single cluster. - The ``omevv_firmware_repository_profile`` module is enhanced to support resync of repository profiles from the UMP plugin. - The ``idrac_certificates`` module is enhanced to support SSL CSR generation for 4096 key size. (Issue #737) 
+- The ``omevv_firmware`` module is added to support the firmware update of the single host and single cluster.
+- The ``omevv_firmware_repository_profile`` module is enhanced to support resync of repository profiles from the UMP plugin.
+- The ``idrac_certificates`` module is enhanced to support SSL CSR generation for 4096 key size. (Issue #737) 
 
 Major Changes
 -------------
 
-- omevv_firmware - This module allows to update firmware on the host and single cluster.
+- omevv_firmware - This module allows to update firmware of the single host and single cluster.
+
+Minor Changes
+-------------
+
 - omevv_firmware_repository_profile - This module allows to resync the repository profiles from the UMP plugin.
 
 Bugfixes
@@ -36,7 +42,10 @@ v9.9.0
 Release Summary
 ---------------
 
-- Modules are added to support OpenManage Enterprise Integration for VMWare vCenter Plug-in. - The ``omevv_baseline_profile_info`` module is added to support retrieval of baseline profile information. - The ``omevv_compliance_info`` module is added to support retrieval of firmware compliance reports. - The ``omevv_baseline_profile`` module is added to support management of baseline profile.
+- Modules are added to support OpenManage Enterprise Integration for VMWare vCenter Plug-in.
+- The ``omevv_baseline_profile_info`` module is added to support retrieval of baseline profile information.
+- The ``omevv_compliance_info`` module is added to support retrieval of firmware compliance reports.
+- The ``omevv_baseline_profile`` module is added to support management of baseline profile.
 
 Major Changes
 -------------
@@ -58,7 +67,11 @@ v9.8.0
 Release Summary
 ---------------
 
-- Modules are added to support OpenManage Enterprise Integration for VMWare vCenter Plug-in. - The ``omevv_vcenter_info`` module is added to support retrieval of vCenter information. - The ``omevv_firmware_repository_profile_info`` module is added to support retrieval of firmware repository profile information. - The ``omevv_firmware_repository_profile`` module is added to support management of firmware repository profile. - The ``idrac_firmware_info`` module is enhanced to support iDRAC10 and OMSDK dependency is removed.
+- Modules are added to support OpenManage Enterprise Integration for VMWare vCenter Plug-in.
+- The ``omevv_vcenter_info`` module is added to support retrieval of vCenter information.
+- The ``omevv_firmware_repository_profile_info`` module is added to support retrieval of firmware repository profile information.
+- The ``omevv_firmware_repository_profile`` module is added to support management of firmware repository profile.
+- The ``idrac_firmware_info`` module is enhanced to support iDRAC10 and OMSDK dependency is removed.
 
 Major Changes
 -------------
@@ -92,7 +105,8 @@ v9.7.0
 Release Summary
 ---------------
 
-- The ``idrac_secure_boot`` module is enhanced to export, reset and configure the attributes of boot certificate. - The ``idrac_system_erase`` module is added to add support to erase system and storage components of the server.
+- The ``idrac_secure_boot`` module is enhanced to export, reset and configure the attributes of boot certificate.
+- The ``idrac_system_erase`` module is added to add support to erase system and storage components of the server.
 
 Major Changes
 -------------
