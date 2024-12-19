@@ -23,6 +23,7 @@ Minor Changes
 -------------
 
 - omevv_firmware_repository_profile - This module allows to resync the repository profiles from the OpenManage Update Manager Plug-in.
+- idrac_certificates -  This module is enhanced to support SSL CSR generation for 4096 key size.
 
 Bugfixes
 --------
