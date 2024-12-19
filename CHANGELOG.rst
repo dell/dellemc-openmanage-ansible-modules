@@ -42,7 +42,6 @@ v9.9.0
 Release Summary
 ---------------
 
-- Modules are added to support OpenManage Enterprise Integration for VMWare vCenter Plug-in.
 - The ``omevv_baseline_profile_info`` module is added to support retrieval of baseline profile information.
 - The ``omevv_compliance_info`` module is added to support retrieval of firmware compliance reports.
 - The ``omevv_baseline_profile`` module is added to support management of baseline profile.

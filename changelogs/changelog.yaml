@@ -2186,13 +2186,15 @@ releases:
           support resync of repository profiles from the OpenManage Update
           Manager Plug-in.
         - The ``idrac_certificates`` module is enhanced to support
-          SSL CSR generation for 4096 key size. (Issue #737) '
+          SSL CSR generation for 4096 key size.'
       major_changes:
         - omevv_firmware - This module allows to update firmware
           of the single host and single cluster.
       minor_changes:
         - omevv_firmware_repository_profile - This module allows to resync the
           repository profiles from the OpenManage Update Manager Plug-in.
+        - idrac_certificates -  This module is enhanced to support
+          SSL CSR generation for 4096 key size.
       bugfixes:
         - idrac_certificates - (Issue 737) - Fixed SSL CSR generation for
           4096 key size.
