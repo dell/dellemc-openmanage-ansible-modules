@@ -38,6 +38,7 @@
         delete_job_queue: false
         reset_idrac: true
         reboot_options: SAFEREBOOT
+        job_wait_timeout: 3600
         targets:
           - cluster: "{{ cluster_name }}"
             firmware_components:

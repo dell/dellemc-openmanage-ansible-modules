@@ -39,6 +39,7 @@
         delete_job_queue: false
         reset_idrac: true
         reboot_options: FORCEREBOOT
+        job_wait_timeout: 3600
         targets:
           - host: "{{ host_ip_list[0] }}"
             firmware_components:
