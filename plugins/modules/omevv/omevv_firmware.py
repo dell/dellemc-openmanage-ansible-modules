@@ -520,9 +520,11 @@ class UpdateCluster(FirmwareUpdate):
             host_id, host_service_tags = self.get_host_from_parameters(vcenter_uuid, parameters)
             if host_id is None:
                 if target['host']:
-                    self.module.exit_json(msg=HOST_NOT_FOUND_MSG.format(managed_host = target['host']), skipped=True)
+                    self.module.exit_json(msg=HOST_NOT_FOUND_MSG.format(
+                        managed_host=target['host']), skipped=True)
                 else:
-                    self.module.exit_json(msg=HOST_NOT_FOUND_MSG.format(managed_host = target['servicetag']), skipped=True)
+                    self.module.exit_json(msg=HOST_NOT_FOUND_MSG.format(
+                        managed_host=target['servicetag']), skipped=True)
             cluster_name = self.omevv_info_obj.get_cluster_name(vcenter_uuid, host_id)
             cluster_group_id = self.omevv_info_obj.get_group_id_of_cluster(vcenter_uuid,
                                                                            cluster_name)
@@ -537,6 +539,8 @@ class UpdateCluster(FirmwareUpdate):
         if not isinstance(new_host_id, list):
             new_host_id = [new_host_id]
             host_service_tags = [host_service_tags]
+        else:
+            return None
 
         if not self.is_update_job_allowed(vcenter_uuid, cluster_group_id, cluster_name):
             return
@@ -561,7 +565,7 @@ class UpdateCluster(FirmwareUpdate):
                                         "after": after_no_change_dict}, changed=False)
 
         else:
-            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed= False)
+            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
 
     def get_host_from_parameters(self, vcenter_uuid, parameters, host_ids=None,
                                  host_service_tags=None):
@@ -573,7 +577,7 @@ class UpdateCluster(FirmwareUpdate):
             return host_ids, host_service_tags
 
     def handle_check_mode(self, firmware_update_needed, before_no_change_dict,
-                          after_no_change_dict,before_dict, after_dict):
+                          after_no_change_dict, before_dict, after_dict):
         if firmware_update_needed:
             if self.module._diff:
                 self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True,
