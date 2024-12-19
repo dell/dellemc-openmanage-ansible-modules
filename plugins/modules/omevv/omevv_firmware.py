@@ -339,11 +339,11 @@ CLUSTER_HOST_SERVICETAG_MUTUAL_EXCLUSIVE_MSG = "parameters are mutually " \
 CLUSTER_HOST_SERVICETSAG_REQUIRED_MSG = "Either 'cluster' or 'host' or 'servicetag' must " \
                                         "be specified."
 UPDATE_JOB_PRESENT_MSG = "Update job is either running or in a scheduled state for cluster " \
-                         "{cluster_name}. Wait for its completion and trigger."
-JOB_NAME_ALREADY_EXISTS_MSG = "Job with name {job_name} already exists. Provide different name."
+                         "'{cluster_name}'. Wait for its completion and trigger."
+JOB_NAME_ALREADY_EXISTS_MSG = "Job with name '{job_name}' already exists. Provide different name."
 CLUSTER_HOST_NOT_FOUND_MSG = "No managed hosts found in the cluster."
-HOST_NOT_FOUND_MSG = "Host not found under managed hosts."
-CLUSTER_NOT_FOUND_MSG = "Provided cluster name {cluster_name} is not valid."
+HOST_NOT_FOUND_MSG = "Host '{managed_host}' not found under managed hosts."
+CLUSTER_NOT_FOUND_MSG = "Provided cluster name '{cluster_name}' is not valid."
 CHANGES_FOUND_MSG = "Changes found to be applied."
 CHANGES_NOT_FOUND_MSG = "No changes found to be applied."
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be " \
@@ -519,7 +519,10 @@ class UpdateCluster(FirmwareUpdate):
             nonlocal cluster_name, payload, new_host_id, host_service_tags, cluster_group_id
             host_id, host_service_tags = self.get_host_from_parameters(vcenter_uuid, parameters)
             if host_id is None:
-                self.module.exit_json(msg=HOST_NOT_FOUND_MSG, skipped=True)
+                if target['host']:
+                    self.module.exit_json(msg=HOST_NOT_FOUND_MSG.format(managed_host = target['host']), skipped=True)
+                else:
+                    self.module.exit_json(msg=HOST_NOT_FOUND_MSG.format(managed_host = target['servicetag']), skipped=True)
             cluster_name = self.omevv_info_obj.get_cluster_name(vcenter_uuid, host_id)
             cluster_group_id = self.omevv_info_obj.get_group_id_of_cluster(vcenter_uuid,
                                                                            cluster_name)
@@ -545,15 +548,20 @@ class UpdateCluster(FirmwareUpdate):
             vcenter_uuid, cluster_group_id, new_host_id, parameters['targets'], host_service_tags)
 
         if self.module.check_mode or self.module.params.get('_ansible_check_mode'):
-            self.handle_check_mode(firmware_update_needed, before_dict, after_dict)
+            self.handle_check_mode(firmware_update_needed, before_no_change_dict,
+                                   after_no_change_dict, before_dict, after_dict)
 
         if firmware_update_needed:
             self.handle_firmware_update(vcenter_uuid, cluster_group_id, payload, parameters,
                                         before_dict, after_dict)
-        else:
+
+        elif self.module._diff:
             self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG,
                                   diff={"before": before_no_change_dict,
                                         "after": after_no_change_dict}, changed=False)
+
+        else:
+            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed= False)
 
     def get_host_from_parameters(self, vcenter_uuid, parameters, host_ids=None,
                                  host_service_tags=None):
@@ -564,7 +572,8 @@ class UpdateCluster(FirmwareUpdate):
             host_ids, host_service_tags = self.get_host_id(vcenter_uuid, target)
             return host_ids, host_service_tags
 
-    def handle_check_mode(self, firmware_update_needed, before_dict, after_dict):
+    def handle_check_mode(self, firmware_update_needed, before_no_change_dict,
+                          after_no_change_dict,before_dict, after_dict):
         if firmware_update_needed:
             if self.module._diff:
                 self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True,
@@ -572,7 +581,12 @@ class UpdateCluster(FirmwareUpdate):
             else:
                 self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
         else:
-            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
+            if self.module._diff:
+                self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False,
+                                      diff={"before": before_no_change_dict,
+                                            "after": after_no_change_dict})
+            else:
+                self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
 
     def handle_firmware_update(self, vcenter_uuid, cluster_group_id, payload, parameters,
                                before_dict, after_dict):
