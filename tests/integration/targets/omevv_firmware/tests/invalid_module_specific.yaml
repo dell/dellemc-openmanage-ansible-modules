@@ -80,7 +80,7 @@
         that:
           - partial_cluster_result.skipped
           - not partial_cluster_result.changed
-          - partial_cluster_result.msg
+          - partial_cluster_result.msg == expected_msg_for_partial_cluster_name
 
     - name: Negative - Update the firmware by passing invalid host.
       dellemc.openmanage.omevv.omevv_firmware:
