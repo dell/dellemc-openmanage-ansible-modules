@@ -11,7 +11,7 @@ Release Summary
 ---------------
 
 - The ``omevv_firmware`` module is added to support the firmware update of the single host and single cluster.
-- The ``omevv_firmware_repository_profile`` module is enhanced to support resync of repository profiles from the UMP plugin.
+- The ``omevv_firmware_repository_profile`` module is enhanced to support resync of repository profiles from the OpenManage Update Manager Plug-in.
 - The ``idrac_certificates`` module is enhanced to support SSL CSR generation for 4096 key size. (Issue #737) 
 
 Major Changes
@@ -22,7 +22,7 @@ Major Changes
 Minor Changes
 -------------
 
-- omevv_firmware_repository_profile - This module allows to resync the repository profiles from the UMP plugin.
+- omevv_firmware_repository_profile - This module allows to resync the repository profiles from the OpenManage Update Manager Plug-in.
 
 Bugfixes
 --------
