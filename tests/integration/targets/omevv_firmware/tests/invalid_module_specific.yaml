@@ -1,0 +1,247 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OMEVV host, OMEVV username and OMEVV password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: hostname,
+     vcenter_username and vcenter_password.'
+  when: 'hostname is not defined or vcenter_username is not defined or
+         vcenter_password is not defined'
+
+- block:
+    - name: Fetch pre-requisite details
+      ansible.builtin.include_tasks: ../_helper.yml
+
+    - name: Negative - Update the firmware by passing both svctag and host at once.
+      dellemc.openmanage.omevv.omevv_firmware:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        run_now: true
+        targets:
+          - servicetag: "svctag"
+            host: "host_ip"
+            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+      register: invalid_firmware_update
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Update the firmware by passing both svctag and host at once.
+      ansible.builtin.assert:
+        that:
+          - invalid_firmware_update.failed
+          - not invalid_firmware_update.changed
+          - 'invalid_firmware_update.msg == "parameters are
+             mutually exclusive: cluster|host|servicetag."'
+
+    - name: Negative - Update the firmware by passing invalid cluster.
+      dellemc.openmanage.omevv.omevv_firmware:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        run_now: true
+        targets:
+          - cluster: "Invalid_cluster"
+            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+      register: invalid_cluster_result
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Update the firmware by passing invalid cluster.
+      ansible.builtin.assert:
+        that:
+          - invalid_cluster_result.skipped
+          - not invalid_cluster_result.changed
+          - 'invalid_cluster_result.msg == "Provided cluster name ''Invalid_cluster'' is not valid."'
+
+    - name: Create the expected error message for partial cluster_name
+      set_fact:
+        expected_msg_for_partial_cluster_name:
+          "Provided cluster name '{{ cluster_name[:5] }}' is not valid."
+
+    - name: Negative - Update the firmware by passing passing partial cluster_name.
+      dellemc.openmanage.omevv.omevv_firmware:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        run_now: true
+        targets:
+          - cluster: "{{ cluster_name[:5] }}"
+            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+      register: partial_cluster_result
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Update the firmware by passing passing partial cluster_name.
+      ansible.builtin.assert:
+        that:
+          - partial_cluster_result.skipped
+          - not partial_cluster_result.changed
+          - partial_cluster_result.msg == expected_msg_for_partial_cluster_name
+
+    - name: Negative - Update the firmware by passing invalid host.
+      dellemc.openmanage.omevv.omevv_firmware:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        run_now: true
+        targets:
+          - host: "Invalid_host"
+            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+      register: invalid_cluster_result
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Update the firmware by passing invalid host.
+      ansible.builtin.assert:
+        that:
+          - invalid_cluster_result.skipped
+          - not invalid_cluster_result.changed
+          - 'invalid_cluster_result.msg == "Host ''Invalid_host'' not found under managed hosts."'
+
+    - name: Set partial host
+      set_fact:
+        partial_host: "{{ host_ip_list[0].split('.')[0:3] | join('.') }}"
+
+    - name: Create the expected error message for partial host
+      set_fact:
+        expected_msg_for_partial_host:
+          "Host '{{ partial_host }}' not found under managed hosts."
+
+    - name: Negative - Update the firmware by passing partial host.
+      dellemc.openmanage.omevv.omevv_firmware:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        run_now: true
+        targets:
+          - host: "{{ partial_host }}"
+            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+      register: invalid_cluster_result
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Update the firmware by passing partial host.
+      ansible.builtin.assert:
+        that:
+          - invalid_cluster_result.skipped
+          - not invalid_cluster_result.changed
+          - invalid_cluster_result.msg == expected_msg_for_partial_host
+
+    - name: Negative - Update the firmware by passing invalid servicetag.
+      dellemc.openmanage.omevv.omevv_firmware:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        run_now: true
+        targets:
+          - servicetag: "Invalidservicetag"
+            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+      register: invalid_cluster_result
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Update the firmware by passing non-existent service tag in the cluster.
+      ansible.builtin.assert:
+        that:
+          - invalid_cluster_result.skipped
+          - not invalid_cluster_result.changed
+          - 'invalid_cluster_result.msg ==  "Host ''Invalidservicetag'' not found under managed hosts."'
+
+    - name: Set partial host
+      set_fact:
+        partial_servicetag: "{{ servicetag_list[0][0:3] }}"
+
+    - name: Create the expected error message for partial host
+      set_fact:
+        expected_msg_for_partial_servicetag:
+          "Host '{{ partial_servicetag }}' not found under managed hosts."
+
+    - name: Negative - Update the firmware by passing partial servicetag.
+      dellemc.openmanage.omevv.omevv_firmware:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        run_now: true
+        targets:
+          - servicetag: "{{ partial_servicetag }}"
+            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+      register: invalid_cluster_result
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Update the firmware by passing partial servicetag.
+      ansible.builtin.assert:
+        that:
+          - invalid_cluster_result.skipped
+          - not invalid_cluster_result.changed
+          - 'invalid_cluster_result.msg == expected_msg_for_partial_servicetag'
+
+    - name: Negative - Update the firmware by passing invalid date time.
+      dellemc.openmanage.omevv.omevv_firmware:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        run_now: true
+        date_time: "invalid_date"
+        targets:
+          - cluster: "{{ cluster_name }}"
+            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+      register: invalid_cluster_result
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Update the firmware by passing invalid date time.
+      ansible.builtin.assert:
+        that:
+          - invalid_cluster_result.failed
+          - not invalid_cluster_result.changed
+          - 'invalid_cluster_result.msg == "Invalid date time. Enter a
+              valid date time in the format of YYYY-MM-DDTHH:MM:SSZ."'
+
+    - name: Negative - invalid job_wait_timeout type
+      dellemc.openmanage.omevv.omevv_firmware:
+        job_wait_timeout: invalid
+        run_now: true
+        targets:
+          - host: "{{ host_ip_list[0] }}"
+            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+      register: invalid_job_wait_timeout_type
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid job_wait_timeout type
+      ansible.builtin.assert:
+        that:
+          - invalid_job_wait_timeout_type.failed
+          - not invalid_job_wait_timeout_type.changed
+          - '"argument ''job_wait_timeout'' is of
+             type <class ''str''> and we were unable to convert to
+             int:" in invalid_job_wait_timeout_type.msg'
+
+    - name: Negative - invalid job_wait_timeout value
+      dellemc.openmanage.omevv.omevv_firmware:
+        job_wait_timeout: -1
+        run_now: true
+        targets:
+          - host: "{{ host_ip_list[0] }}"
+            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+      register: invalid_job_wait_timeout_value
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid job_wait_timeout value
+      ansible.builtin.assert:
+        that:
+          - invalid_job_wait_timeout_value.failed
+          - not invalid_job_wait_timeout_value.changed
+          - 'invalid_job_wait_timeout_value.msg == "The value for the ''job_wait_timeout''
+             parameter cannot be negative or zero."'
+
+  module_defaults:
+    dellemc.openmanage.omevv.omevv_firmware:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname | ansible.utils.ipwrap }}"
+      vcenter_username: "{{ vcenter_username }}"
+      vcenter_password: "{{ vcenter_password }}"
