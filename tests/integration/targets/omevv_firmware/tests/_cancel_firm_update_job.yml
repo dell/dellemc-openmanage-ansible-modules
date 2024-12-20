@@ -1,0 +1,16 @@
+---
+- name: Cancel firmware update job
+  ansible.builtin.uri:
+    url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
+      }}/omevv/GatewayService/v1/Consoles/{{ uuid }}/UpdateJobs/{{ job_id
+      }}/cancel
+    user: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    validate_certs: false
+    force_basic_auth: true
+    method: "POST"
+    body: "{}"
+    status_code: 202
+    headers:
+      x_omivv-api-vcenter-identifier: "{{ uuid }}"
+  when: job_id is defined

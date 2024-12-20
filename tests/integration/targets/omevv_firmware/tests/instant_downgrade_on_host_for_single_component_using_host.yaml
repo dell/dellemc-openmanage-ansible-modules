@@ -1,0 +1,130 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: hostname, vcenter_username
+      and vcenter_password."
+  when: hostname is not defined or vcenter_username is not defined or
+    vcenter_password is not defined
+
+- block:
+    - name: Fetch pre-requisite details
+      ansible.builtin.include_tasks: ../_helper.yml
+      vars:
+        upgrade: true
+
+    - name: Including helper file for creating firmware repo profile
+      ansible.builtin.include_tasks: ../_pre_req_create.yml
+
+    - name: Checking if firmware components is there for downgrade
+      ansible.builtin.fail:
+        msg: "There is no single firmware component available for downgrade."
+      when: down_firm_list == []
+
+    - name: Instant downgrade on cluster for single non reboot component
+        (Check mode and Diff mode)
+      dellemc.openmanage.omevv.omevv_firmware: &downgrade_firmware
+        run_now: true
+        enter_maintenance_mode_timeout: 60
+        enter_maintenance_mode_options: NO_DATA_MIGRATION
+        drs_check: false
+        evacuate_VMs: false
+        exit_maintenance_mode: false
+        maintenance_mode_count_check: false
+        check_vSAN_health: false
+        delete_job_queue: false
+        reset_idrac: true
+        reboot_options: FORCEREBOOT
+        job_wait_timeout: 3600
+        targets:
+          - host: "{{ host_ip_list[0] }}"
+            firmware_components:
+              - "{{ down_firm_list[0] }}"
+      register: check_cm
+      check_mode: true
+      diff: true
+
+    - name: Verify task status - Instant downgrade on cluster for single
+        non reboot component (Check mode)
+      ansible.builtin.assert:
+        that:
+          - check_cm.changed
+          - check_cm.msg == "Changes found to be applied."
+          - before is version(after, '>')
+      vars:
+        before: "{{ check_cm.diff.before[servicetag_list[0]][down_firm_list[0]]
+          .firmwareversion }}"
+        after: "{{ check_cm.diff.after[servicetag_list[0]][down_firm_list[0]]
+          .firmwareversion }}"
+
+    - name: Instant downgrade on cluster for single non reboot component.
+        (Normal and Diff Mode)
+      dellemc.openmanage.omevv.omevv_firmware:
+        <<: *downgrade_firmware
+      diff: true
+      register: normal
+
+    - name: Verify task status - Instant downgrade on cluster for single
+        non reboot component. (Normal and Diff Mode)
+      ansible.builtin.assert:
+        that:
+          - normal.changed
+          - normal.msg ==
+            "Successfully completed the firmware update."
+          - before is version(after, '>')
+      vars:
+        before: "{{ normal.diff.before[servicetag_list[0]][down_firm_list[0]]
+          .firmwareversion }}"
+        after: "{{ normal.diff.after[servicetag_list[0]][down_firm_list[0]]
+          .firmwareversion }}"
+
+    - name: Waiting for 5 mins for inventory job to completed
+      ansible.builtin.wait_for:
+        timeout: 300
+      when: normal.changed
+
+    - name: Instant downgrade on cluster for single non reboot component.
+        (Idempotency and Diff Mode)
+      dellemc.openmanage.omevv.omevv_firmware:
+        <<: *downgrade_firmware
+      diff: true
+      register: idemp
+
+    - name: Verify task status - Instant downgrade on cluster for single
+        non reboot component. (Idempotency and diff Mode)
+      ansible.builtin.assert:
+        that:
+          - not idemp.changed
+          - idemp.msg == idemp_msg
+          - before is version(after, '==')
+      vars:
+        before: "{{ idemp.diff.before[servicetag_list[0]][down_firm_list[0]]
+          .firmwareversion }}"
+        after: "{{ idemp.diff.after[servicetag_list[0]][down_firm_list[0]]
+          .firmwareversion }}"
+        idemp_msg: "No changes found to be applied."
+  always:
+    - name: Deleting baseling profile
+      dellemc.openmanage.omevv_baseline_profile:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ uuid}}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        validate_certs: false
+        name: "AnsibleTest"
+        state: absent
+      ignore_errors: true
+      no_log: false
+
+  module_defaults:
+    dellemc.openmanage.omevv.omevv_firmware:
+      hostname: "{{ hostname }}"
+      vcenter_username: "{{ vcenter_username }}"
+      vcenter_password: "{{ vcenter_password }}"
+      vcenter_uuid: "{{ uuid }}"
+      port: "{{ port }}"
+      validate_certs: "{{ validate_certs }}"

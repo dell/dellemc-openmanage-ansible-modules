@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.6.0
-# Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.10.0
+# Copyright (C) 2022-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -23,7 +23,7 @@ from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_certificates
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
-from mock import MagicMock
+from unittest.mock import MagicMock
 
 IMPORT_SSL_CERTIFICATE = "#DelliDRACCardService.ImportSSLCertificate"
 EXPORT_SSL_CERTIFICATE = "#DelliDRACCardService.ExportSSLCertificate"
@@ -298,6 +298,40 @@ class TestIdracCertificates(FakeAnsibleModule):
         f_module = self.get_module_mock(params=idrac_default_args)
         payload = self.module._build_generate_csr_payload(f_module, None)
         assert payload["AlternativeNames"] == ['192.198.2.1,192.198.2.2,X.X.X.X']
+
+    def test_perform_operation_and_download_csr(self, idrac_default_args):
+        idrac, value = MagicMock(), MagicMock()
+        value.json_data = {"CSRString": "value"}
+        idrac.invoke_request = MagicMock(return_value=value)
+        idrac_default_args.update({"timeout": 120})
+        payload = self.module.perform_operation_and_download_csr(idrac, None, None, None)
+        assert "CSRString" in payload.json_data
+
+    def test_check_csr_generated(self, mocker):
+        idrac, value = MagicMock(), MagicMock()
+        value.json_data = {"Attributes": {"Security.1.ConfigCertStatus": 2}}
+        idrac.invoke_request = MagicMock(return_value=value)
+        mocker.patch(MODULE_PATH + 'time.sleep', return_value=None)
+        payload = self.module.check_csr_generated(idrac)
+        assert payload is True
+
+    def test_perform_operation_and_download_csr_with_HTTPError(self, idrac_default_args, mocker):
+        idrac, value = MagicMock(), MagicMock()
+        value.json_data = {"CSRString": "value"}
+        err_info = '{"error":{"@Message.ExtendedInfo":[{"MessageId": "IDRAC.2.9.SYS537"}]}}'
+
+        def mock_invoke_request(*args, **kwargs):
+            if args[1] == 'POST':
+                return value
+            else:
+                raise HTTPError('https://testhost.com', 503, "http error message",
+                                {"accept-type": "application/json"}, StringIO(err_info))
+        idrac.invoke_request = MagicMock(side_effect=mock_invoke_request)
+        mocker.patch(MODULE_PATH + 'time.sleep', return_value=None)
+        mocker.patch(MODULE_PATH + 'check_csr_generated', return_value=True)
+        idrac_default_args.update({"timeout": 120})
+        payload = self.module.perform_operation_and_download_csr(idrac, None, "GET", None)
+        assert payload.json_data["CSRString"] == "value"
 
     @pytest.mark.parametrize("params", [{"json_data": {
         "Actions": {
