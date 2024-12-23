@@ -1,3 +1,4 @@
+---
 - ansible.builtin.set_fact:
     certificate_path: "{{ base_path_for_import_certificate }}/{{ item.value }}"
 
@@ -26,7 +27,8 @@
     - ansible.builtin.include_tasks: _wait_for_idrac_readiness.yml
 
     - ansible.builtin.set_fact:
-        import_successful_msg: "Successfully performed the 'import' certificate operation.iDRAC has been reset successfully."
+        import_successful_msg: "Successfully performed the 'import' certificate
+          operation.iDRAC has been reset successfully."
 
     - name: Verify status of task - import certificate - normal mode
       ansible.builtin.assert:

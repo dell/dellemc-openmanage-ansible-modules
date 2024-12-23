@@ -1,12 +1,15 @@
-# Test code for the Dell OpenManage modules
-# Copyright (C) 2023 - 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
-    msg: "Please define the following variables: idrac_ip, idrac_user and idrac_password."
-  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
 
 - name: Verify iDRAC Certificate Signing Request
   module_defaults:
@@ -61,10 +64,13 @@
       ansible.builtin.assert:
         that:
           - not generate_csr_cm.changed
-          - generate_csr_cm.msg == "Successfully performed the 'generate_csr' certificate operation."
+          - generate_csr_cm.msg == "Successfully performed the 'generate_csr'
+              certificate operation."
           - file_status_cm.stat.exists
-          - (generate_csr_cm.certificate_path | basename).startswith(idrac_ip)
-          - (generate_csr_cm.certificate_path | basename).endswith("_"+ cert_type + ".txt")
+          - (generate_csr_cm.certificate_path |
+              basename).startswith(idrac_ip)
+          - (generate_csr_cm.certificate_path |
+              basename).endswith("_"+ cert_type + ".txt")
 
     - name: Get CSR info check mode
       community.crypto.openssl_csr_info:
@@ -81,7 +87,8 @@
           - csr_content_cm.subject.stateOrProvinceName == stateOrProvinceName
           - csr_content_cm.subject.countryName == countryName
           - csr_content_cm.subject.emailAddress == emailAddress
-          - (csr_content_cm.subject_alt_name | length) == (sub_alt_name_list | length)
+          - (csr_content_cm.subject_alt_name |
+              length) == (sub_alt_name_list | length)
 
     - name: Verify CSR SAN check mode
       ansible.builtin.assert:
@@ -105,10 +112,13 @@
       ansible.builtin.assert:
         that:
           - not generate_csr.changed
-          - generate_csr.msg == "Successfully performed the 'generate_csr' certificate operation."
+          - generate_csr.msg == "Successfully performed
+              the 'generate_csr' certificate operation."
           - file_status.stat.exists
-          - (generate_csr.certificate_path | basename).startswith(idrac_ip)
-          - (generate_csr.certificate_path | basename).endswith("_"+ cert_type + ".txt")
+          - (generate_csr.certificate_path |
+              basename).startswith(idrac_ip)
+          - (generate_csr.certificate_path |
+              basename).endswith("_"+ cert_type + ".txt")
 
     - name: Get CSR info all parameters
       community.crypto.openssl_csr_info:
@@ -125,7 +135,8 @@
           - csr_content.subject.stateOrProvinceName == stateOrProvinceName
           - csr_content.subject.countryName == countryName
           - csr_content.subject.emailAddress == emailAddress
-          - (csr_content.subject_alt_name | length) == (sub_alt_name_list | length)
+          - (csr_content.subject_alt_name |
+              length) == (sub_alt_name_list | length)
 
     - name: Verify CSR SAN all parameters
       ansible.builtin.assert:
@@ -158,10 +169,13 @@
       ansible.builtin.assert:
         that:
           - not generate_csr_mp.changed
-          - generate_csr_mp.msg == "Successfully performed the 'generate_csr' certificate operation."
+          - generate_csr_mp.msg == "Successfully performed
+              the 'generate_csr' certificate operation."
           - file_status_mp.stat.exists
-          - (generate_csr_mp.certificate_path | basename).startswith(idrac_ip)
-          - (generate_csr_mp.certificate_path | basename).endswith("_"+ cert_type + ".txt")
+          - (generate_csr_mp.certificate_path |
+              basename).startswith(idrac_ip)
+          - (generate_csr_mp.certificate_path |
+              basename).endswith("_"+ cert_type + ".txt")
 
     - name: Get CSR info mandatory parameters
       community.crypto.openssl_csr_info:
@@ -172,7 +186,8 @@
       ansible.builtin.assert:
         that:
           - csr_content_mp.subject.commonName == commonName
-          - csr_content_mp.subject.organizationalUnitName == organizationalUnitName
+          - csr_content_mp.subject.organizationalUnitName == organizational
+              UnitName
           - csr_content_mp.subject.organizationName == organizationName
           - csr_content_mp.subject.localityName == localityName
           - csr_content_mp.subject.stateOrProvinceName == stateOrProvinceName

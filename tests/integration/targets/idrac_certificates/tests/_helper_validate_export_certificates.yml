@@ -1,3 +1,4 @@
+---
 - ansible.builtin.set_fact:
     cert_type: "{{ item.value }}"
 
@@ -9,7 +10,8 @@
   dellemc.openmanage.idrac_certificates:
     command: import
     certificate_type: "{{ cert_type }}"
-    certificate_path: "{{ base_path_for_import_certificate }}/{{ certificate_path }}"
+    certificate_path: "{{ base_path_for_import_certificate }}/{{
+      certificate_path }}"
   register: import_certificate_output
   when: 'cert_type != "HTTPS"'
 
@@ -17,7 +19,8 @@
   when: 'cert_type != "HTTPS"'
 
 - ansible.builtin.set_fact:
-    import_successful_msg: "Successfully performed the 'import' certificate operation.iDRAC has been reset successfully."
+    import_successful_msg: "Successfully performed the 'import' certificate operation.iDRAC
+      has been reset successfully."
   when: 'cert_type != "HTTPS"'
 
 - name: Verify status of task - import certificate
@@ -28,8 +31,9 @@
 
 - ansible.builtin.include_tasks: get_data_uri.yml
   vars:
-    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell\
-    /DelliDRACCardService/Actions/DelliDRACCardService.ExportSSLCertificate"
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{
+      idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell\
+      /DelliDRACCardService/Actions/DelliDRACCardService.ExportSSLCertificate"
     body:
       SSLCertType: "{{ item.key }}"
 
@@ -53,7 +57,8 @@
   register: export_certificate_output
 
 - ansible.builtin.set_fact:
-    export_successful_msg: "Successfully performed the 'export' certificate operation."
+    export_successful_msg: "Successfully performed the 'export' certificate
+      operation."
 
 - name: Verify status of task - export certificate
   ansible.builtin.assert:
@@ -66,10 +71,12 @@
   register: certificate_filename
 
 - ansible.builtin.set_fact:
-    certificate: "{{ export_certificate_path }}/{{ certificate_filename.stdout }}"
+    certificate: "{{ export_certificate_path }}/{{
+      certificate_filename.stdout }}"
 
 - ansible.builtin.set_fact:
-    certificate_content_from_module: "{{ lookup('ansible.builtin.file', '{{ certificate }}',rstrip=False) }}"
+    certificate_content_from_module: "{{ lookup('ansible.builtin.file',
+      '{{ certificate }}',rstrip=False) }}"
 
 - name: Verify content of certificate
   ansible.builtin.assert:

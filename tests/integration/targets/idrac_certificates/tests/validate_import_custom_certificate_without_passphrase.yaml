@@ -1,12 +1,15 @@
-# Test code for the Dell OpenManage modules
-# Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
-  fail:
-    msg: 'Please define the following variables: idrac_ip, idrac_user and idrac_password.'
-  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
 
 - block:
     - name: Check firmware version
@@ -22,7 +25,8 @@
 
     - name: Get custom certificate from share
       ansible.builtin.uri:
-        url: "https://{{ https_share_ip }}{{ https_certificate_path }}{{ custom_certificate_without_passphrase }}"
+        url: "https://{{ https_share_ip }}{{ https_certificate_path }}{{
+          custom_certificate_without_passphrase }}"
         dest: "{{ base_path_for_import_certificate }}"
         force_basic_auth: true
         validate_certs: false
@@ -33,11 +37,13 @@
       dellemc.openmanage.idrac_certificates: &cert
         command: import
         certificate_type: "CUSTOMCERTIFICATE"
-        certificate_path: "{{ base_path_for_import_certificate }}/{{ custom_certificate_without_passphrase }}"
+        certificate_path: "{{ base_path_for_import_certificate }}/{{
+          custom_certificate_without_passphrase }}"
       register: check_import_certificate
       check_mode: true
 
-    - name: Verify status of task - import custom certificate (check mode - changes expected)
+    - name: Verify status of task - import custom certificate (check
+        mode - changes expected)
       ansible.builtin.assert:
         that:
           - check_import_certificate.changed
@@ -49,7 +55,8 @@
       register: import_certificate_output
 
     - ansible.builtin.set_fact:
-        import_successful_msg: "Successfully performed the 'import' certificate operation.iDRAC has been reset successfully."
+        import_successful_msg: "Successfully performed the 'import'
+          certificate operation.iDRAC has been reset successfully."
 
     - name: Verify status of task - import custom certificate - normal mode
       ansible.builtin.assert:
@@ -67,7 +74,8 @@
       register: check_import_certificate
       check_mode: true
 
-    - name: Verify status of task - import custom certificate (check mode - changes expected)
+    - name: Verify status of task - import custom certificate (check
+        mode - changes expected)
       ansible.builtin.assert:
         that:
           - check_import_certificate.changed
@@ -78,7 +86,8 @@
         <<: *cert
       register: import_certificate_idempotence
 
-    - name: Verify status of task - import custom certificate - Idempotency mode
+    - name: Verify status of task - import custom certificate - Idempotency
+        mode
       ansible.builtin.assert:
         that:
           - import_certificate_idempotence.changed

@@ -1,12 +1,15 @@
-# Test code for the Dell OpenManage modules
-# Copyright (C) 2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
-    msg: "Please define the following variables: idrac_ip, idrac_user and idrac_password."
-  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
 
 - block:
     - name: Create Directory
@@ -17,7 +20,8 @@
 
     - name: Get custom certificate without passphrase from share
       ansible.builtin.uri:
-        url: "https://{{ https_share_ip }}{{ https_certificate_path }}{{ custom_certificate_without_passphrase }}"
+        url: "https://{{ https_share_ip }}{{
+          https_certificate_path }}{{ custom_certificate_without_passphrase }}"
         dest: "{{ base_path_for_import_certificate }}"
         force_basic_auth: true
         validate_certs: false
@@ -26,7 +30,8 @@
 
     - name: Get custom certificate with passphrase from share
       ansible.builtin.uri:
-        url: "https://{{ https_share_ip }}{{ https_certificate_path }}{{ custom_certificate }}"
+        url: "https://{{ https_share_ip }}{{ https_certificate_path }}{{
+          custom_certificate }}"
         dest: "{{ base_path_for_import_certificate }}"
         force_basic_auth: true
         validate_certs: false
@@ -35,7 +40,8 @@
 
     - name: Get CSC certificate from share
       ansible.builtin.uri:
-        url: "https://{{ https_share_ip }}{{ https_certificate_path }}{{ CSC_passphrase_certificate }}"
+        url: "https://{{ https_share_ip }}{{ https_certificate_path }}{{
+          CSC_passphrase_certificate }}"
         dest: "{{ base_path_for_import_certificate }}"
         force_basic_auth: true
         validate_certs: false
@@ -56,9 +62,12 @@
       ansible.builtin.assert:
         that:
           - invalid_unreachable.unreachable
-          - 'invalid_unreachable.msg ==  "<urlopen error Unable to communicate with iDRAC 999.999.999.999. This may be due to one of the following:
-            Incorrect username or password, unreachable iDRAC IP or a failure in TLS/SSL handshake.>" or invalid_unreachable.msg == "<urlopen error
-            [Errno -2] Name or service not known>"'
+          - 'invalid_unreachable.msg ==  "<urlopen error Unable to communicate
+              with iDRAC 999.999.999.999. This may be due to one of the
+              following: Incorrect username or password, unreachable iDRAC
+              IP or a failure in TLS/SSL handshake.>" or
+              invalid_unreachable.msg == "<urlopen error [Errno -2] Name or
+              service not known>"'
 
     - name: Negative - invalid idrac user
       dellemc.openmanage.idrac_certificates:
@@ -73,8 +82,11 @@
       ansible.builtin.assert:
         that:
           - invalid_idrac_user.failed
-          - 'invalid_idrac_user.msg ==  "<urlopen error Unable to communicate with iDRAC {{ idrac_ip }}. This may be due to one of the following:
-            Incorrect username or password, unreachable iDRAC IP or a failure in TLS/SSL handshake." or "HTTP Error 401: Unauthorized"'
+          - 'invalid_idrac_user.msg ==  "<urlopen error
+              Unable to communicate with iDRAC {{ idrac_ip }}. This may be due
+              to one of the following: Incorrect username or password,
+              unreachable iDRAC IP or a failure in TLS/SSL
+              handshake." or "HTTP Error 401: Unauthorized"'
 
     - name: Negative - invalid idrac password
       dellemc.openmanage.idrac_certificates:
@@ -89,8 +101,11 @@
       ansible.builtin.assert:
         that:
           - invalid_idrac_pass.failed
-          - 'invalid_idrac_pass.msg == "<urlopen error Unable to communicate with iDRAC {{ idrac_ip }}. This may be due to one of the following:
-            Incorrect username or password, unreachable iDRAC IP or a failure in TLS/SSL handshake." or "HTTP Error 401: Unauthorized"'
+          - 'invalid_idrac_pass.msg == "<urlopen error Unable to communicate
+            with iDRAC {{ idrac_ip }}. This may be due to one of the
+            following: Incorrect username or password, unreachable iDRAC
+            IP or a failure in TLS/SSL
+            handshake." or "HTTP Error 401: Unauthorized"'
 
     - name: invalid command
       dellemc.openmanage.idrac_certificates:
@@ -105,7 +120,8 @@
         that:
           - invalid_command.failed
           - not invalid_command.changed
-          - 'invalid_command.msg == "value of command must be one of: generate_csr, export, import, reset, got: invalid"'
+          - 'invalid_command.msg == "value of command must be one
+            of: generate_csr, export, import, reset, got: invalid"'
 
     - name: invalid certificate type
       dellemc.openmanage.idrac_certificates:
@@ -120,7 +136,9 @@
         that:
           - invalid_cert_type.failed
           - not invalid_cert_type.changed
-          - 'invalid_cert_type.msg == "value of certificate_type must be one of: HTTPS, CA, CUSTOMCERTIFICATE, CSC, CLIENT_TRUST_CERTIFICATE, got: invalid"'
+          - 'invalid_cert_type.msg == "value of certificate_type must
+            be one of: HTTPS, CA, CUSTOMCERTIFICATE, CSC,
+            CLIENT_TRUST_CERTIFICATE, got: invalid"'
 
     - name: invalid certificate path
       dellemc.openmanage.idrac_certificates:
@@ -136,14 +154,16 @@
         that:
           - invalid_cert_path.failed
           - not invalid_cert_path.changed
-          - "'Provided directory path \\'invalid_dir\\' is not valid.' == invalid_cert_path.msg"
+          - "'Provided directory path \\'invalid_dir\\' is
+            not valid.' == invalid_cert_path.msg"
 
     - name: invalid passphrase
       dellemc.openmanage.idrac_certificates:
         validate_certs: false
         command: "import"
         certificate_type: "CSC"
-        certificate_path: "{{ base_path_for_import_certificate }}/{{ CSC_passphrase_certificate }}"
+        certificate_path: "{{ base_path_for_import_certificate }}/{{
+          CSC_passphrase_certificate }}"
         passphrase: "invalid"
       register: invalid_passphrase
       ignore_errors: true
@@ -166,13 +186,15 @@
       register: invalid_cert_params
       ignore_errors: true
 
-    - name: Verify task status - Negative - invalid certificate parameters to generate signing request
+    - name: Verify task status - Negative - invalid certificate parameters
+        to generate signing request
       ansible.builtin.assert:
         that:
           - invalid_cert_params.failed
           - not invalid_cert_params.changed
-          - "'missing required arguments: common_name, country_code, locality_name, organization_name, organization_unit,
-            state_name found in cert_params' == invalid_cert_params.msg"
+          - "'missing required arguments: common_name, country_code,
+            locality_name, organization_name, organization_unit, state_name
+            found in cert_params' == invalid_cert_params.msg"
 
     - name: invalid resource id
       dellemc.openmanage.idrac_certificates:
@@ -204,8 +226,10 @@
         that:
           - invalid_reset.failed
           - not invalid_reset.changed
-          - "'argument \\'reset\\' is of type <class \\'str\\'> and we were unable to convert to bool: The value \\'invalid\\' is
-            not a valid boolean.  Valid booleans include:' in invalid_reset.msg"
+          - "'argument \\'reset\\' is of type <class \\'str\\'> and we
+            were unable to convert to bool: The value \\'invalid\\' is
+            not a valid boolean.  Valid booleans
+            include:' in invalid_reset.msg"
 
     - name: invalid wait value
       dellemc.openmanage.idrac_certificates:
@@ -221,42 +245,49 @@
         that:
           - invalid_wait.failed
           - not invalid_wait.changed
-          - "'argument \\'wait\\' is of type <class \\'str\\'> and we were unable to convert to int: <class \\'str\\'>
-            cannot be converted to an int' in invalid_wait.msg"
+          - "'argument \\'wait\\' is of type <class \\'str\\'> and we
+            were unable to convert to int: <class \\'str\\'> cannot be
+            converted to an int' in invalid_wait.msg"
 
     - name: invalid custom certificate passphrase
       dellemc.openmanage.idrac_certificates:
         validate_certs: false
         command: "import"
         certificate_type: "CUSTOMCERTIFICATE"
-        certificate_path: "{{ base_path_for_import_certificate }}/{{ custom_certificate }}"
+        certificate_path: "{{ base_path_for_import_certificate }}/{{
+          custom_certificate }}"
         passphrase: "invalid"
       register: invalid_custom_cert_pass
       ignore_errors: true
 
-    - name: Verify task status - Negative - invalid custom certificate passphrase
+    - name: Verify task status - Negative - invalid custom certificate
+        passphrase
       ansible.builtin.assert:
         that:
           - invalid_custom_cert_pass.failed
           - not invalid_custom_cert_pass.changed
           - "'HTTP Error 400: Bad Request' == invalid_custom_cert_pass.msg"
 
-    - name: invalid custom certificate passphrase for a valid custom certificate
+    - name: invalid custom certificate passphrase for a valid custom
+        certificate
       dellemc.openmanage.idrac_certificates:
         validate_certs: false
         command: "import"
         certificate_type: "CUSTOMCERTIFICATE"
-        certificate_path: "{{ base_path_for_import_certificate }}/{{ custom_certificate_without_passphrase }}"
+        certificate_path: "{{ base_path_for_import_certificate }}/{{
+          custom_certificate_without_passphrase }}"
         passphrase: "invalid"
       register: invalid_custom_cert_without_pass
       ignore_errors: true
 
-    - name: Verify task status - Negative - invalid custom certificate passphrase for a valid custom certificate
+    - name: Verify task status - Negative - invalid custom certificate
+        passphrase for a valid custom certificate
       ansible.builtin.assert:
         that:
           - invalid_custom_cert_without_pass.failed
           - not invalid_custom_cert_without_pass.changed
-          - "'HTTP Error 400: Bad Request' == invalid_custom_cert_without_pass.msg"
+          - "'HTTP Error 400: Bad
+            Request' == invalid_custom_cert_without_pass.msg"
 
     - name: invalid ssl key
       dellemc.openmanage.idrac_certificates:
@@ -273,7 +304,8 @@
         that:
           - invalid_ssl_key.failed
           - not invalid_ssl_key.changed
-          - "'Unable to locate the SSL key file at invalid.' == invalid_ssl_key.msg"
+          - "'Unable to locate the SSL key file at
+            invalid.' == invalid_ssl_key.msg"
 
   always:
     - name: Delete the directory

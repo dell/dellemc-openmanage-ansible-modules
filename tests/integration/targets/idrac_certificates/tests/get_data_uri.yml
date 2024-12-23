@@ -1,3 +1,4 @@
+---
 - name: Pre-req - Get data using uri
   uri:
     url: "{{ url }}"
@@ -19,4 +20,5 @@
 
 - name: extracting data from get_data_uri
   set_fact:
-    certificate_content: "{{ result_get_data.content | from_json | json_query('CertificateFile') }}"
+    certificate_content: "{{ result_get_data.content |
+      from_json | json_query('CertificateFile') }}"

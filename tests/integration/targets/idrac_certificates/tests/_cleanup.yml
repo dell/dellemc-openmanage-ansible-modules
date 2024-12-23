@@ -1,3 +1,4 @@
+---
 - name: Ensure private key is present
   community.crypto.openssl_privatekey:
     path: "{{ base_path_for_import_certificate }}/cert.key"

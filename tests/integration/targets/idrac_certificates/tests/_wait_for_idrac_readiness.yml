@@ -1,3 +1,4 @@
+---
 - name: Wait for port to become open on the host
   ansible.builtin.wait_for:
     host: "{{ idrac_ip }}"

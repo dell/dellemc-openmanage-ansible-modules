@@ -1,12 +1,15 @@
-# Test code for the Dell OpenManage modules
-# Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
-    msg: 'Please define the following variables: idrac_ip, idrac_user and idrac_password.'
-  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
 
 - name: Ensure directory exists
   ansible.builtin.file:
@@ -23,21 +26,27 @@
 
     - name: Download files
       ansible.builtin.get_url:
-        url: "http://{{ https_share_ip }}{{ https_certificate_path }}{{ CSC_passphrase_certificate }}"
-        dest: "{{ base_path_for_import_certificate }}/{{ CSC_passphrase_certificate }}"
+        url: "http://{{ https_share_ip }}{{ https_certificate_path }}{{
+          CSC_passphrase_certificate }}"
+        dest: "{{ base_path_for_import_certificate }}/{{
+          CSC_passphrase_certificate }}"
         headers:
-          Authorization: "Basic {{ (https_share_username + ':' + https_share_password) | b64encode }}"
+          Authorization: "Basic {{ (
+            https_share_username + ':' + https_share_password) | b64encode }}"
 
-    - name: Importing CSC certificate with passphrase - Check mode - Changes expected
+    - name: Importing CSC certificate with passphrase - Check
+        mode - Changes expected
       dellemc.openmanage.idrac_certificates:
         command: import
         certificate_type: "CSC"
-        certificate_path: "{{ base_path_for_import_certificate }}/{{ CSC_passphrase_certificate }}"
+        certificate_path: "{{ base_path_for_import_certificate }}/{{
+          CSC_passphrase_certificate }}"
         passphrase: "{{ passphrase }}"
       register: import_certificate_output
       check_mode: true
 
-    - name: Verify status of task - import CSC certificate with passphrase - check mode
+    - name: Verify status of task - import CSC certificate with
+        passphrase - check mode
       ansible.builtin.assert:
         that:
           - import_certificate_output.changed
@@ -47,16 +56,19 @@
       dellemc.openmanage.idrac_certificates:
         command: import
         certificate_type: "CSC"
-        certificate_path: "{{ base_path_for_import_certificate }}/{{ CSC_passphrase_certificate }}"
+        certificate_path: "{{ base_path_for_import_certificate }}/{{
+          CSC_passphrase_certificate }}"
         passphrase: "{{ passphrase }}"
       register: import_certificate_output
 
     - ansible.builtin.include_tasks: _wait_for_idrac_readiness.yml
 
     - ansible.builtin.set_fact:
-        import_successful_msg: "Successfully performed the 'import' certificate operation.iDRAC has been reset successfully."
+        import_successful_msg: "Successfully performed the 'import'
+          certificate operation.iDRAC has been reset successfully."
 
-    - name: Verify status of task - import CSC certificate with passphrase - normal mode
+    - name: Verify status of task - import CSC certificate with
+        passphrase - normal mode
       ansible.builtin.assert:
         that:
           - import_certificate_output.changed
@@ -66,13 +78,15 @@
       dellemc.openmanage.idrac_certificates:
         command: import
         certificate_type: "CSC"
-        certificate_path: "{{ base_path_for_import_certificate }}/{{ CSC_passphrase_certificate }}"
+        certificate_path: "{{ base_path_for_import_certificate }}/{{
+          CSC_passphrase_certificate }}"
         passphrase: "{{ passphrase }}"
       register: import_certificate_output
 
     - ansible.builtin.include_tasks: _wait_for_idrac_readiness.yml
 
-    - name: Verify status of task - import CSC certificate with passphrase - Idempotency mode
+    - name: Verify status of task - import CSC certificate with
+        passphrase - Idempotency mode
       ansible.builtin.assert:
         that:
           - import_certificate_output.changed

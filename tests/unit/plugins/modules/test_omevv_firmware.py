@@ -16,7 +16,6 @@ import pytest
 import datetime
 from ansible_collections.dellemc.openmanage.plugins.modules.omevv_firmware import FirmwareUpdate, UpdateCluster
 from ansible_collections.dellemc.openmanage.plugins.modules import omevv_firmware
-# from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv_utils.omevv_info_utils import OMEVVInfo
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import AnsibleFailJSonException
 from mock import MagicMock
@@ -237,7 +236,6 @@ class TestUpdateCluster(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'UpdateCluster.is_update_job_allowed', return_value=True)
         mocker.patch(MODULE_PATH + 'UpdateCluster.is_job_name_existing', return_value=None)
         mocker.patch(MODULE_PATH + 'UpdateCluster.handle_check_mode', return_value=None)
-        firmware_update_needed = True
         mocker.patch(MODULE_PATH + 'UpdateCluster.handle_firmware_update', return_value=True)
         result = omevv_obj.execute()
         assert result is None
