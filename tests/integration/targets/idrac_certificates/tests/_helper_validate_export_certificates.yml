@@ -19,7 +19,8 @@
   when: 'cert_type != "HTTPS"'
 
 - ansible.builtin.set_fact:
-    import_successful_msg: "Successfully performed the 'import' certificate operation.iDRAC
+    import_successful_msg: "Successfully performed the 'import'
+      certificate operation.iDRAC
       has been reset successfully."
   when: 'cert_type != "HTTPS"'
 

@@ -1,5 +1,6 @@
 ---
-- name: Immediately update the firmware of a single component for a specific host
+- name: Immediately update the firmware of a single component for a
+    specific host
   dellemc.openmanage.omevv.omevv_firmware:
     hostname: "192.168.0.1"
     vcenter_uuid: "xxxxx"
@@ -24,7 +25,8 @@
           - "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
   delegate_to: localhost
 
-- name: Update the firmware of multiple components at scheduled time for a specific host
+- name: Update the firmware of multiple components at scheduled time for a
+    specific host
   dellemc.openmanage.omevv.omevv_firmware:
     hostname: "192.168.0.1"
     vcenter_uuid: "xxxxx"
@@ -51,7 +53,8 @@
           - "DCIM:INSTALLED#807__TPM.Integrated.1-1"
   delegate_to: localhost
 
-- name: Update the firmware of multiple components at scheduled time for a cluster
+- name: Update the firmware of multiple components at scheduled time for a
+    cluster
   dellemc.openmanage.omevv.omevv_firmware:
     hostname: "192.168.0.1"
     vcenter_uuid: "xxxxx"
@@ -78,7 +81,8 @@
           - "DCIM:INSTALLED#807__TPM.Integrated.1-1"
   delegate_to: localhost
 
-- name: Retrieve firmware compliance report of all the hosts in the specific cluster
+- name: Retrieve firmware compliance report of all the hosts in the specific
+    cluster
   dellemc.openmanage.omevv_firmware_compliance_info:
     hostname: "192.168.0.1"
     vcenter_uuid: "xxxxx"
@@ -92,12 +96,16 @@
 
 - name: Extract source name of all components
   ansible.builtin.set_fact:
-    source_names: "{{ compliance_data.hostComplianceReports[0].componentCompliances|json_query('*.sourceName') }}"
+    source_names: "{{
+      compliance_data.hostComplianceReports[0].componentCompliances|
+        json_query('*.sourceName') }}"
   delegate_to: localhost
 
 - name: Extract source name of a specific component
   ansible.builtin.set_fact:
-    source_name: "{{ compliance_data.hostComplianceReports[0].componentCompliances[0].sourceName }}"
+    source_name: "{{
+      compliance_data.hostComplianceReports[0].
+        componentCompliances[0].sourceName }}"
   delegate_to: localhost
 
 - name: Update firmware at the scheduled time for a specific host

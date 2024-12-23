@@ -91,7 +91,7 @@
         that:
           - csr_content_cm.subject.commonName == commonName
           - csr_content_cm.subject.organizationalUnitName == organizational
-              UnitName
+            UnitName
           - csr_content_cm.subject.organizationName == organizationName
           - csr_content_cm.subject.localityName == localityName
           - csr_content_cm.subject.stateOrProvinceName == stateOrProvinceName
@@ -140,7 +140,7 @@
         that:
           - csr_content.subject.commonName == commonName
           - csr_content.subject.organizationalUnitName == organizational
-              UnitName
+            UnitName
           - csr_content.subject.organizationName == organizationName
           - csr_content.subject.localityName == localityName
           - csr_content.subject.stateOrProvinceName == stateOrProvinceName
@@ -182,8 +182,10 @@
           - not generate_csr_mp.changed
           - generate_csr_mp.msg == "Successfully performed the 'generate_csr' certificate operation."
           - file_status_mp.stat.exists
-          - (generate_csr_mp.certificate_path | basename).startswith(idrac_ip)
-          - (generate_csr_mp.certificate_path | basename).endswith("_"+ cert_type + ".txt")
+          - (generate_csr_mp.certificate_path |
+              basename).startswith(idrac_ip)
+          - (generate_csr_mp.certificate_path |
+              basename).endswith("_"+ cert_type + ".txt")
 
     - name: Get CSR info mandatory parameters
       community.crypto.openssl_csr_info:
@@ -194,7 +196,8 @@
       ansible.builtin.assert:
         that:
           - csr_content_mp.subject.commonName == commonName
-          - csr_content_mp.subject.organizationalUnitName == organizationalUnitName
+          - csr_content_mp.subject.organizationalUnitName == organizational
+            UnitName
           - csr_content_mp.subject.organizationName == organizationName
           - csr_content_mp.subject.localityName == localityName
           - csr_content_mp.subject.stateOrProvinceName == stateOrProvinceName

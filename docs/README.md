@@ -122,7 +122,7 @@ You may obtain a copy of the License at
 | -------------------------------------------------------------------------------------------- |
 | [omevv_baseline_profile](modules/omevv_baseline_profile.rst)                                 |
 | [omevv_baseline_profile_info](modules/omevv_baseline_profile_info.rst)                       |
-| [omevv_firmware](modules/omevv_firmware.rst)                                           |
+| [omevv_firmware](modules/omevv_firmware.rst)                                                 |
 | [omevv_firmware_compliance_info](modules/omevv_firmware_compliance_info.rst)                 |
 | [omevv_firmware_repository_profile](modules/omevv_firmware_repository_profile.rst)           |
 | [omevv_firmware_repository_profile_info](modules/omevv_firmware_repository_profile_info.rst) |
