@@ -18,7 +18,7 @@ import pytest
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.rest_api import RestAPI, OpenURLResponse
-from mock import MagicMock
+from unittest.mock import MagicMock
 import json
 
 MODULE_UTIL_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.'

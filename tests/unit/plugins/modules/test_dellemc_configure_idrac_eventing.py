@@ -15,7 +15,7 @@ __metaclass__ = type
 import pytest
 from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_configure_idrac_eventing
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
-from mock import MagicMock, Mock, PropertyMock
+from unittest.mock import MagicMock, Mock, PropertyMock
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from pytest import importorskip

@@ -17,7 +17,7 @@ from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_syste
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from mock import MagicMock
+from unittest.mock import MagicMock
 from pytest import importorskip
 from ansible.module_utils._text import to_text
 import json

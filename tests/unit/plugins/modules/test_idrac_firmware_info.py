@@ -16,7 +16,7 @@ import pytest
 import json
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_firmware_info
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
-from mock import MagicMock, PropertyMock
+from unittest.mock import MagicMock, PropertyMock
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from urllib.error import URLError, HTTPError
 from io import StringIO

@@ -19,7 +19,7 @@ import json
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv import RestOMEVV, OMEVVAnsibleModule, AnsibleModule
-from mock import MagicMock
+from unittest.mock import MagicMock
 
 MODULE_UTIL_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.'
 OMEVV_OPENURL = 'omevv.RestOMEVV._base_invoke_request'

@@ -15,7 +15,7 @@ import json
 
 from urllib.error import HTTPError, URLError
 import pytest
-from mock import MagicMock
+from unittest.mock import MagicMock
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_session
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from ansible.module_utils.urls import SSLValidationError

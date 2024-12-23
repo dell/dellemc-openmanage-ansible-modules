@@ -20,7 +20,7 @@ from ansible.module_utils._text import to_text
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_attributes
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
-from mock import MagicMock
+from unittest.mock import MagicMock
 
 SUCCESS_MSG = "Successfully updated the attributes."
 NO_CHANGES_MSG = "No changes found to be applied."
