@@ -459,7 +459,6 @@ class FirmwareUpdate():
                                       failed=True)
             if not host and not servicetag and not cluster:
                 self.module.exit_json(msg=CLUSTER_HOST_SERVICETSAG_REQUIRED_MSG, failed=True)
-        return True
 
     def validate_date_time(self):
         try:
@@ -504,43 +503,14 @@ class UpdateCluster(FirmwareUpdate):
         parameters = self.module.params
         target = self.get_target(parameters['targets'])
 
-        def process_cluster_target(target):
-            nonlocal cluster_name, payload, new_host_id, host_service_tags, cluster_group_id
-            host_ids, host_service_tags = self.get_host_id(vcenter_uuid, target)
-            if host_ids is None or not host_ids:
-                self.module.exit_json(msg=CLUSTER_HOST_NOT_FOUND_MSG, failed=True)
-            cluster_name = target['cluster']
-            cluster_group_id = self.omevv_info_obj.get_group_id_of_cluster(vcenter_uuid,
-                                                                           cluster_name)
-            payload = self.get_payload_details(host_id=host_ids)
-            new_host_id = host_ids
-
-        def process_non_cluster_target(parameters):
-            nonlocal cluster_name, payload, new_host_id, host_service_tags, cluster_group_id
-            host_id, host_service_tags = self.get_host_from_parameters(vcenter_uuid, parameters)
-            if host_id is None:
-                if target['host']:
-                    self.module.exit_json(msg=HOST_NOT_FOUND_MSG.format(
-                        managed_host=target['host']), skipped=True)
-                else:
-                    self.module.exit_json(msg=HOST_NOT_FOUND_MSG.format(
-                        managed_host=target['servicetag']), skipped=True)
-            cluster_name = self.omevv_info_obj.get_cluster_name(vcenter_uuid, host_id)
-            cluster_group_id = self.omevv_info_obj.get_group_id_of_cluster(vcenter_uuid,
-                                                                           cluster_name)
-            payload = self.get_payload_details(host_id=host_id)
-            new_host_id = host_id
-
         if target['cluster']:
-            process_cluster_target(target)
+            cluster_group_id, payload, new_host_id = self.process_cluster_target(target)
         else:
-            process_non_cluster_target(parameters)
+            cluster_group_id, payload, new_host_id = self.process_non_cluster_target(parameters)
 
         if not isinstance(new_host_id, list):
             new_host_id = [new_host_id]
             host_service_tags = [host_service_tags]
-        else:
-            return None
 
         if not self.is_update_job_allowed(vcenter_uuid, cluster_group_id, cluster_name):
             return
@@ -566,6 +536,36 @@ class UpdateCluster(FirmwareUpdate):
 
         else:
             self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
+
+    def process_cluster_target(self, target):
+        vcenter_uuid = self.module.params.get('vcenter_uuid')
+        host_ids, host_service_tags = self.get_host_id(vcenter_uuid, target)
+        if host_ids is None or not host_ids:
+            self.module.exit_json(msg=CLUSTER_HOST_NOT_FOUND_MSG, failed=True)
+        cluster_name = target['cluster']
+        cluster_group_id = self.omevv_info_obj.get_group_id_of_cluster(vcenter_uuid,
+                                                                       cluster_name)
+        payload = self.get_payload_details(host_id=host_ids)
+        new_host_id = host_ids
+        return cluster_group_id, payload, new_host_id
+
+    def process_non_cluster_target(self, parameters):
+        vcenter_uuid = self.module.params.get('vcenter_uuid')
+        target = self.get_target(parameters['targets'])
+        host_id, host_service_tags = self.get_host_from_parameters(vcenter_uuid, parameters)
+        if host_id is None:
+            if target['host']:
+                self.module.exit_json(msg=HOST_NOT_FOUND_MSG.format(
+                    managed_host=target['host']), skipped=True)
+            else:
+                self.module.exit_json(msg=HOST_NOT_FOUND_MSG.format(
+                    managed_host=target['servicetag']), skipped=True)
+        cluster_name = self.omevv_info_obj.get_cluster_name(vcenter_uuid, host_id)
+        cluster_group_id = self.omevv_info_obj.get_group_id_of_cluster(vcenter_uuid,
+                                                                       cluster_name)
+        payload = self.get_payload_details(host_id=host_id)
+        new_host_id = host_id
+        return cluster_group_id, payload, new_host_id
 
     def get_host_from_parameters(self, vcenter_uuid, parameters, host_ids=None,
                                  host_service_tags=None):
