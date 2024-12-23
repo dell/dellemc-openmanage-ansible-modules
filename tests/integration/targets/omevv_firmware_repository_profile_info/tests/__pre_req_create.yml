@@ -7,9 +7,9 @@
     vcenter_password: "{{ vcenter_password }}"
     state: "{{ state }}"
     protocol_type: "{{ protocol }}"
-    catalog_path: "{{ path }}"
+    catalog_path: "http://{{ http_share }}{{
+      http_share_dir_path }}/{{ omevv_baseline_profile_catalog_file }}"
     name: "{{ profile_name }}"
     validate_certs: false
     description: "Firmware repository profile created by Module"
   register: create_result
-  no_log: true

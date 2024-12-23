@@ -12,11 +12,18 @@
          vcenter_password is not defined'
 
 - block:
+    - name: Fetch pre-requisite details
+      ansible.builtin.include_tasks: ../_helper.yml
+      vars:
+        upgrade: true
+
     - name: Negative - unsupported argument
-      dellemc.openmanage.omevv_firmware_repository_profile:
+      dellemc.openmanage.omevv.omevv_firmware:
         unsupported_argument: unsupported
-        state: absent
-        name: "Profile Name"
+        run_now: true
+        targets:
+          - host: "{{ host_ip_list[0] }}"
+            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_unsupported_argument
       ignore_errors: true
 
@@ -26,18 +33,22 @@
           - invalid_unsupported_argument.failed
           - not invalid_unsupported_argument.changed
           - 'invalid_unsupported_argument.msg == "Unsupported parameters for
-            (dellemc.openmanage.omevv_firmware_repository_profile)
-            module: unsupported_argument. Supported parameters include:
-            ca_path, catalog_path, description, hostname, name, new_name,
-            password, port, protocol_type, resync, share_domain,
-            share_password, share_username, state, timeout, username,
-            validate_certs, vcenter_password, vcenter_username, vcenter_uuid."'
+              (dellemc.openmanage.omevv.omevv_firmware) module: unsupported_argument.
+              Supported parameters include: ca_path, check_vSAN_health, date_time,
+              delete_job_queue, drs_check, enter_maintenance_mode_options,
+              enter_maintenance_mode_timeout, evacuate_VMs, exit_maintenance_mode,
+              hostname, job_description, job_name, job_wait, job_wait_timeout,
+              maintenance_mode_count_check, port, reboot_options, reset_idrac,
+              run_now, targets, timeout, validate_certs, vcenter_password,
+              vcenter_username, vcenter_uuid."'
 
     - name: Negative - unreachable host
-      dellemc.openmanage.omevv_firmware_repository_profile:
+      dellemc.openmanage.omevv.omevv_firmware:
         hostname: 999.999.999.999
-        state: absent
-        name: "Profile Name"
+        run_now: true
+        targets:
+          - host: "{{ host_ip_list[0] }}"
+            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_unreachable
       ignore_unreachable: true
 
@@ -48,13 +59,17 @@
           - not invalid_unreachable.changed
           - 'invalid_unreachable.msg == "<urlopen error Unable to resolve
              hostname or IP 999.999.999.999.>" or invalid_unreachable.msg ==
-             "<urlopen error [Errno -2] Name or service not known>"'
+             "<urlopen error [Errno -2] Name or service not known>" or
+             invalid_unreachable.msg == "The URL with IP 999.999.999.999
+             and port 443 cannot be reached."'
 
     - name: Negative - invalid port
-      dellemc.openmanage.omevv_firmware_repository_profile:
+      dellemc.openmanage.omevv.omevv_firmware:
         port: -1
-        state: absent
-        name: "Profile Name"
+        run_now: true
+        targets:
+          - host: "{{ host_ip_list[0] }}"
+            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_port
       ignore_errors: true
 
@@ -67,10 +82,12 @@
             number."'
 
     - name: Negative - invalid username
-      dellemc.openmanage.omevv_firmware_repository_profile:
+      dellemc.openmanage.omevv.omevv_firmware:
         vcenter_username: invalid
-        state: absent
-        name: "Profile Name"
+        run_now: true
+        targets:
+          - host: "{{ host_ip_list[0] }}"
+            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_username
       ignore_errors: true
 
@@ -79,15 +96,18 @@
         that:
           - invalid_username.failed
           - not invalid_username.changed
-          - 'invalid_username.msg.message == "Invalid Credentials." or
-             invalid_username.msg.message == "<urlopen error timed out>"'
-          - 'invalid_username.msg.errorCode == "12017"'
+          - 'invalid_username.error_info.message == "User is not authorized
+             for the request. Please check if credentials are proper
+             and account is not in locked state."'
+          - 'invalid_username.error_info.errorCode == "10001"'
 
     - name: Negative - invalid password
-      dellemc.openmanage.omevv_firmware_repository_profile:
+      dellemc.openmanage.omevv.omevv_firmware:
         vcenter_password: invalid
-        state: absent
-        name: "Profile Name"
+        run_now: true
+        targets:
+          - host: "{{ host_ip_list[0] }}"
+            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_password
       ignore_errors: true
 
@@ -96,15 +116,18 @@
         that:
           - invalid_password.failed
           - not invalid_password.changed
-          - 'invalid_password.msg.message == "Invalid Credentials." or
-             invalid_password.msg.message == "<urlopen error timed out>"'
-          - 'invalid_username.msg.errorCode == "12017"'
+          - 'invalid_password.error_info.message == "User is not authorized
+             for the request. Please check if credentials are proper
+             and account is not in locked state."'
+          - 'invalid_password.error_info.errorCode == "10001"'
 
     - name: Negative - invalid validate_certs
-      dellemc.openmanage.omevv_firmware_repository_profile:
+      dellemc.openmanage.omevv.omevv_firmware:
         validate_certs: invalid
-        state: absent
-        name: "Profile Name"
+        run_now: true
+        targets:
+          - host: "{{ host_ip_list[0] }}"
+            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_validate_certs
       ignore_errors: true
 
@@ -121,10 +144,12 @@
           - invalid_validate_certs_expected_msg in invalid_validate_certs.msg
 
     - name: Negative - invalid ca_path path
-      dellemc.openmanage.omevv_firmware_repository_profile:
+      dellemc.openmanage.omevv.omevv_firmware:
         ca_path: /invalid/path
-        state: absent
-        name: "Profile Name"
+        run_now: true
+        targets:
+          - host: "{{ host_ip_list[0] }}"
+            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_ca_path
       ignore_errors: true
 
@@ -133,14 +158,15 @@
         that:
           - invalid_ca_path.failed
           - not invalid_ca_path.changed
-          - 'invalid_ca_path.msg == "[Errno 2] No such file or
-            directory: b''/invalid/path''"'
+          - 'invalid_ca_path.msg == "[Errno 2] No such file or directory"'
 
     - name: Negative - invalid timeout type
-      dellemc.openmanage.omevv_firmware_repository_profile:
+      dellemc.openmanage.omevv.omevv_firmware:
         timeout: invalid
-        state: absent
-        name: "Profile Name"
+        run_now: true
+        targets:
+          - host: "{{ host_ip_list[0] }}"
+            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_timeout_type
       ignore_errors: true
 
@@ -149,15 +175,17 @@
         that:
           - invalid_timeout_type.failed
           - not invalid_timeout_type.changed
-          - 'invalid_timeout_type.msg == "argument ''timeout'' is of type
-            <class ''str''> and we were unable to convert to
-            int: <class ''str''> cannot be converted to an int"'
+          - '"argument ''timeout'' is of
+             type <class ''str''> and we were unable to convert to
+             int:" in invalid_timeout_type.msg'
 
     - name: Negative - invalid timeout value
-      dellemc.openmanage.omevv_firmware_repository_profile:
+      dellemc.openmanage.omevv.omevv_firmware:
         timeout: -1
-        state: absent
-        name: "Profile Name"
+        run_now: true
+        targets:
+          - host: "{{ host_ip_list[0] }}"
+            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_timeout_value
       ignore_errors: true
 
@@ -170,10 +198,12 @@
             valid positive integer."'
 
     - name: Negative - invalid vcenter uuid
-      dellemc.openmanage.omevv_firmware_repository_profile:
+      dellemc.openmanage.omevv.omevv_firmware:
         vcenter_uuid: invalid
-        state: absent
-        name: "Profile Name"
+        run_now: true
+        targets:
+          - host: "{{ host_ip_list[0] }}"
+            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_uuid
       ignore_errors: true
 
@@ -185,33 +215,9 @@
           - 'invalid_uuid.msg == "vCenter with UUID invalid is not
             registered."'
 
-    - name: Negative - invalid Resync
-      dellemc.openmanage.omevv_firmware_repository_profile:
-        hostname: "192.168.0.1"
-        vcenter_uuid: "xxxxx"
-        vcenter_username: "username"
-        vcenter_password: "password"
-        resync: invalid
-      register: invalid_resync
-      ignore_errors: true
-
-    - name: Set fact for invalid resync message
-      ansible.builtin.set_fact:
-        invalid_msg: "argument 'resync' is of type <class 'str'> and we were
-        unable to convert to bool: The value 'invalid' is not a valid
-        boolean.  Valid booleans include:"
-
-    - name: Verify task status - Negative - invalid Resync
-      ansible.builtin.assert:
-        that:
-          - invalid_resync.failed
-          - not invalid_resync.changed
-          - invalid_msg in invalid_resync.msg
-
   module_defaults:
-    dellemc.openmanage.omevv_firmware_repository_profile:
+    dellemc.openmanage.omevv.omevv_firmware:
       validate_certs: "{{ validate_certs }}"
-      hostname: "{{ hostname | ansible.utils.ipwrap }}"
+      hostname: "{{ hostname }}"
       vcenter_username: "{{ vcenter_username }}"
       vcenter_password: "{{ vcenter_password }}"
-      vcenter_uuid: "{{ uuid }}"

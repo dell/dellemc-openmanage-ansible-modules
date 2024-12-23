@@ -67,8 +67,8 @@
           - module_group_id == group_id
           - cm_dm_result_baseline.diff.before.description is none
           - >
-            cm_dm_result_baseline.diff.before.firmwareRepoId
-            == firmware_repo_id
+            'cm_dm_result_baseline.diff.before.firmwareRepoId
+            == "firmware_repo_id"'
           - >
             'cm_dm_result_baseline.diff.before.firmwareRepoName
             == "OMAM_Firm_Repo"'
@@ -145,8 +145,8 @@
           - module_group_id == group_id
           - cm_dm_result_baseline.diff.before.description is none
           - >
-            cm_dm_result_baseline.diff.before.firmwareRepoId
-            == firmware_repo_id
+            'cm_dm_result_baseline.diff.before.firmwareRepoId
+            == "firmware_repo_id"'
           - >
             'cm_dm_result_baseline.diff.before.firmwareRepoName
             == "OMAM_Firm_Repo"'

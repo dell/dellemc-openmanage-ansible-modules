@@ -41,8 +41,8 @@
         name: "OMAM_Firm_Repo"
         description: "Firmware repository profile created by OMAM"
         state: present
-        catalog_path: "{{
-          http_share_dir_path }}/omevv_baseline_profile_catalog.xml"
+        catalog_path: "http://{{ http_share }}{{
+          http_share_dir_path }}/{{ omevv_baseline_profile_catalog_file }}"
         protocol_type: HTTP
       register: firm_repo_1
       when: repository_profile_1_trigger is defined
@@ -61,8 +61,8 @@
         name: "OMAM_Modify_Firm_Repo"
         description: "Firmware repository profile created by OMAM"
         state: present
-        catalog_path: "{{
-          http_share_dir_path }}/omevv_baseline_profile_catalog.xml"
+        catalog_path: "http://{{ http_share }}{{
+          http_share_dir_path }}/{{ omevv_baseline_profile_catalog_file }}"
         protocol_type: HTTP
       register: firm_repo_2
       when: repository_profile_2_trigger is defined

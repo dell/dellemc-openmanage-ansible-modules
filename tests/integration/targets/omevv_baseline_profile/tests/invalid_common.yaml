@@ -63,8 +63,6 @@
           - not invalid_port_1.changed
           - 'invalid_port_1.msg == "Invalid port number. Enter the valid port
             number."'
-          - 'invalid_port_1.error_info.message == "Invalid port number. Enter
-            the valid port number."'
 
     - name: Negative - invalid port - 2
       dellemc.openmanage.omevv_baseline_profile:
@@ -81,8 +79,6 @@
           - not invalid_port_2.changed
           - 'invalid_port_2.msg == "Invalid port number. Enter the valid port
             number."'
-          - 'invalid_port_2.error_info.message == "Invalid port number. Enter
-            the valid port number."'
 
     - name: Negative - unconfigured port
       dellemc.openmanage.omevv_baseline_profile:

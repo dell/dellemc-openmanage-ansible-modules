@@ -36,6 +36,7 @@ NO_REPO_PROFILE_MSG = "No repository profiles found."
 INVALID_CLUSTER_NAMES_MSG = "Invalid cluster names: {cluster_names}. Please provide valid cluster(s)."
 NO_CLUSTERS_FOUND_MSG = "No clusters found."
 PROFILE_URI = "/RepositoryProfiles"
+RESYNC_UMP_URI = "/RepositoryProfiles/ResyncRepository"
 TEST_CONNECTION_URI = "/RepositoryProfiles/TestConnection"
 TEST_CONNECTION_HISTORY = "/TestConnectionJobs/{job_id}/ExecutionHistories"
 BASELINE_PROFILE_URI = "/Consoles/{vcenter_uuid}/BaselineProfiles"
@@ -64,7 +65,8 @@ class OMEVVFirmwareProfile:
         if resp.success:
             profile_info = resp.json_data
             if profile_name:
-                profile_info = self.search_profile_name(profile_info, profile_name)
+                profile_info = self.search_profile_name(
+                    profile_info, profile_name)
         return profile_info
 
     def get_all_repository_profiles(self):
@@ -185,12 +187,15 @@ class OMEVVFirmwareProfile:
             protocol_type, catalog_path, share_username, share_password, share_domain)
         resp = self.omevv.invoke_request("POST", TEST_CONNECTION_URI, payload)
         if resp.success:
-            time.sleep(5)  # Waiting here because response comes as empty at first call
+            # Waiting here because response comes as empty at first call
+            time.sleep(5)
             job_id = resp.json_data
-            resp_history = self.omevv.invoke_request("GET", TEST_CONNECTION_HISTORY.format(job_id=job_id))
+            resp_history = self.omevv.invoke_request(
+                "GET", TEST_CONNECTION_HISTORY.format(job_id=job_id))
             while resp_history.json_data[0]["statusSummary"] != "SUCCESSFUL" and resp_history.json_data[0]["statusSummary"] != "FAILED":
                 time.sleep(3)
-                resp_history = self.omevv.invoke_request("GET", TEST_CONNECTION_HISTORY.format(job_id=job_id))
+                resp_history = self.omevv.invoke_request(
+                    "GET", TEST_CONNECTION_HISTORY.format(job_id=job_id))
             if resp_history.json_data[0]["statusSummary"] == "SUCCESSFUL":
                 return True
             else:
@@ -232,7 +237,8 @@ class OMEVVFirmwareProfile:
         required_params = [name, catalog_path, protocol_type]
         missing_params = [param for param in required_params if param is None]
         if missing_params:
-            err_msg = "Required parameters such as: " + ", ".join(missing_params)
+            err_msg = "Required parameters such as: " + \
+                ", ".join(missing_params)
 
         payload = self.get_create_payload_details(name, catalog_path,
                                                   description, protocol_type,
@@ -268,7 +274,8 @@ class OMEVVFirmwareProfile:
         required_params = [name, catalog_path]
         missing_params = [param for param in required_params if param is None]
         if missing_params:
-            err_msg = "Required parameters such as: " + ", ".join(missing_params)
+            err_msg = "Required parameters such as: " + \
+                ", ".join(missing_params)
 
         payload = self.get_modify_payload_details(name, catalog_path,
                                                   description,
@@ -285,6 +292,14 @@ class OMEVVFirmwareProfile:
         """
         resp = self.omevv.invoke_request(
             "DELETE", PROFILE_URI + "/" + str(profile_id))
+        return resp
+
+    def resync_repository_profiles_from_ump(self):
+        """
+        Resyncs the repository profiles from UMP.
+
+        """
+        resp = self.omevv.invoke_request("POST", RESYNC_UMP_URI, {})
         return resp
 
 
@@ -308,7 +323,8 @@ class OMEVVBaselineProfile:
         if not available_repo_profiles:
             return False, NO_REPO_PROFILE_MSG
 
-        available_repo_profile_names = [profile.get('profileName') for profile in available_repo_profiles.json_data]
+        available_repo_profile_names = [profile.get(
+            'profileName') for profile in available_repo_profiles.json_data]
 
         if repository_profile not in available_repo_profile_names:
             return False, INVALID_REPO_PROFILE_MSG.format(repository_profile=repository_profile)
@@ -339,10 +355,12 @@ class OMEVVBaselineProfile:
         available_cluster_names = [
             cluster.get('name') for cluster in available_clusters if cluster.get('name') is not None
         ]
-        invalid_clusters = [cluster for cluster in cluster_names if cluster not in available_cluster_names]
+        invalid_clusters = [
+            cluster for cluster in cluster_names if cluster not in available_cluster_names]
 
         if invalid_clusters:
-            error_message = INVALID_CLUSTER_NAMES_MSG.format(cluster_names=', '.join(invalid_clusters))
+            error_message = INVALID_CLUSTER_NAMES_MSG.format(
+                cluster_names=', '.join(invalid_clusters))
             return False, error_message
 
         return True, ""
@@ -357,7 +375,8 @@ class OMEVVBaselineProfile:
         Returns:
             list: The list of all cluster information.
         """
-        clusters_resp = self.omevv.invoke_request('GET', CLUSTER_URI.format(vcenter_uuid=vcenter_uuid))
+        clusters_resp = self.omevv.invoke_request(
+            'GET', CLUSTER_URI.format(vcenter_uuid=vcenter_uuid))
 
         # If the response is a list (as per the error), return it directly
         if isinstance(clusters_resp, list):
@@ -380,7 +399,8 @@ class OMEVVBaselineProfile:
         clusters = self.get_all_clusters(vcenter_uuid=vcenter_uuid)
 
         # Map cluster name to entity ID (clustId)
-        cluster_ids = [c['entityId'] for c in clusters if c['name'] in cluster_names]
+        cluster_ids = [c['entityId']
+                       for c in clusters if c['name'] in cluster_names]
 
         return cluster_ids
 
@@ -398,14 +418,17 @@ class OMEVVBaselineProfile:
         clusters = self.get_all_clusters(vcenter_uuid=vcenter_uuid)
 
         # Map cluster name to entity ID (clustId)
-        cluster_ids = [c['entityId'] for c in clusters if c['name'] in cluster_names]
+        cluster_ids = [c['entityId']
+                       for c in clusters if c['name'] in cluster_names]
 
         # Fetch group IDs for the identified cluster IDs
         group_ids = []
         if cluster_ids:
             payload = {"clustIds": cluster_ids}
-            group_resp = self.omevv.invoke_request('POST', CLUSTER_IDS_URI.format(vcenter_uuid=vcenter_uuid), payload)
-            group_ids = [g['groupId'] for g in group_resp.json_data] if hasattr(group_resp, 'json_data') and group_resp.success else []
+            group_resp = self.omevv.invoke_request(
+                'POST', CLUSTER_IDS_URI.format(vcenter_uuid=vcenter_uuid), payload)
+            group_ids = [g['groupId'] for g in group_resp.json_data] if hasattr(
+                group_resp, 'json_data') and group_resp.success else []
 
         return group_ids
 
@@ -432,7 +455,8 @@ class OMEVVBaselineProfile:
         Raises:
             None
         """
-        response = self.omevv.invoke_request('GET', BASELINE_PROFILE_URI.format(vcenter_uuid=vcenter_uuid))
+        response = self.omevv.invoke_request(
+            'GET', BASELINE_PROFILE_URI.format(vcenter_uuid=vcenter_uuid))
         if response.success:
             return response.json_data
 
@@ -516,13 +540,15 @@ class OMEVVBaselineProfile:
             dict: Job schedule details if available.
         """
         resp = self.omevv.invoke_request(
-            "GET", DRIFT_URI.format(vcenter_uuid=vcenter_uuid) + "/" + str(profile_id)
+            "GET", DRIFT_URI.format(
+                vcenter_uuid=vcenter_uuid) + "/" + str(profile_id)
         )
         return resp.json_data
 
     def get_add_remove_group_ids(self, existing_profile, vcenter_uuid, cluster_names):
         """Determine groups to add or remove based on the cluster names"""
-        current_group_ids = {group['omevv_groupID'] for group in existing_profile.get('clusterGroups', [])}
+        current_group_ids = {group['omevv_groupID']
+                             for group in existing_profile.get('clusterGroups', [])}
 
         new_group_ids = set(self.get_group_ids_for_clusters(
             vcenter_uuid=vcenter_uuid,
@@ -559,7 +585,8 @@ class OMEVVBaselineProfile:
             ["name", "firmware_repo_id", "group_ids", "job_schedule"], required_params) if param is None]
 
         if missing_params:
-            err_msg = "Required parameters missing: " + ", ".join(missing_params)
+            err_msg = "Required parameters missing: " + \
+                ", ".join(missing_params)
             return None, err_msg
 
         payload = {
@@ -571,7 +598,8 @@ class OMEVVBaselineProfile:
         if description is not None:
             payload["description"] = description
 
-        resp = self.omevv.invoke_request("POST", BASELINE_PROFILE_URI.format(vcenter_uuid=vcenter_uuid), payload)
+        resp = self.omevv.invoke_request(
+            "POST", BASELINE_PROFILE_URI.format(vcenter_uuid=vcenter_uuid), payload)
         return resp, err_msg
 
     def modify_baseline_profile(self, add_group_ids, remove_group_ids, profile_id, vcenter_uuid, firmware_repo_id=None, job_schedule=None, description=None):
@@ -611,7 +639,8 @@ class OMEVVBaselineProfile:
             payload["description"] = description
 
         # Construct the URL for the PATCH request
-        url = BASELINE_PROFILE_URI.format(vcenter_uuid=vcenter_uuid) + f"/{profile_id}"
+        url = BASELINE_PROFILE_URI.format(
+            vcenter_uuid=vcenter_uuid) + f"/{profile_id}"
 
         # Send the PATCH request using the appropriate method (e.g., self.omevv.invoke_request)
         resp = self.omevv.invoke_request("PATCH", url, payload)
