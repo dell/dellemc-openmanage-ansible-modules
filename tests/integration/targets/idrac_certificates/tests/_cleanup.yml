@@ -6,7 +6,7 @@
     type: RSA
   delegate_to: localhost
 
-- name: Ensure self-signed cert is present
+- name: Ensure self-signed cert is pres
   community.crypto.x509_certificate:
     path: "{{ base_path_for_import_certificate }}/cert.pem"
     privatekey_path: "{{ base_path_for_import_certificate }}/cert.key"

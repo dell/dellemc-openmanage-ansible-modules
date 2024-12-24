@@ -180,7 +180,8 @@
       ansible.builtin.assert:
         that:
           - not generate_csr_mp.changed
-          - generate_csr_mp.msg == "Successfully performed the 'generate_csr' certificate operation."
+          - generate_csr_mp.msg == "Successfully performed
+              the 'generate_csr' certificate operation."
           - file_status_mp.stat.exists
           - (generate_csr_mp.certificate_path |
               basename).startswith(idrac_ip)

@@ -96,9 +96,9 @@
 
 - name: Extract source name of all components
   ansible.builtin.set_fact:
-    source_names: "{{
-      compliance_data.hostComplianceReports[0].componentCompliances|
-        json_query('*.sourceName') }}"
+  source_names: "{{
+    compliance_data.hostComplianceReports[0].componentCompliances|
+      json_query('*.sourceName') }}"
   delegate_to: localhost
 
 - name: Extract source name of a specific component

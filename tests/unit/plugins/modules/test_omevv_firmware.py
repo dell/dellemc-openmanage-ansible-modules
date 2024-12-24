@@ -14,8 +14,10 @@ __metaclass__ = type
 
 import pytest
 import datetime
+from unittest.mock import MagicMock
 from ansible_collections.dellemc.openmanage.plugins.modules.omevv_firmware import FirmwareUpdate, UpdateCluster
 from ansible_collections.dellemc.openmanage.plugins.modules import omevv_firmware
+from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import AnsibleFailJSonException
 from mock import MagicMock
@@ -71,14 +73,7 @@ class TestFirmwareUpdate(FakeAnsibleModule):
         omevv_conn_mock.return_value.__enter__.return_value = omevv_firmware_mock
         return omevv_conn_mock
 
-    # def test_execute(self, omevv_default_args, omevv_connection_firmware_repository_profile):
-    #     pass
-    #     # obj = MagicMock()
-    #     # omevv_obj = self.module.FirmwareRepositoryProfile(
-    #     #     omevv_connection_firmware_repository_profile, obj)
-    #     # omevv_obj.execute()
-
-    def test_get_payload_details(self, mocker, omevv_connection_firmware, omevv_default_args):
+    def test_get_payload_details(self, mocker, omevv_connection_firmware):
         # Scenario 1: payload details with description
         host_id = 123456
         obj = MagicMock()
@@ -91,7 +86,7 @@ class TestFirmwareUpdate(FakeAnsibleModule):
         result = omevv_obj.get_payload_details(host_id)
         assert "firmware" in result
 
-    def test_add_optional_fields(self, mocker, omevv_connection_firmware, omevv_default_args):
+    def test_add_optional_fields(self, omevv_connection_firmware):
         firmware = {'targets': []}
         parameters = {}
         obj = MagicMock()
@@ -100,21 +95,21 @@ class TestFirmwareUpdate(FakeAnsibleModule):
         result = omevv_obj.add_optional_fields(firmware, parameters)
         assert result is None
 
-    def test_set_schedule(self, mocker, omevv_connection_firmware, omevv_default_args):
+    def test_set_schedule(self, omevv_connection_firmware):
         obj = MagicMock()
         omevv_obj = self.module.FirmwareUpdate(
             omevv_connection_firmware, obj)
         result = omevv_obj.set_schedule({}, {})
         assert result is None
 
-    def test_set_job_details(self, mocker, omevv_connection_firmware, omevv_default_args):
+    def test_set_job_details(self, omevv_connection_firmware):
         obj = MagicMock()
         omevv_obj = self.module.FirmwareUpdate(
             omevv_connection_firmware, obj)
         result = omevv_obj.set_job_details({}, {})
         assert result is None
 
-    def test_add_targets_device_id_list(self, mocker, omevv_connection_firmware, omevv_default_args):
+    def test_add_targets_device_id_list(self, omevv_connection_firmware):
         obj = MagicMock()
         omevv_obj = self.module.FirmwareUpdate(
             omevv_connection_firmware, obj)
@@ -124,7 +119,7 @@ class TestFirmwareUpdate(FakeAnsibleModule):
         result = omevv_obj.add_targets({'targets': []}, target_list, [100, 101])
         assert result is None
 
-    def test_add_targets_device_id_string(self, mocker, omevv_connection_firmware, omevv_default_args):
+    def test_add_targets_device_id_string(self, omevv_connection_firmware):
         obj = MagicMock()
         omevv_obj = self.module.FirmwareUpdate(
             omevv_connection_firmware, obj)
@@ -134,7 +129,7 @@ class TestFirmwareUpdate(FakeAnsibleModule):
         result = omevv_obj.add_targets({'targets': []}, target_list, 100)
         assert result is None
 
-    def test_host_servicetag_existence(self, mocker, omevv_connection_firmware, omevv_default_args):
+    def test_host_servicetag_existence(self, omevv_connection_firmware, omevv_default_args):
         omevv_default_args.update({"targets": [{'cluster': 'cluster_a',
                                                 'host': 123456,
                                                 'servicetag': 'SVCTAG1'}]})
@@ -146,7 +141,8 @@ class TestFirmwareUpdate(FakeAnsibleModule):
         except AnsibleFailJSonException as err:
             assert err.args[0] == CLUSTER_HOST_SERVICETAG_MUTUAL_EXCLUSIVE_MSG
 
-    def test_host_servicetag_existence_not_exits(self, mocker, omevv_connection_firmware, omevv_default_args):
+    def test_host_servicetag_existence_not_exits(self, omevv_connection_firmware,
+                                                 omevv_default_args):
         omevv_default_args.update({"targets": []})
         f_module = self.get_module_mock(
             params=omevv_default_args, check_mode=False)
@@ -156,7 +152,8 @@ class TestFirmwareUpdate(FakeAnsibleModule):
         except AnsibleFailJSonException as err:
             assert err.args[0] == CLUSTER_HOST_SERVICETSAG_REQUIRED_MSG
 
-    def test_validate_date_time_invalid(self, mocker, omevv_connection_firmware, omevv_default_args):
+    def test_validate_date_time_invalid(self, omevv_connection_firmware,
+                                        omevv_default_args):
         omevv_default_args.update({"date_time": "2020-13-01T00:00:00Z"})
         f_module = self.get_module_mock(
             params=omevv_default_args, check_mode=False)
@@ -166,7 +163,7 @@ class TestFirmwareUpdate(FakeAnsibleModule):
         except AnsibleFailJSonException as err:
             assert err.args[0] == INVALID_DATE_TIME_MSG
 
-    def test_validate_date_time_valid(self, mocker, omevv_connection_firmware, omevv_default_args):
+    def test_validate_date_time_valid(self, omevv_connection_firmware, omevv_default_args):
         omevv_default_args.update({"date_time": "2020-11-01T00:00:00Z"})
         f_module = self.get_module_mock(
             params=omevv_default_args, check_mode=False)
@@ -174,7 +171,8 @@ class TestFirmwareUpdate(FakeAnsibleModule):
         result = omevv_obj.validate_date_time()
         assert result == datetime.datetime(2020, 11, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
 
-    def test_enter_maintenance_mode_timeout(self, mocker, omevv_connection_firmware, omevv_default_args):
+    def test_enter_maintenance_mode_timeout(self, omevv_connection_firmware,
+                                            omevv_default_args):
         omevv_default_args.update({"enter_maintenance_mode_timeout": 59})
         f_module = self.get_module_mock(
             params=omevv_default_args, check_mode=False)
@@ -232,7 +230,8 @@ class TestUpdateCluster(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'UpdateCluster.get_target', return_value=target)
         value = (1034, {}, 1001)
         mocker.patch(MODULE_PATH + 'UpdateCluster.process_cluster_target', return_value=value)
-        mocker.patch(MODULE_PATH + 'UpdateCluster.is_firmware_update_needed', return_value=(1, 2, 3, 4, 5))
+        mocker.patch(MODULE_PATH + 'UpdateCluster.is_firmware_update_needed',
+                     return_value=(1, 2, 3, 4, 5))
         mocker.patch(MODULE_PATH + 'UpdateCluster.is_update_job_allowed', return_value=True)
         mocker.patch(MODULE_PATH + 'UpdateCluster.is_job_name_existing', return_value=None)
         mocker.patch(MODULE_PATH + 'UpdateCluster.handle_check_mode', return_value=None)
@@ -250,10 +249,708 @@ class TestUpdateCluster(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'UpdateCluster.get_target', return_value=target)
         value = (1034, {}, [1001])
         mocker.patch(MODULE_PATH + 'UpdateCluster.process_non_cluster_target', return_value=value)
-        mocker.patch(MODULE_PATH + 'UpdateCluster.is_firmware_update_needed', return_value=(1, 2, 3, 4, 5))
+        mocker.patch(MODULE_PATH + 'UpdateCluster.is_firmware_update_needed',
+                     return_value=(1, 2, 3, 4, 5))
         mocker.patch(MODULE_PATH + 'UpdateCluster.is_update_job_allowed', return_value=False)
         mocker.patch(MODULE_PATH + 'UpdateCluster.is_job_name_existing', return_value=False)
         mocker.patch(MODULE_PATH + 'UpdateCluster.handle_check_mode', return_value=None)
         mocker.patch(MODULE_PATH + 'UpdateCluster.handle_firmware_update', return_value=None)
         result = omevv_obj.execute()
         assert result is None
+
+    def test_handle_check_mode_firmware_update_needed_change(self,
+                                                             omevv_connection_firmware,
+                                                             omevv_default_args):
+        omevv_default_args.update({"_ansible_diff": True})
+        f_module = self.get_module_mock(params=omevv_default_args, check_mode=True)
+        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
+
+        # Setup the parameters for the test
+        firmware_update_needed = True
+        before_no_change_dict = {'component1': {'firmwareversion': '1.0.0'}}
+        after_no_change_dict = {'component1': {'firmwareversion': '1.0.1'}}
+        before_dict = {'component2': {'firmwareversion': '2.0.0'}}
+        after_dict = {'component2': {'firmwareversion': '2.0.1'}}
+
+        # Execute the method with change
+        with pytest.raises(AnsibleFailJSonException) as excinfo:
+            omevv_obj.handle_check_mode(firmware_update_needed,
+                                        before_no_change_dict,
+                                        after_no_change_dict,
+                                        before_dict, after_dict)
+
+        assert excinfo.value.args[0] == CHANGES_FOUND_MSG
+
+    def test_handle_check_mode_firmware_update_needed_no_diff(self,
+                                                              omevv_connection_firmware,
+                                                              omevv_default_args):
+        omevv_default_args.update({"_ansible_diff": False})
+        f_module = self.get_module_mock(params=omevv_default_args, check_mode=True)
+        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
+
+        # Setup the parameters for the test
+        firmware_update_needed = True
+        before_no_change_dict = {}
+        after_no_change_dict = {}
+        before_dict = {}
+        after_dict = {}
+
+        # Execute the method without diff
+        with pytest.raises(AnsibleFailJSonException) as excinfo:
+            omevv_obj.handle_check_mode(firmware_update_needed,
+                                        before_no_change_dict,
+                                        after_no_change_dict,
+                                        before_dict, after_dict)
+
+        assert excinfo.value.args[0] == CHANGES_FOUND_MSG
+
+    def test_handle_check_mode_no_firmware_update_needed_with_diff(self,
+                                                                   omevv_connection_firmware,
+                                                                   omevv_default_args):
+        omevv_default_args.update({"_ansible_diff": True})
+        f_module = self.get_module_mock(params=omevv_default_args, check_mode=True)
+        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
+
+        # Setup the parameters for the test
+        firmware_update_needed = False
+        before_no_change_dict = {'component1': {'firmwareversion': '1.0.0'}}
+        after_no_change_dict = {'component1': {'firmwareversion': '1.0.0'}}
+        before_dict = {}
+        after_dict = {}
+
+        # Execute the method with no change
+        with pytest.raises(AnsibleFailJSonException) as excinfo:
+            omevv_obj.handle_check_mode(firmware_update_needed,
+                                        before_no_change_dict,
+                                        after_no_change_dict,
+                                        before_dict, after_dict)
+
+        assert excinfo.value.args[0] == CHANGES_NOT_FOUND_MSG
+
+    def test_handle_check_mode_no_firmware_update_needed_no_diff(self,
+                                                                 omevv_connection_firmware,
+                                                                 omevv_default_args):
+        omevv_default_args.update({"_ansible_diff": False})
+        f_module = self.get_module_mock(params=omevv_default_args, check_mode=True)
+        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
+
+        # Setup the parameters for the test
+        firmware_update_needed = False
+        before_no_change_dict = {}
+        after_no_change_dict = {}
+        before_dict = {}
+        after_dict = {}
+
+        # Execute the method without diff and no change
+        with pytest.raises(AnsibleFailJSonException) as excinfo:
+            omevv_obj.handle_check_mode(firmware_update_needed,
+                                        before_no_change_dict,
+                                        after_no_change_dict,
+                                        before_dict, after_dict)
+
+        assert excinfo.value.args[0] == CHANGES_NOT_FOUND_MSG
+
+    def test_handle_firmware_update_run_now(self, mocker,
+                                            omevv_connection_firmware,
+                                            omevv_default_args):
+        omevv_default_args.update({"run_now": True})
+        f_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
+
+        # Setup the parameters for the test
+        vcenter_uuid = 'test_vcenter_uuid'
+        cluster_group_id = 'test_cluster_group_id'
+        payload = {'test_key': 'test_value'}
+        parameters = omevv_default_args
+        before_dict = {'component1': {'firmwareversion': '1.0.0'}}
+        after_dict = {'component1': {'firmwareversion': '1.0.1'}}
+        job_details = {'job_id': '12345'}
+
+        mocker.patch(MODULE_PATH + 'UpdateCluster.execute_update_job', return_value=job_details)
+
+        # Mocking the exit method to capture the output
+        mocker.patch('ansible.module_utils.basic.AnsibleModule.exit_json',
+                     side_effect=AnsibleFailJSonException)
+
+        with pytest.raises(AnsibleFailJSonException) as excinfo:
+            omevv_obj.handle_firmware_update(vcenter_uuid,
+                                             cluster_group_id,
+                                             payload, parameters,
+                                             before_dict, after_dict)
+
+        assert excinfo.value.args[0] == SUCCESS_UPDATE_MSG
+
+    def test_handle_firmware_update_scheduled(self, mocker,
+                                              omevv_connection_firmware,
+                                              omevv_default_args):
+        omevv_default_args.update({"run_now": False})
+        f_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
+
+        # Setup the parameters for the test
+        vcenter_uuid = 'test_vcenter_uuid'
+        cluster_group_id = 'test_cluster_group_id'
+        payload = {'test_key': 'test_value'}
+        parameters = omevv_default_args
+        before_dict = {'component1': {'firmwareversion': '1.0.0'}}
+        after_dict = {'component1': {'firmwareversion': '1.0.1'}}
+        job_details = {'job_id': '12345'}
+
+        mocker.patch(MODULE_PATH + 'UpdateCluster.execute_update_job', return_value=job_details)
+
+        # Mocking the exit method to capture the output
+        mocker.patch('ansible.module_utils.basic.AnsibleModule.exit_json',
+                     side_effect=AnsibleFailJSonException)
+
+        with pytest.raises(AnsibleFailJSonException) as excinfo:
+            omevv_obj.handle_firmware_update(vcenter_uuid,
+                                             cluster_group_id,
+                                             payload, parameters,
+                                             before_dict, after_dict)
+
+        assert excinfo.value.args[0] == SUCCESS_UPDATE_SCHEDULED_MSG
+
+    def test_handle_firmware_update_failed(self, mocker,
+                                           omevv_connection_firmware,
+                                           omevv_default_args):
+        omevv_default_args.update({"run_now": True})
+        f_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
+
+        # Setup the parameters for the test
+        vcenter_uuid = 'test_vcenter_uuid'
+        cluster_group_id = 'test_cluster_group_id'
+        payload = {'test_key': 'test_value'}
+        parameters = omevv_default_args
+        before_dict = {'component1': {'firmwareversion': '1.0.0'}}
+        after_dict = {'component1': {'firmwareversion': '1.0.1'}}
+        job_resp = None
+
+        mocker.patch(MODULE_PATH + 'UpdateCluster.execute_update_job', return_value=job_resp)
+        mocker.patch('ansible.module_utils.basic.AnsibleModule.exit_json',
+                     side_effect=AnsibleFailJSonException)
+
+        with pytest.raises(AnsibleFailJSonException) as excinfo:
+            omevv_obj.handle_firmware_update(vcenter_uuid,
+                                             cluster_group_id,
+                                             payload, parameters,
+                                             before_dict, after_dict)
+
+        assert excinfo.value.args[0] == SUCCESS_UPDATE_MSG
+
+    def test_get_target_single_target(self, omevv_connection_firmware, omevv_default_args):
+        f_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
+
+        # Setup the parameters for the test
+        target_list = [
+            {'cluster': 'cluster_a', 'host': 123456, 'servicetag': 'SVCTAG1'}
+        ]
+
+        # Execute the method
+        result = omevv_obj.get_target(target_list)
+
+        # Verify the result
+        assert result == {'cluster': 'cluster_a', 'host': 123456, 'servicetag': 'SVCTAG1'}
+
+    def test_get_target_multiple_targets(self,
+                                         omevv_connection_firmware,
+                                         omevv_default_args):
+        f_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
+
+        # Setup the parameters for the test
+        target_list = [
+            {'cluster': 'cluster_a', 'host': 123456, 'servicetag': 'SVCTAG1'},
+            {'cluster': 'cluster_b', 'host': 123457, 'servicetag': 'SVCTAG2'}
+        ]
+
+        # Execute the method
+        result = omevv_obj.get_target(target_list)
+
+        # Verify the result
+        assert result == {'cluster': 'cluster_a', 'host': 123456, 'servicetag': 'SVCTAG1'}
+
+    def test_get_target_empty_list(self, omevv_connection_firmware, omevv_default_args):
+        f_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
+
+        # Setup the parameters for the test
+        target_list = []
+
+        # Execute the method
+        result = omevv_obj.get_target(target_list)
+
+        # Verify the result
+        assert result is None
+
+    def test_get_host_id_with_service_tag(self, mocker, omevv_connection_firmware, omevv_default_args):
+        f_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
+
+        # Setup the parameters for the test
+        vcenter_uuid = 'test_vcenter_uuid'
+        target = {'cluster': None, 'host': None, 'servicetag': 'SVCTAG1'}
+        host_id = 123456
+        host_service_tag = 'SVCTAG1'
+
+        # Mocking the omevv_info_obj.get_host_id method
+        mocker.patch(INFO_UTILS_PATH + 'OMEVVInfo.get_host_id', return_value=(host_id, host_service_tag))
+
+        # Execute the method
+        result_host_id, result_host_service_tag = omevv_obj.get_host_id(vcenter_uuid, target)
+
+        # Verify the result
+        assert result_host_id == host_id
+        assert result_host_service_tag == host_service_tag
+
+    def test_get_host_id_with_host(self, mocker, omevv_connection_firmware, omevv_default_args):
+        f_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
+
+        # Setup the parameters for the test
+        vcenter_uuid = 'test_vcenter_uuid'
+        target = {'cluster': None, 'host': 'host1', 'servicetag': None}
+        host_id = 123456
+        host_service_tag = 'SVCTAG1'
+
+        # Mocking the omevv_info_obj.get_host_id method
+        mocker.patch(INFO_UTILS_PATH + 'OMEVVInfo.get_host_id', return_value=(host_id,
+                                                                              host_service_tag))
+
+        # Execute the method
+        result_host_id, result_host_service_tag = omevv_obj.get_host_id(vcenter_uuid, target)
+
+        # Verify the result
+        assert result_host_id == host_id
+        assert result_host_service_tag == host_service_tag
+
+    def test_get_host_id_with_cluster(self, mocker, omevv_connection_firmware, omevv_default_args):
+        f_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
+
+        # Setup the parameters for the test
+        vcenter_uuid = 'test_vcenter_uuid'
+        target = {'cluster': 'cluster1', 'host': None, 'servicetag': None}
+        host_ids = [123456, 123457]
+        host_service_tags = ['SVCTAG1', 'SVCTAG2']
+        cluster_group_id = 789
+
+        # Mocking the necessary methods
+        mocker.patch(INFO_UTILS_PATH + 'OMEVVInfo.get_group_id_of_cluster',
+                     return_value=cluster_group_id)
+        mocker.patch(INFO_UTILS_PATH + 'OMEVVInfo.get_cluster_managed_host_details',
+                     return_value=(host_ids, host_service_tags))
+
+        # Execute the method
+        result_host_ids, result_host_service_tags = omevv_obj.get_host_id(vcenter_uuid, target)
+
+        # Verify the result
+        assert result_host_ids == host_ids
+        assert result_host_service_tags == host_service_tags
+
+
+class TestUpdateCluster_firmware(FakeAnsibleModule):
+    module = UpdateCluster
+
+    @pytest.fixture
+    def omevv_firmware_mock(self):
+        return MagicMock()
+
+    @pytest.fixture
+    def omevv_connection_firmware(self, mocker, omevv_firmware_mock):
+        mocker.patch(MODULE_PATH + 'RestOMEVV',
+                     return_value=omevv_firmware_mock).return_value.__enter__.return_value = omevv_firmware_mock
+        return omevv_firmware_mock
+
+    def test_is_firmware_update_needed_update_needed(self, mocker,
+                                                     omevv_connection_firmware,
+                                                     omevv_default_args):
+        f_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
+
+        # Setup the parameters for the test
+        vcenter_uuid = 'test_vcenter_uuid'
+        cluster_group_id = 'test_cluster_group_id'
+        host_ids = [123456]
+        target = [{'firmware_components': ['component1']}]
+        host_service_tags = ['SVCTAG1']
+
+        # Mock the `check_firmware_update` method to return that an update is needed
+        mocker.patch(MODULE_PATH + 'UpdateCluster.check_firmware_update', return_value=(True, {}, {}, {}, {}, 'SVCTAG1'))
+
+        # Execute the method
+        firmware_update_needed, main_before_no_change_dict, main_after_no_change_dict, main_before_dict, main_after_dict = omevv_obj.is_firmware_update_needed(
+            vcenter_uuid, cluster_group_id, host_ids, target, host_service_tags)
+
+        # Verify the result
+        assert firmware_update_needed
+        assert main_before_dict == {'SVCTAG1': {}}
+        assert main_after_dict == {'SVCTAG1': {}}
+
+    def test_is_firmware_update_needed_multiple_hosts(self, mocker, omevv_connection_firmware, omevv_default_args):
+        f_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
+
+        # Setup the parameters for the test
+        vcenter_uuid = 'test_vcenter_uuid'
+        cluster_group_id = 'test_group_id'
+        host_ids = [123456, 789012]
+        target = [{'firmware_components': ['component1']}]
+        host_service_tags = ['SVCTAG1', 'SVCTAG2']
+
+        # Mock the `check_firmware_update` method to return different results for multiple hosts
+        mocker.patch(MODULE_PATH + 'UpdateCluster.check_firmware_update', side_effect=[
+            (True, {}, {}, {}, {}, 'SVCTAG1'),
+            (False, {}, {}, {}, {}, 'SVCTAG2')
+        ])
+
+        # Execute the method
+        firmware_update_needed, main_before_no_change_dict, main_after_no_change_dict, main_before_dict, main_after_dict = omevv_obj.is_firmware_update_needed(
+            vcenter_uuid, cluster_group_id, host_ids, target, host_service_tags)
+
+        # Verify the result
+        assert firmware_update_needed
+        assert main_before_dict == {'SVCTAG1': {}, 'SVCTAG2': {}}
+        assert main_after_dict == {'SVCTAG1': {}, 'SVCTAG2': {}}
+
+    def test_check_firmware_update_compliant(self, mocker, omevv_connection_firmware, omevv_default_args):
+        f_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
+
+        vcenter_uuid = 'test_vcenter_uuid'
+        cluster_group_id = 'test_cluster_group_id'
+        host_id = 123456
+        target = [{'firmware_components': ['component1']}]
+
+        firmware_drift_info = {
+            "hostComplianceReports": [{
+                "serviceTag": "SVCTAG1",
+                "componentCompliances": [
+                    {
+                        "sourceName": "component1",
+                        "driftStatus": "Compliant",
+                        "currentValue": "1.0.0",
+                        "baselineValue": "1.0.0"
+                    }
+                ]
+            }]
+        }
+
+        mocker.patch(MODULE_PATH + 'OMEVVInfo.get_firmware_drift_info_for_single_host',
+                     return_value=firmware_drift_info)
+
+        firmware_update_needed, before_no_change_dict, after_no_change_dict, before_dict, after_dict, current_host_st = omevv_obj.check_firmware_update(
+            vcenter_uuid, cluster_group_id, host_id, target)
+
+        assert not firmware_update_needed
+        assert before_no_change_dict == {'component1': {'firmwareversion': '1.0.0'}}
+        assert after_no_change_dict == {'component1': {'firmwareversion': '1.0.0'}}
+        assert before_dict == {}
+        assert after_dict == {}
+
+    def test_check_firmware_update_non_compliant(self, mocker, omevv_connection_firmware, omevv_default_args):
+        f_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
+
+        vcenter_uuid = 'test_vcenter_uuid'
+        cluster_group_id = 'test_cluster_group_id'
+        host_id = 123456
+        target = [{'firmware_components': ['component1']}]
+
+        firmware_drift_info = {
+            "hostComplianceReports": [{
+                "serviceTag": "SVCTAG1",
+                "componentCompliances": [
+                    {
+                        "sourceName": "component1",
+                        "driftStatus": "NonCompliant",
+                        "currentValue": "1.0.0",
+                        "baselineValue": "2.0.0"
+                    }
+                ]
+            }]
+        }
+
+        mocker.patch(MODULE_PATH + 'OMEVVInfo.get_firmware_drift_info_for_single_host',
+                     return_value=firmware_drift_info)
+
+        firmware_update_needed, before_no_change_dict, after_no_change_dict, before_dict, after_dict, current_host_st = omevv_obj.check_firmware_update(
+            vcenter_uuid, cluster_group_id, host_id, target)
+
+        assert firmware_update_needed
+        assert before_no_change_dict == {}
+        assert after_no_change_dict == {}
+        assert before_dict == {'component1': {'firmwareversion': '1.0.0'}}
+        assert after_dict == {'component1': {'firmwareversion': '2.0.0'}}
+
+    def test_check_firmware_update_mixed_status(self, mocker, omevv_connection_firmware, omevv_default_args):
+        f_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
+
+        vcenter_uuid = 'test_vcenter_uuid'
+        cluster_group_id = 'test_cluster_group_id'
+        host_id = 123456
+        target = [{'firmware_components': ['component1', 'component2']}]
+
+        firmware_drift_info = {
+            "hostComplianceReports": [{
+                "serviceTag": "SVCTAG1",
+                "componentCompliances": [
+                    {
+                        "sourceName": "component1",
+                        "driftStatus": "NonCompliant",
+                        "currentValue": "1.0.0",
+                        "baselineValue": "2.0.0"
+                    },
+                    {
+                        "sourceName": "component2",
+                        "driftStatus": "Compliant",
+                        "currentValue": "3.0.0",
+                        "baselineValue": "3.0.0"
+                    }
+                ]
+            }]
+        }
+
+        mocker.patch(MODULE_PATH + 'OMEVVInfo.get_firmware_drift_info_for_single_host',
+                     return_value=firmware_drift_info)
+
+        firmware_update_needed, before_no_change_dict, after_no_change_dict, before_dict, after_dict, current_host_st = omevv_obj.check_firmware_update(
+            vcenter_uuid, cluster_group_id, host_id, target)
+
+        assert firmware_update_needed
+        assert before_no_change_dict == {'component2': {'firmwareversion': '3.0.0'}}
+        assert after_no_change_dict == {'component2': {'firmwareversion': '3.0.0'}}
+        assert before_dict == {'component1': {'firmwareversion': '1.0.0'}}
+        assert after_dict == {'component1': {'firmwareversion': '2.0.0'}}
+
+    def test_is_update_job_allowed_true(self, mocker, omevv_connection_firmware, omevv_default_args):
+        f_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
+
+        vcenter_uuid = 'test_vcenter_uuid'
+        cluster_group_id = 'test_cluster_group_id'
+        cluster_name = 'test_cluster_name'
+
+        # Mock the check_existing_update_job method to return True
+        mocker.patch(MODULE_PATH + 'OMEVVFirmwareUpdate.check_existing_update_job',
+                     return_value=True)
+
+        # Execute the method
+        result = omevv_obj.is_update_job_allowed(vcenter_uuid, cluster_group_id, cluster_name)
+
+        # Verify the result
+        assert result is True
+
+    def test_is_job_name_existing_false(self, mocker, omevv_connection_firmware, omevv_default_args):
+        f_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
+
+        vcenter_uuid = 'test_vcenter_uuid'
+        job_name = 'test_job_name'
+
+        # Mock the check_existing_job_name method to return False
+        mocker.patch(MODULE_PATH + 'OMEVVFirmwareUpdate.check_existing_job_name',
+                     return_value=False)
+
+        # Execute the method
+        result = omevv_obj.is_job_name_existing(vcenter_uuid, job_name)
+
+        # Verify the result
+        assert result is False
+
+    def test_handle_job_response_run_now_true_job_wait_false(self, mocker, omevv_connection_firmware, omevv_default_args):
+        f_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
+
+        parameters = {'run_now': True, 'job_wait': False}
+        vcenter_uuid = 'test_vcenter_uuid'
+        resp = MagicMock()
+        job_resp = {'state': 'SUBMITTED'}
+        err_msg = None
+        before_dict = {'component1': {'firmwareversion': '1.0.0'}}
+        after_dict = {'component1': {'firmwareversion': '2.0.0'}}
+
+        # Mock the exit_json method to capture the result
+        mocker.patch('ansible.module_utils.basic.AnsibleModule.exit_json', side_effect=AnsibleFailJSonException)
+
+        with pytest.raises(AnsibleFailJSonException) as excinfo:
+            omevv_obj.handle_job_response(parameters, vcenter_uuid, resp, job_resp, err_msg, before_dict, after_dict)
+
+        # Verify the exit message for submission
+        assert excinfo.value.args[0] == SUCCESS_UPDATE_SUBMIT_MSG
+
+    def test_handle_job_response_run_now_false(self, mocker, omevv_connection_firmware, omevv_default_args):
+        f_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
+
+        parameters = {'run_now': False}
+        vcenter_uuid = 'test_vcenter_uuid'
+        resp = MagicMock()
+        job_resp = {'state': 'SCHEDULED'}
+        err_msg = None
+        before_dict = {'component1': {'firmwareversion': '1.0.0'}}
+        after_dict = {'component1': {'firmwareversion': '2.0.0'}}
+
+        # Mock the exit_json method to capture the result
+        mocker.patch('ansible.module_utils.basic.AnsibleModule.exit_json', side_effect=AnsibleFailJSonException)
+
+        with pytest.raises(AnsibleFailJSonException) as excinfo:
+            omevv_obj.handle_job_response(parameters, vcenter_uuid, resp, job_resp, err_msg, before_dict, after_dict)
+
+        # Verify the exit message for scheduled job
+        assert excinfo.value.args[0] == SUCCESS_UPDATE_SCHEDULED_MSG
+
+    def test_wait_for_job_completion_success(self, mocker, omevv_connection_firmware, omevv_default_args):
+        f_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
+
+        vcenter_uuid = 'test_vcenter_uuid'
+        resp = MagicMock()
+        job_resp = {'state': 'COMPLETED', 'lastExecutionHistory': {'statusSummary': 'SUCCESSFUL'}}
+        err_msg = None
+        before_dict = {'component1': {'firmwareversion': '1.0.0'}}
+        after_dict = {'component1': {'firmwareversion': '2.0.0'}}
+
+        # Mock the firmware_update_job_track method to simulate job completion
+        def mock_firmware_update_job_track(vcenter_uuid, json_data):
+            return (job_resp, None) if job_resp['state'] == 'COMPLETED' else (job_resp, "Error")
+
+        firmware_update_job_track = mocker.patch(MODULE_PATH + 'OMEVVFirmwareUpdate.firmware_update_job_track', side_effect=mock_firmware_update_job_track)
+
+        # Mock time.sleep to avoid delays during testing
+        mocker.patch('time.sleep', return_value=None)
+
+        # Mock the exit_json method to capture the result
+        mocker.patch('ansible.module_utils.basic.AnsibleModule.exit_json', side_effect=AnsibleFailJSonException)
+
+        with pytest.raises(AnsibleFailJSonException) as excinfo:
+            omevv_obj.wait_for_job_completion(vcenter_uuid, resp, job_resp, err_msg, before_dict, after_dict)
+
+        # Verify the exit message for job completion
+        assert excinfo.value.args[0] == SUCCESS_UPDATE_MSG
+
+    def test_wait_for_job_completion_failure(self, mocker, omevv_connection_firmware, omevv_default_args):
+        f_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
+
+        vcenter_uuid = 'test_vcenter_uuid'
+        resp = MagicMock()
+        job_resp = {'state': 'FAILED', 'lastExecutionHistory': {'statusSummary': 'FAILED'}}
+        err_msg = "Job Failed"
+        before_dict = {'component1': {'firmwareversion': '1.0.0'}}
+        after_dict = {'component1': {'firmwareversion': '2.0.0'}}
+
+        # Mock the firmware_update_job_track method to simulate job failure
+        def mock_firmware_update_job_track(vcenter_uuid, json_data):
+            return (job_resp, err_msg) if job_resp['state'] == 'FAILED' else (job_resp, None)
+
+        firmware_update_job_track = mocker.patch(MODULE_PATH + 'OMEVVFirmwareUpdate.firmware_update_job_track', side_effect=mock_firmware_update_job_track)
+
+        # Mock time.sleep to avoid delays during testing
+        mocker.patch('time.sleep', return_value=None)
+
+        # Mock the exit_json method to capture the result
+        mocker.patch('ansible.module_utils.basic.AnsibleModule.exit_json', side_effect=AnsibleFailJSonException)
+
+        with pytest.raises(AnsibleFailJSonException) as excinfo:
+            omevv_obj.wait_for_job_completion(vcenter_uuid, resp, job_resp, err_msg, before_dict, after_dict)
+
+        # Verify the exit message for job failure
+        assert excinfo.value.args[0] == FAILED_UPDATE_MSG
+
+    def test_main_http_error(self, mocker, omevv_default_args):
+        # Mock the OMEVVAnsibleModule initialization
+        mock_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        mocker.patch(MODULE_PATH + 'OMEVVAnsibleModule', return_value=mock_module)
+
+        # Mock the 'RestOMEVV' context manager to raise HTTPError
+        mocker.patch(MODULE_PATH + 'RestOMEVV',
+                     __enter__=MagicMock(), __exit__=MagicMock(),
+                     side_effect=HTTPError('url', 500, 'Internal Server Error', {}, None))
+
+        # Mock json load to return error message in case of exception
+        mocker.patch('json.load', return_value={"message": "Internal Server Error"})
+
+        # Mock the exit_json method to capture the exit
+        mocker.patch('ansible.module_utils.basic.AnsibleModule.exit_json', side_effect=AnsibleFailJSonException)
+
+        with pytest.raises(AnsibleFailJSonException) as excinfo:
+            omevv_firmware.main()
+
+        assert excinfo.value.args[0] == "Internal Server Error"
+
+    def test_main_url_error(self, mocker, omevv_default_args):
+        # Mock the OMEVVAnsibleModule initialization
+        mock_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        mocker.patch(MODULE_PATH + 'OMEVVAnsibleModule', return_value=mock_module)
+
+        # Mock the 'RestOMEVV' context manager to raise URLError
+        mocker.patch(MODULE_PATH + 'RestOMEVV', __enter__=MagicMock(), __exit__=MagicMock(), side_effect=URLError('url error'))
+
+        # Mock the exit_json method to capture the exit
+        mocker.patch('ansible.module_utils.basic.AnsibleModule.exit_json', side_effect=AnsibleFailJSonException)
+
+        with pytest.raises(AnsibleFailJSonException) as excinfo:
+            omevv_firmware.main()
+
+        assert excinfo.value.args[0] == "The URL with IP XX.XX.XX.XX and port None cannot be reached."
+
+    def test_main_general_exception(self, mocker, omevv_default_args):
+        # Mock the OMEVVAnsibleModule initialization
+        mock_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        mocker.patch(MODULE_PATH + 'OMEVVAnsibleModule', return_value=mock_module)
+
+        # Mock the 'RestOMEVV' context manager to raise a general exception
+        mocker.patch(MODULE_PATH + 'RestOMEVV', __enter__=MagicMock(), __exit__=MagicMock(), side_effect=ValueError('general error'))
+
+        # Mock the exit_json method to capture the exit
+        mocker.patch('ansible.module_utils.basic.AnsibleModule.exit_json', side_effect=AnsibleFailJSonException)
+
+        with pytest.raises(AnsibleFailJSonException) as excinfo:
+            omevv_firmware.main()
+
+        assert excinfo.value.args[0] == 'general error'
+
+    def test_main_source_not_found_error(self, mocker, omevv_default_args):
+        # Mock the OMEVVAnsibleModule initialization
+        mock_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        mocker.patch(MODULE_PATH + 'OMEVVAnsibleModule', return_value=mock_module)
+
+        # Mock the 'RestOMEVV' context manager to raise HTTPError with code 404
+        mocker.patch(MODULE_PATH + 'RestOMEVV', __enter__=MagicMock(), __exit__=MagicMock(), side_effect=HTTPError('url', 404, 'Not Found', {}, None))
+
+        # Mock the exit_json method to capture the exit
+        mocker.patch('ansible.module_utils.basic.AnsibleModule.exit_json', side_effect=AnsibleFailJSonException)
+
+        with pytest.raises(AnsibleFailJSonException) as excinfo:
+            omevv_firmware.main()
+
+        # Verify the exception message
+        assert excinfo.value.args[0] == SOURCE_NOT_FOUND_MSG
+
+    def test_main_http_error_with_error_info(self, mocker, omevv_default_args):
+        # Mock the OMEVVAnsibleModule initialization
+        mock_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
+        mocker.patch(MODULE_PATH + 'OMEVVAnsibleModule', return_value=mock_module)
+
+        # Define the error details
+        error_message = "Some HTTP error occurred"
+        error_info = {"message": error_message, "type": "HTTPError"}
+
+        # Mock the HTTPError with a sample error details
+        http_error = HTTPError('url', 403, 'Forbidden', {}, None)
+        mocker.patch(MODULE_PATH + 'RestOMEVV', __enter__=MagicMock(), __exit__=MagicMock(), side_effect=http_error)
+
+        # Mock json load to return a custom error message with details
+        mocker.patch('json.load', return_value=error_info)
+
+        # Mock the exit_json method to capture the exit
+        mocker.patch('ansible.module_utils.basic.AnsibleModule.exit_json', side_effect=AnsibleFailJSonException)
+
+        with pytest.raises(AnsibleFailJSonException) as excinfo:
+            omevv_firmware.main()
+
+        # Verify the exception message and error info
+        assert excinfo.value.args[0] == error_message

@@ -254,10 +254,10 @@ EXAMPLES = r"""
           - "DCIM:INSTALLED#301_C_BOSS.SL.14-1"
           - "DCIM:INSTALLED#807__TPM.Integrated.1-1"
 
-- name: Retrieve firmware compliance report of all the hosts in the specific cluster
+- name: Retrieve firmware compliance report of all hosts in the specific cluster
   dellemc.openmanage.omevv_firmware_compliance_info:
     hostname: "192.168.0.1"
-    vcenter_uuid: "xxxxx"
+    vcenter_uuid: "{{ vcenter_uuid }}"
     vcenter_username: "username"
     vcenter_password: "password"
     ca_path: "path/to/ca_file"
@@ -267,7 +267,7 @@ EXAMPLES = r"""
 
 - name: Extract source name of all components
   set_fact:
-    source_names: "{{ compliance_data.hostComplianceReports[0].componentCompliances|json_query('*.sourceName') }}"
+    source_names: "{{ compliance_data.hostComplianceReports[0].componentCompliances | map(attribute='sourceName') | list }}"
 
 - name: Extract source name of a specific component
   set_fact:
@@ -276,7 +276,7 @@ EXAMPLES = r"""
 - name: Update firmware at the scheduled time for a specific host
   dellemc.openmanage.omevv.omevv_firmware:
     hostname: "192.168.0.1"
-    vcenter_uuid: "xxxxx"
+    vcenter_uuid: "{{ vcenter_uuid }}"
     vcenter_username: "username"
     vcenter_password: "password"
     ca_path: "path/to/ca_file"
@@ -356,6 +356,16 @@ TRIGGER_UPDATE_CHECK_URI = "/Consoles/{vcenter_uuid}/CanTriggerUpdate"
 class FirmwareUpdate():
 
     def __init__(self, module, rest_obj):
+        """
+        Initializes the FirmwareUpdate object.
+
+        Args:
+            module (Any): The module to execute.
+            rest_obj (Any): The rest object.
+
+        Returns:
+            None
+        """
         self.module = module
         self.obj = rest_obj
         self.omevv_info_obj = OMEVVInfo(self.obj)
@@ -394,6 +404,17 @@ class FirmwareUpdate():
         return payload
 
     def add_optional_fields(self, firmware, parameters):
+        """
+        Adds optional fields to the firmware dictionary based on the
+        parameters.
+
+        Args:
+            firmware (dict): The firmware dictionary.
+            parameters (dict): The parameters dictionary.
+
+        Returns:
+            None
+        """
         optional_fields = [
             ('check_vSAN_health', 'checkvSANHealth'),
             ('delete_job_queue', 'deleteJobsQueue'),
@@ -412,12 +433,32 @@ class FirmwareUpdate():
                 firmware[firmware_key] = parameters.get(param_key)
 
     def set_schedule(self, payload, parameters):
+        """
+        Sets the schedule for the payload.
+
+        Args:
+            payload (dict): The payload dictionary.
+            parameters (dict): The parameters dictionary.
+
+        Returns:
+            None
+        """
         payload["schedule"] = {"runNow": parameters.get('run_now')}
 
         if not payload["schedule"]["runNow"]:
             payload["schedule"]["dateTime"] = parameters.get('date_time')
 
     def set_job_details(self, payload, parameters):
+        """
+        Sets the job details in the payload dictionary.
+
+        Args:
+            payload (dict): The payload dictionary.
+            parameters (dict): The parameters dictionary.
+
+        Returns:
+            None
+        """
         if parameters.get('job_description'):
             payload["jobDescription"] = parameters.get('job_description')
 
@@ -431,6 +472,17 @@ class FirmwareUpdate():
             payload["jobName"] = job_name
 
     def add_targets(self, firmware, target_list, device_id):
+        """
+        Adds targets to the firmware dictionary.
+
+        Args:
+            firmware (dict): The firmware dictionary.
+            target_list (list): The list of targets.
+            device_id (Union[str, list]): The device ID or list of device IDs.
+
+        Returns:
+            None
+        """
         for target in target_list:
             if isinstance(device_id, list):
                 # If device_id is a list, iterate through each id and add to the targets
@@ -449,6 +501,15 @@ class FirmwareUpdate():
                 firmware['targets'].append(actual_target)
 
     def host_servicetag_existence(self):
+        """
+        Check the existence of host and servicetag in the targets.
+
+        Args:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
         for target in self.module.params.get('targets', []):
             cluster = target.get('cluster')
             host = target.get('host')
@@ -461,6 +522,17 @@ class FirmwareUpdate():
                 self.module.exit_json(msg=CLUSTER_HOST_SERVICETSAG_REQUIRED_MSG, failed=True)
 
     def validate_date_time(self):
+        """
+        Validates the date and time format.
+
+        This function takes the date and time string from the 'date_time' parameter
+        and attempts to parse it using the specified format. If the parsing is
+        successful, the parsed datetime object is returned. If the parsing fails,
+        the function exits with a failure message.
+
+        Returns:
+            datetime: The parsed datetime object.
+        """
         try:
             ftime = datetime.strptime(self.module.params.get('date_time'), "%Y-%m-%dT%H:%M:%S%z")
         except ValueError:
@@ -468,11 +540,40 @@ class FirmwareUpdate():
         return ftime
 
     def enter_maintenance_mode_timeout(self):
+        """
+        Validates the timeout value for entering maintenance mode.
+
+        This function checks if the value of the 'enter_maintenance_mode_timeout' parameter is
+        within the valid range (60 to 1440). If the value is outside the valid range, the function
+        exits with a failure message.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+
+        Raises:
+            SystemExit: If the value of 'enter_maintenance_mode_timeout' is outside the valid range.
+        """
         enter_maintenance_mode_timeout = self.module.params.get('enter_maintenance_mode_timeout')
         if enter_maintenance_mode_timeout < 60 or enter_maintenance_mode_timeout > 1440:
             self.module.exit_json(msg=MAINTENANCE_MODE_TIMEOUT_INVALID_MSG, failed=True)
 
     def validate_params(self):
+        """
+        Validates the parameters of the class.
+
+        This function checks the existence of the 'host' and 'servicetag' parameters.
+        It also validates the 'job_wait' parameter and the 'date_time' parameter.
+        Additionally, it validates the 'enter_maintenance_mode_timeout' parameter.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
 
         # Validate the 'host' and 'servicetag' parameter existence
         self.host_servicetag_existence()
@@ -493,6 +594,15 @@ class FirmwareUpdate():
 class UpdateCluster(FirmwareUpdate):
 
     def execute(self):
+        """
+        Executes the firmware update process.
+
+        This function validates the parameters, retrieves the target cluster and payload,
+        checks if the update job is allowed, and handles the firmware update process.
+
+        Returns:
+            None
+        """
         cluster_name = None
         cluster_group_id = None
         host_service_tags = None
@@ -538,6 +648,15 @@ class UpdateCluster(FirmwareUpdate):
             self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
 
     def process_cluster_target(self, target):
+        """
+        Process the cluster target.
+
+        Args:
+            target (dict): The target cluster.
+
+        Returns:
+            tuple: A tuple containing the cluster group ID, payload, and new host ID.
+        """
         vcenter_uuid = self.module.params.get('vcenter_uuid')
         host_ids, host_service_tags = self.get_host_id(vcenter_uuid, target)
         if host_ids is None or not host_ids:
@@ -550,6 +669,15 @@ class UpdateCluster(FirmwareUpdate):
         return cluster_group_id, payload, new_host_id
 
     def process_non_cluster_target(self, parameters):
+        """
+        Process the non-cluster target.
+
+        Args:
+            parameters (dict): The parameters dictionary.
+
+        Returns:
+            tuple: A tuple containing the cluster group ID, payload, and new host ID.
+        """
         vcenter_uuid = self.module.params.get('vcenter_uuid')
         target = self.get_target(parameters['targets'])
         host_id, host_service_tags = self.get_host_from_parameters(vcenter_uuid, parameters)
@@ -569,6 +697,18 @@ class UpdateCluster(FirmwareUpdate):
 
     def get_host_from_parameters(self, vcenter_uuid, parameters, host_ids=None,
                                  host_service_tags=None):
+        """
+        Retrieves the host and service tags from the given parameters.
+
+        Args:
+            vcenter_uuid (str): The UUID of the vCenter.
+            parameters (dict): The parameters dictionary.
+            host_ids (list, optional): The list of host IDs. Defaults to None.
+            host_service_tags (list, optional): The list of host service tags. Defaults to None.
+
+        Returns:
+            tuple: A tuple containing the host IDs and host service tags.
+        """
         target = self.get_target(parameters['targets'])
         if target['cluster']:
             return host_ids, host_service_tags
@@ -578,6 +718,19 @@ class UpdateCluster(FirmwareUpdate):
 
     def handle_check_mode(self, firmware_update_needed, before_no_change_dict,
                           after_no_change_dict, before_dict, after_dict):
+        """
+        Handles the check mode for firmware update.
+
+        Args:
+            firmware_update_needed (bool): Indicates if firmware update is needed.
+            before_no_change_dict (dict): The dictionary representing the state before no changes.
+            after_no_change_dict (dict): The dictionary representing the state after no changes.
+            before_dict (dict): The dictionary representing the state before the update.
+            after_dict (dict): The dictionary representing the state after the update.
+
+        Returns:
+            None
+        """
         if firmware_update_needed:
             if self.module._diff:
                 self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True,
@@ -594,6 +747,20 @@ class UpdateCluster(FirmwareUpdate):
 
     def handle_firmware_update(self, vcenter_uuid, cluster_group_id, payload, parameters,
                                before_dict, after_dict):
+        """
+        Executes the firmware update job and handles the response.
+
+        Args:
+            vcenter_uuid (str): The UUID of the vCenter.
+            cluster_group_id (str): The ID of the cluster group.
+            payload (dict): The payload for the firmware update.
+            parameters (dict): The parameters for the firmware update.
+            before_dict (dict): The state of the system before the update.
+            after_dict (dict): The state of the system after the update.
+
+        Returns:
+            None
+        """
         job_resp = self.execute_update_job(vcenter_uuid, cluster_group_id, payload, parameters,
                                            before_dict, after_dict)
         if self.module.params.get('run_now'):
@@ -605,10 +772,29 @@ class UpdateCluster(FirmwareUpdate):
                                   diff={"before": before_dict, "after": after_dict})
 
     def get_target(self, target_list):
+        """
+        Returns the first item in the target_list.
+
+        Args:
+            target_list (list): The list of targets.
+
+        Returns:
+            Any: The first item in the target_list.
+        """
         for target in target_list:
             return target
 
     def get_host_id(self, vcenter_uuid, target):
+        """
+        Retrieves the host ID and service tag for a given target.
+
+        Args:
+            vcenter_uuid (str): The UUID of the vCenter.
+            target (dict): The target containing the cluster, service tag, and host.
+
+        Returns:
+            tuple: A tuple containing the host ID and service tag.
+        """
         cluster_name = target['cluster']
         service_tag = target['servicetag']
         host = target['host']
@@ -636,6 +822,25 @@ class UpdateCluster(FirmwareUpdate):
 
     def is_firmware_update_needed(self, vcenter_uuid, cluster_group_id, host_ids,
                                   target, host_service_tags):
+        """
+        Determines if a firmware update is needed.
+
+        Args:
+            vcenter_uuid (str): The UUID of the vCenter.
+            cluster_group_id (int): The ID of the cluster group.
+            host_ids (List[int]): The list of host IDs.
+            target (List[Dict[str, str]]): The list of targets.
+            host_service_tags (List[str]): The list of host service tags.
+
+        Returns:
+            Tuple[bool, Dict[str, Dict[str, str]], Dict[str, Dict[str, str]], Dict[str, Dict[str, str]], Dict[str, Dict[str, str]]]:
+                A tuple containing the following:
+                - firmware_update_needed (bool): True if a firmware update is needed, False otherwise.
+                - main_before_no_change_dict (Dict[str, Dict[str, str]]): The dictionary of before no change firmware versions.
+                - main_after_no_change_dict (Dict[str, Dict[str, str]]): The dictionary of after no change firmware versions.
+                - main_before_dict (Dict[str, Dict[str, str]]): The dictionary of before firmware versions.
+                - main_after_dict (Dict[str, Dict[str, str]]): The dictionary of after firmware versions.
+        """
         firmware_update_needed = False
         # Ensure host_ids is a list for uniform processing
         if isinstance(host_ids, int):
@@ -660,6 +865,24 @@ class UpdateCluster(FirmwareUpdate):
         return firmware_update_needed, main_before_no_change_dict, main_after_no_change_dict, main_before_dict, main_after_dict
 
     def check_firmware_update(self, vcenter_uuid, cluster_group_id, host_id, target):
+        """
+        Check if firmware update is needed for a host.
+
+        Args:
+            vcenter_uuid (str): The UUID of the vCenter.
+            cluster_group_id (str): The ID of the cluster group.
+            host_id (str): The ID of the host.
+            target (list): The list of targets.
+
+        Returns:
+            tuple: A tuple containing the following:
+                - firmware_update_needed (bool): A boolean indicating if firmware update is needed.
+                - before_no_change_dict (dict): A dictionary containing the firmware version before the update.
+                - after_no_change_dict (dict): A dictionary containing the firmware version after the update.
+                - before_dict (dict): A dictionary containing the firmware version before the update.
+                - after_dict (dict): A dictionary containing the firmware version after the update.
+                - current_host_st (str): The service tag of the current host.
+        """
         current_host_st = None
         before_dict, after_dict, before_no_change_dict, after_no_change_dict = {}, {}, {}, {}
         if 'cluster' in target[0] and target[0]['cluster']:
@@ -696,6 +919,17 @@ class UpdateCluster(FirmwareUpdate):
         return firmware_update_needed, before_no_change_dict, after_no_change_dict, before_dict, after_dict, current_host_st
 
     def is_update_job_allowed(self, vcenter_uuid, cluster_group_id, cluster_name):
+        """
+        Check if an update job is allowed.
+
+        Args:
+            vcenter_uuid (str): The UUID of the vCenter.
+            cluster_group_id (str): The ID of the cluster group.
+            cluster_name (str): The name of the cluster.
+
+        Returns:
+            bool: True if the update job is allowed, False otherwise.
+        """
         update_job_status = self.omevv_update_obj.check_existing_update_job(vcenter_uuid,
                                                                             cluster_group_id)
         if update_job_status is not True:
@@ -704,6 +938,16 @@ class UpdateCluster(FirmwareUpdate):
         return True
 
     def is_job_name_existing(self, vcenter_uuid, job_name):
+        """
+        Check if a job name already exists.
+
+        Args:
+            vcenter_uuid (str): The UUID of the vCenter.
+            job_name (str): The name of the job.
+
+        Returns:
+            bool: True if the job name exists, False otherwise.
+        """
         job_exist_status = self.omevv_update_obj.check_existing_job_name(vcenter_uuid, job_name)
         if job_exist_status is True:
             self.module.exit_json(msg=JOB_NAME_ALREADY_EXISTS_MSG.format(job_name=job_name),
@@ -712,6 +956,20 @@ class UpdateCluster(FirmwareUpdate):
 
     def execute_update_job(self, vcenter_uuid, cluster_group_id, payload, parameters,
                            before_dict, after_dict):
+        """
+        Executes the firmware update job for a cluster.
+
+        Args:
+            vcenter_uuid (str): The UUID of the vCenter.
+            cluster_group_id (str): The ID of the cluster group.
+            payload (dict): The payload for the firmware update.
+            parameters (dict): The parameters for the firmware update.
+            before_dict (dict): The state of the system before the update.
+            after_dict (dict): The state of the system after the update.
+
+        Returns:
+            dict: The response from the firmware update job.
+        """
         resp, error_msg = self.omevv_update_obj.update_cluster(payload, vcenter_uuid,
                                                                cluster_group_id)
         if resp.success:
@@ -725,6 +983,21 @@ class UpdateCluster(FirmwareUpdate):
 
     def handle_job_response(self, parameters, vcenter_uuid, resp, job_resp, err_msg,
                             before_dict, after_dict):
+        """
+        Handle the response from the firmware update job.
+
+        Args:
+            parameters (dict): The parameters for the firmware update.
+            vcenter_uuid (str): The UUID of the vCenter.
+            resp (Response): The response from the firmware update.
+            job_resp (dict): The response from the firmware update job.
+            err_msg (str): The error message from the firmware update.
+            before_dict (dict): The state of the system before the update.
+            after_dict (dict): The state of the system after the update.
+
+        Returns:
+            None
+        """
         run_now = parameters.get('run_now')
         if not run_now:
             self.module.exit_json(msg=SUCCESS_UPDATE_SCHEDULED_MSG, changed=True,
@@ -742,6 +1015,23 @@ class UpdateCluster(FirmwareUpdate):
 
     def wait_for_job_completion(self, vcenter_uuid, resp, job_resp, err_msg,
                                 before_dict, after_dict):
+        """
+        Waits for the firmware update job to complete.
+
+        Args:
+            vcenter_uuid (str): The UUID of the vCenter.
+            resp (Response): The response from the firmware update.
+            job_resp (dict): The response from the firmware update job.
+            err_msg (str): The error message from the firmware update.
+            before_dict (dict): The state of the system before the update.
+            after_dict (dict): The state of the system after the update.
+
+        Returns:
+            None
+
+        Raises:
+            None
+        """
         while job_resp["state"] not in ["COMPLETED", "FAILED"]:
             time.sleep(3)
             job_resp, err_msg = self.omevv_update_obj.firmware_update_job_track(vcenter_uuid,
@@ -755,6 +1045,17 @@ class UpdateCluster(FirmwareUpdate):
 
 
 def main():
+    """
+    The main function of the module. It sets up the argument spec and initializes the OMEVVAnsibleModule.
+    It then creates an instance of the UpdateCluster class and calls its execute method.
+    If any exceptions occur, it handles them and exits the module with the appropriate response.
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
     argument_spec = {
         "check_vSAN_health": {"type": 'bool'},
         "date_time": {"type": 'str'},
