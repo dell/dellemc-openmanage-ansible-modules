@@ -34,7 +34,7 @@
 
     - name: Schedule downgrade on cluster for single component
         (Check mode and Diff mode)
-      dellemc.openmanage.omevv.omevv_firmware: &downgrade_firmware
+      dellemc.openmanage.omevv_firmware: &downgrade_firmware
         run_now: false
         date_time: "{{ scheduled_time }}"
         enter_maintenance_mode_timeout: 60
@@ -70,7 +70,7 @@
 
     - name: Schedule downgrade on cluster for single component.
         (Normal and Diff Mode)
-      dellemc.openmanage.omevv.omevv_firmware:
+      dellemc.openmanage.omevv_firmware:
         <<: *downgrade_firmware
       diff: true
       register: norm_ch
@@ -91,7 +91,7 @@
 
     - name: Schedule downgrade on cluster for single component.
         (Idempotency and Diff Mode)
-      dellemc.openmanage.omevv.omevv_firmware:
+      dellemc.openmanage.omevv_firmware:
         <<: *downgrade_firmware
       diff: true
       register: idemp
@@ -126,7 +126,7 @@
       no_log: false
 
   module_defaults:
-    dellemc.openmanage.omevv.omevv_firmware:
+    dellemc.openmanage.omevv_firmware:
       hostname: "{{ hostname }}"
       vcenter_username: "{{ vcenter_username }}"
       vcenter_password: "{{ vcenter_password }}"

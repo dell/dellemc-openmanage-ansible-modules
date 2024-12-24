@@ -18,7 +18,7 @@
         upgrade: true
 
     - name: Negative - unsupported argument
-      dellemc.openmanage.omevv.omevv_firmware:
+      dellemc.openmanage.omevv_firmware:
         unsupported_argument: unsupported
         run_now: true
         targets:
@@ -33,7 +33,7 @@
           - invalid_unsupported_argument.failed
           - not invalid_unsupported_argument.changed
           - 'invalid_unsupported_argument.msg == "Unsupported parameters for
-              (dellemc.openmanage.omevv.omevv_firmware) module: unsupported_argument.
+              (dellemc.openmanage.omevv_firmware) module: unsupported_argument.
               Supported parameters include: ca_path, check_vSAN_health, date_time,
               delete_job_queue, drs_check, enter_maintenance_mode_options,
               enter_maintenance_mode_timeout, evacuate_VMs, exit_maintenance_mode,
@@ -43,7 +43,7 @@
               vcenter_username, vcenter_uuid."'
 
     - name: Negative - unreachable host
-      dellemc.openmanage.omevv.omevv_firmware:
+      dellemc.openmanage.omevv_firmware:
         hostname: 999.999.999.999
         run_now: true
         targets:
@@ -64,7 +64,7 @@
              and port 443 cannot be reached."'
 
     - name: Negative - invalid port
-      dellemc.openmanage.omevv.omevv_firmware:
+      dellemc.openmanage.omevv_firmware:
         port: -1
         run_now: true
         targets:
@@ -82,7 +82,7 @@
             number."'
 
     - name: Negative - invalid username
-      dellemc.openmanage.omevv.omevv_firmware:
+      dellemc.openmanage.omevv_firmware:
         vcenter_username: invalid
         run_now: true
         targets:
@@ -102,7 +102,7 @@
           - 'invalid_username.error_info.errorCode == "10001"'
 
     - name: Negative - invalid password
-      dellemc.openmanage.omevv.omevv_firmware:
+      dellemc.openmanage.omevv_firmware:
         vcenter_password: invalid
         run_now: true
         targets:
@@ -122,7 +122,7 @@
           - 'invalid_password.error_info.errorCode == "10001"'
 
     - name: Negative - invalid validate_certs
-      dellemc.openmanage.omevv.omevv_firmware:
+      dellemc.openmanage.omevv_firmware:
         validate_certs: invalid
         run_now: true
         targets:
@@ -144,7 +144,7 @@
           - invalid_validate_certs_expected_msg in invalid_validate_certs.msg
 
     - name: Negative - invalid ca_path path
-      dellemc.openmanage.omevv.omevv_firmware:
+      dellemc.openmanage.omevv_firmware:
         ca_path: /invalid/path
         run_now: true
         targets:
@@ -161,7 +161,7 @@
           - 'invalid_ca_path.msg == "[Errno 2] No such file or directory"'
 
     - name: Negative - invalid timeout type
-      dellemc.openmanage.omevv.omevv_firmware:
+      dellemc.openmanage.omevv_firmware:
         timeout: invalid
         run_now: true
         targets:
@@ -180,7 +180,7 @@
              int:" in invalid_timeout_type.msg'
 
     - name: Negative - invalid timeout value
-      dellemc.openmanage.omevv.omevv_firmware:
+      dellemc.openmanage.omevv_firmware:
         timeout: -1
         run_now: true
         targets:
@@ -198,7 +198,7 @@
             valid positive integer."'
 
     - name: Negative - invalid vcenter uuid
-      dellemc.openmanage.omevv.omevv_firmware:
+      dellemc.openmanage.omevv_firmware:
         vcenter_uuid: invalid
         run_now: true
         targets:
@@ -216,7 +216,7 @@
             registered."'
 
   module_defaults:
-    dellemc.openmanage.omevv.omevv_firmware:
+    dellemc.openmanage.omevv_firmware:
       validate_certs: "{{ validate_certs }}"
       hostname: "{{ hostname }}"
       vcenter_username: "{{ vcenter_username }}"

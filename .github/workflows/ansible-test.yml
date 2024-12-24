@@ -8,6 +8,8 @@ on:
   # Run CI against all pushes (direct commits, also merged PRs), Pull Requests
   workflow_dispatch:
   push:
+    branches:
+      - collections
   pull_request:
   # Runs CI on every day (at 06:00 UTC)
   schedule:

@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - collections
+  pull_request:
   schedule:
     - cron: '0 6 * * *'
   

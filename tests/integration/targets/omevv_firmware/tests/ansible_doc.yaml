@@ -6,7 +6,7 @@
 ---
 - block:
     - name: ansible-doc
-      command: ansible-doc dellemc.openmanage.omevv.omevv_firmware
+      command: ansible-doc dellemc.openmanage.omevv_firmware
       register: ansible_doc_hash
 
     - name: Get ansible-doc output
