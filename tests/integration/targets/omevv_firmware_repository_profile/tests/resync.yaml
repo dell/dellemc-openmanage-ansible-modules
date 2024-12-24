@@ -1,0 +1,85 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OMEVV host, OMEVV username and OMEVV password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: hostname,
+     vcenter_username and vcenter_password.'
+  when: 'hostname is not defined or vcenter_username is not defined or
+         vcenter_password is not defined'
+
+- block:
+    - name: Including helper file for creating firmware repo profile
+      ansible.builtin.include_tasks: ../__helper_create_repo_in_ome.yml
+
+    - name: Resync firmware repository profiles - (Check mode -
+        Changes expected)
+      dellemc.openmanage.omevv_firmware_repository_profile: &resync_profiles
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        resync: true
+      register: resync_cm_diff
+      check_mode: true
+      diff: true
+
+    - name: Verify task status - Resync firmware repository profiles -
+        (Check mode - Changes expected)
+      ansible.builtin.assert:
+        that:
+          - resync_cm_diff.changed
+          - resync_cm_diff.msg == "Changes found to be applied."
+          - resync_cm_diff.diff.before | length == 0
+          - resync_cm_diff.diff.after | length > 0
+
+    - name: Resync firmware repository profiles (Normal and Diff Mode)
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        <<: *resync_profiles
+      register: resync_result
+      diff: true
+
+    - name: Verify task status - Resync firmware repository profiles
+        (Normal and Diff Mode)
+      ansible.builtin.assert:
+        that:
+          - resync_result.changed
+          - resync_result.msg == "Successfully resynced the OMEVV firmware
+            repository profile."
+          - resync_result.diff.before | length == 0
+          - resync_result.diff.after | length > 0
+
+    - name: Resync firmware repository profiles (Idempotence and diff)
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        <<: *resync_profiles
+      register: idempotence_result_resync
+      diff: true
+      ignore_errors: true
+
+    - name: Verify task status - Resync firmware repository profiles
+        (Idempotence and diff)
+      ansible.builtin.assert:
+        that:
+          - not idempotence_result_resync.changed
+          - idempotence_result_resync.msg == "No changes found to be applied."
+          - idempotence_result_resync.diff.before | length ==
+            idempotence_result_resync.diff.after | length
+
+  always:
+    - name: cleanup
+      ansible.builtin.include_tasks: ../__helper_delete_repo.yml
+
+  module_defaults:
+    dellemc.openmanage.omevv_firmware_repository_profile:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname | ansible.utils.ipwrap }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      vcenter_username: "{{ vcenter_username }}"
+      vcenter_password: "{{ vcenter_password }}"
+      vcenter_uuid: "{{ uuid }}"

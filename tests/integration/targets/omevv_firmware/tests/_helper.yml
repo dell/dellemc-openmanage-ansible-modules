@@ -1,0 +1,107 @@
+---
+- name: Get group details
+  ansible.builtin.uri:
+    url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
+      }}/omevv/GatewayService/v1/Consoles/{{ uuid }}/Groups
+    user: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    validate_certs: false
+    force_basic_auth: true
+    status_code: 200
+    headers:
+      x_omivv-api-vcenter-identifier: "{{ uuid }}"
+  register: group_details
+
+- name: Find the CLUSTER group
+  ansible.builtin.set_fact:
+    cluster_name: "{{ item.consoleEntityName }}"
+    group_id: "{{ item.groupId }}"
+  loop: "{{ group_details.json }}"
+  when: item.groupType == "CLUSTER"
+  register: cluster_result
+  until: cluster_result is defined
+  retries: 1
+  delay: 0
+
+- name: Find hosts details
+  ansible.builtin.uri:
+    url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
+      }}/omevv/GatewayService/v1/Consoles/{{ uuid }}/ManagedHosts
+    user: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    validate_certs: false
+    force_basic_auth: true
+    status_code: 200
+    headers:
+      x_omivv-api-vcenter-identifier: "{{ uuid }}"
+  register: host_details
+
+- name: Check if there is managed hosts
+  ansible.builtin.fail:
+    msg: "No managed hosts found in the cluster"
+  when: host_details.json == []
+
+- name: Fetch all the hosts and servicetags
+  ansible.builtin.set_fact:
+    host_ip_list: "{{ host_ip_list | default([]) + [item.hostName] }}"
+    servicetag_list: "{{ servicetag_list | default([]) + [item.serviceTag] }}"
+    idrac_ip_list: "{{ idrac_ip_list | default([]) + [item.idracIP] }}"
+    host_id_list: "{{ host_id_list | default([]) + [item.id] }}"
+  when: item.omevvpGroupId|string == group_id
+  loop: "{{ host_details.json }}"
+
+- name: Upgrade firmware local executable file
+  dellemc.openmanage.redfish_firmware:
+    baseuri: "{{ item }}"
+    username: "{{ omevv_idrac_username }}"
+    password: "{{ omevv_idrac_password }}"
+    validate_certs: false
+    timeout: 1200
+    image_uri: "{{ omevv_firmware_idrac_upgrade_http_path }}"
+    transfer_protocol: HTTP
+  loop: "{{ idrac_ip_list }}"
+  when:
+    - omevv_firmware_idrac_upgrade_http_path is defined and
+      omevv_firmware_idrac_upgrade_http_path != ''
+    - upgrade is defined and upgrade is true
+
+- name: Downgrade firmware local executable file
+  dellemc.openmanage.redfish_firmware:
+    baseuri: "{{ item }}"
+    username: "{{ omevv_idrac_username }}"
+    password: "{{ omevv_idrac_password }}"
+    validate_certs: false
+    timeout: 1200
+    image_uri: "{{ omevv_firmware_idrac_downgrade_http_path }}"
+    transfer_protocol: HTTP
+  loop: "{{ idrac_ip_list }}"
+  when:
+    - omevv_firmware_idrac_downgrade_http_path is defined and
+      omevv_firmware_idrac_downgrade_http_path != ''
+    - downgrade is defined and downgrade is true
+
+- name: Gather_fact
+  ansible.builtin.gather_facts:
+  register: facts
+
+- name: Running Inventory with compliance
+  ansible.builtin.uri:
+    url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
+      }}/omevv/GatewayService/v1/Consoles/{{ uuid
+      }}/Hosts/RunComplianceWithInventory
+    user: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    validate_certs: false
+    force_basic_auth: true
+    method: "POST"
+    body: "{{ payload }}"
+    body_format: json
+    status_code: 202
+    headers:
+      x_omivv-api-vcenter-identifier: "{{ uuid }}"
+  register: inventoryId
+  vars:
+    payload:
+      jobName: "RunInventory-{{ facts.ansible_facts.ansible_date_time.epoch }}"
+      hostIds: "{{ host_id_list }}"
+      jobDescription: "Run inventory"

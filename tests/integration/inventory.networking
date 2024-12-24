@@ -13,6 +13,10 @@ OMEVV hostname=xx.xx.xx.xx vcenter_username=username vcenter_password=password p
 vcenter_hostname=xx.xx.xx.xx
 ome_username=username
 ome_password=password
+omevv_idrac_username=username
+omevv_idrac_password=password
+omevv_firmware_idrac_downgrade_http_path=""
+omevv_firmware_idrac_upgrade_http_path=""
 
 [ome:vars]
 # Credentials

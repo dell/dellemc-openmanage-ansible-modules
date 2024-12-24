@@ -1,0 +1,63 @@
+---
+- name: Adding 2 min from current time
+  ansible.builtin.set_fact:
+    baseline_time: "{{ time_format | strftime((epoch | int ) + 120)}}"
+  vars:
+    time_format: "%H:%M"
+    epoch: "{{ facts.ansible_facts.ansible_date_time.epoch }}"
+
+- name: Pre-requisite - Create a baseline profile
+  dellemc.openmanage.omevv_baseline_profile:
+    hostname: "{{ hostname }}"
+    vcenter_uuid: "{{ uuid }}"
+    vcenter_username: "{{ vcenter_username }}"
+    vcenter_password: "{{ vcenter_password }}"
+    name: "AnsibleTest"
+    repository_profile: "Dell Default Catalog"
+    validate_certs: false
+    description: "Firmware repository profile created by Module"
+    cluster:
+      - "{{ cluster_name }}"
+    days:
+      - "all"
+    time: "{{ baseline_time }}"
+  register: create_result
+
+- name: Fetch the firmware drift
+  dellemc.openmanage.omevv_firmware_compliance_info:
+    hostname: "{{ hostname }}"
+    vcenter_username: "{{ vcenter_username }}"
+    vcenter_password: "{{ vcenter_password }}"
+    vcenter_uuid: "{{ uuid }}"
+    validate_certs: false
+  register: drift_info
+
+- name: Extracting upgrade firmware drift
+  ansible.builtin.command:
+    cmd: >
+      python find_component.py '{{ cluster_name }}' upgrade '{{
+      drift_info.firmware_compliance_info | to_json }}'
+    chdir: "{{ playbook_dir }}/targets/omevv_firmware/tests"
+  register: upgrade_dict
+  no_log: true
+  delegate_to: localhost
+
+- name: Extracting downgrade firmware drift
+  ansible.builtin.command:
+    cmd: >
+      python find_component.py '{{ cluster_name }}' downgrade '{{
+      drift_info.firmware_compliance_info | to_json }}'
+    chdir: "{{ playbook_dir }}/targets/omevv_firmware/tests"
+  register: downgrade_dict
+  no_log: true
+  delegate_to: localhost
+
+- name: Parsing the string from python script
+  ansible.builtin.set_fact:
+    up_firm_parse: "{{ upgrade_dict.stdout | from_json }}"
+    down_firm_parse: "{{ downgrade_dict.stdout | from_json }}"
+
+- name: Setting up variable to use in testcase
+  ansible.builtin.set_fact:
+    up_firm_list: "{{ up_firm_parse.common }}"
+    down_firm_list: "{{ down_firm_parse.common }}"

@@ -20,7 +20,7 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils._text import to_text
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_support_assist
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
-from mock import MagicMock
+from unittest.mock import MagicMock
 from ansible_collections.dellemc.openmanage.plugins.modules.idrac_support_assist import main
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.idrac_support_assist.'

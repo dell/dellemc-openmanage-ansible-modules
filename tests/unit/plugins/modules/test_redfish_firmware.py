@@ -18,12 +18,12 @@ import pytest
 import json
 from ansible_collections.dellemc.openmanage.plugins.modules import redfish_firmware
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
-from mock import MagicMock
+from unittest.mock import MagicMock
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from io import StringIO
 from ansible.module_utils._text import to_text
-from mock import patch, mock_open
+from unittest.mock import patch, mock_open
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 JOB_URI = "JobService/Jobs/{job_id}"
