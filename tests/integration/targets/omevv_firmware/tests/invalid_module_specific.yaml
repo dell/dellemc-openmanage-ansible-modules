@@ -6,10 +6,10 @@
 ---
 - name: Test that we have an OMEVV host, OMEVV username and OMEVV password
   ansible.builtin.fail:
-    msg: "Please define the following variables: hostname,
-      vcenter_username and vcenter_password."
-  when: "hostname is not defined or vcenter_username is not defined or
-    vcenter_password is not defined"
+    msg: 'Please define the following variables: hostname,
+     vcenter_username and vcenter_password.'
+  when: 'hostname is not defined or vcenter_username is not defined or
+         vcenter_password is not defined'
 
 - block:
     - name: Fetch pre-requisite details
@@ -35,7 +35,7 @@
           - invalid_firmware_update.failed
           - not invalid_firmware_update.changed
           - 'invalid_firmware_update.msg == "parameters are
-            mutually exclusive: cluster|host|servicetag."'
+             mutually exclusive: cluster|host|servicetag."'
 
     - name: Negative - Update the firmware by passing invalid cluster.
       dellemc.openmanage.omevv_firmware:
@@ -59,7 +59,8 @@
 
     - name: Create the expected error message for partial cluster_name
       set_fact:
-        expected_msg_for_partial_cluster_name: "Provided cluster name '{{ cluster_name[:5] }}' is not valid."
+        expected_msg_for_partial_cluster_name:
+          "Provided cluster name '{{ cluster_name[:5] }}' is not valid."
 
     - name: Negative - Update the firmware by passing passing partial cluster_name.
       dellemc.openmanage.omevv_firmware:
@@ -107,7 +108,8 @@
 
     - name: Create the expected error message for partial host
       set_fact:
-        expected_msg_for_partial_host: "Host '{{ partial_host }}' not found under managed hosts."
+        expected_msg_for_partial_host:
+          "Host '{{ partial_host }}' not found under managed hosts."
 
     - name: Negative - Update the firmware by passing partial host.
       dellemc.openmanage.omevv_firmware:
@@ -155,7 +157,8 @@
 
     - name: Create the expected error message for partial host
       set_fact:
-        expected_msg_for_partial_servicetag: "Host '{{ partial_servicetag }}' not found under managed hosts."
+        expected_msg_for_partial_servicetag:
+          "Host '{{ partial_servicetag }}' not found under managed hosts."
 
     - name: Negative - Update the firmware by passing partial servicetag.
       dellemc.openmanage.omevv_firmware:
@@ -175,7 +178,7 @@
         that:
           - invalid_cluster_result.skipped
           - not invalid_cluster_result.changed
-          - "invalid_cluster_result.msg == expected_msg_for_partial_servicetag"
+          - 'invalid_cluster_result.msg == expected_msg_for_partial_servicetag'
 
     - name: Negative - Update the firmware by passing invalid date time.
       dellemc.openmanage.omevv_firmware:
@@ -197,7 +200,7 @@
           - invalid_cluster_result.failed
           - not invalid_cluster_result.changed
           - 'invalid_cluster_result.msg == "Invalid date time. Enter a
-            valid date time in the format of YYYY-MM-DDTHH:MM:SSZ."'
+              valid date time in the format of YYYY-MM-DDTHH:MM:SSZ."'
 
     - name: Negative - invalid job_wait_timeout type
       dellemc.openmanage.omevv_firmware:
@@ -215,8 +218,8 @@
           - invalid_job_wait_timeout_type.failed
           - not invalid_job_wait_timeout_type.changed
           - '"argument ''job_wait_timeout'' is of
-            type <class ''str''> and we were unable to convert to
-            int:" in invalid_job_wait_timeout_type.msg'
+             type <class ''str''> and we were unable to convert to
+             int:" in invalid_job_wait_timeout_type.msg'
 
     - name: Negative - invalid job_wait_timeout value
       dellemc.openmanage.omevv_firmware:
@@ -234,7 +237,7 @@
           - invalid_job_wait_timeout_value.failed
           - not invalid_job_wait_timeout_value.changed
           - 'invalid_job_wait_timeout_value.msg == "The value for the ''job_wait_timeout''
-            parameter cannot be negative or zero."'
+             parameter cannot be negative or zero."'
 
   module_defaults:
     dellemc.openmanage.omevv_firmware:

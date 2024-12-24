@@ -6,10 +6,10 @@
 ---
 - name: Test that we have an OMEVV host, OMEVV username and OMEVV password
   ansible.builtin.fail:
-    msg: "Please define the following variables: hostname,
-      vcenter_username and vcenter_password."
-  when: "hostname is not defined or vcenter_username is not defined or
-    vcenter_password is not defined"
+    msg: 'Please define the following variables: hostname,
+     vcenter_username and vcenter_password.'
+  when: 'hostname is not defined or vcenter_username is not defined or
+         vcenter_password is not defined'
 
 - block:
     - name: Fetch pre-requisite details
@@ -33,14 +33,14 @@
           - invalid_unsupported_argument.failed
           - not invalid_unsupported_argument.changed
           - 'invalid_unsupported_argument.msg == "Unsupported parameters for
-            (dellemc.openmanage.omevv_firmware) module: unsupported_argument.
-            Supported parameters include: ca_path, check_vSAN_health, date_time,
-            delete_job_queue, drs_check, enter_maintenance_mode_options,
-            enter_maintenance_mode_timeout, evacuate_VMs, exit_maintenance_mode,
-            hostname, job_description, job_name, job_wait, job_wait_timeout,
-            maintenance_mode_count_check, port, reboot_options, reset_idrac,
-            run_now, targets, timeout, validate_certs, vcenter_password,
-            vcenter_username, vcenter_uuid."'
+              (dellemc.openmanage.omevv_firmware) module: unsupported_argument.
+              Supported parameters include: ca_path, check_vSAN_health, date_time,
+              delete_job_queue, drs_check, enter_maintenance_mode_options,
+              enter_maintenance_mode_timeout, evacuate_VMs, exit_maintenance_mode,
+              hostname, job_description, job_name, job_wait, job_wait_timeout,
+              maintenance_mode_count_check, port, reboot_options, reset_idrac,
+              run_now, targets, timeout, validate_certs, vcenter_password,
+              vcenter_username, vcenter_uuid."'
 
     - name: Negative - unreachable host
       dellemc.openmanage.omevv_firmware:
@@ -58,10 +58,10 @@
           - invalid_unreachable.unreachable
           - not invalid_unreachable.changed
           - 'invalid_unreachable.msg == "<urlopen error Unable to resolve
-            hostname or IP 999.999.999.999.>" or invalid_unreachable.msg ==
-            "<urlopen error [Errno -2] Name or service not known>" or
-            invalid_unreachable.msg == "The URL with IP 999.999.999.999
-            and port 443 cannot be reached."'
+             hostname or IP 999.999.999.999.>" or invalid_unreachable.msg ==
+             "<urlopen error [Errno -2] Name or service not known>" or
+             invalid_unreachable.msg == "The URL with IP 999.999.999.999
+             and port 443 cannot be reached."'
 
     - name: Negative - invalid port
       dellemc.openmanage.omevv_firmware:
@@ -97,8 +97,8 @@
           - invalid_username.failed
           - not invalid_username.changed
           - 'invalid_username.error_info.message == "User is not authorized
-            for the request. Please check if credentials are proper
-            and account is not in locked state."'
+             for the request. Please check if credentials are proper
+             and account is not in locked state."'
           - 'invalid_username.error_info.errorCode == "10001"'
 
     - name: Negative - invalid password
@@ -117,8 +117,8 @@
           - invalid_password.failed
           - not invalid_password.changed
           - 'invalid_password.error_info.message == "User is not authorized
-            for the request. Please check if credentials are proper
-            and account is not in locked state."'
+             for the request. Please check if credentials are proper
+             and account is not in locked state."'
           - 'invalid_password.error_info.errorCode == "10001"'
 
     - name: Negative - invalid validate_certs
@@ -176,8 +176,8 @@
           - invalid_timeout_type.failed
           - not invalid_timeout_type.changed
           - '"argument ''timeout'' is of
-            type <class ''str''> and we were unable to convert to
-            int:" in invalid_timeout_type.msg'
+             type <class ''str''> and we were unable to convert to
+             int:" in invalid_timeout_type.msg'
 
     - name: Negative - invalid timeout value
       dellemc.openmanage.omevv_firmware:
