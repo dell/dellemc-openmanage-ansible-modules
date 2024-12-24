@@ -429,8 +429,8 @@ class FirmwareUpdate():
         ]
 
         for param_key, firmware_key in optional_fields:
-            if parameters.get(param_key) is not None:
-                firmware[firmware_key] = parameters.get(param_key)
+            # if parameters.get(param_key) is not None:
+            firmware[firmware_key] = parameters.get(param_key)
 
     def set_schedule(self, payload, parameters):
         """
@@ -645,7 +645,9 @@ class UpdateCluster(FirmwareUpdate):
                                         "after": after_no_change_dict}, changed=False)
 
         else:
-            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
+            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG,
+                                  diff={"before": before_no_change_dict,
+                                        "after": after_no_change_dict}, changed=False)
 
     def process_cluster_target(self, target):
         """
@@ -970,8 +972,21 @@ class UpdateCluster(FirmwareUpdate):
         Returns:
             dict: The response from the firmware update job.
         """
-        resp, error_msg = self.omevv_update_obj.update_cluster(payload, vcenter_uuid,
-                                                               cluster_group_id)
+        resp, error_msg = self.omevv_update_obj.update_cluster(
+            job_name=payload["jobName"],
+            job_description=payload["jobDescription"],
+            run_now=payload["schedule"]["runNow"],
+            enter_maintenance_mode_timeout=payload["firmware"]["enterMaintenanceModetimeout"],
+            drs_check=payload["firmware"]['drsCheck'],
+            evacuate_vms=payload["firmware"]['evacuateVMs'],
+            exit_maintenance_mode=payload["firmware"]['exitMaintenanceMode'],
+            reboot_options=payload["firmware"]['rebootOptions'],
+            enter_maintenance_mode_options=payload["firmware"]['enterMaintenanceModeOption'],
+            maintenance_mode_count_check=payload["firmware"]['maintenanceModeCountCheck'],
+            check_vsan_health=payload["firmware"]['checkvSANHealth'],
+            date_time=payload["schedule"]["dateTime"], reset_idrac=payload["firmware"]['resetIDrac'],
+            delete_job_queue=payload["firmware"]['deleteJobsQueue'], targets=payload["firmware"]['targets'],
+            vcenter_uuid=vcenter_uuid, cluster_group_id=cluster_group_id)
         if resp.success:
             job_resp, err_msg = self.omevv_update_obj.firmware_update_job_track(vcenter_uuid,
                                                                                 resp.json_data)
