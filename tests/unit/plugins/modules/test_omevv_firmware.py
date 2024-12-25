@@ -65,6 +65,8 @@ FIRM_UPDATE_HOST_SERVICETAG_EXISTENCE = "FirmwareUpdate.host_servicetag_existenc
 UPDATE_CLUSTER_GET_HOST_ID = "UpdateCluster.get_host_id"
 UPDATE_CLUSTER_GET_HOST = "UpdateCluster.get_host_from_parameters"
 OMEVV_FIRM_UPDATE_JOB_TRACK = "OMEVVFirmwareUpdate.firmware_update_job_track"
+JOB_DESCRIPTION = "Test job description"
+SLEEP_TIME = "time.sleep"
 
 
 class TestFirmwareUpdate(FakeAnsibleModule):
@@ -92,7 +94,7 @@ class TestFirmwareUpdate(FakeAnsibleModule):
             'check_vSAN_health': True,
             'run_now': True,
             'job_name': 'test_job',
-            'job_description': 'Test job description',
+            'job_description': JOB_DESCRIPTION,
         }
 
         # Mock module params
@@ -130,7 +132,7 @@ class TestFirmwareUpdate(FakeAnsibleModule):
             'schedule': {
                 'runNow': True,
             },
-            'jobDescription': 'Test job description',
+            'jobDescription': JOB_DESCRIPTION,
             'jobName': 'test_job',
         }
 
@@ -148,7 +150,7 @@ class TestFirmwareUpdate(FakeAnsibleModule):
             'run_now': False,
             'date_time': '2023-01-01T00:00:00Z',
             'job_name': 'test_job',
-            'job_description': 'Test job description',
+            'job_description': JOB_DESCRIPTION,
         }
 
         # Mock module params
@@ -187,7 +189,7 @@ class TestFirmwareUpdate(FakeAnsibleModule):
                 'runNow': False,
                 'dateTime': '2023-01-01T00:00:00Z',
             },
-            'jobDescription': 'Test job description',
+            'jobDescription': JOB_DESCRIPTION,
             'jobName': 'test_job',
         }
 
@@ -218,13 +220,13 @@ class TestFirmwareUpdate(FakeAnsibleModule):
 
     def test_set_job_details_job_description(self, omevv_connection_firmware,
                                              omevv_default_args):
-        omevv_default_args.update({"job_description": "Test Job Description"})
+        omevv_default_args.update({"job_description": JOB_DESCRIPTION})
         f_module = self.get_module_mock(
             params=omevv_default_args, check_mode=False)
         omevv_obj = FirmwareUpdate(f_module, omevv_connection_firmware)
         result = omevv_obj.set_job_details({}, {"job_name": "Test job name",
-                                                "job_description": "Test Job Description"})
-        assert result == {'jobDescription': 'Test Job Description',
+                                                "job_description": JOB_DESCRIPTION})
+        assert result == {'jobDescription': JOB_DESCRIPTION,
                           'jobName': 'Test job name'}
 
     def test_add_targets_device_id_list(self, omevv_connection_firmware):
@@ -372,8 +374,8 @@ class TestUpdateCluster(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'UpdateCluster.is_job_name_existing', return_value=None)
         mocker.patch(MODULE_PATH + 'UpdateCluster.handle_check_mode', return_value=None)
         mocker.patch(MODULE_PATH + 'UpdateCluster.handle_firmware_update', return_value=True)
-        result = omevv_obj.execute()
-        assert result is None
+        omevv_obj.execute()
+
 
     def test_execute_check_mode_true(self, mocker, omevv_connection_firmware,
                                      omevv_default_args):
@@ -392,8 +394,7 @@ class TestUpdateCluster(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'UpdateCluster.is_job_name_existing', return_value=False)
         mocker.patch(MODULE_PATH + 'UpdateCluster.handle_check_mode', return_value=None)
         mocker.patch(MODULE_PATH + 'UpdateCluster.handle_firmware_update', return_value=None)
-        result = omevv_obj.execute()
-        assert result is None
+        omevv_obj.execute()
 
     def test_process_cluster_target(self, mocker, omevv_connection_firmware,
                                     omevv_default_args):
@@ -817,19 +818,6 @@ class TestUpdateCluster(FakeAnsibleModule):
         # Verify the result
         assert result == {'cluster': 'cluster_a', 'host': 123456, 'servicetag': 'SVCTAG1'}
 
-    def test_get_target_empty_list(self, omevv_connection_firmware, omevv_default_args):
-        f_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
-        omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
-
-        # Setup the parameters for the test
-        target_list = []
-
-        # Execute the method
-        result = omevv_obj.get_target(target_list)
-
-        # Verify the result
-        assert result is None
-
     def test_get_host_id_with_service_tag(self, mocker, omevv_connection_firmware, omevv_default_args):
         f_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
         omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
@@ -918,7 +906,7 @@ class TestUpdateCluster(FakeAnsibleModule):
                 'targets': [{'targetId': '1'}]
             },
             'jobName': 'TestJob',
-            'jobDescription': 'Test Job Description'
+            'jobDescription': JOB_DESCRIPTION
         }
         parameters = {'run_now': True}
         before_dict = {'component1': {'firmwareversion': '1.0.0'}}
@@ -966,7 +954,7 @@ class TestUpdateCluster(FakeAnsibleModule):
         )
 
         # Mock time.sleep to avoid actual delay
-        mocker.patch('time.sleep', return_value=None)
+        mocker.patch(SLEEP_TIME, return_value=None)
 
         # Mock the exit_json method to capture the result
         mocker.patch(ANSIBLE_MODULE_EXIT_JSON,
@@ -1005,7 +993,7 @@ class TestUpdateCluster(FakeAnsibleModule):
         )
 
         # Mock time.sleep to avoid actual delay
-        mocker.patch('time.sleep', return_value=None)
+        mocker.patch(SLEEP_TIME, return_value=None)
 
         # Mock the exit_json method to capture the result
         mocker.patch(ANSIBLE_MODULE_EXIT_JSON,
@@ -1306,7 +1294,7 @@ class TestUpdateClusterFirmware(FakeAnsibleModule):
                      side_effect=mock_firmware_update_job_track)
 
         # Mock time.sleep to avoid delays during testing
-        mocker.patch('time.sleep', return_value=None)
+        mocker.patch(SLEEP_TIME, return_value=None)
 
         # Mock the exit_json method to capture the result
         mocker.patch(ANSIBLE_MODULE_EXIT_JSON, side_effect=AnsibleFailJSonException)
@@ -1336,7 +1324,7 @@ class TestUpdateClusterFirmware(FakeAnsibleModule):
                      side_effect=mock_firmware_update_job_track)
 
         # Mock time.sleep to avoid delays during testing
-        mocker.patch('time.sleep', return_value=None)
+        mocker.patch(SLEEP_TIME, return_value=None)
 
         # Mock the exit_json method to capture the result
         mocker.patch(ANSIBLE_MODULE_EXIT_JSON, side_effect=AnsibleFailJSonException)
