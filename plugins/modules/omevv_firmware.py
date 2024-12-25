@@ -180,7 +180,7 @@ EXAMPLES = r"""
 ---
 - name: Immediately update the firmware of a single component for a specific host
   dellemc.openmanage.omevv.omevv_firmware:
-    hostname: "192.168.0.1"
+    hostname: "XXX.XXX.XXX.XX"
     vcenter_uuid: "xxxxx"
     vcenter_username: "username"
     vcenter_password: "password"
@@ -204,7 +204,7 @@ EXAMPLES = r"""
 
 - name: Update the firmware of multiple components at scheduled time for a specific host
   dellemc.openmanage.omevv.omevv_firmware:
-    hostname: "192.168.0.1"
+    hostname: "XXX.XXX.XXX.XY"
     vcenter_uuid: "xxxxx"
     vcenter_username: "username"
     vcenter_password: "password"
@@ -222,7 +222,7 @@ EXAMPLES = r"""
     reset_idrac: false
     delete_job_queue: false
     targets:
-      - host: 192.168.0.2
+      - host: "XXX.XXX.XXX.XZ"
         firmware_components:
           - "DCIM:INSTALLED#iDRAC.Embedded.1-1#IDRACinfo"
           - "DCIM:INSTALLED#301_C_BOSS.SL.14-1"
@@ -230,7 +230,7 @@ EXAMPLES = r"""
 
 - name: Update the firmware of multiple components at scheduled time for a cluster
   dellemc.openmanage.omevv.omevv_firmware:
-    hostname: "192.168.0.1"
+    hostname: "XXX.XXX.XXX.XX"
     vcenter_uuid: "xxxxx"
     vcenter_username: "username"
     vcenter_password: "password"
@@ -256,8 +256,8 @@ EXAMPLES = r"""
 
 - name: Retrieve firmware compliance report of all hosts in the specific cluster
   dellemc.openmanage.omevv_firmware_compliance_info:
-    hostname: "192.168.0.1"
-    vcenter_uuid: "{{ vcenter_uuid }}"
+    hostname: "XXX.XXX.XXX.XX"
+    vcenter_uuid: "xxxxx"
     vcenter_username: "username"
     vcenter_password: "password"
     ca_path: "path/to/ca_file"
@@ -265,13 +265,46 @@ EXAMPLES = r"""
       - cluster_name: cluster_a
   register: compliance_data
 
-- name: Extract source name of all components
-  set_fact:
-    source_names: "{{ compliance_data.hostComplianceReports[0].componentCompliances | map(attribute='sourceName') | list }}"
+- name: Initialize compliance status results
+  ansible.builtin.set_fact:
+    source_names: []
+    service_tag: ""
 
-- name: Extract source name of a specific component
-  set_fact:
-    source_name: "{{ compliance_data.hostComplianceReports[0].componentCompliances[0].sourceName }}"
+- name: Flatten host compliance reports
+  ansible.builtin.set_fact:
+    host_reports: "{{
+        compliance_data.firmware_compliance_info |
+        map(attribute='hostComplianceReports') |
+        flatten(levels=1) }}"
+
+- name: Flatten and filter concompliant components
+  ansible.builtin.set_fact:
+    non_compliant_components: >-
+        {{
+          host_reports
+          | map(attribute='componentCompliances')
+          | flatten(levels=1)
+          | selectattr('driftStatus', 'equalto', 'NonCompliant')
+        }}
+
+- name: Gather components source name and set service tag
+  ansible.builtin.set_fact:
+    source_names: "{{ source_names + [item.sourceName] }}"
+    service_tag: "{{ host_report.serviceTag }}"
+  loop: "{{ non_compliant_components }}"
+  vars:
+    host_report: >-
+        {{
+          host_reports
+          | selectattr('componentCompliances', 'contains', item)
+          | first
+        }}
+
+- name: Combine the final non compliance report
+  ansible.builtin.set_fact:
+    noncompliance_report:
+      sourceNames: "{{ source_names }}"
+      serviceTag: "{{ service_tag }}"
 
 - name: Update firmware at the scheduled time for a specific host
   dellemc.openmanage.omevv.omevv_firmware:
@@ -293,9 +326,8 @@ EXAMPLES = r"""
     reset_idrac: true
     delete_job_queue: true
     targets:
-      - servicetag: SVCTAG1
-        firmware_components:
-          - "{{ source_name }}"
+      - servicetag: "{{ noncompliance_report.serviceTag }}"
+        firmware_components: "{{ noncompliance_report.sourceNames }}"
 """
 
 RETURN = r'''
@@ -638,11 +670,6 @@ class UpdateCluster(FirmwareUpdate):
         if firmware_update_needed:
             self.handle_firmware_update(vcenter_uuid, cluster_group_id, payload, parameters,
                                         before_dict, after_dict)
-
-        elif self.module._diff:
-            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG,
-                                  diff={"before": before_no_change_dict,
-                                        "after": after_no_change_dict}, changed=False)
 
         else:
             self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG,
