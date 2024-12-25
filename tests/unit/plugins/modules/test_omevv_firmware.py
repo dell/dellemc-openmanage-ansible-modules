@@ -61,6 +61,9 @@ ANSIBLE_MODULE_EXIT_JSON = "ansible.module_utils.basic.AnsibleModule.exit_json"
 OMEVV_INFO_FIRMWARE_DRIFT_INFO = "OMEVVInfo.get_firmware_drift_info_for_single_host"
 UPDATE_CLUSTER_GET_TARGET = "UpdateCluster.get_target"
 OMEVV_INFO_CLUSTER_GROUP_ID = "OMEVVInfo.get_group_id_of_cluster"
+FIRM_UPDATE_HOST_SERVICETAG_EXISTENCE = "FirmwareUpdate.host_servicetag_existence"
+UPDATE_CLUSTER_GET_HOST_ID = "UpdateCluster.get_host_id"
+UPDATE_CLUSTER_GET_HOST = "UpdateCluster.get_host_from_parameters"
 
 
 class TestFirmwareUpdate(FakeAnsibleModule):
@@ -77,19 +80,6 @@ class TestFirmwareUpdate(FakeAnsibleModule):
                                        return_value=omevv_firmware_mock)
         omevv_conn_mock.return_value.__enter__.return_value = omevv_firmware_mock
         return omevv_conn_mock
-
-    # def test_get_payload_details(self, mocker, omevv_connection_firmware):
-    #     # Scenario 1: payload details with description
-    #     host_id = 123456
-    #     obj = MagicMock()
-    #     omevv_obj = self.module.FirmwareUpdate(
-    #         omevv_connection_firmware, obj)
-    #     mocker.patch(MODULE_PATH + 'FirmwareUpdate.set_firmware', return_value={})
-    #     mocker.patch(MODULE_PATH + 'FirmwareUpdate.set_schedule', return_value={})
-    #     mocker.patch(MODULE_PATH + 'FirmwareUpdate.set_job_details', return_value={})
-    #     mocker.patch(MODULE_PATH + 'FirmwareUpdate.add_targets', return_value={})
-    #     result = omevv_obj.get_payload_details(host_id)
-    #     assert result is True
 
     def test_set_firmware(self, omevv_connection_firmware):
         value = {'check_vSAN_health': True}
@@ -207,7 +197,7 @@ class TestFirmwareUpdate(FakeAnsibleModule):
         f_module = self.get_module_mock(
             params=omevv_default_args, check_mode=False)
         omevv_obj = FirmwareUpdate(f_module, omevv_connection_firmware)
-        mocker.patch(MODULE_PATH + 'FirmwareUpdate.host_servicetag_existence', return_value=None)
+        mocker.patch(MODULE_PATH + FIRM_UPDATE_HOST_SERVICETAG_EXISTENCE, return_value=None)
         mocker.patch(UTILS_PATH + 'validate_job_wait', return_value=True)
         try:
             omevv_obj.validate_params()
@@ -221,7 +211,7 @@ class TestFirmwareUpdate(FakeAnsibleModule):
         f_module = self.get_module_mock(
             params=omevv_default_args, check_mode=False)
         omevv_obj = FirmwareUpdate(f_module, omevv_connection_firmware)
-        mocker.patch(MODULE_PATH + 'FirmwareUpdate.host_servicetag_existence', return_value=None)
+        mocker.patch(MODULE_PATH + FIRM_UPDATE_HOST_SERVICETAG_EXISTENCE, return_value=None)
         mocker.patch(UTILS_PATH + 'validate_job_wait', return_value=True)
         result = omevv_obj.validate_params()
         assert result is True
@@ -232,7 +222,7 @@ class TestFirmwareUpdate(FakeAnsibleModule):
         f_module = self.get_module_mock(
             params=omevv_default_args, check_mode=False)
         omevv_obj = FirmwareUpdate(f_module, omevv_connection_firmware)
-        mocker.patch(MODULE_PATH + 'FirmwareUpdate.host_servicetag_existence', return_value=None)
+        mocker.patch(MODULE_PATH + FIRM_UPDATE_HOST_SERVICETAG_EXISTENCE, return_value=None)
         mocker.patch(UTILS_PATH + 'validate_job_wait', return_value=False)
         result = omevv_obj.validate_params()
         assert result is True
@@ -280,7 +270,7 @@ class TestUpdateCluster(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'FirmwareUpdate.validate_params', return_value=None)
         target = {"cluster": ""}
         mocker.patch(MODULE_PATH + UPDATE_CLUSTER_GET_TARGET, return_value=target)
-        value = (1034, {}, [1001])
+        value = (None, 1034, {}, [1001])
         mocker.patch(MODULE_PATH + 'UpdateCluster.process_non_cluster_target', return_value=value)
         mocker.patch(MODULE_PATH + 'UpdateCluster.is_firmware_update_needed',
                      return_value=(1, 2, 3, 4, 5))
@@ -297,7 +287,7 @@ class TestUpdateCluster(FakeAnsibleModule):
         f_module = self.get_module_mock(params=omevv_default_args, check_mode=True)
         omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
         target = [123456, 123457]
-        mocker.patch(MODULE_PATH + 'UpdateCluster.get_host_id', return_value=target)
+        mocker.patch(MODULE_PATH + UPDATE_CLUSTER_GET_HOST_ID, return_value=target)
         cluster_name_value = "cluster_a"
         mocker.patch(INFO_UTILS_PATH + OMEVV_INFO_CLUSTER_GROUP_ID,
                      return_value=cluster_name_value)
@@ -313,7 +303,7 @@ class TestUpdateCluster(FakeAnsibleModule):
         f_module = self.get_module_mock(params=omevv_default_args, check_mode=True)
         omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
         target = [None, 123457]
-        mocker.patch(MODULE_PATH + 'UpdateCluster.get_host_id', return_value=target)
+        mocker.patch(MODULE_PATH + UPDATE_CLUSTER_GET_HOST_ID, return_value=target)
         targets = {'cluster': 'cluster_a'}
         try:
             omevv_obj.process_cluster_target(targets)
@@ -331,7 +321,7 @@ class TestUpdateCluster(FakeAnsibleModule):
         target = {"cluster": "cluster1"}
         mocker.patch(MODULE_PATH + UPDATE_CLUSTER_GET_TARGET, return_value=target)
         target = [123456, 123457]
-        mocker.patch(MODULE_PATH + 'UpdateCluster.get_host_from_parameters', return_value=target)
+        mocker.patch(MODULE_PATH + UPDATE_CLUSTER_GET_HOST, return_value=target)
         cluster_name_value = "cluster_a"
         mocker.patch(INFO_UTILS_PATH + 'OMEVVInfo.get_cluster_name', return_value=cluster_name_value)
         group_id_value = 1357
@@ -340,7 +330,7 @@ class TestUpdateCluster(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'FirmwareUpdate.get_payload_details', return_value=payload)
         parameters = {'targets': [{'host': 123456, 'cluster': 'cluster_a'}]}
         result = omevv_obj.process_non_cluster_target(parameters)
-        assert result == (1357, {}, 123456)
+        assert result == ('cluster_a', 1357, {}, 123456)
 
     def test_process_non_cluster_target_not_valid_host(self, mocker,
                                                        omevv_connection_firmware,
@@ -353,7 +343,7 @@ class TestUpdateCluster(FakeAnsibleModule):
         target = {"cluster": "cluster1", "host": 123456}
         mocker.patch(MODULE_PATH + UPDATE_CLUSTER_GET_TARGET, return_value=target)
         target = [None, 123457]
-        mocker.patch(MODULE_PATH + 'UpdateCluster.get_host_from_parameters', return_value=target)
+        mocker.patch(MODULE_PATH + UPDATE_CLUSTER_GET_HOST, return_value=target)
         parameters = {'targets': [{'host': None, 'cluster': 'cluster_a'}]}
         try:
             omevv_obj.process_non_cluster_target(parameters)
@@ -371,7 +361,7 @@ class TestUpdateCluster(FakeAnsibleModule):
         target = {"cluster": "cluster1", "host": None, "servicetag": "invalid_servicetag"}
         mocker.patch(MODULE_PATH + UPDATE_CLUSTER_GET_TARGET, return_value=target)
         target = [None, 123457]
-        mocker.patch(MODULE_PATH + 'UpdateCluster.get_host_from_parameters', return_value=target)
+        mocker.patch(MODULE_PATH + UPDATE_CLUSTER_GET_HOST, return_value=target)
         parameters = {'targets': [{'host': None, 'cluster': 'cluster_a'}]}
         try:
             omevv_obj.process_non_cluster_target(parameters)
@@ -385,7 +375,7 @@ class TestUpdateCluster(FakeAnsibleModule):
             params=omevv_default_args, check_mode=True)
         target = {"cluster": "cluster1", "host": 123456}
         mocker.patch(MODULE_PATH + UPDATE_CLUSTER_GET_TARGET, return_value=target)
-        mocker.patch(MODULE_PATH + 'UpdateCluster.get_host_id', return_value=(3, 4))
+        mocker.patch(MODULE_PATH + UPDATE_CLUSTER_GET_HOST_ID, return_value=(3, 4))
         omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
         result = omevv_obj.get_host_from_parameters(1, {'targets': target})
         assert result == (None, None)
@@ -397,7 +387,7 @@ class TestUpdateCluster(FakeAnsibleModule):
             params=omevv_default_args, check_mode=True)
         target = {"cluster": "", "host": 123456}
         mocker.patch(MODULE_PATH + UPDATE_CLUSTER_GET_TARGET, return_value=target)
-        mocker.patch(MODULE_PATH + 'UpdateCluster.get_host_id', return_value=(3, 4))
+        mocker.patch(MODULE_PATH + UPDATE_CLUSTER_GET_HOST_ID, return_value=(3, 4))
         omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
         result = omevv_obj.get_host_from_parameters(1, {'targets': target})
         assert result == (3, 4)

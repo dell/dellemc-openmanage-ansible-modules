@@ -649,7 +649,7 @@ class UpdateCluster(FirmwareUpdate):
         host_service_tags = None
         new_host_id = None
         payload = None
-        param_dict = self.validate_params()
+        self.validate_params()
         vcenter_uuid = self.module.params.get('vcenter_uuid')
         parameters = self.module.params
         target = self.get_target(parameters['targets'])
