@@ -23,7 +23,7 @@ from ansible_collections.dellemc.openmanage.plugins.modules import \
     idrac_network_attributes
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import \
     FakeAnsibleModule
-from mock import MagicMock
+from unittest.mock import MagicMock
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 

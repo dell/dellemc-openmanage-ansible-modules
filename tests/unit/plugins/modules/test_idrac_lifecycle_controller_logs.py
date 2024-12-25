@@ -15,7 +15,7 @@ import pytest
 import json
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_lifecycle_controller_logs
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
-from mock import MagicMock
+from unittest.mock import MagicMock
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from io import StringIO

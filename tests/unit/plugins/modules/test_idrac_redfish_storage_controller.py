@@ -14,7 +14,7 @@ __metaclass__ = type
 
 import pytest
 import json
-from mock import MagicMock
+from unittest.mock import MagicMock
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_redfish_storage_controller
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError

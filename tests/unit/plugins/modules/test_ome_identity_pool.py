@@ -198,8 +198,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
         f_module = self.get_module_mock(params=params)
         with pytest.raises(Exception) as exc:
             self.module.pool_create_modify(f_module, ome_connection_mock_for_identity_pool)
-        return exc.value.args[0] == "No changes are made to the specified pool name: pool1, as" \
-                                    " as the entered values are the same as the current configuration."
+        assert exc.value.args[0] == "No changes found to be applied."
 
     def test_get_payload_create_case01(self):
         params = {"pool_name": "pool1",
