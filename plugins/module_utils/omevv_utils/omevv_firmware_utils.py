@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 9.8.0
+# Version 9.10.0
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -665,42 +665,10 @@ class OMEVVFirmwareUpdate:
     def __init__(self, omevv):
         self.omevv = omevv
 
-    def update_cluster(self, job_name=None, job_description=None,
-                       run_now=None, enter_maintenance_mode_timeout=None,
-                       drs_check=None, evacuate_vms=None, exit_maintenance_mode=None,
-                       enter_maintenance_mode_options=None, maintenance_mode_count_check=None,
-                       check_vsan_health=None, reset_idrac=None, reboot_options=None, delete_job_queue=None, targets=None, date_time=None,
-                       vcenter_uuid=None, cluster_group_id=None):
+    def update_cluster(self, vcenter_uuid, cluster_group_id, **kwargs):
         err_msg = None
-        payload = {
-            "schedule": {
-                "runNow": run_now
-            },
-            "firmware": {
-                "enterMaintenanceModetimeout": enter_maintenance_mode_timeout,
-                "drsCheck": drs_check,
-                "evacuateVMs": evacuate_vms,
-                "exitMaintenanceMode": exit_maintenance_mode,
-                "rebootOptions": reboot_options,
-                "enterMaintenanceModeOption": enter_maintenance_mode_options,
-                "maintenanceModeCountCheck": maintenance_mode_count_check,
-                "checkvSANHealth": check_vsan_health,
-                "resetIDrac": reset_idrac,
-                "deleteJobsQueue": delete_job_queue,
-                "targets": targets
-            }
-        }
-        if run_now is False:
-            payload["schedule"]["dateTime"] = date_time
-        final_payload = {"firmware": {}}
-        for key, value in payload["firmware"].items():
-            if value is not None:
-                final_payload["firmware"].update({key: value})
-        final_payload["jobName"] = job_name
-        final_payload["jobDescription"] = "" if job_description is None else job_description
-        final_payload["schedule"] = payload["schedule"]
         uri = FIRMARE_UPDATE_URI.format(vcenter_uuid=vcenter_uuid, cluster_group_id=cluster_group_id)
-        resp = self.omevv.invoke_request("POST", uri, final_payload)
+        resp = self.omevv.invoke_request("POST", uri, data=kwargs)
         return resp, err_msg
 
     def firmware_update_job_track(self, vcenter_uuid, job_id):

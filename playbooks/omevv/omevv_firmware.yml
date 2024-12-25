@@ -20,7 +20,7 @@
         exit_maintenance_mode: true
         reboot_options: NEXTREBOOT
         maintenance_mode_count_check: true
-        check_vSAN_health: true
+        check_vSAN_health: truet
         reset_idrac: true
         delete_job_queue: true
         targets:
