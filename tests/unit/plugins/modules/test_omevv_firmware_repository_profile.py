@@ -50,6 +50,7 @@ RETURN_TYPE = "application/json"
 SHARE_PATH = "https://downloads.dell.com//catalog/catalog.xml.gz"
 PROFILE_NAME = "Dell Default Catalog"
 DESCRIPTION = "Latest Firmware From Dell"
+VSAN = "vSAN Catalog"
 
 
 class TestFirmwareRepositoryProfile(FakeAnsibleModule):
@@ -699,7 +700,6 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
             "description": DESCRIPTION,
             "status": "Failed"
         }
-        diff = {'profileName': 'Dell Default'}
         mocker.patch(MODULE_UTILS_PATH +
                      GET_PROFILE_BY_ID, return_value=obj)
         mocker.patch(MODULE_UTILS_PATH +
@@ -776,7 +776,7 @@ class TestResyncFirmwareRepositoryProfile(FakeAnsibleModule):
             "value": [
                 {
                     "Id": 10022,
-                    "Name": "vSAN Catalog",
+                    "Name": VSAN,
                     "Description": "null",
                     "DateModified": "2024-12-10 15:14:45.061",
                     "Owner": "admin",
@@ -799,7 +799,7 @@ class TestResyncFirmwareRepositoryProfile(FakeAnsibleModule):
             {
                 "id": 1086,
                 "owner": "UMP",
-                "profileName": "vSAN Catalog",
+                "profileName": VSAN,
                 "profileType": "Firmware",
                 "protocolType": "Not Applicable",
                 "sharePath": "//shared/dell/omc/cifs/idrac/RepositoryStore",
@@ -841,7 +841,7 @@ class TestResyncFirmwareRepositoryProfile(FakeAnsibleModule):
                 "BaselineDescription": "null",
                 "BaselineVersion": "null",
                 "RefreshedVersion": "null",
-                "Name": "vSAN Catalog",
+                "Name": VSAN,
                 "Version": 1.00
             }
         ]
