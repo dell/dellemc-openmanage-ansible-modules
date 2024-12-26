@@ -162,9 +162,9 @@ class OMEVVInfo:
         for host in managed_hosts:
             if host['id'] == host_id:
                 return host['clusterName']
-        return None
+        return ""
 
-    def get_host_id(self, uuid, hostname=None, servicetag=None):
+    def get_host_id_either_host_or_service_tag(self, uuid, hostname=None, servicetag=None):
         uri = MANAGED_HOST_INFO_URI.format(uuid=uuid)
         resp = self.omevv_obj.invoke_request('GET', uri)
         managed_hosts = resp.json_data

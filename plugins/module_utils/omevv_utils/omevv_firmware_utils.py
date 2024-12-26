@@ -666,6 +666,37 @@ class OMEVVFirmwareUpdate:
         self.omevv = omevv
 
     def update_cluster(self, vcenter_uuid, cluster_group_id, **kwargs):
+        """
+        Sample input of kwargs
+        **kwargs = {
+            "jobName": "Sample JobName",
+            "jobDescription": "Sample description",
+            "schedule": {
+                "runNow": false,
+                "dateTime": "2024-09-10T20:50:00Z"
+            },
+            "firmware": {
+                "enterMaintenanceModetimeout": 60,
+                "drsCheck": true,
+                "evacuateVMs": true,
+                "exitMaintenanceMode": true,
+                "rebootOptions": "SAFEREBOOT",
+                "enterMaintenanceModeOption": null,
+                "maintenanceModeCountCheck": true,
+                "checkvSANHealth": true,
+                "resetIDrac": true,
+                "deleteJobsQueue": true,
+                "targets": [
+                {
+                    "firmwarecomponents": [
+                    "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+                    ],
+                    "id": 1002
+                }
+                ]
+            }
+            }
+        """
         err_msg = None
         uri = FIRMARE_UPDATE_URI.format(vcenter_uuid=vcenter_uuid, cluster_group_id=cluster_group_id)
         resp = self.omevv.invoke_request("POST", uri, data=kwargs)
@@ -673,17 +704,14 @@ class OMEVVFirmwareUpdate:
 
     def firmware_update_job_track(self, vcenter_uuid, job_id):
         err_msg = None
-        resp = self.omevv.invoke_request("GET", FIRMWARE_UPDATE_JOB_TRACK_URI.format(vcenter_uuid=vcenter_uuid, job_id=job_id))
+        resp = self.omevv.invoke_request("GET",
+                                         FIRMWARE_UPDATE_JOB_TRACK_URI.format(vcenter_uuid=vcenter_uuid, job_id=job_id))
         return resp.json_data, err_msg
 
     def check_existing_update_job(self, vcenter_uuid, cluster_group_id):
         uri = TRIGGER_UPDATE_CHECK_URI.format(vcenter_uuid=vcenter_uuid)
-        try:
-            resp = self.omevv.invoke_request("POST", uri, cluster_group_id)
-            response = resp.json_data
-            return response
-        except Exception:
-            return None
+        resp = self.omevv.invoke_request("POST", uri, cluster_group_id)
+        return resp.json_data
 
     def check_existing_job_name(self, vcenter_uuid, job_name):
         uri = FIRMWARE_UPDATE_JOB_NAME_CHECK_URI.format(vcenter_uuid=vcenter_uuid)
