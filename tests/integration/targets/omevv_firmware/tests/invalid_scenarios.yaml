@@ -23,7 +23,8 @@
         run_now: true
         targets:
           - host: "{{ host_ip_list[0] }}"
-            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+            firmware_components:
+              "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_unsupported_argument
       ignore_errors: true
 
@@ -32,15 +33,18 @@
         that:
           - invalid_unsupported_argument.failed
           - not invalid_unsupported_argument.changed
-          - 'invalid_unsupported_argument.msg == "Unsupported parameters for
-              (dellemc.openmanage.omevv_firmware) module: unsupported_argument.
-              Supported parameters include: ca_path, check_vSAN_health, date_time,
+          - 'invalid_unsupported_argument.msg ==
+              "Unsupported parameters for
+              (dellemc.openmanage.omevv_firmware) module:
+              unsupported_argument. Supported parameters include:
+              ca_path, check_vSAN_health, date_time,
               delete_job_queue, drs_check, enter_maintenance_mode_options,
-              enter_maintenance_mode_timeout, evacuate_VMs, exit_maintenance_mode,
-              hostname, job_description, job_name, job_wait, job_wait_timeout,
-              maintenance_mode_count_check, port, reboot_options, reset_idrac,
-              run_now, targets, timeout, validate_certs, vcenter_password,
-              vcenter_username, vcenter_uuid."'
+              enter_maintenance_mode_timeout, evacuate_VMs,
+              exit_maintenance_mode, hostname, job_description,
+              job_name, job_wait, job_wait_timeout,
+              maintenance_mode_count_check, port, reboot_options,
+              reset_idrac, run_now, targets, timeout, validate_certs,
+              vcenter_password, vcenter_username, vcenter_uuid."'
 
     - name: Negative - unreachable host
       dellemc.openmanage.omevv_firmware:
@@ -48,7 +52,8 @@
         run_now: true
         targets:
           - host: "{{ host_ip_list[0] }}"
-            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+            firmware_components:
+              "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_unreachable
       ignore_unreachable: true
 
@@ -69,7 +74,8 @@
         run_now: true
         targets:
           - host: "{{ host_ip_list[0] }}"
-            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+            firmware_components:
+              "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_port
       ignore_errors: true
 
@@ -87,7 +93,8 @@
         run_now: true
         targets:
           - host: "{{ host_ip_list[0] }}"
-            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+            firmware_components:
+              "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_username
       ignore_errors: true
 
@@ -107,7 +114,8 @@
         run_now: true
         targets:
           - host: "{{ host_ip_list[0] }}"
-            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+            firmware_components:
+              "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_password
       ignore_errors: true
 
@@ -127,7 +135,8 @@
         run_now: true
         targets:
           - host: "{{ host_ip_list[0] }}"
-            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+            firmware_components:
+              "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_validate_certs
       ignore_errors: true
 
@@ -149,7 +158,8 @@
         run_now: true
         targets:
           - host: "{{ host_ip_list[0] }}"
-            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+            firmware_components:
+              "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_ca_path
       ignore_errors: true
 
@@ -166,7 +176,8 @@
         run_now: true
         targets:
           - host: "{{ host_ip_list[0] }}"
-            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+            firmware_components:
+              "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_timeout_type
       ignore_errors: true
 
@@ -185,7 +196,8 @@
         run_now: true
         targets:
           - host: "{{ host_ip_list[0] }}"
-            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+            firmware_components:
+              "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_timeout_value
       ignore_errors: true
 
@@ -203,7 +215,8 @@
         run_now: true
         targets:
           - host: "{{ host_ip_list[0] }}"
-            firmware_components: "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+            firmware_components:
+              "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
       register: invalid_uuid
       ignore_errors: true
 
