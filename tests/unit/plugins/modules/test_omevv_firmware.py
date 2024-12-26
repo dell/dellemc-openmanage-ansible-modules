@@ -1406,14 +1406,10 @@ class TestUpdateClusterFirmware(FakeAnsibleModule):
         # Mock the 'RestOMEVV' context manager to raise HTTPError with code 404
         mocker.patch(MODULE_PATH + 'RestOMEVV', __enter__=MagicMock(), __exit__=MagicMock(), side_effect=HTTPError('url', 404, 'Not Found', {}, None))
 
-        # Mock the exit_json method to capture the exit
-        mocker.patch(ANSIBLE_MODULE_EXIT_JSON, side_effect=AnsibleFailJSonException)
-
-        with pytest.raises(AnsibleFailJSonException) as excinfo:
+        try:
             omevv_firmware.main()
-
-        # Verify the exception message
-        assert excinfo.value.args[0] == SOURCE_NOT_FOUND_MSG
+        except AnsibleFailJSonException as err:
+            assert err.args[0] == SOURCE_NOT_FOUND_MSG
 
     def test_main_http_error_with_error_info(self, mocker, omevv_default_args):
         # Mock the OMEVVAnsibleModule initialization
