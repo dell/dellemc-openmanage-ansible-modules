@@ -1,0 +1,24 @@
+---
+- name: Fetch firmware version
+  ansible.builtin.uri:
+    url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}
+      /redfish/v1/Managers/iDRAC.Embedded.1"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: uri_data
+
+- ansible.builtin.set_fact:
+    firmware_version_from_api_response: "{{ uri_data.json.FirmwareVersion }}"
+    firmware_version_expected: "{{ firmware_version_expected }}"
+
+- name: Prerequisite - Validate firmware version
+  ansible.builtin.assert:
+    that:
+      - "firmware_version_from_api_response >= firmware_version_expected"
+    fail_msg: "Firmware version is not supported"

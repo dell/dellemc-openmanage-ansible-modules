@@ -1,0 +1,98 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Check firmware version
+      include_tasks: _check_firmware_version_supported.yml
+      vars:
+        firmware_version_expected: "7.00.00.00"
+
+    - name: Create Directory
+      ansible.builtin.file:
+        path: "{{ base_path_for_import_certificate }}"
+        state: directory
+      register: created_directory
+
+    - name: Get custom certificate from share
+      ansible.builtin.uri:
+        url: "https://{{ https_share_ip }}{{ https_certificate_path }}{{
+          custom_certificate_without_passphrase }}"
+        dest: "{{ base_path_for_import_certificate }}"
+        force_basic_auth: true
+        validate_certs: false
+        url_username: "{{ https_share_username }}"
+        url_password: "{{ https_share_password }}"
+
+    - name: Importing custom certificate - Normal
+      dellemc.openmanage.idrac_certificates:
+        command: import
+        certificate_type: "CUSTOMCERTIFICATE"
+        certificate_path: "{{ base_path_for_import_certificate }}/{{
+          custom_certificate_without_passphrase }}"
+      register: import_certificate_output
+
+    - ansible.builtin.set_fact:
+        import_successful_msg: "Successfully performed the 'import'
+          certificate operation.iDRAC has been reset successfully."
+
+    - name: Verify status of task - import custom certificate - normal mode
+      ansible.builtin.assert:
+        that:
+          - import_certificate_output.changed
+          - import_certificate_output.msg == import_successful_msg
+
+    - name: Waiting for idrac readiness
+      ansible.builtin.wait_for:
+        timeout: 60
+
+    - name: Exporting custom certificate - (check mode - changes expected)
+      dellemc.openmanage.idrac_certificates: &cert
+        command: export
+        certificate_type: "CUSTOMCERTIFICATE"
+        certificate_path: "{{ base_path_for_import_certificate }}"
+      register: check_export_certificate
+
+    - ansible.builtin.set_fact:
+        export_successful_msg: "Successfully performed
+          the 'export' certificate operation."
+
+    - name: Verify status of task - export custom
+        certificate - (check mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - not check_export_certificate.changed
+          - check_export_certificate.msg == export_successful_msg
+
+    - name: Exporting custom certificate - Normal
+      dellemc.openmanage.idrac_certificates:
+        <<: *cert
+      register: export_certificate_output
+
+    - name: Verify status of task - export custom certificate - normal mode
+      ansible.builtin.assert:
+        that:
+          - not export_certificate_output.changed
+          - export_certificate_output.msg == export_successful_msg
+
+  always:
+    - name: Delete the directory
+      file:
+        path: "{{ base_path_for_import_certificate }}"
+        state: absent
+
+  module_defaults:
+    dellemc.openmanage.idrac_certificates:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

@@ -1,0 +1,9 @@
+---
+- name: Download files
+  ansible.builtin.get_url:
+    url: "http://{{ https_share_ip }}{{ https_certificate_path }}
+      {{ item.value }}"
+    dest: "{{ base_path_for_import_certificate }}/{{ item.value }}"
+    headers:
+      Authorization: "Basic {{ (
+        https_share_username + ':' + https_share_password) | b64encode }}"

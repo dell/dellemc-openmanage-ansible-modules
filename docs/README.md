@@ -115,3 +115,15 @@ You may obtain a copy of the License at
 | [ome_template_network_vlan_info](modules/ome_template_network_vlan_info.rst)               |
 | [ome_user](modules/ome_user.rst)                                                           |
 | [ome_user_info](modules/ome_user_info.rst)                                                 |
+
+### OpenManage Enterprise Integration for VMWare vCenter Plug-in Modules
+
+|  Module Name                                                                                 |
+| -------------------------------------------------------------------------------------------- |
+| [omevv_baseline_profile](modules/omevv_baseline_profile.rst)                                 |
+| [omevv_baseline_profile_info](modules/omevv_baseline_profile_info.rst)                       |
+| [omevv_firmware](modules/omevv_firmware.rst)                                                 |
+| [omevv_firmware_compliance_info](modules/omevv_firmware_compliance_info.rst)                 |
+| [omevv_firmware_repository_profile](modules/omevv_firmware_repository_profile.rst)           |
+| [omevv_firmware_repository_profile_info](modules/omevv_firmware_repository_profile_info.rst) |
+| [omevv_vcenter_info](modules/omevv_vcenter_info.rst)                                         |

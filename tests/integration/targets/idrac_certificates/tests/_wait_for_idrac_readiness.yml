@@ -1,0 +1,14 @@
+---
+- name: Wait for port to become open on the host
+  ansible.builtin.wait_for:
+    host: "{{ idrac_ip }}"
+    port: "{{ idrac_port }}"
+    delay: 30
+    connect_timeout: 5
+    timeout: 500
+  register: result
+  failed_when: result.elapsed < 20
+
+- name: Waiting for idrac readiness
+  ansible.builtin.wait_for:
+    timeout: 60

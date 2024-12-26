@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 9.8.0
+# Version 9.10.0
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -34,6 +34,7 @@ VCENTER_INFO_URI = "/Consoles"
 CLUSTER_INFO_URI = "/Consoles/{uuid}/Clusters"
 GROUP_ID_CLUSTER_INFO_URI = "/Consoles/{uuid}/Groups/getGroupsForClusters"
 MANAGED_HOST_INFO_URI = "/Consoles/{uuid}/ManagedHosts"
+CLUSTER_MANAGED_HOST_INFO_URI = "/Consoles/{uuid}/Groups/{groupId}/ManagedHosts"
 HOST_FIRMWARE_DRIFT_INFO_URI = "/Consoles/{uuid}/Groups/{groupId}/ManagedHosts/{hostId}/FirmwareDriftReport"
 CLUSTER_FIRMWARE_DRIFT_INFO_URI = "/Consoles/{uuid}/Groups/{groupId}/FirmwareDriftReport"
 
@@ -153,3 +154,37 @@ class OMEVVInfo:
                                                                      groupid=each_group)
             result.append(output)
         return result
+
+    def get_cluster_name(self, uuid, host_id):
+        uri = MANAGED_HOST_INFO_URI.format(uuid=uuid)
+        resp = self.omevv_obj.invoke_request('GET', uri)
+        managed_hosts = resp.json_data
+        for host in managed_hosts:
+            if host['id'] == host_id:
+                return host['clusterName']
+        return ""
+
+    def get_host_id_either_host_or_service_tag(self, uuid, hostname=None, servicetag=None):
+        uri = MANAGED_HOST_INFO_URI.format(uuid=uuid)
+        resp = self.omevv_obj.invoke_request('GET', uri)
+        managed_hosts = resp.json_data
+        for host in managed_hosts:
+            if hostname and host['hostName'] == hostname:
+                return host['id'], host['serviceTag']
+            if servicetag and host['serviceTag'] == servicetag:
+                return host['id'], host['serviceTag']
+        return None, None
+
+    def get_cluster_managed_host_details(self, uuid, cluster_group_id):
+        uri = CLUSTER_MANAGED_HOST_INFO_URI.format(uuid=uuid, groupId=cluster_group_id)
+        resp = self.omevv_obj.invoke_request('GET', uri)
+        managed_hosts = resp.json_data
+
+        host_ids = []
+        host_service_tags = []
+
+        for host in managed_hosts:
+            host_ids.append(host.get('id'))
+            host_service_tags.append(host.get('serviceTag'))
+
+        return host_ids, host_service_tags

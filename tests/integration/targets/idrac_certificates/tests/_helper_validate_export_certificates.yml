@@ -1,0 +1,85 @@
+---
+- ansible.builtin.set_fact:
+    cert_type: "{{ item.value }}"
+
+- ansible.builtin.set_fact:
+    certificate_path: "{{ certificate_names[cert_type] }}"
+  when: 'cert_type != "HTTPS"'
+
+- name: Importing certificate
+  dellemc.openmanage.idrac_certificates:
+    command: import
+    certificate_type: "{{ cert_type }}"
+    certificate_path: "{{ base_path_for_import_certificate }}/{{
+      certificate_path }}"
+  register: import_certificate_output
+  when: 'cert_type != "HTTPS"'
+
+- ansible.builtin.include_tasks: _wait_for_idrac_readiness.yml
+  when: 'cert_type != "HTTPS"'
+
+- ansible.builtin.set_fact:
+    import_successful_msg: "Successfully performed the 'import'
+      certificate operation.iDRAC
+      has been reset successfully."
+  when: 'cert_type != "HTTPS"'
+
+- name: Verify status of task - import certificate
+  ansible.builtin.assert:
+    that:
+      - import_certificate_output.msg == import_successful_msg
+  when: 'cert_type != "HTTPS"'
+
+- ansible.builtin.include_tasks: get_data_uri.yml
+  vars:
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{
+      idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell\
+      /DelliDRACCardService/Actions/DelliDRACCardService.ExportSSLCertificate"
+    body:
+      SSLCertType: "{{ item.key }}"
+
+- name: Verify whether certificate is uploaded on the server
+  ansible.builtin.assert:
+    that:
+      - "'{{ response_code }}' == '200'"
+    fail_msg: 'Please upload the {{ item.value }} certificate on the server.'
+
+- ansible.builtin.set_fact:
+    certificate_content_from_api: "{{ certificate_content }}"
+
+- name: Clearing certificate_path directory
+  ansible.builtin.shell: "rm -rf {{ export_certificate_path }}/*"
+
+- name: Exporting certificate
+  dellemc.openmanage.idrac_certificates:
+    command: export
+    certificate_type: "{{ item.value }}"
+    certificate_path: "{{ export_certificate_path }}"
+  register: export_certificate_output
+
+- ansible.builtin.set_fact:
+    export_successful_msg: "Successfully performed the 'export' certificate
+      operation."
+
+- name: Verify status of task - export certificate
+  ansible.builtin.assert:
+    that:
+      - not export_certificate_output.changed
+      - export_certificate_output.msg == export_successful_msg
+
+- name: Checking the exported certificate file
+  ansible.builtin.shell: "ls {{ export_certificate_path }}"
+  register: certificate_filename
+
+- ansible.builtin.set_fact:
+    certificate: "{{ export_certificate_path }}/{{
+      certificate_filename.stdout }}"
+
+- ansible.builtin.set_fact:
+    certificate_content_from_module: "{{ lookup('ansible.builtin.file',
+      '{{ certificate }}',rstrip=False) }}"
+
+- name: Verify content of certificate
+  ansible.builtin.assert:
+    that:
+      - certificate_content_from_module  == certificate_content_from_api

@@ -1,0 +1,48 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Reset HTTPS Certificate (Check Mode)
+      dellemc.openmanage.idrac_certificates:
+        validate_certs: false
+        command: "reset"
+        certificate_type: "HTTPS"
+      register: reset_cm
+      check_mode: true
+
+    - name: Verification of reset of HTTPS Certificate (Check Mode).
+      ansible.builtin.assert:
+        that:
+          - reset_cm.changed
+          - reset_cm.msg == "Changes found to be applied."
+
+    - name: Reset HTTPS Certificate (Normal Mode)
+      dellemc.openmanage.idrac_certificates:
+        validate_certs: false
+        command: "reset"
+        certificate_type: "HTTPS"
+      register: reset
+
+    - name: Verification of reset of HTTPS Certificate (Normal Mode).
+      ansible.builtin.assert:
+        that:
+          - reset.changed
+          - reset.msg == "Successfully performed the
+            'reset' certificate operation.iDRAC has been reset successfully."
+
+  module_defaults:
+    dellemc.openmanage.idrac_certificates:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

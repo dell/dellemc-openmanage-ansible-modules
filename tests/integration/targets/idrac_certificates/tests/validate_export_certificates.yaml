@@ -1,0 +1,40 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Ensure directory exists
+  ansible.builtin.file:
+    path: "{{ base_path_for_import_certificate }}"
+    state: directory
+
+- name: Ensure export directory exists
+  ansible.builtin.file:
+    path: "{{ export_certificate_path }}"
+    state: directory
+
+- ansible.builtin.include_tasks: _download_certificates.yml
+  loop: "{{ certificate_names | dict2items }}"
+
+- block:
+
+    - ansible.builtin.include_tasks: _helper_validate_export_certificates.yml
+      loop: "{{ certificate_type|dict2items }}"
+
+  always:
+    - ansible.builtin.include_tasks: _cleanup.yml
+
+  module_defaults:
+    dellemc.openmanage.idrac_certificates:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

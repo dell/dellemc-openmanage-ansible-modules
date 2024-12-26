@@ -111,6 +111,13 @@ Here are the list of modules and module_utils supported by Dell.
     ├── ome_template_network_vlan_info.py
     ├── ome_user.py
     ├── ome_user_info.py
+    ├── omevv_baseline_profile.py
+    ├── omevv_baseline_profile_info.py
+    ├── omevv_firmware.py
+    ├── omevv_firmware_compliance_info.py
+    ├── omevv_firmware_repository_profile.py
+    ├── omevv_firmware_repository_profile_info.py
+    ├── omevv_vcenter_info.py
     ├── redfish_event_subscription.py
     ├── redfish_firmware.py
     ├── redfish_firmware_rollback.py

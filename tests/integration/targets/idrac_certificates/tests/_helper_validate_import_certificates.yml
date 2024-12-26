@@ -1,0 +1,60 @@
+---
+- ansible.builtin.set_fact:
+    certificate_path: "{{ base_path_for_import_certificate }}/{{ item.value }}"
+
+- block:
+    - name: Importing certificate - Check mode - Changes expected
+      dellemc.openmanage.idrac_certificates:
+        command: import
+        certificate_type: "{{ item.key }}"
+        certificate_path: "{{ certificate_path }}"
+      register: import_certificate_output
+      check_mode: true
+
+    - name: Verify status of task - import certificate - check mode
+      ansible.builtin.assert:
+        that:
+          - import_certificate_output.changed
+          - import_certificate_output.msg == 'Changes found to be applied.'
+
+    - name: Importing certificate - Normal
+      dellemc.openmanage.idrac_certificates:
+        command: import
+        certificate_type: "{{ item.key }}"
+        certificate_path: "{{ certificate_path }}"
+      register: import_certificate_output
+
+    - ansible.builtin.include_tasks: _wait_for_idrac_readiness.yml
+
+    - ansible.builtin.set_fact:
+        import_successful_msg: "Successfully performed the 'import' certificate
+          operation.iDRAC has been reset successfully."
+
+    - name: Verify status of task - import certificate - normal mode
+      ansible.builtin.assert:
+        that:
+          - import_certificate_output.changed
+          - import_certificate_output.msg == import_successful_msg
+
+    - name: Importing certificate - Idempotency
+      dellemc.openmanage.idrac_certificates:
+        command: import
+        certificate_type: "{{ item.key }}"
+        certificate_path: "{{ certificate_path }}"
+      register: import_certificate_output
+
+    - ansible.builtin.include_tasks: _wait_for_idrac_readiness.yml
+
+    - name: Verify status of task - import certificate - Idempotency mode
+      ansible.builtin.assert:
+        that:
+          - not import_certificate_output.changed
+          - import_certificate_output.msg == 'No changes found to be applied.'
+      when: '"{{ item.key }}" != "CSC"'
+
+    - name: Verify status of task - import certificate - Idempotency mode
+      ansible.builtin.assert:
+        that:
+          - import_certificate_output.changed
+          - import_certificate_output.msg == import_successful_msg
+      when: '"{{ item.key }}" == "CSC"'

@@ -1,0 +1,116 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Check firmware version
+      include_tasks: _check_firmware_version_supported.yml
+      vars:
+        firmware_version_expected: "6.00.02.00"
+
+    - name: Create Directory
+      ansible.builtin.file:
+        path: "{{ base_path_for_import_certificate }}"
+        state: directory
+      register: created_directory
+
+    - name: Create private key is present
+      community.crypto.openssl_privatekey:
+        path: "{{ base_path_for_import_certificate }}/cert.key"
+        size: 2048
+        type: RSA
+      delegate_to: localhost
+
+    - name: Ensure self-signed cert is present
+      community.crypto.x509_certificate:
+        path: "{{ base_path_for_import_certificate }}/cert.pem"
+        privatekey_path: "{{ base_path_for_import_certificate }}/cert.key"
+        provider: selfsigned
+      delegate_to: localhost
+
+    - name: Importing HTTPS certificate using ssl_key (check
+        mode - changes expected)
+      dellemc.openmanage.idrac_certificates: &cert
+        command: import
+        certificate_type: "HTTPS"
+        certificate_path: "{{ base_path_for_import_certificate }}/cert.pem"
+        ssl_key: "{{ base_path_for_import_certificate }}/cert.key"
+      register: check_import_certificate
+      check_mode: true
+
+    - name: Verify status of task - import HTTPS certificate using
+        ssl_key (check mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - check_import_certificate.changed
+          - check_import_certificate.msg == 'Changes found to be applied.'
+
+    - name: Importing HTTPS certificate using ssl_key- Normal
+      dellemc.openmanage.idrac_certificates:
+        <<: *cert
+      register: import_certificate_output
+
+    - name: Waiting for idrac readiness
+      ansible.builtin.wait_for:
+        timeout: 60
+
+    - ansible.builtin.set_fact:
+        import_successful_msg: "Successfully performed the SSL key upload
+          and 'import' certificate operation. iDRAC has been reset
+          successfully."
+
+    - name: Verify status of task - import HTTPS certificate using
+        ssl_key - normal mode
+      ansible.builtin.assert:
+        that:
+          - import_certificate_output.changed
+          - import_certificate_output.msg == import_successful_msg
+
+    - name: Importing HTTPS certificate using ssl_key (check
+        mode - no changes expected)
+      dellemc.openmanage.idrac_certificates:
+        <<: *cert
+      register: check_import_certificate
+      check_mode: true
+
+    - name: Verify status of task - import HTTPS certificate using
+        ssl_key (check mode - no changes expected)
+      ansible.builtin.assert:
+        that:
+          - not check_import_certificate.changed
+          - check_import_certificate.msg == 'No changes found to be applied.'
+
+    - name: Importing HTTPS certificate using ssl_key - Idempotency
+      dellemc.openmanage.idrac_certificates:
+        <<: *cert
+      register: import_certificate_idempotence
+
+    - name: Verify status of task - import HTTPS certificate using
+        ssl_key - Idempotency mode
+      ansible.builtin.assert:
+        that:
+          - not import_certificate_idempotence.changed
+          - import_certificate_idempotence.msg == 'No changes
+              found to be applied.'
+
+  always:
+    - name: Delete the directory
+      file:
+        path: "{{ base_path_for_import_certificate }}"
+        state: absent
+
+  module_defaults:
+    dellemc.openmanage.idrac_certificates:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

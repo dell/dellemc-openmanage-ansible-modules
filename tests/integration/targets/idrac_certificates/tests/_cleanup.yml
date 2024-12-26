@@ -1,0 +1,32 @@
+---
+- name: Ensure private key is present
+  community.crypto.openssl_privatekey:
+    path: "{{ base_path_for_import_certificate }}/cert.key"
+    size: 2048
+    type: RSA
+  delegate_to: localhost
+
+- name: Ensure self-signed cert is pres
+  community.crypto.x509_certificate:
+    path: "{{ base_path_for_import_certificate }}/cert.pem"
+    privatekey_path: "{{ base_path_for_import_certificate }}/cert.key"
+    provider: selfsigned
+  delegate_to: localhost
+
+- name: Clean up import of CA certificate
+  dellemc.openmanage.idrac_certificates:
+    command: import
+    certificate_type: "{{ certificate_type['CA'] }}"
+    certificate_path: "{{ base_path_for_import_certificate }}/cert.pem"
+  register: result
+
+- ansible.builtin.include_tasks: _wait_for_idrac_readiness.yml
+
+- name: Clean up import of Client Trust certificate
+  dellemc.openmanage.idrac_certificates:
+    command: import
+    certificate_type: "{{ certificate_type['ClientTrustCertificate'] }}"
+    certificate_path: "{{ base_path_for_import_certificate }}/cert.pem"
+  register: result
+
+- ansible.builtin.include_tasks: _wait_for_idrac_readiness.yml

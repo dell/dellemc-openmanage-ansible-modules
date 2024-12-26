@@ -1,0 +1,203 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Verify iDRAC Certificate Signing Request
+  module_defaults:
+    dellemc.openmanage.idrac_certificates:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+  vars:
+    cert_type: "HTTPS"
+    commonName: "commonhostname.com"
+    countryName: "US"
+    emailAddress: "support@dell.com"
+    localityName: "Round Rock"
+    organizationName: "Dell Inc."
+    organizationalUnitName: "Remote Access Group"
+    stateOrProvinceName: "Texas"
+    sub_alt_name_list:
+      - hostname1.chassis.com
+      - hostname2.chassis.com
+      - hostname3.chassis.com
+  block:
+    - name: Create temp directory
+      ansible.builtin.tempfile:
+        state: directory
+        prefix: val_idrac_csr_
+      register: tempfpath
+
+    - name: Generate HTTPS CSR signing request (CheckMode)
+      dellemc.openmanage.idrac_certificates: &csr_params
+        command: "generate_csr"
+        certificate_type: "{{ cert_type }}"
+        certificate_path: "{{ tempfpath.path }}"
+        cert_params:
+          common_name: "{{ commonName }}"
+          organization_unit: "{{ organizationalUnitName }}"
+          locality_name: "{{ localityName }}"
+          state_name: "{{ stateOrProvinceName }}"
+          country_code: "{{ countryName }}"
+          email_address: "{{ emailAddress }}"
+          organization_name: "{{ organizationName }}"
+          subject_alt_name: "{{ sub_alt_name_list }}"
+      register: generate_csr_cm
+      check_mode: true
+
+    - name: Checking if file exists
+      ansible.builtin.stat:
+        path: "{{ generate_csr_cm.certificate_path }}"
+      register: file_status_cm
+
+    - name: Verification of HTTPS CSR signing request.
+      ansible.builtin.assert:
+        that:
+          - not generate_csr_cm.changed
+          - generate_csr_cm.msg == "Successfully performed the 'generate_csr'
+              certificate operation."
+          - file_status_cm.stat.exists
+          - (generate_csr_cm.certificate_path |
+              basename).startswith(idrac_ip)
+          - (generate_csr_cm.certificate_path |
+              basename).endswith("_"+ cert_type + ".txt")
+
+    - name: Get CSR info check mode
+      community.crypto.openssl_csr_info:
+        path: "{{ generate_csr_cm.certificate_path }}"
+      register: csr_content_cm
+
+    - name: Verify CSR info check mode
+      ansible.builtin.assert:
+        that:
+          - csr_content_cm.subject.commonName == commonName
+          - csr_content_cm.subject.organizationalUnitName == organizational
+            UnitName
+          - csr_content_cm.subject.organizationName == organizationName
+          - csr_content_cm.subject.localityName == localityName
+          - csr_content_cm.subject.stateOrProvinceName == stateOrProvinceName
+          - csr_content_cm.subject.countryName == countryName
+          - csr_content_cm.subject.emailAddress == emailAddress
+          - (csr_content_cm.subject_alt_name |
+              length) == (sub_alt_name_list | length)
+
+    - name: Verify CSR SAN check mode
+      ansible.builtin.assert:
+        that:
+          - item.1 in item.0
+      with_together:
+        - "{{ csr_content_cm.subject_alt_name }}"
+        - "{{ sub_alt_name_list }}"
+
+    - name: Generate HTTPS CSR signing request with all parameters
+      dellemc.openmanage.idrac_certificates:
+        <<: *csr_params
+      register: generate_csr
+
+    - name: Checking if file exists
+      ansible.builtin.stat:
+        path: "{{ generate_csr.certificate_path }}"
+      register: file_status
+
+    - name: Verification of HTTPS CSR signing request.
+      ansible.builtin.assert:
+        that:
+          - not generate_csr.changed
+          - generate_csr.msg == "Successfully performed
+              the 'generate_csr' certificate operation."
+          - file_status.stat.exists
+          - (generate_csr.certificate_path |
+              basename).startswith(idrac_ip)
+          - (generate_csr.certificate_path |
+              basename).endswith("_"+ cert_type + ".txt")
+
+    - name: Get CSR info all parameters
+      community.crypto.openssl_csr_info:
+        path: "{{ generate_csr.certificate_path }}"
+      register: csr_content
+
+    - name: Verify CSR info all parameters
+      ansible.builtin.assert:
+        that:
+          - csr_content.subject.commonName == commonName
+          - csr_content.subject.organizationalUnitName == organizationalUnitName
+          - csr_content.subject.organizationName == organizationName
+          - csr_content.subject.localityName == localityName
+          - csr_content.subject.stateOrProvinceName == stateOrProvinceName
+          - csr_content.subject.countryName == countryName
+          - csr_content.subject.emailAddress == emailAddress
+          - (csr_content.subject_alt_name |
+              length) == (sub_alt_name_list | length)
+
+    - name: Verify CSR SAN all parameters
+      ansible.builtin.assert:
+        that:
+          - item.1 in item.0
+      with_together:
+        - "{{ csr_content.subject_alt_name }}"
+        - "{{ sub_alt_name_list }}"
+
+    - name: Generate HTTPS CSR signing request with mandatory parameters
+      dellemc.openmanage.idrac_certificates:
+        command: "generate_csr"
+        certificate_type: "{{ cert_type }}"
+        certificate_path: "{{ tempfpath.path }}"
+        cert_params:
+          common_name: "{{ commonName }}"
+          organization_unit: "{{ organizationalUnitName }}"
+          locality_name: "{{ localityName }}"
+          state_name: "{{ stateOrProvinceName }}"
+          country_code: "{{ countryName }}"
+          organization_name: "{{ organizationName }}"
+      register: generate_csr_mp
+
+    - name: Checking if file exists
+      ansible.builtin.stat:
+        path: "{{ generate_csr_mp.certificate_path }}"
+      register: file_status_mp
+
+    - name: Verification of HTTPS CSR signing request.
+      ansible.builtin.assert:
+        that:
+          - not generate_csr_mp.changed
+          - generate_csr_mp.msg == "Successfully performed
+              the 'generate_csr' certificate operation."
+          - file_status_mp.stat.exists
+          - (generate_csr_mp.certificate_path |
+              basename).startswith(idrac_ip)
+          - (generate_csr_mp.certificate_path |
+              basename).endswith("_"+ cert_type + ".txt")
+
+    - name: Get CSR info mandatory parameters
+      community.crypto.openssl_csr_info:
+        path: "{{ generate_csr_mp.certificate_path }}"
+      register: csr_content_mp
+
+    - name: Verify CSR info mandatory parameters
+      ansible.builtin.assert:
+        that:
+          - csr_content_mp.subject.commonName == commonName
+          - csr_content_mp.subject.organizationalUnitName == organizational
+            UnitName
+          - csr_content_mp.subject.organizationName == organizationName
+          - csr_content_mp.subject.localityName == localityName
+          - csr_content_mp.subject.stateOrProvinceName == stateOrProvinceName
+          - csr_content_mp.subject.countryName == countryName
+          - emailAddress not in csr_content_mp.subject
+          - csr_content_mp.subject_alt_name == None
+  always:
+    - name: Clean up the temp directory
+      ansible.builtin.file:
+        path: "{{ tempfpath.path }}"
+        state: absent
+      ignore_errors: true

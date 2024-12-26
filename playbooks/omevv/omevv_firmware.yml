@@ -1,0 +1,169 @@
+---
+- name: Dell OpenManage Ansible device inventory details.
+  hosts: ome
+  gather_facts: false
+  tasks:
+    - name: Immediately update the firmware of a single component for a
+        specific host
+      dellemc.openmanage.omevv_firmware:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ vcenter_uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        ca_path: "{{ ca_path }}"
+        run_now: false
+        date_time: "2024-09-10T20:50:00Z"
+        enter_maintenance_mode_timeout: 60
+        enter_maintenance_mode_options: FULL_DATA_MIGRATION
+        drs_check: true
+        evacuate_VMs: true
+        exit_maintenance_mode: true
+        reboot_options: NEXTREBOOT
+        maintenance_mode_count_check: true
+        check_vSAN_health: truet
+        reset_idrac: true
+        delete_job_queue: true
+        targets:
+          - servicetag: SVCTAG1
+            firmware_components:
+              - "DCIM:INSTALLED#802__Diagnostics.Embedded.1:LC.Embedded.1"
+      delegate_to: localhost
+
+    - name: Update the firmware of multiple components at scheduled time for a
+        specific host
+      dellemc.openmanage.omevv_firmware:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ vcenter_uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        ca_path: "{{ ca_path }}"
+        run_now: false
+        date_time: "2024-09-10T20:50:00+05:30"
+        enter_maintenance_mode_timeout: 60
+        enter_maintenance_mode_options: ENSURE_ACCESSIBILITY
+        drs_check: true
+        evacuate_VMs: true
+        exit_maintenance_mode: true
+        reboot_options: FORCEREBOOT
+        maintenance_mode_count_check: true
+        check_vSAN_health: true
+        reset_idrac: false
+        delete_job_queue: false
+        targets:
+          - host: "XXX.XXX.XXX.XZ"
+            firmware_components:
+              - "DCIM:INSTALLED#iDRAC.Embedded.1-1#IDRACinfo"
+              - "DCIM:INSTALLED#301_C_BOSS.SL.14-1"
+              - "DCIM:INSTALLED#807__TPM.Integrated.1-1"
+      delegate_to: localhost
+
+    - name: Update the firmware of multiple components at scheduled time for a
+        cluster
+      dellemc.openmanage.omevv_firmware:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ vcenter_uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        ca_path: "{{ ca_path }}"
+        run_now: false
+        date_time: "2024-09-10T20:50:00+05:30"
+        enter_maintenance_mode_timeout: 60
+        enter_maintenance_mode_options: ENSURE_ACCESSIBILITY
+        drs_check: true
+        evacuate_VMs: true
+        exit_maintenance_mode: true
+        reboot_options: SAFEREBOOT
+        maintenance_mode_count_check: true
+        check_vSAN_health: true
+        reset_idrac: false
+        delete_job_queue: false
+        targets:
+          - cluster: cluster_a
+            firmware_components:
+              - "DCIM:INSTALLED#iDRAC.Embedded.1-1#IDRACinfo"
+              - "DCIM:INSTALLED#301_C_BOSS.SL.14-1"
+              - "DCIM:INSTALLED#807__TPM.Integrated.1-1"
+      delegate_to: localhost
+
+    - name: Retrieve firmware compliance report of all the hosts in the specific
+        cluster
+      dellemc.openmanage.omevv_firmware_compliance_info:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ vcenter_uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        ca_path: "{{ ca_path }}"
+        clusters:
+          - cluster_name: cluster_a
+      register: compliance_data
+      delegate_to: localhost
+
+    - name: Initialize compliance status results
+      ansible.builtin.set_fact:
+        source_names: []
+        service_tag: ""
+      delegate_to: localhost
+
+    - name: Flatten host compliance reports
+      ansible.builtin.set_fact:
+        host_reports: "{{
+          compliance_data.firmware_compliance_info |
+          map(attribute='hostComplianceReports') |
+          flatten(levels=1) }}"
+      delegate_to: localhost
+
+    - name: Flatten and filter concompliant components
+      ansible.builtin.set_fact:
+        non_compliant_components: >-
+          {{
+            host_reports
+            | map(attribute='componentCompliances')
+            | flatten(levels=1)
+            | selectattr('driftStatus', 'equalto', 'NonCompliant')
+          }}
+      delegate_to: localhost
+
+    - name: Gather components source name and set service tag
+      ansible.builtin.set_fact:
+        source_names: "{{ source_names + [item.sourceName] }}"
+        service_tag: "{{ host_report.serviceTag }}"
+      loop: "{{ non_compliant_components }}"
+      vars:
+        host_report: >-
+          {{
+            host_reports
+            | selectattr('componentCompliances', 'contains', item)
+            | first
+          }}
+      delegate_to: localhost
+
+    - name: Combine the final non compliance report
+      ansible.builtin.set_fact:
+        noncompliance_report:
+          sourceNames: "{{ source_names }}"
+          serviceTag: "{{ service_tag }}"
+
+    - name: Update firmware at the scheduled time for all non compliant
+        components of a specific host using service tag
+      dellemc.openmanage.omevv_firmware:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ vcenter_uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        ca_path: "{{ ca_path }}"
+        run_now: false
+        date_time: "2024-09-10T20:50:00Z"
+        enter_maintenance_mode_timeout: 60
+        enter_maintenance_mode_options: NO_DATA_MIGRATION
+        drs_check: true
+        evacuate_VMs: false
+        exit_maintenance_mode: true
+        reboot_options: SAFEREBOOT
+        maintenance_mode_count_check: true
+        check_vSAN_health: true
+        reset_idrac: true
+        delete_job_queue: true
+        targets:
+          - servicetag: "{{ noncompliance_report.serviceTag }}"
+            firmware_components: "{{ noncompliance_report.sourceNames }}"
+      delegate_to: localhost
