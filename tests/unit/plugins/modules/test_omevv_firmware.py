@@ -13,14 +13,17 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 import pytest
+import json
 import datetime
 from unittest.mock import MagicMock
+from io import StringIO
 from ansible_collections.dellemc.openmanage.plugins.modules.omevv_firmware import FirmwareUpdate, UpdateCluster
 from ansible_collections.dellemc.openmanage.plugins.modules import omevv_firmware
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import AnsibleFailJSonException
-from mock import MagicMock
+from ansible.module_utils._text import to_text
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.omevv_firmware.'
 UTILS_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.utils.'
@@ -987,7 +990,7 @@ class TestUpdateCluster(FakeAnsibleModule):
 
 
 class TestUpdateClusterFirmware(FakeAnsibleModule):
-    module = UpdateCluster
+    module = omevv_firmware
 
     @pytest.fixture
     def omevv_firmware_mock(self):
@@ -1343,96 +1346,32 @@ class TestUpdateClusterFirmware(FakeAnsibleModule):
         # Verify the exit message for job failure
         assert excinfo.value.args[0] == FAILED_UPDATE_TIMEOUT_MSG.format('-10')
 
-    def test_main_http_error(self, mocker, omevv_default_args):
-        # Mock the OMEVVAnsibleModule initialization
-        mock_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
-        mocker.patch(MODULE_PATH + 'OMEVVAnsibleModule', return_value=mock_module)
-
-        # Mock the 'RestOMEVV' context manager to raise HTTPError
-        mocker.patch(MODULE_PATH + 'RestOMEVV',
-                     __enter__=MagicMock(), __exit__=MagicMock(),
-                     side_effect=HTTPError('url', 500, 'Internal Server Error', {}, None))
-
-        # Mock json load to return error message in case of exception
-        mocker.patch('json.load', return_value={"message": "Internal Server Error"})
-
-        # Mock the exit_json method to capture the exit
-        mocker.patch(ANSIBLE_MODULE_EXIT_JSON, side_effect=AnsibleFailJSonException)
-
-        with pytest.raises(AnsibleFailJSonException) as excinfo:
-            omevv_firmware.main()
-
-        assert excinfo.value.args[0] == "Internal Server Error"
-
-    def test_main_url_error(self, mocker, omevv_default_args):
-        # Mock the OMEVVAnsibleModule initialization
-        mock_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
-        mocker.patch(MODULE_PATH + 'OMEVVAnsibleModule', return_value=mock_module)
-
-        # Mock the 'RestOMEVV' context manager to raise URLError
-        mocker.patch(MODULE_PATH + 'RestOMEVV', __enter__=MagicMock(), __exit__=MagicMock(),
-                     side_effect=URLError('url error'))
-
-        # Mock the exit_json method to capture the exit
-        mocker.patch(ANSIBLE_MODULE_EXIT_JSON, side_effect=AnsibleFailJSonException)
-
-        with pytest.raises(AnsibleFailJSonException) as excinfo:
-            omevv_firmware.main()
-
-        assert excinfo.value.args[0] == "The URL with IP XX.XX.XX.XX and port None cannot be reached."
-
-    def test_main_general_exception(self, mocker, omevv_default_args):
-        # Mock the OMEVVAnsibleModule initialization
-        mock_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
-        mocker.patch(MODULE_PATH + 'OMEVVAnsibleModule', return_value=mock_module)
-
-        # Mock the 'RestOMEVV' context manager to raise a general exception
-        mocker.patch(MODULE_PATH + 'RestOMEVV', __enter__=MagicMock(), __exit__=MagicMock(),
-                     side_effect=ValueError('general error'))
-
-        # Mock the exit_json method to capture the exit
-        mocker.patch(ANSIBLE_MODULE_EXIT_JSON, side_effect=AnsibleFailJSonException)
-
-        with pytest.raises(AnsibleFailJSonException) as excinfo:
-            omevv_firmware.main()
-
-        assert excinfo.value.args[0] == 'general error'
-
-    def test_main_source_not_found_error(self, mocker, omevv_default_args):
-        # Mock the OMEVVAnsibleModule initialization
-        mock_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
-        mocker.patch(MODULE_PATH + 'OMEVVAnsibleModule', return_value=mock_module)
-
-        # Mock the 'RestOMEVV' context manager to raise HTTPError with code 404
-        mocker.patch(MODULE_PATH + 'RestOMEVV', __enter__=MagicMock(), __exit__=MagicMock(), side_effect=HTTPError('url', 404, 'Not Found', {}, None))
-
-        try:
-            omevv_firmware.main()
-        except AnsibleFailJSonException as err:
-            assert err.args[0] == SOURCE_NOT_FOUND_MSG
-
-    def test_main_http_error_with_error_info(self, mocker, omevv_default_args):
-        # Mock the OMEVVAnsibleModule initialization
-        mock_module = self.get_module_mock(params=omevv_default_args, check_mode=False)
-        mocker.patch(MODULE_PATH + 'OMEVVAnsibleModule', return_value=mock_module)
-
-        # Define the error details
-        error_message = "Some HTTP error occurred"
-        error_info = {"message": error_message, "type": "HTTPError"}
-
-        # Mock the HTTPError with a sample error details
-        http_error = HTTPError('url', 403, 'Forbidden', {}, None)
-        mocker.patch(MODULE_PATH + 'RestOMEVV', __enter__=MagicMock(), __exit__=MagicMock(),
-                     side_effect=http_error)
-
-        # Mock json load to return a custom error message with details
-        mocker.patch('json.load', return_value=error_info)
-
-        # Mock the exit_json method to capture the exit
-        mocker.patch(ANSIBLE_MODULE_EXIT_JSON, side_effect=AnsibleFailJSonException)
-
-        with pytest.raises(AnsibleFailJSonException) as excinfo:
-            omevv_firmware.main()
-
-        # Verify the exception message and error info
-        assert excinfo.value.args[0] == error_message
+    @pytest.mark.parametrize("exc_type",
+                             [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
+    def test_omevv_firmware_repository_profile_main_exception_handling_case(self, exc_type, mocker, omevv_default_args,
+                                                                            omevv_firmware_mock):
+        HTTP_ERROR = "http error message"
+        HTTP_ERROR_URL = 'https://testhost.com'
+        RETURN_TYPE = "application/json"
+        omevv_firmware_mock.status_code = 400
+        omevv_firmware_mock.success = False
+        json_str = to_text(json.dumps(
+            {"errorCode": "501", "message": "Error"}))
+        if exc_type in [HTTPError, SSLValidationError]:
+            mocker.patch(MODULE_PATH + 'UpdateCluster' +
+                         '.execute',
+                         side_effect=exc_type(HTTP_ERROR_URL, 400,
+                                              HTTP_ERROR,
+                                              {"accept-type": RETURN_TYPE},
+                                              StringIO(json_str)))
+        else:
+            mocker.patch(MODULE_PATH + 'UpdateCluster' +
+                         '.execute', side_effect=exc_type('test'))
+        omevv_default_args.update({"run_now": True,
+                                   "targets": [{"firmware_components": "testhost.com"}]})
+        result = self._run_module(omevv_default_args)
+        if exc_type == URLError:
+            assert result['changed'] is False
+        else:
+            assert result['failed'] is True
+        assert 'msg' in result
