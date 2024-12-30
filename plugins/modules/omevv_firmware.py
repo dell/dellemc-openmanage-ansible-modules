@@ -953,9 +953,9 @@ class UpdateCluster(FirmwareUpdate):
         Returns:
             bool: True if the update job is allowed, False otherwise.
         """
-        update_job_status = self.omevv_update_obj.check_existing_update_job(vcenter_uuid,
-                                                                            cluster_group_id)
-        if update_job_status is not True:
+        try:
+            self.omevv_update_obj.check_existing_update_job(vcenter_uuid, cluster_group_id)
+        except Exception:
             self.module.exit_json(msg=UPDATE_JOB_PRESENT_MSG.format(cluster_name=cluster_name),
                                   skipped=True)
 
