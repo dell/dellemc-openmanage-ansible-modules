@@ -658,12 +658,11 @@ class UpdateCluster(FirmwareUpdate):
 
         self.is_job_name_existing(vcenter_uuid, self.module.params.get('job_name'))
 
-        firmware_update_needed, before_no_change_dict, after_no_change_dict, before_dict, after_dict = self.is_firmware_update_needed(
+        firmware_update_needed, before_dict, after_dict = self.is_firmware_update_needed(
             vcenter_uuid, cluster_group_id, new_host_id, parameters['targets'], host_service_tags)
 
         if self.module.check_mode:
-            self.handle_check_mode(firmware_update_needed, before_no_change_dict,
-                                   after_no_change_dict, before_dict, after_dict)
+            self.handle_check_mode(firmware_update_needed, before_dict, after_dict)
 
         if firmware_update_needed:
             self.handle_firmware_update(vcenter_uuid, cluster_group_id, payload, parameters,
@@ -671,8 +670,8 @@ class UpdateCluster(FirmwareUpdate):
 
         else:
             self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG,
-                                  diff={"before": before_no_change_dict,
-                                        "after": after_no_change_dict}, changed=False)
+                                  diff={"before": before_dict,
+                                        "after": after_dict}, changed=False)
 
     def process_cluster_target(self, target):
         """
@@ -741,15 +740,12 @@ class UpdateCluster(FirmwareUpdate):
             host_ids, host_service_tags = self.get_host_id_either_host_or_service_tag(vcenter_uuid, target)
             return host_ids, host_service_tags
 
-    def handle_check_mode(self, firmware_update_needed, before_no_change_dict,
-                          after_no_change_dict, before_dict, after_dict):
+    def handle_check_mode(self, firmware_update_needed, before_dict, after_dict):
         """
         Handles the check mode for firmware update.
 
         Args:
             firmware_update_needed (bool): Indicates if firmware update is needed.
-            before_no_change_dict (dict): The dictionary representing the state before no changes.
-            after_no_change_dict (dict): The dictionary representing the state after no changes.
             before_dict (dict): The dictionary representing the state before the update.
             after_dict (dict): The dictionary representing the state after the update.
 
@@ -765,8 +761,8 @@ class UpdateCluster(FirmwareUpdate):
         else:
             if self.module._diff:
                 self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False,
-                                      diff={"before": before_no_change_dict,
-                                            "after": after_no_change_dict})
+                                      diff={"before": before_dict,
+                                            "after": after_dict})
             else:
                 self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
 
@@ -873,19 +869,15 @@ class UpdateCluster(FirmwareUpdate):
 
         main_before_dict = {}
         main_after_dict = {}
-        main_before_no_change_dict = {}
-        main_after_no_change_dict = {}
         for idx, one_host_id in enumerate(host_ids):
-            update_needed, before_no_change_dict, after_no_change_dict, before_dict, after_dict, current_host_st = self.check_firmware_update(
+            update_needed, before_dict, after_dict, current_host_st = self.check_firmware_update(
                 vcenter_uuid, cluster_group_id, one_host_id, target)
             main_before_dict[current_host_st] = before_dict
             main_after_dict[current_host_st] = after_dict
-            main_before_no_change_dict[current_host_st] = before_no_change_dict
-            main_after_no_change_dict[current_host_st] = after_no_change_dict
 
             firmware_update_needed = firmware_update_needed or update_needed
 
-        return firmware_update_needed, main_before_no_change_dict, main_after_no_change_dict, main_before_dict, main_after_dict
+        return firmware_update_needed, main_before_dict, main_after_dict
 
     def check_firmware_update(self, vcenter_uuid, cluster_group_id, host_id, target):
         """
@@ -900,14 +892,12 @@ class UpdateCluster(FirmwareUpdate):
         Returns:
             tuple: A tuple containing the following:
                 - firmware_update_needed (bool): A boolean indicating if firmware update is needed.
-                - before_no_change_dict (dict): A dictionary containing the firmware version before the update.
-                - after_no_change_dict (dict): A dictionary containing the firmware version after the update.
                 - before_dict (dict): A dictionary containing the firmware version before the update.
                 - after_dict (dict): A dictionary containing the firmware version after the update.
                 - current_host_st (str): The service tag of the current host.
         """
         current_host_st = None
-        before_dict, after_dict, before_no_change_dict, after_no_change_dict = {}, {}, {}, {}
+        before_dict, after_dict = {}, {}
         if 'cluster' in target[0] and target[0]['cluster']:
             cluster_firmware_drift_info = self.omevv_info_obj.get_firmware_drift_info_for_single_host(
                 vcenter_uuid, cluster_group_id, host_id)
@@ -923,23 +913,17 @@ class UpdateCluster(FirmwareUpdate):
                 'hostComplianceReports', [])[0].get('componentCompliances', [])
 
         required_firmware_components = target[0]['firmware_components']
-        firmware_update_needed = False
 
         for component in required_firmware_components:
             for current_component in current_firmware_components:
-                if current_component['sourceName'] == component and current_component['driftStatus'] == 'NonCompliant':
+                if current_component['sourceName'] == component:
                     before_dict[current_component["sourceName"]] = {
                         "firmwareversion": current_component["currentValue"]}
                     after_dict[current_component["sourceName"]] = {
                         "firmwareversion": current_component["baselineValue"]}
-                    firmware_update_needed = True
-                elif current_component['sourceName'] == component and current_component['driftStatus'] == 'Compliant':
-                    before_no_change_dict[current_component["sourceName"]] = {
-                        "firmwareversion": current_component["currentValue"]}
-                    after_no_change_dict[current_component["sourceName"]] = {
-                        "firmwareversion": current_component["baselineValue"]}
+        firmware_update_needed = (before_dict != after_dict)
 
-        return firmware_update_needed, before_no_change_dict, after_no_change_dict, before_dict, after_dict, current_host_st
+        return firmware_update_needed, before_dict, after_dict, current_host_st
 
     def is_update_job_allowed(self, vcenter_uuid, cluster_group_id, cluster_name):
         """
