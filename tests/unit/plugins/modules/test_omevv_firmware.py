@@ -361,7 +361,7 @@ class TestUpdateCluster(FakeAnsibleModule):
         value = (1034, {}, 1001)
         mocker.patch(MODULE_PATH + 'UpdateCluster.process_cluster_target', return_value=value)
         mocker.patch(MODULE_PATH + 'UpdateCluster.is_firmware_update_needed',
-                     return_value=(False, 2, 3, 4, 5))
+                     return_value=(False, 2, 3))
         mocker.patch(MODULE_PATH + 'UpdateCluster.is_update_job_allowed', return_value=True)
         mocker.patch(MODULE_PATH + 'UpdateCluster.is_job_name_existing', return_value=None)
         mocker.patch(MODULE_PATH + 'UpdateCluster.handle_check_mode', return_value=None)
@@ -494,16 +494,12 @@ class TestUpdateCluster(FakeAnsibleModule):
 
         # Setup the parameters for the test
         firmware_update_needed = True
-        before_no_change_dict = {'component1': {'firmwareversion': '1.0.0'}}
-        after_no_change_dict = {'component1': {'firmwareversion': '1.0.1'}}
         before_dict = {'component2': {'firmwareversion': '2.0.0'}}
         after_dict = {'component2': {'firmwareversion': '2.0.1'}}
 
         # Execute the method with change
         with pytest.raises(AnsibleFailJSonException) as excinfo:
             omevv_obj.handle_check_mode(firmware_update_needed,
-                                        before_no_change_dict,
-                                        after_no_change_dict,
                                         before_dict, after_dict)
 
         assert excinfo.value.args[0] == CHANGES_FOUND_MSG
@@ -517,16 +513,12 @@ class TestUpdateCluster(FakeAnsibleModule):
 
         # Setup the parameters for the test
         firmware_update_needed = True
-        before_no_change_dict = {}
-        after_no_change_dict = {}
         before_dict = {}
         after_dict = {}
 
         # Execute the method without diff
         with pytest.raises(AnsibleFailJSonException) as excinfo:
             omevv_obj.handle_check_mode(firmware_update_needed,
-                                        before_no_change_dict,
-                                        after_no_change_dict,
                                         before_dict, after_dict)
 
         assert excinfo.value.args[0] == CHANGES_FOUND_MSG
@@ -540,16 +532,12 @@ class TestUpdateCluster(FakeAnsibleModule):
 
         # Setup the parameters for the test
         firmware_update_needed = False
-        before_no_change_dict = {'component1': {'firmwareversion': '1.0.0'}}
-        after_no_change_dict = {'component1': {'firmwareversion': '1.0.0'}}
         before_dict = {}
         after_dict = {}
 
         # Execute the method with no change
         with pytest.raises(AnsibleFailJSonException) as excinfo:
             omevv_obj.handle_check_mode(firmware_update_needed,
-                                        before_no_change_dict,
-                                        after_no_change_dict,
                                         before_dict, after_dict)
 
         assert excinfo.value.args[0] == CHANGES_NOT_FOUND_MSG
@@ -563,16 +551,12 @@ class TestUpdateCluster(FakeAnsibleModule):
 
         # Setup the parameters for the test
         firmware_update_needed = False
-        before_no_change_dict = {}
-        after_no_change_dict = {}
         before_dict = {}
         after_dict = {}
 
         # Execute the method without diff and no change
         with pytest.raises(AnsibleFailJSonException) as excinfo:
             omevv_obj.handle_check_mode(firmware_update_needed,
-                                        before_no_change_dict,
-                                        after_no_change_dict,
                                         before_dict, after_dict)
 
         assert excinfo.value.args[0] == CHANGES_NOT_FOUND_MSG
@@ -584,8 +568,6 @@ class TestUpdateCluster(FakeAnsibleModule):
         omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
 
         firmware_update_needed = True
-        before_no_change_dict = {'component1': {'firmwareversion': '1.0.0'}}
-        after_no_change_dict = {'component1': {'firmwareversion': '1.0.0'}}
         before_dict = {'component2': {'firmwareversion': '2.0.0'}}
         after_dict = {'component2': {'firmwareversion': '3.0.0'}}
 
@@ -595,8 +577,6 @@ class TestUpdateCluster(FakeAnsibleModule):
 
         with pytest.raises(AnsibleFailJSonException) as excinfo:
             omevv_obj.handle_check_mode(firmware_update_needed,
-                                        before_no_change_dict,
-                                        after_no_change_dict,
                                         before_dict, after_dict)
 
         # Verify the exit message for changes found with diff
@@ -609,8 +589,6 @@ class TestUpdateCluster(FakeAnsibleModule):
         omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
 
         firmware_update_needed = True
-        before_no_change_dict = {'component1': {'firmwareversion': '1.0.0'}}
-        after_no_change_dict = {'component1': {'firmwareversion': '1.0.0'}}
         before_dict = {'component2': {'firmwareversion': '2.0.0'}}
         after_dict = {'component2': {'firmwareversion': '3.0.0'}}
 
@@ -619,8 +597,7 @@ class TestUpdateCluster(FakeAnsibleModule):
                      side_effect=AnsibleFailJSonException)
 
         with pytest.raises(AnsibleFailJSonException) as excinfo:
-            omevv_obj.handle_check_mode(firmware_update_needed, before_no_change_dict,
-                                        after_no_change_dict, before_dict, after_dict)
+            omevv_obj.handle_check_mode(firmware_update_needed, before_dict, after_dict)
 
         # Verify the exit message for changes found without diff
         assert excinfo.value.args[0] == CHANGES_FOUND_MSG
@@ -632,8 +609,6 @@ class TestUpdateCluster(FakeAnsibleModule):
         omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
 
         firmware_update_needed = False
-        before_no_change_dict = {'component1': {'firmwareversion': '1.0.0'}}
-        after_no_change_dict = {'component1': {'firmwareversion': '1.0.0'}}
         before_dict = {'component2': {'firmwareversion': '2.0.0'}}
         after_dict = {'component2': {'firmwareversion': '3.0.0'}}
 
@@ -642,8 +617,7 @@ class TestUpdateCluster(FakeAnsibleModule):
                      side_effect=AnsibleFailJSonException)
 
         with pytest.raises(AnsibleFailJSonException) as excinfo:
-            omevv_obj.handle_check_mode(firmware_update_needed, before_no_change_dict,
-                                        after_no_change_dict, before_dict, after_dict)
+            omevv_obj.handle_check_mode(firmware_update_needed, before_dict, after_dict)
 
         # Verify the exit message for no changes found with diff
         assert excinfo.value.args[0] == CHANGES_NOT_FOUND_MSG
@@ -656,8 +630,6 @@ class TestUpdateCluster(FakeAnsibleModule):
         omevv_obj = UpdateCluster(f_module, omevv_connection_firmware)
 
         firmware_update_needed = False
-        before_no_change_dict = {'component1': {'firmwareversion': '1.0.0'}}
-        after_no_change_dict = {'component1': {'firmwareversion': '1.0.0'}}
         before_dict = {'component2': {'firmwareversion': '2.0.0'}}
         after_dict = {'component2': {'firmwareversion': '3.0.0'}}
 
@@ -666,8 +638,7 @@ class TestUpdateCluster(FakeAnsibleModule):
                      side_effect=AnsibleFailJSonException)
 
         with pytest.raises(AnsibleFailJSonException) as excinfo:
-            omevv_obj.handle_check_mode(firmware_update_needed, before_no_change_dict,
-                                        after_no_change_dict, before_dict, after_dict)
+            omevv_obj.handle_check_mode(firmware_update_needed, before_dict, after_dict)
 
         # Verify the exit message for no changes found without diff
         assert excinfo.value.args[0] == CHANGES_NOT_FOUND_MSG
@@ -1017,10 +988,10 @@ class TestUpdateClusterFirmware(FakeAnsibleModule):
         host_service_tags = ['SVCTAG1']
 
         # Mock the `check_firmware_update` method to return that an update is needed
-        mocker.patch(MODULE_PATH + 'UpdateCluster.check_firmware_update', return_value=(True, {}, {}, {}, {}, 'SVCTAG1'))
+        mocker.patch(MODULE_PATH + 'UpdateCluster.check_firmware_update', return_value=(True, {}, {}, 'SVCTAG1'))
 
         # Execute the method
-        firmware_update_needed, dict_0, dict_1, main_before_dict, main_after_dict = omevv_obj.is_firmware_update_needed(
+        firmware_update_needed, main_before_dict, main_after_dict = omevv_obj.is_firmware_update_needed(
             vcenter_uuid, cluster_group_id, host_ids, target, host_service_tags)
 
         # Verify the result
@@ -1042,12 +1013,12 @@ class TestUpdateClusterFirmware(FakeAnsibleModule):
 
         # Mock the `check_firmware_update` method to return different results for multiple hosts
         mocker.patch(MODULE_PATH + 'UpdateCluster.check_firmware_update', side_effect=[
-            (True, {}, {}, {}, {}, 'SVCTAG1'),
-            (False, {}, {}, {}, {}, 'SVCTAG2')
+            (True, {}, {}, 'SVCTAG1'),
+            (False, {}, {}, 'SVCTAG2')
         ])
 
         # Execute the method
-        firmware_update_needed, dict_1, dict_2, main_before_dict, main_after_dict = omevv_obj.is_firmware_update_needed(
+        firmware_update_needed, main_before_dict, main_after_dict = omevv_obj.is_firmware_update_needed(
             vcenter_uuid, cluster_group_id, host_ids, target, host_service_tags)
 
         # Verify the result
@@ -1082,14 +1053,12 @@ class TestUpdateClusterFirmware(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + OMEVV_INFO_FIRMWARE_DRIFT_INFO,
                      return_value=firmware_drift_info)
 
-        firmware_update_needed, before_no_change_dict, after_no_change_dict, before_dict, after_dict, st_1 = omevv_obj.check_firmware_update(
+        firmware_update_needed, before_dict, after_dict, st_1 = omevv_obj.check_firmware_update(
             vcenter_uuid, cluster_group_id, host_id, target)
 
         assert not firmware_update_needed
-        assert before_no_change_dict == {'component1': {'firmwareversion': '1.0.0'}}
-        assert after_no_change_dict == {'component1': {'firmwareversion': '1.0.0'}}
-        assert before_dict == {}
-        assert after_dict == {}
+        assert before_dict == {'component1': {'firmwareversion': '1.0.0'}}
+        assert after_dict == {'component1': {'firmwareversion': '1.0.0'}}
 
     def test_check_firmware_update_non_compliant(self, mocker, omevv_connection_firmware,
                                                  omevv_default_args):
@@ -1118,12 +1087,10 @@ class TestUpdateClusterFirmware(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + OMEVV_INFO_FIRMWARE_DRIFT_INFO,
                      return_value=firmware_drift_info)
 
-        firmware_update_needed, before_no_change_dict, after_no_change_dict, before_dict, after_dict, st_1 = omevv_obj.check_firmware_update(
+        firmware_update_needed, before_dict, after_dict, st_1 = omevv_obj.check_firmware_update(
             vcenter_uuid, cluster_group_id, host_id, target)
 
         assert firmware_update_needed
-        assert before_no_change_dict == {}
-        assert after_no_change_dict == {}
         assert before_dict == {'component1': {'firmwareversion': '1.0.0'}}
         assert after_dict == {'component1': {'firmwareversion': '2.0.0'}}
 
@@ -1160,14 +1127,12 @@ class TestUpdateClusterFirmware(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + OMEVV_INFO_FIRMWARE_DRIFT_INFO,
                      return_value=firmware_drift_info)
 
-        firmware_update_needed, before_no_change_dict, after_no_change_dict, before_dict, after_dict, st_1 = omevv_obj.check_firmware_update(
+        firmware_update_needed, before_dict, after_dict, st_1 = omevv_obj.check_firmware_update(
             vcenter_uuid, cluster_group_id, host_id, target)
 
         assert firmware_update_needed
-        assert before_no_change_dict == {'component2': {'firmwareversion': '3.0.0'}}
-        assert after_no_change_dict == {'component2': {'firmwareversion': '3.0.0'}}
-        assert before_dict == {'component1': {'firmwareversion': '1.0.0'}}
-        assert after_dict == {'component1': {'firmwareversion': '2.0.0'}}
+        assert before_dict == {'component1': {'firmwareversion': '1.0.0'}, 'component2': {'firmwareversion': '3.0.0'}}
+        assert after_dict == {'component1': {'firmwareversion': '2.0.0'}, 'component2': {'firmwareversion': '3.0.0'}}
 
     def test_is_update_job_allowed_false(self, mocker,
                                          omevv_connection_firmware, omevv_default_args):
