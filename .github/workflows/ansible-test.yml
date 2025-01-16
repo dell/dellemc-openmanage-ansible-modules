@@ -46,7 +46,7 @@ jobs:
 
   ansible-lint:
     needs: [build]
-    uses: ansible/ansible-content-actions/.github/workflows/ansible-lint.yaml@main
+    uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@main
   sanity:
     needs: [build]
     uses: ansible/ansible-content-actions/.github/workflows/sanity.yaml@main
