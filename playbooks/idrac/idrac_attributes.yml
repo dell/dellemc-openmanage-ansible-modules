@@ -4,7 +4,7 @@
   gather_facts: false
 
   tasks:
-    - name: update iDRAC attributes
+    - name: Update iDRAC attributes
       dellemc.openmanage.idrac_attributes:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
