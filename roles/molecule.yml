@@ -6,8 +6,8 @@ driver:
   name: podman
 platforms:
   - name: centos
-    image: quay.io/centos/centos:stream8
-    pre_build_image: true
+    image: quay.io/centos/centos:stream10
+    pre_build_image: false
     volumes:
       - /tmp:/tmp
     cgroupns_mode: host
@@ -20,6 +20,7 @@ provisioner:
       fact_caching_connection: /tmp/facts_cache
       fact_caching_timeout: 1800
   env:
+    RUNON: "centos"
     idrac_powercycle_wait_seconds: 180
     idrac_certificate_delegate_to: localhost
     redfish_firmware_image_url_need_reboot: "https://dl.dell.com/FOLDER07217671M/1/SAS-RAID_Firmware_700GG_WN64_25.5.9.0001_A17.EXE"

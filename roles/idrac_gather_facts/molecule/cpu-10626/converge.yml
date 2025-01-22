@@ -4,9 +4,9 @@
   connection: local
   gather_facts: false
   vars:
-    hostname: "100.96.25.90"
-    username: "root"
-    password: "Dell_123$"
+    hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+    username: "{{ lookup('env', 'IDRAC_USER') }}"
+    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
     validate_certs: false
     target:
       - CPU
