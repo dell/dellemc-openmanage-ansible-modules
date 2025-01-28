@@ -1,4 +1,3 @@
----
 - name: Converge idrac_firmware for cifsshare
   hosts: all
   gather_facts: false
@@ -17,7 +16,7 @@
         reboot: true
         job_wait: true
         apply_update: true
-        catalog_file_name: "Catalog.xml"
+        catalog_file_name: "{{ catalog_file_name }}"
 
     - name: "Verifying update firmware from repository on a CIFS Share in check mode"
       ansible.builtin.assert:

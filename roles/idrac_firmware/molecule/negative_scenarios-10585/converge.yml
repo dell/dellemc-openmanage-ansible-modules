@@ -11,7 +11,7 @@
         username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         share_name: "{{ lookup('env', 'httpshare') }}"
-        catalog_file_name: "Catalog.xml"
+        catalog_file_name: "{{ catalog_file_name }}"
         reboot: true
         job_wait: true
         apply_update: true
@@ -29,7 +29,7 @@
         username: "invalidUsername"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         share_name: "{{ lookup('env', 'httpshare') }}"
-        catalog_file_name: "Catalog.xml"
+        catalog_file_name: "{{ catalog_file_name }}"
         reboot: true
         job_wait: true
         apply_update: true
@@ -49,7 +49,7 @@
         username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "invalidPassword"
         share_name: "{{ lookup('env', 'httpsshare') }}"
-        catalog_file_name: "Catalog.xml"
+        catalog_file_name: "{{ catalog_file_name }}"
         reboot: true
         job_wait: true
         apply_update: true
@@ -70,7 +70,7 @@
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         share_name: "{{ lookup('env', 'httpsshare') }}"
         ca_path: "/invalid/ca/path.cert"
-        catalog_file_name: "Catalog.xml"
+        catalog_file_name: "{{ catalog_file_name }}"
         reboot: true
         job_wait: true
         apply_update: true
@@ -116,7 +116,7 @@
         reboot: true
         job_wait: true
         apply_update: true
-        catalog_file_name: "catalog.xml"
+        catalog_file_name: "{{ catalog_file_name }}"
       ignore_errors: true
       register: idrac_firmware_result
 
@@ -141,7 +141,7 @@
         reboot: true
         job_wait: true
         apply_update: true
-        catalog_file_name: "catalog.xml"
+        catalog_file_name: "{{ catalog_file_name }}"
       ignore_errors: true
       register: idrac_firmware_result
 
@@ -172,7 +172,7 @@
         proxy_port: "{{ lookup('env', 'proxyport') }}"
         proxy_uname: "{{ lookup('env', 'proxy_username') }}"
         proxy_passwd: "{{ lookup('env', 'proxy_password') }}"
-        catalog_file_name: "catalog.xml"
+        catalog_file_name: "{{ catalog_file_name }}"
 
     - name: "Verifying update firmware from repository on a HTTPS via parameter proxy share with invalid proxy_uname"
       ansible.builtin.assert:
@@ -200,7 +200,7 @@
         proxy_port: "{{ lookup('env', 'proxyport') }}"
         proxy_uname: "{{ lookup('env', 'proxy_username') }}"
         proxy_passwd: "invalidPasswd"
-        catalog_file_name: "catalog.xml"
+        catalog_file_name: "{{ catalog_file_name }}"
       ignore_errors: true
       register: idrac_firmware_result
 
