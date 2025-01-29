@@ -1,5 +1,5 @@
 ---
-- name: Converge
+- name: TC-123862 - Ansible - Role- redfish_storage_volume - [Check Mode] [Idempotency] Validate creating RAID1 with apply_time as Immediate
   hosts: all
   vars:
     redfish_storage_volume_failure: {}
@@ -28,7 +28,7 @@
           when: redfish_storage_volume_drive_list | length < redfish_storage_volume_minimum_drives
           failed_when: true
 
-        - name: To check the behaviour of Mirrored.
+        - name: "Create a volume for PERC, raid_type {{ redfish_storage_volume_raid }}"
           ansible.builtin.import_role:
             name: dellemc.openmanage.redfish_storage_volume
           vars:
@@ -41,9 +41,8 @@
             volume_name: "VD_PERC"
             controller_id: "{{ redfish_storage_volume_perc_raid_controller_id }}"
             drives: "{{ redfish_storage_volume_drive_list[:redfish_storage_volume_minimum_drives] }}"
-            capacity_bytes: 214748364800
             optimum_io_size_bytes: 65536
-            encrypted: false
+            apply_time: "Immediate"
             job_wait: true
 
         - name: Asserting operation with check mode.
@@ -60,15 +59,3 @@
           ansible.builtin.assert:
             that: redfish_storage_volume_out.msg == "No changes found to be applied."
           when: not ansible_check_mode and not redfish_storage_volume_out.changed
-
-      rescue:
-        - name: Set the failure messages for PERC
-          ansible.builtin.set_fact:
-            redfish_storage_volume_failure: "{{  redfish_storage_volume_failure | combine({'PERC': {'msg': ansible_failed_result.msg,
-                      'failed_task_name': ansible_failed_task.name}}) }}"
-
-    - name: Collecting failure
-      ansible.builtin.debug:
-        var: redfish_storage_volume_failure
-      when: redfish_storage_volume_failure
-      failed_when: true

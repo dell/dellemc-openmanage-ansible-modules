@@ -1,0 +1,38 @@
+---
+- name: Set variable facts
+  ansible.builtin.set_fact:
+    hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
+    https_port: "443"
+    https_timeout: 30
+    validate_certs: false
+
+- name: Constructing url
+  ansible.builtin.set_fact:
+    url_1: "https://{{ hostname | ansible.utils.ipwrap }}:"
+    url_2: "{{ https_port }}/redfish/v1/Managers/"
+    url_3: "iDRAC.Embedded.1/Oem/Dell/DellJobService/Actions"
+    url_4: "/DellJobService.DeleteJobQueue"
+
+- name: Final url
+  ansible.builtin.set_fact:
+    clear_job_url: "{{ url_1 }}{{ url_2 }}{{ url_3 }}{{ url_4 }}"
+
+- name: Clearing job queue
+  ansible.builtin.uri:
+    url: "{{ clear_job_url }}"
+    user: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
+    password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    headers:
+      Accept: "application/json"
+      Content-Type: "application/json"
+      OData-Version: "4.0"
+    body_format: "json"
+    method: POST
+    body: {"JobID": "JID_CLEARALL"}
+    return_content: true
+    force_basic_auth: true
+    timeout: "60"
+  check_mode: false
+  register: idrac_storage_controller_result
