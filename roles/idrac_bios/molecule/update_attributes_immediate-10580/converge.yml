@@ -17,7 +17,7 @@
 
     - name: Update attributes with apply time as Immediate
       ansible.builtin.import_role:
-        name: idrac_bios
+        name: dellemc.openmanage.idrac_bios
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
