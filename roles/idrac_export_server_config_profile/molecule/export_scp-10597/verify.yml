@@ -26,6 +26,13 @@
     http_url: "{{ lookup('env', 'http_url') }}"
     http_username: "{{ lookup('env', 'http_username') }}"
     http_password: "{{ lookup('env', 'http_password') }}"
+
+    wget_cmd: "wget %s --directory-prefix=%s"
+    dest: "/tmp/"
+    wget_http_url: "{{ http_url }}/{{ http_filename }}"
+    wget_https_url: "{{ https_url }}/{{ https_filename }}"
+    wget_cmd_vc: " --no-check-certificate"
+    wget_cmd_creds: " --user={{ https_username }} --password={{ https_password }}"
   tasks:
     - name: Checking exported file exists in Local path
       ansible.builtin.stat:
@@ -75,18 +82,15 @@
       register: cifs_file
 
     - name: Downloading HTTP file to localhost
-      ansible.builtin.uri:
-        url: "{{ http_url }}/{{ http_filename }}"
-        dest: "/tmp/"
-        force_basic_auth: true
-        validate_certs: false
-        url_username: "{{ http_username }}"
-        url_password: "{{ http_password }}"
-        mode: '0755'
-        use_proxy: false
+      register: http_dnld_wget_cmd_out
+      no_log: false
       delegate_to: localhost
-      register: http_file_download
-      changed_when: false
+      changed_when: http_dnld_wget_cmd_out.rc == 0
+      failed_when: http_dnld_wget_cmd_out.rc != 0
+      ansible.builtin.command: >
+        {{ wget_cmd | format(wget_http_url, dest) }}
+        {{ wget_cmd_vc }}
+        {{ wget_cmd_creds }}
 
     - name: Checking file exists in current location
       ansible.builtin.stat:
@@ -95,18 +99,15 @@
       register: http_file
 
     - name: Downloading HTTPS file to localhost
-      ansible.builtin.uri:
-        url: "{{ https_url }}/{{ https_filename }}"
-        dest: "/tmp/"
-        force_basic_auth: true
-        validate_certs: false
-        url_username: "{{ https_username }}"
-        url_password: "{{ https_password }}"
-        use_proxy: false
-        mode: '0755'
+      register: https_dnld_wget_cmd_out
+      no_log: false
       delegate_to: localhost
-      register: https_file_download
-      changed_when: false
+      changed_when: https_dnld_wget_cmd_out.rc == 0
+      failed_when: https_dnld_wget_cmd_out.rc != 0
+      ansible.builtin.command: >
+        {{ wget_cmd | format(wget_https_url, dest) }}
+        {{ wget_cmd_vc }}
+        {{ wget_cmd_creds }}
 
     - name: Checking file exists in current location
       ansible.builtin.stat:
