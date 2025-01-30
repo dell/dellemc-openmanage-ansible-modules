@@ -51,6 +51,9 @@
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        share_name: "{{ lookup('env', 'httpsproxy') }}"
+        share_user: "{{ lookup('env', 'shareuser') }}"
+        share_password: "{{ lookup('env', 'sharepassword') }}"
         validate_certs: false
         reboot: true
         job_wait: true
@@ -94,7 +97,7 @@
         proxy_support: "ParametersProxy"
         proxy_server: "{{ lookup('env', 'proxyserversocks') }}"
         proxy_type: "SOCKS"
-        proxy_port: "{{ lookup('env', 'proxy_port') }}"
+        proxy_port: "{{ lookup('env', 'proxyserversocks_port') }}"
         catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
 
     - name: "Verifying update firmware from repository on a HTTPS via parameter proxy with proxy_type as SOCKS share in check mode"

@@ -3,6 +3,11 @@
   hosts: all
   gather_facts: false
   tasks:
+    - name: "Pre-requisites"
+      ansible.builtin.include_tasks:
+        file: "../resources/tests/downgrade.yml"
+      tags: molecule-idempotence-notest
+
     - name: Update firmware from repository on a NFS Share
       ansible.builtin.import_role:
         name: idrac_firmware
@@ -15,7 +20,7 @@
         reboot: true
         job_wait: true
         apply_update: true
-        catalog_file_name: "{{ catalog_file_name }}"
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
 
     - name: "Verifying update firmware from repository on a NFS Share in check mode"
       ansible.builtin.assert:
