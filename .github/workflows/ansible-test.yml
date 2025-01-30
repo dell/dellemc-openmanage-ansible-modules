@@ -75,7 +75,7 @@ jobs:
         run: ansible-galaxy collection install ansible.posix
 
       - name: Run Ansible lint
-        run: ansible-lint --show-relpath
+        run: ansible-lint --show-relpath --offline
         working-directory: /home/runner/work/dellemc-openmanage-ansible-modules/dellemc-openmanage-ansible-modules
 
   sanity:
