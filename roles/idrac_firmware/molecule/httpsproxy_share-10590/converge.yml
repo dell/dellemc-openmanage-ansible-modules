@@ -23,7 +23,7 @@
         proxy_port: "{{ lookup('env', 'proxy_port') }}"
         proxy_uname: "{{ lookup('env', 'proxy_username') }}"
         proxy_passwd: "{{ lookup('env', 'proxy_password') }}"
-        catalog_file_name: "{{ catalog_file_name }}"
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
 
     - name: "Verifying update firmware from repository on a HTTPS via parameter proxy share in check mode"
       ansible.builtin.assert:
@@ -56,7 +56,7 @@
         job_wait: true
         apply_update: true
         proxy_support: "DefaultProxy"
-        catalog_file_name: "{{ catalog_file_name }}"
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
 
     - name: "Verifying update firmware from repository on a HTTPS via default proxy share in check mode"
       ansible.builtin.assert:
@@ -95,7 +95,7 @@
         proxy_server: "{{ lookup('env', 'proxyserversocks') }}"
         proxy_type: "SOCKS"
         proxy_port: "{{ lookup('env', 'proxy_port') }}"
-        catalog_file_name: "{{ catalog_file_name }}"
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
 
     - name: "Verifying update firmware from repository on a HTTPS via parameter proxy with proxy_type as SOCKS share in check mode"
       ansible.builtin.assert:

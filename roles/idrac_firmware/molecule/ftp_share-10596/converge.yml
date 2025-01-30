@@ -14,7 +14,7 @@
         share_name: "{{ lookup('env', 'ftpshare') }}"
         share_user: "{{ lookup('env', 'shareuser') }}"
         share_password: "{{ lookup('env', 'sharepassword') }}"
-        catalog_file_name: "{{ catalog_file_name }}"
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
         reboot: true
         job_wait: true
         apply_update: true
