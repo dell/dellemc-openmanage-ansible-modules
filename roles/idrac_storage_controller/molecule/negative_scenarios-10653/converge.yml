@@ -27,10 +27,10 @@
               reset_type with invalid hostname"
       ansible.builtin.assert:
         that:
-          - "'<urlopen error Unable to communicate with iDRAC randomHostname.'
-              in '{{ reset_config_out.msg }}' or
-            '<urlopen error [Errno -2] Name or service not known>' in
-              '{{ reset_config_out.msg }}'"
+          - "'<urlopen error Unable to communicate with iDRAC randomHostname.
+              in reset_config_out.msg' or
+            '<urlopen error [Errno -2] Name or service not known> in
+              reset_config_out.msg'"
 
     - name: Performing operation on the iDRAC device using default
             reset_type with invalid username
@@ -51,7 +51,7 @@
               reset_type with invalid username"
       ansible.builtin.assert:
         that:
-          - "'HTTP Error 401' in '{{ reset_config_out.msg }}'"
+          - "'HTTP Error 401 in reset_config_out.msg'"
 
     - name: Performing operation on the iDRAC device using default
             reset_type with invalid password
@@ -72,7 +72,7 @@
               reset_type with invalid password"
       ansible.builtin.assert:
         that:
-          - "'HTTP Error 401' in '{{ reset_config_out.msg }}'"
+          - "'HTTP Error 401 in reset_config_out.msg'"
 
     - name: Performing operation on the iDRAC device using default
             reset_type without controller ID
@@ -164,7 +164,7 @@
         attributes:
           CopybackMode: "On"
           PatrolReadMode: Disabled
-        apply_time: "InMaintenanceWindowOnReset"
+        apply_time: "AtMaintenanceWindowStart"
         maintenance_window:
           start_time: "Invalid_start_time"
           duration: "180"

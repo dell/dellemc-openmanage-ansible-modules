@@ -33,6 +33,6 @@
     body: {"JobID": "JID_CLEARALL"}
     return_content: true
     force_basic_auth: true
-    timeout: "{{ https_timeout }}"
+    timeout: "60"
   check_mode: false
   register: idrac_storage_controller_result

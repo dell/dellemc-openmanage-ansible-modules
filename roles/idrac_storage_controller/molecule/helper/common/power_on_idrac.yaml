@@ -8,5 +8,5 @@
     password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
     validate_certs: false
     https_port: 443
-    https_timeout: 30
+    https_timeout: 60
     reset_type: "On"
