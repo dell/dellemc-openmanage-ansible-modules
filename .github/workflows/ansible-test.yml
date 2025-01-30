@@ -44,7 +44,7 @@ jobs:
           name: collection
           path: .cache/collection-tarballs
 
-  ansible-lint:
+  ansi-lint:
     name: Ansible lint
     runs-on: ubuntu-latest
     needs: [build]
@@ -84,9 +84,9 @@ jobs:
         run: ansible-galaxy collection install .cache/collection-tarballs/*.tar.gz
 
       - name: Run Ansible lint
-        run: ansible-lint --show-relpath
+        run: ansible-lint --show-relpath --offline
         working-directory: /home/runner/work/dellemc-openmanage-ansible-modules/dellemc-openmanage-ansible-modules
-  ansi-lint:
+  ansible-lint:
     uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@main
   sanity:
     needs: [build]
