@@ -1,0 +1,50 @@
+- name: Cleanup file
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Fetching data from iDRAC for PERC
+      ansible.builtin.include_tasks:
+        file: ../__extract_storage.yml
+      vars:
+        redfish_storage_volume_search_in_name: 'PERC'
+        redfish_storage_volume_raid: "RAID0"
+
+    - name: Setting PERC controller_id
+      ansible.builtin.set_fact:
+        redfish_storage_volume_perc_raid_controller_id: "{{ redfish_storage_volume_controller_id }}"
+      when: redfish_storage_volume_controller_id != ""
+
+    - name: Waiting for 10 seconds before fetching data
+      ansible.builtin.wait_for:
+        timeout: 10
+
+    - name: Fetching Volume_id from iDRAC
+      ansible.builtin.include_tasks:
+        file: ../__get_helper.yml
+      vars:
+        _url: "Systems/System.Embedded.1/Storage/{{ redfish_storage_volume_controller_id }}/Volumes"
+
+    - name: Set fact for redfish_storage_volume_volume_id_list
+      ansible.builtin.set_fact:
+        redfish_storage_volume_volume_id_list: []
+
+    - name: Extracting volume_id
+      ansible.builtin.set_fact:
+        redfish_storage_volume_volume_id_list: "{{ redfish_storage_volume_volume_id_list + [item['@odata.id'] | ansible.builtin.split('/') | last] }}"
+      loop: "{{ redfish_storage_volume_fetched_output.json.Members }}"
+
+    - name: "Deleting virtual disk in {{ controller_id }}"
+      ansible.builtin.include_role:
+        name: redfish_storage_volume
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        state: absent
+        volume_id: "{{ item }}"
+        reboot_server: true
+        force_reboot: true
+        job_wait: true
+      when: redfish_storage_volume_volume_id_list is defined and redfish_storage_volume_volume_id_list != []
+      loop: "{{ redfish_storage_volume_volume_id_list }}"
