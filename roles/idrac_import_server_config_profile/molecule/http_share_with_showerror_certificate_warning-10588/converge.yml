@@ -10,7 +10,7 @@
       scp_file: "{{ lookup('env', 'http_filename') }}"
       proxy_support: true
       proxy_server: "{{ lookup('env', 'proxy_server') }}"
-      proxy_username: "{{ lookup('env', 'proxy_username') }}"
+      proxy_username: "{{ lookup('env', 'proxy_user') }}"
       proxy_port: "{{ lookup('env', 'proxy_port') }}"
       proxy_password: "{{ lookup('env', 'proxy_password') }}"
       ignore_certificate_warning: showerror
@@ -21,6 +21,7 @@
       vars:
         _share_parameters:
           <<: *share_input
+      when: ansible_check_mode
       tags: molecule-idempotence-notest
 
     - name: "Importing SCP from HTTPS with ignore_certificate_warning as showerror"

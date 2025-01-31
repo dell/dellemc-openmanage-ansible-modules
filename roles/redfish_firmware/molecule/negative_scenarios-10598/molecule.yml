@@ -6,9 +6,11 @@ provisioner:
     cleanup: ../resources/cleanup.yml
 scenario:
   test_sequence:
-    - cleanup
     - destroy
     - syntax
     - create
+    - cleanup
+    - prepare
     - converge
+    - cleanup
     - destroy
