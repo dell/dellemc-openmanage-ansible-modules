@@ -2,11 +2,10 @@
 - name: Set idrac_ip
   ansible.builtin.set_fact:
     idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
-    idrac_port: "{{ lookup('env', 'IDRAC_PORT') }}"
 
 - name: Set job uri
   ansible.builtin.set_fact:
-    url: "https://{{ idrac_ip }}:{{ idrac_port }}
+    url: "https://{{ idrac_ip }}:{{ https_port }}
      /redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{{ job_id }}"
 
 - name: Get data using uri

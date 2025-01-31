@@ -24,6 +24,13 @@
             controller_id: "{{ controller_name }}"
             disks: "{{ my_list }}"
 
+        - name: Waiting for iDRAC to be in ready state
+          ignore_errors: true
+          register: idrac_storage_controller_pd_state_out_lc
+          ansible.builtin.include_tasks:
+            file: ../__lc_status.yaml
+          when: pd_state_out.changed # noqa: no-handler
+
         - name: Verifying disk status change to online in check mode
           ansible.builtin.assert:
             that:
