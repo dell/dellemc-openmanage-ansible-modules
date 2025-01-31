@@ -3,27 +3,26 @@
   hosts: all
   gather_facts: false
   tasks:
-  ############### Below snippet is commented because of Defect: ECS02A-206 ###############
-    # - name: "Importing SCP without share_name"
-    #   ansible.builtin.import_role:
-    #     name: "idrac_import_server_config_profile"
-    #   vars:
-    #     hostname: "{{ lookup('env', 'IDRAC_IP') }}"
-    #     username: "{{ lookup('env', 'IDRAC_USER') }}"
-    #     password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
-    #     validate_certs: false
-    #     target: ['IDRAC']
-    #     share_parameters:
-    #       share_user: "{{ lookup('env', 'http_username') }}"
-    #       share_password: "{{ lookup('env', 'http_password') }}"
-    #       scp_file: "{{ lookup('env', 'http_filename') }}"
-    #   ignore_errors: true
-    #   register: idrac_import_server_config_profile_status
+    - name: "Importing SCP without share_name"
+      ansible.builtin.import_role:
+        name: "idrac_import_server_config_profile"
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        target: ['IDRAC']
+        share_parameters:
+          share_user: "{{ lookup('env', 'http_username') }}"
+          share_password: "{{ lookup('env', 'http_password') }}"
+          scp_file: "{{ lookup('env', 'http_filename') }}"
+      ignore_errors: true
+      register: idrac_import_server_config_profile_status
 
-    # - name: "Verifying Import SCP without share_name"
-    #   ansible.builtin.assert:
-    #     that:
-    #       - idrac_import_server_config_profile_out.msg == "argument of type 'NoneType' is not iterable"
+    - name: "Verifying Import SCP without share_name"
+      ansible.builtin.assert:
+        that:
+          - idrac_import_server_config_profile_out.msg == "argument of type 'NoneType' is not iterable"
 
     - name: "Importing SCP without scp_file"
       ansible.builtin.import_role:
@@ -43,7 +42,7 @@
 
     - name: "Verifying Import SCP without scp_file"
       ansible.builtin.assert:
-        that: 
+        that:
           - "'Invalid file path provided.' in idrac_import_server_config_profile_out.msg or
             'HTTP Error 400: Bad Request' in idrac_import_server_config_profile_out.msg"
 

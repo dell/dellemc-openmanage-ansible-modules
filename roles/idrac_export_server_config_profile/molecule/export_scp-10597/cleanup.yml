@@ -27,70 +27,60 @@
     http_username: "{{ lookup('env', 'http_username') }}"
     http_password: "{{ lookup('env', 'http_password') }}"
   tasks:
-    - name: Checking file exists in NFS mount localhost
+    - name: Checking file exists in NFS mount
       ansible.builtin.stat:
         path: "{{ nfs_mount_path }}/{{ nfs_filename }}"
-      delegate_to: localhost
       register: nfs_file
 
-    - name: Checking file exists in CIFS mount localhost
+    - name: Checking file exists in CIFS mount
       ansible.builtin.stat:
         path: "{{ cifs_mount_path }}/{{ cifs_filename }}"
-      delegate_to: localhost
       register: cifs_file
 
     - name: Checking file exists in current location
       ansible.builtin.stat:
         path: "{{ http_filename }}"
-      delegate_to: localhost
       register: http_file
 
     - name: Checking file exists in current location
       ansible.builtin.stat:
         path: "{{ https_filename }}"
-      delegate_to: localhost
       register: https_file
 
-    - name: Deleting the file if exists in NFS mounted localhost
+    - name: Deleting the file if exists in NFS mounted
       ansible.builtin.file:
         path: "{{ nfs_mount_path }}/{{ nfs_filename }}"
         state: absent
-      delegate_to: localhost
       when: nfs_file.stat.exists
 
-    - name: Deleting the file if exists in CIFS mounted localhost
+    - name: Deleting the file if exists in CIFS mounted
       ansible.builtin.file:
         path: "{{ cifs_mount_path }}/{{ cifs_filename }}"
         state: absent
-      delegate_to: localhost
       when: cifs_file.stat.exists
 
-    - name: Deleting the file if exists in HTTP localhost
+    - name: Deleting the file if exists in HTTP
       ansible.builtin.file:
         path: "{{ http_filename }}"
         state: absent
-      delegate_to: localhost
       when: http_file.stat.exists
 
-    - name: Deleting the file if exists in HTTPS  localhost
+    - name: Deleting the file if exists in HTTPS
       ansible.builtin.file:
         path: "{{ https_filename }}"
         state: absent
-      delegate_to: localhost
       when: https_file.stat.exists
 
-    - name: Unmount NFS volume from localhost and delete the directory
+    - name: Unmount NFS volume and delete the directory
       ansible.builtin.command: "umount '{{ nfs_mount_path }}' &&
        rm -rf '{{ nfs_mount_path }}'"
-      delegate_to: localhost
       register: unmount_nfs
       changed_when: unmount_nfs.rc == 0
       failed_when: false
 
-    - name: Unmount CIFS volume from localhost and delete the directory
+    - name: Unmount CIFS volume and delete the directory
       ansible.builtin.command: "umount '{{ cifs_mount_path }}'
        && rm -rf '{{ cifs_mount_path }}'"
-      delegate_to: localhost
       register: unmount_cifs
       changed_when: unmount_cifs.rc == 0
       failed_when: false
