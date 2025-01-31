@@ -15,7 +15,6 @@
         uri_input: &uri_input
           user: "{{ username }}"
           password: "{{ password }}"
-          
           validate_certs: "{{ validate_certs }}"
           ca_path: "{{ ca_path | default(omit) }}"
           headers:
