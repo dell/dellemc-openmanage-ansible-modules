@@ -50,13 +50,12 @@
         state: directory
         mode: "0755"
 
-    - name: Mount NFS share
-      ansible.builtin.mount:
-        src: "{{ nfs_url }}"
-        path: "{{ nfs_mount_path }}"
-        fstype: nfs
-        opts: 'defaults'
-        state: mounted
+    - name: Mounting NFS volume
+      ansible.builtin.command:  # noqa: command-instead-of-module
+        cmd: "mount -t nfs {{ nfs_url }} {{ nfs_mount_path }}"
+      delegate_to: localhost
+      register: nfs_mount
+      changed_when: nfs_mount.rc == 0
 
     - name: Checking file exists in NFS mount
       ansible.builtin.stat:
