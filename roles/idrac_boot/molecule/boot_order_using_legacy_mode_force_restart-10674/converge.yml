@@ -9,8 +9,9 @@
     validate_certs: false
     boot_order_uri: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Systems\
       /System.Embedded.1/"
-    lc_uri: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Dell/Managers/iDRAC.Embedded.1\
-      /DellLCService/Actions/DellLCService.GetRemoteServicesAPIStatus"
+    lc_uri: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Dell/Managers\
+      /iDRAC.Embedded.1/DellLCService/Actions\
+      /DellLCService.GetRemoteServicesAPIStatus"
     retry_count: 60
     delay_count: 30
   tasks:
