@@ -6,7 +6,6 @@
     https_cert_ssl_failure: {}
     ca_cert_path: "{{ lookup('env', 'ca_cert_path') }}"
     path_for_import_cert: "{{ lookup('env', 'path_for_import_cert') }}"
-    idrac_delegate_to: "{{ lookup('env', 'idrac_certificate_delegate_to') }}"
 
   tasks:
     - name: Fetching firmware version for IDRAC
@@ -47,7 +46,6 @@
             certificate_type: "HTTPS"
             certificate_path: "{{ path_for_import_cert }}cert.pem"
             ssl_key: "{{ path_for_import_cert }}cert.key"
-            idrac_certificate_delegate: "{{ idrac_delegate_to }}"
 
         - name: Waiting for idrac readiness
           ansible.builtin.wait_for:

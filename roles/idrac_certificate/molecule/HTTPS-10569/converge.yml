@@ -7,7 +7,6 @@
     https_cert_name: "{{ lookup('env', 'https_cert_name') }}"
     import_cert_path: "{{ lookup('env', 'path_for_import_cert') }}"
     export_cert_path: "{{ lookup('env', 'path_for_export_cert') }}"
-    idrac_delegate_to: "{{ lookup('env', 'idrac_certificate_delegate_to') }}"
 
   tasks:
     - name: Fetching HTTPS certificate from share
@@ -29,7 +28,6 @@
         command: "import"
         certificate_type: "HTTPS"
         certificate_path: "{{ import_cert_path }}{{ https_cert_name }}"
-        idrac_certificate_delegate: "{{ idrac_delegate_to }}"
 
     - name: Waiting for idrac readiness
       ansible.builtin.wait_for:
@@ -63,7 +61,6 @@
         command: "export"
         certificate_type: "HTTPS"
         certificate_path: "{{ export_cert_path }}"
-        idrac_certificate_delegate: "{{ idrac_delegate_to }}"
       when: not ansible_check_mode
 
     - name: Setting up HTTPS certificate path for exported file
@@ -72,7 +69,6 @@
       ansible.builtin.stat:
         path: "{{ idrac_certificate_out.certificate_path }}"
       register: https_cert_file
-      delegate_to: "{{ idrac_delegate_to }}"
       no_log: true
 
     - name: Asserting operation with Normal/Idempotence mode.
