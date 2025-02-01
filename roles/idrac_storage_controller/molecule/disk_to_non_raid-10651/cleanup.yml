@@ -4,7 +4,8 @@
   gather_facts: false
   tasks:
     - name: Perform the disk conversion to RAID as a cleanup
-      ansible.builtin.include_tasks: ../__helper.yaml
+      ansible.builtin.include_tasks:
+        file: ../__helper.yaml
       vars:
         target_raid_disk: "{{ physicaldisks[0] }}"
         command: "ConvertToRAID"
