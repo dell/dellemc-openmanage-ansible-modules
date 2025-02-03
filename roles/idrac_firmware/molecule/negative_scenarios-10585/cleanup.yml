@@ -1,7 +1,7 @@
 ---
 - name: CleanUp
   hosts: all
-  become: yes
+  become: true
   gather_facts: false
   tasks:
     - name: Update firmware from repository on a CIFS Share
