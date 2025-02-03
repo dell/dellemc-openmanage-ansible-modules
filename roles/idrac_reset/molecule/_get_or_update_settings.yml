@@ -132,8 +132,11 @@
 
     - name: Set fact for allowable_values
       ansible.builtin.set_fact:
-        allowable_values:
-          "{{ oem['#DellManager.ResetToDefaults']
-          ['ResetType@Redfish.AllowableValues']
-          if '#DellManager.ResetToDefaults' in oem else [] }}"
+        allowable_values: >-
+          {{
+            oem['#DellManager.ResetToDefaults'][
+            'ResetType@Redfish.AllowableValues']
+            if '#DellManager.ResetToDefaults' in oem
+            else []
+          }}
       when: operation is defined and operation == 'fetch_settings'

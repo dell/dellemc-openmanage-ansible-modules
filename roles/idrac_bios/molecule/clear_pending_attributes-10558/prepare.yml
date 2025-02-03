@@ -11,7 +11,7 @@
         file: ../__get_data.yml
       vars:
         url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/Managers\
-        /iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
+          /iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
 
     - name: Initialize idrac_bios_jobs_items variable
       ansible.builtin.set_fact:
@@ -31,8 +31,8 @@
           ansible.builtin.include_tasks:
             file: ../__get_data.yml
           vars:
-            url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/\
-            Systems/System.Embedded.1/Bios"
+            url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/Managers\
+              /iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
 
         - name: Fetch the existing boot mode
           ansible.builtin.set_fact:
@@ -45,7 +45,7 @@
 
         - name: Update attributes with apply time as Immediate
           ansible.builtin.import_role:
-            name: idrac_bios
+            name: dellemc.openmanage.idrac_bios
           vars:
             hostname: "{{ idrac_ip }}"
             username: "{{ lookup('env', 'IDRAC_USER') }}"

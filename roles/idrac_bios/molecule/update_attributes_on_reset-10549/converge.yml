@@ -20,7 +20,7 @@
 
     - name: Update attributes with apply time as reset
       ansible.builtin.include_role:
-        name: idrac_bios
+        name: dellemc.openmanage.idrac_bios
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -39,7 +39,6 @@
             applied OnReset"
           - idrac_bios_out.reset_bios.skipped
           - idrac_bios_out.clear_pending.skipped
-
       when: not ansible_check_mode
 
     - name: Assert update attributes with apply time as reset in check mode

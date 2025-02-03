@@ -4,6 +4,22 @@
   gather_facts: false
 
   tasks:
+    - name: Fetching data from iDRAC for PERC
+      ansible.builtin.include_tasks:
+        file: ../__extract_storage.yml
+      vars:
+        redfish_storage_volume_search_in_name: 'PERC'
+        redfish_storage_volume_raid: "RAID0"
+
+    - name: Fetching Volume_id from iDRAC
+      ansible.builtin.include_tasks: ../__get_helper.yml
+      vars:
+        _url: "Systems/System.Embedded.1/Storage/{{ redfish_storage_volume_controller_id }}/Volumes"
+
+    - name: Extracting volume_id
+      ansible.builtin.set_fact:
+        redfish_storage_volume_id: "{{ (redfish_storage_volume_fetched_output.json.Members | last)['@odata.id'] | ansible.builtin.split('/') | last }}"
+
     - name: To check the behaviour of Initialization type Fast.
       ansible.builtin.import_role:
         name: redfish_storage_volume
@@ -24,10 +40,6 @@
 
     - name: Running for Initialization type scenarios
       block:
-        - name: Pre-req Create a volume.
-          ansible.builtin.include_tasks:
-            file: ../__create_virtual_drive.yml
-
         - name: To check the behaviour of Initialization type Fast.
           ansible.builtin.import_role:
             name: redfish_storage_volume
@@ -67,11 +79,3 @@
         - name: Asserting operation for initialization type Slow.
           ansible.builtin.assert:
             that: redfish_storage_volume_out.msg == "The job is successfully completed."
-
-      always:
-        - name: Deleting VD
-          ansible.builtin.include_tasks:
-            file: ../__delete_virtual_drive.yml
-          when:
-            - not ansible_check_mode
-            - redfish_storage_volume_id is defined

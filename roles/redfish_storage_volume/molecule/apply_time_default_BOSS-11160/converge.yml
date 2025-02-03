@@ -1,0 +1,64 @@
+---
+- name: TC-123778 - Ansible - Role - redfish_storage_volume - [Check Mode] [Idempotency] Validate creating RAID1 with apply_time with default values
+  hosts: all
+  vars:
+    redfish_storage_volume_failure: {}
+    redfish_storage_volume_raid: "RAID1"
+    redfish_storage_volume_minimum_drives: 2
+  gather_facts: false
+
+  tasks:
+    - name: Fetching data from iDRAC for BOSS
+      ansible.builtin.include_tasks:
+        file: ../__extract_storage.yml
+      vars:
+        redfish_storage_volume_search_in_name: 'BOSS'
+
+    - name: Setting BOSS controller_id
+      ansible.builtin.set_fact:
+        redfish_storage_volume_boss_raid_controller_id: "{{ redfish_storage_volume_controller_id }}"
+      when: redfish_storage_volume_controller_id != ""
+
+    - name: Running for BOSS Controller
+      when: redfish_storage_volume_boss_raid_controller_id is defined
+      block:
+        - name: "Checking minimum number of drives for {{ redfish_storage_volume_raid }}"
+          ansible.builtin.debug:
+            msg: "Minimum number of required drives: {{ redfish_storage_volume_minimum_drives }}, current: {{ redfish_storage_volume_drive_list | length }}"
+          when: redfish_storage_volume_drive_list | length < redfish_storage_volume_minimum_drives
+          failed_when: true
+
+        - name: "Create a volume for BOSS, raid_type {{ redfish_storage_volume_raid }}"
+          ansible.builtin.import_role:
+            name: dellemc.openmanage.redfish_storage_volume
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            state: present
+            raid_type: "{{ redfish_storage_volume_raid }}"
+            volume_name: "VD_BOSS"
+            controller_id: "{{ redfish_storage_volume_boss_raid_controller_id }}"
+            drives: "{{ redfish_storage_volume_drive_list[:redfish_storage_volume_minimum_drives] }}"
+            job_wait: false
+
+        - name: Asserting operation with check mode.
+          ansible.builtin.assert:
+            that: redfish_storage_volume_out.msg == "Changes found to be applied."
+          when: ansible_check_mode
+
+        - name: Waiting for idrac reset and LC tracking.
+          ansible.builtin.include_tasks:
+            file: ../__idrac_reset.yml
+          when: not ansible_check_mode and redfish_storage_volume_out.changed
+
+        - name: Asserting operation with normal mode.
+          ansible.builtin.assert:
+            that: redfish_storage_volume_out.msg == "Successfully submitted create volume task."
+          when: not ansible_check_mode and redfish_storage_volume_out.changed
+
+        - name: Asserting operation with idempotence.
+          ansible.builtin.assert:
+            that: redfish_storage_volume_out.msg == "No changes found to be applied."
+          when: not ansible_check_mode and not redfish_storage_volume_out.changed

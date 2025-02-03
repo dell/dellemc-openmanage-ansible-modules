@@ -29,8 +29,7 @@
           register: idrac_storage_controller_pd_state_out_lc
           ansible.builtin.include_tasks:
             file: ../__lc_status.yaml
-          when: pd_state_out.msg == "Successfully performed the
-               'ChangePDStateToOffline' operation."
+          when: pd_state_out.changed # noqa: no-handler
 
         - name: Verifying disk status change to offline in check mode
           ansible.builtin.assert:

@@ -7,7 +7,7 @@
       block:
         - name: Update attributes with maintenance window and no start_time
           ansible.builtin.include_role:
-            name: idrac_bios
+            name: dellemc.openmanage.idrac_bios
           vars:
             hostname: "{{ lookup('env', 'IDRAC_IP') }}"
             username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -31,7 +31,7 @@
         - name: Update attributes with maintenance window with
                 invalid start_time
           ansible.builtin.include_role:
-            name: idrac_bios
+            name: dellemc.openmanage.idrac_bios
           vars:
             hostname: "{{ lookup('env', 'IDRAC_IP') }}"
             username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -56,7 +56,7 @@
       block:
         - name: Update attributes with maintenance window with invalid duration
           ansible.builtin.include_role:
-            name: idrac_bios
+            name: dellemc.openmanage.idrac_bios
           vars:
             hostname: "{{ lookup('env', 'IDRAC_IP') }}"
             username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -82,7 +82,7 @@
         - name: Update attributes with maintenance window
                 with invalid apply time
           ansible.builtin.include_role:
-            name: idrac_bios
+            name: dellemc.openmanage.idrac_bios
           vars:
             hostname: "{{ lookup('env', 'IDRAC_IP') }}"
             username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -109,7 +109,7 @@
       block:
         - name: Update attributes with maintenance window with invalid job wait
           ansible.builtin.include_role:
-            name: idrac_bios
+            name: dellemc.openmanage.idrac_bios
           vars:
             hostname: "{{ lookup('env', 'IDRAC_IP') }}"
             username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -135,7 +135,7 @@
         - name: Update attributes with maintenance window
                 with invalid job wait timeout
           ansible.builtin.include_role:
-            name: idrac_bios
+            name: dellemc.openmanage.idrac_bios
           vars:
             hostname: "{{ lookup('env', 'IDRAC_IP') }}"
             username: "{{ lookup('env', 'IDRAC_USER') }}"
