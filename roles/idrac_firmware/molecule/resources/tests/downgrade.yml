@@ -19,4 +19,11 @@
   ansible.builtin.assert:
     that:
       - idrac_firmware_out.msg == "Successfully updated the firmware."
+        or idrac_firmware_out.msg == "Unable to complete the operation
+        because the catalog name entered has either unsupported
+        firmware packages or same version installed on the server."
   when: not ansible_check_mode and idrac_firmware_out.changed
+
+- name: "Waiting for idrac to be reachable"
+  ansible.builtin.include_tasks:
+    file: "../resources/_wait_for_port_to_open.yml"

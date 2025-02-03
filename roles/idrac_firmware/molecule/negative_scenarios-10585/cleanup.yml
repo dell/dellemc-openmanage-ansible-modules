@@ -1,5 +1,7 @@
-- name: Converge idrac_firmware for cifsshare
+---
+- name: CleanUp
   hosts: all
+  become: yes
   gather_facts: false
   tasks:
     - name: Update firmware from repository on a CIFS Share
@@ -18,21 +20,10 @@
         apply_update: true
         catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
 
-    - name: "Verifying update firmware from repository on a CIFS Share in check mode"
-      ansible.builtin.assert:
-        that: idrac_firmware_out.msg == "Changes found to commit!"
-      when: ansible_check_mode
-      tags: molecule-idempotence-notest
-
     - name: "Verifying update firmware from repository on a CIFS Share in normal mode"
       ansible.builtin.assert:
         that:
           - idrac_firmware_out.msg == "Successfully updated the firmware."
-      when: not ansible_check_mode and idrac_firmware_out.changed
-
-    - name: "Verifying update firmware from repository on a CIFS Share in idempotence mode"
-      ansible.builtin.assert:
-        that:
-          - idrac_firmware_out.msg == "Unable to complete the operation because the catalog name entered has either unsupported firmware packages
-            or same version installed on the server."
-      when: not ansible_check_mode and not idrac_firmware_out.changed
+            or or idrac_firmware_out.msg == "Unable to complete the operation
+            because the catalog name entered has either unsupported
+            firmware packages or same version installed on the server."

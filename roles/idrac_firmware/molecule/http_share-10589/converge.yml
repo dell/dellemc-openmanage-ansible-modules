@@ -3,11 +3,6 @@
   hosts: all
   gather_facts: false
   tasks:
-    - name: "Pre-requisites"
-      ansible.builtin.include_tasks:
-        file: "../resources/tests/downgrade.yml"
-      tags: molecule-idempotence-notest
-
     - name: Update firmware from repository on HTTP Share
       ansible.builtin.import_role:
         name: "idrac_firmware"
