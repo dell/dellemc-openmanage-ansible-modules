@@ -15,9 +15,10 @@
       vars:
         _share_parameters:
           <<: *share_input
+      when: ansible_check_mode
       tags: molecule-idempotence-notest
 
-    - name: "Importing SCP from HTTPS"
+    - name: "Importing SCP from HTTP"
       ansible.builtin.import_role:
         name: "idrac_import_server_config_profile"
       vars:
@@ -25,7 +26,6 @@
         username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
-        target: "RAID"
         share_parameters:
           <<: *share_input
       when: not ansible_check_mode

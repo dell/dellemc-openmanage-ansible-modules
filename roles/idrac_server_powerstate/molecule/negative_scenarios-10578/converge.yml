@@ -12,6 +12,7 @@
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         resource_id: "System.Embedded.1"
+        reset_type: "On"
 
     - name: Asserting after performing opeartion using default reset_type
       ansible.builtin.assert:
@@ -29,6 +30,7 @@
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         resource_id: "System.Embedded.0"
+        reset_type: "On"
       ignore_errors: true
       register: idrac_server_powerstate_error_msg
 
@@ -47,6 +49,7 @@
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         resource_id: "System.Embedded.1"
+        reset_type: "On"
       ignore_errors: true
       ignore_unreachable: true
       register: idrac_server_powerstate_error_msg
@@ -66,6 +69,7 @@
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         resource_id: "System.Embedded.1"
+        reset_type: "On"
       ignore_errors: true
       ignore_unreachable: true
       register: idrac_server_powerstate_error_msg
@@ -84,6 +88,7 @@
         password: "WrongPassword@123"
         validate_certs: false
         resource_id: "System.Embedded.1"
+        reset_type: "On"
       ignore_errors: true
       ignore_unreachable: true
       register: idrac_server_powerstate_error_msg
@@ -104,6 +109,7 @@
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: 'someStringValue'
         resource_id: "System.Embedded.1"
+        reset_type: "On"
       ignore_errors: true
       ignore_unreachable: true
       register: idrac_server_powerstate_error_msg
@@ -159,6 +165,7 @@
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         resource_id: "{{ null | default(omit) }}"
+        reset_type: "On"
       when: number_of_resource_id > '1'
 
     - name: Asserting after performing opeartion without resource_id when iDRAC has secondary resource_id

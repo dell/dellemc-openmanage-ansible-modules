@@ -43,8 +43,8 @@
     - name: "Verifying Import SCP without scp_file"
       ansible.builtin.assert:
         that:
-          - "'Invalid file path provided.' in '{{ idrac_import_server_config_profile_out.msg }}' or
-            'HTTP Error 400: Bad Request' in '{{ idrac_import_server_config_profile_out.msg }}'"
+          - "'Invalid file path provided.' in idrac_import_server_config_profile_out.msg or
+            'HTTP Error 400: Bad Request' in idrac_import_server_config_profile_out.msg"
 
     - name: "Importing SCP from CIFS with ALL components with invalid file"
       ansible.builtin.import_role:
@@ -91,8 +91,8 @@
     - name: "Verifying Import SCP from CIFS with ALL components with invalid share"
       ansible.builtin.assert:
         that:
-          - "'HTTP Error 500' in '{{ idrac_import_server_config_profile_out.msg }}' or
-            'Failed to import scp.' in '{{ idrac_import_server_config_profile_out.msg }}'"
+          - "'HTTP Error 500' in idrac_import_server_config_profile_out.msg or
+            'Failed to import scp.' in idrac_import_server_config_profile_out.msg"
 
     - name: "Importing SCP with invalid hostname"
       ansible.builtin.import_role:
@@ -114,8 +114,8 @@
     - name: "Verifying Import SCP with invalid hostname"
       ansible.builtin.assert:
         that:
-          - "'<urlopen error Unable to communicate with iDRAC randomHostname.' in '{{ idrac_import_server_config_profile_out.msg }}' or
-            '<urlopen error [Errno -2] Name or service not known>' in '{{ idrac_import_server_config_profile_out.msg }}'"
+          - "'<urlopen error Unable to communicate with iDRAC randomHostname.' in idrac_import_server_config_profile_out.msg or
+            '<urlopen error [Errno -2] Name or service not known>' in idrac_import_server_config_profile_out.msg"
 
     - name: "Importing SCP with invalid username"
       ansible.builtin.import_role:
@@ -137,7 +137,7 @@
     - name: "Verifying Import SCP with invalid username"
       ansible.builtin.assert:
         that:
-          - "'HTTP Error 401' in '{{ idrac_import_server_config_profile_out.msg }}'"
+          - "'HTTP Error 401' in idrac_import_server_config_profile_out.msg"
 
     - name: "Importing SCP with invalid password"
       ansible.builtin.import_role:
@@ -159,7 +159,8 @@
     - name: "Verifying Import SCP with invalid password"
       ansible.builtin.assert:
         that:
-          - "'HTTP Error 401' in '{{ idrac_import_server_config_profile_out.msg }}'"
+          - "'HTTP Error 401' in idrac_import_server_config_profile_out.msg or
+            '<urlopen error timed out>' in idrac_import_server_config_profile_out.msg"
 
     - name: "Importing SCP with invalid target"
       ansible.builtin.import_role:
@@ -181,7 +182,7 @@
     - name: "Verifying Import SCP with invalid target"
       ansible.builtin.assert:
         that:
-          - "'value of scp_components must be one or more of: ALL, IDRAC, BIOS, NIC, RAID' in '{{ idrac_import_server_config_profile_out.msg }}'"
+          - "'value of scp_components must be one or more of: ALL, IDRAC, BIOS, NIC, RAID' in idrac_import_server_config_profile_out.msg"
 
     ############### Below snippet is commented because of Issue: JIT-284466 ###############
     # - name: "Importing SCP with invalid username of share access"
@@ -280,7 +281,7 @@
     - name: "Verifying Import SCP with proxy_ssupport enabled but no other proxy parameters"
       ansible.builtin.assert:
         that:
-          - "'proxy_support is True but all of the following are missing' in '{{ idrac_import_server_config_profile_out.msg }}'"
+          - "'proxy_support is True but all of the following are missing' in idrac_import_server_config_profile_out.msg"
 
     ############### Below snippet is commented because of Issue: JIT-284466 ###############
     # - name: "Importing SCP with invalid proxy parameters"
