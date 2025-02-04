@@ -32,6 +32,25 @@
          wantlist=True) }}"
   when: not post_op and controller_name in item.key
 
+- name: Gather Facts for the Physical Disk component
+  ansible.builtin.include_role:
+    name: "idrac_gather_facts"
+  vars:
+    hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+    username: "{{ lookup('env', 'IDRAC_USER') }}"
+    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+    target:
+      - VirtualDisk
+
+- name: Fetch the volume detail
+  ansible.builtin.set_fact:
+    cacheable: true
+    volume_id: "{{ item.Id }}"
+  loop: "{{ virtual_disk }}"
+  when: item.Name == "ansible_test"
+  no_log: false
+
 - name: Fetch the virtual disks after creation
   ansible.builtin.set_fact:
     cacheable: true
