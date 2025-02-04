@@ -16,6 +16,7 @@
         job_wait: true
         apply_update: true
       ignore_errors: true
+      register: idrac_firmware_result
 
     - name: "Verifying Updating firmware with an invalid hostname"
       ansible.builtin.assert:
