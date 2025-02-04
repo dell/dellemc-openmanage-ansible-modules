@@ -25,6 +25,7 @@
     validate_certs: false
     idrac_attributes:
       Time.1.Timezone: "CST6CDT"
+  check_mode: false
   when: "'ALL' in idrac_import_server_config_profile_target or 'IDRAC' in idrac_import_server_config_profile_target"
 
 - name: Making changes when target is ['BIOS']
@@ -35,6 +36,7 @@
     validate_certs: false
     attributes:
       NumLock: "Off"
+  check_mode: false
   when: "'BIOS' in idrac_import_server_config_profile_target"
 
 - name: Calling nic_helper.yml
@@ -53,6 +55,7 @@
     apply_time: Immediate
     oem_network_attributes:
       BannerMessageTimeout: "4"
+  check_mode: false
   when: "'NIC' in idrac_import_server_config_profile_target"
 
 - name: Calling raid_helper.yml
@@ -69,4 +72,5 @@
     controller_id: "{{ inp_controller_id }}"
     attributes:
       SupportedInitializationTypes: "Slow"
+  check_mode: false
   when: "'RAID' in idrac_import_server_config_profile_target"

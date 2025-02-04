@@ -6,7 +6,6 @@
     idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
     idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
     idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
-    idrac_port: "{{ lookup('env', 'IDRAC_PORT') }}"
   tasks:
     - name: Making sure Server is powered on and clear all job
       ansible.builtin.include_tasks:
@@ -39,7 +38,7 @@
 
     - name: Prerequisite - Reset any encryption configurations
       dellemc.openmanage.idrac_redfish_storage_controller:
-        baseuri: "{{ idrac_ip }}:{{ idrac_port }}"
+        baseuri: "{{ idrac_ip }}:{{ https_port }}"
         username: "{{ idrac_user }}"
         password: "{{ idrac_password }}"
         validate_certs: false
@@ -77,7 +76,7 @@
 
     - name: Constructing url
       ansible.builtin.set_fact:
-        url_1: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+        url_1: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ https_port }}
           /redfish/v1/"
         url_2: "Systems/System.Embedded.1/Storage/{{ controller_name }}/"
         url_3: "Controllers/{{ controller_name }}"

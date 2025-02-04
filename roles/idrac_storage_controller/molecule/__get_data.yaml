@@ -1,10 +1,8 @@
 ---
 - name: Get data using uri
   vars:
-    idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
     idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
     idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
-    idrac_port: "{{ lookup('env', 'IDRAC_PORT') }}"
   ansible.builtin.uri:
     url: "{{ url }}"
     user: "{{ idrac_user }}"

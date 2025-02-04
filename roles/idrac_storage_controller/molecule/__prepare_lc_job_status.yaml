@@ -4,12 +4,11 @@
     idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
     idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
     idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
-    idrac_port: "{{ lookup('env', 'IDRAC_PORT') }}"
   block:
     - name: Wait for Job to complete
       dellemc.openmanage.idrac_lifecycle_controller_job_status_info:
         idrac_ip: "{{ idrac_ip }}"
-        idrac_port: "{{ idrac_port }}"
+        idrac_port: "{{ https_port }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: false

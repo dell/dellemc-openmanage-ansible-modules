@@ -7,8 +7,11 @@
     username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
     password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
     validate_certs: false
-    boot_order_uri: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Systems/System.Embedded.1/"
-    lc_uri: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Dell/Managers/iDRAC.Embedded.1/DellLCService/Actions/DellLCService.GetRemoteServicesAPIStatus"
+    boot_order_uri: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Systems\
+      /System.Embedded.1/"
+    lc_uri: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Dell/Managers\
+      /iDRAC.Embedded.1/DellLCService/Actions\
+      /DellLCService.GetRemoteServicesAPIStatus"
     retry_count: 60
     delay_count: 30
   tasks:
@@ -41,7 +44,7 @@
     - name: Pre-requisite - Making sure boot mode is legacy
       check_mode: false
       ansible.builtin.import_role:
-        name: "idrac_boot"
+        name: dellemc.openmanage.idrac_boot
       vars:
         boot_source_override_mode: legacy
       tags: molecule-idempotence-notest
@@ -75,7 +78,7 @@
 
     - name: TC-115427 - Validate boot_order with legacy mode with force_restart
       ansible.builtin.include_role:
-        name: "idrac_boot"
+        name: dellemc.openmanage.idrac_boot
       vars:
         boot_order: "{{ reverse_boot_order | default(data) }}"
         reset_type: force_restart

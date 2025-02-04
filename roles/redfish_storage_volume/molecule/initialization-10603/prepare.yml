@@ -1,0 +1,43 @@
+- name: Prepare file
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Making sure Server is powered on and clear all job
+      ansible.builtin.include_tasks:
+        file: ../helper/common/power_on_idrac_and_clear_all_job.yaml
+
+    - name: Fetching data from iDRAC for PERC
+      ansible.builtin.include_tasks:
+        file: ../__extract_storage.yml
+      vars:
+        redfish_storage_volume_search_in_name: 'PERC'
+        redfish_storage_volume_raid: "RAID0"
+
+    - name: Setting PERC controller_id
+      ansible.builtin.set_fact:
+        redfish_storage_volume_perc_raid_controller_id:
+          "{{ redfish_storage_volume_controller_id }}"
+      when: redfish_storage_volume_controller_id != ""
+
+    - name: "Checking minimum number of drives for RAID0"
+      ansible.builtin.debug:
+        msg: >-
+          Minimum number of required drives: 1, current:
+          {{ redfish_storage_volume_drive_list | length }}
+      when: redfish_storage_volume_drive_list | length < 1
+
+    - name: Pre-req Create a volume.
+      ansible.builtin.import_role:
+        name: redfish_storage_volume
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        state: present
+        raid_type: "RAID0"
+        name: "VD_PERC" # noqa: var-naming[no-reserved]
+        controller_id: "{{ redfish_storage_volume_perc_raid_controller_id }}"
+        drives: "{{ redfish_storage_volume_drive_list[:1] }}"
+        job_wait: true
+      check_mode: false

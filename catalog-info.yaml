@@ -1,0 +1,32 @@
+# nonk8s
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: dell-openmanage-ansible-modules
+  description: "Dell OpenManage Ansible Modules"
+  tags:
+    - ansible
+    - devops
+    - automation
+    - server
+    - dell
+    - infrastructure-as-code
+    - openmanage
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+    github.com/project-slug: dell/dellemc-openmanage-ansible-modules
+  links:
+    - url: 'https://galaxy.ansible.com/dellemc/openmanage'
+      title: 'Ansible Galaxy'
+      icon: 'web'
+    - url: 'https://console.redhat.com/ansible/automation-hub/repo/published/dellemc/openmanage'
+      title: 'Automation Hub'
+      icon: 'web'
+    - url: 'https://github.com/dell/dellemc-openmanage-ansible-modules/issues'
+      title: 'Contact Technical Support'
+      icon: 'help'
+spec:
+  type: service
+  lifecycle: production
+  owner: user:default/sachin_apagundi
+  visibility: all

@@ -10,7 +10,7 @@
       proxy_support: true
       proxy_type: http
       proxy_server: "{{ lookup('env', 'proxy_server') }}"
-      proxy_username: "{{ lookup('env', 'proxy_username') }}"
+      proxy_username: "{{ lookup('env', 'proxy_user') }}"
       proxy_port: "{{ lookup('env', 'proxy_port') }}"
       proxy_password: "{{ lookup('env', 'proxy_password') }}"
   gather_facts: false
@@ -21,6 +21,7 @@
       vars:
         _share_parameters:
           <<: *share_input
+      when: ansible_check_mode
       tags: molecule-idempotence-notest
 
     - name: "Importing SCP from HTTP with proxy parameters"
