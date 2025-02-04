@@ -13,6 +13,6 @@
       register: netaddr_install
       changed_when: "'Successfully installed' in netaddr_install.stdout or 'Requirement already satisfied' in netaddr_install.stdout"
 
-    # - name: "Pre-requisites"
-    #   ansible.builtin.include_tasks:
-    #     file: "../resources/tests/downgrade.yml"
+    - name: "Pre-requisites"
+      ansible.builtin.include_tasks:
+        file: "../resources/tests/downgrade.yml"
