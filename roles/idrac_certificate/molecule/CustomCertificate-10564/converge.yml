@@ -186,10 +186,10 @@
                            {'msg': ansible_failed_result.msg,
                            'failed_task_name': ansible_failed_task.name}}) }}"
 
-      # always:
-      #   - name: Deleting the directory
-      #     ansible.builtin.include_tasks:
-      #       file: ../__delete_directory.yml
+      always:
+        - name: Deleting the directory
+          ansible.builtin.include_tasks:
+            file: ../__delete_directory.yml
 
     - name: Collecting failure
       ansible.builtin.debug:
