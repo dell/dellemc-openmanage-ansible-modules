@@ -6,8 +6,8 @@ provisioner:
     cleanup: cleanup.yml
 scenario:
   test_sequence:
+    - destroy
     - create
-    - prepare
     - prepare
     - converge
     - cleanup

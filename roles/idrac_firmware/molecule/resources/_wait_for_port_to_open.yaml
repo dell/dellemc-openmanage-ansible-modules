@@ -1,0 +1,13 @@
+---
+- name: Wait for port 443 to become open on the host
+  ansible.builtin.wait_for:
+    host: "{{ lookup('env', 'IDRAC_IP') }}"
+    port: "{{ lookup('env', 'IDRAC_PORT') | default(443, true) }}"
+    delay: 60
+    timeout: 360
+    connect_timeout: 10
+    sleep: 5
+    active_connection_states:
+      - "ESTABLISHED"
+  register: idrac_firmware_connection_status
+  ignore_errors: true

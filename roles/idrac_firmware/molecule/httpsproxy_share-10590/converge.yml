@@ -24,10 +24,10 @@
         proxy_uname: "{{ lookup('env', 'proxy_username') }}"
         proxy_passwd: "{{ lookup('env', 'proxy_password') }}"
         catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
-    
+
     - name: "Waiting for idrac to be reachable"
       ansible.builtin.include_tasks:
-        file: "../resources/_wait_for_port_to_open.yml"
+        file: "../resources/_wait_for_port_to_open.yaml"
       when: not ansible_check_mode
       tags: molecule-idempotence-notest
 
@@ -75,7 +75,7 @@
 
     - name: "Waiting for idrac to be reachable"
       ansible.builtin.include_tasks:
-        file: "../resources/_wait_for_port_to_open.yml"
+        file: "../resources/_wait_for_port_to_open.yaml"
       when: not ansible_check_mode
       tags: molecule-idempotence-notest
 
@@ -123,10 +123,10 @@
         proxy_type: "SOCKS"
         proxy_port: "{{ lookup('env', 'proxyserversocks_port') }}"
         catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
-    
+
     - name: "Waiting for idrac to be reachable"
       ansible.builtin.include_tasks:
-        file: "../resources/_wait_for_port_to_open.yml"
+        file: "../resources/_wait_for_port_to_open.yaml"
       when: not ansible_check_mode
       tags: molecule-idempotence-notest
 

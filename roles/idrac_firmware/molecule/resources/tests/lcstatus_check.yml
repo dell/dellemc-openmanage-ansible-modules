@@ -27,17 +27,13 @@
     force_basic_auth: true
     timeout: "{{ https_timeout }}"
   register: result
-  ignore_errors: true
+  check_mode: false
   until: result.json.LCStatus == "Ready"
   retries: 240
   delay: 30
-  when: not ansible_check_mode
-
-- name:
-  ansible.builtin.debug:
-    var: result.json.LCStatus
 
 - name: Waiting for 1 min even after LCStatus is Ready before proceeding
+  check_mode: false
   ansible.builtin.wait_for:
     timeout: 60
-  when: not ansible_check_mode and result.json.LCStatus == "Ready"
+  when: result.json.LCStatus == "Ready"

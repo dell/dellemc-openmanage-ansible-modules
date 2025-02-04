@@ -124,8 +124,6 @@
     - name: "Verifying update firmware from repository on a HTTPS Share with invalid share_user"
       ansible.builtin.assert:
         that:
-          # - idrac_firmware_out.msg == "Unable to complete the operation because the catalog name entered has either unsupported firmware packages
-          # or same version installed on the server."
           - "'The specified user credentials necessary for downloading an update package were not correct.' in idrac_firmware_out.msg"
 
     - name: Update firmware from repository on HTTPS Share with invalid share_password
@@ -169,7 +167,7 @@
         proxy_server: "{{ lookup('env', 'proxyserver') }}"
         proxy_type: "HTTP"
         proxy_port: "{{ lookup('env', 'proxy_port') }}"
-        proxy_uname: "{{ lookup('env', 'proxy_username') }}"
+        proxy_uname: invalid_proxy_uname
         proxy_passwd: "{{ lookup('env', 'proxy_password') }}"
         catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
       ignore_errors: true
@@ -178,9 +176,8 @@
     - name: "Verifying update firmware from repository on a HTTPS via parameter proxy share with invalid proxy_uname"
       ansible.builtin.assert:
         that:
-          - idrac_firmware_out.msg == "Unable to complete the operation
-            because the catalog name entered has either unsupported firmware
-            packages or same version installed on the server."
+          - "'Unable to transfer file' in idrac_firmware_out.msg"
+          - "'because of some unknown reasons.' in idrac_firmware_out.msg"
 
     - name: Update firmware from repository on a HTTPS via parameter proxy Share with invalid proxy_passwd
       ansible.builtin.import_role:

@@ -24,6 +24,6 @@
       ansible.builtin.assert:
         that:
           - idrac_firmware_out.msg == "Successfully updated the firmware."
-            or or idrac_firmware_out.msg == "Unable to complete the operation
+            or idrac_firmware_out.msg == "Unable to complete the operation
             because the catalog name entered has either unsupported
             firmware packages or same version installed on the server."
