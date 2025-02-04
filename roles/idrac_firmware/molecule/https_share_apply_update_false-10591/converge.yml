@@ -17,7 +17,7 @@
         reboot: true
         job_wait: true
         apply_update: false
-        catalog_file_name: "{{ catalog_file_name }}"
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
       tags: molecule-idempotence-notest
 
     - name: "Verifying update firmware from repository on a HTTPS Share with apply_update as false"
@@ -41,7 +41,7 @@
         reboot: true
         job_wait: true
         apply_update: true
-        catalog_file_name: "{{ catalog_file_name }}"
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
         ignore_cert_warning: false
       tags: molecule-idempotence-notest
 
@@ -66,7 +66,7 @@
         reboot: false
         job_wait: true
         apply_update: true
-        catalog_file_name: "{{ catalog_file_name }}"
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
       tags: molecule-idempotence-notest
 
     - name: "Verifying update firmware from repository on a HTTPS Share with reboot as false"
@@ -90,7 +90,7 @@
         reboot: true
         job_wait: false
         apply_update: true
-        catalog_file_name: "{{ catalog_file_name }}"
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
       tags: molecule-idempotence-notest
 
     - name: "Verifying update firmware from repository on a HTTPS Share with job_wait as false"
