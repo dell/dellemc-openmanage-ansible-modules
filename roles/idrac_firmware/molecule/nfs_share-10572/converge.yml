@@ -5,7 +5,7 @@
   tasks:
     - name: Update firmware from repository on a NFS Share
       ansible.builtin.import_role:
-        name: idrac_firmware
+        name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -15,7 +15,13 @@
         reboot: true
         job_wait: true
         apply_update: true
-        catalog_file_name: "Catalog.xml"
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
+
+    - name: "Waiting for idrac to be reachable"
+      ansible.builtin.include_tasks:
+        file: "../resources/_wait_for_port_to_open.yaml"
+      when: not ansible_check_mode
+      tags: molecule-idempotence-notest
 
     - name: "Verifying update firmware from repository on a NFS Share in check mode"
       ansible.builtin.assert:

@@ -1,0 +1,9 @@
+---
+- name: CleanUp
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: "Waiting for idrac to be reachable"
+      ansible.builtin.include_tasks:
+        file: "../resources/_wait_for_port_to_open.yaml"
