@@ -42,13 +42,14 @@
     validate_certs: false
     target:
       - VirtualDisk
+  when: not ansible_check_mode
 
 - name: Fetch the volume detail
   ansible.builtin.set_fact:
     cacheable: true
     volume_id: "{{ item.Id }}"
   loop: "{{ virtual_disk }}"
-  when: item.Name == "ansible_test"
+  when: not ansible_check_mode and item.Name == "ansible_test"
   no_log: false
 
 - name: Fetch the virtual disks after creation
