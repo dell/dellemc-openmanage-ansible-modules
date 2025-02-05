@@ -32,7 +32,7 @@
       ansible.builtin.set_fact:
         is_vd_exists: false
       loop: "{{ lookup('dict',
-         result.storage_status.Message.Controller[controller_name],
+         storage_status.Controller[controller_name],
          wantlist=True) }}"
       when: "not 'VirtualDisk' in item.value"
 

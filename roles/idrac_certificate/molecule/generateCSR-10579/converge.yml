@@ -3,15 +3,9 @@
   hosts: all
   gather_facts: false
   vars:
-    ca_cert_path: "{{ lookup('env', 'ca_cert_path') }}"
     cert_export_path: "{{ lookup('env', 'path_for_export_cert') }}"
-    idrac_delegate_to: "{{ lookup('env', 'idrac_certificate_delegate_to') }}"
 
   tasks:
-    - name: Setting up directory
-      ansible.builtin.include_tasks:
-        file: ../__get_helper.yml
-
     - name: Generate HTTPS CSR signing request
       ansible.builtin.import_role:
         name: idrac_certificate
@@ -20,7 +14,6 @@
         username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
-        ca_path: "{{ ca_cert_path }}"
         command: "generate_csr"
         certificate_type: "HTTPS"
         certificate_path: "{{ cert_export_path }}"
@@ -34,13 +27,11 @@
           organization_name: "OrgName"
           subject_alt_name:
             - "hostname1.chassis.com"
-        idrac_certificate_delegate: "{{ idrac_delegate_to }}"
 
     - name: Setting up HTTPS CSR certificate path for exported file
       ansible.builtin.stat:
         path: "{{ idrac_certificate_out.certificate_path }}"
       register: csr_cert_file
-      delegate_to: "{{ idrac_delegate_to }}"
       no_log: true
 
     - name: Verifying HTTPS generate CSR certificate
@@ -50,7 +41,3 @@
           - not idrac_certificate_out.changed
           - not idrac_certificate_out.failed
           - idrac_certificate_out.msg == "Successfully performed the 'generate_csr' certificate operation."
-
-    - name: Deleting the directory
-      ansible.builtin.include_tasks:
-        file: ../__delete_directory.yml

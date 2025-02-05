@@ -6,8 +6,11 @@
     https_share_username: "{{ lookup('env', 'https_share_username') }}"
     https_share_password: "{{ lookup('env', 'https_share_password') }}"
     path_for_import_cert: "{{ lookup('env', 'path_for_import_cert') }}"
-    idrac_cert_dlg_to: "{{ lookup('env', 'idrac_certificate_delegate_to') }}"
-  no_log: true
+
+- name: Set fact
+  ansible.builtin.set_fact:
+    curl_cmd: "curl --insecure -u %s:%s -o %s %s"
+    curl_http_url: "{{ https_share_ip }}/{{ https_certificate_path }}"
 
 - name: Create Directory
   ansible.builtin.file:
@@ -16,25 +19,21 @@
     mode: "0755"
   register: idrac_certificate_created_directory
   check_mode: false
-  delegate_to: "{{ idrac_cert_dlg_to }}"
 
 - name: Setting up certificate path
   ansible.builtin.stat:
     path: "{{ path_for_import_cert }}"
   register: idrac_certificate_check_file_created
   check_mode: false
-  delegate_to: "{{ idrac_cert_dlg_to }}"
 
-- name: Copy file from HTTPS share to local machine
+- name: Downloading certificate file
   when: idrac_cert_name is defined and (idrac_cert_name | length > 0)
          and idrac_certificate_check_file_created.stat.exists
-  ansible.builtin.uri:
-    url: "https://{{ https_share_ip }}{{ https_certificate_path }}{{ item }}"
-    dest: "{{ path_for_import_cert }}"
-    force_basic_auth: true
-    validate_certs: false
-    url_username: "{{ https_share_username }}"
-    url_password: "{{ https_share_password }}"
+  register: http_dnld_curl_cmd_out
+  no_log: false
+  changed_when: http_dnld_curl_cmd_out.rc == 0
+  failed_when: http_dnld_curl_cmd_out.rc != 0
+  ansible.builtin.command: >
+      {{ curl_cmd | format(https_share_username, https_share_password, path_for_import_cert + item, curl_http_url) }}
   check_mode: false
   loop: "{{ idrac_cert_name }}"
-  delegate_to: "{{ idrac_cert_dlg_to }}"
