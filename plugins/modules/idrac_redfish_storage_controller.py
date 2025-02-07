@@ -614,7 +614,7 @@ def check_id_exists(module, redfish_obj, key, item_id, uri):
 def handle_set_controller_key(module, controller_id, ctrl_key_id, key, key_id, payload):
     if module.check_mode and ctrl_key_id is None:
         module.exit_json(msg=CHANGES_FOUND, changed=True)
-    elif (module.check_mode and ctrl_key_id is not None) or (not module.check_mode and ctrl_key_id is not None):
+    elif module.check_mode or ctrl_key_id is not None:
         module.exit_json(msg=NO_CHANGES_FOUND)
     payload.update({"TargetFQDD": controller_id, "Key": key, "Keyid": key_id})
 
@@ -632,7 +632,7 @@ def handle_rekey(module, controller_id, mode, key, key_id, payload):
 def handle_remove_controller_key(module, controller_id, ctrl_key_id, payload):
     if module.check_mode and ctrl_key_id is not None:
         module.exit_json(msg=CHANGES_FOUND, changed=True)
-    elif (module.check_mode and ctrl_key_id is None) or (not module.check_mode and ctrl_key_id is None):
+    elif module.check_mode or ctrl_key_id is None:
         module.exit_json(msg=NO_CHANGES_FOUND)
     payload.update({"TargetFQDD": controller_id})
 
@@ -722,6 +722,7 @@ def hot_spare_config(module, redfish_obj):
 
 
 def hot_spare_config_refactored(module, redfish_obj, command, volume, drive_id, hot_spare):
+    resp, job_uri, job_id = None, None, None
     if module.check_mode and hot_spare == "None" and command == "AssignSpare" or \
             (module.check_mode and hot_spare != "None" and command == "UnassignSpare"):
         module.exit_json(msg=CHANGES_FOUND, changed=True)
