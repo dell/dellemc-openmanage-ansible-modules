@@ -405,6 +405,7 @@ payload_map = {"Server": get_ssl_payload,
 
 
 def get_res_id(idrac, cert_type):
+    resp = None
     cert_map = {"Server": MANAGER_ID}
     try:
         resp = idrac.invoke_request(cert_map.get(cert_type, MANAGERS_URI), "GET")
@@ -417,6 +418,7 @@ def get_res_id(idrac, cert_type):
 
 
 def get_idrac_service(idrac, res_id):
+    resp = None
     srvc = IDRAC_SERVICE.format(res_id=res_id)
     resp = idrac.invoke_request(f"{MANAGERS_URI}/{res_id}", 'GET')
     srvc_data = resp.json_data
@@ -426,6 +428,7 @@ def get_idrac_service(idrac, res_id):
 
 
 def get_actions_map(idrac, idrac_service_uri):
+    resp = None
     actions = idrac_service_actions
     try:
         resp = idrac.invoke_request(idrac_service_uri, 'GET')
@@ -517,6 +520,7 @@ def get_export_data(idrac, cert_type, res_id):
 
 
 def check_csr_generated(idrac):
+    resp = None
     generated = False
     #  Wating max 120(24*5) seconds for CSR to be generated
     count = 24
@@ -529,6 +533,7 @@ def check_csr_generated(idrac):
 
 
 def perform_operation_and_download_csr(idrac, cert_url, method, cert_payload):
+    resp = None
     try:
         resp = idrac.invoke_request(cert_url, method, data=cert_payload)
     except HTTPError as err:
@@ -541,6 +546,7 @@ def perform_operation_and_download_csr(idrac, cert_url, method, cert_payload):
 
 
 def exit_certificates(module, idrac, cert_url, cert_payload, method, cert_type, res_id):
+    resp = None
     cmd = module.params.get('command')
     changed = changed_map.get(cmd)
     reset = changed_map.get(cmd) and module.params.get('reset')
