@@ -1144,6 +1144,7 @@ def main():
 
     module = IdracAnsibleModule(
         argument_spec=specs,
+        required_one_of=[("share_name", "import_buffer")],
         required_if=[
             ["command", "export", ["share_name"]],
             ["command", "export_custom_defaults", ["share_name"]],

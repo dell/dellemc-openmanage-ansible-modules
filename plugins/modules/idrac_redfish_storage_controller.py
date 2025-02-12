@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.5.0
-# Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.11.0
+# Copyright (C) 2019-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -197,6 +197,7 @@ author:
   - "Felix Stephen (@felixs88)"
   - "Husniya Hameed (@husniya_hameed)"
   - "Abhishek Sinha (@ABHISHEK-SINHA10)"
+  - "Shivam Sharma (@ShivamSh3)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module is supported on iDRAC9.
@@ -541,6 +542,7 @@ error_info:
 '''
 
 
+import re
 import json
 from ansible.module_utils.compat.version import LooseVersion
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, RedfishAnsibleModule
@@ -592,6 +594,11 @@ CONTROLLER_ID_REQUIRED = "controller_id is required to perform this operation."
 JOB_COMPLETION_ATTRIBUTES = "Successfully applied the controller attributes."
 JOB_SUBMISSION_ATTRIBUTES = "Successfully submitted the job that configures the controller attributes."
 ERR_MSG = "Unable to configure the controller attribute(s) settings."
+INVALID_KEY_ID = "The keyid should be of maximum length 32 and only alphanumeric characters are allowed without spaces."
+INVALID_KEY = ("The key should be of maximum length 32 and must contain at least one "
+               "character from each of the character classes: uppercase, lowercase, "
+               "number, and special character.")
+INVALID_START_TIME = "The start time should be in the format YYYY-MM-DDThh:mm:ss<offset>"
 
 
 def check_id_exists(module, redfish_obj, key, item_id, uri):
@@ -604,52 +611,76 @@ def check_id_exists(module, redfish_obj, key, item_id, uri):
         module.exit_json(msg=msg, error_info=json.load(err), failed=True)
 
 
+def handle_set_controller_key(module, controller_id, ctrl_key_id, key, key_id, payload):
+    if module.check_mode and ctrl_key_id is None:
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
+    elif module.check_mode or ctrl_key_id is not None:
+        module.exit_json(msg=NO_CHANGES_FOUND)
+    payload.update({"TargetFQDD": controller_id, "Key": key, "Keyid": key_id})
+
+
+def handle_rekey(module, controller_id, mode, key, key_id, payload):
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
+    if mode == "LKM":
+        payload.update({"TargetFQDD": controller_id, "Mode": mode, "NewKey": key,
+                       "Keyid": key_id, "OldKey": module.params.get("old_key")})
+    else:
+        payload.update({"TargetFQDD": controller_id, "Mode": mode})
+
+
+def handle_remove_controller_key(module, controller_id, ctrl_key_id, payload):
+    if module.check_mode and ctrl_key_id is not None:
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
+    elif module.check_mode or ctrl_key_id is None:
+        module.exit_json(msg=NO_CHANGES_FOUND)
+    payload.update({"TargetFQDD": controller_id})
+
+
+def handle_enable_controller_encryption(module, controller_id, security_status, mode, key, key_id, payload):
+    if module.check_mode and security_status != "SecurityKeyAssigned":
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
+    elif (module.check_mode and security_status == "SecurityKeyAssigned") or (not module.check_mode and security_status == "SecurityKeyAssigned"):
+        module.exit_json(msg=NO_CHANGES_FOUND)
+    payload.update({"TargetFQDD": controller_id, "Mode": mode})
+    if mode == "LKM":
+        payload.update({"Key": key, "Keyid": key_id})
+
+
 def ctrl_key(module, redfish_obj):
     resp, job_uri, job_id, payload = None, None, None, {}
     controller_id = module.params.get("controller_id")
     command, mode = module.params["command"], module.params["mode"]
     key, key_id = module.params.get("key"), module.params.get("key_id")
-    check_id_exists(module, redfish_obj, "controller_id", controller_id, CONTROLLER_URI)
-    ctrl_resp = redfish_obj.invoke_request("GET", CONTROLLER_URI.format(system_id=SYSTEM_ID,
-                                                                        controller_id=controller_id))
+
+    check_id_exists(module, redfish_obj, "controller_id",
+                    controller_id, CONTROLLER_URI)
+    ctrl_resp = redfish_obj.invoke_request("GET", CONTROLLER_URI.format(
+        system_id=SYSTEM_ID, controller_id=controller_id))
+
     security_status = ctrl_resp.json_data.get("SecurityStatus")
     if security_status == "EncryptionNotCapable":
         module.fail_json(msg=ENCRYPT_ERR_MSG.format(controller_id))
+
     ctrl_key_id = ctrl_resp.json_data.get("KeyID")
+
     if command == "SetControllerKey":
-        if module.check_mode and ctrl_key_id is None:
-            module.exit_json(msg=CHANGES_FOUND, changed=True)
-        elif (module.check_mode and ctrl_key_id is not None) or (not module.check_mode and ctrl_key_id is not None):
-            module.exit_json(msg=NO_CHANGES_FOUND)
-        payload = {"TargetFQDD": controller_id, "Key": key, "Keyid": key_id}
+        handle_set_controller_key(
+            module, controller_id, ctrl_key_id, key, key_id, payload)
     elif command == "ReKey":
-        if module.check_mode:
-            module.exit_json(msg=CHANGES_FOUND, changed=True)
-        if mode == "LKM":
-            payload = {"TargetFQDD": controller_id, "Mode": mode, "NewKey": key,
-                       "Keyid": key_id, "OldKey": module.params.get("old_key")}
-        else:
-            payload = {"TargetFQDD": controller_id, "Mode": mode}
+        handle_rekey(module, controller_id, mode, key, key_id, payload)
     elif command == "RemoveControllerKey":
-        if module.check_mode and ctrl_key_id is not None:
-            module.exit_json(msg=CHANGES_FOUND, changed=True)
-        elif (module.check_mode and ctrl_key_id is None) or (not module.check_mode and ctrl_key_id is None):
-            module.exit_json(msg=NO_CHANGES_FOUND)
-        payload = {"TargetFQDD": controller_id}
+        handle_remove_controller_key(
+            module, controller_id, ctrl_key_id, payload)
     elif command == "EnableControllerEncryption":
-        if module.check_mode and not security_status == "SecurityKeyAssigned":
-            module.exit_json(msg=CHANGES_FOUND, changed=True)
-        elif (module.check_mode and security_status == "SecurityKeyAssigned") or \
-                (not module.check_mode and security_status == "SecurityKeyAssigned"):
-            module.exit_json(msg=NO_CHANGES_FOUND)
-        payload = {"TargetFQDD": controller_id, "Mode": mode}
-        if mode == "LKM":
-            payload["Key"] = key
-            payload["Keyid"] = key_id
-    resp = redfish_obj.invoke_request("POST", RAID_ACTION_URI.format(system_id=SYSTEM_ID, action=command),
-                                      data=payload)
+        handle_enable_controller_encryption(
+            module, controller_id, security_status, mode, key, key_id, payload)
+
+    resp = redfish_obj.invoke_request("POST", RAID_ACTION_URI.format(
+        system_id=SYSTEM_ID, action=command), data=payload)
     job_uri = resp.headers.get("Location")
     job_id = job_uri.split("/")[-1]
+
     return resp, job_uri, job_id
 
 
@@ -679,28 +710,36 @@ def hot_spare_config(module, redfish_obj):
     controller_id = target[0].split(":")[-1]
     drive_id = target[0]
     try:
-        pd_resp = redfish_obj.invoke_request("GET", PD_URI.format(controller_id=controller_id, drive_id=drive_id))
+        pd_resp = redfish_obj.invoke_request("GET", PD_URI.format(
+            controller_id=controller_id, drive_id=drive_id))
     except HTTPError:
         module.fail_json(msg=PD_ERROR_MSG.format(drive_id))
     else:
         hot_spare = pd_resp.json_data.get("HotspareType")
-        if module.check_mode and hot_spare == "None" and command == "AssignSpare" or \
-                (module.check_mode and not hot_spare == "None" and command == "UnassignSpare"):
-            module.exit_json(msg=CHANGES_FOUND, changed=True)
-        elif (module.check_mode and hot_spare in ["Dedicated", "Global"] and command == "AssignSpare") or \
-                (not module.check_mode and hot_spare in ["Dedicated", "Global"] and command == "AssignSpare") or \
-                (module.check_mode and hot_spare == "None" and command == "UnassignSpare") or \
-                (not module.check_mode and hot_spare == "None" and command == "UnassignSpare"):
-            module.exit_json(msg=NO_CHANGES_FOUND)
-        else:
-            payload = {"TargetFQDD": drive_id}
-            if volume is not None and command == "AssignSpare":
-                payload["VirtualDiskArray"] = volume
-            resp = redfish_obj.invoke_request("POST", RAID_ACTION_URI.format(system_id=SYSTEM_ID,
-                                                                             action=command),
-                                              data=payload)
-            job_uri = resp.headers.get("Location")
-            job_id = job_uri.split("/")[-1]
+        resp, job_uri, job_id = hot_spare_config_refactored(
+            module, redfish_obj, command, volume, drive_id, hot_spare)
+    return resp, job_uri, job_id
+
+
+def hot_spare_config_refactored(module, redfish_obj, command, volume, drive_id, hot_spare):
+    resp, job_uri, job_id = None, None, None
+    if module.check_mode and hot_spare == "None" and command == "AssignSpare" or \
+            (module.check_mode and hot_spare != "None" and command == "UnassignSpare"):
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
+    elif (module.check_mode and hot_spare in ["Dedicated", "Global"] and command == "AssignSpare") or \
+        (not module.check_mode and hot_spare in ["Dedicated", "Global"] and command == "AssignSpare") or \
+        (module.check_mode and hot_spare == "None" and command == "UnassignSpare") or \
+            (not module.check_mode and hot_spare == "None" and command == "UnassignSpare"):
+        module.exit_json(msg=NO_CHANGES_FOUND)
+    else:
+        payload = {"TargetFQDD": drive_id}
+        if volume is not None and command == "AssignSpare":
+            payload["VirtualDiskArray"] = volume
+        resp = redfish_obj.invoke_request("POST", RAID_ACTION_URI.format(system_id=SYSTEM_ID,
+                                                                         action=command),
+                                          data=payload)
+        job_uri = resp.headers.get("Location")
+        job_id = job_uri.split("/")[-1]
     return resp, job_uri, job_id
 
 
@@ -716,7 +755,7 @@ def change_pd_status(module, redfish_obj):
     except HTTPError:
         module.fail_json(msg=PD_ERROR_MSG.format(drive_id))
     else:
-        if module.check_mode and not state == raid_status:
+        if module.check_mode and state != raid_status:
             module.exit_json(msg=CHANGES_FOUND, changed=True)
         elif (module.check_mode and state == raid_status) or (not module.check_mode and state == raid_status):
             module.exit_json(msg=NO_CHANGES_FOUND)
@@ -843,30 +882,14 @@ def online_capacity_expansion(module, redfish_obj):
             module.exit_json(msg=OCE_RAID_TYPE_ERR.format(raid_type), failed=True)
 
         if target is not None:
-            if not target:
-                module.exit_json(msg=OCE_TARGET_EMPTY, failed=True)
-
-            if raid_type == 'RAID1':
-                module.fail_json(msg=OCE_TARGET_RAID1_ERR)
-
-            current_pd = []
-            links = volume_resp.json_data.get("Links")
-            if links:
-                for disk in volume_resp.json_data.get("Links").get("Drives"):
-                    drive = disk[ODATA_ID].split('/')[-1]
-                    current_pd.append(drive)
-            drives_to_add = [each_drive for each_drive in target if each_drive not in current_pd]
-            if module.check_mode and drives_to_add and len(drives_to_add) % OCE_MIN_PD_RAID_MAPPING[raid_type] == 0:
-                module.exit_json(msg=CHANGES_FOUND, changed=True)
-            elif len(drives_to_add) == 0 or len(drives_to_add) % OCE_MIN_PD_RAID_MAPPING[raid_type] != 0:
-                module.exit_json(msg=NO_CHANGES_FOUND)
+            drives_to_add = online_capacity_expansion_refactored(module, target, volume_resp, raid_type)
             payload = {"TargetFQDD": volume_id[0], "PDArray": drives_to_add}
 
         elif size:
             vd_size = volume_resp.json_data.get("CapacityBytes")
-            vd_size_MB = vd_size // (1024 * 1024)
-            if (size - vd_size_MB) < 100:
-                module.exit_json(msg=OCE_SIZE_100MB.format(vd_size_MB), failed=True)
+            vd_size_mb = vd_size // (1024 * 1024)
+            if (size - vd_size_mb) < 100:
+                module.exit_json(msg=OCE_SIZE_100MB.format(vd_size_mb), failed=True)
             payload = {"TargetFQDD": volume_id[0], "Size": size}
 
         resp = redfish_obj.invoke_request("POST", RAID_ACTION_URI.format(system_id=SYSTEM_ID,
@@ -878,6 +901,27 @@ def online_capacity_expansion(module, redfish_obj):
     except HTTPError as err:
         err = json.load(err).get("error").get("@Message.ExtendedInfo", [{}])[0].get("Message")
         module.exit_json(msg=err, failed=True)
+
+
+def online_capacity_expansion_refactored(module, target, volume_resp, raid_type):
+    if not target:
+        module.exit_json(msg=OCE_TARGET_EMPTY, failed=True)
+
+    if raid_type == 'RAID1':
+        module.fail_json(msg=OCE_TARGET_RAID1_ERR)
+
+    current_pd = []
+    links = volume_resp.json_data.get("Links")
+    if links:
+        for disk in volume_resp.json_data.get("Links").get("Drives"):
+            drive = disk[ODATA_ID].split('/')[-1]
+            current_pd.append(drive)
+    drives_to_add = [each_drive for each_drive in target if each_drive not in current_pd]
+    if module.check_mode and drives_to_add and len(drives_to_add) % OCE_MIN_PD_RAID_MAPPING[raid_type] == 0:
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
+    elif len(drives_to_add) == 0 or len(drives_to_add) % OCE_MIN_PD_RAID_MAPPING[raid_type] != 0:
+        module.exit_json(msg=NO_CHANGES_FOUND)
+    return drives_to_add
 
 
 def match_id_in_list(id, member_list):
@@ -1100,6 +1144,27 @@ def job_condition_check(module, redfish_obj, job_id, job_uri,
                          status=job_data)
 
 
+def validate_params(module):
+    start_time = None
+    key_id = module.params.get("key_id")
+    key = module.params.get("key")
+    maintenance_window = module.params.get("maintenance_window")
+    if maintenance_window:
+        start_time = maintenance_window.get('start_time')
+    if key:
+        pattern_key = r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{1,32}$'
+        if not re.match(pattern_key, key):
+            module.exit_json(failed=True, msg=INVALID_KEY)
+    if key_id:
+        pattern_key_id = r'^[^\s]{1,32}$'
+        if not re.match(pattern_key_id, key_id):
+            module.exit_json(failed=True, msg=INVALID_KEY_ID)
+    if start_time:
+        pattern_start_time = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:Z|[+-]\d{2}:\d{2})$'
+        if not re.match(pattern_start_time, start_time):
+            module.exit_json(failed=True, msg=INVALID_START_TIME)
+
+
 def main():
     specs = {
         "attributes": {"type": 'dict'},
@@ -1145,6 +1210,7 @@ def main():
             ["apply_time", "InMaintenanceWindowOnReset", ("maintenance_window",)]
         ],
         supports_check_mode=True)
+    validate_params(module)
     if not bool(module.params["attributes"]):
         validate_inputs(module)
     try:

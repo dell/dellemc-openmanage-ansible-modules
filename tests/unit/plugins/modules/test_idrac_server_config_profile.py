@@ -584,7 +584,7 @@ class TestImportCustomDefaultCommand(FakeAnsibleModule):
     def test_idrac_reset_main_positive_case(self, idrac_default_args,
                                             idrac_connection_server_config_profile_mock, mocker):
         # Scenario - When command 'import_custom_defaults' and job_wait is true
-        idrac_default_args.update({"command": "import_custom_defaults"})
+        idrac_default_args.update({"command": "import_custom_defaults", "share_name": "share_name"})
         idrac_default_args.update({"job_wait": True})
         mocker.patch(MODULE_PATH_COMP + GET_FIRMWARE_VERSION, return_value="7.10.05")
         mocker.patch(MODULE_PATH_COMP + EXECUTE_KEY_IMPORT, return_value=(self.res_with_job_wait, True))
