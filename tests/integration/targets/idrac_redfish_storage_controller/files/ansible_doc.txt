@@ -314,7 +314,7 @@
 - 'REQUIREMENTS:  python >= 3.9.6'
 - ''
 - 'AUTHOR: Jagadeesh N V (@jagadeeshnv), Felix Stephen (@felixs88), Husniya Hameed
-    (@husniya_hameed), Abhishek Sinha (@ABHISHEK-SINHA10)'
+    (@husniya_hameed), Abhishek Sinha (@ABHISHEK-SINHA10), Shivam Sharma (@ShivamSh3)'
 - ''
 - 'EXAMPLES:'
 - ''
