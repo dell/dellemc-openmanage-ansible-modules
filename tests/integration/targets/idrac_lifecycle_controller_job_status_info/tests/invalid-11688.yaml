@@ -14,7 +14,7 @@
 - block:
     - name: Negative - unreachable host
       dellemc.openmanage.idrac_lifecycle_controller_job_status_info:
-        idrac_ip: "999.999.999.999"
+        idrac_ip: "invalid"
         job_id: "1234"
       ignore_errors: true
       register: invalid_unreachable
@@ -24,7 +24,7 @@
         that:
           - invalid_unreachable.failed
           - 'invalid_unreachable.msg == "Unable to communicate with iDRAC
-           999.999.999.999. This may be due to one of the following:
+           invalid. This may be due to one of the following:
            Incorrect username or password, unreachable iDRAC IP or a
            failure in TLS/SSL handshake."'
 

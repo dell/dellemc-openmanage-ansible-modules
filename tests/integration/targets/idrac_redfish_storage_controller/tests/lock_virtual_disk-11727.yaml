@@ -1,0 +1,236 @@
+# Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  fail:
+    msg: "Please define the following variables: idrac_ip, idrac_user and idrac_password."
+  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+
+- block:
+    - include_tasks: get_data.yml
+      vars:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/System.Embedded.1/Storage?$expand=*($levels=1)
+
+    - set_fact:
+        fetched_controller_data: "{{ fetched_data }}"
+
+    - name: Extracting encryption capable controllers fqqdn id
+      set_fact:
+        controller_list: "{{controller_list | default([]) + [item.Id] }}"
+      loop: "{{ fetched_controller_data.json.Members }}"
+      when:
+        - item.Drives != []
+        - item.Oem is defined
+        - item.Oem.Dell.DellController.EncryptionCapability != 'None'
+
+    - name: Fetching drives data based on controller's id
+      include_tasks: get_data.yml
+      vars:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/System.Embedded.1/Storage/{{item}}?$expand=*($levels=1)
+        capture_all: true
+      loop: "{{ controller_list }}"
+
+    - set_fact:
+        controller_drive_map_list: "{{ controller_drive_map | default([]) + [{item.0.json.Id : tmp | default([]) + [item.1.Id] }] }}"
+      loop: "{{ loop_data | subelements('json.Drives')}}"
+      when:
+        - item.1.EncryptionAbility == 'SelfEncryptingDrive'
+        - item.1.EncryptionStatus  != 'Locked'
+
+    - name: Creating volume using controller and drive fqqdn id
+      redfish_storage_volume:
+        state: "present"
+        controller_id: "{{ item.key }}"
+        volume_type: "NonRedundant"
+        drives: "{{ item.value }}"
+      register: create_vd
+      loop: "{{ controller_drive_map_list | map('dict2items') | flatten  }}"
+      loop_control:
+        index_var: index
+      when: index == 0
+
+    - pause: seconds=90
+      when: create_vd.changed
+
+    - name: Fetching volumes id based on controller and drive's fqqdn id
+      include_tasks: get_data.yml
+      vars:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/System.Embedded.1/Storage/{{item.key}}/Drives/{{item.value[0]}}?$expand=*($levels=1)
+      loop: "{{ controller_drive_map_list | map('dict2items') | flatten  }}"
+      loop_control:
+        index_var: index
+      when: index == 0
+
+    - set_fact:
+        volume_id: "{{ fetched_data.json.Links.Volumes[0].Id }}"
+
+    - name: Applying encryption(LockVirtualDisk) of virual disk(Volume) - Check Mode
+      idrac_redfish_storage_controller:
+        command: LockVirtualDisk
+        volume_id: "{{ volume_id }}"
+        job_wait: true
+      register: lock_disk_check_mode
+      check_mode: true
+
+    - name: Verify applying encryption(LockVirtualDisk) of virual disk(Volume) - Check mode
+      assert:
+        that:
+          - lock_disk_check_mode.changed
+          - lock_disk_check_mode.msg == 'Changes found to be applied.'
+
+    - name: Applying encryption(LockVirtualDisk) of virual disk(Volume) - Normal Mode
+      idrac_redfish_storage_controller:
+        command: LockVirtualDisk
+        volume_id: "{{ volume_id }}"
+        job_wait: true
+      register: lock_disk_normal_mode
+
+    - set_fact:
+        msg: "{{ lock_disk_normal_mode.msg | regex_replace(pattern, replace) }}"
+      vars:
+        pattern: "'"
+        replace: ""
+
+    - name: Fetching volumes details based on controller and volumes' fqqdn id
+      include_tasks: get_data.yml
+      vars:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/System.Embedded.1/Storage/{{item.key}}/Volumes/{{volume_id}}
+      loop: "{{ controller_drive_map_list | map('dict2items') | flatten  }}"
+      loop_control:
+        index_var: index
+      when: index == 0
+
+    - set_fact:
+        encryption_status: "{{ fetched_data.json.Encrypted }}"
+        lock_status: "{{ fetched_data.json.Oem.Dell.DellVirtualDisk.LockStatus }}"
+
+    - name: Verify applying encryption(LockVirtualDisk) of virual disk(Volume) - Normal mode
+      assert:
+        that:
+          - lock_disk_normal_mode.changed
+          - "'{{ msg }}' == 'Successfully performed the LockVirtualDisk operation.'"
+          - "'{{ encryption_status }}' == 'True'"
+          - "'{{ lock_status }}' == 'Locked'"
+
+    - name: Applying encryption(LockVirtualDisk) of virual disk(Volume) - Idempotency Mode
+      idrac_redfish_storage_controller:
+        command: LockVirtualDisk
+        volume_id: "{{ volume_id }}"
+        job_wait: true
+      register: lock_disk_idempotency_mode
+
+    - name: Verify applying encryption(LockVirtualDisk) of virual disk(Volume) - Idempotency mode
+      assert:
+        that:
+          - not lock_disk_idempotency_mode.changed
+          - lock_disk_idempotency_mode.msg == 'No changes found to be applied.'
+
+    - name: Deleting volume
+      redfish_storage_volume:
+        state: "absent"
+        volume_id: "{{ volume_id }}"
+      register: delete_vd
+
+    - pause: seconds=90
+      when: delete_vd.changed
+
+    - name: Creating volume using controller and drive fqqdn id for job_wait_false
+      redfish_storage_volume:
+        state: "present"
+        controller_id: "{{ item.key }}"
+        volume_type: "NonRedundant"
+        drives: "{{ item.value }}"
+      register: create_vd
+      loop: "{{ controller_drive_map_list | map('dict2items') | flatten  }}"
+      loop_control:
+        index_var: index
+      when: index == 0
+
+    - pause: seconds=90
+      when: create_vd.changed
+
+    - name: Applying encryption(LockVirtualDisk) of virual disk(Volume) job_wait_false - Check Mode
+      idrac_redfish_storage_controller:
+        command: LockVirtualDisk
+        volume_id: "{{ volume_id }}"
+        job_wait: false
+      register: checked_mode_jobwait_false
+      check_mode: true
+
+    - name: Verify applying encryption(LockVirtualDisk) of virual disk(Volume) job_wait_false - Check mode
+      assert:
+        that:
+          - checked_mode_jobwait_false.changed
+          - checked_mode_jobwait_false.msg == 'Changes found to be applied.'
+
+    - name: Applying encryption(LockVirtualDisk) of virual disk(Volume) job_wait_false - Normal Mode
+      idrac_redfish_storage_controller:
+        command: LockVirtualDisk
+        volume_id: "{{ volume_id }}"
+        job_wait: false
+      register: normal_mode_jobwait_false
+
+    - pause: seconds=90
+
+    - set_fact:
+        msg_2: "{{ normal_mode_jobwait_false.msg | regex_replace(pattern, replace) }}"
+      vars:
+        pattern: "'"
+        replace: ""
+
+    - name: Fetching volumes details based on controller and volumes' fqqdn id for job_wait_false
+      include_tasks: get_data.yml
+      vars:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/System.Embedded.1/Storage/{{item.key}}/Volumes/{{volume_id}}
+      loop: "{{ controller_drive_map_list | map('dict2items') | flatten  }}"
+      loop_control:
+        index_var: index
+      when: index == 0
+
+    - set_fact:
+        encryption_status_2: "{{ fetched_data.json.Encrypted }}"
+        lock_status_2: "{{ fetched_data.json.Oem.Dell.DellVirtualDisk.LockStatus }}"
+
+    - name: Verify applying encryption(LockVirtualDisk) of virual disk(Volume) job_wait_false - Normal mode
+      assert:
+        that:
+          - not normal_mode_jobwait_false.changed
+          - "'{{ msg_2 }}' == 'Successfully submitted the job that performs the LockVirtualDisk operation.'"
+          - "'{{ encryption_status_2 }}' == 'True'"
+          - "'{{ lock_status_2 }}' == 'Locked'"
+
+    - name: Applying encryption(LockVirtualDisk) of virual disk(Volume) job_wait_false - Idempotency Mode
+      idrac_redfish_storage_controller:
+        command: LockVirtualDisk
+        volume_id: "{{ volume_id }}"
+        job_wait: false
+      register: idempotency_mode_jobwait_false
+
+    - name: Verify applying encryption(LockVirtualDisk) of virual disk(Volume) job_wait_false - Idempotency mode
+      assert:
+        that:
+          - not idempotency_mode_jobwait_false.changed
+          - idempotency_mode_jobwait_false.msg == 'No changes found to be applied.'
+
+    - name: Deleting volume after completing the testcase
+      redfish_storage_volume:
+        state: "absent"
+        volume_id: "{{ volume_id }}"
+      register: delete_vd
+
+    - pause: seconds=90
+      when: delete_vd.changed
+
+  module_defaults:
+    dellemc.openmanage.redfish_storage_volume:
+      baseuri: "{{idrac_ip}}"
+      username: "{{idrac_user}}"
+      password: "{{idrac_password}}"
+      validate_certs: "{{validate_certs}}"
+
+    dellemc.openmanage.idrac_redfish_storage_controller:
+      baseuri: "{{ idrac_ip }}:{{ idrac_port }}"
+      username: "{{idrac_user}}"
+      password: "{{idrac_password}}"
+      validate_certs: "{{validate_certs}}"

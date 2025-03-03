@@ -1,0 +1,144 @@
+# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+
+- block:
+    - include_tasks: _helper.yml
+      vars:
+        reset_trigger: 1
+        id: ["{{ physicaldisks[0] }}"]
+        vd_trigger: 1
+
+    - include_tasks: _helper.yml
+      vars:
+        reset_trigger: 1
+
+    - include_tasks: _helper.yml
+      vars:
+        target: "{{ physicaldisks[0] }}"
+
+    - include_tasks: _helper.yml
+      vars:
+        target: "{{ physicaldisks[1] }}"
+
+    - name: Assign global hot spare - Normal
+      idrac_redfish_storage_controller:
+        target: "{{ physicaldisks[1] }}"
+        job_wait: true
+        job_wait_timeout: 1200
+      register: global_hotspare_result
+
+    - name: Assign global hot spare - check mode - (Change expected)
+      idrac_redfish_storage_controller:
+        target: "{{ physicaldisks[0] }}"
+        job_wait: true
+        job_wait_timeout: 1201
+      register: cm_result
+      check_mode: true
+
+    - name: Assign global hot spare - Normal
+      idrac_redfish_storage_controller:
+        target: "{{ physicaldisks[0] }}"
+#        job_wait: false
+#        job_wait_timeout: 1201
+      register: normal_result
+
+    - include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{normal_result.status.Id}}"
+      when: normal_result.msg == "Successfully submitted the job that performs the 'AssignSpare' operation."
+
+    - name: Assign global hot spare - Idempotence
+      idrac_redfish_storage_controller:
+        target: "{{ physicaldisks[0] }}"
+        job_wait: true
+        job_wait_timeout: 1201
+      register: idempotence
+
+    - name: Assign global hot spare - Check mode - (No change expected)
+      idrac_redfish_storage_controller:
+        target: "{{ physicaldisks[0] }}"
+        job_wait: true
+        job_wait_timeout: 1201
+      register: no_cm_result
+
+
+      ########################## unassign global hotspare ###################################
+
+    - name: Unassign global hot spare - Normal
+      idrac_redfish_storage_controller:
+        command: "UnassignSpare"
+        target: "{{ physicaldisks[0] }}"
+        job_wait: true
+        job_wait_timeout: 1200
+      register: unassign_global_hotspare_result
+
+    - name: Unassign global hot spare - check mode - (Change expected)
+      idrac_redfish_storage_controller:
+        command: "UnassignSpare"
+        target: "{{ physicaldisks[1] }}"
+        job_wait: true
+        job_wait_timeout: 1201
+      register: unassign_cm_result
+      check_mode: true
+
+    - name: Unassign global hot spare - Normal
+      idrac_redfish_storage_controller:
+        command: "UnassignSpare"
+        target: "{{ physicaldisks[1] }}"
+#        job_wait: false
+#        job_wait_timeout: 1201
+      register: unassign_normal_result
+
+    - include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{unassign_normal_result.status.Id}}"
+      when: unassign_normal_result.msg == "Successfully submitted the job that performs the 'UnassignSpare' operation."
+
+    - name: Assign global hot spare - Idempotence
+      idrac_redfish_storage_controller:
+        command: "UnassignSpare"
+        target: "{{ physicaldisks[1] }}"
+        job_wait: true
+        job_wait_timeout: 1201
+      register: unassign_idempotence
+
+    - name: Assign global hot spare - Check mode - (No change expected)
+      idrac_redfish_storage_controller:
+        command: "UnassignSpare"
+        target: "{{ physicaldisks[1] }}"
+        job_wait: true
+        job_wait_timeout: 1201
+      register: unassign_no_cm_result
+
+    - name: Verify status of tasks
+      assert:
+        that:
+          - global_hotspare_result.msg == "Successfully performed the 'AssignSpare' operation."
+          - cm_result.changed
+          - cm_result.msg == "Changes found to be applied."
+          - normal_result.msg == "Successfully submitted the job that performs the 'AssignSpare' operation."
+          - not idempotence.changed
+          - idempotence.msg == "No changes found to be applied."
+          - not no_cm_result.changed
+          - no_cm_result.msg == "No changes found to be applied."
+          - unassign_global_hotspare_result.msg == "Successfully performed the 'UnassignSpare' operation."
+          - unassign_cm_result.changed
+          - unassign_cm_result.msg == "Changes found to be applied."
+          - unassign_normal_result.msg == "Successfully submitted the job that performs the 'UnassignSpare' operation."
+          - not unassign_idempotence.changed
+          - unassign_idempotence.msg == "No changes found to be applied."
+          - not unassign_no_cm_result.changed
+          - unassign_no_cm_result.msg == "No changes found to be applied."
+
+  module_defaults:
+    dellemc.openmanage.idrac_redfish_storage_controller:
+      baseuri: "{{ idrac_ip }}:{{ idrac_port }}"
+      username: "{{idrac_user}}"
+      password: "{{idrac_password}}"
+      validate_certs: "{{validate_certs}}"
