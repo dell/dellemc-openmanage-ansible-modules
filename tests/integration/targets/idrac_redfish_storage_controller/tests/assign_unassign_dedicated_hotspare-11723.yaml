@@ -1,0 +1,150 @@
+# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+
+- include_tasks: _helper.yml
+
+- name: Pre-check - fail if enough disk not found to create VD on RAID 5
+  fail:
+    msg: 'Physical disks are not sufficient to proceed the test case need more than 3 and found {{ physicaldisks | length}}'
+  when: "{{ physicaldisks | length}} < 4"
+
+- block:
+    - include_tasks: _helper.yml
+      vars:
+        vd_trigger: 1
+        volume_type: "RAID 5"
+        span_length: 3
+        id: ["{{ physicaldisks[0] }}", "{{ physicaldisks[1] }}", "{{ physicaldisks[2] }}"]
+        reset_trigger: 1
+
+    - include_tasks: _helper.yml
+      vars:
+        target: "{{ physicaldisks[3] }}"
+
+    - name: Assign dedicated hot spare - Normal
+      idrac_redfish_storage_controller:
+        volume_id:
+          - "{{ virtualdisk }}"
+        target: "{{ physicaldisks[3] }}"
+        job_wait: true
+        job_wait_timeout: 1200
+      register: result
+
+    - include_tasks: _helper.yml
+      vars:
+        target: "{{ physicaldisks[3] }}"
+
+    - name: Assign dedicated hot spare - check mode - (Change expected)
+      idrac_redfish_storage_controller:
+        volume_id:
+          - "{{ virtualdisk }}"
+        target: "{{ physicaldisks[3] }}"
+        job_wait: true
+        job_wait_timeout: 1200
+      register: cm_result
+      check_mode: true
+
+    - name: Assign dedicated hot spare - Normal
+      idrac_redfish_storage_controller:
+        volume_id:
+          - "{{ virtualdisk }}"
+        target: "{{ physicaldisks[3] }}"
+      register: normal_result
+
+    - include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{normal_result.status.Id}}"
+      when: normal_result.msg == "Successfully submitted the job that performs the 'AssignSpare' operation."
+
+    - name: Assign dedicated hot spare - Idempotence
+      idrac_redfish_storage_controller:
+        volume_id:
+          - "{{ virtualdisk }}"
+        target: "{{ physicaldisks[3] }}"
+        job_wait: true
+        job_wait_timeout: 1200
+      register: idempotence
+
+    - name: Assign dedicated hot spare - Check mode - (No change expected)
+      idrac_redfish_storage_controller:
+        volume_id:
+          - "{{ virtualdisk }}"
+        target: "{{ physicaldisks[3] }}"
+        job_wait: true
+        job_wait_timeout: 1200
+      register: no_cm_result
+      check_mode: true
+
+
+#      ########################## unassign dedicated hotspare ###################################
+
+    - name: Unassign dedicated hot spare - check mode - (Change expected)
+      idrac_redfish_storage_controller:
+        command: "UnassignSpare"
+        target: "{{ physicaldisks[3] }}"
+        job_wait: true
+        job_wait_timeout: 1201
+      register: unassign_cm_result
+      check_mode: true
+
+    - name: Unassign dedicated hot spare - Normal
+      idrac_redfish_storage_controller:
+        command: "UnassignSpare"
+        target: "{{ physicaldisks[3] }}"
+#        job_wait: false
+#        job_wait_timeout: 1201
+      register: unassign_normal_result
+
+    - include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{unassign_normal_result.status.Id}}"
+      when: unassign_normal_result.msg == "Successfully submitted the job that performs the 'UnassignSpare' operation."
+
+    - name: Assign dedicated hot spare - Idempotence
+      idrac_redfish_storage_controller:
+        command: "UnassignSpare"
+        target: "{{ physicaldisks[3] }}"
+        job_wait: true
+        job_wait_timeout: 1201
+      register: unassign_idempotence
+
+    - name: Assign dedicated hot spare - Check mode - (No change expected)
+      idrac_redfish_storage_controller:
+        command: "UnassignSpare"
+        target: "{{ physicaldisks[3] }}"
+        job_wait: true
+        job_wait_timeout: 1201
+      register: unassign_no_cm_result
+
+    - name: Verify status of tasks
+      assert:
+        that:
+          - result.msg == "Successfully performed the 'AssignSpare' operation."
+          - result.changed
+          - cm_result.changed
+          - cm_result.msg == "Changes found to be applied."
+          - normal_result.msg == "Successfully submitted the job that performs the 'AssignSpare' operation."
+          - not idempotence.changed
+          - idempotence.msg == "No changes found to be applied."
+          - not no_cm_result.changed
+          - no_cm_result.msg == "No changes found to be applied."
+          - unassign_cm_result.changed
+          - unassign_cm_result.msg == "Changes found to be applied."
+          - unassign_normal_result.msg == "Successfully submitted the job that performs the 'UnassignSpare' operation."
+          - not unassign_idempotence.changed
+          - unassign_idempotence.msg == "No changes found to be applied."
+          - not unassign_no_cm_result.changed
+          - unassign_no_cm_result.msg == "No changes found to be applied."
+
+  module_defaults:
+    dellemc.openmanage.idrac_redfish_storage_controller:
+      baseuri: "{{ idrac_ip }}:{{ idrac_port }}"
+      username: "{{idrac_user}}"
+      password: "{{idrac_password}}"
+      validate_certs: "{{validate_certs}}"
