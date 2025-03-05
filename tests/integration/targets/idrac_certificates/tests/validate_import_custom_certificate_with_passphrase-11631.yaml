@@ -22,7 +22,7 @@
         path: "{{ base_path_for_import_certificate }}"
         state: directory
       register: created_directory
-      
+
     - name: Set fact
       ansible.builtin.set_fact:
         curl_cmd: "curl --ntlm -u %s:%s -o %s %s"
