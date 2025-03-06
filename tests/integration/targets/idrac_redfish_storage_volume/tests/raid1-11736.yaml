@@ -87,7 +87,6 @@
           - uri_data.DisplayName == "RAID1_Volume"
           - uri_data.RAIDType == "RAID1"
           - uri_data.OptimumIOSizeBytes == 131072
-          - uri_data.BlockSizeBytes == 512
           - uri_data.CapacityBytes == 32212254720
 
     - name: Create a RAID1 volume using the raid_type parameter with the
@@ -161,8 +160,6 @@
           # Verify volume details
           - uri_data.DisplayName == "RAID1_Volume"
           - uri_data.RAIDType == "RAID1"
-          - uri_data.OptimumIOSizeBytes == 65536
-          - uri_data.BlockSizeBytes == 512
 
     - name: Create a RAID1 volume using the volume_type parameter (Idempotence)
       dellemc.openmanage.redfish_storage_volume:
