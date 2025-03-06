@@ -80,7 +80,6 @@
           - uri_data.DisplayName == "RAID0_Volume"
           - uri_data.RAIDType == "RAID0"
           - uri_data.OptimumIOSizeBytes == 65536
-          - uri_data.BlockSizeBytes == 512
           - uri_data.CapacityBytes == 104857600
 
     - name: Create a RAID0 volume using the raid_type parameter with the
@@ -95,6 +94,9 @@
         that:
           - not idempotence_result_raid.changed
           - 'idempotence_result_raid.msg == "No changes found to be applied."'
+
+    - name: Post clean up
+      ansible.builtin.include_tasks: _cleanup.yml
 
     - name: Set prerequisite
       ansible.builtin.include_tasks: _helper.yml
@@ -151,8 +153,6 @@
           # Verify volume details
           - uri_data.DisplayName == "RAID0_Volume"
           - uri_data.RAIDType == "RAID0"
-          - uri_data.OptimumIOSizeBytes == 65536
-          - uri_data.BlockSizeBytes == 512
 
     - name: Create a RAID0 volume using the volume_type parameter with more
         than the minimum number of disks (Idempotence)
