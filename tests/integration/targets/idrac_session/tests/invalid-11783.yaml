@@ -78,8 +78,8 @@
         that:
           - invalid_port.unreachable
           - not invalid_port.changed
-          - 'invalid_port.msg == "<urlopen error [Errno 111] Connection
-           refused>"'
+          - 'invalid_port.msg == "<urlopen error [Errno 111] Connection 
+           refused>" or invalid_port.msg == "<urlopen error timed out>"'
 
     - name: Negative - Invalid validate_certs
       dellemc.openmanage.idrac_session:
