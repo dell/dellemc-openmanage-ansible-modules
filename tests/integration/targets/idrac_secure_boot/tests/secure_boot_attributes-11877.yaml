@@ -127,7 +127,7 @@
         that:
           - boot_md_uefi.changed
           - 'boot_md_uri.json.Attributes.BootMode == "Uefi"'
-    
+
     - ansible.builtin.include_role:
         name: prepare_idrac_lifecycle_controller_status
 
@@ -213,7 +213,7 @@
         that:
           - cm_changes.changed
           - cm_changes.msg == 'Changes found to be applied.'
-    
+
     - ansible.builtin.include_role:
         name: prepare_idrac_lifecycle_controller_status
 
@@ -602,7 +602,7 @@
     - ansible.builtin.include_role:
         name: prepare_idrac_lifecycle_controller_status
 
-    - name: Pre-req - Disable force_int_10 
+    - name: Pre-req - Disable force_int_10
       dellemc.openmanage.idrac_secure_boot:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
@@ -644,7 +644,7 @@
           - force_enabled.changed
           - 'force_enabled.msg == "Successfully updated the iDRAC Secure
            Boot settings."'
-    
+
     - name: Wait for iDRAC
       ansible.builtin.pause:
         seconds: 30
