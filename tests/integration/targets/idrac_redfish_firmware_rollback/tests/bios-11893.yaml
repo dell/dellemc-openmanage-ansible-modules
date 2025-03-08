@@ -6,10 +6,10 @@
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
-    msg: 'Please define the following variables: idrac_ip, idrac_user and
-     idrac_password.'
-  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
-   is not defined'
+    msg: "Please define the following variables: idrac_ip, idrac_user and
+      idrac_password."
+  when: "idrac_ip is not defined or idrac_user is not defined or idrac_password
+    is not defined"
 
 - name: Check whether idrac IP is IPv4 or IPv6.
   ansible.builtin.set_fact:
@@ -23,20 +23,19 @@
 
 - ansible.builtin.include_tasks: _prereq_helper.yml
   vars:
-    comp: 'BIOS'
+    comp: "BIOS"
   when: '"BIOS" not in rollback_component_list'
 
 - block:
-
     - ansible.builtin.include_tasks: _get_firmware_inventory.yml
       vars:
-        component: 'BIOS'
+        component: "BIOS"
 
     - ansible.builtin.set_fact:
         rollback_to_version: "{{ previous_version }}"
 
     - name: Rollback an BIOS component firmware with reboot as false
-       (Check mode - changes expected)
+        (Check mode - changes expected)
       redfish_firmware_rollback: &redfish_firmware_rollback_1
         name: BIOS
         reboot: false
@@ -45,14 +44,14 @@
       check_mode: true
 
     - name: Verify task status - Rollback an BIOS component firmware with
-       reboot as false (Check mode - changes expected)
+        reboot as false (Check mode - changes expected)
       ansible.builtin.assert:
         that:
           - result.changed
           - result.msg == "Changes found to be applied."
 
     - name: Rollback an BIOS component firmware with reboot as false
-       (Normal mode)
+        (Normal mode)
       dellemc.openmanage.redfish_firmware_rollback:
         <<: *redfish_firmware_rollback_1
       register: result
@@ -70,14 +69,14 @@
     - ansible.builtin.include_tasks: _assert_job_status.yml
 
     - name: Verify task status - Rollback an BIOS component firmware
-       with reboot as false (Normal mode)
+        with reboot as false (Normal mode)
       ansible.builtin.assert:
         that:
           - result.changed
           - result.msg == "Successfully scheduled the job for firmware
-           rollback."
+            rollback."
 
-    - name: Perform graceful restart of the device
+    - name: Perform forceful restart of the device
       dellemc.openmanage.redfish_powerstate:
         reset_type: "ForceRestart"
       register: reboot_result
@@ -88,7 +87,7 @@
         user: "{{ idrac_user }}"
         password: "{{ idrac_password }}"
         validate_certs: false
-        headers: 'Accept=application/json'
+        headers: "Accept=application/json"
       register: current_powerstate
       until: current_powerstate.json.PowerState == "On"
       retries: 20
@@ -100,10 +99,10 @@
 
     - ansible.builtin.include_tasks: _get_firmware_inventory.yml
       vars:
-        component: 'BIOS'
+        component: "BIOS"
 
     - name: Verify firmware version of BIOS component post rollback with
-       reboot as false (Normal mode)
+        reboot as false (Normal mode)
       ansible.builtin.assert:
         that:
           - installed_version == rollback_to_version
@@ -112,14 +111,14 @@
         rollback_to_version: "{{ previous_version }}"
 
     - name: Rollback an BIOS component firmware with reboot as false
-       (Check mode again - changes expected)
+        (Check mode again - changes expected)
       dellemc.openmanage.redfish_firmware_rollback:
         <<: *redfish_firmware_rollback_1
       register: result
       check_mode: true
 
     - name: Verify task status - Rollback an BIOS component firmware with
-       reboot as false (Check mode again - changes expected)
+        reboot as false (Check mode again - changes expected)
       ansible.builtin.assert:
         that:
           - result.changed
@@ -128,7 +127,7 @@
     - ansible.builtin.wait_for: timeout=30
 
     - name: Rollback an BIOS component firmware with reboot as false
-       (Idempotence mode - changes expected)
+        (Idempotence mode - changes expected)
       dellemc.openmanage.redfish_firmware_rollback:
         <<: *redfish_firmware_rollback_1
       register: result
@@ -146,15 +145,15 @@
     - ansible.builtin.include_tasks: _assert_job_status.yml
 
     - name: Verify task status - Rollback an BIOS component firmware with
-       reboot as false (Idempotence mode - changes expected)
+        reboot as false (Idempotence mode - changes expected)
       ansible.builtin.assert:
         that:
           - result.changed
           - result.msg == "Successfully scheduled the job for firmware
-           rollback."
+            rollback."
 
-    - name: Perform graceful restart of the device
-      redfish_powerstate:
+    - name: Perform forceful restart of the device
+      dellemc.openmanage.redfish_powerstate:
         reset_type: "ForceRestart"
       register: reboot_result
 
@@ -164,7 +163,7 @@
         user: "{{ idrac_user }}"
         password: "{{ idrac_password }}"
         validate_certs: false
-        headers: 'Accept=application/json'
+        headers: "Accept=application/json"
       register: current_powerstate
       until: current_powerstate.json.PowerState == "On"
       retries: 20
@@ -176,10 +175,10 @@
 
     - ansible.builtin.include_tasks: _get_firmware_inventory.yml
       vars:
-        component: 'BIOS'
+        component: "BIOS"
 
     - name: Verify firmware version of BIOS component post rollback with
-       reboot as false (Idempotence mode - changes expected)
+        reboot as false (Idempotence mode - changes expected)
       ansible.builtin.assert:
         that:
           - installed_version == rollback_to_version
@@ -188,7 +187,7 @@
         rollback_to_version: "{{ previous_version }}"
 
     - name: Rollback an BIOS component firmware with reboot as true and
-       non-default reboot_timeout (Check mode - changes expected)
+        non-default reboot_timeout (Check mode - changes expected)
       redfish_firmware_rollback: &redfish_firmware_rollback_2
         name: BIOS
         reboot: true
@@ -198,8 +197,8 @@
       check_mode: true
 
     - name: Verify task status - Rollback an BIOS component firmware with
-       reboot as true and non-default reboot_timeout
-       (Check mode - changes expected)
+        reboot as true and non-default reboot_timeout
+        (Check mode - changes expected)
       ansible.builtin.assert:
         that:
           - result.changed
@@ -208,7 +207,7 @@
     - ansible.builtin.wait_for: timeout=30
 
     - name: Rollback an BIOS component firmware with reboot as true
-       and non-default reboot_timeout (Normal mode)
+        and non-default reboot_timeout (Normal mode)
       redfish_firmware_rollback:
         <<: *redfish_firmware_rollback_2
       register: result
@@ -222,7 +221,7 @@
 
     - ansible.builtin.include_tasks: _get_firmware_inventory.yml
       vars:
-        component: 'BIOS'
+        component: "BIOS"
 
     - ansible.builtin.set_fact:
         module_job_status: "{{ result.job_status }}"
@@ -230,24 +229,24 @@
     - ansible.builtin.include_tasks: _assert_job_status.yml
 
     - name: Verify task status - Rollback an BIOS component firmware with
-       reboot as true and non-default reboot_timeout (Normal mode)
+        reboot as true and non-default reboot_timeout (Normal mode)
       ansible.builtin.assert:
         that:
           - result.changed
           - result.msg == "Successfully completed the job for firmware
-           rollback."
+            rollback."
           - installed_version == rollback_to_version
 
     - name: Rollback an BIOS component firmware with reboot as true and
-       non-default reboot_timeout (Check mode again - changes expected)
+        non-default reboot_timeout (Check mode again - changes expected)
       dellemc.openmanage.redfish_firmware_rollback:
         <<: *redfish_firmware_rollback_2
       register: result
       check_mode: true
 
     - name: Verify task status - Rollback an BIOS component firmware with
-       reboot as true and non-default reboot_timeout
-       (Check mode again - changes expected)
+        reboot as true and non-default reboot_timeout
+        (Check mode again - changes expected)
       ansible.builtin.assert:
         that:
           - result.changed

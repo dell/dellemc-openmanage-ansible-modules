@@ -1,22 +1,22 @@
 ---
-- name: Module defaults
-  module_defaults:
-    dellemc.openmanage.idrac_lifecycle_controller_job_status_info:
-      idrac_ip: "{{ idrac_ip }}"
-      idrac_port: "{{ idrac_port }}"
-      idrac_user: "{{ idrac_user }}"
-      idrac_password: "{{ idrac_password }}"
-      validate_certs: "{{ validate_certs }}"
-
+- name: Prepare Lifecycle Controller Job
   block:
     - name: Wait for Job to complete
       dellemc.openmanage.idrac_lifecycle_controller_job_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_port: "{{ idrac_port }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
         job_id: "{{ job_id }}"
       when: job_id is defined
       register: result_job_wait
-      until: result_job_wait.job_info.JobStatus == "Completed" or
-        result_job_wait.job_info.JobStatus == "Failed"
-      failed_when: result_job_wait.job_info.JobStatus == "Failed"
+      until:
+        - result_job_wait.job_info is defined
+        - result_job_wait.job_info.JobStatus in ["Completed", "Failed"]
+      failed_when:
+        - result_job_wait.job_info is defined
+        - result_job_wait.job_info.JobStatus == "Failed"
       retries: 100
       delay: 30
 
