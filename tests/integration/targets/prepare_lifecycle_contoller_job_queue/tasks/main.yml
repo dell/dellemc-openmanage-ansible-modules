@@ -27,7 +27,7 @@
       ansible.builtin.set_fact:
         job_ids: "{{ job_ids | default([]) + [item.Id if item.JobState ==
           'Running' else []] }}"
-      loop: "{{ job_details.json.Members }}"
+      loop: "{{ uri_all_jobs.json.Members }}"
       when: job_queue.status.Message == "A running job cannot be deleted."
 
     - name: Track running job of a Lifecycle Control job
