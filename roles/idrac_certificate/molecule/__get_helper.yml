@@ -34,8 +34,9 @@
     url_username: "{{ https_share_username }}"
     url_password: "{{ https_share_password }}"
     headers:
-      Authorization: "Basic {{ (
-        https_share_username + ':' + https_share_password) | b64encode }}"
+      Authorization: "Basic {{ (https_share_username + ':' +
+        https_share_password) | b64encode }}"
+    mode: "0755"
     dest: "{{ path_for_import_cert }}"
   check_mode: false
   loop: "{{ idrac_cert_name }}"
