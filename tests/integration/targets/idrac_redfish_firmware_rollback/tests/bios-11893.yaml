@@ -64,7 +64,9 @@
         job_id: "{{ result.job_status[0].Id }}"
 
     - ansible.builtin.set_fact:
-        module_job_status: "{{ result.job_status }}"
+        module_job_status: "{{ result.job_status | ansible.utils.remove_keys(
+          target=['ActualRunningStopTime', 'ActualRunningStartTime'],
+          matching_parameter='regex') }}"
 
     - ansible.builtin.include_tasks: _assert_job_status.yml
 
@@ -140,7 +142,9 @@
         job_id: "{{ result.job_status[0].Id }}"
 
     - ansible.builtin.set_fact:
-        module_job_status: "{{ result.job_status }}"
+        module_job_status: "{{ result.job_status | ansible.utils.remove_keys(
+          target=['ActualRunningStopTime', 'ActualRunningStartTime'],
+          matching_parameter='regex') }}"
 
     - ansible.builtin.include_tasks: _assert_job_status.yml
 
@@ -224,7 +228,9 @@
         component: "BIOS"
 
     - ansible.builtin.set_fact:
-        module_job_status: "{{ result.job_status }}"
+        module_job_status: "{{ result.job_status | ansible.utils.remove_keys(
+          target=['ActualRunningStopTime', 'ActualRunningStartTime'],
+          matching_parameter='regex') }}"
 
     - ansible.builtin.include_tasks: _assert_job_status.yml
 

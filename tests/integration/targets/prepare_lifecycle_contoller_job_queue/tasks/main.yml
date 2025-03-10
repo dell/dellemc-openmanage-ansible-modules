@@ -1,5 +1,8 @@
 ---
 - name: Prepare Lifecycle Controller Job Queue
+  vars:
+    expand: "?$expand=*($levels=1)"
+    job_uri: "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs"
   block:
     - name: Delete LC Job Queue
       dellemc.openmanage.idrac_lifecycle_controller_jobs:
@@ -14,7 +17,7 @@
 
     - name: Get all job details by uri.
       ansible.builtin.uri:
-        url: https://{{ idrac_ip }}/redfish/v1/Managers/iDRAC.Embedded.1/Jobs
+        url: "https://{{ idrac_ip }}{{ job_uri }}{{ expand }}"
         user: "{{ idrac_user }}"
         password: "{{ idrac_password }}"
         validate_certs: "{{ validate_certs }}"
