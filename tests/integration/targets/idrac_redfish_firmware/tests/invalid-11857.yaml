@@ -82,7 +82,7 @@
     - name: Verify status of tasks
       ansible.builtin.assert:
         that:
-          - invalid_resrouce_id.failed
+          - invalid_resrouce_id.skipped
           - not invalid_resrouce_id.changed
           - invalid_resrouce_id.msg == "Invalid device Id 'invalid' is provided"
 
