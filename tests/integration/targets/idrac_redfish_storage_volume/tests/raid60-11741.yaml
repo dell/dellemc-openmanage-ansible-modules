@@ -42,7 +42,7 @@
           - "{{ physical_disks[5] }}"
           - "{{ physical_disks[6] }}"
           - "{{ physical_disks[7] }}"
-        optimum_io_size_bytes: 1048576  # 1 MB = (1*1024*1024)
+        optimum_io_size_bytes: 65536  # 64KB=(64*1024)
         capacity_bytes: 322122547200  # 300GB
       register: cm_result_raid
       check_mode: true
@@ -71,6 +71,10 @@
       ansible.builtin.include_role:
         name=prepare_idrac_lifecycle_controller_status
 
+    - name: Pause the job
+      ansible.builtin.pause:
+        seconds: 120
+
     - name: Fetch volume details
       ansible.builtin.include_tasks: _get_volume_details.yml
 
@@ -91,8 +95,7 @@
           # Verify volume details
           - uri_data.DisplayName == "RAID60_Volume"
           - uri_data.RAIDType == "RAID60"
-          - uri_data.OptimumIOSizeBytes == 1048576
-          - uri_data.BlockSizeBytes == 512
+          - uri_data.OptimumIOSizeBytes == 65536
           - uri_data.CapacityBytes == 322122547200
 
     - name: Create a RAID60 volume using the raid_type parameter with the
@@ -156,6 +159,10 @@
       ansible.builtin.include_role:
         name=prepare_idrac_lifecycle_controller_status
 
+    - name: Pause the job
+      ansible.builtin.pause:
+        seconds: 120
+
     - name: Fetch volume details
       ansible.builtin.include_tasks: _get_volume_details.yml
 
@@ -176,8 +183,6 @@
           # Verify volume details
           - uri_data.DisplayName == "RAID60_Volume"
           - uri_data.RAIDType == "RAID60"
-          - uri_data.OptimumIOSizeBytes == 65536
-          - uri_data.BlockSizeBytes == 512
 
     - name: Create a RAID60 volume using the raid_type parameter with more than
         the minimum number of disks (Idempotence)

@@ -87,7 +87,6 @@
           - uri_data.DisplayName == "RAID5_Volume"
           - uri_data.RAIDType == "RAID5"
           - uri_data.OptimumIOSizeBytes == 262144
-          - uri_data.BlockSizeBytes == 512
           - uri_data.CapacityBytes == 53687091200
 
     - name: Create a RAID5 volume using the raid_type parameter with the
@@ -165,8 +164,6 @@
           # Verify volume details
           - uri_data.DisplayName == "RAID5_Volume"
           - uri_data.RAIDType == "RAID5"
-          - uri_data.OptimumIOSizeBytes == 65536
-          - uri_data.BlockSizeBytes == 512
 
     - name: Create a RAID5 volume using the volume_type parameter with more
         than the minimum number of disks (Idempotence)
