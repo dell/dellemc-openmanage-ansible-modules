@@ -13,3 +13,7 @@
       dellemc.openmanage.idrac_lifecycle_controller_jobs:
       register: job_queue
       changed_when: "'Failed to delete the Job' in job_queue.msg"
+
+    - name: Wait for a min after clearing job queue
+      ansible.builtin.pause:
+        minutes: 1
