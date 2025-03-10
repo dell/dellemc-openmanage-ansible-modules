@@ -11,6 +11,10 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
+- name: Wait for iDRAC lifecycle controller readiness
+  ansible.builtin.include_role:
+    name=prepare_idrac_lifecycle_controller_status
+
 - name: Set prerequisite facts
   ansible.builtin.set_fact:
     raid_type: "RAID0"
@@ -58,6 +62,10 @@
     - name: Wait for iDRAC lifecycle controller readiness
       ansible.builtin.include_role:
         name=prepare_idrac_lifecycle_controller_status
+
+    - name: Pause the job
+      ansible.builtin.pause:
+        seconds: 60
 
     - name: Fetch volume details
       ansible.builtin.include_tasks: _get_volume_details.yml
@@ -132,6 +140,10 @@
     - name: Wait for iDRAC lifecycle controller readiness
       ansible.builtin.include_role:
         name=prepare_idrac_lifecycle_controller_status
+
+    - name: Pause the job
+      ansible.builtin.pause:
+        seconds: 60
 
     - name: Fetch volume details
       ansible.builtin.include_tasks: _get_volume_details.yml

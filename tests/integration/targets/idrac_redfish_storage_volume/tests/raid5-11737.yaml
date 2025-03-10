@@ -15,6 +15,10 @@
   ansible.builtin.set_fact:
     raid_type: "RAID5"
 
+- name: Wait for iDRAC lifecycle controller readiness
+  ansible.builtin.include_role:
+    name=prepare_idrac_lifecycle_controller_status
+
 - name: Set prerequisite
   ansible.builtin.include_tasks: _helper.yml
 
@@ -65,6 +69,10 @@
     - name: Wait for iDRAC lifecycle controller readiness
       ansible.builtin.include_role:
         name=prepare_idrac_lifecycle_controller_status
+
+    - name: Pause the job
+      ansible.builtin.pause:
+        seconds: 60
 
     - name: Fetch volume details
       ansible.builtin.include_tasks: _get_volume_details.yml
@@ -143,6 +151,10 @@
     - name: Wait for iDRAC lifecycle controller readiness
       ansible.builtin.include_role:
         name=prepare_idrac_lifecycle_controller_status
+
+    - name: Pause the job
+      ansible.builtin.pause:
+        seconds: 60
 
     - name: Fetch volume details
       ansible.builtin.include_tasks: _get_volume_details.yml
