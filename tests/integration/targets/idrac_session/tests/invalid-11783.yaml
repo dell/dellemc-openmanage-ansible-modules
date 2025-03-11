@@ -78,7 +78,7 @@
         that:
           - invalid_port.unreachable
           - not invalid_port.changed
-          - 'invalid_port.msg == "<urlopen error [Errno 111] Connection 
+          - 'invalid_port.msg == "<urlopen error [Errno 111] Connection
            refused>" or invalid_port.msg == "<urlopen error timed out>"'
 
     - name: Negative - Invalid validate_certs
@@ -135,7 +135,7 @@
         that:
           - invalid_timeout_type.failed
           - not invalid_timeout_type.changed
-          - invalid_timeout_type.msg == invalid_timeout_type_expected_msg or 
+          - invalid_timeout_type.msg == invalid_timeout_type_expected_msg or
             invalid_timeout_type.msg == invalid_timeout_type_expected_msg2
 
     - name: Negative - Invalid timeout value
