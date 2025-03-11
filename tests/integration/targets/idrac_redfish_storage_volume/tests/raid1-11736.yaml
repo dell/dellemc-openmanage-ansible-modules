@@ -13,7 +13,7 @@
 
 - ansible.builtin.set_fact:
     raid_type: "RAID1"
-    
+
 - name: Wait for iDRAC lifecycle controller readiness
   ansible.builtin.include_role:
     name=prepare_idrac_lifecycle_controller_status
