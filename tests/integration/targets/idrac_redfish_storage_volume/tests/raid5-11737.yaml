@@ -112,7 +112,7 @@
 
     - name: Set prerequisite
       ansible.builtin.include_tasks: _helper.yml
-    
+
     - name: Check disk count and retry if insufficient
       block:
         - name: Prerequisite - fail if not enough disk is found to create a volume
