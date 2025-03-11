@@ -18,6 +18,10 @@
       dellemc.openmanage.redfish_powerstate:
         reset_type: "GracefulShutdown"
 
+    - ansible.builtin.include_tasks: _wait_for_powerstate.yml
+      vars:
+        expected_state: "Off"
+
     - name: Fetch the iDRAC firmware version
       ansible.builtin.import_tasks: _fetch_uri.yml
       vars:
