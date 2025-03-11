@@ -51,13 +51,15 @@
       ansible.builtin.set_fact:
         hdd_disks: "{{ hdd_disks + [item.Id] }}"
       loop: "{{ controller_details.json.Drives }}"
-      when: item.MediaType == 'HDD'
+      when: item.MediaType == 'HDD' and
+        item.Oem.Dell.DellPhysicalDisk.RaidStatus =='Ready'
 
     - name: Getting HDD drives in the controller
       ansible.builtin.set_fact:
         ssd_disks: "{{ ssd_disks + [item.Id] }}"
       loop: "{{ controller_details.json.Drives }}"
-      when: item.MediaType == 'SSD'
+      when: item.MediaType == 'SSD' and
+        item.Oem.Dell.DellPhysicalDisk.RaidStatus =='Ready'
 
     - name: Assign the longer list to physical_disks
       ansible.builtin.set_fact:
