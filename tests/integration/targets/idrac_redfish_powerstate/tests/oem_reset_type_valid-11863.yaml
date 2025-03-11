@@ -131,6 +131,15 @@
           will automatically power on."
       when: firmware_ver >= '7.00.60'
 
+  always:
+    - name: Power On the iDRAC
+      dellemc.openmanage.redfish_powerstate:
+        reset_type: "On"
+
+    - ansible.builtin.include_tasks: _wait_for_powerstate.yml
+      vars:
+        expected_state: "On"
+
   module_defaults:
     dellemc.openmanage.redfish_powerstate:
       baseuri: "{{ idrac_ip }}:{{ idrac_port }}"
