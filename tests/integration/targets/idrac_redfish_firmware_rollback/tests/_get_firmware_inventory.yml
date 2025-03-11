@@ -1,4 +1,8 @@
 ---
+- ansible.builtin.include_role:
+    name: prepare_idrac_lifecycle_controller_status
+  ignore_errors: true
+
 - ansible.builtin.set_fact:
     url: "https://{{idrac_ip}}:{{idrac_port}}
      /redfish/v1/UpdateService/FirmwareInventory?$expand=*($levels=1)"
