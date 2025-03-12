@@ -18,6 +18,7 @@
         validate_certs: "{{ validate_certs }}"
         reset_type: "On"
         x_auth_token: invalid_x_auth_token
+        timeout: "{{ idrac_timeout }}"
       register: invalid_x_auth_token
       ignore_errors: true
 
