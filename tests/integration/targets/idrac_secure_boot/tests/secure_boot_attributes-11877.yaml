@@ -535,7 +535,7 @@
 
     - name: Wait for iDRAC
       ansible.builtin.pause:
-        seconds: 30
+        seconds: 60
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -592,7 +592,7 @@
 
     - name: Wait for iDRAC
       ansible.builtin.pause:
-        seconds: 30
+        seconds: 60
 
     - name: Get details by uri.
       ansible.builtin.uri:
