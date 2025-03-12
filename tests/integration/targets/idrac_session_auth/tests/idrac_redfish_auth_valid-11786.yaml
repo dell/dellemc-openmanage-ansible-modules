@@ -1,0 +1,160 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Create a new session
+      dellemc.openmanage.idrac_session:
+        hostname: "{{ idrac_ip }}"
+        username: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        port: "{{ idrac_port }}"
+        validate_certs: "{{ validate_certs }}"
+      register: session
+
+    - name: Verify - Create a new session
+      ansible.builtin.assert:
+        that:
+          - session.changed
+          - 'session.msg == "The session has been created successfully."'
+
+    - name: Use session for idrac_attributes module
+      dellemc.openmanage.idrac_attributes:
+        idrac_ip: "{{ idrac_ip }}"
+        validate_certs: "{{ validate_certs }}"
+        x_auth_token: "{{ session.x_auth_token }}"
+        idrac_attributes:
+          SNMP.1.AgentCommunity: public
+      register: idrac_attribute_session
+
+    - name: Verify - Use session for idrac_attributes module
+      ansible.builtin.assert:
+        that:
+          - not idrac_attribute_session.failed
+
+    - name: Use session for redfish_powerstate module
+      dellemc.openmanage.redfish_powerstate:
+        baseuri: "{{ idrac_ip }}"
+        validate_certs: "{{ validate_certs }}"
+        x_auth_token: "{{ session.x_auth_token }}"
+        reset_type: "On"
+      register: redfish_powerstate_session
+
+    - name: Verify - Use session for redfish_powerstate module
+      ansible.builtin.assert:
+        that:
+          - not redfish_powerstate_session.failed
+
+    - name: Use env IDRAC_X_AUTH_TOKEN for idrac_user_info module
+      environment:
+        IDRAC_X_AUTH_TOKEN: "{{ session.x_auth_token }}"
+      dellemc.openmanage.idrac_user_info:
+        idrac_ip: "{{ idrac_ip }}"
+        validate_certs: "{{ validate_certs }}"
+      register: idrac_user_info_auth_env
+
+    - name: Verify - Use env IDRAC_X_AUTH_TOKEN for idrac_user_info module
+      ansible.builtin.assert:
+        that:
+          - not idrac_user_info_auth_env.failed
+
+    - name: Use env IDRAC_X_AUTH_TOKEN for redfish_powerstate module
+      environment:
+        IDRAC_X_AUTH_TOKEN: "{{ session.x_auth_token }}"
+      dellemc.openmanage.redfish_powerstate:
+        baseuri: "{{ idrac_ip }}"
+        validate_certs: "{{ validate_certs }}"
+        x_auth_token: "{{ session.x_auth_token }}"
+        reset_type: "On"
+      register: redfish_powerstate_auth_env
+
+    - name: Verify - Use env IDRAC_X_AUTH_TOKEN for redfish_powerstate module
+      ansible.builtin.assert:
+        that:
+          - not redfish_powerstate_auth_env.failed
+
+    - name: Deleting the session
+      dellemc.openmanage.idrac_session:
+        hostname: "{{ idrac_ip }}"
+        validate_certs: "{{ validate_certs }}"
+        state: absent
+        x_auth_token: "{{ session.x_auth_token }}"
+        session_id: "{{ session.session_data.Id }}"
+      register: delete_session
+
+    - name: Verify - Deleting the session
+      ansible.builtin.assert:
+        that:
+          - delete_session.changed
+          - 'delete_session.msg == "The session has been deleted successfully."'
+
+    - name: Use username and password for idrac_user_info module
+      dellemc.openmanage.idrac_user_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        idrac_port: "{{ idrac_port }}"
+        validate_certs: "{{ validate_certs }}"
+      register: idrac_user_info_credentials
+
+    - name: Verify - Use username and password for idrac_user_info module
+      ansible.builtin.assert:
+        that:
+          - not idrac_user_info_credentials.failed
+
+    - name: Use env IDRAC_USERNAME and IDRAC_PASSWORD for idrac_user_info
+        module
+      environment:
+        IDRAC_USERNAME: "{{ idrac_user }}"
+        IDRAC_PASSWORD: "{{ idrac_password }}"
+      dellemc.openmanage.idrac_user_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_port: "{{ idrac_port }}"
+        validate_certs: "{{ validate_certs }}"
+      register: idrac_user_info_credential_env
+
+    - name: Verify - Use env IDRAC_USERNAME and IDRAC_PASSWORD for
+        idrac_user_info module
+      ansible.builtin.assert:
+        that:
+          - not idrac_user_info_credential_env.failed
+
+    - name: Use username and password for redfish_powerstate module
+      dellemc.openmanage.redfish_powerstate:
+        baseuri: "{{ idrac_ip }}"
+        username: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        reset_type: "On"
+      register: redfish_powerstate_credentials
+
+    - name: Verify - Use username and password for redfish_powerstate module
+      ansible.builtin.assert:
+        that:
+          - not redfish_powerstate_credentials.failed
+
+    - name: Use env IDRAC_USERNAME and IDRAC_PASSWORD for redfish_powerstate
+        module
+      environment:
+        IDRAC_USERNAME: "{{ idrac_user }}"
+        IDRAC_PASSWORD: "{{ idrac_password }}"
+      dellemc.openmanage.redfish_powerstate:
+        baseuri: "{{ idrac_ip }}"
+        validate_certs: "{{ validate_certs }}"
+        reset_type: "On"
+      register: redfish_powerstate_credential_env
+
+    - name: Verify - Use env IDRAC_USERNAME and IDRAC_PASSWORD for
+        redfish_powerstate module
+      ansible.builtin.assert:
+        that:
+          - not redfish_powerstate_credential_env.failed

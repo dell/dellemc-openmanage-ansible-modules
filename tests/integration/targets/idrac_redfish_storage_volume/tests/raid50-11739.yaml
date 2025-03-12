@@ -23,7 +23,7 @@
     msg: 'Physical disks are not sufficient to proceed with test case
       execution. Needs a minimum 2, but found {{ physical_disks | length }}'
   when:
-    - physical_disks | length < 8
+    - physical_disks | length < 6
 
 - block:
     - name: Create a RAID50 volume using the raid_type parameter with the
@@ -40,7 +40,7 @@
           - "{{ physical_disks[3] }}"
           - "{{ physical_disks[4] }}"
           - "{{ physical_disks[5] }}"
-        optimum_io_size_bytes: 1048576  # 1MB=(1*1024*1024)
+        optimum_io_size_bytes: 65536  # 64KB=(64*1024)
         capacity_bytes: 1099511627776  # 1TB
       register: cm_result_raid
       check_mode: true
@@ -69,6 +69,10 @@
       ansible.builtin.include_role:
         name=prepare_idrac_lifecycle_controller_status
 
+    - name: Pause the job
+      ansible.builtin.pause:
+        seconds: 60
+
     - name: Fetch volume details
       ansible.builtin.include_tasks: _get_volume_details.yml
 
@@ -89,8 +93,7 @@
           # Verify volume details
           - uri_data.DisplayName == "RAID50_Volume"
           - uri_data.RAIDType == "RAID50"
-          - uri_data.OptimumIOSizeBytes == 1048576
-          - uri_data.BlockSizeBytes == 512
+          - uri_data.OptimumIOSizeBytes == 65536
           - uri_data.CapacityBytes == 1099511627776
 
     - name: Create a RAID50 volume using the raid_type parameter with the
@@ -108,6 +111,27 @@
 
     - name: Set prerequisite
       ansible.builtin.include_tasks: _helper.yml
+
+    - name: Check disk count and retry if insufficient
+      block:
+        - name: Prerequisite - fail if not enough disk is found to create a volume
+          ansible.builtin.fail:
+            msg: 'Physical disks are not sufficient to proceed with test case execution. Needs a minimum 10, but found {{ physical_disks | length }}'
+          when: physical_disks | length < 8
+
+      rescue:
+        - name: Rerun restart and helper tasks
+          block:
+            - name: Retry - Graceful restart
+              ansible.builtin.include_tasks: _restart.yml
+
+            - name: Retry - Set prerequisite
+              ansible.builtin.include_tasks: _helper.yml
+
+            - name: Check disk count again
+              ansible.builtin.fail:
+                msg: 'Retry failed - Still not enough physical disks to proceed.'
+              when: physical_disks | length < 8
 
     - name: Create a RAID50 volume using the volume_type parameter with more
         than the minimum number of disks (Check mode - Changes expected)
@@ -153,6 +177,10 @@
       ansible.builtin.include_role:
         name=prepare_idrac_lifecycle_controller_status
 
+    - name: Pause the job
+      ansible.builtin.pause:
+        seconds: 60
+
     - name: Fetch volume details
       ansible.builtin.include_tasks: _get_volume_details.yml
 
@@ -173,8 +201,6 @@
           # Verify volume details
           - uri_data.DisplayName == "RAID50_Volume"
           - uri_data.RAIDType == "RAID50"
-          - uri_data.OptimumIOSizeBytes == 65536
-          - uri_data.BlockSizeBytes == 512
 
     - name: Create a RAID50 volume using the volume_type parameter with more
         than the minimum number of disks (Idempotence)

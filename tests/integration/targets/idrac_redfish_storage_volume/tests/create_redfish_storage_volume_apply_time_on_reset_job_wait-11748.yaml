@@ -15,6 +15,10 @@
     search_in_name: "BOSS"
     raid_type: "{{ raid_type_1 }}"
 
+- name: Wait for iDRAC lifecycle controller readiness
+  ansible.builtin.include_role:
+    name=prepare_idrac_lifecycle_controller_status
+
 - name: Set prerequisite
   ansible.builtin.include_tasks: _helper.yml
 
