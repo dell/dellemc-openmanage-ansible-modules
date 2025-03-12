@@ -36,6 +36,7 @@
       dellemc.openmanage.idrac_attributes:
         idrac_ip: "{{ idrac_ip }}"
         validate_certs: "{{ validate_certs }}"
+        timeout: "{{ idrac_timeout }}"
         idrac_attributes:
           SNMP.1.AgentCommunity: public
       register: invalid_env_x_auth_token
@@ -52,6 +53,7 @@
       dellemc.openmanage.idrac_attributes:
         idrac_ip: "{{ idrac_ip }}"
         validate_certs: "{{ validate_certs }}"
+        timeout: "{{ idrac_timeout }}"
         idrac_attributes:
           SNMP.1.AgentCommunity: public
       register: only_hostname
@@ -70,6 +72,7 @@
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         validate_certs: "{{ validate_certs }}"
+        timeout: "{{ idrac_timeout }}"
         idrac_attributes:
           SNMP.1.AgentCommunity: public
       register: only_username
@@ -88,6 +91,7 @@
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         validate_certs: "{{ validate_certs }}"
+        timeout: "{{ idrac_timeout }}"
         idrac_attributes:
           SNMP.1.AgentCommunity: public
       register: only_password
@@ -108,6 +112,7 @@
         idrac_password: "{{ idrac_password }}"
         x_auth_token: some_x_auth_token
         validate_certs: "{{ validate_certs }}"
+        timeout: "{{ idrac_timeout }}"
         idrac_attributes:
           SNMP.1.AgentCommunity: public
       register: mut_exc_username_password_x_auth_token
@@ -128,6 +133,7 @@
         idrac_user: "{{ idrac_user }}"
         x_auth_token: some_x_auth_token
         validate_certs: "{{ validate_certs }}"
+        timeout: "{{ idrac_timeout }}"
         idrac_attributes:
           SNMP.1.AgentCommunity: public
       register: mut_exc_username_x_auth_token
@@ -147,6 +153,7 @@
         idrac_password: "{{ idrac_password }}"
         x_auth_token: some_x_auth_token
         validate_certs: "{{ validate_certs }}"
+        timeout: "{{ idrac_timeout }}"
         idrac_attributes:
           SNMP.1.AgentCommunity: public
       register: mut_exc_password_x_auth_token
