@@ -167,6 +167,7 @@
         idrac_ip: "{{ idrac_ip }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: "{{ validate_certs }}"
+        timeout: "{{ idrac_timeout }}"
         idrac_attributes:
           SNMP.1.AgentCommunity: public
       register: invalid_env_idrac_username
@@ -186,6 +187,7 @@
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         validate_certs: "{{ validate_certs }}"
+        timeout: "{{ idrac_timeout }}"
         idrac_attributes:
           SNMP.1.AgentCommunity: public
       register: invalid_env_idrac_password
@@ -205,6 +207,7 @@
       dellemc.openmanage.idrac_attributes:
         idrac_ip: "{{ idrac_ip }}"
         validate_certs: "{{ validate_certs }}"
+        timeout: "{{ idrac_timeout }}"
         idrac_attributes:
           SNMP.1.AgentCommunity: public
       register: invalid_env_idrac_username_idrac_password
