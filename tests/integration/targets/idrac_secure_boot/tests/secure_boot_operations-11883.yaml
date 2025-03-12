@@ -131,11 +131,13 @@
           - 'secure_with_import.msg == "The SecureBoot Certificate Import
             operation is successfully scheduled. Restart the host server for
             the changes to take effect."'
+      when: secure_with_import.changed
 
     - name: Verify - Secure boot Log entries
       ansible.builtin.include_tasks: _get_log_entries.yml
       vars:
         msg_id: "SWC9010"
+      when: secure_with_import.changed
 
   module_defaults:
     dellemc.openmanage.idrac_secure_boot:

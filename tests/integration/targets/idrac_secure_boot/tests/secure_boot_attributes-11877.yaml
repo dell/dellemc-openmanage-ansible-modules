@@ -175,6 +175,7 @@
           - secure_boot_enable.changed
           - 'secure_boot_enable.msg == "Successfully updated the iDRAC
            Secure Boot settings."'
+      when: secure_boot_enable.changed
 
     - name: Wait for iDRAC
       ansible.builtin.pause:
@@ -195,6 +196,7 @@
         that:
           - secure_boot_enable.changed
           - 'boot_md_uri.json.Attributes.SecureBoot == "Enabled"'
+      when: secure_boot_enable.changed
 
     - name: Disable secure boot (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &secure_boot_disable
@@ -294,6 +296,7 @@
           - secure_boot_mode_user.changed
           - 'secure_boot_mode_user.msg == "Successfully updated the iDRAC
            Secure Boot settings."'
+      when: secure_boot_mode_user.changed
 
     - name: Wait for iDRAC
       ansible.builtin.pause:
@@ -314,6 +317,7 @@
         that:
           - secure_boot_mode_user.changed
           - 'boot_md_uri.json.Attributes.SecureBootMode == "UserMode"'
+      when: secure_boot_mode_user.changed
 
     - name: Set secure boot mode to DeployedMode (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &secure_boot_mode_deployed
@@ -348,6 +352,7 @@
           - secure_boot_mode_deployed.changed
           - 'secure_boot_mode_deployed.msg == "Successfully updated the iDRAC
            Secure Boot settings."'
+      when: secure_boot_mode_deployed.changed
 
     - name: Wait for iDRAC
       ansible.builtin.pause:
@@ -368,6 +373,7 @@
         that:
           - secure_boot_mode_deployed.changed
           - 'boot_md_uri.json.Attributes.SecureBootMode == "DeployedMode"'
+      when: secure_boot_mode_deployed.changed
 
     - ansible.builtin.include_tasks: _create_directory.yml
 
@@ -509,6 +515,7 @@
         that:
           - cm_changes.changed
           - cm_changes.msg == 'Changes found to be applied.'
+      when: cm_changes.changed
 
     - ansible.builtin.include_role:
         name: prepare_idrac_lifecycle_controller_status
@@ -524,6 +531,7 @@
           - secure_boot_policy_standard.changed
           - 'secure_boot_policy_standard.msg == "Successfully updated the iDRAC
            Secure Boot settings."'
+      when: secure_boot_policy_standard.changed
 
     - name: Wait for iDRAC
       ansible.builtin.pause:
@@ -544,6 +552,7 @@
         that:
           - secure_boot_policy_standard.changed
           - 'boot_md_uri.json.Attributes.SecureBootPolicy == "Standard"'
+      when: secure_boot_policy_standard.changed
 
     - name: Set secure boot policy to Custom (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &secure_boot_policy_custom
@@ -563,6 +572,7 @@
         that:
           - cm_changes.changed
           - cm_changes.msg == 'Changes found to be applied.'
+      when: cm_changes.changed
 
     - ansible.builtin.include_role:
         name: prepare_idrac_lifecycle_controller_status
@@ -578,6 +588,7 @@
           - secure_boot_policy_custom.changed
           - 'secure_boot_policy_custom.msg == "Successfully updated the iDRAC
            Secure Boot settings."'
+      when: secure_boot_policy_custom.changed
 
     - name: Wait for iDRAC
       ansible.builtin.pause:
@@ -598,6 +609,7 @@
         that:
           - secure_boot_policy_custom.changed
           - 'boot_md_uri.json.Attributes.SecureBootPolicy == "Custom"'
+      when: secure_boot_policy_custom.changed
 
     - ansible.builtin.include_role:
         name: prepare_idrac_lifecycle_controller_status
