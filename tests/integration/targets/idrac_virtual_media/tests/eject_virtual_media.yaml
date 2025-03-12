@@ -244,7 +244,8 @@
       ansible.builtin.assert:
         that:
           - not eject_index_rfs2_rfs1_output.changed
-          - eject_index_rfs2_rfs1_output.msg == "No changes found to be applied."
+          - eject_index_rfs2_rfs1_output.msg == "No changes found to be
+            applied."
 
     - name: Insert image file to Remote File Share 1 and Remote File Share 2
       dellemc.openmanage.idrac_virtual_media:

@@ -15,7 +15,8 @@
 - block:
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/\
+          iDRAC.Embedded.1
 
     - ansible.builtin.set_fact:
         firmware_version_from_api_response: '{{ uri_data.FirmwareVersion }}'
