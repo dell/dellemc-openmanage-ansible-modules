@@ -1,3 +1,4 @@
+---
 - name: Get data using uri
   ansible.builtin.uri:
     url: "{{ url }}"

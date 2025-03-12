@@ -16,7 +16,8 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/\
+          iDRAC.Embedded.1
 
     - ansible.builtin.set_fact:
         firmware_version_from_api_response: '{{ uri_data.FirmwareVersion }}'
@@ -36,7 +37,8 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/System.Embedded.1/VirtualMedia/1
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
+          System.Embedded.1/VirtualMedia/1
 
     - name: Verify task status - Prerequisite - Eject virtual media from RFS1
       ansible.builtin.assert:
@@ -70,7 +72,8 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1/VirtualMedia/CD
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/\
+          iDRAC.Embedded.1/VirtualMedia/CD
 
     - name: Verify task status - Insertion of virtual media to RFS1 from NFS
         share by providing media_type and index (Normal mode)

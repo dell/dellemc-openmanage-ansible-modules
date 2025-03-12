@@ -35,7 +35,8 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/System.Embedded.1/VirtualMedia/1
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
+          System.Embedded.1/VirtualMedia/1
 
     - name: Verify task status - Prerequisite - Eject virtual media from RFS1
       ansible.builtin.assert:
@@ -70,7 +71,8 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/System.Embedded.1/VirtualMedia/1
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
+          System.Embedded.1/VirtualMedia/1
 
     - name: Verify task status - Insertion of virtual media to RFS1 from CIFS
         share by providing media_type and index (Normal mode)
@@ -102,7 +104,8 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/System.Embedded.1/VirtualMedia/1
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
+          System.Embedded.1/VirtualMedia/1
 
     - name: Verify task status - Prerequisite - Eject virtual media from RFS1
       ansible.builtin.assert:
@@ -136,7 +139,8 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/System.Embedded.1/VirtualMedia/1
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
+          System.Embedded.1/VirtualMedia/1
 
     - name: Verify task status - Insertion of virtual media to RFS1 from CIFS
         share without providing media_type and index (Normal mode)
