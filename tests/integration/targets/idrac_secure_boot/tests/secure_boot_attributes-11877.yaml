@@ -496,7 +496,7 @@
         validate_certs: false
         restart: true
         restart_type: GracefulRestart
-    
+
     - ansible.builtin.include_role:
         name: prepare_idrac_lifecycle_controller_status
 
