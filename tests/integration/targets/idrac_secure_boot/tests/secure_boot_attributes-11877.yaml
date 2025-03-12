@@ -496,6 +496,13 @@
         validate_certs: false
         restart: true
         restart_type: GracefulRestart
+    
+    - ansible.builtin.include_role:
+        name: prepare_idrac_lifecycle_controller_status
+
+    - name: Wait for iDRAC
+      ansible.builtin.pause:
+        seconds: 30
 
     - name: Set secure boot policy to Standard (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &secure_boot_policy_standard
