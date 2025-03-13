@@ -539,7 +539,7 @@ def perform_operation_and_download_csr(idrac, cert_url, method, cert_payload, mo
     except HTTPError as err:
         json_err = json.load(err)
         msg_id = json_err.get("error").get("@Message.ExtendedInfo")[0].get("MessageId")
-        if err.code == 503 and (msg_id == "IDRAC.2.9.SYS537" or "IDRAC.2.8.SYS537"):
+        if err.code == 503 and msg_id in ['IDRAC.2.9.SYS537', 'IDRAC.2.8.SYS537']:
             body = {'CertificateCollection': rfish_cert_coll['Server']}
             if check_csr_generated(idrac):
                 resp = idrac.invoke_request(GET_LAST_GENERATED_CSR, "POST", data=body)
