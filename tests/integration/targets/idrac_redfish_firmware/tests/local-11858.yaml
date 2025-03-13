@@ -27,7 +27,7 @@
        path with default value of job_wait and job_wait_timeout
       dellemc.openmanage.redfish_firmware:
         image_uri: "{{ download_result.dest }}"
-        timeout: 1200
+        timeout: 300
       register: result
 
     - ansible.builtin.include_tasks: _post_update_helper.yml
@@ -101,6 +101,10 @@
         job_wait: false
       register: result
 
+    - name: Pause
+      ansible.builtin.pause:
+        seconds: 300
+
     - ansible.builtin.include_tasks: _post_update_helper.yml
 
     - name: Constructing url
@@ -153,6 +157,10 @@
         that:
           - result.changed
           - result.msg ==  "Successfully scheduled the firmware job."
+
+    - name: Pause
+      ansible.builtin.pause:
+        seconds: 300
 
     - name: Perform graceful restart of the device
       dellemc.openmanage.redfish_powerstate:
