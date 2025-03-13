@@ -19,15 +19,10 @@
   ansible.builtin.include_role:
     name=prepare_idrac_lifecycle_controller_status
 
-- name: Set prerequisite
-  ansible.builtin.include_tasks: _helper.yml
-
-- name: Prerequisite - fail if not enough disk is found to create a volume
-  ansible.builtin.fail:
-    msg: 'Physical disks are not sufficient to proceed with test case
-      execution. Needs a minimum 2, but found {{ physical_disks | length }}'
-  when:
-    - physical_disks | length < 3
+- name: Check disk count and retry if insufficient
+  ansible.builtin.include_tasks: _prereq_verify_disks_availability.yml
+  vars:
+    required_disk_length: 3
 
 - block:
     - name: Create a RAID5 volume using the raid_type parameter with the
@@ -41,7 +36,7 @@
           - "{{ physical_disks[0] }}"
           - "{{ physical_disks[1] }}"
           - "{{ physical_disks[2] }}"
-        optimum_io_size_bytes: 262144  # 256KB=(256*1024)
+        optimum_io_size_bytes: 65536  # 64KB=(64*1024)
         capacity_bytes: 53687091200  # 50GB
       register: cm_result_raid
       check_mode: true
@@ -94,7 +89,7 @@
           # Verify volume details
           - uri_data.DisplayName == "RAID5_Volume"
           - uri_data.RAIDType == "RAID5"
-          - uri_data.OptimumIOSizeBytes == 262144
+          - uri_data.OptimumIOSizeBytes == 65536
           - uri_data.CapacityBytes == 53687091200
 
     - name: Create a RAID5 volume using the raid_type parameter with the
@@ -110,29 +105,10 @@
           - not idempotence_result_raid.changed
           - 'idempotence_result_raid.msg == "No changes found to be applied."'
 
-    - name: Set prerequisite
-      ansible.builtin.include_tasks: _helper.yml
-
     - name: Check disk count and retry if insufficient
-      block:
-        - name: Prerequisite - fail if not enough disk is found to create a volume
-          ansible.builtin.fail:
-            msg: 'Physical disks are not sufficient to proceed with test case execution. Needs a minimum 10, but found {{ physical_disks | length }}'
-          when: physical_disks | length < 5
-
-      rescue:
-        - name: Rerun restart and helper tasks
-          block:
-            - name: Retry - Graceful restart
-              ansible.builtin.include_tasks: _restart.yml
-
-            - name: Retry - Set prerequisite
-              ansible.builtin.include_tasks: _helper.yml
-
-            - name: Check disk count again
-              ansible.builtin.fail:
-                msg: 'Retry failed - Still not enough physical disks to proceed.'
-              when: physical_disks | length < 5
+      ansible.builtin.include_tasks: _prereq_verify_disks_availability.yml
+      vars:
+        required_disk_length: 5
 
     - name: Create a RAID5 volume using the volume_type parameter with more
         than the minimum number of disks (Check mode - Changes expected)
