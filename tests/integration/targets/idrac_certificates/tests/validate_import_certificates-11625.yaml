@@ -38,7 +38,7 @@
       ansible.builtin.command: >
           {{ curl_cmd | format(https_share_username, https_share_password,
           base_path_for_import_certificate +
-          csc_passphrase_certificate, curl_https_url) }} 
+          csc_passphrase_certificate, curl_https_url) }}
       check_mode: false
 
     - name: Importing CSC certificate with passphrase - Check
