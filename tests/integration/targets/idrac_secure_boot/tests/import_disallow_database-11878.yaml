@@ -111,6 +111,32 @@
       ansible.builtin.pause:
         minutes: 2
 
+    - name: Restart iDRAC
+      dellemc.openmanage.redfish_powerstate:
+        baseuri: "{{ idrac_ip }}"
+        username: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+        reset_type: "ForceRestart"
+
+    - name: Wait for port to become open on the host
+      ansible.builtin.wait_for:
+        host: "{{ idrac_ip }}"
+        port: "{{ idrac_port }}"
+        delay: 30
+        connect_timeout: 5
+        timeout: 500
+      register: result
+      failed_when: result.elapsed < 20
+
+    - name: Wait for the iDRAC lifecycle controller readiness
+      ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
+
+    - name: Wait for a min after LC is up
+      ansible.builtin.pause:
+        minutes: 2
+
     - name: Verify - Secure boot Log entries
       ansible.builtin.include_tasks: _get_log_entries.yml
       vars:
