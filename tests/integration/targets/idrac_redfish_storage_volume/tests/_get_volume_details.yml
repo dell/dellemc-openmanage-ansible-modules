@@ -11,7 +11,7 @@
         virtual_disk: "{{ item.key }}"
       loop: "{{ lookup('dict', result_storage.storage_status.Message.Controller
         [ controller_name ].VirtualDisk, wantlist=True)}}"
-      when: "'{{ controller_name }}' in item.key"
+      when: controller_name in item.key
 
     - name: Set url path
       ansible.builtin.set_fact:
