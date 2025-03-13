@@ -21,9 +21,12 @@
     - name: Set fact
       ansible.builtin.set_fact:
         curl_cmd: "curl -v --ntlm -u %s:%s -o %s %s"
-        curl_https_custom_cert_url: "{{ https_share_ip }}/{{ https_certificate_path }}{{ custom_certificate }}"
-        curl_https_custom_cert_wp_url: "{{ https_share_ip }}/{{ https_certificate_path }}{{ custom_certificate_without_passphrase }}"
-        curl_https_csc_url: "{{ https_share_ip }}/{{ https_certificate_path }}{{ csc_passphrase_certificate }}"
+        curl_https_custom_cert_url: "{{ https_share_ip }}/{{
+         https_certificate_path }}{{ custom_certificate }}"
+        curl_https_custom_cert_wp_url: "{{ https_share_ip }}/{{
+         https_certificate_path }}{{ custom_certificate_without_passphrase }}"
+        curl_https_csc_url: "{{ https_share_ip }}/{{
+         https_certificate_path }}{{ csc_passphrase_certificate }}"
 
     - name: Get custom certificate from share
       register: http_dnld_curl_cmd_out
@@ -32,7 +35,8 @@
       failed_when: http_dnld_curl_cmd_out.rc != 0
       ansible.builtin.command: >
           {{ curl_cmd | format(https_share_username, https_share_password,
-          base_path_for_import_certificate + custom_certificate, curl_https_custom_cert_url) }}
+          base_path_for_import_certificate + custom_certificate,
+          curl_https_custom_cert_url) }}
 
     - name: Get custom certificate without passphrase from share
       register: http_dnld_curl_cmd_out
@@ -41,7 +45,9 @@
       failed_when: http_dnld_curl_cmd_out.rc != 0
       ansible.builtin.command: >
           {{ curl_cmd | format(https_share_username, https_share_password,
-          base_path_for_import_certificate + custom_certificate_without_passphrase, curl_https_custom_cert_wp_url) }}
+          base_path_for_import_certificate +
+          custom_certificate_without_passphrase,
+          curl_https_custom_cert_wp_url) }}
 
     - name: Get csc certificate from share
       register: http_dnld_curl_cmd_out
@@ -50,7 +56,8 @@
       failed_when: http_dnld_curl_cmd_out.rc != 0
       ansible.builtin.command: >
           {{ curl_cmd | format(https_share_username, https_share_password,
-          base_path_for_import_certificate + csc_passphrase_certificate, curl_https_csc_url) }}
+          base_path_for_import_certificate + csc_passphrase_certificate,
+          curl_https_csc_url) }}
 
     - name: Negative - unreachable host
       dellemc.openmanage.idrac_certificates:
@@ -166,7 +173,8 @@
         validate_certs: false
         command: "import"
         certificate_type: "CSC"
-        certificate_path: "{{ base_path_for_import_certificate }}{{ csc_passphrase_certificate }}"
+        certificate_path: "{{ base_path_for_import_certificate }}{{
+         csc_passphrase_certificate }}"
         passphrase: "invalid"
       register: invalid_passphrase
       ignore_errors: true
