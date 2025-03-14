@@ -41,7 +41,7 @@
 - name: Verify whether certificate is uploaded on the server
   ansible.builtin.assert:
     that:
-      - "'{{ response_code }}' == '200'"
+      - response_code == '200'
     fail_msg: 'Please upload the {{ item.value }} certificate on the server.'
 
 - ansible.builtin.set_fact:

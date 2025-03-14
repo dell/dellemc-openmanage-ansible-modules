@@ -304,7 +304,8 @@ class TestIdracCertificates(FakeAnsibleModule):
         value.json_data = {"CSRString": "value"}
         idrac.invoke_request = MagicMock(return_value=value)
         idrac_default_args.update({"timeout": 120})
-        payload = self.module.perform_operation_and_download_csr(idrac, None, None, None)
+        f_module = self.get_module_mock(params=idrac_default_args)
+        payload = self.module.perform_operation_and_download_csr(idrac, None, None, None, f_module)
         assert "CSRString" in payload.json_data
 
     def test_check_csr_generated(self, mocker):
@@ -330,7 +331,8 @@ class TestIdracCertificates(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'time.sleep', return_value=None)
         mocker.patch(MODULE_PATH + 'check_csr_generated', return_value=True)
         idrac_default_args.update({"timeout": 120})
-        payload = self.module.perform_operation_and_download_csr(idrac, None, "GET", None)
+        f_module = self.get_module_mock(params=idrac_default_args)
+        payload = self.module.perform_operation_and_download_csr(idrac, None, "GET", None, f_module)
         assert payload.json_data["CSRString"] == "value"
 
     @pytest.mark.parametrize("params", [{"json_data": {

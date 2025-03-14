@@ -23,15 +23,21 @@
         state: directory
       register: created_directory
 
+    - name: Set fact
+      ansible.builtin.set_fact:
+        curl_cmd: "curl -v --ntlm -u %s:%s -o %s %s"
+        curl_https_url: "{{ https_share_ip }}/{{ https_certificate_path }}{{
+         custom_certificate_name_without_passphrase }}"
+
     - name: Get custom certificate from share
-      ansible.builtin.uri:
-        url: "https://{{ https_share_ip }}{{ https_certificate_path }}{{
-          custom_certificate_without_passphrase }}"
-        dest: "{{ base_path_for_import_certificate }}"
-        force_basic_auth: true
-        validate_certs: false
-        url_username: "{{ https_share_username }}"
-        url_password: "{{ https_share_password }}"
+      register: http_dnld_curl_cmd_out
+      no_log: false
+      changed_when: http_dnld_curl_cmd_out.rc == 0
+      failed_when: http_dnld_curl_cmd_out.rc != 0
+      ansible.builtin.command: >
+          {{ curl_cmd | format(https_share_username, https_share_password,
+          base_path_for_import_certificate +
+          custom_certificate_name_without_passphrase, curl_https_url) }}
 
     - name: Importing custom certificate - Normal
       dellemc.openmanage.idrac_certificates:
