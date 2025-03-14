@@ -22,6 +22,10 @@
         timeout: 300
       register: result
 
+    - name: Pause
+      ansible.builtin.pause:
+        seconds: 300
+
     - ansible.builtin.include_tasks: _post_update_helper.yml
 
     - name: Constructing url
