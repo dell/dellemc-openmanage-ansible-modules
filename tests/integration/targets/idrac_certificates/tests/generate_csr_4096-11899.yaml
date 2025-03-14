@@ -90,8 +90,8 @@
       ansible.builtin.assert:
         that:
           - csr_content_cm.subject.commonName == commonName
-          - csr_content_cm.subject.organizationalUnitName == organizational
-            UnitName
+          - csr_content_cm.subject.organizationalUnitName ==
+           organizationalUnitName
           - csr_content_cm.subject.organizationName == organizationName
           - csr_content_cm.subject.localityName == localityName
           - csr_content_cm.subject.stateOrProvinceName == stateOrProvinceName
@@ -139,8 +139,8 @@
       ansible.builtin.assert:
         that:
           - csr_content.subject.commonName == commonName
-          - csr_content.subject.organizationalUnitName == organizational
-            UnitName
+          - csr_content.subject.organizationalUnitName ==
+           organizationalUnitName
           - csr_content.subject.organizationName == organizationName
           - csr_content.subject.localityName == localityName
           - csr_content.subject.stateOrProvinceName == stateOrProvinceName
@@ -197,8 +197,8 @@
       ansible.builtin.assert:
         that:
           - csr_content_mp.subject.commonName == commonName
-          - csr_content_mp.subject.organizationalUnitName == organizational
-            UnitName
+          - csr_content_mp.subject.organizationalUnitName ==
+           organizationalUnitName
           - csr_content_mp.subject.organizationName == organizationName
           - csr_content_mp.subject.localityName == localityName
           - csr_content_mp.subject.stateOrProvinceName == stateOrProvinceName

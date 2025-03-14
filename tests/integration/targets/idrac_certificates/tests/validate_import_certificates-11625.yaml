@@ -24,24 +24,31 @@
       loop: "{{ certificate_names | dict2items }}"
       when: item.key != "HTTPS"
 
-    - name: Download files
-      ansible.builtin.get_url:
-        url: "http://{{ https_share_ip }}{{ https_certificate_path }}{{
-          CSC_passphrase_certificate }}"
-        dest: "{{ base_path_for_import_certificate }}/{{
-          CSC_passphrase_certificate }}"
-        headers:
-          Authorization: "Basic {{ (
-            https_share_username + ':' + https_share_password) | b64encode }}"
+    - name: Set fact
+      ansible.builtin.set_fact:
+        curl_cmd: "curl -v --ntlm -u %s:%s -o %s %s"
+        curl_https_url: "{{ https_share_ip }}/{{ https_certificate_path }}{{
+         csc_passphrase_certificate }}"
+
+    - name: Downloading certificate file
+      register: http_dnld_curl_cmd_out
+      no_log: false
+      changed_when: http_dnld_curl_cmd_out.rc == 0
+      failed_when: http_dnld_curl_cmd_out.rc != 0
+      ansible.builtin.command: >
+          {{ curl_cmd | format(https_share_username, https_share_password,
+          base_path_for_import_certificate +
+          csc_passphrase_certificate, curl_https_url) }}
+      check_mode: false
 
     - name: Importing CSC certificate with passphrase - Check
         mode - Changes expected
       dellemc.openmanage.idrac_certificates:
         command: import
         certificate_type: "CSC"
-        certificate_path: "{{ base_path_for_import_certificate }}/{{
-          CSC_passphrase_certificate }}"
-        passphrase: "{{ passphrase }}"
+        certificate_path: "{{ base_path_for_import_certificate }}{{
+          csc_passphrase_certificate }}"
+        passphrase: "{{ pass }}"
       register: import_certificate_output
       check_mode: true
 
@@ -56,9 +63,9 @@
       dellemc.openmanage.idrac_certificates:
         command: import
         certificate_type: "CSC"
-        certificate_path: "{{ base_path_for_import_certificate }}/{{
-          CSC_passphrase_certificate }}"
-        passphrase: "{{ passphrase }}"
+        certificate_path: "{{ base_path_for_import_certificate }}{{
+          csc_passphrase_certificate }}"
+        passphrase: "{{ pass }}"
       register: import_certificate_output
 
     - ansible.builtin.include_tasks: _wait_for_idrac_readiness.yml
@@ -78,9 +85,9 @@
       dellemc.openmanage.idrac_certificates:
         command: import
         certificate_type: "CSC"
-        certificate_path: "{{ base_path_for_import_certificate }}/{{
-          CSC_passphrase_certificate }}"
-        passphrase: "{{ passphrase }}"
+        certificate_path: "{{ base_path_for_import_certificate }}{{
+          csc_passphrase_certificate }}"
+        passphrase: "{{ pass }}"
       register: import_certificate_output
 
     - ansible.builtin.include_tasks: _wait_for_idrac_readiness.yml

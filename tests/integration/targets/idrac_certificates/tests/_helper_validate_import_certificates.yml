@@ -1,6 +1,6 @@
 ---
 - ansible.builtin.set_fact:
-    certificate_path: "{{ base_path_for_import_certificate }}/{{ item.value }}"
+    certificate_path: "{{ base_path_for_import_certificate }}{{ item.value }}"
 
 - block:
     - name: Importing certificate - Check mode - Changes expected

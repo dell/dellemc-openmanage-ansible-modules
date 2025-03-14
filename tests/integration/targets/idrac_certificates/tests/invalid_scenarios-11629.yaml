@@ -18,42 +18,53 @@
         state: directory
       register: created_directory
 
+    - name: Set fact
+      ansible.builtin.set_fact:
+        curl_cmd: "curl -v --ntlm -u %s:%s -o %s %s"
+        curl_https_custom_cert_url: "{{ https_share_ip }}/{{
+         https_certificate_path }}{{ custom_certificate }}"
+        curl_https_custom_cert_wp_url: "{{ https_share_ip }}/{{
+         https_certificate_path }}{{ custom_certificate_without_passphrase }}"
+        curl_https_csc_url: "{{ https_share_ip }}/{{
+         https_certificate_path }}{{ csc_passphrase_certificate }}"
+
+    - name: Get custom certificate from share
+      register: http_dnld_curl_cmd_out
+      no_log: false
+      changed_when: http_dnld_curl_cmd_out.rc == 0
+      failed_when: http_dnld_curl_cmd_out.rc != 0
+      ansible.builtin.command: >
+          {{ curl_cmd | format(https_share_username, https_share_password,
+          base_path_for_import_certificate + custom_certificate,
+          curl_https_custom_cert_url) }}
+
     - name: Get custom certificate without passphrase from share
-      ansible.builtin.uri:
-        url: "https://{{ https_share_ip }}{{
-          https_certificate_path }}{{ custom_certificate_without_passphrase }}"
-        dest: "{{ base_path_for_import_certificate }}"
-        force_basic_auth: true
-        validate_certs: false
-        url_username: "{{ https_share_username }}"
-        url_password: "{{ https_share_password }}"
+      register: http_dnld_curl_cmd_out
+      no_log: false
+      changed_when: http_dnld_curl_cmd_out.rc == 0
+      failed_when: http_dnld_curl_cmd_out.rc != 0
+      ansible.builtin.command: >
+          {{ curl_cmd | format(https_share_username, https_share_password,
+          base_path_for_import_certificate +
+          custom_certificate_without_passphrase,
+          curl_https_custom_cert_wp_url) }}
 
-    - name: Get custom certificate with passphrase from share
-      ansible.builtin.uri:
-        url: "https://{{ https_share_ip }}{{ https_certificate_path }}{{
-          custom_certificate }}"
-        dest: "{{ base_path_for_import_certificate }}"
-        force_basic_auth: true
-        validate_certs: false
-        url_username: "{{ https_share_username }}"
-        url_password: "{{ https_share_password }}"
-
-    - name: Get CSC certificate from share
-      ansible.builtin.uri:
-        url: "https://{{ https_share_ip }}{{ https_certificate_path }}{{
-          CSC_passphrase_certificate }}"
-        dest: "{{ base_path_for_import_certificate }}"
-        force_basic_auth: true
-        validate_certs: false
-        url_username: "{{ https_share_username }}"
-        url_password: "{{ https_share_password }}"
+    - name: Get csc certificate from share
+      register: http_dnld_curl_cmd_out
+      no_log: false
+      changed_when: http_dnld_curl_cmd_out.rc == 0
+      failed_when: http_dnld_curl_cmd_out.rc != 0
+      ansible.builtin.command: >
+          {{ curl_cmd | format(https_share_username, https_share_password,
+          base_path_for_import_certificate + csc_passphrase_certificate,
+          curl_https_csc_url) }}
 
     - name: Negative - unreachable host
       dellemc.openmanage.idrac_certificates:
         validate_certs: false
         command: "reset"
         certificate_type: "HTTPS"
-        idrac_ip: "999.999.999.999"
+        idrac_ip: "invalid"
       register: invalid_unreachable
       ignore_errors: true
       ignore_unreachable: true
@@ -63,7 +74,7 @@
         that:
           - invalid_unreachable.unreachable
           - 'invalid_unreachable.msg ==  "<urlopen error Unable to communicate
-              with iDRAC 999.999.999.999. This may be due to one of the
+              with iDRAC invalid. This may be due to one of the
               following: Incorrect username or password, unreachable iDRAC
               IP or a failure in TLS/SSL handshake.>" or
               invalid_unreachable.msg == "<urlopen error [Errno -2] Name or
@@ -83,7 +94,7 @@
         that:
           - invalid_idrac_user.failed
           - 'invalid_idrac_user.msg ==  "<urlopen error
-              Unable to communicate with iDRAC {{ idrac_ip }}. This may be due
+              Unable to communicate with iDRAC idrac_ip. This may be due
               to one of the following: Incorrect username or password,
               unreachable iDRAC IP or a failure in TLS/SSL
               handshake." or "HTTP Error 401: Unauthorized"'
@@ -102,7 +113,7 @@
         that:
           - invalid_idrac_pass.failed
           - 'invalid_idrac_pass.msg == "<urlopen error Unable to communicate
-            with iDRAC {{ idrac_ip }}. This may be due to one of the
+            with iDRAC idrac_ip. This may be due to one of the
             following: Incorrect username or password, unreachable iDRAC
             IP or a failure in TLS/SSL
             handshake." or "HTTP Error 401: Unauthorized"'
@@ -162,8 +173,8 @@
         validate_certs: false
         command: "import"
         certificate_type: "CSC"
-        certificate_path: "{{ base_path_for_import_certificate }}/{{
-          CSC_passphrase_certificate }}"
+        certificate_path: "{{ base_path_for_import_certificate }}{{
+         csc_passphrase_certificate }}"
         passphrase: "invalid"
       register: invalid_passphrase
       ignore_errors: true
@@ -240,14 +251,18 @@
       register: invalid_wait
       ignore_errors: true
 
+    - name: Set fact
+      ansible.builtin.set_fact:
+        invalid_wait_msg: "argument 'wait' is of
+         type <class 'str'> and we were unable to convert to
+         int:"
+
     - name: Verify task status - Negative - invalid wait value
       ansible.builtin.assert:
         that:
           - invalid_wait.failed
           - not invalid_wait.changed
-          - "'argument \\'wait\\' is of type <class \\'str\\'> and we
-            were unable to convert to int: <class \\'str\\'> cannot be
-            converted to an int' in invalid_wait.msg"
+          - invalid_wait_msg in invalid_wait.msg
 
     - name: invalid custom certificate passphrase
       dellemc.openmanage.idrac_certificates:
