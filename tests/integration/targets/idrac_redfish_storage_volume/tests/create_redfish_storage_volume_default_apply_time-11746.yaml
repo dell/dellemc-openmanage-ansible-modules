@@ -101,6 +101,11 @@
       password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"
 
+- name: Check disk count and retry if insufficient
+  ansible.builtin.include_tasks: _prereq_verify_disks_availability.yml
+  vars:
+    required_disk_length: 2
+
 - block:
     - name: create_redfish_storage_volume_apply_time_on_reset check_mode
       register: result

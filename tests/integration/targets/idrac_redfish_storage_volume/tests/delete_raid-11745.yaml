@@ -47,7 +47,7 @@
 
     - name: Pause the job
       ansible.builtin.pause:
-        seconds: 60
+        seconds: 180
 
     - name: Set job id for assertion
       ansible.builtin.set_fact:
