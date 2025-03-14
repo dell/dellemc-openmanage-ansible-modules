@@ -14,9 +14,12 @@
         job_id: "{{ job_id }}"
       when: job_id is defined
       register: result_job_wait
-      until: result_job_wait.job_info.JobStatus == "Completed" or
-        result_job_wait.job_info.JobStatus == "Failed"
-      failed_when: result_job_wait.job_info.JobStatus == "Failed"
+      until:
+        - result_job_wait.job_info is defined
+        - result_job_wait.job_info.JobStatus in ["Completed", "Failed"]
+      failed_when:
+        - result_job_wait.job_info is defined
+        - result_job_wait.job_info.JobStatus == "Failed"
       retries: 100
       delay: 30
 

@@ -1,0 +1,16 @@
+---
+- name:
+  dellemc.openmanage.idrac_reset:
+   idrac_ip: "{{ idrac_ip|ansible.utils.ipwrap }}"
+   idrac_port: "{{ idrac_port }}"
+   idrac_user: "{{ idrac_user }}"
+   idrac_password: "{{ idrac_password }}"
+   validate_certs: "{{ validate_certs }}"
+
+- name: Wait for iDRAC lifecycle controller readiness
+  ansible.builtin.include_role:
+   name=prepare_idrac_lifecycle_controller_status
+
+- name: Pause the job
+  ansible.builtin.pause:
+   seconds: 180

@@ -12,6 +12,10 @@
     - name: Wait for LC to be ready
       dellemc.openmanage.idrac_lifecycle_controller_status_info:
       register: result_lc
-      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      until:
+        - result_lc is defined
+        - result_lc.lc_status_info is defined
+        - result_lc.lc_status_info.LCStatus is defined
+        - result_lc.lc_status_info.LCStatus == 'Ready'
       retries: 100
       delay: 30
