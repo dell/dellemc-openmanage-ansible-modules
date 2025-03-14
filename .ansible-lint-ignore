@@ -105,6 +105,9 @@ roles/idrac_firmware/molecule/https_share-10584/converge.yml var-naming[no-role-
 roles/idrac_firmware/molecule/httpsproxy_share-10590/converge.yml var-naming[no-role-prefix]
 roles/idrac_firmware/molecule/negative_scenarios-10585/converge.yml var-naming[no-role-prefix]
 roles/idrac_firmware/molecule/nfs_share-10572/converge.yml var-naming[no-role-prefix]
+roles/idrac_firmware/molecule/negative_scenarios-10585/cleanup.yml var-naming[no-role-prefix]
+roles/idrac_firmware/molecule/resources/tests/downgrade.yml var-naming[no-role-prefix]
+roles/idrac_firmware/molecule/resources/_wait_for_port_to_open.yaml syntax-check[specific]
 
 roles/idrac_export_server_config_profile/molecule/export_scp-10597/converge.yml var-naming[no-role-prefix]
 roles/idrac_export_server_config_profile/defaults/main.yml var-naming[no-role-prefix]

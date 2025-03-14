@@ -1,0 +1,29 @@
+---
+- name: CleanUp
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Update firmware from repository on a CIFS Share
+      ansible.builtin.import_role:
+        name: "idrac_firmware"
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        share_name: "{{ lookup('env', 'cifsshare') }}"
+        share_user: "{{ lookup('env', 'shareuser') }}"
+        share_password: "{{ lookup('env', 'sharepassword') }}"
+        reboot: true
+        job_wait: true
+        apply_update: true
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
+
+    - name: "Verifying update firmware from repository on a CIFS Share in normal mode"
+      ansible.builtin.assert:
+        that:
+          - idrac_firmware_out.msg == "Successfully updated the firmware."
+            or idrac_firmware_out.msg == "Unable to complete the operation
+            because the catalog name entered has either unsupported
+            firmware packages or same version installed on the server."

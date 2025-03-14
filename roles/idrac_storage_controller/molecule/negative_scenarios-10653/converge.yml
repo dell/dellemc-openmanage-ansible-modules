@@ -174,8 +174,8 @@
     - name: Verifying disk status change to online in Normal mode
       ansible.builtin.assert:
         that:
-          - "'The maintenance time must be post-fixed with local offset
-            to' in attributes_config_out.status_msg"
+          - "'The start time should be in the format
+           YYYY-MM-DDThh:mm:ss<offset>' in attributes_config_out.msg"
           - attributes_config_out.failed
 
     - name: Playbook to set controller attributes with Job wait by providing
@@ -198,7 +198,9 @@
             a key_id with length greater than 32
       ansible.builtin.assert:
         that:
-          - "set_controller_key_out.msg == 'HTTP Error 400: Bad Request'"
+          - "set_controller_key_out.msg == 'The keyid should be of maximum
+           length 32 and only alphanumeric characters are allowed without
+           spaces.'"
           - set_controller_key_out.failed
 
     - name: Playbook to set controller attributes with Job wait by providing
@@ -221,7 +223,9 @@
             a key_id with space
       ansible.builtin.assert:
         that:
-          - "set_controller_key_out.msg == 'HTTP Error 400: Bad Request'"
+          - "set_controller_key_out.msg == 'The keyid should be of maximum
+           length 32 and only alphanumeric characters are allowed without
+           spaces.'"
           - set_controller_key_out.failed
 
     - name: Playbook to set controller attributes with Job wait by providing
@@ -244,7 +248,10 @@
             a key with length greater than 32
       ansible.builtin.assert:
         that:
-          - "set_controller_key_out.msg == 'HTTP Error 400: Bad Request'"
+          - "set_controller_key_out.msg == 'The key should be of maximum length
+           32 and must contain at least one character from each of the
+           character classes: uppercase, lowercase, number, and special
+           character.'"
           - set_controller_key_out.failed
 
     - name: Playbook to remove controller key configuration with invalid value

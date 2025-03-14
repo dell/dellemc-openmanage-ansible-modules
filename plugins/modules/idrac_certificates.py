@@ -405,6 +405,7 @@ payload_map = {"Server": get_ssl_payload,
 
 
 def get_res_id(idrac, cert_type):
+    resp = None
     cert_map = {"Server": MANAGER_ID}
     try:
         resp = idrac.invoke_request(cert_map.get(cert_type, MANAGERS_URI), "GET")
@@ -417,6 +418,7 @@ def get_res_id(idrac, cert_type):
 
 
 def get_idrac_service(idrac, res_id):
+    resp = None
     srvc = IDRAC_SERVICE.format(res_id=res_id)
     resp = idrac.invoke_request(f"{MANAGERS_URI}/{res_id}", 'GET')
     srvc_data = resp.json_data
@@ -426,6 +428,7 @@ def get_idrac_service(idrac, res_id):
 
 
 def get_actions_map(idrac, idrac_service_uri):
+    resp = None
     actions = idrac_service_actions
     try:
         resp = idrac.invoke_request(idrac_service_uri, 'GET')
@@ -517,6 +520,7 @@ def get_export_data(idrac, cert_type, res_id):
 
 
 def check_csr_generated(idrac):
+    resp = None
     generated = False
     #  Wating max 120(24*5) seconds for CSR to be generated
     count = 24
@@ -528,19 +532,24 @@ def check_csr_generated(idrac):
     return generated
 
 
-def perform_operation_and_download_csr(idrac, cert_url, method, cert_payload):
+def perform_operation_and_download_csr(idrac, cert_url, method, cert_payload, module):
+    resp = None
     try:
-        resp = idrac.invoke_request(cert_url, method, data=cert_payload)
+        resp = idrac.invoke_request(cert_url, method, data=cert_payload, api_timeout=60)
     except HTTPError as err:
         json_err = json.load(err)
-        if err.code == 503 and json_err.get("error").get("@Message.ExtendedInfo")[0].get("MessageId") == "IDRAC.2.9.SYS537":
+        msg_id = json_err.get("error").get("@Message.ExtendedInfo")[0].get("MessageId")
+        if err.code == 503 and msg_id in ['IDRAC.2.9.SYS537', 'IDRAC.2.8.SYS537']:
             body = {'CertificateCollection': rfish_cert_coll['Server']}
             if check_csr_generated(idrac):
                 resp = idrac.invoke_request(GET_LAST_GENERATED_CSR, "POST", data=body)
+        else:
+            module.exit_json(failed=True, error_info=json_err, msg=str(err))
     return resp
 
 
 def exit_certificates(module, idrac, cert_url, cert_payload, method, cert_type, res_id):
+    resp = None
     cmd = module.params.get('command')
     changed = changed_map.get(cmd)
     reset = changed_map.get(cmd) and module.params.get('reset')
@@ -558,7 +567,7 @@ def exit_certificates(module, idrac, cert_url, cert_payload, method, cert_type, 
     if module.params.get('command') == 'reset' and cert_type == "Server":
         resp = idrac.invoke_request(cert_url, method, data=cert_payload, dump=False)
     else:
-        resp = perform_operation_and_download_csr(idrac, cert_url, method, cert_payload)
+        resp = perform_operation_and_download_csr(idrac, cert_url, method, cert_payload, module)
     cert_data = resp.json_data
     cert_output = format_output(module, cert_data)
     result.update(cert_output)

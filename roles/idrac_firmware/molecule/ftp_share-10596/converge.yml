@@ -5,7 +5,7 @@
   tasks:
     - name: Update firmware from repository on a FTP Share
       ansible.builtin.import_role:
-        name: idrac_firmware
+        name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -14,7 +14,7 @@
         share_name: "{{ lookup('env', 'ftpshare') }}"
         share_user: "{{ lookup('env', 'shareuser') }}"
         share_password: "{{ lookup('env', 'sharepassword') }}"
-        catalog_file_name: "Catalog.xml"
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
         reboot: true
         job_wait: true
         apply_update: true

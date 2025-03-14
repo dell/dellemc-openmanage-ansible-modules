@@ -1,7 +1,7 @@
 ---
 - block:
     - name: Fetching data from iDRAC
-      ansible.builtin.uri:
+      ansible.builtin.uri: &uri_params
         url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}
           /redfish/v1/Systems/System.Embedded.1/Storage?$expand=*($levels=1)"
         user: "{{ idrac_user }}"
@@ -18,6 +18,8 @@
       ansible.builtin.set_fact:
         controller_name: ""
         physical_disks: []
+        hdd_disks: []
+        ssd_disks: []
 
     - name: Extracting Controller id
       ansible.builtin.set_fact:
@@ -30,12 +32,40 @@
           item.StorageControllers[0].SupportedRAIDTypes
       loop: "{{ fetched_output.json.Members }}"
 
-    - name: Extracting Drives id
+    - name: Build url
       ansible.builtin.set_fact:
-        physical_disks: "{{ physical_disks +  [item['@odata.id'] |
-          ansible.builtin.split('/') | last] }}"
-      loop: "{{ drive_list_odata }}"
-      when: drive_list_odata is defined
+        url_part1:
+          "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}"
+        url_part2:
+          "/redfish/v1/Systems/System.Embedded.1/Storage/"
+        url_part3:
+          "{{ controller_name }}?$expand=*($levels=1)"
+
+    - name: Getting drives details
+      ansible.builtin.uri:
+        url: "{{ url_part1 }}{{ url_part2 }}{{ url_part3 }}"
+        <<: *uri_params
+      register: controller_details
+
+    - name: Getting HDD drives in the controller
+      ansible.builtin.set_fact:
+        hdd_disks: "{{ hdd_disks + [item.Id] }}"
+      loop: "{{ controller_details.json.Drives }}"
+      when: item.MediaType == 'HDD' and
+        item.Oem.Dell.DellPhysicalDisk.RaidStatus =='Ready'
+
+    - name: Getting HDD drives in the controller
+      ansible.builtin.set_fact:
+        ssd_disks: "{{ ssd_disks + [item.Id] }}"
+      loop: "{{ controller_details.json.Drives }}"
+      when: item.MediaType == 'SSD' and
+        item.Oem.Dell.DellPhysicalDisk.RaidStatus =='Ready'
+
+    - name: Assign the longer list to physical_disks
+      ansible.builtin.set_fact:
+        physical_disks:
+          "{{ hdd_disks if hdd_disks |
+           length > ssd_disks | length else ssd_disks }}"
 
     - name: Reset controller
       dellemc.openmanage.idrac_redfish_storage_controller:

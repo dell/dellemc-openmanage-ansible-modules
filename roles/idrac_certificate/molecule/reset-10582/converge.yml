@@ -2,8 +2,6 @@
 - name: Converge
   hosts: all
   gather_facts: false
-  vars:
-    ca_cert_path: "{{ lookup('env', 'ca_cert_path') }}"
 
   tasks:
     - name: Reset HTTPS certificate
@@ -14,7 +12,6 @@
         username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
-        ca_path: "{{ ca_cert_path }}"
         command: "reset"
         certificate_type: "HTTPS"
 

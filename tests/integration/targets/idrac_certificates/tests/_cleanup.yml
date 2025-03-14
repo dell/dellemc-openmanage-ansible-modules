@@ -30,3 +30,9 @@
   register: result
 
 - ansible.builtin.include_tasks: _wait_for_idrac_readiness.yml
+
+- name: Delete Directory
+  ansible.builtin.file:
+    path: "{{ base_path_for_import_certificate }}"
+    state: absent
+  register: deleted_directory

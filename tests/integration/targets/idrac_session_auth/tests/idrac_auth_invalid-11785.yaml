@@ -1,0 +1,218 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Invalid x_auth_token
+      dellemc.openmanage.idrac_attributes:
+        idrac_ip: "{{ idrac_ip }}"
+        validate_certs: "{{ validate_certs }}"
+        idrac_attributes:
+          SNMP.1.AgentCommunity: public
+        x_auth_token: invalid_x_auth_token
+      register: invalid_x_auth_token
+      ignore_errors: true
+
+    - name: Verify - Invalid x_auth_token
+      ansible.builtin.assert:
+        that:
+          - invalid_x_auth_token.failed
+          - not invalid_x_auth_token.changed
+          - 'invalid_x_auth_token.msg == "HTTP Error 401: Unauthorized"'
+
+    - name: Invalid env IDRAC_X_AUTH_TOKEN
+      environment:
+        IDRAC_X_AUTH_TOKEN: invalid_x_auth_token
+      dellemc.openmanage.idrac_attributes:
+        idrac_ip: "{{ idrac_ip }}"
+        validate_certs: "{{ validate_certs }}"
+        idrac_attributes:
+          SNMP.1.AgentCommunity: public
+      register: invalid_env_x_auth_token
+      ignore_errors: true
+
+    - name: Verify - Invalid env IDRAC_X_AUTH_TOKEN
+      ansible.builtin.assert:
+        that:
+          - invalid_env_x_auth_token.failed
+          - not invalid_env_x_auth_token.changed
+          - 'invalid_env_x_auth_token.msg == "HTTP Error 401: Unauthorized"'
+
+    - name: No username and password or x_auth_token
+      dellemc.openmanage.idrac_attributes:
+        idrac_ip: "{{ idrac_ip }}"
+        validate_certs: "{{ validate_certs }}"
+        idrac_attributes:
+          SNMP.1.AgentCommunity: public
+      register: only_hostname
+      ignore_errors: true
+
+    - name: Verify - No username and password or x_auth_token
+      ansible.builtin.assert:
+        that:
+          - only_hostname.failed
+          - not only_hostname.changed
+          - 'only_hostname.msg == "one of the following is required:
+            idrac_user, x_auth_token"'
+
+    - name: Only username and no password
+      dellemc.openmanage.idrac_attributes:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        validate_certs: "{{ validate_certs }}"
+        idrac_attributes:
+          SNMP.1.AgentCommunity: public
+      register: only_username
+      ignore_errors: true
+
+    - name: Verify - Only username and no password
+      ansible.builtin.assert:
+        that:
+          - only_username.failed
+          - not only_username.changed
+          - 'only_username.msg == "parameters are required together:
+            idrac_user, idrac_password"'
+
+    - name: Only password and no username
+      dellemc.openmanage.idrac_attributes:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        validate_certs: "{{ validate_certs }}"
+        idrac_attributes:
+          SNMP.1.AgentCommunity: public
+      register: only_password
+      ignore_errors: true
+
+    - name: Verify - Only password and no username
+      ansible.builtin.assert:
+        that:
+          - only_password.failed
+          - not only_password.changed
+          - 'only_password.msg == "parameters are required together:
+            idrac_user, idrac_password"'
+
+    - name: Mutually exclusive - username, passowrd and x_auth_token
+      dellemc.openmanage.idrac_attributes:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        x_auth_token: some_x_auth_token
+        validate_certs: "{{ validate_certs }}"
+        idrac_attributes:
+          SNMP.1.AgentCommunity: public
+      register: mut_exc_username_password_x_auth_token
+      ignore_errors: true
+
+    - name: Verify - Mutually exclusive - username, password and x_auth_token
+      ansible.builtin.assert:
+        that:
+          - mut_exc_username_password_x_auth_token.failed
+          - not mut_exc_username_password_x_auth_token.changed
+          - 'mut_exc_username_password_x_auth_token.msg == "parameters are
+            mutually exclusive: idrac_user|x_auth_token,
+            idrac_password|x_auth_token"'
+
+    - name: Mutually exclusive - username and x_auth_token
+      dellemc.openmanage.idrac_attributes:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        x_auth_token: some_x_auth_token
+        validate_certs: "{{ validate_certs }}"
+        idrac_attributes:
+          SNMP.1.AgentCommunity: public
+      register: mut_exc_username_x_auth_token
+      ignore_errors: true
+
+    - name: Verify - Mutually exclusive - username and x_auth_token
+      ansible.builtin.assert:
+        that:
+          - mut_exc_username_x_auth_token.failed
+          - not mut_exc_username_x_auth_token.changed
+          - 'mut_exc_username_x_auth_token.msg == "parameters are mutually
+            exclusive: idrac_user|x_auth_token"'
+
+    - name: Mutually exclusive - password and x_auth_token
+      dellemc.openmanage.idrac_attributes:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_password: "{{ idrac_password }}"
+        x_auth_token: some_x_auth_token
+        validate_certs: "{{ validate_certs }}"
+        idrac_attributes:
+          SNMP.1.AgentCommunity: public
+      register: mut_exc_password_x_auth_token
+      ignore_errors: true
+
+    - name: Verify - Mutually exclusive - password and x_auth_token
+      ansible.builtin.assert:
+        that:
+          - mut_exc_password_x_auth_token.failed
+          - not mut_exc_password_x_auth_token.changed
+          - 'mut_exc_password_x_auth_token.msg == "parameters are mutually
+            exclusive: idrac_password|x_auth_token"'
+
+    - name: Invalid env IDRAC_USERNAME
+      environment:
+        IDRAC_USERNAME: invalid_username
+      dellemc.openmanage.idrac_attributes:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        idrac_attributes:
+          SNMP.1.AgentCommunity: public
+      register: invalid_env_idrac_username
+      ignore_errors: true
+
+    - name: Verify - Invalid env IDRAC_USERNAME
+      ansible.builtin.assert:
+        that:
+          - invalid_env_idrac_username.failed
+          - not invalid_env_idrac_username.changed
+          - 'invalid_env_idrac_username.msg == "HTTP Error 401: Unauthorized"'
+
+    - name: Invalid env IDRAC_PASSWORD
+      environment:
+        IDRAC_PASSWORD: invalid_password
+      dellemc.openmanage.idrac_attributes:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        validate_certs: "{{ validate_certs }}"
+        idrac_attributes:
+          SNMP.1.AgentCommunity: public
+      register: invalid_env_idrac_password
+      ignore_errors: true
+
+    - name: Verify - Invalid env IDRAC_PASSWORD
+      ansible.builtin.assert:
+        that:
+          - invalid_env_idrac_password.failed
+          - not invalid_env_idrac_password.changed
+          - 'invalid_env_idrac_password.msg == "HTTP Error 401: Unauthorized"'
+
+    - name: Invalid env IDRAC_USERNAME and IDRAC_PASSWORD
+      environment:
+        IDRAC_USERNAME: invalid_username
+        IDRAC_PASSWORD: invalid_password
+      dellemc.openmanage.idrac_attributes:
+        idrac_ip: "{{ idrac_ip }}"
+        validate_certs: "{{ validate_certs }}"
+        idrac_attributes:
+          SNMP.1.AgentCommunity: public
+      register: invalid_env_idrac_username_idrac_password
+      ignore_errors: true
+
+    - name: Verify - Invalid env IDRAC_USERNAME and IDRAC_PASSWORD
+      ansible.builtin.assert:
+        that:
+          - invalid_env_idrac_username_idrac_password.failed
+          - not invalid_env_idrac_username_idrac_password.changed
+          - 'invalid_env_idrac_username_idrac_password.msg == "HTTP Error
+            401: Unauthorized"'
