@@ -1,4 +1,8 @@
 ---
+- ansible.builtin.include_role:
+    name: prepare_idrac_lifecycle_controller_status
+  ignore_errors: true
+
 - ansible.builtin.set_fact:
     url: "https://{{idrac_ip}}:{{idrac_port}}
      /redfish/v1/UpdateService/FirmwareInventory?$expand=*($levels=1)"
@@ -21,7 +25,7 @@
     return_content: true
     status_code: 200
     headers: 'Accept=application/json'
-  until: uri_res.status == 200
+  until: uri_res.status == 200 and uri_res.content != ""
   retries: 12
   delay: 5
   register: uri_res

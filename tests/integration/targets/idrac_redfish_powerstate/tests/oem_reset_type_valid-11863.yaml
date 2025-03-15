@@ -18,6 +18,10 @@
       dellemc.openmanage.redfish_powerstate:
         reset_type: "GracefulShutdown"
 
+    - ansible.builtin.include_tasks: _wait_for_powerstate.yml
+      vars:
+        expected_state: "Off"
+
     - name: Fetch the iDRAC firmware version
       ansible.builtin.import_tasks: _fetch_uri.yml
       vars:
@@ -126,6 +130,15 @@
           power-cycle operation. Please wait a few minutes, the server
           will automatically power on."
       when: firmware_ver >= '7.00.60'
+
+  always:
+    - name: Power On the iDRAC
+      dellemc.openmanage.redfish_powerstate:
+        reset_type: "On"
+
+    - ansible.builtin.include_tasks: _wait_for_powerstate.yml
+      vars:
+        expected_state: "On"
 
   module_defaults:
     dellemc.openmanage.redfish_powerstate:
