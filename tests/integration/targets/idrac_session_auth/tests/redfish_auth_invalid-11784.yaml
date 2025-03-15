@@ -18,6 +18,7 @@
         validate_certs: "{{ validate_certs }}"
         reset_type: "On"
         x_auth_token: invalid_x_auth_token
+        timeout: "{{ idrac_timeout }}"
       register: invalid_x_auth_token
       ignore_errors: true
 
@@ -35,6 +36,7 @@
         baseuri: "{{ idrac_ip }}"
         validate_certs: "{{ validate_certs }}"
         reset_type: "On"
+        timeout: "{{ idrac_timeout }}"
       register: invalid_env_x_auth_token
       ignore_errors: true
 
@@ -50,6 +52,7 @@
         baseuri: "{{ idrac_ip }}"
         validate_certs: "{{ validate_certs }}"
         reset_type: "On"
+        timeout: "{{ idrac_timeout }}"
       register: only_hostname
       ignore_errors: true
 
@@ -67,6 +70,7 @@
         username: "{{ idrac_user }}"
         validate_certs: "{{ validate_certs }}"
         reset_type: "On"
+        timeout: "{{ idrac_timeout }}"
       register: only_username
       ignore_errors: true
 
@@ -84,6 +88,7 @@
         username: "{{ idrac_user }}"
         validate_certs: "{{ validate_certs }}"
         reset_type: "On"
+        timeout: "{{ idrac_timeout }}"
       register: only_password
       ignore_errors: true
 
@@ -102,6 +107,7 @@
         password: "{{ idrac_password }}"
         x_auth_token: some_x_auth_token
         validate_certs: "{{ validate_certs }}"
+        timeout: "{{ idrac_timeout }}"
         reset_type: "On"
       register: mut_exc_username_password_x_auth_token
       ignore_errors: true
@@ -122,6 +128,7 @@
         x_auth_token: some_x_auth_token
         validate_certs: "{{ validate_certs }}"
         reset_type: "On"
+        timeout: "{{ idrac_timeout }}"
       register: mut_exc_username_x_auth_token
       ignore_errors: true
 
@@ -140,6 +147,7 @@
         x_auth_token: some_x_auth_token
         validate_certs: "{{ validate_certs }}"
         reset_type: "On"
+        timeout: "{{ idrac_timeout }}"
       register: mut_exc_password_x_auth_token
       ignore_errors: true
 
@@ -159,6 +167,7 @@
         password: "{{ idrac_password }}"
         validate_certs: "{{ validate_certs }}"
         reset_type: "On"
+        timeout: "{{ idrac_timeout }}"
       register: invalid_env_idrac_username
       ignore_errors: true
 
@@ -177,6 +186,7 @@
         username: "{{ idrac_user }}"
         validate_certs: "{{ validate_certs }}"
         reset_type: "On"
+        timeout: "{{ idrac_timeout }}"
       register: invalid_env_idrac_password
       ignore_errors: true
 
@@ -195,6 +205,7 @@
         baseuri: "{{ idrac_ip }}"
         validate_certs: "{{ validate_certs }}"
         reset_type: "On"
+        timeout: "{{ idrac_timeout }}"
       register: invalid_env_idrac_username_idrac_password
       ignore_errors: true
 

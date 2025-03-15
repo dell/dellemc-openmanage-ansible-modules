@@ -19,15 +19,10 @@
   ansible.builtin.include_role:
     name=prepare_idrac_lifecycle_controller_status
 
-- name: Set prerequisite
-  ansible.builtin.include_tasks: _helper.yml
-
-- name: Prerequisite - fail if not enough disk is found to create a volume
-  ansible.builtin.fail:
-    msg: 'Physical disks are not sufficient to proceed with test case
-      execution. Needs a minimum 1, but found {{ physical_disks | length }}'
-  when:
-    - physical_disks | length < 1
+- name: Check disk count and retry if insufficient
+  ansible.builtin.include_tasks: _prereq_verify_disks_availability.yml
+  vars:
+    required_disk_length: 1
 
 - block:
     - name: Create a RAID0 volume
@@ -52,7 +47,7 @@
 
     - name: Pause the job
       ansible.builtin.pause:
-        seconds: 60
+        seconds: 180
 
     - name: Set job id for assertion
       ansible.builtin.set_fact:

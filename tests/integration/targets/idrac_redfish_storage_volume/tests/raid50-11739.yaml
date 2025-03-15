@@ -15,15 +15,10 @@
   ansible.builtin.set_fact:
     raid_type: "RAID50"
 
-- name: Set prerequisite
-  ansible.builtin.include_tasks: _helper.yml
-
-- name: Prerequisite - fail if not enough disk is found to create a volume
-  ansible.builtin.fail:
-    msg: 'Physical disks are not sufficient to proceed with test case
-      execution. Needs a minimum 2, but found {{ physical_disks | length }}'
-  when:
-    - physical_disks | length < 6
+- name: Check disk count and retry if insufficient
+  ansible.builtin.include_tasks: _prereq_verify_disks_availability.yml
+  vars:
+    required_disk_length: 6
 
 - block:
     - name: Create a RAID50 volume using the raid_type parameter with the
@@ -109,29 +104,10 @@
           - not idempotence_result_raid.changed
           - 'idempotence_result_raid.msg == "No changes found to be applied."'
 
-    - name: Set prerequisite
-      ansible.builtin.include_tasks: _helper.yml
-
     - name: Check disk count and retry if insufficient
-      block:
-        - name: Prerequisite - fail if not enough disk is found to create a volume
-          ansible.builtin.fail:
-            msg: 'Physical disks are not sufficient to proceed with test case execution. Needs a minimum 10, but found {{ physical_disks | length }}'
-          when: physical_disks | length < 8
-
-      rescue:
-        - name: Rerun restart and helper tasks
-          block:
-            - name: Retry - Graceful restart
-              ansible.builtin.include_tasks: _restart.yml
-
-            - name: Retry - Set prerequisite
-              ansible.builtin.include_tasks: _helper.yml
-
-            - name: Check disk count again
-              ansible.builtin.fail:
-                msg: 'Retry failed - Still not enough physical disks to proceed.'
-              when: physical_disks | length < 8
+      ansible.builtin.include_tasks: _prereq_verify_disks_availability.yml
+      vars:
+        required_disk_length: 8
 
     - name: Create a RAID50 volume using the volume_type parameter with more
         than the minimum number of disks (Check mode - Changes expected)

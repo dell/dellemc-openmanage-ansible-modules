@@ -19,15 +19,10 @@
   ansible.builtin.set_fact:
     raid_type: "RAID0"
 
-- name: Set prerequisite
-  ansible.builtin.include_tasks: _helper.yml
-
-- name: Prerequisite - fail if not enough disk is found to create a volume
-  ansible.builtin.fail:
-    msg: 'Physical disks are not sufficient to proceed with test case
-      execution. Needs a minimum 2, but found {{ physical_disks | length }}'
-  when:
-    - physical_disks | length < 2
+- name: Check disk count and retry if insufficient
+  ansible.builtin.include_tasks: _prereq_verify_disks_availability.yml
+  vars:
+    required_disk_length: 1
 
 - block:
     - name: Create a RAID0 volume using the raid_type parameter with the
@@ -106,8 +101,10 @@
     - name: Post clean up
       ansible.builtin.include_tasks: _cleanup.yml
 
-    - name: Set prerequisite
-      ansible.builtin.include_tasks: _helper.yml
+    - name: Check disk count and retry if insufficient
+      ansible.builtin.include_tasks: _prereq_verify_disks_availability.yml
+      vars:
+        required_disk_length: 2
 
     - name: Create a RAID0 volume using the volume_type parameter with more
         than the minimum number of disks (Check mode - Changes expected)
