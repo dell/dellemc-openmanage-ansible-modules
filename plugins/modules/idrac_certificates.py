@@ -532,16 +532,19 @@ def check_csr_generated(idrac):
     return generated
 
 
-def perform_operation_and_download_csr(idrac, cert_url, method, cert_payload):
+def perform_operation_and_download_csr(idrac, cert_url, method, cert_payload, module):
     resp = None
     try:
-        resp = idrac.invoke_request(cert_url, method, data=cert_payload)
+        resp = idrac.invoke_request(cert_url, method, data=cert_payload, api_timeout=60)
     except HTTPError as err:
         json_err = json.load(err)
-        if err.code == 503 and json_err.get("error").get("@Message.ExtendedInfo")[0].get("MessageId") == "IDRAC.2.9.SYS537":
+        msg_id = json_err.get("error").get("@Message.ExtendedInfo")[0].get("MessageId")
+        if err.code == 503 and msg_id in ['IDRAC.2.9.SYS537', 'IDRAC.2.8.SYS537']:
             body = {'CertificateCollection': rfish_cert_coll['Server']}
             if check_csr_generated(idrac):
                 resp = idrac.invoke_request(GET_LAST_GENERATED_CSR, "POST", data=body)
+        else:
+            module.exit_json(failed=True, error_info=json_err, msg=str(err))
     return resp
 
 
@@ -564,7 +567,7 @@ def exit_certificates(module, idrac, cert_url, cert_payload, method, cert_type, 
     if module.params.get('command') == 'reset' and cert_type == "Server":
         resp = idrac.invoke_request(cert_url, method, data=cert_payload, dump=False)
     else:
-        resp = perform_operation_and_download_csr(idrac, cert_url, method, cert_payload)
+        resp = perform_operation_and_download_csr(idrac, cert_url, method, cert_payload, module)
     cert_data = resp.json_data
     cert_output = format_output(module, cert_data)
     result.update(cert_output)

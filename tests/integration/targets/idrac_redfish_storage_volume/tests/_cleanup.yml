@@ -9,6 +9,14 @@
       when: uri_data is defined
       register: result_delete_volume
 
+    - name: Wait for iDRAC lifecycle controller readiness
+      ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
+
+    - name: Pause the job
+      ansible.builtin.pause:
+        seconds: 60
+
   module_defaults:
     dellemc.openmanage.redfish_storage_volume:
       baseuri: "{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}"
