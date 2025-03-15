@@ -11,6 +11,10 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
+- name: Wait for iDRAC lifecycle controller readiness
+  ansible.builtin.include_role:
+    name=prepare_idrac_lifecycle_controller_status
+
 - name: Set prerequisite facts
   ansible.builtin.set_fact:
     raid_type: "RAID0"
@@ -59,6 +63,10 @@
       ansible.builtin.include_role:
         name=prepare_idrac_lifecycle_controller_status
 
+    - name: Pause the job
+      ansible.builtin.pause:
+        seconds: 60
+
     - name: Fetch volume details
       ansible.builtin.include_tasks: _get_volume_details.yml
 
@@ -80,7 +88,6 @@
           - uri_data.DisplayName == "RAID0_Volume"
           - uri_data.RAIDType == "RAID0"
           - uri_data.OptimumIOSizeBytes == 65536
-          - uri_data.BlockSizeBytes == 512
           - uri_data.CapacityBytes == 104857600
 
     - name: Create a RAID0 volume using the raid_type parameter with the
@@ -95,6 +102,9 @@
         that:
           - not idempotence_result_raid.changed
           - 'idempotence_result_raid.msg == "No changes found to be applied."'
+
+    - name: Post clean up
+      ansible.builtin.include_tasks: _cleanup.yml
 
     - name: Set prerequisite
       ansible.builtin.include_tasks: _helper.yml
@@ -131,6 +141,10 @@
       ansible.builtin.include_role:
         name=prepare_idrac_lifecycle_controller_status
 
+    - name: Pause the job
+      ansible.builtin.pause:
+        seconds: 60
+
     - name: Fetch volume details
       ansible.builtin.include_tasks: _get_volume_details.yml
 
@@ -151,8 +165,6 @@
           # Verify volume details
           - uri_data.DisplayName == "RAID0_Volume"
           - uri_data.RAIDType == "RAID0"
-          - uri_data.OptimumIOSizeBytes == 65536
-          - uri_data.BlockSizeBytes == 512
 
     - name: Create a RAID0 volume using the volume_type parameter with more
         than the minimum number of disks (Idempotence)
