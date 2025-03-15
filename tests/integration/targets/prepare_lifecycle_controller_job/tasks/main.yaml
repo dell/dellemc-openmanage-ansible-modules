@@ -1,16 +1,13 @@
 ---
-- name: Module defaults
-  module_defaults:
-    dellemc.openmanage.idrac_lifecycle_controller_job_status_info:
-      idrac_ip: "{{ idrac_ip }}"
-      idrac_port: "{{ idrac_port }}"
-      idrac_user: "{{ idrac_user }}"
-      idrac_password: "{{ idrac_password }}"
-      validate_certs: "{{ validate_certs }}"
-
+- name: Prepare Lifecycle Controller Job
   block:
     - name: Wait for Job to complete
       dellemc.openmanage.idrac_lifecycle_controller_job_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_port: "{{ idrac_port }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
         job_id: "{{ job_id }}"
       when: job_id is defined
       register: result_job_wait

@@ -1,15 +1,49 @@
 ---
-- name: Module defaults
-  module_defaults:
-    dellemc.openmanage.idrac_lifecycle_controller_jobs:
-      idrac_ip: "{{ idrac_ip }}"
-      idrac_port: "{{ idrac_port }}"
-      idrac_user: "{{ idrac_user }}"
-      idrac_password: "{{ idrac_password }}"
-      validate_certs: "{{ validate_certs }}"
-
+- name: Prepare Lifecycle Controller Job Queue
+  vars:
+    expand: "?$expand=*($levels=1)"
+    job_uri: "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs"
   block:
     - name: Delete LC Job Queue
       dellemc.openmanage.idrac_lifecycle_controller_jobs:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_port: "{{ idrac_port }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
       register: job_queue
       changed_when: "'Failed to delete the Job' in job_queue.msg"
+      ignore_errors: true
+
+    - name: Get all job details by uri.
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip }}{{ job_uri }}{{ expand }}"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        force_basic_auth: true
+        headers: 'Accept=application/json'
+      register: uri_all_jobs
+      when: job_queue.status.Message == "A running job cannot be deleted."
+
+    - name: Extact all the running jobs
+      ansible.builtin.set_fact:
+        job_ids: "{{ job_ids | default([]) + [item.Id if item.JobState ==
+          'Running' else []] }}"
+      loop: "{{ uri_all_jobs.json.Members }}"
+      when: job_queue.status.Message == "A running job cannot be deleted."
+
+    - name: Track running job of a Lifecycle Control job
+      dellemc.openmanage.idrac_lifecycle_controller_job_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_port: "{{ idrac_port }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        job_id: "{{ item }}"
+      register: job_track
+      until: job_track.job_info.JobStatus in ["Failed", "Completed"]
+      delay: 10
+      retries: 120
+      loop: "{{ job_ids }}"
+      when: job_queue.status.Message == "A running job cannot be deleted."
