@@ -1,16 +1,26 @@
 ---
-- name: Module defaults
-  module_defaults:
-    dellemc.openmanage.idrac_lifecycle_controller_status_info:
-      idrac_ip: "{{ idrac_ip }}"
-      idrac_port: "{{ idrac_port }}"
-      idrac_user: "{{ idrac_user }}"
-      idrac_password: "{{ idrac_password }}"
-      validate_certs: "{{ validate_certs }}"
-
+- name: Prepare LC status wait
   block:
+    - name: Waiting for 30 secs before checking LC status
+      ansible.builtin.wait_for:
+        timeout: 30
+
+    - name: Getting LC status first time
+      dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_port: "{{ idrac_port }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+      register: result_lc
+
     - name: Wait for LC to be ready
       dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_port: "{{ idrac_port }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
       register: result_lc
       until:
         - result_lc is defined
