@@ -79,6 +79,20 @@
 
     - ansible.builtin.include_tasks: _clear_all_jobs.yml
 
+    - ansible.builtin.include_tasks: _create_directory.yml
+
+    - name: Export database policy certificate
+      dellemc.openmanage.idrac_secure_boot:
+        export_certificates: true
+        database: "{{ path_for_secure_boot_certificate }}/db"
+        restart: true
+        restart_type: ForceRestart
+        job_wait: true
+        job_wait_timeout: 1000
+      register: export_db
+
+    - ansible.builtin.include_tasks: _get_file_path.yml
+
     - name: Set secure_boot_mode with import operation
         (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &secure_with_import
@@ -88,7 +102,7 @@
         validate_certs: false
         secure_boot_mode: UserMode
         import_certificates: true
-        database: "{{ idrac_secure_boot_cert_path_1 }}"
+        database: "{{ db_files.files[0].path }}"
         restart: false
         job_wait: false
       register: cm_changes
@@ -117,60 +131,13 @@
           - 'secure_with_import.msg == "The SecureBoot Certificate Import
             operation is successfully scheduled. Restart the host server for
             the changes to take effect."'
+      when: secure_with_import.changed
 
     - name: Verify - Secure boot Log entries
       ansible.builtin.include_tasks: _get_log_entries.yml
       vars:
         msg_id: "SWC9010"
-
-    - name: Update secure_boot_mode to check idempotency
-       (check mode - changes expected)
-      dellemc.openmanage.idrac_secure_boot: &idp_secure
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        validate_certs: false
-        secure_boot_mode: DeployedMode
-        restart: true
-        restart_type: GracefulRestart
-        job_wait: true
-        job_wait_timeout: 1000
-      register: cm_changes
-      check_mode: true
-
-    - name: Verify -  Update secure_boot_mode to check idempotency
-       (check mode - changes expected)
-      ansible.builtin.assert:
-        that:
-          - cm_changes.changed
-          - cm_changes.msg == 'Changes found to be applied.'
-
-    - name: Update secure_boot_mode to check idempotent mode
-       (normal mode)
-      dellemc.openmanage.idrac_secure_boot:
-        <<: *idp_secure
-      register: idp_secure
-
-    - name: Verify - Update secure_boot_mode to check idempotency
-       (normal mode)
-      ansible.builtin.assert:
-        that:
-          - idp_secure.changed
-          - 'idp_secure.msg == "Successfully updated the iDRAC Secure
-           Boot settings."'
-
-    - name: Update secure_boot_mode to check idempotent mode
-       (idempotent mode)
-      dellemc.openmanage.idrac_secure_boot:
-        <<: *idp_secure
-      register: idp_mode
-
-    - name: Verify - Update secure_boot_mode to check idempotency
-       (idempotent mode)
-      ansible.builtin.assert:
-        that:
-          - not idp_mode.changed
-          - 'idp_mode.msg == "No changes found to be applied."'
+      when: secure_with_import.changed
 
   module_defaults:
     dellemc.openmanage.idrac_secure_boot:

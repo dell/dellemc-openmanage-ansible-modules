@@ -1,0 +1,6 @@
+---
+- name: Create Directory
+  ansible.builtin.file:
+    path: "{{ path_for_secure_boot_certificate }}"
+    state: absent
+  register: deleted_directory

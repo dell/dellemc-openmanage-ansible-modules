@@ -4,6 +4,10 @@
     expand: "?$expand=*($levels=1)"
     job_uri: "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs"
   block:
+    - name: Wait for a min before clearing job queue
+      ansible.builtin.pause:
+        minutes: 1
+
     - name: Delete LC Job Queue
       dellemc.openmanage.idrac_lifecycle_controller_jobs:
         idrac_ip: "{{ idrac_ip }}"

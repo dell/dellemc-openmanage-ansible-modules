@@ -1,0 +1,24 @@
+---
+- name: List files in db sub directory
+  ansible.builtin.find:
+    paths: "{{ path_for_secure_boot_certificate }}/db"
+    file_type: file
+  register: db_files
+
+- name: List files in dbx sub directory
+  ansible.builtin.find:
+    paths: "{{ path_for_secure_boot_certificate }}/dbx"
+    file_type: file
+  register: dbx_files
+
+- name: List files in kek sub directory
+  ansible.builtin.find:
+    paths: "{{ path_for_secure_boot_certificate }}/kek"
+    file_type: file
+  register: kek_files
+
+- name: List files in pk sub directory
+  ansible.builtin.find:
+    paths: "{{ path_for_secure_boot_certificate }}/pk"
+    file_type: file
+  register: pk_files

@@ -16,12 +16,14 @@
 
     - ansible.builtin.include_tasks: _configure_generic_bios_attributes.yml
 
+    - ansible.builtin.include_tasks: _create_directory.yml
+
     - name: Export key exchange key policy certificate
        (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &export_cert
         export_certificates: true
         KEK:
-          - "{{ idrac_secure_boot_dir_path_3 }}"
+          - "{{ path_for_secure_boot_certificate }}/kek"
       register: cm_changes
       check_mode: true
 
@@ -51,6 +53,10 @@
       ansible.builtin.include_tasks: _get_log_entries.yml
       vars:
         msg_id: "SWC9011"
+
+  always:
+    - name: Cleanup
+      ansible.builtin.include_tasks: _delete_directory.yml
 
   module_defaults:
     dellemc.openmanage.idrac_secure_boot:

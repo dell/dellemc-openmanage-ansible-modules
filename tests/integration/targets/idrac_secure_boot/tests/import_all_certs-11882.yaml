@@ -16,18 +16,35 @@
 
     - ansible.builtin.include_tasks: _configure_generic_bios_attributes.yml
 
+    - ansible.builtin.include_tasks: _create_directory.yml
+
+    - name: Export all policy certificates
+      dellemc.openmanage.idrac_secure_boot:
+        export_certificates: true
+        database:
+          - "{{ path_for_secure_boot_certificate }}/db"
+        disallow_database: "{{ path_for_secure_boot_certificate }}/dbx"
+        KEK:
+          - "{{ path_for_secure_boot_certificate }}/kek"
+        platform_key: "{{ path_for_secure_boot_certificate }}/pk"
+        restart: true
+        restart_type: GracefulRestart
+        job_wait: true
+        job_wait_timeout: 1000
+      register: export_all
+
+    - ansible.builtin.include_tasks: _get_file_path.yml
+
     - name: Import all policy certificate
        (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &import_cert
         import_certificates: true
         database:
-          - "{{ idrac_secure_boot_cert_path_1 }}"
-          - "{{ idrac_secure_boot_cert_path_2 }}"
-        disallow_database: "{{ idrac_secure_boot_cert_path_1 }}"
+          - "{{ db_files.files[0].path }}"
+        disallow_database: "{{ dbx_files.files[0].path }}"
         KEK:
-          - "{{ idrac_secure_boot_cert_path_1 }}"
-          - "{{ idrac_secure_boot_cert_path_2 }}"
-        platform_key: "{{ idrac_secure_boot_cert_path_2 }}"
+          - "{{ kek_files.files[0].path }}"
+        platform_key: "{{ pk_files.files[0].path }}"
         restart: true
         restart_type: GracefulRestart
         job_wait: true
@@ -61,6 +78,10 @@
       ansible.builtin.include_tasks: _get_log_entries.yml
       vars:
         msg_id: "UEFI0286"
+
+  always:
+    - name: Cleanup
+      ansible.builtin.include_tasks: _delete_directory.yml
 
   module_defaults:
     dellemc.openmanage.idrac_secure_boot:

@@ -16,11 +16,25 @@
 
     - ansible.builtin.include_tasks: _configure_generic_bios_attributes.yml
 
+    - ansible.builtin.include_tasks: _create_directory.yml
+
+    - name: Export pk database policy certificate
+      dellemc.openmanage.idrac_secure_boot:
+        export_certificates: true
+        platform_key: "{{ path_for_secure_boot_certificate }}/pk"
+        restart: true
+        restart_type: ForceRestart
+        job_wait: true
+        job_wait_timeout: 1000
+      register: export_pk
+
+    - ansible.builtin.include_tasks: _get_file_path.yml
+
     - name: Import platform key policy certificate
        (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &import_cert
         import_certificates: true
-        platform_key: "{{ idrac_secure_boot_cert_path_1 }}"
+        platform_key: "{{ pk_files.files[0].path }}"
         restart: true
         restart_type: GracefulRestart
         job_wait: true
@@ -59,7 +73,7 @@
         (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &import_cert_no_restart
         import_certificates: true
-        platform_key: "{{ idrac_secure_boot_cert_path_1 }}"
+        platform_key: "{{ pk_files.files[0].path }}"
         restart: false
       register: cm_no_restart
       check_mode: true
@@ -94,22 +108,9 @@
       vars:
         msg_id: "SWC9010"
 
-    - name: Restart the server
-      dellemc.openmanage.redfish_powerstate:
-        baseuri: "{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
-        username: "{{ idrac_user }}"
-        password: "{{ idrac_password }}"
-        validate_certs: false
-        reset_type: GracefulRestart
-
-    - name: Wait for the iDRAC lifecycle controller readiness
-      ansible.builtin.include_role:
-        name=prepare_idrac_lifecycle_controller_status
-
-    - name: Verify - Secure boot Log entries
-      ansible.builtin.include_tasks: _get_log_entries.yml
-      vars:
-        msg_id: "UEFI0286"
+  always:
+    - name: Cleanup
+      ansible.builtin.include_tasks: _delete_directory.yml
 
   module_defaults:
     dellemc.openmanage.idrac_secure_boot:

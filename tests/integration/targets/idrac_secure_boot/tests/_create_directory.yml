@@ -1,0 +1,30 @@
+---
+- name: Create Directory
+  ansible.builtin.file:
+    path: "{{ path_for_secure_boot_certificate }}"
+    state: directory
+  register: created_directory
+
+- name: Create db Subdirectory
+  ansible.builtin.file:
+    path: "{{ path_for_secure_boot_certificate }}/db"
+    state: directory
+  register: created_subdirectory
+
+- name: Create dbx Subdirectory
+  ansible.builtin.file:
+    path: "{{ path_for_secure_boot_certificate }}/dbx"
+    state: directory
+  register: created_subdirectory
+
+- name: Create kek Subdirectory
+  ansible.builtin.file:
+    path: "{{ path_for_secure_boot_certificate }}/kek"
+    state: directory
+  register: created_subdirectory
+
+- name: Create pk Subdirectory
+  ansible.builtin.file:
+    path: "{{ path_for_secure_boot_certificate }}/pk"
+    state: directory
+  register: created_subdirectory
