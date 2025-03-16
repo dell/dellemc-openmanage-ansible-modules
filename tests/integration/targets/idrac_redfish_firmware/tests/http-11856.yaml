@@ -22,9 +22,16 @@
         timeout: 300
       register: result
 
+    - name: Waiting for idrac readiness
+      idrac_lifecycle_controller_status_info:
+      register: result_lc
+      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 100
+      delay: 30
+
     - name: Pause
       ansible.builtin.pause:
-        seconds: 300
+        seconds: 120
 
     - ansible.builtin.include_tasks: _post_update_helper.yml
 
@@ -63,9 +70,16 @@
         job_wait_timeout: 3900
       register: result
 
+    - name: Waiting for idrac readiness
+      idrac_lifecycle_controller_status_info:
+      register: result_lc
+      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 100
+      delay: 30
+
     - name: Pause
       ansible.builtin.pause:
-        seconds: 300
+        seconds: 120
 
     - ansible.builtin.include_tasks: _post_update_helper.yml
 
@@ -103,9 +117,16 @@
         job_wait: false
       register: result
 
+    - name: Waiting for idrac readiness
+      idrac_lifecycle_controller_status_info:
+      register: result_lc
+      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 100
+      delay: 30
+
     - name: Pause
       ansible.builtin.pause:
-        seconds: 300
+        seconds: 120
 
     - ansible.builtin.include_tasks: _post_update_helper.yml
 
