@@ -1,0 +1,27 @@
+---
+- name: Set prerequisite
+  ansible.builtin.include_tasks: _helper.yml
+
+- name: Check disk count and retry if insufficient
+  block:
+    - name: Prerequisite - fail if not enough disk is found to create a volume
+      ansible.builtin.fail:
+        msg:
+          'Physical disks are not sufficient to proceed with test
+           case execution. Needs a minimum {{ required_disk_length }},
+           but found {{ physical_disks | length }}'
+      when: physical_disks | length < {{ required_disk_length }}
+
+  rescue:
+    - name: Rerun restart and helper tasks
+      block:
+        - name: Retry - Graceful restart
+          ansible.builtin.include_tasks: _restart.yml
+
+        - name: Retry - Set prerequisite
+          ansible.builtin.include_tasks: _helper.yml
+
+        - name: Check disk count again
+          ansible.builtin.fail:
+            msg: 'Retry failed - Still not enough physical disks to proceed.'
+          when: physical_disks | length < {{ required_disk_length }}

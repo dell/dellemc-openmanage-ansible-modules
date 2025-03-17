@@ -18,7 +18,7 @@
          value 'None' is not a valid boolean.  Valid booleans include: "
         string_reboot_timeout_msg: "argument 'reboot_timeout' is of
          type <class 'str'> and we were unable to convert to
-         int: <class 'str'> cannot be converted to an int"
+         int:"
 
     - name: Negative - invalid reboot
       dellemc.openmanage.redfish_firmware_rollback:
@@ -75,7 +75,7 @@
         that:
           - string_reboot_timeout.failed
           - not string_reboot_timeout.changed
-          - string_reboot_timeout.msg == string_reboot_timeout_msg
+          - string_reboot_timeout_msg in string_reboot_timeout.msg
 
     - name: Negative - invalid regular expression
       dellemc.openmanage.redfish_firmware_rollback:

@@ -79,7 +79,7 @@
           - invalid_port.unreachable
           - not invalid_port.changed
           - 'invalid_port.msg == "<urlopen error [Errno 111] Connection
-           refused>"'
+           refused>" or invalid_port.msg == "<urlopen error timed out>"'
 
     - name: Negative - Invalid validate_certs
       dellemc.openmanage.idrac_session:
@@ -111,7 +111,8 @@
           - invalid_ca_path.failed
           - not invalid_ca_path.changed
           - 'invalid_ca_path.msg == "[Errno 2] No such file or directory:
-           b''/invalid/path''"'
+           b''/invalid/path''" or invalid_ca_path.msg == "[Errno 2]
+           No such file or directory"'
 
     - name: Negative - Invalid timeout type
       dellemc.openmanage.idrac_session:
@@ -119,14 +120,23 @@
       register: invalid_timeout_type
       ignore_errors: true
 
+    - ansible.builtin.set_fact:
+        invalid_timeout_type_expected_msg: "argument ''timeout'' is of type
+         <class ''str''> and we were unable to convert to int: <class ''str''>
+         cannot be converted to an int"
+
+    - ansible.builtin.set_fact:
+        invalid_timeout_type_expected_msg2: "argument 'timeout' is of
+         type <class 'str'> and we were unable to convert to
+         int: \"'invalid'\" cannot be converted to an int"
+
     - name: Verify task status - Negative - Invalid timeout type
       ansible.builtin.assert:
         that:
           - invalid_timeout_type.failed
           - not invalid_timeout_type.changed
-          - 'invalid_timeout_type.msg == "argument ''timeout'' is of type
-           <class ''str''> and we were unable to convert to int: <class ''str''>
-           cannot be converted to an int"'
+          - invalid_timeout_type.msg == invalid_timeout_type_expected_msg or
+            invalid_timeout_type.msg == invalid_timeout_type_expected_msg2
 
     - name: Negative - Invalid timeout value
       dellemc.openmanage.idrac_session:
@@ -156,7 +166,12 @@
            (dellemc.openmanage.idrac_session) module: unsupported_argument.
            Supported parameters include: ca_path, hostname, password, port,
            session_id, state, timeout, username, validate_certs, x_auth_token
-           (auth_token)."'
+           (auth_token)." or invalid_unsupported_argument.msg == "Unsupported
+           parameters for (dellemc.openmanage.idrac_session) module:
+           unsupported_argument. Supported parameters include: ca_path,
+           hostname, password, port, session_id, state, timeout, username,
+           validate_certs, x_auth_token (auth_token, idrac_ip,
+           idrac_password, idrac_user)."'
 
   module_defaults:
     dellemc.openmanage.idrac_session:

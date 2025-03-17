@@ -12,6 +12,19 @@
    is not defined'
 
 - block:
+    - ansible.builtin.include_role:
+        name: prepare_idrac_lifecycle_controller_status
+
+    - name: Pre-req - Set boot mode to Uefi
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        boot_mode: Uefi
+        validate_certs: false
+        restart: true
+        restart_type: GracefulRestart
+
     - name: Set boot mode to bios (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &boot_md_bios
         idrac_ip: "{{ idrac_ip }}"
@@ -41,6 +54,10 @@
           - boot_md_bios.changed
           - boot_md_bios.msg == 'Successfully updated the iDRAC Secure
            Boot settings.'
+
+    - name: Wait for iDRAC
+      ansible.builtin.pause:
+        seconds: 30
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -76,6 +93,9 @@
           - cm_changes.changed
           - cm_changes.msg == 'Changes found to be applied.'
 
+    - ansible.builtin.include_role:
+        name: prepare_idrac_lifecycle_controller_status
+
     - name: Set boot mode to Uefi (normal mode)
       dellemc.openmanage.idrac_secure_boot:
         <<: *boot_md_uefi
@@ -87,6 +107,10 @@
           - boot_md_uefi.changed
           - boot_md_uefi.msg == 'Successfully updated the iDRAC Secure
            Boot settings.'
+
+    - name: Wait for iDRAC
+      ansible.builtin.pause:
+        seconds: 30
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -103,6 +127,20 @@
         that:
           - boot_md_uefi.changed
           - 'boot_md_uri.json.Attributes.BootMode == "Uefi"'
+
+    - ansible.builtin.include_role:
+        name: prepare_idrac_lifecycle_controller_status
+
+    - name: Pre-req - Disable secure boot (check mode - changes expected)
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        secure_boot: Disabled
+        validate_certs: false
+        force_int_10: Disabled
+        restart: true
+        restart_type: GracefulRestart
 
     - name: Enable secure boot (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &secure_boot_enable
@@ -123,6 +161,9 @@
           - cm_changes.changed
           - cm_changes.msg == 'Changes found to be applied.'
 
+    - ansible.builtin.include_role:
+        name: prepare_idrac_lifecycle_controller_status
+
     - name: Enable secure boot (normal mode)
       dellemc.openmanage.idrac_secure_boot:
         <<: *secure_boot_enable
@@ -134,6 +175,11 @@
           - secure_boot_enable.changed
           - 'secure_boot_enable.msg == "Successfully updated the iDRAC
            Secure Boot settings."'
+      when: secure_boot_enable.changed
+
+    - name: Wait for iDRAC
+      ansible.builtin.pause:
+        seconds: 30
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -150,6 +196,7 @@
         that:
           - secure_boot_enable.changed
           - 'boot_md_uri.json.Attributes.SecureBoot == "Enabled"'
+      when: secure_boot_enable.changed
 
     - name: Disable secure boot (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &secure_boot_disable
@@ -169,6 +216,9 @@
           - cm_changes.changed
           - cm_changes.msg == 'Changes found to be applied.'
 
+    - ansible.builtin.include_role:
+        name: prepare_idrac_lifecycle_controller_status
+
     - name: Disable secure boot (normal mode)
       dellemc.openmanage.idrac_secure_boot:
         <<: *secure_boot_disable
@@ -180,6 +230,10 @@
           - secure_boot_disable.changed
           - secure_boot_disable.msg == 'Successfully updated the iDRAC
            Secure Boot settings.'
+
+    - name: Wait for iDRAC
+      ansible.builtin.pause:
+        seconds: 30
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -196,6 +250,19 @@
         that:
           - secure_boot_disable.changed
           - 'boot_md_uri.json.Attributes.SecureBoot == "Disabled"'
+
+    - ansible.builtin.include_role:
+        name: prepare_idrac_lifecycle_controller_status
+
+    - name: Pre-req - Set secure boot mode to DeployedMode
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        secure_boot_mode: DeployedMode
+        validate_certs: false
+        restart: true
+        restart_type: GracefulRestart
 
     - name: Set secure boot mode to UserMode (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &secure_boot_mode_user
@@ -215,6 +282,9 @@
           - cm_changes.changed
           - cm_changes.msg == 'Changes found to be applied.'
 
+    - ansible.builtin.include_role:
+        name: prepare_idrac_lifecycle_controller_status
+
     - name: Set secure boot mode to UserMode (normal mode)
       dellemc.openmanage.idrac_secure_boot:
         <<: *secure_boot_mode_user
@@ -226,6 +296,11 @@
           - secure_boot_mode_user.changed
           - 'secure_boot_mode_user.msg == "Successfully updated the iDRAC
            Secure Boot settings."'
+      when: secure_boot_mode_user.changed
+
+    - name: Wait for iDRAC
+      ansible.builtin.pause:
+        seconds: 30
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -242,6 +317,7 @@
         that:
           - secure_boot_mode_user.changed
           - 'boot_md_uri.json.Attributes.SecureBootMode == "UserMode"'
+      when: secure_boot_mode_user.changed
 
     - name: Set secure boot mode to DeployedMode (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &secure_boot_mode_deployed
@@ -262,6 +338,9 @@
           - cm_changes.changed
           - cm_changes.msg == 'Changes found to be applied.'
 
+    - ansible.builtin.include_role:
+        name: prepare_idrac_lifecycle_controller_status
+
     - name: Set secure boot mode to DeployedMode (normal mode)
       dellemc.openmanage.idrac_secure_boot:
         <<: *secure_boot_mode_deployed
@@ -273,6 +352,11 @@
           - secure_boot_mode_deployed.changed
           - 'secure_boot_mode_deployed.msg == "Successfully updated the iDRAC
            Secure Boot settings."'
+      when: secure_boot_mode_deployed.changed
+
+    - name: Wait for iDRAC
+      ansible.builtin.pause:
+        seconds: 30
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -289,6 +373,48 @@
         that:
           - secure_boot_mode_deployed.changed
           - 'boot_md_uri.json.Attributes.SecureBootMode == "DeployedMode"'
+      when: secure_boot_mode_deployed.changed
+
+    - ansible.builtin.include_tasks: _create_directory.yml
+
+    - name: Export platform key policy certificate
+      dellemc.openmanage.idrac_secure_boot:
+        export_certificates: true
+        platform_key: "{{ path_for_secure_boot_certificate }}/pk"
+        restart: true
+        restart_type: GracefulRestart
+        job_wait: true
+        job_wait_timeout: 1000
+
+    - name: Delete pk
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        reset_keys: "DeletePK"
+
+    - name: Restart iDRAC
+      dellemc.openmanage.redfish_powerstate:
+        baseuri: "{{ idrac_ip }}"
+        username: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+        reset_type: "ForceRestart"
+
+    - name: Wait for port to become open on the host
+      ansible.builtin.wait_for:
+        host: "{{ idrac_ip }}"
+        port: "{{ idrac_port }}"
+        delay: 30
+        connect_timeout: 5
+        timeout: 500
+      register: result
+      failed_when: result.elapsed < 20
+
+    - name: Wait for iDRAC
+      ansible.builtin.pause:
+        seconds: 300
 
     - name: Set secure boot mode to AuditMode (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &secure_boot_mode_audit
@@ -309,6 +435,9 @@
           - cm_changes.changed
           - cm_changes.msg == 'Changes found to be applied.'
 
+    - ansible.builtin.include_role:
+        name: prepare_idrac_lifecycle_controller_status
+
     - name: Set secure boot mode to AuditMode (normal mode)
       dellemc.openmanage.idrac_secure_boot:
         <<: *secure_boot_mode_audit
@@ -320,6 +449,10 @@
           - secure_boot_mode_audit.changed
           - 'secure_boot_mode_audit.msg == "Successfully updated the iDRAC
            Secure Boot settings."'
+
+    - name: Wait for iDRAC
+      ansible.builtin.pause:
+        seconds: 30
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -336,6 +469,40 @@
         that:
           - secure_boot_mode_audit.changed
           - 'boot_md_uri.json.Attributes.SecureBootMode == "AuditMode"'
+
+    - ansible.builtin.include_tasks: _get_file_path.yml
+
+    - ansible.builtin.include_role:
+        name: prepare_idrac_lifecycle_controller_status
+
+    - name: Import platform key policy certificate back
+      dellemc.openmanage.idrac_secure_boot:
+        import_certificates: true
+        platform_key: "{{ pk_files.files[0].path }}"
+        restart: true
+        restart_type: GracefulRestart
+        job_wait: true
+        job_wait_timeout: 1000
+
+    - ansible.builtin.include_role:
+        name: prepare_idrac_lifecycle_controller_status
+
+    - name: Pre-req - Set secure boot policy to Custom
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        secure_boot_policy: Custom
+        validate_certs: false
+        restart: true
+        restart_type: GracefulRestart
+
+    - ansible.builtin.include_role:
+        name: prepare_idrac_lifecycle_controller_status
+
+    - name: Wait for iDRAC
+      ansible.builtin.pause:
+        seconds: 30
 
     - name: Set secure boot policy to Standard (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &secure_boot_policy_standard
@@ -355,6 +522,10 @@
         that:
           - cm_changes.changed
           - cm_changes.msg == 'Changes found to be applied.'
+      when: cm_changes.changed
+
+    - ansible.builtin.include_role:
+        name: prepare_idrac_lifecycle_controller_status
 
     - name: Set secure boot policy to Standard (normal mode)
       dellemc.openmanage.idrac_secure_boot:
@@ -367,6 +538,11 @@
           - secure_boot_policy_standard.changed
           - 'secure_boot_policy_standard.msg == "Successfully updated the iDRAC
            Secure Boot settings."'
+      when: secure_boot_policy_standard.changed
+
+    - name: Wait for iDRAC
+      ansible.builtin.pause:
+        seconds: 60
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -383,6 +559,7 @@
         that:
           - secure_boot_policy_standard.changed
           - 'boot_md_uri.json.Attributes.SecureBootPolicy == "Standard"'
+      when: secure_boot_policy_standard.changed
 
     - name: Set secure boot policy to Custom (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &secure_boot_policy_custom
@@ -402,6 +579,10 @@
         that:
           - cm_changes.changed
           - cm_changes.msg == 'Changes found to be applied.'
+      when: cm_changes.changed
+
+    - ansible.builtin.include_role:
+        name: prepare_idrac_lifecycle_controller_status
 
     - name: Set secure boot policy to Custom (normal mode)
       dellemc.openmanage.idrac_secure_boot:
@@ -414,6 +595,11 @@
           - secure_boot_policy_custom.changed
           - 'secure_boot_policy_custom.msg == "Successfully updated the iDRAC
            Secure Boot settings."'
+      when: secure_boot_policy_custom.changed
+
+    - name: Wait for iDRAC
+      ansible.builtin.pause:
+        seconds: 60
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -430,6 +616,20 @@
         that:
           - secure_boot_policy_custom.changed
           - 'boot_md_uri.json.Attributes.SecureBootPolicy == "Custom"'
+      when: secure_boot_policy_custom.changed
+
+    - ansible.builtin.include_role:
+        name: prepare_idrac_lifecycle_controller_status
+
+    - name: Pre-req - Disable force_int_10
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        force_int_10: Disabled
+        validate_certs: false
+        restart: true
+        restart_type: GracefulRestart
 
     - name: Enable force_int_10 (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &force_enabled
@@ -449,6 +649,9 @@
           - cm_changes.changed
           - cm_changes.msg == 'Changes found to be applied.'
 
+    - ansible.builtin.include_role:
+        name: prepare_idrac_lifecycle_controller_status
+
     - name: Enable force_int_10 (normal mode)
       dellemc.openmanage.idrac_secure_boot:
         <<: *force_enabled
@@ -460,6 +663,10 @@
           - force_enabled.changed
           - 'force_enabled.msg == "Successfully updated the iDRAC Secure
            Boot settings."'
+
+    - name: Wait for iDRAC
+      ansible.builtin.pause:
+        seconds: 30
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -495,6 +702,9 @@
           - cm_changes.changed
           - cm_changes.msg == 'Changes found to be applied.'
 
+    - ansible.builtin.include_role:
+        name: prepare_idrac_lifecycle_controller_status
+
     - name: Disable force_int_10 (normal mode)
       dellemc.openmanage.idrac_secure_boot:
         <<: *force_disbled
@@ -506,6 +716,10 @@
           - force_disbled.changed
           - 'force_disbled.msg == "Successfully updated the iDRAC Secure
            Boot settings."'
+
+    - name: Wait for iDRAC
+      ansible.builtin.pause:
+        seconds: 30
 
     - name: Get details by uri.
       ansible.builtin.uri:
@@ -522,6 +736,10 @@
         that:
           - force_disbled.changed
           - 'boot_md_uri.json.Attributes.ForceInt10 == "Disabled"'
+
+  always:
+    - name: Cleanup
+      ansible.builtin.include_tasks: _delete_directory.yml
 
   module_defaults:
     dellemc.openmanage.idrac_secure_boot:

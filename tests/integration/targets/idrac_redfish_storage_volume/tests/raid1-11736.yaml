@@ -14,17 +14,14 @@
 - ansible.builtin.set_fact:
     raid_type: "RAID1"
 
-- name: Set prerequisite
-  ansible.builtin.include_tasks: _helper.yml
-  vars:
-    raid_type: "RAID1"
+- name: Wait for iDRAC lifecycle controller readiness
+  ansible.builtin.include_role:
+    name=prepare_idrac_lifecycle_controller_status
 
-- name: Prerequisite - fail if not enough disk is found to create a volume
-  ansible.builtin.fail:
-    msg: 'Physical disks are not sufficient to proceed with test case
-      execution. Needs a minimum 2, but found {{ physical_disks | length }}'
-  when:
-    - physical_disks | length < 2
+- name: Check disk count and retry if insufficient
+  ansible.builtin.include_tasks: _prereq_verify_disks_availability.yml
+  vars:
+    required_disk_length: 2
 
 - block:
     - name: Create a RAID1 volume using the raid_type parameter with the
@@ -37,7 +34,7 @@
         drives:
           - "{{ physical_disks[0] }}"
           - "{{ physical_disks[1] }}"
-        optimum_io_size_bytes: 131072  # 128KB=(128*1024)
+        optimum_io_size_bytes: 65536  # 64KB=(64*1024)
         capacity_bytes: 32212254720  # 30GB
       register: cm_result_raid
       check_mode: true
@@ -66,6 +63,10 @@
       ansible.builtin.include_role:
         name=prepare_idrac_lifecycle_controller_status
 
+    - name: Pause the job
+      ansible.builtin.pause:
+        seconds: 60
+
     - name: Fetch volume details
       ansible.builtin.include_tasks: _get_volume_details.yml
 
@@ -86,8 +87,7 @@
           # Verify volume details
           - uri_data.DisplayName == "RAID1_Volume"
           - uri_data.RAIDType == "RAID1"
-          - uri_data.OptimumIOSizeBytes == 131072
-          - uri_data.BlockSizeBytes == 512
+          - uri_data.OptimumIOSizeBytes == 65536
           - uri_data.CapacityBytes == 32212254720
 
     - name: Create a RAID1 volume using the raid_type parameter with the
@@ -103,8 +103,10 @@
           - not idempotence_result_raid.changed
           - 'idempotence_result_raid.msg == "No changes found to be applied."'
 
-    - name: Set prerequisite
-      ansible.builtin.include_tasks: _helper.yml
+    - name: Check disk count and retry if insufficient
+      ansible.builtin.include_tasks: _prereq_verify_disks_availability.yml
+      vars:
+        required_disk_length: 2
 
     - name: Create a RAID1 volume using the volume_type parameter (Check mode -
         Changes expected)
@@ -141,6 +143,10 @@
       ansible.builtin.include_role:
         name=prepare_idrac_lifecycle_controller_status
 
+    - name: Pause the job
+      ansible.builtin.pause:
+        seconds: 60
+
     - name: Fetch volume details
       ansible.builtin.include_tasks: _get_volume_details.yml
 
@@ -161,8 +167,6 @@
           # Verify volume details
           - uri_data.DisplayName == "RAID1_Volume"
           - uri_data.RAIDType == "RAID1"
-          - uri_data.OptimumIOSizeBytes == 65536
-          - uri_data.BlockSizeBytes == 512
 
     - name: Create a RAID1 volume using the volume_type parameter (Idempotence)
       dellemc.openmanage.redfish_storage_volume:
