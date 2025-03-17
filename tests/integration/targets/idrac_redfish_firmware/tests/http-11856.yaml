@@ -22,12 +22,12 @@
         timeout: 300
       register: result
 
-    - name: Waiting for idrac readiness
-      idrac_lifecycle_controller_status_info:
-      register: result_lc
-      until: result_lc.lc_status_info.LCStatus == 'Ready'
-      retries: 100
-      delay: 30
+    - name: Ping the iDRAC host until it is up
+      ansible.builtin.ping:
+      register: ping_result
+      until: ping_result.ping == 'pong'
+      retries: 5
+      delay: 10
 
     - name: Pause
       ansible.builtin.pause:
@@ -70,12 +70,12 @@
         job_wait_timeout: 3900
       register: result
 
-    - name: Waiting for idrac readiness
-      idrac_lifecycle_controller_status_info:
-      register: result_lc
-      until: result_lc.lc_status_info.LCStatus == 'Ready'
-      retries: 100
-      delay: 30
+    - name: Ping the iDRAC host until it is up
+      ansible.builtin.ping:
+      register: ping_result
+      until: ping_result.ping == 'pong'
+      retries: 5
+      delay: 10
 
     - name: Pause
       ansible.builtin.pause:
@@ -117,12 +117,12 @@
         job_wait: false
       register: result
 
-    - name: Waiting for idrac readiness
-      idrac_lifecycle_controller_status_info:
-      register: result_lc
-      until: result_lc.lc_status_info.LCStatus == 'Ready'
-      retries: 100
-      delay: 30
+    - name: Ping the iDRAC host until it is up
+      ansible.builtin.ping:
+      register: ping_result
+      until: ping_result.ping == 'pong'
+      retries: 5
+      delay: 10
 
     - name: Pause
       ansible.builtin.pause:
