@@ -19,7 +19,7 @@
       dellemc.openmanage.redfish_firmware:
         image_uri: "{{ idrac_firmware_uri }}"
         transfer_protocol: "HTTP"
-        timeout: 300
+        timeout: 1200
       register: result
 
     - name: Ping the iDRAC host until it is up
