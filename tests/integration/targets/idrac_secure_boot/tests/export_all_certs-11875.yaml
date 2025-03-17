@@ -16,16 +16,18 @@
 
     - ansible.builtin.include_tasks: _configure_generic_bios_attributes.yml
 
+    - ansible.builtin.include_tasks: _create_directory.yml
+
     - name: Export all policy certificate
        (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &export_cert
         export_certificates: true
         database:
-          - "{{ idrac_secure_boot_dir_path_1 }}"
-        disallow_database: "{{ idrac_secure_boot_dir_path_2 }}"
+          - "{{ path_for_secure_boot_certificate }}/db"
+        disallow_database: "{{ path_for_secure_boot_certificate }}/dbx"
         KEK:
-          - "{{ idrac_secure_boot_dir_path_3 }}"
-        platform_key: "{{ idrac_secure_boot_dir_path_4 }}"
+          - "{{ path_for_secure_boot_certificate }}/kek"
+        platform_key: "{{ path_for_secure_boot_certificate }}/pk"
         restart: true
         restart_type: GracefulRestart
         job_wait: true
@@ -59,6 +61,10 @@
       ansible.builtin.include_tasks: _get_log_entries.yml
       vars:
         msg_id: "SWC9011"
+
+  always:
+    - name: Cleanup
+      ansible.builtin.include_tasks: _delete_directory.yml
 
   module_defaults:
     dellemc.openmanage.idrac_secure_boot:

@@ -19,6 +19,7 @@
         password: "{{ idrac_password }}"
         port: "{{ idrac_port }}"
         validate_certs: "{{ validate_certs }}"
+        timeout: "{{ idrac_timeout }}"
       register: session
 
     - name: Verify - Create a new session
