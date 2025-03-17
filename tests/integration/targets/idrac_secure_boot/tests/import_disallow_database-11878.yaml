@@ -16,13 +16,26 @@
 
     - ansible.builtin.include_tasks: _configure_generic_bios_attributes.yml
 
+    - ansible.builtin.include_tasks: _create_directory.yml
+
+    - name: Export disallow database policy certificate
+      dellemc.openmanage.idrac_secure_boot:
+        export_certificates: true
+        disallow_database: "{{ path_for_secure_boot_certificate }}/dbx"
+        restart: true
+        restart_type: ForceRestart
+        job_wait: true
+        job_wait_timeout: 1000
+      register: export_dbx
+
+    - ansible.builtin.include_tasks: _get_file_path.yml
+
     - name: Import disallow database policy certificate
        (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &import_cert
         import_certificates: true
         disallow_database:
-          - "{{ idrac_secure_boot_cert_path_1 }}"
-          - "{{ idrac_secure_boot_cert_path_2 }}"
+          - "{{ dbx_files.files[0].path }}"
         restart: true
         restart_type: GracefulRestart
         job_wait: true
@@ -61,7 +74,7 @@
         operation to complete (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &import_cert_no_job_wait
         import_certificates: true
-        database: "{{ idrac_secure_boot_cert_path_1 }}"
+        database: "{{ dbx_files.files[0].path }}"
         restart: true
         job_wait: false
       register: cm_no_job_wait
@@ -98,10 +111,40 @@
       ansible.builtin.pause:
         minutes: 2
 
+    - name: Restart iDRAC
+      dellemc.openmanage.redfish_powerstate:
+        baseuri: "{{ idrac_ip }}"
+        username: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+        reset_type: "ForceRestart"
+
+    - name: Wait for port to become open on the host
+      ansible.builtin.wait_for:
+        host: "{{ idrac_ip }}"
+        port: "{{ idrac_port }}"
+        delay: 30
+        connect_timeout: 5
+        timeout: 500
+      register: result
+      failed_when: result.elapsed < 20
+
+    - name: Wait for the iDRAC lifecycle controller readiness
+      ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
+
+    - name: Wait for a min after LC is up
+      ansible.builtin.pause:
+        minutes: 2
+
     - name: Verify - Secure boot Log entries
       ansible.builtin.include_tasks: _get_log_entries.yml
       vars:
         msg_id: "UEFI0286"
+
+  always:
+    - name: Cleanup
+      ansible.builtin.include_tasks: _delete_directory.yml
 
   module_defaults:
     dellemc.openmanage.idrac_secure_boot:

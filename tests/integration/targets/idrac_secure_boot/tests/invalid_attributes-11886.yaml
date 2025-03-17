@@ -108,6 +108,10 @@
         restart: true
         restart_type: GracefulRestart
 
+    - name: Wait for iDRAC
+      ansible.builtin.pause:
+        minutes: 1
+
     - name: Negative - Enable secure boot with boot mode Bios and
         force_int_10 enabled.
       dellemc.openmanage.idrac_secure_boot:

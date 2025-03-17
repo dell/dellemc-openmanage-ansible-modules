@@ -1,9 +1,16 @@
 ---
-- name: Download files
-  ansible.builtin.get_url:
-    url: "http://{{ https_share_ip }}{{ https_certificate_path }}
-      {{ item.value }}"
-    dest: "{{ base_path_for_import_certificate }}/{{ item.value }}"
-    headers:
-      Authorization: "Basic {{ (
-        https_share_username + ':' + https_share_password) | b64encode }}"
+- name: Set fact
+  ansible.builtin.set_fact:
+    curl_cmd: "curl -v --ntlm -u %s:%s -o %s %s"
+    curl_https_url: "{{ https_share_ip }}/{{ https_certificate_path
+     }}{{ item.value }}"
+
+- name: Downloading certificate file
+  register: http_dnld_curl_cmd_out
+  no_log: false
+  changed_when: http_dnld_curl_cmd_out.rc == 0
+  failed_when: http_dnld_curl_cmd_out.rc != 0
+  ansible.builtin.command: >
+      {{ curl_cmd | format(https_share_username, https_share_password,
+       base_path_for_import_certificate + item.value, curl_https_url) }}
+  check_mode: false
