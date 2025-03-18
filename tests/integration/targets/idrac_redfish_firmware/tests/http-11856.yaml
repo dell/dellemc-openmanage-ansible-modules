@@ -22,12 +22,16 @@
         timeout: 300
       register: result
 
-    - name: Ping the iDRAC host until it is up
-      ansible.builtin.ping:
-      register: ping_result
-      until: ping_result.ping == 'pong'
-      retries: 5
-      delay: 10
+    - name: Wait for iDRAC web interface to become reachable
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip }}"
+        method: GET
+        status_code: 200
+        timeout: 30
+      register: uri_result
+      until: uri_result.status == 200
+      retries: 10
+      delay: 30
 
     - name: Pause
       ansible.builtin.pause:
@@ -70,12 +74,16 @@
         job_wait_timeout: 3900
       register: result
 
-    - name: Ping the iDRAC host until it is up
-      ansible.builtin.ping:
-      register: ping_result
-      until: ping_result.ping == 'pong'
-      retries: 5
-      delay: 10
+    - name: Wait for iDRAC web interface to become reachable
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip }}"
+        method: GET
+        status_code: 200
+        timeout: 30
+      register: uri_result
+      until: uri_result.status == 200
+      retries: 10
+      delay: 30
 
     - name: Pause
       ansible.builtin.pause:
@@ -117,12 +125,16 @@
         job_wait: false
       register: result
 
-    - name: Ping the iDRAC host until it is up
-      ansible.builtin.ping:
-      register: ping_result
-      until: ping_result.ping == 'pong'
-      retries: 5
-      delay: 10
+    - name: Wait for iDRAC web interface to become reachable
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip }}"
+        method: GET
+        status_code: 200
+        timeout: 30
+      register: uri_result
+      until: uri_result.status == 200
+      retries: 10
+      delay: 30
 
     - name: Pause
       ansible.builtin.pause:
