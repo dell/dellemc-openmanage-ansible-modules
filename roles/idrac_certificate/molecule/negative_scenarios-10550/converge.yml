@@ -194,7 +194,8 @@
           ansible.builtin.assert:
             that:
               - idrac_certificate_out.unreachable
-              - '"<urlopen error [Errno 111] Connection refused>" in idrac_certificate_out.msg'
+              - '"<urlopen error [Errno 111] Connection
+                refused>" in idrac_certificate_out.msg'
 
         - name: Invalid command
           ansible.builtin.import_role:
@@ -233,7 +234,8 @@
             that:
               - idrac_certificate_out.unreachable
               - not idrac_certificate_out.changed
-              - "'<urlopen error [Errno 111] Connection refused>' == idrac_certificate_out.msg"
+              - "'<urlopen error [Errno 111] Connection
+                refused>' == idrac_certificate_out.msg"
 
         - name: Invalid passphrase
           ansible.builtin.import_role:
@@ -255,7 +257,8 @@
             that:
               - idrac_certificate_out.unreachable
               - not idrac_certificate_out.changed
-              - "'<urlopen error [Errno 111] Connection refused>' == idrac_certificate_out.msg"
+              - "'<urlopen error [Errno 111] Connection
+                refused>' == idrac_certificate_out.msg"
 
         - name: Invalid certificate parameters to generate signing request
           ansible.builtin.import_role:
@@ -305,7 +308,8 @@
             that:
               - idrac_certificate_out.unreachable
               - not idrac_certificate_out.changed
-              - "'<urlopen error [Errno 111] Connection refused>' == idrac_certificate_out.msg"
+              - "'<urlopen error [Errno 111] Connection
+                refused>' == idrac_certificate_out.msg"
 
         - name: Invalid custom certificate
             passphrase for a valid custom certificate
@@ -329,7 +333,8 @@
             that:
               - idrac_certificate_out.unreachable
               - not idrac_certificate_out.changed
-              - "'<urlopen error [Errno 111] Connection refused>' == idrac_certificate_out.msg"
+              - "'<urlopen error [Errno 111] Connection
+                refused>' == idrac_certificate_out.msg"
 
         - name: Invalid ssl key
           ansible.builtin.import_role:
@@ -351,7 +356,8 @@
             that:
               - idrac_certificate_out.unreachable
               - not idrac_certificate_out.changed
-              - "'<urlopen error [Errno 111] Connection refused>' in idrac_certificate_out.msg"
+              - "'<urlopen error [Errno 111] Connection
+                refused>' in idrac_certificate_out.msg"
 
       always:
         - name: Deleting the directory
