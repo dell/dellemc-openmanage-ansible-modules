@@ -565,6 +565,10 @@ def perform_storage_volume_action(method, uri, session_obj, action, payload=None
     try:
         resp = session_obj.invoke_request(method, uri, data=payload)
         task_uri = resp.headers["Location"]
+        if not task_uri:
+            msg = resp.json_data["@Message.ExtendedInfo"][1]["Message"]
+            status_message = {"msg": msg}
+            return status_message
         return get_success_message(action, task_uri)
     except (HTTPError, URLError, SSLValidationError, ConnectionError,
             TypeError, ValueError) as err:
@@ -974,16 +978,19 @@ def main():
                 reboot_required = check_apply_time_supported_and_reboot_required(module, session_obj, controller_id, greater_version)
             if reboot_required:
                 perform_reboot(module, session_obj)
-            job_tracking_required = check_job_tracking_required(module, session_obj, reboot_required, controller_id, greater_version)
-            job_id = status_message.get("task_id")
-            job_url = MANAGER_JOB_ID_URI.format(job_id)
-            if job_tracking_required:
-                track_job(module, session_obj, job_id, job_url)
+            if status_message.get("task_id"):
+                job_tracking_required = check_job_tracking_required(module, session_obj, reboot_required, controller_id, greater_version)
+                job_id = status_message.get("task_id")
+                job_url = MANAGER_JOB_ID_URI.format(job_id)
+                if job_tracking_required and job_id:
+                    track_job(module, session_obj, job_id, job_url)
+                else:
+                    task_status = {"uri": job_url, "id": job_id}
+                    resp = session_obj.invoke_request("GET", job_url)
+                    job_data = strip_substr_dict(resp.json_data)
+                    module.exit_json(msg=status_message["msg"], task=task_status, job_status=job_data, changed=True)
             else:
-                task_status = {"uri": job_url, "id": job_id}
-                resp = session_obj.invoke_request("GET", job_url)
-                job_data = strip_substr_dict(resp.json_data)
-                module.exit_json(msg=status_message["msg"], task=task_status, job_status=job_data, changed=True)
+                module.exit_json(msg=status_message["msg"])
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
