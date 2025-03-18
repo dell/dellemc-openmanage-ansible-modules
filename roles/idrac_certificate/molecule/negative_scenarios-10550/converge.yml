@@ -188,14 +188,12 @@
             certificate_type: "HTTPS"
           register: invalid_idrac_pass
           ignore_errors: true
-          ignore_unreachable: true
 
         - name: Verify task status - Negative - invalid idrac password
           ansible.builtin.assert:
             that:
-              - idrac_certificate_out.unreachable
-              - '"<urlopen error [Errno 111] Connection
-                refused>" in idrac_certificate_out.msg'
+              - idrac_certificate_out.failed
+              - '"HTTP Error 401: Unauthorized" in idrac_certificate_out.msg'
 
         - name: Invalid command
           ansible.builtin.import_role:
@@ -227,15 +225,16 @@
             certificate_type: "HTTPS"
             certificate_path: "invalid_dir"
           register: invalid_cert_path
-          ignore_unreachable: true
+          ignore_errors: true
 
         - name: Verify task status - Negative - invalid certificate path
           ansible.builtin.assert:
             that:
-              - idrac_certificate_out.unreachable
+              - idrac_certificate_out.failed
               - not idrac_certificate_out.changed
-              - "'<urlopen error [Errno 111] Connection
-                refused>' == idrac_certificate_out.msg"
+              - '"is not valid." in idrac_certificate_out.msg'
+              - idrac_certificate_out.msg == "Provided directory
+               path 'invalid_dir' is not valid."
 
         - name: Invalid passphrase
           ansible.builtin.import_role:
@@ -250,15 +249,14 @@
             certificate_path: "{{ import_cert_path }}{{ csc_pass_cert }}"
             passphrase: "invalid"
           register: invalid_passphrase
-          ignore_unreachable: true
+          ignore_errors: true
 
         - name: Verify task status - Negative - invalid passphrase
           ansible.builtin.assert:
             that:
-              - idrac_certificate_out.unreachable
+              - idrac_certificate_out.failed
               - not idrac_certificate_out.changed
-              - "'<urlopen error [Errno 111] Connection
-                refused>' == idrac_certificate_out.msg"
+              - '"HTTP Error 400: Bad Request" in idrac_certificate_out.msg'
 
         - name: Invalid certificate parameters to generate signing request
           ansible.builtin.import_role:
@@ -300,16 +298,15 @@
             certificate_path: "{{ import_cert_path }}{{ custom_cert_name }}"
             passphrase: "invalid"
           register: invalid_custom_cert_pass
-          ignore_unreachable: true
+          ignore_errors: true
 
         - name: Verify task status
             - Negative - invalid custom certificate passphrase
           ansible.builtin.assert:
             that:
-              - idrac_certificate_out.unreachable
+              - idrac_certificate_out.failed
               - not idrac_certificate_out.changed
-              - "'<urlopen error [Errno 111] Connection
-                refused>' == idrac_certificate_out.msg"
+              - '"HTTP Error 400: Bad Request" in idrac_certificate_out.msg'
 
         - name: Invalid custom certificate
             passphrase for a valid custom certificate
@@ -325,16 +322,15 @@
             certificate_path: "{{ import_cert_path }}/{{ cust_crt_name_pass }}"
             passphrase: "invalid"
           register: invalid_custom_cert_without_pass
-          ignore_unreachable: true
+          ignore_errors: true
 
         - name: Verify task status - Negative - invalid custom certificate
             passphrase for a valid custom certificate
           ansible.builtin.assert:
             that:
-              - idrac_certificate_out.unreachable
+              - idrac_certificate_out.failed
               - not idrac_certificate_out.changed
-              - "'<urlopen error [Errno 111] Connection
-                refused>' == idrac_certificate_out.msg"
+              - '"HTTP Error 400: Bad Request" in idrac_certificate_out.msg'
 
         - name: Invalid ssl key
           ansible.builtin.import_role:
@@ -349,15 +345,15 @@
             certificate_path: "{{ import_cert_path }}cert.pem"
             ssl_key: "invalid"
           register: invalid_ssl_key
-          ignore_unreachable: true
+          ignore_errors: true
 
         - name: Verify task status - Negative - invalid ssl key
           ansible.builtin.assert:
             that:
-              - idrac_certificate_out.unreachable
+              - idrac_certificate_out.failed
               - not idrac_certificate_out.changed
-              - "'<urlopen error [Errno 111] Connection
-                refused>' in idrac_certificate_out.msg"
+              - '"Unable to locate the SSL key file at
+               invalid." in idrac_certificate_out.msg'
 
       always:
         - name: Deleting the directory
