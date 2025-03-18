@@ -150,7 +150,7 @@
 
     - name: Pause
       ansible.builtin.pause:
-        seconds: 120
+        seconds: 300
 
     - ansible.builtin.include_tasks: _post_update_helper.yml
 
@@ -220,7 +220,7 @@
 
     - name: Pause
       ansible.builtin.pause:
-        seconds: 120
+        seconds: 300
 
     - name: Perform graceful restart of the device
       dellemc.openmanage.redfish_powerstate:
