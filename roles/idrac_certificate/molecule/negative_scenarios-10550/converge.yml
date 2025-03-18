@@ -65,7 +65,7 @@
             validate_certs: false
             command: "import"
             certificate_type: "CLIENT_TRUST_CERTIFICATE"
-            certificate_path: "/path/invalid-path/to/certificate.pem"
+            certificate_path: "/tmp/certificate.pem"
           ignore_errors: true
           register: idrrac_certificate_res_err
 
