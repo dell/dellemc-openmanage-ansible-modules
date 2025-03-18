@@ -193,7 +193,7 @@
         - name: Verify task status - Negative - invalid idrac password
           ansible.builtin.assert:
             that:
-              - idrac_certificate_out.unreachable'
+              - idrac_certificate_out.unreachable
               - '"<urlopen error [Errno 111] Connection refused>" in idrac_certificate_out.msg'
 
         - name: Invalid command
