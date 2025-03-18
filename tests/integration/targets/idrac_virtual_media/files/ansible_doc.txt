@@ -1,0 +1,260 @@
+- '  This module allows to configure Remote File Share settings.'
+- ''
+- "\e[1mOPTIONS\e[0m (red indicates it is required):"
+- ''
+- "   \e[0;33mca_path\e[0m  The Privacy Enhanced Mail (PEM) file that contains a CA
+    certificate"
+- '            to be used for the validation.'
+- '        default: null'
+- '        type: path'
+- ''
+- "   \e[0;33mforce\e[0m   \e[1;30m`true'\e[0m ejects the image file if already connected
+    and"
+- "           inserts the file provided in \e[4mimage\e[0m. This is"
+- "           applicable when \e[4minsert\e[0m is \e[1;30m`true'\e[0m."
+- '        default: false'
+- '        type: bool'
+- ''
+- "   \e[0;31m\e[1midrac_ip\e[0m\e[0m  iDRAC IP Address."
+- '        type: str'
+- ''
+- "   \e[0;33midrac_password\e[0m  iDRAC user password."
+- '                   If the password is not provided, then the'
+- '                   environment variable `IDRAC_PASSWORD'' is used.'
+- '                   Example: export IDRAC_PASSWORD=password'
+- '        aliases: [idrac_pwd]'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33midrac_port\e[0m  iDRAC port."
+- '        default: 443'
+- '        type: int'
+- ''
+- "   \e[0;33midrac_user\e[0m  iDRAC username."
+- '               If the username is not provided, then the environment'
+- '               variable `IDRAC_USERNAME'' is used.'
+- '               Example: export IDRAC_USERNAME=username'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mresource_id\e[0m  Resource id of the iDRAC, if not specified manager
+    collection id"
+- '                will be used.'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mtimeout\e[0m  The socket level timeout in seconds."
+- '        default: 30'
+- '        type: int'
+- ''
+- "   \e[0;33mvalidate_certs\e[0m  If \e[1;30m`false'\e[0m, the SSL certificates will
+    not be validated."
+- "                   Configure \e[1;30m`false'\e[0m only on personally"
+- '                   controlled sites where self-signed certificates are'
+- '                   used.'
+- "                   Prior to collection version \e[1;30m`5.0.0'\e[0m, the"
+- "                   \e[4mvalidate_certs\e[0m is \e[1;30m`false'\e[0m by"
+- '                   default.'
+- '        default: true'
+- '        type: bool'
+- ''
+- "   \e[0;31m\e[1mvirtual_media\e[0m\e[0m  Details of the Remote File Share."
+- '        elements: dict'
+- '        type: list'
+- '        suboptions:'
+- ''
+- "           \e[0;33mdomain\e[0m          Domain name of network share. This option
+    is applicable for"
+- '                   CIFS and HTTPS share.'
+- '          default: null'
+- '          type: str'
+- ''
+- "           \e[0;33mimage\e[0m          The path of the image file. The supported
+    file types are"
+- '                  .img and .iso.'
+- '                  The file name with .img extension is redirected as a'
+- '                  virtual floppy and a file name with .iso extension'
+- '                  is redirected as a virtual CDROM.'
+- "                  This option is required when \e[4minsert\e[0m is"
+- "                  \e[1;30m`true'\e[0m."
+- '                  The following are the examples of the share'
+- '                  location: CIFS share:'
+- '                  //192.168.0.1/file_path/image_name.iso, NFS share:'
+- '                  192.168.0.2:/file_path/image_name.img, HTTP share:'
+- '                  http://192.168.0.3/file_path/image_name.iso, HTTPS'
+- '                  share: https://192.168.0.4/file_path/image_name.img'
+- '                  CIFS share is not supported by iDRAC8.'
+- '                  HTTPS share with credentials is not supported by'
+- '                  iDRAC8.'
+- '          default: null'
+- '          type: path'
+- ''
+- "           \e[0;33mindex\e[0m          Index of the Remote File Share. For example,
+    to specify the"
+- "                  Remote File Share 1, the value of \e[4mindex\e[0m"
+- "                  should be 1. If \e[4mindex\e[0m is not specified, the"
+- "                  order of \e[4mvirtual_media\e[0m list will be"
+- '                  considered.'
+- '          default: null'
+- '          type: int'
+- ''
+- "           \e[0;31m\e[1minsert\e[0m\e[0m          \e[1;30m`true'\e[0m connects
+    the remote image file."
+- "                   \e[1;30m`false'\e[0m ejects the remote image file if"
+- '                   connected.'
+- '          type: bool'
+- ''
+- "           \e[0;33mmedia_type\e[0m          Type of the image file. This is applicable
+    when"
+- "                       \e[4minsert\e[0m is \e[1;30m`true'\e[0m."
+- '          choices: [CD, DVD, USBStick]'
+- '          default: null'
+- '          type: str'
+- ''
+- "           \e[0;33mpassword\e[0m          Network share password. This option is
+    applicable for CIFS"
+- '                     and HTTPS share.'
+- '                     This module always reports as the changes found'
+- "                     when \e[4mpassword\e[0m is provided."
+- '          default: null'
+- '          type: str'
+- ''
+- "           \e[0;33musername\e[0m          Network share username. This option is
+    applicable for CIFS"
+- '                     and HTTPS share.'
+- '          default: null'
+- '          type: str'
+- ''
+- "   \e[0;33mx_auth_token\e[0m  Authentication token."
+- '                 If the x_auth_token is not provided, then the'
+- '                 environment variable `IDRAC_X_AUTH_TOKEN'' is used.'
+- '                 Example: export IDRAC_X_AUTH_TOKEN=x_auth_token'
+- '        default: null'
+- '        type: str'
+- ''
+- "\e[1mNOTES:\e[0m"
+- '      * Run this module from a system that has direct access to'
+- '        Dell iDRAC.'
+- "      * This module supports \e[1;30m`check_mode'\e[0m."
+- ''
+- "\e[1mREQUIREMENTS:\e[0m  python >= 3.9.6"
+- ''
+- ''
+- "\e[1mAUTHOR\e[0m: Felix Stephen (@felixs88)"
+- ''
+- "\e[1mEXAMPLES:\e[0m"
+- '---'
+- '- name: Insert image file to Remote File Share 1 using CIFS share.'
+- '  dellemc.openmanage.idrac_virtual_media:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    virtual_media:'
+- '      - insert: true'
+- '        image: "//192.168.0.2/file_path/file.iso"'
+- '        username: "username"'
+- '        password: "password"'
+- ''
+- '- name: Insert image file to Remote File Share 2 using NFS share.'
+- '  dellemc.openmanage.idrac_virtual_media:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    virtual_media:'
+- '      - index: 2'
+- '        insert: true'
+- '        image: "192.168.0.4:/file_path/file.iso"'
+- ''
+- '- name: Insert image file to Remote File Share 1 and 2 using HTTP.'
+- '  dellemc.openmanage.idrac_virtual_media:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    force: true'
+- '    virtual_media:'
+- '      - index: 1'
+- '        insert: true'
+- '        image: "http://192.168.0.4/file_path/file.img"'
+- '      - index: 2'
+- '        insert: true'
+- '        image: "http://192.168.0.4/file_path/file.img"'
+- ''
+- '- name: Insert image file using HTTPS.'
+- '  dellemc.openmanage.idrac_virtual_media:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    force: true'
+- '    virtual_media:'
+- '      - index: 1'
+- '        insert: true'
+- '        image: "https://192.168.0.5/file_path/file.img"'
+- '        username: username'
+- '        password: password'
+- ''
+- '- name: Eject multiple virtual media.'
+- '  dellemc.openmanage.idrac_virtual_media:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    force: true'
+- '    virtual_media:'
+- '      - index: 1'
+- '        insert: false'
+- '      - index: 2'
+- '        insert: false'
+- ''
+- '- name: Ejection of image file from Remote File Share 1.'
+- '  dellemc.openmanage.idrac_virtual_media:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    force: true'
+- '    virtual_media:'
+- '      insert: false'
+- ''
+- '- name: Insertion and ejection of image file in single task.'
+- '  dellemc.openmanage.idrac_virtual_media:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    force: true'
+- '    virtual_media:'
+- '      - index: 1'
+- '        insert: true'
+- '        image: https://192.168.0.5/file/file.iso'
+- '        username: username'
+- '        password: password'
+- '      - index: 2'
+- '        insert: false'
+- ''
+- "\e[1mRETURN VALUES:\e[0m"
+- ''
+- "   \e[0;33merror_info\e[0m  Details of the HTTP Error."
+- '        returned: on HTTP error'
+- '        sample:'
+- '          error:'
+- '            ''@Message.ExtendedInfo'':'
+- '            - Message: Unable to process the request because an error occurred.'
+- '              MessageArgs: []'
+- '              MessageId: GEN1234'
+- '              RelatedProperties: []'
+- '              Resolution: Retry the operation. If the issue persists, contact your
+    system'
+- '                administrator.'
+- '              Severity: Critical'
+- '            code: Base.1.0.GeneralError'
+- '            message: A general error has occurred. See ExtendedInfo for more information.'
+- '        type: dict'
+- ''
+- "   \e[0;33mmsg\e[0m     Successfully performed the virtual media operation."
+- '        returned: success'
+- '        sample: Successfully performed the virtual media operation.'
+- '        type: str'

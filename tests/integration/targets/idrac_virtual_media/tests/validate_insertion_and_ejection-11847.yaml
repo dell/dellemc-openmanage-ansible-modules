@@ -1,0 +1,204 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/\
+          iDRAC.Embedded.1
+
+    - ansible.builtin.set_fact:
+        firmware_version_from_api_response: '{{ uri_data.FirmwareVersion }}'
+        firmware_version_expected: "6.00.02.00"
+
+    - name: Prerequisite - Validate firmware version
+      ansible.builtin.assert:
+        that:
+          - "firmware_version_from_api_response >= firmware_version_expected"
+        fail_msg: "Firmware version is not supported"
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
+          System.Embedded.1/VirtualMedia/2"
+
+    - name: Prerequisite - Insert image at RFS2
+      dellemc.openmanage.idrac_virtual_media:
+        virtual_media:
+          - index: 2
+            insert: true
+            image: "{{ nfs_share_img_file_path }}"
+      when: not uri_data.Image
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
+          System.Embedded.1/VirtualMedia/2"
+      when: not uri_data.Image
+
+    - name: Verify status of task - Prerequisite - Insert image at RFS2
+      ansible.builtin.assert:
+        that:
+          - uri_data.Inserted
+          - uri_data.Image == nfs_share_img_file_path
+      when: not uri_data.Image
+
+    - name: Insertion and ejection of image in single task without providing
+        index (Check mode)
+      dellemc.openmanage.idrac_virtual_media: &idrac_virtual_media_1
+        virtual_media:
+          - insert: true
+            image: "{{ nfs_share_img_file_path }}"
+          - insert: false
+      register: result
+      check_mode: true
+
+    - name: Verify task status - Insertion and ejection of image in single task
+        without providing index (Check mode)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Changes found to be applied."
+
+    - name: Insertion and ejection of image in single task without providing
+        index (Normal mode)
+      dellemc.openmanage.idrac_virtual_media:
+        <<: *idrac_virtual_media_1
+      register: result
+
+    - name: Verify task status - Insertion and ejection of image in single task
+        without providing index (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Successfully performed the virtual media operation."
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
+          System.Embedded.1/VirtualMedia/1"
+
+    - name: Verify image insertion to RFS1 using uri
+      ansible.builtin.assert:
+        that:
+          - uri_data.Inserted
+          - uri_data.Image == nfs_share_img_file_path
+        fail_msg: "Image insertion at RFS1 failed"
+        success_msg: "Image inserted successfully at RFS1"
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
+          System.Embedded.1/VirtualMedia/2"
+
+    - name: Verify image ejection from RFS2 using uri
+      ansible.builtin.assert:
+        that:
+          - not uri_data.Inserted
+          - not uri_data.Image
+        fail_msg: "Image ejection from RFS2 failed"
+        success_msg: "Image ejected successfully from RFS2"
+
+    - name: Insertion and ejection of image in single task without providing
+        index (Idempotency mode)
+      dellemc.openmanage.idrac_virtual_media:
+        <<: *idrac_virtual_media_1
+      register: result
+
+    - name: Verify task status - Insertion and ejection of image in single task
+        without providing index (Idempotency mode)
+      ansible.builtin.assert:
+        that:
+          - not result.changed
+          - result.msg == "No changes found to be applied."
+
+
+    - name: Insertion and ejection of image in single task by providing
+        index (Check mode)
+      dellemc.openmanage.idrac_virtual_media: &idrac_virtual_media_2
+        virtual_media:
+          - insert: true
+            image: "{{ nfs_share_img_file_path }}"
+            index: 2
+          - insert: false
+            index: 1
+      register: result
+      check_mode: true
+
+    - name: Verify task status - Insertion and ejection of image in single
+        task by providing index (Check mode)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Changes found to be applied."
+
+    - name: Insertion and ejection of image in single task by providing
+        index (Normal mode)
+      dellemc.openmanage.idrac_virtual_media:
+        <<: *idrac_virtual_media_2
+      register: result
+
+    - name: Verify task status - Insertion and ejection of image in single task
+        by providing index (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Successfully performed the virtual media operation."
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
+          System.Embedded.1/VirtualMedia/2"
+
+    - name: Verify image insertion to RFS1 using uri
+      ansible.builtin.assert:
+        that:
+          - uri_data.Inserted
+          - uri_data.Image == nfs_share_img_file_path
+        fail_msg: "Image insertion at RFS2 failed"
+        success_msg: "Image inserted successfully at RFS2"
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
+          System.Embedded.1/VirtualMedia/1"
+
+    - name: Verify image ejection from RFS1 using uri
+      ansible.builtin.assert:
+        that:
+          - not uri_data.Inserted
+          - not uri_data.Image
+        fail_msg: "Image ejection from RFS1 failed"
+        success_msg: "Image ejected successfully from RFS1"
+
+    - name: Insertion and ejection of image in single task by providing
+        index (Idempotency mode)
+      dellemc.openmanage.idrac_virtual_media:
+        <<: *idrac_virtual_media_2
+      register: result
+
+    - name: Verify task status - nsertion and ejection of image in single task
+        by providing index (Idempotency mode)
+      ansible.builtin.assert:
+        that:
+          - not result.changed
+          - result.msg == "No changes found to be applied."
+
+  module_defaults:
+    dellemc.openmanage.idrac_virtual_media:
+      idrac_ip: "{{idrac_ip}}"
+      idrac_user: "{{idrac_user}}"
+      idrac_password: "{{idrac_password}}"
+      validate_certs: "{{validate_certs}}"
