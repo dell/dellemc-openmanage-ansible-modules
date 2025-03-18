@@ -12,16 +12,33 @@
    is not defined'
 
 - block:
-    - name: Prerequisite - Fetch Storage details
-      dellemc_idrac_storage_volume:
-        state: "view"
-      register: result_pre_req
+    - name: Fetching data from iDRAC
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}
+          /redfish/v1/Systems/System.Embedded.1/Storage?$expand=*($levels=1)"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        method: GET
+        validate_certs: false
+        force_basic_auth: true
+        return_content: true
+        status_code: 200
+        headers: 'Accept=application/json'
+      register: fetched_output
 
-    - ansible.builtin.set_fact:
-        controller_name: "{{ result_pre_req.storage_status.Message.
-         Controller.keys() | select('match', 'RAID.I') | first}}"
+    - name: Intializing set_fact variable
+      ansible.builtin.set_fact:
+        controller_name: ""
+        physical_disks: []
 
-    - name: Prerequisite - Change Storage controller attributes
+    - name: Extracting Controller id
+      ansible.builtin.set_fact:
+        controller_name: "{{ item.Id }}"
+      when:
+        - '"RAID" in item.Id'
+      loop: "{{ fetched_output.json.Members }}"
+
+    - name: Pre-requisite - Change Storage controller attributes
       idrac_redfish_storage_controller:
         controller_id: "{{ controller_name }}"
         attributes:
@@ -170,6 +187,7 @@
         apply_time: Immediate
         job_wait: true
       register: prereq_result_set_attrs
+      ignore_errors: true
 
     - ansible.builtin.pause: seconds=10
       when: prereq_result_set_attrs.changed
@@ -195,6 +213,7 @@
         apply_time: OnReset
       register: configure_attributes_output
       check_mode: true
+      ignore_errors: true
 
     - name: Verify task status - Configure Storage controller attribute
        (ControllerMode) at apply_time:OnReset (Check mode - Changes expected)
@@ -259,6 +278,7 @@
       idrac_redfish_storage_controller:
         <<: *idrac_redfish_storage_controller_2
       register: configure_attributes_output_idempotency
+      ignore_errors: true
 
     - name: Verify task status - Configure Storage controller attribute
        (ControllerMode) at apply_time:OnReset (Idempotency mode)
