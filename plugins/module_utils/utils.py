@@ -502,9 +502,9 @@ def get_scheduled_job_resp(idrac_obj, job_type):
     data = {'uri': MANAGER_JOB_URI} if 'uri' in args else {'path': MANAGER_JOB_URI}
     job_list = idrac_obj.invoke_request(method="GET", **data).json_data.get('Members', [])
     if isinstance(job_type, str):
-        job_resp = next((j for j in job_list if (j.get("JobState") in job_state) and (j.get("JobType") == job_type)), None)
+        job_resp = next((j for j in job_list if (j.get("JobState") in job_state) and (j.get("JobType") == job_type)), {})
     elif isinstance(job_type, list):
-        job_resp = next((j for j in job_list if (j.get("JobState") in job_state) and (j.get("JobType") in job_type)), None)
+        job_resp = next((j for j in job_list if (j.get("JobState") in job_state) and (j.get("JobType") in job_type)), {})
     return remove_key(job_resp, regex_pattern='(.*?)@odata')
 
 
