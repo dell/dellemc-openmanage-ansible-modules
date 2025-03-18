@@ -22,6 +22,23 @@
         timeout: 300
       register: result
 
+    - name: Wait for iDRAC web interface to become reachable
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip }}"
+        method: GET
+        timeout: 30
+        validate_certs: false
+      register: uri_result
+      failed_when: false
+      until: uri_result is defined and uri_result.status is defined and
+       uri_result.status == 200
+      retries: 10
+      delay: 30
+
+    - name: Pause
+      ansible.builtin.pause:
+        seconds: 120
+
     - ansible.builtin.include_tasks: _post_update_helper.yml
 
     - name: Constructing url
@@ -59,6 +76,23 @@
         job_wait_timeout: 3900
       register: result
 
+    - name: Wait for iDRAC web interface to become reachable
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip }}"
+        method: GET
+        timeout: 30
+        validate_certs: false
+      register: uri_result
+      failed_when: false
+      until: uri_result is defined and uri_result.status is defined and
+       uri_result.status == 200
+      retries: 10
+      delay: 30
+
+    - name: Pause
+      ansible.builtin.pause:
+        seconds: 120
+
     - ansible.builtin.include_tasks: _post_update_helper.yml
 
     - name: Constructing url
@@ -94,6 +128,23 @@
         timeout: 300
         job_wait: false
       register: result
+
+    - name: Wait for iDRAC web interface to become reachable
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip }}"
+        method: GET
+        timeout: 30
+        validate_certs: false
+      register: uri_result
+      failed_when: false
+      until: uri_result is defined and uri_result.status is defined and
+       uri_result.status == 200
+      retries: 10
+      delay: 30
+
+    - name: Pause
+      ansible.builtin.pause:
+        seconds: 300
 
     - ansible.builtin.include_tasks: _post_update_helper.yml
 
