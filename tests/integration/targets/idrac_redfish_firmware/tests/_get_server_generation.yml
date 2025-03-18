@@ -3,7 +3,7 @@
     - ansible.builtin.include_role:
         name: prepare_idrac_lifecycle_controller_status
 
-    - name: Get System Inevntory.
+    - name: Get System Inventory.
       idrac_system_info:
       register: result
 
