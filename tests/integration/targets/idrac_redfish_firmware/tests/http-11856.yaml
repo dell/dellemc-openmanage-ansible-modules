@@ -28,6 +28,7 @@
         method: GET
         status_code: 200
         timeout: 30
+        verify_certs: false
       register: uri_result
       until: uri_result.status == 200
       retries: 10
@@ -80,6 +81,7 @@
         method: GET
         status_code: 200
         timeout: 30
+        verify_certs: false
       register: uri_result
       until: uri_result.status == 200
       retries: 10
@@ -131,6 +133,7 @@
         method: GET
         status_code: 200
         timeout: 30
+        verify_certs: false
       register: uri_result
       until: uri_result.status == 200
       retries: 10
