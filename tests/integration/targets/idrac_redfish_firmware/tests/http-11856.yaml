@@ -26,11 +26,12 @@
       ansible.builtin.uri:
         url: "https://{{ idrac_ip }}"
         method: GET
-        status_code: 200
         timeout: 30
-        verify_certs: false
+        validate_certs: false
       register: uri_result
-      until: uri_result.status == 200
+      failed_when: false
+      until: uri_result is defined and uri_result.status is defined and
+       uri_result.status == 200
       retries: 10
       delay: 30
 
@@ -79,11 +80,12 @@
       ansible.builtin.uri:
         url: "https://{{ idrac_ip }}"
         method: GET
-        status_code: 200
         timeout: 30
-        verify_certs: false
+        validate_certs: false
       register: uri_result
-      until: uri_result.status == 200
+      failed_when: false
+      until: uri_result is defined and uri_result.status is defined and
+       uri_result.status == 200
       retries: 10
       delay: 30
 
@@ -131,11 +133,12 @@
       ansible.builtin.uri:
         url: "https://{{ idrac_ip }}"
         method: GET
-        status_code: 200
         timeout: 30
-        verify_certs: false
+        validate_certs: false
       register: uri_result
-      until: uri_result.status == 200
+      failed_when: false
+      until: uri_result is defined and uri_result.status is defined and
+       uri_result.status == 200
       retries: 10
       delay: 30
 
