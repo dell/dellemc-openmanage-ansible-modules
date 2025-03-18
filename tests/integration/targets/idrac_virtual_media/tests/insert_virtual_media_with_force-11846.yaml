@@ -1,0 +1,225 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/\
+          iDRAC.Embedded.1
+
+    - ansible.builtin.set_fact:
+        firmware_version_from_api_response: '{{ uri_data.FirmwareVersion }}'
+        firmware_version_expected: "6.00.02.00"
+
+    - name: Prerequisite - Validate firmware version
+      ansible.builtin.assert:
+        that:
+          - "firmware_version_from_api_response >= firmware_version_expected"
+        fail_msg: "Firmware version is not supported"
+
+    - name: Prerequisite - Eject existing virtual media from RFS1 & RFS2
+      dellemc.openmanage.idrac_virtual_media:
+        virtual_media:
+          - insert: false
+            index: 1
+          - insert: false
+            index: 2
+      register: result
+
+    - name: Prerequisite - Insert virtual media at RFS1 & RFS2
+      dellemc.openmanage.idrac_virtual_media:
+        virtual_media:
+          - insert: true
+            index: 1
+            image: "{{ nfs_share_img_file_path }}"
+          - insert: true
+            index: 2
+            image: "{{ cifs_share_iso_file_path }}"
+            username: "{{ cifs_share_user }}"
+            password: "{{ cifs_share_password }}"
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
+          System.Embedded.1/VirtualMedia/1
+
+    - name: Verify task status - Prerequisite - Insert virtual media at RFS1
+        from NFS Share
+      ansible.builtin.assert:
+        that:
+          - uri_data.Inserted
+          - uri_data.Image == nfs_share_img_file_path
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
+          System.Embedded.1/VirtualMedia/2
+
+    - name: Verify task status - Prerequisite - Insert virtual media at RFS2
+        from CIFS Share
+      ansible.builtin.assert:
+        that:
+          - uri_data.Inserted
+          - uri_data.Image == cifs_share_iso_file_path
+
+    - name: Insertion of virtual media to RFS1 from CIFS share with force as
+        true and media_type as CD (Check mode)
+      dellemc.openmanage.idrac_virtual_media: &idrac_virtual_media_1
+        virtual_media:
+          - insert: true
+            media_type: CD
+            image: "{{ cifs_share_iso_file_path }}"
+            username: "{{ cifs_share_user }}"
+            password: "{{ cifs_share_password }}"
+        force: true
+      register: result
+      check_mode: true
+
+    - name: Verify task status - Insertion of virtual media to RFS1 from CIFS
+        share with force as true and media_type as CD (Check mode)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Changes found to be applied."
+
+    - name: Insertion of virtual media to RFS1 from CIFS share with force as
+        true and media_type as CD (Normal mode)
+      dellemc.openmanage.idrac_virtual_media:
+        <<: *idrac_virtual_media_1
+      register: result
+
+    - name: Verify task status - Insertion of virtual media to RFS1 from CIFS
+        share with force as true and media_type as CD (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Successfully performed the virtual media operation."
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/\
+          iDRAC.Embedded.1/VirtualMedia/CD
+
+    - name: Verify virtual media insertion to RFS1 using uri
+      ansible.builtin.assert:
+        that:
+          - uri_data.Inserted
+          - uri_data.Image == cifs_share_iso_file_path
+
+    - name: Insertion of virtual media to RFS2 from NFS share with force as
+        true (Check mode)
+      dellemc.openmanage.idrac_virtual_media: &idrac_virtual_media_2
+        virtual_media:
+          - index: 2
+            insert: true
+            image: "{{ nfs_share_img_file_path }}"
+        force: true
+      register: result
+      check_mode: true
+
+    - name: Verify task status - Insertion of virtual media to RFS2 from NFS
+        share with force as true (Check mode)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Changes found to be applied."
+
+    - name: Insertion of virtual media to RFS2 from NFS share with force as
+        true (Normal mode)
+      dellemc.openmanage.idrac_virtual_media:
+        <<: *idrac_virtual_media_2
+      register: result
+
+    - name: Verify task status - Insertion of virtual media to RFS2 from NFS
+        share with force as true (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Successfully performed the virtual media operation."
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
+          System.Embedded.1/VirtualMedia/2
+
+    - name: Verify virtual media insertion to RFS2 using uri
+      ansible.builtin.assert:
+        that:
+          - uri_data.Inserted
+          - uri_data.Image == nfs_share_img_file_path
+
+    - name: Insertion of virtual media to RFS1 & RFS2 with force as
+        true (Check mode)
+      dellemc.openmanage.idrac_virtual_media: &idrac_virtual_media_3
+        virtual_media:
+          - insert: true
+            image: "{{ nfs_share_img_file_path }}"
+          - insert: true
+            image: "{{ cifs_share_iso_file_path }}"
+            username: "{{ cifs_share_user }}"
+            password: "{{ cifs_share_password }}"
+        force: true
+      register: result
+      check_mode: true
+
+    - name: Verify task status - Insertion of virtual media to RFS1 & RFS2
+        with force as true (Check mode)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Changes found to be applied."
+
+    - name: Insertion of virtual media to RFS1 & RFS2 with force as
+        true (Normal mode)
+      dellemc.openmanage.idrac_virtual_media:
+        <<: *idrac_virtual_media_3
+        force: true
+      register: result
+
+    - name: Verify task status - Insertion of virtual media to RFS1 & RFS2
+        with force as true (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Successfully performed the virtual media operation."
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
+          System.Embedded.1/VirtualMedia/1
+
+    - name: Verify virtual media insertion to RFS1 using uri
+      ansible.builtin.assert:
+        that:
+          - uri_data.Inserted
+          - uri_data.Image == nfs_share_img_file_path
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
+          System.Embedded.1/VirtualMedia/2
+
+    - name: Verify virtual media insertion to RFS2 using uri
+      ansible.builtin.assert:
+        that:
+          - uri_data.Inserted
+          - uri_data.Image == cifs_share_iso_file_path
+
+  module_defaults:
+    dellemc.openmanage.idrac_virtual_media:
+      idrac_ip: "{{idrac_ip}}"
+      idrac_user: "{{idrac_user}}"
+      idrac_password: "{{idrac_password}}"
+      validate_certs: "{{validate_certs}}"

@@ -1,0 +1,162 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+
+    - name: Prerequisite - Eject virtual media from Remote File Share 1
+      dellemc.openmanage.idrac_virtual_media:
+        virtual_media:
+          - index: 1
+            insert: false
+
+    - name: Insert "media_type -> USBStick" from HTTPS share with "domain"
+        user to Remote File Share 1 (Check mode - Changes expected)
+      dellemc.openmanage.idrac_virtual_media: &idrac_virtual_media
+        virtual_media:
+          - insert: true
+            image: "{{ https_share_img_file_path }}"
+            domain: "{{ https_share_domain_name }}"
+            username: "{{ https_share_username }}"
+            password: "{{ https_share_password }}"
+            media_type: USBStick
+            index: 1
+      register: insert_image_from_https_output
+      check_mode: true
+
+    - name: Verify task status - Insert "media_type -> USBStick" from HTTPS
+        share with "domain" user to Remote File
+        Share 1 (Check mode - Changes expected)
+      ansible.builtin.assert:
+        that:
+          - insert_image_from_https_output.changed
+          - insert_image_from_https_output.msg == "Changes found to be applied."
+
+    - name: Insert "media_type -> USBStick" from HTTPS share with "domain"
+        user to Remote File Share 1 (Normal mode)
+      dellemc.openmanage.idrac_virtual_media:
+        <<: *idrac_virtual_media
+      register: insert_image_from_https_output
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/\
+          iDRAC.Embedded.1/VirtualMedia/RemovableDisk"
+
+    - name: Verify task status - Insert "media_type -> USBStick" from HTTPS
+        share with "domain" user to Remote File Share 1 (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - insert_image_from_https_output.changed
+          - insert_image_from_https_output.msg == "Successfully performed
+              the virtual media operation."
+          - uri_data.Inserted
+          - uri_data.Image == https_share_img_file_path
+
+    - name: Insert "media_type -> USBStick" from HTTPS share with "domain"
+        user to Remote File Share 1 (Check mode - Changes expected)
+      dellemc.openmanage.idrac_virtual_media:
+        <<: *idrac_virtual_media
+      register: insert_image_from_https_output
+      check_mode: true
+
+    - name: Verify task status - Insert "media_type -> USBStick" from HTTPS
+        share with "domain" user to Remote File Share 1 (Check
+        mode - Changes expected)
+      ansible.builtin.assert:
+        that:
+          - insert_image_from_https_output.changed
+          - insert_image_from_https_output.msg == "Changes found to be applied."
+
+    - name: Eject virtual media from Remote File Share 1
+      dellemc.openmanage.idrac_virtual_media:
+        virtual_media:
+          - index: 1
+            insert: false
+            media_type: USBStick
+
+    - name: Insert ".img" image file from HTTPS share with "domain" user in
+        format "domain\user" to RFS1 without providing value for
+        parameter "media_type" and "index" (Check mode - Changes expected)
+      dellemc.openmanage.idrac_virtual_media: &idrac_virtual_media_no_index
+        virtual_media:
+          - insert: true
+            image: "{{ https_share_img_file_path }}"
+            username: "{{ https_share_domain_username }}"
+            password: "{{ https_share_password }}"
+      register: insert_image_from_https_output
+      check_mode: true
+
+    - name: Verify task status - Insert ".img" image file from HTTPS share
+        with "domain" user in format "domain\user" to RFS1 without providing
+        value for parameter "media_type" and "index" (Check
+        mode - Changes expected)
+      ansible.builtin.assert:
+        that:
+          - insert_image_from_https_output.changed
+          - insert_image_from_https_output.msg == "Changes found to be applied."
+
+    - name: Insert ".img" image file from HTTPS share with "domain" user in
+        format "domain\user" to RFS1 without providing value for
+        parameter "media_type" and "index" (Normal mode)
+      dellemc.openmanage.idrac_virtual_media:
+        <<: *idrac_virtual_media_no_index
+      register: insert_image_from_https_output
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/\
+          iDRAC.Embedded.1/VirtualMedia/RemovableDisk"
+
+    - name: Verify task status - Insert ".img" image file from HTTPS share
+        with "domain" user in format "domain\user" to RFS1 without providing
+        value for parameter "media_type" and "index" (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - insert_image_from_https_output.changed
+          - insert_image_from_https_output.msg == "Successfully performed
+            the virtual media operation."
+          - uri_data.Inserted
+          - uri_data.Image == https_share_img_file_path
+
+    - name: Insert ".img" image file from HTTPS share with "domain" user in
+        format "domain\user" to RFS1 without providing value for
+        parameter "media_type" and "index" (Check mode - Changes expected)
+      dellemc.openmanage.idrac_virtual_media:
+        <<: *idrac_virtual_media_no_index
+      register: insert_image_from_https_output
+      check_mode: true
+
+    - name: Verify task status - Insert ".img" image file from HTTPS share
+        with "domain" user in format "domain\user" to RFS1 without providing
+        value for parameter "media_type" and "index" (Check
+        mode - Changes expected)
+      ansible.builtin.assert:
+        that:
+          - insert_image_from_https_output.changed
+          - insert_image_from_https_output.msg == "Changes found to
+            be applied."
+
+    - name: Eject virtual media from Remote File Share 1
+      dellemc.openmanage.idrac_virtual_media:
+        virtual_media:
+          - index: 1
+            insert: false
+            media_type: USBStick
+
+  module_defaults:
+    dellemc.openmanage.idrac_virtual_media:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

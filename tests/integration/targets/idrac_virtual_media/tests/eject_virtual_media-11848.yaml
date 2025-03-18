@@ -1,0 +1,327 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+
+    - name: Prerequisite - Insert image file to both Remote File Share 1 and
+        Remote File Share 2
+      dellemc.openmanage.idrac_virtual_media:
+        force: true
+        virtual_media:
+          - insert: true
+            image: "{{ nfs_share_img_file_path }}"
+          - insert: true
+            image: "{{ nfs_share_img_file_path }}"
+
+    - name: Ejection of image from RFS1 by providing index (Check
+        mode - Changes expected)
+      dellemc.openmanage.idrac_virtual_media: &eject_index_rfs1
+        virtual_media:
+          - insert: false
+            index: 1
+      register: eject_index_rfs1_output
+      check_mode: true
+
+    - name: Verify task status - Ejection of image from RFS1 by providing
+        index (Check mode - Changes expected)
+      ansible.builtin.assert:
+        that:
+          - eject_index_rfs1_output.changed
+          - eject_index_rfs1_output.msg == "Changes found to be applied."
+
+    - name: Ejection of image from RFS1 by providing index (Normal mode)
+      dellemc.openmanage.idrac_virtual_media:
+        <<: *eject_index_rfs1
+      register: eject_index_rfs1_output
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
+          System.Embedded.1/VirtualMedia/1"
+
+    - name: Verify task status - Ejection of image from RFS1 by
+        providing index (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - eject_index_rfs1_output.changed
+          - eject_index_rfs1_output.msg == "Successfully performed
+              the virtual media operation."
+          - not uri_data.Inserted
+          - not uri_data.Image
+
+    - name: Ejection of image from RFS1 by providing index (Idempotence mode)
+      dellemc.openmanage.idrac_virtual_media:
+        <<: *eject_index_rfs1
+      register: eject_index_rfs1_output
+
+    - name: Verify task status - Ejection of image from RFS1 by providing
+        index (Idempotence mode)
+      ansible.builtin.assert:
+        that:
+          - not eject_index_rfs1_output.changed
+          - eject_index_rfs1_output.msg == "No changes found to be applied."
+
+    - name: Insert image file to Remote File Share 1
+      dellemc.openmanage.idrac_virtual_media:
+        virtual_media:
+          - insert: true
+            image: "{{ nfs_share_img_file_path }}"
+
+    - name: Ejection of image from RFS1 without providing index (Check
+        mode - Changes expected)
+      dellemc.openmanage.idrac_virtual_media: &eject_no_index_rfs1
+        virtual_media:
+          - insert: false
+      register: eject_no_index_rfs1_output
+      check_mode: true
+
+    - name: Verify task status - Ejection of image from RFS1 without
+        providing index (Check mode - Changes expected)
+      ansible.builtin.assert:
+        that:
+          - eject_no_index_rfs1_output.changed
+          - eject_no_index_rfs1_output.msg == "Changes found to be applied."
+
+    - name: Ejection of image from RFS1 without providing index (Normal mode)
+      dellemc.openmanage.idrac_virtual_media:
+        <<: *eject_no_index_rfs1
+      register: eject_no_index_rfs1_output
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
+          System.Embedded.1/VirtualMedia/1
+
+    - name: Verify task status - Ejection of image from RFS1 without
+        providing index (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - eject_no_index_rfs1_output.changed
+          - eject_no_index_rfs1_output.msg == "Successfully performed
+              the virtual media operation."
+          - not uri_data.Inserted
+          - not uri_data.Image
+
+    - name: Ejection of image from RFS1 without providing
+        index (Idempotence mode)
+      dellemc.openmanage.idrac_virtual_media:
+        <<: *eject_no_index_rfs1
+      register: eject_no_index_rfs1_output
+
+    - name: Verify task status - Ejection of image from RFS1 without providing
+        index (Idempotence mode)
+      ansible.builtin.assert:
+        that:
+          - not eject_index_rfs1_output.changed
+          - eject_index_rfs1_output.msg == "No changes found to be applied."
+
+    - name: Ejection of image from RFS2 by providing index (Check
+        mode - Changes expected)
+      dellemc.openmanage.idrac_virtual_media: &eject_index_rfs2
+        virtual_media:
+          - insert: false
+            index: 2
+      register: eject_index_rfs2_output
+      check_mode: true
+
+    - name: Verify task status - Ejection of image from RFS2 by providing
+        index (Check mode - Changes expected)
+      ansible.builtin.assert:
+        that:
+          - eject_index_rfs2_output.changed
+          - eject_index_rfs2_output.msg == "Changes found to be applied."
+
+    - name: Ejection of image from RFS2 by providing index (Normal mode)
+      dellemc.openmanage.idrac_virtual_media:
+        <<: *eject_index_rfs2
+      register: eject_index_rfs2_output
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
+          System.Embedded.1/VirtualMedia/2
+
+    - name: Verify task status - Ejection of image from RFS2 by providing
+        index (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - eject_index_rfs2_output.changed
+          - eject_index_rfs2_output.msg == "Successfully performed the
+              virtual media operation."
+          - not uri_data.Inserted
+          - not uri_data.Image
+
+    - name: Ejection of image from RFS2 by providing index (Idempotence mode)
+      dellemc.openmanage.idrac_virtual_media:
+        <<: *eject_index_rfs2
+      register: eject_index_rfs2_output
+
+    - name: Verify task status - Ejection of image from RFS2 by providing
+        index (Idempotence mode)
+      ansible.builtin.assert:
+        that:
+          - not eject_index_rfs2_output.changed
+          - eject_index_rfs2_output.msg == "No changes found to be applied."
+
+    - name: Insert image file to Remote File Share 1 and Remote File Share 2
+      dellemc.openmanage.idrac_virtual_media:
+        virtual_media:
+          - insert: true
+            image: "{{ nfs_share_img_file_path }}"
+          - insert: true
+            image: "{{ nfs_share_img_file_path }}"
+
+    - name: Ejection of image from both RFS1 and RFS2 by providing
+        index (Check mode - Changes expected)
+      dellemc.openmanage.idrac_virtual_media: &eject_index_rfs2_rfs1
+        virtual_media:
+          - insert: false
+            index: 2
+          - insert: false
+            index: 1
+      register: eject_index_rfs2_rfs1_output
+      check_mode: true
+
+    - name: Verify task status - Ejection of image from both RFS1 and RFS2 by
+        providing index (Check mode - Changes expected)
+      ansible.builtin.assert:
+        that:
+          - eject_index_rfs2_rfs1_output.changed
+          - eject_index_rfs2_rfs1_output.msg == "Changes found to be applied."
+
+    - name: Ejection of image from both RFS1 and RFS2 by providing
+        index (Normal mode)
+      dellemc.openmanage.idrac_virtual_media:
+        <<: *eject_index_rfs2_rfs1
+      register: eject_index_rfs2_rfs1_output
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
+          System.Embedded.1/VirtualMedia/1
+
+    - name: Verify task status - Ejection of image from both RFS1 and RFS2 by
+        providing index (Normal mode) - RFS1 verification
+      ansible.builtin.assert:
+        that:
+          - eject_index_rfs2_rfs1_output.changed
+          - eject_index_rfs2_rfs1_output.msg == "Successfully performed the
+              virtual media operation."
+          - not uri_data.Inserted
+          - not uri_data.Image
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
+          System.Embedded.1/VirtualMedia/2
+
+    - name: Verify task status - Ejection of image from both RFS1 and RFS2 by
+        providing index (Normal mode) - RFS2 verification
+      ansible.builtin.assert:
+        that:
+          - not uri_data.Inserted
+          - not uri_data.Image
+
+    - name: Ejection of image from both RFS1 and RFS2 by providing
+        index (Idempotence mode)
+      dellemc.openmanage.idrac_virtual_media:
+        <<: *eject_index_rfs2_rfs1
+      register: eject_index_rfs2_rfs1_output
+
+    - name: Verify task status - Ejection of image from both RFS1 and RFS2 by
+        providing index (Idempotence mode)
+      ansible.builtin.assert:
+        that:
+          - not eject_index_rfs2_rfs1_output.changed
+          - eject_index_rfs2_rfs1_output.msg == "No changes found to be
+            applied."
+
+    - name: Insert image file to Remote File Share 1 and Remote File Share 2
+      dellemc.openmanage.idrac_virtual_media:
+        virtual_media:
+          - insert: true
+            image: "{{ nfs_share_img_file_path }}"
+          - insert: true
+            image: "{{ nfs_share_img_file_path }}"
+
+    - name: Ejection of image from both RFS1 and RFS2 without providing
+        index (Check mode - Changes expected)
+      dellemc.openmanage.idrac_virtual_media: &eject_no_index_rfs1_rfs2
+        virtual_media:
+          - insert: false
+          - insert: false
+      register: eject_no_index_rfs1_rfs2_output
+      check_mode: true
+
+    - name: Verify task status - Ejection of image from both RFS1 and RFS2
+        without providing index (Check mode - Changes expected)
+      ansible.builtin.assert:
+        that:
+          - eject_no_index_rfs1_rfs2_output.changed
+          - eject_no_index_rfs1_rfs2_output.msg == "Changes found to
+            be applied."
+
+    - name: Ejection of image from both RFS1 and RFS2 without providing
+        index (Normal mode)
+      dellemc.openmanage.idrac_virtual_media:
+        <<: *eject_no_index_rfs1_rfs2
+      register: eject_no_index_rfs1_rfs2_output
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
+          System.Embedded.1/VirtualMedia/1
+
+    - name: Verify task status - Ejection of image from both RFS1 and RFS2
+        without providing index (Normal mode) - RFS1 verification
+      ansible.builtin.assert:
+        that:
+          - eject_no_index_rfs1_rfs2_output.changed
+          - eject_no_index_rfs1_rfs2_output.msg == "Successfully performed the
+              virtual media operation."
+          - not uri_data.Inserted
+          - not uri_data.Image
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
+          System.Embedded.1/VirtualMedia/2
+
+    - name: Verify task status - Ejection of image from both RFS1 and RFS2
+        without providing index (Normal mode) - RFS2 verification
+      ansible.builtin.assert:
+        that:
+          - not uri_data.Inserted
+          - not uri_data.Image
+
+    - name: Ejection of image from both RFS1 and RFS2 without providing
+        index (Idempotence mode)
+      dellemc.openmanage.idrac_virtual_media:
+        <<: *eject_no_index_rfs1_rfs2
+      register: eject_no_index_rfs1_rfs2_output
+
+    - name: Verify task status - Ejection of image from both RFS1 and RFS2
+        without providing index (Idempotence mode)
+      ansible.builtin.assert:
+        that:
+          - not eject_no_index_rfs1_rfs2_output.changed
+          - eject_no_index_rfs1_rfs2_output.msg == "No changes found to be
+              applied."
+
+  module_defaults:
+    dellemc.openmanage.idrac_virtual_media:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
