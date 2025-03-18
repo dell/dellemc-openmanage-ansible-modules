@@ -1,9 +1,17 @@
 ---
 - name: Prepare LC status wait
   block:
-    - name: Waiting for 30 secs before checking LC status
-      ansible.builtin.wait_for:
+    - name: Wait for iDRAC web interface to become reachable
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip }}"
+        method: GET
         timeout: 30
+        validate_certs: false
+      register: uri_result
+      until: uri_result is defined and uri_result.status is defined and
+        uri_result.status == 200
+      retries: 10
+      delay: 30
 
     - name: Getting LC status first time
       dellemc.openmanage.idrac_lifecycle_controller_status_info:
