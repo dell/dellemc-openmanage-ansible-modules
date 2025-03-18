@@ -6,7 +6,7 @@
 
 - name: Setting home path and current user
   ansible.builtin.set_fact:
-    home_path: "{{ lookup('env', 'HOME') }}"
+    home_path: "/tmp"
     current_user: "{{ ansible_user_id }}"
   run_once: true
 
@@ -46,11 +46,7 @@
         state: mounted
         src: "{{ cifs_share_name }}"
         path: "{{ home_path }}/cifs"
-        opts:
-          "username={{ cifs_share_user }},
-           password={{ cifs_share_password }},
-          file_mode=0777,dir_mode=0777,uid={{ current_user }},
-          gid={{ current_user }},forcegid,forceuid"
+        opts: "username={{cifs_share_user}},password={{cifs_share_password}},file_mode=0777,dir_mode=0777,uid={{current_user}},gid={{current_user}},forcegid,forceuid"
       register: cifs_mount
 
     - name: Setting share mount
