@@ -46,13 +46,13 @@
         state: mounted
         src: "{{ cifs_share_name }}"
         path: "{{ home_path }}/cifs"
-        opts: "{{ A }},{{ B }},{{ C }},{{ D }}"
+        opts: "{{ xx }},{{ yy }},{{ zz }},{{ kk }}"
       register: cifs_mount
       vars:
-        "A": "username={{ cifs_share_user }}"
-        "B": "password={{ cifs_share_password }}"
-        "C": "file_mode=0777,dir_mode=0777,uid={{ current_user }}"
-        "D": "gid={{ current_user }},forcegid,forceuid"
+        "xx": "username={{ cifs_share_user }}"
+        "yy": "password={{ cifs_share_password }}"
+        "zz": "file_mode=0777,dir_mode=0777,uid={{ current_user }}"
+        "kk": "gid={{ current_user }},forcegid,forceuid"
 
     - name: Setting share mount
       ansible.builtin.set_fact:
