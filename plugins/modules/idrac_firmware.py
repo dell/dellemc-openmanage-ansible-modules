@@ -307,6 +307,8 @@ def wait_for_job_completion(module, job_uri, job_wait=False, reboot=False, apply
                 break
             if job_state in ["Starting", "Running", "Pending", "New"] and not reboot and apply_update:  # apply on
                 break
+            if job_state == "Failed":
+                break
             track_counter += 1
             time.sleep(INTERVAL)
     if track_counter > WAIT_COUNT:
