@@ -50,8 +50,9 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/\
-          iDRAC.Embedded.1/VirtualMedia/RemovableDisk"
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers"
+        url_1: "iDRAC.Embedded.1/VirtualMedia/RemovableDisk"
+        url: "{{ url_0 }}/{{ url_1 }}"
 
     - name: Verify task status - Insert "media_type -> USBStick" from HTTPS
         share with "domain" user to Remote File Share 1 (Normal mode)
@@ -115,8 +116,9 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/\
-          iDRAC.Embedded.1/VirtualMedia/RemovableDisk"
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers"
+        url_1: "iDRAC.Embedded.1/VirtualMedia/RemovableDisk"
+        url: "{{ url_0 }}/{{ url_1 }}"
 
     - name: Verify task status - Insert ".img" image file from HTTPS share
         with "domain" user in format "domain\user" to RFS1 without providing

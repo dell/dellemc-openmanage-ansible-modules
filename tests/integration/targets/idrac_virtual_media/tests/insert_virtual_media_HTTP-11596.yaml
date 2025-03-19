@@ -16,8 +16,9 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/\
-          iDRAC.Embedded.1
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers"
+        url_1: "iDRAC.Embedded.1"
+        url: "{{ url_0 }}/{{ url_1 }}"
 
     - ansible.builtin.set_fact:
         firmware_version_from_api_response: '{{ uri_data.FirmwareVersion }}'
@@ -37,8 +38,9 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
-          System.Embedded.1/VirtualMedia/1
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
+        url_1: "System.Embedded.1/VirtualMedia/1"
+        url: "{{ url_0 }}/{{ url_1 }}"
 
     - name: Verify task status - Prerequisite - Eject virtual media from RFS1
       ansible.builtin.assert:
@@ -72,8 +74,9 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
-          System.Embedded.1/VirtualMedia/1
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
+        url_1: "System.Embedded.1/VirtualMedia/1"
+        url: "{{ url_0 }}/{{ url_1 }}"
 
     - name: Verify task status - Insertion of virtual media to RFS1 from HTTP
         share by providing media_type and index (Normal mode)
@@ -103,8 +106,9 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
-          System.Embedded.1/VirtualMedia/1
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
+        url_1: "System.Embedded.1/VirtualMedia/1"
+        url: "{{ url_0 }}/{{ url_1 }}"
 
     - name: Verify task status - Prerequisite - Eject virtual media from RFS1
       ansible.builtin.assert:
@@ -136,8 +140,9 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
-          System.Embedded.1/VirtualMedia/1
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
+        url_1: "System.Embedded.1/VirtualMedia/1"
+        url: "{{ url_0 }}/{{ url_1 }}"
 
     - name: Verify task status - Insertion of virtual media to RFS1 from
         HTTP share without providing media_type and index (Normal mode)
