@@ -1,0 +1,69 @@
+---
+- name: Configure the boot order settings
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Configure the system boot options settings.
+      dellemc.openmanage.idrac_boot:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        boot_options:
+          - display_name: Hard drive C
+            enabled: true
+          - boot_option_reference: NIC.PxeDevice.2-1
+            enabled: true
+      tags: boot-option
+      delegate_to: localhost
+
+    - name: Configure the boot order settings.
+      dellemc.openmanage.idrac_boot:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        boot_order:
+          - Boot0001
+          - Boot0002
+          - Boot0004
+          - Boot0003
+      tags: boot-order
+      delegate_to: localhost
+
+    - name: Configure the boot source override mode.
+      dellemc.openmanage.idrac_boot:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        boot_source_override_mode: legacy
+        boot_source_override_target: cd
+        boot_source_override_enabled: once
+      tags: boot-mode
+      delegate_to: localhost
+
+    - name: Configure the UEFI target settings.
+      dellemc.openmanage.idrac_boot:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        boot_source_override_mode: uefi
+        boot_source_override_target: uefi_target
+        uefi_target_boot_source_override: "VenHw(3A191845-5F86-4E78-8FCE-C4CFF59F9DAA)"
+      tags: uefi-target
+      delegate_to: localhost
+
+    - name: Configure the boot source override mode as pxe.
+      dellemc.openmanage.idrac_boot:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        boot_source_override_mode: legacy
+        boot_source_override_target: pxe
+        boot_source_override_enabled: continuous
+      tags: pxe-boot-mode
+      delegate_to: localhost

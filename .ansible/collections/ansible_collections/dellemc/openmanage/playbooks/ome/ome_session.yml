@@ -1,0 +1,52 @@
+---
+- name: Dell OpenManage Ansible iDRAC Session Management.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Create a session
+      dellemc.openmanage.ome_session:
+        hostname: 198.162.0.1
+        username: username
+        password: password
+        state: present
+      delegate_to: localhost
+
+    - name: Delete a session
+      dellemc.openmanage.ome_session:
+        hostname: 198.162.0.1
+        state: absent
+        x_auth_token: aed4aa802b748d2f3b31deec00a6b28a
+        session_id: 4b48e9ab-809e-4087-b7c4-201a16e0143d
+      delegate_to: localhost
+
+    - name: Create a session and execute other modules
+      block:
+        - name: Create a session
+          dellemc.openmanage.ome_session:
+            hostname: 198.162.0.1
+            username: username
+            password: password
+            ca_path: "/path/to/ca_cert.pem"
+            state: present
+          register: authdata
+
+        - name: Call ome_user_info module
+          dellemc.openmanage.ome_user_info:
+            hostname: 198.162.0.1
+            ca_path: "/path/to/ca_cert.pem"
+            x_auth_token: "{{ authdata.x_auth_token }}"
+
+        - name: Call ome_network_vlan_info module
+          dellemc.openmanage.ome_network_vlan_info:
+            hostname: 198.162.0.1
+            ca_path: "/path/to/ca_cert.pem"
+            x_auth_token: "{{ authdata.x_auth_token }}"
+      always:
+        - name: Destroy a session
+          dellemc.openmanage.ome_session:
+            hostname: 198.162.0.1
+            ca_path: "/path/to/ca_cert.pem"
+            state: absent
+            x_auth_token: "{{ authData.x_auth_token }}"
+            session_id: "{{ authData.session_data.Id }}"

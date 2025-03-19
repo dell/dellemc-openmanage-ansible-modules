@@ -1,0 +1,9 @@
+---
+- name: Export Server configuration profile
+  hosts: idrac
+  gather_facts: false
+  vars_files:
+    - ../vars_files/credentials.yml
+    - ../vars_files/export.yml
+  roles:
+    - dellemc.openmanage.idrac_export_server_config_profile

@@ -1,0 +1,60 @@
+---
+- name: Converge file to update attributes with
+        apply time as Immediate with job wait
+  hosts: all
+  gather_facts: false
+  vars:
+    idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+    idrac_port: "{{ lookup('env', 'IDRAC_PORT') }}"
+  tasks:
+    - name: Read file content for set_boot_mode variable
+      ansible.builtin.command: cat /tmp/boot_mode.txt
+      register: file_content
+      check_mode: false
+      delegate_to: localhost
+      changed_when: true
+
+    - name: Set set_boot_mode variable
+      ansible.builtin.set_fact:
+        set_boot_mode: "{{ file_content.stdout }}"
+      delegate_to: localhost
+
+    - name: Update attributes with apply time as Immediate with job wait
+      ansible.builtin.import_role:
+        name: dellemc.openmanage.idrac_bios
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        apply_time: Immediate
+        attributes:
+          BootMode: "{{ set_boot_mode }}"
+        job_wait: true
+
+    - name: Assert update attributes with apply time as Immediate - normal mode
+      ansible.builtin.assert:
+        that:
+          - idrac_bios_out.attributes.status_msg == "Successfully
+            applied the BIOS attributes update."
+          - idrac_bios_out.reset_bios.skipped
+          - idrac_bios_out.clear_pending.skipped
+      when: not ansible_check_mode
+      tags: molecule-idempotence-notest
+
+    - name: Assert update attributes with apply time as Immediate
+            in check mode
+      ansible.builtin.assert:
+        that:
+          - idrac_bios_out.attributes.status_msg == "Changes found
+            to be applied."
+      when: ansible_check_mode
+      tags: molecule-idempotence-notest
+
+    - name: Assert update attributes with apply time as Immediate in
+            idempotence mode
+      ansible.builtin.assert:
+        that:
+          - idrac_bios_out.attributes.status_msg == "No changes found
+            to be applied."
+      when: not ansible_check_mode and not idrac_bios_out.attributes.changed

@@ -1,0 +1,21 @@
+---
+- name: Get system information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_system }}"
+  register: system_result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Get operating system information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Managers/{{
+      computer_system_id }}/Attributes?$select=ServerOS.*"
+  register: os_result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Set system facts
+  ansible.builtin.set_fact:
+    system:
+      "{{ system_result.json.Oem.Dell.DellSystem | combine(os_result.json.Attributes) |
+      ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type']) }}"
+  when: system_result.status == 200 and os_result.status == 200
+  register: system_result_register

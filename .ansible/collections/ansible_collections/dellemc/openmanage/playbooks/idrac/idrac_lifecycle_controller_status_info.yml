@@ -1,0 +1,13 @@
+---
+- name: Check LC Ready Status
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Check LC Ready Status
+      dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+      delegate_to: localhost

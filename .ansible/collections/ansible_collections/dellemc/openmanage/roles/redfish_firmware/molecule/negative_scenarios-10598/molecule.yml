@@ -1,0 +1,16 @@
+---
+provisioner:
+  name: ansible
+  playbooks:
+    prepare: ../resources/prepare.yml
+    cleanup: ../resources/cleanup.yml
+scenario:
+  test_sequence:
+    - destroy
+    - syntax
+    - create
+    - cleanup
+    - prepare
+    - converge
+    - cleanup
+    - destroy

@@ -1,0 +1,10 @@
+---
+- name: Get CPU information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_system }}/Processors?$expand=*($levels=1)"
+  register: cpu_result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Set CPU facts
+  ansible.builtin.set_fact:
+    cpu: "{{ cpu_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'Assembly', 'Links']) }}"

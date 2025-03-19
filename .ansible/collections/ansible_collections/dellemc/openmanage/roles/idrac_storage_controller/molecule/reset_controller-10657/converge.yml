@@ -1,0 +1,64 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Reset controller configuration
+      ansible.builtin.import_role:
+        name: idrac_storage_controller
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        job_wait: false
+        reset_config: true
+        controller_id: "{{ controller_name }}"
+
+    - name: Waiting for iDRAC to be in ready state
+      ansible.builtin.include_tasks:
+        file: ../__lc_status.yaml
+      when: reset_config_out.msg == "Successfully submitted the job that
+            performs the 'ResetConfig' operation."
+
+    - name: Pre-req - Fetch volumes after performing the reset
+      ignore_errors: true
+      register: idrac_storage_controller_result_vol
+      ansible.builtin.include_tasks: ../__fetch_volumes.yml
+      vars:
+        post_op: false
+
+    - name: Check if virtual disk is present
+      ansible.builtin.set_fact:
+        is_vd_exists: false
+      loop: "{{ lookup('dict',
+         storage_status.Controller[controller_name],
+         wantlist=True) }}"
+      when: "not 'VirtualDisk' in item.value"
+
+    - name: Verifying Reset controller configuration in check mode
+      ansible.builtin.assert:
+        that:
+          - reset_config_out.msg == "Changes found to be applied."
+          - reset_config_out.changed
+      when: ansible_check_mode
+
+    - name: Verifying Reset controller configuration in normal mode
+      ansible.builtin.assert:
+        that:
+          - reset_config_out.msg == "Successfully submitted the job that
+            performs the 'ResetConfig' operation."
+          - is_vd_exists is defined and not is_vd_exists
+      when: not ansible_check_mode and reset_config_out.status is defined
+
+    - name: Wait for 120 seconds
+      ansible.builtin.pause:
+        seconds: 120
+      when: not ansible_check_mode and reset_config_out.status is defined
+
+    - name: Verifying Reset controller configuration in idempotence mode
+      ansible.builtin.assert:
+        that:
+          - reset_config_out.msg == "No changes found to be applied."
+          - not reset_config_out.changed
+      when: not ansible_check_mode and reset_config_out.status is not defined

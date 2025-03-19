@@ -1,0 +1,18 @@
+---
+- name: Booting to Network Operating System image
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: "Booting to Network Operating System image"
+      dellemc.openmanage.idrac_os_deployment:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        share_name: "{{ playbook_dir }}"
+        iso_image: "uninterrupted_os_installation_image.iso."
+        expose_duration: 180
+      delegate_to: localhost
+      tags:
+        - network_iso

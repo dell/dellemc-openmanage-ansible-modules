@@ -1,0 +1,8 @@
+omsdk
+pytest
+pytest-xdist
+mock
+pytest-mock
+pytest-cov
+coverage
+netaddr>=0.7.19

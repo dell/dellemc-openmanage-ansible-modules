@@ -1,0 +1,133 @@
+---
+argument_specs:
+  main:
+    version_added: "8.0.0"
+    short_description: Configure the boot order settings
+    description:
+      - This role allows to configure the boot order settings.
+    options:
+      hostname:
+        required: true
+        type: str
+        description: iDRAC IP Address.
+      username:
+        type: str
+        description: iDRAC username.
+      password:
+        type: str
+        description: iDRAC user password.
+      https_port:
+        type: int
+        description: iDRAC port.
+        default: 443
+      validate_certs:
+        description:
+          - If C(False), the SSL certificates will not be validated.
+          - Configure C(False) only on personally controlled sites where self-signed certificates are used.
+        type: bool
+        default: true
+      ca_path:
+        description:
+          - The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+        type: path
+      https_timeout:
+        description: The socket level timeout in seconds.
+        type: int
+        default: 30
+      boot_options:
+        description:
+          - Options to enable or disable the boot devices.
+          - This is mutually exclusive with I(boot_order), I(boot_source_override_mode),
+            I(boot_source_override_enabled), I(boot_source_override_target), and I(uefi_target_boot_source_override).
+        type: list
+        elements: dict
+        options:
+          boot_option_reference:
+            description:
+              - FQDD of the boot device.
+              - This is mutually exclusive with I(display_name).
+            type: str
+          display_name:
+            description:
+              - Display name of the boot source device.
+              - This is mutually exclusive with I(boot_option_reference).
+            type: str
+          enabled:
+            description: Enable or disable the boot device.
+            type: bool
+            required: true
+      boot_order:
+        description:
+          - This option allows to set the boot devices in the required boot order sequence.
+          - This is mutually exclusive with I(boot_options).
+        type: list
+        elements: str
+      boot_source_override_mode:
+        description:
+          - The BIOS boot mode (either Legacy or UEFI) to be used when I(boot_source_override_target)
+            boot source is booted.
+          - C(legacy) The system boot in non-UEFI(Legacy) boot mode to the I(boot_source_override_target).
+          - C(uefi) The system boot in UEFI boot mode to the I(boot_source_override_target).
+          - This is mutually exclusive with I(boot_options).
+        type: str
+        choices: [legacy, uefi]
+      boot_source_override_enabled:
+        description:
+          - The state of the Boot Source Override feature.
+          - C(disabled), the system boots normally.
+          - C(once), the system boots 1 time to the I(boot_source_override_target).
+          - C(continuous), the system boots to the target specified in the I(boot_source_override_target)
+            until this property is set to Disabled.
+          - The state is set to C(once) for the 1 time boot override and C(continuous) for the
+            remain-active-until—cancelled override. If the state is set C(once)  or C(continuous), the value is reset
+            to C(disabled) after the I(boot_source_override_target) actions have completed successfully.
+          - Changes to these options do not alter the BIOS persistent boot order configuration.
+          - This is mutually exclusive with I(boot_options).
+        choices: [continuous, disabled, once]
+      boot_source_override_target:
+        description:
+          - The boot source override targets the device to use during the next boot instead of the normal boot device.
+          - C(pxe) performs PXE boot from the primary NIC.
+          - C(floppy), C(cd), C(hdd), and C(sd_card) performs boot from their devices respectively.
+          - C(bios_setup) performs boot into the native BIOS setup.
+          - C(uefi_http) performs boot from a URI over HTTP.
+          - C(utilities) performs boot from the local utilities.
+          - C(uefi_target) performs boot from the UEFI device path found in I(uefi_target_boot_source_override).
+          - C(none) if the I(boot_source_override_target) is set to a value other than C(none) then the
+            I(boot_source_override_enabled) is automatically set to C(once).
+          - Changes to these options do not alter the BIOS persistent boot order configuration.
+          - This is mutually exclusive with I(boot_options).
+        type: str
+        choices: [uefi_http, sd_card, uefi_target, utilities, bios_setup, hdd, cd, floppy, pxe, none]
+      uefi_target_boot_source_override:
+        description:
+          - The UEFI device path of the device from which to boot when I(boot_source_override_target) is C(uefi_target).
+          - If I(boot_source_override_target) is set to C(uefi_target), then I(boot_source_override_enabled) cannot be
+            set to c(continuous) because this setting is defined in UEFI as a one-time-boot setting.
+          - Changes to these options do not alter the BIOS persistent boot order configuration.
+          - This is required if I(boot_source_override_target) is C(uefi_target).
+          - This is mutually exclusive with I(boot_options).
+        type: str
+      reset_type:
+        description:
+          - C(none) Host system is not rebooted and I(job_wait) is not applicable.
+          - C(force_restart) Forcefully reboot the Host system.
+          - C(graceful_restart) Gracefully reboot the Host system.
+        type: str
+        choices: [graceful_restart, force_restart, none]
+        default: graceful_restart
+      job_wait:
+        description:
+          - Provides the option to wait for job completion.
+          - This is applicable when I(reset_type) is C(force_reset) or C(graceful_reset).
+        type: bool
+        default: true
+      job_wait_timeout:
+        description:
+          - The maximum wait time of I(job_wait) in seconds. The job is tracked only for this duration.
+          - This option is applicable when I(job_wait) is C(True).
+        type: int
+        default: 900
+      resource_id:
+        description: Redfish ID of the resource.
+        type: str

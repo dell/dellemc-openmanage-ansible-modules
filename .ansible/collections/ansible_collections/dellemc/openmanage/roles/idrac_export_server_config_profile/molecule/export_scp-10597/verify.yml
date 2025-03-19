@@ -1,0 +1,110 @@
+---
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify
+  hosts: all
+  gather_facts: false
+  vars:
+    local_path: "{{ lookup('env', 'local_path') }}"
+    local_filename: "{{ lookup('env', 'local_filename') }}"
+    nfs_filename: "{{ lookup('env', 'nfs_filename') }}"
+    cifs_filename: "{{ lookup('env', 'cifs_filename') }}"
+    https_filename: "{{ lookup('env', 'https_filename') }}"
+    http_filename: "{{ lookup('env', 'http_filename') }}"
+    nfs_mount_path: "{{ lookup('env', 'nfs_mount_path') }}"
+    cifs_mount_path: "{{ lookup('env', 'cifs_mount_path') }}"
+
+    nfs_url: "{{ lookup('env', 'nfs_url') }}"
+    cifs_url: "{{ lookup('env', 'cifs_url') }}"
+    cifs_username: "{{ lookup('env', 'cifs_username') }}"
+    cifs_password: "{{ lookup('env', 'cifs_password') }}"
+
+    https_url: "{{ lookup('env', 'https_url') }}"
+    https_username: "{{ lookup('env', 'https_username') }}"
+    https_password: "{{ lookup('env', 'https_password') }}"
+
+    http_url: "{{ lookup('env', 'http_url') }}"
+    http_username: "{{ lookup('env', 'http_username') }}"
+    http_password: "{{ lookup('env', 'http_password') }}"
+
+    curl_cmd: "curl --insecure -u %s:%s -o %s %s"
+    http_dest: "/tmp/{{ http_filename }}"
+    https_dest: "/tmp/{{ https_filename }}"
+    curl_http_url: "{{ http_url }}/{{ http_filename }}"
+    curl_https_url: "{{ https_url }}/{{ https_filename }}"
+  tasks:
+    - name: Checking exported file exists in Local path
+      ansible.builtin.stat:
+        path: "{{ local_path }}/{{ local_filename }}"
+      register: local_file
+
+    - name: Create a NFS mount point/directory
+      ansible.builtin.file:
+        path: "{{ nfs_mount_path }}"
+        state: directory
+        mode: "0755"
+
+    - name: Create a CIFS mount point/directory
+      ansible.builtin.file:
+        path: "{{ cifs_mount_path }}"
+        state: directory
+        mode: "0755"
+
+    - name: Mounting NFS volume
+      ansible.builtin.command:  # noqa: command-instead-of-module
+        cmd: "mount -t nfs {{ nfs_url }} {{ nfs_mount_path }}"
+      delegate_to: localhost
+      register: nfs_mount
+      changed_when: nfs_mount.rc == 0
+
+    - name: Checking file exists in NFS mount
+      ansible.builtin.stat:
+        path: "{{ nfs_mount_path }}/{{ nfs_filename }}"
+      register: nfs_file
+
+    - name: Mounting CIFS volume
+      ansible.builtin.command:  # noqa: command-instead-of-module
+        cmd: "mount -t cifs '{{ cifs_url }}' {{ cifs_mount_path }}
+         -o username={{ cifs_username }},password={{ cifs_password }}"
+      register: cifs_mount
+      changed_when: cifs_mount.rc == 0
+
+    - name: Checking file exists in CIFS mount
+      ansible.builtin.stat:
+        path: "{{ cifs_mount_path }}/{{ cifs_filename }}"
+      register: cifs_file
+
+    - name: Downloading HTTP file
+      register: http_dnld_curl_cmd_out
+      no_log: false
+      changed_when: http_dnld_curl_cmd_out.rc == 0
+      failed_when: http_dnld_curl_cmd_out.rc != 0
+      ansible.builtin.command: >
+        {{ curl_cmd | format(http_username, http_password, http_dest, curl_http_url) }}
+
+    - name: Checking file exists in current location
+      ansible.builtin.stat:
+        path: "/tmp/{{ http_filename }}"
+      register: http_file
+
+    - name: Downloading HTTPS file
+      register: https_dnld_curl_cmd_out
+      no_log: false
+      changed_when: https_dnld_curl_cmd_out.rc == 0
+      failed_when: https_dnld_curl_cmd_out.rc != 0
+      ansible.builtin.command: >
+        {{ curl_cmd | format(https_username, https_password, https_dest, curl_https_url) }}
+
+    - name: Checking file exists in current location
+      ansible.builtin.stat:
+        path: "/tmp/{{ https_filename }}"
+      register: https_file
+
+    - name: Verifying file exists
+      ansible.builtin.assert:
+        that:
+          - local_file.stat.exists
+          - nfs_file.stat.exists
+          - cifs_file.stat.exists
+          - http_file.stat.exists
+          - https_file.stat.exists

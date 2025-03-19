@@ -1,0 +1,43 @@
+---
+- name: "Deploy this template with desired LCD string on the target servers.
+    Track the template deploy operation job till completion."
+  hosts: ome
+  gather_facts: false
+  vars:
+    retries_count: 50
+    polling_interval: 5
+    template_name: "LCD Srting Deploy Template"
+    deployable_servicetag:
+      - "MXL1234"
+      - "MXL4567"
+
+  tasks:
+    - name: Deploy Previously created LCD Template
+      dellemc.openmanage.ome_template:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "deploy"
+        template_name: "{{ template_name }}"
+        device_service_tag: "{{ deployable_servicetag }}"
+      register: result
+      tags:
+        - deploy
+      delegate_to: localhost
+
+    - name: Track the deploy job till completion
+      dellemc.openmanage.ome_job_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        job_id: "{{ result.return_id }}"
+      register: job_result
+      failed_when: "'job_info' not in job_result"
+      until: job_result.job_info.LastRunStatus.Name == 'Completed' or job_result.job_info.LastRunStatus.Name == 'Failed'
+      retries: "{{ retries_count }}"
+      delay: "{{ polling_interval }}"
+      tags:
+        - track_deploy
+      delegate_to: localhost

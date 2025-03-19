@@ -1,0 +1,15 @@
+---
+- name: Generate the Kickstart File
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  when: source.ks_path is undefined and (source.is_custom_iso is undefined or source.is_custom_iso is false)
+  block:
+    - name: Generate kickstart file
+      ansible.builtin.template:
+        src: "{{ os_name | upper }}_{{ os_version | string | split('.') | first }}.j2"
+        dest: "{{ idrac_os_deployment_wd.path }}/kickstart_{{ os_name }}_{{ hostname }}.cfg"
+        mode: "{{ idrac_os_deployment_ks_gen_mode }}"
+      register: idrac_os_deployment_ks_generate
+
+    - name: Set ks file for specific idrac
+      ansible.builtin.set_fact:
+        idrac_os_deployment_kickstart_file: "{{ idrac_os_deployment_ks_generate.dest }}"

@@ -1,0 +1,69 @@
+name: CI
+
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+on:
+  # Run CI against all pushes (direct commits, also merged PRs), Pull Requests
+  workflow_dispatch:
+  push:
+    branches:
+      - collections
+  pull_request:
+  # Runs CI on every day (at 06:00 UTC)
+  schedule:
+    - cron: '0 6 * * *'
+
+jobs:
+  build:
+    name: Build collection
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ansible-version: [stable-2.18]
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.12
+
+      - name: Install ansible (${{ matrix.ansible-version }})
+        run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
+
+      - name: Build a collection tarball
+        run: ansible-galaxy collection build --output-path "${GITHUB_WORKSPACE}/.cache/collection-tarballs"
+
+      - name: Store migrated collection artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: collection
+          path: .cache/collection-tarballs
+  ansible-lint:
+    needs: [build]
+    uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@main
+  sanity:
+    needs: [build]
+    uses: ansible/ansible-content-actions/.github/workflows/sanity.yaml@main
+  unit-galaxy:
+    needs: [build]
+    uses: ansible/ansible-content-actions/.github/workflows/unit.yaml@main
+  all_green:
+    if: ${{ always() }}
+    needs:
+      - sanity
+      - unit-galaxy
+      - ansible-lint
+    runs-on: ubuntu-latest
+    steps:
+      - run: >-
+          python -c "assert 'failure' not in
+          set([
+          '${{ needs.sanity.result }}',
+          '${{ needs.unit-galaxy.result }}'
+          '${{ needs.ansible-lint.result }}'
+          ])"

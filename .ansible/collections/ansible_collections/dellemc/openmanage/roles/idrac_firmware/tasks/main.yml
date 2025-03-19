@@ -1,0 +1,27 @@
+---
+# tasks file for idrac_firmware
+- name: Call iDRAC Firmware upgrade
+  dellemc.openmanage.idrac_firmware:
+    idrac_ip: "{{ hostname }}"
+    idrac_port: "{{ https_port }}"
+    idrac_user: "{{ username }}"
+    idrac_password: "{{ password }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    validate_certs: "{{ validate_certs }}"
+    timeout: "{{ https_timeout }}"
+    share_name: "{{ share_name | default(omit) }}"
+    share_user: "{{ share_user | default(omit) }}"
+    share_password: "{{ share_password | default(omit) }}"
+    job_wait: "{{ job_wait }}"
+    catalog_file_name: "{{ catalog_file_name }}"
+    ignore_cert_warning: "{{ ignore_cert_warning }}"
+    apply_update: "{{ apply_update }}"
+    reboot: "{{ reboot }}"
+    proxy_support: "{{ proxy_support }}"
+    proxy_server: "{{ proxy_server | default(omit) }}"
+    proxy_type: "{{ proxy_type | default(omit) }}"
+    proxy_port: "{{ proxy_port | default(omit) }}"
+    proxy_uname: "{{ proxy_uname | default(omit) }}"
+    proxy_passwd: "{{ proxy_passwd | default(omit) }}"
+  register: "idrac_firmware_out"
+  delegate_to: "{{ idrac_firmware_delegate }}"

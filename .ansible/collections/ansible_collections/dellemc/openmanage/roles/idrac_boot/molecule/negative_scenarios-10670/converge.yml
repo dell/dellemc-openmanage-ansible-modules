@@ -1,0 +1,311 @@
+---
+- name: Play 1 - Negative Scenarios
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Play 1 - TC-115436 - Ansible - Role - idrac_boot - Providing wrong hostname
+      ansible.builtin.import_role:
+        name: idrac_boot
+      vars:
+        hostname: "WrongHostname"
+        username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
+        password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        boot_source_override_mode: 'uefi'
+      ignore_unreachable: true
+
+    - name: Verify - TC-115436 - Ansible - Role - idrac_boot - Providing wrong hostname
+      ansible.builtin.assert:
+        that:
+          - "'Unable to communicate with iDRAC WrongHostname' in idrac_boot_out.msg"
+
+    - name: TC-115437 - Ansible - Role - idrac_boot - Providing wrong username
+      ansible.builtin.import_role:
+        name: idrac_boot
+      vars:
+        hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
+        username: "wrongUsername"
+        password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        boot_source_override_mode: 'uefi'
+      register: idrac_boot_error_reg
+      ignore_errors: true
+
+    - name: Verify - TC-115437 - Ansible - Role - idrac_boot - Providing wrong username
+      ansible.builtin.assert:
+        that:
+          - "'Unable to communicate with iDRAC' in idrac_boot_out.msg"
+
+    - name: TC-115438 - Ansible - Role - idrac_boot - Providing wrong password
+      ansible.builtin.import_role:
+        name: idrac_boot
+      vars:
+        hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
+        username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
+        password: "wrongPassword"
+        validate_certs: false
+        boot_source_override_mode: 'uefi'
+      ignore_errors: true
+      ignore_unreachable: true
+      register: idrac_boot_error_reg
+
+    - name: Verify - TC-115438 - Ansible - Role - idrac_boot - Providing wrong password
+      ansible.builtin.assert:
+        that:
+          - "'Unable to communicate with iDRAC' in idrac_boot_out.msg"
+
+- name: Play 2 - TC-115439 - Ansible - Role - idrac_boot - Providing invalid https_port
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: TC-115439 - Ansible - Role - idrac_boot - Providing invalid https_port
+      ansible.builtin.import_role:
+        name: idrac_boot
+      vars:
+        hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
+        username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
+        password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
+        https_port: 999999
+        validate_certs: false
+        boot_source_override_mode: 'uefi'
+      ignore_unreachable: true
+
+    - name: Verify - TC-115439 - Ansible - Role - idrac_boot - Providing invalid https_port
+      ansible.builtin.assert:
+        that:
+          - "'Unable to communicate with iDRAC' in idrac_boot_out.msg"
+
+- name: Play 3 - TC-115440 - Ansible - Role - idrac_boot - Providing wrong resource_id
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: TC-115440 - Ansible - Role - idrac_boot - Providing wrong resource_id
+      ansible.builtin.import_role:
+        name: idrac_boot
+      vars:
+        hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
+        username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
+        password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
+        resource_id: "Invalid.System.ID"
+        validate_certs: false
+        boot_source_override_mode: 'uefi'
+      ignore_errors: true
+      register: idrac_boot_error_reg
+
+    - name: Verify - TC-115440 - Ansible - Role - idrac_boot - Providing wrong resource_id
+      ansible.builtin.assert:
+        that:
+          - "'HTTP Error 404' in idrac_boot_out.msg"
+
+- name: Play 4 - TC-115441 - Ansible - Role - idrac_boot - Providing wrong ca_path
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: TC-115441 - Ansible - Role - idrac_boot - Providing wrong ca_path
+      ansible.builtin.import_role:
+        name: idrac_boot
+      vars:
+        hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
+        username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
+        password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
+        ca_path: "/root/filenotexists.pem"
+        validate_certs: false
+        boot_source_override_mode: 'uefi'
+      ignore_errors: true
+      register: idrac_boot_error_reg
+
+    - name: Verify - TC-115441 - Ansible - Role - idrac_boot - Providing wrong ca_path
+      ansible.builtin.assert:
+        that:
+          - idrac_boot_out.failed # TBD
+
+- name: Play 5 - TC-115442 - Ansible - Role - idrac_boot - Providing invalid https_timeout
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: TC-115442 - Ansible - Role - idrac_boot - Providing invalid https_timeout
+      ansible.builtin.import_role:
+        name: idrac_boot
+      vars:
+        hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
+        username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
+        password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
+        https_timeout: -1000
+        validate_certs: false
+        boot_source_override_mode: 'uefi'
+      ignore_errors: true
+      register: idrac_boot_error_reg
+
+    - name: Verify - TC-115442 - Ansible - Role - idrac_boot - Providing invalid https_timeout
+      ansible.builtin.assert:
+        that:
+          - "'Timeout value out of range' == idrac_boot_out.msg"
+
+- name: Play 6 - TC-115443 - Ansible - Role - idrac_boot - Providing invalid job_wait_timeout
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: TC-115443 - Ansible - Role - idrac_boot - Providing invalid job_wait_timeout
+      block:
+        - name: TC-115443 - Ansible - Role - idrac_boot - Providing invalid job_wait_timeout
+          ansible.builtin.import_role:
+            name: idrac_boot
+          vars:
+            hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
+            username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
+            password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
+            job_wait_timeout: -1000
+            validate_certs: false
+            boot_source_override_mode: 'legacy'
+          register: idrac_boot_error_reg
+      rescue:
+        - name: Verify - TC-115443 - Ansible - Role - idrac_boot - Providing invalid job_wait_timeout
+          ansible.builtin.assert:
+            that:
+              - "'The parameter job_wait_timeout value cannot be negative or zero.' == ansible_failed_result.msg"
+
+- name: Play 7 - TC-115444 - Ansible - Role - idrac_boot - Validate all the mutually exclusive scenarios
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check 1 - TC-115444 - Entering block
+      block:
+        - name: Check 1 - TC-115444 - mutual exclusivity between boot_option_reference and display_name
+          ansible.builtin.include_role:
+            name: idrac_boot
+          vars:
+            hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
+            username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
+            password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            boot_options:
+              - display_name: Hard drive C
+                boot_option_reference: NIC.PxeDevice.2-1
+                enabled: true
+          ignore_errors: true
+          register: idrac_boot_error_reg
+      rescue:
+        - name: Verify - Check 1 - TC-115444 - mutual exclusivity between boot_option_reference and display_name
+          ansible.builtin.assert:
+            that:
+              - "'parameters are mutually exclusive' in idrac_boot_out.msg"
+              - "'boot_option_reference' in idrac_boot_out.msg"
+              - "'display_name' in idrac_boot_out.msg"
+              - idrac_boot_out.failed
+
+    - name: Check 2 - TC-115444 - Entering block
+      block:
+        - name: Check 2 - TC-115444 - mutual exclusivity between boot_options and boot_order
+          ansible.builtin.include_role:
+            name: idrac_boot
+          vars:
+            hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
+            username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
+            password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            boot_options:
+              - display_name: Hard drive C
+                enabled: true
+            boot_order:
+              - Boot0001
+              - Boot0002
+          ignore_errors: true
+          register: idrac_boot_error_reg
+      rescue:
+        - name: Verify - Check 2 - TC-115444 - mutual exclusivity between boot_options and boot_order
+          ansible.builtin.assert:
+            that: >
+              "'parameters are mutually exclusive: boot_options|boot_order found in
+              boot_options' == idrac_boot_out.msg"
+
+    - name: Check 3 - TC-115444 - Entering block
+      block:
+        - name: Check 3 - TC-115444 - mutual exclusivity between boot_options and boot_source_override_mode
+          ansible.builtin.include_role:
+            name: idrac_boot
+          vars:
+            hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
+            username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
+            password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            boot_options:
+              - display_name: Hard drive C
+                enabled: true
+            boot_source_override_mode: legacy
+          ignore_errors: true
+          register: idrac_boot_error_reg
+      rescue:
+        - name: Verify - Check 3 - TC-115444 - mutual exclusivity between boot_options and boot_source_override_mode
+          ansible.builtin.assert:
+            that: >
+              "'parameters are mutually exclusive: boot_options|boot_source_override_mode found in
+              boot_options' == idrac_boot_out.msg"
+
+    - name: Check 4 - TC-115444 - Entering block
+      block:
+        - name: Check 4 - TC-115444 - mutual exclusivity between boot_options and boot_source_override_enabled
+          ansible.builtin.include_role:
+            name: idrac_boot
+          vars:
+            hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
+            username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
+            password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            boot_options:
+              - display_name: Hard drive C
+                enabled: true
+            boot_source_override_enabled: once
+          ignore_errors: true
+          register: idrac_boot_error_reg
+      rescue:
+        - name: Verify - Check 4 - TC-115444 - mutual exclusivity between boot_options and boot_source_override_enabled
+          ansible.builtin.assert:
+            that: >
+              "'parameters are mutually exclusive: boot_options|boot_source_override_enabled found in
+              boot_options' == idrac_boot_out.msg"
+
+    - name: Check 5 - TC-115444 - Entering block
+      block:
+        - name: Check 5 - TC-115444 - mutual exclusivity between boot_options and boot_source_override_target
+          ansible.builtin.include_role:
+            name: idrac_boot
+          vars:
+            hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
+            username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
+            password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            boot_options:
+              - display_name: Hard drive C
+                enabled: true
+            boot_source_override_target: cd
+          ignore_errors: true
+          register: idrac_boot_error_reg
+      rescue:
+        - name: Verify - Check 5 - TC-115444 - mutual exclusivity between boot_options and boot_source_override_target
+          ansible.builtin.assert:
+            that: >
+              "'parameters are mutually exclusive: boot_options|boot_source_override_target found in
+              boot_options' == idrac_boot_out.msg"
+
+    - name: Check 6 - TC-115444 - Entering block
+      block:
+        - name: Check 6 - TC-115444 - mutual exclusivity between boot_options and uefi_target_boot_source_override
+          ansible.builtin.include_role:
+            name: idrac_boot
+          vars:
+            hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
+            username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
+            password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            boot_options:
+              - display_name: Hard drive C
+                enabled: true
+            uefi_target_boot_source_override: "VenHw(3A191845-5F86-4E78-8FCE-C4CFF59F9DAA)"
+          ignore_errors: true
+          register: idrac_boot_error_reg
+      rescue:
+        - name: Verify - Check 6 - TC-115444 - mutual exclusivity between boot_options and uefi_target_boot_source_override
+          ansible.builtin.assert:
+            that: >
+              "'parameters are mutually exclusive: boot_options|uefi_target_boot_source_override found in
+              boot_options' == idrac_boot_out.msg"

@@ -1,0 +1,21 @@
+---
+- name: Fetch firmware version
+  ansible.builtin.uri:
+    url: "https://{{ idrac_ip }}/redfish/v1/Managers/iDRAC.Embedded.1"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: idrac_certificate_uri_data
+  when: idrac_ip is defined and idrac_password is defined
+         and idrac_user is defined
+  check_mode: false
+
+- name: Set firmware version
+  ansible.builtin.set_fact:
+    idrac_certificate_firmware_version: "{{ idrac_certificate_uri_data.json.FirmwareVersion }}"
+  when: idrac_certificate_uri_data.json is defined

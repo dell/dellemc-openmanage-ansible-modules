@@ -1,0 +1,109 @@
+---
+- name: Configure the boot order settings
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Insert image file to Remote File Share 1 using CIFS share.
+      dellemc.openmanage.idrac_virtual_media:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        virtual_media:
+          - insert: true
+            image: "//192.168.0.2/file_path/file.iso"
+            username: "username"
+            password: "password"
+      tags: insert-media-cifs
+      delegate_to: localhost
+
+    - name: Insert image file to Remote File Share 2 using NFS share.
+      dellemc.openmanage.idrac_virtual_media:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        virtual_media:
+          - index: 2
+            insert: true
+            image: "192.168.0.4:/file_path/file.iso"
+      tags: insert-media-nfs
+      delegate_to: localhost
+
+    - name: Insert image file to Remote File Share 1 and 2 using HTTP.
+      dellemc.openmanage.idrac_virtual_media:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        force: true
+        virtual_media:
+          - index: 1
+            insert: true
+            image: "http://192.168.0.4/file_path/file.img"
+          - index: 2
+            insert: true
+            image: "http://192.168.0.4/file_path/file.img"
+      tags: insert-media-http
+      delegate_to: localhost
+
+    - name: Insert image file using HTTPS.
+      dellemc.openmanage.idrac_virtual_media:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        force: true
+        virtual_media:
+          - index: 1
+            insert: true
+            image: "https://192.168.0.5/file_path/file.img"
+            username: username
+            password: password
+      tags: insert-media-http
+      delegate_to: localhost
+
+    - name: Eject multiple virtual media.
+      dellemc.openmanage.idrac_virtual_media:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        virtual_media:
+          - index: 1
+            insert: false
+          - index: 2
+            insert: false
+      tags: eject-media
+      delegate_to: localhost
+
+    - name: Ejection of image file from Remote File Share 1.
+      dellemc.openmanage.idrac_virtual_media:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        force: true
+        virtual_media:
+          insert: false
+      tags: eject-media-rfs1
+      delegate_to: localhost
+
+    - name: Insertion and ejection of image file in single task.
+      dellemc.openmanage.idrac_virtual_media:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        force: true
+        virtual_media:
+          - index: 1
+            insert: true
+            image: https://192.168.0.5/file/file.iso
+            username: username
+            password: password
+          - index: 2
+            insert: false
+      tags: insert-eject-media
+      delegate_to: localhost

@@ -1,0 +1,90 @@
+---
+- name: Negative Scenarios
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Creating job to export SCP local path with all components
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+        idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+        idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        scp_components:
+          - IDRAC
+        share_name: "/root/"
+        scp_file: "file1.xml"
+        export_format: JSON
+        export_use: Clone
+        job_wait: false
+
+    - name: Deleting a job
+      block:
+        - name: Delete a job from the job queue with an invalid id
+          ansible.builtin.import_role:
+            name: "idrac_job_queue"
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            job_id: JID_12345678
+      rescue:
+        - name: "Verifying invalid job deletion from the job queue"
+          ansible.builtin.assert:
+            that:
+              - idrac_job_queue_out.msg == "The job JID_12345678 is invalid."
+
+    - name: Clear job queue
+      block:
+        - name: Clearing job queue with an invalid hostname
+          ansible.builtin.import_role:
+            name: idrac_job_queue
+          vars:
+            hostname: "invalidHostname"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            clear_job_queue: true
+            validate_certs: false
+
+      rescue:
+        - name: "Verifying job queue clear with an invalid hostname"
+          ansible.builtin.assert:
+            that:
+              - "'<urlopen error [Errno -2] Name or service not known>' in idrac_job_queue_out.msg or
+                '<urlopen error [Errno -3] Temporary failure in name resolution>' in idrac_job_queue_out.msg"
+
+    - name: Clear job queue
+      block:
+        - name: Clearing job queue with an invalid username
+          ansible.builtin.import_role:
+            name: idrac_job_queue
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "invalidUsername"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            clear_job_queue: true
+            validate_certs: false
+
+      rescue:
+        - name: "Verifying job queue clear with an invalid username"
+          ansible.builtin.assert:
+            that:
+              - "'The authentication credentials included with this request are missing or invalid.' in idrac_job_queue_out.msg"
+
+    - name: Clear job queue
+      block:
+        - name: Clearing job queue with an invalid password
+          ansible.builtin.import_role:
+            name: idrac_job_queue
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "invalidPassword"
+            clear_job_queue: true
+            validate_certs: false
+
+      rescue:
+        - name: "Verifying job queue clear with an invalid password"
+          ansible.builtin.assert:
+            that:
+              - "'The authentication credentials included with this request are missing or invalid.' in idrac_job_queue_out.msg"

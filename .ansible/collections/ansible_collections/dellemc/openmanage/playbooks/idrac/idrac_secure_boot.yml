@@ -1,0 +1,83 @@
+---
+- name: Perform iDRAC SecureBoot
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Enable Secure Boot.
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "192.168.1.2"
+        idrac_user: "user"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        secure_boot: "Enabled"
+      delegate_to: localhost
+
+    - name: Set Secure Boot mode and Secure Boot policy and restart iDRAC.
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "192.168.1.2"
+        idrac_user: "user"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        secure_boot: "Enabled"
+        secure_boot_mode: "UserMode"
+        secure_boot_policy: "Custom"
+        restart: true
+        restart_type: "GracefulRestart"
+      delegate_to: localhost
+
+    - name: Reset Secure Boot certificates.
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "192.168.1.2"
+        idrac_user: "user"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        reset_keys: "ResetAllKeysToDefault"
+      delegate_to: localhost
+
+    - name: Export multiple Secure Boot certificate.
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "192.168.1.2"
+        idrac_user: "user"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        export_certificates: true
+        platform_key: /user/name/export_cert/pk
+        KEK:
+          - /user/name/export_cert/kek
+        database:
+          - /user/name/export_cert/db
+        disallow_database:
+          - /user/name/export_cert/dbx
+      delegate_to: localhost
+
+    - name: Import multiple Secure Boot certificate without applying to iDRAC.
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "192.168.1.2"
+        idrac_user: "user"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        import_certificates: true
+        platform_key: /user/name/certificates/pk.pem
+        KEK:
+          - /user/name/certificates/kek1.pem
+          - /user/name/certificates/kek2.pem
+        database:
+          - /user/name/certificates/db1.pem
+          - /user/name/certificates/db2.pem
+        disallow_database:
+          - /user/name/certificates/dbx1.pem
+          - /root/Downloads/secureboot.pem
+      delegate_to: localhost
+
+    - name: Import a Secure Boot certificate and restart the server to apply it.
+      dellemc.openmanage.idrac_secure_boot:
+        idrac_ip: "192.168.1.2"
+        idrac_user: "user"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        import_certificates: true
+        platform_key: /user/name/certificates/pk.pem
+        restart: true
+        job_wait_timeout: 600
+      delegate_to: localhost

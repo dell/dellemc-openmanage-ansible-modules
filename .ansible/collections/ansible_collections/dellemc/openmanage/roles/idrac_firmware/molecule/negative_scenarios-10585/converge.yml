@@ -1,0 +1,211 @@
+---
+- name: Converge idrac_firmware for negative scenarios
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Updating firmware with an invalid hostname
+      ansible.builtin.import_role:
+        name: dellemc.openmanage.idrac_firmware
+      vars:
+        hostname: "invalidHostname"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        share_name: "{{ lookup('env', 'httpshare') }}"
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
+        reboot: true
+        job_wait: true
+        apply_update: true
+      ignore_errors: true
+      register: idrac_firmware_result
+
+    - name: "Verifying Updating firmware with an invalid hostname"
+      ansible.builtin.assert:
+        that:
+          - "'unreachable iDRAC IP' in idrac_firmware_out.msg"
+
+    - name: Updating firmware with an invalid username
+      ansible.builtin.import_role:
+        name: dellemc.openmanage.idrac_firmware
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "invalidUsername"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        share_name: "{{ lookup('env', 'httpshare') }}"
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
+        reboot: true
+        job_wait: true
+        apply_update: true
+      ignore_errors: true
+      register: idrac_firmware_result
+
+    - name: "Verifying Updating firmware with an invalid username"
+      ansible.builtin.assert:
+        that:
+          - "'Incorrect username' in idrac_firmware_out.msg"
+
+    - name: Updating firmware with an invalid password
+      ansible.builtin.import_role:
+        name: dellemc.openmanage.idrac_firmware
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "invalidPassword"
+        share_name: "{{ lookup('env', 'httpsshare') }}"
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
+        reboot: true
+        job_wait: true
+        apply_update: true
+      ignore_errors: true
+      register: idrac_firmware_result
+
+    - name: "Verifying Updating firmware with an invalid password"
+      ansible.builtin.assert:
+        that:
+          - "'password' in idrac_firmware_out.msg"
+
+    - name: Updating firmware with an invalid ca_path
+      ansible.builtin.import_role:
+        name: dellemc.openmanage.idrac_firmware
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        share_name: "{{ lookup('env', 'httpsshare') }}"
+        ca_path: "/invalid/ca/path.cert"
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
+        reboot: true
+        job_wait: true
+        apply_update: true
+      ignore_errors: true
+      register: idrac_firmware_result
+
+    - name: "Verifying Updating firmware with an invalid ca_path"
+      ansible.builtin.assert:
+        that:
+          - "'Incorrect username or password, unreachable iDRAC IP or a failure in TLS/SSL handshake.' in idrac_firmware_out.msg"
+
+    - name: Updating firmware with catalog file without extension
+      ansible.builtin.import_role:
+        name: dellemc.openmanage.idrac_firmware
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        share_name: "{{ lookup('env', 'httpshare') }}"
+        reboot: true
+        job_wait: true
+        apply_update: true
+        catalog_file_name: "Catalog"
+      ignore_errors: true
+      register: idrac_firmware_result
+
+    - name: "Verifying Updating firmware with catalog file without extension"
+      ansible.builtin.assert:
+        that:
+          - idrac_firmware_out.msg == "catalog_file_name should be an XML file."
+
+    - name: Update firmware from repository on HTTPS Share with invalid share_user
+      ansible.builtin.import_role:
+        name: "idrac_firmware"
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        share_name: "{{ lookup('env', 'httpsshare') }}"
+        share_user: "invalidUser"
+        share_password: "{{ lookup('env', 'sharepassword') }}"
+        reboot: true
+        job_wait: true
+        apply_update: true
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
+      ignore_errors: true
+      register: idrac_firmware_result
+
+    - name: "Verifying update firmware from repository on a HTTPS Share with invalid share_user"
+      ansible.builtin.assert:
+        that:
+          - "'The specified user credentials necessary for downloading an update package were not correct.' in idrac_firmware_out.msg"
+
+    - name: Update firmware from repository on HTTPS Share with invalid share_password
+      ansible.builtin.import_role:
+        name: "idrac_firmware"
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        share_name: "{{ lookup('env', 'httpsshare') }}"
+        share_user: "{{ lookup('env', 'shareuser') }}"
+        share_password: "invalidPassword"
+        reboot: true
+        job_wait: true
+        apply_update: true
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
+      ignore_errors: true
+      register: idrac_firmware_result
+
+    - name: "Verifying update firmware from repository on a HTTPS Share with invalid share_password"
+      ansible.builtin.assert:
+        that:
+          - "'The specified user credentials necessary for downloading an update package were not correct.' in idrac_firmware_out.msg"
+
+    - name: Update firmware from repository on a HTTPS via parameter proxy Share with invalid proxy_uname
+      ansible.builtin.import_role:
+        name: "idrac_firmware"
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        share_name: "{{ lookup('env', 'httpsshare') }}"
+        share_user: "{{ lookup('env', 'shareuser') }}"
+        share_password: "{{ lookup('env', 'sharepassword') }}"
+        reboot: true
+        job_wait: true
+        apply_update: true
+        proxy_support: "ParametersProxy"
+        proxy_server: "{{ lookup('env', 'proxyserver') }}"
+        proxy_type: "HTTP"
+        proxy_port: "{{ lookup('env', 'proxy_port') }}"
+        proxy_uname: invalid_proxy_uname
+        proxy_passwd: "{{ lookup('env', 'proxy_password') }}"
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
+      ignore_errors: true
+      register: idrac_firmware_result
+
+    - name: "Verifying update firmware from repository on a HTTPS via parameter proxy share with invalid proxy_uname"
+      ansible.builtin.assert:
+        that:
+          - "'Unable to transfer file' in idrac_firmware_out.msg"
+          - "'because of some unknown reasons.' in idrac_firmware_out.msg"
+
+    - name: Update firmware from repository on a HTTPS via parameter proxy Share with invalid proxy_passwd
+      ansible.builtin.import_role:
+        name: "idrac_firmware"
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        share_name: "{{ lookup('env', 'httpsshare') }}"
+        share_user: "{{ lookup('env', 'shareuser') }}"
+        share_password: "{{ lookup('env', 'sharepassword') }}"
+        reboot: true
+        job_wait: true
+        apply_update: true
+        proxy_support: "ParametersProxy"
+        proxy_server: "{{ lookup('env', 'proxyserver') }}"
+        proxy_type: "HTTP"
+        proxy_port: "{{ lookup('env', 'proxy_port') }}"
+        proxy_uname: "{{ lookup('env', 'proxy_username') }}"
+        proxy_passwd: "invalidPasswd"
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
+      ignore_errors: true
+      register: idrac_firmware_result
+
+    - name: "Verifying update firmware from repository on a HTTPS via parameter proxy share with invalid proxy_passwd"
+      ansible.builtin.assert:
+        that:
+          - "'Unable to transfer file' in idrac_firmware_out.msg"
+          - "'because of some unknown reasons.' in idrac_firmware_out.msg"

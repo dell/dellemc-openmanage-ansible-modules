@@ -1,0 +1,93 @@
+---
+- name: Testing boot_options_using_boot_option_reference_enabled_true
+  hosts: all
+  gather_facts: false
+  vars:
+    hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
+    username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
+    password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+    boot_option_uri: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Systems/System.Embedded.1/BootOptions?$expand=*($levels=1)"
+  tasks:
+    - name: Preparing set_fact for uri
+      ansible.builtin.set_fact:
+        uri_input: &uri_input
+          user: "{{ username }}"
+          password: "{{ password }}"
+          validate_certs: "{{ validate_certs }}"
+          ca_path: "{{ ca_path | default(omit) }}"
+          headers:
+            Accept: "application/json"
+            Content-Type: "application/json"
+            OData-Version: "4.0"
+          body_format: "json"
+          return_content: true
+          force_basic_auth: true
+          timeout: "{{ https_timeout }}"
+      no_log: true
+
+    - name: Fetching boot_option_reference from iDRAC
+      ansible.builtin.uri:
+        <<: *uri_input
+        url: "{{ boot_option_uri }}"
+        method: GET
+      register: result_data
+      check_mode: false
+      no_log: true
+
+    - name: Extracing BootOptionReference from output
+      ansible.builtin.set_fact:
+        data: "{{ result_data.json.Members[0].BootOptionReference }}"
+
+    - name: Checking for LCStatus before running pre-requisite
+      ansible.builtin.include_tasks:
+        file: ../__lc_status_check.yaml
+
+    - name: Waiting for the iDRAC to be available
+      ansible.builtin.wait_for:
+        timeout: 60
+      tags: molecule-idempotence-notest
+
+    - name: Pre-requisite - Making sure enabled is false on first boot_option_reference
+      check_mode: false
+      ansible.builtin.import_role:
+        name: "idrac_boot"
+      vars:
+        boot_options:
+          - boot_option_reference: "{{ data | default('') }}"
+            enabled: false
+      tags: molecule-idempotence-notest
+
+    - name: TC-115424 - Validate boot_options using boot_option_reference and default enabled
+      ansible.builtin.include_role:
+        name: "idrac_boot"
+      vars:
+        boot_options:
+          - boot_option_reference: "{{ data | default('') }}"
+            enabled: true
+
+    - name: Checking for LCStatus after performing operation
+      ansible.builtin.include_tasks:
+        file: ../__lc_status_check.yaml
+
+    - name: Waiting for the iDRAC to be available
+      ansible.builtin.wait_for:
+        timeout: 60
+      tags: molecule-idempotence-notest
+
+    - name: Asserting TC-115424 in check mode
+      ansible.builtin.assert:
+        that: idrac_boot_out.msg == "Changes found to be applied."
+      when: ansible_check_mode
+      tags: molecule-idempotence-notest
+
+    - name: Asserting TC-115424 in normal mode
+      ansible.builtin.assert:
+        that: idrac_boot_out.msg == "Successfully updated the boot settings."
+      when: not ansible_check_mode and idrac_boot_out.changed
+
+    - name: Asserting TC-115424 in idempotence mode
+      ansible.builtin.assert:
+        that:
+          - idrac_boot_out.msg == "No changes found to be applied."
+      when: not ansible_check_mode and not idrac_boot_out.changed

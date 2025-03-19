@@ -1,0 +1,53 @@
+---
+argument_specs:
+  main:
+    version_added: "8.0.0"
+    short_description: Role to manage the iDRAC lifecycle controller job queue.
+    description:
+      - Role to role to manage the iDRAC lifecycle controller job queue.
+      - Delete a job from the job queue
+      - Clear job queue
+    options:
+      hostname:
+        required: true
+        type: str
+        description: iDRAC IP Address.
+      username:
+        type: str
+        description: iDRAC username.
+      password:
+        type: str
+        description: iDRAC user password.
+      https_port:
+        type: int
+        description: iDRAC port.
+        default: 443
+      validate_certs:
+        description:
+          - If C(false), the SSL certificates will not be validated.
+          - Configure C(false) only on personally controlled
+            sites where self-signed certificates are used.
+        type: bool
+        default: true
+      ca_path:
+        description:
+          - The Privacy Enhanced Mail (PEM) file that contains
+            a CA certificate to be used for the validation.
+        type: path
+      https_timeout:
+        description: The HTTPS socket level timeout in seconds.
+        type: int
+        default: 30
+      clear_job_queue:
+        description: Clear all the jobs from the iDRAC job queue.
+        type: bool
+        default: false
+      job_id:
+        description:
+          - Id of the job to be deleted.
+          - If I(clear_job_queue) is C(true) then the I(job_id) will be ignored.
+        type: str
+      force:
+        description: Clear all the jobs from the iDRAC job queue forcefully.
+        type: bool
+        default: false

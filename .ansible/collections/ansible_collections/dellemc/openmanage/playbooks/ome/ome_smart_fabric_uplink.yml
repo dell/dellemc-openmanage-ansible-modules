@@ -1,0 +1,121 @@
+---
+- name: Dell OpenManage Ansible smart fabric uplink configuration.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Create a Uplink
+      dellemc.openmanage.ome_smart_fabric_uplink:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "present"
+        fabric_name: "fabric1"
+        name: "uplink1"
+        description: "CREATED from OMAM"
+        uplink_type: "Ethernet"
+        ufd_enable: "Enabled"
+        primary_switch_service_tag: "ABC1234"
+        primary_switch_ports:
+          - ethernet1/1/13
+          - ethernet1/1/14
+        secondary_switch_service_tag: "XYZ1234"
+        secondary_switch_ports:
+          - ethernet1/1/13
+          - ethernet1/1/14
+        tagged_networks:
+          - vlan1
+          - vlan3
+        untagged_network: vlan2
+      tags: create_uplink
+      delegate_to: localhost
+
+    - name: Modify a existing uplink1
+      dellemc.openmanage.ome_smart_fabric_uplink:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "present"
+        fabric_name: "fabric1"
+        name: "uplink1"
+        new_name: "uplink2"
+        description: "Modified from OMAM"
+        uplink_type: "Ethernet"
+        ufd_enable: "Disabled"
+        primary_switch_service_tag: "DEF1234"
+        primary_switch_ports:
+          - ethernet1/2/13
+          - ethernet1/2/14
+        secondary_switch_service_tag: "TUV1234"
+        secondary_switch_ports:
+          - ethernet1/2/13
+          - ethernet1/2/14
+        tagged_networks:
+          - vlan11
+          - vlan33
+        untagged_network: vlan22
+      tags: modify_uplink
+      delegate_to: localhost
+
+    - name: Delete a Uplink
+      dellemc.openmanage.ome_smart_fabric_uplink:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "absent"
+        fabric_name: "fabric1"
+        name: "uplink1"
+      tags: delete_uplink
+      delegate_to: localhost
+
+    - name: Modify the Uplink name
+      dellemc.openmanage.ome_smart_fabric_uplink:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "present"
+        fabric_name: "fabric1"
+        name: "uplink1"
+        new_name: "uplink2"
+      tags: modify_uplink_name
+      delegate_to: localhost
+
+    - name: Modify a Uplink ports
+      dellemc.openmanage.ome_smart_fabric_uplink:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "present"
+        fabric_name: "fabric1"
+        name: "uplink1"
+        description: "uplink ports modified"
+        primary_switch_service_tag: "ABC1234"
+        primary_switch_ports:
+          - ethernet1/1/6
+          - ethernet1/1/7
+        secondary_switch_service_tag: "XYZ1234"
+        secondary_switch_ports:
+          - ethernet1/1/9
+          - ethernet1/1/10
+      tags: modify_ports
+      delegate_to: localhost
+
+    - name: Modify Uplink networks
+      dellemc.openmanage.ome_smart_fabric_uplink:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "present"
+        fabric_name: "fabric1"
+        name: "create1"
+        description: "uplink networks modified"
+        tagged_networks:
+          - vlan4
+      tags: modify_networks
+      delegate_to: localhost

@@ -1,0 +1,14 @@
+---
+- name: Get Sensor Battery information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_system }}/Oem/Dell/DellSensors/iDRAC.Embedded.1_0x23_SystemBoardCMOSBattery"
+  register: battery_result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Set Sensor Battery facts
+  ansible.builtin.set_fact:
+    "sensor_battery":
+      "{{ battery_result.json | ansible.utils.remove_keys(target=['@odata.context',
+      '@odata.id', '@odata.type']) }}"
+  when: battery_result.status == 200
+  register: battery_result_register

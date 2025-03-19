@@ -1,0 +1,232 @@
+---
+- name: Setting up hostname with port
+  ansible.builtin.set_fact:
+    baseuri: "{{ hostname }}:{{ https_port }}"
+
+- name: Setting common options
+  ansible.builtin.set_fact:
+    idrac_inputs: &idrac_inputs
+      baseuri: "{{ baseuri }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      validate_certs: "{{ validate_certs }}"
+      ca_path: "{{ ca_path | default(omit) }}"
+      timeout: "{{ https_timeout }}"
+  no_log: true
+
+- name: Storage controller reset configuration.
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    <<: *idrac_inputs
+    command: "ResetConfig"
+    controller_id: "{{ controller_id }}"
+    job_wait: "{{ job_wait }}"
+    job_wait_timeout: "{{ job_wait_timeout }}"
+  register: reset_config_out
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
+  when: reset_config is true
+
+- name: Storage controller attributes configuration.
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    <<: *idrac_inputs
+    controller_id: "{{ controller_id }}"
+    attributes: "{{ attributes }}"
+    apply_time: "{{ apply_time }}"
+    maintenance_window: "{{ maintenance_window | default(omit) }}"
+    job_wait: "{{ job_wait }}"
+    job_wait_timeout: "{{ job_wait_timeout }}"
+  register: attributes_config_out
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
+  when: attributes is defined
+
+- name: Storage set controller key configuration.
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    <<: *idrac_inputs
+    command: "SetControllerKey"
+    controller_id: "{{ controller_id }}"
+    key: "{{ key | default(omit) }}"
+    key_id: "{{ key_id | default(omit) }}"
+    job_wait: "{{ job_wait }}"
+    job_wait_timeout: "{{ job_wait_timeout }}"
+  register: set_controller_key_out
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
+  when: set_controller_key is true and key is defined and key_id is defined and mode is undefined
+
+- name: Storage remove controller key configuration.
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    <<: *idrac_inputs
+    command: "RemoveControllerKey"
+    controller_id: "{{ controller_id }}"
+    job_wait: "{{ job_wait }}"
+    job_wait_timeout: "{{ job_wait_timeout }}"
+  register: remove_controller_key_out
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
+  when: remove_key is true
+
+- name: Storage controller rekey configuration.
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    <<: *idrac_inputs
+    command: "ReKey"
+    controller_id: "{{ controller_id }}"
+    key: "{{ key | default(omit) }}"
+    key_id: "{{ key_id | default(omit) }}"
+    old_key: "{{ old_key | default(omit) }}"
+    mode: "{{ mode | default(omit) }}"
+    job_wait: "{{ job_wait }}"
+    job_wait_timeout: "{{ job_wait_timeout }}"
+  register: storage_controller_rekey
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
+  when: rekey is true
+
+- name: Storage enable controller encryption.
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    <<: *idrac_inputs
+    command: "EnableControllerEncryption"
+    controller_id: "{{ controller_id }}"
+    key: "{{ key | default(omit) }}"
+    key_id: "{{ key_id | default(omit) }}"
+    mode: "{{ mode | default(omit) }}"
+    job_wait: "{{ job_wait }}"
+    job_wait_timeout: "{{ job_wait_timeout }}"
+  register: enable_encryption_out
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
+  when:
+    set_controller_key is true and key is defined and key_id is defined and mode is defined
+
+- name: Performing secure erase on a physical disk.
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    <<: *idrac_inputs
+    command: "SecureErase"
+    controller_id: "{{ controller_id }}"
+    target: "{{ disks.id }}"
+    job_wait: "{{ job_wait }}"
+    job_wait_timeout: "{{ job_wait_timeout }}"
+  register: erase_state_out
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
+  when: disks.erase is defined and disks.erase is true
+
+- name: Change physical disk state.
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    <<: *idrac_inputs
+    command: "{{ 'ChangePDStateToOnline' if disks.status == 'online' else 'ChangePDStateToOffline' }}"
+    controller_id: "{{ controller_id }}"
+    target: "{{ disks.id }}"
+    job_wait: "{{ job_wait }}"
+    job_wait_timeout: "{{ job_wait_timeout }}"
+  register: pd_state_out
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
+  when: disks.status is defined
+
+- name: Change physical disk raid state.
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    <<: *idrac_inputs
+    command: "{{ 'ConvertToRAID' if disks.raid_state == 'raid' else 'ConvertToNonRAID' }}"
+    controller_id: "{{ controller_id }}"
+    target: "{{ disks.id }}"
+    job_wait: "{{ job_wait }}"
+    job_wait_timeout: "{{ job_wait_timeout }}"
+  register: raid_state_out
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
+  when: disks.raid_state is defined
+
+- name: Assign dedicated hot spare
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    <<: *idrac_inputs
+    command: "AssignSpare"
+    controller_id: "{{ controller_id }}"
+    volume_id: "{{ volumes.id }}"
+    target: "{{ volumes.dedicated_hot_spare }}"
+    job_wait: "{{ job_wait }}"
+    job_wait_timeout: "{{ job_wait_timeout }}"
+  register: assign_dedicated_spare_out
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
+  when: volumes.id is defined and volumes.dedicated_hot_spare is defined
+
+- name: Assign global hot spare
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    <<: *idrac_inputs
+    command: "AssignSpare"
+    controller_id: "{{ controller_id }}"
+    target: "{{ disks.id }}"
+    job_wait: "{{ job_wait }}"
+    job_wait_timeout: "{{ job_wait_timeout }}"
+  register: assign_global_spare_out
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
+  when: disks.id is defined and disks.global_hot_spare is true
+
+- name: Unassign hot spare
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    <<: *idrac_inputs
+    command: "UnassignSpare"
+    controller_id: "{{ controller_id }}"
+    target: "{{ disks.id }}"
+    job_wait: "{{ job_wait }}"
+    job_wait_timeout: "{{ job_wait_timeout }}"
+  register: unassign_hotspare_out
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
+  when: disks.global_hot_spare is false and disks.id is defined
+
+- name: Lock virtual disk
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    <<: *idrac_inputs
+    command: "LockVirtualDisk"
+    controller_id: "{{ controller_id }}"
+    volume_id: "{{ volumes.id }}"
+    job_wait: "{{ job_wait }}"
+    job_wait_timeout: "{{ job_wait_timeout }}"
+  register: lock_vd_out
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
+  when: volumes.encrypted is true
+
+- name: Online capacity expansion of a volume using target
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    <<: *idrac_inputs
+    command: "OnlineCapacityExpansion"
+    controller_id: "{{ controller_id }}"
+    volume_id: "{{ volumes.id }}"
+    target: "{{ volumes.expand_capacity_disk | default(omit) }}"
+    size: "{{ volumes.expand_capacity_size | default(omit) }}"
+    job_wait: "{{ job_wait }}"
+    job_wait_timeout: "{{ job_wait_timeout }}"
+  register: oce_vd_out
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
+  when: volumes.expand_capacity_disk is defined or volumes.expand_capacity_size is defined
+
+- name: Blink and Un-blink virtual disk
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    <<: *idrac_inputs
+    command: "{{ 'BlinkTarget' if volumes.blink is true else 'UnBlinkTarget' }}"
+    controller_id: "{{ controller_id }}"
+    volume_id: "{{ volumes.id }}"
+  register: blink_vd_out
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
+  when: volumes.blink is defined
+
+- name: Blink and Un-blink physical disk
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    <<: *idrac_inputs
+    command: "{{ 'BlinkTarget' if disks.blink is true else 'UnBlinkTarget' }}"
+    controller_id: "{{ controller_id }}"
+    target: "{{ disks.id }}"
+  register: blink_pd_out
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
+  when: disks.blink is defined
+
+- name: Collecting all the registers
+  ansible.builtin.set_fact:
+    idrac_storage_controller_out:
+      controller_reset_config: "{{ reset_config_out }}"
+      controller_attributes_config: "{{ attributes_config_out }}"
+      controller_rekey: "{{ storage_controller_rekey }}"
+      enable_encryption: "{{ enable_encryption_out }}"
+      set_controller_key: "{{ set_controller_key_out }}"
+      remove_controller_key: "{{ remove_controller_key_out }}"
+      physical_disk_state: "{{ pd_state_out }}"
+      physical_disk_raid_state: "{{ raid_state_out }}"
+      assign_dedicated_spare: "{{ assign_dedicated_spare_out }}"
+      assign_global_spare: "{{ assign_global_spare_out }}"
+      unassign_hotspare: "{{ unassign_hotspare_out }}"
+      lock_vd: "{{ lock_vd_out }}"
+      oce_vd: "{{ oce_vd_out }}"
+      blink_vd: "{{ blink_vd_out }}"
+      blink_pd: "{{ blink_pd_out }}"
+      secure_erase: "{{ erase_state_out }}"

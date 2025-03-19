@@ -1,0 +1,39 @@
+- name: Helper file for NIC
+  block:
+    - name: Fetch network adapter id
+      ansible.builtin.uri: &network_uri
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/Systems/System.Embedded.1/NetworkAdapters"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        method: GET
+        body: {}
+        validate_certs: false
+        body_format: json
+        return_content: true
+        status_code: 200
+        headers: 'Accept=application/json'
+        force_basic_auth: true
+      register: fetched_network_adapter_id
+
+    - name: Extracting network adapter id
+      ansible.builtin.set_fact:
+        network_adapter_id: "{{ fetched_network_adapter_id.content | from_json | json_query('Members[0]') }}"
+
+    - name: Setting network adapter id
+      ansible.builtin.set_fact:
+        inp_network_adapter_id: "{{ '@odata.id' | extract(network_adapter_id) | split('/') | last }}"
+
+    - name: Fetch network device function id
+      ansible.builtin.uri:
+        <<: *network_uri
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/Systems\
+        /System.Embedded.1/NetworkAdapters/{{ inp_network_adapter_id }}/NetworkDeviceFunctions"
+      register: fetched_network_device_function_id
+
+    - name: Extracting network device function id
+      ansible.builtin.set_fact:
+        network_device_function_id: "{{ fetched_network_device_function_id.content | from_json | json_query('Members[0]') }}"
+
+    - name: Setting network device function id
+      ansible.builtin.set_fact:
+        inp_network_device_function_id: "{{ '@odata.id' | extract(network_device_function_id) | split('/') | last }}"

@@ -1,0 +1,24 @@
+---
+- name: Dell OpenManage Ansible firmware baseline details.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Retrieve details of all the available firmware baselines.
+      dellemc.openmanage.ome_firmware_baseline_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+      tags: firmware_baselines
+      delegate_to: localhost
+
+    - name: Retrieve details of a specific firmware baseline identified by its baseline name.
+      dellemc.openmanage.ome_firmware_baseline_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline_name: "baseline_name"
+      tags: firmware_baseline
+      delegate_to: localhost

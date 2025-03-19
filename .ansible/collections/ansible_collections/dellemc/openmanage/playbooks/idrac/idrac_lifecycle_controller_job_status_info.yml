@@ -1,0 +1,14 @@
+---
+- name: Get LC job Status
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Get LC job Status
+      dellemc.openmanage.idrac_lifecycle_controller_job_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        job_id: "JID_844222910040"
+      delegate_to: localhost

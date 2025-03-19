@@ -1,0 +1,71 @@
+---
+- name: Dell OpenManage Ansible User service.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Create new user.
+      dellemc.openmanage.ome_user:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        attributes:
+          UserName: "user1"
+          Password: "UserPassword"
+          RoleId: "10"
+          Enabled: true
+      delegate_to: localhost
+
+    - name: Create user with all parameters
+      dellemc.openmanage.ome_user:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "present"
+        attributes:
+          UserName: "user2"
+          Description: "user2 description"
+          Password: "UserPassword"
+          RoleId: "10"
+          Enabled: true
+          DirectoryServiceId: 0
+          UserTypeId: 1
+          Locked: false
+          Name: "user2"
+      delegate_to: localhost
+
+    - name: Modify existing user
+      dellemc.openmanage.ome_user:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "present"
+        attributes:
+          UserName: "user3"
+          RoleId: "10"
+          Enabled: true
+          Description: "Modify user Description"
+      delegate_to: localhost
+
+    - name: Delete existing user using id.
+      dellemc.openmanage.ome_user:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "absent"
+        user_id: 61874
+      delegate_to: localhost
+
+    - name: Delete existing user using name.
+      dellemc.openmanage.ome_user:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "absent"
+        name: "name"
+      delegate_to: localhost

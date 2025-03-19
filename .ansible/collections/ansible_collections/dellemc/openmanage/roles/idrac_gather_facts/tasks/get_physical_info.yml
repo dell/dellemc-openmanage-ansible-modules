@@ -1,0 +1,24 @@
+---
+- name: Get Storage information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_system }}/Storage"
+  register: disk_result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Get all storage controller ids.
+  ansible.builtin.set_fact:
+    storage_ids_list: "{{ disk_result.json.Members | map('dict2items') | flatten | map(attribute='value') }}"
+
+- name: Get PhysicalDisk information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ item }}?$expand=*($levels=1)"
+  loop: "{{ storage_ids_list }}"
+  register: result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Set Physical Disk facts
+  ansible.builtin.set_fact:
+    physical_disk:
+      "{{ result.results | selectattr('json', 'defined') | map(attribute='json') | selectattr('Drives', 'defined') |
+      map(attribute='Drives') | flatten | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type',
+      'Actions', 'Assembly', 'Links', 'DellDriveSMARTAttributes', 'DellNVMeSMARTAttributes', 'Operations@odata.count']) }}"

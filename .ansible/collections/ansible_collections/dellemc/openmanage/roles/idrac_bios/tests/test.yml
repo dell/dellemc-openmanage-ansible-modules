@@ -1,0 +1,6 @@
+---
+- name: Testing idrac_bios
+  hosts: localhost
+  remote_user: root
+  roles:
+    - idrac_bios

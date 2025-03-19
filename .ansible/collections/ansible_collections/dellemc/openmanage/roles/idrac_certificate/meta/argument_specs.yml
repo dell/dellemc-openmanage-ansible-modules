@@ -1,0 +1,132 @@
+---
+argument_specs:
+  main:
+    version_added: "7.4.0"
+    short_description: This role allows to generate certificate signing
+     request, import, and export certificates on iDRAC
+    description:
+      - Role to manage the iDRAC certificates - Generate CSR,
+         Import/Export certificates, and Reset configuration - for
+          PowerEdge servers.
+    options:
+      hostname:
+        required: true
+        type: str
+        description: iDRAC IP Address.
+      username:
+        type: str
+        description: iDRAC username.
+      password:
+        type: str
+        description: iDRAC user password.
+      https_port:
+        type: int
+        description: iDRAC port.
+        default: 443
+      validate_certs:
+        description:
+          - If C(false), the SSL certificates will not be validated.
+          - Configure C(false) only on personally controlled sites where
+             self-signed certificates are used.
+          - Prior to collection version C(5.0.0), the I(validate_certs) is
+             C(false) by default.
+        type: bool
+        default: true
+      ca_path:
+        description:
+          - The Privacy Enhanced Mail (PEM) file that contains a
+             CA certificate to be used for the validation.
+        type: str
+      https_timeout:
+        description: The socket level timeout in seconds.
+        type: int
+        default: 30
+      command:
+        description: C(generate_csr), generate CSR. This requires
+         I(cert_params) and I(certificate_path).
+        choices: ["import", "export", "generate_csr", "reset"]
+        default: "generate_csr"
+        type: str
+      certificate_type:
+        description: Type of the iDRAC certificate
+          - C(HTTPS) The Dell self-signed SSL certificate.
+          - C(CA) Certificate Authority(CA) signed SSL certificate.
+          - C(CSC) The custom signed SSL certificate.
+          - C(CLIENT_TRUST_CERTIFICATE) Client trust certificate.
+          - C(CUSTOMCERTIFICATE) The custom PKCS12 certificate and private key.
+             Export of custom certificate is supported only on
+             iDRAC firmware version 7.00.00.00 and above.
+        type: str
+        choices: ["HTTPS", "CA", "CSC", "CLIENT_TRUST_CERTIFICATE",
+                  "CUSTOMCERTIFICATE"]
+        default: "HTTPS"
+      certificate_path:
+        description:
+          - Absolute path of the certificate file if I(command) is C(import).
+          - Directory path with write permissions if I(command)
+             is C(generate_csr) or C(export).
+        type: path
+      passphrase:
+        description: The passphrase string if the certificate to be
+         imported is passphrase protected.
+        type: str
+      ssl_key:
+        description:
+          - Absolute path of the private or SSL key file.
+          - This is applicable only when I(command) is C(import)
+             and I(certificate_type) is C(HTTPS).
+          - Uploading the SSL key on iDRAC is supported on version
+             6.00.02.00 and newer versions.
+        type: path
+        version_added: 8.6.0
+      cert_params:
+        description: Certificate parameters to generate signing request.
+        type: dict
+        options:
+          common_name:
+            description: The common name of the certificate.
+            type: str
+          organization_unit:
+            description: The name associated with an organizational unit.
+             For example, department name.
+            type: str
+            default: true
+          locality_name:
+            description: The city or other location where the entity
+             applying for certification is located.
+            type: str
+          state_name:
+            description: The state where the entity applying for
+             certification is located.
+            type: str
+          country_code:
+            description: The country code of the country where the entity
+             applying for certification is located.
+            type: str
+          email_address:
+            description: The email associated with the CSR.
+            type: str
+          organization_name:
+            description: The name associated with an organization.
+            type: str
+          subject_alt_name:
+            description: The alternative domain names associated with the request.
+            type: list
+            elements: str
+            default: []
+      resource_id:
+        description: Redfish ID of the resource.
+        type: str
+      reset:
+        description:
+          - To reset the iDRAC after the certificate operation.
+          - This is applicable when I(command) is C(import) or C(reset).
+        type: bool
+        default: true
+      wait:
+        description:
+          - Maximum wait time for iDRAC to start after the reset, in seconds.
+          - This is applicable when I(command) is C(import) or C(reset)
+             and I(reset) is C(True).
+        type: int
+        default: 300

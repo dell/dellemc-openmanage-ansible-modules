@@ -1,0 +1,21 @@
+- name: Dell OpenManage Ansible Alert policy info
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Retrieve information about all the OME alert policies.
+      dellemc.openmanage.ome_alert_policies_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+      delegate_to: localhost
+
+    - name: Retrieve information about specific OME alert policy.
+      dellemc.openmanage.ome_alert_policies_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        policy_name: "Mobile Push Notification - Critical Alerts"
+      delegate_to: localhost

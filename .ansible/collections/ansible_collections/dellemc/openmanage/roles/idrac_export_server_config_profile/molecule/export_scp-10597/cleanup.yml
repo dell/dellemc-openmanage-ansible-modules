@@ -1,0 +1,86 @@
+---
+# This is an example playbook to execute Ansible cleanup.
+
+- name: Cleanup
+  hosts: all
+  gather_facts: false
+  vars:
+    local_path: "{{ lookup('env', 'local_path') }}"
+    local_filename: "{{ lookup('env', 'local_filename') }}"
+    nfs_filename: "{{ lookup('env', 'nfs_filename') }}"
+    cifs_filename: "{{ lookup('env', 'cifs_filename') }}"
+    https_filename: "{{ lookup('env', 'https_filename') }}"
+    http_filename: "{{ lookup('env', 'http_filename') }}"
+    nfs_mount_path: "{{ lookup('env', 'nfs_mount_path') }}"
+    cifs_mount_path: "{{ lookup('env', 'cifs_mount_path') }}"
+
+    nfs_url: "{{ lookup('env', 'nfs_url') }}"
+    cifs_url: "{{ lookup('env', 'cifs_url') }}"
+    cifs_username: "{{ lookup('env', 'cifs_username') }}"
+    cifs_password: "{{ lookup('env', 'cifs_password') }}"
+
+    https_url: "{{ lookup('env', 'https_url') }}"
+    https_username: "{{ lookup('env', 'https_username') }}"
+    https_password: "{{ lookup('env', 'https_password') }}"
+
+    http_url: "{{ lookup('env', 'http_url') }}"
+    http_username: "{{ lookup('env', 'http_username') }}"
+    http_password: "{{ lookup('env', 'http_password') }}"
+  tasks:
+    - name: Checking file exists in NFS mount
+      ansible.builtin.stat:
+        path: "{{ nfs_mount_path }}/{{ nfs_filename }}"
+      register: nfs_file
+
+    - name: Checking file exists in CIFS mount
+      ansible.builtin.stat:
+        path: "{{ cifs_mount_path }}/{{ cifs_filename }}"
+      register: cifs_file
+
+    - name: Checking file exists in current location
+      ansible.builtin.stat:
+        path: "{{ http_filename }}"
+      register: http_file
+
+    - name: Checking file exists in current location
+      ansible.builtin.stat:
+        path: "{{ https_filename }}"
+      register: https_file
+
+    - name: Deleting the file if exists in NFS mounted
+      ansible.builtin.file:
+        path: "{{ nfs_mount_path }}/{{ nfs_filename }}"
+        state: absent
+      when: nfs_file.stat.exists
+
+    - name: Deleting the file if exists in CIFS mounted
+      ansible.builtin.file:
+        path: "{{ cifs_mount_path }}/{{ cifs_filename }}"
+        state: absent
+      when: cifs_file.stat.exists
+
+    - name: Deleting the file if exists in HTTP
+      ansible.builtin.file:
+        path: "{{ http_filename }}"
+        state: absent
+      when: http_file.stat.exists
+
+    - name: Deleting the file if exists in HTTPS
+      ansible.builtin.file:
+        path: "{{ https_filename }}"
+        state: absent
+      when: https_file.stat.exists
+
+    - name: Unmount NFS volume and delete the directory
+      ansible.builtin.command: "umount '{{ nfs_mount_path }}' &&
+       rm -rf '{{ nfs_mount_path }}'"
+      register: unmount_nfs
+      changed_when: unmount_nfs.rc == 0
+      failed_when: false
+
+    - name: Unmount CIFS volume and delete the directory
+      ansible.builtin.command: "umount '{{ cifs_mount_path }}'
+       && rm -rf '{{ cifs_mount_path }}'"
+      register: unmount_cifs
+      changed_when: unmount_cifs.rc == 0
+      failed_when: false

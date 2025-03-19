@@ -1,0 +1,175 @@
+---
+- name: "Redfish Storage Volume - Ansible Module"
+  hosts: redfish_hosts
+  gather_facts: false
+  vars:
+    retries_count: 15
+    polling_interval: 5
+
+  tasks:
+    - name: Create a volume with supported options.
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "present"
+        volume_type: "Mirrored"
+        name: "VD0"
+        controller_id: "RAID.Slot.1-1"
+        drives:
+          - Disk.Bay.5:Enclosure.Internal.0-1:RAID.Slot.1-1
+          - Disk.Bay.6:Enclosure.Internal.0-1:RAID.Slot.1-1
+        block_size_bytes: 512
+        capacity_bytes: 299439751168
+        optimum_io_size_bytes: 65536
+        encryption_types: NativeDriveEncryption
+        encrypted: true
+      register: result
+      tags:
+        - create_volume1
+      delegate_to: localhost
+
+    - name: Create a volume with minimum options.
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "present"
+        controller_id: "RAID.Slot.1-1"
+        volume_type: "NonRedundant"
+        drives:
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+      tags:
+        - create_volume2
+      delegate_to: localhost
+
+    - name: Create a RAID6 volume.
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "present"
+        controller_id: "RAID.Slot.1-1"
+        raid_type: "RAID6"
+        drives:
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-3
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-4
+      tags:
+        - create_raid6
+      delegate_to: localhost
+
+    - name: Create a RAID60 volume.
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "present"
+        controller_id: "RAID.Slot.1-1"
+        raid_type: "RAID60"
+        drives:
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-3
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-4
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-5
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-6
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-7
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-8
+      tags:
+        - create_raid60
+      delegate_to: localhost
+
+    - name: Create a RAID0 on PERC controller on reset
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: "192.168.0.1"
+        username: "username"
+        password: "password"
+        state: "present"
+        controller_id: "RAID.Slot.1-1"
+        raid_type: "RAID0"
+        drives:
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+        apply_time: OnReset
+      tags:
+        - create_raid0_with_onreset
+      delegate_to: localhost
+
+    - name: Create a RAID0 on BOSS controller with restart
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: "192.168.0.1"
+        username: "username"
+        password: "password"
+        state: "present"
+        controller_id: "RAID.Slot.1-1"
+        raid_type: "RAID0"
+        drives:
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+        apply_time: OnReset
+        reboot_server: true
+      tags:
+        - create_raid0_boss_with_onreset
+      delegate_to: localhost
+
+    - name: Create a RAID0 on BOSS controller with force restart
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: "192.168.0.1"
+        username: "username"
+        password: "password"
+        state: "present"
+        controller_id: "RAID.Slot.1-1"
+        raid_type: "RAID0"
+        drives:
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+        reboot_server: true
+        force_reboot: true
+      tags:
+        - create_raid0_boss_with_onreset_force
+      delegate_to: localhost
+
+    - name: Modify a volume's encryption type settings.
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "present"
+        volume_id: "Disk.Virtual.5:RAID.Slot.1-1"
+        encryption_types: "ControllerAssisted"
+        encrypted: true
+      tags:
+        - modify_volume
+      delegate_to: localhost
+
+    - name: Initialize an existing volume.
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "initialize"
+        volume_id: "Disk.Virtual.5:RAID.Slot.1-1"
+        initialize_type: "Slow"
+      tags:
+        - initialize_volume
+      delegate_to: localhost
+
+    - name: Delete an existing volume.
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "absent"
+        volume_id: "Disk.Virtual.5:RAID.Slot.1-1"
+      tags:
+        - delete_volume
+      delegate_to: localhost

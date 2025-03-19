@@ -1,0 +1,51 @@
+---
+- name: Dell OpenManage Ansible configuration compliance baseline workflow.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Create a configuration compliance baseline using group names
+      dellemc.openmanage.ome_configuration_compliance_baseline:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: create
+        template_name: "template 1"
+        job_wait_timeout: 1000
+        names: "baseline1"
+        description: "description of baseline"
+        device_group_names:
+          - "Group1"
+          - "Group2"
+      delegate_to: localhost
+
+    - name: Retrieve the compliance report of all of the devices in the specified configuration compliance baseline.
+      dellemc.openmanage.ome_configuration_compliance_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline: "baseline1"
+      register: compliance_report
+      delegate_to: localhost
+
+    # This tasks returns list of device ids.
+    # In case if you want to get devices based on service tag change attribute ServiceTag
+    # and next task device_ids attribute replaced with device_service_tag.
+    - name: Filter the non compliant device based on the retrieved compliance report.
+      ansible.builtin.set_fact:
+        non_compliance_devices: "{{ compliance_report.compliance_info | selectattr('ComplianceStatus', 'equalto', 'NONCOMPLIANT') | map(attribute='Id')
+        | list }}"
+
+    - name: Remediate a specified non-complaint devices to a configuration compliance baseline using device IDs # noqa: args[module]
+      dellemc.openmanage.ome_configuration_compliance_baseline:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "remediate"
+        names: "baseline1"
+        device_ids: "{{ non_compliance_devices }}"
+      when: "non_compliance_devices | length > 0"
+      delegate_to: localhost

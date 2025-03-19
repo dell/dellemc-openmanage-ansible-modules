@@ -1,0 +1,113 @@
+---
+- name: Helper File
+  block:
+    - name: Waiting for iDRAC to be in ready state
+      ansible.builtin.include_tasks:
+        file: ../__lc_status.yaml
+
+    - name: Pre-req - Fetch volumes
+      ansible.builtin.include_tasks: ../__fetch_volumes.yml
+      vars:
+        post_op: false
+      when: initial_state is defined
+
+    - name: Pre-req -  Reset controller configuration
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "{{ lookup('env', 'IDRAC_IP') }}:443"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        command: "ResetConfig"
+        controller_id: "{{ controller_name }}"
+        job_wait: true
+        job_wait_timeout: 1200
+      register: idrac_storage_controller_reset
+      ignore_errors: true
+      when: reset_trigger is defined
+      check_mode: false
+
+    - name: Waiting for iDRAC to be in ready state
+      ansible.builtin.include_tasks:
+        file: ../__lc_status.yaml
+
+    - name: Pre-Req - Unassigned hot spare
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "{{ lookup('env', 'IDRAC_IP') }}:443"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        command: "UnassignSpare"
+        target: "{{ target }}"
+        job_wait: true
+        job_wait_timeout: 1200
+      register: idrac_storage_controller_prereq_result
+      ignore_errors: true
+      when: target is defined
+      check_mode: false
+
+    - name: Pre-req - Create VD
+      dellemc.openmanage.idrac_storage_volume:
+        idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+        idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+        idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        state: "create"
+        controller_id: "{{ controller_name }}"
+        volume_type: "{{ volume_type }}"
+        span_length: "{{ span_length }}"
+        volumes:
+          - name: "ansible_test"
+            drives:
+              id: "{{ id }}"
+      register: idrac_storage_controller_result_create_vd
+      ignore_errors: "{{ ignore_errors_val }}"
+      when: vd_trigger is defined
+      retries: 5
+      delay: 30
+      until: "'HTTP Error 503' not in
+       idrac_storage_controller_result_create_vd.msg"
+      check_mode: false
+
+    - name: Pre-req - Fetch volumes after creating the VD
+      ignore_errors: true
+      register: idrac_storage_controller_result_create_vd
+      ansible.builtin.include_tasks: ../__fetch_volumes.yml
+      vars:
+        post_op: true
+      when: vd_trigger is defined and
+       idrac_storage_controller_result_create_vd.msg == "Successfully
+       completed the create storage volume operation."
+
+    - name: Pre-Req - Change physical disk state to offline/online.
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "{{ lookup('env', 'IDRAC_IP') }}:443"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        command: "{{ command }}"
+        target: "{{ target_disk }}"
+        job_wait: true
+        job_wait_timeout: 120
+      register: idrac_storage_controller_res_status
+      when: change_disk_state is defined
+      check_mode: false
+
+    - name: Pre-Req - Convert physical disk to non-RAID/Raid
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "{{ lookup('env', 'IDRAC_IP') }}:443"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        command: "{{ command }}"
+        target: "{{ target_raid_disk }}"
+        job_wait: true
+        job_wait_timeout: 1200
+      when: target_raid_disk is defined
+      check_mode: false
+
+    - name: Waiting for iDRAC to be in ready state
+      ignore_errors: true
+      register: idrac_storage_controller_res_status
+      ansible.builtin.include_tasks:
+        file: ../__lc_status.yaml
+      no_log: true

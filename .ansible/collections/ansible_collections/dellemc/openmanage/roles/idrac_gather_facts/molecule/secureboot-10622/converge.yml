@@ -1,0 +1,44 @@
+---
+- name: Converge idrac_gather_facts for SecureBoot
+  hosts: all
+  gather_facts: false
+  vars:
+    hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+    username: "{{ lookup('env', 'IDRAC_USER') }}"
+    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+    target:
+      - SecureBoot
+    idrac_gather_facts_uri_method: "GET"
+    idrac_gather_facts_uri_headers:
+      Accept: "application/json"
+      Content-Type: "application/json"
+      OData-Version: "4.0"
+    idrac_gather_facts_uri_body_format: "json"
+    idrac_gather_facts_uri_status_code:
+      - 200
+      - 400
+      - 401
+      - 404
+      - -1
+    idrac_gather_facts_uri_return_content: true
+    diff_data: {}
+    exclude_keys: []
+    api_system: "/redfish/v1/Systems/System.Embedded.1"
+
+  tasks:
+    - name: Gather Facts for the Secureboot component
+      ansible.builtin.include_role:
+        name: "idrac_gather_facts"
+
+    - name: Assert secureboot supply dict for length
+      ansible.builtin.assert:
+        that:
+          - "{{ secure_boot | length > 0 }}"
+      when: secure_boot_result.status == 200 and
+            secure_boot_db_result.status == 200
+
+    - name: Call assertion
+      ansible.builtin.include_tasks: ../../tests/asserts/secureboot_assert.yml
+      when: secure_boot_result.status == 200 and
+            secure_boot_db_result.status == 200

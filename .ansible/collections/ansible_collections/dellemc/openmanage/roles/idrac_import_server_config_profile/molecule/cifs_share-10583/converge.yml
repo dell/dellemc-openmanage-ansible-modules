@@ -1,0 +1,55 @@
+---
+- name: Converge
+  hosts: all
+  vars:
+    share_input: &share_input
+      share_name: "{{ lookup('env', 'cifs_url') }}"
+      share_user: "{{ lookup('env', 'cifs_username') }}"
+      share_password: "{{ lookup('env', 'cifs_password') }}"
+      scp_file: "{{ lookup('env', 'cifs_filename') }}"
+  gather_facts: false
+  tasks:
+    - name: "Pre-requisites"
+      ansible.builtin.include_tasks:
+        file: "../resources/tests/export.yml"
+      vars:
+        _share_parameters:
+          <<: *share_input
+      when: ansible_check_mode
+      tags: molecule-idempotence-notest
+
+    - name: "Importing SCP from CIFS with ALL components"
+      ansible.builtin.import_role:
+        name: "idrac_import_server_config_profile"
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        share_parameters:
+          <<: *share_input
+
+    - name: Verifying Import SCP from CIFS with ALL components
+      ansible.builtin.assert:
+        that:
+          - idrac_import_server_config_profile_out.msg == "Successfully imported the Server Configuration Profile."
+          - idrac_import_server_config_profile_out.scp_status.JobState == "Completed"
+          - idrac_import_server_config_profile_out.scp_status.Message == "Successfully imported and applied Server Configuration Profile."
+      when: not ansible_check_mode
+      tags: molecule-idempotence-notest
+
+    - name: Verifying Import SCP from CIFS with ALL components in check mode
+      ansible.builtin.assert:
+        that:
+          - idrac_import_server_config_profile_out.msg == "Changes found to be applied."
+      when: ansible_check_mode
+      tags: molecule-idempotence-notest
+
+    - name: Verifying Import SCP from CIFS with ALL components in idempotence mode
+      ansible.builtin.assert:
+        that:
+          - idrac_import_server_config_profile_out.msg ==  "Successfully imported the Server Configuration Profile."
+          - idrac_import_server_config_profile_out.scp_status.JobState == "Completed"
+          - idrac_import_server_config_profile_out.scp_status.Message == "No changes were applied since the
+            current component configuration matched the requested configuration."
+      when: not ansible_check_mode and not idrac_import_server_config_profile_out.changed

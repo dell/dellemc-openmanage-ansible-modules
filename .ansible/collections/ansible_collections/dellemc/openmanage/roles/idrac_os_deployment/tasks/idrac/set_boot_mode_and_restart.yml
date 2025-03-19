@@ -1,0 +1,15 @@
+---
+- name: Configure the boot source override mode.
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  dellemc.openmanage.idrac_boot:
+    idrac_ip: "{{ hostname }}"
+    idrac_user: "{{ username }}"
+    idrac_password: "{{ password }}"
+    idrac_port: "{{ https_port }}"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    timeout: "{{ https_timeout }}"
+    boot_source_override_target: cd
+    boot_source_override_enabled: once
+    reset_type: force_restart
+  register: idrac_os_deployment_idrac_boot

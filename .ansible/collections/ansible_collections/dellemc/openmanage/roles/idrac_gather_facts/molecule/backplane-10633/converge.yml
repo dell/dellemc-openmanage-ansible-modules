@@ -1,0 +1,71 @@
+---
+- name: Converge idrac_gather_facts for PCIeSSDBackPlane
+  hosts: all
+  connection: local
+  gather_facts: true
+  vars:
+    hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+    username: "{{ lookup('env', 'IDRAC_USER') }}"
+    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+    target:
+      - PCIeSSDBackPlane
+    idrac_gather_facts_uri_method: "GET"
+    idrac_gather_facts_uri_headers:
+      Accept: "application/json"
+      Content-Type: "application/json"
+      OData-Version: "4.0"
+    idrac_gather_facts_uri_body_format: "json"
+    idrac_gather_facts_uri_status_code:
+      - 200
+      - 400
+      - 401
+      - 404
+      - -1
+    idrac_gather_facts_uri_return_content: true
+
+  tasks:
+    - name: Collecting PCIeSSDBackPlane information from API
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}/redfish/v1/Chassis/Oem/Dell/DellPCIeSSDBackPlanes"
+        validate_certs: "{{ validate_certs }}"
+        ca_path: "{{ ca_path | default(omit) }}"
+        method: "{{ idrac_gather_facts_uri_method }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        headers: "{{ idrac_gather_facts_uri_headers }}"
+        body_format: "{{ idrac_gather_facts_uri_body_format }}"
+        status_code: "{{ idrac_gather_facts_uri_status_code }}"
+        return_content: "{{ idrac_gather_facts_uri_return_content }}"
+      register: backplane_result_url
+      no_log: true
+
+    - name: Set PCIeSSDBackPlane facts
+      ansible.builtin.set_fact:
+        api_response: "{{ backplane_result_url.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type']) }}"
+      when: backplane_result_url.status == 200
+
+    - name: Gather Facts for the PCIeSSDBackPlane component
+      ansible.builtin.include_role:
+        name: "idrac_gather_facts"
+
+    - name: Assert backplane data
+      ansible.builtin.assert:
+        that:
+          - "((api_response | length == 0) and (backplane | length == 0))"
+        fail_msg: "The response from the role does not match"
+        success_msg: "The response from the role matches"
+      when: api_response is defined and api_response | length == 0
+
+    - name: Check whether output differs
+      ansible.builtin.set_fact:
+        result_diff: "{{ backplane | symmetric_difference(api_response) }}"
+      when: api_response is defined and api_response | length > 0
+
+    - name: Assert the differences in List
+      ansible.builtin.assert:
+        fail_msg: "The response from the role does not match"
+        success_msg: "The response from the role matches"
+        that:
+          - "{{ (result_diff | length) == 0 }}"
+      when: api_response is defined and api_response | length > 0

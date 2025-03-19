@@ -1,0 +1,7 @@
+---
+- name: Cleanup
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Cleanup config
+      ansible.builtin.include_tasks: ../resources/tests/prepare.yml

@@ -1,0 +1,35 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: "Importing SCP from import buffer with IDRAC components"
+      ansible.builtin.import_role:
+        name: idrac_import_server_config_profile
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        target: ['IDRAC']
+        import_buffer: '<SystemConfiguration><Component FQDD="iDRAC.Embedded.1"><Attribute Name="Time.1#Timezone">CST6CDT</Attribute>
+          </Component></SystemConfiguration>'
+      when: not ansible_check_mode
+
+    - name: Verifying Import SCP from import buffer with IDRAC components in normal mode
+      ansible.builtin.assert:
+        that:
+          - idrac_import_server_config_profile_out.msg ==  "Successfully imported the Server Configuration Profile."
+          - idrac_import_server_config_profile_out.scp_status.JobState == "Completed"
+          - idrac_import_server_config_profile_out.scp_status.Message == "Successfully imported and applied Server Configuration Profile."
+      when: not ansible_check_mode
+      tags: molecule-idempotence-notest
+
+    - name: Verifying Import SCP from import buffer with IDRAC components in idempotence mode
+      ansible.builtin.assert:
+        that:
+          - idrac_import_server_config_profile_out.msg ==  "Successfully imported the Server Configuration Profile."
+          - idrac_import_server_config_profile_out.scp_status.JobState == "Completed"
+          - idrac_import_server_config_profile_out.scp_status.Message == "No changes were applied since the
+              current component configuration matched the requested configuration."
+      when: not ansible_check_mode and not idrac_import_server_config_profile_out.changed

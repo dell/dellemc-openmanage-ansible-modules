@@ -1,0 +1,12 @@
+---
+- name: Get NIC information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_system }}/EthernetInterfaces?$expand=*($levels=1)"
+  register: nic_result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Set NIC facts
+  ansible.builtin.set_fact:
+    nic:
+      "{{ nic_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'IPv4Addresses@odata.count',
+      'IPv6AddressPolicyTable@odata.count', 'IPv6Addresses@odata.count', 'IPv6StaticAddresses@odata.count', 'NameServers@odata.count']) }}"

@@ -1,0 +1,15 @@
+---
+# defaults file for idrac_export_server_config_profile
+
+idrac_port: 443
+validate_certs: true
+idrac_timeout: 30
+share_parameters:
+  proxy_support: false
+  proxy_type: http
+  proxy_port: "80"
+  ignore_certificate_warning: ignore
+target: ['ALL']
+export_format: XML
+export_use: Default
+include_in_export: default

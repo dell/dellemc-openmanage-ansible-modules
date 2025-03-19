@@ -1,0 +1,163 @@
+---
+- name: TC-152151 - Validate all negative scenarios
+  hosts: all
+  gather_facts: false
+  vars:
+    idrac_user_name: "moleculeTest"
+    max_user: 16
+  tasks:
+    - name: Invalid hostname value
+      ansible.builtin.import_role:
+        name: idrac_user
+      vars:
+        hostname: "invalid"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        state: present
+        user_name: "{{ idrac_user_name }}"
+      ignore_errors: true
+      ignore_unreachable: true
+      register: idrac_user_fail_case
+
+    - name: Asserting for invalid hostname
+      ansible.builtin.assert:
+        that: >
+            idrac_user_out.msg == "<urlopen error [Errno -2]
+            Name or service not known>"
+
+    - name: Invalid username value
+      ansible.builtin.import_role:
+        name: idrac_user
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "invalid"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        state: present
+        user_name: "{{ idrac_user_name }}"
+      ignore_errors: true
+      ignore_unreachable: true
+      register: idrac_user_fail_case
+
+    - name: Asserting for invalid username
+      ansible.builtin.assert:
+        that:
+          - '"HTTP Error 401" in idrac_user_out.msg'
+
+    - name: Invalid password value
+      ansible.builtin.import_role:
+        name: idrac_user
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "invalid"
+        validate_certs: false
+        state: present
+        user_name: "{{ idrac_user_name }}"
+      ignore_errors: true
+      ignore_unreachable: true
+      register: idrac_user_fail_case
+
+    - name: Asserting for invalid password
+      ansible.builtin.assert:
+        that:
+          - '"HTTP Error 401" in idrac_user_out.msg'
+
+    - name: Invalid validate_certs value
+      ansible.builtin.import_role:
+        name: idrac_user
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: invalid
+        state: present
+        user_name: "{{ idrac_user_name }}"
+      ignore_errors: true
+      ignore_unreachable: true
+      register: idrac_user_fail_case
+
+    - name: Asserting for invalid validate_certs
+      ansible.builtin.assert:
+        that:
+          - '"not a valid boolean" in idrac_user_out.msg'
+
+    - name: Invalid ca_path value
+      ansible.builtin.import_role:
+        name: idrac_user
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        ca_path: invalid
+        state: present
+        user_name: "{{ idrac_user_name }}"
+      ignore_errors: true
+      ignore_unreachable: true
+      register: idrac_user_fail_case
+
+    - name: Asserting for invalid ca_path
+      ansible.builtin.assert:
+        that:
+          - idrac_user_out.failed
+
+    - name: Invalid username value
+      ansible.builtin.import_role:
+        name: idrac_user
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        state: present
+        user_name: "12345@Dell"
+      ignore_errors: true
+      ignore_unreachable: true
+      register: idrac_user_fail_case
+
+    - name: Asserting for invalid username
+      ansible.builtin.assert:
+        that:
+          - '"HTTP Error 400" in idrac_user_out.msg'
+
+    - name: Delete a idrac_user by giving invalid user_name
+      ansible.builtin.import_role:
+        name: idrac_user
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        state: absent
+        user_name: "12345Dell"
+      ignore_errors: true
+      ignore_unreachable: true
+      register: idrac_user_fail_case
+
+    - name: Asserting for deletion of a idrac_user by giving invalid user_name
+      ansible.builtin.assert:
+        that:
+          - idrac_user_out.msg == "The user account is absent."
+
+    - name: Invalid value for "custom_priviledge"
+      ansible.builtin.import_role:
+        name: idrac_user
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        state: present
+        user_name: "{{ idrac_user_name }}"
+        user_password: "#123Dell456!"
+        custom_privilege: -1
+      ignore_errors: true
+      ignore_unreachable: true
+      register: idrac_user_fail_case
+
+    - name: Asserting for invalid value for "custom_priviledge"
+      ansible.builtin.assert:
+        that: >
+          idrac_user_out.msg == "custom_privilege value should be from 0 to
+          511."

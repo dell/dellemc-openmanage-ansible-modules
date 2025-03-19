@@ -1,0 +1,13 @@
+---
+- name: Eject the custom iso
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  dellemc.openmanage.idrac_virtual_media:
+    idrac_ip: "{{ hostname }}"
+    idrac_user: "{{ username }}"
+    idrac_password: "{{ password }}"
+    idrac_port: "{{ https_port }}"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    timeout: "{{ https_timeout }}"
+    virtual_media:
+      - insert: false

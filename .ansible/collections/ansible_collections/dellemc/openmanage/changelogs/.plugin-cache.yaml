@@ -1,0 +1,594 @@
+objects:
+  role:
+    idrac_attributes:
+      description: Role to configure the iDRAC attribute
+      name: idrac_attributes
+      version_added: 7.6.0
+    idrac_bios:
+      description: Modify and clear BIOS attributes, and reset BIOS settings
+      name: idrac_bios
+      version_added: 7.6.0
+    idrac_boot:
+      description: Configure the boot order settings
+      name: idrac_boot
+      version_added: 8.0.0
+    idrac_certificate:
+      description: This role allows to generate certificate signing request, import,
+        and export certificates on iDRAC
+      name: idrac_certificate
+      version_added: 7.4.0
+    idrac_export_server_config_profile:
+      description: Role to export iDRAC Server Configuration Profile (SCP)
+      name: idrac_export_server_config_profile
+      version_added: 7.3.0
+    idrac_firmware:
+      description: Firmware update from a repository on a network share (CIFS, NFS,
+        HTTP, HTTPS, FTP)
+      name: idrac_firmware
+      version_added: 7.5.0
+    idrac_gather_facts:
+      description: Role to get the facts from the iDRAC Server
+      name: idrac_gather_facts
+      version_added: 7.4.0
+    idrac_import_server_config_profile:
+      description: Import iDRAC Server Configuration Profile (SCP)
+      name: idrac_import_server_config_profile
+      version_added: 7.4.0
+    idrac_job_queue:
+      description: Role to manage the iDRAC lifecycle controller job queue.
+      name: idrac_job_queue
+      version_added: 8.0.0
+    idrac_os_deployment:
+      description: Role to deploy operating system on the iDRAC servers
+      name: idrac_os_deployment
+      version_added: 7.5.0
+    idrac_reset:
+      description: Role to reset and restart iDRAC
+      name: idrac_reset
+      version_added: 7.6.0
+    idrac_server_powerstate:
+      description: Role to manage the different power states of the specified device
+      name: idrac_server_powerstate
+      version_added: 7.4.0
+    idrac_storage_controller:
+      description: Configures the physical disk, virtual disk, and storage controller
+        settings
+      name: idrac_storage_controller
+      version_added: 7.6.0
+    idrac_user:
+      description: Role to manage local users for iDRAC.
+      name: idrac_user
+      version_added: 9.0.0
+    redfish_firmware:
+      description: Update a component firmware using the image file available on the
+        local or remote system
+      name: redfish_firmware
+      version_added: 7.5.0
+    redfish_storage_volume:
+      description: Role to manage the storage volume configuration
+      name: redfish_storage_volume
+      version_added: 7.5.0
+plugins:
+  become: {}
+  cache: {}
+  callback: {}
+  cliconf: {}
+  connection: {}
+  filter: {}
+  httpapi: {}
+  inventory:
+    ome_inventory:
+      description: Group inventory plugin on OpenManage Enterprise.
+      name: ome_inventory
+      version_added: 7.1.0
+  lookup: {}
+  module:
+    dellemc_configure_idrac_eventing:
+      description: Configures the iDRAC eventing related attributes
+      name: dellemc_configure_idrac_eventing
+      namespace: ''
+      version_added: 1.0.0
+    dellemc_configure_idrac_services:
+      description: Configures the iDRAC services related attributes
+      name: dellemc_configure_idrac_services
+      namespace: ''
+      version_added: 1.0.0
+    dellemc_idrac_lc_attributes:
+      description: Enable or disable Collect System Inventory on Restart (CSIOR) property
+        for all iDRAC/LC jobs
+      name: dellemc_idrac_lc_attributes
+      namespace: ''
+      version_added: 1.0.0
+    dellemc_idrac_storage_volume:
+      description: Configures the RAID configuration attributes
+      name: dellemc_idrac_storage_volume
+      namespace: ''
+      version_added: 9.1.0
+    dellemc_system_lockdown_mode:
+      description: Configures system lockdown mode for iDRAC
+      name: dellemc_system_lockdown_mode
+      namespace: ''
+      version_added: 1.0.0
+    idrac_attributes:
+      description: Configure the iDRAC attributes.
+      name: idrac_attributes
+      namespace: ''
+      version_added: 6.0.0
+    idrac_bios:
+      description: Modify and clear BIOS attributes, reset BIOS settings and configure
+        boot sources
+      name: idrac_bios
+      namespace: ''
+      version_added: 2.1.0
+    idrac_boot:
+      description: Configure the boot order settings.
+      name: idrac_boot
+      namespace: ''
+      version_added: 6.1.0
+    idrac_certificates:
+      description: Configure certificates for iDRAC
+      name: idrac_certificates
+      namespace: ''
+      version_added: 5.5.0
+    idrac_diagnostics:
+      description: Run and Export iDRAC diagnostics
+      name: idrac_diagnostics
+      namespace: ''
+      version_added: 9.0.0
+    idrac_firmware:
+      description: Firmware update from a repository on a network share (CIFS, NFS,
+        HTTP, HTTPS, FTP)
+      name: idrac_firmware
+      namespace: ''
+      version_added: 2.1.0
+    idrac_firmware_info:
+      description: Get Firmware Inventory
+      name: idrac_firmware_info
+      namespace: ''
+      version_added: 3.0.0
+    idrac_license:
+      description: Configure iDRAC licenses
+      name: idrac_license
+      namespace: ''
+      version_added: 8.7.0
+    idrac_lifecycle_controller_job_status_info:
+      description: Get the status of a Lifecycle Controller job
+      name: idrac_lifecycle_controller_job_status_info
+      namespace: ''
+      version_added: 2.1.0
+    idrac_lifecycle_controller_jobs:
+      description: Delete the Lifecycle Controller Jobs
+      name: idrac_lifecycle_controller_jobs
+      namespace: ''
+      version_added: 2.1.0
+    idrac_lifecycle_controller_logs:
+      description: Export Lifecycle Controller logs to a network share or local path.
+      name: idrac_lifecycle_controller_logs
+      namespace: ''
+      version_added: 2.1.0
+    idrac_lifecycle_controller_status_info:
+      description: Get the status of the Lifecycle Controller
+      name: idrac_lifecycle_controller_status_info
+      namespace: ''
+      version_added: 2.1.0
+    idrac_network:
+      description: Configures the iDRAC network attributes
+      name: idrac_network
+      namespace: ''
+      version_added: 2.1.0
+    idrac_network_attributes:
+      description: Configures the iDRAC network attributes
+      name: idrac_network_attributes
+      namespace: ''
+      version_added: 8.4.0
+    idrac_os_deployment:
+      description: Boot to a network ISO image
+      name: idrac_os_deployment
+      namespace: ''
+      version_added: 2.1.0
+    idrac_redfish_storage_controller:
+      description: Configures the physical disk, virtual disk, and storage controller
+        settings
+      name: idrac_redfish_storage_controller
+      namespace: ''
+      version_added: 2.1.0
+    idrac_reset:
+      description: Factory reset the iDRACs
+      name: idrac_reset
+      namespace: ''
+      version_added: 2.1.0
+    idrac_server_config_profile:
+      description: Export or Import iDRAC Server Configuration Profile (SCP)
+      name: idrac_server_config_profile
+      namespace: ''
+      version_added: 2.1.0
+    idrac_session:
+      description: Manage iDRAC sessions
+      name: idrac_session
+      namespace: ''
+      version_added: 9.2.0
+    idrac_storage_volume:
+      description: Configures the RAID configuration attributes
+      name: idrac_storage_volume
+      namespace: ''
+      version_added: 9.1.0
+    idrac_syslog:
+      description: Enable or disable the syslog on iDRAC
+      name: idrac_syslog
+      namespace: ''
+      version_added: 2.1.0
+    idrac_system_info:
+      description: Get the PowerEdge Server System Inventory
+      name: idrac_system_info
+      namespace: ''
+      version_added: 3.0.0
+    idrac_timezone_ntp:
+      description: Configures time zone and NTP on iDRAC
+      name: idrac_timezone_ntp
+      namespace: ''
+      version_added: 2.1.0
+    idrac_user:
+      description: Configure settings for user accounts
+      name: idrac_user
+      namespace: ''
+      version_added: 2.1.0
+    idrac_user_info:
+      description: Retrieve details of all users or a specific user on iDRAC.
+      name: idrac_user_info
+      namespace: ''
+      version_added: 7.0.0
+    idrac_virtual_media:
+      description: Configure the Remote File Share settings.
+      name: idrac_virtual_media
+      namespace: ''
+      version_added: 6.3.0
+    ome_active_directory:
+      description: Configure Active Directory groups to be used with Directory Services
+      name: ome_active_directory
+      namespace: ''
+      version_added: 4.0.0
+    ome_alert_policies:
+      description: Manage OME alert policies.
+      name: ome_alert_policies
+      namespace: ''
+      version_added: 8.3.0
+    ome_alert_policies_actions_info:
+      description: Get information on actions of alert policies.
+      name: ome_alert_policies_actions_info
+      namespace: ''
+      version_added: 8.2.0
+    ome_alert_policies_category_info:
+      description: Retrieves information of all OME alert policy categories.
+      name: ome_alert_policies_category_info
+      namespace: ''
+      version_added: 8.2.0
+    ome_alert_policies_info:
+      description: Retrieves information of one or more OME alert policies.
+      name: ome_alert_policies_info
+      namespace: ''
+      version_added: 8.2.0
+    ome_alert_policies_message_id_info:
+      description: Get message ID information of alert policies.
+      name: ome_alert_policies_message_id_info
+      namespace: ''
+      version_added: 8.2.0
+    ome_application_alerts_smtp:
+      description: This module allows to configure SMTP or email configurations
+      name: ome_application_alerts_smtp
+      namespace: ''
+      version_added: 4.3.0
+    ome_application_alerts_syslog:
+      description: Configure syslog forwarding settings on OpenManage Enterprise and
+        OpenManage Enterprise Modular
+      name: ome_application_alerts_syslog
+      namespace: ''
+      version_added: 4.3.0
+    ome_application_certificate:
+      description: This module allows to generate a CSR and upload the certificate
+      name: ome_application_certificate
+      namespace: ''
+      version_added: 2.1.0
+    ome_application_console_preferences:
+      description: Configure console preferences on OpenManage Enterprise.
+      name: ome_application_console_preferences
+      namespace: ''
+      version_added: 5.2.0
+    ome_application_network_address:
+      description: Updates the network configuration on OpenManage Enterprise
+      name: ome_application_network_address
+      namespace: ''
+      version_added: 2.1.0
+    ome_application_network_proxy:
+      description: Updates the proxy configuration on OpenManage Enterprise
+      name: ome_application_network_proxy
+      namespace: ''
+      version_added: 2.1.0
+    ome_application_network_settings:
+      description: This module allows you to configure the session inactivity timeout
+        settings
+      name: ome_application_network_settings
+      namespace: ''
+      version_added: 4.4.0
+    ome_application_network_time:
+      description: Updates the network time on OpenManage Enterprise
+      name: ome_application_network_time
+      namespace: ''
+      version_added: 2.1.0
+    ome_application_network_webserver:
+      description: Updates the Web server configuration on OpenManage Enterprise
+      name: ome_application_network_webserver
+      namespace: ''
+      version_added: 2.1.0
+    ome_application_security_settings:
+      description: Configure the login security properties
+      name: ome_application_security_settings
+      namespace: ''
+      version_added: 4.4.0
+    ome_chassis_slots:
+      description: Rename sled slots on OpenManage Enterprise Modular
+      name: ome_chassis_slots
+      namespace: ''
+      version_added: 3.6.0
+    ome_configuration_compliance_baseline:
+      description: Create, modify, and delete a configuration compliance baseline
+        and remediate non-compliant devices on OpenManage Enterprise
+      name: ome_configuration_compliance_baseline
+      namespace: ''
+      version_added: 3.2.0
+    ome_configuration_compliance_info:
+      description: Device compliance report for devices managed in OpenManage Enterprise
+      name: ome_configuration_compliance_info
+      namespace: ''
+      version_added: 3.2.0
+    ome_device_group:
+      description: Add or remove device(s) from a static device group on OpenManage
+        Enterprise
+      name: ome_device_group
+      namespace: ''
+      version_added: 3.3.0
+    ome_device_info:
+      description: Retrieves the information of devices inventoried by OpenManage
+        Enterprise
+      name: ome_device_info
+      namespace: ''
+      version_added: 2.0.0
+    ome_device_local_access_configuration:
+      description: Configure local access settings on OpenManage Enterprise Modular.
+      name: ome_device_local_access_configuration
+      namespace: ''
+      version_added: 4.4.0
+    ome_device_location:
+      description: Configure device location settings on OpenManage Enterprise Modular
+      name: ome_device_location
+      namespace: ''
+      version_added: 4.2.0
+    ome_device_mgmt_network:
+      description: Configure network settings of devices on OpenManage Enterprise
+        Modular
+      name: ome_device_mgmt_network
+      namespace: ''
+      version_added: 4.2.0
+    ome_device_network_services:
+      description: Configure chassis network services settings on OpenManage Enterprise
+        Modular
+      name: ome_device_network_services
+      namespace: ''
+      version_added: 4.3.0
+    ome_device_power_settings:
+      description: Configure chassis power settings on OpenManage Enterprise Modular
+      name: ome_device_power_settings
+      namespace: ''
+      version_added: 4.2.0
+    ome_device_quick_deploy:
+      description: Configure Quick Deploy settings on OpenManage Enterprise Modular.
+      name: ome_device_quick_deploy
+      namespace: ''
+      version_added: 5.0.0
+    ome_devices:
+      description: Perform device-specific operations on target devices
+      name: ome_devices
+      namespace: ''
+      version_added: 6.1.0
+    ome_diagnostics:
+      description: Export technical support logs(TSR) to network share location
+      name: ome_diagnostics
+      namespace: ''
+      version_added: 3.6.0
+    ome_discovery:
+      description: Create, modify, or delete a discovery job on OpenManage Enterprise
+      name: ome_discovery
+      namespace: ''
+      version_added: 3.3.0
+    ome_domain_user_groups:
+      description: Create, modify, or delete an Active Directory/LDAP user group on
+        OpenManage Enterprise and OpenManage Enterprise Modular
+      name: ome_domain_user_groups
+      namespace: ''
+      version_added: 4.0.0
+    ome_firmware:
+      description: Update firmware on PowerEdge devices and its components through
+        OpenManage Enterprise
+      name: ome_firmware
+      namespace: ''
+      version_added: 2.0.0
+    ome_firmware_baseline:
+      description: Create, modify, or delete a firmware baseline on OpenManage Enterprise
+        or OpenManage Enterprise Modular
+      name: ome_firmware_baseline
+      namespace: ''
+      version_added: 2.0.0
+    ome_firmware_baseline_compliance_info:
+      description: Retrieves baseline compliance details on OpenManage Enterprise
+      name: ome_firmware_baseline_compliance_info
+      namespace: ''
+      version_added: 2.0.0
+    ome_firmware_baseline_info:
+      description: Retrieves baseline details from OpenManage Enterprise
+      name: ome_firmware_baseline_info
+      namespace: ''
+      version_added: 2.0.0
+    ome_firmware_catalog:
+      description: Create, modify, or delete a firmware catalog on OpenManage Enterprise
+        or OpenManage Enterprise Modular
+      name: ome_firmware_catalog
+      namespace: ''
+      version_added: 2.0.0
+    ome_groups:
+      description: Manages static device groups on OpenManage Enterprise
+      name: ome_groups
+      namespace: ''
+      version_added: 3.5.0
+    ome_identity_pool:
+      description: Manages identity pool settings on OpenManage Enterprise
+      name: ome_identity_pool
+      namespace: ''
+      version_added: 2.1.0
+    ome_job_info:
+      description: Get job details for a given job ID or an entire job queue on OpenMange
+        Enterprise
+      name: ome_job_info
+      namespace: ''
+      version_added: 2.0.0
+    ome_network_port_breakout:
+      description: This module allows to automate the port portioning or port breakout
+        to logical sub ports
+      name: ome_network_port_breakout
+      namespace: ''
+      version_added: 2.1.0
+    ome_network_vlan:
+      description: Create, modify & delete a VLAN
+      name: ome_network_vlan
+      namespace: ''
+      version_added: 2.1.0
+    ome_network_vlan_info:
+      description: Retrieves the information about networks VLAN(s) present in OpenManage
+        Enterprise
+      name: ome_network_vlan_info
+      namespace: ''
+      version_added: 2.1.0
+    ome_powerstate:
+      description: Performs the power management operations on OpenManage Enterprise
+      name: ome_powerstate
+      namespace: ''
+      version_added: 2.1.0
+    ome_profile:
+      description: Create, modify, delete, assign, unassign and migrate a profile
+        on OpenManage Enterprise
+      name: ome_profile
+      namespace: ''
+      version_added: 3.1.0
+    ome_profile_info:
+      description: Retrieve profiles with attribute details
+      name: ome_profile_info
+      namespace: ''
+      version_added: 7.2.0
+    ome_server_interface_profile_info:
+      description: Retrieves the information of server interface profile on OpenManage
+        Enterprise Modular.
+      name: ome_server_interface_profile_info
+      namespace: ''
+      version_added: 5.1.0
+    ome_server_interface_profiles:
+      description: Configure server interface profiles
+      name: ome_server_interface_profiles
+      namespace: ''
+      version_added: 5.1.0
+    ome_session:
+      description: Manage OpenManage Enterprise and OpenManage Enterprise modular
+        sessions
+      name: ome_session
+      namespace: ''
+      version_added: 9.3.0
+    ome_smart_fabric:
+      description: Create, modify or delete a fabric on OpenManage Enterprise Modular
+      name: ome_smart_fabric
+      namespace: ''
+      version_added: 2.1.0
+    ome_smart_fabric_info:
+      description: Retrieves the information of smart fabrics inventoried by OpenManage
+        Enterprise Modular
+      name: ome_smart_fabric_info
+      namespace: ''
+      version_added: 7.1.0
+    ome_smart_fabric_uplink:
+      description: Create, modify or delete a uplink for a fabric on OpenManage Enterprise
+        Modular
+      name: ome_smart_fabric_uplink
+      namespace: ''
+      version_added: 2.1.0
+    ome_smart_fabric_uplink_info:
+      description: Retrieve details of fabric uplink on OpenManage Enterprise Modular.
+      name: ome_smart_fabric_uplink_info
+      namespace: ''
+      version_added: 7.1.0
+    ome_template:
+      description: Create, modify, deploy, delete, export, import and clone a template
+        on OpenManage Enterprise
+      name: ome_template
+      namespace: ''
+      version_added: 2.0.0
+    ome_template_identity_pool:
+      description: Attach or detach an identity pool to a requested template on OpenManage
+        Enterprise
+      name: ome_template_identity_pool
+      namespace: ''
+      version_added: 2.0.0
+    ome_template_info:
+      description: Retrieves template details from OpenManage Enterprise
+      name: ome_template_info
+      namespace: ''
+      version_added: 2.0.0
+    ome_template_network_vlan:
+      description: Set tagged and untagged vlans to native network card supported
+        by a template on OpenManage Enterprise
+      name: ome_template_network_vlan
+      namespace: ''
+      version_added: 2.0.0
+    ome_template_network_vlan_info:
+      description: Retrieves network configuration of template.
+      name: ome_template_network_vlan_info
+      namespace: ''
+      version_added: 7.2.0
+    ome_user:
+      description: Create, modify or delete a user on OpenManage Enterprise
+      name: ome_user
+      namespace: ''
+      version_added: 2.0.0
+    ome_user_info:
+      description: Retrieves details of all accounts or a specific account on OpenManage
+        Enterprise
+      name: ome_user_info
+      namespace: ''
+      version_added: 2.0.0
+    redfish_event_subscription:
+      description: Manage Redfish Subscriptions
+      name: redfish_event_subscription
+      namespace: ''
+      version_added: 4.1.0
+    redfish_firmware:
+      description: To perform a component firmware update using the image file available
+        on the local or remote system
+      name: redfish_firmware
+      namespace: ''
+      version_added: 2.1.0
+    redfish_firmware_rollback:
+      description: To perform a component firmware rollback using component name
+      name: redfish_firmware_rollback
+      namespace: ''
+      version_added: 8.2.0
+    redfish_powerstate:
+      description: Manage device power state
+      name: redfish_powerstate
+      namespace: ''
+      version_added: 2.1.0
+    redfish_storage_volume:
+      description: Manages the storage volume configuration
+      name: redfish_storage_volume
+      namespace: ''
+      version_added: 2.1.0
+  netconf: {}
+  shell: {}
+  strategy: {}
+  test: {}
+  vars: {}
+version: 9.5.0

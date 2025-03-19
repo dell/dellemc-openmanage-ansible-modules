@@ -1,0 +1,21 @@
+controller_id: "RAID.Integrated.1-1"
+attributes:
+  ControllerMode: "RAID"
+apply_time: "Immediate"
+maintenance_window:
+  start_time: "2022-09-30T05:15:40-05:00"
+  duration: 1200
+disks:
+  id: "Disk.Bay.0:Enclosure.Internal.0-0:RAID.Integrated.1-1"
+  status: "online"
+volumes:
+  id: "Disk.Virtual.0:RAID.Integrated.1-1"
+  blink: true
+reset_config: false
+set_controller_key: false
+re_key: false
+key: "PassPhrase@123"
+key_id: "mykeyid123"
+old_key: "OldPhassParse@123"
+mode: "LKM"
+remove_key: false

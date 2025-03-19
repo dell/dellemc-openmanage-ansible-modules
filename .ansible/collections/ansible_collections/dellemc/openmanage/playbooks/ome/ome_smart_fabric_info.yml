@@ -1,0 +1,31 @@
+---
+- name: Dell OpenManage Ansible smart fabric details.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Get all smart fabric info.
+      dellemc.openmanage.ome_smart_fabric_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+      delegate_to: localhost
+
+    - name: Get specific smart fabric info using fabric ID.
+      dellemc.openmanage.ome_smart_fabric_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        fabric_id: "61c20a59-9ed5-4ae5-b850-5e5acf42d2f2"
+      delegate_to: localhost
+
+    - name: Get specific smart fabric info using fabric name.
+      dellemc.openmanage.ome_smart_fabric_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        fabric_name: "f1"
+      delegate_to: localhost

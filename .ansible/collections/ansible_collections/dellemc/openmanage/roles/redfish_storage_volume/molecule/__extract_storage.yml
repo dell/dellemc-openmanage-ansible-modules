@@ -1,0 +1,27 @@
+---
+- name: Fetching Storage controller from iDRAC
+  ansible.builtin.include_tasks:
+    file: ../__get_helper.yml
+  vars:
+    _url: "Systems/System.Embedded.1/Storage?$expand=*($levels=1)"
+
+- name: Intializing set_fact variable
+  ansible.builtin.set_fact:
+    redfish_storage_volume_controller_id: ""
+    redfish_storage_volume_drive_list: []
+
+- name: Extracting Controller id
+  ansible.builtin.set_fact:
+    redfish_storage_volume_controller_id: "{{ item.Id }}"
+    redfish_storage_volume_drive_list_odata: "{{ item.Drives }}"
+  when:
+    - redfish_storage_volume_search_in_name is defined and redfish_storage_volume_search_in_name in item.Name
+    - item.StorageControllers[0].SupportedRAIDTypes != []
+    - redfish_storage_volume_raid in item.StorageControllers[0].SupportedRAIDTypes
+  loop: "{{ redfish_storage_volume_fetched_output.json.Members }}"
+
+- name: Extracting Drives id
+  ansible.builtin.set_fact:
+    redfish_storage_volume_drive_list: "{{ redfish_storage_volume_drive_list + [item['@odata.id'] | ansible.builtin.split('/') | last] }}"
+  loop: "{{ redfish_storage_volume_drive_list_odata }}"
+  when: redfish_storage_volume_drive_list_odata is defined

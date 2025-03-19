@@ -1,0 +1,27 @@
+---
+- name: Fail when job_wait_timeout is negative.
+  ansible.builtin.fail:
+    msg: "{{ idrac_boot_job_wait_timeout_err }}"
+  when: job_wait_timeout < 1
+
+- name: Configure the system boot settings
+  dellemc.openmanage.idrac_boot:
+    idrac_ip: "{{ hostname }}"
+    idrac_user: "{{ username }}"
+    idrac_password: "{{ password }}"
+    idrac_port: "{{ https_port }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    validate_certs: "{{ validate_certs }}"
+    timeout: "{{ https_timeout }}"
+    boot_options: "{{ boot_options | default(omit) }}"
+    boot_order: "{{ boot_order | default(omit) }}"
+    boot_source_override_mode: "{{ boot_source_override_mode | default(omit) }}"
+    boot_source_override_enabled: "{{ boot_source_override_enabled | default(omit) }}"
+    boot_source_override_target: "{{ boot_source_override_target | default(omit) }}"
+    uefi_target_boot_source_override: "{{ uefi_target_boot_source_override | default(omit) }}"
+    reset_type: "{{ reset_type }}"
+    job_wait: "{{ job_wait }}"
+    job_wait_timeout: "{{ job_wait_timeout }}"
+    resource_id: "{{ resource_id | default(omit) }}"
+  register: idrac_boot_out
+  delegate_to: "{{ idrac_boot_delegate }}"

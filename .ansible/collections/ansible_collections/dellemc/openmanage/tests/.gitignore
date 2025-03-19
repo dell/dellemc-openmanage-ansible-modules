@@ -1,0 +1,4 @@
+output/
+# Unit test / coverage reports
+htmlcov/
+.tox/

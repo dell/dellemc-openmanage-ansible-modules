@@ -1,0 +1,24 @@
+---
+- name: Install cryptography python package
+  ansible.builtin.command:
+    cmd: pip install cryptography>=1.2.3
+  register: cmd_output
+  changed_when: cmd_output.rc == 0
+  failed_when: cmd_output.rc != 0
+  check_mode: false
+
+- name: Create private key is present
+  community.crypto.openssl_privatekey:
+    path: "{{ lookup('env', 'path_for_import_cert') }}cert.key"
+    size: 2048
+    type: RSA
+  check_mode: false
+  no_log: false
+
+- name: Ensure self-signed cert is present
+  community.crypto.x509_certificate:
+    path: "{{ lookup('env', 'path_for_import_cert') }}cert.pem"
+    privatekey_path: "{{ lookup('env', 'path_for_import_cert') }}cert.key"
+    provider: selfsigned
+  check_mode: false
+  no_log: false

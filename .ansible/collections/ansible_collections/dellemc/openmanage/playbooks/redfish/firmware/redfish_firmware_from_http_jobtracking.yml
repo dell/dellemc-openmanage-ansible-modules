@@ -1,0 +1,92 @@
+---
+- name: Ansible Module for Simple Firmware Update
+  hosts: redfish_hosts
+  gather_facts: false
+  vars:
+    retries_count: 100
+    polling_interval: 5
+    reboot_uri: "/redfish/v1/Systems/System.Embedded.1/Actions/ComputerSystem.Reset"
+
+  tasks:
+    - name: Update the firmware from a single executable file available in a HTTP protocol
+      dellemc.openmanage.redfish_firmware:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        image_uri: "http://192.168.0.1/firmware_repo/component.exe"
+      register: result
+      delegate_to: localhost
+
+    - name: Update the firmware from a single executable with job tracking till completion
+      ansible.builtin.uri:
+        url: "https://{{ baseuri }}{{ result.task.uri }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        method: "GET"
+        use_proxy: true
+        status_code: 200, 202
+        return_content: true
+        validate_certs: false
+        force_basic_auth: true
+        headers:
+          Content-Type: "application/json"
+          Accept: "application/json"
+      register: job_result
+      until: job_result.json.TaskState == 'Completed' or job_result.json.TaskState == 'Pending'
+      retries: "{{ retries_count }}"
+      delay: "{{ polling_interval }}"
+      delegate_to: localhost
+
+    - name: Update the firmware from a single executable reboot.
+      ansible.builtin.uri:
+        url: "https://{{ baseuri }}{{ reboot_uri }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        method: "POST"
+        body_format: raw
+        body: '{"ResetType": "ForceRestart"}'
+        use_proxy: true
+        status_code: 204
+        return_content: false
+        validate_certs: false
+        force_basic_auth: true
+        headers:
+          Content-Type: "application/json"
+          Accept: "application/json"
+      register: reboot_result
+      changed_when: reboot_result.status == 204
+      when: job_result.json.TaskState == 'Pending' and job_result.json.Messages.0.Message == 'Task successfully scheduled.'
+      delegate_to: localhost
+
+    - name: Update the firmware from a single executable Waits for 4 minutes.
+      ansible.builtin.wait_for:
+        timeout: 240
+      when: job_result.json.TaskState == 'Pending' and job_result.json.Messages.0.Message == 'Task successfully scheduled.'
+      delegate_to: localhost
+
+    - name: Update the firmware from a single executable with job tracking till completion.
+      ansible.builtin.uri:
+        url: "https://{{ baseuri }}{{ result.task.uri }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        method: "GET"
+        use_proxy: true
+        status_code: 200, 202
+        return_content: true
+        validate_certs: false
+        force_basic_auth: true
+        headers:
+          Content-Type: "application/json"
+          Accept: "application/json"
+      register: final_result
+      until: final_result.json.TaskState == 'Completed'
+      retries: "{{ retries_count }}"
+      delay: "{{ polling_interval }}"
+      delegate_to: localhost
+
+    - name: Update the firmware from a single executable fact.
+      ansible.builtin.set_fact:
+        job_details: "{{ final_result.json }}"
+      failed_when: final_result.json.TaskState == "Completed" and final_result.json.TaskStatus != "OK"
+      changed_when: final_result.json.TaskState == "Completed" and final_result.json.TaskStatus == "OK"

@@ -1,0 +1,220 @@
+---
+- name: Dell OpenManage Ansible profile operations.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Create two profiles from a template
+      dellemc.openmanage.ome_profile:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: create
+        template_name: "template 1"
+        name_prefix: "omam_profile"
+        number_of_profiles: 2
+      tags:
+        - create_profile
+      delegate_to: localhost
+
+    - name: Create profile with NFS share
+      dellemc.openmanage.ome_profile:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: create
+        template_name: "template 1"
+        name_prefix: "omam_profile"
+        number_of_profiles: 1
+        boot_to_network_iso:
+          boot_to_network: true
+          share_type: "NFS"
+          share_ip: "192.168.0.1"
+          iso_path: "/path/to/my_iso.iso"
+          iso_timeout: 8
+      tags:
+        - create_profile_nfs
+      delegate_to: localhost
+
+    - name: Create profile with CIFS share
+      dellemc.openmanage.ome_profile:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: create
+        template_name: "template 1"
+        name_prefix: "omam_profile"
+        number_of_profiles: 1
+        boot_to_network_iso:
+          boot_to_network: true
+          share_type: CIFS
+          share_ip: "192.168.0.2"
+          share_user: "username"
+          share_password: "password"
+          workgroup: "workgroup"
+          iso_path: "\\path\\to\\my_iso.iso"
+          iso_timeout: 8
+      tags:
+        - create_profile_cifs
+      delegate_to: localhost
+
+    - name: Modify profile name with NFS share and attributes
+      dellemc.openmanage.ome_profile:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: modify
+        name: "Profile 00001"
+        new_name: "modified profile"
+        description: "new description"
+        boot_to_network_iso:
+          boot_to_network: true
+          share_type: NFS
+          share_ip: "192.168.0.1"
+          iso_path: "/path/to/my_iso.iso"
+          iso_timeout: 8
+        attributes:
+          Attributes:
+            - Id: 4506
+              Value: "server attr 1"
+              IsIgnored: true
+            - Id: 4507
+              Value: "server attr 2"
+              IsIgnored: true
+            - DisplayName: "System, Server Topology, ServerTopology 1 Aisle Name"
+              Value: Aisle 5
+              IsIgnored: false
+      tags:
+        - modify_profile
+      delegate_to: localhost
+
+    - name: Delete using profile name
+      dellemc.openmanage.ome_profile:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "delete"
+        name: "Profile 00003"
+      tags:
+        - delete_profile_name
+      delegate_to: localhost
+
+    - name: Delete using filter
+      dellemc.openmanage.ome_profile:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "delete"
+        filters:
+          SelectAll: true
+          Filters: =contains(ProfileName,'Profile 00002')
+      tags:
+        - delete_filter
+      delegate_to: localhost
+
+    - name: Delete using profile list filter
+      dellemc.openmanage.ome_profile:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "delete"
+        filters:
+          ProfileIds:
+            - 17123
+            - 12124
+      tags:
+        - delete_profile_ids
+      delegate_to: localhost
+
+    - name: Assign profile name with network share
+      dellemc.openmanage.ome_profile:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: assign
+        name: "Profile 00001"
+        device_id: 12456
+        boot_to_network_iso:
+          boot_to_network: true
+          share_type: NFS
+          share_ip: "192.168.0.1"
+          iso_path: "/path/to/my_iso.iso"
+          iso_timeout: 8
+        attributes:
+          Attributes:
+            - Id: 4506
+              Value: "server attr 1"
+              IsIgnored: true
+          Options:
+            ShutdownType: 0
+            TimeToWaitBeforeShutdown: 300
+            EndHostPowerState: 1
+            StrictCheckingVlan: true
+          Schedule:
+            RunNow: true
+            RunLater: false
+      tags:
+        - assign_profile
+      delegate_to: localhost
+
+    - name: Unassign using profile name
+      dellemc.openmanage.ome_profile:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "unassign"
+        name: "Profile 00003"
+      tags:
+        - unassign_profile_name
+      delegate_to: localhost
+
+    - name: "Unassign using filters"
+      dellemc.openmanage.ome_profile:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "unassign"
+        filters:
+          SelectAll: true
+          Filters: =contains(ProfileName,'Profile 00003')
+      tags:
+        - unassign_filter
+      delegate_to: localhost
+
+    - name: Unassign using filter
+      dellemc.openmanage.ome_profile:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "unassign"
+        filters:
+          ProfileIds:
+            - 17123
+            - 16123
+      tags:
+        - unassign_profile_list
+      delegate_to: localhost
+
+    - name: Migrate profile
+      dellemc.openmanage.ome_profile:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "migrate"
+        name: "Profile 0001"
+        device_id: 12456
+      tags:
+        - migrate_profile
+      delegate_to: localhost

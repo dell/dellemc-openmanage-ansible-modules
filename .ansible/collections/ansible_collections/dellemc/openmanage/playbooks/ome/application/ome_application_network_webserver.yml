@@ -1,0 +1,39 @@
+---
+- name: Dell OME Application network webserver settings.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Update webserver port and session time out configuration.
+      dellemc.openmanage.ome_application_network_webserver:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        webserver_port: 443
+        webserver_timeout: 10
+      tags:
+        - port_timeout_update
+      delegate_to: localhost
+
+    - name: Update session time out
+      dellemc.openmanage.ome_application_network_webserver:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        webserver_timeout: 30
+      tags:
+        - timeout_update
+      delegate_to: localhost
+
+    - name: Update web server port.
+      dellemc.openmanage.ome_application_network_webserver:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        webserver_port: 8443
+      tags:
+        - port_update
+      delegate_to: localhost

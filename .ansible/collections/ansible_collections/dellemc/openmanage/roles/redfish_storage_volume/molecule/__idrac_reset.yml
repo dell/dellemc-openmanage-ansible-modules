@@ -1,0 +1,23 @@
+---
+- name: ForceRestart of iDRAC
+  ansible.builtin.import_role:
+    name: idrac_server_powerstate
+  vars:
+    hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+    username: "{{ lookup('env', 'IDRAC_USER') }}"
+    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+    reset_type: "ForceRestart"
+    resource_id: "System.Embedded.1"
+
+- name: Waiting for 60 secs before LC tracking
+  ansible.builtin.wait_for:
+    timeout: 60
+  when:
+    - not ansible_check_mode
+    - idrac_server_powerstate_out is defined
+    - idrac_server_powerstate_out.changed
+
+- name: Waiting for LC status to be ready
+  ansible.builtin.include_tasks:
+    file: ../__lc_status.yml

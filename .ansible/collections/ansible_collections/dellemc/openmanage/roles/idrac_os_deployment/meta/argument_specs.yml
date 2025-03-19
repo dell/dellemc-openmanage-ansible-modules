@@ -1,0 +1,191 @@
+---
+argument_specs:
+  main:
+    version_added: "7.5.0"
+    short_description: Role to deploy operating system on the iDRAC servers
+    description:
+      - Role to generate the custom iso using the kickstart configuration file and deploy operating system on the idrac servers.
+    options:
+      hostname:
+        required: true
+        type: str
+        description: iDRAC IP Address or hostname.
+      username:
+        type: str
+        description: iDRAC username with admin privilages.
+      password:
+        type: str
+        description: iDRAC user password.
+      https_port:
+        type: int
+        description: iDRAC port.
+        default: 443
+      validate_certs:
+        description:
+          - If C(False), the SSL certificates will not be validated.
+          - Configure C(False) only on personally controlled sites where self-signed certificates are used.
+        type: bool
+        default: true
+      ca_path:
+        description: The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+        type: path
+      https_timeout:
+        description: The socket level timeout in seconds.
+        type: int
+        default: 30
+      os_name:
+        type: str
+        description:
+          - The operating system name to match the jinja template of the kickstart file.
+          - Supported os name is versions for RHEL and ESXI.
+          - Jinja template file should exists in the format <os_name_upper>_<os_version_major>.j2
+          - This is required when I(is_custom_iso) is C(false).
+      os_version:
+        type: str
+        description:
+          - The operating system version to match the jinja template of the kickstart file.
+          - Supported versions for RHEL are 9.x and 8.x and for ESXi is 8.x.
+          - Jinja template file should exists in the format <os_name_upper>_<os_version_major>.j2
+          - This is required when I(is_custom_iso) is C(false)
+      source:
+        type: dict
+        description: HTTP/HTTPS share or local path of the ISO.
+        required: true
+        options:
+          protocol:
+            type: str
+            description:
+              - Type of the the transfer protocol used to download the iso.
+              - C(https) uses the https protocol to download the iso.
+              - C(http) uses the http protocol to download the iso.
+              - C(nfs) uses the locally mounted nfs folder path to download the iso.
+              - C(cifs) uses the locally mounted cifs folder path to download the iso.
+              - C(local) uses the local folder path to download the iso.
+              - If I(custom_iso_true) is C(true) this will be used to mount the custom iso to virtual media.
+            choices: ["https", "http", "local", "cifs", "nfs"]
+            required: true
+          hostname:
+            type: str
+            description:
+              - HTTP/HTTPS address to download the ISO.
+              - Hostname of the http/https/cifs and nfs to mount the custom iso to virtual media.
+              - I(hostname) is applicable to download iso only when I(protocol) is C(http) or C(https) and I(is_custom_iso) is C(false).
+              - I(hostname) is ignored to download the iso when I(protocol) is C(local), C(nfs) or C(cifs) and I(is_custom_iso) is C(false).
+              - I(hostname) will be used to attach the virtual media when I(is_custom_iso) is C(true).
+          iso_path:
+            type: path
+            description:
+              - Absolute local path or http/https share path of the iso.
+              - when I(custom_iso) true I(iso_path) should be http, https, nfs or cifs path.
+            required: true
+          iso_name:
+            type: str
+            description: Name of the iso file.
+            required: true
+          ks_path:
+            type: path
+            description:
+              - Absolute local path or http/https share path kickstart file.
+              - When I(ks_path) is provided role skips the generation of kickstart file and uses the one provided in the input.
+          is_custom_iso:
+            type: bool
+            description:
+              - Specifies the source iso is a custom iso.
+              - C(true) uses the custom iso and skips the kickstart file generation and custom iso compilation.
+              - when C(true), I(destination) is ignored and uses the I(iso_path) to mount the virtual media on idrac.
+              - C(false) runs the the kickstart file generation and custom iso compilation
+            default: false
+          username:
+            type: str
+            description:
+              - Username of the http, https and cifs share.
+              - I(username) is applicable only when I(protocol) is C(http) , C(https) to download the iso file.
+              - I(username) is applicable to mount the custom iso as a virtual media in idrac when I(protocol) is
+                C(http) , C(https), c(cifs) and I(is_custom_iso) is C(true).
+              - I(username) is ignored when I(protocol) is C(local).
+          password:
+            type: str
+            description:
+              - Password of the http, https and cifs share.
+              - I(password) is applicable only when I(protocol) is C(http) , C(https) to download the iso file.
+              - I(password) is applicable to mount the custom iso as a virtual media in idrac when
+                I(protocol) is C(http) , C(https), c(cifs) and I(is_custom_iso) is C(true).
+              - I(password) is ignored when I(protocol) is C(local).
+      destination:
+        type: dict
+        description:
+          - Share path to mount the ISO to iDRAC.
+          - Share needs to have a write permission to copy the generated ISO.
+          - CIFS, NFS, HTTP and HTTPS shares are supported.
+          - I(destination) is ignored when I(is_custom_iso) is C(true)
+          - When the protocol is of C(http), C(https) custom iso is copied into a destination location/folder where the web server content is served.
+          - When the protocol is of C(cifs), c(nfs) custom iso is copied into the locally mounted nfs or cifs location location.
+        options:
+          protocol:
+            type: str
+            description:
+              - Type of the the transfer protocol used to mount the virtual media on to idrac.
+              - C(https) uses the ssh protocol to copy the custom iso to the I(mountpoint) and uses https protocol to the mount the virtual media.
+              - C(http) uses the ssh protocol to copy the custom iso to the I(mountpoint) and uses https protocol to the mount the virtual media.
+              - C(nfs) copies the the custom iso to the I(mountpoint) mounted localy and uses nfs protocol to the mount the virtual media.
+              - C(cifs) copies the the custom iso to the I(mountpoint) mounted localy and uses cifs protocol to the mount the virtual media.
+            choices: ["https", "http", "nfs", "cifs"]
+            required: true
+          hostname:
+            type: str
+            description:
+              - Target machine address/hostname where the custom iso will be copied.
+              - Address/hostname used to mount the iso as a virtual media.
+              - I(hostname) is applicable to copy iso using ssh when I(protocol) is C(http) or C(https).
+              - I(hostname) will be defaulted to localhost to copy iso when I(protocol) is C(nfs), C(cifs).
+              - I(hostname) will be used to mount the virtual media in idrac when I(protocol) is C(http), C(https), C(nfs) or C(cifs).
+            required: true
+          iso_path:
+            type: path
+            description: Custom iso absolute path to be used to mount as a virtual media in idrac.
+            required: true
+          iso_name:
+            type: str
+            description: Custom iso file name. If not specified defaulted to C(hostname-source.iso_name).
+          mountpoint:
+            type: path
+            description:
+              - Target machine absolute path where the custom iso will be copied.
+              - I(mountpoint) will be path where http/https is served from when I(protocol) is C(http), C(https).
+              - I(mountpoint) will be local folder mounted with nfs/cifs share when I(protocol) is C(nfs) C(cifs).
+            required: true
+          os_type:
+            description: HTTP/HTTPS share based on linux/Windows.
+            type: str
+            choices: ["linux", "windows"]
+            default: "linux"
+          username:
+            type: str
+            description:
+              - Username of the http/https/cifs share where customized ISO is used to mount as a virtual media.
+          password:
+            type: str
+            description:
+              - Password of the http/https/cifs share where customized ISO is used to mount as a virtual media.
+      wait_for_os_deployment:
+        default: true
+        type: bool
+        description:
+          - Wait for the OS deployment to finish.
+      os_deployment_timeout:
+        description:
+          - Time in minutes to wait for the OS deployment to finish.
+        default: 30
+        type: int
+      eject_iso:
+        description:
+          - Eject the virtual media (ISO) after the tracking of OS deployment is finished.
+          - ISO will be ejected if I(eject_iso) is C(true) and I(wait_for_os_deployment) is C(true).
+        default: true
+        type: bool
+      delete_custom_iso:
+        description:
+          - Deletes the Custom iso after the OS deployment is finshed.
+          - ISO will be delete if I(delete_custom_iso) is C(true) and I(wait_for_os_deployment) is C(true).
+        default: true
+        type: bool

@@ -1,0 +1,70 @@
+---
+argument_specs:
+  main:
+    version_added: "7.6.0"
+    short_description: Role to reset and restart iDRAC
+    description:
+      - Role to reset and restart iDRAC (iDRAC8 and iDRAC9 only) for Dell PowerEdge servers.
+    options:
+      hostname:
+        required: true
+        type: str
+        description: iDRAC IP Address or hostname.
+      username:
+        type: str
+        description: iDRAC username with admin privileges.
+      password:
+        type: str
+        description: iDRAC user password.
+      https_port:
+        type: int
+        description: iDRAC port.
+        default: 443
+      validate_certs:
+        description:
+          - If C(false), the SSL certificates will not be validated.
+          - Configure C(false) only on personally controlled sites where self-signed certificates are used.
+        type: bool
+        default: true
+      ca_path:
+        description:
+          - The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+        type: path
+      https_timeout:
+        description: The HTTPS socket level timeout in seconds.
+        type: int
+        default: 30
+      wait_for_idrac:
+        description:
+          - Wait for the iDRAC to restart and LC status to be ready.
+          - When I(reset_to_default) is C(All), the IP address of iDRAC might not be accessible because of the change in network settings.
+          - When I(reset_to_default) is C(ResetAllWithRootDefaults), the IP address of iDRAC might not be accessible because of the change in network settings.
+        type: bool
+        default: true
+      force_reset:
+        description:
+          - Force restart the idrac without checking the idrac lifecycle controller status.
+        type: bool
+        default: false
+      reset_to_default:
+        description:
+          - Reset the iDRAC to factory default settings.
+          - If this value is not set, then the default behaviour is to restart the iDRAC.
+          - C(All)This action will reset your iDRAC to the factory defaults. SupportAssist settings including registration
+            information will be permanently removed.
+            Username and password will reset to default credentials.
+          - C(ResetAllWithRootDefaults)This action will reset your iDRAC to the factory defaults. SupportAssist settings including
+            registration information will be permanently removed.
+            Default username will reset to root and password to the shipping
+            value (root/shipping value).
+          - C(Default)This action will reset your iDRAC to the factory defaults. SupportAssist settings including registration
+            information will be permanently removed.
+            User and network settings will be preserved.
+          - "Note: Supported only for iDRAC9."
+        type: str
+        choices:
+          [
+            "All",
+            "ResetAllWithRootDefaults",
+            "Default",
+          ]

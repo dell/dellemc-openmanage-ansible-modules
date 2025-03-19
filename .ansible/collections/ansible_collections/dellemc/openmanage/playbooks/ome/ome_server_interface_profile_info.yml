@@ -1,0 +1,31 @@
+---
+- name: Dell OpenManage Ansible server interface profile information.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Retrieves the server interface profiles of all the device using device ID.
+      dellemc.openmanage.ome_server_interface_profile_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_id:
+          - 10001
+          - 10002
+      tags:
+        - sip-device-id
+      delegate_to: localhost
+
+    - name: Retrieves the server interface profiles of all the device using device service tag.
+      dellemc.openmanage.ome_server_interface_profile_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_service_tag:
+          - 6GHH6H2
+          - 6KHH6H3
+      tags:
+        - sip-service-tag
+      delegate_to: localhost

@@ -1,0 +1,11 @@
+---
+# defaults file for idrac_firmware
+https_port: 443
+validate_certs: true
+https_timeout: 30
+apply_update: true
+reboot: true
+proxy_support: "Off"
+job_wait: true
+ignore_cert_warning: true
+catalog_file_name: "Catalog.xml"

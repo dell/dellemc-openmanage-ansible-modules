@@ -1,0 +1,10 @@
+---
+# defaults file for idrac_bios
+https_port: 443
+validate_certs: true
+https_timeout: 30
+apply_time: "Immediate"
+clear_pending: false
+reset_type: "graceful_restart"
+job_wait: true
+job_wait_timeout: 1200

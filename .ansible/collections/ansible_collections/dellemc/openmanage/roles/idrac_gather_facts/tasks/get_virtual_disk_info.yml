@@ -1,0 +1,25 @@
+---
+- name: Get Storage information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_system }}/Storage"
+  register: virtual_disk_result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Get all storage controller ids.
+  ansible.builtin.set_fact:
+    storage_ids_list: "{{ virtual_disk_result.json.Members | map('dict2items') | flatten | map(attribute='value') | default('') }}"
+
+- name: Get Virtual Disk information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ item }}/Volumes?$expand=*($levels=1)"
+  loop: "{{ storage_ids_list }}"
+  register: result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Set Virtual Disk facts
+  ansible.builtin.set_fact:
+    virtual_disk:
+      "{{ result.results | selectattr('json', 'defined') | map(attribute='json') | selectattr('Members', 'defined') |
+      map(attribute='Members') | flatten | ansible.utils.remove_keys(target=['@odata.context', '@odata.type',
+      '@odata.id', 'Actions', 'EncryptionTypes@odata.count', 'Identifiers@odata.count', 'Links',
+      'Operations@odata.count', 'DellVirtualDisk', 'DellVirtualDisk@Redfish.Deprecated']) }}"

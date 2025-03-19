@@ -1,0 +1,16 @@
+---
+- name: Get PowerSupply information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_chassis }}/PowerSubsystem/PowerSupplies?$expand=*($levels=1)"
+  ignore_errors: true
+  register: power_supply_result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Set PowerSupply facts
+  ansible.builtin.set_fact:
+    power_supply:
+      "{{ power_supply_result.json.Members | ansible.utils.remove_keys(target=['@odata.context',
+      '@odata.id', '@odata.type', 'ActiveInputVoltage@Redfish.Deprecated', 'OperationalStatus@odata.count',
+      'RedTypeOfSet@odata.count']) }}"
+  when: power_supply_result.status == 200
+  register: power_supply_result_register

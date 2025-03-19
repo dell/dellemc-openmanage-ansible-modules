@@ -1,0 +1,28 @@
+---
+- name: Create working directory
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  ansible.builtin.tempfile:
+    state: directory
+    prefix: "{{ idrac_os_deployment_temp_file_prefix }}"
+  register: idrac_os_deployment_wd
+
+- name: Set custom iso filename
+  when: destination is defined and destination.iso_name is defined
+  ansible.builtin.set_fact:
+    idrac_os_deployment_custom_iso_filename: "{{ destination.iso_name }}"
+
+- name: Set custom iso path
+  ansible.builtin.set_fact:
+    idrac_os_deployment_custom_iso_file: "{{ idrac_os_deployment_wd.path }}/{{ idrac_os_deployment_custom_iso_filename }}"
+
+- name: Create a extract directory in the working directory
+  register: idrac_os_deployment_create_extract_dir
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  ansible.builtin.file:
+    path: "{{ idrac_os_deployment_wd.path }}/{{ idrac_os_deployment_extract_dir }}"
+    state: directory
+    mode: "{{ idrac_os_deployment_iso_extract_dir_mode }}"
+
+- name: Set extracted directory path
+  ansible.builtin.set_fact:
+    idrac_os_deployment_iso_extract_dir: "{{ idrac_os_deployment_create_extract_dir.path }}"

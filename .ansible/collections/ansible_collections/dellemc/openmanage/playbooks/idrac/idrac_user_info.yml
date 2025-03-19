@@ -1,0 +1,31 @@
+---
+- name: Fetching idrac user facts.
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Retrieve basic details of all accounts.
+      dellemc.openmanage.idrac_user_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+      delegate_to: localhost
+
+    - name: Retreive user details of a specific user_id
+      dellemc.openmanage.idrac_user_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        user_id: 1
+      delegate_to: localhost
+
+    - name: Retreive user details of a specific username
+      dellemc.openmanage.idrac_user_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        username: user_name
+      delegate_to: localhost

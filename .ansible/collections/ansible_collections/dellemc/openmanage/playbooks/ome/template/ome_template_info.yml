@@ -1,0 +1,32 @@
+---
+- name: Dell OpenManage Ansible template inventory details.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Retrieve basic details of all templates.
+      dellemc.openmanage.ome_template_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+      delegate_to: localhost
+
+    - name: Retrieve details of a specific template identified by its template ID.
+      dellemc.openmanage.ome_template_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        template_id: "{{ template_id }}"
+      delegate_to: localhost
+
+    - name: Get filtered template info based on name.
+      dellemc.openmanage.ome_template_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        system_query_options:
+          filter: "Name eq 'new template'"
+      delegate_to: localhost

@@ -1,0 +1,101 @@
+---
+- name: Converge idrac_gather_facts for idrac
+  hosts: all
+  connection: local
+  gather_facts: true
+  vars:
+    hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+    username: "{{ lookup('env', 'IDRAC_USER') }}"
+    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+    target:
+      - IDRAC
+    idrac_gather_facts_uri_method: "GET"
+    idrac_gather_facts_uri_headers:
+      Accept: "application/json"
+      Content-Type: "application/json"
+      OData-Version: "4.0"
+    idrac_gather_facts_uri_body_format: "json"
+    idrac_gather_facts_uri_status_code:
+      - 200
+      - 400
+      - 401
+      - 404
+      - -1
+    idrac_gather_facts_uri_return_content: true
+    diff_data: {}
+    exclude_keys: ["ServerOS.1.ServerPoweredOnTime", "SystemInfo.1.SysTime"]
+
+  tasks:
+    - name: Gather Facts for idrac component
+      ansible.builtin.include_role:
+        name: "idrac_gather_facts"
+
+    - name: Get System information.
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}{{ api_manager }}/Oem/Dell/DellAttributes/System.Embedded.1"
+        validate_certs: "{{ validate_certs }}"
+        ca_path: "{{ ca_path | default(omit) }}"
+        method: "{{ idrac_gather_facts_uri_method }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        headers: "{{ idrac_gather_facts_uri_headers }}"
+        body_format: "{{ idrac_gather_facts_uri_body_format }}"
+        status_code: "{{ idrac_gather_facts_uri_status_code }}"
+        return_content: "{{ idrac_gather_facts_uri_return_content }}"
+      register: response_sys_attr
+      ignore_errors: true
+      no_log: true
+
+    - name: Get Manager information.
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}{{ api_manager }}/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
+        validate_certs: "{{ validate_certs }}"
+        ca_path: "{{ ca_path | default(omit) }}"
+        method: "{{ idrac_gather_facts_uri_method }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        headers: "{{ idrac_gather_facts_uri_headers }}"
+        body_format: "{{ idrac_gather_facts_uri_body_format }}"
+        status_code: "{{ idrac_gather_facts_uri_status_code }}"
+        return_content: "{{ idrac_gather_facts_uri_return_content }}"
+      register: response_mgr_attr
+      ignore_errors: true
+      no_log: true
+
+    - name: Get Lifecycle controller information.
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}{{ api_manager }}/Oem/Dell/DellAttributes/LifecycleController.Embedded.1"
+        validate_certs: "{{ validate_certs }}"
+        ca_path: "{{ ca_path | default(omit) }}"
+        method: "{{ idrac_gather_facts_uri_method }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        headers: "{{ idrac_gather_facts_uri_headers }}"
+        body_format: "{{ idrac_gather_facts_uri_body_format }}"
+        status_code: "{{ idrac_gather_facts_uri_status_code }}"
+        return_content: "{{ idrac_gather_facts_uri_return_content }}"
+      register: response_lc_attr
+      ignore_errors: true
+      no_log: true
+
+    - name: Set System, Manager, Lifecycle controller facts
+      ansible.builtin.set_fact:
+        api_idrac:
+          api_system_attributes: "{{ response_sys_attr.json.Attributes }}"
+          api_manager_attributes: "{{ response_mgr_attr.json.Attributes }}"
+          api_lifecycle_controller_attributes: "{{ response_lc_attr.json.Attributes }}"
+      when: response_sys_attr.status == 200 and response_mgr_attr.status == 200
+            and response_lc_attr.status == 200
+
+    - name: Call assertion For System Attributes
+      ansible.builtin.include_tasks: ../../tests/asserts/system_assert.yml
+      when: api_idrac is defined and idrac is defined
+
+    - name: Call assertion For LC Attributes
+      ansible.builtin.include_tasks: ../../tests/asserts/lc_assert.yml
+      when: api_idrac is defined and idrac is defined
+
+    - name: Call assertion For Manager Attributes
+      ansible.builtin.include_tasks: ../../tests/asserts/manager_assert.yml
+      when: api_idrac is defined and idrac is defined

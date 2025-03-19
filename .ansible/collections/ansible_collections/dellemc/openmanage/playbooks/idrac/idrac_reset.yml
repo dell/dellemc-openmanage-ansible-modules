@@ -1,0 +1,70 @@
+---
+- name: Reset iDRAC
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Reset the iDRAC to default and
+           do not wait till the iDRAC is accessible.
+      dellemc.openmanage.idrac_reset:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        reset_to_default: "Default"
+        wait_for_idrac: false
+      delegate_to: localhost
+
+    - name: Reset the iDRAC to all and wait for lifecycle controller
+            status to be ready after reset.
+      dellemc.openmanage.idrac_reset:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        reset_to_default: "All"
+        wait_for_idrac: true
+        default_username: "user_name"
+        default_password: "user_password"
+
+    - name: Force reset the iDRAC to default.
+      dellemc.openmanage.idrac_reset:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        reset_to_default: "Default"
+        force_reset: true
+      delegate_to: localhost
+
+    - name: Gracefully restart the iDRAC.
+      dellemc.openmanage.idrac_reset:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+      delegate_to: localhost
+
+    - name: Reset the iDRAC to custom defaults XML and
+           do not wait till the iDRAC is accessible.
+      dellemc.openmanage.idrac_reset:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        reset_to_default: "CustomDefaults"
+        custom_defaults_file: "/path/to/custom_defaults.xml"
+      delegate_to: localhost
+
+    - name: Reset the iDRAC to custom defaults buffer input and
+           do not wait till the iDRAC is accessible.
+      dellemc.openmanage.idrac_reset:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        reset_to_default: "CustomDefaults"
+        custom_defaults_buffer: "<SystemConfiguration><Component
+           FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'>
+           Disabled</Attribute></Component></SystemConfiguration>"
+      delegate_to: localhost

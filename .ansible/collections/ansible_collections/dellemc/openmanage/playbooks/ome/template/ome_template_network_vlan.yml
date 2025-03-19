@@ -1,0 +1,64 @@
+---
+- name: Dell OpenManage Ansible template tag and untag.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Tag or untag vlans in template
+      dellemc.openmanage.ome_template_network_vlan:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        template_id: 78
+        nic_identifier: NIC Slot 4
+        untagged_networks:
+          - port: 1
+            untagged_network_id: 12765
+          - port: 2
+            untagged_network_name: vlan2
+        tagged_networks:
+          - port: 1
+            tagged_network_ids:
+              - 12767
+              - 12768
+          - port: 4
+            tagged_network_ids:
+              - 12767
+              - 12768
+            tagged_network_names:
+              - vlan3
+          - port: 2
+            tagged_network_names:
+              - vlan4
+              - vlan1
+      tags:
+        - tag_untag_vlan
+      delegate_to: localhost
+
+    - name: Clear the tagged and untagged vLANs
+      dellemc.openmanage.ome_template_network_vlan:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        template_id: 78
+        nic_identifier: NIC Slot 4
+        untagged_networks:
+          # For removing the untagged vLANs for the port 1 and 2
+          - port: 1
+            untagged_network_id: 0
+          - port: 2
+            untagged_network_name: 0
+        tagged_networks:
+          # For removing the tagged vLANs for port 1 and 4
+          - port: 1
+            tagged_network_ids: []
+          - port: 4
+            tagged_network_ids: []
+            tagged_network_names: []
+          - port: 2
+            tagged_network_names: []
+      tags:
+        - clear_tagged_untagged
+      delegate_to: localhost

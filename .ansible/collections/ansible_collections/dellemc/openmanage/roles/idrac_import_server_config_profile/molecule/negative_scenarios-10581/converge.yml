@@ -1,0 +1,317 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: "Importing SCP without share_name"
+      ansible.builtin.import_role:
+        name: "idrac_import_server_config_profile"
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        target: ['IDRAC']
+        share_parameters:
+          share_user: "{{ lookup('env', 'http_username') }}"
+          share_password: "{{ lookup('env', 'http_password') }}"
+          scp_file: "{{ lookup('env', 'http_filename') }}"
+      ignore_errors: true
+      register: idrac_import_server_config_profile_status
+
+    - name: "Verifying Import SCP without share_name"
+      ansible.builtin.assert:
+        that:
+          - 'idrac_import_server_config_profile_out.msg == "one of the
+           following is required: share_name, import_buffer"'
+
+    - name: "Importing SCP without scp_file"
+      ansible.builtin.import_role:
+        name: "idrac_import_server_config_profile"
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        target: ['IDRAC']
+        share_parameters:
+          share_name: "{{ lookup('env', 'http_url') }}"
+          share_user: "{{ lookup('env', 'http_username') }}"
+          share_password: "{{ lookup('env', 'http_password') }}"
+      ignore_errors: true
+      register: idrac_import_server_config_profile_status
+
+    - name: "Verifying Import SCP without scp_file"
+      ansible.builtin.assert:
+        that:
+          - "'HTTP Error 401: Unauthorized' in
+            idrac_import_server_config_profile_out.msg or
+            'HTTP Error 400: Bad Request' in
+            idrac_import_server_config_profile_out.msg"
+
+    - name: "Importing SCP from CIFS with ALL components with invalid file"
+      ansible.builtin.import_role:
+        name: "idrac_import_server_config_profile"
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        share_parameters:
+          share_name: "{{ lookup('env', 'cifs_url') }}"
+          share_user: "{{ lookup('env', 'cifs_username') }}"
+          share_password: "{{ lookup('env', 'cifs_password') }}"
+          scp_file: "invalid_file.xml"
+      ignore_errors: true
+      register: idrac_import_server_config_profile_status
+
+    - name: "Verifying Import SCP from CIFS with ALL components with invalid file"
+      ansible.builtin.assert:
+        that:
+          - idrac_import_server_config_profile_out.msg == "Invalid file path provided." or
+            idrac_import_server_config_profile_out.msg == "Failed to import scp."
+
+    - name: Wait for 15 seconds
+      ansible.builtin.pause:
+        seconds: 15
+
+    - name: "Importing SCP from CIFS with ALL components with invalid share"
+      ansible.builtin.import_role:
+        name: "idrac_import_server_config_profile"
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        share_parameters:
+          share_name: "192.168.0.1:/cifsshare"
+          share_user: "{{ lookup('env', 'cifs_username') }}"
+          share_password: "{{ lookup('env', 'cifs_password') }}"
+          scp_file: "{{ lookup('env', 'cifs_filename') }}"
+      ignore_errors: true
+      register: idrac_import_server_config_profile_status
+
+    - name: "Verifying Import SCP from CIFS with ALL components with invalid share"
+      ansible.builtin.assert:
+        that:
+          - "'HTTP Error 500' in idrac_import_server_config_profile_out.msg or
+            'Failed to import scp.' in idrac_import_server_config_profile_out.msg"
+
+    - name: "Importing SCP with invalid hostname"
+      ansible.builtin.import_role:
+        name: "idrac_import_server_config_profile"
+      vars:
+        hostname: "randomHostname"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        share_parameters:
+          share_name: "{{ lookup('env', 'cifs_url') }}"
+          share_user: "{{ lookup('env', 'cifs_username') }}"
+          share_password: "{{ lookup('env', 'cifs_password') }}"
+          scp_file: "{{ lookup('env', 'cifs_filename') }}"
+      ignore_errors: true
+      ignore_unreachable: true
+      register: idrac_import_server_config_profile_status
+
+    - name: "Verifying Import SCP with invalid hostname"
+      ansible.builtin.assert:
+        that:
+          - "'<urlopen error Unable to communicate with iDRAC randomHostname.' in idrac_import_server_config_profile_out.msg or
+            '<urlopen error [Errno -2] Name or service not known>' in idrac_import_server_config_profile_out.msg"
+
+    - name: "Importing SCP with invalid username"
+      ansible.builtin.import_role:
+        name: "idrac_import_server_config_profile"
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "WrongUsername123"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        share_parameters:
+          share_name: "{{ lookup('env', 'cifs_url') }}"
+          share_user: "{{ lookup('env', 'cifs_username') }}"
+          share_password: "{{ lookup('env', 'cifs_password') }}"
+          scp_file: "{{ lookup('env', 'cifs_filename') }}"
+      ignore_errors: true
+      ignore_unreachable: true
+      register: idrac_import_server_config_profile_status
+
+    - name: "Verifying Import SCP with invalid username"
+      ansible.builtin.assert:
+        that:
+          - "'HTTP Error 401' in idrac_import_server_config_profile_out.msg"
+
+    - name: "Importing SCP with invalid password"
+      ansible.builtin.import_role:
+        name: "idrac_import_server_config_profile"
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "WrongPassword@123"
+        validate_certs: false
+        share_parameters:
+          share_name: "{{ lookup('env', 'cifs_url') }}"
+          share_user: "{{ lookup('env', 'cifs_username') }}"
+          share_password: "{{ lookup('env', 'cifs_password') }}"
+          scp_file: "{{ lookup('env', 'cifs_filename') }}"
+      ignore_errors: true
+      ignore_unreachable: true
+      register: idrac_import_server_config_profile_status
+
+    - name: "Verifying Import SCP with invalid password"
+      ansible.builtin.assert:
+        that:
+          - "'HTTP Error 401' in idrac_import_server_config_profile_out.msg or
+            '<urlopen error timed out>' in idrac_import_server_config_profile_out.msg"
+
+    - name: "Importing SCP with invalid target"
+      ansible.builtin.import_role:
+        name: "idrac_import_server_config_profile"
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        target: ['idrac']
+        share_parameters:
+          share_name: "{{ lookup('env', 'http_url') }}"
+          share_user: "{{ lookup('env', 'http_username') }}"
+          share_password: "{{ lookup('env', 'http_password') }}"
+          scp_file: "{{ lookup('env', 'http_filename') }}"
+      ignore_errors: true
+      register: idrac_import_server_config_profile_status
+
+    - name: "Verifying Import SCP with invalid target"
+      ansible.builtin.assert:
+        that:
+          - "'value of scp_components must be one or more of: ALL, IDRAC, BIOS, NIC, RAID' in idrac_import_server_config_profile_out.msg"
+
+    ############### Below snippet is commented because of Issue: JIT-284466 ###############
+    # - name: "Importing SCP with invalid username of share access"
+    #   ansible.builtin.import_role:
+    #     name: "idrac_import_server_config_profile"
+    #   vars:
+    #     hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+    #     username: "{{ lookup('env', 'IDRAC_USER') }}"
+    #     password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    #     validate_certs: false
+    #     target: ['IDRAC']
+    #     share_parameters:
+    #       share_name: "{{ lookup('env', 'http_url') }}"
+    #       share_user: "WrongUsername123"
+    #       share_password: "{{ lookup('env', 'http_password') }}"
+    #       scp_file: "{{ lookup('env', 'http_filename') }}"
+    #   ignore_errors: true
+    #   register: idrac_import_server_config_profile_status
+
+    # - name: Wait for 15 seconds
+    #   ansible.builtin.pause:
+    #     seconds: 15
+
+    # - name: "Verifying Import SCP with invalid username of share access"
+    #   ansible.builtin.assert:
+    #     that:
+    #       - idrac_import_server_config_profile_out.msg == "Invalid file path provided." or
+    #         idrac_import_server_config_profile_out.msg == "Failed to import scp."
+    ###################################################################################################################
+
+    ############### Below snippet is commented because of Issue: JIT-284466 ###############
+    # - name: "Importing SCP with invalid password of share access"
+    #   ansible.builtin.import_role:
+    #     name: "idrac_import_server_config_profile"
+    #   vars:
+    #     hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+    #     username: "{{ lookup('env', 'IDRAC_USER') }}"
+    #     password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    #     validate_certs: false
+    #     target: ['IDRAC']
+    #     share_parameters:
+    #       share_name: "{{ lookup('env', 'http_url') }}"
+    #       share_user: "{{ lookup('env', 'http_username') }}"
+    #       share_password: "WrongPassword@123"
+    #       scp_file: "{{ lookup('env', 'http_filename') }}"
+    #   ignore_errors: true
+    #   register: idrac_import_server_config_profile_status
+
+    # - name: "Verifying Import SCP with invalid password of share access"
+    #   ansible.builtin.assert:
+    #     that:
+    #       - idrac_import_server_config_profile_out.msg == "Invalid file path provided." or
+    #         idrac_import_server_config_profile_out.msg == "Failed to import scp."
+    ###################################################################################################################
+
+    - name: "Importing SCP with share_name as None"
+      ansible.builtin.import_role:
+        name: "idrac_import_server_config_profile"
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        target: ['IDRAC']
+        share_parameters:
+          share_name: None
+          share_user: "{{ lookup('env', 'http_username') }}"
+          share_password: "WrongPassword@123"
+          scp_file: "{{ lookup('env', 'http_filename') }}"
+      ignore_errors: true
+      register: idrac_import_server_config_profile_status
+
+    - name: "Verifying Import SCP with share_name as None"
+      ansible.builtin.assert:
+        that:
+          - idrac_import_server_config_profile_out.msg == "Invalid file path provided."
+
+    - name: "Importing SCP with proxy_ssupport enabled but no other proxy parameters"
+      ansible.builtin.import_role:
+        name: "idrac_import_server_config_profile"
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        target: ['ALL']
+        share_parameters:
+          share_name: "{{ lookup('env', 'http_url') }}"
+          share_user: "{{ lookup('env', 'http_username') }}"
+          share_password: "{{ lookup('env', 'http_password') }}"
+          scp_file: "{{ lookup('env', 'http_filename') }}"
+          proxy_support: true
+      ignore_errors: true
+      register: idrac_import_server_config_profile_status
+
+    - name: "Verifying Import SCP with proxy_ssupport enabled but no other proxy parameters"
+      ansible.builtin.assert:
+        that:
+          - "'proxy_support is True but all of the following are missing' in idrac_import_server_config_profile_out.msg"
+
+    ############### Below snippet is commented because of Issue: JIT-284466 ###############
+    # - name: "Importing SCP with invalid proxy parameters"
+    #   ansible.builtin.import_role:
+    #     name: "idrac_import_server_config_profile"
+    #   vars:
+    #     hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+    #     username: "{{ lookup('env', 'IDRAC_USER') }}"
+    #     password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    #     validate_certs: false
+    #     target: ['ALL']
+    #     share_parameters:
+    #       share_name: "{{ lookup('env', 'http_url') }}"
+    #       share_user: "{{ lookup('env', 'http_username') }}"
+    #       share_password: "{{ lookup('env', 'http_password') }}"
+    #       scp_file: "{{ lookup('env', 'http_filename') }}"
+    #       proxy_support: true
+    #       proxy_type: http
+    #       proxy_server: "randomProxyServer"
+    #       proxy_port: "{{ lookup('env', 'proxy_port') }}"
+    #       proxy_password: "{{ lookup('env', 'proxy_password') }}"
+    #   ignore_errors: true
+    #   register: idrac_import_server_config_profile_status
+
+    # - name: "Verifying Import SCP with invalid proxy parameter"
+    #   ansible.builtin.assert:
+    #     that:
+    #       - idrac_import_server_config_profile_out.msg == "Invalid file path provided." or
+    #         idrac_import_server_config_profile_out.msg == "Failed to import scp."
+    ###################################################################################################################

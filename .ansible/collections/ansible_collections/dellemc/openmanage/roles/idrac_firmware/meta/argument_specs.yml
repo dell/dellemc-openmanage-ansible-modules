@@ -1,0 +1,114 @@
+---
+argument_specs:
+  main:
+    version_added: "7.5.0"
+    short_description: Firmware update from a repository on a network share (CIFS, NFS, HTTP, HTTPS, FTP)
+    description:
+      - Update the Firmware by connecting to a network share (CIFS, NFS, HTTP, HTTPS, FTP) that contains a catalog of available updates.
+    options:
+      hostname:
+        required: true
+        type: str
+        description: iDRAC IP Address or hostname.
+      username:
+        type: str
+        description: iDRAC username with admin privileges.
+      password:
+        type: str
+        description: iDRAC user password.
+      https_port:
+        type: int
+        description: iDRAC port.
+        default: 443
+      validate_certs:
+        description:
+          - If C(false), the SSL certificates will not be validated.
+          - Configure C(false) only on personally controlled sites where self-signed certificates are used.
+        type: bool
+        default: true
+      ca_path:
+        description:
+          - The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+        type: path
+      http_timeout:
+        description: The socket level timeout in seconds.
+        type: int
+        default: 30
+      share_name:
+        description: Network share path of update repository. CIFS, NFS, HTTP, HTTPS and FTP share types are supported.
+        type: str
+        required: true
+      share_user:
+        description:
+          Network share user in the format 'user@domain' or 'domain\\user' if user is
+          part of a domain else 'user'. This option is mandatory for CIFS Network Share.
+        type: str
+      share_password:
+        description: Network share user password. This option is mandatory for CIFS Network Share.
+        type: str
+      catalog_file_name:
+        description: Catalog file name relative to the I(share_name).
+        type: str
+        default: "Catalog.xml"
+      ignore_cert_warning:
+        description:
+          Specifies if certificate warnings are ignored when HTTPS share is used.
+          If C(true) option is set, then the certificate warnings are ignored.
+        type: bool
+        default: true
+      apply_update:
+        description:
+          - If I(apply_update) is set to C(true), then the packages are applied.
+          - If I(apply_update) is set to C(false), no updates are applied, and a catalog report
+            of packages is generated and returned.
+        type: bool
+        default: true
+      reboot:
+        description:
+          - Provides the option to apply the update packages immediately or in the next reboot.
+          - If I(reboot) is set to C(true),  then the packages  are applied immediately.
+          - If I(reboot) is set to C(false), then the packages are staged and applied in the next reboot.
+          - Packages that do not require a reboot are applied immediately irrespective of I (reboot).
+        type: bool
+        default: false
+      proxy_support:
+        description:
+          - Specifies if a proxy should be used.
+          - Proxy parameters are applicable on C(HTTP), C(HTTPS), and C(FTP) share type of repositories.
+          - C(ParametersProxy), sets the proxy parameters for the current firmware operation.
+          - C(DefaultProxy), iDRAC uses the proxy values set by default.
+          - Default Proxy can be set in the Lifecycle Controller attributes using M(dellemc.openmanage.idrac_attributes).
+          - C(Off), will not use the proxy.
+          - For iDRAC8 based servers, use proxy server with basic authentication.
+          - For iDRAC9 based servers, ensure that you use digest authentication for the proxy server, basic authentication is not supported.
+        choices: ["ParametersProxy", "DefaultProxy", "Off"]
+        type: str
+        default: "Off"
+      proxy_server:
+        description:
+          - The IP address of the proxy server.
+          - This IP will not be validated. The download job will be created even for invalid I(proxy_server).
+            Please check the results of the job for error details.
+          - This is required when I(proxy_support) is C(ParametersProxy).
+        type: str
+      proxy_port:
+        description:
+          - The Port for the proxy server.
+          - This is required when I(proxy_support) is C(ParametersProxy).
+        type: int
+      proxy_type:
+        description:
+          - The proxy type of the proxy server.
+          - This is required when I(proxy_support) is C(ParametersProxy).
+        choices: [HTTP, SOCKS]
+        type: str
+      proxy_uname:
+        description: The user name for the proxy server.
+        type: str
+      proxy_passwd:
+        description: The password for the proxy server.
+        type: str
+      job_wait:
+        description: Whether to wait for job completion or not.
+        type: bool
+        default: true

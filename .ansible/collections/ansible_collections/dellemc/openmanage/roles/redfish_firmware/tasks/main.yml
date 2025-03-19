@@ -1,0 +1,16 @@
+---
+# tasks file for redfish_firmware
+- name: Update the firmware from a single executable file.
+  dellemc.openmanage.redfish_firmware:
+    baseuri: "{{ hostname }}:{{ https_port }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    timeout: "{{ https_timeout }}"
+    image_uri: "{{ image_uri }}"
+    transfer_protocol: "{{ transfer_protocol }}"
+    job_wait: "{{ job_wait }}"
+    job_wait_timeout: "{{ job_wait_timeout }}"
+  register: redfish_firmware_out
+  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"

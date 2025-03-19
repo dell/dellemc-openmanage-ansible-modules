@@ -1,0 +1,17 @@
+---
+- name: Cleanup
+  hosts: all
+  gather_facts: false
+  vars:
+    idrac_user_name: "moleculeTest"
+  tasks:
+    - name: Deleting iDRAC user
+      ansible.builtin.import_role:
+        name: idrac_user
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        state: absent
+        user_name: "{{ idrac_user_name }}"

@@ -1,0 +1,73 @@
+---
+- name: Dell OpenManage Ansible Active Directory service configuration.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Add Active Directory service using DNS lookup along with the test connection
+      dellemc.openmanage.ome_active_directory:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        name: my_ad1
+        domain_server:
+          - domainname.com
+        group_domain: domainname.com
+        test_connection: true
+        domain_username: user@domainname
+        domain_password: domain_password
+      delegate_to: localhost
+
+    - name: Add Active Directory service using IP address of the domain controller with certificate validation
+      dellemc.openmanage.ome_active_directory:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        name: my_ad2
+        domain_controller_lookup: MANUAL
+        domain_server:
+          - 192.68.20.181
+        group_domain: domainname.com
+        validate_certificate: true
+        certificate_file: "/path/to/certificate/file.cer"
+      delegate_to: localhost
+
+    - name: Modify domain controller IP address, network_timeout and group_domain
+      dellemc.openmanage.ome_active_directory:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        name: my_ad2
+        domain_controller_lookup: MANUAL
+        domain_server:
+          - 192.68.20.189
+        group_domain: newdomain.in
+        network_timeout: 150
+      delegate_to: localhost
+
+    - name: Delete Active Directory service
+      dellemc.openmanage.ome_active_directory:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        name: my_ad2
+        state: absent
+      delegate_to: localhost
+
+    - name: Test connection to existing Active Directory service with certificate validation
+      dellemc.openmanage.ome_active_directory:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        name: my_ad2
+        test_connection: true
+        domain_username: user@domainname
+        domain_password: domain_password
+        validate_certificate: true
+        certificate_file: "/path/to/certificate/file.cer"
+      delegate_to: localhost

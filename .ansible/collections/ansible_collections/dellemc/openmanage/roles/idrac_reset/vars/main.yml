@@ -1,0 +1,41 @@
+---
+# vars file for idrac_reset
+idrac_reset_uri_headers:
+  Accept: "application/json"
+  Content-Type: "application/json"
+  OData-Version: "4.0"
+idrac_reset_uri_headers_xml:
+  Content-Type: "application/xml"
+idrac_reset_uri_body_format: "json"
+idrac_reset_force_basic_auth: true
+idrac_reset_uri_status_code:
+  - 200
+  - 400
+  - 401
+  - 404
+  - -1
+idrac_reset_delay: 30
+idrac_reset_retries: 10
+idrac_reset_delay_for_idrac_connection: 60
+idrac_reset_wait_for_idrac_reachable: 360
+idrac_reset_connect_timeout: 10
+idrac_reset_sleep_interval: 5
+idrac_reset_uri_return_content: true
+idrac_reset_idrac_restarted_success: "iDRAC restart operation completed successfully"
+idrac_reset_success: "iDRAC reset operation completed successfully"
+idrac_reset_reset_trigger: "iDRAC reset operation triggered successfully"
+idrac_reset_restart_trigger: "iDRAC restart operation triggered successfully"
+idrac_reset_lifecycle_status_api: "/redfish/v1/Dell/Managers/iDRAC.Embedded.1/DellLCService/Actions/DellLCService.GetRemoteServicesAPIStatus"
+idrac_reset_graceful_restart_api: "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Manager.Reset"
+idrac_reset_reset_api: "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/DellManager.ResetToDefaults"
+idrac_reset_get_remote_services_api_status_code:
+  LCStatus:
+    "0": "Ready"
+    "1": "Not Initialized"
+    "2": "Reloading Data"
+    "3": "Disabled"
+    "4": "In Recovery"
+    "5": "In Use"
+    "U": "Unknown"
+idrac_reset_task_delegate: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+idrac_reset_invalid_creds: "The authentication credentials included with this request are missing or invalid."

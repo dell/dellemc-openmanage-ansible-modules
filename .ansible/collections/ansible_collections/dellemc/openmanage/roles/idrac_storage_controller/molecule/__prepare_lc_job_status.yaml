@@ -1,0 +1,44 @@
+---
+- name: Prepare the lifecycle controller job status
+  vars:
+    idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+    idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+    idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+  block:
+    - name: Wait for Job to complete
+      dellemc.openmanage.idrac_lifecycle_controller_job_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_port: "{{ https_port }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        job_id: "{{ job_id }}"
+      when: job_id is defined
+      register: idrac_storage_controller_job_wait
+      until: idrac_storage_controller_job_wait.job_info.JobStatus
+         == "Completed" or idrac_storage_controller_job_wait.job_info.JobStatus
+         == "Failed"
+      failed_when: idrac_storage_controller_job_wait.job_info.JobStatus
+       == "Failed"
+      retries: 100
+      delay: 30
+
+    - name: Track job by location (using uri)
+      ansible.builtin.uri:
+        url: "{{ location }}"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        method: GET
+        force_basic_auth: true
+        validate_certs: false
+        body_format: json
+        return_content: true
+        status_code: 200
+        headers: 'Accept=application/json'
+      register: idrac_storage_controller_job_wait
+      when: location is defined
+      until: idrac_storage_controller_job_wait.json.JobState == "Completed" or
+        idrac_storage_controller_job_wait.json.JobState == "Failed"
+      failed_when: idrac_storage_controller_job_wait.json.JobState == "Failed"
+      retries: 100
+      delay: 30

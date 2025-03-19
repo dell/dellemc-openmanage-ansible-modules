@@ -1,0 +1,39 @@
+---
+- name: Converge idrac_firmware for ftp share
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Update firmware from repository on a FTP Share
+      ansible.builtin.import_role:
+        name: dellemc.openmanage.idrac_firmware
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        share_name: "{{ lookup('env', 'ftpshare') }}"
+        share_user: "{{ lookup('env', 'shareuser') }}"
+        share_password: "{{ lookup('env', 'sharepassword') }}"
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
+        reboot: true
+        job_wait: true
+        apply_update: true
+
+    - name: "Verifying update firmware from repository on a FTP Share in check mode"
+      ansible.builtin.assert:
+        that: idrac_firmware_out.msg == "Changes found to commit!"
+      when: ansible_check_mode
+      tags: molecule-idempotence-notest
+
+    - name: "Verifying update firmware from repository on a FTP Share in normal mode"
+      ansible.builtin.assert:
+        that:
+          - idrac_firmware_out.msg == "Successfully updated the firmware."
+      when: not ansible_check_mode and idrac_firmware_out.changed
+
+    - name: "Verifying update firmware from repository on a FTP Share in idempotence mode"
+      ansible.builtin.assert:
+        that:
+          - idrac_firmware_out.msg == "Unable to complete the operation because the catalog name entered has either unsupported firmware packages
+            or same version installed on the server."
+      when: not ansible_check_mode and not idrac_firmware_out.changed

@@ -1,0 +1,30 @@
+---
+- name: Block to check idrac to be reachable
+  block:
+    - name: Show status of the Lifecycle Controller
+      dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ hostname }}"
+        idrac_user: "{{ username }}"
+        idrac_password: "{{ password }}"
+        validate_certs: false
+      register: result
+      until: result.lc_status_info.LCStatus == "Ready"
+      retries: 240
+      delay: 30
+  rescue:
+    - name: "Waiting for idrac to be reachable"
+      ansible.builtin.include_tasks:
+        file: "../resources/_wait_for_port_to_open.yaml"
+      when: not ansible_check_mode
+      tags: molecule-idempotence-notest
+
+    - name: Show status of the Lifecycle Controller
+      dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ hostname }}"
+        idrac_user: "{{ username }}"
+        idrac_password: "{{ password }}"
+        validate_certs: false
+      register: result
+      until: result.lc_status_info.LCStatus == "Ready"
+      retries: 240
+      delay: 30

@@ -1,0 +1,10 @@
+---
+scenario:
+  test_sequence:
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - destroy

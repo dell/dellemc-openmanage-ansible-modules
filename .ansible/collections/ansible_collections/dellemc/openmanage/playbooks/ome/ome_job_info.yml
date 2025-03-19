@@ -1,0 +1,44 @@
+---
+- name: Dell OpenManage Ansible job details.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Get all jobs details.
+      dellemc.openmanage.ome_job_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+      delegate_to: localhost
+
+    - name: Get job details for id.
+      dellemc.openmanage.ome_job_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        job_id: 12345
+      delegate_to: localhost
+
+    - name: Get filtered job details.
+      dellemc.openmanage.ome_job_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        system_query_options:
+          top: 2
+          skip: 1
+          filter: "JobType/Id eq 8"
+      delegate_to: localhost
+
+    - name: Get detail job execution history with last execution detail for a job.
+      dellemc.openmanage.ome_job_info:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        job_id: 12345
+        fetch_execution_history: true
+      delegate_to: localhost

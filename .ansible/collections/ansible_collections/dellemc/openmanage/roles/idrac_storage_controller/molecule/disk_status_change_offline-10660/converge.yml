@@ -1,0 +1,54 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Block for disk status change to offline
+      block:
+        - name: Create a list of dictionaries of dictionaries
+          ansible.builtin.set_fact:
+            my_list:
+              id: "{{ physicaldisks[0] }}"
+              status: offline
+
+        - name: Validate the disk status change to offline
+          ansible.builtin.import_role:
+            name: idrac_storage_controller
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            job_wait: true
+            job_wait_timeout: 1200
+            controller_id: "{{ controller_name }}"
+            disks: "{{ my_list }}"
+
+        - name: Waiting for iDRAC to be in ready state
+          ignore_errors: true
+          register: idrac_storage_controller_pd_state_out_lc
+          ansible.builtin.include_tasks:
+            file: ../__lc_status.yaml
+          when: pd_state_out.changed # noqa: no-handler
+
+        - name: Verifying disk status change to offline in check mode
+          ansible.builtin.assert:
+            that:
+              - pd_state_out.msg == "Changes found to be applied."
+              - pd_state_out.changed
+          when: ansible_check_mode
+
+        - name: Verifying disk status change to offline in normal mode
+          ansible.builtin.assert:
+            that:
+              - pd_state_out.msg == "Successfully performed the
+               'ChangePDStateToOffline' operation."
+              - pd_state_out.changed
+          when: not ansible_check_mode and pd_state_out.status is defined
+
+        - name: Verifying disk status change to offline in idempotence mode
+          ansible.builtin.assert:
+            that:
+              - pd_state_out.msg == "No changes found to be applied."
+              - not pd_state_out.changed
+          when: not ansible_check_mode and pd_state_out.status is not defined

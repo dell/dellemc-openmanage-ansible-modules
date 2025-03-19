@@ -1,0 +1,46 @@
+---
+# vars file for idrac_gather_facts
+idrac_gather_facts_invalid_sys_id_message: "Invalid computer system id : %s, valid values are %s"
+idrac_gather_facts_invalid_manager_id_message: "Invalid computer manager id : %s, valid values are %s"
+
+idrac_gather_facts_uri_method: "GET"
+idrac_gather_facts_uri_headers:
+  Accept: "application/json"
+  Content-Type: "application/json"
+  OData-Version: "4.0"
+idrac_gather_facts_uri_body_format: "json"
+idrac_gather_facts_uri_status_code:
+  - 200
+  - 400
+  - 401
+  - 404
+  - -1
+idrac_gather_facts_uri_return_content: true
+idrac_gather_facts_delegate: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+
+# Mapping of target facts to yml file
+idrac_gather_facts_target_yml_map:
+  IDRAC: get_attributes_info.yml
+  System: get_system_info.yml
+  BIOS: get_bios_info.yml
+  Controller: get_controller_info.yml
+  CPU: get_cpu_info.yml
+  Enclosure: get_enclosure_info.yml
+  EnclosureEMM: get_enclosure_emm_info.yml
+  Fan: get_fan_info.yml
+  Firmware: get_firmware_info.yml
+  HostNIC: get_host_nic_info.yml
+  License: get_license_info.yml
+  Memory: get_memory_info.yml
+  NIC: get_nic_info.yml
+  PCIeSSDBackPlane: get_backplane_info.yml
+  PowerSupply: get_power_supply_info.yml
+  PresenceAndStatusSensor: get_pas_sensor_info.yml
+  Sensors_Battery: get_battery_info.yml
+  Sensors_Intrusion: get_intrusion_info.yml
+  Sensors_Voltage: get_voltage_info.yml
+  VirtualDisk: get_virtual_disk_info.yml
+  PCIeDevice: get_pcie_device_info.yml
+  PhysicalDisk: get_physical_info.yml
+  SystemMetrics: get_metrics_info.yml
+  SecureBoot: get_secure_boot_info.yml

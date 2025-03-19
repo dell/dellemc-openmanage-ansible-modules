@@ -1,0 +1,297 @@
+---
+- name: Converge file for default/negative scenarios
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Perform update with wrong hostname
+      ansible.builtin.import_role:
+        name: idrac_attributes
+      vars:
+        hostname: "randomHostname"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        idrac_attributes:
+          SSH.1.Timeout: 1800
+      ignore_unreachable: true
+      register: idrac_attributes_error_msg
+
+    - name: Asserting after performing operation with wrong hostname
+      ansible.builtin.assert:
+        that: >-
+          '"<urlopen error [Errno -2] Name or service not known>" in
+          idrac_attributes_out.msg'
+
+    - name: Perform update with wrong username
+      ansible.builtin.import_role:
+        name: idrac_attributes
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "WrongUsername123"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        idrac_attributes:
+          SSH.1.Timeout: 1800
+      ignore_errors: true
+      register: idrac_attributes_error_msg
+
+    - name: Asserting after performing operation with wrong username
+      ansible.builtin.assert:
+        that:
+          - '"HTTP Error 401" in idrac_attributes_out.msg'
+
+    - name: Perform update with wrong password
+      ansible.builtin.import_role:
+        name: idrac_attributes
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "WrongPassword@123"
+        validate_certs: false
+        idrac_attributes:
+          SSH.1.Timeout: 1800
+      ignore_errors: true
+      register: idrac_attributes_error_msg
+
+    - name: Asserting after performing operation with wrong password
+      ansible.builtin.assert:
+        that:
+          - '"HTTP Error 401" in idrac_attributes_out.msg'
+
+    - name: Perform update with invalid https_port
+      ansible.builtin.import_role:
+        name: idrac_attributes
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        https_port: 9999999
+        idrac_attributes:
+          SSH.1.Timeout: 1800
+      ignore_unreachable: true
+      register: idrac_attributes_error_msg
+
+    - name: Asserting after performing operation with invalid https_port
+      ansible.builtin.assert:
+        that: >-
+          '"<urlopen error [Errno 111] Connection refused>" in
+           idrac_attributes_out.msg'
+
+    - name: Perform update with invalid validate_certs
+      ansible.builtin.import_role:
+        name: idrac_attributes
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        https_port: 443
+        validate_certs: "someStringValue"
+        idrac_attributes:
+          SSH.1.Timeout: 1800
+      ignore_errors: true
+      ignore_unreachable: true
+      register: idrac_attributes_error_msg
+
+    - name: Asserting after performing operation with invalid validate_certs
+      ansible.builtin.assert:
+        that:
+          - '"Valid booleans include" in idrac_attributes_out.msg'
+
+    - name: Perform update with wrong ca_path
+      ansible.builtin.import_role:
+        name: idrac_attributes
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        https_port: 443
+        ca_path: ""
+        validate_certs: true
+        idrac_attributes:
+          SSH.1.Timeout: 1800
+      ignore_unreachable: true
+      register: idrac_attributes_error_msg
+
+    - name: Asserting after performing operation with wrong ca_path
+      ansible.builtin.assert:
+        that: >-
+          '"<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify
+           failed: self signed certificate (_ssl.c:1129)>" in
+           idrac_attributes_out.msg'
+
+    - name: Perform update with wrong manager_id
+      ansible.builtin.import_role:
+        name: idrac_attributes
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        https_port: 443
+        validate_certs: false
+        idrac_attributes:
+          SSH.1.Timeout: 1800
+        manager_id: idrac.random.5
+      ignore_errors: true
+      register: idrac_attributes_error_msg
+
+    - name: Asserting after performing operation with wrong manager_id
+      ansible.builtin.assert:
+        that:
+          - '"HTTP Error 404: Not Found" in idrac_attributes_out.msg'
+
+    - name: Perform update with read only attributes
+      ansible.builtin.import_role:
+        name: idrac_attributes
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        https_port: 443
+        validate_certs: false
+        idrac_attributes:
+          SSH.1.MaxSessions: 5
+        manager_id: "{{ null | default(omit) }}"
+      ignore_errors: true
+      register: idrac_attributes_error_msg
+
+    - name: Asserting after performing operation with read only attributes
+      ansible.builtin.assert:
+        that:
+          - idrac_attributes_out.msg == "Attributes have invalid values."
+
+    - name: Perform idrac_attributes update with invalid attributes
+      ansible.builtin.import_role:
+        name: idrac_attributes
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        https_port: 443
+        validate_certs: false
+        idrac_attributes:
+          invalidAttr: enabled
+        manager_id: "{{ null | default(omit) }}"
+      ignore_errors: true
+      register: idrac_attributes_error_msg
+
+    - name: Asserting after performing operation with invalid attributes
+      ansible.builtin.assert:
+        that:
+          - idrac_attributes_out.msg == "Attributes have invalid values."
+
+    - name: Perform idrac_attributes update with
+             valid attributes and invalid values
+      ansible.builtin.import_role:
+        name: idrac_attributes
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        https_port: 443
+        validate_certs: false
+        idrac_attributes:
+          SSH.1.Timeout: false
+        manager_id: "{{ null | default(omit) }}"
+      ignore_errors: true
+      register: idrac_attributes_error_msg
+
+    - name: Asserting after performing operation with
+             valid attributes and invalid values
+      ansible.builtin.assert:
+        that:
+          - idrac_attributes_out.msg == "Attributes have invalid values."
+
+    - name: Perform system_attributes update with invalid attributes
+      ansible.builtin.import_role:
+        name: idrac_attributes
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        https_port: 443
+        validate_certs: false
+        system_attributes:
+          invalidAttr: enabled
+        idrac_attributes: "{{ null | default(omit) }}"
+        manager_id: "{{ null | default(omit) }}"
+      ignore_errors: true
+      register: idrac_attributes_error_msg
+
+    - name: Asserting after performing operation for system_attributes
+             with invalid attributes
+      ansible.builtin.assert:
+        that:
+          - idrac_attributes_out.msg == "Attributes have invalid values."
+
+    - name: Perform system_attributes update with
+             valid attributes and invalid values
+      ansible.builtin.import_role:
+        name: idrac_attributes
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        https_port: 443
+        validate_certs: false
+        system_attributes:
+          Job.1.JobTimeout: stringValue
+        manager_id: "{{ null | default(omit) }}"
+        idrac_attributes: "{{ null | default(omit) }}"
+      ignore_errors: true
+      register: idrac_attributes_error_msg
+
+    - name: Asserting after performing operation for system_attributes
+             with valid attributes and invalid values
+      ansible.builtin.assert:
+        that:
+          - idrac_attributes_out.msg == "Attributes have invalid values."
+
+    - name: Perform lifecycle_controller_attributes update
+             with invalid attributes
+      ansible.builtin.import_role:
+        name: idrac_attributes
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        https_port: 443
+        validate_certs: false
+        lifecycle_controller_attributes:
+          invalidAttr: false
+        idrac_attributes: "{{ null | default(omit) }}"
+        system_attributes: "{{ null | default(omit) }}"
+        manager_id: "{{ null | default(omit) }}"
+      ignore_errors: true
+      register: idrac_attributes_error_msg
+
+    - name: Asserting after performing operation for
+             lifecycle_controller_attributes with invalid attributes
+      ansible.builtin.assert:
+        that:
+          - idrac_attributes_out.msg == "Attributes have invalid values."
+
+    - name: Perform lifecycle_controller_attributes update with
+             valid attributes and invalid values
+      ansible.builtin.import_role:
+        name: idrac_attributes
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        https_port: 443
+        validate_certs: false
+        lifecycle_controller_attributes:
+          LCAttributes.1.AutoUpdate: 12345
+        manager_id: "{{ null | default(omit) }}"
+        idrac_attributes: "{{ null | default(omit) }}"
+        system_attributes: "{{ null | default(omit) }}"
+      ignore_errors: true
+      register: idrac_attributes_error_msg
+
+    - name: Asserting after performing operation for
+           lifecycle_controller_attributes with
+           valid attributes and invalid values
+      ansible.builtin.assert:
+        that:
+          - idrac_attributes_out.msg == "Attributes have invalid values."

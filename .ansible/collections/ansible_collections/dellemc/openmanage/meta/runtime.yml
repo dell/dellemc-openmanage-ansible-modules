@@ -1,0 +1,43 @@
+---
+requires_ansible: ">=2.15.0"
+plugin_routing:
+  modules:
+    dellemc_get_firmware_inventory:
+      tombstone:
+        removal_version: 8.0.0
+        warning_text: Use dellemc.openmanage.idrac_firmware_info instead.
+    dellemc_get_system_inventory:
+      tombstone:
+        removal_version: 8.0.0
+        warning_text: Use dellemc.openmanage.idrac_system_info instead.
+    dellemc_configure_idrac_eventing:
+      deprecation:
+        removal_date: "2024-12-31"
+        warning_text: dellemc_configure_idrac_eventing will be removed in a future release of this collection. Use dellemc.openmanage.idrac_attributes instead.
+    dellemc_configure_idrac_services:
+      deprecation:
+        removal_date: "2024-12-31"
+        warning_text: dellemc_configure_idrac_services will be removed in a future release of this collection. Use dellemc.openmanage.idrac_attributes instead.
+    dellemc_idrac_lc_attributes:
+      deprecation:
+        removal_date: "2024-12-31"
+        warning_text: dellemc_idrac_lc_attributes will be removed in a future release of this collection. Use dellemc.openmanage.idrac_attributes instead.
+    dellemc_system_lockdown_mode:
+      deprecation:
+        removal_date: "2024-12-31"
+        warning_text: dellemc_system_lockdown_mode will be removed in a future release of this collection. Use dellemc.openmanage.idrac_attributes instead.
+    idrac_network:
+      deprecation:
+        removal_date: "2024-12-31"
+        warning_text: idrac_network will be removed in a future release of this collection. Use dellemc.openmanage.idrac_attributes instead.
+    idrac_timezone_ntp:
+      deprecation:
+        removal_date: "2024-12-31"
+        warning_text: idrac_timezone_ntp will be removed in a future release of this collection. Use dellemc.openmanage.idrac_attributes instead.
+    dellemc_idrac_storage_volume:
+      redirect: dellemc.openmanage.idrac_storage_volume
+      deprecation:
+        removal_date: "2026-03-31"
+        warning_text: dellemc_idrac_storage_volume will be removed in a future
+                      release of this collection.
+                      Use dellemc.openmanage.idrac_storage_volume instead.

@@ -1,0 +1,63 @@
+---
+- name: Converge file to update attributes with apply time as Immediate
+  hosts: all
+  gather_facts: false
+  vars:
+    idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+    idrac_port: "{{ lookup('env', 'IDRAC_PORT') }}"
+  tasks:
+    - name: Fetch Jobs Data
+      ansible.builtin.include_tasks:
+        file: ../__get_data.yml
+      vars:
+        url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/Managers\
+          /iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
+
+    - name: Initialize idrac_bios_jobs_items variable
+      ansible.builtin.set_fact:
+        idrac_bios_jobs_items: []
+
+    - name: Fetch Bios Jobs Data
+      loop: "{{ idrac_bios_uri_data.json.Members }}"
+      when: item.JobType == 'BIOSConfiguration' and item.JobState in ['Scheduled', 'Scheduling']
+      ansible.builtin.set_fact:
+        idrac_bios_jobs_items: "{{ idrac_bios_jobs_items | default([]) + [item] }}"
+      no_log: true
+
+    - name: Block for creating a bios job as a pre-requisite
+      when: idrac_bios_jobs_items | length == 0
+      block:
+        - name: Fetch IDRAC Data
+          ansible.builtin.include_tasks:
+            file: ../__get_data.yml
+          vars:
+            url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/Managers\
+              /iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
+
+        - name: Fetch the existing boot mode
+          ansible.builtin.set_fact:
+            boot_mode: "{{ idrac_bios_uri_data.json.Attributes.BootMode }}"
+
+        - name: Set the boot mode
+          ansible.builtin.set_fact:
+            set_boot_mode: "{{ 'Bios' if (boot_mode == 'Uefi') else 'Uefi' }}"
+          when: set_boot_mode is not defined
+
+        - name: Update attributes with apply time as Immediate
+          ansible.builtin.import_role:
+            name: dellemc.openmanage.idrac_bios
+          vars:
+            hostname: "{{ idrac_ip }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            apply_time: "OnReset"
+            attributes:
+              BootMode: "{{ set_boot_mode }}"
+          register: idrac_bios_change_bios_setting
+
+        - name: Verify job is scheduled
+          ansible.builtin.assert:
+            that:
+              - "'Successfully committed changes. The job is in pending state'
+                in idrac_bios_out.attributes.status_msg"

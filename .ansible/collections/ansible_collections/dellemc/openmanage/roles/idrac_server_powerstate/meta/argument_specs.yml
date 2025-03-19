@@ -1,0 +1,96 @@
+---
+argument_specs:
+  main:
+    version_added: "7.4.0"
+    short_description: Role to manage the different power states of the specified device
+    description:
+      - Role to manage the different power states of the specified device using iDRACs (iDRAC8 and iDRAC9 only) for Dell PowerEdge servers.
+    options:
+      hostname:
+        required: true
+        type: str
+        description: iDRAC IP Address.
+      username:
+        type: str
+        description: iDRAC username.
+      password:
+        type: str
+        description: iDRAC user password.
+      https_port:
+        type: int
+        description: iDRAC port.
+        default: 443
+      validate_certs:
+        description:
+          - If C(false), the SSL certificates will not be validated.
+          - Configure C(false) only on personally controlled sites where
+            self-signed certificates are used.
+        type: bool
+        default: true
+      ca_path:
+        description:
+          - The Privacy Enhanced Mail (PEM) file that contains a CA certificate
+            to be used for the validation.
+        type: path
+      https_timeout:
+        description: The HTTPS socket level timeout in seconds.
+        type: int
+        default: 30
+      resource_id:
+        description:
+          - This option is the unique identifier of the device being managed.
+            For example,
+            U(https://<I(baseuri)>/redfish/v1/Systems/<I(resource_id)>).
+          - This option is mandatory for I(base_uri) with multiple devices.
+          - To get the device details,
+            use the API U(https://<I(baseuri)>/redfish/v1/Systems) for
+            reset_type operation and U(https://<I(baseuri)>/redfish/v1/Chassis)
+            for oem_reset_type operation.
+        required: false
+        type: str
+      reset_type:
+        description:
+          - This option resets the device.
+          - C(ForceOff) turns off the device immediately.
+          - C(ForceOn) turns on the device immediately.
+          - C(ForceRestart) turns off the device immediately,
+            and then restarts the server.
+          - C(GracefulRestart) performs graceful shutdown of the device,
+            and then restarts the device.
+          - C(GracefulShutdown) performs a graceful shutdown of the device,
+            and then turns off the device.
+          - C(Nmi) sends a diagnostic interrupt to the device. This option is
+            usually a nonmaskable interrupt (NMI) on x86 systems.
+          - C(On) turns on the device.
+          - C(PowerCycle) performs a power cycle on the device.
+          - C(PushPowerButton) simulates the pressing of a physical power
+            button on the device.
+          - I(reset_type) is mutually exclusive with I(oem_reset_type).
+          - When a power control operation is performed, which is not supported
+            on the device, an error message is displayed with the list of
+            operations that can be performed.
+        required: false
+        type: str
+        choices:
+          [
+            "ForceOff",
+            "ForceOn",
+            "ForceRestart",
+            "GracefulRestart",
+            "GracefulShutdown",
+            "Nmi",
+            "On",
+            "PowerCycle",
+            "PushPowerButton"
+          ]
+      oem_reset_type:
+        description:
+          - This parameter initiates a complete Alternate Current (AC) power
+            cycle of the server which is equivalent to disconnecting power
+            cables using OEM API.
+          - I(oem_reset_type) is mutually exclusive with I(reset_type).
+          - If the value of 'final_power_state' is not provided, the default
+            value is 'Off'.
+        required: false
+        type: dict
+        version_added: 9.5.0

@@ -1,0 +1,344 @@
+---
+- name: Server Configuration Profile
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Export SCP with IDRAC components in JSON format to a local path
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        share_name: "/scp_folder"
+        scp_components:
+          - IDRAC
+        scp_file: example_file
+        export_format: JSON
+        export_use: Clone
+        job_wait: true
+      tags: export-scp-local
+      delegate_to: localhost
+
+    - name: Import SCP with IDRAC components in JSON format from a local path
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        share_name: "/scp_folder"
+        command: import
+        scp_components:
+          - IDRAC
+        scp_file: example_file.json
+        shutdown_type: Graceful
+        end_host_power_state: "On"
+        job_wait: false
+      tags: import-scp-local
+      delegate_to: localhost
+
+    - name: Export SCP with BIOS components in XML format to a NFS share path with auto-generated file name
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        share_name: "192.168.0.2:/share"
+        scp_components:
+          - BIOS
+        export_format: XML
+        export_use: Default
+        job_wait: true
+      tags: export-scp-nfs
+      delegate_to: localhost
+
+    - name: Import SCP with BIOS components in XML format from a NFS share path
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        share_name: "192.168.0.2:/share"
+        command: import
+        scp_components:
+          - BIOS
+        scp_file: 192.168.0.1_20210618_162856.xml
+        shutdown_type: NoReboot
+        end_host_power_state: "Off"
+        job_wait: false
+      tags: import-scp-nfs
+      delegate_to: localhost
+
+    - name: Export SCP with RAID components in XML format to a CIFS share path with share user domain name
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        share_name: "\\\\192.168.0.2\\share"
+        share_user: share_username@domain
+        share_password: share_password
+        scp_file: example_file.xml
+        scp_components:
+          - RAID
+        export_format: XML
+        export_use: Default
+        job_wait: true
+      tags: export-scp-cifs
+      delegate_to: localhost
+
+    - name: Import SCP with RAID components in XML format from a CIFS share path
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        share_name: "\\\\192.168.0.2\\share"
+        share_user: share_username
+        share_password: share_password
+        command: import
+        scp_components:
+          - RAID
+        scp_file: example_file.xml
+        shutdown_type: Forced
+        end_host_power_state: "On"
+        job_wait: true
+      tags: import-scp-cifs
+      delegate_to: localhost
+
+    - name: Export SCP with ALL components in JSON format to a HTTP share path
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        share_name: "http://192.168.0.3/share"
+        share_user: share_username
+        share_password: share_password
+        scp_file: example_file.json
+        scp_components:
+          - ALL
+        export_format: JSON
+        job_wait: false
+      tags: export-scp-http
+      delegate_to: localhost
+
+    - name: Import SCP with ALL components in JSON format from a HTTP share path
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: import
+        share_name: "http://192.168.0.3/share"
+        share_user: share_username
+        share_password: share_password
+        scp_file: example_file.json
+        shutdown_type: Graceful
+        end_host_power_state: "On"
+        job_wait: true
+      tags: import-scp-http
+      delegate_to: localhost
+
+    - name: Export SCP with ALL components in XML format to a HTTPS share path without SCP file name
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        share_name: "https://192.168.0.4/share"
+        share_user: share_username
+        share_password: share_password
+        scp_components:
+          - ALL
+        export_format: XML
+        export_use: Replace
+        job_wait: true
+      tags: export-scp-https
+      delegate_to: localhost
+
+    - name: Import SCP with ALL components in XML format from a HTTPS share path
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: import
+        share_name: "https://192.168.0.4/share"
+        share_user: share_username
+        share_password: share_password
+        scp_file: 192.168.0.1_20160618_164647.xml
+        shutdown_type: Graceful
+        end_host_power_state: "On"
+        job_wait: false
+      tags: import-scp-https
+      delegate_to: localhost
+
+    - name: Preview SCP with ALL components in XML format from a CIFS share path
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        share_name: "\\\\192.168.0.2\\share"
+        share_user: share_username
+        share_password: share_password
+        command: preview
+        scp_components:
+          - ALL
+        scp_file: example_file.xml
+        job_wait: true
+      tags: preview-scp-cifs
+      delegate_to: localhost
+
+    - name: Preview SCP with IDRAC components in JSON format from a NFS share path
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        share_name: "192.168.0.2:/share"
+        command: preview
+        scp_components:
+          - IDRAC
+        scp_file: example_file.xml
+        job_wait: true
+      tags: preview-scp-nfs
+      delegate_to: localhost
+
+    - name: Preview SCP with ALL components in XML format from a HTTP share path
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        share_name: "http://192.168.0.1/http-share"
+        share_user: share_username
+        share_password: share_password
+        command: preview
+        scp_components:
+          - ALL
+        scp_file: example_file.xml
+        job_wait: true
+      tags: preview-scp-http
+      delegate_to: localhost
+
+    - name: Preview SCP with IDRAC components in XML format from a local path
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        share_name: "/scp_folder"
+        command: preview
+        scp_components:
+          - IDRAC
+        scp_file: example_file.json
+        job_wait: false
+      tags: import-scp-local
+      delegate_to: localhost
+
+    - name: Import SCP with IDRAC components in XML format from the XML content.
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: import
+        scp_components:
+          - IDRAC
+        job_wait: true
+        import_buffer: "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'>
+          Disabled</Attribute></Component></SystemConfiguration>"
+      tags: import-buffer-xml
+      delegate_to: localhost
+
+    - name: Export SCP with ALL components in XML format using HTTP proxy.
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        scp_components:
+          - ALL
+        share_name: "https://192.168.0.1/http-share"
+        proxy_support: true
+        proxy_server: 192.168.0.5
+        proxy_port: 8080
+        proxy_username: proxy_username
+        proxy_password: proxy_password
+        proxy_type: http
+        include_in_export: passwordhashvalues
+        job_wait: true
+      tags: export-http-proxy
+      delegate_to: localhost
+
+    - name: Import SCP with IDRAC and BIOS components in XML format using SOCKS4 proxy
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: import
+        scp_components:
+          - IDRAC
+          - BIOS
+        share_name: "https://192.168.0.1/http-share"
+        proxy_support: true
+        proxy_server: 192.168.0.6
+        proxy_port: 8080
+        proxy_type: socks4
+        scp_file: filename.xml
+        job_wait: true
+      tags: import-scp-proxy
+      delegate_to: localhost
+
+    - name: Import SCP with IDRAC components in JSON format from the JSON content.
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: import
+        scp_components:
+          - IDRAC
+        job_wait: true
+        import_buffer: "{\"SystemConfiguration\": {\"Components\": [{\"FQDD\": \"iDRAC.Embedded.1\",\"Attributes\":
+          [{\"Name\": \"SNMP.1#AgentCommunity\",\"Value\": \"public1\"}]}]}}"
+      tags: import-scp-json
+      delegate_to: localhost
+
+    - name: Export custom default
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        job_wait: true
+        share_name: "/scp_folder"
+        command: export_custom_defaults
+        scp_file: example_file
+
+    - name: Import custom default
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        job_wait: true
+        share_name: "/scp_folder"
+        command: import_custom_defaults
+        scp_file: example_file.xml
+
+    - name: Import custom default using buffer
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        job_wait: true
+        command: import_custom_defaults
+        import_buffer: "<SystemConfiguration><Component
+                       FQDD='iDRAC.Embedded.1'><Attribute
+                       Name='IPMILan.1#Enable'>Disabled</Attribute>
+                      </Component></SystemConfiguration>"

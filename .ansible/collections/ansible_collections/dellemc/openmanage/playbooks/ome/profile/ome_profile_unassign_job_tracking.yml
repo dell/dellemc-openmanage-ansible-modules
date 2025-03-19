@@ -1,0 +1,53 @@
+---
+- name: Dell OpenManage Ansible profile operations.
+  hosts: ome
+  gather_facts: false
+  vars:
+    retries_count: 120
+    polling_interval: 30 # 30 seconds x 120 times = 1 hour
+    failed_states:
+      ["Failed", "Warning", "Aborted", "Paused", "Stopped", "Canceled"]
+    completed_states:
+      [
+        "Completed",
+        "Failed",
+        "Warning",
+        "Aborted",
+        "Paused",
+        "Stopped",
+        "Canceled",
+      ]
+
+  tasks:
+    - name: Unassign using profile name
+      dellemc.openmanage.ome_profile:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "unassign"
+        name: "Profile 00003"
+      register: result
+      delegate_to: localhost
+
+    - name: End play when no job_id in result # noqa: no-handler
+      ansible.builtin.meta: end_play
+      when:
+        - not result.changed
+        - "'job_id' not in result"
+      delegate_to: localhost
+
+    - name: Get job details using job id
+      dellemc.openmanage.ome_job_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        job_id: "{{ result.job_id }}"
+      register: job_result
+      failed_when: job_result.job_info.LastRunStatus.Name in "{{ failed_states }}"
+      changed_when: job_result.job_info.LastRunStatus.Name == 'Completed'
+      until: job_result.job_info.LastRunStatus.Name in "{{ completed_states }}"
+      retries: "{{ retries_count }}"
+      delay: "{{ polling_interval }}"
+      delegate_to: localhost

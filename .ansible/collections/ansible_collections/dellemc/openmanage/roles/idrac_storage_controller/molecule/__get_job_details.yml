@@ -1,0 +1,36 @@
+---
+- name: Set idrac_ip
+  ansible.builtin.set_fact:
+    idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+
+- name: Set job uri
+  ansible.builtin.set_fact:
+    url: "https://{{ idrac_ip }}:{{ https_port }}
+     /redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{{ job_id }}"
+
+- name: Get data using uri
+  ansible.builtin.uri:
+    url: "{{ url }}"
+    user: "{{ lookup('env', 'IDRAC_USER') }}"
+    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    method: GET
+    body: {}
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+    headers: 'Accept=application/json'
+  until: idrac_storage_controller_uri_rs.status == 200
+  retries: 12
+  delay: 5
+  register: idrac_storage_controller_uri_rs
+
+- name: Remove odata from uri response
+  ansible.builtin.set_fact:
+    job_data_uri: "{{ idrac_storage_controller_uri_rs.json |
+     ansible.utils.remove_keys(target=['@odata',
+      'MessageArgs@odata.count'], matching_parameter='regex') }}"
+
+- name: Set uri job status
+  ansible.builtin.set_fact:
+    uri_job_status: "{{ job_data_uri }}"

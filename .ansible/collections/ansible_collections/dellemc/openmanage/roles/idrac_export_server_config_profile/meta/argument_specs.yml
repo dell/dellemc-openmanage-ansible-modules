@@ -1,0 +1,143 @@
+---
+argument_specs:
+  main:
+    version_added: "7.3.0"
+    short_description: Role to export iDRAC Server Configuration Profile (SCP)
+    description:
+      - Role to export the Server Configuration Profile (SCP) from the iDRAC to a network share (CIFS, NFS, HTTP, HTTPS) or a local path.
+    options:
+      idrac_ip:
+        required: true
+        type: str
+        description: iDRAC IP Address.
+      idrac_user:
+        type: str
+        description: iDRAC username.
+      idrac_password:
+        type: str
+        description: iDRAC user password.
+      idrac_port:
+        type: int
+        description: iDRAC port.
+        default: 443
+      validate_certs:
+        description:
+          - If C(false), the SSL certificates will not be validated.
+          - Configure C(false) only on personally controlled sites where self-signed certificates are used.
+        type: bool
+        default: true
+      ca_path:
+        description:
+          - The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+        type: path
+      idrac_timeout:
+        description: The HTTPS socket level timeout in seconds.
+        type: int
+        default: 30
+      share_parameters:
+        description: Network share parameters.
+        type: dict
+        options:
+          share_name:
+            required: true
+            description:
+              - Network share or local path.
+              - CIFS, NFS, HTTP, and HTTPS network share types are supported.
+              - I(share_name) is mutually exclusive with I(import_buffer).
+            type: str
+          scp_file:
+            description:
+              - Name of the server configuration profile (SCP) file.
+              - The default format <idrac_ip>_YYMMDD_HHMMSS_scp is used if this option is not specified.
+              - I(export_format) is used if the valid extension file is not provided.
+            type: str
+          share_user:
+            description:
+              Network share user in the format 'user@domain' or 'domain\\user' if user is
+              part of a domain else 'user'. This option is mandatory for CIFS Network Share.
+            type: str
+          share_password:
+            description: Network share user password. This option is mandatory for CIFS Network Share.
+            type: str
+          proxy_support:
+            description:
+              - Proxy to be enabled or disabled.
+              - I(proxy_support) is considered only when I(share_name) is of type HTTP or HTTPS and is supported only on iDRAC9.
+            type: bool
+            default: false
+          proxy_type:
+            description:
+              - C(http) to select HTTP type proxy.
+              - C(socks4) to select SOCKS4 type proxy.
+              - I(proxy_type) is considered only when I(share_name) is of type HTTP or HTTPS and is supported only on iDRAC9.
+            type: str
+            choices: [http, socks4]
+            default: http
+          proxy_server:
+            description:
+              - I(proxy_server) is required when I(share_name) is of type HTTPS or HTTP and I(proxy_support) is C(true).
+              - I(proxy_server) is considered only when I(share_name) is of type HTTP or HTTPS and is supported only on iDRAC9.
+            type: str
+          proxy_port:
+            description:
+              - Proxy port to authenticate.
+              - I(proxy_port) is required when I(share_name) is of type HTTPS or HTTP and I(proxy_support) is C(true).
+              - I(proxy_port) is considered only when I(share_name) is of type HTTP or HTTPS and is supported only on iDRAC9.
+            type: str
+            default: 80
+          proxy_username:
+            description:
+              - Proxy username to authenticate.
+              - I(proxy_username) is considered only when I(share_name) is of type HTTP or HTTPS and is supported only on iDRAC9.
+            type: str
+          proxy_password:
+            description:
+              - Proxy password to authenticate.
+              - I(proxy_password) is considered only when I(share_name) is of type HTTP or HTTPS and is supported only on iDRAC9.
+            type: str
+          ignore_certificate_warning:
+            description:
+              - If C(ignore), it ignores the certificate warnings.
+              - If C(showerror), it shows the certificate warnings.
+              - I(ignore_certificate_warning) is considered only when I(share_name) is of type HTTPS and is
+                supported only on iDRAC9.
+            type: str
+            choices: [ignore, showerror]
+            default: ignore
+      include_in_export:
+        description:
+          - This option is applicable when I(command) is C(export).
+          - If C(default), it exports the default Server Configuration Profile.
+          - If C(readonly), it exports the SCP with readonly attributes.
+          - If C(passwordhashvalues), it exports the SCP with password hash values.
+          - If C(customtelemetry), exports the SCP with custom telemetry attributes supported only in the iDRAC9.
+        type: str
+        choices: [default, readonly, passwordhashvalues, customtelemetry]
+        default: default
+      target:
+        description:
+          - If C(ALL), this module exports or imports all components configurations from SCP file.
+          - If C(IDRAC), this module exports or imports iDRAC configuration from SCP file.
+          - If C(BIOS), this module exports or imports BIOS configuration from SCP file.
+          - If C(NIC), this module exports or imports NIC configuration from SCP file.
+          - If C(RAID), this module exports or imports RAID configuration from SCP file.
+        choices: ["ALL", "IDRAC", "BIOS", "NIC", "RAID"]
+        default: ["ALL"]
+        type: list
+      export_format:
+        description: Specify the output file format. This option is applicable for C(export) command.
+        type: str
+        choices: ["JSON", "XML"]
+        default: "XML"
+      export_use:
+        description:
+          - Specify the type of Server Configuration Profile (SCP) to be exported.
+          - This option is applicable when I(command) is C(export).
+          - C(Default) Creates a non-destructive snapshot of the configuration.
+          - C(Replace) Replaces a server with another or restores the servers settings to a known baseline.
+          - C(Clone) Clones settings from one server to another server with the identical hardware setup.
+            All settings except I/O identity are updated (e.g. will reset RAID). The settings in this export
+            will be destructive when uploaded to another system.
+        type: str
+        choices: ["Default", "Clone", "Replace"]
+        default: "Default"

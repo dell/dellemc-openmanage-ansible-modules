@@ -1,0 +1,61 @@
+---
+- name: Set variable facts
+  ansible.builtin.set_fact:
+    idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+    idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+    idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    idrac_port: "{{ lookup('env', 'IDRAC_PORT') }}"
+    dir: "../files"
+    validate_certs: false
+    default_password: "calvin"
+
+- name: Utils block
+  block:
+    - name: Update existing iDRAC user username and password after reset
+      dellemc.openmanage.idrac_user:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ default_password }}"
+        user_name: "{{ idrac_user }}"
+        new_user_name: "{{ idrac_user }}"
+        user_password: "{{ idrac_password }}"
+      when:
+        - reset_operation is defined and reset_operation in
+         ['All', 'ResetAllWithRootDefaults']
+        - operation is defined and operation == 'update_password'
+        - idrac_password != default_password
+
+    - name: Exporting all the iDRAC settings before reset
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        share_name: "{{ dir }}"
+        scp_file: "idrac_reset_export_{{ idrac_ip }}.xml"
+        scp_components:
+          - ALL
+        job_wait: true
+      when:
+        - reset_operation is defined and reset_operation
+         in ['All', 'ResetAllWithRootDefaults']
+        - operation is defined and operation == 'export'
+      register: scp_export_before_reset
+
+    - name: Importing all the iDRAC settings after reset
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        share_name: "{{ dir }}"
+        scp_file: "idrac_reset_export_{{ idrac_ip }}.xml"
+        scp_components:
+          - ALL
+        job_wait: true
+        command: import
+      when:
+        - reset_operation is defined and reset_operation
+         in ['All', 'ResetAllWithRootDefaults']
+        - operation is defined and operation == 'import'
+      register: scp_import_after_reset

@@ -1,0 +1,60 @@
+---
+- name: Dell OpenManage Ansible profile info.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Retrieve all profiles
+      dellemc.openmanage.ome_profile_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+      delegate_to: localhost
+
+    - name: Retrieve profile using the name
+      dellemc.openmanage.ome_profile_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        profile_name: eprof 00001
+      delegate_to: localhost
+
+    - name: Retrieve profile using the id
+      dellemc.openmanage.ome_profile_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        profile_id: 10129
+      delegate_to: localhost
+
+    - name: Retrieve the profiles using the template name
+      dellemc.openmanage.ome_profile_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        template_name: t2
+      delegate_to: localhost
+
+    - name: Retrieve the profiles using the template id
+      dellemc.openmanage.ome_profile_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        template_id: 11
+      delegate_to: localhost
+
+    - name: Retrieve the profiles based on odata filters
+      dellemc.openmanage.ome_profile_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        system_query_options:
+          filter: TemplateName eq 'mytemplate'
+          orderby: ProfileState
+      delegate_to: localhost

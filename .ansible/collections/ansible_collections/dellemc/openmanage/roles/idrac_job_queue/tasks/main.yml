@@ -1,0 +1,53 @@
+---
+# tasks file for idrac_job_queue
+- name: Check whether atleast one of 'IDRAC_USERNAME' or username is provided
+  ansible.builtin.fail:
+    msg: "Ensure the value for environment variable 'IDRAC_USERNAME' or
+         the argument 'username' is set."
+  when: username is not defined and not lookup('env', 'IDRAC_USERNAME')
+
+- name: Check whether atleast one of 'IDRAC_PASSWORD' or password is provided
+  ansible.builtin.fail:
+    msg: "Ensure the value for environment variable 'IDRAC_PASSWORD' or
+         the argument 'password' is set."
+  when: password is not defined and not lookup('env', 'IDRAC_PASSWORD')
+
+- name: Running idrac job queue role
+  when: (job_id is defined and job_id != "") or
+    (clear_job_queue is true)
+  block:
+    - name: Validate the inputs
+      ansible.builtin.include_tasks: validate_input_data.yml
+
+    - name: Delete job operation
+      ansible.builtin.include_tasks: delete_job_with_id.yml
+      when:
+        - job_id is defined and job_id != ""
+        - clear_job_queue is false
+
+    - name: Clear Job queue operation
+      when: clear_job_queue is true
+      block:
+        - name: Check firmware version
+          ansible.builtin.include_tasks: get_idrac_firmware_version.yml
+
+        - name: Clear job queue operation using rest
+          ansible.builtin.include_tasks: clear_jobs_with_api.yml
+          when: idrac_job_queue_idrac_firmware_version is version('3.0', '>=')
+
+        - name: Clear job queue operation for wsman
+          ansible.builtin.include_tasks: clear_jobs_with_wsman.yml
+          when: idrac_job_queue_idrac_firmware_version is version('3.0', '<')
+  rescue:
+    - name: Set the failure messages
+      ansible.builtin.set_fact:
+        idrac_job_queue_out: "{{ ansible_failed_result
+          | combine({'failed_task_name': ansible_failed_task.name}) }}"
+
+  always:
+    - name: Print the message
+      when: idrac_job_queue_out is defined
+      failed_when: idrac_job_queue_out.failed is defined
+        and idrac_job_queue_out.failed is true
+      ansible.builtin.debug:
+        var: idrac_job_queue_out

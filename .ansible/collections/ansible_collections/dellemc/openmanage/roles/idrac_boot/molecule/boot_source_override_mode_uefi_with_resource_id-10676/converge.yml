@@ -1,0 +1,104 @@
+---
+- name: Testing boot_source_override_mode_uefi_with_resource_id
+  hosts: all
+  gather_facts: false
+  vars:
+    hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
+    username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
+    password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+    system_uri: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Systems"
+    job_status_uri: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Managers/iDRAC.Embedded.1/Jobs"
+    lc_uri: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Dell/Managers/iDRAC.Embedded.1/DellLCService/Actions/DellLCService.GetRemoteServicesAPIStatus"
+    retry_count: 60
+    delay_count: 30
+  tasks:
+    - name: Preparing set_fact for uri
+      ansible.builtin.set_fact:
+        uri_input: &uri_input
+          user: "{{ username }}"
+          password: "{{ password }}"
+          validate_certs: "{{ validate_certs }}"
+          ca_path: "{{ ca_path | default(omit) }}"
+          headers:
+            Accept: "application/json"
+            Content-Type: "application/json"
+            OData-Version: "4.0"
+          body_format: "json"
+          return_content: true
+          force_basic_auth: true
+          timeout: "{{ https_timeout }}"
+      no_log: true
+
+    - name: Fetching resource_id from iDRAC
+      ansible.builtin.uri:
+        <<: *uri_input
+        url: "{{ system_uri }}"
+        method: GET
+      register: result_data
+      check_mode: false
+      no_log: true
+
+    - name: Extracting resource_id from output
+      ansible.builtin.set_fact:
+        resource_id_data: "{{ result_data.json.Members[0]['@odata.id'] | split('/') | last }}"
+
+    - name: Checking for LCStatus before running pre-requisite
+      ansible.builtin.include_tasks:
+        file: ../__lc_status_check.yaml
+
+    - name: Pre-requisite - Making sure boot mode is legacy
+      check_mode: false
+      ansible.builtin.import_role:
+        name: "idrac_boot"
+      vars:
+        boot_source_override_mode: legacy
+      tags: molecule-idempotence-notest
+
+    - name: Checking for LCStatus after running pre-requisite
+      ansible.builtin.include_tasks:
+        file: ../__lc_status_check.yaml
+
+    - name: TC-115430 - Validate boot_source_override_mode as uefi with resource_id
+      ansible.builtin.include_role:
+        name: "idrac_boot"
+      vars:
+        boot_source_override_mode: uefi
+        resource_id: "{{ resource_id_data }}"
+
+    - name: Job tracking after performing operation
+      ansible.builtin.uri:
+        <<: *uri_input
+        url: "{{ job_status_uri }}/{{ idrac_boot_out.job.Id }}"
+        method: GET
+      register: job_status_result
+      check_mode: false
+      when: not ansible_check_mode # noqa: no-handler
+      until: job_status_result.json.JobState == "Completed"
+      retries: "{{ retry_count }}"
+      delay: "{{ delay_count }}"
+      no_log: true
+      tags: molecule-idempotence-notest
+
+    - name: Checking for LCStatus after performing operation
+      ansible.builtin.include_tasks:
+        file: ../__lc_status_check.yaml
+      when: idrac_boot_out.changed # noqa: no-handler
+      tags: molecule-idempotence-notest
+
+    - name: Asserting TC-115430 in check mode
+      ansible.builtin.assert:
+        that: idrac_boot_out.msg == "Changes found to be applied."
+      when: ansible_check_mode
+      tags: molecule-idempotence-notest
+
+    - name: Asserting TC-115430 in normal mode
+      ansible.builtin.assert:
+        that: idrac_boot_out.msg == "Successfully updated the boot settings."
+      when: not ansible_check_mode and idrac_boot_out.changed
+
+    - name: Asserting TC-115430 in idempotence mode
+      ansible.builtin.assert:
+        that:
+          - idrac_boot_out.msg == "No changes found to be applied."
+      when: not ansible_check_mode and not idrac_boot_out.changed

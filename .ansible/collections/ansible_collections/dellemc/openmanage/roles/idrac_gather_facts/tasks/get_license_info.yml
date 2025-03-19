@@ -1,0 +1,12 @@
+---
+- name: Get License information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}/redfish/v1/LicenseService/Licenses?$expand=*($levels=1)"
+  register: license_result
+  ignore_errors: true
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Set License facts
+  ansible.builtin.set_fact:
+    license: "{{ license_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type']) }}"
+  when: license_result.status == 200

@@ -1,0 +1,29 @@
+---
+- name: Dell OpenManage ansible port breakout configuration.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Port breakout configuration.
+      dellemc.openmanage.ome_network_port_breakout:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        target_port: "2HB7NX2:phy-port1/1/11"
+        breakout_type: "1X40GE"
+      tags:
+        - port-config
+      delegate_to: localhost
+
+    - name: Revoke the default breakout configuration.
+      dellemc.openmanage.ome_network_port_breakout:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        target_port: "2HB7NX2:phy-port1/1/11"
+        breakout_type: "HardwareDefault"
+      tags:
+        - port-default
+      delegate_to: localhost

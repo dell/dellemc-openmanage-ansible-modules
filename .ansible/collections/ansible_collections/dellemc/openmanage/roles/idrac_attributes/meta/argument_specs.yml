@@ -1,0 +1,71 @@
+---
+argument_specs:
+  main:
+    version_added: "7.6.0"
+    short_description: Role to configure the iDRAC attribute
+    description:
+      - Role to configure the iDRAC system, manager and lifecycle attributes for Dell PowerEdge servers.
+    options:
+      hostname:
+        required: true
+        type: str
+        description: iDRAC IP Address or hostname.
+      username:
+        type: str
+        description: iDRAC username with admin privileges.
+      password:
+        type: str
+        description: iDRAC user password.
+      https_port:
+        type: int
+        description: iDRAC port.
+        default: 443
+      validate_certs:
+        description:
+          - If C(false), the SSL certificates will not be validated.
+          - Configure C(false) only on personally controlled sites where self-signed certificates are used.
+        type: bool
+        default: true
+      ca_path:
+        description:
+          - The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+        type: path
+      https_timeout:
+        description: The HTTPS socket level timeout in seconds.
+        type: int
+        default: 30
+      idrac_attributes:
+        description:
+          - Dictionary of iDRAC attributes and value. The attributes should be part of the
+            Integrated Dell Remote Access Controller Attribute Registry.
+          - To view the list of attributes in Attribute Registry for iDRAC9 and above, use
+            the Role idrac_gather_facts with idrac components.
+          - For iDRAC8 based servers, derive the manager attribute name from Server Configuration Profile.
+          - If the manager attribute name in Server Configuration Profile is <GroupName>.<Instance>#<AttributeName>
+            (for Example, 'SNMP.1#AgentCommunity') then the equivalent attribute name for Redfish is <GroupName>.
+            <Instance>.<AttributeName> (for Example, 'SNMP.1.AgentCommunity').
+        type: dict
+      system_attributes:
+        description:
+          - Dictionary of System attributes and value. The attributes should be part of the Integrated Dell Remote Access Controller Attribute Registry.
+          - To view the list of attributes in Attribute Registry for iDRAC9 and above, use the Role idrac_gather_facts with idrac components
+          - For iDRAC8 based servers, derive the manager attribute name from Server Configuration Profile.
+          - If the manager attribute name in Server Configuration Profile is <GroupName>.<Instance>#<AttributeName>
+            (for Example, 'ThermalSettings.1#ThermalProfile') then the equivalent attribute name for Redfish is <GroupName>.<Instance>.<AttributeName>
+            (for Example, 'ThermalSettings.1.ThermalProfile').
+        type: dict
+      lifecycle_controller_attributes:
+        description:
+          - Dictionary of Lifecycle Controller attributes and value. The attributes should be part of the
+            Integrated Dell Remote Access Controller Attribute Registry.
+          - To view the list of attributes in Attribute Registry for iDRAC9 and above, use the Role idrac_gather_facts with idrac components
+          - For iDRAC8 based servers, derive the manager attribute name from Server Configuration Profile.
+          - If the manager attribute name in Server Configuration Profile is <GroupName>.<Instance>#<AttributeName>
+            (for Example, 'LCAttributes.1#AutoUpdate') then the equivalent attribute name for Redfish is <GroupName>.<Instance>.<AttributeName>
+            (for Example, 'LCAttributes.1.AutoUpdate')."
+        type: dict
+      manager_id:
+        description:
+          Redfish ID of the resource. If the Redfish ID of the resource is not specified, then the first ID from the Manager IDs list
+          will be picked up.
+        type: str

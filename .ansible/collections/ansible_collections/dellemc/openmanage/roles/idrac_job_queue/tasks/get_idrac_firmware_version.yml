@@ -1,0 +1,20 @@
+---
+- name: Get the manager firmware version
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}/redfish/v1/Managers/iDRAC.Embedded.1"
+    user: "{{ username | default(lookup('env', 'IDRAC_USERNAME')) }}"
+    password: "{{ password | default(lookup('env', 'IDRAC_PASSWORD')) }}"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    headers: "{{ idrac_job_queue_uri_headers }}"
+    body_format: "{{ idrac_job_queue_uri_body_format }}"
+    return_content: "{{ idrac_job_queue_uri_return_content }}"
+    force_basic_auth: "{{ idrac_job_queue_force_basic_auth }}"
+    timeout: "{{ https_timeout }}"
+    method: GET
+  register: idrac_job_queue_firmware_version
+  delegate_to: "{{ idrac_job_queue_delegate }}"
+
+- name: Set manager firmware version
+  ansible.builtin.set_fact:
+    idrac_job_queue_idrac_firmware_version: "{{ idrac_job_queue_firmware_version.json.FirmwareVersion }}"

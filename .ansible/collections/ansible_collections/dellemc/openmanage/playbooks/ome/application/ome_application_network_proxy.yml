@@ -1,0 +1,87 @@
+---
+- name: Dell OpenManage Ansible Application network proxy setting.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Update proxy configuration and enable authentication.
+      dellemc.openmanage.ome_application_network_proxy:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        enable_proxy: true
+        ip_address: "192.168.0.2"
+        proxy_port: 444
+        enable_authentication: true
+        proxy_username: "root"
+        proxy_password: "proxy_password"
+      tags: setting1
+      delegate_to: localhost
+
+    - name: Reset proxy authentication.
+      dellemc.openmanage.ome_application_network_proxy:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        enable_proxy: true
+        ip_address: "192.168.0.2"
+        proxy_port: 444
+        enable_authentication: false
+      tags: setting2
+      delegate_to: localhost
+
+    - name: Reset proxy configuration.
+      dellemc.openmanage.ome_application_network_proxy:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        enable_proxy: false
+      tags: setting3
+      delegate_to: localhost
+
+    - name: Add IPv4, IPv6 and domain names of devices in proxy exclusion list
+      dellemc.openmanage.ome_application_network_proxy:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        enable_proxy: true
+        ip_address: "192.168.0.2"
+        proxy_port: 444
+        enable_authentication: false
+        proxy_exclusion_list:
+          - 192.168.1.0
+          - 191.187.2.0
+          - www.*.com
+          - 191.1.168.1/24
+      tags: setting4
+      delegate_to: localhost
+
+    - name: Clear the proxy exclusion list
+      dellemc.openmanage.ome_application_network_proxy:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        enable_proxy: true
+        ip_address: "192.168.0.2"
+        proxy_port: 444
+        proxy_exclusion_list: []
+      tags: setting5
+      delegate_to: localhost
+
+    - name: Ignore the certificate validation
+      dellemc.openmanage.ome_application_network_proxy:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        enable_proxy: true
+        ip_address: "192.168.0.2"
+        proxy_port: 444
+        ignore_certificate_validation: true
+      tags: setting6
+      delegate_to: localhost

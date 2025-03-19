@@ -1,0 +1,55 @@
+---
+- name: Dell OpenManage Ansible server interface profiles configuration.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Modify Server Interface Profile for the server using the service tag
+      dellemc.openmanage.ome_server_interface_profiles:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_service_tag:
+          - SVCTAG1
+          - SVCTAG2
+        nic_teaming: LACP
+        nic_configuration:
+          - nic_identifier: NIC.Mezzanine.1A-1-1
+            team: false
+            untagged_network: 2
+            tagged_networks:
+              names:
+                - vlan1
+          - nic_identifier: NIC.Mezzanine.1A-2-1
+            team: true
+            untagged_network: 3
+            tagged_networks:
+              names:
+                - range120-125
+      delegate_to: localhost
+
+    - name: Modify Server Interface Profile for the server using the id
+      dellemc.openmanage.ome_server_interface_profiles:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_id:
+          - 34523
+          - 48999
+        nic_teaming: NoTeaming
+        nic_configuration:
+          - nic_identifier: NIC.Mezzanine.1A-1-1
+            team: false
+            untagged_network: 2
+            tagged_networks:
+              names:
+                - vlan2
+          - nic_identifier: NIC.Mezzanine.1A-2-1
+            team: true
+            untagged_network: 3
+            tagged_networks:
+              names:
+                - range120-125
+      delegate_to: localhost

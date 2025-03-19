@@ -1,0 +1,135 @@
+---
+- name: Converge file for negative scenarios
+  hosts: all
+  gather_facts: false
+  tasks:
+    ########## Below snippet is commented because of Issue: JIT-285533 ########
+      # - name: Perform reset bios with invalid hostname
+      #   ansible.builtin.import_role:
+      #     name: dellemc.openmanage.idrac_bios
+      #   vars:
+      #     hostname: "randomHostname"
+      #     username: "{{ lookup('env', 'IDRAC_USER') }}"
+      #     password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+      #     validate_certs: false
+      #     reset_bios: true
+      #   ignore_unreachable: true
+
+    # - name: Assert reset bios with invalid hostname
+    #   ansible.builtin.assert:
+    #     that:
+    #       - "'Unable to communicate with iDRAC randomHostname' in
+    #         idrac_bios_out.reset_bios.msg"
+    ###########################################################################
+
+    - name: Block to reset bios with invalid username
+      block:
+        - name: Perform reset bios with invalid username
+          ansible.builtin.include_role:
+            name: dellemc.openmanage.idrac_bios
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "randomusername"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            reset_bios: true
+            clear_pending: false
+      rescue:
+        - name: Verify reset bios with invalid username
+          ansible.builtin.assert:
+            that:
+              - "'HTTP Error 401' in ansible_failed_result.msg"
+
+    - name: Block for clear pending attributes with invalid value
+      block:
+        - name: Clear pending attributes with invalid value
+          ansible.builtin.include_role:
+            name: dellemc.openmanage.idrac_bios
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            clear_pending: yess
+      rescue:
+        - name: Assert clear pending attributes with invalid value
+          ansible.builtin.assert:
+            that: ansible_failed_result.msg is
+                  search('unable to convert to bool')
+
+    - name: Block for reset bios with invalid value
+      block:
+        - name: Perform reset bios with invalid value
+          ansible.builtin.include_role:
+            name: dellemc.openmanage.idrac_bios
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            reset_bios: truee
+      rescue:
+        - name: Assert perform reset bios with invalid value
+          ansible.builtin.assert:
+            that: ansible_failed_result.msg is
+                  search('unable to convert to bool')
+
+    - name: Block for reset bios with invalid password
+      block:
+        - name: Perform reset bios with invalid password
+          ansible.builtin.include_role:
+            name: dellemc.openmanage.idrac_bios
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "randompassword"
+            validate_certs: false
+            clear_pending: false
+            reset_bios: true
+      rescue:
+        - name: Assert reset bios with invalid password
+          ansible.builtin.assert:
+            that: |-
+              ("'HTTP Error 401' in ansible_failed_result.msg")
+              or
+              ("'urlopen error timed out' in ansible_failed_result.msg")
+
+    - name: Block for reset type with invalid value
+      block:
+        - name: Perform reset type with invalid value
+          ansible.builtin.include_role:
+            name: dellemc.openmanage.idrac_bios
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            clear_pending: false
+            reset_bios: true
+            reset_type: graceful_restartt
+      rescue:
+        - name: Assert reset type with invalid value
+          ansible.builtin.assert:
+            that:
+              - ansible_failed_result.msg is
+                search('value of reset_type must be one of')
+              - ansible_failed_result.msg is
+                search('graceful_restart, force_restart')
+
+    - name: Clear pending attributes with reset
+      block:
+        - name: Clear pending attributes with reset
+          ansible.builtin.include_role:
+            name: dellemc.openmanage.idrac_bios
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            clear_pending: true
+            reset_bios: true
+      rescue:
+        - name: Assert clear pending attributes with reset
+          ansible.builtin.assert:
+            that: "ansible_failed_result.msg is
+                  search('clear_pending and reset_bios is mutually exclusive')"

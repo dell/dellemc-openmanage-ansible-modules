@@ -1,0 +1,137 @@
+---
+- name: Dell OpenManage Ansible identity pool operations.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Create an identity pool using ethernet, FCoE, iSCSI and FC settings.
+      dellemc.openmanage.ome_identity_pool:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: present
+        pool_name: "pool1"
+        pool_description: "Identity pool with Ethernet, FCoE, ISCSI and FC settings"
+        ethernet_settings:
+          starting_mac_address: "50:50:50:50:50:00"
+          identity_count: 60
+        fcoe_settings:
+          starting_mac_address: "aabb.ccdd.7070"
+          identity_count: 75
+        iscsi_settings:
+          starting_mac_address: "60:60:60:60:60:00"
+          identity_count: 30
+          initiator_config:
+            iqn_prefix: "iqn.myprefix."
+          initiator_ip_pool_settings:
+            ip_range: "10.33.0.1-10.33.0.255"
+            subnet_mask: "255.255.255.0"
+            gateway: "192.168.4.1"
+            primary_dns_server: "10.8.8.8"
+            secondary_dns_server: "8.8.8.8"
+        fc_settings:
+          starting_address: "10-10-10-10-10-10"
+          identity_count: 45
+      tags: create1
+      delegate_to: localhost
+
+    - name: Create an identity pool using only ethernet settings.
+      dellemc.openmanage.ome_identity_pool:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        pool_name: "pool2"
+        pool_description: "Identity pool with ethernet"
+        ethernet_settings:
+          starting_mac_address: "aa-bb-cc-dd-ee-aa"
+          identity_count: 80
+      tags: create2
+      delegate_to: localhost
+
+    - name: Create an identity pool using only iSCSI settings
+      dellemc.openmanage.ome_identity_pool:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        pool_name: "pool3"
+        pool_description: "Identity pool with iscsi"
+        iscsi_settings:
+          starting_mac_address: "10:10:10:10:10:00"
+          identity_count: 30
+          initiator_config:
+            iqn_prefix: "iqn.myprefix."
+          initiator_ip_pool_settings:
+            ip_range: "20.33.0.1-20.33.0.255"
+            subnet_mask: "255.255.255.0"
+            gateway: "192.168.4.1"
+            primary_dns_server: "10.8.8.8"
+            secondary_dns_server: "8.8.8.8"
+      tags: create3
+      delegate_to: localhost
+
+    - name: Modify an identity pool using FC settings.
+      dellemc.openmanage.ome_identity_pool:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        pool_name: "pool2"
+        pool_description: "Identity pool with fc_settings"
+        fc_settings:
+          starting_address: "40:40:40:40:40:22"
+          identity_count: 48
+      tags: modify1
+      delegate_to: localhost
+
+    - name: Modify an identity pool.
+      dellemc.openmanage.ome_identity_pool:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        pool_name: "pool1"
+        new_pool_name: "pool_new"
+        pool_description: "modifying identity pool with ethernet and fcoe settings"
+        ethernet_settings:
+          starting_mac_address: "90-90-90-90-90-90"
+          identity_count: 61
+        fcoe_settings:
+          starting_mac_address: "aabb.ccdd.5050"
+          identity_count: 77
+      tags: modify2
+      delegate_to: localhost
+
+    - name: Modify an identity pool using iSCSI and FC settings.
+      dellemc.openmanage.ome_identity_pool:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        pool_name: "pool_new"
+        new_pool_name: "pool_new2"
+        pool_description: "modifying identity pool with iscsi and fc settings"
+        iscsi_settings:
+          identity_count: 99
+          initiator_config:
+            iqn_prefix: "iqn1.myprefix2."
+          initiator_ip_pool_settings:
+            gateway: "192.168.4.5"
+        fc_settings:
+          starting_address: "10:10:10:10:10:10"
+          identity_count: 98
+      tags: modify3
+      delegate_to: localhost
+
+    - name: Delete an identity pool
+      dellemc.openmanage.ome_identity_pool:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "absent"
+        pool_name: "pool1"
+      tags: delete
+      delegate_to: localhost

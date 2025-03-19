@@ -1,0 +1,21 @@
+---
+provisioner:
+  name: ansible
+  env:
+    local_path: "/tmp"
+    local_filename: "exported_scp_local.xml"
+    nfs_filename: "exported_scp_nfs.json"
+    cifs_filename: 'exported_scp_cifs.xml'
+    https_filename: "exported_scp_https.json"
+    http_filename: "exported_scp_http.xml"
+    nfs_mount_path: "/tmp/nfs_idrac_export"
+    cifs_mount_path: "/tmp/cifs_idrac_export"
+scenario:
+  test_sequence:
+    - destroy
+    - syntax
+    - create
+    - converge
+    - verify
+    - cleanup
+    - destroy

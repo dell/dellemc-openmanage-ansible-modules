@@ -1,0 +1,74 @@
+---
+- name: Converge
+  hosts: all
+  vars:
+    redfish_firmware_image_url_without_reboot: "{{ lookup('env', 'redfish_firmware_image_url_without_reboot') }}"
+    redfish_firmware_image_url_need_reboot: "{{ lookup('env', 'redfish_firmware_image_url_need_reboot') }}"
+    redfish_firmware_image_local_path: "{{ lookup('env', 'redfish_firmware_image_local_path') }}"
+  gather_facts: false
+  tasks:
+    - name: Checking if HTTP url is empty
+      ansible.builtin.fail:
+        msg: Please provide HTTP url for redfish_firmware in molecule.yml
+      when: redfish_firmware_image_url_without_reboot == "" and redfish_firmware_image_url_need_reboot == ""
+
+    - name: Downloading firmware image for local manual reboot
+      ansible.builtin.get_url:
+        url: "{{ redfish_firmware_image_url_need_reboot }}"
+        dest: "{{ redfish_firmware_image_local_path }}"
+        mode: "0755"
+      delegate_to: localhost
+
+    - name: Initializing idrac common inputs to use as aliases
+      ansible.builtin.set_fact:
+        common_input: &idrac_input
+          hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+          username: "{{ lookup('env', 'IDRAC_USER') }}"
+          password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+          validate_certs: false
+      no_log: true
+
+    - name: TC - 001 - Provide valid HTTP image_uri with default transfer_protocol with auto reboot
+      ansible.builtin.import_role:
+        name: redfish_firmware
+      vars:
+        <<: *idrac_input
+        image_uri: "{{ redfish_firmware_image_url_without_reboot }}"
+        job_wait_timeout: 3600
+
+    - name: TC - 001 - Asserting after performing update with valid image_uri and default transfter_protocol with auto reboot
+      ansible.builtin.assert:
+        that:
+          - redfish_firmware_out.msg == 'Successfully updated the firmware.'
+          - redfish_firmware_out.changed
+
+    - name: TC - 002 - Provide valid local image_uri firmware to schedule job with job_wait_timeout 60 secs
+      ansible.builtin.import_role:
+        name: redfish_firmware
+      vars:
+        <<: *idrac_input
+        image_uri: "{{ redfish_firmware_image_url_need_reboot }}"
+        job_wait_timeout: 60
+
+    - name: TC - 002 - Asserting after performing update with local image_uri firmware to schedule job
+      ansible.builtin.assert:
+        that:
+          - redfish_firmware_out.msg == "Successfully scheduled the firmware job."
+          - redfish_firmware_out.changed
+
+    - name: TC - 002 - Deleting the schedule job in iDRAC
+      ansible.builtin.uri:
+        url: "https://{{ lookup('env', 'IDRAC_IP') }}/redfish/v1/JobService/Jobs/{{ redfish_firmware_out.task.id }}"
+        validate_certs: false
+        method: "DELETE"
+        user: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        headers:
+          Accept: "application/json"
+          Content-Type: "application/json"
+          OData-Version: "4.0"
+        body_format: "json"
+        status_code:
+          - 200
+        return_content: true
+      no_log: true

@@ -1,0 +1,112 @@
+---
+- name: Job Queue Clear Scenarios
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Setting input facts
+      ansible.builtin.set_fact:
+        input: &input
+          hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+          username: "{{ lookup('env', 'IDRAC_USER') }}"
+          password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+          validate_certs: false
+      no_log: true
+
+    - name: Creating a job to which configures iDRAC attributes
+      ansible.builtin.include_role:
+        name: idrac_import_server_config_profile
+      vars:
+        <<: *input
+        target: ["NIC"]
+        import_buffer:
+          "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'>
+          Disabled</Attribute></Component></SystemConfiguration>"
+
+    - name: Clear the job queue
+      ansible.builtin.include_role:
+        name: "idrac_job_queue"
+      vars:
+        <<: *input
+        clear_job_queue: true
+
+    - name: "Verifying job queue clear"
+      ansible.builtin.assert:
+        that:
+          - idrac_job_queue_out.msg == "The job queue has been cleared successfully."
+
+    - name: Waiting for the data to be available on iDRAC
+      ansible.builtin.wait_for:
+        timeout: 180
+
+    - name: Creating a job which configures iDRAC attributes
+      ansible.builtin.include_role:
+        name: idrac_import_server_config_profile
+      vars:
+        <<: *input
+        target: ["NIC"]
+        import_buffer:
+          "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'>
+          Disabled</Attribute></Component></SystemConfiguration>"
+
+    - name: Force clear the job queue
+      ansible.builtin.include_role:
+        name: "idrac_job_queue"
+      vars:
+        <<: *input
+        clear_job_queue: true
+        force: true
+
+    - name: "Verifying force job queue clear"
+      ansible.builtin.assert:
+        that:
+          - idrac_job_queue_out.msg == "The job queue has been cleared successfully."
+
+    - name: Waiting for the data to be available on iDRAC
+      ansible.builtin.wait_for:
+        timeout: 180
+
+    - name: Clear the job queue
+      block:
+        - name: Clear the job queue when there is no jobs
+          ansible.builtin.include_role:
+            name: "idrac_job_queue"
+          vars:
+            <<: *input
+            clear_job_queue: true
+
+      rescue:
+        - name: "Verifying job queue clear when there is no job"
+          ansible.builtin.assert:
+            that:
+              - idrac_job_queue_out.msg == "There are no jobs in the job queue."
+
+    - name: Creating a job which exports SCP local path with all components
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+        idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+        idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        scp_components:
+          - IDRAC
+        share_name: "/root/"
+        scp_file: "file1.xml"
+        export_format: JSON
+        export_use: Clone
+        job_wait: false
+      async: 45
+      poll: 0
+
+    - name: Clear the job queue
+      block:
+        - name: Clear the job queue when any of the job is not in state to be deleted
+          ansible.builtin.include_role:
+            name: "idrac_job_queue"
+          vars:
+            <<: *input
+            clear_job_queue: true
+      rescue:
+        - name: "Verifying job queue clear"
+          ansible.builtin.assert:
+            that:
+              - idrac_job_queue_out.msg == "One or more jobs cannot be deleted, Retry the operation or
+                delete the jobs by checking the job status."

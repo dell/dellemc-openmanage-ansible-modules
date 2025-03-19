@@ -1,0 +1,57 @@
+---
+- name: Configure login security settings
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Configure restricted allowed IP range
+      dellemc.openmanage.ome_application_security_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        restrict_allowed_ip_range:
+          enable_ip_range: true
+          ip_range: 192.1.2.3/24
+      delegate_to: localhost
+
+    - name: Configure login lockout policy
+      dellemc.openmanage.ome_application_security_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        login_lockout_policy:
+          by_user_name: true
+          by_ip_address: true
+          lockout_fail_count: 3
+          lockout_fail_window: 30
+          lockout_penalty_time: 900
+      delegate_to: localhost
+
+    - name: Configure restricted allowed IP range and login lockout policy with job wait time out of 60 seconds
+      dellemc.openmanage.ome_application_security_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        restrict_allowed_ip_range:
+          enable_ip_range: true
+          ip_range: 192.1.2.3/24
+        login_lockout_policy:
+          by_user_name: true
+          by_ip_address: true
+          lockout_fail_count: 3
+          lockout_fail_window: 30
+          lockout_penalty_time: 900
+        job_wait_timeout: 60
+      delegate_to: localhost
+
+    - name: Enable FIPS mode
+      dellemc.openmanage.ome_application_security_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        fips_mode_enable: true
+      delegate_to: localhost

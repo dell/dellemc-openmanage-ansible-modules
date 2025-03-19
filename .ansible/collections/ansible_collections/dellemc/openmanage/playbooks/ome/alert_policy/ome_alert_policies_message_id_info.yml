@@ -1,0 +1,13 @@
+---
+- name: Fetching message ids of ome alert policies .
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Retrieve mesaage ids of alert policies.
+      dellemc.openmanage.ome_alert_policies_message_id_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+      delegate_to: localhost

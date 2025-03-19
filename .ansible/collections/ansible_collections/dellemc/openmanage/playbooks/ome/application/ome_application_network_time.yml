@@ -1,0 +1,31 @@
+---
+- name: Dell OpenManage Ansible Application network time setting.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Configure system time.
+      dellemc.openmanage.ome_application_network_time:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        enable_ntp: false
+        system_time: "2020-03-31 21:35:18"
+        time_zone: "TZ_ID_11"
+      tags: time_setting1
+      delegate_to: localhost
+
+    - name: Configure NTP server for time synchronization.
+      dellemc.openmanage.ome_application_network_time:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        time_zone: "TZ_ID_66"
+        enable_ntp: true
+        primary_ntp_address: "192.168.0.2"
+        secondary_ntp_address1: "192.168.0.3"
+        secondary_ntp_address2: "192.168.0.4"
+      tags: time_setting2
+      delegate_to: localhost

@@ -1,0 +1,110 @@
+---
+argument_specs:
+  main:
+    version_added: 7.4.0
+    short_description: Role to get the facts from the iDRAC Server
+    description:
+      - Role to fetch the server facts about a different components available in
+        the PowerEdge Servers.
+    options:
+      hostname:
+        required: true
+        type: str
+        description: iDRAC IP Address.
+      username:
+        type: str
+        description: iDRAC username.
+      password:
+        type: str
+        description: iDRAC user password.
+      https_port:
+        type: int
+        description: iDRAC port.
+        default: 443
+      validate_certs:
+        description:
+          - If C(False), the SSL certificates will not be validated.
+          - Configure C(False) only on personally controlled sites where
+            self-signed certificates are used.
+          - Prior to collection version 5.0.0, I(validate_certs) is C(False) by
+            default.
+        type: bool
+        default: true
+      ca_path:
+        description:
+          - The Privacy Enhanced Mail (PEM) file that contains a CA certificate
+            to be used for the validation.
+        type: path
+      https_timeout:
+        description: The socket level timeout in seconds.
+        type: int
+        default: 30
+      computer_system_id:
+        description: Computer system id
+        type: str
+      manager_id:
+        description: Manager/BMC id
+        type: str
+      target:
+        description:
+          - Target component for which information needs to be gathered.
+          - C(BIOS) lists the BIOS information.
+          - C(Chassis) lists the chassis.
+          - C(Controller) lists the available controllers for iDRAC.
+          - C(CPU) lists the system processors.
+          - C(Enclosure) lists the enclosures.
+          - C(EnclosureEMM) lists the enclosure management module specific data.
+          - C(Fan) lists the fans.
+          - C(Firmware) lists the firmware inventories.
+          - C(HostNIC) lists the host NIC.
+          - C(IDRAC) lists the attributes for iDRAC.
+          - C(License) lists the license information.
+          - C(Manager) lists the manager resources.
+          - C(Memory) lists the memory device specific data.
+          - C(NetworkAdapter) lists the network adapters.
+          - C(NetworkPort) lists the network ports.
+          - C(NetworkDeviceFunction) lists the network device functions.
+          - C(NIC) lists NIC device specific data.
+          - C(PCIeSSDBackPlane) lists PCIeSSD back plane specific data.
+          - C(PowerSupply) lists data specific to the Power Supply devices in
+            the managed system.
+          - C(PresenceAndStatusSensor) lists the presence and status sensor
+            specific data.
+          - C(PCIeDevice) lists the PCIeDevices.
+          - C(PhysicalDisk) lists the physical disks.
+          - C(Sensors_Battery) lists the sensors battery information.
+          - C(Sensors_Intrusion) lists the sensors intrusion information.
+          - C(Sensors_Voltage) lists the sensors voltage information.
+          - C(System) lists the ComputerSystem resources for iDRAC.
+          - C(SystemMetrics) lists the system metrics.
+          - C(ThermalSubSystem) lists the thermal sub system.
+          - C(VirtualDisk) lists the virtual disks.
+          - C(VirtualMedia) lists the virtual media.
+          - C(SecureBoot) lists the secure boot specific data.
+        type: list
+        choices:
+          - IDRAC
+          - System
+          - BIOS
+          - Controller
+          - CPU
+          - Enclosure
+          - EnclosureEMM
+          - Fan
+          - Firmware
+          - HostNIC
+          - License
+          - Memory
+          - NIC
+          - PCIeSSDBackPlane
+          - PowerSupply
+          - PresenceAndStatusSensor
+          - Sensors_Battery
+          - Sensors_Intrusion
+          - Sensors_Voltage
+          - VirtualDisk
+          - PCIeDevice
+          - PhysicalDisk
+          - SystemMetrics
+          - SecureBoot
+        default: System

@@ -1,0 +1,166 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: To check the behaviour of invalid hostname.
+      ansible.builtin.import_role:
+        name: redfish_storage_volume
+      vars:
+        hostname: "192.168.1.1"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        state: present
+        volume_type: "NonRedundant"
+        name: "VD"  # noqa: var-naming[no-reserved]
+        controller_id: ""
+        drives: ""
+        capacity_bytes: 214748364800
+        optimum_io_size_bytes: 65536
+        encrypted: false
+        job_wait: false
+      ignore_errors: true
+      register: redfish_storage_volume_result
+      ignore_unreachable: true
+
+    - name: Asserting after performing operation.
+      ansible.builtin.assert:
+        that: >-
+          '"<urlopen error [Errno 111] Connection refused>" in
+           redfish_storage_volume_out.msg'
+
+    - name: To check the behaviour of invalid credentials.
+      ansible.builtin.import_role:
+        name: redfish_storage_volume
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "invalid_password"
+        validate_certs: false
+        state: present
+        volume_type: "NonRedundant"
+        name: "VD"  # noqa: var-naming[no-reserved]
+        controller_id: ""
+        drives: ""
+        capacity_bytes: 214748364800
+        optimum_io_size_bytes: 65536
+        encrypted: false
+        job_wait: false
+      ignore_errors: true
+      register: redfish_storage_volume_result
+
+    - name: Asserting after performing operation for invalid credentials.
+      ansible.builtin.assert:
+        that: |-
+          redfish_storage_volume_out.msg == "HTTP Error 401: Unauthorized"
+
+    - name: To check the behaviour of invalid state.
+      ansible.builtin.import_role:
+        name: redfish_storage_volume
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        state: invalid
+        volume_type: "SpannedStripesWithParity"
+        name: "VD"  # noqa: var-naming[no-reserved]
+        controller_id: ""
+        drives: ""
+        capacity_bytes: 214748364800
+        optimum_io_size_bytes: 65536
+        encrypted: false
+        job_wait: false
+      ignore_errors: true
+      register: redfish_storage_volume_result
+
+    - name: Asserting after performing operation for invalid span count.
+      ansible.builtin.assert:
+        that: >-
+          redfish_storage_volume_out.msg == "value of state must be one of:
+          present, absent, got: invalid"
+      when: not ansible_check_mode
+
+    - name: To check the behaviour of invalid certificate path.
+      ansible.builtin.import_role:
+        name: redfish_storage_volume
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: true
+        ca_path: "/tmp/invalid_ca_path.pem"
+        state: present
+        volume_type: "SpannedStripesWithParity"
+        name: "VD"  # noqa: var-naming[no-reserved]
+        controller_id: ""
+        drives: ""
+        capacity_bytes: 214748364800
+        optimum_io_size_bytes: 65536
+        encrypted: false
+        job_wait: false
+      ignore_errors: true
+      register: redfish_storage_volume_result
+      ignore_unreachable: true
+
+    - name: Asserting after performing operation for invalid certificate path.
+      ansible.builtin.assert:
+        that: >-
+          "[Errno 2] No such file or directory" in
+           redfish_storage_volume_out.msg
+
+    - name: To check the behaviour of invalid raid type.
+      ansible.builtin.import_role:
+        name: redfish_storage_volume
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        state: present
+        raid_type: "Invalid"
+        name: "VD"  # noqa: var-naming[no-reserved]
+        controller_id: ""
+        drives: ""
+        capacity_bytes: 214748364800
+        optimum_io_size_bytes: 65536
+        encrypted: false
+        job_wait: false
+      ignore_errors: true
+      register: redfish_storage_volume_result
+
+    - name: Asserting after performing operation for invalid raid type.
+      ansible.builtin.assert:
+        that: >-
+          "value of raid_type must be one of: RAID0, RAID1, RAID5, RAID6,
+          RAID10, RAID50, RAID60, got: Invalid" in
+          redfish_storage_volume_out.msg
+
+    - name: To check the behaviour of invalid controller_id.
+      ansible.builtin.import_role:
+        name: redfish_storage_volume
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        state: present
+        raid_type: "RAID0"
+        name: "VD"  # noqa: var-naming[no-reserved]
+        controller_id: "invalid"
+        capacity_bytes: 214748364800
+        optimum_io_size_bytes: 65536
+        encrypted: false
+        job_wait: false
+      ignore_errors: true
+      ignore_unreachable: true
+      register: redfish_storage_volume_result
+
+    - name: Asserting after performing operation for invalid controller_id.
+      ansible.builtin.assert:
+        that: >-
+          "Specified Controller invalid does not exist in the System." in
+           redfish_storage_volume_out.msg
+      when: redfish_storage_volume_out.failed

@@ -1,0 +1,38 @@
+---
+- name: Reset iDRAC
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Reset iDRAC
+      dellemc.openmanage.idrac_reset:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+      register: result
+      failed_when: result is changed
+      delegate_to: localhost
+
+    - name: Wait for port 443 to become open on the host
+      ansible.builtin.wait_for:
+        host: "{{ idrac_ip }}"
+        port: 443
+        delay: 30
+        connect_timeout: 5
+        timeout: 500
+      register: result
+      failed_when: result.elapsed < 20
+      delegate_to: localhost
+
+    - name: Get LC status.
+      dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+      register: result
+      until: result.msg.LCStatus == 'Ready' or result.msg.LCReady is true
+      retries: 30
+      delay: 10
+      delegate_to: localhost

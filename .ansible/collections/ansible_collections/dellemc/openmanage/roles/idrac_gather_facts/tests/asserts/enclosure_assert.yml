@@ -1,0 +1,39 @@
+- name: Fetching Enclosure info
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}/redfish/v1/Chassis/Oem/Dell/DellEnclosures/{{ enclosure_data.Id }}"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    method: "{{ idrac_gather_facts_uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    headers: "{{ idrac_gather_facts_uri_headers }}"
+    body_format: "{{ idrac_gather_facts_uri_body_format }}"
+    status_code: "{{ idrac_gather_facts_uri_status_code }}"
+    return_content: "{{ idrac_gather_facts_uri_return_content }}"
+  register: enclosure_result
+  no_log: true
+
+- name: Set enclosure facts
+  ansible.builtin.set_fact:
+    api_response: "{{ enclosure_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'Links', 'Description']) }}"
+
+- name: Set the keys diff
+  ansible.builtin.set_fact:
+    diff_keys: "{{ enclosure_data.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
+
+- name: Set a diff of dict
+  ansible.builtin.set_fact:
+    diff_data: "{{ diff_data | combine({item: enclosure_data[item]}) }}"
+  loop: "{{ enclosure_data.keys() }}"
+  when:
+    - diff_keys | length == 0
+    - enclosure_data[item] != api_response[item]
+    - item not in exclude_keys
+
+- name: Assert the difference in Keys
+  ansible.builtin.assert:
+    that:
+      - "{{ (diff_keys | length) == 0 }}"
+      - "{{ (diff_data | length) == 0 }}"
+    fail_msg: "The response from the role does not match | Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
+    success_msg: "The response from the role matches |  Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"

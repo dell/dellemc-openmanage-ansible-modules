@@ -1,0 +1,16 @@
+---
+- name: Configure attributes
+  dellemc.openmanage.idrac_attributes:
+    idrac_ip: "{{ hostname }}"
+    idrac_user: "{{ username }}"
+    idrac_password: "{{ password }}"
+    idrac_port: "{{ https_port }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    validate_certs: "{{ validate_certs }}"
+    idrac_attributes: "{{ idrac_attributes | default(omit) }}"
+    system_attributes: "{{ system_attributes | default(omit) }}"
+    lifecycle_controller_attributes: "{{ lifecycle_controller_attributes | default(omit) }}"
+    resource_id: "{{ manager_id | default(omit) }}"
+    timeout: "{{ https_timeout }}"
+  register: idrac_attributes_out
+  delegate_to: "{{ idrac_attributes_delegate }}"

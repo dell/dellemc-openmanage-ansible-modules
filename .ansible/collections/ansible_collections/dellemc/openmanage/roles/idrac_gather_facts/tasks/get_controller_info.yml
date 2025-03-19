@@ -1,0 +1,40 @@
+---
+- name: Get Storage information.
+  ansible.builtin.uri:
+    url: https://{{ hostname }}:{{ https_port }}{{ api_system
+      }}/Storage/?$expand=*($levels=1)
+  register: disk_result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Get all storage controllers.
+  ansible.builtin.set_fact:
+    controllers_list: "{{ disk_result.json.Members | selectattr('Controllers',
+      'defined') | map(attribute='Controllers') }}"
+
+- name: Select list of values from dictionary
+  ansible.builtin.set_fact:
+    controller_list_temp: "{{ (controller_list_temp | default([])) +
+      [controller_item['@odata.id']] }}"
+  loop: "{{ controllers_list }}"
+  loop_control:
+    loop_var: controller_item
+
+- name: Get Controllers information.
+  ansible.builtin.uri:
+    url: https://{{ hostname }}:{{ https_port }}{{ each_controller
+      }}?$expand=*($levels=1)
+  loop: "{{ controller_list_temp }}"
+  loop_control:
+    loop_var: each_controller
+  register: result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+  when: controller_list_temp is defined
+
+- name: Set All Controllers facts
+  ansible.builtin.set_fact:
+    controller: "{{ result.results | selectattr('json', 'defined') |
+      map(attribute='json') | selectattr('Members', 'defined') |
+      map(attribute='Members') | flatten |
+      ansible.utils.remove_keys(target=['^.*@odata.*$'],
+      matching_parameter='regex') }}"
+  when: controller_list_temp is defined

@@ -1,0 +1,74 @@
+---
+- name: Validate when custom iso if false
+  when: source.is_custom_iso is undefined or source.is_custom_iso is false
+  block:
+    - name: Validate the OS Name and OS version is provided
+      when: os_name is undefined or os_version is undefined
+      ansible.builtin.fail:
+        msg: "{{ idrac_os_deployment_err_msg_os_required }}"
+
+    - name: Validate the OS Name and OS version
+      when: (os_name | upper not in idrac_os_deployment_supported_os.keys()) or
+        ((os_version | string | split('.') | first) not in idrac_os_deployment_supported_os[os_name | upper])
+      ansible.builtin.fail:
+        msg: "{{ idrac_os_deployment_err_msg_unsupported_os | format(os_name, os_version) }}"
+
+    - name: Check if root password exists
+      when:
+        - source.ks_path is undefined
+        - ((os_name | upper == 'RHEL') and (rhel_rootpw | length == 0)) or
+          ((os_name | upper == 'ESXI') and (esxi_rootpw | length == 0))
+      ansible.builtin.fail:
+        msg: "{{ idrac_os_deployment_err_msg_root_password | format(os_name) }}"
+
+    - name: Check if the template file Exists
+      when: source.ks_path is undefined
+      block:
+        - name: Check if the template file exists
+          register: idrac_os_deployment_template_file
+          delegate_to: "{{ idrac_os_deployment_delegate }}"
+          ansible.builtin.stat:
+            path: "{{ role_path }}/templates/{{ os_name | upper }}_{{ os_version | string | split('.') | first }}.j2"
+
+        - name: Fail if the Template file doesn't exists
+          when: not idrac_os_deployment_template_file.stat.exists
+          ansible.builtin.fail:
+            msg: "{{ idrac_os_deployment_err_msg_template | format(os_name | upper, os_version) }}"
+
+    - name: Validate destination required when custom iso is an input
+      when: destination is not defined
+      ansible.builtin.fail:
+        msg: "{{ idrac_os_deployment_err_msg_destination_required }}"
+
+    - name: Validate destination iso_name is not empty if provided
+      when:
+        - (destination is defined and destination.iso_name is defined and destination.iso_name == "")
+      ansible.builtin.fail:
+        msg: "{{ idrac_os_deployment_err_msg_destination_iso_name }}"
+
+    - name: Validate destination mountpath folder exists
+      delegate_to: "{{ idrac_os_deployment_delegate }}"
+      when: destination is defined and destination.protocol in ['cifs','nfs']
+      block:
+        - name: Validate destination mountpath
+          register: idrac_os_deployment_mountpoint_folder
+          ansible.builtin.stat:
+            path: "{{ destination.mountpoint }}"
+
+        - name: Fail if the mountpoint destination doesn't exists
+          when: not idrac_os_deployment_mountpoint_folder.stat.exists
+          ansible.builtin.fail:
+            msg: "{{ idrac_os_deployment_err_msg_mountpoint_folder | format(destination.mountpoint) }}"
+
+- name: Validate when source is local custom iso is not true
+  when:
+    - (source.is_custom_iso is defined and source.is_custom_iso is true) and (source.protocol == "local")
+  ansible.builtin.fail:
+    msg: "{{ idrac_os_deployment_err_msg_custom_iso_local }}"
+
+- name: Validate hostname requirement for source
+  when:
+    - (source.hostname is undefined or source.hostname == "")
+    - (source.is_custom_iso is defined and source.is_custom_iso is true) or (source.protocol in ['http', 'https'])
+  ansible.builtin.fail:
+    msg: "{{ idrac_os_deployment_err_msg_hostname_required }}"

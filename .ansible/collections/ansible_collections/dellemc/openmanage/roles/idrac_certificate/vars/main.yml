@@ -1,0 +1,3 @@
+---
+# vars file for idrac_certificate
+idrac_certificate_delegate: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"

@@ -16,8 +16,9 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/\
-          iDRAC.Embedded.1"
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers"
+        url_1: "iDRAC.Embedded.1"
+        url: "{{ url_0 }}/{{ url_1 }}"
 
     - ansible.builtin.set_fact:
         firmware_version_from_api_response: '{{ uri_data.FirmwareVersion }}'
@@ -39,8 +40,9 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
-          System.Embedded.1/VirtualMedia/1"
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
+        url_1: "System.Embedded.1/VirtualMedia/1"
+        url: "{{ url_0 }}/{{ url_1 }}"
 
     - name: Prerequisite - Verify virtual media ejection from RFS1 using uri
       ansible.builtin.assert:
@@ -50,8 +52,9 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
-          System.Embedded.1/VirtualMedia/2"
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
+        url_1: "System.Embedded.1/VirtualMedia/2"
+        url: "{{ url_0 }}/{{ url_1 }}"
 
     - name: Prerequisite - Verify virtual media ejection from RFS2 using uri
       ansible.builtin.assert:
@@ -100,8 +103,9 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
-          System.Embedded.1/VirtualMedia"
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
+        url_1: "System.Embedded.1/VirtualMedia"
+        url: "{{ url_0 }}/{{ url_1 }}"
 
     - name: Verify image count
       ansible.builtin.assert:
@@ -110,8 +114,9 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
-          System.Embedded.1/VirtualMedia/1"
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
+        url_1: "System.Embedded.1/VirtualMedia/1"
+        url: "{{ url_0 }}/{{ url_1 }}"
 
     - name: Verify virtual media insertion to RFS1 using uri
       ansible.builtin.assert:
@@ -123,8 +128,9 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
-          System.Embedded.1/VirtualMedia/2"
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
+        url_1: "System.Embedded.1/VirtualMedia/2"
+        url: "{{ url_0 }}/{{ url_1 }}"
 
     - name: Verify virtual media insertion to RFS2 using uri
       ansible.builtin.assert:
@@ -154,8 +160,9 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
-          System.Embedded.1/VirtualMedia/1"
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
+        url_1: "System.Embedded.1/VirtualMedia/1"
+        url: "{{ url_0 }}/{{ url_1 }}"
 
     - name: Prerequisite - Verify virtual media ejection from RFS1 using uri
       ansible.builtin.assert:
@@ -165,8 +172,9 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
-          System.Embedded.1/VirtualMedia/2"
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
+        url_1: "System.Embedded.1/VirtualMedia/2"
+        url: "{{ url_0 }}/{{ url_1 }}"
 
     - name: Prerequisite - Verify virtual media ejection from RFS2 using uri
       ansible.builtin.assert:
@@ -211,8 +219,9 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
-          System.Embedded.1/VirtualMedia"
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
+        url_1: "System.Embedded.1/VirtualMedia"
+        url: "{{ url_0 }}/{{ url_1 }}"
 
     - name: Verify image count
       ansible.builtin.assert:
@@ -221,8 +230,9 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
-          System.Embedded.1/VirtualMedia/1"
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
+        url_1: "System.Embedded.1/VirtualMedia/1"
+        url: "{{ url_0 }}/{{ url_1 }}"
 
     - name: Verify virtual media insertion to RFS1 using uri
       ansible.builtin.assert:
@@ -234,8 +244,9 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/\
-          System.Embedded.1/VirtualMedia/2"
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
+        url_1: "System.Embedded.1/VirtualMedia/2"
+        url: "{{ url_0 }}/{{ url_1 }}"
 
     - name: Verify virtual media insertion to RFS2 using uri
       ansible.builtin.assert:

@@ -1,0 +1,11 @@
+---
+- name: Firmware update using catalog for iDRAC
+  hosts: idrac
+  gather_facts: false
+  vars_files:
+    - ../vars_files/credentials.yml
+    - ../vars_files/firmware.yml
+  vars:
+    hostname: "{{ inventory_hostname }}"
+  roles:
+    - dellemc.openmanage.idrac_firmware

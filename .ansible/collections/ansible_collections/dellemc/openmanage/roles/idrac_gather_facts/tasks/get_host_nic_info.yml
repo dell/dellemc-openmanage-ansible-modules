@@ -1,0 +1,12 @@
+---
+- name: Get HostNIC information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_manager }}/HostInterfaces?$expand=*($levels=1)"
+  register: nic_result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Set HostNIC facts
+  ansible.builtin.set_fact:
+    hostnic:
+      "{{ nic_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type',
+      'HostEthernetInterfaces', 'ManagerEthernetInterface']) }}"

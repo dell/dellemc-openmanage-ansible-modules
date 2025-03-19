@@ -1,0 +1,22 @@
+---
+- name: Waiting for LC status to be ready
+  ansible.builtin.include_tasks:
+    file: ../__lc_status.yml
+
+- name: Fetching data from iDRAC
+  ansible.builtin.uri:
+    url: "https://{{ lookup('env', 'IDRAC_IP') }}/redfish/v1/{{ _url }}"
+    user: "{{ lookup('env', 'IDRAC_USER') }}"
+    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    method: GET
+    timeout: 30
+    body: {}
+    validate_certs: false
+    force_basic_auth: true
+    body_format: json
+    return_content: true
+    status_code: 200
+    headers: 'Accept=application/json'
+  register: redfish_storage_volume_fetched_output
+  when: _url is defined
+  check_mode: false

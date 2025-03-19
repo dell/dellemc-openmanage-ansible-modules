@@ -1,0 +1,3 @@
+---
+idrac_boot_delegate: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+idrac_boot_job_wait_timeout_err: "The parameter job_wait_timeout value cannot be negative or zero."

@@ -1,0 +1,12 @@
+---
+- name: Get enclosure information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Chassis/Oem/Dell/DellEnclosures"
+  register: enclosure_result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Set enclosure facts
+  ansible.builtin.set_fact:
+    enclosure: "{{ enclosure_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'Links', 'Description']) }}"
+  when: enclosure_result.status == 200
+  register: enclosure_result_register

@@ -1,0 +1,10 @@
+---
+# defaults file for idrac_certificate
+
+https_port: 443
+validate_certs: true
+https_timeout: 30
+certificate_type: "HTTPS"
+command: generate_csr
+reset: true
+wait: 300

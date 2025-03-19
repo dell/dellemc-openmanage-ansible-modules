@@ -1,0 +1,110 @@
+---
+- name: Dell OpenManage Ansible Alert policies.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: "Create an alert policy"
+      dellemc.openmanage.ome_alert_policies:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        name: "Alert Policy One"
+        device_service_tag:
+          - ABCD123
+          - SVC7845
+        category:
+          - catalog_name: Application
+            catalog_category:
+              - category_name: Audit
+                sub_category_names:
+                  - Generic
+                  - Devices
+          - catalog_name: iDRAC
+            catalog_category:
+              - category_name: Audit
+                sub_category_names:
+                  - BIOS Management
+                  - iDRAC Service Module
+        date_and_time:
+          date_from: "2023-10-10"
+          date_to: "2023-10-11"
+          time_from: "11:00"
+          time_to: "12:00"
+          time_interval: true
+        severity:
+          - unknown
+          - critical
+        actions:
+          - action_name: Trap
+            parameters:
+              - name: "192.1.2.3:162"
+                value: true
+              - name: "traphostname.domain.com:162"
+                value: true
+      tags: create_alert_policy
+      delegate_to: localhost
+
+    - name: "Update an alert Policy"
+      dellemc.openmanage.ome_alert_policies:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        name: "Existing Policy Name"
+        new_name: "Update Policy Name"
+        device_group: "Group Name"
+        message_ids:
+          - AMP400
+          - CTL201
+          - BIOS101
+        date_and_time:
+          date_from: "2023-10-10"
+          date_to: "2023-10-11"
+          time_from: "11:00"
+          time_to: "12:00"
+          time_interval: true
+        actions:
+          - action_name: Trap
+            parameters:
+              - name: "192.1.2.3:162"
+                value: true
+      tags: update_alert_policy
+      delegate_to: localhost
+
+    - name: "Enable an alert policy"
+      dellemc.openmanage.ome_alert_policies:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        name: "Policy Name"
+        enable: true
+      tags: enable_alert_policy
+      delegate_to: localhost
+
+    - name: "Disable multiple alert policies"
+      dellemc.openmanage.ome_alert_policies:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        name:
+          - "Policy Name 1"
+          - "Policy Name 2"
+        enable: false
+      tags: disable_alert_policy
+      delegate_to: localhost
+
+    - name: "Delete an alert policy"
+      dellemc.openmanage.ome_alert_policies:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        name:
+          - "Policy Name"
+        state: absent
+      tags: delete_alert_policy
+      delegate_to: localhost

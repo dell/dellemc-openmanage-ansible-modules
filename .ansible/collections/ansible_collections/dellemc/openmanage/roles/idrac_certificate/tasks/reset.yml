@@ -1,0 +1,16 @@
+---
+- name: Reset Certificate
+  dellemc.openmanage.idrac_certificates:
+    idrac_ip: "{{ hostname }}"
+    idrac_user: "{{ username }}"
+    idrac_password: "{{ password }}"
+    idrac_port: "{{ https_port }}"
+    timeout: "{{ https_timeout }}"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    command: "reset"
+    reset: "{{ reset }}"
+    wait: "{{ wait }}"
+    certificate_type: "HTTPS"
+  register: idrac_certificate_out
+  delegate_to: "{{ idrac_certificate_delegate }}"

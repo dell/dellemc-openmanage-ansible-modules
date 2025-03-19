@@ -1,0 +1,6 @@
+---
+- name: Testing for idrac boot
+  hosts: localhost
+  remote_user: root
+  roles:
+    - idrac_boot

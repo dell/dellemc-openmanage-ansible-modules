@@ -1,0 +1,74 @@
+---
+# tasks file for idrac_os_deployment
+- name: Operating system deployment on iDRAC
+  block:
+    - name: Validate the Inputs
+      ansible.builtin.include_tasks: common/validate_inputs.yml
+
+    - name: Create working directory , kickstart file and compile iso
+      when: source.is_custom_iso is undefined or source.is_custom_iso is false
+      block:
+        - name: Create working directory
+          ansible.builtin.include_tasks: common/create_working_directory_path.yml
+
+        - name: Download the Source iso
+          ansible.builtin.include_tasks: common/download_or_copy_source_files.yml
+
+        - name: Generate Kickstart file
+          when: source.ks_path is undefined
+          ansible.builtin.include_tasks: iso/generate_kickstart_file.yml
+
+        - name: Extract ISO
+          ansible.builtin.include_tasks: iso/extract_iso.yml
+
+        - name: Compile iso for the OS
+          ansible.builtin.include_tasks: "{{ os_name | lower }}/compile_iso.yml"
+
+        - name: Copy the iso to the destination
+          ansible.builtin.include_tasks: common/copy_iso_to_destination.yml
+
+    - name: Attach the Virtual Media to idrac
+      ansible.builtin.include_tasks: idrac/attach_iso_to_virtual_media.yml
+
+    - name: Set Boot Mode to once and restart the idrac
+      ansible.builtin.include_tasks: idrac/set_boot_mode_and_restart.yml
+
+    - name: Track for OS deployment
+      when: wait_for_os_deployment is true
+      ansible.builtin.include_tasks: tracking/track_for_os_deployment.yml
+
+  rescue:
+    - name: Set the failure messages
+      no_log: "{{ idrac_os_deployment_set_no_log }}"
+      ansible.builtin.set_fact:
+        idrac_os_deployment_failure: "{{ ansible_failed_result | combine({'failed_task_name': ansible_failed_task.name}) }}"
+
+  always:
+    - name: Clean up the Source and destination
+      when: source.is_custom_iso is undefined or source.is_custom_iso is false
+      block:
+        - name: Clean up the local directories
+          ansible.builtin.include_tasks: clean_up/clean_up_working_directory.yml
+
+        - name: Clean up the destination
+          when:
+            - wait_for_os_deployment is true and delete_custom_iso is true
+            - idrac_os_deployment_copied_to_destination is true
+          ansible.builtin.include_tasks: clean_up/clean_up_destinations.yml
+
+    - name: Clean up the virtual Media
+      when:
+        - wait_for_os_deployment is true and eject_iso is true
+        - idrac_os_deployment_virtual_media_attached is true
+      ansible.builtin.include_tasks: idrac/clean_up_virtual_media_slot.yml
+
+    - name: Report task failure
+      when: idrac_os_deployment_failure is defined
+      ansible.builtin.debug:
+        var: idrac_os_deployment_failure
+      failed_when: true
+
+    - name: Report operating system deployment success
+      when: idrac_os_deployment_failure is undefined and idrac_os_deployment_out != ""
+      ansible.builtin.debug:
+        var: idrac_os_deployment_out

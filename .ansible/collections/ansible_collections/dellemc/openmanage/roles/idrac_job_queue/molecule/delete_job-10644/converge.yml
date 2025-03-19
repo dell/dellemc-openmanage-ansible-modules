@@ -1,0 +1,91 @@
+---
+- name: Job Deletion Scenarios
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Setting input facts
+      ansible.builtin.set_fact:
+        input: &input
+          hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+          username: "{{ lookup('env', 'IDRAC_USER') }}"
+          password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+          validate_certs: false
+      no_log: true
+
+    - name: Creating job which configures iDRAC attributes
+      ansible.builtin.include_role:
+        name: idrac_import_server_config_profile
+      vars:
+        <<: *input
+        target: ["NIC"]
+        import_buffer:
+          "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'>
+          Disabled</Attribute></Component></SystemConfiguration>"
+
+    - name: Delete a job from the job queue
+      ansible.builtin.include_role:
+        name: "idrac_job_queue"
+      vars:
+        <<: *input
+        job_id: "{{ idrac_import_server_config_profile_out.scp_status.Id }}"
+
+    - name: "Verifying job deletion from the job queue"
+      ansible.builtin.assert:
+        that:
+          - '"deleted sucessfully" in idrac_job_queue_out.msg'
+
+    - name: Creating job to export SCP local path with all components
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+        idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+        idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        scp_components:
+          - IDRAC
+        share_name: "/root/"
+        scp_file: "file1.xml"
+        export_format: JSON
+        export_use: Clone
+        job_wait: false
+      async: 45
+      poll: 0
+
+    - name: Get Job ID.
+      ansible.builtin.uri:
+        url: "https://{{ lookup('env', 'IDRAC_IP') }}/redfish/v1/Managers/iDRAC.Embedded.1/Jobs"
+        validate_certs: false
+        method: "GET"
+        user: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        headers:
+          Accept: "application/json"
+          Content-Type: "application/json"
+          OData-Version: "4.0"
+        body_format: "json"
+        status_code:
+          - 200
+          - 400
+          - 401
+          - 404
+          - -1
+        return_content: true
+      register: job
+
+    - name: Set fact for Job ID
+      ansible.builtin.set_fact:
+        jobid: "{{ job.json.Members[-1]['@odata.id'] | split('/') }}"
+
+    - name: Delete a job
+      block:
+        - name: Delete a job from the job queue which cannot be deleted
+          ansible.builtin.include_role:
+            name: "idrac_job_queue"
+          vars:
+            <<: *input
+            job_id: "{{ jobid[-1] }}"
+
+      rescue:
+        - name: "Verifying job deletion from the job queue"
+          ansible.builtin.assert:
+            that:
+              - '"cannot be deleted" in idrac_job_queue_out.msg'

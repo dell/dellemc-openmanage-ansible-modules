@@ -1,0 +1,86 @@
+---
+- name: Converge idrac_gather_facts for Sensors Battery
+  hosts: all
+  gather_facts: false
+  vars:
+    hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+    username: "{{ lookup('env', 'IDRAC_USER') }}"
+    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+    target:
+      - Sensors_Battery
+    idrac_gather_facts_uri_method: "GET"
+    idrac_gather_facts_uri_headers:
+      Accept: "application/json"
+      Content-Type: "application/json"
+      OData-Version: "4.0"
+    idrac_gather_facts_uri_body_format: "json"
+    idrac_gather_facts_uri_status_code:
+      - 200
+      - 400
+      - 401
+      - 404
+      - -1
+    idrac_gather_facts_uri_return_content: true
+    diff_data: {}
+    exclude_keys: []
+    api_system: "/redfish/v1/Systems/System.Embedded.1"
+
+  tasks:
+    - name: Gather Facts for the Sensors Battery component
+      ansible.builtin.include_role:
+        name: "idrac_gather_facts"
+
+    - name: Assert sensor battery dict for length
+      ansible.builtin.assert:
+        that:
+          - "{{ sensor_battery | length > 0 }}"
+      when: battery_result.status == 200
+
+    - name: Fetching Sensor Battery info
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}{{ api_system }}/Oem/Dell/DellSensors/iDRAC.Embedded.1_0x23_SystemBoardCMOSBattery"
+        validate_certs: false
+        method: "{{ idrac_gather_facts_uri_method }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        headers: "{{ idrac_gather_facts_uri_headers }}"
+        body_format: "{{ idrac_gather_facts_uri_body_format }}"
+        status_code: "{{ idrac_gather_facts_uri_status_code }}"
+        return_content: "{{ idrac_gather_facts_uri_return_content }}"
+      no_log: true
+      ignore_errors: true
+      register: battery_result
+
+    - name: Response filter
+      ansible.builtin.set_fact:
+        api_response:
+          "{{ battery_result.json | ansible.utils.remove_keys(target=['@odata.context',
+          '@odata.id', '@odata.type']) }}"
+      vars:
+        jquery: "Oem.Dell.DellSystem"
+      when: battery_result is defined and battery_result.status == 200
+
+    - name: Set the keys diff
+      ansible.builtin.set_fact:
+        diff_keys: "{{ sensor_battery.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
+      when: api_response is defined
+
+    - name: Set a diff of dict
+      ansible.builtin.set_fact:
+        diff_data: "{{ diff_data | combine({item: sensor_battery[item]}) }}"
+      loop: "{{ sensor_battery.keys() }}"
+      when:
+        - diff_keys is defined
+        - diff_keys | length == 0
+        - sensor_battery[item] != api_response[item]
+        - item not in exclude_keys
+
+    - name: Assert the difference in Keys
+      ansible.builtin.assert:
+        that:
+          - "{{ (diff_keys | length) == 0 }}"
+          - "{{ (diff_data | length) == 0 }}"
+        fail_msg: "The response from the role does not match | Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
+        success_msg: "The response from the role matches |  Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
+      when: diff_keys is defined and diff_data is defined

@@ -1,0 +1,80 @@
+---
+- name: Converge idrac_gather_facts for Presence and Status Sensor
+  hosts: all
+  gather_facts: false
+  vars:
+    hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+    username: "{{ lookup('env', 'IDRAC_USER') }}"
+    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+    target:
+      - PresenceAndStatusSensor
+    idrac_gather_facts_uri_method: "GET"
+    idrac_gather_facts_uri_headers:
+      Accept: "application/json"
+      Content-Type: "application/json"
+      OData-Version: "4.0"
+    idrac_gather_facts_uri_body_format: "json"
+    idrac_gather_facts_uri_status_code:
+      - 200
+      - 400
+      - 401
+      - 404
+      - -1
+    idrac_gather_facts_uri_return_content: true
+    diff_data: {}
+    exclude_keys: []
+    api_system: "/redfish/v1/Systems/System.Embedded.1"
+
+  tasks:
+    - name: Fetching Presence and Status Sensor info
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}{{ api_system }}/Oem/
+          Dell/DellPresenceAndStatusSensors"
+        validate_certs: "{{ validate_certs }}"
+        ca_path: "{{ ca_path | default(omit) }}"
+        method: "{{ idrac_gather_facts_uri_method }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        headers: "{{ idrac_gather_facts_uri_headers }}"
+        body_format: "{{ idrac_gather_facts_uri_body_format }}"
+        status_code: "{{ idrac_gather_facts_uri_status_code }}"
+        return_content: "{{ idrac_gather_facts_uri_return_content }}"
+      no_log: true
+      ignore_errors: true
+      register: passensor_result
+
+    - name: Set presence and status sensor facts
+      ansible.builtin.set_fact:
+        api_response: "{{ passensor_result.json.Members |
+          ansible.utils.remove_keys(target=['@odata.context',
+         '@odata.id', '@odata.type', 'Assembly', 'Links']) }}"
+      when: passensor_result is defined and passensor_result.json.Members
+           is defined
+
+    - name: Gather Facts for the Presence and Status Sensor
+      ansible.builtin.include_role:
+        name: "idrac_gather_facts"
+
+    - name: Assert Presence and Status Sensor data
+      ansible.builtin.assert:
+        that:
+          - "((api_response | length == 0) and
+            (presence_and_status_sensor | length == 0))"
+        fail_msg: "The response from the role does not match"
+        success_msg: "The response from the role matches"
+      when: api_response is defined and api_response | length == 0
+
+    - name: Check whether output differs
+      ansible.builtin.set_fact:
+        result_diff: "{{ presence_and_status_sensor |
+          symmetric_difference(api_response) }}"
+      when: api_response is defined and api_response | length > 0
+
+    - name: Assert the differences in List
+      ansible.builtin.assert:
+        fail_msg: "The response from the role does not match"
+        success_msg: "The response from the role matches"
+        that:
+          - "{{ (result_diff | length) == 0 }}"
+      when: api_response is defined and api_response | length > 0

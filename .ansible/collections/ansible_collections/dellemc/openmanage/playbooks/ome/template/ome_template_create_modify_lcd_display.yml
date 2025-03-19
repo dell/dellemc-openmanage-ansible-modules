@@ -1,0 +1,132 @@
+---
+- name: "Creates a new template from the provided reference server device.
+    Track the template creation job till completion.
+    Fetch the Attribute specific to LCD Configuration settings from the attribute view of the created template.
+    Modify the created template with the user defined LCD string."
+  hosts: ome
+  gather_facts: false
+  vars:
+    retries_count: 50
+    polling_interval: 5
+    reference_device: "MXL4567"
+    template_name: "LCD String Deploy Template"
+    lcd_display_string: "LCD Custom Display Message"
+
+  tasks:
+    - name: Create template from the reference server
+      dellemc.openmanage.ome_template:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_service_tag: "{{ reference_device }}"
+        attributes:
+          Name: "{{ template_name }}"
+          Description: "LCD Template description"
+      register: result
+      delegate_to: localhost
+
+    - name: Sleep for 30 seconds and continue with play
+      ansible.builtin.wait_for:
+        timeout: 30
+
+    - name: Fetch the Task ID from the Template Details using the Template ID
+      dellemc.openmanage.ome_template_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        template_id: "{{ result.return_id }}"
+      register: template_result
+      delegate_to: localhost
+
+    - name: "Track the Template Creation Job till Completion"
+      dellemc.openmanage.ome_job_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        job_id: "{{ template_result.template_info[hostname].TaskId }}"
+      register: job_result
+      failed_when: "'job_info' not in job_result"
+      until: job_result.job_info.LastRunStatus.Name == 'Completed' or job_result.job_info.LastRunStatus.Name == 'Failed'
+      retries: "{{ retries_count }}"
+      delay: "{{ polling_interval }}"
+      delegate_to: localhost
+
+    - name: "Retrieve the Attribute ID specific to LCD Configuration"
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}/api/TemplateService/Templates({{ result.return_id }})/Views(1)/AttributeViewDetails"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        method: "GET"
+        use_proxy: true
+        status_code: 200
+        return_content: true
+        validate_certs: false
+        force_basic_auth: true
+        headers:
+          Content-Type: "application/json"
+          Accept: "application/json"
+      register: config_result
+      delegate_to: localhost
+
+    - name: "System Attribute Groups"
+      ansible.builtin.set_fact:
+        lcd_fact: "{{ item }}"
+      when:
+        - item.DisplayName=='System'
+      with_items:
+        - "{{ config_result.json.AttributeGroups }}"
+      loop_control:
+        label: "{{ config_result.json.Name }}"
+      delegate_to: localhost
+
+    - name: "LCD System Attributes Groups"
+      ansible.builtin.set_fact:
+        lcdconfig: "{{ item }}"
+      when:
+        - item.DisplayName=='LCD Configuration'
+      with_items:
+        - "{{ lcd_fact.SubAttributeGroups }}"
+      loop_control:
+        label: "{{ item.DisplayName }}"
+
+    - name: "Retrieve LCD Display Attribute ID"
+      ansible.builtin.set_fact:
+        lcdattrid: "{{ item.AttributeId }}"
+      when:
+        - item.DisplayName=='LCD 1 User Defined String for LCD'
+      with_items:
+        - "{{ lcdconfig.Attributes }}"
+      loop_control:
+        label: "{{ item.DisplayName }}"
+
+    - name: "Retrieve LCD Config Attribute ID"
+      ansible.builtin.set_fact:
+        lcdconfigattrid: "{{ item.AttributeId }}"
+      when:
+        - item.DisplayName=='LCD 1 LCD Configuration'
+      with_items:
+        - "{{ lcdconfig.Attributes }}"
+      loop_control:
+        label: "{{ item.DisplayName }}"
+
+    - name: "Modify the created with Custom LCD String to be displayed"
+      dellemc.openmanage.ome_template:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "modify"
+        template_id: "{{ result.return_id }}"
+        attributes:
+          Name: "{{ template_name }}"
+          Attributes:
+            - Id: "{{ lcdattrid }}"
+              Value: "{{ lcd_display_string }}"
+              IsIgnored: false
+            - Id: "{{ lcdconfigattrid }}"
+              Value: "User Defined"
+              IsIgnored: false
+        delegate_to: localhost

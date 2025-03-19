@@ -1,0 +1,146 @@
+---
+- name: Check whether atleast one of 'IDRAC_USERNAME' or username is provided
+  ansible.builtin.fail:
+    msg: "Ensure the value for environment variable 'IDRAC_USERNAME' or
+         the argument 'username' is set."
+  when: username is not defined and not lookup('env', 'IDRAC_USERNAME')
+
+- name: Check whether atleast one of 'IDRAC_PASSWORD' or password is provided
+  ansible.builtin.fail:
+    msg: "Ensure the value for environment variable 'IDRAC_PASSWORD' or
+         the argument 'password' is set."
+  when: password is not defined and not lookup('env', 'IDRAC_PASSWORD')
+
+- name: Setting uri options
+  ansible.builtin.set_fact:
+    idrac_opts: &idrac_opts
+      user: "{{ username | default(lookup('env', 'IDRAC_USERNAME')) }}"
+      password: "{{ password | default(lookup('env', 'IDRAC_PASSWORD')) }}"
+      validate_certs: "{{ validate_certs }}"
+      ca_path: "{{ ca_path | default(omit) }}"
+      headers: "{{ idrac_reset_uri_headers }}"
+      body_format: "{{ idrac_reset_uri_body_format }}"
+      return_content: "{{ idrac_reset_uri_return_content }}"
+      force_basic_auth: "{{ idrac_reset_force_basic_auth }}"
+      timeout: "{{ https_timeout }}"
+  no_log: true
+
+- name: Get connection
+  ansible.builtin.uri:
+    <<: *idrac_opts
+    url: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Systems"
+    method: "GET"
+    status_code: "{{ idrac_reset_uri_status_code }}"
+  register: idrac_reset_connection
+  delegate_to: "{{ idrac_reset_task_delegate }}"
+
+- name: Validate hostname or certificate.
+  ansible.builtin.fail:
+    msg: "{{ idrac_reset_connection.msg }}"
+  when: idrac_reset_connection.status == -1
+
+- name: Validate credentials.
+  ansible.builtin.fail:
+    msg: "{{ idrac_reset_invalid_creds }}"
+  when: idrac_reset_connection.status == 401
+
+- name: Get the manager firmware version
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}/redfish/v1/Managers/iDRAC.Embedded.1"
+    <<: *idrac_opts
+    method: GET
+  register: idrac_reset_firmware_version
+  delegate_to: "{{ idrac_reset_task_delegate }}"
+
+- name: Set manager firmware version
+  ansible.builtin.set_fact:
+    idrac_reset_fwm_ver: "{{ idrac_reset_firmware_version.json.FirmwareVersion }}"
+
+- name: Check LC status
+  ansible.builtin.include_tasks: lcstatus_check.yml
+
+- name: Perform graceful restart operation
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ idrac_reset_graceful_restart_api }}"
+    <<: *idrac_opts
+    method: "POST"
+    body: '{"ResetType": "GracefulRestart"}'
+    status_code: 204
+  register: idrac_reset_restart_result
+  delegate_to: "{{ idrac_reset_task_delegate }}"
+  when: reset_to_default is not defined
+
+- name: Perform reset operation
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ idrac_reset_reset_api }}"
+    <<: *idrac_opts
+    method: "POST"
+    body: '{"ResetType": "{{ reset_to_default }}" }'
+    status_code: [200, 405]
+  register: idrac_reset_result
+  delegate_to: "{{ idrac_reset_task_delegate }}"
+  when: reset_to_default is defined
+  ignore_errors: true
+
+- name: Message out the iDRAC 8 support for reset operation
+  ansible.builtin.debug:
+    msg: "iDRAC reset operations are not supported"
+  when:
+    - idrac_reset_result is not skipped and idrac_reset_result is defined
+    - idrac_reset_result.status is defined
+    - idrac_reset_result.status == 405
+
+- name: Check for iDRAC connection
+  when: (idrac_reset_result is not skipped and idrac_reset_result.status == 200)
+        or (idrac_reset_restart_result is not skipped and idrac_reset_restart_result.status == 204)
+  block:
+    - name: Wait for port 443 to become open on the host
+      ansible.builtin.wait_for:
+        host: "{{ hostname }}"
+        port: "{{ https_port }}"
+        delay: "{{ idrac_reset_delay_for_idrac_connection }}"
+        timeout: "{{ idrac_reset_wait_for_idrac_reachable }}"
+        connect_timeout: "{{ idrac_reset_connect_timeout }}"
+        sleep: "{{ idrac_reset_sleep_interval }}"
+        active_connection_states:
+          - "ESTABLISHED"
+      when:
+        - wait_for_idrac is true
+      delegate_to: "{{ idrac_reset_task_delegate }}"
+      register: idrac_reset_connection_status
+      ignore_errors: true
+
+    - name: Check LC status after restart/reset operation
+      ansible.builtin.include_tasks: lcstatus_check.yml
+      when:
+        - wait_for_idrac is true
+
+    - name: Set fact when restart is triggered successfully
+      ansible.builtin.set_fact:
+        idrac_reset_out: {msg: "{{ idrac_reset_restart_trigger }}"}
+      when:
+        - wait_for_idrac is false
+        - idrac_reset_restart_result is not skipped and idrac_reset_restart_result.status == 204
+
+    - name: Set fact when reset is triggered successfully
+      ansible.builtin.set_fact:
+        idrac_reset_out: {msg: "{{ idrac_reset_reset_trigger }}"}
+      when:
+        - wait_for_idrac is false
+        - idrac_reset_result is not skipped and idrac_reset_result.status == 200
+
+    - name: Set fact when restart is done successfully
+      ansible.builtin.set_fact:
+        idrac_reset_out: {msg: "{{ idrac_reset_idrac_restarted_success }}"}
+      when:
+        - wait_for_idrac is true
+        - idrac_reset_connection_status is not failed
+        - idrac_reset_restart_result is not skipped and idrac_reset_restart_result.status == 204
+
+    - name: Set fact when reset is done successfully
+      ansible.builtin.set_fact:
+        idrac_reset_out: {msg: "{{ idrac_reset_success }}"}
+      when:
+        - wait_for_idrac is true
+        - idrac_reset_connection_status is not failed
+        - idrac_reset_result is not skipped and idrac_reset_result.status == 200

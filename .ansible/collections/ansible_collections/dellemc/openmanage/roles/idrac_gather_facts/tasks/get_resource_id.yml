@@ -1,0 +1,60 @@
+---
+- name: Get system resource api id
+  ansible.builtin.uri:
+    url: https://{{ hostname }}:{{ https_port }}/redfish/v1/Systems
+  register: system_api_result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+- name: Get first System Id from the system response
+  ansible.builtin.set_fact:
+    api_system: "{{ system_api_result.json.Members[0]['@odata.id'] |
+      default('') }}"
+    computer_system_id: "{{ system_api_result.json.Members[0]['@odata.id'] |
+      split('/') | last | default('System.Embedded.1') }}"
+  when: computer_system_id == ''
+- name: Get all system Ids
+  ansible.builtin.set_fact:
+    system_ids_list: "{{ system_api_result.json.Members | map('dict2items') |
+      flatten | map(attribute='value') }}"
+  when: computer_system_id != ''
+- name: Split system ids from the string
+  ansible.builtin.set_fact:
+    system_ids: '{{ (system_ids | default([])) + ([item | split("/") | last]) }}'
+  with_list: "{{ system_ids_list }}"
+  when: computer_system_id != ''
+- name: Fail when system id is incorrect
+  ansible.builtin.fail:
+    msg: "{{ idrac_gather_facts_invalid_sys_id_message |
+      format(computer_system_id, (system_ids | join(','))) }}"
+  when: computer_system_id != "" and not computer_system_id in system_ids
+- name: Get manager resource api id
+  ansible.builtin.uri:
+    url: https://{{ hostname }}:{{ https_port }}/redfish/v1/Managers
+  register: manager_api_result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+- name: Get first manager resource id from manager response.
+  ansible.builtin.set_fact:
+    api_manager: "{{ manager_api_result.json.Members[0]['@odata.id'] | default('') }}"
+  when: manager_id == ''
+- name: Get all manager resource ids.
+  ansible.builtin.set_fact:
+    manager_ids_list: "{{ manager_api_result.json.Members | map('dict2items') |
+      flatten | map(attribute='value') }}"
+  when: manager_id != ''
+- name: Split manager ids from the string
+  ansible.builtin.set_fact:
+    manager_ids: '{{ (manager_ids | default([])) + ([item | split("/") | last]) }}'
+  with_list: "{{ manager_ids_list }}"
+  when: manager_id != ''
+- name: Fail when manager id is incorrect
+  ansible.builtin.fail:
+    msg: "{{ idrac_gather_facts_invalid_manager_id_message | format(manager_id,
+      (manager_ids | join(','))) }}"
+  when: manager_id != "" and not manager_id in manager_ids
+- name: Get chassis resource api id
+  ansible.builtin.uri:
+    url: https://{{ hostname }}:{{ https_port }}/redfish/v1/Chassis
+  register: chassis_api_result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+- name: Get first chassis resource id from manager response.
+  ansible.builtin.set_fact:
+    api_chassis: "{{ chassis_api_result.json.Members[0]['@odata.id'] | default('') }}"

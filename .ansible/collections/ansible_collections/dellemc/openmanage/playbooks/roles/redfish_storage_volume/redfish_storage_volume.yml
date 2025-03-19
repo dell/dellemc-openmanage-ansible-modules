@@ -1,0 +1,9 @@
+---
+- name: Redfish Storage volume Configurations
+  hosts: idrac
+  gather_facts: false
+  vars_files:
+    - ../vars_files/credentials.yml
+    - ../vars_files/storage.yml
+  roles:
+    - dellemc.openmanage.redfish_storage_volume

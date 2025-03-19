@@ -1,0 +1,13 @@
+---
+- name: Create Directory
+  ansible.builtin.file:
+    path: "../files"
+    state: directory
+    mode: "0755"
+  when: operation is defined and operation == 'create'
+
+- name: Delete the directory
+  ansible.builtin.file:
+    path: "../files"
+    state: absent
+  when: operation is defined and operation == 'delete'

@@ -1,0 +1,58 @@
+---
+- name: "OME - Ansible Modules"
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Retrieve baseline information for specific device ids.
+      dellemc.openmanage.ome_firmware_baseline_compliance_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_ids:
+          - 11111
+          - 11112
+      register: result
+      delegate_to: localhost
+      tags:
+        - overall-compliance-report
+
+    - name: Firmware baseline compliance info based on FirmwareStatus - Non-Compliant
+      ansible.builtin.set_fact:
+        non_compliance_fact: "{{ item }}"
+      when:
+        - item.DeviceComplianceReports.0.FirmwareStatus=='Non-Compliant'
+      with_items:
+        - "{{ result.baseline_compliance_info }}"
+      loop_control:
+        label: "{{ item.Name }} - {{ item.DeviceComplianceReports.0.FirmwareStatus }}"
+      delegate_to: localhost
+      tags:
+        - non-compliance-report
+
+    - name: Firmware baseline compliance info based on Device ID
+      ansible.builtin.set_fact:
+        device_fact: "{{ item }}"
+      when:
+        - item.DeviceComplianceReports.0.DeviceId==11111
+      with_items:
+        - "{{ result.baseline_compliance_info }}"
+      loop_control:
+        label: "{{ item.Name }} - {{ item.DeviceComplianceReports.0.DeviceId }}"
+      delegate_to: localhost
+      tags:
+        - device-id-report
+
+    - name: Firmware baseline compliance info based on Device Service Tag
+      ansible.builtin.set_fact:
+        service_tag_fact: "{{ item }}"
+      when:
+        - item.DeviceComplianceReports.0.ServiceTag=='1X1X1'
+      with_items:
+        - "{{ result.baseline_compliance_info }}"
+      loop_control:
+        label: "{{ item.Name }} - {{ item.DeviceComplianceReports.0.ServiceTag }}"
+      delegate_to: localhost
+      tags:
+        - device-service-tag-report

@@ -1,0 +1,4 @@
+---
+# vars file for idrac_export_server_config_profile
+idrac_export_server_config_profile_job_wait: true
+idrac_export_server_config_profile_delegate: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"

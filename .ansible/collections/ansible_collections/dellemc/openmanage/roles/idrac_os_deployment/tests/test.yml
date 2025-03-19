@@ -1,0 +1,5 @@
+---
+- name: Operating System Deployment on iDRAC
+  hosts: idrac
+  roles:
+    - idrac_os_deployment

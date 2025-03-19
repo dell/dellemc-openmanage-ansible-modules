@@ -1,0 +1,73 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Block for disk conversion to Raid
+      block:
+        - name: Create a list of dictionaries of dictionaries
+          ansible.builtin.set_fact:
+            my_list:
+              id: "{{ physicaldisks[0] }}"
+              raid_state: raid
+
+        - name: Validate the disk conversion to RAID
+          ansible.builtin.import_role:
+            name: idrac_storage_controller
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            job_wait: true
+            job_wait_timeout: 1200
+            controller_id: "{{ controller_name }}"
+            disks: "{{ my_list }}"
+
+        - name: Creating Vd to check if disk is converted in Raid mode
+               (Expect pass to create the Vd)
+          ansible.builtin.include_tasks: ../__helper.yaml
+          vars:
+            volume_type: "RAID 0"
+            span_length: 1
+            id: ["{{ physicaldisks[0] }}"]
+            vd_trigger: 1
+            ignore_errors_val: true
+          when: raid_state_out is defined and raid_state_out.msg ==
+             "Successfully performed the 'ConvertToRAID' operation."
+
+        - name: Check if VD is created
+          ansible.builtin.set_fact:
+            vd_check: true
+          when: virtualdisk is defined and raid_state_out is defined and
+                raid_state_out.msg == "Successfully performed the
+                'ConvertToRAID' operation."
+
+        - name: Store boolean value in a variable
+          ansible.builtin.set_fact:
+            is_vd_exist_first_check: "{{ vd_check }}"
+          when: vd_check is defined and raid_state_out.msg == "Successfully
+                performed the 'ConvertToRAID' operation."
+
+        - name: Verifying disk conversion to raid in check mode
+          ansible.builtin.assert:
+            that:
+              - raid_state_out.msg == "Changes found to be applied."
+              - raid_state_out.changed
+          when: ansible_check_mode
+
+        - name: Verifying disk conversion to raid in normal mode
+          ansible.builtin.assert:
+            that:
+              - raid_state_out.msg == "Successfully performed the
+                'ConvertToRAID' operation."
+              - raid_state_out.changed
+              - is_vd_exist_first_check is defined and is_vd_exist_first_check
+          when: not ansible_check_mode and raid_state_out.changed
+
+        - name: Verifying disk conversion to raid in idempotence mode
+          ansible.builtin.assert:
+            that:
+              - raid_state_out.msg == "No changes found to be applied."
+              - not raid_state_out.changed
+          when: not ansible_check_mode and not raid_state_out.changed

@@ -1,0 +1,105 @@
+---
+- name: Dell OME Modular device network settings.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Network settings for chassis
+      dellemc.openmanage.ome_device_mgmt_network:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_service_tag: CHAS123
+        delay: 10
+        ipv4_configuration:
+          enable_ipv4: true
+          enable_dhcp: false
+          static_ip_address: 192.168.0.2
+          static_subnet_mask: 255.255.254.0
+          static_gateway: 192.168.0.3
+          use_dhcp_to_obtain_dns_server_address: false
+          static_preferred_dns_server: 192.168.0.4
+          static_alternate_dns_server: 192.168.0.5
+        ipv6_configuration:
+          enable_ipv6: true
+          enable_auto_configuration: false
+          static_ip_address: 2626:f2f2:f081:9:1c1c:f1f1:4747:1
+          static_prefix_length: 10
+          static_gateway: ffff::2607:f2b1:f081:9
+          use_dhcpv6_to_obtain_dns_server_address: false
+          static_preferred_dns_server: 2626:f2f2:f081:9:1c1c:f1f1:4747:3
+          static_alternate_dns_server: 2626:f2f2:f081:9:1c1c:f1f1:4747:4
+        dns_configuration:
+          register_with_dns: true
+          use_dhcp_for_dns_domain_name: false
+          dns_name: MX-SVCTAG
+          dns_domain_name: dnslocaldomain
+          auto_negotiation: false
+          network_speed: 100_MB
+      delegate_to: localhost
+
+    - name: Network settings for server
+      dellemc.openmanage.ome_device_mgmt_network:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_service_tag: SRVR123
+        ipv4_configuration:
+          enable_ipv4: true
+          enable_dhcp: false
+          static_ip_address: 192.168.0.2
+          static_subnet_mask: 255.255.254.0
+          static_gateway: 192.168.0.3
+          use_dhcp_to_obtain_dns_server_address: false
+          static_preferred_dns_server: 192.168.0.4
+          static_alternate_dns_server: 192.168.0.5
+        ipv6_configuration:
+          enable_ipv6: true
+          enable_auto_configuration: false
+          static_ip_address: 2626:f2f2:f081:9:1c1c:f1f1:4747:1
+          static_prefix_length: 10
+          static_gateway: ffff::2607:f2b1:f081:9
+          use_dhcpv6_to_obtain_dns_server_address: false
+          static_preferred_dns_server: 2626:f2f2:f081:9:1c1c:f1f1:4747:3
+          static_alternate_dns_server: 2626:f2f2:f081:9:1c1c:f1f1:4747:4
+      delegate_to: localhost
+
+    - name: Network settings for I/O module
+      dellemc.openmanage.ome_device_mgmt_network:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_service_tag: IOM1234
+        ipv4_configuration:
+          enable_ipv4: true
+          enable_dhcp: false
+          static_ip_address: 192.168.0.2
+          static_subnet_mask: 255.255.254.0
+          static_gateway: 192.168.0.3
+        ipv6_configuration:
+          enable_ipv6: true
+          enable_auto_configuration: false
+          static_ip_address: 2626:f2f2:f081:9:1c1c:f1f1:4747:1
+          static_prefix_length: 10
+          static_gateway: ffff::2607:f2b1:f081:9
+        dns_server_settings:
+          preferred_dns_server: 192.168.0.4
+          alternate_dns_server1: 192.168.0.5
+      delegate_to: localhost
+
+    - name: Management VLAN configuration of chassis using device id
+      dellemc.openmanage.ome_device_mgmt_network:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_id: 12345
+        management_vlan:
+          enable_vlan: true
+          vlan_id: 2345
+        dns_configuration:
+          register_with_dns: false
+      delegate_to: localhost

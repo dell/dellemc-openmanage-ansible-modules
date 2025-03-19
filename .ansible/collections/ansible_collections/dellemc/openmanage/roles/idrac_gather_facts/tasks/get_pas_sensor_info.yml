@@ -1,0 +1,14 @@
+---
+- name: Get PresenceAndStatusSensor information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_system }}/Oem/Dell/DellPresenceAndStatusSensors"
+  register: pas_result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Set PresenceAndStatusSensor facts
+  ansible.builtin.set_fact:
+    "presence_and_status_sensor":
+      "{{ pas_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'Assembly',
+      'Links']) }}"
+  when: pas_result.status == 200
+  register: pas_result_register

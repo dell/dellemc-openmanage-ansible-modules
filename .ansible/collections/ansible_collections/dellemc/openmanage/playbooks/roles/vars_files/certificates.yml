@@ -1,0 +1,13 @@
+command: "generate_csr"
+certificate_type: "HTTPS"
+certificate_path: "/home/omam/mycerts"
+cert_params:
+  common_name: "sample.domain.com"
+  organization_unit: "OrgUnit"
+  locality_name: "Bangalore"
+  state_name: "Karnataka"
+  country_code: "IN"
+  email_address: "admin@domain.com"
+  organization_name: "OrgName"
+  subject_alt_name:
+    - 192.168.0.3

@@ -1,0 +1,119 @@
+---
+- name: Configure Boot Mode Setting
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Configure Bios Generic Attributes
+      dellemc.openmanage.idrac_bios:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        attributes:
+          BootMode: "Bios"
+          OneTimeBootMode: "Enabled"
+          BootSeqRetry: "Enabled"
+      tags:
+        - bootconfig
+      delegate_to: localhost
+
+    - name: Configure PXE Generic Attributes
+      dellemc.openmanage.idrac_bios:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        attributes:
+          PxeDev1EnDis: "Enabled"
+          PxeDev1Protocol: "IPV4"
+          PxeDev1VlanEnDis: "Enabled"
+          PxeDev1VlanId: x
+          PxeDev1Interface: "NIC.Embedded.x-x-x"
+          PxeDev1VlanPriority: x
+      tags:
+        - pxeconfig
+      delegate_to: localhost
+
+    - name: Configure attributes of the BIOS at Maintenance window
+      dellemc.openmanage.idrac_bios:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        apply_time: AtMaintenanceWindowStart
+        maintenance_window:
+          start_time: "2022-09-30T05:15:40-05:00"
+          duration: 600
+        attributes:
+          BootMode: "Bios"
+          OneTimeBootMode: "Enabled"
+          BootSeqRetry: "Enabled"
+      tags:
+        - at_maintenance_start
+      delegate_to: localhost
+
+    - name: Clear pending BIOS attributes
+      dellemc.openmanage.idrac_bios:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        clear_pending: true
+      tags:
+        - clear_pending
+      delegate_to: localhost
+
+    - name: Reset BIOS attributes to default settings.
+      dellemc.openmanage.idrac_bios:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_pwd }}"
+        ca_path: "/path/to/ca_cert.pem"
+        reset_bios: true
+      tags:
+        - reset_bios
+      delegate_to: localhost
+
+    - name: Configure Boot Sources
+      dellemc.openmanage.idrac_bios:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        boot_sources:
+          - Name: "NIC.Integrated.x-x-x"
+            Enabled: true
+            Index: 1
+          - Name: "NIC.Integrated.x-x-x"
+            Enabled: true
+            Index: 0
+      tags:
+        - boot_sources
+      delegate_to: localhost
+
+    - name: Configure Boot Sources - Enabled
+      dellemc.openmanage.idrac_bios:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        boot_sources:
+          - Name: "HardDisk.List.1-1"
+            Enabled: true
+      tags:
+        - boot_sources_enabled
+      delegate_to: localhost
+
+    - name: Configure Boot Sources - Index
+      dellemc.openmanage.idrac_bios:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        boot_sources:
+          - Name: "NIC.Integrated.x-x-x"
+            Index: 1
+      tags:
+        - boot_sources_index
+      delegate_to: localhost

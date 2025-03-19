@@ -1,0 +1,14 @@
+---
+- name: Cleanup - Delete the created VD
+  hosts: all
+  gather_facts: false
+  tasks:
+
+    - name: Set virtual disk to be deleted
+      ansible.builtin.set_fact:
+        virtualdisk: "{{ volume_id }}"
+
+    - name: Deleting the volume.
+      ansible.builtin.include_tasks:
+        file: ../__delete_virtual_drive.yml
+      when: virtualdisk is defined

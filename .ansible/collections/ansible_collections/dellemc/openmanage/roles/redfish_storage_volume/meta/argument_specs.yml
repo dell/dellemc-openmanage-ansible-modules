@@ -1,0 +1,176 @@
+---
+argument_specs:
+  main:
+    version_added: "7.5.0"
+    short_description: Role to manage the storage volume configuration
+    description:
+      - Role to create, modify, initialize, or delete a single storage volume.
+    options:
+      hostname:
+        required: true
+        type: str
+        description: iDRAC IP Address or hostname.
+      username:
+        type: str
+        description: iDRAC username with admin privilages.
+      password:
+        type: str
+        description: iDRAC user password.
+      https_port:
+        type: int
+        description: iDRAC port.
+        default: 443
+      validate_certs:
+        description:
+          - If C(false), the SSL certificates will not be validated.
+          - Configure C(false) only on personally controlled sites where self-signed certificates are used.
+        type: bool
+        default: true
+      ca_path:
+        description:
+          - The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+        type: path
+      https_timeout:
+        description: The HTTPS socket level timeout in seconds.
+        type: int
+        default: 30
+      controller_id:
+        description:
+          - Fully Qualified Device Descriptor (FQDD) of the storage controller.
+          - For example- RAID.Slot.1-1.
+          - This option is mandatory when I(state) is C(present) while creating a volume.
+        type: str
+      volume_id:
+        description:
+          - FQDD of existing volume.
+          - For example- Disk.Virtual.4:RAID.Slot.1-1.
+          - This option is mandatory in the following scenarios,
+          - >-
+            I(state) is C(present), when updating a volume.
+          - >-
+            I(state) is C(absent), when deleting a volume.
+          - >-
+            I(command) is C(initialize), when initializing a volume.
+        type: str
+      state:
+        description:
+          - >-
+            C(present) creates a storage volume for the specified I (controller_id), or modifies the storage volume for the
+            specified I (volume_id).
+            "Note: Modification of an existing volume properties depends on drive and controller capabilities".
+          - C(absent) deletes the volume for the specified I(volume_id).
+        type: str
+        choices: [present, absent]
+      command:
+        description:
+          - C(initialize) initializes an existing storage volume for a specified I(volume_id).
+        type: str
+        choices: [initialize]
+      raid_type:
+        description:
+          - One of the following raid types must be selected to create a volume for firmware version 4.40 and above.
+          - C(RAID0) to create a RAID0 type volume.
+          - C(RAID1) to create a RAID1 type volume.
+          - C(RAID5) to create a RAID5 type volume.
+          - C(RAID6) to create a RAID6 type volume.
+          - C(RAID10) to create a RAID10 type volume.
+          - C(RAID50) to create a RAID50 type volume.
+          - C(RAID60) to create a RAID60 type volume.
+        type: str
+        choices: ["RAID0", "RAID1", "RAID5", "RAID6", "RAID10", "RAID50", "RAID60"]
+      name:
+        description:
+          - Name of the volume to be created.
+          - Only applicable when I(state) is C(present).
+          - This will be deprecated. Please use I(volume_name) for specifying the volume name.
+        type: str
+      volume_name:
+        description:
+          - Name of the volume to be created.
+          - Only applicable when I(state) is C(present).
+        type: str
+      drives:
+        description:
+          - FQDD of the Physical disks.
+          - For example- Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1.
+          - Only applicable when I(state) is C(present) when creating a new volume.
+        type: list
+        elements: str
+      block_size_bytes:
+        description:
+          - Block size in bytes.Only applicable when I(state) is C(present).
+        type: int
+      capacity_bytes:
+        description:
+          - Volume size in bytes.
+          - Only applicable when I(state) is C(present).
+        type: str
+      optimum_io_size_bytes:
+        description:
+          - Stripe size value must be in multiples of 64 * 1024.
+          - Only applicable when I(state) is C(present).
+        type: int
+      encryption_types:
+        description:
+          - The following encryption types can be selected.
+          - C(ControllerAssisted) The volume is encrypted by the storage controller entity.
+          - C(NativeDriveEncryption) The volume utilizes the native drive encryption capabilities
+            of the drive hardware.
+          - C(SoftwareAssisted) The volume is encrypted by the software running
+            on the system or the operating system.
+          - Only applicable when I(state) is C(present).
+        type: str
+        choices: [NativeDriveEncryption, ControllerAssisted, SoftwareAssisted]
+      encrypted:
+        description:
+          - Indicates whether volume is currently utilizing encryption or not.
+          - Only applicable when I(state) is C(present).
+        type: bool
+      oem:
+        description:
+          - Includes OEM extended payloads.
+          - Only applicable when I(state) is I(present).
+        type: dict
+      initialize_type:
+        description:
+          - Initialization type of existing volume.
+          - Only applicable when I(command) is C(initialize).
+        type: str
+        choices: [Fast, Slow]
+        default: Fast
+      job_wait:
+        description: Determines whether to wait for the job completion or not.
+        type: bool
+        default: true
+      job_wait_timeout:
+        description:
+          - The maximum wait time of I(job_wait) in seconds. The job is tracked only for this duration.
+          - This option is applicable when I(job_wait) is C(True).
+        type: int
+        default: 1200
+      apply_time:
+        description:
+          - Apply time of the Volume configuration.
+          - C(Immediate) allows you to apply the volume configuration on the host server immediately and apply the changes. This is applicable for I(job_wait).
+          - C(OnReset) allows you to apply the changes on the next reboot of the host server.
+          - I(apply_time) has a default value based on the different types of the controller.
+          - For example, BOSS-S1 and BOSS-N1 controllers have a default value of I(apply_time) as C(OnReset).
+          - PERC controllers have a default value of I(apply_time) as C(Immediate).
+        type: str
+        choices: [Immediate, OnReset]
+        version_added: 8.5.0
+      reboot_server:
+        description:
+          - Reboot the server to apply the changes.
+          - I(reboot_server) is applicable only when I(apply_timeout) is C(OnReset) or
+            when the default value for the apply time of the controller is C(OnReset).
+        type: bool
+        default: false
+        version_added: 8.5.0
+      force_reboot:
+        description:
+          - Reboot the server forcefully to apply the changes when the normal reboot fails.
+          - I(force_reboot) is applicable only when I(reboot_server) is C(true).
+        type: bool
+        default: false
+        version_added: 8.5.0

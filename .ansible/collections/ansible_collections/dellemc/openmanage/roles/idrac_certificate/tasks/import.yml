@@ -1,0 +1,18 @@
+- name: Importing certificate.
+  dellemc.openmanage.idrac_certificates:
+    idrac_ip: "{{ hostname }}"
+    idrac_user: "{{ username }}"
+    idrac_password: "{{ password }}"
+    idrac_port: "{{ https_port }}"
+    timeout: "{{ https_timeout }}"
+    validate_certs: "{{ validate_certs }}"
+    passphrase: "{{ passphrase | default(omit) }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    command: "import"
+    certificate_type: "{{ certificate_type }}"
+    certificate_path: "{{ certificate_path }}"
+    ssl_key: "{{ ssl_key | default(omit) }}"
+    reset: "{{ reset }}"
+    wait: "{{ wait }}"
+  register: idrac_certificate_out
+  delegate_to: "{{ idrac_certificate_delegate }}"

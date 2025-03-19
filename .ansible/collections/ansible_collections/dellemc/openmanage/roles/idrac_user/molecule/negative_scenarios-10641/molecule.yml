@@ -1,0 +1,10 @@
+---
+provisioner:
+  name: ansible
+  playbooks:
+    cleanup: ../resources/idrac_user/cleanup.yml
+scenario:
+  test_sequence:
+    - cleanup
+    - converge
+    - destroy

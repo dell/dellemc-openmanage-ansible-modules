@@ -1,0 +1,25 @@
+galaxy_info:
+  role_name: idrac_attributes
+  author: "Kritika Bhateja"
+  description: The role helps to configure the iDRAC system, manager and lifecycle attributes for Dell PowerEdge servers.
+  company: Dell Technologies
+
+  license: GPL-3.0-only
+
+  min_ansible_version: "2.13"
+
+  platforms:
+    - name: EL
+      versions:
+        - "9"
+        - "8"
+    - name: Ubuntu
+      versions:
+        - jammy
+    - name: SLES
+      versions:
+        - "15SP3"
+        - "15SP4"
+
+  galaxy_tags: []
+dependencies: []

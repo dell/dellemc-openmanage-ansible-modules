@@ -1,0 +1,23 @@
+---
+- name: Get data using uri
+  vars:
+    idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+    idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+  ansible.builtin.uri:
+    url: "{{ url }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    body: {}
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+    headers: 'Accept=application/json'
+  register: idrac_storage_controller_fetched_data
+
+- name: Set the variable 'loop_data'
+  ansible.builtin.set_fact:
+    loop_data: "{{ loop_data | default([]) +
+             [idrac_storage_controller_fetched_data] }}"
+  when: capture_all is defined

@@ -1,0 +1,9 @@
+---
+- name: Operating System Deployment in iDRAC
+  hosts: idrac
+  gather_facts: false
+  vars_files:
+    - ../vars_files/credentials.yml
+    - ../vars_files/osd.yml
+  roles:
+    - dellemc.openmanage.idrac_os_deployment

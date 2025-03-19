@@ -1,0 +1,82 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  vars:
+    idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+    idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+    idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+    idrac8_trigger_msg: "iDRAC restart operation triggered successfully"
+    idrac9_success_msg: "iDRAC reset operation completed successfully"
+
+  tasks:
+    - name: Performing force reset operation with wait_for_idrac
+      block:
+        - name: Checking iDRAC version
+          ansible.builtin.include_tasks:
+            file: ../_get_or_update_settings.yml
+          vars:
+            operation: check_firmware_version
+
+        - name: Adding tasks to export settings before iDRAC reset
+          ansible.builtin.include_tasks:
+            file: ../_utils.yml
+          vars:
+            operation: export
+          when: it_is_idrac9
+
+        - name: Pre-requisite - updating settings before iDRAC reset
+          ansible.builtin.include_tasks:
+            file: ../_get_or_update_settings.yml
+          vars:
+            operation: update_settings
+          when: it_is_idrac9
+
+        - name: Performing iDRAC reset with wait on iDRAC9.
+          ansible.builtin.import_role:
+            name: dellemc.openmanage.idrac_reset
+          vars:
+            hostname: "{{ idrac_ip }}"
+            username: "{{ idrac_user }}"
+            password: "{{ idrac_password }}"
+            reset_to_default: "Default"
+            wait_for_idrac: true
+          when: it_is_idrac9
+
+        - name: Performing iDRAC reset without wait on iDRAC8.
+          ansible.builtin.import_role:
+            name: dellemc.openmanage.idrac_reset
+          vars:
+            hostname: "{{ idrac_ip }}"
+            username: "{{ idrac_user }}"
+            password: "{{ idrac_password }}"
+            wait_for_idrac: false
+          when: not it_is_idrac9
+
+        - name: Fetching settings from iDRAC post reset
+          ansible.builtin.include_tasks:
+            file: ../_get_or_update_settings.yml
+          vars:
+            operation: fetch_settings
+          when: it_is_idrac9
+
+        - name: Asserting after iDRAC reset on iDRAC9
+          ansible.builtin.assert:
+            that:
+              - idrac_reset_out.msg == "{{ idrac9_success_msg }}"
+              - idrac_has_default_settings
+          when: it_is_idrac9
+
+        - name: Asserting after iDRAC reset on iDRAC8
+          ansible.builtin.assert:
+            that:
+              - idrac_reset_out.msg == "{{ idrac8_trigger_msg }}"
+          when: not it_is_idrac9
+
+      always:
+        - name: Deleting tasks to export settings before iDRAC reset
+          ansible.builtin.include_tasks:
+            file: ../_utils.yml
+          vars:
+            operation: import

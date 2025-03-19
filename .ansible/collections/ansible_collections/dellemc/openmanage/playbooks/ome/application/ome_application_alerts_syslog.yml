@@ -1,0 +1,38 @@
+---
+- name: Configure syslog forwarding settings on OpenManage Enterprise and OpenManage Enterprise Modular
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Configure single server to forward syslog
+      dellemc.openmanage.ome_application_alerts_syslog:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        syslog_servers:
+          - id: 1
+            enabled: true
+            destination_address: 192.168.0.2
+            port_number: 514
+      delegate_to: localhost
+
+    - name: Configure multiple server to forward syslog
+      dellemc.openmanage.ome_application_alerts_syslog:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        syslog_servers:
+          - id: 1
+            port_number: 523
+          - id: 2
+            enabled: true
+            destination_address: sysloghost1.lab.com
+          - id: 3
+            enabled: false
+          - id: 4
+            enabled: true
+            destination_address: 192.168.0.4
+            port_number: 514
+      delegate_to: localhost

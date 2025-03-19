@@ -1,0 +1,70 @@
+---
+- name: Testing boot_source_override_enabled_as_once_reset_type_none
+  hosts: all
+  gather_facts: false
+  vars:
+    hostname: "{{ lookup('ansible.builtin.env', 'IDRAC_IP') }}"
+    username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
+    password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+    lc_uri: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Dell/Managers/iDRAC.Embedded.1/DellLCService/Actions/DellLCService.GetRemoteServicesAPIStatus"
+    retry_count: 60
+    delay_count: 30
+  tasks:
+    - name: Preparing set_fact for uri
+      ansible.builtin.set_fact:
+        uri_input: &uri_input
+          user: "{{ username }}"
+          password: "{{ password }}"
+          validate_certs: "{{ validate_certs }}"
+          ca_path: "{{ ca_path | default(omit) }}"
+          headers:
+            Accept: "application/json"
+            Content-Type: "application/json"
+            OData-Version: "4.0"
+          body_format: "json"
+          return_content: true
+          force_basic_auth: true
+          timeout: "{{ https_timeout }}"
+      no_log: true
+
+    - name: Checking for LCStatus before running pre-requisite
+      ansible.builtin.include_tasks:
+        file: ../__lc_status_check.yaml
+
+    - name: Pre-requisite - Making sure boot_source_override_enabled is disabled
+      check_mode: false
+      ansible.builtin.import_role:
+        name: "idrac_boot"
+      vars:
+        boot_source_override_enabled: disabled
+      tags: molecule-idempotence-notest
+
+    - name: Checking for LCStatus after running pre-requisite
+      ansible.builtin.include_tasks:
+        file: ../__lc_status_check.yaml
+
+    - name: TC-115432 - Validate boot_source_override_enabled as once
+      ansible.builtin.include_role:
+        name: "idrac_boot"
+      vars:
+        boot_source_override_enabled: once
+        reset_type: none
+
+    - name: Checking for LCStatus after performing operation
+      ansible.builtin.include_tasks:
+        file: ../__lc_status_check.yaml
+
+    - name: Asserting TC-115432 in check mode
+      ansible.builtin.assert:
+        that: idrac_boot_out.msg == "Changes found to be applied."
+      when: ansible_check_mode
+      tags: molecule-idempotence-notest
+
+    - name: Asserting TC-115432 in normal mode or idempotence mode
+      ansible.builtin.assert:
+        that: >-
+          'idrac_boot_out.msg == "The boot settings operation is
+            triggered/submitted successfully." or "No changes found to be
+            applied."'
+      when: not ansible_check_mode and not idrac_boot_out.changed

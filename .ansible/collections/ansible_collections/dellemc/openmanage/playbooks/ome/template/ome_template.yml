@@ -1,0 +1,355 @@
+---
+- name: Dell OpenManage Ansible device Template service.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Create a template from a reference device.
+      dellemc.openmanage.ome_template:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_id: 25123
+        attributes:
+          Name: "New Template"
+          Description: "New Template description"
+      delegate_to: localhost
+
+    - name: Modify template name, description, and attribute value.
+      dellemc.openmanage.ome_template:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "modify"
+        template_id: 12
+        attributes:
+          Name: "New Custom Template"
+          Description: "Custom Template Description"
+          # Attributes to be modified in the template.
+          # For information on any attribute id, use API /TemplateService/Templates(Id)/Views(Id)/AttributeViewDetails
+          # This section is optional
+          Attributes:
+            - Id: 1234
+              Value: "Test Attribute"
+              IsIgnored: false
+      delegate_to: localhost
+
+    - name: Modify template name, description, and attribute using detailed view
+      dellemc.openmanage.ome_template:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "modify"
+        template_id: 12
+        attributes:
+          Name: "New Custom Template"
+          Description: "Custom Template Description"
+          Attributes:
+            # Enter the comma separated string as appearing in the Detailed view on GUI
+            # NIC -> NIC.Integrated.1-1-1 -> NIC Configuration -> Wake On LAN1
+            - DisplayName: "NIC, NIC.Integrated.1-1-1, NIC Configuration, Wake On LAN"
+              Value: Enabled
+              IsIgnored: false
+            # System -> LCD Configuration -> LCD 1 User Defined String for LCD
+            - DisplayName: "System, LCD Configuration, LCD 1 User Defined String for LCD"
+              Value: LCD str by OMAM
+              IsIgnored: false
+      delegate_to: localhost
+
+    - name: Deploy template on multiple devices
+      dellemc.openmanage.ome_template:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "deploy"
+        template_id: 12
+        device_id:
+          - 12765
+          - 10173
+        device_service_tag:
+          - "SVTG123"
+          - "SVTG456"
+      delegate_to: localhost
+
+    - name: Deploy template on groups
+      dellemc.openmanage.ome_template:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "deploy"
+        template_id: 12
+        device_group_names:
+          - server_group_1
+          - server_group_2
+      delegate_to: localhost
+
+    - name: Deploy template on multiple devices along attributes modification for target device"
+      dellemc.openmanage.ome_template:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "deploy"
+        template_id: 12
+        device_id:
+          - 12765
+          - 10173
+        device_service_tag:
+          - "SVTG123"
+        attributes:
+          # Device specific attributes to be modified during deployment.
+          # For information on any attribute id, use API /TemplateService/Templates(Id)/Views(Id)/AttributeViewDetails
+          # This section is optional
+          Attributes:
+            # specific device where attribute to be modified at deployment run-time.
+            # The DeviceId should be mentioned above in the 'device_id' section.
+            # Service tags not allowed.
+            - DeviceId: 12765
+              Attributes:
+                - Id: 15645
+                  Value: "0.0.0.0"
+                  IsIgnored: false
+            - DeviceId: 10173
+              Attributes:
+                - Id: 18968,
+                  Value: "hostname-1"
+                  IsIgnored: false
+      delegate_to: localhost
+
+    - name: Deploy template and Operating System (OS) on multiple devices"
+      dellemc.openmanage.ome_template:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "deploy"
+        template_id: 12
+        device_id:
+          - 12765
+        device_service_tag:
+          - "SVTG123"
+        attributes:
+          # Include this to install OS on the devices.
+          # This section is optional
+          NetworkBootIsoModel:
+            BootToNetwork: true
+            ShareType: "NFS"
+            IsoTimeout: 1 # allowable values(1,2,4,8,16) in hours
+            IsoPath: "/home/iso_path/filename.iso"
+            ShareDetail:
+              IpAddress: "192.168.0.2"
+              ShareName: "sharename"
+              User: "share_user"
+              Password: "share_password"
+          Options:
+            EndHostPowerState: 1
+            ShutdownType: 0
+            TimeToWaitBeforeShutdown: 300
+          Schedule:
+            RunLater: true
+            RunNow: false
+      delegate_to: localhost
+
+    - name:
+        Deploy template on multiple devices and changes the device-level attributes. After the template is deployed,
+        install OS using its image.
+      dellemc.openmanage.ome_template:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "deploy"
+        template_id: 12
+        device_id:
+          - 12765
+          - 10173
+        device_service_tag:
+          - "SVTG123"
+          - "SVTG456"
+        attributes:
+          Attributes:
+            - DeviceId: 12765
+              Attributes:
+                - Id: 15645
+                  Value: "0.0.0.0"
+                  IsIgnored: false
+            - DeviceId: 10173
+              Attributes:
+                - Id: 18968,
+                  Value: "hostname-1"
+                  IsIgnored: false
+          NetworkBootIsoModel:
+            BootToNetwork: true
+            ShareType: "NFS"
+            IsoTimeout: 1 # allowable values(1,2,4,8,16) in hours
+            IsoPath: "/home/iso_path/filename.iso"
+            ShareDetail:
+              IpAddress: "192.168.0.2"
+              ShareName: "sharename"
+              User: "share_user"
+              Password: "share_password"
+          Options:
+            EndHostPowerState: 1
+            ShutdownType: 0
+            TimeToWaitBeforeShutdown: 300
+          Schedule:
+            RunLater: true
+            RunNow: false
+      delegate_to: localhost
+
+    - name: Delete template"
+      dellemc.openmanage.ome_template:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "delete"
+        template_id: 12
+      delegate_to: localhost
+
+    - name: Export a template
+      dellemc.openmanage.ome_template:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "export"
+        template_id: 12
+      delegate_to: localhost
+
+    # Start of example to export template to a local xml file
+    - name: Export template to a local xml file
+      dellemc.openmanage.ome_template:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "export"
+        template_name: "my_template"
+      register: result
+      tags:
+        - export_xml_to_file
+    - name: Copy Task
+      ansible.builtin.copy:
+        content: "{{ result.Content }}"
+        dest: "/path/to/exported_template.xml"
+        mode: "0600"
+      tags:
+        - export_xml_to_file
+    # End of example to export template to a local xml file
+      delegate_to: localhost
+
+    - name: Clone a template
+      dellemc.openmanage.ome_template:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "clone"
+        template_id: 12
+        attributes:
+          Name: "New Cloned Template Name"
+      delegate_to: localhost
+
+    - name: Import template from XML content
+      dellemc.openmanage.ome_template:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "import"
+        attributes:
+          Name: "Imported Template Name"
+          # Template Type from TemplateService/TemplateTypes
+          Type: 2
+          # xml string content
+          Content:
+            "<SystemConfiguration Model=\"PowerEdge R940\" ServiceTag=\"SVCTAG1\"
+            TimeStamp=\"Tue Sep 24 09:20:57.872551 2019\">\n<Component FQDD=\"AHCI.Slot.6-1\">\n<Attribute
+            Name=\"RAIDresetConfig\">True</Attribute>\n<Attribute Name=\"RAIDforeignConfig\">Clear</Attribute>\n
+            </Component>\n<Component FQDD=\"Disk.Direct.0-0:AHCI.Slot.6-1\">\n<Attribute Name=\"RAIDPDState\">Ready
+            </Attribute>\n<Attribute Name=\"RAIDHotSpareStatus\">No</Attribute>\n</Component>\n
+            <Component FQDD=\"Disk.Direct.1-1:AHCI.Slot.6-1\">\n<Attribute Name=\"RAIDPDState\">Ready</Attribute>\n
+            <Attribute Name=\"RAIDHotSpareStatus\">No</Attribute>\n</Component>\n</SystemConfiguration>\n"
+      delegate_to: localhost
+
+    - name: Import template from local XML file
+      dellemc.openmanage.ome_template:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "import"
+        attributes:
+          Name: "Imported Template Name"
+          Type: 2
+          Content: "{{ lookup('ansible.builtin.file', '/path/to/xmlfile') }}"
+      delegate_to: localhost
+
+    - name: Deploy template and Operating System (OS) on multiple devices."
+      dellemc.openmanage.ome_template:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "deploy"
+        template_id: 12
+        device_id:
+          - 12765
+        device_service_tag:
+          - "SVTG123"
+        attributes:
+          # Include this to install OS on the devices.
+          # This section is optional
+          NetworkBootIsoModel:
+            BootToNetwork: true
+            ShareType: "CIFS"
+            IsoTimeout: 1 # allowable values(1,2,4,8,16) in hours
+            IsoPath: "/home/iso_path/filename.iso"
+            ShareDetail:
+              IpAddress: "192.168.0.2"
+              ShareName: "sharename"
+              User: "share_user"
+              Password: "share_password"
+          Options:
+            EndHostPowerState: 1
+            ShutdownType: 0
+            TimeToWaitBeforeShutdown: 300
+          Schedule:
+            RunLater: true
+            RunNow: false
+      delegate_to: localhost
+
+    - name: Create a compliance template from reference device
+      dellemc.openmanage.ome_template:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "create"
+        device_service_tag: "SVTG123"
+        template_view_type: "Compliance"
+        attributes:
+          Name: "Configuration Compliance"
+          Description: "Configuration Compliance Template"
+          Fqdds: "BIOS"
+      delegate_to: localhost
+
+    - name: Import a compliance template from XML file
+      dellemc.openmanage.ome_template:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "import"
+        template_view_type: "Compliance"
+        attributes:
+          Name: "Configuration Compliance"
+          Content: "{{ lookup('ansible.builtin.file', './test.xml') }}"
+          Type: 2
+      delegate_to: localhost

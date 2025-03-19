@@ -1,0 +1,15 @@
+---
+- name: Extract the iso on to extract folder
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  register: idrac_os_deployment_extract_cmd_out
+  changed_when: idrac_os_deployment_extract_cmd_out.rc == 0
+  failed_when: idrac_os_deployment_extract_cmd_out.rc != 0
+  ansible.builtin.command: "{{ idrac_os_deployment_xorriso_cmd | format(idrac_os_deployment_iso_file, idrac_os_deployment_iso_extract_dir) }}"
+
+- name: Update file permissions
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  ansible.builtin.file:
+    path: "{{ idrac_os_deployment_iso_extract_dir }}"
+    state: directory
+    recurse: true
+    mode: "{{ idrac_os_deployment_iso_extract_dir_mode }}"

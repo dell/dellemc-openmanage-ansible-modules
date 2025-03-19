@@ -1,0 +1,9 @@
+---
+- name: Manage storage controller in iDRAC
+  hosts: idrac
+  gather_facts: false
+  vars_files:
+    - ../vars_files/credentials.yml
+    - ../vars_files/storage_controller.yml
+  roles:
+    - dellemc.openmanage.idrac_storage_controller

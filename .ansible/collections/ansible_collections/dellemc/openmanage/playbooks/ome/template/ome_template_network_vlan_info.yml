@@ -1,0 +1,31 @@
+---
+- name: Dell OpenManage Ansible template VLAN info.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Retrieve network details of all templates.
+      dellemc.openmanage.ome_template_network_vlan_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+      delegate_to: localhost
+
+    - name: Retrieve network details using template ID
+      dellemc.openmanage.ome_template_network_vlan_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        template_id: 1234
+      delegate_to: localhost
+
+    - name: Retrieve network details using template name
+      dellemc.openmanage.ome_template_network_vlan_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        template_name: template1
+      delegate_to: localhost

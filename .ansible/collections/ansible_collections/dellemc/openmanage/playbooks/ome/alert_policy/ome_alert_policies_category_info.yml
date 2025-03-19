@@ -1,0 +1,13 @@
+---
+- name: Dell OpenManage Ansible Alert policy categories info
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Retrieve information about all the OME alert policies
+      dellemc.openmanage.ome_alert_policies_category_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+      delegate_to: localhost

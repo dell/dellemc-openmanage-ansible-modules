@@ -1,0 +1,52 @@
+---
+- name: OpenManage Ansible Modules
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Update device location settings of a chassis using the device ID.
+      dellemc.openmanage.ome_device_location:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_id: 25011
+        data_center: data center 1
+        room: room 1
+        aisle: aisle 1
+        rack: rack 1
+        rack_slot: 2
+        location: location 1
+      tags: location-device-id
+      delegate_to: localhost
+
+    - name: Update device location settings of a chassis using the device service tag.
+      dellemc.openmanage.ome_device_location:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_service_tag: GHRT2RL
+        data_center: data center 1
+        room: room 1
+        aisle: aisle 1
+        rack: rack 1
+        rack_slot: 2
+        location: location 1
+      tags: location-device-service-tag
+      delegate_to: localhost
+
+    - name: Update device location settings of the host chassis.
+      dellemc.openmanage.ome_device_location:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        data_center: data center 1
+        room: room 1
+        aisle: aisle 1
+        rack: rack 1
+        rack_slot: 2
+        location: location 1
+      tags: location-chassis
+      delegate_to: localhost

@@ -1,0 +1,13 @@
+---
+- name: Get Memory information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_system }}/Memory?$expand=*($levels=1)"
+  register: memory_result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Set Memory facts
+  ansible.builtin.set_fact:
+    memory:
+      "{{ memory_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type',
+      'AllowedSpeedsMHz@odata.count', 'CPUAffinity@odata.count', 'Processors@odata.count', 'MaxTDPMilliWatts@odata.count',
+      'OperatingMemoryModes@odata.count']) }}"

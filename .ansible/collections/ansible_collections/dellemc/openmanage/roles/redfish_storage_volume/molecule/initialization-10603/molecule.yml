@@ -1,0 +1,13 @@
+---
+scenario:
+  test_sequence:
+    - destroy
+    - syntax
+    - create
+    - cleanup
+    - prepare
+    - converge
+    - side_effect
+    - verify
+    - cleanup
+    - destroy

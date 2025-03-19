@@ -1,0 +1,10 @@
+---
+# defaults file for idrac_server_powerstate
+validate_certs: true
+https_timeout: 30
+https_port: 443
+initialize_type: "Fast"
+job_wait: true
+job_wait_timeout: 1200
+reboot_server: false
+force_reboot: false

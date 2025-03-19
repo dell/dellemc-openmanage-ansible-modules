@@ -1,0 +1,36 @@
+---
+- name: Configure the SMTP settings of OME and OME-M.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Update SMTP destination server configuration with authentication
+      dellemc.openmanage.ome_application_alerts_smtp:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        destination_address: "localhost"
+        port_number: 25
+        use_ssl: true
+        enable_authentication: true
+        credentials:
+          username: "username"
+          password: "password"
+      delegate_to: localhost
+      tags:
+        - smtp_auth
+
+    - name: Update SMTP destination server configuration without authentication
+      dellemc.openmanage.ome_application_alerts_smtp:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        destination_address: "localhost"
+        port_number: 25
+        use_ssl: false
+        enable_authentication: false
+      delegate_to: localhost
+      tags:
+        - smtp_no_auth

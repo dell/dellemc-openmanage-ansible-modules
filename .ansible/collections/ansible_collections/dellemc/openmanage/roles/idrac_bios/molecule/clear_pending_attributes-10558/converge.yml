@@ -1,0 +1,39 @@
+---
+- name: Converge file for clear pending attributes
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Clear pending attributes
+      ansible.builtin.import_role:
+        name: dellemc.openmanage.idrac_bios
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        clear_pending: true
+
+    - name: Verify clear pending attributes in normal mode
+      ansible.builtin.assert:
+        that:
+          - idrac_bios_out.clear_pending.status_msg == "Successfully cleared
+            the pending BIOS attributes."
+          - idrac_bios_out.reset_bios.skipped
+          - idrac_bios_out.attributes.skipped
+      when: not ansible_check_mode
+      tags: molecule-idempotence-notest
+
+    - name: Verify clear pending attributes in check mode
+      ansible.builtin.assert:
+        that:
+          - idrac_bios_out.clear_pending.status_msg == "Changes found
+            to be applied."
+      when: ansible_check_mode
+      tags: molecule-idempotence-notest
+
+    - name: Verify clear pending attributes in idempotence mode
+      ansible.builtin.assert:
+        that:
+          - idrac_bios_out.clear_pending.status_msg ==  "No changes found
+            to be applied."
+      when: not ansible_check_mode and not idrac_bios_out.clear_pending.changed

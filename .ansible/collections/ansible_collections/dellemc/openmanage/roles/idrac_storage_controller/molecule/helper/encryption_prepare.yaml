@@ -1,0 +1,102 @@
+---
+- name: Prepare the controller for controller encryption
+  hosts: all
+  gather_facts: false
+  vars:
+    idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+    idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+    idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+  tasks:
+    - name: Making sure Server is powered on and clear all job
+      ansible.builtin.include_tasks:
+        file: ../helper/common/power_on_idrac_and_clear_all_job.yaml
+
+    - name: Prerequisite - Fetch Storage details
+      dellemc.openmanage.idrac_storage_volume:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        state: "view"
+      register: idrac_storage_controller_res
+
+    - name: Set the storage status
+      ansible.builtin.set_fact:
+        cacheable: true
+        storage_status: "{{ idrac_storage_controller_res.storage_status }}"
+
+    - name: Set the controller Info
+      ansible.builtin.set_fact:
+        cacheable: true
+        controller_info: "{{ storage_status.Message.Controller }}"
+
+    - name: Set the controller name
+      ansible.builtin.set_fact:
+        cacheable: true
+        controller_name: "{{ controller_info.keys() |
+         select('match', 'RAID.') | first }}"
+
+    - name: Prerequisite - Reset any encryption configurations
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "{{ idrac_ip }}:{{ https_port }}"
+        username: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+        job_wait: true
+        controller_id: "{{ controller_name }}"
+        command: "RemoveControllerKey"
+      register: idrac_storage_controller_set_attrs
+      ignore_errors: true
+
+    - name: Waiting for iDRAC to be in ready state
+      ansible.builtin.pause:
+        seconds: 30
+      when: idrac_storage_controller_set_attrs.msg == "Successfully
+       performed the 'RemoveControllerKey' operation."
+
+    - name: Waiting for iDRAC to be in ready state
+      ignore_errors: true
+      register: idrac_storage_controller_pd_state_out_lc
+      ansible.builtin.include_tasks:
+        file: ../__lc_status.yaml
+      when: idrac_storage_controller_set_attrs.msg == "Successfully
+       performed the 'RemoveControllerKey' operation."
+
+    - name: Prepare the controller for controller encryption
+      ansible.builtin.include_tasks: ../__prepare_lc_job_status.yaml
+      vars:
+        job_id: "{{ set_LKM_encryption.status.Id }}"
+      when: idrac_storage_controller_set_attrs.msg == "Successfully
+       performed the 'RemoveControllerKey' operation."
+
+    - name: Wait for 10 seconds
+      ansible.builtin.pause:
+        seconds: 10
+      when: idrac_storage_controller_set_attrs.changed   # noqa: no-handler
+
+    - name: Constructing url
+      ansible.builtin.set_fact:
+        url_1: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ https_port }}
+          /redfish/v1/"
+        url_2: "Systems/System.Embedded.1/Storage/{{ controller_name }}/"
+        url_3: "Controllers/{{ controller_name }}"
+
+    - name: Final url
+      ansible.builtin.set_fact:
+        cacheable: true
+        job_url: "{{ url_1 }}{{ url_2 }}{{ url_3 }}"
+
+    - name: Get data
+      ansible.builtin.include_tasks: ../__get_data.yaml
+      vars:
+        url: "{{ job_url }}"
+
+    - name: Verify prerequisite - Check whether encryption is enabled
+      ansible.builtin.assert:
+        that:
+          - idrac_storage_controller_fetched_data.json.Oem.Dell.
+            DellStorageController.EncryptionMode == "None"
+        fail_msg: "Prerequisite - Storage controller attribute
+         'EncryptionMode' not set to 'None'"
+        success_msg: "Prerequisite - Storage controller attribute
+         'EncryptionMode' is set to 'None' successfully"

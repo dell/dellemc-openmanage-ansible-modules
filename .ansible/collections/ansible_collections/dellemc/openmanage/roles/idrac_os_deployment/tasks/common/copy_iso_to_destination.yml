@@ -1,0 +1,60 @@
+---
+- name: Copy the custom iso local destination
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  when: destination.protocol in ['nfs', 'cifs']
+  block:
+    - name: Ensure file already exists at destination dest to work around 'invalid selinux context' issue
+      ansible.builtin.file:
+        path: "{{ destination.mountpoint }}/{{ idrac_os_deployment_custom_iso_filename }}"
+        state: touch
+        mode: "{{ idrac_os_deployment_dest_mode }}"
+
+    - name: Copy custom iso to mounted path
+      register: idrac_os_deployment_copy_to_destination
+      ansible.builtin.copy:
+        src: "{{ idrac_os_deployment_custom_iso_file }}"
+        dest: "{{ destination.mountpoint }}"
+        mode: "{{ idrac_os_deployment_dest_mode }}"
+
+- name: Copy custom iso to HTTP or HTTPS share on linux
+  when:
+    - destination.protocol in ['http', 'https']
+    - destination.os_type is undefined or destination.os_type == 'linux'
+  delegate_to: "{{ destination.hostname }}"
+  block:
+    - name: Copy the iso to linux destiantion
+      ignore_unreachable: true
+      register: idrac_os_deployment_copy_to_destination
+      ansible.builtin.copy:
+        src: "{{ idrac_os_deployment_custom_iso_file }}"
+        dest: "{{ destination.mountpoint }}"
+        mode: "preserve"
+
+    - name: Fail if destination is unreachable
+      when: idrac_os_deployment_copy_to_destination is unreachable
+      ansible.builtin.fail:
+        msg: "{{ idrac_os_deployment_copy_to_destination }}"
+
+- name: Copy custom iso to HTTP or HTTPS share on windows
+  delegate_to: "{{ destination.hostname }}"
+  when:
+    - destination.protocol in ['http', 'https']
+    - destination.os_type is defined and destination.os_type == 'windows'
+  block:
+    - name: Copy the iso to windows destination
+      ignore_unreachable: true
+      register: idrac_os_deployment_copy_to_destination
+      ansible.windows.win_copy:
+        src: "{{ idrac_os_deployment_custom_iso_file }}"
+        dest: "{{ destination.mountpoint }}"
+        mode: "preserve"
+
+    - name: Fail if destination is unreachable
+      when: idrac_os_deployment_copy_to_destination is unreachable
+      ansible.builtin.fail:
+        msg: "{{ idrac_os_deployment_copy_to_destination }}"
+
+- name: Set Copy to destination flag
+  when: idrac_os_deployment_copy_to_destination is succeeded
+  ansible.builtin.set_fact:
+    idrac_os_deployment_copied_to_destination: true

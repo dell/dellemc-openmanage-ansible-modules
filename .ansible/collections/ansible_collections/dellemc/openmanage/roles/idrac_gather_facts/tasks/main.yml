@@ -1,0 +1,81 @@
+---
+- name: IDRAC Gather facts
+  module_defaults:
+    ansible.builtin.uri:
+      validate_certs: "{{ validate_certs }}"
+      ca_path: "{{ ca_path | default(omit) }}"
+      method: "{{ idrac_gather_facts_uri_method }}"
+      user: "{{ username | default(lookup('env', 'IDRAC_USERNAME')) }}"
+      password: "{{ password | default(lookup('env', 'IDRAC_PASSWORD')) }}"
+      timeout: "{{ https_timeout }}"
+      force_basic_auth: true
+      headers: "{{ idrac_gather_facts_uri_headers }}"
+      body_format: "{{ idrac_gather_facts_uri_body_format }}"
+      status_code: "{{ idrac_gather_facts_uri_status_code }}"
+      return_content: "{{ idrac_gather_facts_uri_return_content }}"
+  block:
+    - name: Check whether atleast one of 'IDRAC_USERNAME' or username is provided
+      ansible.builtin.fail:
+        msg: Ensure the value for environment variable 'IDRAC_USERNAME'
+          or the argument 'username' is set.
+      when: username is not defined and not lookup('env', 'IDRAC_USERNAME')
+
+    - name: Check whether atleast one of 'IDRAC_PASSWORD' or password is provided
+      ansible.builtin.fail:
+        msg: Ensure the value for environment variable 'IDRAC_PASSWORD'
+          or the argument 'password' is set.
+      when: password is not defined and not lookup('env', 'IDRAC_PASSWORD')
+
+    - name: Set default facts
+      ansible.builtin.set_fact:
+        idrac: {}
+        system: {}
+        bios: {}
+        controller: []
+        cpu: []
+        enclosure: []
+        enclosure_emm: []
+        fan: []
+        firmware: []
+        hostnic: []
+        license: []
+        memory: []
+        nic: []
+        backplane: []
+        power_supply: []
+        presence_and_status_sensor: []
+        sensor_battery: {}
+        intrusion_sensor: {}
+        voltages: []
+        virtual_disk: []
+        pcie_device: {}
+        physical_disk: []
+        power_metrics: []
+        thermal_metrics: []
+        memory_metrics: []
+        secure_boot: {}
+
+    - name: Get connection
+      ansible.builtin.uri:
+        url: https://{{ hostname }}:{{ https_port }}/redfish/v1/Systems
+      register: idrac_gather_facts_connection
+      delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+    - name: Fail when hostname or certificate is incorrect or invalid.
+      ansible.builtin.fail:
+        msg: "{{ idrac_gather_facts_connection.msg }}"
+      when: idrac_gather_facts_connection.status == -1
+
+    - name: Fail when credentials are incorrect or invalid.
+      ansible.builtin.fail:
+        msg: The authentication credentials included with this request
+          are missing or invalid.
+      when: idrac_gather_facts_connection.status == 401
+
+    - name: Get System, Manager and Chassis resource id.
+      ansible.builtin.include_tasks: get_resource_id.yml
+
+    - name: Get target facts in loop
+      ansible.builtin.include_tasks: "{{
+        idrac_gather_facts_target_yml_map[item] }}"
+      loop: "{{ target }}"

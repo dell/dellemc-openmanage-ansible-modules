@@ -1,0 +1,9 @@
+omsdk
+pytest
+pytest-xdist==2.5.0
+mock
+pytest-mock
+pytest-cov
+# pytest-ansible==2.0.1
+coverage
+netaddr>=0.7.19

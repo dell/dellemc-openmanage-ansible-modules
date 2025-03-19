@@ -1,0 +1,43 @@
+---
+- name: Attach the iso image to idrac virtual media
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  block:
+    - name: Create virtual media mount facts
+      when: source.is_custom_iso is undefined or source.is_custom_iso is false
+      ansible.builtin.set_fact:
+        idrac_os_deployment_vm_protocol: "{{ destination.protocol }}"
+        idrac_os_deployment_vm_hostname: "{{ destination.hostname }}"
+        idrac_os_deployment_vm_iso_path: "{{ destination.iso_path }}"
+        idrac_os_deployment_vm_iso_name: "{{ idrac_os_deployment_custom_iso_filename }}"
+        idrac_os_deployment_vm_username: "{{ destination.username | default(omit) }}"
+        idrac_os_deployment_vm_password: "{{ destination.password | default(omit) }}"
+      no_log: "{{ set_no_log }}"
+
+    - name: Create virtual media mount url
+      when: idrac_os_deployment_vm_protocol
+      ansible.builtin.set_fact:
+        idrac_os_deployment_vm_url:
+          "{{ idrac_os_deployment_vm_proto_map[idrac_os_deployment_vm_protocol]
+          | format(idrac_os_deployment_vm_hostname, idrac_os_deployment_vm_iso_path, idrac_os_deployment_vm_iso_name) }}"
+
+    - name: Attach the iso to Virtual Media slot 1
+      register: idrac_os_deployment_vm_insert
+      dellemc.openmanage.idrac_virtual_media:
+        idrac_ip: "{{ hostname }}"
+        idrac_user: "{{ username }}"
+        idrac_password: "{{ password }}"
+        idrac_port: "{{ https_port }}"
+        validate_certs: "{{ validate_certs }}"
+        ca_path: "{{ ca_path | default(omit) }}"
+        timeout: "{{ https_timeout }}"
+        force: true
+        virtual_media:
+          - insert: true
+            image: "{{ idrac_os_deployment_vm_url }}"
+            username: "{{ idrac_os_deployment_vm_username | default(omit) }}"
+            password: "{{ idrac_os_deployment_vm_password | default(omit) }}"
+
+    - name: Set virtual media attached to success
+      when: idrac_os_deployment_vm_insert is succeeded
+      ansible.builtin.set_fact:
+        idrac_os_deployment_virtual_media_attached: true

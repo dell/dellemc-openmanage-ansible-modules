@@ -1,0 +1,41 @@
+---
+- name: Set uri options
+  ansible.builtin.set_fact:
+    idrac_job_queue_idrac_opts: &idrac_job_queue_idrac_opts
+      user: "{{ username | default(lookup('env', 'IDRAC_USERNAME')) }}"
+      password: "{{ password | default(lookup('env', 'IDRAC_PASSWORD')) }}"
+      validate_certs: "{{ validate_certs }}"
+      ca_path: "{{ ca_path | default(omit) }}"
+      headers: "{{ idrac_job_queue_uri_headers }}"
+      body_format: "{{ idrac_job_queue_uri_body_format }}"
+      return_content: "{{ idrac_job_queue_uri_return_content }}"
+      force_basic_auth: "{{ idrac_job_queue_force_basic_auth }}"
+      timeout: "{{ https_timeout }}"
+  no_log: true
+
+- name: Perform delete job operation
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ idrac_job_queue_validate_job_api }}/{{ job_id }}"
+    <<: *idrac_job_queue_idrac_opts
+    method: "DELETE"
+    status_code: [200, 400]
+  register: idrac_job_queue_idrac_job_delete_out
+  changed_when: idrac_job_queue_idrac_job_delete_out.status == 200
+  delegate_to: "{{ idrac_job_queue_delegate }}"
+
+- name: Set output Message for job deleted successfully
+  ansible.builtin.set_fact:
+    idrac_job_queue_out:
+      msg: "{{ idrac_job_queue_delete_job_success_msg }}"
+  when:
+    - idrac_job_queue_idrac_job_delete_out is defined
+    - idrac_job_queue_idrac_job_delete_out.status is defined
+    - idrac_job_queue_idrac_job_delete_out.status == 200
+
+- name: Set output Message for job delete unsuccessful
+  ansible.builtin.fail:
+    msg: "{{ idrac_job_queue_delete_job_failure_msg }}"
+  when:
+    - idrac_job_queue_idrac_job_delete_out is defined
+    - idrac_job_queue_idrac_job_delete_out.status is defined
+    - idrac_job_queue_idrac_job_delete_out.status != 200

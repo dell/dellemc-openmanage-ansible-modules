@@ -1,0 +1,14 @@
+---
+- name: Delete existing iDRAC user account
+  dellemc.openmanage.idrac_user:
+    idrac_ip: "{{ hostname }}"
+    idrac_user: "{{ username | default(omit) }}"
+    idrac_password: "{{ password | default(omit) }}"
+    idrac_port: "{{ https_port }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    validate_certs: "{{ validate_certs }}"
+    state: "{{ state }}"
+    user_name: "{{ user_name }}"
+    timeout: "{{ https_timeout }}"
+  register: idrac_user_out
+  delegate_to: "{{ idrac_user_delegate }}"

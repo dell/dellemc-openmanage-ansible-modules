@@ -1,0 +1,16 @@
+---
+- name: Get uri data
+  ansible.builtin.uri:
+    url: "{{ url }}"
+    user: "{{ lookup('env', 'IDRAC_USER') }}"
+    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+    body: {}
+    body_format: json
+    force_basic_auth: true
+    return_content: true
+    status_code: 200
+    headers: 'Accept=application/json'
+  check_mode: false
+  no_log: true
+  register: idrac_bios_uri_data

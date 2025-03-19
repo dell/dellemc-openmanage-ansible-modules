@@ -1,0 +1,19 @@
+---
+# tasks file for idrac_server_powerstate
+- name: Setting up parameters
+  ansible.builtin.set_fact:
+    baseuri: "{{ hostname }}:{{ https_port }}"
+
+- name: "Performing the operation on iDRAC server"
+  dellemc.openmanage.redfish_powerstate:
+    baseuri: "{{ baseuri }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    timeout: "{{ https_timeout }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    reset_type: "{{ reset_type | default(omit) }}"
+    oem_reset_type: "{{ oem_reset_type | default(omit) }}"
+    validate_certs: "{{ validate_certs }}"
+    resource_id: "{{ resource_id | default(omit) }}"
+  register: idrac_server_powerstate_out
+  delegate_to: "{{ idrac_server_powerstate_task_delegate }}"

@@ -1,0 +1,27 @@
+---
+- name: "Ansible Module for Simple Firmware Update"
+  hosts: redfish_hosts
+  gather_facts: false
+
+  tasks:
+    - name: Update the firmware from a single executable file available in a local path
+      dellemc.openmanage.redfish_firmware:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        image_uri: "/home/firmware_repo/component.exe"
+      tags:
+        - local-update
+      delegate_to: localhost
+
+    - name: Update the firmware from a single executable file available in a HTTP protocol
+      dellemc.openmanage.redfish_firmware:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        image_uri: "http://192.168.0.1/firmware_repo/component.exe"
+      tags:
+        - http-update
+      delegate_to: localhost

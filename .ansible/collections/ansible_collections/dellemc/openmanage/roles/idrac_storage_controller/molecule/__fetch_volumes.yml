@@ -1,0 +1,62 @@
+---
+- name: Pre_req - View all volumes
+  dellemc.openmanage.idrac_storage_volume:
+    idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+    idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+    idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+    state: "view"
+  register: idrac_storage_controller_res
+  when: run_trigger is not defined
+  # no_log: true
+
+- name: Set the Storage status
+  ansible.builtin.set_fact:
+    storage_status: "{{ idrac_storage_controller_res.storage_status.Message }}"
+
+- name: Fetch the enclosures and controller name
+  ansible.builtin.set_fact:
+    cacheable: true
+    enclosers: "{{ item.value.Enclosure }}"
+    controller_name: "{{ item.key }}"
+  loop: "{{ lookup('dict', storage_status.Controller) }}"
+  when: not post_op and 'Enclosure' in item.value
+  no_log: true
+
+- name: Fetch the physical disks available in the controller
+  ansible.builtin.set_fact:
+    cacheable: true
+    physicaldisks: "{{ item.value.PhysicalDisk }}"
+  loop: "{{ lookup('dict',
+         storage_status.Controller[controller_name].Enclosure,
+         wantlist=True) }}"
+  when: not post_op and controller_name in item.key
+
+- name: Gather Facts for the Physical Disk component
+  ansible.builtin.include_role:
+    name: "idrac_gather_facts"
+  vars:
+    hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+    username: "{{ lookup('env', 'IDRAC_USER') }}"
+    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+    target:
+      - VirtualDisk
+  when: not ansible_check_mode
+
+- name: Fetch the volume detail
+  ansible.builtin.set_fact:
+    cacheable: true
+    volume_id: "{{ item.Id }}"
+  loop: "{{ virtual_disk }}"
+  when: not ansible_check_mode and item.Name == "ansible_test"
+  no_log: false
+
+- name: Fetch the virtual disks after creation
+  ansible.builtin.set_fact:
+    cacheable: true
+    virtualdisk: "{{ item.key }}"
+  loop: "{{ lookup('dict',
+       storage_status.Controller[controller_name].VirtualDisk,
+       wantlist=True) }}"
+  when: post_op and controller_name in item.key

@@ -1,0 +1,7 @@
+- name: Clean up the working directory
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  when: idrac_os_deployment_wd is defined
+  ansible.builtin.file:
+    path: "{{ idrac_os_deployment_wd.path }}"
+    state: absent
+  failed_when: false

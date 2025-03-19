@@ -1,0 +1,13 @@
+---
+- name: Get BIOS information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_system }}/Bios"
+  register: bios_result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Set BIOS facts
+  ansible.builtin.set_fact:
+    bios:
+      "{{ bios_result.json | ansible.utils.remove_keys(target=['@odata.context',
+      '@odata.type', '@odata.id', 'SettingsObject', 'Actions', 'AttributeRegistry', 'Description',
+      'Id', 'Links', 'Name']) }}"

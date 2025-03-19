@@ -1,0 +1,12 @@
+---
+- name: Get PCIeDevice information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_chassis }}/PCIeDevices?$expand=*($levels=1)"
+  register: pcie_result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Set PCIeDevice facts
+  ansible.builtin.set_fact:
+    pcie_device: "{{ pcie_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'Links', '@odata.etag']) }}"
+  when: pcie_result.status == 200
+  register: pcie_result_register

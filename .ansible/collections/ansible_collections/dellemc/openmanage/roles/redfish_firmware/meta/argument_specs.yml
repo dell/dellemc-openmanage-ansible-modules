@@ -1,0 +1,60 @@
+---
+argument_specs:
+  main:
+    version_added: "7.5.0"
+    short_description: Update a component firmware using the image file available on the local or remote system
+    description:
+      - This module allows the firmware update of only one component at a time. If the module is run for more than one component, an error message is returned.
+      - Depending on the component, the firmware update is applied after an automatic or manual reboot.
+    options:
+      hostname:
+        required: true
+        type: str
+        description: iDRAC IP Address or hostname.
+      username:
+        type: str
+        description: iDRAC username with admin privileges.
+      password:
+        type: str
+        description: iDRAC user password.
+      https_port:
+        type: int
+        description: iDRAC port.
+        default: 443
+      validate_certs:
+        description:
+          - If C(False), the SSL certificates will not be validated.
+          - Configure C(False) only on personally controlled sites where self-signed certificates are used.
+          - Prior to collection version 5.0.0, I(validate_certs) is C(False) by default.
+        type: bool
+        default: true
+      ca_path:
+        description:
+          - The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+        type: path
+      http_timeout:
+        description: The socket level timeout in seconds.
+        type: int
+        default: 30
+      image_uri:
+        description:
+          - Firmware Image location URI or local path.
+          - For example- U(http://<web_address>/components.exe) or /home/firmware_repo/component.exe.
+        type: str
+        required: true
+      transfer_protocol:
+        description: Protocol used to transfer the firmware image file. Applicable for URI based update.
+        type: str
+        default: HTTP
+        choices:
+          ["CIFS", "FTP", "HTTP", "HTTPS", "NSF", "OEM", "SCP", "SFTP", "TFTP"]
+      job_wait:
+        description: Provides the option to wait for job completion.
+        type: bool
+        default: true
+      job_wait_timeout:
+        description:
+          - The maximum wait time of I(job_wait) in seconds. The job is tracked only for this duration.
+          - This option is applicable when I(job_wait) is C(True).
+        type: int
+        default: 3600

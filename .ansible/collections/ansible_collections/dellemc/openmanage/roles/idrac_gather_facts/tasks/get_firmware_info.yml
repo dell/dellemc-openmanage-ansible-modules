@@ -1,0 +1,12 @@
+---
+- name: Get Firmware information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}/redfish/v1/UpdateService/FirmwareInventory?$expand=*($levels=1)"
+  register: firmware_result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Set Firmware facts
+  ansible.builtin.set_fact:
+    firmware:
+      "{{ firmware_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type',
+      'Classifications@odata.count', 'IdentityInfoType@odata.count', 'IdentityInfoValue@odata.count']) }}"

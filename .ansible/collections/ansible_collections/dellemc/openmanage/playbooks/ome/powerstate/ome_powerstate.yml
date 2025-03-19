@@ -1,0 +1,51 @@
+---
+- name: Dell OpenManage Ansible - OME Power state operations.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Power state operation based on device id.
+      dellemc.openmanage.ome_powerstate:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_id: 11111
+        power_state: "off"
+      delegate_to: localhost
+
+    - name: Power state operation based on device service tag.
+      dellemc.openmanage.ome_powerstate:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_service_tag: "KLBR111"
+        power_state: "on"
+      delegate_to: localhost
+
+    - name: Power state operation based on list of device ids.
+      dellemc.openmanage.ome_powerstate:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_id: "{{ item.device_id }}"
+        power_state: "{{ item.state }}"
+      with_items:
+        - { "device_id": 11111, "state": "on" }
+        - { "device_id": 22222, "state": "off" }
+      delegate_to: localhost
+
+    - name: Power state operation based on list of device service tags.
+      dellemc.openmanage.ome_powerstate:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_service_tag: "{{ item.service_tag }}"
+        power_state: "{{ item.state }}"
+      with_items:
+        - { "service_tag": "KLBR111", "state": "on" }
+        - { "service_tag": "KLBR222", "state": "off" }
+      delegate_to: localhost

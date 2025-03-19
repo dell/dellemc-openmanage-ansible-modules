@@ -1,0 +1,13 @@
+---
+- name: Dell OpenManage Ansible User service.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Get action details of all alert policies.
+      dellemc.openmanage.ome_alert_policies_actions_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+      delegate_to: localhost

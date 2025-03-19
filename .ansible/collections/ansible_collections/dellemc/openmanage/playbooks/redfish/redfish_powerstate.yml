@@ -1,0 +1,46 @@
+---
+- name: Configure Server Power Setting
+  hosts: redfish
+  gather_facts: false
+
+  tasks:
+    - name: Manage power state of the first device.
+      dellemc.openmanage.redfish_powerstate:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        reset_type: "On"
+      delegate_to: localhost
+
+    - name: Manage power state of a specified device.
+      dellemc.openmanage.redfish_powerstate:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        reset_type: "ForceOff"
+        resource_id: "System.Embedded.1"
+      delegate_to: localhost
+
+    - name: Perform AC Power Cycle with final power state On
+      dellemc.openmanage.redfish_powerstate:
+        baseuri: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        oem_reset_type:
+          dell:
+            final_power_state: "On"
+            reset_type: "PowerCycle"
+
+    - name: Perform AC Power Cycle  with final power state Off
+      dellemc.openmanage.redfish_powerstate:
+        baseuri: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        oem_reset_type:
+          dell:
+            final_power_state: "Off"
+            reset_type: "PowerCycle"

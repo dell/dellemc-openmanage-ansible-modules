@@ -1,0 +1,93 @@
+---
+# vars file for idrac_os_deployment
+idrac_os_deployment_delegate: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+# OS Supported values Validation
+idrac_os_deployment_supported_os:
+  RHEL: ["8", "9"]
+  ESXI: ["8"]
+
+# Validation Error messages
+idrac_os_deployment_err_msg_os_required: "The parameters `os_name` and `os_version` is required."
+idrac_os_deployment_err_msg_unsupported_os: "The combination of OS name %s and version %s is not supported."
+idrac_os_deployment_err_msg_destination_required: "Input parameter `destination` is required."
+idrac_os_deployment_err_msg_root_password: "Please provide the root password for %s."
+idrac_os_deployment_err_msg_custom_iso_local: "Custom iso as a source with local protocol is not supported."
+idrac_os_deployment_err_msg_hostname_required: "Source hostname is required when custom iso is true or when protocol is http/https."
+idrac_os_deployment_err_msg_template: "Template with the name %s_%s.j2 doesn't exists in templates."
+idrac_os_deployment_err_msg_kickstat_file: "Kickstart file does not exist or is not readable %s."
+idrac_os_deployment_err_msg_iso_file: "Download or Copy of ISO failed from the location %s,
+ Please check if iso file exists or credentials are correct and retry."
+idrac_os_deployment_err_msg_ks_file: "Download or Copy of Kickstart failed from the location %s,
+ Please check if iso file exists or credentials are correct and retry."
+idrac_os_deployment_err_msg_destination_iso_name: "In the destination `iso_name` cannot be empty,
+ please provide the value or remove the var to auto name the custom iso file."
+idrac_os_deployment_err_msg_ks_file_ext: "The kickstart file extension should be `.cfg`and cannot be `%s`."
+idrac_os_deployment_err_msg_mountpoint_folder: "The folder specfied `destination.mountpoint` : %s doesn't exists."
+
+# Success messages
+idrac_os_deployment_out: ""
+idrac_os_deployment_success_message_os_deployment: "Successfully deployed the Operating System with the given custom iso."
+idrac_os_deployment_success_message_os_deployment_ks: "Successfully deployed the Operating System with the given kickstart file."
+idrac_os_deployment_success_message_os_deployment_iso: "Successfully deployed the Operating System."
+
+# download wget command
+idrac_os_deployment_wget_cmd: "wget %s --directory-prefix=%s"
+idrac_os_deployment_wget_cmd_vc: " --no-check-certificate"
+idrac_os_deployment_wget_cmd_creds: " --user=%s --password=%s"
+
+# Mode Settings
+idrac_os_deployment_src_copy_mode: "0744"
+idrac_os_deployment_copy_mode: "0744"
+idrac_os_deployment_iso_extract_dir_mode: "0755"
+idrac_os_deployment_dest_mode: "0755"
+idrac_os_deployment_ks_gen_mode: "0744"
+
+
+# temp directory settings
+idrac_os_deployment_extract_dir: extract
+idrac_os_deployment_temp_file_prefix: "omam_osd"
+
+# Attributes required to compile iso
+idrac_os_deployment_kickstart_file: ""
+idrac_os_deployment_iso_file: ""
+idrac_os_deployment_iso_extract_dir: ""
+idrac_os_deployment_custom_iso_filename: "{{ hostname }}_{{ source.iso_name }}"
+idrac_os_deployment_custom_iso_file: ""
+idrac_os_deployment_hybrid_cmd: isohybrid --uefi %s
+idrac_os_deployment_checksum_cmd: implantisomd5 %s
+idrac_os_deployment_xorriso_cmd: "xorriso -osirrox on -indev %s -extract / %s"
+
+# Attributes required to compile esxi iso
+idrac_os_deployment_esxi_ks_filename: "KS.CFG"
+idrac_os_deployment_esxi_ks_dest_prefix: "cdrom:/"
+idrac_os_deployment_esxi_ks_location: "{{ idrac_os_deployment_esxi_ks_dest_prefix }}{{ idrac_os_deployment_esxi_ks_filename }}"
+idrac_os_deployment_esxi_mkiso_cmd:
+  "mkisofs -relaxed-filenames -J -R -o %s -b ISOLINUX.BIN -c BOOT.CAT
+  -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot
+  -eltorito-platform efi -b EFIBOOT.IMG -no-emul-boot %s"
+
+# Attributes required to compile rhel iso
+idrac_os_deployment_rhel_ks_filename: "ks.cfg"
+idrac_os_deployment_rhel_ks_dest_prefix: "cdrom:/"
+idrac_os_deployment_rhel_ks_location: "{{ idrac_os_deployment_rhel_ks_dest_prefix }}{{ idrac_os_deployment_rhel_ks_filename }}"
+idrac_os_deployment_rhel_mkiso_cmd:
+  "mkisofs -o %s -b isolinux/isolinux.bin -J -R -l -c isolinux/boot.cat
+  -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img
+  -no-emul-boot -graft-points -joliet-long -V %s ."
+
+# Extra params
+idrac_os_deployment_set_no_log: false
+idrac_os_deployment_validate_kickstart_file_ext: true
+idrac_os_deployment_copied_to_destination: false
+idrac_os_deployment_virtual_media_attached: false
+idrac_os_deployment_vm_protocol: "{{ source.protocol }}"
+idrac_os_deployment_vm_hostname: "{{ source.hostname }}"
+idrac_os_deployment_vm_iso_path: "{{ source.iso_path }}"
+idrac_os_deployment_vm_iso_name: "{{ source.iso_name }}"
+idrac_os_deployment_vm_username: "{{ source.username }}"
+idrac_os_deployment_vm_password: "{{ source.password }}"
+idrac_os_deployment_vm_proto_map:
+  http: "http://%s%s/%s"
+  https: "https://%s%s/%s"
+  cifs: "//%s%s/%s"
+  nfs: "%s:%s/%s"

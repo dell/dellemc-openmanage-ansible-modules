@@ -1,0 +1,24 @@
+- name: Prepare
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Install urllib3 python package
+      ansible.builtin.command:
+        cmd: pip install urllib3
+      register: cmd_output
+      changed_when: cmd_output.rc == 0
+      failed_when: cmd_output.rc != 0
+
+    - name: Checking if path exists
+      ansible.builtin.stat:
+        path: "{{ lookup('env', 'redfish_firmware_image_local_path') }}"
+      register: directory_check
+      delegate_to: localhost
+
+    - name: Create directory if it doesn't exist
+      ansible.builtin.file:
+        path: "{{ lookup('env', 'redfish_firmware_image_local_path') }}"
+        state: directory
+        mode: "0755"
+      when: directory_check.stat.exists
+      delegate_to: localhost

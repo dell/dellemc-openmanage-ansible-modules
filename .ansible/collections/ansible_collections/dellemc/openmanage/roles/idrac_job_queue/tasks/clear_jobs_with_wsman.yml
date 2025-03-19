@@ -1,0 +1,70 @@
+---
+- name: Set uri options
+  ansible.builtin.set_fact:
+    idrac_job_queue_idrac_opts: &idrac_job_queue_idrac_opts
+      user: "{{ username | default(lookup('env', 'IDRAC_USERNAME')) }}"
+      password: "{{ password | default(lookup('env', 'IDRAC_PASSWORD')) }}"
+      validate_certs: "{{ validate_certs }}"
+      ca_path: "{{ ca_path | default(omit) }}"
+      body_format: "{{ idrac_job_queue_uri_body_format }}"
+      return_content: "{{ idrac_job_queue_uri_return_content }}"
+      force_basic_auth: "{{ idrac_job_queue_force_basic_auth }}"
+      timeout: "{{ https_timeout }}"
+  no_log: true
+
+- name: Perform clear job queue operation for iDRAC
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}/wsman"
+    <<: *idrac_job_queue_idrac_opts
+    headers:
+      Content-Type: "application/xml"
+    body: "{{ lookup('template', 'idrac_delete_job_queue.j2') }}"
+    status_code: 200
+  register: idrac_job_queue_clear_job_queue_out
+  delegate_to: "{{ idrac_job_queue_delegate }}"
+  changed_when: idrac_job_queue_clear_job_queue_out.content
+    is search(".*<n1:MessageID>SUP020</n1:MessageID>.*")
+  when: force is undefined or force is false
+
+- name: Perform clear job queue operation with force for iDRAC
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}/wsman"
+    <<: *idrac_job_queue_idrac_opts
+    headers:
+      Content-Type: "application/xml"
+    body: "{{ lookup('template', 'idrac_delete_job_queue_force.j2') }}"
+    status_code: 200
+  register: idrac_job_queue_clear_job_queue_force_out
+  delegate_to: "{{ idrac_job_queue_delegate }}"
+  changed_when: idrac_job_queue_clear_job_queue_force_out.content
+    is search(".*<n1:MessageID>SUP020</n1:MessageID>.*")
+  when: force is defined and force is true
+
+- name: Set output Message for clear job queue successfully for iDRAC
+  ansible.builtin.set_fact:
+    idrac_job_queue_out:
+      msg: "{{ idrac_job_queue_job_clear_queue_success_msg }}"
+  when:
+    - idrac_job_queue_clear_job_queue_out is defined
+    - idrac_job_queue_clear_job_queue_out.changed is true
+    - idrac_job_queue_clear_job_queue_out.status is defined
+    - idrac_job_queue_clear_job_queue_out.status == 200
+
+- name: Set output Message for clear job queue with force successfully for iDRAC
+  ansible.builtin.set_fact:
+    idrac_job_queue_out:
+      msg: "{{ idrac_job_queue_job_clear_queue_success_msg }}"
+  when:
+    - idrac_job_queue_clear_job_queue_force_out is defined
+    - idrac_job_queue_clear_job_queue_force_out.changed is true
+    - idrac_job_queue_clear_job_queue_force_out.status is defined
+    - idrac_job_queue_clear_job_queue_force_out.status == 200
+
+- name: Set output Message for clear job queue failure for iDRAC
+  ansible.builtin.fail:
+    msg: "{{ idrac_job_queue_job_clear_queue_failure_msg }}"
+  when:
+    - idrac_job_queue_clear_job_queue_out is defined
+    - idrac_job_queue_clear_job_queue_out.changed is false
+    - idrac_job_queue_clear_job_queue_out.status is defined
+    - idrac_job_queue_clear_job_queue_out.status != 200

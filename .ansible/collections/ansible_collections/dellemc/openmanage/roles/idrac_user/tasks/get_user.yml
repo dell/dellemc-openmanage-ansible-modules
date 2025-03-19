@@ -1,0 +1,22 @@
+---
+- name: Set user_name based on new_user_name
+  ansible.builtin.set_fact:
+    idrac_user_present_name: "{{ new_user_name if new_user_name is defined else user_name }}"
+
+- name: Fetch user account details
+  dellemc.openmanage.idrac_user_info:
+    idrac_ip: "{{ hostname }}"
+    idrac_user: "{{ username | default(omit) }}"
+    idrac_password: "{{ password | default(omit) }}"
+    idrac_port: "{{ https_port }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    validate_certs: "{{ validate_certs }}"
+    username: "{{ idrac_user_present_name }}"
+    timeout: "{{ https_timeout }}"
+  register: idrac_user_account
+  delegate_to: "{{ idrac_user_delegate }}"
+
+- name: Extracting user account details
+  ansible.builtin.set_fact:
+    idrac_user_account: "{{ idrac_user_account.user_info[0] |
+      ansible.utils.remove_keys('Keys') }}"

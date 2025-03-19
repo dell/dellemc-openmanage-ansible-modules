@@ -1,0 +1,42 @@
+---
+- name: Configure Redfish subscriptions
+  hosts: redfish
+  gather_facts: false
+
+  tasks:
+    - name: Add Redfish metric subscription
+      dellemc.openmanage.redfish_event_subscription:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        destination: "https://192.168.1.100:8188"
+        event_type: MetricReport
+        event_format_type: MetricReport
+        state: present
+      tags: add_metric_subscription
+      delegate_to: localhost
+
+    - name: Add Redfish alert subscription
+      dellemc.openmanage.redfish_event_subscription:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        destination: "https://server01.example.com:8188"
+        event_type: Alert
+        event_format_type: Event
+        state: present
+      tags: add_alert_subscription
+      delegate_to: localhost
+
+    - name: Delete Redfish subscription with a specified destination
+      dellemc.openmanage.redfish_event_subscription:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        destination: "https://server01.example.com:8188"
+        state: absent
+      tags: delete_subscription
+      delegate_to: localhost

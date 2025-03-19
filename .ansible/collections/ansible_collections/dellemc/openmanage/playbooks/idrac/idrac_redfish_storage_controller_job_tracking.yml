@@ -1,0 +1,145 @@
+---
+- name: Redfish storage controller service with job tracking for iDRAC.
+  hosts: idrac
+  gather_facts: false
+  vars:
+    retries_count: 100
+    polling_interval: 10
+    all_ctrl_task_tags:
+      - assign_dedicated_hot_spare
+      - assign_global_hot_spare
+      - set_controller_key
+      - rekey_lkm
+      - rekey_sekm
+      - remove_controller_key
+      - reset_config
+
+  # Use a single tag to run each task with job tracker
+  tasks:
+    - name: Assign dedicated hot spare.
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "AssignSpare"
+        volume_id:
+          - "Disk.Virtual.0:RAID.Slot.1-1"
+        target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
+      register: result
+      tags:
+        - assign_dedicated_hot_spare
+      delegate_to: localhost
+
+    - name: Assign global hot spare.
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "AssignSpare"
+        target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
+      register: result
+      tags:
+        - assign_global_hot_spare
+      delegate_to: localhost
+
+    - name: Set controller encryption key.
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "SetControllerKey"
+        controller_id: "RAID.Slot.1-1"
+        key: "PassPhrase@123"
+        key_id: "mykeyid123"
+      register: result
+      tags:
+        - set_controller_key
+      delegate_to: localhost
+
+    - name: Rekey in LKM mode.
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "ReKey"
+        controller_id: "RAID.Slot.1-1"
+        key: "NewPassPhrase@123"
+        key_id: "newkeyid123"
+        old_key: "OldPassPhrase@123"
+      register: result
+      tags:
+        - rekey_lkm
+      delegate_to: localhost
+
+    - name: Rekey in SEKM mode.
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "ReKey"
+        controller_id: "RAID.Slot.1-1"
+        mode: "SEKM"
+      register: result
+      tags:
+        - rekey_sekm
+      delegate_to: localhost
+
+    - name: Remove controller key.
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "RemoveControllerKey"
+        controller_id: "RAID.Slot.1-1"
+      register: result
+      tags:
+        - remove_controller_key
+      delegate_to: localhost
+
+    - name: Reset controller configuration.
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "ResetConfig"
+        controller_id: "RAID.Slot.1-1"
+      register: result
+      tags:
+        - reset_config
+      delegate_to: localhost
+
+    - name: Job tracking iDRAC
+      ansible.builtin.uri:
+        url: "https://{{ baseuri }}{{ result.task.uri }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        method: "GET"
+        use_proxy: true
+        status_code: 200, 202
+        return_content: true
+        validate_certs: false
+        force_basic_auth: true
+        headers:
+          Content-Type: "application/json"
+          Accept: "application/json"
+      register: result
+      until: result.json.JobState == 'Completed'
+      retries: "{{ retries_count }}"
+      delay: "{{ polling_interval }}"
+      tags: "{{ all_ctrl_task_tags }}"
+      delegate_to: localhost
+
+    - name: Job result of iDRAC
+      ansible.builtin.set_fact:
+        job_details: "{{ result.json }}"
+      failed_when: result.json.Message == "Failed"
+      changed_when: result.json.Message != "Failed"
+      tags: "{{ all_ctrl_task_tags }}"
+      delegate_to: localhost

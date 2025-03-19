@@ -1,0 +1,122 @@
+---
+argument_specs:
+  main:
+    version_added: "7.6.0"
+    short_description: Modify and clear BIOS attributes, and reset BIOS settings
+    description:
+      - This role allows to modify BIOS attributes, clear pending BIOS attributes, and reset the BIOS to default settings.
+    options:
+      hostname:
+        required: true
+        type: str
+        description:
+          - iDRAC IP Address.
+      username:
+        type: str
+        description:
+          - iDRAC username.
+      password:
+        type: str
+        description:
+          - iDRAC user password.
+      https_port:
+        type: int
+        description:
+          - iDRAC port.
+        default: 443
+      validate_certs:
+        description:
+          - If C(false), the SSL certificates will not be validated.
+          - Configure C(false) only on personally controlled sites where self-signed certificates are used.
+        type: bool
+        default: true
+      ca_path:
+        description:
+          - The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+        type: path
+      https_timeout:
+        description:
+          - The socket level timeout in seconds.
+        type: int
+        default: 30
+      attributes:
+        type: dict
+        description:
+          - Dictionary of BIOS attributes and value pair.
+            Attributes should be part of the Redfish Dell BIOS Attribute Registry.
+            Use idrac_gather_facts role to fetch the BIOS attributes.
+          - This is mutually exclusive with I(reset_bios).
+      apply_time:
+        description:
+          - Apply time of the I(attributes).
+          - This is applicable only to I(attributes).
+          - C(Immediate) Allows the user to immediately reboot the host and apply the changes. I(job_wait) is applicable.
+          - C(OnReset) Allows the user to apply the changes on the next reboot of the host server.
+          - C(AtMaintenanceWindowStart) Allows the user to apply the changes at the start of a maintenance window as specified in
+            I(maintenance_window). A reboot job will be scheduled.
+          - C(InMaintenanceWindowOnReset) Allows to apply the changes after a manual reset but within the maintenance window as specified in
+            I(maintenance_window).
+        choices:
+          [
+            Immediate,
+            OnReset,
+            AtMaintenanceWindowStart,
+            InMaintenanceWindowOnReset,
+          ]
+        default: Immediate
+      maintenance_window:
+        type: dict
+        description:
+          - Option to schedule the maintenance window.
+          - This is required when I(apply_time) is C(AtMaintenanceWindowStart) or C(InMaintenanceWindowOnReset).
+        options:
+          start_time:
+            type: str
+            description:
+              - The start time for the maintenance window to be scheduled.
+              - "The format is YYYY-MM-DDThh:mm:ss<offset>"
+              - "<offset> is the time offset from UTC that the current time zone set in iDRAC in the format: +05:30 for IST."
+            required: true
+          duration:
+            type: int
+            description:
+              - The duration in seconds for the maintenance window.
+            required: true
+      clear_pending:
+        type: bool
+        description:
+          - Allows the user to clear all pending BIOS attributes changes.
+          - C(true) discards any pending changes to BIOS attributes or removes the job if in scheduled state.
+          - This operation will not create any job.
+          - C(false) does not perform any operation.
+          - This is mutually exclusive with I(boot_sources), I(attributes), and I(reset_bios).
+          - C(Note) Any BIOS job scheduled will not be cleared because of boot sources configuration.
+      reset_bios:
+        type: bool
+        description:
+          - Resets the BIOS to default settings and triggers a reboot of host system.
+          - This is applied to the host after the restart.
+          - This operation will not create any job.
+          - C(false) does not perform any operation.
+          - This is mutually exclusive with I(boot_sources), I(attributes), and I(clear_pending).
+          - When C(true), this action will always report as changes found to be applicable.
+      reset_type:
+        type: str
+        description:
+          - C(force_restart) Forcefully reboot the host system.
+          - C(graceful_restart) Gracefully reboot the host system.
+          - This is applicable for I(reset_bios), and I(attributes) when I(apply_time) is C(Immediate).
+        choices: [graceful_restart, force_restart]
+        default: graceful_restart
+      job_wait:
+        type: bool
+        description:
+          - Provides the option to wait for job completion.
+          - This is applicable for I(attributes) when I(apply_time) is C(Immediate).
+        default: true
+      job_wait_timeout:
+        type: int
+        description:
+          - The maximum wait time of I(job_wait) in seconds. The job is tracked only for this duration.
+          - This option is applicable when I(job_wait) is C(true).
+        default: 1200

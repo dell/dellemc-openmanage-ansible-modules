@@ -1,0 +1,6 @@
+---
+- name: Executing redfish storage volume
+  hosts: localhost
+  remote_user: root
+  roles:
+    - redfish_storage_volume

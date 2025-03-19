@@ -1,0 +1,12 @@
+---
+- name: Get Sensor Voltage information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_chassis }}/Power#/Voltages"
+  register: voltage_result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Set Sensor Voltage facts
+  ansible.builtin.set_fact:
+    "voltages":
+      "{{ voltage_result.json.Voltages | ansible.utils.remove_keys(target=['@odata.context',
+      '@odata.id', '@odata.type']) }}"

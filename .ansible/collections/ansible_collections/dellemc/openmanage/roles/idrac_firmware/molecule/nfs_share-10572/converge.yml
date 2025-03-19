@@ -1,0 +1,43 @@
+---
+- name: Converge idrac_firmware for nfsshare
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Update firmware from repository on a NFS Share
+      ansible.builtin.import_role:
+        name: dellemc.openmanage.idrac_firmware
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        share_name: "{{ lookup('env', 'nfsshare') }}"
+        validate_certs: false
+        reboot: true
+        job_wait: true
+        apply_update: true
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
+
+    - name: "Waiting for idrac to be reachable"
+      ansible.builtin.include_tasks:
+        file: "../resources/_wait_for_port_to_open.yaml"
+      when: not ansible_check_mode
+      tags: molecule-idempotence-notest
+
+    - name: "Verifying update firmware from repository on a NFS Share in check mode"
+      ansible.builtin.assert:
+        that: idrac_firmware_out.msg == "Changes found to commit!"
+      when: ansible_check_mode
+      tags: molecule-idempotence-notest
+
+    - name: "Verifying update firmware from repository on a NFS Share in normal mode"
+      ansible.builtin.assert:
+        that:
+          - idrac_firmware_out.msg == "Successfully updated the firmware."
+      when: not ansible_check_mode and idrac_firmware_out.changed
+
+    - name: "Verifying update firmware from repository on a NFS Share in idempotence mode"
+      ansible.builtin.assert:
+        that:
+          - idrac_firmware_out.msg == "Unable to complete the operation because the catalog name entered has either unsupported firmware packages
+            or same version installed on the server."
+      when: not ansible_check_mode and not idrac_firmware_out.changed

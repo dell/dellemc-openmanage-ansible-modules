@@ -1,0 +1,6 @@
+---
+- name: Executing iDRAC powercycle control role
+  hosts: localhost
+  remote_user: root
+  roles:
+    - idrac_server_powerstate

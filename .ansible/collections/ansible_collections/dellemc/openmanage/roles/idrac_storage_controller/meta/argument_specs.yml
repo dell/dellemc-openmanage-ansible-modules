@@ -1,0 +1,215 @@
+---
+argument_specs:
+  main:
+    version_added: "7.6.0"
+    short_description: Configures the physical disk, virtual disk, and storage controller settings
+    description:
+      - This role allows the users to configure the settings of the physical disk, virtual disk,
+        and storage controller on iDRAC9 based PowerEdge servers.
+    options:
+      hostname:
+        required: true
+        type: str
+        description: iDRAC IP Address.
+      username:
+        type: str
+        description: iDRAC username.
+      password:
+        type: str
+        description: iDRAC user password.
+      https_port:
+        type: int
+        description: iDRAC port.
+        default: 443
+      validate_certs:
+        description:
+          - If C(false), the SSL certificates will not be validated.
+          - Configure C(false) only on personally controlled sites where self-signed certificates are used.
+        type: bool
+        default: true
+      ca_path:
+        description:
+          - The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+        type: path
+      https_timeout:
+        description: The socket level timeout in seconds.
+        type: int
+        default: 30
+      controller_id:
+        required: true
+        description: The ID of the controller on which the operations need to be performed.
+        type: str
+      volumes:
+        type: dict
+        description: List of volume that belongs to I(controller_id).
+        options:
+          id:
+            required: true
+            type: str
+            description: Fully Qualified Device Descriptor (FQDD) of the volume.
+          dedicated_hot_spare:
+            type: str
+            description:
+              - Fully Qualified Device Descriptor (FQDD) of the physical disk to assign the volume
+                as a dedicated hot spare to a disk.
+          encrypted:
+            type: bool
+            description: To encrypt the virtual disk.
+          expand_capacity_disk:
+            type: str
+            description:
+              - Fully Qualified Device Descriptor (FQDD) of the disk for expanding the capacity with
+                the existing disk.
+              - I(expand_capacity_size) is mutually exclusive with I(expand_capacity_disk).
+          expand_capacity_size:
+            type: str
+            description:
+              - Capacity of the virtual disk to be expanded in MB.
+              - Check mode and Idempotency is not supported for I(expand_capacity_size).
+              - Minimum Online Capacity Expansion size must be greater than 100 MB of the current size.
+              - I(expand_capacity_disk) is mutually exclusive with I(expand_capacity_size).
+          blink:
+            type: bool
+            description:
+              - Blinks the target virtual disk and it always reports as changes found when
+                check mode is enabled.
+      disks:
+        type: dict
+        description: List of physical disks that belongs to I(controller_id).
+        options:
+          id:
+            required: true
+            type: str
+            description: Fully Qualified Device Descriptor (FQDD) of the physical disk.
+          blink:
+            type: bool
+            description:
+              - Blinks the target physical disk and it always reports as changes found when
+                check mode is enabled.
+          raid_state:
+            type: str
+            description:
+              - Converts the disk form Non-Raid to Raid and vice versa.
+              - C(raid) converts the physical disk to Raid.
+              - C(nonraid) converts the physical disk to Non Raid.
+            choices: [raid, nonraid]
+          status:
+            type: str
+            description:
+              - Converts the disk form online to offline and vice versa.
+              - C(online) converts the physical disk status to online.
+              - C(offline) converts the physical disk status to offline.
+            choices: [online, offline]
+          global_hot_spare:
+            type: bool
+            description:
+              - Assigns a global hot spare or unassigns a hot spare.
+              - C(true) assigns the disk as a global hot spare.
+              - C(false) unassigns the disk as a hot spare.
+          erase:
+            type: bool
+            description:
+              - To delete all the data on the physical disk securely. This
+               option is available for Self-Encrypting Drives (SED), Instant
+               Scramble Erase (ISE) drives, and PCIe SSD devices
+               (drives and cards).The drives must be in a ready state.
+               I(controller_id) and I(target) are required for this operation,
+               I(target) must be a single physical disk ID. If a secure erase
+               needs a reboot, the job will get scheduled and waits for no of
+               seconds specfied in I(job_wait_time), to reduce the wait time
+               either give I(job_wait_time) minimum or make I(job_wait) as
+               false.
+              - C(true) securely erase the disk.
+              - C(false) skips the secure erase operation.
+      reset_config:
+        type: bool
+        description: To reset the controller.
+      set_controller_key:
+        type: bool
+        description:
+          - Set the security key or enable controller encryption.
+          - If I(mode) is provided controller encryption operation is performed, otherwise sets the
+            controller security key.
+          - I(key), and I(key_id) are required for this operation.
+      rekey:
+        type: bool
+        description: Resets the key on the controller and it always reports as changes found when check mode is enabled.
+      remove_key:
+        type: bool
+        description: Remove the key on controllers.
+      key:
+        type: str
+        description:
+          - A new security key passphrase that the encryption-capable controller uses to create the
+            encryption key. The controller uses the encryption key to lock or unlock access to the Self-Encrypting
+            Drive (SED). Only one encryption key can be created for each controller.
+          - This is mandatory when I(set_controller_key) is C(true), I(rekey) is C(true).
+          - The length of the key can be a maximum of 32 characters in length, where the expanded form of the special
+            character is counted as a single character.
+          - The key must contain at least one character from each of the character classes are uppercase, lowercase,
+            number, and special character.
+      key_id:
+        type: str
+        description:
+          - This is a user supplied text label associated with the passphrase.
+          - This is mandatory when I(set_controller_key) is C(true), I(rekey) is C(true).
+          - The length of I(key_id) can be a maximum of 32 characters in length and should not have any spaces.
+      old_key:
+        type: str
+        description:
+          - Security key passphrase used by the encryption-capable controller.
+          - This option is mandatory when I(rekey) is C(true).
+      mode:
+        type: str
+        description:
+          - Encryption mode of the encryption capable controller.
+          - This option is mandatory when I(rekey) is C(true) and for enabling controller encryption.
+          - C(SEKM) to choose mode as secure enterprise key manager.
+          - C(LKM) to choose mode as local key management.
+        choices: [LKM, SEKM]
+      attributes:
+        type: dict
+        description:
+          - Dictionary of controller attributes and value pair.
+          - This feature is only supported for iDRAC9 with firmware version 6.00.00.00 and above.
+          - I(controller_id) is required for this operation.
+          - I(apply_time) and I(maintenance_window) is applicable for I(attributes).
+          - Use U(https://I(idrac_ip)/redfish/v1/Schemas/DellOemStorageController.json) to view the attributes.
+      apply_time:
+        type: str
+        description:
+          - Apply time of the I(attributes).
+          - This is applicable only to I(attributes).
+          - C(Immediate) Allows the user to immediately reboot the host and apply the changes. I(job_wait)
+            is applicable.
+          - C(OnReset) Allows the user to apply the changes on the next reboot of the host server.
+          - C(AtMaintenanceWindowStart) Allows the user to apply the changes at the start of a maintenance window
+            as specified in I(maintenance_window).
+          - C(InMaintenanceWindowOnReset) Allows the users to apply after a manual reset but within the maintenance
+            window as specified in I(maintenance_window).
+        choices:
+          [
+            Immediate,
+            OnReset,
+            AtMaintenanceWindowStart,
+            InMaintenanceWindowOnReset,
+          ]
+        default: Immediate
+      maintenance_window:
+        type: dict
+        description:
+          - Option to schedule the maintenance window.
+          - This is required when I(apply_time) is C(AtMaintenanceWindowStart) or C(InMaintenanceWindowOnReset).
+        options:
+          start_time:
+            required: true
+            type: str
+            description:
+              - The start time for the maintenance window to be scheduled.
+              - The format is YYYY-MM-DDThh:mm:ss<offset>
+              - <offset> is the time offset from UTC that the current timezone set in iDRAC in the
+                format is +05:30 for IST.
+          duration:
+            type: int
+            description: The duration in seconds for the maintenance window.
+            default: 900

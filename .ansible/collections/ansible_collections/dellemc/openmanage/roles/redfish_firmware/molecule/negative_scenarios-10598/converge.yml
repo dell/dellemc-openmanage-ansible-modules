@@ -1,0 +1,174 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  vars:
+    redfish_firmware_image_url_without_reboot: "{{ lookup('env', 'redfish_firmware_image_url_without_reboot') }}"
+    redfish_firmware_image_url_need_reboot: "{{ lookup('env', 'redfish_firmware_image_url_need_reboot') }}"
+    redfish_firmware_image_local_path: "{{ lookup('env', 'redfish_firmware_image_local_path') }}"
+  tasks:
+    - name: Checking if HTTP url is empty
+      ansible.builtin.fail:
+        msg: Please provide HTTP url for redfish_firmware in molecule.yml
+      when: redfish_firmware_image_url_without_reboot == "" and redfish_firmware_image_url_need_reboot == ""
+
+    - name: Downloading firmware image for local manual reboot
+      ansible.builtin.get_url:
+        url: "{{ redfish_firmware_image_url_need_reboot }}"
+        dest: "{{ redfish_firmware_image_local_path }}"
+        mode: "0755"
+      delegate_to: localhost
+
+    - name: TC - 003 - Provide wrong hostname
+      ansible.builtin.import_role:
+        name: redfish_firmware
+      vars:
+        hostname: "randomHostname"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        image_uri: "{{ redfish_firmware_image_url_need_reboot }}"
+        job_wait_timeout: 60
+      ignore_errors: true
+      ignore_unreachable: true
+      register: redfish_firmware_error_msg
+
+    - name: TC - 003 - Asserting wrong hostname
+      ansible.builtin.assert:
+        that:
+          - redfish_firmware_out.msg == "<urlopen error [Errno -2] Name or service not known>" or
+            redfish_firmware_out.msg == "<urlopen error Unable to resolve hostname or IP randomHostname:443.>"
+
+    - name: TC - 004 - Provide wrong username
+      ansible.builtin.import_role:
+        name: redfish_firmware
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "WrongUsername123"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        image_uri: "{{ redfish_firmware_image_url_need_reboot }}"
+        job_wait_timeout: 60
+      ignore_errors: true
+      ignore_unreachable: true
+      register: redfish_firmware_error_msg
+
+    - name: TC - 004 - Asserting wrong username
+      ansible.builtin.assert:
+        that:
+          - '"HTTP Error 401" in redfish_firmware_out.msg'
+
+    - name: TC - 005 - Provide wrong password
+      ansible.builtin.import_role:
+        name: redfish_firmware
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "WrongPassword@123"
+        validate_certs: false
+        image_uri: "{{ redfish_firmware_image_url_need_reboot }}"
+        job_wait_timeout: 60
+      ignore_errors: true
+      ignore_unreachable: true
+      register: redfish_firmware_error_msg
+
+    - name: TC - 005 - Asserting wrong password
+      ansible.builtin.assert:
+        that: |-
+          ('"HTTP Error 401" in redfish_firmware_out.msg')
+          or
+          ('"urlopen error timed out" in redfish_firmware_out.msg')
+
+    - name: TC - 006 - Providing invalid validate_certs
+      ansible.builtin.import_role:
+        name: redfish_firmware
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: 'someStringValue'
+        image_uri: "{{ redfish_firmware_image_url_need_reboot }}"
+        job_wait_timeout: 60
+      ignore_errors: true
+      ignore_unreachable: true
+      register: redfish_firmware_error_msg
+
+    - name: TC - 006 - Asserting invalid validate_certs
+      ansible.builtin.assert:
+        that:
+          - '"Valid booleans include" in redfish_firmware_out.msg'
+
+    - name: TC - 007 - Providing invalid local path in image_uri
+      ansible.builtin.import_role:
+        name: redfish_firmware
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        image_uri: "/tmp/file_not_exists.iso"
+        job_wait_timeout: 60
+      ignore_errors: true
+      register: redfish_firmware_error_msg
+
+    - name: TC - 007 - Asserting invalid local path in image_uri
+      ansible.builtin.assert:
+        that:
+          - '"No such file or directory" in redfish_firmware_out.msg'
+
+    - name: TC - 008 - Providing invalid HTTP in image_uri
+      ansible.builtin.import_role:
+        name: redfish_firmware
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        image_uri: "http://www.example.com"
+        job_wait_timeout: 60
+      ignore_errors: true
+      register: redfish_firmware_error_msg
+
+    - name: TC - 008 - Asserting invalid HTTP in image_uri
+      ansible.builtin.assert:
+        that:
+          - redfish_firmware_out.msg == "Firmware update failed."
+          - not redfish_firmware_out.changed
+
+    - name: TC - 009 - Providing job_wait_timeout as -100 with auto reboot firmware component
+      ansible.builtin.import_role:
+        name: redfish_firmware
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        image_uri: "{{ redfish_firmware_image_url_without_reboot }}"
+        job_wait_timeout: -100
+
+    - name: TC - 009 - Asserting job_wait_timeout as -100 with auto reboot firmware component
+      ansible.builtin.assert:
+        that:
+          - redfish_firmware_out.msg == "Successfully submitted the firmware update task."
+          - redfish_firmware_out.changed
+
+    - name: TC - 009 - Waiting for job completion
+      ansible.builtin.uri:
+        url: "https://{{ lookup('env', 'IDRAC_IP') }}/redfish/v1/JobService/Jobs/{{ redfish_firmware_out.task.id }}"
+        validate_certs: false
+        method: "GET"
+        user: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        headers:
+          Accept: "application/json"
+          Content-Type: "application/json"
+          OData-Version: "4.0"
+        body_format: "json"
+        status_code:
+          - 200
+        return_content: true
+      register: job_result
+      until: job_result.json.JobState == 'Completed' or job_result.json.JobState == 'Failed'
+      retries: 30
+      delay: 10
+      when: redfish_firmware_out.changed # noqa: no-handler

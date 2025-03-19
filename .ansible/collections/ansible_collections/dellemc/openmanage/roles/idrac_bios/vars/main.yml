@@ -1,0 +1,7 @@
+---
+# vars file for idrac_bios
+idrac_bios_mutual_exclusive_msg: "attributes/clear_pending and reset_bios is mutually exclusive."
+idrac_bios_clear_pending_out: ""
+idrac_bios_attributes_out: ""
+idrac_bios_reset_bios_out: ""
+idrac_bios_delegate: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"

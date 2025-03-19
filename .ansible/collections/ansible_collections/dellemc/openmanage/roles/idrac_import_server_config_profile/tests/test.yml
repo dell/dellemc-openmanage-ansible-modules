@@ -1,0 +1,5 @@
+---
+- name: Importing server config profile for iDRAC
+  hosts: localhost
+  roles:
+    - idrac_import_server_config_profile

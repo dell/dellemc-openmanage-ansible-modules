@@ -1,0 +1,74 @@
+---
+- name: Dell OpenManage Ansible group device operations.
+  hosts: ome
+  gather_facts: false
+  vars:
+    group_name: Dell iDRAC Servers
+    device_action: refresh_inventory # other options are clear_idrac_job_queue, reset_idrac
+    validate_certs: true
+    ca_path: "/path/to/ca_cert.pem"
+
+  tasks:
+    - name: Retrieve group ID based on group name.
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}/api/GroupService/Groups?Name={{ group_name }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        method: "GET"
+        use_proxy: true
+        status_code: 200
+        return_content: true
+        validate_certs: "{{ validate_certs }}"
+        ca_path: "{{ ca_path }}"
+        force_basic_auth: true
+        headers:
+          Content-Type: "application/json"
+          Accept: "application/json"
+      register: group_id
+      delegate_to: localhost
+
+    - name: Assign group ID to a variable.
+      ansible.builtin.set_fact:
+        group_id_value: "{{ group_id.json.value[0].Id }}"
+      delegate_to: localhost
+
+    - name: Retrieve all devices under the group ID.
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}/api/GroupService/Groups({{ group_id_value }})/AllLeafDevices"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        method: "GET"
+        use_proxy: true
+        status_code: 200
+        return_content: true
+        validate_certs: "{{ validate_certs }}"
+        ca_path: "{{ ca_path }}"
+        force_basic_auth: true
+        headers:
+          Content-Type: "application/json"
+          Accept: "application/json"
+      register: all_devices
+      delegate_to: localhost
+
+    - name: Empty list to store device IDs.
+      ansible.builtin.set_fact:
+        devices_list: []
+      delegate_to: localhost
+
+    - name: Add devices retrieved from a group to the list.
+      ansible.builtin.set_fact:
+        devices_list: "{{ devices_list + [item.Id] }}"
+      with_items:
+        - "{{ all_devices.json.value }}"
+      delegate_to: localhost
+
+    - name: Perform device action tasks on devices. # noqa: args[module]
+      dellemc.openmanage.ome_devices:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: "{{ validate_certs }}"
+        ca_path: "{{ ca_path }}"
+        device_action: "{{ device_action }}"
+        device_ids: "{{ devices_list }}"
+      delegate_to: localhost

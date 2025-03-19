@@ -1,0 +1,67 @@
+---
+# tasks file for idrac_bios
+- name: Performing idrac_bios operation
+  block:
+    - name: Checking attributes/clear_pending and reset_bios is mutually exclusive
+      ansible.builtin.fail:
+        msg: "{{ idrac_bios_mutual_exclusive_msg }}"
+      when:
+        - (attributes is defined and (reset_bios is defined and reset_bios))
+          or
+          (clear_pending and (reset_bios is defined and reset_bios))
+
+    - name: Setting idrac_inputs
+      ansible.builtin.set_fact:
+        idrac_inputs: &idrac_inputs
+          idrac_ip: "{{ hostname }}"
+          idrac_port: "{{ https_port }}"
+          idrac_user: "{{ username }}"
+          idrac_password: "{{ password }}"
+          ca_path: "{{ ca_path | default(omit) }}"
+          validate_certs: "{{ validate_certs }}"
+          timeout: "{{ https_timeout }}"
+          job_wait: "{{ job_wait }}"
+          job_wait_timeout: "{{ job_wait_timeout }}"
+      no_log: true
+
+    - name: Performing clear pending operation
+      dellemc.openmanage.idrac_bios:
+        <<: *idrac_inputs
+        clear_pending: "{{ clear_pending }}"
+      register: idrac_bios_clear_pending_out
+      delegate_to: "{{ idrac_bios_delegate }}"
+      when: clear_pending
+
+    - name: Configuring the bios attributes
+      dellemc.openmanage.idrac_bios:
+        <<: *idrac_inputs
+        attributes: "{{ attributes }}"
+        apply_time: "{{ apply_time }}"
+        maintenance_window: "{{ maintenance_window | default(omit) }}"
+        reset_type: "{{ reset_type }}"
+      register: idrac_bios_attributes_out
+      delegate_to: "{{ idrac_bios_delegate }}"
+      when: attributes is defined
+
+    - name: Performing the reset bios operation
+      dellemc.openmanage.idrac_bios:
+        <<: *idrac_inputs
+        reset_bios: "{{ reset_bios }}"
+        reset_type: "{{ reset_type }}"
+      register: idrac_bios_reset_bios_out
+      delegate_to: "{{ idrac_bios_delegate }}"
+      when: reset_bios is defined and reset_bios
+
+  always:
+    - name: Set fact for idrac_bios_out
+      ansible.builtin.set_fact:
+        idrac_bios_out: "{{ idrac_bios_out | default({}) | combine({item.key: item.value}) }}"
+      with_items:
+        - { "key": "clear_pending", "value": "{{ idrac_bios_clear_pending_out }}" }
+        - { "key": "attributes", "value": "{{ idrac_bios_attributes_out }}" }
+        - { "key": "reset_bios", "value": "{{ idrac_bios_reset_bios_out }}" }
+      no_log: true
+
+    - name: Printing idrac_bios_out
+      ansible.builtin.debug:
+        var: idrac_bios_out

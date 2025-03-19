@@ -1,0 +1,45 @@
+---
+- name: "Ansible Module for Simple Firmware Rollback"
+  hosts: redfish_hosts
+  gather_facts: false
+  tasks:
+
+    - name: Rollback a BIOS component firmware
+      dellemc.openmanage.redfish_firmware_rollback:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        name: "BIOS"
+      delegate_to: localhost
+      tags: rollback-bios
+
+    - name: Rollback all NIC cards with a name starting from 'Broadcom Gigabit'.
+      dellemc.openmanage.redfish_firmware_rollback:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        name: "Broadcom Gigabit Ethernet.*"
+      delegate_to: localhost
+      tags: rollback-match
+
+    - name: Rollback all the component firmware except BIOS component.
+      dellemc.openmanage.redfish_firmware_rollback:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        name: "(?!BIOS).*"
+      delegate_to: localhost
+      tags: rollback-except
+
+    - name: Rollback all the available firmware component.
+      dellemc.openmanage.redfish_firmware_rollback:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        name: ".*"
+      delegate_to: localhost
+      tags: rollback-all

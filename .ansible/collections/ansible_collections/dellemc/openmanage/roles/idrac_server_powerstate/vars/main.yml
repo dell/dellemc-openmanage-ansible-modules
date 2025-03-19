@@ -1,0 +1,3 @@
+---
+# vars file for idrac_server_powerstate
+idrac_server_powerstate_task_delegate: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"

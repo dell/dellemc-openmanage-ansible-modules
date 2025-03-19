@@ -1,0 +1,2 @@
+---
+idrac_storage_controller_task_delegate: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"

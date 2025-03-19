@@ -1,0 +1,12 @@
+---
+- name: Get Sensor Battery information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_chassis }}?$select=PhysicalSecurity/IntrusionSensor"
+  register: intrusion_result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Set Sensor Battery facts
+  ansible.builtin.set_fact:
+    "intrusion_sensor": "{{ intrusion_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type']) }}"
+  when: intrusion_result.status == 200
+  register: intrusion_result_register

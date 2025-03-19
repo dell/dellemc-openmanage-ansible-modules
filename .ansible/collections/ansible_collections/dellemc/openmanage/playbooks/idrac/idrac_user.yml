@@ -1,0 +1,71 @@
+---
+- name: Configure the iDRAC users attributes
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Configure the create iDRAC users attributes
+      dellemc.openmanage.idrac_user:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "present"
+        user_name: "user_name"
+        user_password: "user_password"
+        privilege: "Administrator"
+        ipmi_lan_privilege: "User"
+        enable: true
+        sol_enable: true
+        protocol_enable: true
+        authentication_protocol: "MD5"
+        privacy_protocol: "DES"
+      tags:
+        - create-user
+      delegate_to: localhost
+
+    - name: Configure the modify iDRAC users attributes
+      dellemc.openmanage.idrac_user:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "present"
+        user_name: "user_name"
+        new_user_name: "new_user_name"
+        privilege: "Administrator"
+        ipmi_lan_privilege: "User"
+        enable: true
+        sol_enable: true
+        protocol_enable: true
+        authentication_protocol: "MD5"
+        privacy_protocol: "DES"
+      tags:
+        - modify-user
+      delegate_to: localhost
+
+    - name: Configure the modify iDRAC username and password attributes.
+      dellemc.openmanage.idrac_user:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "present"
+        user_name: "user_name"
+        new_user_name: "new_user_name"
+        user_password: "user_password"
+      tags:
+        - modify-username
+      delegate_to: localhost
+
+    - name: Configure the delete iDRAC users attributes
+      dellemc.openmanage.idrac_user:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "absent"
+        user_name: "user_name"
+      tags:
+        - remove-user
+      delegate_to: localhost

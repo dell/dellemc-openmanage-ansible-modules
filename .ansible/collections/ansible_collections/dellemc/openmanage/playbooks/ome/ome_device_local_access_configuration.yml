@@ -1,0 +1,68 @@
+---
+- name: OpenManage Ansible Modules for local access settings.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Configure KVM, direct access and power button settings of the chassis using device ID.
+      dellemc.openmanage.ome_device_local_access_configuration:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_id: 25011
+        enable_kvm_access: true
+        enable_chassis_direct_access: false
+        chassis_power_button:
+          enable_chassis_power_button: false
+          enable_lcd_override_pin: true
+          disabled_button_lcd_override_pin: "123456"
+      tags: lac-device-id
+      delegate_to: localhost
+
+    - name: Configure Quick sync and LCD settings of the chassis using device service tag.
+      dellemc.openmanage.ome_device_local_access_configuration:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_service_tag: GHRT2RL
+        quick_sync:
+          quick_sync_access: READ_ONLY
+          enable_read_authentication: true
+          enable_quick_sync_wifi: true
+          enable_inactivity_timeout: true
+          timeout_limit: 10
+          timeout_limit_unit: MINUTES
+        lcd:
+          lcd_access: VIEW_ONLY
+          lcd_language: en
+          user_defined: "LCD Text"
+      tags: lac-tag
+      delegate_to: localhost
+
+    - name: Configure all local access settings of the host chassis.
+      dellemc.openmanage.ome_device_local_access_configuration:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        enable_kvm_access: true
+        enable_chassis_direct_access: false
+        chassis_power_button:
+          enable_chassis_power_button: false
+          enable_lcd_override_pin: true
+          disabled_button_lcd_override_pin: "123456"
+        quick_sync:
+          quick_sync_access: READ_WRITE
+          enable_read_authentication: true
+          enable_quick_sync_wifi: true
+          enable_inactivity_timeout: true
+          timeout_limit: 120
+          timeout_limit_unit: SECONDS
+        lcd:
+          lcd_access: VIEW_MODIFY
+          lcd_language: en
+          user_defined: "LCD Text"
+      tags: lac-host
+      delegate_to: localhost

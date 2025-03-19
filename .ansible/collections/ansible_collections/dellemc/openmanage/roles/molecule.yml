@@ -1,0 +1,43 @@
+---
+dependency:
+  name: galaxy
+  enabled: false
+driver:
+  name: podman
+platforms:
+  - name: centos
+    image: quay.io/centos/centos:stream10
+    pre_build_image: false
+    volumes:
+      - /tmp:/tmp
+    privileged: true
+    # Make sure to run as root to avoid permission issues
+    command: /sbin/init
+    cgroupns_mode: host
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      gathering: smart
+      fact_caching: jsonfile
+      fact_caching_connection: /tmp/facts_cache
+      fact_caching_timeout: 1800
+  env:
+    RUNON: "centos"
+    idrac_powercycle_wait_seconds: 180
+verifier:
+  name: ansible
+scenario:
+  test_sequence:
+    - destroy
+    - syntax
+    - create
+    - cleanup
+    - prepare
+    - check
+    - converge
+    - idempotence
+    - side_effect
+    - verify
+    - cleanup
+    - destroy

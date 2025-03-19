@@ -1,0 +1,157 @@
+---
+- name: Converge idrac_firmware
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Update firmware from repository on HTTPS Share with apply_update as false
+      ansible.builtin.import_role:
+        name: "idrac_firmware"
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        share_name: "{{ lookup('env', 'httpsshare') }}"
+        share_user: "{{ lookup('env', 'shareuser') }}"
+        share_password: "{{ lookup('env', 'sharepassword') }}"
+        reboot: true
+        job_wait: true
+        apply_update: false
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
+      tags: molecule-idempotence-notest
+
+    - name: "Verifying update firmware from repository on a HTTPS Share with apply_update as false"
+      ansible.builtin.assert:
+        that:
+          - idrac_firmware_out.msg == "Successfully fetched
+            the applicable firmware update package list."
+      when: not ansible_check_mode
+
+    - name: Import a Client trust certificate.
+      dellemc.openmanage.idrac_certificates:
+        idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+        idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+        idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        command: "import"
+        certificate_type: "CLIENT_TRUST_CERTIFICATE"
+        certificate_path: "/home/kritika/cert.cer"
+      delegate_to: localhost
+
+    - name: Update firmware from repository on HTTPS Share with ignore_cert_warning as false
+      ansible.builtin.import_role:
+        name: "idrac_firmware"
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        share_name: "{{ lookup('env', 'https_share_cert') }}"
+        share_user: "{{ lookup('env', 'https_share_user_cert') }}"
+        share_password: "{{ lookup('env', 'https_sharepassword_cert') }}"
+        reboot: true
+        job_wait: true
+        apply_update: true
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
+        ignore_cert_warning: false
+      tags: molecule-idempotence-notest
+      ignore_errors: true
+      register: idrac_firmware_result
+
+    - name: "Verifying update firmware from repository on a HTTPS Share with ignore_cert_warning as false"
+      ansible.builtin.assert:
+        that:
+          - idrac_firmware_out.msg == "Successfully updated the firmware."
+      when: not ansible_check_mode
+
+    - name: "Waiting for idrac to be reachable"
+      ansible.builtin.include_tasks:
+        file: "../resources/_wait_for_port_to_open.yaml"
+      when: not ansible_check_mode
+      tags: molecule-idempotence-notest
+
+    - name: "Pre-requisites"
+      ansible.builtin.include_tasks:
+        file: "../resources/tests/downgrade.yml"
+      tags: molecule-idempotence-notest
+
+    - name: Update firmware from repository on HTTPS Share with reboot as false
+      ansible.builtin.import_role:
+        name: "idrac_firmware"
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        share_name: "{{ lookup('env', 'httpsshare') }}"
+        share_user: "{{ lookup('env', 'shareuser') }}"
+        share_password: "{{ lookup('env', 'sharepassword') }}"
+        reboot: false
+        job_wait: true
+        apply_update: true
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
+      tags: molecule-idempotence-notest
+
+    - name: "Verifying update firmware from repository on a HTTPS Share with reboot as false"
+      ansible.builtin.assert:
+        that:
+          - idrac_firmware_out.msg == "Successfully staged the applicable
+            firmware update packages."
+      when: not ansible_check_mode
+
+    - name: "Waiting for idrac to be reachable"
+      ansible.builtin.include_tasks:
+        file: "../resources/_wait_for_port_to_open.yaml"
+      when: not ansible_check_mode
+      tags: molecule-idempotence-notest
+
+    - name: Check LC status after restart/reset operation
+      ansible.builtin.include_tasks: "../resources/tests/lcstatus_check.yml"
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+      tags: molecule-idempotence-notest
+
+    - name: "Pre-requisites"
+      ansible.builtin.include_tasks:
+        file: "../resources/tests/downgrade.yml"
+      tags: molecule-idempotence-notest
+
+    - name: Update firmware from repository on HTTPS Share with job_wait as false
+      ansible.builtin.import_role:
+        name: "idrac_firmware"
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        share_name: "{{ lookup('env', 'httpsshare') }}"
+        share_user: "{{ lookup('env', 'shareuser') }}"
+        share_password: "{{ lookup('env', 'sharepassword') }}"
+        reboot: true
+        job_wait: false
+        apply_update: true
+        catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
+      tags: molecule-idempotence-notest
+
+    - name: "Verifying update firmware from repository on a HTTPS Share with job_wait as false"
+      ansible.builtin.assert:
+        that:
+          - idrac_firmware_out.msg == "Successfully triggered
+            the job to update the firmware."
+      when: not ansible_check_mode
+
+    - name: "Waiting for idrac to be reachable"
+      ansible.builtin.include_tasks:
+        file: "../resources/_wait_for_port_to_open.yaml"
+      when: not ansible_check_mode
+      tags: molecule-idempotence-notest
+
+    - name: Check LC status after restart/reset operation
+      ansible.builtin.include_tasks: "../resources/tests/lcstatus_check.yml"
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+      tags: molecule-idempotence-notest

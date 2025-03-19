@@ -1,0 +1,55 @@
+---
+- name: OpenManage Ansible Modules
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Update power configuration settings of a chassis using the device ID.
+      dellemc.openmanage.ome_device_power_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_id: 25011
+        power_configuration:
+          enable_power_cap: true
+          power_cap: 3424
+      tags: power-config
+      delegate_to: localhost
+
+    - name: Update redundancy configuration settings of a chassis using the device service tag.
+      dellemc.openmanage.ome_device_power_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_service_tag: GHRT2RL
+        redundancy_configuration:
+          redundancy_policy: GRID_REDUNDANCY
+      tags: redundancy-config
+      delegate_to: localhost
+
+    - name: Update hot spare configuration settings of a chassis using device ID.
+      dellemc.openmanage.ome_device_power_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_id: 25012
+        hot_spare_configuration:
+          enable_hot_spare: true
+          primary_grid: GRID_1
+      tags: hostspare-config
+      delegate_to: localhost
+
+    - name: Update power configuration settings of a host chassis.
+      dellemc.openmanage.ome_device_power_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        power_configuration:
+          enable_power_cap: true
+          power_cap: 3425
+      tags: power-config-chassis
+      delegate_to: localhost

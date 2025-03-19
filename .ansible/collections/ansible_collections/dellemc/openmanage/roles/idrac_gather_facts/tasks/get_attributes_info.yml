@@ -1,0 +1,33 @@
+---
+- name: Get System information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_manager
+      }}/Oem/Dell/DellAttributes/{{ computer_system_id }}"
+  register: sys_attr
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+  ignore_errors: true
+
+- name: Get Manager information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_manager
+      }}/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
+  register: mgr_attr
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+  ignore_errors: true
+
+- name: Get Lifecycle controller information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_manager
+      }}/Oem/Dell/DellAttributes/LifecycleController.Embedded.1"
+  register: lc_attr
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+  ignore_errors: true
+
+- name: Set System, Manager, Lifecycle controller facts
+  ansible.builtin.set_fact:
+    idrac:
+      system_attributes: "{{ sys_attr.json.Attributes }}"
+      manager_attributes: "{{ mgr_attr.json.Attributes }}"
+      lifecycle_controller_attributes: "{{ lc_attr.json.Attributes }}"
+  when: sys_attr.status == 200 and mgr_attr.status == 200 and
+   lc_attr.status == 200

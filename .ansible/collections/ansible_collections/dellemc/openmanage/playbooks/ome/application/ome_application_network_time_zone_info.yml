@@ -1,0 +1,29 @@
+---
+- name: "Ome application network time zone informaion - Ansible Module"
+  hosts: ome
+  gather_facts: false
+  vars:
+    time_zone_uri: "/api/ApplicationService/Network/TimeZones"
+
+  tasks:
+    - name: "Get list of all available times zones along with information specific to each time zone."
+      ansible.builtin.uri:
+        url: "https://{{ baseuri }}{{ time_zone_uri }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        method: "GET"
+        use_proxy: true
+        status_code: 200
+        validate_certs: false
+        force_basic_auth: true
+      register: time_zone_result
+      failed_when: "'value' not in time_zone_result.json"
+      delegate_to: localhost
+
+    - name: Get specific time zone ID using time zone name
+      with_items:
+        - "{{ time_zone_result.json.value }}"
+      ansible.builtin.debug:
+        msg: "{{ item['Id'] }}"
+      when: item['Name'] == '(GMT+05:30) Sri Jayawardenepura'
+      delegate_to: localhost

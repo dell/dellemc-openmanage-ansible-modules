@@ -1,0 +1,34 @@
+---
+# tasks file for redfish_storage_volume
+- name: Setting up parameters
+  ansible.builtin.set_fact:
+    redfish_storage_volume_baseuri: "{{ hostname }}:{{ https_port }}"
+
+- name: Performing the operation on redfish storage volume
+  dellemc.openmanage.redfish_storage_volume:
+    baseuri: "{{ redfish_storage_volume_baseuri }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    timeout: "{{ https_timeout }}"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    state: "{{ state | default(omit) }}"
+    controller_id: "{{ controller_id | default(omit) }}"
+    raid_type: "{{ raid_type | default(omit) }}"
+    drives: "{{ drives | default([]) }}"
+    volume_name: "{{ volume_name | default(name) | default(omit) }}"
+    volume_id: "{{ volume_id | default(omit) }}"
+    initialize_type: "{{ initialization_type | default(omit) }}"
+    command: "{{ command | default(omit) }}"
+    encryption_types: "{{ encryption_types | default(omit) }}"
+    encrypted: "{{ encrypted | default(omit) }}"
+    block_size_bytes: "{{ block_size_bytes | default(omit) }}"
+    capacity_bytes: "{{ capacity_bytes | default(omit) }}"
+    optimum_io_size_bytes: "{{ optimum_io_size_bytes | default(omit) }}"
+    apply_time: "{{ apply_time | default(omit) }}"
+    reboot_server: "{{ reboot_server | default(omit) }}"
+    force_reboot: "{{ force_reboot | default(omit) }}"
+    job_wait: "{{ job_wait | default(omit) }}"
+    job_wait_timeout: "{{ job_wait_timeout | default(omit) }}"
+  register: redfish_storage_volume_out
+  delegate_to: "{{ redfish_storage_volume_delegate }}"

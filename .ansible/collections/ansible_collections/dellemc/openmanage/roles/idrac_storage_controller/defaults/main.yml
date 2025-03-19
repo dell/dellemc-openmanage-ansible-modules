@@ -1,0 +1,7 @@
+---
+apply_time: Immediate
+https_port: 443
+https_timeout: 30
+validate_certs: true
+job_wait: true
+job_wait_timeout: 300

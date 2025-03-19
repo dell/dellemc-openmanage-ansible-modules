@@ -1,0 +1,161 @@
+---
+- name: "OME - Update Firmware"
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Update firmware from a DUP file using a device ids
+      dellemc.openmanage.ome_firmware:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_id:
+          - 11111
+          - 22222
+        dup_file: "/path/Chassis-System-Management_Firmware_6N9WN_WN64_1.00.01_A00.EXE"
+      delegate_to: localhost
+
+    - name: Update firmware from a DUP file using a device service tags
+      dellemc.openmanage.ome_firmware:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_service_tag:
+          - KLBR111
+          - KLBR222
+        dup_file: "/path/Network_Firmware_NTRW0_WN64_14.07.07_A00-00_01.EXE"
+      delegate_to: localhost
+
+    - name: Update firmware from a DUP file using a device group names
+      dellemc.openmanage.ome_firmware:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_group_names:
+          - servers
+        dup_file: "/path/BIOS_87V69_WN64_2.4.7.EXE"
+      delegate_to: localhost
+
+    - name: Update firmware using baseline name
+      dellemc.openmanage.ome_firmware:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline_name: baseline_devices
+      delegate_to: localhost
+
+    - name: Stage firmware for the next reboot using baseline name
+      dellemc.openmanage.ome_firmware:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline_name: baseline_devices
+        schedule: StageForNextReboot
+      delegate_to: localhost
+
+    - name: Update firmware using baseline name and components
+      dellemc.openmanage.ome_firmware:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline_name: baseline_devices
+        components:
+          - BIOS
+      delegate_to: localhost
+
+    - name: Update firmware of device components from a DUP file using a device ids in a baseline
+      dellemc.openmanage.ome_firmware:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline_name: baseline_devices
+        device_id:
+          - 11111
+          - 22222
+        components:
+          - iDRAC with Lifecycle Controller
+      delegate_to: localhost
+
+    - name: Update firmware of device components from a baseline using a device service tags under a baseline
+      dellemc.openmanage.ome_firmware:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline_name: baseline_devices
+        device_service_tag:
+          - KLBR111
+          - KLBR222
+        components:
+          - IOM-SAS
+      delegate_to: localhost
+
+    - name: Update firmware using baseline name with a device id and required components
+      dellemc.openmanage.ome_firmware:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline_name: baseline_devices
+        devices:
+          - id: 12345
+            components:
+              - Lifecycle Controller
+          - id: 12346
+            components:
+              - Enterprise UEFI Diagnostics
+              - BIOS
+      delegate_to: localhost
+
+    - name: Update firmware using baseline name with a device service tag and required components
+      dellemc.openmanage.ome_firmware:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline_name: baseline_devices
+        devices:
+          - service_tag: ABCDE12
+            components:
+              - PERC H740P Adapter
+              - BIOS
+          - service_tag: GHIJK34
+            components:
+              - OS Drivers Pack
+      delegate_to: localhost
+
+    - name: Update firmware using baseline name with a device service tag or device id and required components
+      dellemc.openmanage.ome_firmware:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline_name: baseline_devices
+        devices:
+          - service_tag: ABCDE12
+            components:
+              - BOSS-S1 Adapter
+              - PowerEdge Server BIOS
+          - id: 12345
+            components:
+              - iDRAC with Lifecycle Controller
+      delegate_to: localhost
+
+    - name: "Update firmware using baseline name and components and perform Powercycle."
+      dellemc.openmanage.ome_firmware:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline_name: baseline_devices
+        components:
+          - BIOS
+        reboot_type: PowerCycle
+      delegate_to: localhost

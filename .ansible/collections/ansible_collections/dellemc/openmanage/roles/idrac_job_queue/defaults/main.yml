@@ -1,0 +1,7 @@
+---
+# defaults file for idrac_job_queue
+validate_certs: true
+https_timeout: 30
+https_port: 443
+clear_job_queue: false
+force: false

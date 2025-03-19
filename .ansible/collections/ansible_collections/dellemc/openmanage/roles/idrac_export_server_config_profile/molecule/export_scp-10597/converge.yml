@@ -1,0 +1,100 @@
+- name: Converge
+  hosts: all
+  vars:
+    local_path: "{{ lookup('env', 'local_path') }}"
+    local_filename: "{{ lookup('env', 'local_filename') }}"
+    nfs_filename: "{{ lookup('env', 'nfs_filename') }}"
+    cifs_filename: "{{ lookup('env', 'cifs_filename') }}"
+    https_filename: "{{ lookup('env', 'https_filename') }}"
+    http_filename: "{{ lookup('env', 'http_filename') }}"
+    nfs_mount_path: "{{ lookup('env', 'nfs_mount_path') }}"
+    cifs_mount_path: "{{ lookup('env', 'nfs_mount_path') }}"
+
+    nfs_url: "{{ lookup('env', 'nfs_url') }}"
+    cifs_url: "{{ lookup('env', 'cifs_url') }}"
+    cifs_username: "{{ lookup('env', 'cifs_username') }}"
+    cifs_password: "{{ lookup('env', 'cifs_password') }}"
+
+    https_url: "{{ lookup('env', 'https_url') }}"
+    https_username: "{{ lookup('env', 'https_username') }}"
+    https_password: "{{ lookup('env', 'https_password') }}"
+
+    http_url: "{{ lookup('env', 'http_url') }}"
+    http_username: "{{ lookup('env', 'http_username') }}"
+    http_password: "{{ lookup('env', 'http_password') }}"
+  gather_facts: false
+  tasks:
+    - name: Exporting SCP local path with all components
+      ansible.builtin.import_role:
+        name: idrac_export_server_config_profile
+      vars:
+        idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+        idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+        idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        job_wait: true
+        share_parameters:
+          share_name: "{{ local_path }}"
+          scp_file: "{{ local_filename }}"
+
+    - name: "Exporting SCP to NFS with iDRAC components"
+      ansible.builtin.import_role:
+        name: "idrac_export_server_config_profile"
+      vars:
+        idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+        idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+        idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        target: ['IDRAC']
+        job_wait: true
+        share_parameters:
+          share_name: "{{ nfs_url }}"
+          scp_file: "{{ nfs_filename }}"
+
+    - name: "Exporting SCP to CIFS with BIOS components"
+      ansible.builtin.import_role:
+        name: "idrac_export_server_config_profile"
+      vars:
+        idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+        idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+        idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        target: ['BIOS']
+        job_wait: true
+        share_parameters:
+          share_name: "{{ cifs_url }}"
+          share_user: "{{ cifs_username }}"
+          share_password: "{{ cifs_password }}"
+          scp_file: "{{ cifs_filename }}"
+
+    - name: "Exporting SCP to HTTPS with RAID components"
+      ansible.builtin.import_role:
+        name: "idrac_export_server_config_profile"
+      vars:
+        idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+        idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+        idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        target: ['RAID']
+        job_wait: true
+        share_parameters:
+          share_name: "{{ https_url }}"
+          share_user: "{{ https_username }}"
+          share_password: "{{ https_password }}"
+          scp_file: "{{ https_filename }}"
+
+    - name: "Exporting SCP to HTTP with NIC components"
+      ansible.builtin.import_role:
+        name: "idrac_export_server_config_profile"
+      vars:
+        idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+        idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+        idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        target: ['NIC']
+        job_wait: true
+        share_parameters:
+          share_name: "{{ http_url }}"
+          share_user: "{{ http_username }}"
+          share_password: "{{ http_password }}"
+          scp_file: "{{ http_filename }}"

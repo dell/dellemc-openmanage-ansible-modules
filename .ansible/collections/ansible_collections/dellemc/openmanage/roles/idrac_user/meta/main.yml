@@ -1,0 +1,21 @@
+---
+galaxy_info:
+  author: Kritika-Bhateja
+  description: This role helps to manage local users for iDRAC.
+  company: Dell Technologies
+  license: GPL-3.0-only
+  min_ansible_version: "2.15.8"
+  platforms:
+    - name: EL
+      versions:
+        - "9"
+        - "8"
+    - name: Ubuntu
+      versions:
+        - jammy
+    - name: SLES
+      versions:
+        - "15SP3"
+        - "15SP4"
+  galaxy_tags: []
+dependencies: []

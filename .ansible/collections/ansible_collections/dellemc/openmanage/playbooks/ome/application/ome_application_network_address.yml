@@ -1,0 +1,117 @@
+---
+- name: Dell OME Application network settings.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: IPv4 network settings
+      dellemc.openmanage.ome_application_network_address:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        ipv4_configuration:
+          enable: true
+          enable_dhcp: false
+          static_ip_address: 192.168.0.2
+          static_subnet_mask: 255.255.254.0
+          static_gateway: 192.168.0.3
+          use_dhcp_for_dns_server_names: false
+          static_preferred_dns_server: 192.168.0.4
+          static_alternate_dns_server: ""
+        reboot_delay: 5
+      tags:
+        - ipv4_config
+      delegate_to: localhost
+
+    - name: IPv6 network settings
+      dellemc.openmanage.ome_application_network_address:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        ipv6_configuration:
+          enable: true
+          enable_auto_configuration: true
+          static_ip_address: 2626:f2f2:f081:9:1c1c:f1f1:4747:1
+          static_prefix_length: 10
+          static_gateway: 2626:f2f2:f081:9:1c1c:f1f1:4747:2
+          use_dhcp_for_dns_server_names: true
+          static_preferred_dns_server: 2626:f2f2:f081:9:1c1c:f1f1:4747:3
+          static_alternate_dns_server: 2626:f2f2:f081:9:1c1c:f1f1:4747:4
+        reboot_delay: 10
+      tags:
+        - ipv6_config
+      delegate_to: localhost
+
+    - name: Management vLAN settings for primary interface
+      dellemc.openmanage.ome_application_network_address:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        management_vlan:
+          enable_vlan: true
+          vlan_id: 3344
+        dns_configuration:
+          register_with_dns: false
+        reboot_delay: 1
+      tags:
+        - mgmt_vlan
+      delegate_to: localhost
+
+    - name: DNS settings
+      dellemc.openmanage.ome_application_network_address:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        ipv4_configuration:
+          enable: true
+          enable_dhcp: true
+          use_dhcp_for_dns_server_names: false
+          static_preferred_dns_server: 192.168.0.4
+          static_alternate_dns_server: 192.168.0.5
+        dns_configuration:
+          register_with_dns: true
+          use_dhcp_for_dns_domain_name: false
+          dns_name: "MX-SVCTAG"
+          dns_domain_name: "localdomainname"
+        reboot_delay: 1
+      tags:
+        - dns_config
+      delegate_to: localhost
+
+    - name: Complete network settings
+      dellemc.openmanage.ome_application_network_address:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        ipv4_configuration:
+          enable: true
+          enable_dhcp: false
+          static_ip_address: 192.168.0.2
+          static_subnet_mask: 255.255.254.0
+          static_gateway: 192.168.0.3
+          use_dhcp_for_dns_server_names: false
+          static_preferred_dns_server: 192.168.0.4
+          static_alternate_dns_server: 192.168.0.5
+        ipv6_configuration:
+          enable: true
+          enable_auto_configuration: true
+          static_ip_address: 2626:f2f2:f081:9:1c1c:f1f1:4747:1
+          static_prefix_length: 10
+          static_gateway: 2626:f2f2:f081:9:1c1c:f1f1:4747:2
+          use_dhcp_for_dns_server_names: true
+          static_preferred_dns_server: 2626:f2f2:f081:9:1c1c:f1f1:4747:3
+          static_alternate_dns_server: 2626:f2f2:f081:9:1c1c:f1f1:4747:4
+        dns_configuration:
+          register_with_dns: true
+          use_dhcp_for_dns_domain_name: false
+          dns_name: "MX-SVCTAG"
+          dns_domain_name: "localdomainname"
+        reboot_delay: 1
+      tags:
+        - all_network_config
+      delegate_to: localhost

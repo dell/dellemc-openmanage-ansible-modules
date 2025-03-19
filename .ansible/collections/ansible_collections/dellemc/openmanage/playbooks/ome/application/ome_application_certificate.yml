@@ -1,0 +1,54 @@
+---
+- name: Dell OME Application Certificate Signing Request.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Generate certificate signing request.
+      dellemc.openmanage.ome_application_certificate:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "generate_csr"
+        distinguished_name: "hostname.com"
+        department_name: "Remote Access Group"
+        business_name: "Dell Inc."
+        locality: "Round Rock"
+        country_state: "Texas"
+        country: "US"
+        email: "support@dell.com"
+      register: result
+      tags:
+        - generate
+      delegate_to: localhost
+
+    - name: Copy CSR data into a file.
+      ansible.builtin.copy:
+        content: "{{ result.csr_status.CertificateData }}"
+        dest: "csr_data.txt"
+        mode: "0600"
+      tags:
+        - csr-data
+      delegate_to: localhost
+
+    - name: Upload the certificate.
+      dellemc.openmanage.ome_application_certificate:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "upload"
+        upload_file: "/path/certificate.cer"
+      tags:
+        - upload
+      delegate_to: localhost
+
+    - name: Once certificate uploaded, OME cannot be accessed for few seconds, hence wait for 10 seconds.
+      ansible.builtin.wait_for:
+        host: "{{ hostname }}"
+        port: "{{ port }}"
+        delay: 10
+      tags:
+        - upload
+      delegate_to: localhost

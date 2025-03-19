@@ -1,0 +1,24 @@
+---
+- name: Generate HTTPS certificate signing request
+  dellemc.openmanage.idrac_certificates:
+    idrac_ip: "{{ hostname }}"
+    idrac_user: "{{ username }}"
+    idrac_password: "{{ password }}"
+    idrac_port: "{{ https_port }}"
+    timeout: "{{ https_timeout }}"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    command: "generate_csr"
+    certificate_type: "{{ certificate_type }}"
+    certificate_path: "{{ certificate_path }}"
+    cert_params:
+      common_name: "{{ cert_params.common_name | default(omit) }}"
+      organization_unit: "{{ cert_params.organization_unit | default(omit) }}"
+      locality_name: "{{ cert_params.locality_name | default(omit) }}"
+      state_name: "{{ cert_params.state_name | default(omit) }}"
+      country_code: "{{ cert_params.country_code | default(omit) }}"
+      email_address: "{{ cert_params.email_address | default(omit) }}"
+      organization_name: "{{ cert_params.organization_name | default(omit) }}"
+      subject_alt_name: "{{ cert_params.subject_alt_name | default(omit) }}"
+  register: idrac_certificate_out
+  delegate_to: "{{ idrac_certificate_delegate }}"

@@ -1,0 +1,59 @@
+---
+- name: OpenManage Ansible Modules for network services settings.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Update network services settings of a chassis using the device ID.
+      dellemc.openmanage.ome_device_network_services:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_id: 25011
+        snmp_settings:
+          enabled: true
+          port_number: 161
+          community_name: public
+        ssh_settings:
+          enabled: false
+        remote_racadm_settings:
+          enabled: false
+      tags: snmp-settings
+      delegate_to: localhost
+
+    - name: Update network services settings of a chassis using the device service tag.
+      dellemc.openmanage.ome_device_network_services:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_service_tag: GHRT2RL
+        snmp_settings:
+          enabled: false
+        ssh_settings:
+          enabled: true
+          port_number: 22
+          max_sessions: 1
+          max_auth_retries: 3
+          idle_timeout: 1
+        remote_racadm_settings:
+          enabled: false
+      tags: ssh-settings
+      delegate_to: localhost
+
+    - name: Update network services settings of the host chassis.
+      dellemc.openmanage.ome_device_network_services:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_id: 25012
+        snmp_settings:
+          enabled: false
+        ssh_settings:
+          enabled: false
+        remote_racadm_settings:
+          enabled: true
+      tags: racadm-settings
+      delegate_to: localhost

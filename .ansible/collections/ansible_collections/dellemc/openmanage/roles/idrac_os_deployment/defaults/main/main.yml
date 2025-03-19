@@ -1,0 +1,9 @@
+---
+https_port: 443
+https_timeout: 30
+validate_certs: true
+os_deployment_timeout: 30
+eject_iso: true
+wait_for_os_deployment: true
+delete_custom_iso: true
+set_no_log: true

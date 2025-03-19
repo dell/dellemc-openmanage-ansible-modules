@@ -1,0 +1,30 @@
+---
+- name: Prepare file to update attributes with apply time as Immediate
+  hosts: all
+  gather_facts: false
+  vars:
+    idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+    idrac_port: "{{ lookup('env', 'IDRAC_PORT') }}"
+  tasks:
+    - name: Fetch IDRAC Data
+      ansible.builtin.include_tasks:
+        file: ../__get_data.yml
+      vars:
+        url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1\
+          /Systems/System.Embedded.1/Bios"
+
+    - name: Fetch the existing boot mode
+      ansible.builtin.set_fact:
+        boot_mode: "{{ idrac_bios_uri_data.json.Attributes.BootMode }}"
+
+    - name: Set the boot mode
+      ansible.builtin.set_fact:
+        set_boot_mode: "{{ 'Bios' if (boot_mode == 'Uefi') else 'Uefi' }}"
+      when: set_boot_mode is not defined
+
+    - name: Copy the variable 'set_boot_mode' in file
+      ansible.builtin.copy:
+        content: "{{ set_boot_mode }}"
+        dest: "/tmp/boot_mode.txt"
+        mode: "0755"
+      delegate_to: localhost

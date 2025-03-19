@@ -1,0 +1,32 @@
+# CODEOWNERS
+#
+# documentation for this file can be found at:
+# https://help.github.com/en/articles/about-code-owners
+
+# These are the default owners for the code and will
+# be requested for review when someone opens a pull request.
+# order is alphabetical for easier maintenance.
+#
+# Abhishek Kumar Sinha (Abhishek.Sinha10@Dell.com)
+# Anirudh Kumar (Anirudh_Kumar1@Dell.com)
+# Anooja Vardhineni (Anooja_Vardhineni@Dellteam.com)
+# Chris Clonch (cacack)
+# Deepak Joshi (deepakjoshishri)
+# Felix Stephen (felixs88)
+# Grant Curell (grantcurell)
+# Husniya Hameed (husniya-hameed)
+# Jagadeesh N V (jagadeeshnv)
+# Jaya Gupta (Jaya_Gupta@Dell.com)
+# Kritika Bhateja (Kritika.Bhateja@Dell.com)
+# Lovepreet Singh (Lovepreet.Singh1@dell.com)
+# Mario Lenz (mariolenz)
+# Rajeev Arakkal (rajeevarakkal)
+# Rajshekar P (rajshekarp87)
+# Sachin Apagundi (sachin-apa)
+# Sajna N Shetty (Sajna-Shetty)
+# Sachin Kumar (Sachin_Kumar12@Dell.com)
+# Shivam Sharma (Shivam.Sharma3@Dell.com)
+# Vasanth Ds (Vasanth_Sathyanaraya@Dell.com)
+
+# for all files:
+* @sachin-apa @ABHISHEK-SINHA10 @Kritika-Bhateja-03 @rajshekarp87 @ShivamSh3

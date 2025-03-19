@@ -1,0 +1,31 @@
+---
+# tasks file for idrac_import_server_config_profile
+
+- name: Importing the SCP components
+  dellemc.openmanage.idrac_server_config_profile:
+    idrac_ip: "{{ hostname }}"
+    idrac_port: "{{ https_port }}"
+    idrac_user: "{{ username }}"
+    idrac_password: "{{ password }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    validate_certs: "{{ validate_certs }}"
+    timeout: "{{ https_timeout }}"
+    share_name: "{{ share_parameters.share_name | default(omit) }}"
+    scp_file: "{{ share_parameters.scp_file | default(omit) }}"
+    share_user: "{{ share_parameters.share_user | default(omit) }}"
+    share_password: "{{ share_parameters.share_password | default(omit) }}"
+    proxy_support: "{{ share_parameters.proxy_support | default(omit) }}"
+    proxy_type: "{{ share_parameters.proxy_type | default(omit) }}"
+    proxy_server: "{{ share_parameters.proxy_server | default(omit) }}"
+    proxy_port: "{{ share_parameters.proxy_port | default(omit) }}"
+    proxy_username: "{{ share_parameters.proxy_username | default(omit) }}"
+    proxy_password: "{{ share_parameters.proxy_password | default(omit) }}"
+    ignore_certificate_warning: "{{ share_parameters.ignore_certificate_warning | default(omit) }}"
+    import_buffer: "{{ import_buffer | default(omit) | string }}"
+    target: "{{ target }}"
+    shutdown_type: "{{ shutdown_type }}"
+    end_host_power_state: "{{ end_host_power_state }}"
+    command: 'import'
+    job_wait: "{{ idrac_import_server_config_profile_job_wait }}"
+  register: idrac_import_server_config_profile_out
+  delegate_to: "{{ idrac_import_server_config_profile_delagate }}"

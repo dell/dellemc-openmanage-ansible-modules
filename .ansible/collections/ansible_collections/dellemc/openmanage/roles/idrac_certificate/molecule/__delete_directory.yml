@@ -1,0 +1,5 @@
+---
+- name: Delete the directory
+  ansible.builtin.file:
+    path: "{{ lookup('env', 'path_for_import_cert') }}"
+    state: absent

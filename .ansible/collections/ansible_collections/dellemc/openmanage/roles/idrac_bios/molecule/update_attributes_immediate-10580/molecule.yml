@@ -1,0 +1,6 @@
+---
+provisioner:
+  name: ansible
+  playbooks:
+    prepare: ../resources/prepare.yml
+    cleanup: ../resources/cleanup.yml

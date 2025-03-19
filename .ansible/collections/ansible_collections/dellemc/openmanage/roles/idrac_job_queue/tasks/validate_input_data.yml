@@ -1,0 +1,73 @@
+---
+- name: Set uri options
+  ansible.builtin.set_fact:
+    idrac_job_queue_idrac_opts: &idrac_job_queue_idrac_opts
+      user: "{{ username | default(lookup('env', 'IDRAC_USERNAME')) }}"
+      password: "{{ password | default(lookup('env', 'IDRAC_PASSWORD')) }}"
+      validate_certs: "{{ validate_certs }}"
+      ca_path: "{{ ca_path | default(omit) }}"
+      headers: "{{ idrac_job_queue_uri_headers }}"
+      body_format: "{{ idrac_job_queue_uri_body_format }}"
+      return_content: "{{ idrac_job_queue_uri_return_content }}"
+      force_basic_auth: "{{ idrac_job_queue_force_basic_auth }}"
+      timeout: "{{ https_timeout }}"
+  no_log: true
+
+- name: Get connection
+  ansible.builtin.uri:
+    <<: *idrac_job_queue_idrac_opts
+    url: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Systems"
+    method: "GET"
+    status_code: "{{ idrac_job_queue_uri_status_code }}"
+  register: idrac_job_queue_idrac_connection
+  delegate_to: "{{ idrac_job_queue_delegate }}"
+
+- name: Validate hostname or certificate.
+  ansible.builtin.fail:
+    msg: "{{ idrac_job_queue_idrac_connection.msg }}"
+  when: idrac_job_queue_idrac_connection.status == -1
+
+- name: Validate credentials.
+  ansible.builtin.fail:
+    msg: "The authentication credentials included with
+      this request are missing or invalid."
+  when: idrac_job_queue_idrac_connection.status == 401
+
+- name: Check for a valid job id
+  when:
+    - job_id is defined and job_id != ""
+    - clear_job_queue is false
+  delegate_to: "{{ idrac_job_queue_delegate }}"
+  block:
+    - name: Get the Job with the job id
+      register: idrac_job_queue_idrac_job_exists_out
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}:{{ https_port }}{{ idrac_job_queue_validate_job_api }}/{{ job_id }}"
+        <<: *idrac_job_queue_idrac_opts
+        method: "GET"
+        status_code: [200, 404]
+
+    - name: Set output Message for invalid job ID
+      ansible.builtin.fail:
+        msg: "{{ idrac_job_queue_invalid_job_msg }}"
+      when:
+        - idrac_job_queue_idrac_job_exists_out is defined
+        - idrac_job_queue_idrac_job_exists_out.status is defined
+        - idrac_job_queue_idrac_job_exists_out.status == 404
+
+- name: Check whether jobs exists to clear
+  when: clear_job_queue is true
+  delegate_to: "{{ idrac_job_queue_delegate }}"
+  block:
+    - name: Get all the jobs
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}:{{ https_port }}{{ idrac_job_queue_validate_job_api }}"
+        <<: *idrac_job_queue_idrac_opts
+        method: "GET"
+        status_code: [200, 404]
+      register: idrac_job_queue_jobs_exists_out
+
+    - name: Set output Message if jobs doesnt exist
+      ansible.builtin.fail:
+        msg: "{{ idrac_job_queue_no_jobs_in_queue_msg }}"
+      when: idrac_job_queue_jobs_exists_out.json['Members@odata.count'] == 0

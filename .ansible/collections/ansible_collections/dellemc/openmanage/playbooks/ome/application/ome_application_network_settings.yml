@@ -1,0 +1,76 @@
+---
+- name: Dell OpenManage Ansible Application network setting.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    - name: Configure universal inactivity timeout
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        session_inactivity_timeout:
+          enable_universal_timeout: true
+          universal_timeout: 30
+          api_sessions: 90
+          gui_sessions: 5
+          ssh_sessions: 2
+          serial_sessions: 1
+      tags:
+        - enable_universal_timeout
+      delegate_to: localhost
+
+    - name: Configure API and GUI timeout and sessions
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        session_inactivity_timeout:
+          api_timeout: 20
+          api_sessions: 100
+          gui_timeout: 25
+          gui_sessions: 5
+      tags:
+        - enable_api_gui_timout_sessions
+      delegate_to: localhost
+
+    - name: Configure timeout and sessions for all parameters
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        session_inactivity_timeout:
+          api_timeout: 20
+          api_sessions: 100
+          gui_timeout: 15
+          gui_sessions: 5
+          ssh_timeout: 30
+          ssh_sessions: 2
+          serial_timeout: 35
+          serial_sessions: 1
+      tags:
+        - enable_all_timeout_sessions
+      delegate_to: localhost
+
+    - name: Disable universal timeout and configure timeout and sessions for other parameters
+      dellemc.openmanage.ome_application_network_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        session_inactivity_timeout:
+          enable_universal_timeout: false
+          api_timeout: 20
+          api_sessions: 100
+          gui_timeout: 15
+          gui_sessions: 5
+          ssh_timeout: 30
+          ssh_sessions: 2
+          serial_timeout: 35
+          serial_sessions: 1
+      tags:
+        - disa_all_timeout_sessions
+      delegate_to: localhost

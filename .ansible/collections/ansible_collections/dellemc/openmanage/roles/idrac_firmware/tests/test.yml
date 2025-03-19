@@ -1,0 +1,6 @@
+---
+- name: Firmware update using catalog for idrac
+- hosts: localhost
+  remote_user: root
+  roles:
+    - idrac_firmware

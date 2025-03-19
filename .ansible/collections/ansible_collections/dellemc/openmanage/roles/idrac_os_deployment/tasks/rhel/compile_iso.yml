@@ -1,0 +1,73 @@
+---
+- name: Copy KS to extracted
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  ansible.builtin.copy:
+    src: "{{ idrac_os_deployment_kickstart_file }}"
+    dest: "{{ idrac_os_deployment_iso_extract_dir }}/{{ idrac_os_deployment_rhel_ks_filename }}"
+    mode: "{{ idrac_os_deployment_copy_mode }}"
+
+- name: Append ks path to the linux boot menu
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  ansible.builtin.lineinfile:
+    path: "{{ item }}"
+    regexp: "^(.*inst.stage2=hd:LABEL.*?)( inst.ks={{ idrac_os_deployment_rhel_ks_location }})?$"
+    backrefs: true
+    firstmatch: true
+    line: '\1 inst.ks={{ idrac_os_deployment_rhel_ks_location }}'
+  with_items:
+    - "{{ idrac_os_deployment_iso_extract_dir }}/isolinux/isolinux.cfg"
+    - "{{ idrac_os_deployment_iso_extract_dir }}/EFI/BOOT/grub.cfg"
+
+- name: Menu default remove all occurrences
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  ansible.builtin.lineinfile:
+    path: "{{ idrac_os_deployment_iso_extract_dir }}/isolinux/isolinux.cfg"
+    search_string: "menu default"
+    state: absent
+
+- name: Menu default insert before kernel vmlinuz isolinux
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  ansible.builtin.lineinfile:
+    path: "{{ idrac_os_deployment_iso_extract_dir }}/isolinux/isolinux.cfg"
+    line: "  menu default"
+    firstmatch: true
+    insertbefore: ".*kernel vmlinuz.*"
+
+- name: Grub menu default 0
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  ansible.builtin.lineinfile:
+    path: "{{ idrac_os_deployment_iso_extract_dir }}/EFI/BOOT/grub.cfg"
+    line: 'set default="0"'
+    firstmatch: true
+    regexp: "^set default="
+
+- name: Get iso LABEL
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  ansible.builtin.command: "blkid -s LABEL -o value {{ idrac_os_deployment_iso_file }}"
+  register: idrac_os_deployment_blkid_output
+  changed_when: idrac_os_deployment_blkid_output.rc != 0
+
+- name: Set iso LABEL
+  ansible.builtin.set_fact:
+    idrac_os_deployment_iso_label: "{{ idrac_os_deployment_blkid_output.stdout | trim }}"
+
+- name: Compile custom ISO
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  ansible.builtin.command:
+    chdir: "{{ idrac_os_deployment_iso_extract_dir }}"
+    cmd: "{{ idrac_os_deployment_rhel_mkiso_cmd | format(idrac_os_deployment_custom_iso_file, idrac_os_deployment_iso_label) }}"
+  register: idrac_os_deployment_mkisofs_output
+  changed_when: idrac_os_deployment_mkisofs_output.rc == 0
+  failed_when: idrac_os_deployment_mkisofs_output.rc != 0
+
+- name: Post-process ISO image with isohybrid
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  ansible.builtin.command: "{{ idrac_os_deployment_hybrid_cmd | format(idrac_os_deployment_custom_iso_file) }}"
+  register: idrac_os_deployment_isohybrid_output
+  changed_when: idrac_os_deployment_isohybrid_output.rc == 0
+
+- name: Add correct checksum to iso
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  ansible.builtin.command: "{{ idrac_os_deployment_checksum_cmd | format(idrac_os_deployment_custom_iso_file) }}"
+  register: idrac_os_deployment_checksum_output
+  changed_when: idrac_os_deployment_checksum_output.rc == 0

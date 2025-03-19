@@ -1,0 +1,11 @@
+---
+- name: Wait for operating system intallation based on a wait time
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  ansible.builtin.wait_for:
+    timeout: "{{ (os_deployment_timeout * 60) }}"
+
+- name: Set the Operating system success message
+  ansible.builtin.set_fact:
+    idrac_os_deployment_out: "{{ idrac_os_deployment_success_message_os_deployment }}"
+  changed_when: true
+  no_log: "{{ idrac_os_deployment_set_no_log }}"
