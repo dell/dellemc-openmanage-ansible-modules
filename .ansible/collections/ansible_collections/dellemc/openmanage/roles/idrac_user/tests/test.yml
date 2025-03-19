@@ -1,6 +1,0 @@
----
-- name: Executing idrac user
-  hosts: localhost
-  remote_user: root
-  roles:
-    - idrac_user

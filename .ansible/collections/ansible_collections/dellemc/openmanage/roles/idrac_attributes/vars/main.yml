@@ -1,3 +1,0 @@
----
-# vars file for idrac_attributes
-idrac_attributes_delegate: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"

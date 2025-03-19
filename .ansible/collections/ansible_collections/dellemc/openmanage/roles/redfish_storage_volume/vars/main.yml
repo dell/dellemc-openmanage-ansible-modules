@@ -1,4 +1,0 @@
----
-# vars file for redfish_storage_volume
-redfish_storage_volume_polling_interval: 30
-redfish_storage_volume_delegate: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"

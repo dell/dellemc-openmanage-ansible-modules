@@ -1,3 +1,0 @@
----
-# vars file for idrac_firmware
-idrac_firmware_delegate: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
