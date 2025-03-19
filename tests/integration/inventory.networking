@@ -70,6 +70,5 @@ ome_application_certificate_certificate_remote_share_path=remote_share_path
 ome_application_certificate_certificate_chain_filename=certificate_chain_filename
 ome_application_certificate_local_temp_path=local_temp_path
 omevv_baseline_profile_catalog_file=catlog_file_name
-
-#make sure these directories has write permissions
+# make sure these directories has write permissions
 path_for_secure_boot_certificate=secure_boot_certitifate_path_1
