@@ -33,7 +33,7 @@
     - name: Extact all the running jobs
       ansible.builtin.set_fact:
         job_ids: "{{ job_ids | default([]) + [item.Id if item.JobState ==
-          'Running' else []] }}"
+          'Running' else ''] }}"
       loop: "{{ uri_all_jobs.json.Members }}"
       when: job_queue.status.Message == "A running job cannot be deleted."
 
@@ -50,4 +50,6 @@
       delay: 10
       retries: 120
       loop: "{{ job_ids }}"
-      when: job_queue.status.Message == "A running job cannot be deleted."
+      when:
+        - job_queue.status.Message == "A running job cannot be deleted."
+        - item != ''
