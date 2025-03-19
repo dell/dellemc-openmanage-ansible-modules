@@ -1,101 +1,75 @@
-# For modules starting with dellemc, idrac, ome and omem as prefix
-[dellemc]
-iDRAC-15G idrac_ip=100.96.24.191 idrac_user=root idrac_password=Dell_123$ idrac_port=443
-
+# For modules starting with idrac as prefix
 [idrac]
-iDRAC-15G idrac_ip=100.96.24.191 idrac_user=root idrac_password=Dell_123$ idrac_port=443 validate_certs=false
+iDRAC idrac_ip=xx.xx.xx.xx idrac_user=user idrac_password=password idrac_port=443 validate_certs=false
 
 [ome]
-OME-3.10.2 hostname=100.96.37.14 device_ip=100.100.214.99 device_user=root device_password=Session_123 device_port=443 device_ip_2=100.100.208.133 device_user_2=root device_password_2=Session_123 device_port_2=443 validate_certs=false
+OME hostname=xx.xx.xx.xx username=username password=password port=443 validate_certs=false
 
-[omem]
-OME-M hostname=100.100.213.126 username=root password=Chassis_123 port=443 fabric_design=2xMX9116n_Fabric_Switching_Engines_in_different_chassis validate_certs=false
+[omevv]
+OMEVV hostname=xx.xx.xx.xx vcenter_username=username vcenter_password=password port=443 validate_certs=false
+
+[omevv:vars]
+# Credentials
+vcenter_hostname=xx.xx.xx.xx
+ome_username=username
+ome_password=password
+omevv_idrac_username=username
+omevv_idrac_password=password
+omevv_firmware_idrac_downgrade_http_path=""
+omevv_firmware_idrac_upgrade_http_path=""
 
 [ome:vars]
-# credentials
-username=admin
-password=Dell_123$
+# Credentials
+username=username
+password=password
 port=443
 validate_certs=false
 
-# discovery devices for ome
-storage=100.100.28.10
-storage_me=100.100.33.75
-storage_me_user=manage
-storage_me_password=Dell@123
-switch=100.100.210.102
-switch_community_string="Labtestu$er$"
-chassis=100.100.24.156
-chassis_user=root
-chassis_password=calvin
-esxi_server=100.100.28.7
-esxi_user=root
-esxi_password=Dell_123
-
 [all:vars]
-# Usually no changes are required other than pass
+SKIP_DOC=true
 ansible_host=localhost
 ansible_connection=local
-ansible_become_pass=Auto_123$
-# Share details
-timeout="3000"
-SKIP_DOC="true"
-nfs_share_name="100.96.37.55:/nfsfileshare"
-nfs_share_img_file_path="100.96.37.29:/NFSShare/efiboot.img"
-nfs_share_iso_file_path= "100.96.37.29:/NFSShare/VMware-VMvisor-Installer-8.0.0.update03-24022510.x86_64-Dell_Customized-A01.iso"
-nfs_share_ome_firmware_catalog="100.96.37.55:/nfsfileshare/catalog/"
-cifs_share_name="\\\\100.96.37.29\\cifsshare"
-cifs_share_domain_name="scomdev0"
-cifs_share_domain_user="administrator"
-cifs_share_domain_password="Dell123"
-cifs_share_user="administrator"
-cifs_share_password="Thirdparty_123"
-cifs_share_img_file_path="//100.96.37.29/cifsshare/efiboot.img"
-cifs_share_iso_file_path="//100.96.37.29/cifsshare/VMware-VMvisor-Installer-8.0.0.update03-24022510.x86_64-Dell_Customized-A01.iso"
-cifs_share_ome_firmware_catalog="\\100.96.37.29\\cifsshare\catalog"
+ansible_become_pass=password
+# NFS share deatils
+nfs_share_name=nfs_share_name
+modify_nfs_share_name=""
+# CIFS share deatils
+cifs_share_name=cifs_share_name
+cifs_share_user=cifs_share_user
+cifs_share_password=cifs_share_password
+modify_cifs_share_name=""
+modify_cifs_share_user=""
+modify_cifs_share_password=""
 # HTTP share details
-http_share="100.96.37.34"
-http_share_no_auth=""
-http_share_dir_path="/omam"
-http_share_user="administrator"
-http_share_password="Dell_123$"
-http_share_iso_file_path="http://100.100.8.80/http/Images1/Team_Folders/Old/Rajshekar/RHEL-9.0.0-20220420.0-x86_64-dvd1.iso"
+http_share=http_share_ip
+http_share_dir_path=http_share_path
+http_share_user=http_share_user
+http_share_password=http_share_password
+# Proxy server details
+http_proxy_server=http_proxy_server
+http_proxy_port=http_proxy_port
+http_proxy_username=http_proxy_username
+http_proxy_password=http_proxy_password
+socks4_proxy_server=socks4_proxy_server
+socks4_proxy_port=socks4_proxy_port
 # HTTPS share details
-https_share_ip="100.100.8.80"
-https_share_ip_no_auth=""
-https_share_dir_path="/omam"
-https_share_domain_name=""
-https_share_username="administrator"
-https_share_domain_username="administrator"
-https_share_password="Dell123"
-https_certificate_path = "/myshare/idrac_certificate"
-https_share_img_file_path="https://100.96.37.71/myshare/Automation/idrac_virtual_media/efiboot.img"
+https_share_ip=https_share_ip
+https_share_username=https_share_username
+https_share_password=https_share_password
 # FTP share details
-ftp_share_ip=""
-ftp_share_ip_no_auth=""
-ftp_share_dir_path=""
-ftp_share_domain_name=""
-ftp_share_username=""
-ftp_share_domain_username=""
-ftp_share_password=""
-# Firmware details
-idrac_firmware_dup_file="iDRAC-with-Lifecycle-Controller_Firmware_KH4XX_WN64_7.00.00.00_A00.EXE"
-bios_firmware_dup_file="BIOS_0X43T_WN64_2.11.3_01_R6525.EXE"
-ome_firmware_dup_file_url="https://dl.dell.com/FOLDER10032207M/1/iDRAC-with-Lifecycle-Controller_Firmware_Y0CWW_WN64_6.10.80.00_A00.EXE"
-ome_firmware_downgrade_url="https://dl.dell.com/FOLDER09724013M/1/iDRAC-with-Lifecycle-Controller_Firmware_T9J9H_WN64_6.10.30.20_A00.EXE"
-# AD details
-ad_fqdn = "cond.bdcsv.lab"
-ad_username = "cond\\test"
-ad_password = "dell_123"
-ad_group = "connection"
-# Proxy Details
-socks4_proxy_enabled=true
-socks4_proxy_server="100.96.37.29"
-socks4_proxy_port=1080
-http_proxy_enabled=true
-http_proxy_server="100.96.16.159"
-http_proxy_port=4080
-http_proxy_username="admin"
-http_proxy_password="Admin.1234"
-# iDRAC license file
-idrac_license_file="license.xml"
+ftp_share_ip=ftp_share_ip
+ftp_share_dir_path=ftp_share_dir_path
+ftp_share_username=ftp_share_username
+ftp_share_password=ftp_share_password
+# Module specific parameter details
+idrac_reset_default_username=default_username
+idrac_reset_default_password=default_password
+idrac_firmware_dup_file=idrac_firmware_dup_file
+bios_firmware_dup_file=bios_firmware_dup_file
+ome_application_certificate_certificate_remote_share_path=remote_share_path
+ome_application_certificate_certificate_chain_filename=certificate_chain_filename
+ome_application_certificate_local_temp_path=local_temp_path
+omevv_baseline_profile_catalog_file=catlog_file_name
+
+#make sure these directories has write permissions
+path_for_secure_boot_certificate=secure_boot_certitifate_path_1
