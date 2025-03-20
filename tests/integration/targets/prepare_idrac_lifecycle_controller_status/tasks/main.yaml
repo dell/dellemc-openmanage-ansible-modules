@@ -35,5 +35,5 @@
         - result_lc.lc_status_info is defined
         - result_lc.lc_status_info.LCStatus is defined
         - result_lc.lc_status_info.LCStatus == 'Ready'
-      retries: 100
+      retries: 200
       delay: 30
