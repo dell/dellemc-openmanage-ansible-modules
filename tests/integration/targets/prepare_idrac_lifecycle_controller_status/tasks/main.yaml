@@ -37,3 +37,7 @@
         - result_lc.lc_status_info.LCStatus == 'Ready'
       retries: 200
       delay: 30
+
+    - name: Waiting for 30 secs
+      ansible.builtin.pause:
+        seconds: 30
