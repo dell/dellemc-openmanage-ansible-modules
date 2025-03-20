@@ -268,8 +268,8 @@ EXIT_MESSAGE = "The catalog in the repository specified in the operation has the
                "as currently present on the server."
 IDEM_MSG_ID = "SUP029"
 REDFISH_VERSION = "3.30"
-INTERVAL = 10  # polling interval
-WAIT_COUNT = 3
+INTERVAL = 30  # polling interval
+WAIT_COUNT = 240
 JOB_WAIT_MSG = 'Job wait timed out after {0} minutes'
 
 
@@ -674,7 +674,15 @@ def update_firmware_redfish(idrac, module, repo_urls):
             try:
                 repo_based_update_list = idrac.invoke_request(GET_REPO_BASED_UPDATE_LIST_PATH, method="POST",
                                                               data="{}", dump=False)
-                msg['update_status']['job_details'] = repo_based_update_list.json_data
+                json_data = repo_based_update_list.json_data
+                # Check if the variable is a string
+                if isinstance(json_data, str):
+                    # Convert the string to a dictionary
+                    update_status = json.loads(json_data)
+                else:
+                    # If the variable is not a string, assume it is already a dictionary
+                    update_status = json_data
+                msg['update_status']['job_details'] = update_status
             except HTTPError as err:
                 handle_HTTP_error(module, err)
                 raise err
