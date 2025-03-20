@@ -1,3 +1,0 @@
-# This will work for CIFS path too
-old_catalog_location: "/firmwares/100_71_90_66_Old_Repo_integration"
-new_catalog_location: "/firmwares/100_71_90_66_integration"
