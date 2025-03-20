@@ -1,6 +1,6 @@
 - ansible.builtin.include_role: name=prepare_idrac_lifecycle_controller_status
 
-- name: Downgrade firmwares from repository through NFS Share
+- name: Downgrade firmwares from repository through CIFS Share
   dellemc.openmanage.idrac_firmware:
     share_name: "{{ cifs_share_name }}{{ old_catalog_location }}"
     share_mnt: "{{ cifs_share_mnt }}"

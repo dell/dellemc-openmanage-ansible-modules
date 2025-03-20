@@ -1,13 +1,16 @@
+---
 - name: Verify status of tasks
   ansible.builtin.assert:
     that:
       - cm_changes.changed
       - cm_changes.msg == "Changes found to commit!"
       - update_result.changed
-      - update_result.msg == "Successfully updated the firmware."
+      - update_result.msg ==
+        "Successfully updated the firmware."
       - not cm_no_changes.changed
       - not idempotence.changed
-      - applicable_updates_packages.msg == "Successfully fetched the applicable firmware update package list."
+      - applicable_updates_packages.msg ==
+        "Successfully fetched the applicable firmware update package list."
 
 - name: Verify outputs of tasks specific to iDRAC9
   ansible.builtin.assert:

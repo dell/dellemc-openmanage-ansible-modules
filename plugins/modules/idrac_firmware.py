@@ -268,12 +268,13 @@ EXIT_MESSAGE = "The catalog in the repository specified in the operation has the
                "as currently present on the server."
 IDEM_MSG_ID = "SUP029"
 REDFISH_VERSION = "3.30"
-INTERVAL = 30  # polling interval
-WAIT_COUNT = 240
+INTERVAL = 10  # polling interval
+WAIT_COUNT = 3
 JOB_WAIT_MSG = 'Job wait timed out after {0} minutes'
 
 
 def wait_for_job_completion(module, job_uri, job_wait=False, reboot=False, apply_update=False):
+    # TO DO when job_wait is true and jobstate is Failed it goes to unfinished loop. please fix
     track_counter = 0
     response = {}
     msg = None
@@ -306,8 +307,6 @@ def wait_for_job_completion(module, job_uri, job_wait=False, reboot=False, apply
             if response.json_data.get("PercentComplete") == 100 and job_state == "Completed":  # apply now
                 break
             if job_state in ["Starting", "Running", "Pending", "New"] and not reboot and apply_update:  # apply on
-                break
-            if job_state == "Failed":
                 break
             track_counter += 1
             time.sleep(INTERVAL)

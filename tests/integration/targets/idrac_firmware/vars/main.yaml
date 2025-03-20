@@ -1,3 +1,3 @@
 # This will work for CIFS path too
-old_catalog_location: "/cifsshare/firmwares/100_71_90_66_Old_Repo/100_71_90_66_catalog_Catalog.xml"
-new_catalog_location: "/cifsshare/firmwares/100_71_90_66/100_71_90_66_catalog_Catalog.xml"
+old_catalog_location: "/firmwares/100_71_90_66_Old_Repo_integration"
+new_catalog_location: "/firmwares/100_71_90_66_integration"
