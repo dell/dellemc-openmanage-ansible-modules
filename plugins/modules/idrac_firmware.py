@@ -282,6 +282,8 @@ def wait_for_job_completion(module, job_uri, job_wait=False, reboot=False, apply
             # For job_wait False return a valid response, try 5 times
             with iDRACRedfishAPI(module.params) as redfish:
                 response = redfish.invoke_request(job_uri, "GET")
+                if response.json_data.get("PercentComplete") == 100:  # apply now
+                    break
             track_counter += 5
             msg = None
         except Exception as error_message:
@@ -298,11 +300,14 @@ def wait_for_job_completion(module, job_uri, job_wait=False, reboot=False, apply
                 response = redfish.invoke_request(job_uri, "GET")
                 job_state = response.json_data.get("JobState")
             msg = None
+            if response.json_data.get("PercentComplete") == 100:
+                break
+            track_counter += 1
+            time.sleep(INTERVAL)
         except Exception as error_message:
             msg = str(error_message)
             track_counter += 2
             time.sleep(INTERVAL)
-        else:
             if response.json_data.get("PercentComplete") == 100 and job_state == "Completed":  # apply now
                 break
             if job_state in ["Starting", "Running", "Pending", "New"] and not reboot and apply_update:  # apply on
@@ -331,7 +336,7 @@ def get_check_mode_status(status, module):
         module.exit_json(msg=EXIT_MESSAGE)
 
 
-def get_job_status(module, each_comp, idrac):
+def get_job_status(module, each_comp, idrac, jid):
     failed, each_comp['JobStatus'], each_comp['Message'] = False, None, None
     job_wait = module.params['job_wait']
     reboot = module.params['reboot']
@@ -350,7 +355,7 @@ def get_job_status(module, each_comp, idrac):
                 each_comp['JobStatus'] = "Critical"
                 failed = True
         else:
-            resp, msg = wait_for_job_completion(module, JOB_URI.format(job_id=each_comp.get("JobID")), job_wait, reboot,
+            resp, msg = wait_for_job_completion(module, JOB_URI.format(job_id=jid), job_wait, reboot,
                                                 apply_update)
             if not msg:
                 resp_data = resp.json_data
@@ -364,14 +369,14 @@ def get_job_status(module, each_comp, idrac):
     return each_comp, failed
 
 
-def _convert_xmltojson(module, job_details, idrac):
+def _convert_xmltojson(module, job_details, idrac, jid):
     """get all the xml data from PackageList and returns as valid json."""
     data, repo_status, failed_status = [], False, False
     try:
         xmldata = ET.fromstring(job_details['PackageList'])
         for iname in xmldata.iter('INSTANCENAME'):
             comp_data = dict([(attr.attrib['NAME'], txt.text) for attr in iname.iter("PROPERTY") for txt in attr])
-            component, failed = get_job_status(module, comp_data, idrac)
+            component, failed = get_job_status(module, comp_data, idrac, jid)
             # get the any single component update failure and record the only very first failure on failed_status True
             if not failed_status and failed:
                 failed_status = True
@@ -617,6 +622,7 @@ def update_firmware_redfish(idrac, module, repo_urls):
     msg = {}
     msg['changed'], msg['failed'] = False, False
     msg['update_msg'] = "Successfully triggered the job to update the firmware."
+    jid = None
     try:
         share_name = module.params['share_name']
         catalog_file_name = module.params['catalog_file_name']
@@ -665,6 +671,7 @@ def update_firmware_redfish(idrac, module, repo_urls):
                 payload['ShareType'] = 'NFS'
             resp = idrac.invoke_request(PATH, method="POST", data=payload)
             job_id = get_jobid(module, resp)
+            jid = job_id
             resp, mesg = wait_for_job_completion(module, JOB_URI.format(job_id=job_id), job_wait, reboot, apply_update)
             if not mesg:
                 msg['update_status'] = resp.json_data
@@ -673,15 +680,7 @@ def update_firmware_redfish(idrac, module, repo_urls):
             try:
                 repo_based_update_list = idrac.invoke_request(GET_REPO_BASED_UPDATE_LIST_PATH, method="POST",
                                                               data="{}", dump=False)
-                json_data = repo_based_update_list.json_data
-                # Check if the variable is a string
-                if isinstance(json_data, str):
-                    # Convert the string to a dictionary
-                    update_status = json.loads(json_data)
-                else:
-                    # If the variable is not a string, assume it is already a dictionary
-                    update_status = json_data
-                msg['update_status']['job_details'] = update_status
+                msg['update_status']['job_details'] = repo_based_update_list.json_data
             except HTTPError as err:
                 handle_HTTP_error(module, err)
                 raise err
@@ -690,9 +689,9 @@ def update_firmware_redfish(idrac, module, repo_urls):
             job_data = json_data.get('Data')
             pkglst = job_data['body'] if 'body' in job_data else job_data.get('GetRepoBasedUpdateList_OUTPUT')
             if 'PackageList' in pkglst:
-                pkglst['PackageList'], repo_status, failed = _convert_xmltojson(module, pkglst, idrac)
+                pkglst['PackageList'], repo_status, failed = _convert_xmltojson(module, pkglst, idrac, jid)
         else:
-            json_data['PackageList'], repo_status, failed = _convert_xmltojson(module, json_data, None)
+            json_data['PackageList'], repo_status, failed = _convert_xmltojson(module, json_data, None, jid)
 
         if not apply_update and not failed:
             msg['update_msg'] = "Successfully fetched the applicable firmware update package list."
