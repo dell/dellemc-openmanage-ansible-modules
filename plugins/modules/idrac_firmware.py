@@ -274,7 +274,6 @@ JOB_WAIT_MSG = 'Job wait timed out after {0} minutes'
 
 
 def wait_for_job_completion(module, job_uri, job_wait=False, reboot=False, apply_update=False):
-    # TO DO when job_wait is true and jobstate is Failed it goes to unfinished loop. please fix
     track_counter = 0
     response = {}
     msg = None
