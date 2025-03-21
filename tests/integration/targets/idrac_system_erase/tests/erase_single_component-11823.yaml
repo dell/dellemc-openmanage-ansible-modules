@@ -19,7 +19,7 @@
   block:
     - name: Check Mode - Erase single component and power on the server
       dellemc.openmanage.idrac_system_erase:
-        component: ["ReinstallFW"]
+        component: ["LCData"]
         power_on: true
       check_mode: true
       register: check_mode_result
@@ -32,7 +32,7 @@
 
     - name: Normal Mode - Erase single component and power on the server
       dellemc.openmanage.idrac_system_erase:
-        component: ["ReinstallFW"]
+        component: ["LCData"]
         power_on: true
         job_wait_timeout: 3600
       register: run_result
