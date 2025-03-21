@@ -179,26 +179,6 @@
           - configure_attributes_output_idempotency.msg ==
            "No changes found to be applied."
 
-    # - name: Reset controller configuration
-    #   idrac_redfish_storage_controller:
-    #     controller_id: "{{ controller_name }}"
-    #     command: "ResetConfig"
-    #     job_wait: true
-
-    # - name: Perform graceful restart of the device
-    #   redfish_powerstate:
-    #     reset_type: GracefulRestart
-
-    # - ansible.builtin.wait_for: timeout=180
-
-    # - name: Check for iDRAC lc ready status.
-    #   idrac_lifecycle_controller_status_info:
-    #   register: result
-    #   until: result.lc_status_info.LCReady and result.lc_status_info.LCStatus
-    #    == "Ready"
-    #   retries: 50
-    #   delay: 30
-
     - name: Prerequisite - Change Storage controller attribute (ControllerMode)
       idrac_redfish_storage_controller:
         controller_id: "{{ controller_name }}"

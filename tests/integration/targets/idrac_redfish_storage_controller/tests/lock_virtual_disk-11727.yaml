@@ -20,9 +20,9 @@
         controller_list: "{{controller_list | default([]) + [item.Id] }}"
       loop: "{{ fetched_controller_data.json.Members }}"
       when:
-       - item.Drives != []
-       - item.Oem is defined
-       - item.Oem.Dell.DellController.EncryptionCapability != 'None'
+        - item.Drives != []
+        - item.Oem is defined
+        - item.Oem.Dell.DellController.EncryptionCapability != 'None'
 
     - name: Fetching drives data based on controller's id
       include_tasks: get_data.yml
