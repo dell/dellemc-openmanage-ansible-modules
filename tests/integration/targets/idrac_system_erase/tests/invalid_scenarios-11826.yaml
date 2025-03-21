@@ -117,7 +117,7 @@
         component: ["ReinstallFW"]
       register: invalid_ca_path
       ignore_errors: true
-    
+
     - name: Setting fact for invalid ca_path message
       ansible.builtin.set_fact:
         msg_var1: "[Errno 2] No such file or
