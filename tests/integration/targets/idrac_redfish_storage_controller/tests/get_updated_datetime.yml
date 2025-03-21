@@ -1,0 +1,29 @@
+- name: Get data using uri
+  uri:
+    url: "{{ url }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    body: {}
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+    headers: 'Accept=application/json'
+  register: fetched_data
+
+- set_fact:
+      current_datetime: "{{ fetched_data.json.DateTime }}"
+
+- set_fact:
+      offset: "{{ fetched_data.json.DateTimeLocalOffset }}"
+
+- set_fact:
+      current_datetime_without_offset: "{{ current_datetime.split(offset)[0] }}"
+
+- command: "date +'%Y-%m-%dT%H:%M:%S' -d '{{current_datetime_without_offset}} {{add_minutes}} minutes'"
+  register: result
+  when: add_minutes is defined
+
+- set_fact:
+      updated_datetime_with_offset: "{{ result.stdout }}{{ offset }}"
