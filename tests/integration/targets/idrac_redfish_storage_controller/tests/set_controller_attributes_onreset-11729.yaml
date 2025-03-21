@@ -12,16 +12,33 @@
    is not defined'
 
 - block:
-    - name: Prerequisite - Fetch Storage details
-      dellemc_idrac_storage_volume:
-        state: "view"
-      register: result_pre_req
+    - name: Fetching data from iDRAC
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}
+          /redfish/v1/Systems/System.Embedded.1/Storage?$expand=*($levels=1)"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        method: GET
+        validate_certs: false
+        force_basic_auth: true
+        return_content: true
+        status_code: 200
+        headers: 'Accept=application/json'
+      register: fetched_output
 
-    - ansible.builtin.set_fact:
-        controller_name: "{{ result_pre_req.storage_status.Message.
-         Controller.keys() | select('match', 'RAID.I') | first}}"
+    - name: Intializing set_fact variable
+      ansible.builtin.set_fact:
+        controller_name: ""
+        physical_disks: []
 
-    - name: Prerequisite - Change Storage controller attributes
+    - name: Extracting Controller id
+      ansible.builtin.set_fact:
+        controller_name: "{{ item.Id }}"
+      when:
+        - '"RAID" in item.Id'
+      loop: "{{ fetched_output.json.Members }}"
+
+    - name: Pre-requisite - Change Storage controller attributes
       idrac_redfish_storage_controller:
         controller_id: "{{ controller_name }}"
         attributes:
@@ -167,9 +184,21 @@
         controller_id: "{{ controller_name }}"
         attributes:
           ControllerMode: "RAID"
-        apply_time: Immediate
+        apply_time: OnReset
         job_wait: true
       register: prereq_result_set_attrs
+
+    - name: Perform graceful restart of the device
+      redfish_powerstate:
+        reset_type: GracefulRestart
+
+    - name: Check for iDRAC lc ready status.
+      idrac_lifecycle_controller_status_info:
+      register: result
+      until: result.lc_status_info.LCReady and result.lc_status_info.LCStatus
+       == "Ready"
+      retries: 50
+      delay: 30
 
     - ansible.builtin.pause: seconds=10
       when: prereq_result_set_attrs.changed

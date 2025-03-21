@@ -15,7 +15,6 @@
 
 - ansible.builtin.set_fact:
     current_datetime: "{{ fetched_data.json.DateTime }}"
-
 - ansible.builtin.set_fact:
     offset: "{{ fetched_data.json.DateTimeLocalOffset }}"
 

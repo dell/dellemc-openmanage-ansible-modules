@@ -12,7 +12,7 @@
 - name: Pre-check - fail if enough disk not found to create VD on RAID 5
   fail:
     msg: 'Physical disks are not sufficient to proceed the test case need more than 3 and found {{ physicaldisks | length}}'
-  when: "{{ physicaldisks | length}} < 4"
+  when: physicaldisks | length < 4
 
 - block:
     - include_tasks: _helper.yml
@@ -34,6 +34,7 @@
         target: "{{ physicaldisks[3] }}"
         job_wait: true
         job_wait_timeout: 1200
+        command: "AssignSpare"
       register: result
 
     - include_tasks: _helper.yml
@@ -47,6 +48,7 @@
         target: "{{ physicaldisks[3] }}"
         job_wait: true
         job_wait_timeout: 1200
+        command: "AssignSpare"
       register: cm_result
       check_mode: true
 
@@ -55,6 +57,7 @@
         volume_id:
           - "{{ virtualdisk }}"
         target: "{{ physicaldisks[3] }}"
+        command: "AssignSpare"
       register: normal_result
 
     - include_role: name=prepare_lifecycle_controller_job
@@ -69,6 +72,7 @@
         target: "{{ physicaldisks[3] }}"
         job_wait: true
         job_wait_timeout: 1200
+        command: "AssignSpare"
       register: idempotence
 
     - name: Assign dedicated hot spare - Check mode - (No change expected)
@@ -78,6 +82,7 @@
         target: "{{ physicaldisks[3] }}"
         job_wait: true
         job_wait_timeout: 1200
+        command: "AssignSpare"
       register: no_cm_result
       check_mode: true
 
@@ -97,8 +102,6 @@
       idrac_redfish_storage_controller:
         command: "UnassignSpare"
         target: "{{ physicaldisks[3] }}"
-#        job_wait: false
-#        job_wait_timeout: 1201
       register: unassign_normal_result
 
     - include_role: name=prepare_lifecycle_controller_job
