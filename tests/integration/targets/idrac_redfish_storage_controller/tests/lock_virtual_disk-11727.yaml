@@ -4,7 +4,7 @@
 
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   fail:
-    msg: "Please define the following variables: idrac_ip, idrac_user and idrac_password."
+    msg: 'Please define the following variables: idrac_ip, idrac_user and idrac_password.'
   when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
 
 - block:
@@ -32,6 +32,9 @@
       loop: "{{ controller_list }}"
 
     - set_fact:
+        controller_drive_map_list: []
+
+    - set_fact:
         controller_drive_map_list: "{{ controller_drive_map | default([]) + [{item.0.json.Id : tmp | default([]) + [item.1.Id] }] }}"
       loop: "{{ loop_data | subelements('json.Drives')}}"
       when:
@@ -45,10 +48,10 @@
         volume_type: "NonRedundant"
         drives: "{{ item.value }}"
       register: create_vd
+      when: controller_drive_map_list != [] and index == 0
       loop: "{{ controller_drive_map_list | map('dict2items') | flatten  }}"
       loop_control:
         index_var: index
-      when: index == 0
 
     - pause: seconds=90
       when: create_vd.changed
@@ -61,6 +64,10 @@
       loop_control:
         index_var: index
       when: index == 0
+
+    - name: Getting fetched data
+      ansible.builtin.debug:
+        var: fetched_data.json.Links
 
     - set_fact:
         volume_id: "{{ fetched_data.json.Links.Volumes[0].Id }}"
