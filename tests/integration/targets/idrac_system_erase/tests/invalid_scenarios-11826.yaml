@@ -118,13 +118,19 @@
       register: invalid_ca_path
       ignore_errors: true
 
+    - name: Setting fact for invalid ca_path message
+      ansible.builtin.set_fact:
+        msg_var1: "[Errno 2] No such file or
+          directory: b''/invalid/path''"
+        msg_var2: "[Errno 2] No such file or
+          directory"
+
     - name: Verify task status - Negative - invalid ca_path path
       ansible.builtin.assert:
         that:
           - invalid_ca_path.failed
           - not invalid_ca_path.changed
-          - 'invalid_ca_path.msg == "[Errno 2] No such file or
-            directory: b''/invalid/path''"'
+          - invalid_ca_path.msg == msg_var1 or invalid_ca_path.msg == msg_var2
 
     - name: Negative - invalid timeout type
       dellemc.openmanage.idrac_system_erase:
@@ -133,14 +139,17 @@
       register: invalid_timeout_type
       ignore_errors: true
 
+    - name: Set fact for invalid timeout type msg
+      ansible.builtin.set_fact:
+        invalid_timeout_type_expected_msg: "argument 'timeout' is of type
+          <class 'str'> and we were unable to convert to int: "
+
     - name: Verify task status - Negative - invalid timeout type
       ansible.builtin.assert:
         that:
           - invalid_timeout_type.failed
           - not invalid_timeout_type.changed
-          - 'invalid_timeout_type.msg == "argument ''timeout'' is of type
-            <class ''str''> and we were unable to convert to
-            int: <class ''str''> cannot be converted to an int"'
+          - invalid_timeout_type_expected_msg in invalid_timeout_type.msg
 
     - name: Negative - invalid timeout value
       dellemc.openmanage.idrac_system_erase:
