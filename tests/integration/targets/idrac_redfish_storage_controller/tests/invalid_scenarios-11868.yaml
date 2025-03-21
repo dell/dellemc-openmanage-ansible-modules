@@ -142,14 +142,17 @@
       register: invalid_timeout_type
       ignore_errors: true
 
+    - ansible.builtin.set_fact:
+        timeout_expected_msg: "argument 'timeout' is of type <class 'str'>
+          and we were unable to convert to int: \"'invalid'\" cannot be
+          converted to an int"
+
     - name: Verify task status - Negative - invalid timeout type
       ansible.builtin.assert:
         that:
           - invalid_timeout_type.failed
           - not invalid_timeout_type.changed
-          - 'invalid_timeout_type.msg == "argument ''timeout'' is of type
-            <class ''str''> and we were unable to convert to int:
-            <class ''str''> cannot be converted to an int"'
+          - 'invalid_timeout_type.msg == timeout_expected_msg'
 
     - name: Negative - invalid timeout value
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -269,14 +272,17 @@
       register: invalid_size
       ignore_errors: true
 
+    - ansible.builtin.set_fact:
+        invalid_size_expected_msg: "argument 'size' is of type <class 'str'>
+          and we were unable to convert to int: \"'invalid'\" cannot be
+          converted to an int"
+
     - name: Verify task status - Negative - invalid key
       ansible.builtin.assert:
         that:
           - invalid_size.failed
           - not invalid_size.changed
-          - 'invalid_size.msg == "argument ''size'' is of type <class ''str''>
-           and we were unable to convert to int: <class ''str''> cannot be
-           converted to an int"'
+          - 'invalid_size.msg == invalid_size_expected_msg'
 
   module_defaults:
     dellemc.openmanage.idrac_redfish_storage_controller:

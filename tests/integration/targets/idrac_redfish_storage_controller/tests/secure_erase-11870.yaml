@@ -124,7 +124,7 @@
           - not secure_erase_no_job_wait.failed
           - 'secure_erase_no_job_wait.status.Message == "New" or
             secure_erase_no_job_wait.status.Message == "Running" or
-            secure_erase_no_job_wait.status.Message == "Job in Progress."'
+            secure_erase_no_job_wait.status.Message == "Job in progress."'
           - 'secure_erase_no_job_wait.status.JobState == "ReadyForExecution" or
             secure_erase_no_job_wait.status.JobState == "Running"'
           - secure_erase_no_job_wait.task.id

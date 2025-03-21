@@ -60,6 +60,14 @@
       ignore_errors: "{{ ignore_errors_val }}"
       when: vd_trigger is defined
 
+    - name: Wait for iDRAC lifecycle controller readiness
+      ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
+
+    - name: Pause the job
+      ansible.builtin.pause:
+        seconds: 60
+
     - name: Post_check - View all volumes
       dellemc.openmanage.idrac_storage_volume:
         state: "view"
@@ -89,7 +97,7 @@
     - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
       vars:
         job_id: "{{ result_offline_online.status.Id }}"
-      when: result_offline_online.msg == "Successfully submitted the job
+      when: result_offline_online.changed and result_offline_online.msg == "Successfully submitted the job
        that performs the 'ChangePDStateToOffline' operation."
       ignore_errors: true
 

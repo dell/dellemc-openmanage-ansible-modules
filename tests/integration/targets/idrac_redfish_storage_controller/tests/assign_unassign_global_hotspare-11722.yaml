@@ -31,6 +31,7 @@
         target: "{{ physicaldisks[1] }}"
         job_wait: true
         job_wait_timeout: 1200
+        command: "AssignSpare"
       register: global_hotspare_result
 
     - name: Assign global hot spare - check mode - (Change expected)
@@ -38,14 +39,14 @@
         target: "{{ physicaldisks[0] }}"
         job_wait: true
         job_wait_timeout: 1201
+        command: "AssignSpare"
       register: cm_result
       check_mode: true
 
     - name: Assign global hot spare - Normal
       idrac_redfish_storage_controller:
         target: "{{ physicaldisks[0] }}"
-#        job_wait: false
-#        job_wait_timeout: 1201
+        command: "AssignSpare"
       register: normal_result
 
     - include_role: name=prepare_lifecycle_controller_job
@@ -58,6 +59,7 @@
         target: "{{ physicaldisks[0] }}"
         job_wait: true
         job_wait_timeout: 1201
+        command: "AssignSpare"
       register: idempotence
 
     - name: Assign global hot spare - Check mode - (No change expected)
@@ -65,6 +67,7 @@
         target: "{{ physicaldisks[0] }}"
         job_wait: true
         job_wait_timeout: 1201
+        command: "AssignSpare"
       register: no_cm_result
 
 
@@ -91,8 +94,6 @@
       idrac_redfish_storage_controller:
         command: "UnassignSpare"
         target: "{{ physicaldisks[1] }}"
-#        job_wait: false
-#        job_wait_timeout: 1201
       register: unassign_normal_result
 
     - include_role: name=prepare_lifecycle_controller_job

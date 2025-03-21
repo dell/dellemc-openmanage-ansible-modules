@@ -90,6 +90,8 @@
           - set_LKM_encryption.changed
           - set_LKM_encryption.msg == "Changes found to be applied."
 
+    - ansible.builtin.pause: seconds=120
+
     - name: Remove controller encryption key (Normal mode)
       idrac_redfish_storage_controller:
         <<: *idrac_redfish_storage_controller_1
