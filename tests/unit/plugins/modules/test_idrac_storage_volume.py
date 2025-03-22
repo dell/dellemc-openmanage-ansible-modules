@@ -894,7 +894,7 @@ class TestStorageValidation(TestStorageBase):
         assert exc.value.args[0] == INVALID_VALUE_MSG.format(parameter="span_depth")
 
         # Scenario - Invalid span_depth for RAID 10
-        params = {"span_depth": 9, "span_length": 4, "pd_count": 4, "volume_type": "RAID 10"}
+        params = {"span_depth": 0, "span_length": 4, "pd_count": 9, "volume_type": "RAID 10"}
         with pytest.raises(Exception) as exc:
             idr_obj.raid_std_validation(params["span_length"],
                                         params["span_depth"],
@@ -903,7 +903,7 @@ class TestStorageValidation(TestStorageBase):
         assert exc.value.args[0] == INVALID_VALUE_MSG.format(parameter="span_depth")
 
         # Scenario - Invalid drive count
-        params = {"span_depth": 3, "span_length": 2, "pd_count": 1, "volume_type": "RAID 10"}
+        params = {"span_depth": 3, "span_length": 4, "pd_count": 1, "volume_type": "RAID 10"}
         with pytest.raises(Exception) as exc:
             idr_obj.raid_std_validation(params["span_length"],
                                         params["span_depth"],
@@ -912,7 +912,15 @@ class TestStorageValidation(TestStorageBase):
         assert exc.value.args[0] == INVALID_VALUE_MSG.format(parameter="drives")
 
         # Scenario - Valid
-        params = {"span_depth": 2, "span_length": 2, "pd_count": 4, "volume_type": "RAID 10"}
+        params = {"span_depth": 6, "span_length": 22, "pd_count": 132, "volume_type": "RAID 10"}
+        out = idr_obj.raid_std_validation(params["span_length"],
+                                          params["span_depth"],
+                                          params["volume_type"],
+                                          params["pd_count"])
+        assert out is True
+
+        # Scenario - Valid
+        params = {"span_depth": 1, "span_length": 12, "pd_count": 12, "volume_type": "RAID 10"}
         out = idr_obj.raid_std_validation(params["span_length"],
                                           params["span_depth"],
                                           params["volume_type"],
