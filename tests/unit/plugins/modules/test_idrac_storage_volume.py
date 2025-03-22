@@ -894,7 +894,7 @@ class TestStorageValidation(TestStorageBase):
         assert exc.value.args[0] == INVALID_VALUE_MSG.format(parameter="span_depth")
 
         # Scenario - Invalid span_depth for RAID 10
-        params = {"span_depth": 1, "span_length": 2, "pd_count": 9, "volume_type": "RAID 10"}
+        params = {"span_depth": 9, "span_length": 4, "pd_count": 4, "volume_type": "RAID 10"}
         with pytest.raises(Exception) as exc:
             idr_obj.raid_std_validation(params["span_length"],
                                         params["span_depth"],
