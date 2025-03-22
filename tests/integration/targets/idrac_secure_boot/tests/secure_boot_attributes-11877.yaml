@@ -1,5 +1,5 @@
 # Dell OpenManage Ansible modules
-# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -486,6 +486,10 @@
 
     - ansible.builtin.include_role:
         name: prepare_idrac_lifecycle_controller_status
+
+    - name: Wait for iDRAC
+      ansible.builtin.pause:
+        seconds: 30
 
     - name: Pre-req - Set secure boot policy to Custom
       dellemc.openmanage.idrac_secure_boot:
