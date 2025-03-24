@@ -1,0 +1,9 @@
+---
+db_secure_boot_path: "/myshare/secure_boot_certificates/db/db.pem"
+dbx_secure_boot_path: "/myshare/secure_boot_certificates/dbx/dbx.pem"
+kek_secure_boot_path: "/myshare/secure_boot_certificates/kek/kek.pem"
+pk_secure_boot_path: "/myshare/secure_boot_certificates/pk/pk.pem"
+path_for_db_certificate: "/root/secure_boot_certificates/db/db.pem"
+path_for_dbx_certificate: "/root/secure_boot_certificate/dbx/dbx.pem"
+path_for_kek_certificate: "/root/secure_boot_certificate/kek/kek.pem"
+path_for_pk_certificate: "/root/secure_boot_certificate/pk/pk.pem"

@@ -16,3 +16,4 @@
     validate_certs: false
     attributes:
       SecureBootPolicy: Custom
+  ignore_errors: true
