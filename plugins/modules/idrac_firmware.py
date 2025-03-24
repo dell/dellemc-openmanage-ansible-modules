@@ -297,12 +297,16 @@ def wait_for_job_completion(module, job_uri, job_wait=False, reboot=False, apply
             with iDRACRedfishAPI(module.params) as redfish:
                 response = redfish.invoke_request(job_uri, "GET")
                 job_state = response.json_data.get("JobState")
+                job_status = response.json_data.get("JobStatus")
             msg = None
         except Exception as error_message:
             msg = str(error_message)
             track_counter += 2
             time.sleep(INTERVAL)
         else:
+            if job_status == "Critical":
+                msg = response.json_data.get("Messages")[0]["Message"]
+                module.exit_json(msg=msg)
             if response.json_data.get("PercentComplete") == 100 and job_state == "Completed":  # apply now
                 break
             if job_state in ["Starting", "Running", "Pending", "New"] and not reboot and apply_update:  # apply on
