@@ -1,0 +1,81 @@
+---
+- name: Set fact for db certifcate
+  ansible.builtin.set_fact:
+    curl_cmd: "curl -O -v --ntlm -u %s:%s -o %s %s"
+    curl_https_url: "{{ https_share_ip }}/{{ db_secure_boot_path }}"
+
+- name: Downloading db certificate file
+  register: http_dnld_curl_cmd_out
+  no_log: false
+  changed_when: http_dnld_curl_cmd_out.rc == 0
+  failed_when: http_dnld_curl_cmd_out.rc != 0
+  ansible.builtin.command: >
+      {{ curl_cmd | format(https_share_username, https_share_password,
+       path_for_db_certificate, curl_https_url) }}
+  check_mode: false
+
+- name: Set fact for dbx certifcate
+  ansible.builtin.set_fact:
+    curl_cmd: "curl -v --ntlm -u %s:%s -o %s %s"
+    curl_https_url: "{{ https_share_ip }}/{{ dbx_secure_boot_path }}"
+
+- name: Downloading dbx certificate file
+  register: http_dnld_curl_cmd_out
+  no_log: false
+  changed_when: http_dnld_curl_cmd_out.rc == 0
+  failed_when: http_dnld_curl_cmd_out.rc != 0
+  ansible.builtin.command: >
+      {{ curl_cmd | format(https_share_username, https_share_password,
+       path_for_dbx_certificate, curl_https_url) }}
+  check_mode: false
+
+- name: Set fact for pk certifcate
+  ansible.builtin.set_fact:
+    curl_cmd: "curl -v --ntlm -u %s:%s -o %s %s"
+    curl_https_url: "{{ https_share_ip }}/{{ pk_secure_boot_path }}"
+
+- name: Downloading pk certificate file
+  register: http_dnld_curl_cmd_out
+  no_log: false
+  changed_when: http_dnld_curl_cmd_out.rc == 0
+  failed_when: http_dnld_curl_cmd_out.rc != 0
+  ansible.builtin.command: >
+      {{ curl_cmd | format(https_share_username, https_share_password,
+       path_for_pk_certificate, curl_https_url) }}
+  check_mode: false
+
+- name: Set fact for kek certifcate
+  ansible.builtin.set_fact:
+    curl_cmd: "curl -v --ntlm -u %s:%s -o %s %s"
+    curl_https_url: "{{ https_share_ip }}/{{ kek_secure_boot_path }}"
+
+- name: Downloading kek certificate file
+  register: http_dnld_curl_cmd_out
+  no_log: false
+  changed_when: http_dnld_curl_cmd_out.rc == 0
+  failed_when: http_dnld_curl_cmd_out.rc != 0
+  ansible.builtin.command: >
+      {{ curl_cmd | format(https_share_username, https_share_password,
+       path_for_kek_certificate, curl_https_url) }}
+  check_mode: false
+
+- name: Import all policy certificate
+  dellemc.openmanage.idrac_secure_boot:
+    import_certificates: true
+    database:
+      - "{{ path_for_db_certificate }}"
+    disallow_database: "{{ path_for_dbx_certificate }}"
+    KEK:
+      - "{{ path_for_kek_certificate }}"
+    platform_key: "{{ path_for_pk_certificate }}"
+    restart: true
+    restart_type: GracefulRestart
+    job_wait: true
+    job_wait_timeout: 1000
+  register: import_share
+
+- name: Delete Directory
+  ansible.builtin.file:
+    path: "{{ path_for_secure_boot_certificate }}"
+    state: absent
+  register: deleted_directory

@@ -18,6 +18,10 @@
 
     - ansible.builtin.include_tasks: _create_directory.yml
 
+    - ansible.builtin.include_tasks: _import_certs_from_share.yml
+
+    - ansible.builtin.include_tasks: _create_directory.yml
+
     - name: Export all policy certificate
        (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &export_cert
