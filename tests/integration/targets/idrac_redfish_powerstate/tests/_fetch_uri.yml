@@ -11,6 +11,7 @@
         force_basic_auth: true
         return_content: true
         status_code: 200
+        timeout: 120
         headers: 'Accept=application/json'
       register: idrac_output
       when: uri is defined
