@@ -370,7 +370,7 @@ def idrac_system_reset(idrac, res_id, payload=None, job_wait=True, wait_time_sec
         time.sleep(10)
         if wait_time_sec:
             resp = idrac.invoke_request(MANAGER_JOB_URI, "GET")
-            job = list(filter(lambda d: d["JobState"] in ["RebootPending"], resp.json_data["Members"]))
+            job = list(filter(lambda d: d["JobState"] in ["RebootPending", "RebootCompleted"], resp.json_data["Members"]))
             if job:
                 job_resp, msg = wait_for_idrac_job_completion(idrac, MANAGER_JOB_ID_URI.format(job[0]["Id"]),
                                                               job_wait=job_wait, wait_timeout=wait_time_sec)
