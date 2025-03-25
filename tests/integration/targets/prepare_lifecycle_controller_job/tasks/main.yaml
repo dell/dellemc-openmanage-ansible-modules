@@ -17,7 +17,7 @@
       failed_when:
         - result_job_wait.job_info is defined
         - result_job_wait.job_info.JobStatus == "Failed"
-      retries: 100
+      retries: 150
       delay: 30
 
     - name: Track job by location (using uri)
