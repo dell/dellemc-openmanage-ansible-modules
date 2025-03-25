@@ -1139,6 +1139,8 @@ def job_condition_check(module, redfish_obj, job_id, job_uri,
     else:
         resp, msg = wait_for_job_completion(redfish_obj, job_uri, job_wait=job_wait,
                                             wait_timeout=module.params["job_wait_timeout"])
+        if resp == {}:
+            module.exit_json(msg=msg, task={"id": job_id, "uri": job_uri})
         job_data = strip_substr_dict(resp.json_data)
         module.exit_json(msg=job_submission_msg, task={"id": job_id, "uri": job_uri},
                          status=job_data)
