@@ -21,6 +21,28 @@
         controller_name: "{{ result_pre_req.storage_status.Message.Controller.
          keys() | select('match', 'RAID.') | first }}"
 
+    - name: Prerequisite - Reset any encryption configurations
+      idrac_redfish_storage_controller:
+        controller_id: "{{ controller_name }}"
+        command: "RemoveControllerKey"
+      register: reset_encryption
+
+    - name: Check for iDRAC lc ready status.
+      idrac_lifecycle_controller_status_info:
+      register: result
+      until: result.lc_status_info.LCReady and result.lc_status_info.
+       LCStatus == "Ready"
+      retries: 50
+      delay: 30
+
+    - ansible.builtin.pause: seconds=10
+
+    - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{reset_encryption.status.Id}}"
+      when: reset_encryption.msg == "Successfully submitted the job that
+        performs the 'RemoveControllerKey' operation."
+
     - name: Prerequisite - Ensure encryption is enabled
       idrac_redfish_storage_controller:
         controller_id: "{{ controller_name }}"
@@ -29,6 +51,8 @@
         key: "your_Key@123"
         key_id: "your_Keyid@123"
       register: prereq_result_set_attrs
+
+    - ansible.builtin.pause: seconds=60
 
     - ansible.builtin.wait_for: timeout=30
       when: prereq_result_set_attrs.msg == "Successfully submitted the job that
@@ -111,6 +135,8 @@
        == "Ready"
       retries: 50
       delay: 30
+
+    - ansible.builtin.pause: seconds=10
 
     - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
       vars:

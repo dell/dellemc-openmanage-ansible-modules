@@ -73,6 +73,8 @@
         success_msg: "Prerequisite - Storage controller attribute
          'EncryptionMode' is set to 'None' successfully"
 
+    - ansible.builtin.pause: seconds=60
+
     - name: Set controller encryption LKM (Check mode - Changes expected)
       idrac_redfish_storage_controller: &idrac_redfish_storage_controller_1
         controller_id: "{{ controller_name }}"

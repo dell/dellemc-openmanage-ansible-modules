@@ -35,10 +35,10 @@
       ansible.builtin.set_fact:
         controller_name: "{{ item.Id }}"
       when:
-        - '"RAID" in item.Id'
+        - '"RAID.Integrated" in item.Id'
       loop: "{{ fetched_output.json.Members }}"
 
-    - name: Pre-requisite - Change Storage controller attributes
+    - name: Pre-requisite - Change Storage controller attributes # add RAID
       idrac_redfish_storage_controller:
         controller_id: "{{ controller_name }}"
         attributes:
@@ -54,7 +54,7 @@
 
     - name: Perform graceful restart of the device
       redfish_powerstate:
-        reset_type: GracefulRestart
+        reset_type: ForceRestart
 
     - ansible.builtin.wait_for: timeout=60
 
@@ -186,11 +186,15 @@
           ControllerMode: "RAID"
         apply_time: OnReset
         job_wait: true
+        job_wait_timeout: 600
       register: prereq_result_set_attrs
+      ignore_errors: true
 
     - name: Perform graceful restart of the device
       redfish_powerstate:
-        reset_type: GracefulRestart
+        reset_type: ForceRestart
+
+    - ansible.builtin.pause: seconds=600
 
     - name: Check for iDRAC lc ready status.
       idrac_lifecycle_controller_status_info:
@@ -248,7 +252,7 @@
 
     - name: Perform graceful restart of the device
       redfish_powerstate:
-        reset_type: GracefulRestart
+        reset_type: ForceRestart
 
     - ansible.builtin.wait_for: timeout=60
 
