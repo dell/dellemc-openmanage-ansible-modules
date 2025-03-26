@@ -10,7 +10,8 @@ v9.11.0
 Release Summary
 ---------------
 
-- The modules ``idrac_network_attributes``, ``idrac_certificates``, ``idrac_redfish_storage_controller``, ``idrac_boot`` and ``idrac_firmware`` have been enhanced to resolve all internal defects. - The ``idrac_redfish_storage_volume`` module is enhanced to prevent a 404 error during job creation when enabling encryption for virtual drives.
+- The modules ``idrac_network_attributes``, ``idrac_certificates``, ``idrac_redfish_storage_controller``, ``idrac_boot`` and ``idrac_firmware`` have been enhanced to resolve all internal defects. 
+- The ``idrac_redfish_storage_volume`` module is enhanced to prevent a 404 error during job creation when enabling encryption for virtual drives.
 
 Bugfixes
 --------
@@ -31,7 +32,9 @@ v9.10.0
 Release Summary
 ---------------
 
-- The ``omevv_firmware`` module is added to support the firmware update of the single host and single cluster. - The ``omevv_firmware_repository_profile`` module is enhanced to support resync of repository profiles from the OpenManage Update Manager Plug-in. - The ``idrac_certificates`` module is enhanced to support SSL CSR generation for 4096 key size.
+- The ``omevv_firmware`` module is added to support the firmware update of the single host and single cluster.
+- The ``omevv_firmware_repository_profile`` module is enhanced to support resync of repository profiles from the OpenManage Update Manager Plug-in.
+- The ``idrac_certificates`` module is enhanced to support SSL CSR generation for 4096 key size. (Issue #737) 
 
 Major Changes
 -------------
@@ -41,8 +44,8 @@ Major Changes
 Minor Changes
 -------------
 
-- idrac_certificates -  This module is enhanced to support SSL CSR generation for 4096 key size.
 - omevv_firmware_repository_profile - This module allows to resync the repository profiles from the OpenManage Update Manager Plug-in.
+- idrac_certificates -  This module is enhanced to support SSL CSR generation for 4096 key size.
 
 Bugfixes
 --------
@@ -62,7 +65,9 @@ v9.9.0
 Release Summary
 ---------------
 
-- Modules are added to support OpenManage Enterprise Integration for VMWare vCenter Plug-in. - The ``omevv_baseline_profile_info`` module is added to support retrieval of baseline profile information. - The ``omevv_compliance_info`` module is added to support retrieval of firmware compliance reports. - The ``omevv_baseline_profile`` module is added to support management of baseline profile.
+- The ``omevv_baseline_profile_info`` module is added to support retrieval of baseline profile information.
+- The ``omevv_compliance_info`` module is added to support retrieval of firmware compliance reports.
+- The ``omevv_baseline_profile`` module is added to support management of baseline profile.
 
 Major Changes
 -------------
@@ -84,7 +89,11 @@ v9.8.0
 Release Summary
 ---------------
 
-- Modules are added to support OpenManage Enterprise Integration for VMWare vCenter Plug-in. - The ``omevv_vcenter_info`` module is added to support retrieval of vCenter information. - The ``omevv_firmware_repository_profile_info`` module is added to support retrieval of firmware repository profile information. - The ``omevv_firmware_repository_profile`` module is added to support management of firmware repository profile. - The ``idrac_firmware_info`` module is enhanced to support iDRAC10 and OMSDK dependency is removed.
+- Modules are added to support OpenManage Enterprise Integration for VMWare vCenter Plug-in.
+- The ``omevv_vcenter_info`` module is added to support retrieval of vCenter information.
+- The ``omevv_firmware_repository_profile_info`` module is added to support retrieval of firmware repository profile information.
+- The ``omevv_firmware_repository_profile`` module is added to support management of firmware repository profile.
+- The ``idrac_firmware_info`` module is enhanced to support iDRAC10 and OMSDK dependency is removed.
 
 Major Changes
 -------------
@@ -118,7 +127,8 @@ v9.7.0
 Release Summary
 ---------------
 
-- The ``idrac_secure_boot`` module is enhanced to export, reset and configure the attributes of boot certificate. - The ``idrac_system_erase`` module is added to add support to erase system and storage components of the server.
+- The ``idrac_secure_boot`` module is enhanced to export, reset and configure the attributes of boot certificate.
+- The ``idrac_system_erase`` module is added to add support to erase system and storage components of the server.
 
 Major Changes
 -------------
