@@ -4,15 +4,34 @@ Dell OpenManage Ansible Modules Release Notes
 
 .. contents:: Topics
 
+v9.11.0
+=======
+
+Release Summary
+---------------
+
+- The modules ``idrac_network_attributes``, ``idrac_certificates``, ``idrac_redfish_storage_controller``, ``idrac_boot`` and ``idrac_firmware`` have been enhanced to resolve all internal defects. - The ``idrac_redfish_storage_volume`` module is enhanced to prevent a 404 error during job creation when enabling encryption for virtual drives.
+
+Bugfixes
+--------
+
+- Internal defect fixes were done for the following modules - ``idrac_network_attributes``, ``idrac_certificates``, ``idrac_redfish_storage_controller``, ``idrac_boot_order`` and ``idrac_firmware``
+- Resolved the issue in ``idrac_redfish_storage_volume`` module where it returns 404 error on job creation when enabling encryption for virtual drives. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues /713)
+
+Known Issues
+------------
+
+- idrac_diagnostics - Issue(285322) - This module doesn't support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
+- idrac_firmware - Issue(279282) - This module does not support firmware update using HTTP, HTTPS, and FTP shares with authentication on iDRAC8.
+- ome_smart_fabric_uplink - Issue(186024) - The module supported by OpenManage Enterprise Modular, however it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, then the existing uplink is modified.
+
 v9.10.0
 =======
 
 Release Summary
 ---------------
 
-- The ``omevv_firmware`` module is added to support the firmware update of the single host and single cluster.
-- The ``omevv_firmware_repository_profile`` module is enhanced to support resync of repository profiles from the OpenManage Update Manager Plug-in.
-- The ``idrac_certificates`` module is enhanced to support SSL CSR generation for 4096 key size. (Issue #737) 
+- The ``omevv_firmware`` module is added to support the firmware update of the single host and single cluster. - The ``omevv_firmware_repository_profile`` module is enhanced to support resync of repository profiles from the OpenManage Update Manager Plug-in. - The ``idrac_certificates`` module is enhanced to support SSL CSR generation for 4096 key size.
 
 Major Changes
 -------------
@@ -22,8 +41,8 @@ Major Changes
 Minor Changes
 -------------
 
-- omevv_firmware_repository_profile - This module allows to resync the repository profiles from the OpenManage Update Manager Plug-in.
 - idrac_certificates -  This module is enhanced to support SSL CSR generation for 4096 key size.
+- omevv_firmware_repository_profile - This module allows to resync the repository profiles from the OpenManage Update Manager Plug-in.
 
 Bugfixes
 --------
@@ -43,9 +62,7 @@ v9.9.0
 Release Summary
 ---------------
 
-- The ``omevv_baseline_profile_info`` module is added to support retrieval of baseline profile information.
-- The ``omevv_compliance_info`` module is added to support retrieval of firmware compliance reports.
-- The ``omevv_baseline_profile`` module is added to support management of baseline profile.
+- Modules are added to support OpenManage Enterprise Integration for VMWare vCenter Plug-in. - The ``omevv_baseline_profile_info`` module is added to support retrieval of baseline profile information. - The ``omevv_compliance_info`` module is added to support retrieval of firmware compliance reports. - The ``omevv_baseline_profile`` module is added to support management of baseline profile.
 
 Major Changes
 -------------
@@ -67,11 +84,7 @@ v9.8.0
 Release Summary
 ---------------
 
-- Modules are added to support OpenManage Enterprise Integration for VMWare vCenter Plug-in.
-- The ``omevv_vcenter_info`` module is added to support retrieval of vCenter information.
-- The ``omevv_firmware_repository_profile_info`` module is added to support retrieval of firmware repository profile information.
-- The ``omevv_firmware_repository_profile`` module is added to support management of firmware repository profile.
-- The ``idrac_firmware_info`` module is enhanced to support iDRAC10 and OMSDK dependency is removed.
+- Modules are added to support OpenManage Enterprise Integration for VMWare vCenter Plug-in. - The ``omevv_vcenter_info`` module is added to support retrieval of vCenter information. - The ``omevv_firmware_repository_profile_info`` module is added to support retrieval of firmware repository profile information. - The ``omevv_firmware_repository_profile`` module is added to support management of firmware repository profile. - The ``idrac_firmware_info`` module is enhanced to support iDRAC10 and OMSDK dependency is removed.
 
 Major Changes
 -------------
@@ -105,8 +118,7 @@ v9.7.0
 Release Summary
 ---------------
 
-- The ``idrac_secure_boot`` module is enhanced to export, reset and configure the attributes of boot certificate.
-- The ``idrac_system_erase`` module is added to add support to erase system and storage components of the server.
+- The ``idrac_secure_boot`` module is enhanced to export, reset and configure the attributes of boot certificate. - The ``idrac_system_erase`` module is added to add support to erase system and storage components of the server.
 
 Major Changes
 -------------
