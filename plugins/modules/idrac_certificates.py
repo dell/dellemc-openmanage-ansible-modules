@@ -419,7 +419,6 @@ def get_res_id(idrac, cert_type):
 
 def get_idrac_service(idrac, res_id):
     resp = None
-    srvc = IDRAC_SERVICE.format(res_id=res_id)
     resp = idrac.invoke_request(f"{MANAGERS_URI}/{res_id}", 'GET')
     srvc_data = resp.json_data
     dell_srvc = srvc_data['Links']['Oem']['Dell']['DelliDRACCardService']

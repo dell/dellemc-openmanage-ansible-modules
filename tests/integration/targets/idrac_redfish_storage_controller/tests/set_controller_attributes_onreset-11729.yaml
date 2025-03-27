@@ -38,7 +38,7 @@
         - '"RAID.Integrated" in item.Id'
       loop: "{{ fetched_output.json.Members }}"
 
-    - name: Pre-requisite - Change Storage controller attributes # add RAID
+    - name: Pre-requisite - Change Storage controller attributes
       idrac_redfish_storage_controller:
         controller_id: "{{ controller_name }}"
         attributes:

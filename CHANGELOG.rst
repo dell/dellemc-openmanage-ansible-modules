@@ -4,6 +4,28 @@ Dell OpenManage Ansible Modules Release Notes
 
 .. contents:: Topics
 
+v9.11.0
+=======
+
+Release Summary
+---------------
+
+- The modules ``idrac_network_attributes``, ``idrac_certificates``, ``idrac_redfish_storage_controller``, ``idrac_boot`` and ``idrac_firmware`` have been enhanced to resolve all internal defects. 
+- The ``idrac_redfish_storage_volume`` module is enhanced to prevent a 404 error during job creation when enabling encryption for virtual drives.
+
+Bugfixes
+--------
+
+- Internal defect fixes were done for the following modules - ``idrac_network_attributes``, ``idrac_certificates``, ``idrac_redfish_storage_controller``, ``idrac_boot_order`` and ``idrac_firmware``
+- Resolved the issue in ``idrac_redfish_storage_volume`` module where it returns 404 error on job creation when enabling encryption for virtual drives. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues /713)
+
+Known Issues
+------------
+
+- idrac_diagnostics - Issue(285322) - This module doesn't support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
+- idrac_firmware - Issue(279282) - This module does not support firmware update using HTTP, HTTPS, and FTP shares with authentication on iDRAC8.
+- ome_smart_fabric_uplink - Issue(186024) - The module supported by OpenManage Enterprise Modular, however it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, then the existing uplink is modified.
+
 v9.10.0
 =======
 
