@@ -1,3 +1,4 @@
+---
 - name: Converge idrac_firmware for cifsshare
   hosts: all
   gather_facts: false

@@ -16,10 +16,11 @@
 
     - name: Asserting after performing opeartion using default reset_type
       ansible.builtin.assert:
-        that: |-
-          ( idrac_server_powerstate_out.msg == "Successfully performed the reset type operation 'On'." )
-          or
-          ( idrac_server_powerstate_out.msg == "The device is already powered on." )
+        that:
+          - (idrac_server_powerstate_out.msg == "Successfully performed the
+           reset type operation 'On'.") or
+            (idrac_server_powerstate_out.msg == "The device is already
+           powered on.")
 
     - name: Performing operation On the iDRAC with invalid resource_id
       ansible.builtin.import_role:
@@ -37,7 +38,8 @@
     - name: Asserting after performing opeartion with invalid resource_id
       ansible.builtin.assert:
         that:
-          - idrac_server_powerstate_out.msg == "Invalid device Id 'System.Embedded.0' is provided"
+          - idrac_server_powerstate_out.msg == "Invalid device
+           Id 'System.Embedded.0' is provided"
           - not idrac_server_powerstate_out.changed
 
     - name: Performing operation 'On' with invalid hostname
@@ -57,8 +59,10 @@
     - name: Asserting after performing opeartion with invalid hostname
       ansible.builtin.assert:
         that:
-          - idrac_server_powerstate_out.msg == "<urlopen error [Errno -2] Name or service not known>" or
-            idrac_server_powerstate_out.msg == "<urlopen error Unable to resolve hostname or IP randomHostname:443.>"
+          - idrac_server_powerstate_out.msg == "<urlopen error
+           [Errno -2] Name or service not known>" or
+            idrac_server_powerstate_out.msg == "<urlopen
+           error Unable to resolve hostname or IP randomHostname:443.>"
 
     - name: Performing operation 'On' with invalid username
       ansible.builtin.import_role:
@@ -135,11 +139,13 @@
     - name: Asserting after performing opeartion "ForceOn"
       ansible.builtin.assert:
         that:
-          - '"The target device does not support a force on operation." in idrac_server_powerstate_out.msg'
+          - '"The target device does not support a force on operation." in
+           idrac_server_powerstate_out.msg'
 
     - name: Fetching all the resource_id using URI
       ansible.builtin.uri:
-        url: "https://{{ lookup('env', 'IDRAC_IP') }}:{{ https_port }}/redfish/v1/Systems/"
+        url: "https://{{ lookup('env', 'IDRAC_IP') }}:{{ https_port }}
+        /redfish/v1/Systems/"
         user: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
@@ -149,14 +155,16 @@
 
     - name: Splitting the resource_id and picking last
       ansible.builtin.set_fact:
-        idrac_server_powerstate_resource_id_list: "{{ [item['@odata.id'] | split('/') | last] + idrac_server_powerstate_resource_id_list | default([]) }}"
+        resource_id_list: "{{ [item['@odata.id'] | split('/') | last] +
+         resource_id_list | default([]) }}"
       loop: "{{ uri_out.json.Members }}"
 
     - name: Count resource_id
       ansible.builtin.set_fact:
-        number_of_resource_id: "{{ idrac_server_powerstate_resource_id_list | length }}"
+        number_of_resource_id: "{{ resource_id_list | length }}"
 
-    - name: Performing Operation 'On' without resource_id when iDRAC has secondary resource_id
+    - name: Performing Operation 'On' without resource_id when iDRAC has
+        secondary resource_id
       ansible.builtin.import_role:
         name: idrac_server_powerstate
       vars:
@@ -168,10 +176,12 @@
         reset_type: "On"
       when: number_of_resource_id > '1'
 
-    - name: Asserting after performing opeartion without resource_id when iDRAC has secondary resource_id
+    - name: Asserting after performing opeartion without resource_id when
+       iDRAC has secondary resource_id
       ansible.builtin.assert:
         that:
-          - idrac_server_powerstate_out.msg == "Multiple devices exists in the system, but option 'resource_id' is not specified."
+          - idrac_server_powerstate_out.msg == "Multiple devices exists in the
+           system, but option 'resource_id' is not specified."
       when: number_of_resource_id > '1'
 
     - name: Performing Operation 'On' with valid secondary resource_id
@@ -186,10 +196,13 @@
         resource_id: "{{ resource_id_list[1] }}"
       when: number_of_resource_id > '1'
 
-    - name: Asserting after performing opeartion with valid secondary resource_id
+    - name: Asserting after performing opeartion with valid
+       secondary resource_id
       ansible.builtin.assert:
         that: |-
-          ( idrac_server_powerstate_out.msg == "Successfully performed the reset type operation 'On'." )
+          ( idrac_server_powerstate_out.msg == "Successfully performed the
+           reset type operation 'On'." )
           or
-          ( idrac_server_powerstate_out.msg == "The device is already powered on." )
+          ( idrac_server_powerstate_out.msg == "The device is already
+           powered on." )
       when: number_of_resource_id > '1'

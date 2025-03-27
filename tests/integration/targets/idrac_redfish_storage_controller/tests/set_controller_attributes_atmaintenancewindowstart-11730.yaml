@@ -145,12 +145,13 @@
 
     - name: Constructing url
       ansible.builtin.set_fact:
-        url_1: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/"
-        url_2: "Managers/iDRAC.Embedded.1"
+        url_1: "https://{{ idrac_ip | ansible.utils.ipwrap }}"
+        url_2: ":{{ idrac_port }}/redfish/v1/"
+        url_3: "Managers/iDRAC.Embedded.1"
 
     - name: Final url
       ansible.builtin.set_fact:
-        date_time_url: "{{ url_1 }}{{ url_2 }}"
+        date_time_url: "{{ url_1 }}{{ url_2 }}{{ url_3 }}"
 
     - ansible.builtin.include_tasks: _get_updated_datetime.yml
       vars:

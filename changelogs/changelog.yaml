@@ -1492,20 +1492,23 @@ releases:
       bugfixes:
         - Update document on how to use with ansible. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/393).
       known_issues:
-        - ome_device_network_services - Issue(212681) - The module does not provide
-          a proper error message if unsupported values are provided for the following
-          parameters- port_number, community_name, max_sessions, max_auth_retries, and
-          idle_timeout.
-        - ome_device_power_settings - Issue(212679) - The module displays the following
-          message if the value provided for the parameter ``power_cap`` is not within
-          the supported range of 0 to 32767, ``Unable to complete the request because
-          PowerCap does not exist or is not applicable for the resource URI.``
-        - ome_smart_fabric_uplink - Issue(186024) - Despite the module supported by
-          OpenManage Enterprise Modular, it does not allow the creation of multiple
-          uplinks of the same name. If an uplink is created using the same name as an
-          existing uplink, the existing uplink is modified.
+        - ome_device_network_services - Issue(212681) - The module does not
+          provide a proper error message if unsupported values are provided
+          for the following parameters- port_number, community_name,
+          max_sessions, max_auth_retries, and idle_timeout.
+        - ome_device_power_settings - Issue(212679) - The module displays the
+          following message if the value provided for the parameter
+          ``power_cap`` is not within the supported range of 0 to 32767,
+          ``Unable to complete the request because PowerCap does not exist
+          or is not applicable for the resource URI.``
+        - ome_smart_fabric_uplink - Issue(186024) - Despite the module
+          supported by OpenManage Enterprise Modular, it does not allow the
+          creation of multiple uplinks of the same name. If an uplink is
+          created using the same name as an existing uplink, the existing
+          uplink is modified.
       minor_changes:
-        - Module ``ome_diagnostics`` is enhanced to update changed flag status in response.
+        - Module ``ome_diagnostics`` is enhanced to update changed flag status
+          in response.
         - Module ``ome_firmware_catalog`` is enhanced to support IPv6 address.
         - Module ``redfish_firmware`` is enhanced to support IPv6 address.
       release_summary:
@@ -1675,20 +1678,22 @@ releases:
         - idrac_network_attributes - Issue(279049) -  If unsupported values are provided
           for the parameter ``ome_network_attributes``, then this module does not provide
           a correct error message.
-        - ome_device_network_services - Issue(212681) - The module does not provide
-          a proper error message if unsupported values are provided for the following
-          parameters- port_number, community_name, max_sessions, max_auth_retries, and
-          idle_timeout.
-        - ome_device_power_settings - Issue(212679) - The module displays the following
-          message if the value provided for the parameter ``power_cap`` is not within
-          the supported range of 0 to 32767, ``Unable to complete the request because
-          PowerCap does not exist or is not applicable for the resource URI.``
+        - ome_device_network_services - Issue(212681) - The module does not
+          provide a proper error message if unsupported values are provided for
+          the following parameters- port_number, community_name, max_sessions,
+          max_auth_retries, and idle_timeout.
+        - ome_device_power_settings - Issue(212679) - The module displays the
+          following message if the value provided for the parameter
+          ``power_cap`` is not within the supported range of 0 to 32767,
+          ``Unable to complete the request because PowerCap does not exist
+          or is not applicable for the resource URI.``
         - ome_device_quick_deploy - Issue(275231) - This module does not deploy a new
           configuration to a slot that has disabled IPv6.
         - ome_smart_fabric_uplink - Issue(186024) - The module supported by
-          OpenManage Enterprise Modular, however it does not allow the creation of multiple
-          uplinks of the same name. If an uplink is created using the same name as an
-          existing uplink, then the existing uplink is modified.
+          OpenManage Enterprise Modular, however it does not allow the creation
+          of multiple uplinks of the same name. If an uplink is created using
+          the same name as an existing uplink, then the existing uplink is
+          modified.
     release_date: '2023-12-30'
   8.7.0:
     changes:
@@ -1711,18 +1716,20 @@ releases:
         - idrac_network_attributes - Issue(279049) -  If unsupported values are provided
           for the parameter ``ome_network_attributes``, then this module does not provide
           a correct error message.
-        - ome_device_network_services - Issue(212681) - The module does not provide
-          a proper error message if unsupported values are provided for the following
-          parameters- port_number, community_name, max_sessions, max_auth_retries, and
-          idle_timeout.
-        - ome_device_power_settings - Issue(212679) - The module displays the following
-          message if the value provided for the parameter ``power_cap`` is not within
-          the supported range of 0 to 32767, ``Unable to complete the request because
-          PowerCap does not exist or is not applicable for the resource URI.``
+        - ome_device_network_services - Issue(212681) - The module does not
+          provide a proper error message if unsupported values are provided
+          for the following parameters- port_number, community_name,
+          max_sessions, max_auth_retries, and idle_timeout.
+        - ome_device_power_settings - Issue(212679) - The module displays the
+          following message if the value provided for the parameter
+          ``power_cap`` is not within the supported range of 0 to 32767,
+          ``Unable to complete the request because PowerCap does not exist
+          or is not applicable for the resource URI.``
         - ome_smart_fabric_uplink - Issue(186024) - The module supported by
-          OpenManage Enterprise Modular, however it does not allow the creation of multiple
-          uplinks of the same name. If an uplink is created using the same name as an
-          existing uplink, then the existing uplink is modified.
+          OpenManage Enterprise Modular, however it does not allow the creation
+          of multiple uplinks of the same name. If an uplink is created using
+          the same name as an existing uplink, then the existing uplink is
+          modified.
     modules:
       - description:
           This module allows to import, export, and delete licenses on iDRAC.
@@ -1736,16 +1743,18 @@ releases:
 
         - idrac_user role is added to manage local users of iDRAC.'
       bugfixes:
-        - ome_device_network_services - Issue(212681) - The module does not provide a proper
-          error message if unsupported values are provided for the following parameters-
-          port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
-        - ome_device_power_settings - Issue(212679) - The module displays the following
-          message if the value provided for the parameter ``power_cap`` is not within
-          the supported range of 0 to 32767, ``Unable to complete the request because
-          PowerCap does not exist or is not applicable for the resource URI.``
-        - idrac_network_attributes - Issue(279049) -  If unsupported values are provided
-          for the parameter ``ome_network_attributes``, then this module does not provide
-          a correct error message.
+        - ome_device_network_services - Issue(212681) - The module does not
+          provide a proper error message if unsupported values are provided
+          for the following parameters- port_number, community_name,
+          max_sessions, max_auth_retries, and idle_timeout.
+        - ome_device_power_settings - Issue(212679) - The module displays the
+          following message if the value provided for the parameter
+          ``power_cap`` is not within the supported range of 0 to 32767,
+          ``Unable to complete the request because PowerCap does not exist or
+          is not applicable for the resource URI.``
+        - idrac_network_attributes - Issue(279049) -  If unsupported values are
+          provided for the parameter ``ome_network_attributes``, then this
+          module does not provide a correct error message.
 
       major_changes:
         - idrac_user - This role is introduced to manage local users of iDRAC.
@@ -2217,3 +2226,36 @@ releases:
           name: omevv_firmware
           namespace: ''
     release_date: '2024-12-31'
+
+  9.11.0:
+    changes:
+      release_summary: '- The modules ``idrac_network_attributes``,
+          ``idrac_certificates``, ``idrac_redfish_storage_controller``,
+          ``idrac_boot`` and ``idrac_firmware`` have been enhanced to
+          resolve all internal defects.
+        - The ``idrac_redfish_storage_volume`` module is enhanced to prevent
+          a 404 error during job creation when enabling encryption for virtual
+          drives.'
+      bugfixes:
+        - Internal defect fixes were done for the following modules -
+          ``idrac_network_attributes``, ``idrac_certificates``,
+          ``idrac_redfish_storage_controller``, ``idrac_boot_order`` and
+          ``idrac_firmware``
+        - Resolved the issue in ``idrac_redfish_storage_volume`` module where
+          it returns 404 error on job creation when enabling encryption for
+          virtual drives.
+          (https://github.com/dell/dellemc-openmanage-ansible-modules/issues
+          /713)
+      known_issues:
+        - idrac_diagnostics - Issue(285322) - This module doesn't support
+          export of diagnostics file to HTTP and HTTPS share via SOCKS
+          proxy.
+        - idrac_firmware - Issue(279282) - This module does not support
+          firmware update using HTTP, HTTPS, and FTP shares with
+          authentication on iDRAC8.
+        - ome_smart_fabric_uplink - Issue(186024) - The module supported by
+          OpenManage Enterprise Modular, however it does not allow the
+          creation of multiple uplinks of the same name. If an uplink is
+          created using the same name as an existing uplink, then the existing
+          uplink is modified.
+    release_date: '2025-03-28'
