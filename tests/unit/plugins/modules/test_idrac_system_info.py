@@ -39,7 +39,7 @@ class TestSystemInventory(FakeAnsibleModule):
         omsdk_mock.get_entityjson = idrac_obj
         type(idrac_obj).get_json_device = Mock(return_value="msg")
         return idrac_obj
-    
+
     @pytest.fixture
     def idrac_redfish_system_info_mock(self, mocker):
         omsdk_mock = MagicMock()
@@ -47,12 +47,12 @@ class TestSystemInventory(FakeAnsibleModule):
         omsdk_mock.get_entityjson = idrac_obj
         type(idrac_obj).get_json_device = Mock(return_value="msg")
         return idrac_obj
-    
+
     @pytest.fixture
     def idrac_redfish_system_info_connection_mock(self, mocker, idrac_redfish_system_info_mock):
         idrac_redfish_conn_class_mock = mocker.patch(MODULE_PATH +
-                                             'idrac_system_info.iDRACRedfishAPI',
-                                             return_value=idrac_redfish_system_info_mock)
+                                                     'idrac_system_info.iDRACRedfishAPI',
+                                                     return_value=idrac_redfish_system_info_mock)
         idrac_redfish_conn_class_mock.return_value.__enter__.return_value = idrac_redfish_system_info_mock
         return idrac_redfish_system_info_mock
 
