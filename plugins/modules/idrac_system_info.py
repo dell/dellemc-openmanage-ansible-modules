@@ -105,8 +105,8 @@ def main():
         argument_spec=specs,
         supports_check_mode=True)
     idrac_redfish_module = IdracAnsibleModule(
-      argument_spec=specs,
-      supports_check_mode=True
+        argument_spec=specs,
+        supports_check_mode=True
     )
     try:
         with iDRACRedfishAPI(idrac_redfish_module.params) as idrac:
@@ -136,9 +136,9 @@ def main():
                 "iDRAC": ""
             }
             if firmware_obj.validate_idrac10():
-              pass
+                pass
             else:
-              with iDRACConnection(module.params) as idrac:
+                with iDRACConnection(module.params) as idrac:
                     idrac.get_entityjson()
                     system_info_dict = idrac.get_json_device()
     except HTTPError as err:

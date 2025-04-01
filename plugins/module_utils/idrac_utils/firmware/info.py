@@ -30,6 +30,7 @@ from urllib.error import HTTPError
 GET_IDRAC_FIRMWARE_URI_10 = "/redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory"
 GET_IDRAC_FIRMWARE_URI_9 = "/redfish/v1/Managers/iDRAC.Embedded.1"
 
+
 class IDRACFirmwareInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
