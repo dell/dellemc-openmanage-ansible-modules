@@ -90,6 +90,8 @@ error_info:
 
 import json
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.firmware.info import IDRACFirmwareInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -102,10 +104,43 @@ def main():
     module = AnsibleModule(
         argument_spec=specs,
         supports_check_mode=True)
+    idrac_redfish_module = IdracAnsibleModule(
+      argument_spec=specs,
+      supports_check_mode=True
+    )
     try:
-        with iDRACConnection(module.params) as idrac:
-            idrac.get_entityjson()
-            msg = idrac.get_json_device()
+        with iDRACRedfishAPI(idrac_redfish_module.params) as idrac:
+            firmware_obj = IDRACFirmwareInfo(idrac)
+            system_info_dict = {
+                "BIOS": "",
+                "CPU": "",
+                "Enclosure": "",
+                "EnclosureSensor": "",
+                "License": "",
+                "Memory": "",
+                "iDRACNIC": "",
+                "PCIDevice": "",
+                "PowerSupply": "",
+                "Sensors_Temperature": "",
+                "Sensors_Battery": "",
+                "Sensors_Fan": "",
+                "Sensors_Intrusion": "",
+                "Sensors_Voltage": "",
+                "NIC": "",
+                "Fan": "",
+                "System": "",
+                "Subsystem": "",
+                "Controller": "",
+                "PhysicalDisk": "",
+                "Video": "",
+                "iDRAC": ""
+            }
+            if firmware_obj.validate_idrac10():
+              pass
+            else:
+              with iDRACConnection(module.params) as idrac:
+                    idrac.get_entityjson()
+                    system_info_dict = idrac.get_json_device()
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
@@ -114,7 +149,7 @@ def main():
         module.fail_json(msg=str(e))
 
     module.exit_json(msg="Successfully fetched the system inventory details.",
-                     system_info=msg)
+                     system_info=system_info_dict)
 
 
 if __name__ == '__main__':
