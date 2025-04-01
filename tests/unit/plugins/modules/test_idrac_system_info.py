@@ -39,6 +39,22 @@ class TestSystemInventory(FakeAnsibleModule):
         omsdk_mock.get_entityjson = idrac_obj
         type(idrac_obj).get_json_device = Mock(return_value="msg")
         return idrac_obj
+    
+    @pytest.fixture
+    def idrac_redfish_system_info_mock(self, mocker):
+        omsdk_mock = MagicMock()
+        idrac_obj = MagicMock()
+        omsdk_mock.get_entityjson = idrac_obj
+        type(idrac_obj).get_json_device = Mock(return_value="msg")
+        return idrac_obj
+    
+    @pytest.fixture
+    def idrac_redfish_system_info_connection_mock(self, mocker, idrac_redfish_system_info_mock):
+        idrac_redfish_conn_class_mock = mocker.patch(MODULE_PATH +
+                                             'idrac_system_info.iDRACRedfishAPI',
+                                             return_value=idrac_redfish_system_info_mock)
+        idrac_redfish_conn_class_mock.return_value.__enter__.return_value = idrac_redfish_system_info_mock
+        return idrac_redfish_system_info_mock
 
     @pytest.fixture
     def idrac_system_info_connection_mock(self, mocker, idrac_system_info_mock):
@@ -49,7 +65,11 @@ class TestSystemInventory(FakeAnsibleModule):
         return idrac_system_info_mock
 
     def test_idrac_system_info_main_success_case01(self, idrac_system_info_mock, idrac_system_info_connection_mock,
+                                                   idrac_redfish_system_info_mock,
+                                                   idrac_redfish_system_info_connection_mock,
                                                    idrac_default_args):
+        idrac_redfish_system_info_mock.get_entityjson.return_value = None
+        idrac_redfish_system_info_connection_mock.get_json_device.return_value = ""
         idrac_system_info_mock.get_entityjson.return_value = None
         idrac_system_info_connection_mock.get_json_device.return_value = {"status": "Success"}
         result = self._run_module(idrac_default_args)
@@ -60,10 +80,13 @@ class TestSystemInventory(FakeAnsibleModule):
     @pytest.mark.parametrize("exc_type", [SSLValidationError, URLError, ValueError, TypeError,
                                           ConnectionError, HTTPError])
     def test_idrac_system_info_main_exception_handling_case(self, exc_type, idrac_system_info_connection_mock,
+                                                            idrac_redfish_system_info_connection_mock,
                                                             idrac_default_args):
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type not in [HTTPError, SSLValidationError]:
             idrac_system_info_connection_mock.get_json_device.side_effect = exc_type('test')
+        elif exc_type in [URLError]:
+            idrac_redfish_system_info_connection_mock.get_json_device.side_effect = exc_type('test')
         else:
             idrac_system_info_connection_mock.get_json_device.side_effect = exc_type('https://testhost.com', 400,
                                                                                      'http error message',
