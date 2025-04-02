@@ -51,10 +51,9 @@ class IDRACEnclosureInfo(object):
             "SlotCount": str(dellchasis.get("SlotCount")),
             "State": NA,
             "Version": dellchasis.get("Version"),
-            "WiredOrder": dellchasis.get("WiredOrder")
+            "WiredOrder": str(dellchasis.get("WiredOrder"))
         }
         return output
-
 
     def get_enclosure_system_info(self):
         output = []
@@ -63,4 +62,8 @@ class IDRACEnclosureInfo(object):
             if 'Enclosure' in each_member['@odata.id']:
                 enc_resp = self.idrac.invoke_request(method='GET', uri=each_member['@odata.id'])
                 output.append(self.get_enclosure_data(enc_resp.json_data))
+        return output
+
+    def get_controller_enclosure_sensor_info(self, enclosure_system_info):
+        output = [{"FQDD": each.get("FQDD"), "Key": each.get("Key")} for each in enclosure_system_info]
         return output

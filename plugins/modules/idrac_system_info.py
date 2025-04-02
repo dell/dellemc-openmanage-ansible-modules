@@ -142,6 +142,7 @@ def main():
                 system_info_dict["BIOS"] = IDRACBiosInfo(idrac).get_bios_system_info()
                 system_info_dict["CPU"] = IDRACCpuInfo(idrac).get_cpu_system_info()
                 system_info_dict["Enclosure"] = IDRACEnclosureInfo(idrac).get_enclosure_system_info()
+                system_info_dict["EnclosureSensor"] = IDRACEnclosureInfo(idrac).get_controller_enclosure_sensor_info(system_info_dict["Enclosure"])
             else:
                 with iDRACConnection(module.params) as idrac:
                     idrac.get_entityjson()
