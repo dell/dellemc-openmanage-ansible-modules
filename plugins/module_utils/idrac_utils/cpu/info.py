@@ -28,6 +28,7 @@
 from urllib.error import HTTPError
 
 GET_IDRAC_CPU_URI = "/redfish/v1/Systems/System.Embedded.1/Processors?$expand=*($levels=1)"
+NA = "Not Available" 
 
 class IDRACCpuInfo(object):
     def __init__(self, idrac):
@@ -37,7 +38,7 @@ class IDRACCpuInfo(object):
         processor = member.get("Oem", {}).get("Dell", {}).get("DellProcessor", {})
         data = {
             "CPUFamily": processor.get("CPUFamily", ""),
-            "Characteristics": "Not Available",
+            "Characteristics": NA,
             "CurrentClockSpeed": str(int(processor.get("CurrentClockSpeedMhz", 0))/1000) + " GHz",
             "DeviceDescription": member.get("Name", ""),
             "ExecuteDisabledCapable": processor.get("ExecuteDisabledCapable", ""),
@@ -50,15 +51,15 @@ class IDRACCpuInfo(object):
             "MaxClockSpeed": str(int(member.get("MaxSpeedMHz", 0))/1000) + " GHz",
             "Model": member.get("Model", ""),
             "NumberOfEnabledCores": member.get("TotalEnabledCores", ""),
-            "NumberOfEnabledThreads": "Not Available",
-            "NumberOfProcessorCores": "Not Available",
+            "NumberOfEnabledThreads": NA,
+            "NumberOfProcessorCores": NA,
             "PrimaryStatus": member.get("Status", {}).get("Health", ""),
             "TurboModeCapable": processor.get("TurboModeCapable", ""),
             "TurboModeEnabled": processor.get("TurboModeEnabled", ""),
             "VirtualizationTechnologyCapable": processor.get("VirtualizationTechnologyCapable", ""),
             "VirtualizationTechnologyEnabled": processor.get("VirtualizationTechnologyEnabled", ""),
             "Voltage": processor.get("Volts", ""),
-            "processorDeviceStateSettings": "Not Available"
+            "processorDeviceStateSettings": NA
         }
         return data
 

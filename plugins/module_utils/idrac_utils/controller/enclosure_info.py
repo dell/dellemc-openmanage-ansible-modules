@@ -28,6 +28,7 @@
 from urllib.error import HTTPError
 
 GET_IDRAC_CHASSIS_URI = "/redfish/v1/Chassis"
+NA = "Not Available" 
 
 class IDRACEnclosureInfo(object):
     def __init__(self, idrac):
@@ -36,19 +37,19 @@ class IDRACEnclosureInfo(object):
     def get_enclosure_data(self, resp={}):
         dellchasis = resp.get("Oem", {}).get("Dell", {}).get("DellChassisEnclosure", {})
         output = {
-            "AssetTag": "Not Available" if (asset := resp.get("AssetTag")) == "" else asset,
+            "AssetTag": NA if (asset := resp.get("AssetTag")) == "" else asset,
             "Connector": str(dellchasis.get("Connector")),
             "DeviceDescription": resp.get("Description"),
             "EMMCount": str(dellchasis.get("Links").get("DellEnclosureEMMCollection@odata.count")),
             "FQDD": resp.get("Id", ""),
-            "FanCount": "Not Available",
+            "FanCount": NA,
             "Key": resp.get("Id", ""),
-            "PSUCount": "Not Available",
+            "PSUCount": NA,
             "PrimaryStatus": resp.get("Status", {}).get("Health", ""),
             "ProductName": resp.get("Name"),
-            "ServiceTag": "Not Available" if (svctag := dellchasis.get("ServiceTag")) is None else svctag,
+            "ServiceTag": NA if (svctag := dellchasis.get("ServiceTag")) is None else svctag,
             "SlotCount": str(dellchasis.get("SlotCount")),
-            "State": "Not Available",
+            "State": NA,
             "Version": dellchasis.get("Version"),
             "WiredOrder": dellchasis.get("WiredOrder")
         }
