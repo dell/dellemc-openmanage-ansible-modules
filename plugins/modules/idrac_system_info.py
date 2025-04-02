@@ -94,6 +94,13 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.fir
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.bios.info import IDRACBiosInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.cpu.info import IDRACCpuInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.controller.enclosure_info import IDRACEnclosureInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.fan.info import IDRACFanInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.nic.info import IDRACNICInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.sensors_battery.info import IDRACSensorsBatteryInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.sensors_fan.info import IDRACSensorsFanInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.sensors_intrusion.info import IDRACSensorsIntrusionInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.sensors_voltage.info import IDRACSensorsVoltageInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.system.info import IDRACSystemInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -143,6 +150,13 @@ def main():
                 system_info_dict["CPU"] = IDRACCpuInfo(idrac).get_cpu_system_info()
                 system_info_dict["Enclosure"] = IDRACEnclosureInfo(idrac).get_enclosure_system_info()
                 system_info_dict["EnclosureSensor"] = IDRACEnclosureInfo(idrac).get_controller_enclosure_sensor_info(system_info_dict["Enclosure"])
+                system_info_dict["Sensors_Battery"] = IDRACSensorsBatteryInfo(idrac).get_sensors_battery_info()
+                system_info_dict["Sensors_Intrusion"] = IDRACSensorsIntrusionInfo(idrac).get_sensors_intrusion_info()
+                system_info_dict["Sensors_Voltage"] = IDRACSensorsVoltageInfo(idrac).get_sensors_voltage_info()
+                system_info_dict["Sensors_Fan"] = IDRACSensorsFanInfo(idrac).get_sensors_fan_info()
+                system_info_dict["Fan"] = IDRACFanInfo(idrac).get_fan_info()
+                system_info_dict["NIC"] = IDRACNICInfo(idrac).get_nic_info()
+                system_info_dict["System"] = IDRACSystemInfo(idrac).get_system_info()
             else:
                 with iDRACConnection(module.params) as idrac:
                     idrac.get_entityjson()
