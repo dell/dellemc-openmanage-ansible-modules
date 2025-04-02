@@ -33,26 +33,26 @@ class IDRACCpuInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
         
-    def get_cpu_mapped_data(self, value={}):
-        processor = value.get("Oem", {}).get("Dell", {}).get("DellProcessor", {})
+    def get_cpu_mapped_data(self, member={}):
+        processor = member.get("Oem", {}).get("Dell", {}).get("DellProcessor", {})
         data = {
             "CPUFamily": processor.get("CPUFamily", ""),
             "Characteristics": "Not Available",
             "CurrentClockSpeed": str(int(processor.get("CurrentClockSpeedMhz", 0))/1000) + " GHz",
-            "DeviceDescription": value.get("Name", ""),
+            "DeviceDescription": member.get("Name", ""),
             "ExecuteDisabledCapable": processor.get("ExecuteDisabledCapable", ""),
             "ExecuteDisabledEnabled": processor.get("ExecuteDisabledEnabled", ""),
-            "FQDD": value.get("Id", ""),
+            "FQDD": member.get("Id", ""),
             "HyperThreadingCapable": processor.get("HyperThreadingCapable", ""),
             "HyperThreadingEnabled": processor.get("HyperThreadingEnabled", ""),
-            "Key": value.get("Socket", ""),
-            "Manufacturer": value.get("Manufacturer", ""),
-            "MaxClockSpeed": str(int(value.get("MaxSpeedMHz", 0))/1000) + " GHz",
-            "Model": value.get("Model", ""),
-            "NumberOfEnabledCores": value.get("TotalEnabledCores", ""),
+            "Key": member.get("Socket", ""),
+            "Manufacturer": member.get("Manufacturer", ""),
+            "MaxClockSpeed": str(int(member.get("MaxSpeedMHz", 0))/1000) + " GHz",
+            "Model": member.get("Model", ""),
+            "NumberOfEnabledCores": member.get("TotalEnabledCores", ""),
             "NumberOfEnabledThreads": "Not Available",
             "NumberOfProcessorCores": "Not Available",
-            "PrimaryStatus": value.get("Status", {}).get("Health", ""),
+            "PrimaryStatus": member.get("Status", {}).get("Health", ""),
             "TurboModeCapable": processor.get("TurboModeCapable", ""),
             "TurboModeEnabled": processor.get("TurboModeEnabled", ""),
             "VirtualizationTechnologyCapable": processor.get("VirtualizationTechnologyCapable", ""),

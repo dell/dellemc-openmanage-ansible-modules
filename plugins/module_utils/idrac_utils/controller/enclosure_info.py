@@ -1,0 +1,65 @@
+# -*- coding: utf-8 -*-
+
+# Dell OpenManage Ansible Modules
+# Version 9.12.0
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# Redistribution and use in source and binary forms, with or without modification,
+# are permitted provided that the following conditions are met:
+
+#    * Redistributions of source code must retain the above copyright notice,
+#      this list of conditions and the following disclaimer.
+
+#    * Redistributions in binary form must reproduce the above copyright notice,
+#      this list of conditions and the following disclaimer in the documentation
+#      and/or other materials provided with the distribution.
+
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+# IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+from urllib.error import HTTPError
+
+GET_IDRAC_CHASSIS_URI = "/redfish/v1/Chassis"
+
+class IDRACEnclosureInfo(object):
+    def __init__(self, idrac):
+        self.idrac = idrac
+
+    def get_enclosure_data(self, resp={}):
+        dellchasis = resp.get("Oem", {}).get("Dell", {}).get("DellChassisEnclosure", {})
+        output = {
+            "AssetTag": "Not Available" if (asset := resp.get("AssetTag")) == "" else asset,
+            "Connector": str(dellchasis.get("Connector")),
+            "DeviceDescription": resp.get("Description"),
+            "EMMCount": str(dellchasis.get("Links").get("DellEnclosureEMMCollection@odata.count")),
+            "FQDD": resp.get("Id", ""),
+            "FanCount": "Not Available",
+            "Key": resp.get("Id", ""),
+            "PSUCount": "Not Available",
+            "PrimaryStatus": resp.get("Status", {}).get("Health", ""),
+            "ProductName": resp.get("Name"),
+            "ServiceTag": "Not Available" if (svctag := dellchasis.get("ServiceTag")) is None else svctag,
+            "SlotCount": str(dellchasis.get("SlotCount")),
+            "State": "Not Available",
+            "Version": dellchasis.get("Version"),
+            "WiredOrder": dellchasis.get("WiredOrder")
+        }
+        return output
+
+
+    def get_enclosure_system_info(self):
+        output = []
+        resp = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_CHASSIS_URI)
+        for each_member in resp.json_data.get("Members", []):
+            if 'Enclosure' in each_member['@odata.id']:
+                enc_resp = self.idrac.invoke_request(method='GET', uri=each_member['@odata.id'])
+                output.append(self.get_enclosure_data(enc_resp.json_data))
+        return output

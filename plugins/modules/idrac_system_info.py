@@ -93,6 +93,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac i
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.firmware.info import IDRACFirmwareInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.bios.info import IDRACBiosInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.cpu.info import IDRACCpuInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.controller.enclosure_info import IDRACEnclosureInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -140,6 +141,7 @@ def main():
             if firmware_obj.validate_idrac10():
                 system_info_dict["BIOS"] = IDRACBiosInfo(idrac).get_bios_system_info()
                 system_info_dict["CPU"] = IDRACCpuInfo(idrac).get_cpu_system_info()
+                system_info_dict["Enclosure"] = IDRACEnclosureInfo(idrac).get_enclosure_system_info()
             else:
                 with iDRACConnection(module.params) as idrac:
                     idrac.get_entityjson()

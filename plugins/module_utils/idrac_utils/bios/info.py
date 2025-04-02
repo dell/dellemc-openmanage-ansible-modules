@@ -72,4 +72,4 @@ class IDRACBiosInfo(object):
         output["FQDD"] = fqdd
         output["InstanceID"] = instance_id
         output["Key"] = key
-        return output
+        return [output]
