@@ -101,6 +101,8 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.sen
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.sensors_intrusion.info import IDRACSensorsIntrusionInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.sensors_voltage.info import IDRACSensorsVoltageInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.system.info import IDRACSystemInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.video.info import IDRACVideoInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.subsystem.info import IDRACSubsystemInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -157,6 +159,8 @@ def main():
                 system_info_dict["Fan"] = IDRACFanInfo(idrac).get_fan_info()
                 system_info_dict["NIC"] = IDRACNICInfo(idrac).get_nic_info()
                 system_info_dict["System"] = IDRACSystemInfo(idrac).get_system_info()
+                system_info_dict["Video"] = IDRACVideoInfo(idrac).get_idrac_video_details()
+                system_info_dict["Subsystem"] = IDRACSubsystemInfo(idrac).get_subsystem_info()
             else:
                 with iDRACConnection(module.params) as idrac:
                     idrac.get_entityjson()
