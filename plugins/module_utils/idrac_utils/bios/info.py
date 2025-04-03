@@ -25,10 +25,10 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from urllib.error import HTTPError
 
 GET_IDRAC_SYSTEM_URI = "/redfish/v1/Systems/System.Embedded.1"
 GET_IDRAC_FIRMWARE_URI = "/redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory"
+
 
 class IDRACBiosInfo(object):
     def __init__(self, idrac):

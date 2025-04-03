@@ -25,16 +25,16 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from urllib.error import HTTPError
 
 GET_IDRAC_CHASSIS_URI = "/redfish/v1/Chassis"
-NA = "Not Available" 
+NA = "Not Available"
+
 
 class IDRACEnclosureInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
 
-    def get_enclosure_data(self, resp={}):
+    def get_enclosure_data(self, resp):
         dellchasis = resp.get("Oem", {}).get("Dell", {}).get("DellChassisEnclosure", {})
         output = {
             "AssetTag": NA if (asset := resp.get("AssetTag")) == "" else asset,

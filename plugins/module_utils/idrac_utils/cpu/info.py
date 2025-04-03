@@ -25,21 +25,21 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from urllib.error import HTTPError
 
 GET_IDRAC_CPU_URI = "/redfish/v1/Systems/System.Embedded.1/Processors?$expand=*($levels=1)"
-NA = "Not Available" 
+NA = "Not Available"
+
 
 class IDRACCpuInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
-        
-    def get_cpu_mapped_data(self, member={}):
+
+    def get_cpu_mapped_data(self, member):
         processor = member.get("Oem", {}).get("Dell", {}).get("DellProcessor", {})
         data = {
             "CPUFamily": processor.get("CPUFamily", ""),
             "Characteristics": NA,
-            "CurrentClockSpeed": str(int(processor.get("CurrentClockSpeedMhz", 0))/1000) + " GHz",
+            "CurrentClockSpeed": str(int(processor.get("CurrentClockSpeedMhz", 0)) / 1000) + " GHz",
             "DeviceDescription": member.get("Name", ""),
             "ExecuteDisabledCapable": processor.get("ExecuteDisabledCapable", ""),
             "ExecuteDisabledEnabled": processor.get("ExecuteDisabledEnabled", ""),
@@ -48,7 +48,7 @@ class IDRACCpuInfo(object):
             "HyperThreadingEnabled": processor.get("HyperThreadingEnabled", ""),
             "Key": member.get("Socket", ""),
             "Manufacturer": member.get("Manufacturer", ""),
-            "MaxClockSpeed": str(int(member.get("MaxSpeedMHz", 0))/1000) + " GHz",
+            "MaxClockSpeed": str(int(member.get("MaxSpeedMHz", 0)) / 1000) + " GHz",
             "Model": member.get("Model", ""),
             "NumberOfEnabledCores": member.get("TotalEnabledCores", ""),
             "NumberOfEnabledThreads": NA,
