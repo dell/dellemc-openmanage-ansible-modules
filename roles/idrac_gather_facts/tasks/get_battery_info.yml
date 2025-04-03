@@ -12,3 +12,11 @@
       '@odata.id', '@odata.type']) }}"
   when: battery_result.status == 200
   register: battery_result_register
+
+- name: Error capture
+  ansible.builtin.include_tasks:
+    file: ./__capture_error.yml
+  vars:
+    register_vars:
+      - "{{ battery_result }}"
+    component: 'sensors_battery'

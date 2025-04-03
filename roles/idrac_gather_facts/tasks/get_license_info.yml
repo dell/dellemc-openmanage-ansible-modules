@@ -10,3 +10,11 @@
   ansible.builtin.set_fact:
     license: "{{ license_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type']) }}"
   when: license_result.status == 200
+
+- name: Error capture
+  ansible.builtin.include_tasks:
+    file: ./__capture_error.yml
+  vars:
+    register_vars:
+      - "{{ license_result }}"
+    component: 'license'

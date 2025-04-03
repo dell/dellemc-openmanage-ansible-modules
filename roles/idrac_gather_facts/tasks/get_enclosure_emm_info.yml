@@ -10,3 +10,11 @@
     enclosure_emm: "{{ emm_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'Description', 'Links']) }}"
   when: emm_result.status == 200
   register: emm_result_register
+
+- name: Error capture
+  ansible.builtin.include_tasks:
+    file: ./__capture_error.yml
+  vars:
+    register_vars:
+      - "{{ emm_result }}"
+    component: 'enclosure_emm'

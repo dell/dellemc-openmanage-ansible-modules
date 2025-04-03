@@ -10,3 +10,11 @@
     hostnic:
       "{{ nic_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type',
       'HostEthernetInterfaces', 'ManagerEthernetInterface']) }}"
+
+- name: Error capture
+  ansible.builtin.include_tasks:
+    file: ./__capture_error.yml
+  vars:
+    register_vars:
+      - "{{ nic_result }}"
+    component: 'hostnic'
