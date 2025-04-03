@@ -25,7 +25,6 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from urllib.error import HTTPError
 
 GET_IDRAC_SENSOR_BATTERY_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellSensors/iDRAC.Embedded.1_0x23_SystemBoardCMOSBattery"
 
@@ -34,18 +33,18 @@ class IDRACSensorsBatteryInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
 
-    def sensors_battery_mapped_data(self, resp={}):
+    def sensors_battery_mapped_data(self, resp):
         output = {
-                "CurrentReading": "Not Available",
-                "CurrentState": resp.get("CurrentState", "Not Available"),
-                "DeviceID": "iDRAC.Embedded.1#SystemBoardCMOSBattery",
-                "HealthState": resp.get("HealthState", "Not Available"),
-                "Key": "System Board CMOS Battery",
-                "Location": "System Board CMOS Battery",
-                "OtherSensorTypeDescription": "Battery",
-                "PrimaryStatus": "Healthy",
-                "SensorType": "Battery",
-                "State": resp.get("EnabledState", "Not Available")
+            "CurrentReading": "Not Available",
+            "CurrentState": resp.get("CurrentState", "Not Available"),
+            "DeviceID": "iDRAC.Embedded.1#SystemBoardCMOSBattery",
+            "HealthState": resp.get("HealthState", "Not Available"),
+            "Key": "System Board CMOS Battery",
+            "Location": "System Board CMOS Battery",
+            "OtherSensorTypeDescription": "Battery",
+            "PrimaryStatus": "Healthy",
+            "SensorType": "Battery",
+            "State": resp.get("EnabledState", "Not Available")
         }
         return output
 

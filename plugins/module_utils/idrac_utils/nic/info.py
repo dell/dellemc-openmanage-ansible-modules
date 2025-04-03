@@ -27,6 +27,7 @@
 
 GET_IDRAC_NIC_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/EthernetInterfaces?$expand=*($levels=1)"
 
+
 class IDRACNICInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac

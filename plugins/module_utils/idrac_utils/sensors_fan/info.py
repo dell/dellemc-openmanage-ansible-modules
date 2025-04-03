@@ -25,7 +25,6 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from urllib.error import HTTPError
 
 GET_IDRAC_SENSOR_FAN_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Oem/Dell/DellEnclosureFanSensors"
 
@@ -34,7 +33,7 @@ class IDRACSensorsFanInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
 
-    def sensors_fan_mapped_data(self, resp={}):
+    def sensors_fan_mapped_data(self, resp):
         output = {
             "CurrentReading": "CurrentReading",
             "CurrentState": "CurrentState",

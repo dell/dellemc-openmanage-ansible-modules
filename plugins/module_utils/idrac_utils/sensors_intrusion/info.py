@@ -32,7 +32,7 @@ class IDRACSensorsIntrusionInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
 
-    def sensors_intrusion_mapped_data(self, resp={}):
+    def sensors_intrusion_mapped_data(self, resp):
         output = {
             "CurrentReading": "Not Available",
             "CurrentState": "No Breach",

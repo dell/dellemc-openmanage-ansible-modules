@@ -32,7 +32,7 @@ class IDRACSystemInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
 
-    def system_mapped_data(self, resp={}):
+    def system_mapped_data(self, resp):
         keys_to_search = {
             "AssetTag": "Not Available",
             "BIOSReleaseDate": "BIOSReleaseDate",
@@ -62,7 +62,7 @@ class IDRACSystemInfo(object):
             "UUID": "UUID",
             "iDRACURL": "iDRACURL"
         }
-        
+
         system_data = {}
         system_data = resp.get("Oem", {}).get("Dell", {}).get("DellSystem", {})
 
@@ -73,7 +73,6 @@ class IDRACSystemInfo(object):
         }
 
         return extracted_data
-
 
     def get_system_info(self):
         output = []
