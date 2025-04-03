@@ -41,7 +41,7 @@ class TestSystemInventory(FakeAnsibleModule):
         return idrac_obj
 
     @pytest.fixture
-    def idrac_redfish_system_info_mock(self, mocker):
+    def idrac_redfish_system_info_mock(self):
         omsdk_mock = MagicMock()
         idrac_obj = MagicMock()
         omsdk_mock.get_entityjson = idrac_obj
@@ -67,7 +67,10 @@ class TestSystemInventory(FakeAnsibleModule):
     def test_idrac_system_info_main_success_case01(self, idrac_system_info_mock, idrac_system_info_connection_mock,
                                                    idrac_redfish_system_info_mock,
                                                    idrac_redfish_system_info_connection_mock,
-                                                   idrac_default_args):
+                                                   idrac_default_args,
+                                                   mocker):
+        mocker.patch(MODULE_PATH + "idrac_system_info.IDRACFirmwareInfo.is_omsdk_required",
+                     return_value=True)
         idrac_redfish_system_info_mock.get_entityjson.return_value = None
         idrac_redfish_system_info_connection_mock.get_json_device.return_value = ""
         idrac_system_info_mock.get_entityjson.return_value = None
@@ -80,21 +83,23 @@ class TestSystemInventory(FakeAnsibleModule):
     @pytest.mark.parametrize("exc_type", [SSLValidationError, URLError, ValueError, TypeError,
                                           ConnectionError, HTTPError])
     def test_idrac_system_info_main_exception_handling_case(self, exc_type, idrac_system_info_connection_mock,
-                                                            idrac_redfish_system_info_connection_mock,
-                                                            idrac_default_args):
+                                                            idrac_default_args,
+                                                            mocker):
+        mocker.patch(MODULE_PATH + "idrac_system_info.IDRACFirmwareInfo.is_omsdk_required",
+                     return_value=True)
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type not in [HTTPError, SSLValidationError]:
             idrac_system_info_connection_mock.get_json_device.side_effect = exc_type('test')
         elif exc_type in [URLError]:
-            idrac_redfish_system_info_connection_mock.get_json_device.side_effect = exc_type('test')
+            idrac_system_info_connection_mock.get_json_device.side_effect = exc_type('test')
         else:
             idrac_system_info_connection_mock.get_json_device.side_effect = exc_type('https://testhost.com', 400,
                                                                                      'http error message',
                                                                                      {
                                                                                          "accept-type": "application/json"},
                                                                                      StringIO(json_str))
-        if not exc_type == URLError:
-            result = self._run_module_with_fail_json(idrac_default_args)
+        if exc_type != URLError:
+            result = self._run_module(idrac_default_args)
             assert result['failed'] is True
         else:
             result = self._run_module(idrac_default_args)

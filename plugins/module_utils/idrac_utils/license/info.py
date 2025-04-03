@@ -23,38 +23,29 @@
 # INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
 # LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-
-from urllib.error import HTTPError
-
-GET_IDRAC_FIRMWARE_URI = "/redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory"
-GET_IDRAC_FIRMWARE_URI_9 = "/redfish/v1/Managers/iDRAC.Embedded.1"
 
 
-class IDRACFirmwareInfo(object):
+GET_IDRAC_LICENSE_DETAILS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLicenses?$expand=*($levels=1)"
+
+
+class IDRACLicenseInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
 
-    def get_firmware_version(self):
-        try:
-            response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_URI)
-            if response.status_code == 200:
-                members = response.json_data.get("Members")
-                if members:
-                    return members["Version"]
-                return ""
-        except HTTPError:
-            response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_URI_9)
-            if response.status_code == 200:
-                firmware_version = response.json_data.get("FirmwareVersion")
-                if firmware_version:
-                    return response.json_data.get("FirmwareVersion")
-            return ""
-
-    def is_omsdk_required(self):
-        try:
-            response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_URI)
-            if response.status_code == 200:
-                return False
-        except HTTPError:
-            return True
+    def get_license_info(self):
+        response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_LICENSE_DETAILS_URI)
+        license_output = []
+        if response.status_code == 200:
+            members = response.json_data.get("Members")
+            for each in members:
+                output = {
+                    "InstanceID": each.get("Id"),
+                    "Key": each.get("Id"),
+                    "LicenseDescription": each.get("LicenseDescription", [""])[0],
+                    "LicenseInstallDate": each.get("LicenseInstallDate"),
+                    "LicenseSoldDate": each.get("LicenseSoldDate"),
+                    "LicenseType": each.get("LicenseType"),
+                    "PrimaryStatus": each.get("LicensePrimaryStatus")
+                }
+                license_output.append(output)
+        return license_output

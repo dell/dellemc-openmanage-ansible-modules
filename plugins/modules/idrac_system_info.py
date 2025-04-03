@@ -103,6 +103,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.sen
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.system.info import IDRACSystemInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.video.info import IDRACVideoInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.subsystem.info import IDRACSubsystemInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.license.info import IDRACLicenseInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -147,7 +148,7 @@ def main():
                 "Video": "",
                 "iDRAC": ""
             }
-            if firmware_obj.validate_idrac10():
+            if not firmware_obj.is_omsdk_required():
                 system_info_dict["BIOS"] = IDRACBiosInfo(idrac).get_bios_system_info()
                 system_info_dict["CPU"] = IDRACCpuInfo(idrac).get_cpu_system_info()
                 system_info_dict["Enclosure"] = IDRACEnclosureInfo(idrac).get_enclosure_system_info()
@@ -161,16 +162,17 @@ def main():
                 system_info_dict["System"] = IDRACSystemInfo(idrac).get_system_info()
                 system_info_dict["Video"] = IDRACVideoInfo(idrac).get_idrac_video_details()
                 system_info_dict["Subsystem"] = IDRACSubsystemInfo(idrac).get_subsystem_info()
+                system_info_dict["License"] = IDRACLicenseInfo(idrac).get_license_info()
             else:
                 with iDRACConnection(module.params) as idrac:
                     idrac.get_entityjson()
                     system_info_dict = idrac.get_json_device()
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (RuntimeError, SSLValidationError, IOError, ValueError, TypeError, ConnectionError) as e:
-        module.fail_json(msg=str(e))
+        module.exit_json(msg=str(e), failed=True)
 
     module.exit_json(msg="Successfully fetched the system inventory details.",
                      system_info=system_info_dict)
