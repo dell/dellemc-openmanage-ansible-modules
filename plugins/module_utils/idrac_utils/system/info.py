@@ -26,53 +26,78 @@
 #
 
 GET_IDRAC_SYSTEM_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1"
+GET_IDRAC_MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/"
+NA = "Not Available"
 
 
 class IDRACSystemInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
 
+    def get_firmwarever(self):
+        response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_MANAGER_URI)
+        if response.status_code == 200:
+            version = response.json_data.get("FirmwareVersion", "")
+            return version
+        return ""
+
     def system_mapped_data(self, resp):
-        keys_to_search = {
-            "AssetTag": "Not Available",
-            "BIOSReleaseDate": "BIOSReleaseDate",
-            "BIOSVersionString": "BIOSVersionString",
-            "BaseBoardChassisSlot": "BaseBoardChassisSlot",
-            "BoardPartNumber": "BoardPartNumber",
-            "BoardSerialNumber": "BoardSerialNumber",
-            "ChassisModel": "ChassisModel",
-            "ChassisServiceTag": "ChassisServiceTag",
-            "ChassisSystemHeight": "ChassisSystemHeight",
-            "CurrentRollupStatus": "CurrentRollupStatus",
-            "DeviceDescription": "DeviceDescription",
-            "ExpressServiceCode": "ExpressServiceCode",
-            "Key": "ServiceTag",
-            "LifecycleControllerVersion": "LifecycleControllerVersion",
+        system_data = resp.get("Oem", {}).get("Dell", {}).get("DellSystem", {})
+        firmware_ver = self.get_firmwarever()
+        output = {
+            "AssetTag": NA if (asset := resp.get("AssetTag")) == "" else asset,
+            "BIOSReleaseDate": system_data.get("BIOSReleaseDate", NA),
+            "BIOSVersionString": resp.get("BiosVersion", NA),
+            "BaseBoardChassisSlot": system_data.get("BaseBoardChassisSlot", NA),
+            "BladeGeometry": system_data.get("BladeGeometry", NA),
+            "BoardPartNumber": system_data.get("BoardPartNumber", NA),
+            "BoardSerialNumber": system_data.get("BoardSerialNumber", NA),
+            "CMCIP": "CMCIP",
+            "CPLDVersion": "CPLDVersion",
+            "ChassisModel": system_data.get("ChassisModel", NA),
+            "ChassisName": system_data.get("ChassisName", NA),
+            "ChassisServiceTag": system_data.get("ChassisServiceTag", NA),
+            "ChassisSystemHeight": system_data.get("ChassisSystemHeightUnit", NA),
+            "CurrentRollupStatus": system_data.get("CurrentRollupStatus", NA),
+            "DeviceDescription": resp.get("Name"),
+            "DeviceType": resp.get("DeviceType", NA),
+            "ExpressServiceCode": system_data.get("ExpressServiceCode", NA),
+            "HostName": resp.get("HostName", NA),
+            "Key": resp.get("SKU"),
+            "LifecycleControllerVersion": NA if (firmware_ver == "") else firmware_ver,
+            "MachineName": "MachineName",
             "Manufacturer": "Manufacturer",
-            "Model": "Model",
+            "MaxCPUSockets": system_data.get("MaxCPUSockets", NA),
+            "MaxDIMMSlots": system_data.get("MaxDIMMSlots", NA),
+            "MaxPCIeSlots": system_data.get("MaxPCIeSlots", NA),
+            "MemoryOperationMode": system_data.get("MemoryOperationMode", NA),
+            "Model": system_data.get("SystemGeneration", NA),
+            "NodeID": system_data.get("NodeID", NA),
             "OSName": "OSName",
             "OSVersion": "OSVersion",
+            "PlatformGUID": system_data.get("PlatformGUID", NA),
+            "PowerCap": system_data.get("PowerCap", NA),
+            "PowerCapEnabledState": system_data.get("PowerCapEnabledState", NA),
             "PowerState": "PowerState",
             "PrimaryStatus": "PrimaryStatus",
-            "ServiceTag": "ServiceTag",
-            "SysMemTotalSize": "SysMemTotalSize",
-            "SystemGeneration": "SystemGeneration",
-            "SystemID": "SystemID",
+            "RACType": "RACType",
+            "ServerAllocation": "ServerAllocation",
+            "ServiceTag": system_data.get("NodeID", NA),
+            "SysMemMaxCapacitySize": "SysMemMaxCapacitySize",
+            # "SysMemTotalSize": total_system_memory_GiB,
+            "SysName": system_data.get("Name", NA),
+            "SystemGeneration": system_data.get("SystemGeneration", NA),
+            "SystemID": system_data.get("SystemID", NA),
             "SystemLockDown": "SystemLockDown",
-            "UUID": "UUID",
-            "iDRACURL": "iDRACURL"
+            "SystemRevision": system_data.get("SystemRevision", NA),
+            "UUID": system_data.get("UUID", NA),
+            "VirtualAddressManagementApplication": "VirtualAddressManagementApplication",
+            "_Type": "Server",
+            "iDRACURL": "iDRACURL",
+            "smbiosGUID": system_data.get("smbiosGUID", NA)
         }
 
-        system_data = {}
-        system_data = resp.get("Oem", {}).get("Dell", {}).get("DellSystem", {})
-
-        # Extract the relevant fields
-        extracted_data = {
-            key: system_data.get(response_key, "Not Available")
-            for key, response_key in keys_to_search.items()
-        }
-
-        return extracted_data
+        return output
 
     def get_system_info(self):
         output = []
