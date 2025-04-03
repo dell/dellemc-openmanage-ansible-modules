@@ -40,6 +40,7 @@ GET_IDRAC_SENSOR_AMPERAGE_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.
 GET_IDRAC_SYSTEM_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1"
 Subsystem = []
 
+
 class IDRACSubsystemInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
@@ -56,7 +57,7 @@ class IDRACSubsystemInfo(object):
             "Key": "CPU",
             "PrimaryStatus": "Healthy" if health_status == "OK" else health_status
         })
-    
+
     def get_idrac_license_health_status(self):
         response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_LICENSE_DETAILS_URI_10)
         output = response.json_data
@@ -132,7 +133,7 @@ class IDRACSubsystemInfo(object):
         })
 
     def get_idrac_sensor_intrusion_health_status(self):
-        response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_SENSOR_INTRUSION_DETAILS_URI_10 )
+        response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_SENSOR_INTRUSION_DETAILS_URI_10)
         output = response.json_data
         health_status = output["PhysicalSecurity"].get("IntrusionSensor", "Unknown")
         Subsystem.append({
