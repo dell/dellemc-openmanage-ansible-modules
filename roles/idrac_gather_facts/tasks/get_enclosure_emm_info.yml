@@ -1,7 +1,14 @@
 ---
+- name: API based on iDRAC generation
+  ansible.builtin.set_fact:
+    enclosure_emm_uri: "{{ iDRAC10 if '17G' in iDRAC_gen else iDRAC9 }}"
+  vars:
+    iDRAC9: "/redfish/v1/Chassis/Oem/Dell/DellEnclosureEMM"
+    iDRAC10: "{{ api_chassis }}/Oem/Dell/DellEnclosureEMM/"
+
 - name: Get enclosure EMM information.
   ansible.builtin.uri:
-    url: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Chassis/Oem/Dell/DellEnclosureEMM"
+    url: "https://{{ hostname }}:{{ https_port }}{{ enclosure_emm_uri }}"
   register: emm_result
   delegate_to: "{{ idrac_gather_facts_delegate }}"
 

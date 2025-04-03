@@ -1,7 +1,14 @@
 ---
+- name: API based on iDRAC generation
+  ansible.builtin.set_fact:
+    backplane_uri: "{{ iDRAC10 if '17G' in iDRAC_gen else iDRAC9 }}"
+  vars:
+    iDRAC9: "/redfish/v1/Chassis/Oem/Dell/DellPCIeSSDBackPlanes"
+    iDRAC10: "{{ api_chassis }}/Oem/Dell/DellPCIeSSDBackPlanes"
+
 - name: Get PCIeSSDBackPlane information.
   ansible.builtin.uri:
-    url: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Chassis/Oem/Dell/DellPCIeSSDBackPlanes"
+    url: "https://{{ hostname }}:{{ https_port }}{{ backplane_uri }}"
   register: pcie_result
   delegate_to: "{{ idrac_gather_facts_delegate }}"
 
