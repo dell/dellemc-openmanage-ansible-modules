@@ -104,6 +104,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.sys
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.video.info import IDRACVideoInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.subsystem.info import IDRACSubsystemInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.license.info import IDRACLicenseInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.memory.info import IDRACMemoryInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -163,6 +164,7 @@ def main():
                 system_info_dict["Video"] = IDRACVideoInfo(idrac).get_idrac_video_details()
                 system_info_dict["Subsystem"] = IDRACSubsystemInfo(idrac).get_subsystem_info()
                 system_info_dict["License"] = IDRACLicenseInfo(idrac).get_license_info()
+                system_info_dict["Memory"] = IDRACMemoryInfo(idrac).get_memory_info()
             else:
                 with iDRACConnection(module.params) as idrac:
                     idrac.get_entityjson()
