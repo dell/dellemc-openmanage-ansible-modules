@@ -136,6 +136,6 @@ class IDRACInfo(object):
             output["SwitchConnection"] = idrac_attributes_response.json_data.\
                 get("Attributes", {}).get("NIC.1.SwitchConnection", "NA")
             output["SwitchPortConnection"] = \
-            idrac_attributes_response.json_data.\
+                idrac_attributes_response.json_data.\
                 get("Attributes", {}).get("NIC.1.SwitchPortConnection", "NA")
         return output
