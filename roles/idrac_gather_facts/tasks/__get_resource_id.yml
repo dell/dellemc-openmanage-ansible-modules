@@ -21,7 +21,7 @@
 
 - name: Extracting iDRAC generation
   ansible.builtin.set_fact:
-    iDRAC_gen: "{{ sys_detail.json.Oem.Dell.DellSystem.SystemGeneration }}"
+    idrac_gen: "{{ sys_detail.json.Oem.Dell.DellSystem.SystemGeneration }}"
 
 - name: Get all system Ids
   ansible.builtin.set_fact:

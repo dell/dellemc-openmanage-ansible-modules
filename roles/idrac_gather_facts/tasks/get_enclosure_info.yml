@@ -1,10 +1,10 @@
 ---
 - name: API based on iDRAC generation
   ansible.builtin.set_fact:
-    enclosure_uri: "{{ iDRAC10 if '17G' in iDRAC_gen else iDRAC9 }}"
+    enclosure_uri: "{{ idrac10 if '17G' in idrac_gen else idrac9 }}"
   vars:
-    iDRAC9: "/redfish/v1/Chassis/Oem/Dell/DellEnclosures"
-    iDRAC10: "{{ api_chassis }}/Oem/Dell/DellEnclosures"
+    idrac9: "/redfish/v1/Chassis/Oem/Dell/DellEnclosures"
+    idrac10: "{{ api_chassis }}/Oem/Dell/DellEnclosures"
 
 - name: Get enclosure information.
   ansible.builtin.uri:
