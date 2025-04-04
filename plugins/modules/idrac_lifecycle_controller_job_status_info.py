@@ -113,7 +113,7 @@ def get_from_wsman(module):
         job_id, msg = module.params.get('job_id'), {}
         msg = idrac.job_mgr.get_job_status(job_id)
         if msg.get('Status') == "Found Fault":
-            module.fail_json(msg="Job ID is invalid.")
+            module.exit_json(msg="Job ID is invalid.", failed=True)
     return msg
 
 
@@ -192,12 +192,12 @@ def main():
             lifecycle_controller_job_status_info = get_lifecycle_controller_job_status_info(idrac, module)
 
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), failed=True, error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (RuntimeError, SSLValidationError, ConnectionError, KeyError,
             ImportError, ValueError, TypeError) as e:
-        module.fail_json(msg=str(e))
+        module.exit_json(msg=str(e), failed=True)
     module.exit_json(
         msg="Successfully fetched the job info",
         job_info=lifecycle_controller_job_status_info)
