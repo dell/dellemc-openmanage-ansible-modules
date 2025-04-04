@@ -36,29 +36,31 @@ class IDRACCpuInfo(object):
 
     def get_cpu_mapped_data(self, member):
         processor = member.get("Oem", {}).get("Dell", {}).get("DellProcessor", {})
+        ccs = str(int(processor.get("CurrentClockSpeedMhz", 0)) / 1000) + " GHz"
+        mcs = str(int(member.get("MaxSpeedMHz", 0)) / 1000) + " GHz"
         data = {
-            "CPUFamily": processor.get("CPUFamily", ""),
+            "CPUFamily": processor.get("CPUFamily", NA),
             "Characteristics": NA,
-            "CurrentClockSpeed": str(int(processor.get("CurrentClockSpeedMhz", 0)) / 1000) + " GHz",
-            "DeviceDescription": member.get("Name", ""),
-            "ExecuteDisabledCapable": processor.get("ExecuteDisabledCapable", ""),
-            "ExecuteDisabledEnabled": processor.get("ExecuteDisabledEnabled", ""),
-            "FQDD": member.get("Id", ""),
-            "HyperThreadingCapable": processor.get("HyperThreadingCapable", ""),
-            "HyperThreadingEnabled": processor.get("HyperThreadingEnabled", ""),
-            "Key": member.get("Socket", ""),
-            "Manufacturer": member.get("Manufacturer", ""),
-            "MaxClockSpeed": str(int(member.get("MaxSpeedMHz", 0)) / 1000) + " GHz",
-            "Model": member.get("Model", ""),
-            "NumberOfEnabledCores": member.get("TotalEnabledCores", ""),
+            "CurrentClockSpeed": NA if '0' in ccs else ccs,
+            "DeviceDescription": member.get("Name", NA),
+            "ExecuteDisabledCapable": processor.get("ExecuteDisabledCapable", NA),
+            "ExecuteDisabledEnabled": processor.get("ExecuteDisabledEnabled", NA),
+            "FQDD": member.get("Id", NA),
+            "HyperThreadingCapable": processor.get("HyperThreadingCapable", NA),
+            "HyperThreadingEnabled": processor.get("HyperThreadingEnabled", NA),
+            "Key": member.get("Socket", NA),
+            "Manufacturer": member.get("Manufacturer", NA),
+            "MaxClockSpeed": NA if '0' in mcs else mcs,
+            "Model": member.get("Model", NA),
+            "NumberOfEnabledCores": member.get("TotalEnabledCores", NA),
             "NumberOfEnabledThreads": NA,
             "NumberOfProcessorCores": NA,
-            "PrimaryStatus": member.get("Status", {}).get("Health", ""),
-            "TurboModeCapable": processor.get("TurboModeCapable", ""),
-            "TurboModeEnabled": processor.get("TurboModeEnabled", ""),
-            "VirtualizationTechnologyCapable": processor.get("VirtualizationTechnologyCapable", ""),
-            "VirtualizationTechnologyEnabled": processor.get("VirtualizationTechnologyEnabled", ""),
-            "Voltage": processor.get("Volts", ""),
+            "PrimaryStatus": member.get("Status", {}).get("Health", NA),
+            "TurboModeCapable": processor.get("TurboModeCapable", NA),
+            "TurboModeEnabled": processor.get("TurboModeEnabled", NA),
+            "VirtualizationTechnologyCapable": processor.get("VirtualizationTechnologyCapable", NA),
+            "VirtualizationTechnologyEnabled": processor.get("VirtualizationTechnologyEnabled", NA),
+            "Voltage": processor.get("Volts", NA),
             "processorDeviceStateSettings": NA
         }
         return data

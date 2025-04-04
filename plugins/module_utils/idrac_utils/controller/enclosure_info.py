@@ -41,17 +41,17 @@ class IDRACEnclosureInfo(object):
             "Connector": str(dellchasis.get("Connector")),
             "DeviceDescription": resp.get("Description"),
             "EMMCount": str(dellchasis.get("Links").get("DellEnclosureEMMCollection@odata.count")),
-            "FQDD": resp.get("Id", ""),
+            "FQDD": resp.get("Id", NA),
             "FanCount": NA,
-            "Key": resp.get("Id", ""),
+            "Key": resp.get("Id", NA),
             "PSUCount": NA,
-            "PrimaryStatus": resp.get("Status", {}).get("Health", ""),
-            "ProductName": resp.get("Name"),
+            "PrimaryStatus": resp.get("Status", {}).get("Health", NA),
+            "ProductName": resp.get("Name", NA),
             "ServiceTag": NA if (svctag := dellchasis.get("ServiceTag")) is None else svctag,
-            "SlotCount": str(dellchasis.get("SlotCount")),
+            "SlotCount": str(dellchasis.get("SlotCount", NA)),
             "State": NA,
-            "Version": dellchasis.get("Version"),
-            "WiredOrder": str(dellchasis.get("WiredOrder"))
+            "Version": dellchasis.get("Version", NA),
+            "WiredOrder": str(dellchasis.get("WiredOrder", NA))
         }
         return output
 
