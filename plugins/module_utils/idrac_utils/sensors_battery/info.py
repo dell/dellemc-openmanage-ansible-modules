@@ -35,14 +35,14 @@ class IDRACSensorsBatteryInfo(object):
 
     def sensors_battery_mapped_data(self, resp):
         output = {
-            "CurrentReading": "Not Available",
+            "CurrentReading": resp.get("CurrentReading", "Not Available"),
             "CurrentState": resp.get("CurrentState", "Not Available"),
             "DeviceID": "iDRAC.Embedded.1#SystemBoardCMOSBattery",
             "HealthState": resp.get("HealthState", "Not Available"),
             "Key": "System Board CMOS Battery",
             "Location": "System Board CMOS Battery",
             "OtherSensorTypeDescription": "Battery",
-            "PrimaryStatus": "Healthy",
+            # "PrimaryStatus": resp.get("HealthState", "Not Available"),
             "SensorType": "Battery",
             "State": resp.get("EnabledState", "Not Available")
         }

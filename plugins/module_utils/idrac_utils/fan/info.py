@@ -36,18 +36,17 @@ class IDRACFanInfo(object):
         """Maps fan fields from the API response to a structured format."""
         keys_to_search = {
             "ActiveCooling": "HotPluggable",
-            "BaseUnits": "SpeedPercent",
-            "CurrentReading": "SpeedPercent",
+            # "BaseUnits": "SpeedPercent.SpeedRPM",
+            "CurrentReading": "SpeedPercent.SpeedRPM",
             "DeviceDescription": "Name",
             "FQDD": "Id",
             "Key": "Id",
-            "Location": "Location",
+            # "Location": "Location",
             "PWM": "Oem.Dell.FanPWM",
             "PrimaryStatus": "Status.Health",
-            "RateUnits": "SpeedPercent.SpeedRPM",
-            "RedundancyStatus": "Status.State",
-            "State": "Status.State",
-            "VariableSpeed": "Oem.Dell.FanType"
+            # "RateUnits": "RateUnits",
+            "State": "State",
+            # "VariableSpeed": "VariableSpeed"
         }
 
         fan_data = {}

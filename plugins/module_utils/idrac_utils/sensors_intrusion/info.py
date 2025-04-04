@@ -26,6 +26,7 @@
 #
 
 GET_IDRAC_SENSOR_INTRUSION_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1?$select=PhysicalSecurity/IntrusionSensor"
+NA = "Not Available"
 
 
 class IDRACSensorsIntrusionInfo(object):
@@ -34,16 +35,16 @@ class IDRACSensorsIntrusionInfo(object):
 
     def sensors_intrusion_mapped_data(self, resp):
         output = {
-            "CurrentReading": "Not Available",
-            "CurrentState": "No Breach",
+            "CurrentReading": resp.get("CurrentReading", NA),
+            "CurrentState": "No Breach",  # Need to discuss
             "DeviceID": "iDRAC.Embedded.1#SystemBoardIntrusion",
             "HealthState": resp.get("PhysicalSecurity", {}).get("IntrusionSensor", "Not Available"),
             "Key": "System Board Intrusion",
             "Location": "System Board Intrusion",
             "OtherSensorTypeDescription": "Not Available",
-            "PrimaryStatus": "Healthy",
+            "PrimaryStatus": resp.get("PrimaryStatus", "Not Available"),
             "SensorType": "Intrusion",
-            "State": "Enabled",
+            # "State": "State",
             "Type": "Not Available"
         }
         return output

@@ -34,16 +34,17 @@ class IDRACSystemInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
 
-    def get_firmwarever(self):
+    def get_firmware_ver_idrac_url(self):
         response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_MANAGER_URI)
         if response.status_code == 200:
             version = response.json_data.get("FirmwareVersion", "")
-            return version
+            idrac_url = response.json_data.get("Oem", {}).get("Dell", {}).get("DelliDRACCard", {}).get("URLString")
+            return version , idrac_url
         return ""
 
     def system_mapped_data(self, resp):
         system_data = resp.get("Oem", {}).get("Dell", {}).get("DellSystem", {})
-        firmware_ver = self.get_firmwarever()
+        firmware_ver, idrac_url = self.get_firmware_ver_idrac_url()
         output = {
             "AssetTag": NA if (asset := resp.get("AssetTag")) == "" else asset,
             "BIOSReleaseDate": system_data.get("BIOSReleaseDate", NA),
@@ -93,7 +94,7 @@ class IDRACSystemInfo(object):
             "UUID": system_data.get("UUID", NA),
             "VirtualAddressManagementApplication": "VirtualAddressManagementApplication",
             "_Type": "Server",
-            "iDRACURL": "iDRACURL",
+            "iDRACURL": NA if (idrac_url == "") else idrac_url,
             "smbiosGUID": system_data.get("smbiosGUID", NA)
         }
 
