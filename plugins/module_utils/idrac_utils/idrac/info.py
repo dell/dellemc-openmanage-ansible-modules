@@ -128,4 +128,14 @@ class IDRACInfo(object):
                 get("Attributes", {}).get("NIC.1.MACAddress")
             output["ProductInfo"] = idrac_attributes_response.json_data.\
                 get("Attributes", {}).get("Info.1.Product")
+            output["GroupName"] = "NA"
+            output["GroupStatus"] = "NA"
+            output["NICEnabled"] = idrac_attributes_response.json_data.\
+                get("Attributes", {}).get("NIC.1.Enable", "NA")
+            output["PrimaryStatus"] = "NA"
+            output["SwitchConnection"] = idrac_attributes_response.json_data.\
+                get("Attributes", {}).get("NIC.1.SwitchConnection", "NA")
+            output["SwitchPortConnection"] = \
+                idrac_attributes_response.json_data.\
+                get("Attributes", {}).get("NIC.1.SwitchPortConnection", "NA")
         return output
