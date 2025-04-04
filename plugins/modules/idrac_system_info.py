@@ -105,6 +105,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.vid
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.subsystem.info import IDRACSubsystemInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.license.info import IDRACLicenseInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.memory.info import IDRACMemoryInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.idrac.info import IDRACInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -165,6 +166,7 @@ def main():
                 system_info_dict["Subsystem"] = IDRACSubsystemInfo(idrac).get_subsystem_info()
                 system_info_dict["License"] = IDRACLicenseInfo(idrac).get_license_info()
                 system_info_dict["Memory"] = IDRACMemoryInfo(idrac).get_memory_info()
+                system_info_dict["iDRAC"] = IDRACInfo(idrac).get_idrac_info_details()
             else:
                 with iDRACConnection(module.params) as idrac:
                     idrac.get_entityjson()
