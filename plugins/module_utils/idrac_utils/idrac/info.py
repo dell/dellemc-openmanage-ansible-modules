@@ -107,3 +107,25 @@ class IDRACInfo(object):
         self.get_idrac_manager_details()
         self.get_idrac_attributes_details()
         return iDRAC
+
+    def get_idrac_nic_info(self):
+        output = {}
+        idrac_manager_response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_MANAGER_DETAILS_URI_10)
+        if idrac_manager_response.status_code == 200:
+            output["Key"] = idrac_manager_response.json_data.get("Id", "NA")
+            output["FQDD"] = idrac_manager_response.json_data.get("Id", "NA")
+        idrac_attributes_response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_MANAGER_ATTRIBUTES)
+        if idrac_attributes_response.status_code == 200:
+            output["IPv4Address"] = idrac_attributes_response.json_data.\
+                get("Attributes", {}).get("IPv4.1.Address", "NA")
+            output["IPv6Address"] = idrac_attributes_response.json_data.\
+                get("Attributes", {}).get("IPv6.1.Address1", "NA")
+            output["NICSpeed"] = idrac_attributes_response.json_data.\
+                get("Attributes", {}).get("NIC.1.Speed", "NA")
+            output["NICDuplex"] = idrac_attributes_response.json_data.\
+                get("Attributes", {}).get("NIC.1.Duplex", "NA")
+            output["PermanentMACAddress"] = idrac_attributes_response.json_data.\
+                get("Attributes", {}).get("NIC.1.MACAddress")
+            output["ProductInfo"] = idrac_attributes_response.json_data.\
+                get("Attributes", {}).get("Info.1.Product")
+        return output

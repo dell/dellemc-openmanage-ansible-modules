@@ -169,6 +169,7 @@ def main():
                 system_info_dict["Memory"] = IDRACMemoryInfo(idrac).get_memory_info()
                 system_info_dict["iDRAC"] = IDRACInfo(idrac).get_idrac_info_details()
                 system_info_dict["PowerSupply"] = IDRACPowerSupplyInfo(idrac).get_power_supply_info()
+                system_info_dict["iDRACNIC"] = IDRACInfo(idrac).get_idrac_nic_info()
             else:
                 with iDRACConnection(module.params) as idrac:
                     idrac.get_entityjson()

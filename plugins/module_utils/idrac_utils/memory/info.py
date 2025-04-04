@@ -25,7 +25,6 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-GET_IDRAC_MEMORY_DETAILS_OEM_URI = "/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellMemory"
 GET_IDRAC_MEMORY_DETAILS_URI = "/redfish/v1/Systems/System.Embedded.1/Memory"
 
 
@@ -44,56 +43,48 @@ class IDRACMemoryInfo(object):
 
     def get_memory_details(self, memory_link):
         response = self.idrac.invoke_request(method='GET', uri=memory_link)
-        output = {
-            "BankLabel": "",
-            "CurrentOperatingSpeed": "",
-            "DeviceDescription": "",
-            "FQDD": "",
-            "Key": "",
-            "ManufactureDate": "",
-            "Manufacturer": "",
-            "MemoryType": "",
-            "Model": "",
-            "PartNumber": "",
-            "PrimaryStatus": "",
-            "Rank": "",
-            "SerialNumber": "",
-            "Size": "",
-            "Speed": "",
-            "memoryDeviceStateSettings": ""
-        }
+        output = {}
         if response.status_code == 200:
-            output["BankLabel"] = response.json_data.get("Oem")\
-                .get("Dell").get("DellMemory").get("BankLabel")
+            output["BankLabel"] = response.json_data.get("Oem", {})\
+                .get("Dell", {}).get("DellMemory", {}).get("BankLabel", "NA")
             output["CurrentOperatingSpeed"] = \
                 response.json_data.get("OperatingSpeedMhz")
             if output["CurrentOperatingSpeed"] is not None:
                 output["CurrentOperatingSpeed"] = \
                     str(response.json_data.get("OperatingSpeedMhz")) + " MHz"
-            output["DeviceDescription"] = response.json_data.get("Description")
-            output["FQDD"] = response.json_data.get("Id")
-            output["Key"] = response.json_data.get("Id")
-            output["ManufactureDate"] = response.json_data.get("Oem")\
-                .get("Dell").get("DellMemory").get("ManufactureDate")
-            output["Manufacturer"] = response.json_data.get("Manufacturer")
-            output["MemoryType"] = response.json_data.get("MemoryDeviceType")
-            output["Model"] = response.json_data.get("Oem")\
-                .get("Dell").get("DellMemory").get("Model")
-            output["PartNumber"] = response.json_data.get("PartNumber")
+            else:
+                output["CurrentOperatingSpeed"] = "NA"
+            output["DeviceDescription"] = \
+                response.json_data.get("Description", "NA")
+            output["FQDD"] = response.json_data.get("Id", "NA")
+            output["Key"] = response.json_data.get("Id", "NA")
+            output["ManufactureDate"] = response.json_data.get("Oem", {})\
+                .get("Dell", {}).get("DellMemory", {}).\
+                get("ManufactureDate", "NA")
+            output["Manufacturer"] = response.json_data.get("Manufacturer", "NA")
+            output["MemoryType"] = response.json_data.get("MemoryDeviceType", "NA")
+            output["Model"] = response.json_data.get("Oem", {})\
+                .get("Dell", {}).get("DellMemory", {}).\
+                get("Model", "NA")
+            output["PartNumber"] = response.json_data.get("PartNumber", "NA")
             output["PrimaryStatus"] = \
-                response.json_data.get("Status").get("Health")
-            output["Rank"] = response.json_data.get("RankCount")
-            output["SerialNumber"] = response.json_data.get("SerialNumber")
+                response.json_data.get("Status", {}).get("Health", "NA")
+            output["Rank"] = response.json_data.get("RankCount", "NA")
+            output["SerialNumber"] = response.json_data.get("SerialNumber", "NA")
             output["Size"] = response.json_data.get("CapacityMiB")
             if output["Size"] is not None:
                 output["Size"] = \
                     str(response.json_data.get("CapacityMiB")) + " MiB"
+            else:
+                output["Size"] = "NA"
             output["Speed"] = response.json_data.get("AllowedSpeedsMHz")
             if output["Speed"]:
                 output["Speed"] = \
-                    str(response.json_data.get("AllowedSpeedsMHz")[0]) + " MHz"
+                    str(response.json_data.get("AllowedSpeedsMHz")[0]/1000) + " GHz"
+            else:
+                output["Speed"] = "NA"
             output["memoryDeviceStateSettings"] = \
-                response.json_data.get("Status").get("State")
+                response.json_data.get("Status", {}).get("State", "NA")
         return output
 
     def get_memory_info(self):
