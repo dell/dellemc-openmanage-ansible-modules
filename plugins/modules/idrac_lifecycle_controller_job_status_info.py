@@ -107,6 +107,7 @@ from ansible.module_utils.basic import AnsibleModule
 
 ERR_STATUS = 404
 
+
 def get_from_wsman(module):
     with iDRACConnection(module.params) as idrac:
         job_id, msg = module.params.get('job_id'), {}
@@ -115,24 +116,26 @@ def get_from_wsman(module):
             module.fail_json(msg="Job ID is invalid.")
     return msg
 
+
 def transform_job_status_data(info_data):
     transformed_data = []
 
     job_success_list = ['Completed', 'Success']
     job_failed_list = ['Failed', 'Errors']
-    #job_in_progress_list = ['Running', 'Pending', 'Invalid']
     job_state = str(info_data.get("JobState"))
     if job_state in job_success_list:
         job_status = "Success"
     elif job_state in job_failed_list:
         job_status = "Failed"
-    elif 'Message' in info_data and str(info_data.get("Message")) and 'completed' in str(info_data.get("Message")) and 'errors' not in str(info_data.get("Message")):
+    elif 'Message' in info_data and str(info_data.get("Message")) and \
+            'completed' in str(info_data.get("Message")) and \
+            'errors' not in str(info_data.get("Message")):
         job_status = "Success"
     else:
         job_status = "InProgress"
 
     if len(info_data.get("MessageArgs")) > 0:
-      message_argument = str(info_data.get("MessageArgs")[0])
+        message_argument = str(info_data.get("MessageArgs")[0])
     else:
         message_argument = ""
 
@@ -143,22 +146,23 @@ def transform_job_status_data(info_data):
         "JobStatus": job_state,
         "JobUntilTime": "NA",
         "Message": str(info_data.get("Message")),
-        "MessageArguments":message_argument,
+        "MessageArguments": message_argument,
         "MessageID": str(info_data.get("MessageId")),
         "Name": str(info_data.get("Name")),
         "PercentComplete": str(info_data.get("PercentComplete")),
         "Status": job_status,
-        "ActualRunningStopTime":str(info_data.get("ActualRunningStopTime")),
+        "ActualRunningStopTime": str(info_data.get("ActualRunningStopTime")),
         "JobType": str(info_data.get("JobType")),
         "ActualRunningStartTime": str(info_data.get("ActualRunningStartTime")),
         "EndTime": str(info_data.get("EndTime")),
         "CompletionTime": str(info_data.get("CompletionTime")),
         "Description": str(info_data.get("Description")),
-        "TargetSettingsURI":str(info_data.get("TargetSettingsURI"))
+        "TargetSettingsURI": str(info_data.get("TargetSettingsURI"))
     }
     transformed_data.append(transformed_info_data)
 
     return transformed_data
+
 
 def get_lifecycle_controller_job_status_info(idrac, module):
     try:
@@ -196,8 +200,7 @@ def main():
         module.fail_json(msg=str(e))
     module.exit_json(
         msg="Successfully fetched the job info",
-        job_info=lifecycle_controller_job_status_info
-      )
+        job_info=lifecycle_controller_job_status_info)
 
 
 if __name__ == '__main__':
