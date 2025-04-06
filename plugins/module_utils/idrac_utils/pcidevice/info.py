@@ -47,11 +47,11 @@ class IDRACPCIDeviceInfo(object):
         output = {}
         if response.status_code == 200:
             output["BusWidth"] = response.json_data.get("DataBusWidth")
-            output["DeviceDescription"] = "DeviceDescription",
-            output["DeviceID"] = "Key",
-            output["Manufacturer"] = "Manufacturer",
-            output["SlotLength"] = "SlotLength",
-            output["SlotType"] = "SlotType",
+            output["DeviceDescription"] = "DeviceDescription"
+            output["DeviceID"] = "Key"
+            output["Manufacturer"] = "Manufacturer"
+            output["SlotLength"] = "SlotLength"
+            output["SlotType"] = "SlotType"
             output["Description"] = "Description"
             output["BankLabel"] = response.json_data.get("Oem", {})\
                 .get("Dell", {}).get("DellMemory", {}).get("BankLabel", "NA")
