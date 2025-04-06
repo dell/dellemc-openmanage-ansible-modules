@@ -28,6 +28,7 @@
 
 GET_IDRAC_PCI_DETAILS_URI = "/redfish/v1/Chassis/System.Embedded.1/PCIeDevices/"
 
+
 class IDRACPCIDeviceInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
