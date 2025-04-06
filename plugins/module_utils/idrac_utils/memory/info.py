@@ -80,7 +80,8 @@ class IDRACMemoryInfo(object):
             output["Speed"] = response.json_data.get("AllowedSpeedsMHz")
             if output["Speed"]:
                 output["Speed"] = \
-                    str(response.json_data.get("AllowedSpeedsMHz")[0] / 1000) + " GHz"
+                    str(response.json_data.get("AllowedSpeedsMHz")[0] / 1000)\
+                    + " GHz"
             else:
                 output["Speed"] = "NA"
             output["memoryDeviceStateSettings"] = \
