@@ -42,19 +42,40 @@ class IDRACPCIDeviceInfo(object):
                 device_links_list.append(each.get("@odata.id"))
         return device_links_list
 
+    def get_device_function_details(self, function_link):
+        response = self.idrac.invoke_request(method='GET', uri=function_link)
+        if response.status_code == 200:
+            buswidth = response.json_data.get("Oem", {})\
+                .get("Dell", {}).get("DellPCIeFunction", {}).get("DataBusWidth", "NA")
+            deviceid = response.json_data.get("Oem", {})\
+                .get("Dell", {}).get("DellPCIeFunction", {}).get("Id", "NA")
+            slot_type = response.json_data.get("Oem", {})\
+                .get("Dell", {}).get("DellPCIeFunction", {}).get("SlotType", "NA")
+            slot_length = response.json_data.get("Oem", {})\
+                .get("Dell", {}).get("DellPCIeFunction", {}).get("SlotLength", "NA")
+        return buswidth, deviceid, slot_type, slot_length
+
     def get_device_details(self, device_link):
         response = self.idrac.invoke_request(method='GET', uri=device_link)
         output = {}
         if response.status_code == 200:
-            output["BusWidth"] = response.json_data.get("DataBusWidth")
-            output["DeviceDescription"] = "DeviceDescription"
-            output["DeviceID"] = "Key"
-            output["Manufacturer"] = "Manufacturer"
-            output["SlotLength"] = "SlotLength"
-            output["SlotType"] = "SlotType"
-            output["Description"] = "Description"
-            output["BankLabel"] = response.json_data.get("Oem", {})\
-                .get("Dell", {}).get("DellMemory", {}).get("BankLabel", "NA")
+            device_link = response.json_data.get("Links", {}).\
+                get("PCIeFunctions", [{}])[0].get("@odata.id")
+            if device_link is not None:
+                buswidth, deviceid, slot_type, slot_length = \
+                    self.get_device_function_details(device_link)
+            else:
+                buswidth = "NA"
+                slot_type = "NA"
+                deviceid = "NA"
+            output["BusWidth"] = buswidth
+            output["DeviceDescription"] = response.json_data.get("Description")
+            output["FQDD"] = deviceid
+            output["Key"] = deviceid
+            output["Manufacturer"] = response.json_data.get("Manufacturer")
+            output["SlotLength"] = slot_length
+            output["SlotType"] = slot_type
+            output["Description"] = response.json_data.get("Description")
         return output
 
     def get_pcidevice_info(self):
