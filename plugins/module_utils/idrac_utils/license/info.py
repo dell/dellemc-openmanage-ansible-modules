@@ -26,6 +26,7 @@
 
 
 GET_IDRAC_LICENSE_DETAILS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLicenses?$expand=*($levels=1)"
+NA = "Not Available"
 
 
 class IDRACLicenseInfo(object):
@@ -39,13 +40,16 @@ class IDRACLicenseInfo(object):
             members = response.json_data.get("Members")
             for each in members:
                 output = {
-                    "InstanceID": each.get("Id"),
-                    "Key": each.get("Id"),
-                    "LicenseDescription": each.get("LicenseDescription", [""])[0],
-                    "LicenseInstallDate": each.get("LicenseInstallDate"),
-                    "LicenseSoldDate": each.get("LicenseSoldDate"),
-                    "LicenseType": each.get("LicenseType"),
-                    "PrimaryStatus": each.get("LicensePrimaryStatus")
+                    "InstanceID": each.get("Id", NA),
+                    "Key": each.get("Id", NA),
+                    "LicenseDescription": each.get("LicenseDescription", [NA])[0],
+                    "LicenseInstallDate": each.get("LicenseInstallDate", NA),
+                    "LicenseSoldDate": each.get("LicenseSoldDate", NA),
+                    "LicenseType": each.get("LicenseType", NA),
                 }
+                if each.get("LicensePrimaryStatus") == "OK":
+                    output["PrimaryStatus"] = "Healthy"
+                else:
+                    output["PrimaryStatus"] = each.get("LicensePrimaryStatus", NA)
                 license_output.append(output)
         return license_output
