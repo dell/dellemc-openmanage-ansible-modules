@@ -27,6 +27,7 @@
 
 
 GET_IDRAC_SENSOR_FAN_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Oem/Dell/DellEnclosureFanSensors"
+NA = "Not Available"
 
 
 class IDRACSensorsFanInfo(object):
@@ -35,21 +36,21 @@ class IDRACSensorsFanInfo(object):
 
     def sensors_fan_mapped_data(self, resp):
         output = {
-            "CurrentReading": "CurrentReading",
-            "CurrentState": "CurrentState",
-            "DeviceID": "DeviceID",
-            "FQDD": "FQDD",
-            "HealthState": "HealthState",
-            "Key": "Key",
-            "Location": "Location",
-            "Name": "Name",
-            "OtherSensorTypeDescription": "OtherSensorTypeDescription",
-            "PrimaryStatus": "PrimaryStatus",
-            "SensorType": "SensorType",
-            "State": "State",
-            "SubType": "SubType",
-            "Type": "Type",
-            "coolingUnitIndexReference": "coolingUnitIndexReference"
+            "CurrentReading": resp.get("CurrentReading", NA),
+            "CurrentState": resp.get("CurrentState", NA),
+            "DeviceID": resp.get("DeviceID", NA),
+            "FQDD": resp.get("FQDD", NA),
+            "HealthState": resp.get("HealthState", NA),
+            "Key": resp.get("Key", NA),
+            "Location": resp.get("Location", NA),
+            "Name": resp.get("Name", NA),
+            "OtherSensorTypeDescription": resp.get("OtherSensorTypeDescription", NA),
+            "PrimaryStatus": resp.get("PrimaryStatus", NA),
+            "SensorType": resp.get("SensorType", NA),
+            "State": resp.get("State", NA),
+            "SubType": resp.get("SubType", NA),
+            "Type": resp.get("Type", NA),
+            "coolingUnitIndexReference": resp.get("coolingUnitIndexReference", NA)
         }
         return output
 

@@ -54,6 +54,8 @@ class IDRACSensorsVoltageInfo(object):
         for key, response_key in keys_to_search.items():
             if key == "DeviceID":
                 sensor_data[key] = f"iDRAC.Embedded.1#{sensor.get('Name', 'Unknown')}"
+            elif key == "SensorType":
+                sensor_data[key] = "Voltage"
             elif "." in response_key:
                 keys = response_key.split(".")
                 data = sensor
