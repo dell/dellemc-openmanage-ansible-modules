@@ -45,7 +45,7 @@ class IDRACSensorsFanInfo(object):
             "Location": resp.get("Location", NA),
             "Name": resp.get("Name", NA),
             "OtherSensorTypeDescription": resp.get("OtherSensorTypeDescription", NA),
-            "PrimaryStatus": resp.get("PrimaryStatus", NA),
+            "PrimaryStatus": "Healthy" if resp.get("HealthState") == "OK" else resp.get("HealthState", NA),
             "SensorType": resp.get("SensorType", NA),
             "State": resp.get("State", NA),
             "SubType": resp.get("SubType", NA),

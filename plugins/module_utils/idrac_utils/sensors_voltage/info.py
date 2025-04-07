@@ -39,7 +39,7 @@ class IDRACSensorsVoltageInfo(object):
             "DeviceID": "DeviceID",
             "HealthState": "Status.Health",
             "Key": "Name",
-            "Location": "PhysicalContext",
+            "Location": "Name",
             "OtherSensorTypeDescription": "Not Available",
             "PrimaryStatus": "Status.Health",
             "Reading(V)": "ReadingVolts",

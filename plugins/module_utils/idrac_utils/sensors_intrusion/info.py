@@ -26,6 +26,7 @@
 #
 
 GET_IDRAC_SENSOR_INTRUSION_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1?$select=PhysicalSecurity/IntrusionSensor"
+GET_IDRAC_SYSTEM_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1"
 NA = "Not Available"
 
 
@@ -33,18 +34,27 @@ class IDRACSensorsIntrusionInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
 
+    def get_state(self):
+        response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_SYSTEM_DETAILS_URI_10)
+        if response.status_code == 200:
+            state = response.json_data.get("Status", {}).get("State", "")
+            return state
+        return ""
+
     def sensors_intrusion_mapped_data(self, resp):
+        state = self.get_state()
+        health_state = resp.get("PhysicalSecurity", {}).get("IntrusionSensor", "Not Available")
         output = {
             "CurrentReading": resp.get("CurrentReading", NA),
-            "CurrentState": "No Breach",  # Need to discuss
+            "CurrentState": "No Breach",  # remove
             "DeviceID": "iDRAC.Embedded.1#SystemBoardIntrusion",
-            "HealthState": resp.get("PhysicalSecurity", {}).get("IntrusionSensor", "Not Available"),
+            "HealthState": health_state,
             "Key": "System Board Intrusion",
             "Location": "System Board Intrusion",
             "OtherSensorTypeDescription": "Not Available",
-            "PrimaryStatus": resp.get("PrimaryStatus", "Not Available"),
+            "PrimaryStatus": "Healthy" if health_state == "Normal" else health_state,
             "SensorType": "Intrusion",
-            # "State": "State",
+            "State": NA if (state == "") else state,
             "Type": "Not Available"
         }
         return output

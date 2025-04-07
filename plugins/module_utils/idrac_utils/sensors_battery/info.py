@@ -34,6 +34,18 @@ class IDRACSensorsBatteryInfo(object):
         self.idrac = idrac
 
     def sensors_battery_mapped_data(self, resp):
+        health_state_map = {
+            "CriticalFailure": "Critical",
+            "Degraded/Warning": "Warning",
+            "MajorFailure": "Critical",
+            "MinorFailure": "Critical",
+            "NonRecoverableError": "Critical",
+            "OK": "Healthy",
+            "Unknown": "Unknown"
+        }
+
+        health_state = resp.get("HealthState", "Not Available")
+        primary_status = health_state_map.get(health_state, "Not Available")
         output = {
             "CurrentReading": resp.get("CurrentReading", "Not Available"),
             "CurrentState": resp.get("CurrentState", "Not Available"),
@@ -42,7 +54,7 @@ class IDRACSensorsBatteryInfo(object):
             "Key": "System Board CMOS Battery",
             "Location": "System Board CMOS Battery",
             "OtherSensorTypeDescription": "Battery",
-            # "PrimaryStatus": resp.get("HealthState", "Not Available"),
+            "PrimaryStatus": primary_status,
             "SensorType": "Battery",
             "State": resp.get("EnabledState", "Not Available")
         }
