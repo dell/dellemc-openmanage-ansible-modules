@@ -38,9 +38,10 @@ class IDRACCpuInfo(object):
         processor = member.get("Oem", {}).get("Dell", {}).get("DellProcessor", {})
         ccs = str(int(processor.get("CurrentClockSpeedMhz", 0)) / 1000) + " GHz"
         mcs = str(int(member.get("MaxSpeedMHz", 0)) / 1000) + " GHz"
+        chars = "64-bit Capable" if member.get("InstructionSet").lower() == "x86-64" else "Unknown"
         data = {
             "CPUFamily": processor.get("CPUFamily", NA),
-            "Characteristics": NA,
+            "Characteristics": chars,
             "CurrentClockSpeed": ccs,
             "DeviceDescription": member.get("Name", NA),
             "ExecuteDisabledCapable": processor.get("ExecuteDisabledCapable", NA),
@@ -53,8 +54,8 @@ class IDRACCpuInfo(object):
             "MaxClockSpeed": mcs,
             "Model": member.get("Model", NA),
             "NumberOfEnabledCores": str(member.get("TotalEnabledCores", NA)),
-            "NumberOfEnabledThreads": NA,
-            "NumberOfProcessorCores": NA,
+            "NumberOfEnabledThreads": str(member.get("TotalThreads", NA)),
+            "NumberOfProcessorCores": str(member.get("TotalCores", NA)),
             "PrimaryStatus": member.get("Status", {}).get("Health", NA),
             "TurboModeCapable": processor.get("TurboModeCapable", NA),
             "TurboModeEnabled": processor.get("TurboModeEnabled", NA),
