@@ -27,6 +27,73 @@
 
 
 GET_IDRAC_PCI_DETAILS_URI = "/redfish/v1/Chassis/System.Embedded.1/PCIeDevices/"
+NA = "Not Available"
+SLOT_TYPE_MAPPING = {
+    "Other": "0001",
+    "Unknown": "0002",
+    "ISA": "0003",
+    "MCA": "0004",
+    "EISA": "0005",
+    "PCI": "0006",
+    "PC Card (PCMCIA)": "0007",
+    "VL-VESA": "0008",
+    "Proprietary": "0009",
+    "Processor Card Slot": "000A",
+    "Proprietary Memory Card Slot": "000B",
+    "I/O Riser Card Slot": "000C",
+    "NuBus": "000D",
+    "PCI - 66MHz Capable": "000E",
+    "AGP": "000F",
+    "AGP 2X": "0010",
+    "AGP 4X": "0011",
+    "PCI-X": "0012",
+    "AGP 8X": "0013",
+    "PC-98/C20": "00A0",
+    "PC-98/C24": "00A1",
+    "PC-98/E": "00A2",
+    "PC-98/Local Bus": "00A3",
+    "PC-98/Card": "00A4",
+    "PCI Express": "00A5",
+    "PCI Express x1": "00A6",
+    "PCI Express x2": "00A7",
+    "PCI Express x4": "00A8",
+    "PCI Express x8": "00A9",
+    "PCI Express x16": "00AA",
+    "PCI Express Gen 2": "00AB",
+    "PCI Express Gen 2 x1": "00AC",
+    "PCI Express Gen 2 x2": "00AD",
+    "PCI Express Gen 2 x4": "00AE",
+    "PCI Express Gen 2 x8": "00AF",
+    "PCI Express Gen 2 x16": "00B0",
+    "PCI Express Gen 3": "00B1",
+    "PCI Express Gen 3 x1": "00B2",
+    "PCI Express Gen 3 x2": "00B3",
+    "PCI Express Gen 3 x4": "00B4",
+    "PCI Express Gen 3 x8": "00B5",
+    "PCI Express Gen 3 x16": "00B6"
+}
+SLOT_LENGTH_MAPPING = {
+    "Other": "0001",
+    "Unknown": "0002",
+    "Short Length": "0003",
+    "Long Length": "0004"
+}
+BUS_WIDTH_MAPPING = {
+    "Other": "0001",
+    "Unknown": "0002",
+    "8Bit": "0003",
+    "16Bit": "0004",
+    "32Bit": "0005",
+    "64Bit": "0006",
+    "128Bit": "0007",
+    "1XOrX1": "0008",
+    "2XOrX2": "0009",
+    "4XOrX4": "000A",
+    "8XOrX8": "000B",
+    "12XOrX12": "000C",
+    "16XOrX16": "000D",
+    "32XOrX32": "000E"
+}
 
 
 class IDRACPCIDeviceInfo(object):
@@ -45,14 +112,15 @@ class IDRACPCIDeviceInfo(object):
     def get_device_function_details(self, function_link):
         response = self.idrac.invoke_request(method='GET', uri=function_link)
         if response.status_code == 200:
-            buswidth = response.json_data.get("Oem", {})\
-                .get("Dell", {}).get("DellPCIeFunction", {}).get("DataBusWidth", "NA")
-            deviceid = response.json_data.get("Oem", {})\
-                .get("Dell", {}).get("DellPCIeFunction", {}).get("Id", "NA")
-            slot_type = response.json_data.get("Oem", {})\
-                .get("Dell", {}).get("DellPCIeFunction", {}).get("SlotType", "NA")
-            slot_length = response.json_data.get("Oem", {})\
-                .get("Dell", {}).get("DellPCIeFunction", {}).get("SlotLength", "NA")
+            resp = response.json_data.get("Oem", {}).\
+                get("Dell", {}).get("DellPCIeFunction", {})
+            buswidth = \
+                BUS_WIDTH_MAPPING.get(resp.get("DataBusWidth"), NA)
+            deviceid = resp.get("Id", NA)
+            slot_type = \
+                SLOT_TYPE_MAPPING.get(resp.get("SlotType"), NA)
+            slot_length = \
+                SLOT_LENGTH_MAPPING.get(resp.get("SlotLength"), NA)
         return buswidth, deviceid, slot_type, slot_length
 
     def get_device_details(self, device_link):

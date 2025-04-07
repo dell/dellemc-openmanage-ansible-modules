@@ -110,32 +110,45 @@ class IDRACInfo(object):
 
     def get_idrac_nic_info(self):
         output = {}
-        idrac_manager_response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_MANAGER_DETAILS_URI_10)
-        if idrac_manager_response.status_code == 200:
-            output["Key"] = idrac_manager_response.json_data.get("Id", "NA")
-            output["FQDD"] = idrac_manager_response.json_data.get("Id", "NA")
-        idrac_attributes_response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_MANAGER_ATTRIBUTES)
+        managerresponse = \
+            self.idrac.invoke_request(
+                method='GET',
+                uri=GET_IDRAC_MANAGER_DETAILS_URI_10
+            )
+        if managerresponse.status_code == 200:
+            resp = managerresponse.json_data
+            output["Key"] = resp.get("Id", NOT_AVAILABLE)
+            output["FQDD"] = resp.get("Id", NOT_AVAILABLE)
+            if resp.get("Status", {}).get("Health") == "OK":
+                output["PrimaryStatus"] = "Healthy"
+            else:
+                output["PrimaryStatus"] = resp.\
+                    get("Status", {}).get("Health", NOT_AVAILABLE)
+        idrac_attributes_response = \
+            self.idrac.invoke_request(
+                method='GET',
+                uri=GET_IDRAC_MANAGER_ATTRIBUTES)
         if idrac_attributes_response.status_code == 200:
             output["IPv4Address"] = idrac_attributes_response.json_data.\
-                get("Attributes", {}).get("IPv4.1.Address", "NA")
+                get("Attributes", {}).get("IPv4.1.Address", NOT_AVAILABLE)
             output["IPv6Address"] = idrac_attributes_response.json_data.\
-                get("Attributes", {}).get("IPv6.1.Address1", "NA")
+                get("Attributes", {}).get("IPv6.1.Address1", NOT_AVAILABLE)
             output["NICSpeed"] = idrac_attributes_response.json_data.\
-                get("Attributes", {}).get("NIC.1.Speed", "NA")
+                get("Attributes", {}).get("NIC.1.Speed", NOT_AVAILABLE)
             output["NICDuplex"] = idrac_attributes_response.json_data.\
-                get("Attributes", {}).get("NIC.1.Duplex", "NA")
+                get("Attributes", {}).get("NIC.1.Duplex", NOT_AVAILABLE)
             output["PermanentMACAddress"] = idrac_attributes_response.json_data.\
                 get("Attributes", {}).get("NIC.1.MACAddress")
             output["ProductInfo"] = idrac_attributes_response.json_data.\
                 get("Attributes", {}).get("Info.1.Product")
-            output["GroupName"] = "NA"
-            output["GroupStatus"] = "NA"
+            output["GroupName"] = NOT_AVAILABLE
+            output["GroupStatus"] = NOT_AVAILABLE
             output["NICEnabled"] = idrac_attributes_response.json_data.\
-                get("Attributes", {}).get("NIC.1.Enable", "NA")
-            output["PrimaryStatus"] = "NA"
+                get("Attributes", {}).get("NIC.1.Enable", NOT_AVAILABLE)
             output["SwitchConnection"] = idrac_attributes_response.json_data.\
-                get("Attributes", {}).get("NIC.1.SwitchConnection", "NA")
+                get("Attributes", {}).get("NIC.1.SwitchConnection", NOT_AVAILABLE)
             output["SwitchPortConnection"] = \
                 idrac_attributes_response.json_data.\
-                get("Attributes", {}).get("NIC.1.SwitchPortConnection", "NA")
+                get("Attributes", {}).\
+                get("NIC.1.SwitchPortConnection", NOT_AVAILABLE)
         return output

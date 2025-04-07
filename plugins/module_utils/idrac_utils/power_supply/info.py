@@ -26,6 +26,7 @@
 
 
 GET_IDRAC_POWER_SUPPLY_DETAILS_URI = "/redfish/v1/Chassis/System.Embedded.1/PowerSubsystem/PowerSupplies"
+NA = "Not Available"
 
 
 class IDRACPowerSupplyInfo(object):
@@ -47,50 +48,50 @@ class IDRACPowerSupplyInfo(object):
         if response.status_code == 200:
             output["DetailedState"] = \
                 response.json_data.get("Oem", {}).get("Dell", {}).\
-                get("DellPowerSupplyView", {}).get("DetailedState", "NA")
+                get("DellPowerSupplyView", {}).get("DetailedState", NA)
             output["DeviceDescription"] = response.json_data.get("Oem", {}).\
                 get("Dell", {}).get("DellPowerSupplyView", {}).\
-                get("DeviceDescription", "NA")
-            output["FQDD"] = response.json_data.get("Id", "NA")
-            output["Key"] = response.json_data.get("Id", "NA")
-            output["Name"] = response.json_data.get("Name", "NA")
+                get("DeviceDescription", NA)
+            output["FQDD"] = response.json_data.get("Id", NA)
+            output["Key"] = response.json_data.get("Id", NA)
+            output["Name"] = response.json_data.get("Name", NA)
             output["FirmwareVersion"] = \
-                response.json_data.get("FirmwareVersion", "NA")
-            output["Model"] = response.json_data.get("Model", "NA")
+                response.json_data.get("FirmwareVersion", NA)
+            output["Model"] = response.json_data.get("Model", NA)
             output["InputVoltage"] = \
-                response.json_data.get("InputNominalVoltageType", "NA")
+                response.json_data.get("InputNominalVoltageType", NA)
             output["Manufacturer"] = \
-                response.json_data.get("Manufacturer", "NA")
-            output["PartNumber"] = response.json_data.get("PartNumber", "NA")
+                response.json_data.get("Manufacturer", NA)
+            output["PartNumber"] = response.json_data.get("PartNumber", NA)
             output["PowerSupplySensorState"] = \
                 response.json_data.get("Oem", {}).get("Dell", {}).\
                 get("DellPowerSupplyView", {}).\
-                get("PowerSupplySensorState", "NA")
+                get("PowerSupplySensorState", NA)
             output["PrimaryStatus"] = \
-                response.json_data.get("Status", {}).get("Health", "NA")
+                response.json_data.get("Status", {}).get("Health", NA)
             output["RAIDState"] = "NA"
             output["Range1MaxInputPower"] = \
                 response.json_data.get("Oem", {}).get("Dell", {}).\
                 get("DellPowerSupplyView", {}).\
-                get("Range1MaxInputPowerWatts", "NA")
+                get("Range1MaxInputPowerWatts", NA)
             output["RedMinNumberNeeded"] = \
                 response.json_data.get("Oem", {}).get("Dell", {}).\
-                get("DellPowerSupply", {}).get("RedMinNumberNeeded", "NA")
+                get("DellPowerSupply", {}).get("RedMinNumberNeeded", NA)
             output["RedTypeOfSet"] = \
                 response.json_data.get("Oem", {}).get("Dell", {}).\
-                get("DellPowerSupplyView", {}).get(".RedTypeOfSet", "NA")
+                get("DellPowerSupplyView", {}).get(".RedTypeOfSet", NA)
             output["Redundancy"] = response.json_data.get("Oem", {}).\
                 get("Dell", {}).get("DellPowerSupplyView", {}).\
-                get("RedundancyStatus", "NA")
+                get("RedundancyStatus", NA)
             output["SerialNumber"] = \
-                response.json_data.get("SerialNumber", "NA")
+                response.json_data.get("SerialNumber", NA)
             output["TotalOutputPower"] = \
-                response.json_data.get("TotalOutputPower", "NA")
-            output["Type"] = response.json_data.get("PowerSupplyType", "NA")
+                response.json_data.get("TotalOutputPower", NA)
+            output["Type"] = response.json_data.get("PowerSupplyType", NA)
             output["powerSupplyStateCapabilitiesUnique"] = \
                 response.json_data.get("Oem", {}).get("Dell", {}).\
                 get("DellPowerSupplyView", {}).\
-                get("powerSupplyStateCapabilitiesUnique", "NA")
+                get("powerSupplyStateCapabilitiesUnique", NA)
         return output
 
     def get_power_supply_info(self):
