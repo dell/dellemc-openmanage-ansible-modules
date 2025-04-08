@@ -36,21 +36,21 @@ class IDRACSensorsFanInfo(object):
 
     def sensors_fan_mapped_data(self, resp):
         output = {
-            "CurrentReading": resp.get("CurrentReading", NA),
-            "CurrentState": resp.get("CurrentState", NA),
-            "DeviceID": resp.get("DeviceID", NA),
-            "FQDD": resp.get("FQDD", NA),
-            "HealthState": resp.get("HealthState", NA),
-            "Key": resp.get("Key", NA),
-            "Location": resp.get("Location", NA),
-            "Name": resp.get("Name", NA),
-            "OtherSensorTypeDescription": resp.get("OtherSensorTypeDescription", NA),
-            "PrimaryStatus": "Healthy" if resp.get("HealthState") == "OK" else resp.get("HealthState", NA),
-            "SensorType": resp.get("SensorType", NA),
-            "State": resp.get("State", NA),
-            "SubType": resp.get("SubType", NA),
-            "Type": resp.get("Type", NA),
-            "coolingUnitIndexReference": resp.get("coolingUnitIndexReference", NA)
+            "CurrentReading": NA,
+            "CurrentState": NA,
+            "DeviceID": NA,
+            "FQDD": NA,
+            "HealthState": NA,
+            "Key": NA,
+            "Location": NA,
+            "Name": NA,
+            "OtherSensorTypeDescription": NA,
+            "PrimaryStatus": NA,
+            "SensorType": NA,
+            "State": NA,
+            "SubType": NA,
+            "Type": NA,
+            "coolingUnitIndexReference": NA
         }
         return output
 

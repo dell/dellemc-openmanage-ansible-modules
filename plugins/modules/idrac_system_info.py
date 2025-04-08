@@ -4,7 +4,7 @@
 #
 # Dell OpenManage Ansible Modules
 # Version 7.1.0
-# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -96,13 +96,13 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.fir
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.bios import IDRACBiosInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.cpu import IDRACCpuInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.controller_enclosure import IDRACEnclosureInfo
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.fan.info import IDRACFanInfo
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.nic.info import IDRACNICInfo
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.sensors_battery.info import IDRACSensorsBatteryInfo
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.sensors_fan.info import IDRACSensorsFanInfo
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.sensors_intrusion.info import IDRACSensorsIntrusionInfo
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.sensors_voltage.info import IDRACSensorsVoltageInfo
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.system.info import IDRACSystemInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.fan import IDRACFanInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.nic import IDRACNICInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.sensors_battery import IDRACSensorsBatteryInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.sensors_fan import IDRACSensorsFanInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.sensors_intrusion import IDRACSensorsIntrusionInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.sensors_voltage import IDRACSensorsVoltageInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.system import IDRACSystemInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.video.info import IDRACVideoInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.subsystem.info import IDRACSubsystemInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\

@@ -26,6 +26,7 @@
 #
 
 GET_IDRAC_FAN_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/ThermalSubsystem/Fans?$expand=*($levels=1)"
+NA = "Not Available"
 
 
 class IDRACFanInfo(object):
@@ -33,31 +34,35 @@ class IDRACFanInfo(object):
         self.idrac = idrac
 
     def map_fan_data(self, fan):
-        """Maps fan fields from the API response to a structured format."""
+        health = fan.get("Status", {}).get("Health", NA)
+        fan_pwm = fan.get("Oem", {}).get("Dell", {}).get("FanPWM", 0)
         keys_to_search = {
             "ActiveCooling": "HotPluggable",
-            # "BaseUnits": "SpeedPercent.SpeedRPM",
             "CurrentReading": "SpeedPercent.SpeedRPM",
             "DeviceDescription": "Name",
             "FQDD": "Id",
             "Key": "Id",
-            # "Location": "Location",
+            "Location": "Location",
             "PWM": "Oem.Dell.FanPWM",
             "PrimaryStatus": "Status.Health",
-            # "RateUnits": "RateUnits",
             "State": "State",
-            # "VariableSpeed": "VariableSpeed"
+            "VariableSpeed": "true" if fan_pwm > 0 else "false"
         }
 
         fan_data = {}
 
         for key, response_key in keys_to_search.items():
-            keys = response_key.split(".")
-            value = fan
-            for k in keys:
-                value = value.get(k, "Not Available") if isinstance(value, dict) else "Not Available"
-
-            fan_data[key] = value
+            if key == "PrimaryStatus":
+                fan_data[key] = "Healthy" if health == "OK" else (health or "Not Available")
+            elif key == "VariableSpeed":
+                fan_pwm = fan.get("Oem", {}).get("Dell", {}).get("FanPWM", 0)
+                fan_data[key] = "true" if fan_pwm > 0 else "false"
+            else:
+                keys = response_key.split(".")
+                value = fan
+                for k in keys:
+                    value = value.get(k, "Not Available") if isinstance(value, dict) else "Not Available"
+                fan_data[key] = value
 
         return fan_data
 
