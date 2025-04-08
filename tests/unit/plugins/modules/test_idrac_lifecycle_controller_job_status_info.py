@@ -90,7 +90,6 @@ class TestLcJobStatus(FakeAnsibleModule):
                                                          idrac_default_args,
                                                          mocker):
         obj = MagicMock()
-        # Scenario 1: run and accept_eula both as true
         obj.status_code = 200
         obj.json_data = {
             "ActualRunningStartTime": None,
@@ -125,7 +124,6 @@ class TestLcJobStatus(FakeAnsibleModule):
                                                          idrac_default_args,
                                                          mocker):
         obj = MagicMock()
-        # Scenario 1: run and accept_eula both as true
         obj.status_code = 200
         obj.json_data = {
             "ActualRunningStartTime": None,
@@ -160,7 +158,6 @@ class TestLcJobStatus(FakeAnsibleModule):
                                                          idrac_default_args,
                                                          mocker):
         obj = MagicMock()
-        # Scenario 1: run and accept_eula both as true
         obj.status_code = 200
         obj.json_data = {
             "ActualRunningStartTime": None,
@@ -195,7 +192,6 @@ class TestLcJobStatus(FakeAnsibleModule):
                                                          idrac_default_args,
                                                          mocker):
         obj = MagicMock()
-        # Scenario 1: run and accept_eula both as true
         obj.status_code = 200
         obj.json_data = {
             "ActualRunningStartTime": None,
