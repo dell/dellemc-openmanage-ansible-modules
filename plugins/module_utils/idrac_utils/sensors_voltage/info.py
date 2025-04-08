@@ -35,7 +35,7 @@ class IDRACSensorsVoltageInfo(object):
     def sensors_voltage_mapped_data(self, sensor):
         keys_to_search = {
             "CurrentReading": "ReadingVolts",
-            "CurrentState": "Status.State",
+            "CurrentState": "CurrentState",  # remove
             "DeviceID": "DeviceID",
             "HealthState": "Status.Health",
             "Key": "Name",
@@ -56,6 +56,11 @@ class IDRACSensorsVoltageInfo(object):
                 sensor_data[key] = f"iDRAC.Embedded.1#{sensor.get('Name', 'Unknown')}"
             elif key == "SensorType":
                 sensor_data[key] = "Voltage"
+            elif key == "PrimaryStatus":
+                if (sensor.get("Status", {}).get("Health") == "OK"):
+                    sensor_data[key] = "Healthy"
+                else:
+                    sensor_data[key] = sensor.get("Status", {}).get("Health")
             elif "." in response_key:
                 keys = response_key.split(".")
                 data = sensor

@@ -27,6 +27,8 @@
 
 GET_IDRAC_SYSTEM_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1"
 GET_IDRAC_MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/"
+GET_IDRAC_BIOS_URI = "/redfish/v1/Systems/System.Embedded.1/Bios"
+GET_IDRAC_MANAGER_ATTRIBUTES = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/System.Embedded.1"
 NA = "Not Available"
 
 
@@ -39,12 +41,33 @@ class IDRACSystemInfo(object):
         if response.status_code == 200:
             version = response.json_data.get("FirmwareVersion", "")
             idrac_url = response.json_data.get("Oem", {}).get("Dell", {}).get("DelliDRACCard", {}).get("URLString")
-            return version , idrac_url
-        return ""
+            power_state = response.json_data.get("PowerState", "")
+            return version , idrac_url , power_state
+        return "", "", ""
+
+    def get_system_cpldversion_and_memsize_and_manufacturer(self):
+        response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_BIOS_URI)
+        if response.status_code == 200:
+            cpld_version = response.json_data.get("Attributes", {}).get("SystemCpldVersion", "")
+            memsize = response.json_data.get("Attributes", {}).get("SysMemSize", "")
+            manufacturer = response.json_data.get("Attributes", {}).get("SystemManufacturer", "")
+            return cpld_version, memsize, manufacturer
+        return "", "", ""
+
+    def get_system_os_name_and_os_version(self):
+        response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_MANAGER_ATTRIBUTES)
+        if response.status_code == 200:
+            os_name = response.json_data.get("Attributes", {}).get("ServerOS.1.OSName", "")
+            os_version = response.json_data.get("Attributes", {}).get("ServerOS.1.OSVersion", "")
+            return os_name, os_version
+        return "", ""
 
     def system_mapped_data(self, resp):
         system_data = resp.get("Oem", {}).get("Dell", {}).get("DellSystem", {})
-        firmware_ver, idrac_url = self.get_firmware_ver_idrac_url()
+        firmware_ver, idrac_url, power_state = self.get_firmware_ver_idrac_url()
+        cpld_version, memsize, manufacturer = self.get_system_cpldversion_and_memsize_and_manufacturer()
+        os_name, os_version = self.get_system_os_name_and_os_version()
+        health_rollup = resp.get("Status", {}).get("HealthRollup")
         output = {
             "AssetTag": NA if (asset := resp.get("AssetTag")) == "" else asset,
             "BIOSReleaseDate": system_data.get("BIOSReleaseDate", NA),
@@ -54,7 +77,7 @@ class IDRACSystemInfo(object):
             "BoardPartNumber": system_data.get("BoardPartNumber", NA),
             "BoardSerialNumber": system_data.get("BoardSerialNumber", NA),
             "CMCIP": system_data.get("CMCIP", NA),
-            "CPLDVersion": system_data.get("CPLDVersion", NA),
+            "CPLDVersion": NA if (cpld_version == "") else cpld_version,
             "ChassisModel": system_data.get("ChassisModel", NA),
             "ChassisName": system_data.get("ChassisName", NA),
             "ChassisServiceTag": system_data.get("ChassisServiceTag", NA),
@@ -67,32 +90,30 @@ class IDRACSystemInfo(object):
             "Key": resp.get("SKU"),
             "LifecycleControllerVersion": NA if (firmware_ver == "") else firmware_ver,
             "MachineName": system_data.get("MachineName", NA),
-            "Manufacturer": system_data.get("Manufacturer", NA),
+            "Manufacturer": NA if (manufacturer == "") else manufacturer,
             "MaxCPUSockets": system_data.get("MaxCPUSockets", NA),
             "MaxDIMMSlots": system_data.get("MaxDIMMSlots", NA),
             "MaxPCIeSlots": system_data.get("MaxPCIeSlots", NA),
             "MemoryOperationMode": system_data.get("MemoryOperationMode", NA),
             "Model": system_data.get("SystemGeneration", NA),
             "NodeID": system_data.get("NodeID", NA),
-            # "OSName": system_data.get("OSName", NA),
-            # "OSVersion": system_data.get("OSVersion", NA),
+            "OSName": NA if (os_name == "") else os_name,
+            "OSVersion": NA if (os_version == "") else os_version,
             "PlatformGUID": system_data.get("PlatformGUID", NA),
             "PowerCap": system_data.get("PowerCap", NA),
             "PowerCapEnabledState": system_data.get("PowerCapEnabledState", NA),
-            "PowerState": "PowerState",
-            "PrimaryStatus": "PrimaryStatus",
+            "PowerState": NA if (power_state == "") else power_state,
+            "PrimaryStatus":"Healthy" if health_rollup == "OK" else (health_rollup or "Not Available"),
             "RACType": system_data.get("RACType", NA),
             "ServerAllocation": system_data.get("ServerAllocation", NA),
             "ServiceTag": system_data.get("NodeID", NA),
-            "SysMemMaxCapacitySize": "SysMemMaxCapacitySize",
-            # "SysMemTotalSize": total_system_memory_GiB,
+            "SysMemTotalSize": NA if (memsize == "") else memsize,
             "SysName": system_data.get("Name", NA),
             "SystemGeneration": system_data.get("SystemGeneration", NA),
             "SystemID": system_data.get("SystemID", NA),
-            "SystemLockDown": "SystemLockDown",
+            "SystemLockDown": system_data.get("SystemLockDown", NA),
             "SystemRevision": system_data.get("SystemRevision", NA),
             "UUID": system_data.get("UUID", NA),
-            "VirtualAddressManagementApplication": "VirtualAddressManagementApplication",
             "_Type": "Server",
             "iDRACURL": NA if (idrac_url == "") else idrac_url,
             "smbiosGUID": system_data.get("smbiosGUID", NA)

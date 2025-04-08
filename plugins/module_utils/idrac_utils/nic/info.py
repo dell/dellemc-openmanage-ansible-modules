@@ -36,7 +36,7 @@ class IDRACNICInfo(object):
         """Maps NIC fields from the API response to a structured format."""
         keys_to_search = {
             "AutoNegotiation": "AutoNeg",
-            "ControllerBIOSVersion": "N/A",
+            "ControllerBIOSVersion": "ControllerBIOSVersion",
             "CurrentMACAddress": "MACAddress",
             "DCBExchangeProtocol": "Not Supported",
             "DataBusWidth": "N/A",
