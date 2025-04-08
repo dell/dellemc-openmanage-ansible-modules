@@ -116,34 +116,43 @@ class IDRACPCIDeviceInfo(object):
                 get("Dell", {}).get("DellPCIeFunction", {})
             buswidth = \
                 BUS_WIDTH_MAPPING.get(resp.get("DataBusWidth"), NA)
+            buswidth_api = resp.get("DataBusWidth")
             deviceid = resp.get("Id", NA)
             slot_type = \
                 SLOT_TYPE_MAPPING.get(resp.get("SlotType"), NA)
+            slot_type_api = resp.get("SlotType")
             slot_length = \
                 SLOT_LENGTH_MAPPING.get(resp.get("SlotLength"), NA)
-        return buswidth, deviceid, slot_type, slot_length
+            slot_length_api = resp.get("SlotLength")
+        return buswidth, buswidth_api, deviceid, slot_type, slot_type_api, slot_length, slot_length_api
 
     def get_device_details(self, device_link):
         response = self.idrac.invoke_request(method='GET', uri=device_link)
         output = {}
         if response.status_code == 200:
-            device_link = response.json_data.get("Links", {}).\
-                get("PCIeFunctions", [{}])[0].get("@odata.id")
-            if device_link is not None:
-                buswidth, deviceid, slot_type, slot_length = \
-                    self.get_device_function_details(device_link)
-            else:
-                buswidth = "NA"
-                slot_type = "NA"
-                deviceid = "NA"
-            output["BusWidth"] = buswidth
-            output["DeviceDescription"] = response.json_data.get("Description")
-            output["FQDD"] = deviceid
-            output["Key"] = deviceid
-            output["Manufacturer"] = response.json_data.get("Manufacturer")
-            output["SlotLength"] = slot_length
-            output["SlotType"] = slot_type
-            output["Description"] = response.json_data.get("Description")
+            pci_functions = response.json_data.get("Links", {}).\
+                get("PCIeFunctions", [{}])
+            for link in pci_functions:
+                device_link = link.get("@odata.id")
+                if device_link is not None:
+                    buswidth, buswidth_api, deviceid, slot_type, \
+                        slot_type_api, slot_length, slot_length_api = \
+                        self.get_device_function_details(device_link)
+                else:
+                    buswidth = "NA"
+                    slot_type = "NA"
+                    deviceid = "NA"
+                output["DataBusWidth"] = buswidth
+                output["DataBusWidth_API"] = buswidth_api
+                output["DeviceDescription"] = response.json_data.get("Description")
+                output["FQDD"] = deviceid
+                output["Key"] = deviceid
+                output["Manufacturer"] = response.json_data.get("Manufacturer")
+                output["SlotLength"] = slot_length
+                output["SlotLength_API"] = slot_length_api
+                output["SlotType"] = slot_type
+                output["SlotType_API"] = slot_type_api
+                output["Description"] = response.json_data.get("Description")
         return output
 
     def get_pcidevice_info(self):

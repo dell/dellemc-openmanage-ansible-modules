@@ -27,6 +27,11 @@
 
 GET_IDRAC_POWER_SUPPLY_DETAILS_URI = "/redfish/v1/Chassis/System.Embedded.1/PowerSubsystem/PowerSupplies"
 NA = "Not Available"
+RED_TYPE_MAPPING = {
+    "N+1": "2",
+    "Sparing": "4",
+    "Input Power Redundancy": "32768"
+}
 
 
 class IDRACPowerSupplyInfo(object):
@@ -41,6 +46,17 @@ class IDRACPowerSupplyInfo(object):
             for each in members:
                 power_supply_links_list.append(each.get("@odata.id"))
         return power_supply_links_list
+
+    def get_red_type_set(self, response, output):
+        red_type_list = response.get("Oem", {}).\
+            get("Dell", {}).get("DellPowerSupplyView", {}).\
+            get("RedTypeOfSet")
+        if red_type_list:
+            mapped_red_type_list = \
+                [RED_TYPE_MAPPING.get(x) for x in red_type_list]
+            output["RedTypeOfSet"] = ",".join(mapped_red_type_list)
+        else:
+            output["RedTypeOfSet"] = NA
 
     def get_power_supply_details(self, memory_link):
         response = self.idrac.invoke_request(method='GET', uri=memory_link)
@@ -58,40 +74,44 @@ class IDRACPowerSupplyInfo(object):
             output["FirmwareVersion"] = \
                 response.json_data.get("FirmwareVersion", NA)
             output["Model"] = response.json_data.get("Model", NA)
-            output["InputVoltage"] = \
-                response.json_data.get("InputNominalVoltageType", NA)
+            output["InputVoltage"] = NA
             output["Manufacturer"] = \
                 response.json_data.get("Manufacturer", NA)
             output["PartNumber"] = response.json_data.get("PartNumber", NA)
-            output["PowerSupplySensorState"] = \
-                response.json_data.get("Oem", {}).get("Dell", {}).\
-                get("DellPowerSupplyView", {}).\
-                get("PowerSupplySensorState", NA)
-            output["PrimaryStatus"] = \
-                response.json_data.get("Status", {}).get("Health", NA)
-            output["RAIDState"] = "NA"
-            output["Range1MaxInputPower"] = \
+            output["PowerSupplySensorState"] = NA
+            if response.json_data.get("Status").get("Health") == "OK":
+                output["PrimaryStatus"] = "Healthy"
+            else:
+                output["PrimaryStatus"] = response.json_data.\
+                    get("Status", {}).get("Health", NA)
+            output["RAIDState"] = NA
+            maxinputwatt = \
                 response.json_data.get("Oem", {}).get("Dell", {}).\
                 get("DellPowerSupplyView", {}).\
                 get("Range1MaxInputPowerWatts", NA)
+            if maxinputwatt:
+                output["Range1MaxInputPower"] = str(maxinputwatt) + " W"
+            else:
+                output["Range1MaxInputPower"] = NA
             output["RedMinNumberNeeded"] = \
                 response.json_data.get("Oem", {}).get("Dell", {}).\
-                get("DellPowerSupply", {}).get("RedMinNumberNeeded", NA)
-            output["RedTypeOfSet"] = \
-                response.json_data.get("Oem", {}).get("Dell", {}).\
-                get("DellPowerSupplyView", {}).get(".RedTypeOfSet", NA)
-            output["Redundancy"] = response.json_data.get("Oem", {}).\
-                get("Dell", {}).get("DellPowerSupplyView", {}).\
-                get("RedundancyStatus", NA)
+                get("DellPowerSupplyView", {}).get("RedMinNumberNeeded", NA)
             output["SerialNumber"] = \
                 response.json_data.get("SerialNumber", NA)
-            output["TotalOutputPower"] = \
-                response.json_data.get("TotalOutputPower", NA)
+            if response.json_data.get("PowerCapacityWatts"):
+                output["TotalOutputPower"] = \
+                    str(response.json_data.get("PowerCapacityWatts")) + " W"
+            else:
+                output["TotalOutputPower"] = NA
             output["Type"] = response.json_data.get("PowerSupplyType", NA)
             output["powerSupplyStateCapabilitiesUnique"] = \
                 response.json_data.get("Oem", {}).get("Dell", {}).\
                 get("DellPowerSupplyView", {}).\
                 get("powerSupplyStateCapabilitiesUnique", NA)
+            output["Redundancy"] = response.json_data.get("Oem", {}).\
+                get("Dell", {}).get("DellPowerSupplyView", {}).\
+                get("RedundancyStatus", NA)
+            self.get_red_type_set(response.json_data, output)
         return output
 
     def get_power_supply_info(self):

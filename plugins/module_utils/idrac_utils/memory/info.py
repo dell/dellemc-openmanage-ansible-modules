@@ -33,6 +33,30 @@ MAPPING_DICT_FOR_RANK = {
     2: "Double Rank",
     4: "Quad Rank"
 }
+MAPPING_MEMORY_TYPE_DICT = {
+    "Other": "1",
+    "Unknown": "2",
+    "DRAM": "3",
+    "EDRAM": "4",
+    "VRAM": "5",
+    "SRAM": "6",
+    "RAM": "7",
+    "ROM": "8",
+    "Flash": "9",
+    "EEPROM": "10",
+    "FEPROM": "11",
+    "EPROM": "12",
+    "CDRAM": "13",
+    "3DRAM": "14",
+    "SDRAM": "15",
+    "SGRAM": "16",
+    "RDRAM": "17",
+    "DDR": "18",
+    "DDR-2": "19",
+    "DDR-2-FB-DIMM": "20",
+    "DDR-3": "24",
+    "FBD2": "25"
+}
 
 
 class IDRACMemoryInfo(object):
@@ -84,7 +108,11 @@ class IDRACMemoryInfo(object):
                 get("ManufactureDate", NA)
             output["Manufacturer"] = response.json_data.\
                 get("Manufacturer", NA)
-            output["MemoryType"] = response.json_data.\
+            output["MemoryType"] = \
+                MAPPING_MEMORY_TYPE_DICT.get(
+                    response.json_data.get("MemoryDeviceType"),
+                    NA)
+            output["MemoryType_API"] = response.json_data.\
                 get("MemoryDeviceType", NA)
             output["Model"] = response.json_data.get("Oem", {})\
                 .get("Dell", {}).get("DellMemory", {}).\
