@@ -98,84 +98,20 @@ error_info:
 
 
 import json
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import GET_IDRAC_LIFECYCLE_CONTROLLER_JOB_STATUS_INFO_10
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac \
+    import iDRACConnection, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish \
+    import iDRACRedfishAPI
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.\
+    idrac_utils.info.lifecycle_controller_job_status \
+    import IDRACLifecycleControllerJobStatusInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.\
+    idrac_utils.info.firmware import IDRACFirmwareInfo
 
 ERR_STATUS = 404
-
-
-def get_from_wsman(module):
-    with iDRACConnection(module.params) as idrac:
-        job_id, msg = module.params.get('job_id'), {}
-        msg = idrac.job_mgr.get_job_status(job_id)
-        if msg.get('Status') == "Found Fault":
-            module.exit_json(msg="Job ID is invalid.", failed=True)
-    return msg
-
-
-def transform_job_status_data(info_data):
-    transformed_data = []
-
-    job_success_list = ['Completed', 'Success']
-    job_failed_list = ['Failed', 'Errors']
-    job_state = str(info_data.get("JobState"))
-    if job_state in job_success_list:
-        job_status = "Success"
-    elif job_state in job_failed_list:
-        job_status = "Failed"
-    elif 'Message' in info_data and str(info_data.get("Message")) and \
-            'completed' in str(info_data.get("Message")) and \
-            'errors' not in str(info_data.get("Message")):
-        job_status = "Success"
-    else:
-        job_status = "InProgress"
-
-    if len(info_data.get("MessageArgs")) > 0:
-        message_argument = str(info_data.get("MessageArgs")[0])
-    else:
-        message_argument = ""
-
-    transformed_info_data = {
-        "ElapsedTimeSinceCompletion": "",
-        "InstanceID": str(info_data.get("Id")),
-        "JobStartTime": str(info_data.get("StartTime")),
-        "JobStatus": job_state,
-        "JobUntilTime": "NA",
-        "Message": str(info_data.get("Message")),
-        "MessageArguments": message_argument,
-        "MessageID": str(info_data.get("MessageId")),
-        "Name": str(info_data.get("Name")),
-        "PercentComplete": str(info_data.get("PercentComplete")),
-        "Status": job_status,
-        "ActualRunningStopTime": str(info_data.get("ActualRunningStopTime")),
-        "JobType": str(info_data.get("JobType")),
-        "ActualRunningStartTime": str(info_data.get("ActualRunningStartTime")),
-        "EndTime": str(info_data.get("EndTime")),
-        "CompletionTime": str(info_data.get("CompletionTime")),
-        "Description": str(info_data.get("Description")),
-        "TargetSettingsURI": str(info_data.get("TargetSettingsURI"))
-    }
-    transformed_data.append(transformed_info_data)
-
-    return transformed_data
-
-
-def get_lifecycle_controller_job_status_info(idrac, module):
-    try:
-        response = idrac.invoke_request(method='GET', uri=GET_IDRAC_LIFECYCLE_CONTROLLER_JOB_STATUS_INFO_10.format(module.params.get('job_id')))
-        if response.status_code == 200:
-            transformed_job_status_data = transform_job_status_data(response.json_data)
-            return transformed_job_status_data
-
-    except HTTPError as err:
-        if err.status == ERR_STATUS:
-            return get_from_wsman(module)
-
-        raise
 
 
 def main():
@@ -189,18 +125,33 @@ def main():
 
     try:
         with iDRACRedfishAPI(module.params) as idrac:
-            lifecycle_controller_job_status_info = get_lifecycle_controller_job_status_info(idrac, module)
-
+            firmware_obj = IDRACFirmwareInfo(idrac)
+            if not firmware_obj.is_omsdk_required():
+                lifecycle_controller_job_status_info = \
+                    IDRACLifecycleControllerJobStatusInfo(idrac). \
+                    get_lifecycle_controller_job_status_info(module)
+            else:
+                with iDRACConnection(module.params) as idrac:
+                    job_id, msg = module.params.get('job_id'), {}
+                    lifecycle_controller_job_status_info = \
+                        idrac.job_mgr.get_job_status(job_id)
+                    if msg.get('Status') == "Found Fault":
+                        module.exit_json(msg="Job ID is invalid.",
+                                         failed=True)
     except HTTPError as err:
-        module.exit_json(msg=str(err), failed=True, error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err),
+                         failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (RuntimeError, SSLValidationError, ConnectionError, KeyError,
-            ImportError, ValueError, TypeError) as e:
+    except (RuntimeError,
+            SSLValidationError,
+            IOError, ValueError,
+            TypeError,
+            ConnectionError) as e:
         module.exit_json(msg=str(e), failed=True)
-    module.exit_json(
-        msg="Successfully fetched the job info",
-        job_info=lifecycle_controller_job_status_info)
+
+    module.exit_json(msg="Successfully fetched the job info.",
+                     lifecycle_controller_job_status_info=lifecycle_controller_job_status_info)
 
 
 if __name__ == '__main__':
