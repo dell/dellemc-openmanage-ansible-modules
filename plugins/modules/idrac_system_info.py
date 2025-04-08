@@ -106,17 +106,15 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.sys
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.video.info import IDRACVideoInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.subsystem.info import IDRACSubsystemInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
-    idrac_utils.license.info import IDRACLicenseInfo
+    idrac_utils.info.license import IDRACLicenseInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
-    idrac_utils.memory.info import IDRACMemoryInfo
+    idrac_utils.info.memory import IDRACMemoryInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
-    idrac_utils.idrac.info import IDRACInfo
+    idrac_utils.info.idrac import IDRACInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
-    idrac_utils.power_supply.info import IDRACPowerSupplyInfo
+    idrac_utils.info.powersupply import IDRACPowerSupplyInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
-    idrac_utils.pcidevice.info import IDRACPCIDeviceInfo
-from ansible_collections.dellemc.openmanage.plugins.module_utils.\
-    idrac_utils.sensors_temperature.info import IDRACSensorsTemperatureInfo
+    idrac_utils.info.pcidevice import IDRACPCIDeviceInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -181,7 +179,7 @@ def main():
                 system_info_dict["PowerSupply"] = IDRACPowerSupplyInfo(idrac).get_power_supply_info()
                 system_info_dict["iDRACNIC"] = IDRACInfo(idrac).get_idrac_nic_info()
                 system_info_dict["PCIDevice"] = IDRACPCIDeviceInfo(idrac).get_pcidevice_info()
-                system_info_dict["Sensors_Temperature"] = IDRACSensorsTemperatureInfo(idrac).get_sensors_temperatures_info()
+                system_info_dict["Sensors_Temperature"] = []
             else:
                 with iDRACConnection(module.params) as idrac:
                     idrac.get_entityjson()

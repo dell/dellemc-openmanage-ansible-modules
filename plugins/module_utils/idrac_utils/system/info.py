@@ -103,7 +103,7 @@ class IDRACSystemInfo(object):
             "PowerCap": system_data.get("PowerCap", NA),
             "PowerCapEnabledState": system_data.get("PowerCapEnabledState", NA),
             "PowerState": NA if (power_state == "") else power_state,
-            "PrimaryStatus":"Healthy" if health_rollup == "OK" else (health_rollup or "Not Available"),
+            "PrimaryStatus": "Healthy" if health_rollup == "OK" else (health_rollup or "Not Available"),
             "RACType": system_data.get("RACType", NA),
             "ServerAllocation": system_data.get("ServerAllocation", NA),
             "ServiceTag": system_data.get("NodeID", NA),
