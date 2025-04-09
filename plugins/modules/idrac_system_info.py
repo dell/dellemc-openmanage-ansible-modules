@@ -115,6 +115,8 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.\
     idrac_utils.info.powersupply import IDRACPowerSupplyInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
     idrac_utils.info.pcidevice import IDRACPCIDeviceInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.\
+    idrac_utils.info.controller import IDRACControllerInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -179,6 +181,7 @@ def main():
                 system_info_dict["PowerSupply"] = IDRACPowerSupplyInfo(idrac).get_power_supply_info()
                 system_info_dict["iDRACNIC"] = IDRACInfo(idrac).get_idrac_nic_info()
                 system_info_dict["PCIDevice"] = IDRACPCIDeviceInfo(idrac).get_pcidevice_info()
+                system_info_dict["Controller"] = IDRACControllerInfo(idrac).get_controller_system_info()
                 system_info_dict["Sensors_Temperature"] = []
             else:
                 with iDRACConnection(module.params) as idrac:
