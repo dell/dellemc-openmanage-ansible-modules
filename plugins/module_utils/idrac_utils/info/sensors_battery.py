@@ -26,14 +26,24 @@
 #
 
 
-GET_IDRAC_SENSOR_BATTERY_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellSensors/iDRAC.Embedded.1_0x23_SystemBoardCMOSBattery"
+GET_IDRAC_DELL_SENSORS_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellSensors"
+NA = "Not Available"
 
 
 class IDRACSensorsBatteryInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
 
-    def sensors_battery_mapped_data(self, resp):
+    def get_sensor_type_and_current_state_and_id(self, uri):
+        response = self.idrac.invoke_request(method='GET', uri=uri)
+        if response.status_code == 200:
+            current_state = response.json_data.get("CurrentState", "")
+            sensor_type = response.json_data.get("SensorType", "")
+            id = response.json_data.get("Id", "")
+            return current_state, sensor_type, id
+        return "", "", ""
+
+    def sensors_battery_mapped_data(self, resp, uri):
         health_state_map = {
             "CriticalFailure": "Critical",
             "Degraded/Warning": "Warning",
@@ -46,23 +56,29 @@ class IDRACSensorsBatteryInfo(object):
 
         health_state = resp.get("HealthState", "Not Available")
         primary_status = health_state_map.get(health_state, "Not Available")
+        current_state, sensor_type, id = self.get_sensor_type_and_current_state_and_id(uri)
         output = {
             "CurrentReading": resp.get("CurrentReading", "Not Available"),
-            "CurrentState": resp.get("CurrentState", "Not Available"),
-            "DeviceID": "iDRAC.Embedded.1#SystemBoardCMOSBattery",
+            "CurrentState": NA if (current_state == "") else current_state,
+            "DeviceID": NA if (id == "") else id,
             "HealthState": resp.get("HealthState", "Not Available"),
             "Key": resp.get("ElementName", "Not Available"),
             "Location": resp.get("ElementName", "Not Available"),
             "OtherSensorTypeDescription": "Battery",
             "PrimaryStatus": primary_status,
-            "SensorType": "Battery",
+            "SensorType": NA if (sensor_type == "") else sensor_type,
             "State": resp.get("EnabledState", "Not Available")
         }
         return output
 
     def get_sensors_battery_info(self):
         output = []
-        resp = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_SENSOR_BATTERY_DETAILS_URI_10)
-        if resp.status_code == 200:
-            output.append(self.sensors_battery_mapped_data(resp.json_data))
+        response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_DELL_SENSORS_DETAILS_URI_10)
+        for mem in response.json_data.get("Members", []):
+            if mem.get("ElementName", "") == "System Board CMOS Battery":
+                sensor_id = mem.get("Id", "")
+                uri = f"{GET_IDRAC_DELL_SENSORS_DETAILS_URI_10}/{sensor_id}"
+                resp = self.idrac.invoke_request(method='GET', uri=uri)
+                if resp.status_code == 200:
+                    output.append(self.sensors_battery_mapped_data(resp.json_data, uri))
         return output

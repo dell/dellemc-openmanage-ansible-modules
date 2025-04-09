@@ -26,88 +26,80 @@
 #
 
 GET_IDRAC_NIC_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/EthernetInterfaces?$expand=*($levels=1)"
+GET_IDRAC_MANAGER_ATTRIBUTES = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
+NA = "Not Available"
 
 
 class IDRACNICInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
 
+    # "LinkDuplex" :{
+    #     "0" : "Unknown",
+    #     "1" : "Full Duplex",
+    #     "2" : "Half Duplex"
+    # }
+
     def map_nic_data(self, nic):
         """Maps NIC fields from the API response to a structured format."""
-        keys_to_search = {
-            "AutoNegotiation": "AutoNeg",
-            "ControllerBIOSVersion": "ControllerBIOSVersion",
-            "CurrentMACAddress": "MACAddress",
-            "DCBExchangeProtocol": "Not Supported",
-            "DataBusWidth": "N/A",
-            "DeviceDescription": "Description",
-            "EFIVersion": "N/A",
-            "FCoEBootSupport": "Not Supported",
-            "FCoEOffloadMode": "Unknown",
-            "FCoEOffloadSupport": "Not Supported",
-            "FCoEWWNN": "Not Available",
-            "FQDD": "Id",
-            "FamilyVersion": "N/A",
-            "FlexAddressingSupport": "Supported",
-            "IPv4Address": "IPv4Addresses",
-            "IPv6Address": "IPv6Addresses",
-            "Key": "Id",
-            "LinkDuplex": "FullDuplex",
-            "LinkSpeed": "LinkSpeed",
-            "LinkStatus": "LinkStatus",
-            "MaxBandwidth": "SpeedMbps",
-            "MediaType": "N/A",
-            "NICCapabilities": "Not Available",
-            "NicMode": "Unknown",
-            "NicPartitioningSupport": "Not Supported",
-            "PXEBootSupport": "Supported",
-            "PermanentFCOEMACAddress": "Not Available",
-            "PermanentMACAddress": "PermanentMACAddress",
-            "PermanentiSCSIMACAddress": "Not Available",
-            "PrimaryStatus": "Status.Health",
-            "ProductName": "N/A",
-            "Protocol": "NIC",
-            "RxBytes": "N/A",
-            "RxMutlicast": "N/A",
-            "RxUnicast": "N/A",
-            "SupportedBootProtocol": "Not Available",
-            "SwitchConnectionID": "N/A",
-            "SwitchPortConnectionID": "N/A",
-            "TCPChimneySupport": "Not Supported",
-            "TxBytes": "N/A",
-            "TxMutlicast": "N/A",
-            "TxUnicast": "N/A",
-            "VFSRIOVSupport": "Not Supported",
-            "VendorName": "N/A",
-            "VirtMacAddr": "MACAddress",
-            "VirtWWN": "Not Available",
-            "VirtWWPN": "Not Available",
-            "WOLSupport": "Supported",
-            "WWN": "Not Available",
-            "WWPN": "Not Available",
-            "iSCSIBootSupport": "Not Supported",
-            "iSCSIOffloadSupport": "Not Supported",
-            "iScsiOffloadMode": "Unknown"
+        health = nic.get("Status", {}).get("Health", NA)
+        output = {
+            "AutoNegotiation": nic.get("AutoNeg", NA),
+            # "ControllerBIOSVersion": nic.get("ControllerBIOSVersion", NA),
+            "CurrentMACAddress": nic.get("MACAddress", NA),
+            # "DCBExchangeProtocol": nic.get("DCBExchangeProtocol", NA),
+            # "DataBusWidth": nic.get("DataBusWidth", NA),
+            "DeviceDescription": nic.get("Description", NA),
+            # "EFIVersion": nic.get("EFIVersion", NA),
+            # "FCoEBootSupport": nic.get("FCoEBootSupport", NA),
+            # "FCoEOffloadMode": nic.get("FCoEOffloadMode", NA),
+            # "FCoEOffloadSupport": nic.get("FCoEOffloadSupport", NA),
+            # "FCoEWWNN": nic.get("FCoEWWNN", NA),
+            "FQDD": nic.get("Id", NA),
+            # "FamilyVersion": nic.get("FamilyVersion", NA),
+            # "FlexAddressingSupport": nic.get("FlexAddressingSupport", NA),
+            "IPv4Address": nic.get("IPv4Addresses", NA),
+            "IPv6Address": nic.get("IPv6Addresses", NA),
+            "Key": nic.get("Id", NA),
+            # "LinkDuplex": nic.get("LinkDuplex", NA),
+            # "LinkSpeed": nic.get("LinkSpeed", NA),
+            "LinkStatus": nic.get("LinkStatus", NA),
+            "MaxBandwidth": nic.get("SpeedMbps", NA),
+            # "MediaType": nic.get("MediaType", NA),
+            # "NICCapabilities": nic.get("NICCapabilities", NA),
+            # "NicMode": nic.get("NicMode", NA),
+            # "NicPartitioningSupport": nic.get("NicPartitioningSupport", NA),
+            # "PXEBootSupport": nic.get("PXEBootSupport", NA),
+            # "PermanentFCOEMACAddress": nic.get("PermanentFCOEMACAddress", NA),
+            "PermanentMACAddress": nic.get("PermanentMACAddress", NA),
+            # "PermanentiSCSIMACAddress": nic.get("PermanentiSCSIMACAddress", NA),
+            "PrimaryStatus": "Healthy" if health == "OK" else health,
+            # "ProductName": nic.get("ProductName", NA),
+            # "Protocol": nic.get("Protocol", NA),
+            # "RxBytes": nic.get("RxBytes", NA),
+            # "RxMutlicast": nic.get("RxMutlicast", NA),
+            # "RxUnicast": nic.get("RxUnicast", NA),
+            # "SupportedBootProtocol": nic.get("SupportedBootProtocol", NA),
+            # "SwitchConnectionID": nic.get("SwitchConnectionID", NA),
+            # "SwitchPortConnectionID": nic.get("SwitchPortConnectionID", NA),
+            # "TCPChimneySupport": nic.get("TCPChimneySupport", NA),
+            # "TxBytes": nic.get("TxBytes", NA),
+            # "TxMutlicast": nic.get("TxMutlicast", NA),
+            # "TxUnicast": nic.get("TxUnicast", NA),
+            # "VFSRIOVSupport": nic.get("VFSRIOVSupport", NA),
+            # "VendorName": nic.get("VendorName", NA),
+            # "VirtMacAddr": nic.get("VirtMacAddr", NA),
+            # "VirtWWN": nic.get("VirtWWN", NA),
+            # "VirtWWPN": nic.get("VirtWWPN", NA),
+            # "WOLSupport": nic.get("WOLSupport", NA),
+            # "WWN": nic.get("WWN", NA),
+            # "WWPN": nic.get("WWPN", NA),
+            # "iSCSIBootSupport": nic.get("iSCSIBootSupport", NA),
+            # "iSCSIOffloadSupport": nic.get("iSCSIOffloadSupport", NA),
+            # "iScsiOffloadMode": nic.get("iScsiOffloadMode", NA)
         }
 
-        nic_data = {}
-
-        for key, response_key in keys_to_search.items():
-            if key in ["IPv4Address", "IPv6Address"]:
-                # Extract first available IP address, if present
-                addresses = nic.get(response_key, [])
-                nic_data[key] = addresses[0] if addresses else "Not Available"
-            elif "." in response_key:
-                # Handle nested fields like Status.Health
-                keys = response_key.split(".")
-                data = nic
-                for k in keys:
-                    data = data.get(k, "Not Available")
-                nic_data[key] = data
-            else:
-                nic_data[key] = nic.get(response_key, "Not Available")
-
-        return nic_data
+        return output
 
     def get_nic_info(self):
         """Fetches NIC data from iDRAC and maps it."""
