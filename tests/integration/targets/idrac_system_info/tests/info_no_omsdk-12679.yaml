@@ -16,12 +16,17 @@
       idrac_system_info:
       register: result
 
-    - name: Set baseuri
-      ansible.builtin.set_fact:
-        baseuri: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/"
-
     - name: Get Fan details - no omsdk required
       ansible.builtin.include_tasks: _validate_fan.yml
+    
+    - name:
+      debug:
+        var: fan_updated_dict
+
+    - name: assert
+      ansible.builtin.assert:
+        that:
+          - result.system_info.Fan == fan_updated_dict
   when:
     - not is_omsdk_required | bool
 

@@ -15,9 +15,9 @@
 - name: Structuring fan details
   ansible.builtin.command:
     cmd: >
-      python _get_fan_details.py '{{ uri_data }}'
+      python _get_fan_details.py '{{ uri_data.content | to_json}}'
     chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
-  register: updated_dict
+  register: fan_updated_dict
   no_log: true
   when:
     - uri_data.status == 200
