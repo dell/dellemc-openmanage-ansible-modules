@@ -1,33 +1,128 @@
 # Dell OpenManage Ansible modules
-# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
-    msg: 'Please define the following variables: idrac_ip, idrac_user and
-     idrac_password.'
-  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
-   is not defined'
+    msg: "Please define the following variables: idrac_ip, idrac_user and
+      idrac_password."
+  when: "idrac_ip is not defined or idrac_user is not defined or idrac_password
+    is not defined"
 
 - block:
+    - name: Get system resource api id
+      ansible.builtin.uri:
+        url: https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/Systems
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+      register: system_api_result
+
+    - name: Get first System Id from the system response
+      ansible.builtin.set_fact:
+        api_system: "{{ system_api_result.json.Members[0]['@odata.id'] |
+          default('') }}"
+        computer_system_id: "{{ system_api_result.json.Members[0]['@odata.id'] |
+          split('/') | last | default('System.Embedded.1') }}"
+
+    - name: Get system detail
+      ansible.builtin.uri:
+        url: https://{{ idrac_ip }}:{{ idrac_port }}{{ api_system }}
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+      register: sys_detail
+
+    - name: Extracting iDRAC generation
+      ansible.builtin.set_fact:
+        idrac_gen: "{{ sys_detail.json.Oem.Dell.DellSystem.SystemGeneration }}"
+
     - name: Export SCP to a local path and wait for this job to get completed.
       idrac_server_config_profile:
         share_name: "{{ role_path }}/files"
         job_wait: true
       register: result_export_scp
+      when: idrac_gen != "17G Monolithic"
+
+    - name: Constructing url
+      ansible.builtin.set_fact:
+        url_1: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/"
+        url_2: "Managers/iDRAC.Embedded.1/Actions/Oem/"
+        url_3: "OemManager.ExportSystemConfiguration"
+
+    - name: Final url
+      ansible.builtin.set_fact:
+        final_url: "{{ url_1 }}{{ url_2 }}{{ url_3 }}"
+
+    - name: Create Export SCP Job on iDRAC10
+      ansible.builtin.uri:
+        url: "{{ final_url }}"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        force_basic_auth: true
+        validate_certs: false
+        method: POST
+        body:
+          {
+            "ExportFormat": "JSON",
+            "ExportUse": "Default",
+            "ShareParameters": { "Target": ["IDRAC"] },
+          }
+        status_code: 202
+        headers: "Accept=application/json"
+        body_format: json
+        return_content: true
+      register: resp_export_scp
+      no_log: false
+      when: idrac_gen == "17G Monolithic"
+
+    - name: Exrtact Export SCP Job ID
+      ansible.builtin.set_fact:
+        JID: "{{ result_export_scp.scp_status.Id }}"
+      when: idrac_gen != "17G Monolithic"
+
+    - name: Exrtact Export SCP Job ID on iDRAC10
+      ansible.builtin.set_fact:
+        JID: "{{ resp_export_scp.location.split('/')[-1] }}"
+      when: idrac_gen == "17G Monolithic"
 
     - name: Get Lifecycle Controller Job Status.
       idrac_lifecycle_controller_job_status_info:
-        job_id: "{{ result_export_scp.scp_status.Id }}"
-      register: result
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        job_id: "{{ JID }}"
+      register: lc_status
+      until:
+        - lc_status.job_info is defined
+        - lc_status.job_info.JobStatus in ["Completed", "Failed"]
+      retries: 10
+      delay: 30
+
+    - name: Get and construct job details
+      ansible.builtin.include_tasks: _job_details.yml
+      vars:
+        job_id: "{{ JID }}"
+      when: idrac_gen == "17G Monolithic"
 
     - name: Verify the status of tasks
-      assert:
+      ansible.builtin.assert:
         that:
-          - not result.changed
-          - result.job_info.InstanceID == result_export_scp.scp_status.Id
+          - not lc_status.changed
+          - lc_status.job_info.InstanceID == result_export_scp.scp_status.Id
+      when: idrac_gen != "17G Monolithic"
+
+    - name: Verify the status of tasks on iDRAC10
+      ansible.builtin.assert:
+        that:
+          - not lc_status.changed
+          - lc_status.job_info.InstanceID == JID
+          - resp_export_scp.status == 202
+          - lc_status.job_info == api_response
+      when: idrac_gen == "17G Monolithic"
 
   module_defaults:
     dellemc.openmanage.idrac_lifecycle_controller_job_status_info:
