@@ -114,7 +114,7 @@
         that:
           - power_uri.json.Links.PoweredBy | length == present_power_supplies | length
       when:
-       - power_uri.json.Links.PoweredBy | length > 0
+        - power_uri.json.Links.PoweredBy | length > 0
 
   when:
     - is_omsdk_required | bool
