@@ -54,20 +54,20 @@ class IDRACSensorsBatteryInfo(object):
             "Unknown": "Unknown"
         }
 
-        health_state = resp.get("HealthState", "Not Available")
-        primary_status = health_state_map.get(health_state, "Not Available")
+        health_state = resp.get("HealthState", NA)
+        primary_status = health_state_map.get(health_state, NA)
         current_state, sensor_type, id = self.get_sensor_type_and_current_state_and_id(uri)
         output = {
-            "CurrentReading": resp.get("CurrentReading", "Not Available"),
+            "CurrentReading": resp.get("CurrentReading", NA),
             "CurrentState": NA if (current_state == "") else current_state,
             "DeviceID": NA if (id == "") else id,
-            "HealthState": resp.get("HealthState", "Not Available"),
-            "Key": resp.get("ElementName", "Not Available"),
-            "Location": resp.get("ElementName", "Not Available"),
+            "HealthState": resp.get("HealthState", NA),
+            "Key": resp.get("ElementName", NA),
+            "Location": resp.get("ElementName", NA),
             "OtherSensorTypeDescription": "Battery",
             "PrimaryStatus": primary_status,
             "SensorType": NA if (sensor_type == "") else sensor_type,
-            "State": resp.get("EnabledState", "Not Available")
+            "State": resp.get("EnabledState", NA)
         }
         return output
 

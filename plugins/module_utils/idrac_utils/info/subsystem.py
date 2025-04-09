@@ -31,7 +31,7 @@ GET_IDRAC_LICENSE_DETAILS_URI_10 = "/redfish/v1/LicenseService/Licenses?$expand=
 GET_IDRAC_MEMORY_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Memory?%24expand=*(%24levels%3D1)"
 GET_IDRAC_POWER_SUPPLY_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/PowerSubsystem/PowerSupplies?$expand=*($levels=1)"
 GET_IDRAC_SENSOR_VOLTAGE_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Power#/Voltages"
-GET_IDRAC_SENSOR_BATTERY_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellSensors/iDRAC.Embedded.1_0x23_SystemBoardCMOSBattery"
+GET_IDRAC_DELL_SENSORS_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellSensors"
 GET_IDRAC_SENSOR_FAN_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Oem/Dell/DellEnclosureFanSensors"
 GET_IDRAC_SENSOR_INTRUSION_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1?$select=PhysicalSecurity/IntrusionSensor"
 GET_IDRAC_SENSOR_TEMPERATURE_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Oem/Dell/DellEnclosureTemperatureSensors"
@@ -111,13 +111,23 @@ class IDRACSubsystemInfo(object):
         })
 
     def get_idrac_sensor_battery_health_status(self):
-        response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_SENSOR_BATTERY_DETAILS_URI_10)
-        output = response.json_data
-        health_status = output["HealthState"]
-        Subsystem.append({
-            "Key": "Sensors_Battery",
-            "PrimaryStatus": "Healthy" if health_status == "OK" else health_status
-        })
+        found = False
+        response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_DELL_SENSORS_DETAILS_URI_10)
+        for mem in response.json_data.get("Members", []):
+            if mem.get("ElementName", "") == "System Board CMOS Battery":
+                health_status = mem.get("HealthState")
+                Subsystem.append({
+                    "Key": "Sensors_Battery",
+                    "PrimaryStatus": "Healthy" if health_status == "OK" else health_status
+                })
+                found = True
+                break
+
+        if not found:
+            Subsystem.append({
+                "Key": "Sensors_Battery",
+                "PrimaryStatus": "Unknown"
+            })
 
     def get_idrac_sensor_fan_health_status(self):
         response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_SENSOR_FAN_DETAILS_URI_10)
