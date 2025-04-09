@@ -1,0 +1,4 @@
+base_uri: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}/"
+redfish_uri: "redfish/v1/"
+fan_uri: "{{ base_uri }}{{ redfish_uri }}\
+  Chassis/System.Embedded.1/ThermalSubsystem/Fans?$expand=*($levels=1)"

@@ -8,22 +8,22 @@
     msg: 'Please define the following variables: idrac_ip, idrac_user and idrac_password.'
   when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
 
-- block:
-    - name: Negative - unreachable host
-      idrac_system_info:
-        idrac_ip: "999.999.999.999"
-      register: invalid_unreachable
-      ignore_unreachable: true
+- name: Check if module is calling omsdk
+  ansible.builtin.include_tasks: _check_firmware_version_supported.yml
 
-    - name: Verify status of tasks
-      assert:
-        that:
-          - invalid_unreachable.unreachable
-          - 'invalid_unreachable.msg == "Unable to communicate with
-           iDRAC 999.999.999.999. This may be due to one of the following:
-           Incorrect username or password, unreachable iDRAC IP or a failure
-           in TLS/SSL handshake." or invalid_unreachable.msg == 
-           "<urlopen error [Errno -2] Name or service not known>"'
+- block:
+    - name: Get System Inventory
+      idrac_system_info:
+      register: result
+
+    - name: Set baseuri
+      ansible.builtin.set_fact:
+        baseuri: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/"
+
+    - name: Get Fan details - no omsdk required
+      ansible.builtin.include_tasks: _validate_fan.yml
+  when:
+    - not is_omsdk_required | bool
 
   module_defaults:
     dellemc.openmanage.idrac_system_info:

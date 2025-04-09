@@ -1,0 +1,22 @@
+---
+- name: Fetch fan deatils
+  ansible.builtin.uri:
+    url: "{{ fan_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: uri_data
+
+- name: Structuring fan details
+  ansible.builtin.command:
+    cmd: >
+      python _get_fan_details.py
+    chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  register: upgrade_dict
+  no_log: true
+  delegate_to: localhost

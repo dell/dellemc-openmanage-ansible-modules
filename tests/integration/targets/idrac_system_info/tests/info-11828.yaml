@@ -8,6 +8,9 @@
     msg: 'Please define the following variables: idrac_ip, idrac_user and idrac_password.'
   when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
 
+- name: Check if module is calling omsdk
+  ansible.builtin.include_tasks: _check_firmware_version_supported.yml
+
 - block:
     - name: Get System Inventory
       idrac_system_info:
@@ -85,19 +88,22 @@
       assert:
         that:
           - storage_uri.json.Members | length == result.system_info.Controller | length
-      when: storage_uri.json.Members | length > 0
+      when:
+        - storage_uri.json.Members | length > 0
 
     - name: Verify license information
       assert:
         that:
           - license_uri.json.Members | length == result.system_info.License | length
-      when: license_uri.json.Members | length > 0
+      when:
+        - license_uri.json.Members | length > 0
 
     - name: Verify memory information
       assert:
         that:
           - memory_uri.json.Members | length == result.system_info.Memory | length
-      when: memory_uri.json.Members | length > 0
+      when:
+        - memory_uri.json.Members | length > 0
 
     - name: Filter power supplies with presence detected
       set_fact:
@@ -107,7 +113,11 @@
       assert:
         that:
           - power_uri.json.Links.PoweredBy | length == present_power_supplies | length
-      when: power_uri.json.Links.PoweredBy | length > 0
+      when:
+       - power_uri.json.Links.PoweredBy | length > 0
+
+  when:
+    - is_omsdk_required | bool
 
   module_defaults:
     dellemc.openmanage.idrac_system_info:
