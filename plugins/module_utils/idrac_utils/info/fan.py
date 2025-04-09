@@ -36,35 +36,20 @@ class IDRACFanInfo(object):
     def map_fan_data(self, fan):
         health = fan.get("Status", {}).get("Health", NA)
         fan_pwm = fan.get("Oem", {}).get("Dell", {}).get("FanPWM", 0)
-        keys_to_search = {
-            "ActiveCooling": "HotPluggable",
-            "CurrentReading": "SpeedPercent.SpeedRPM",
-            "DeviceDescription": "Name",
-            "FQDD": "Id",
-            "Key": "Id",
-            "Location": "Location",
-            "PWM": "Oem.Dell.FanPWM",
-            "PrimaryStatus": "Status.Health",
-            "State": "State",
+        current_reading = fan.get("SpeedPercent", {}).get("SpeedRPM", NA)
+        output = {
+            "ActiveCooling": fan.get("HotPluggable", NA),
+            "CurrentReading": current_reading,
+            "DeviceDescription": fan.get("Name", NA),
+            "FQDD": fan.get("Id", NA),
+            "Key": fan.get("Id", NA),
+            "Location": fan.get("Location", NA),
+            "PWM": fan_pwm,
+            "PrimaryStatus": "Healthy" if health == "OK" else health,
+            "State": fan.get("State", NA),
             "VariableSpeed": "true" if fan_pwm > 0 else "false"
         }
-
-        fan_data = {}
-
-        for key, response_key in keys_to_search.items():
-            if key == "PrimaryStatus":
-                fan_data[key] = "Healthy" if health == "OK" else (health or "Not Available")
-            elif key == "VariableSpeed":
-                fan_pwm = fan.get("Oem", {}).get("Dell", {}).get("FanPWM", 0)
-                fan_data[key] = "true" if fan_pwm > 0 else "false"
-            else:
-                keys = response_key.split(".")
-                value = fan
-                for k in keys:
-                    value = value.get(k, "Not Available") if isinstance(value, dict) else "Not Available"
-                fan_data[key] = value
-
-        return fan_data
+        return output
 
     def get_fan_info(self):
         """Fetches fan data from iDRAC and maps it."""

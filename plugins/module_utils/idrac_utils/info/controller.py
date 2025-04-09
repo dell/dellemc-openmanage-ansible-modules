@@ -46,12 +46,12 @@ class IDRACControllerInfo(object):
             "DeviceCardSlotType": str(resp.get("DeviceCardSlotType", NA)),
             "DeviceDescription": NA,
             "DriverVersion": str(resp.get("DriverVersion", NA)),
-            "EncryptionCapability":str(resp.get("EncryptionCapability", NA)),
+            "EncryptionCapability": str(resp.get("EncryptionCapability", NA)),
             "EncryptionMode": str(resp.get("WiredOrder", NA)),
             "FQDD": str(resp.get("Id", NA)),
             "Key": str(resp.get("Id", NA)),
-            "MaxAvailablePCILinkSpeed":str(resp.get("MaxAvailablePCILinkSpeed", NA)),
-            "MaxPossiblePCILinkSpeed":str(resp.get("MaxPossiblePCILinkSpeed", NA)),
+            "MaxAvailablePCILinkSpeed": str(resp.get("MaxAvailablePCILinkSpeed", NA)),
+            "MaxPossiblePCILinkSpeed": str(resp.get("MaxPossiblePCILinkSpeed", NA)),
             "PCISlot": str(resp.get("PCISlot", NA)),
             "PCIVendorID": NA,
             "PrimaryStatus": NA,
@@ -61,8 +61,8 @@ class IDRACControllerInfo(object):
             "SecurityStatus": str(resp.get("SecurityStatus", NA)),
             "SlicedVDCapability": str(resp.get("SlicedVDCapability", NA)),
             "SupportControllerBootMode": str(resp.get("SupportControllerBootMode", NA)),
-            "SupportEnhancedAutoForeignImport":str(resp.get("SupportEnhancedAutoForeignImport", NA)),
-            "SupportRAID10UnevenSpans":str(resp.get("SupportRAID10UnevenSpans", NA)),
+            "SupportEnhancedAutoForeignImport": str(resp.get("SupportEnhancedAutoForeignImport", NA)),
+            "SupportRAID10UnevenSpans": str(resp.get("SupportRAID10UnevenSpans", NA)),
             "T10PICapability": str(resp.get("T10PICapability", NA))
         }
         return output
