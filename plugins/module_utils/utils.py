@@ -57,7 +57,6 @@ GET_IDRAC_FIRMWARE_DETAILS_URI_10 = "/redfish/v1/UpdateService/Oem/Dell/DellSoft
 GET_IDRAC_FIRMWARE_URI_10 = "/redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory"
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be negative or zero."
 INVALID_TIME_FORMAT_MSG = "Invalid value for time. Enter the value in positive integer."
-GET_IDRAC_LIFECYCLE_CONTROLLER_JOB_STATUS_INFO_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{0}"
 
 import time
 from datetime import datetime

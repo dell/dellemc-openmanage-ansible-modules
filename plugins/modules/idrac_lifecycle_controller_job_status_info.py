@@ -127,9 +127,12 @@ def main():
         with iDRACRedfishAPI(module.params) as idrac:
             firmware_obj = IDRACFirmwareInfo(idrac)
             if not firmware_obj.is_omsdk_required():
-                lifecycle_controller_job_status_info = \
+                response = \
                     IDRACLifecycleControllerJobStatusInfo(idrac). \
                     get_lifecycle_controller_job_status_info(module)
+                lifecycle_controller_job_status_info = \
+                      IDRACLifecycleControllerJobStatusInfo(idrac). \
+                        transform_job_status_data(response.json_data)
             else:
                 with iDRACConnection(module.params) as idrac:
                     job_id, msg = module.params.get('job_id'), {}
@@ -151,7 +154,7 @@ def main():
         module.exit_json(msg=str(e), failed=True)
 
     module.exit_json(msg="Successfully fetched the job info.",
-                     lifecycle_controller_job_status_info=lifecycle_controller_job_status_info)
+                     job_info=lifecycle_controller_job_status_info)
 
 
 if __name__ == '__main__':

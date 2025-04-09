@@ -35,7 +35,6 @@ class IDRACLifecycleControllerJobStatusInfo(object):
         self.idrac = idrac
 
     def transform_job_status_data(self, info_data):
-        transformed_data = []
 
         job_success_list = ['Completed', 'Success']
         job_failed_list = ['Failed', 'Errors']
@@ -76,12 +75,8 @@ class IDRACLifecycleControllerJobStatusInfo(object):
             "Description": str(info_data.get("Description")),
             "TargetSettingsURI": str(info_data.get("TargetSettingsURI"))
         }
-        transformed_data.append(transformed_info_data)
-
-        return transformed_data
+        return transformed_info_data
 
     def get_lifecycle_controller_job_status_info(self, module):
         response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_LIFECYCLE_CONTROLLER_JOB_STATUS_INFO_10.format(module.params.get('job_id')))
-        if response.status_code == 200:
-            transformed_job_status_data = self.transform_job_status_data(info_data=response.json_data)
-            return transformed_job_status_data
+        return response
