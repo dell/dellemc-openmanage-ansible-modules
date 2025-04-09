@@ -131,8 +131,8 @@ def main():
                     IDRACLifecycleControllerJobStatusInfo(idrac). \
                     get_lifecycle_controller_job_status_info(module)
                 lifecycle_controller_job_status_info = \
-                      IDRACLifecycleControllerJobStatusInfo(idrac). \
-                        transform_job_status_data(response.json_data)
+                    IDRACLifecycleControllerJobStatusInfo(idrac). \
+                    transform_job_status_data(response.json_data)
             else:
                 with iDRACConnection(module.params) as idrac:
                     job_id, msg = module.params.get('job_id'), {}
