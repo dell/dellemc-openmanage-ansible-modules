@@ -35,7 +35,7 @@ GET_IDRAC_SENSOR_BATTERY_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1
 GET_IDRAC_SENSOR_FAN_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Oem/Dell/DellEnclosureFanSensors"
 GET_IDRAC_SENSOR_INTRUSION_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1?$select=PhysicalSecurity/IntrusionSensor"
 GET_IDRAC_SENSOR_TEMPERATURE_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Oem/Dell/DellEnclosureTemperatureSensors"
-GET_IDRAC_STORAGE_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Storage/CPU.1"
+GET_IDRAC_STORAGE_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Storage?$expand=*($levels=1)"
 GET_IDRAC_SENSOR_AMPERAGE_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Sensors/SystemBoardPwrConsumption"
 GET_IDRAC_SYSTEM_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1"
 Subsystem = []
@@ -182,7 +182,13 @@ class IDRACSubsystemInfo(object):
     def get_idrac_storage_health_status(self):
         response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_STORAGE_DETAILS_URI_10)
         output = response.json_data
-        health_status = output["Status"].get("Health", "Unknown") or "Unknown"
+        members = output.get("Members", [])
+        health_status = "Unknown"
+        if members:
+            URI = members[0].get("@odata.id", "")
+            response = self.idrac.invoke_request(method='GET', uri=URI)
+            output = response.json_data
+            health_status = output["Status"].get("Health", "Unknown") or "Unknown"
         Subsystem.append({
             "Key": "Storage",
             "PrimaryStatus": "Healthy" if health_status == "OK" else health_status

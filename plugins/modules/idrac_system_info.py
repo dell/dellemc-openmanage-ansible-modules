@@ -103,8 +103,8 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.inf
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.sensors_intrusion import IDRACSensorsIntrusionInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.sensors_voltage import IDRACSensorsVoltageInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.system import IDRACSystemInfo
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.video.info import IDRACVideoInfo
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.subsystem.info import IDRACSubsystemInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.video import IDRACVideoInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.subsystem import IDRACSubsystemInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
     idrac_utils.info.license import IDRACLicenseInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
