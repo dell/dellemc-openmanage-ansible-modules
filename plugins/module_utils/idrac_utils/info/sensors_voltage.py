@@ -26,57 +26,39 @@
 #
 
 GET_IDRAC_SENSOR_VOLTAGE_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Power#/Voltages"
+GET_IDRAC_DELL_SENSORS_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellSensors"
+NA = "Not Available"
 
 
 class IDRACSensorsVoltageInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
 
-    def sensors_voltage_mapped_data(self, sensor):
-        keys_to_search = {
-            "CurrentReading": "ReadingVolts",
-            "CurrentState": "CurrentState",  # remove
-            "DeviceID": "DeviceID",
-            "HealthState": "Status.Health",
-            "Key": "Name",
-            "Location": "Name",
-            "OtherSensorTypeDescription": "Not Available",
-            "PrimaryStatus": "Status.Health",
-            "Reading(V)": "ReadingVolts",
-            "SensorType": "Voltage",
-            "State": "Status.State",
-            "VoltageProbeIndex": "Not Available",
-            "VoltageProbeType": "Not Available"
+    def sensors_voltage_mapped_data(self, resp):
+        health = resp.get("HealthState", NA)
+
+        output = {
+            "CurrentReading": resp.get("CurrentReading", NA),
+            "CurrentState": resp.get("CurrentState", NA),
+            "DeviceID": resp.get("Id", NA),
+            "HealthState": resp.get("HealthState", NA),
+            "Key": resp.get("ElementName", NA),
+            "Location": resp.get("ElementName", NA),
+            "OtherSensorTypeDescription": NA,
+            "PrimaryStatus": "Healthy" if health == "OK" else health,
+            "SensorType": resp.get("SensorType", NA),
+            "State": resp.get("EnabledState", NA),
+            "VoltageProbeIndex": resp.get("VoltageProbeIndex", NA),
+            "VoltageProbeType": resp.get("VoltageProbeType", NA),
         }
 
-        sensor_data = {}
-
-        for key, response_key in keys_to_search.items():
-            if key == "DeviceID":
-                sensor_data[key] = f"iDRAC.Embedded.1#{sensor.get('Name', 'Unknown')}"
-            elif key == "SensorType":
-                sensor_data[key] = "Voltage"
-            elif key == "PrimaryStatus":
-                if (sensor.get("Status", {}).get("Health") == "OK"):
-                    sensor_data[key] = "Healthy"
-                else:
-                    sensor_data[key] = sensor.get("Status", {}).get("Health")
-            elif "." in response_key:
-                keys = response_key.split(".")
-                data = sensor
-                for k in keys:
-                    data = data.get(k, "Not Available")
-                sensor_data[key] = data
-            else:
-                sensor_data[key] = sensor.get(response_key, "Not Available")
-
-        return sensor_data
+        return output
 
     def get_sensors_voltage_info(self):
         output = []
-        resp = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_SENSOR_VOLTAGE_DETAILS_URI_10)
-        if resp.status_code == 200:
-            voltage_sensors = resp.json_data.get("Voltages", [])
-            for sensor in voltage_sensors:
-                output.append(self.sensors_voltage_mapped_data(sensor))
+        response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_DELL_SENSORS_DETAILS_URI_10)
+        if response.status_code == 200:
+            for mem in response.json_data.get("Members", []):
+                if mem.get("SensorType", "") == "Voltage":
+                    output.append(self.sensors_voltage_mapped_data(mem))
         return output

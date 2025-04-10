@@ -53,7 +53,9 @@ class IDRACNICInfo(object):
                     wol_support = member.get("PartitionWOLSupport", "")
                     iscsi_boot_support = member.get("iSCSIBootSupport", "")
                     iscsi_offload_support = member.get("iSCSIOffloadSupport", "")
-                    return dcb_protocol, fcoe_boot_support, fcoe_offload_support, flex_add_support, nic_part_support, pxe_boot_support, tcp_chimney_support, wol_support, iscsi_boot_support, iscsi_offload_support
+                    return dcb_protocol, fcoe_boot_support, fcoe_offload_support, flex_add_support, \
+                        nic_part_support, pxe_boot_support, tcp_chimney_support, wol_support, \
+                        iscsi_boot_support, iscsi_offload_support
 
         return "", "", "", "", "", "", "", "", "", ""
 
@@ -99,7 +101,8 @@ class IDRACNICInfo(object):
 
     def map_nic_data(self, nic, id):
         """Maps NIC fields from the API response to a structured format."""
-        dcb_protocol, fcoe_boot_support, fcoe_offload_support, flex_add_support, nic_part_support, pxe_boot_support, tcp_chimney_support, wol_support, iscsi_boot_support, iscsi_offload_support = self.get_nic_capability_details(id)
+        dcb_protocol, fcoe_boot_support, fcoe_offload_support, flex_add_support, nic_part_support, \
+            pxe_boot_support, tcp_chimney_support, wol_support, iscsi_boot_support, iscsi_offload_support = self.get_nic_capability_details(id)
         link_status = self.get_nic_port_metrics_details(id)
         mac_address, link_speed, auto_neg, perm_mac_addr, health = self.get_ethernet_details()
         rx_bytes, rx_multicast, rx_unicast, tx_bytes, tx_multicast, tx_unicast = self.get_nic_statistics_details(id)
@@ -152,7 +155,7 @@ class IDRACNICInfo(object):
             "VirtWWN": nic.get("VirtWWN", NA),
             "VirtWWPN": nic.get("VirtWWPN", NA),
             "WOLSupport": NA if (wol_support == "") else wol_support,
-            "WWN": nic.get("WWN", NA),  # can be FCoEWWNN"
+            "WWN": nic.get("WWN", NA),
             "WWPN": nic.get("WWPN", NA),
             "iSCSIBootSupport": NA if (iscsi_boot_support == "") else iscsi_boot_support,
             "iSCSIOffloadSupport": NA if (iscsi_offload_support == "") else iscsi_offload_support,
