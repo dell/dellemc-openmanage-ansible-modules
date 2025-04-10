@@ -120,6 +120,7 @@
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         command: "import"
+        reset: false
         certificate_type: "HTTPS"
         certificate_path: "{{ import_cert_path }}/idrac_cert.pem"
 
