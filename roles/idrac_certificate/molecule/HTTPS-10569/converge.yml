@@ -108,6 +108,7 @@
         -passin pass:pass_123
       args:
         creates: /tmp/idrac_certificate/idrac_cert.pem
+      check_mode: false
 
     - name: Import HTTPS certificate
       ansible.builtin.import_role:
