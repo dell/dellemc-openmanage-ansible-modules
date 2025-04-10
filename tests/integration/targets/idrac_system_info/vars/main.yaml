@@ -2,3 +2,15 @@ base_uri: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/"
 redfish_uri: "redfish/v1/"
 fan_uri: "{{ base_uri }}{{ redfish_uri }}\
   Chassis/System.Embedded.1/ThermalSubsystem/Fans?$expand=*($levels=1)"
+manager_uri: "{{ base_uri }}{{ redfish_uri }}\
+  Managers/iDRAC.Embedded.1/"
+bios_uri: "{{ base_uri }}{{ redfish_uri }}\
+  Systems/System.Embedded.1/Bios"
+manager_system_attributes_uri: "{{ base_uri }}\
+  {{ redfish_uri }}Managers/iDRAC.Embedded.1/Oem/\
+  Dell/DellAttributes/System.Embedded.1"
+manager_idrac_attributs_uri: "{{ base_uri }}\
+  {{ redfish_uri }}Managers/iDRAC.Embedded.1/\
+  Oem/Dell/DellAttributes/iDRAC.Embedded.1"
+idrac_system_uri: "{{ base_uri }}\
+  {{ redfish_uri }Systems/System.Embedded.1"

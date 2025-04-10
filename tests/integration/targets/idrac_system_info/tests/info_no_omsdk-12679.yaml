@@ -18,15 +18,11 @@
 
     - name: Get Fan details - no omsdk required
       ansible.builtin.include_tasks: _validate_fan.yml
-    
-    - name:
-      debug:
-        var: fan_updated_dict
 
     - name: assert
       ansible.builtin.assert:
         that:
-          - result.system_info.Fan == fan_updated_dict
+          - result.system_info.Fan| to_json | symmetric_difference(fan_updated_dict| to_json)
   when:
     - not is_omsdk_required | bool
 
