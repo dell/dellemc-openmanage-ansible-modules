@@ -98,6 +98,7 @@
         cmd: cp "{{ file_name }}" "{{ export_cert_path }}"https_cert.pem
       args:
         creates: /tmp/idrac_certificate/https_cert.pem
+      check_mode: false
 
     - name: Sign CSR with OpenSSL
       ansible.builtin.command: >
