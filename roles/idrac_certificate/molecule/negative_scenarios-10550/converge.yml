@@ -28,6 +28,46 @@
               - "{{ cust_crt_name_pass }}"
               - "{{ csc_pass_cert }}"
 
+        - name: Negative - invalid idrac user
+          ansible.builtin.import_role:
+            name: dellemc.openmanage.idrac_certificate
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: invalid
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            command: "reset"
+            certificate_type: "HTTPS"
+          register: invalid_idrac_user
+          ignore_errors: true
+
+        - name: Verify task status - Negative - invalid idrac user
+          ansible.builtin.assert:
+            that:
+              - idrac_certificate_out.failed
+              - '"HTTP Error 401: Unauthorized" in
+                idrac_certificate_out.msg'
+
+        - name: Negative - invalid idrac password
+          ansible.builtin.import_role:
+            name: dellemc.openmanage.idrac_certificate
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: invalid
+            validate_certs: false
+            command: "reset"
+            certificate_type: "HTTPS"
+          register: invalid_idrac_pass
+          ignore_errors: true
+          ignore_unreachable: true
+
+        - name: Verify task status - Negative - invalid idrac password
+          ansible.builtin.assert:
+            that:
+              - idrac_certificate_out.failed
+              - '"HTTP Error 401: Unauthorized" in idrac_certificate_out.msg'
+
         - name: Create SSL Key ans self-signed certificate
           when: idrac_certificate_check_file_created is defined and
             idrac_certificate_check_file_created.stat.exists
@@ -67,7 +107,7 @@
             certificate_type: "CLIENT_TRUST_CERTIFICATE"
             certificate_path: "/tmp/certificate.pem"
           ignore_errors: true
-          register: idrrac_certificate_res_err
+          register: idrac_certificate_out
 
         - name: Verifying Import a Client Trust Certificate invalid path
           ansible.builtin.assert:
@@ -157,44 +197,6 @@
               '"<urlopen error [Errno -2] Name or service not known>" in
                 idrac_certificate_out.msg' and idrac_certificate_out.unreachable
 
-        - name: Negative - invalid idrac user
-          ansible.builtin.import_role:
-            name: dellemc.openmanage.idrac_certificate
-          vars:
-            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
-            username: invalid
-            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
-            validate_certs: false
-            command: "reset"
-            certificate_type: "HTTPS"
-          register: invalid_idrac_user
-          ignore_errors: true
-
-        - name: Verify task status - Negative - invalid idrac user
-          ansible.builtin.assert:
-            that:
-              - idrac_certificate_out.failed
-              - '"HTTP Error 401: Unauthorized" in idrac_certificate_out.msg'
-
-        - name: Negative - invalid idrac password
-          ansible.builtin.import_role:
-            name: dellemc.openmanage.idrac_certificate
-          vars:
-            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
-            username: "{{ lookup('env', 'IDRAC_USER') }}"
-            password: invalid
-            validate_certs: false
-            command: "reset"
-            certificate_type: "HTTPS"
-          register: invalid_idrac_pass
-          ignore_errors: true
-
-        - name: Verify task status - Negative - invalid idrac password
-          ansible.builtin.assert:
-            that:
-              - idrac_certificate_out.failed
-              - '"HTTP Error 401: Unauthorized" in idrac_certificate_out.msg'
-
         - name: Invalid command
           ansible.builtin.import_role:
             name: dellemc.openmanage.idrac_certificate
@@ -212,29 +214,6 @@
           ansible.builtin.assert:
             that:
               - not idrac_certificate_out.changed
-
-        - name: Invalid certificate path
-          ansible.builtin.import_role:
-            name: dellemc.openmanage.idrac_certificate
-          vars:
-            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
-            username: "{{ lookup('env', 'IDRAC_USER') }}"
-            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
-            validate_certs: false
-            command: "export"
-            certificate_type: "HTTPS"
-            certificate_path: "invalid_dir"
-          register: invalid_cert_path
-          ignore_errors: true
-
-        - name: Verify task status - Negative - invalid certificate path
-          ansible.builtin.assert:
-            that:
-              - idrac_certificate_out.failed
-              - not idrac_certificate_out.changed
-              - '"is not valid." in idrac_certificate_out.msg'
-              - idrac_certificate_out.msg == "Provided directory
-               path 'invalid_dir' is not valid."
 
         - name: Invalid passphrase
           ansible.builtin.import_role:
@@ -354,6 +333,29 @@
               - not idrac_certificate_out.changed
               - '"Unable to locate the SSL key file at
                invalid." in idrac_certificate_out.msg'
+
+        - name: Invalid certificate path
+          ansible.builtin.import_role:
+            name: dellemc.openmanage.idrac_certificate
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            command: "export"
+            certificate_type: "HTTPS"
+            certificate_path: "invalid_dir"
+          register: invalid_cert_path
+          ignore_errors: true
+
+        - name: Verify task status - Negative - invalid certificate path
+          ansible.builtin.assert:
+            that:
+              - idrac_certificate_out.failed
+              - not idrac_certificate_out.changed
+              - '"is not valid." in idrac_certificate_out.msg'
+              - idrac_certificate_out.msg == "Provided directory
+               path 'invalid_dir' is not valid."
 
       always:
         - name: Deleting the directory

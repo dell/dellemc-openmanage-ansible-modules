@@ -76,7 +76,7 @@
 
     - name: Set the file name as a variable
       ansible.builtin.set_fact:
-        file_name: "{{ found_files.files[0].path }}"
+        file_name: "{{ found_files.files[-1].path }}"
 
     - name: Setting up HTTPS CSR certificate path for exported file
       ansible.builtin.stat:
@@ -132,7 +132,7 @@
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         command: "import"
-        reset: false
+        reset: true
         certificate_type: "HTTPS"
         certificate_path: "{{ import_cert_path }}/idrac_cert.pem"
 
@@ -190,4 +190,3 @@
     - name: Deleting the directory
       ansible.builtin.include_tasks:
         file: ../__delete_directory.yml
-/home/kritika/collections/ansible_collections/dellemc/openmanage/roles/idrac_certificate/molecule
