@@ -1,7 +1,7 @@
 ---
-- name: Fetch fan details
+- name: Fetch enclosure details
   ansible.builtin.uri:
-    url: "{{ fan_uri }}"
+    url: "{{ chassis_uri }}"
     user: "{{ idrac_user }}"
     password: "{{ idrac_password }}"
     method: GET
@@ -12,12 +12,16 @@
     status_code: 200
   register: uri_data
 
-- name: Structuring fan details
+- name: Structure enclosure and enclosure sensor details
   ansible.builtin.command:
     cmd: >
-      python _get_fan_details.py '{{ uri_data.content | to_json}}'
+      python _get_enclosure_details.py '{{ uri_data.content | to_json }}'
     chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
-  register: fan_updated_dict
+  register: enclosure_updated_dict
   no_log: true
   when:
     - uri_data.status == 200
+
+- name: enclosure debug
+  debug:
+    var: enclosure_updated_dict

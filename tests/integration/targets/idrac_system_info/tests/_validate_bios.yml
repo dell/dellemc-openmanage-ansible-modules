@@ -1,0 +1,39 @@
+---
+- name: Fetch system BIOS details
+  ansible.builtin.uri:
+    url: "{{ idrac_system_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: system_info
+
+- name: Fetch firmware inventory details
+  ansible.builtin.uri:
+    url: "{{ bios_firmware_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: firmware_info
+
+- name: Structure BIOS details using validation script
+  ansible.builtin.command:
+    cmd: >
+      python _get_bios_details.py
+      '{{ system_info.content | to_json | quote }}'
+      '{{ firmware_info.content | to_json | quote }}'
+    chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  register: bios_updated_dict
+  no_log: true
+  when:
+    - system_info.status == 200
+    - firmware_info.status == 200
