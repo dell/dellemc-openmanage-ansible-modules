@@ -3,9 +3,18 @@
   hosts: all
   gather_facts: false
   vars:
-    cert_export_path: "{{ lookup('env', 'path_for_export_cert') }}"
+    cert_export_path: "{{ lookup('env', 'path_for_import_cert') }}"
 
   tasks:
+
+    - name: Create Directory
+      ansible.builtin.file:
+        path: "{{ cert_export_path }}"
+        state: directory
+        mode: "0755"
+      register: idrac_certificate_created_directory
+      check_mode: false
+
     - name: Generate HTTPS CSR signing request
       ansible.builtin.import_role:
         name: idrac_certificate
