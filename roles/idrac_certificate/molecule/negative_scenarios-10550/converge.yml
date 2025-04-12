@@ -126,6 +126,7 @@
             command: "import"
             certificate_type: "CLIENT_TRUST_CERTIFICATE"
             certificate_path: "{{ lookup('env', 'invalid_certificate') }}"
+            reset: true
           ignore_errors: true
           register: idrac_certificate_res_err1
 
@@ -146,8 +147,14 @@
             command: "import"
             certificate_type: "CLIENT_TRUST_CERTIFICATE"
             certificate_path: "{{ lookup('env', 'invalid_certificate') }}"
+            reset: true
           ignore_errors: true
           register: idrac_certificate_res_err2
+
+        - name: "Waiting for 100seconds"
+          ansible.builtin.pause:
+            seconds: 100
+          check_mode: false
 
         - name: Verifying Import a Client Trust Certificate invalid certificate
           ansible.builtin.assert:
@@ -166,6 +173,7 @@
             command: "import"
             certificate_type: "CLIENT_TRUST_CERTIFICATE"
             certificate_path: "{{ ctc_cert_file.stat.path }}"
+            reset: true
           ignore_errors: true
           register: res_err3
 
@@ -176,6 +184,11 @@
               - ('"HTTP Error 401" in idrac_certificate_out.msg')
               - idrac_certificate_out.failed
           when: idrac_certificate_out is defined
+
+        - name: "Waiting for 100seconds"
+          ansible.builtin.pause:
+            seconds: 100
+          check_mode: false
 
         - name: Negative - unreachable host
           ansible.builtin.import_role:
