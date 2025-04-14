@@ -14,7 +14,12 @@
 
 - name: Set enclosure EMM facts
   ansible.builtin.set_fact:
+<<<<<<< Updated upstream
     enclosure_emm: "{{ emm_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.etag', '@odata.type', 'Description', 'Links']) }}"
+=======
+    enclosure_emm: "{{ emm_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id',
+     '@odata.type', 'Description', 'Links']) }}"
+>>>>>>> Stashed changes
   when: emm_result.status == 200
   register: emm_result_register
 

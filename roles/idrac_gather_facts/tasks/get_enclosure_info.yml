@@ -14,7 +14,12 @@
 
 - name: Set enclosure facts
   ansible.builtin.set_fact:
+<<<<<<< Updated upstream
     enclosure: "{{ enclosure_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.etag', '@odata.type', 'Links', 'Description']) }}"
+=======
+    enclosure: "{{ enclosure_result.json.Members | ansible.utils.remove_keys(target=['@odata.context',
+     '@odata.id', '@odata.type', 'Links', 'Description']) }}"
+>>>>>>> Stashed changes
   when: enclosure_result.status == 200
   register: enclosure_result_register
 
