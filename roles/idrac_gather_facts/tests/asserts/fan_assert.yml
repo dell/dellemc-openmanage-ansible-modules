@@ -1,3 +1,4 @@
+---
 - name: Fetching Fan info
   ansible.builtin.uri:
     url: "https://{{ hostname }}{{ api_chassis }}/ThermalSubsystem/Fans/{{ fan_data.Id }}"
@@ -11,7 +12,7 @@
     status_code: "{{ idrac_gather_facts_uri_status_code }}"
     return_content: "{{ idrac_gather_facts_uri_return_content }}"
   register: fan_result
-  no_log: true
+  no_log: false
 
 - name: Set fan facts
   ansible.builtin.set_fact:

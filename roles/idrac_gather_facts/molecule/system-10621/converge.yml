@@ -6,6 +6,7 @@
     hostname: "{{ lookup('env', 'IDRAC_IP') }}"
     username: "{{ lookup('env', 'IDRAC_USER') }}"
     password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    idrac_port: "{{ lookup('env', 'IDRAC_PORT') }}"
     validate_certs: false
     target:
       - System
@@ -24,9 +25,29 @@
     idrac_gather_facts_uri_return_content: true
     diff_data: {}
     exclude_keys: ["ServerOS.1.ServerPoweredOnTime"]
-    api_system: "/redfish/v1/Systems/System.Embedded.1"
 
   tasks:
+
+    - name: Find the system API
+      ansible.builtin.include_tasks:
+        ../../tests/asserts/_check_system_url.yml
+
+    - name: Find the manager API
+      ansible.builtin.include_tasks:
+        ../../tests/asserts/_check_manager_url.yml
+
+    - name: Set 17G url
+      ansible.builtin.set_fact:
+        url1: "https://{{ hostname }}{{api_manager }}/Oem/Dell/DellAttributes/{{ computer_system_id }}?$select=ServerOS.*"
+      when:
+        - not is_omsdk_required | bool
+
+    - name: Set <17G url
+      ansible.builtin.set_fact:
+        url1: "https://{{ hostname }}{{ api_manager }}{{ computer_system_id }}/Attributes?$select=ServerOS.*"
+      when:
+        - is_omsdk_required | bool
+
     - name: Gather Facts for the System component
       ansible.builtin.include_role:
         name: "idrac_gather_facts"
@@ -39,7 +60,7 @@
 
     - name: Fetching System info
       ansible.builtin.uri:
-        url: "https://{{ hostname }}{{ api_system }}"
+        url: "{{ url1 }}"
         validate_certs: false
         method: "{{ idrac_gather_facts_uri_method }}"
         user: "{{ username }}"
@@ -49,11 +70,11 @@
         status_code: "{{ idrac_gather_facts_uri_status_code }}"
         return_content: "{{ idrac_gather_facts_uri_return_content }}"
       register: system_result
-      no_log: true
+      no_log: false
 
     - name: Fetching operating system info
       ansible.builtin.uri:
-        url: "https://{{ hostname }}/redfish/v1/Managers/System.Embedded.1/Attributes?$select=ServerOS.*" # verification firmware version 5.00.00
+        url: "https://{{ hostname }}{{api_manager }}/Oem/Dell/DellAttributes/{{ computer_system_id }}?$select=ServerOS.*" # verification firmware version 5.00.00
         validate_certs: "{{ validate_certs }}"
         ca_path: "{{ ca_path | default(omit) }}"
         method: "{{ idrac_gather_facts_uri_method }}"
@@ -64,7 +85,7 @@
         status_code: "{{ idrac_gather_facts_uri_status_code }}"
         return_content: "{{ idrac_gather_facts_uri_return_content }}"
       register: os_result
-      no_log: true
+      no_log: false
 
     - name: Response filter
       ansible.builtin.set_fact:
