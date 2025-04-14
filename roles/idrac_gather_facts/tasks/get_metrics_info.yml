@@ -89,13 +89,13 @@
   ansible.builtin.set_fact:
     power_metrics:
       "{{ power_metrics_result.results | selectattr('json', 'defined') | map(attribute='json') | flatten |
-      ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', 'DataSourceUri']) }}"
+      ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', '@odata.etag', 'DataSourceUri']) }}"
   when: power_result.status == 200
 
 - name: Set Thermal Metrics facts
   ansible.builtin.set_fact:
     thermal_metrics:
-      "{{ thermal_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', 'DataSourceUri',
+      "{{ thermal_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', '@odata.etag', 'DataSourceUri',
       'TemperatureReadingsCelsius@odata.count']) }}"
   when: thermal_result.status == 200
 
@@ -103,7 +103,7 @@
   ansible.builtin.set_fact:
     memory_metrics:
       "{{ memory_metrics_result.results | selectattr('json', 'defined') | map(attribute='json') | flatten |
-      ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', 'DataSourceUri']) }}"
+      ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', '@odata.etag', 'DataSourceUri']) }}"
   when: memory_result.status == 200
 
 - name: Error capture

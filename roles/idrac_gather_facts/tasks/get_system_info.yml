@@ -25,7 +25,7 @@
   ansible.builtin.set_fact:
     system:
       "{{ system_result.json.Oem.Dell.DellSystem | combine(os_attrs) |
-      ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type']) }}"
+      ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.etag', '@odata.type']) }}"
   when: system_result.status == 200 and os_result.status == 200
   register: system_result_register
 

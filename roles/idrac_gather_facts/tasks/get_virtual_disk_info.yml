@@ -21,7 +21,7 @@
     virtual_disk:
       "{{ result.results | selectattr('json', 'defined') | map(attribute='json') | selectattr('Members', 'defined') |
       map(attribute='Members') | flatten | ansible.utils.remove_keys(target=['@odata.context', '@odata.type',
-      '@odata.id', 'Actions', 'EncryptionTypes@odata.count', 'Identifiers@odata.count', 'Links',
+      '@odata.id', '@odata.etag', 'Actions', 'EncryptionTypes@odata.count', 'Identifiers@odata.count', 'Links',
       'Operations@odata.count', 'DellVirtualDisk', 'DellVirtualDisk@Redfish.Deprecated']) }}"
 
 - name: Error capture

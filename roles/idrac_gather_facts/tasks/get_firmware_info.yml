@@ -8,7 +8,7 @@
 - name: Set Firmware facts
   ansible.builtin.set_fact:
     firmware:
-      "{{ firmware_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type',
+      "{{ firmware_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.etag', '@odata.type',
       'Classifications@odata.count', 'IdentityInfoType@odata.count', 'IdentityInfoValue@odata.count']) }}"
 
 - name: Error capture
