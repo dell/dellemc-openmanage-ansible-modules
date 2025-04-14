@@ -51,6 +51,7 @@ CPU_RESP = {
             "Id": "DCIM:Processor.1",
             "MaxSpeedMHz": 2500,
             "Model": "Intel(R) Xeon(R) CPU E5-2680 v3 @ 2.50GHz",
+            "InstructionSet": "x86-64"
         },
     ]
 }
@@ -83,7 +84,7 @@ class TestIDRACCpuInfo(object):
         expected_resp = [
             {
                 'CPUFamily': 'Intel(R) Xeon(R) CPU E5-2680 v3 @ 2.50GHz',
-                'Characteristics': 'Not Available',
+                'Characteristics': '64-bit Capable',
                 'CurrentClockSpeed': 'Not Available',
                 'DeviceDescription': 'CPU 1',
                 'ExecuteDisabledCapable': 'Enabled',
