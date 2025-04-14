@@ -38,7 +38,7 @@ CPU_RESP = {
                         "VirtualizationTechnologyCapable": "Disabled",
                         "VirtualizationTechnologyEnabled": "Enabled",
                         "Volts": "2.5",
-                        "CurrentClockSpeedMhz": 0
+                        "CurrentClockSpeedMhz": 2000
                     }
                 }
             },
@@ -85,7 +85,7 @@ class TestIDRACCpuInfo(object):
             {
                 'CPUFamily': 'Intel(R) Xeon(R) CPU E5-2680 v3 @ 2.50GHz',
                 'Characteristics': '64-bit Capable',
-                'CurrentClockSpeed': 'Not Available',
+                'CurrentClockSpeed': '2.0 GHz',
                 'DeviceDescription': 'CPU 1',
                 'ExecuteDisabledCapable': 'Enabled',
                 'ExecuteDisabledEnabled': 'Enabled',
@@ -96,7 +96,7 @@ class TestIDRACCpuInfo(object):
                 'Manufacturer': 'Not Available',
                 'MaxClockSpeed': '2.5 GHz',
                 'Model': 'Intel(R) Xeon(R) CPU E5-2680 v3 @ 2.50GHz',
-                'NumberOfEnabledCores': 24,
+                'NumberOfEnabledCores': '24',
                 'NumberOfEnabledThreads': 'Not Available',
                 'NumberOfProcessorCores': 'Not Available',
                 'PrimaryStatus': 'OK',
