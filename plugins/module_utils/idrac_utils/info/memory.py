@@ -129,7 +129,7 @@ class IDRACMemoryInfo(object):
             output["Speed"] = response.json_data.get("AllowedSpeedsMHz")
             output["memoryDeviceStateSettings"] = \
                 response.json_data.get("Status", {}).get("State", NA)
-            if response.json_data.get("Status").get("Health") == "OK":
+            if response.json_data.get("Status", {}).get("Health") == "OK":
                 output["PrimaryStatus"] = "Healthy"
             else:
                 output["PrimaryStatus"] = response.json_data.\
