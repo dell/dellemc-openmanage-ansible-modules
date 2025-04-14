@@ -139,9 +139,13 @@ class IDRACPCIDeviceInfo(object):
                         slot_type_api, slot_length, slot_length_api = \
                         self.get_device_function_details(device_link)
                 else:
-                    buswidth = "NA"
-                    slot_type = "NA"
-                    deviceid = "NA"
+                    buswidth = NA
+                    slot_type = NA
+                    deviceid = NA
+                    buswidth_api = NA
+                    slot_type_api = NA
+                    slot_length = NA
+                    slot_length_api = NA
                 output["DataBusWidth"] = buswidth
                 output["DataBusWidth_API"] = buswidth_api
                 output["DeviceDescription"] = response.json_data.get("Description")

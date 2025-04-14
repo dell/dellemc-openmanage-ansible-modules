@@ -79,7 +79,7 @@ class IDRACPowerSupplyInfo(object):
                 response.json_data.get("Manufacturer", NA)
             output["PartNumber"] = response.json_data.get("PartNumber", NA)
             output["PowerSupplySensorState"] = NA
-            if response.json_data.get("Status").get("Health") == "OK":
+            if response.json_data.get("Status", {}).get("Health") == "OK":
                 output["PrimaryStatus"] = "Healthy"
             else:
                 output["PrimaryStatus"] = response.json_data.\
@@ -88,7 +88,7 @@ class IDRACPowerSupplyInfo(object):
             maxinputwatt = \
                 response.json_data.get("Oem", {}).get("Dell", {}).\
                 get("DellPowerSupplyView", {}).\
-                get("Range1MaxInputPowerWatts", NA)
+                get("Range1MaxInputPowerWatts")
             if maxinputwatt:
                 output["Range1MaxInputPower"] = str(maxinputwatt) + " W"
             else:
