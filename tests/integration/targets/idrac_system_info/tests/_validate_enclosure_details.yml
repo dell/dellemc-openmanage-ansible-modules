@@ -1,5 +1,5 @@
 ---
-- name: Fetch enclosure details
+- name: Fetch all chassis
   ansible.builtin.uri:
     url: "{{ chassis_uri }}"
     user: "{{ idrac_user }}"
@@ -10,18 +10,22 @@
     body_format: json
     return_content: true
     status_code: 200
-  register: uri_data
+  register: chassis_response
 
-- name: Structure enclosure and enclosure sensor details
+- name: Manually build enclosure_uri_list
+  set_fact:
+    enclosure_uri_list: "{{ enclosure_uri_list | default([]) + [ item['@odata.id'] ] }}"
+  loop: "{{ chassis_response.json.Members }}"
+  when: "'Enclosure' in item['@odata.id']"
+
+- name: Filter only enclosure URIs
+  ansible.builtin.set_fact:
+    enclosure_uris: "{{ enclosure_uri_list | select('search', 'Enclosure') | list }}"
+
+- name: Fetch and structure each enclosure
   ansible.builtin.command:
     cmd: >
-      python _get_enclosure_details.py '{{ uri_data.content | to_json }}'
+      python _get_enclosure_details.py '{{ item }}' '{{ base_uri }}' '{{ idrac_user }}' '{{ idrac_password }}'
     chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  loop: "{{ enclosure_uris }}"
   register: enclosure_updated_dict
-  no_log: true
-  when:
-    - uri_data.status == 200
-
-- name: enclosure debug
-  debug:
-    var: enclosure_updated_dict

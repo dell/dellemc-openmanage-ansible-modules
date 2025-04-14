@@ -1,46 +1,62 @@
 import sys
 import json
-import ast
+import requests
+from requests.auth import HTTPBasicAuth
 
-enclosure_api_output = sys.argv[1]
 NA = "Not Available"
 
+enclosure_uri = sys.argv[1]
+idrac_host = sys.argv[2]
+idrac_user = sys.argv[3]
+idrac_password = sys.argv[4]
 
-def map_enclosure_data(resp):
-    dellchassis = resp.get("Oem", {}).get("Dell", {}).get("DellChassisEnclosure", {})
+
+def get_enclosure_data(resp):
+    dellchasis = resp.get("Oem", {}).get("Dell", {}).get("DellChassisEnclosure", {})
+    asset = resp.get("AssetTag")
+    svctag = dellchasis.get("ServiceTag")
     return {
-        "AssetTag": NA if (asset := resp.get("AssetTag")) == "" else asset,
-        "Connector": str(dellchassis.get("Connector", NA)),
-        "DeviceDescription": resp.get("Description", NA),
-        "EMMCount": str(dellchassis.get("Links", {}).get("DellEnclosureEMMCollection@odata.count", NA)),
+        "AssetTag": NA if asset == "" else asset,
+        "Connector": str(dellchasis.get("Connector")),
+        "DeviceDescription": resp.get("Description"),
+        "EMMCount": str(dellchasis.get("Links", {}).get("DellEnclosureEMMCollection@odata.count")),
         "FQDD": resp.get("Id", NA),
         "FanCount": NA,
         "Key": resp.get("Id", NA),
         "PSUCount": NA,
         "PrimaryStatus": resp.get("Status", {}).get("Health", NA),
         "ProductName": resp.get("Name", NA),
-        "ServiceTag": NA if (svctag := dellchassis.get("ServiceTag")) is None else svctag,
-        "SlotCount": str(dellchassis.get("SlotCount", NA)),
+        "ServiceTag": NA if svctag is None else svctag,
+        "SlotCount": str(dellchasis.get("SlotCount", NA)),
         "State": NA,
-        "Version": dellchassis.get("Version", NA),
-        "WiredOrder": str(dellchassis.get("WiredOrder", NA))
+        "Version": dellchasis.get("Version", NA),
+        "WiredOrder": str(dellchasis.get("WiredOrder", NA))
     }
 
 
-def map_enclosure_sensor(enclosure):
-    return {
-        "FQDD": enclosure.get("FQDD", NA),
-        "Key": enclosure.get("Key", NA)
-    }
+def get_controller_enclosure_sensor_info(resp):
+    enclosure_sensor_info = []
+    enclosure_sensor_info.append({
+        "FQDD": resp.get("Id", NA),
+        "Key": resp.get("Id", NA)
+    })
+    return enclosure_sensor_info
 
 
-enclosure_data = ast.literal_eval(enclosure_api_output)
-enclosure_data = json.loads(enclosure_data)
+full_url = f"{idrac_host}{enclosure_uri}"
 
-enclosure = map_enclosure_data(enclosure_data)
-sensor = map_enclosure_sensor(enclosure)
+response = requests.get(full_url, auth=HTTPBasicAuth(idrac_user, idrac_password), verify=False)
+response.raise_for_status()
 
-print(json.dumps({
-    "Enclosure": [enclosure],
-    "EnclosureSensor": [sensor]
-}, ensure_ascii=False))
+enclosure_json = response.json()
+
+structured = get_enclosure_data(enclosure_json)
+
+enclosure_sensor_info = get_controller_enclosure_sensor_info(enclosure_json)
+
+output = {
+    "Enclosure": [structured],
+    "EnclosureSensor": enclosure_sensor_info
+}
+
+print(json.dumps(output, ensure_ascii=False))
