@@ -3,7 +3,7 @@ from ansible_collections.dellemc.openmanage.plugins.\
     module_utils.idrac_utils.info.pcidevice import IDRACPCIDeviceInfo
 from ansible_collections.dellemc.openmanage.tests.unit.\
     plugins.module_utils.idrac_utils.test_idrac_utils import TestUtils
-
+from unittest.mock import MagicMock
 pcidevice_link =\
     ["/redfish/v1/Chassis/System.Embedded.1/PCIeDevices/1"]
 NA = "Not Available"
@@ -43,6 +43,35 @@ class TestIDRACPCIDeviceInfo(TestUtils):
     #         }
     #     assert result == expected_result
 
+    def test_get_device_function_details(self, idrac_mock):
+        mock_response = {
+            "Links": {
+                "PCIeFunctions": [
+                    {
+                        "@odata.id": "/some/link"
+                    }
+                ]
+            }
+        }
+        idrac_mock.invoke_request.return_value.json_data = mock_response
+        pci_device_info = IDRACPCIDeviceInfo(idrac_mock)
+
+        buswidth = "buswidth"
+        buswidth_api = "buswidth_api"
+        deviceid = "deviceid"
+        slot_type = "slot_type"
+        slot_type_api = "slot_type_api"
+        slot_length = "slot_length"
+        slot_length_api = "slot_length_api"
+
+        device_link = "/api/device_link"
+
+        pci_device_info.get_device_function_details = MagicMock(
+            return_value=(buswidth, buswidth_api, deviceid, slot_type,
+                          slot_type_api, slot_length, slot_length_api))
+        result = pci_device_info.get_device_details(device_link)
+        assert result["DataBusWidth"] == buswidth
+
     def test_get_pcidevice_links(self, idrac_mock):
         links_response = {
             "Members": [
@@ -53,7 +82,7 @@ class TestIDRACPCIDeviceInfo(TestUtils):
         }
         idrac_mock.invoke_request.return_value.json_data = links_response
         idrac_memory_info = IDRACPCIDeviceInfo(idrac_mock)
-        result = idrac_memory_info.get_power_supply_links()
+        result = idrac_memory_info.get_device_links()
         expected_result = [
             pcidevice_link[0]
         ]
@@ -80,5 +109,7 @@ class TestIDRACPCIDeviceInfo(TestUtils):
             'SlotLength_API': 'Not Available',
             'SlotType': 'Not Available',
             'SlotType_API': 'Not Available',
+            'DataBusWidth': 'Not Available',
+            'DataBusWidth_API': 'Not Available'
         }
         assert result == expected_result
