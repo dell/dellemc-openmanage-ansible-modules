@@ -16,7 +16,7 @@ __metaclass__ = type
 
 import pytest
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.controller.enclosure_info import IDRACEnclosureInfo, \
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.controller_enclosure import IDRACEnclosureInfo, \
     GET_IDRAC_CHASSIS_URI
 from unittest.mock import MagicMock
 

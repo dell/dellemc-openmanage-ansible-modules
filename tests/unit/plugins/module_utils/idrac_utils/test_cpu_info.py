@@ -15,7 +15,7 @@ __metaclass__ = type
 
 import pytest
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.cpu.info import IDRACCpuInfo, \
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.cpu import IDRACCpuInfo, \
     GET_IDRAC_CPU_URI
 from unittest.mock import MagicMock
 
