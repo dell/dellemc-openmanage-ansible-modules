@@ -10,40 +10,58 @@ NA = "Not Available"
 
 
 class TestIDRACPCIDeviceInfo(TestUtils):
-    # def test_get_pcidevice_info(self, idrac_mock):
-    #     response = {
-    #         "Oem": {
-    #             "Dell": {
-    #                 "DellPCIeFunction": {
-    #                     "SlotLength": "Other",
-    #                     "SlotType": "OCPNIC3.0SmallFormFactor",
-    #                     "DataBusWidth": "16XOrX16",
-    #                     "Id": "NIC.Slot.10-3-1",
-    #                     "LastSystemInventoryTime": "2025-04-10T08:19:07+00:00",
-    #                     "LastUpdateTime": "2024-11-14T19:13:41+00:00"
-    #                     }
-    #                 }
-    #         }
-    #     }
-    #     idrac_mock.invoke_request.return_value.json_data = response
-    #     idrac_memory_info = IDRACPCIDeviceInfo(idrac_mock)
-    #     result = idrac_memory_info.get_device_details(pcidevice_link[0])
-    #     expected_result = {
-    #             "DataBusWidth": "0002",
-    #             "DataBusWidth_API": "Unknown",
-    #             "Description": "Integrated Matrox G200eW3 Graphics Controller",
-    #             "DeviceDescription": "Integrated Matrox G200eW3 Graphics Controller",
-    #             "FQDD": "Video.Embedded.1-1",
-    #             "Key": "Video.Embedded.1-1",
-    #             "Manufacturer": "Matrox Electronics Systems Ltd.",
-    #             "SlotLength": "0002",
-    #             "SlotLength_API": "Unknown",
-    #             "SlotType": "0002",
-    #             "SlotType_API": "Unknown"
-    #         }
-    #     assert result == expected_result
+    def test_get_pcidevice_info(self, idrac_mock):
+        pci_device_info = IDRACPCIDeviceInfo(idrac_mock)
+        pci_device_info.get_device_links = MagicMock(
+            return_value=pcidevice_link)
+        pci_device_info.get_device_details = MagicMock(
+            return_value={})
+        result = pci_device_info.get_pcidevice_info()
+        assert result == [{}]
 
     def test_get_device_function_details(self, idrac_mock):
+        mock_response = {
+            "Oem": {
+                "Dell": {
+                    "DellPCIeFunction": {
+                        "SlotLength": "Other",
+                        "SlotType": "OCPNIC3.0SmallFormFactor",
+                        "DataBusWidth": "16XOrX16",
+                        "Id": "NIC.Slot.10-3-1"
+                    }
+                }
+            }
+        }
+        idrac_mock.invoke_request.return_value.json_data = mock_response
+        pci_device_info = IDRACPCIDeviceInfo(idrac_mock)
+        buswidth, buswidth_api, deviceid, slot_type, \
+            slot_type_api, slot_length, slot_length_api = \
+            pci_device_info.get_device_function_details(pcidevice_link)
+        assert buswidth == "000D"
+        assert buswidth_api == "16XOrX16"
+        assert deviceid == "NIC.Slot.10-3-1"
+        assert slot_type == NA
+        assert slot_type_api == "OCPNIC3.0SmallFormFactor"
+        assert slot_length == '0001'
+        assert slot_length_api == "Other"
+
+    def test_get_device_function_details_empty(self, idrac_mock):
+        mock_response = {}
+        idrac_mock.invoke_request.return_value.status_code = 400
+        idrac_mock.invoke_request.return_value.json_data = mock_response
+        pci_device_info = IDRACPCIDeviceInfo(idrac_mock)
+        buswidth, buswidth_api, deviceid, slot_type, \
+            slot_type_api, slot_length, slot_length_api = \
+            pci_device_info.get_device_function_details(pcidevice_link)
+        assert buswidth == NA
+        assert buswidth_api == NA
+        assert deviceid == NA
+        assert slot_type == NA
+        assert slot_type_api == NA
+        assert slot_length == NA
+        assert slot_length_api == NA
+
+    def test_get_device_details(self, idrac_mock):
         mock_response = {
             "Links": {
                 "PCIeFunctions": [
@@ -63,14 +81,26 @@ class TestIDRACPCIDeviceInfo(TestUtils):
         slot_type_api = "slot_type_api"
         slot_length = "slot_length"
         slot_length_api = "slot_length_api"
-
-        device_link = "/api/device_link"
-
         pci_device_info.get_device_function_details = MagicMock(
             return_value=(buswidth, buswidth_api, deviceid, slot_type,
                           slot_type_api, slot_length, slot_length_api))
-        result = pci_device_info.get_device_details(device_link)
+        result = pci_device_info.get_device_details(pcidevice_link)
         assert result["DataBusWidth"] == buswidth
+        assert result["DataBusWidth_API"] == buswidth_api
+        assert result["FQDD"] == deviceid
+        assert result["Key"] == deviceid
+        assert result["SlotType"] == slot_type
+        assert result["SlotType_API"] == slot_type_api
+        assert result["SlotLength"] == slot_length
+        assert result["SlotLength_API"] == slot_length_api
+
+    def test_get_device_details_empty(self, idrac_mock):
+        mock_response = {}
+        idrac_mock.invoke_request.return_value.status_code = 400
+        idrac_mock.invoke_request.return_value.json_data = mock_response
+        pci_device_info = IDRACPCIDeviceInfo(idrac_mock)
+        result = pci_device_info.get_device_details(pcidevice_link)
+        assert result == {}
 
     def test_get_pcidevice_links(self, idrac_mock):
         links_response = {
@@ -87,6 +117,14 @@ class TestIDRACPCIDeviceInfo(TestUtils):
             pcidevice_link[0]
         ]
         assert result == expected_result
+
+    def test_get_pcidevice_links_empty(self, idrac_mock):
+        links_response = {}
+        idrac_mock.invoke_request.return_value.status_code = 400
+        idrac_mock.invoke_request.return_value.json_data = links_response
+        idrac_memory_info = IDRACPCIDeviceInfo(idrac_mock)
+        result = idrac_memory_info.get_device_links()
+        assert result == []
 
     def test_get_pcidevice_info_empty(self, idrac_mock):
         links_response = {

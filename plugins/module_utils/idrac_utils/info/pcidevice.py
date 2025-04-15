@@ -111,6 +111,13 @@ class IDRACPCIDeviceInfo(object):
 
     def get_device_function_details(self, function_link):
         response = self.idrac.invoke_request(method='GET', uri=function_link)
+        buswidth = NA
+        slot_type = NA
+        deviceid = NA
+        buswidth_api = NA
+        slot_type_api = NA
+        slot_length = NA
+        slot_length_api = NA
         if response.status_code == 200:
             resp = response.json_data.get("Oem", {}).\
                 get("Dell", {}).get("DellPCIeFunction", {})
