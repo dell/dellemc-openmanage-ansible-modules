@@ -45,8 +45,9 @@
     - name: Asserting operation with Normal/Idempotence mode.
       ansible.builtin.assert:
         that: idrac_certificate_out.msg == "Successfully performed the
-                                        'import' certificate operation.iDRAC
-                                        has been reset successfully."
+          'import' certificate operation.Reset iDRAC to apply the new
+          certificate. Until the iDRAC is reset, the old certificate will
+          remain active."
       when: not ansible_check_mode and idrac_certificate_out.changed
 
     - name: Export CA certificate
