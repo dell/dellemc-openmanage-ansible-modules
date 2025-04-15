@@ -1,0 +1,80 @@
+---
+- name: Fetch system details
+  ansible.builtin.uri:
+    url: "{{ idrac_system_details_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: uri_system_data
+
+- name: Fetch manager details
+  ansible.builtin.uri:
+    url: "{{ manager_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: uri_manager_data
+
+- name: Fetch bios details
+  ansible.builtin.uri:
+    url: "{{ bios_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: uri_bios_data
+
+- name: Fetch manager system attributes details
+  ansible.builtin.uri:
+    url: "{{ manager_system_attributes_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: uri_manager_system_attributes_data
+
+- name: Fetch manager idrac attributes details
+  ansible.builtin.uri:
+    url: "{{ manager_idrac_attributs_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: uri_idrac_attributes_data
+
+- name: Structuring fan details
+  ansible.builtin.command:
+    cmd: >
+      python _get_fan_details.py \
+      '{{ uri_system_data.content | to_json}}'
+      '{{ uri_manager_data.content | to_json }}'
+      '{{ uri_bios_data.content | to_json }}'
+      '{{ uri_manager_system_attributes_data.content | to_json }}'
+      '{{ uri_idrac_attributes_data.content | to_json }}'
+    chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  register: system_updated_dict
+  # no_log: true
+  when:
+    - uri_data.status == 200

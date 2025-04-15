@@ -12,6 +12,7 @@
     return_content: true
     status_code: 200
   register: uri_data
+  ignore_errors: true
 
 - ansible.builtin.set_fact:
     is_omsdk_required: true
