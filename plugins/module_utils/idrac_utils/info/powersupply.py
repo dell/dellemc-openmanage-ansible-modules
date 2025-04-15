@@ -115,8 +115,8 @@ class IDRACPowerSupplyInfo(object):
         return output
 
     def get_power_supply_info(self):
-        memory_output = []
+        power_supply_output = []
         power_supply_links_list = self.get_power_supply_links()
         for each_link in power_supply_links_list:
-            memory_output.append(self.get_power_supply_details(each_link))
-        return memory_output
+            power_supply_output.append(self.get_power_supply_details(each_link))
+        return power_supply_output

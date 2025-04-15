@@ -3,10 +3,40 @@ from ansible_collections.dellemc.openmanage.plugins.\
     module_utils.idrac_utils.info.powersupply import IDRACPowerSupplyInfo
 from ansible_collections.dellemc.openmanage.tests.unit.\
     plugins.module_utils.idrac_utils.test_idrac_utils import TestUtils
+from unittest.mock import MagicMock
 
-powersupply_link =\
-    ["/redfish/v1/Chassis/System.Embedded.1/PowerSubsystem/PowerSupplies/1"]
+LINK = "/redfish/v1/Chassis/System.Embedded.1/PowerSubsystem/PowerSupplies/1"
+POWERSUPPLY_LINK = {
+    "Members": [
+        {
+            "@odata.id": LINK
+        }
+    ]
+}
 NA = "Not Available"
+POWERSUPPLYOUTPUT = {
+    "DetailedState": NA,
+    "DeviceDescription": NA,
+    "FQDD": NA,
+    "Key": NA,
+    "Name": NA,
+    "FirmwareVersion": NA,
+    "Model": NA,
+    "Manufacturer": NA,
+    "PartNumber": NA,
+    "SerialNumber": NA,
+    'PowerSupplySensorState': NA,
+    "PrimaryStatus": NA,
+    "RAIDState": NA,
+    "Range1MaxInputPower": NA,
+    "RedMinNumberNeeded": NA,
+    "TotalOutputPower": NA,
+    "Type": NA,
+    "powerSupplyStateCapabilitiesUnique": NA,
+    "Redundancy": NA,
+    "RedTypeOfSet": NA,
+    'InputVoltage': NA
+}
 
 
 class TestIDRACPowerSupplyInfo(TestUtils):
@@ -42,7 +72,7 @@ class TestIDRACPowerSupplyInfo(TestUtils):
         }
         idrac_mock.invoke_request.return_value.json_data = response
         idrac_memory_info = IDRACPowerSupplyInfo(idrac_mock)
-        result = idrac_memory_info.get_power_supply_details(powersupply_link[0])
+        result = idrac_memory_info.get_power_supply_details(LINK)
         expected_result = {
             "DetailedState": "Detailed State",
             "DeviceDescription": "Device Description",
@@ -70,53 +100,24 @@ class TestIDRACPowerSupplyInfo(TestUtils):
         assert result == expected_result
 
     def test_get_power_supply_links(self, idrac_mock):
-        links_response = {
-            "Members": [
-                {
-                    "@odata.id": powersupply_link[0]
-                }
-            ]
-        }
-        idrac_mock.invoke_request.return_value.json_data = links_response
+        idrac_mock.invoke_request.return_value.json_data = POWERSUPPLY_LINK
         idrac_memory_info = IDRACPowerSupplyInfo(idrac_mock)
         result = idrac_memory_info.get_power_supply_links()
-        expected_result = [
-            powersupply_link[0]
-        ]
+        expected_result = [LINK]
         assert result == expected_result
 
-    def test_get_power_supply_info_empty(self, idrac_mock):
-        links_response = {
-            "Members": [
-                {
-                    "@odata.id": powersupply_link[0]
-                }
-            ]
-        }
-        idrac_mock.invoke_request.return_value.json_data = links_response
+    def test_get_power_supply_details_empty(self, idrac_mock):
+        idrac_mock.invoke_request.return_value.json_data = POWERSUPPLY_LINK
         idrac_memory_info = IDRACPowerSupplyInfo(idrac_mock)
-        result = idrac_memory_info.get_power_supply_details(links_response)
-        expected_result = expected_result = {
-            "DetailedState": NA,
-            "DeviceDescription": NA,
-            "FQDD": NA,
-            "Key": NA,
-            "Name": NA,
-            "FirmwareVersion": NA,
-            "Model": NA,
-            "Manufacturer": NA,
-            "PartNumber": NA,
-            "SerialNumber": NA,
-            'PowerSupplySensorState': NA,
-            "PrimaryStatus": NA,
-            "RAIDState": NA,
-            "Range1MaxInputPower": NA,
-            "RedMinNumberNeeded": NA,
-            "TotalOutputPower": NA,
-            "Type": NA,
-            "powerSupplyStateCapabilitiesUnique": NA,
-            "Redundancy": NA,
-            "RedTypeOfSet": NA,
-            'InputVoltage': NA,
-        }
-        assert result == expected_result
+        result = idrac_memory_info.get_power_supply_details(POWERSUPPLY_LINK)
+        assert result == POWERSUPPLYOUTPUT
+
+    def test_get_power_supply_info_empty(self, idrac_mock):
+        idrac_mock.invoke_request.return_value.json_data = LINK
+        idrac_powersupply_info = IDRACPowerSupplyInfo(idrac_mock)
+        idrac_powersupply_info.get_power_supply_links = MagicMock(
+            return_value=LINK)
+        idrac_powersupply_info.get_power_supply_details = MagicMock(
+            return_value=[])
+        result = idrac_powersupply_info.get_power_supply_info()
+        assert result == []

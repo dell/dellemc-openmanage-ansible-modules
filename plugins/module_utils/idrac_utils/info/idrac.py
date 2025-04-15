@@ -30,6 +30,7 @@ GET_IDRAC_SYSTEM_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/"
 GET_IDRAC_MANAGER_DETAILS_URI_10 = "/redfish/v1/Managers/iDRAC.Embedded.1"
 GET_IDRAC_MANAGER_ATTRIBUTES = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
 NOT_AVAILABLE = "Not Available"
+MACADDRESS_KEY = "NIC.1.MACAddress"
 iDRAC = {
     "DNSDomainName": "",
     "DNSRacName": "",
@@ -92,8 +93,8 @@ class IDRACInfo(object):
             domain_name = idrac_attributes_data["Attributes"].get("NIC.1.DNSDomainName")
             iDRAC["DNSDomainName"] = "Not Available" if domain_name == "" else domain_name
             iDRAC["DNSRacName"] = idrac_attributes_data["Attributes"].get("Network.1.DNSRacName")
-            iDRAC["MACAddress"] = idrac_attributes_data["Attributes"].get("NIC.1.MACAddress")
-            iDRAC["PermanentMACAddress"] = idrac_attributes_data["Attributes"].get("NIC.1.MACAddress")
+            iDRAC["MACAddress"] = idrac_attributes_data["Attributes"].get(MACADDRESS_KEY)
+            iDRAC["PermanentMACAddress"] = idrac_attributes_data["Attributes"].get(MACADDRESS_KEY)
             iDRAC["IPv4Address"] = idrac_attributes_data["Attributes"].get("IPv4.1.Address")
             iDRAC["IPv6Address"] = idrac_attributes_data["Attributes"].get("IPv6.1.Address1")
             sol_enabled = idrac_attributes_data["Attributes"].get("Users.1.SolEnable")
@@ -138,7 +139,7 @@ class IDRACInfo(object):
             output["NICDuplex"] = idrac_attributes_response.json_data.\
                 get("Attributes", {}).get("NIC.1.Duplex", NOT_AVAILABLE)
             output["PermanentMACAddress"] = idrac_attributes_response.json_data.\
-                get("Attributes", {}).get("NIC.1.MACAddress")
+                get("Attributes", {}).get(MACADDRESS_KEY)
             output["ProductInfo"] = idrac_attributes_response.json_data.\
                 get("Attributes", {}).get("Info.1.Product")
             output["GroupName"] = NOT_AVAILABLE

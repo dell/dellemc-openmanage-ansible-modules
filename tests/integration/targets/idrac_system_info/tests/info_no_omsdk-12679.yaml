@@ -1,12 +1,15 @@
 # Test code for the Dell OpenManage modules
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
-  fail:
-    msg: 'Please define the following variables: idrac_ip, idrac_user and idrac_password.'
-  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+    when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+     is not defined'
 
 - name: Check if module is calling omsdk
   ansible.builtin.include_tasks: _check_firmware_version_supported.yml
@@ -22,7 +25,8 @@
     - name: assert
       ansible.builtin.assert:
         that:
-          - result.system_info.Fan| to_json | symmetric_difference(fan_updated_dict| to_json)
+          - result.system_info.Fan| to_json |
+            symmetric_difference(fan_updated_dict| to_json)
 
     - name: Get Bios details - no omsdk required
       ansible.builtin.include_tasks: _validate_bios.yml
@@ -30,7 +34,8 @@
     - name: assert
       ansible.builtin.assert:
         that:
-          - result.system_info.BIOS| to_json | symmetric_difference(bios_updated_dict| to_json)
+          - result.system_info.BIOS| to_json |
+            symmetric_difference(bios_updated_dict| to_json)
 
     - name: Get CPU details - no omsdk required
       ansible.builtin.include_tasks: _validate_cpu.yml
@@ -38,7 +43,8 @@
     - name: assert
       ansible.builtin.assert:
         that:
-          - result.system_info.CPU| to_json | symmetric_difference(cpu_updated_dict| to_json)
+          - result.system_info.CPU| to_json |
+            symmetric_difference(cpu_updated_dict| to_json)
 
     - name: Get Enclosure details - no omsdk required
       ansible.builtin.include_tasks: _validate_enclosure_details.yml
@@ -46,12 +52,14 @@
     - name: Assert enclosure info is correct
       ansible.builtin.assert:
         that:
-          - result.system_info.Enclosure| to_json | symmetric_difference(enclosure_updated_dict| to_json)
+          - result.system_info.Enclosure| to_json |
+            symmetric_difference(enclosure_updated_dict| to_json)
 
     - name: Assert enclosure sensor info is correct
       ansible.builtin.assert:
         that:
-          - result.system_info.EnclosureSensor| to_json | symmetric_difference(enclosure_updated_dict | to_json)
+          - result.system_info.EnclosureSensor| to_json |
+            symmetric_difference(enclosure_updated_dict | to_json)
   when:
     - not is_omsdk_required | bool
 
