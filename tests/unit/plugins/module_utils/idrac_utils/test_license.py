@@ -48,3 +48,11 @@ class TestIDRACLicenseInfo(TestUtils):
             }
         ]
         assert result == expected_result
+
+    def test_get_license_info_empty(self, idrac_mock):
+        response = {}
+        idrac_mock.invoke_request.return_value.status_code = 400
+        idrac_mock.invoke_request.return_value.json_data = response
+        idrac_license_info = IDRACLicenseInfo(idrac_mock)
+        result = idrac_license_info.get_license_info()
+        assert result == []
