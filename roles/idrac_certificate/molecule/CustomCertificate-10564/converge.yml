@@ -88,6 +88,9 @@
         - name: Fetching Custom certificate from share
           ansible.builtin.include_tasks:
             file: ../__get_helper.yml
+          vars:
+            idrac_cert_name:
+              - "{{ custom_cert_name }}"
 
         - name: Export a custom certificate
           ansible.builtin.import_role:
