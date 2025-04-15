@@ -8,8 +8,9 @@
 - name: Set HostNIC facts
   ansible.builtin.set_fact:
     hostnic:
-      "{{ nic_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.etag', '@odata.type',
-      'HostEthernetInterfaces', 'ManagerEthernetInterface']) }}"
+      "{{ nic_result.json.Members | ansible.utils.remove_keys(target=[
+        '@odata.context', '@odata.id', '@odata.etag', '@odata.type',
+        'HostEthernetInterfaces', 'ManagerEthernetInterface']) }}"
 
 - name: Error capture
   ansible.builtin.include_tasks:
