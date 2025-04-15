@@ -38,13 +38,13 @@
 
     - name: Set 17G url
       ansible.builtin.set_fact:
-        url1: "https://{{ hostname }}{{api_manager }}/Oem/Dell/DellAttributes/{{ computer_system_id }}?$select=ServerOS.*"
+        url2: "https://{{ hostname }}{{api_manager }}/Oem/Dell/DellAttributes/{{ computer_manager_id }}?$select=ServerOS.*"
       when:
         - not is_omsdk_required | bool
 
     - name: Set <17G url
       ansible.builtin.set_fact:
-        url1: "https://{{ hostname }}{{ api_manager }}{{ computer_system_id }}/Attributes?$select=ServerOS.*"
+        url2: "https://{{ hostname }}{{ api_manager }}{{ computer_system_id }}/Attributes?$select=ServerOS.*"
       when:
         - is_omsdk_required | bool
 
@@ -60,7 +60,7 @@
 
     - name: Fetching System info
       ansible.builtin.uri:
-        url: "{{ url1 }}"
+        url: "https://{{ hostname }}{{ api_system }}"
         validate_certs: false
         method: "{{ idrac_gather_facts_uri_method }}"
         user: "{{ username }}"
@@ -74,7 +74,7 @@
 
     - name: Fetching operating system info
       ansible.builtin.uri:
-        url: "https://{{ hostname }}{{api_manager }}/Oem/Dell/DellAttributes/{{ computer_system_id }}?$select=ServerOS.*" # verification firmware version 5.00.00
+        url: "{{ url2 }}" # verification firmware version 5.00.00
         validate_certs: "{{ validate_certs }}"
         ca_path: "{{ ca_path | default(omit) }}"
         method: "{{ idrac_gather_facts_uri_method }}"

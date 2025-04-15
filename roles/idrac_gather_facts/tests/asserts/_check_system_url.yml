@@ -17,6 +17,6 @@
     return_content: "{{ idrac_gather_facts_uri_return_content }}"
   register: system_api_result
 
-- name: Get first chassis resource id from manager response.
+- name: Get first system resource id from manager response.
   ansible.builtin.set_fact:
     api_system: "{{ system_api_result.json.Members[0]['@odata.id'] | default('') }}"
