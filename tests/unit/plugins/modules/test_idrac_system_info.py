@@ -80,6 +80,29 @@ class TestSystemInventory(FakeAnsibleModule):
                           "msg": "Successfully fetched the system inventory details.",
                           "changed": False}
 
+    def test_idrac_system_info_main_success_case02(self, idrac_system_info_mock, idrac_system_info_connection_mock,
+                                                   idrac_redfish_system_info_mock,
+                                                   idrac_redfish_system_info_connection_mock,
+                                                   idrac_default_args,
+                                                   mocker):
+        mocker.patch(MODULE_PATH + "idrac_system_info.IDRACBiosInfo.get_bios_system_info",
+                     return_value={'BiosReleaseDate': '02/01/2012'})
+        mocker.patch(MODULE_PATH + "idrac_system_info.IDRACCpuInfo.get_cpu_system_info",
+                     return_value={'Name': 'CPU-0'})
+        mocker.patch(MODULE_PATH + "idrac_system_info.IDRACEnclosureInfo.get_enclosure_system_info",
+                     return_value={'ID': 'abcd'})
+        mocker.patch(MODULE_PATH + "idrac_system_info.IDRACEnclosureInfo.get_controller_enclosure_sensor_info",
+                     return_value={'Key': '12345'})
+        idrac_redfish_system_info_mock.get_entityjson.return_value = None
+        idrac_redfish_system_info_connection_mock.get_json_device.return_value = ""
+        idrac_system_info_mock.get_entityjson.return_value = None
+        idrac_system_info_connection_mock.get_json_device.return_value = {"status": "Success"}
+        result = self._run_module(idrac_default_args)
+        assert result["system_info"]['BIOS'] == {'BiosReleaseDate': '02/01/2012'}
+        assert result["system_info"]['CPU'] == {'Name': 'CPU-0'}
+        assert result["system_info"]['Enclosure'] == {'ID': 'abcd'}
+        assert result["system_info"]['EnclosureSensor'] == {'Key': '12345'}
+
     @pytest.mark.parametrize("exc_type", [SSLValidationError, URLError, ValueError, TypeError,
                                           ConnectionError, HTTPError])
     def test_idrac_system_info_main_exception_handling_case(self, exc_type, idrac_system_info_connection_mock,
