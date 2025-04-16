@@ -16,7 +16,11 @@
 
 - block:
     - name: Get System Inventory
-      idrac_system_info:
+      dellemc.openmanage.idrac_system_info:
+        idrac_ip: "{{idrac_ip}}"
+        idrac_user: "{{idrac_user}}"
+        idrac_password: "{{idrac_password}}"
+        validate_certs: "{{validate_certs}}"
       register: result
 
     - name: Get Fan details - no omsdk required
@@ -62,10 +66,3 @@
             symmetric_difference(enclosure_updated_dict | to_json)
   when:
     - not is_omsdk_required | bool
-
-  module_defaults:
-    dellemc.openmanage.idrac_system_info:
-      idrac_ip: "{{idrac_ip}}"
-      idrac_user: "{{idrac_user}}"
-      idrac_password: "{{idrac_password}}"
-      validate_certs: "{{validate_certs}}"

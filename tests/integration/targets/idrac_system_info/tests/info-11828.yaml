@@ -16,7 +16,11 @@
 
 - block:
     - name: Get System Inventory
-      idrac_system_info:
+      dellemc.openmanage.idrac_system_info:
+        idrac_ip: "{{idrac_ip}}"
+        idrac_user: "{{idrac_user}}"
+        idrac_password: "{{idrac_password}}"
+        validate_certs: "{{validate_certs}}"
       register: result
 
     - name: Set baseuri
@@ -91,7 +95,7 @@
     - name: Verify controller information
       assert:
         that:
-          - storage_uri.json.Members | 
+          - storage_uri.json.Members |
             length == result.system_info.Controller | length
       when:
         - storage_uri.json.Members | length > 0
@@ -129,10 +133,3 @@
 
   when:
     - is_omsdk_required | bool
-
-  module_defaults:
-    dellemc.openmanage.idrac_system_info:
-      idrac_ip: "{{idrac_ip}}"
-      idrac_user: "{{idrac_user}}"
-      idrac_password: "{{idrac_password}}"
-      validate_certs: "{{validate_certs}}"
