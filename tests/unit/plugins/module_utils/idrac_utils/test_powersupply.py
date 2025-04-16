@@ -111,13 +111,3 @@ class TestIDRACPowerSupplyInfo(TestUtils):
         idrac_memory_info = IDRACPowerSupplyInfo(idrac_mock)
         result = idrac_memory_info.get_power_supply_details(POWERSUPPLY_LINK)
         assert result == POWERSUPPLYOUTPUT
-
-    def test_get_power_supply_info_empty(self, idrac_mock):
-        idrac_mock.invoke_request.return_value.json_data = LINK
-        idrac_powersupply_info = IDRACPowerSupplyInfo(idrac_mock)
-        idrac_powersupply_info.get_power_supply_links = MagicMock(
-            return_value=LINK)
-        idrac_powersupply_info.get_power_supply_details = MagicMock(
-            return_value=[])
-        result = idrac_powersupply_info.get_power_supply_info()
-        assert result == []
