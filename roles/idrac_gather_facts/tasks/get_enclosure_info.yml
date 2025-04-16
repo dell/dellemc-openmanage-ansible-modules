@@ -1,12 +1,29 @@
 ---
+- name: API based on iDRAC generation
+  ansible.builtin.set_fact:
+    enclosure_uri: "{{ idrac10 if '17G' in idrac_gen else idrac9 }}"
+  vars:
+    idrac9: "/redfish/v1/Chassis/Oem/Dell/DellEnclosures"
+    idrac10: "{{ api_chassis }}/Oem/Dell/DellEnclosures"
+
 - name: Get enclosure information.
   ansible.builtin.uri:
-    url: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Chassis/Oem/Dell/DellEnclosures"
+    url: "https://{{ hostname }}:{{ https_port }}{{ enclosure_uri }}"
   register: enclosure_result
   delegate_to: "{{ idrac_gather_facts_delegate }}"
 
 - name: Set enclosure facts
   ansible.builtin.set_fact:
-    enclosure: "{{ enclosure_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'Links', 'Description']) }}"
+    enclosure: "{{ enclosure_result.json.Members | ansible.utils.remove_keys(
+      target=['@odata.context', '@odata.id', '@odata.type', 'Links',
+      'Description']) }}"
   when: enclosure_result.status == 200
   register: enclosure_result_register
+
+- name: Error capture
+  ansible.builtin.include_tasks:
+    file: ./__capture_error.yml
+  vars:
+    register_vars:
+      - "{{ enclosure_result }}"
+    component: 'enclosure'

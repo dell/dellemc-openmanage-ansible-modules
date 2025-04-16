@@ -41,3 +41,12 @@
       ansible.utils.remove_keys(target=["^.*@odata\..*$"],
       matching_parameter="regex") }}'
   when: secure_boot_result.status == 200 and secure_boot_db_result.status == 200
+
+- name: Error capture
+  ansible.builtin.include_tasks:
+    file: ./__capture_error.yml
+  vars:
+    register_vars:
+      - "{{ secure_boot_result }}"
+      - "{{ secure_boot_db_result }}"
+    component: 'secure_boot'

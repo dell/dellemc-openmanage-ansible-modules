@@ -20,5 +20,16 @@
   ansible.builtin.set_fact:
     physical_disk:
       "{{ result.results | selectattr('json', 'defined') | map(attribute='json') | selectattr('Drives', 'defined') |
-      map(attribute='Drives') | flatten | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type',
-      'Actions', 'Assembly', 'Links', 'DellDriveSMARTAttributes', 'DellNVMeSMARTAttributes', 'Operations@odata.count']) }}"
+      map(attribute='Drives') | flatten | ansible.utils.remove_keys(target=[
+        '@odata.context', '@odata.id', '@odata.etag', '@odata.type', 'Actions',
+        'Assembly', 'Links', 'DellDriveSMARTAttributes',
+        'DellNVMeSMARTAttributes', 'Operations@odata.count']) }}"
+
+- name: Error capture
+  ansible.builtin.include_tasks:
+    file: ./__capture_error.yml
+  vars:
+    register_vars:
+      - "{{ disk_result }}"
+      - "{{ result }}"
+    component: 'physical_disk'

@@ -8,5 +8,14 @@
 - name: Set Sensor Voltage facts
   ansible.builtin.set_fact:
     "voltages":
-      "{{ voltage_result.json.Voltages | ansible.utils.remove_keys(target=['@odata.context',
-      '@odata.id', '@odata.type']) }}"
+      "{{ voltage_result.json.Voltages | ansible.utils.remove_keys(
+        target=['@odata.context', '@odata.id', '@odata.etag',
+        '@odata.type']) }}"
+
+- name: Error capture
+  ansible.builtin.include_tasks:
+    file: ./__capture_error.yml
+  vars:
+    register_vars:
+      - "{{ voltage_result }}"
+    component: 'sensors_voltage'

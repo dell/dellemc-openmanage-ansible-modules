@@ -7,6 +7,15 @@
 
 - name: Set Sensor Battery facts
   ansible.builtin.set_fact:
-    "intrusion_sensor": "{{ intrusion_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type']) }}"
+    "intrusion_sensor": "{{ intrusion_result.json | ansible.utils.remove_keys(
+      target=['@odata.context', '@odata.id', '@odata.etag', '@odata.type']) }}"
   when: intrusion_result.status == 200
   register: intrusion_result_register
+
+- name: Error capture
+  ansible.builtin.include_tasks:
+    file: ./__capture_error.yml
+  vars:
+    register_vars:
+      - "{{ intrusion_result }}"
+    component: 'intrusion_sensor'
