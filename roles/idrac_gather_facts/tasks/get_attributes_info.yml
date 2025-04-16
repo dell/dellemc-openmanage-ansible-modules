@@ -31,3 +31,13 @@
       lifecycle_controller_attributes: "{{ lc_attr.json.Attributes }}"
   when: sys_attr.status == 200 and mgr_attr.status == 200 and
    lc_attr.status == 200
+
+- name: Error capture
+  ansible.builtin.include_tasks:
+    file: ./__capture_error.yml
+  vars:
+    register_vars:
+      - "{{ sys_attr }}"
+      - "{{ mgr_attr }}"
+      - "{{ lc_attr }}"
+    component: 'idrac'

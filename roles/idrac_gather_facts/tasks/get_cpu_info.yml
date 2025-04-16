@@ -7,4 +7,14 @@
 
 - name: Set CPU facts
   ansible.builtin.set_fact:
-    cpu: "{{ cpu_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'Assembly', 'Links']) }}"
+    cpu: "{{ cpu_result.json.Members | ansible.utils.remove_keys(target=[
+      '@odata.context', '@odata.id', '@odata.etag', '@odata.type', 'Assembly',
+      'Links']) }}"
+
+- name: Error capture
+  ansible.builtin.include_tasks:
+    file: ./__capture_error.yml
+  vars:
+    register_vars:
+      - "{{ cpu_result }}"
+    component: 'cpu'

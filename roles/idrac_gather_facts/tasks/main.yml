@@ -54,6 +54,7 @@
         thermal_metrics: []
         memory_metrics: []
         secure_boot: {}
+        idrac_gather_facts_error: {}
 
     - name: Get connection
       ansible.builtin.uri:
@@ -73,7 +74,7 @@
       when: idrac_gather_facts_connection.status == 401
 
     - name: Get System, Manager and Chassis resource id.
-      ansible.builtin.include_tasks: get_resource_id.yml
+      ansible.builtin.include_tasks: __get_resource_id.yml
 
     - name: Get target facts in loop
       ansible.builtin.include_tasks: "{{
