@@ -1,0 +1,5 @@
+<SystemConfiguration Model="" ServiceTag="" TimeStamp="">
+ <Component FQDD="iDRAC.Embedded.1">
+  <Attribute Name="RedfishEventing.1#DeliveryRetryIntervalInSeconds">1000</Attribute>
+ </Component>
+</SystemConfiguration>

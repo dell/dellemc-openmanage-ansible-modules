@@ -1,17 +1,12 @@
 ---
 - block:
-    - name: Constructing url
-      ansible.builtin.set_fact:
-        url_1: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/"
-        url_2: "Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{ JID }}"
-
     - name: Final url
       ansible.builtin.set_fact:
-        final_url: "{{ url_1 }}{{ url_2 }}"
+        job_url: "{{ BASE_URI }}{{ JOB_URI }}{{ JID }}"
 
     - name: Get job details on iDRAC10
       ansible.builtin.uri:
-        url: "{{ final_url }}"
+        url: "{{ job_url }}"
         user: "{{ idrac_user }}"
         password: "{{ idrac_password }}"
         force_basic_auth: true
@@ -21,12 +16,12 @@
         headers: "Accept=application/json"
         body_format: json
         return_content: true
-      register: resp
+      register: info_data
       no_log: false
 
     - name: Set job state
       ansible.builtin.set_fact:
-        job_state: "{{ resp.json.JobState | string }}"
+        job_state: "{{ info_data.json.JobState | string }}"
 
     - name: Set job state
       ansible.builtin.set_fact:
@@ -40,31 +35,32 @@
       ansible.builtin.set_fact:
         job_status: >-
           {{ ('Success' if job_state in job_success_list else 'Failed' if
-          job_state in job_failed_list else 'Success' if 'Message' in info_data
-          and info_data.Message | string and 'completed' in info_data.Message |
-          string and 'errors' not in info_data.Message | string else
+          job_state in job_failed_list else 'Success' if 'Message' in
+          info_data.json and info_data.json.Message | string and
+          'completed' in info_data.json.Message |
+          string and 'errors' not in info_data.json.Message | string else
           'InProgress') | trim }}
 
     - name: Set fact for api_response
       ansible.builtin.set_fact:
         api_response:
           ElapsedTimeSinceCompletion: ""
-          InstanceID: "{{ resp.json.Id }}"
-          JobStartTime: "{{ resp.json.StartTime }}"
+          InstanceID: "{{ info_data.json.Id }}"
+          JobStartTime: "{{ info_data.json.StartTime }}"
           JobStatus: "{{ job_state}}"
           JobUntilTime: "NA"
-          Message: "{{ resp.json.Message }}"
-          MessageArguments: "{{ (resp.json.MessageArgs | default([]))[0] |
+          Message: "{{ info_data.json.Message }}"
+          MessageArguments: "{{ (info_data.json.MessageArgs | default([]))[0] |
             default('') }}"
-          MessageID: "{{ resp.json.MessageId }}"
-          Name: "{{ resp.json.Name }}"
-          PercentComplete: "{{ resp.json.PercentComplete }}"
-          ActualRunningStopTime: "{{ resp.json.ActualRunningStopTime }}"
-          JobType: "{{ resp.json.JobType }}"
-          ActualRunningStartTime: "{{ resp.json.ActualRunningStartTime }}"
-          EndTime: "{{ resp.json.EndTime | default('None', true) }}"
-          CompletionTime: "{{ resp.json.CompletionTime }}"
-          Description: "{{ resp.json.Description }}"
+          MessageID: "{{ info_data.json.MessageId }}"
+          Name: "{{ info_data.json.Name }}"
+          PercentComplete: "{{ info_data.json.PercentComplete }}"
+          ActualRunningStopTime: "{{ info_data.json.ActualRunningStopTime }}"
+          JobType: "{{ info_data.json.JobType }}"
+          ActualRunningStartTime: "{{ info_data.json.ActualRunningStartTime }}"
+          EndTime: "{{ info_data.json.EndTime | default('None', true) }}"
+          CompletionTime: "{{ info_data.json.CompletionTime }}"
+          Description: "{{ info_data.json.Description }}"
           Status: "{{ job_status }}"
-          TargetSettingsURI: "{{ resp.json.TargetSettingsURI |
+          TargetSettingsURI: "{{ info_data.json.TargetSettingsURI |
             default('None', true)}}"
