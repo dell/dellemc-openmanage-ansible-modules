@@ -7,15 +7,34 @@
 
 - name: Get operating system information.
   ansible.builtin.uri:
-    url: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Managers/{{
-      computer_system_id }}/Attributes?$select=ServerOS.*"
+    url: "https://{{ hostname }}:{{ https_port }}{{ attr }}{{
+     computer_system_id }}"
   register: os_result
+  vars:
+    attr: "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/"
   delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Extracting Server OS
+  ansible.builtin.set_fact:
+    os_attrs: "{{ os_attrs | default({}) | combine({item.key: item.value}) }}"
+  when: "'ServerOS' in item.key"
+  loop: "{{ os_result.json.Attributes | dict2items }}"
+  no_log: true
 
 - name: Set system facts
   ansible.builtin.set_fact:
     system:
-      "{{ system_result.json.Oem.Dell.DellSystem | combine(os_result.json.Attributes) |
-      ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type']) }}"
+      "{{ system_result.json.Oem.Dell.DellSystem | combine(os_attrs) |
+      ansible.utils.remove_keys(target=['@odata.context',
+      '@odata.id', '@odata.etag', '@odata.type']) }}"
   when: system_result.status == 200 and os_result.status == 200
   register: system_result_register
+
+- name: Error capture
+  ansible.builtin.include_tasks:
+    file: ./__capture_error.yml
+  vars:
+    register_vars:
+      - "{{ system_result }}"
+      - "{{ os_result }}"
+    component: 'system'

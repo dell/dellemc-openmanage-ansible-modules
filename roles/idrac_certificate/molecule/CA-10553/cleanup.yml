@@ -1,0 +1,12 @@
+---
+- name: Cleanup
+  hosts: all
+  gather_facts: false
+  vars:
+    hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+    username: "{{ lookup('env', 'IDRAC_USER') }}"
+    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+    reset_to_default: Default
+  roles:
+    - role: idrac_reset

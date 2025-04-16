@@ -38,3 +38,12 @@
       ansible.utils.remove_keys(target=['^.*@odata.*$'],
       matching_parameter='regex') }}"
   when: controller_list_temp is defined
+
+- name: Error capture
+  ansible.builtin.include_tasks:
+    file: ./__capture_error.yml
+  vars:
+    register_vars:
+      - "{{ disk_result }}"
+      - "{{ result }}"
+    component: 'controller'

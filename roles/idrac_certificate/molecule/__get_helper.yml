@@ -27,13 +27,16 @@
   check_mode: false
 
 - name: Downloading certificate file
-  when: idrac_cert_name is defined and (idrac_cert_name | length > 0)
-         and idrac_certificate_check_file_created.stat.exists
-  register: http_dnld_curl_cmd_out
-  no_log: false
-  changed_when: http_dnld_curl_cmd_out.rc == 0
-  failed_when: http_dnld_curl_cmd_out.rc != 0
-  ansible.builtin.command: >
-      {{ curl_cmd | format(https_share_username, https_share_password, path_for_import_cert + item, curl_http_url) }}
+  ansible.builtin.get_url:
+    url: "http://{{ https_share_ip }}{{ https_certificate_path }}{{ item }}"
+    force_basic_auth: true
+    validate_certs: false
+    url_username: "{{ https_share_username }}"
+    url_password: "{{ https_share_password }}"
+    headers:
+      Authorization: "Basic {{ (https_share_username + ':' +
+        https_share_password) | b64encode }}"
+    mode: "0755"
+    dest: "{{ path_for_import_cert }}"
   check_mode: false
   loop: "{{ idrac_cert_name }}"
