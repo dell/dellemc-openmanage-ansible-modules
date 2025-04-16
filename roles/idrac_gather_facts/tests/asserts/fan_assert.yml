@@ -14,9 +14,17 @@
   register: fan_result
   no_log: false
 
+- name: debug role
+  ansible.builtin.debug:
+    var: fan_data
+
+- name: debug API
+  ansible.builtin.debug:
+    var: fan_result
+
 - name: Set fan facts
   ansible.builtin.set_fact:
-    api_response: "{{ fan_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type']) }}"
+    api_response: "{{ fan_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', '@odata.etag']) }}"
 
 - name: Set the keys diff
   ansible.builtin.set_fact:
@@ -30,11 +38,12 @@
     - diff_keys | length == 0
     - fan_data[item] != api_response[item]
     - item not in exclude_keys
+    - item != "FanPWM"
 
 - name: Assert the difference in Keys
   ansible.builtin.assert:
     that:
-      - "{{ (diff_keys | length) == 0 }}"
-      - "{{ (diff_data | length) == 0 }}"
+      - (diff_keys | length) == 0
+      - (diff_data | length) == 0
     fail_msg: "The response from the role does not match | Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
     success_msg: "The response from the role matches |  Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"

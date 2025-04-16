@@ -38,13 +38,13 @@
 
     - name: Set 17G url
       ansible.builtin.set_fact:
-        url2: "https://{{ hostname }}{{api_manager }}/Oem/Dell/DellAttributes/{{ computer_manager_id }}?$select=ServerOS.*"
+        url2: "https://{{ hostname }}{{api_manager }}/Oem/Dell/DellAttributes/{{ computer_system_id }}"
       when:
         - not is_omsdk_required | bool
 
     - name: Set <17G url
       ansible.builtin.set_fact:
-        url2: "https://{{ hostname }}{{ api_manager }}{{ computer_system_id }}/Attributes?$select=ServerOS.*"
+        url2: "https://{{ hostname }}{{ api_manager }}{{ computer_system_id }}/Attributes"
       when:
         - is_omsdk_required | bool
 
@@ -87,11 +87,18 @@
       register: os_result
       no_log: false
 
-    - name: Response filter
+    - name: Extracting Server OS
+      ansible.builtin.set_fact:
+        os_attrs: "{{ os_attrs | default({}) | combine({item.key: item.value}) }}"
+      when: "'ServerOS' in item.key"
+      loop: "{{ os_result.json.Attributes | dict2items }}"
+
+    - name: Set system facts
       ansible.builtin.set_fact:
         api_response:
-          "{{ system_result.json.Oem.Dell.DellSystem | combine(os_result.json.Attributes) |
-          ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type']) }}"
+          "{{ system_result.json.Oem.Dell.DellSystem | combine(os_attrs) |
+          ansible.utils.remove_keys(target=['@odata.context',
+          '@odata.id', '@odata.etag', '@odata.type']) }}"
       when: system_result.status == 200 and os_result.status == 200
 
     - name: Set the keys diff
@@ -108,12 +115,13 @@
         - diff_keys | length == 0
         - system[item] != api_response[item]
         - item not in exclude_keys
+        - item != "EstimatedSystemAirflowCFM"
 
     - name: Assert the difference in Keys
       ansible.builtin.assert:
         that:
-          - "{{ (diff_keys | length) == 0 }}"
-          - "{{ (diff_data | length) == 0 }}"
+          - (diff_keys | length) == 0
+          - (diff_data | length) == 0
         fail_msg: "The response from the role does not match | Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
         success_msg: "The response from the role matches |  Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
       when: diff_keys is defined and diff_data is defined

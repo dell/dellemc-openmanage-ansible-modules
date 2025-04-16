@@ -39,7 +39,7 @@
     - name: Assert sensor battery dict for length
       ansible.builtin.assert:
         that:
-          - "{{ intrusion_sensor | length > 0 }}"
+          - intrusion_sensor | length > 0
       when: intrusion_result.status == 200
 
     - name: Fetching Sensor Battery info
@@ -60,7 +60,7 @@
       ansible.builtin.set_fact:
         api_response:
           "{{ sensorintrusion_result.json | ansible.utils.remove_keys(target=['@odata.context',
-          '@odata.id', '@odata.type']) }}"
+          '@odata.id', '@odata.type', '@odata.etag']) }}"
       vars:
         jquery: "Oem.Dell.DellSystem"
       when: sensorintrusion_result is defined and
@@ -84,8 +84,8 @@
     - name: Assert the difference in Keys
       ansible.builtin.assert:
         that:
-          - "{{ (diff_keys | length) == 0 }}"
-          - "{{ (diff_data | length) == 0 }}"
+          - (diff_keys | length) == 0
+          - (diff_data | length) == 0
         fail_msg: "The response from the role does not match | Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
         success_msg: "The response from the role matches |  Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
       when: diff_keys is defined and diff_data is defined

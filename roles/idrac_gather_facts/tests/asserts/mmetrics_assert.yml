@@ -31,7 +31,7 @@
     api_memory_metrics: "{{ response_memory_metrics.results |
       selectattr('json', 'defined') | map(attribute='json') |
       flatten | ansible.utils.remove_keys(target=['@odata.context',
-      '@odata.type', '@odata.id', 'DataSourceUri']) }}"
+      '@odata.type', '@odata.id', '@odata.etag', 'DataSourceUri']) }}"
   when: response_memory_metrics.results is defined
 
 - name: Assert memory metrics
@@ -54,5 +54,5 @@
     fail_msg: "The response from the role does not match"
     success_msg: "The response from the role matches"
     that:
-      - "{{ (result_diff | length) == 0 }}"
+      - (result_diff | length) == 0
   when: memory_result.status == 200 and api_memory_metrics| length > 0

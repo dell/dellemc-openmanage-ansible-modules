@@ -39,7 +39,7 @@
     - name: Assert memory dict for length
       ansible.builtin.assert:
         that:
-          - "{{ memory | length > 0 }}"
+          - memory | length > 0
 
     - name: Call assertion
       ansible.builtin.include_tasks: ../../tests/asserts/memory_assert.yml

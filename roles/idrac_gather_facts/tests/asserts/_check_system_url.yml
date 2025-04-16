@@ -20,3 +20,5 @@
 - name: Get first system resource id from manager response.
   ansible.builtin.set_fact:
     api_system: "{{ system_api_result.json.Members[0]['@odata.id'] | default('') }}"
+    computer_system_id: "{{ system_api_result.json.Members[0]['@odata.id'] |
+      split('/') | last }}"

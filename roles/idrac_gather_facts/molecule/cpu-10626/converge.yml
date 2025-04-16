@@ -40,7 +40,7 @@
     - name: Assert cpu dict for length
       ansible.builtin.assert:
         that:
-          - "{{ cpu | length > 0 }}"
+          - cpu | length > 0
 
     - name: Call assertion
       ansible.builtin.include_tasks: ../../tests/asserts/cpu_assert.yml

@@ -39,7 +39,7 @@
     - name: Assert nic dict for length
       ansible.builtin.assert:
         that:
-          - "{{ nic | length > 0 }}"
+          - nic | length > 0
 
     - name: Call assertion
       ansible.builtin.include_tasks: ../../tests/asserts/nic_assert.yml

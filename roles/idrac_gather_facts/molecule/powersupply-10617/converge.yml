@@ -54,7 +54,7 @@
         api_response:
           "{{ powersupply_result.json.Members |
             ansible.utils.remove_keys(target=['@odata.context', '@odata.id',
-            '@odata.type', 'ActiveInputVoltage@Redfish.Deprecated',
+            '@odata.type', '@odata.etag', 'ActiveInputVoltage@Redfish.Deprecated',
             'OperationalStatus@odata.count', 'RedTypeOfSet@odata.count']) }}"
       when: powersupply_result is defined and powersupply_result.status == 200
 
@@ -80,5 +80,5 @@
         fail_msg: "The response from the role does not match"
         success_msg: "The response from the role matches"
         that:
-          - "{{ (result_diff | length) == 0 }}"
+          - (result_diff | length) == 0
       when: api_response is defined and api_response | length > 0

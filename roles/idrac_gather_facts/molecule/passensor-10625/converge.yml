@@ -51,7 +51,7 @@
       ansible.builtin.set_fact:
         api_response: "{{ passensor_result.json.Members |
           ansible.utils.remove_keys(target=['@odata.context',
-         '@odata.id', '@odata.type', 'Assembly', 'Links']) }}"
+         '@odata.id', '@odata.type', '@odata.etag', 'Assembly', 'Links']) }}"
       when: passensor_result is defined and passensor_result.json.Members
            is defined
 
@@ -79,5 +79,5 @@
         fail_msg: "The response from the role does not match"
         success_msg: "The response from the role matches"
         that:
-          - "{{ (result_diff | length) == 0 }}"
+          - (result_diff | length) == 0
       when: api_response is defined and api_response | length > 0
