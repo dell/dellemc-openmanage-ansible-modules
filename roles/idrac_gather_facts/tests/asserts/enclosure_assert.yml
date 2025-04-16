@@ -1,6 +1,6 @@
 - name: Fetching Enclosure info
   ansible.builtin.uri:
-    url: "https://{{ hostname }}/redfish/v1/Chassis/Oem/Dell/DellEnclosures/{{ enclosure_data.Id }}"
+    url: "https://{{ hostname }}{{ api_chassis }}/Oem/Dell/DellEnclosures/{{ enclosure_data.Id }}"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
     method: "{{ idrac_gather_facts_uri_method }}"
