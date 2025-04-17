@@ -26,7 +26,7 @@
 #
 
 
-GET_IDRAC_LIFECYCLE_CONTROLLER_JOB_STATUS_INFO_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{0}"
+GET_IDRAC_LIFECYCLE_CONTROLLER_JOB_STATUS_INFO_10 = "/redfish/v1/Managers/iDRAC.Embedded.1"
 NA = "Not Available"
 
 
@@ -38,7 +38,7 @@ class IDRACLifecycleControllerJobStatusInfo(object):
 
         job_success_list = ['Completed', 'Success']
         job_failed_list = ['Failed', 'Errors']
-        job_state = str(info_data.get("JobState"))
+        job_state = str(info_data.get("JobState", NA))
         if job_state in job_success_list:
             job_status = "Success"
         elif job_state in job_failed_list:
@@ -57,26 +57,47 @@ class IDRACLifecycleControllerJobStatusInfo(object):
 
         transformed_info_data = {
             "ElapsedTimeSinceCompletion": "",
-            "InstanceID": str(info_data.get("Id")),
-            "JobStartTime": str(info_data.get("StartTime")),
+            "InstanceID": str(info_data.get("Id", NA)),
+            "JobStartTime": str(info_data.get("StartTime", NA)),
             "JobStatus": job_state,
             "JobUntilTime": "NA",
-            "Message": str(info_data.get("Message")),
+            "Message": str(info_data.get("Message", NA)),
             "MessageArguments": message_argument,
-            "MessageID": str(info_data.get("MessageId")),
-            "Name": str(info_data.get("Name")),
-            "PercentComplete": str(info_data.get("PercentComplete")),
+            "MessageID": str(info_data.get("MessageId", NA)),
+            "Name": str(info_data.get("Name", NA)),
+            "PercentComplete": str(info_data.get("PercentComplete", NA)),
             "Status": job_status,
-            "ActualRunningStopTime": str(info_data.get("ActualRunningStopTime")),
-            "JobType": str(info_data.get("JobType")),
-            "ActualRunningStartTime": str(info_data.get("ActualRunningStartTime")),
-            "EndTime": str(info_data.get("EndTime")),
-            "CompletionTime": str(info_data.get("CompletionTime")),
-            "Description": str(info_data.get("Description")),
-            "TargetSettingsURI": str(info_data.get("TargetSettingsURI"))
+            "ActualRunningStopTime": str(info_data.get("ActualRunningStopTime", NA)),
+            "JobType": str(info_data.get("JobType", NA)),
+            "ActualRunningStartTime": str(info_data.get("ActualRunningStartTime", NA)),
+            "EndTime": str(info_data.get("EndTime", NA)),
+            "CompletionTime": str(info_data.get("CompletionTime", NA)),
+            "Description": str(info_data.get("Description", NA)),
+            "TargetSettingsURI": str(info_data.get("TargetSettingsURI", NA))
         }
         return transformed_info_data
 
+    def get_lifecycle_controller_job_details(self, module, members):
+        response = "Job ID is invalid"
+        print(members)
+        for member in members:
+            print(member.get("@odata.id"))
+            print("BOFHGVBN")
+            if module.params.get('job_id') in member.get("@odata.id"):
+                response = self.idrac.invoke_request(method='GET', uri=member.get("@odata.id"))
+                print("dxgfcbh")
+                print(response)
+                break
+        return response
+
+    def get_lifecycle_controller_job_list(self, module, jobs):
+        job_response = self.idrac.invoke_request(method='GET', uri=jobs)
+        members = job_response.json_data.get("Members", [])
+        response =  self.get_lifecycle_controller_job_details(module, members)
+        return response
+
     def get_lifecycle_controller_job_status_info(self, module):
-        response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_LIFECYCLE_CONTROLLER_JOB_STATUS_INFO_10.format(module.params.get('job_id')))
+        manager_response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_LIFECYCLE_CONTROLLER_JOB_STATUS_INFO_10)
+        jobs = manager_response.json_data.get("Oem", {}).get("Dell", {}).get("Jobs", {}).get("@odata.id", "")
+        response = self.get_lifecycle_controller_job_list(module=module, jobs=jobs)
         return response
