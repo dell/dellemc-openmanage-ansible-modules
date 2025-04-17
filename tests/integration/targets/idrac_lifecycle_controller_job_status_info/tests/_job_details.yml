@@ -2,7 +2,7 @@
 - block:
     - name: Final url
       ansible.builtin.set_fact:
-        job_url: "{{ BASE_URI }}{{ JOB_URI }}{{ JID }}"
+        job_url: "{{ base_uri }}{{ job_uri }}{{ JID }}"
 
     - name: Get job details on iDRAC10
       ansible.builtin.uri:

@@ -54,7 +54,7 @@
 
     - name: Final url
       ansible.builtin.set_fact:
-        final_url: "{{ BASE_URI }}{{ MANAGERS }}{{ EXPORT_SCP }}"
+        final_url: "{{ base_uri }}{{ managers }}{{ export_scp }}"
 
     - name: Create Success Export SCP Job on iDRAC10
       ansible.builtin.uri: &idrac_export_scp_uri
@@ -176,7 +176,7 @@
 
     - name: Final url for import scp
       ansible.builtin.set_fact:
-        final_url: "{{ BASE_URI }}{{ MANAGERS }}{{ IMPORT_SCP }}"
+        final_url: "{{ base_uri }}{{ managers }}{{ import_scp }}"
 
     - name: Create failed import scp job on iDRAC10
       ansible.builtin.uri:

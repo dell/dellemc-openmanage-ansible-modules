@@ -18,7 +18,7 @@
         job_id: "1234"
       ignore_errors: true
       register: invalid_unreachable
-      ignore_unreachable: true 
+      ignore_unreachable: true
 
     - name: Verify task status - Negative - unreachable host
       ansible.builtin.assert:
