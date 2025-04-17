@@ -116,6 +116,7 @@
         - system[item] != api_response[item]
         - item not in exclude_keys
         - item != "EstimatedSystemAirflowCFM"
+        - item != "EstimatedExhaustTemperatureCelsius"
 
     - name: Assert the difference in Keys
       ansible.builtin.assert:

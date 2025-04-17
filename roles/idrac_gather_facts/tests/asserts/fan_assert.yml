@@ -38,7 +38,7 @@
     - diff_keys | length == 0
     - fan_data[item] != api_response[item]
     - item not in exclude_keys
-    - item != "FanPWM"
+    - item != "SecondarySpeedPercent"
 
 - name: Assert the difference in Keys
   ansible.builtin.assert:

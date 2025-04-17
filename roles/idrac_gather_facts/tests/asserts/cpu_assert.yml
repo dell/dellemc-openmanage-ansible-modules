@@ -18,10 +18,6 @@
   ansible.builtin.set_fact:
     api_response: "{{ cpu_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', '@odata.etag', 'Assembly', 'Links']) }}"
 
-- name: debug role
-  ansible.builtin.debug:
-    var: cpu_data
-
 - name: Set the keys diff
   ansible.builtin.set_fact:
     diff_keys: "{{ cpu_data.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
