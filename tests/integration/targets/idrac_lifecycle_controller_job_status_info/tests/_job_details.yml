@@ -55,11 +55,13 @@
           MessageID: "{{ info_data.json.MessageId }}"
           Name: "{{ info_data.json.Name }}"
           PercentComplete: "{{ info_data.json.PercentComplete }}"
-          ActualRunningStopTime: "{{ info_data.json.ActualRunningStopTime }}"
+          ActualRunningStopTime: "{{ info_data.json.ActualRunningStopTime |
+            default('None', true) }}"
           JobType: "{{ info_data.json.JobType }}"
           ActualRunningStartTime: "{{ info_data.json.ActualRunningStartTime }}"
           EndTime: "{{ info_data.json.EndTime | default('None', true) }}"
-          CompletionTime: "{{ info_data.json.CompletionTime }}"
+          CompletionTime: "{{ info_data.json.CompletionTime |
+            default('None', true) }}"
           Description: "{{ info_data.json.Description }}"
           Status: "{{ job_status }}"
           TargetSettingsURI: "{{ info_data.json.TargetSettingsURI |
