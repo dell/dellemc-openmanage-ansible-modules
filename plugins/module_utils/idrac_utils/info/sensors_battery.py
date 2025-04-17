@@ -34,15 +34,6 @@ class IDRACSensorsBatteryInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
 
-    def get_sensor_type_and_current_state_and_id(self, uri):
-        response = self.idrac.invoke_request(method='GET', uri=uri)
-        if response.status_code == 200:
-            current_state = response.json_data.get("CurrentState", "")
-            sensor_type = response.json_data.get("SensorType", "")
-            id = response.json_data.get("Id", "")
-            return current_state, sensor_type, id
-        return "", "", ""
-
     def sensors_battery_mapped_data(self, resp):
         health_state_map = {
             "CriticalFailure": "Critical",

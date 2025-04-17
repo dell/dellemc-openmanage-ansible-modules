@@ -1,7 +1,6 @@
 import sys
 import json
-import requests
-from requests.auth import HTTPBasicAuth
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
 
 NA = "Not Available"
 
@@ -9,6 +8,7 @@ enclosure_uri = sys.argv[1]
 idrac_host = sys.argv[2]
 idrac_user = sys.argv[3]
 idrac_password = sys.argv[4]
+idrac_port = sys.argv[5]
 
 
 def get_enclosure_data(resp):
@@ -43,12 +43,20 @@ def get_controller_enclosure_sensor_info(resp):
     return enclosure_sensor_info
 
 
-full_url = f"{idrac_host}{enclosure_uri}"
+full_url = f"{enclosure_uri}"
 
-response = requests.get(full_url, auth=HTTPBasicAuth(idrac_user, idrac_password), verify=False)
-response.raise_for_status()
+params = {
+    "idrac_ip": idrac_host,
+    "idrac_user": idrac_user,
+    "idrac_password": idrac_password,
+    "idrac_port": idrac_port,
+    "validate_certs": False
+}
 
-enclosure_json = response.json()
+red_api = iDRACRedfishAPI(params)
+response = red_api.invoke_request(method='GET', uri=full_url)
+
+enclosure_json = response.json_data
 
 structured = get_enclosure_data(enclosure_json)
 

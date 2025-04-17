@@ -13,19 +13,33 @@
   register: chassis_response
 
 - name: Manually build enclosure_uri_list
-  set_fact:
-    enclosure_uri_list: "{{ enclosure_uri_list | default([]) + [ item['@odata.id'] ] }}"
+  ansible.builtin.set_fact:
+    enclosure_uri_list: >-
+      {{ enclosure_uri_list | default([])
+         + [ item['@odata.id'] ] }}
   loop: "{{ chassis_response.json.Members }}"
-  when: "'Enclosure' in item['@odata.id']"
+  when: >-
+    'Enclosure' in item['@odata.id']
 
 - name: Filter only enclosure URIs
   ansible.builtin.set_fact:
-    enclosure_uris: "{{ enclosure_uri_list | select('search', 'Enclosure') | list }}"
+    enclosure_uris: >-
+      {{ enclosure_uri_list
+         | select('search', 'Enclosure')
+         | list }}
 
 - name: Fetch and structure each enclosure
   ansible.builtin.command:
     cmd: >
-      python _get_enclosure_details.py '{{ item }}' '{{ base_uri }}' '{{ idrac_user }}' '{{ idrac_password }}'
+      python _get_enclosure_details.py
+      "{{ item | trim }}"
+      "{{ idrac_ip }}"
+      "{{ idrac_user }}"
+      "{{ idrac_password }}"
+      "{{ idrac_port }}"
     chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
   loop: "{{ enclosure_uris }}"
   register: enclosure_updated_dict
+
+
+

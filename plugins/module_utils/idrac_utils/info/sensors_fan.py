@@ -35,24 +35,26 @@ class IDRACSensorsFanInfo(object):
         self.idrac = idrac
 
     def sensors_fan_mapped_data(self, resp):
-        output = {
-            "CurrentReading": NA,
-            "CurrentState": NA,
-            "DeviceID": NA,
-            "FQDD": NA,
-            "HealthState": NA,
-            "Key": NA,
-            "Location": NA,
-            "Name": NA,
-            "OtherSensorTypeDescription": NA,
-            "PrimaryStatus": NA,
-            "SensorType": NA,
-            "State": NA,
-            "SubType": NA,
-            "Type": NA,
-            "coolingUnitIndexReference": NA
-        }
-        return output
+        response = self.idrac.invoke_request(method='GET', uri=resp)
+        if response.status_code == 200:
+            output = {
+                "CurrentReading": NA,
+                "CurrentState": NA,
+                "DeviceID": NA,
+                "FQDD": NA,
+                "HealthState": NA,
+                "Key": NA,
+                "Location": NA,
+                "Name": NA,
+                "OtherSensorTypeDescription": NA,
+                "PrimaryStatus": NA,
+                "SensorType": NA,
+                "State": NA,
+                "SubType": NA,
+                "Type": NA,
+                "coolingUnitIndexReference": NA
+            }
+            return output
 
     def get_sensors_fan_info(self):
         output = []

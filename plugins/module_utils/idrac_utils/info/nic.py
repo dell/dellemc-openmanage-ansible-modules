@@ -101,64 +101,69 @@ class IDRACNICInfo(object):
 
     def map_nic_data(self, nic, id):
         """Maps NIC fields from the API response to a structured format."""
+        def sanitize(value):
+            return NA if value == "" else value
+
         dcb_protocol, fcoe_boot_support, fcoe_offload_support, flex_add_support, nic_part_support, \
             pxe_boot_support, tcp_chimney_support, wol_support, iscsi_boot_support, iscsi_offload_support = self.get_nic_capability_details(id)
+
         link_status = self.get_nic_port_metrics_details(id)
         mac_address, link_speed, auto_neg, perm_mac_addr, health = self.get_ethernet_details()
         rx_bytes, rx_multicast, rx_unicast, tx_bytes, tx_multicast, tx_unicast = self.get_nic_statistics_details(id)
+
         output = {
-            "AutoNegotiation": NA if (auto_neg == "") else auto_neg,
+            "AutoNegotiation": sanitize(auto_neg),
             "ControllerBIOSVersion": nic.get("ControllerBIOSVersion", NA),
-            "CurrentMACAddress": NA if (mac_address == "") else mac_address,
-            "DCBExchangeProtocol": NA if (dcb_protocol == "") else dcb_protocol,
+            "CurrentMACAddress": sanitize(mac_address),
+            "DCBExchangeProtocol": sanitize(dcb_protocol),
             "DataBusWidth": nic.get("DataBusWidth", NA),
             "DeviceDescription": nic.get("Description", NA),
             "EFIVersion": nic.get("EFIVersion", NA),
-            "FCoEBootSupport": NA if (fcoe_boot_support == "") else fcoe_boot_support,
+            "FCoEBootSupport": sanitize(fcoe_boot_support),
             "FCoEOffloadMode": nic.get("FCoEOffloadMode", NA),
-            "FCoEOffloadSupport": NA if (fcoe_offload_support == "") else fcoe_offload_support,
+            "FCoEOffloadSupport": sanitize(fcoe_offload_support),
             "FCoEWWNN": nic.get("FCoEWWNN", NA),
             "FQDD": nic.get("Id", NA),
             "FamilyVersion": nic.get("FamilyVersion", NA),
-            "FlexAddressingSupport": NA if (flex_add_support == "") else flex_add_support,
-            "IPv4Address": nic.get("IPv4Addresses", NA),  # missing
-            "IPv6Address": nic.get("IPv6Addresses", NA),  # missing
+            "FlexAddressingSupport": sanitize(flex_add_support),
+            "IPv4Address": nic.get("IPv4Addresses", NA),
+            "IPv6Address": nic.get("IPv6Addresses", NA),
             "Key": nic.get("Id", NA),
             "LinkDuplex": nic.get("LinkDuplex", NA),
-            "LinkSpeed": NA if (link_speed == "") else link_speed,
-            "LinkStatus": NA if (link_status == "") else link_status,  # discuss
-            "MaxBandwidthPercent": nic.get("MaxBandwidthPercent", NA),  # discuss
+            "LinkSpeed": sanitize(link_speed),
+            "LinkStatus": sanitize(link_status),
+            "MaxBandwidthPercent": nic.get("MaxBandwidthPercent", NA),
             "MediaType": nic.get("MediaType", NA),
             "NICCapabilities": nic.get("NICCapabilities", NA),
             "NicMode": nic.get("NicMode", NA),
-            "NicPartitioningSupport": NA if (nic_part_support == "") else nic_part_support,
-            "PXEBootSupport": NA if (pxe_boot_support == "") else pxe_boot_support,
+            "NicPartitioningSupport": sanitize(nic_part_support),
+            "PXEBootSupport": sanitize(pxe_boot_support),
             "PermanentFCOEMACAddress": nic.get("PermanentFCOEMACAddress", NA),
-            "PermanentMACAddress": NA if (perm_mac_addr == "") else perm_mac_addr,
+            "PermanentMACAddress": sanitize(perm_mac_addr),
             "PermanentiSCSIMACAddress": nic.get("PermanentiSCSIMACAddress", NA),
             "PrimaryStatus": "Healthy" if health == "OK" else health,
             "ProductName": nic.get("ProductName", NA),
             "Protocol": nic.get("Protocol", NA),
-            "RxBytes": NA if (rx_bytes == "") else rx_bytes,
-            "RxMutlicast": NA if (rx_multicast == "") else rx_multicast,
-            "RxUnicast": NA if (rx_unicast == "") else rx_unicast,
+            "RxBytes": sanitize(rx_bytes),
+            "RxMutlicast": sanitize(rx_multicast),
+            "RxUnicast": sanitize(rx_unicast),
             "SupportedBootProtocol": nic.get("SupportedBootProtocol", NA),
             "SwitchConnectionID": nic.get("SwitchConnectionID", NA),
             "SwitchPortConnectionID": nic.get("SwitchPortConnectionID", NA),
-            "TCPChimneySupport": NA if (tcp_chimney_support == "") else tcp_chimney_support,
-            "TxBytes": NA if (tx_bytes == "") else tx_bytes,
-            "TxMutlicast": NA if (tx_multicast == "") else tx_multicast,
-            "TxUnicast": NA if (tx_unicast == "") else tx_unicast,
+            "TCPChimneySupport": sanitize(tcp_chimney_support),
+            "TxBytes": sanitize(tx_bytes),
+            "TxMutlicast": sanitize(tx_multicast),
+            "TxUnicast": sanitize(tx_unicast),
             "VFSRIOVSupport": nic.get("VFSRIOVSupport", NA),
             "VendorName": nic.get("VendorName", NA),
-            "VirtMacAddr": NA if (mac_address == "") else mac_address,
+            "VirtMacAddr": sanitize(mac_address),
             "VirtWWN": nic.get("VirtWWN", NA),
             "VirtWWPN": nic.get("VirtWWPN", NA),
-            "WOLSupport": NA if (wol_support == "") else wol_support,
+            "WOLSupport": sanitize(wol_support),
             "WWN": nic.get("WWN", NA),
             "WWPN": nic.get("WWPN", NA),
-            "iSCSIBootSupport": NA if (iscsi_boot_support == "") else iscsi_boot_support,
-            "iSCSIOffloadSupport": NA if (iscsi_offload_support == "") else iscsi_offload_support,
+            "iSCSIBootSupport": sanitize(iscsi_boot_support),
+            "iSCSIOffloadSupport": sanitize(iscsi_offload_support),
             "iScsiOffloadMode": nic.get("iScsiOffloadMode", NA)
         }
         return output

@@ -9,6 +9,7 @@ manager_system_attributes_api_output = sys.argv[4]
 idrac_attributes_api_output = sys.argv[5]
 NA = "Not Available"
 
+
 def system_mapped_data(resp, manager_api_output):
     system_data = resp.get("Oem", {}).get("Dell", {}).get("DellSystem", {})
     firmware_ver, idrac_url, power_state = get_firmware_ver_idrac_url(manager_api_output)
@@ -68,6 +69,7 @@ def system_mapped_data(resp, manager_api_output):
     }
 
     return output
+
 
 def get_system_info():
     output = []
