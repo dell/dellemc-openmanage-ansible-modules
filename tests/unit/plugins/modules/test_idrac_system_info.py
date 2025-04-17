@@ -32,8 +32,7 @@ MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 class TestSystemInventory(FakeAnsibleModule):
     module = idrac_system_info
 
-    @pytest.fixture
-    def idrac_system_info_mock(self, mocker):
+    def create_idrac_mock(self):
         omsdk_mock = MagicMock()
         idrac_obj = MagicMock()
         omsdk_mock.get_entityjson = idrac_obj
@@ -41,12 +40,12 @@ class TestSystemInventory(FakeAnsibleModule):
         return idrac_obj
 
     @pytest.fixture
+    def idrac_system_info_mock(self):
+        return self.create_idrac_mock()
+
+    @pytest.fixture
     def idrac_redfish_system_info_mock(self):
-        omsdk_mock = MagicMock()
-        idrac_obj = MagicMock()
-        omsdk_mock.get_entityjson = idrac_obj
-        type(idrac_obj).get_json_device = Mock(return_value="msg")
-        return idrac_obj
+        return self.create_idrac_mock()
 
     @pytest.fixture
     def idrac_redfish_system_info_connection_mock(self, mocker, idrac_redfish_system_info_mock):

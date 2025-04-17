@@ -16,7 +16,8 @@ manager_idrac_attributs_uri: "{{ base_uri }}\
 idrac_system_uri: "{{ base_uri }}\
   {{ redfish_uri }}Systems/System.Embedded.1"
 bios_firmware_uri: "{{ base_uri }}\
-{{ redfish_uri }}UpdateService/Oem/Dell/DellSoftwareInventory"
+  {{ redfish_uri }}UpdateService/Oem/Dell/DellSoftwareInventory"
 cpu_uri: "{{ base_uri }}\
-{{ redfish_uri }}Systems/System.Embedded.1/Processors?$expand=*($levels=1)"
+  {{ redfish_uri }}Systems/System.Embedded.1/Processors?$expand=*($levels=1)"
 chassis_uri: "{{ base_uri }}{{ redfish_uri }}Chassis"
+dell_sensors_uri: "{{ idrac_system_uri }}/Oem/Dell/DellSensors"

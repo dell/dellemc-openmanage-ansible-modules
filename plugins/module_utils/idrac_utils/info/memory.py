@@ -76,7 +76,7 @@ class IDRACMemoryInfo(object):
         if output["CurrentOperatingSpeed"] is not None:
             output["CurrentOperatingSpeed"] = \
                 str(float(response.json_data.get("OperatingSpeedMhz"))) \
-                    + " MHz"
+                + " MHz"
         else:
             output["CurrentOperatingSpeed"] = NA
         if output["Speed"]:
