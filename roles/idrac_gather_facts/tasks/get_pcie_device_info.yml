@@ -7,6 +7,16 @@
 
 - name: Set PCIeDevice facts
   ansible.builtin.set_fact:
-    pcie_device: "{{ pcie_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'Links', '@odata.etag']) }}"
+    pcie_device: "{{ pcie_result.json.Members | ansible.utils.remove_keys(
+      target=['@odata.context', '@odata.id', '@odata.type', 'Links',
+      '@odata.etag']) }}"
   when: pcie_result.status == 200
   register: pcie_result_register
+
+- name: Error capture
+  ansible.builtin.include_tasks:
+    file: ./__capture_error.yml
+  vars:
+    register_vars:
+      - "{{ pcie_result }}"
+    component: 'pcie_device'

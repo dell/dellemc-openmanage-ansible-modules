@@ -1,0 +1,27 @@
+---
+- name: Capture error (if any)
+  ansible.builtin.set_fact:
+    error_msg_list: "{{ error_msg_list | default([]) + [error_msg] }}"
+  when:
+    - register_vars is defined
+    - "'json' in item"
+    - "'error' in item.json"
+    - "'@Message.ExtendedInfo' in item.json.error"
+    - "'Message' in item.json.error['@Message.ExtendedInfo'][0]"
+  vars:
+    error_msg: "{{ item.json.error['@Message.ExtendedInfo'][0]['Message'] }}"
+  loop: "{{ register_vars }}"
+  no_log: true
+
+- name: Updating error (if any)
+  ansible.builtin.set_fact:
+    idrac_gather_facts_error: "{{ idrac_gather_facts_error |
+      combine({component: error_msg_list}) }}"
+  when:
+    - component is defined
+    - error_msg_list is defined
+    - error_msg_list != []
+
+- name: Emptying error_msg_list
+  ansible.builtin.set_fact:
+    error_msg_list: []
