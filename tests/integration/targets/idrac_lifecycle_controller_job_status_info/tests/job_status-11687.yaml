@@ -110,7 +110,7 @@
           - lc_status.job_info.InstanceID == result_export_scp.scp_status.Id
       when: idrac_gen != "17G Monolithic"
 
-    - name: Verify the diff for running tasks and uri status for iDRAC10
+    - name: Verify the diff for success tasks and uri status for iDRAC10
       ansible.utils.fact_diff:
         before: "{{ lc_status.job_info }}"
         after: "{{ api_response }}"
@@ -131,6 +131,7 @@
       ansible.builtin.uri:
         <<: *idrac_export_scp_uri
       register: reg_progress_exp
+      when: idrac_gen == "17G Monolithic"
 
     - name: Extract Export in running SCP Job ID on iDRAC10
       ansible.builtin.set_fact:
@@ -150,6 +151,7 @@
         - lc_status.job_info.JobStatus in ["Completed", "Failed", "Running"]
       retries: 10
       delay: 30
+      when: idrac_gen == "17G Monolithic"
 
     - name: Get and construct job details
       ansible.builtin.include_tasks: _job_details.yml
