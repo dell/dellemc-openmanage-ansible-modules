@@ -40,6 +40,3 @@
     chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
   loop: "{{ enclosure_uris }}"
   register: enclosure_updated_dict
-
-
-

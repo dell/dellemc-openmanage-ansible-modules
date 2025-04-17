@@ -8,12 +8,14 @@ manager_system_attributes_api_output = sys.argv[4]
 idrac_attributes_api_output = sys.argv[5]
 NA = "Not Available"
 
+
 def get_firmware_ver_idrac_url(manager_output):
     version = manager_output.get("FirmwareVersion", "")
     idrac_url = manager_output.get("Oem", {}).\
-        get("Dell", {}).get("DelliDRACCard", {}).get("URLString","")
+        get("Dell", {}).get("DelliDRACCard", {}).get("URLString", "")
     power_state = manager_output.get("PowerState", "")
     return version , idrac_url , power_state
+
 
 def get_system_cpldversion_and_memsize_and_manufacturer():
     bios_data = json.loads(bios_api_data)
@@ -22,16 +24,19 @@ def get_system_cpldversion_and_memsize_and_manufacturer():
     manufacturer = bios_data.get("Attributes", {}).get("SystemManufacturer", "")
     return cpld_version, memsize, manufacturer
 
+
 def get_system_os_name_and_os_version():
     system_attributes_output = json.loads(manager_system_attributes_api_output)
     os_name = system_attributes_output.get("Attributes", {}).get("ServerOS.1.OSName", "")
     os_version = system_attributes_output.get("Attributes", {}).get("ServerOS.1.OSVersion", "")
     return os_name, os_version
 
+
 def get_system_lockdownmode():
     idrac_attributes = json.loads(idrac_attributes_api_output)
     system_lockdown_mode = idrac_attributes.get("Attributes", {}).get("Lockdown.1.SystemLockdown", "")
     return system_lockdown_mode
+
 
 def system_mapped_data(resp, manager_output):
     system_data = resp.get("Oem", {}).get("Dell", {}).get("DellSystem", {})
@@ -91,6 +96,7 @@ def system_mapped_data(resp, manager_output):
         "smbiosGUID": system_data.get("smbiosGUID", NA)
     }
     return output
+
 
 output = []
 system_output = json.loads(system_api_output)
