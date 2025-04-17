@@ -68,7 +68,7 @@
           {
             "ExportFormat": "JSON",
             "ExportUse": "Default",
-            "ShareParameters": { "Target": ["IDRAC"] },
+            "ShareParameters": {"Target": ["IDRAC"]},
           }
         status_code: 202
         headers: "Accept=application/json"
@@ -185,7 +185,7 @@
           {
             "ImportBuffer": "{{  lookup('ansible.builtin.file',
               '{{ role_path }}/files/import_custom_failed.xml') }}",
-            "ShareParameters": { "Target": ["IDRAC"] },
+            "ShareParameters": {"Target": ["IDRAC"]},
           }
       when: idrac_gen == "17G Monolithic"
       register: resp_import_scp

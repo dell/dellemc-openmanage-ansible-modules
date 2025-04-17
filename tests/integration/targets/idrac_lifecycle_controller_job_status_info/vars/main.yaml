@@ -1,3 +1,4 @@
+---
 base_uri: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/"
 job_uri: "managers/iDRAC.Embedded.1/Oem/Dell/Jobs/"
 managers: "managers/iDRAC.Embedded.1/Actions/Oem/"
