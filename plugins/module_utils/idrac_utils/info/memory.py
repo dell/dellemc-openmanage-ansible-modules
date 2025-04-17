@@ -75,7 +75,8 @@ class IDRACMemoryInfo(object):
     def get_parameters_with_units(self, response, output):
         if output["CurrentOperatingSpeed"] is not None:
             output["CurrentOperatingSpeed"] = \
-                str(response.json_data.get("OperatingSpeedMhz")) + " MHz"
+                str(float(response.json_data.get("OperatingSpeedMhz"))) \
+                    + " MHz"
         else:
             output["CurrentOperatingSpeed"] = NA
         if output["Speed"]:

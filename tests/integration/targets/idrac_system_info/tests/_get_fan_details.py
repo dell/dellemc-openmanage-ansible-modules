@@ -1,6 +1,5 @@
 import sys
 import json
-import ast
 
 fan_api_output = sys.argv[1]
 NA = "Not Available"
@@ -26,7 +25,6 @@ def map_fan_data(fan):
 
 
 output = []
-# fan_output = ast.literal_eval(fan_api_output)
 fan_output = json.loads(fan_api_output)
 fan_members = fan_output.get("Members", [])
 for fan in fan_members:

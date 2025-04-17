@@ -67,7 +67,7 @@ class TestIDRACMemoryInfo(TestUtils):
         result = idrac_memory_info.get_memory_details(MEMORY_LINK)
         expected_result = {
             "BankLabel": "A",
-            "CurrentOperatingSpeed": "6400 MHz",
+            "CurrentOperatingSpeed": "6400.0 MHz",
             "DeviceDescription": "DeviceDescription",
             "FQDD": "DIMM.Socket.A1",
             "Key": "DIMM.Socket.A1",

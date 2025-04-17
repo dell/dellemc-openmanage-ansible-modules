@@ -75,6 +75,6 @@
       '{{ uri_idrac_attributes_data.content | to_json }}'
     chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
   register: system_updated_dict
-  # no_log: true
+  no_log: true
   when:
     - uri_data.status == 200
