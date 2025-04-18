@@ -1,0 +1,24 @@
+---
+- name: Fetch sensor_battery details
+  ansible.builtin.uri:
+    url: "{{ dell_sensors_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: uri_data
+
+- name: Structuring sensor_battery details
+  ansible.builtin.command:
+    cmd: >
+      python _get_sensors_intrusion_details.py
+      '{{ uri_data.content | to_json | quote}}'
+    chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  register: sensor_intrusion_updated_dict
+  no_log: true
+  when:
+    - uri_data.status == 200
