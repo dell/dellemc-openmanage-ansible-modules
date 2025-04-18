@@ -10,16 +10,16 @@ def map_fan_data(fan):
     fan_pwm = fan.get("Oem", {}).get("Dell", {}).get("FanPWM", 0)
     health = fan.get("Status", {}).get("Health", NA)
     output = {
-        "ActiveCooling": fan.get("HotPluggable", NA),
+        "VariableSpeed": "true" if fan_pwm > 0 else "false",
         "CurrentReading": current_reading,
         "DeviceDescription": fan.get("Name", NA),
-        "FQDD": fan.get("Id", NA),
         "Key": fan.get("Id", NA),
-        "Location": fan.get("Location", NA),
         "PWM": fan_pwm,
         "PrimaryStatus": "Healthy" if health == "OK" else health,
         "State": fan.get("State", NA),
-        "VariableSpeed": "true" if fan_pwm > 0 else "false"
+        "ActiveCooling": fan.get("HotPluggable", NA),
+        "FQDD": fan.get("Id", NA),
+        "Location": fan.get("Location", NA)
     }
     return output
 
