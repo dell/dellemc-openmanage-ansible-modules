@@ -25,8 +25,5 @@ def map_fan_data(fan):
 
 
 fan_output = json.loads(fan_api_output)
-output = []
-fan_members = fan_output.get("Members", [])
-for fan in fan_members:
-    output.append(map_fan_data(fan))
+output = [map_fan_data(fan) for fan in fan_output.get("Members", [])]
 print(json.dumps(output, indent=2, ensure_ascii=False))

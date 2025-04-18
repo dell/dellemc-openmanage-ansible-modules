@@ -9,7 +9,7 @@ manager_system_attributes_api_output = sys.argv[4]
 idrac_attributes_api_output = sys.argv[5]
 
 
-def get_firmware_ver_idrac_url(manager_output):
+def get_firmwarever_idrac_url(manager_output):
     power_state = manager_output.get("PowerState", "")
     idrac_url = manager_output.get("Oem", {}).\
         get("Dell", {}).get("DelliDRACCard", {}).get("URLString", "")
@@ -17,7 +17,7 @@ def get_firmware_ver_idrac_url(manager_output):
     return version , idrac_url , power_state
 
 
-def get_system_cpldversion_and_memsize_and_manufacturer():
+def get_system_memsize_and_cpldversion_and_manufacturer():
     bios_data = json.loads(bios_api_data)
     manufacturer = bios_data.get("Attributes", {}).get("SystemManufacturer", "")
     memsize = bios_data.get("Attributes", {}).get("SysMemSize", "")
@@ -25,26 +25,26 @@ def get_system_cpldversion_and_memsize_and_manufacturer():
     return cpld_version, memsize, manufacturer
 
 
-def get_system_os_name_and_os_version():
+def get_system_os_version_and_os_name():
     system_attributes_output = json.loads(manager_system_attributes_api_output)
     os_version = system_attributes_output.get("Attributes", {}).get("ServerOS.1.OSVersion", "")
     os_name = system_attributes_output.get("Attributes", {}).get("ServerOS.1.OSName", "")
     return os_name, os_version
 
 
-def get_system_lockdownmode():
+def get_sys_lockdownmode():
     idrac_attributes = json.loads(idrac_attributes_api_output)
     system_lockdown_mode = idrac_attributes.get("Attributes", {}).get("Lockdown.1.SystemLockdown", "")
     return system_lockdown_mode
 
 
-def system_mapped_data(resp, manager_output):
-    firmware_ver, idrac_url, power_state = get_firmware_ver_idrac_url(manager_output)
+def mapped_data_system(resp, manager_output):
+    firmware_ver, idrac_url, power_state = get_firmwarever_idrac_url(manager_output)
     system_data = resp.get("Oem", {}).get("Dell", {}).get("DellSystem", {})
-    os_name, os_version = get_system_os_name_and_os_version()
-    cpld_version, memsize, manufacturer = get_system_cpldversion_and_memsize_and_manufacturer()
+    os_name, os_version = get_system_os_version_and_os_name()
+    cpld_version, memsize, manufacturer = get_system_memsize_and_cpldversion_and_manufacturer()
     health_rollup = resp.get("Status", {}).get("HealthRollup")
-    system_lockdown_mode = get_system_lockdownmode()
+    system_lockdown_mode = get_sys_lockdownmode()
     output = {
         "AssetTag": NA if (asset := resp.get("AssetTag")) == "" else asset,
         "BIOSReleaseDate": system_data.get("BIOSReleaseDate", NA),
@@ -101,7 +101,5 @@ def system_mapped_data(resp, manager_output):
 system_output = json.loads(system_api_output)
 manager_output = json.loads(manager_api_output)
 output = []
-print(type(manager_output))
-print(type(system_output))
-output.append(system_mapped_data(system_output, manager_output))
+output.append(mapped_data_system(system_output, manager_output))
 print(json.dumps(output, indent=2, ensure_ascii=False))
