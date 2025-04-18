@@ -64,5 +64,14 @@
         that:
           - result.system_info.EnclosureSensor| to_json |
             symmetric_difference(enclosure_updated_dict | to_json)
+
+    - name: Get Memory details and validate - no omsdk required
+      ansible.builtin.include_tasks: _validate_memory.yml
+
+    - name: Get License details and validate - no omsdk required
+      ansible.builtin.include_tasks: _validate_license.yml
+
+    # - name: Get iDRACNIC details and validate - no omsdk required
+    #   ansible.builtin.include_tasks: _validate_idrac_nic.yml
   when:
     - not is_omsdk_required | bool
