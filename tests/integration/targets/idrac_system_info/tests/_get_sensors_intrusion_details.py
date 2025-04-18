@@ -1,31 +1,30 @@
-import sys
 import json
+import sys
 
-sensors_api_output = sys.argv[1]
-# intrusion_api_ouput = sys.argv[2]
 NA = "Not Available"
+sensors_api_output = sys.argv[1]
 
 
-def sensors_intrusion_mapped_data(resp):
+def mapped_sensors_intrusion_data(resp):
     health_state = resp.get("HealthState", NA)
     output = {
+        "Type": NA,
         "CurrentReading": resp.get("CurrentReading", NA),
-        "CurrentState": resp.get("CurrentState", NA),
         "DeviceID": resp.get("Id", NA),
         "HealthState": resp.get("HealthState", NA),
-        "Key": resp.get("ElementName", NA),
-        "Location": resp.get("ElementName", NA),
-        "OtherSensorTypeDescription": NA,
-        "PrimaryStatus": "Healthy" if health_state == "OK" else health_state,
         "SensorType": resp.get("SensorType", NA),
+        "Key": resp.get("ElementName", NA),
+        "OtherSensorTypeDescription": NA,
         "State": resp.get("EnabledState", NA),
-        "Type": NA
+        "CurrentState": resp.get("CurrentState", NA),
+        "Location": resp.get("ElementName", NA),
+        "PrimaryStatus": "Healthy" if health_state == "OK" else health_state
     }
     return output
 
 
-output = []
 sensors_output = json.loads(sensors_api_output)
+output = []
 for mem in sensors_output.get("Members", []):
     if mem.get("ElementName", "") == "System Board Intrusion":
-        output.append(sensors_intrusion_mapped_data(mem))
+        output.append(mapped_sensors_intrusion_data(mem))

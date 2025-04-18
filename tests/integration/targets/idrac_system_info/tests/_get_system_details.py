@@ -1,34 +1,34 @@
-import sys
 import json
+import sys
 
+NA = "Not Available"
 system_api_output = sys.argv[1]
 manager_api_output = sys.argv[2]
 bios_api_data = sys.argv[3]
 manager_system_attributes_api_output = sys.argv[4]
 idrac_attributes_api_output = sys.argv[5]
-NA = "Not Available"
 
 
 def get_firmware_ver_idrac_url(manager_output):
-    version = manager_output.get("FirmwareVersion", "")
+    power_state = manager_output.get("PowerState", "")
     idrac_url = manager_output.get("Oem", {}).\
         get("Dell", {}).get("DelliDRACCard", {}).get("URLString", "")
-    power_state = manager_output.get("PowerState", "")
+    version = manager_output.get("FirmwareVersion", "")
     return version , idrac_url , power_state
 
 
 def get_system_cpldversion_and_memsize_and_manufacturer():
     bios_data = json.loads(bios_api_data)
-    cpld_version = bios_data.get("Attributes", {}).get("SystemCpldVersion", "")
-    memsize = bios_data.get("Attributes", {}).get("SysMemSize", "")
     manufacturer = bios_data.get("Attributes", {}).get("SystemManufacturer", "")
+    memsize = bios_data.get("Attributes", {}).get("SysMemSize", "")
+    cpld_version = bios_data.get("Attributes", {}).get("SystemCpldVersion", "")
     return cpld_version, memsize, manufacturer
 
 
 def get_system_os_name_and_os_version():
     system_attributes_output = json.loads(manager_system_attributes_api_output)
-    os_name = system_attributes_output.get("Attributes", {}).get("ServerOS.1.OSName", "")
     os_version = system_attributes_output.get("Attributes", {}).get("ServerOS.1.OSVersion", "")
+    os_name = system_attributes_output.get("Attributes", {}).get("ServerOS.1.OSName", "")
     return os_name, os_version
 
 
@@ -39,10 +39,10 @@ def get_system_lockdownmode():
 
 
 def system_mapped_data(resp, manager_output):
-    system_data = resp.get("Oem", {}).get("Dell", {}).get("DellSystem", {})
     firmware_ver, idrac_url, power_state = get_firmware_ver_idrac_url(manager_output)
-    cpld_version, memsize, manufacturer = get_system_cpldversion_and_memsize_and_manufacturer()
+    system_data = resp.get("Oem", {}).get("Dell", {}).get("DellSystem", {})
     os_name, os_version = get_system_os_name_and_os_version()
+    cpld_version, memsize, manufacturer = get_system_cpldversion_and_memsize_and_manufacturer()
     health_rollup = resp.get("Status", {}).get("HealthRollup")
     system_lockdown_mode = get_system_lockdownmode()
     output = {
@@ -98,9 +98,9 @@ def system_mapped_data(resp, manager_output):
     return output
 
 
-output = []
 system_output = json.loads(system_api_output)
 manager_output = json.loads(manager_api_output)
+output = []
 print(type(manager_output))
 print(type(system_output))
 output.append(system_mapped_data(system_output, manager_output))
