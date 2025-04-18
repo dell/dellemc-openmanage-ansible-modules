@@ -18,7 +18,7 @@ def idrac_mock():
 
     uri_response_map = {
         GET_IDRAC_MANAGER_URI: {
-            "FirmwareVersion": "5.10.50.00",
+            "FirmwareVersion": "x.x.x.x",
             "Oem": {
                 "Dell": {
                     "DelliDRACCard": {
@@ -107,7 +107,7 @@ class TestIDRACSystemInfo:
         idrac_system_info = IDRACSystemInfo(idrac_mock)
         version, idrac_url, power_state = idrac_system_info.get_firmware_ver_idrac_url()
 
-        assert version == "5.10.50.00"
+        assert version == "x.x.x.x"
         assert idrac_url == "xx.xx.xx.xx"
         assert power_state == "On"
 
@@ -158,7 +158,7 @@ class TestIDRACSystemInfo:
             "ExpressServiceCode": "1234567890",
             "HostName": "idrac-host",
             "Key": "SKU123",
-            "LifecycleControllerVersion": "5.10.50.00",
+            "LifecycleControllerVersion": "x.x.x.x",
             "MachineName": "Machine-A",
             "Manufacturer": "Dell Inc.",
             "MaxCPUSockets": 2,
@@ -210,5 +210,103 @@ class TestIDRACSystemInfo:
         assert isinstance(result, dict)
         assert result["CPLDVersion"] == NA
         assert result["SystemLockDown"] == "Enabled"
-        assert result["LifecycleControllerVersion"] == "5.10.50.00"
+        assert result["LifecycleControllerVersion"] == "x.x.x.x"
         assert result["SysMemTotalSize"] == "128 GB"
+
+    def test_system_mapped_data_missing_oem_block(self, idrac_mock):
+        original_data = idrac_mock.invoke_request("GET", GET_IDRAC_SYSTEM_DETAILS_URI_10).json_data
+        modified_data = original_data.copy()
+        modified_data.pop("Oem", None)
+
+        idrac_system_info = IDRACSystemInfo(idrac_mock)
+        result = idrac_system_info.system_mapped_data(modified_data)
+
+        assert result["BIOSReleaseDate"] == NA
+        assert result["RACType"] == NA
+
+    def test_invoke_request_with_non_200_status(self):
+        mock_idrac = MagicMock()
+
+        mock_response = MagicMock()
+        mock_response.status_code = 500
+        mock_response.json_data = {}
+
+        mock_idrac.invoke_request.return_value = mock_response
+        idrac_system_info = IDRACSystemInfo(mock_idrac)
+
+        version, idrac_url, power_state = idrac_system_info.get_firmware_ver_idrac_url()
+        assert version == ""
+        assert idrac_url == ""
+        assert power_state == ""
+
+    def test_get_system_memsize_and_manufacturer_missing_attributes(self):
+        mock_idrac = MagicMock()
+
+        mock_idrac.invoke_request.return_value.status_code = 200
+        mock_idrac.invoke_request.return_value.json_data = {}
+
+        idrac_system_info = IDRACSystemInfo(mock_idrac)
+        cpld_version, memsize, manufacturer = idrac_system_info.get_system_cpldversion_and_memsize_and_manufacturer()
+
+        assert cpld_version == ""
+        assert memsize == ""
+        assert manufacturer == ""
+
+    def test_get_system_info_success(self):
+        mock_idrac = MagicMock()
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+
+        mock_json = {
+            "Oem": {
+                "Dell": {
+                    "DellSystem": {
+                        "RACType": "iDRAC",
+                        "SystemGeneration": "14G",
+                        "Name": "TestSystem",
+                        "NodeID": "ABC123",
+                        "UUID": "uuid-123",
+                    }
+                }
+            },
+            "SKU": "SKU1234",
+            "Name": "System",
+            "Status": {"HealthRollup": "OK"},
+            "BiosVersion": "2.4.8"
+        }
+
+        mock_response.json_data = mock_json
+        mock_response.json.return_value = mock_json
+        mock_idrac.invoke_request.return_value = mock_response
+
+        idrac_system_info = IDRACSystemInfo(mock_idrac)
+
+        idrac_system_info.get_firmware_ver_idrac_url = MagicMock(return_value=("x.x.x", "https://idrac-url", "On"))
+        idrac_system_info.get_system_cpldversion_and_memsize_and_manufacturer = MagicMock(return_value=("1.x.x", "64 GB", "Dell Inc."))
+        idrac_system_info.get_system_os_name_and_os_version = MagicMock(return_value=("Ubuntu", "x.x"))
+        idrac_system_info.get_system_lockdownmode = MagicMock(return_value="Enabled")
+
+        output = idrac_system_info.get_system_info()
+
+        assert isinstance(output, list)
+        assert output[0]["DeviceDescription"] == "System"
+        assert output[0]["RACType"] == "iDRAC"
+        assert output[0]["LifecycleControllerVersion"] == "x.x.x"
+        assert output[0]["SysMemTotalSize"] == "64 GB"
+        assert output[0]["Manufacturer"] == "Dell Inc."
+        assert output[0]["OSName"] == "Ubuntu"
+        assert output[0]["OSVersion"] == "x.x"
+        assert output[0]["SystemLockDown"] == "Enabled"
+        assert output[0]["PowerState"] == "On"
+        assert output[0]["iDRACURL"] == "https://idrac-url"
+
+    def test_get_system_info_non_200(self):
+        mock_idrac = MagicMock()
+        mock_response = MagicMock()
+        mock_response.status_code = 404
+        mock_idrac.invoke_request.return_value = mock_response
+
+        idrac_system_info = IDRACSystemInfo(mock_idrac)
+        output = idrac_system_info.get_system_info()
+        assert output == []

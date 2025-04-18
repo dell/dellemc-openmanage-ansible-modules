@@ -94,7 +94,7 @@ error_info:
 
 import json
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.firmware.info import IDRACFirmwareInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.firmware import IDRACFirmwareInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.bios import IDRACBiosInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.cpu import IDRACCpuInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.controller_enclosure import IDRACEnclosureInfo
