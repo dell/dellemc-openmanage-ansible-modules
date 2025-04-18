@@ -152,4 +152,4 @@ class IDRACInfo(object):
                 idrac_attributes_response.json_data.\
                 get("Attributes", {}).\
                 get("NIC.1.SwitchPortConnection", NOT_AVAILABLE)
-        return output
+        return [output]

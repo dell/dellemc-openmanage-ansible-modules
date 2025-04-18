@@ -41,7 +41,7 @@ class TestIDRACInfo(TestUtils):
         idrac_info = IDRACInfo(idrac_mock)
         result = idrac_info.get_idrac_nic_info()
 
-        expected_result = {
+        expected_result = [{
             "Key": "iDRAC.Embedded.1",
             "FQDD": "iDRAC.Embedded.1",
             "PrimaryStatus": "Healthy",
@@ -56,6 +56,6 @@ class TestIDRACInfo(TestUtils):
             "NICEnabled": "true",
             "SwitchConnection": "Connected",
             "SwitchPortConnection": "Port 1"
-        }
+        }]
 
         assert result == expected_result
