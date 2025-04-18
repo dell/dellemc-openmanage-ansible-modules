@@ -28,7 +28,7 @@ class TestIDRACFanInfo(TestUtils):
                         "Health": "OK"
                     },
                     "State": "Not Available",
-                    "VariableSpeed": "true"
+                    # "VariableSpeed": "true"
                 },
                 {
                     "HotPluggable": "true",
@@ -52,7 +52,7 @@ class TestIDRACFanInfo(TestUtils):
                         "Health": "OK"
                     },
                     "State": "Not Available",
-                    "VariableSpeed": "true"
+                    # "VariableSpeed": "true"
                 },
             ]
         }
