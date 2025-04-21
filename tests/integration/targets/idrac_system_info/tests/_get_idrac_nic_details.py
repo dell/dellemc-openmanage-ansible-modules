@@ -7,7 +7,7 @@ NOT_AVAILABLE = "Not Available"
 
 
 def get_idrac_nic_info_api(manager_details, nic_details):
-    output = []
+    output = {}
     resp = json.loads(manager_details)
     output["Key"] = resp.get("Id", NOT_AVAILABLE)
     output["FQDD"] = resp.get("Id", NOT_AVAILABLE)
@@ -21,14 +21,14 @@ def get_idrac_nic_info_api(manager_details, nic_details):
         get("Attributes", {}).get("IPv6.1.Address1", NOT_AVAILABLE)
     output["NICSpeed"] = idrac_attributes_response.\
         get("Attributes", {}).get("NIC.1.Speed", NOT_AVAILABLE)
-    output["NICDuplex"] = idrac_attributes_response.\
-        get("Attributes", {}).get("NIC.1.Duplex", NOT_AVAILABLE)
     output["IPv4Address"] = idrac_attributes_response.\
         get("Attributes", {}).get("IPv4.1.Address", NOT_AVAILABLE)
     output["PermanentMACAddress"] = idrac_attributes_response.\
         get("Attributes", {}).get("NIC.1.MACAddress", NOT_AVAILABLE)
     output["GroupName"] = NOT_AVAILABLE
     output["GroupStatus"] = NOT_AVAILABLE
+    output["NICDuplex"] = idrac_attributes_response.\
+        get("Attributes", {}).get("NIC.1.Duplex", NOT_AVAILABLE)
     output["NICEnabled"] = idrac_attributes_response.\
         get("Attributes", {}).get("NIC.1.Enable", NOT_AVAILABLE)
     output["SwitchConnection"] = idrac_attributes_response.\
@@ -42,4 +42,4 @@ def get_idrac_nic_info_api(manager_details, nic_details):
     return [output]
 
 
-print(get_idrac_nic_info_api(manager_details, nic_details)())
+print(get_idrac_nic_info_api(manager_details, nic_details))
