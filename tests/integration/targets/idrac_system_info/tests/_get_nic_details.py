@@ -49,11 +49,11 @@ def get_nicstatistics_details(id):
     for member in nic_statistics_output.get("Members", []):
         if member.get("Id", "") == id:
             rx_bytes = member.get("RxBytes", "")
-            rx_multicast = member.get("RxMutlicastPackets", "")
+            tx_unicast = member.get("TxUnicastPackets", "")
             rx_unicast = member.get("RxUnicastPackets", "")
             tx_bytes = member.get("TxBytes", "")
             tx_multicast = member.get("TxMutlicastPackets", "")
-            tx_unicast = member.get("TxUnicastPackets", "")
+            rx_multicast = member.get("RxMutlicastPackets", "")
     return rx_bytes, rx_multicast, rx_unicast, tx_bytes, \
         tx_multicast, tx_unicast
 
@@ -79,7 +79,7 @@ def mapped_nic_data(nic, nic_port_id):
 
     link_status = get_nic_portmetrics_details(nic_port_id)
     mac_address, link_speed, auto_neg, perm_mac_addr, health = get_nic_ethernet_details()
-    rx_bytes, rx_multicast, rx_unicast, tx_bytes, tx_multicast, tx_unicast = get_nicstatistics_details(id)
+    rx_bytes, rx_multicast, rx_unicast, tx_bytes, tx_multicast, tx_unicast = get_nicstatistics_details(nic_port_id)
 
     output = {
         "AutoNegotiation": sanitize(auto_neg),

@@ -135,11 +135,12 @@ class IDRACPCIDeviceInfo(object):
 
     def get_device_details(self, device_link):
         response = self.idrac.invoke_request(method='GET', uri=device_link)
-        output = {}
+        functions_output = []
         if response.status_code == 200:
             pci_functions = response.json_data.get("Links", {}).\
                 get("PCIeFunctions", [{}])
             for link in pci_functions:
+                output = {}
                 device_link = link.get("@odata.id")
                 if device_link is not None:
                     buswidth, buswidth_api, deviceid, slot_type, \
@@ -164,11 +165,12 @@ class IDRACPCIDeviceInfo(object):
                 output["SlotType"] = slot_type
                 output["SlotType_API"] = slot_type_api
                 output["Description"] = response.json_data.get("Description")
-        return output
+                functions_output.append(output)
+        return functions_output
 
     def get_pcidevice_info(self):
         pcidevice_output = []
         device_links_list = self.get_device_links()
         for each_link in device_links_list:
-            pcidevice_output.append(self.get_device_details(each_link))
+            pcidevice_output.extend(self.get_device_details(each_link))
         return pcidevice_output

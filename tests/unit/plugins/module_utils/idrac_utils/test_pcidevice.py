@@ -17,7 +17,7 @@ class TestIDRACPCIDeviceInfo(TestUtils):
         pci_device_info.get_device_details = MagicMock(
             return_value={})
         result = pci_device_info.get_pcidevice_info()
-        assert result == [{}]
+        assert result == []
 
     def test_get_device_function_details(self, idrac_mock):
         mock_response = {
@@ -85,14 +85,14 @@ class TestIDRACPCIDeviceInfo(TestUtils):
             return_value=(buswidth, buswidth_api, deviceid, slot_type,
                           slot_type_api, slot_length, slot_length_api))
         result = pci_device_info.get_device_details(pcidevice_link)
-        assert result["DataBusWidth"] == buswidth
-        assert result["DataBusWidth_API"] == buswidth_api
-        assert result["FQDD"] == deviceid
-        assert result["Key"] == deviceid
-        assert result["SlotType"] == slot_type
-        assert result["SlotType_API"] == slot_type_api
-        assert result["SlotLength"] == slot_length
-        assert result["SlotLength_API"] == slot_length_api
+        assert result[0]["DataBusWidth"] == buswidth
+        assert result[0]["DataBusWidth_API"] == buswidth_api
+        assert result[0]["FQDD"] == deviceid
+        assert result[0]["Key"] == deviceid
+        assert result[0]["SlotType"] == slot_type
+        assert result[0]["SlotType_API"] == slot_type_api
+        assert result[0]["SlotLength"] == slot_length
+        assert result[0]["SlotLength_API"] == slot_length_api
 
     def test_get_device_details_empty(self, idrac_mock):
         mock_response = {}
@@ -100,7 +100,7 @@ class TestIDRACPCIDeviceInfo(TestUtils):
         idrac_mock.invoke_request.return_value.json_data = mock_response
         pci_device_info = IDRACPCIDeviceInfo(idrac_mock)
         result = pci_device_info.get_device_details(pcidevice_link)
-        assert result == {}
+        assert result == []
 
     def test_get_pcidevice_links(self, idrac_mock):
         links_response = {
@@ -137,7 +137,7 @@ class TestIDRACPCIDeviceInfo(TestUtils):
         idrac_mock.invoke_request.return_value.json_data = links_response
         idrac_memory_info = IDRACPCIDeviceInfo(idrac_mock)
         result = idrac_memory_info.get_device_details(links_response)
-        expected_result = expected_result = {
+        expected_result = [{
             'Description': None,
             'DeviceDescription': None,
             'FQDD': 'Not Available',
@@ -149,5 +149,5 @@ class TestIDRACPCIDeviceInfo(TestUtils):
             'SlotType_API': 'Not Available',
             'DataBusWidth': 'Not Available',
             'DataBusWidth_API': 'Not Available'
-        }
+        }]
         assert result == expected_result
