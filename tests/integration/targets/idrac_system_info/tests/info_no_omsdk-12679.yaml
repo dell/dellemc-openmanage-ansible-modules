@@ -82,7 +82,7 @@
 
     - name: Get nic details - no omsdk required
       ansible.builtin.include_tasks: _validate_nic.yml
-  
+
     - name: Get Memory details and validate - no omsdk required
       ansible.builtin.include_tasks: _validate_memory.yml
 

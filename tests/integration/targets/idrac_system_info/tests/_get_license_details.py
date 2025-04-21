@@ -4,8 +4,6 @@ import json
 get_license_details = sys.argv[1]
 NA = "Not Available"
 
-NA = "Not Available"
-
 
 def get_license_info_api(license_details):
     license_output = []

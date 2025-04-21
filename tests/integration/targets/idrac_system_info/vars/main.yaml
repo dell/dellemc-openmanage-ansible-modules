@@ -29,3 +29,7 @@ nic_capability_uri: "{{ ome_dell_uri }}DellNICCapabilities"
 nic_portmetrics_uri: "{{ ome_dell_uri }}DellNICPortMetrics"
 nic_statistics_uri: "{{ ome_dell_uri }}DellNICStatistics"
 idrac_ethernet_interface_uri: "{{ manager_uri }}EthernetInterfaces/"
+powersupply_uri: "{{ chassis_uri }}/System.Embedded.1/PowerSubsystem/\
+  PowerSupplies?$expand=*($levels=1)"
+sensors_voltage_uri: "{{ idrac_system_uri }}/Oem/Dell/\
+  DellSensors?$expand=*($levels=1)"
