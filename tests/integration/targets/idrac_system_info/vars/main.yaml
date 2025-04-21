@@ -29,3 +29,5 @@ nic_capability_uri: "{{ ome_dell_uri }}DellNICCapabilities"
 nic_portmetrics_uri: "{{ ome_dell_uri }}DellNICPortMetrics"
 nic_statistics_uri: "{{ ome_dell_uri }}DellNICStatistics"
 idrac_ethernet_interface_uri: "{{ manager_uri }}EthernetInterfaces/"
+controller_uri: "{{ base_uri }}/{{ redfish_uri }}\
+  Systems/System.Embedded.1/Oem/Dell/DellControllers"
