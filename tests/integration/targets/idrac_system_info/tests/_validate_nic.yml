@@ -66,7 +66,8 @@
 
 - name: Extract member ID
   set_fact:
-    eth_link_uri: "{{ nic_ethernet_interfacedata.json.Members[0]['@odata.id'] }}"
+    eth_link_uri:
+      "{{ nic_ethernet_interfacedata.json.Members[0]['@odata.id'] }}"
 
 - name: Fetch idrac ethernet details
   ansible.builtin.uri:
