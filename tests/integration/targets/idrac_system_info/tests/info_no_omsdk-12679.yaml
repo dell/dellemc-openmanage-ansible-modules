@@ -91,5 +91,8 @@
 
     - name: Get iDRACNIC details and validate - no omsdk required
       ansible.builtin.include_tasks: _validate_idrac_nic.yml
+
+    - name: Get PCIEDevice details and validate - no omsdk required
+      ansible.builtin.include_tasks: _validate_pcie_devices.yml
   when:
     - not is_omsdk_required | bool
