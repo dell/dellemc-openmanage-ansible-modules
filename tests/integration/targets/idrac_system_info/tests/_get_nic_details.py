@@ -1,45 +1,186 @@
+---
+- name: Set the share vars
+  ansible.builtin.set_fact:
+    https_share_ip: "{{ lookup('env', 'https_share_ip') }}"
+    https_certificate_path: "{{  lookup('env', 'https_certificate_path') }}"
+    https_share_username: "{{ lookup('env', 'https_share_username') }}"
+    https_share_password: "{{ lookup('env', 'https_share_password') }}"
+    path_for_import_cert: "{{ lookup('env', 'path_for_import_cert') }}"
+
+- name: Set fact
+  ansible.builtin.set_fact:
+    curl_cmd: "curl --insecure -u %s:%s -o %s %s"
+    curl_http_url: "{{ https_share_ip }}/{{ https_certificate_path }}"
+
+- name: Create Directory
+  ansible.builtin.file:
+    path: "{{ path_for_import_cert }}"
+    state: directory
+    mode: "0755"
+  register: idrac_certificate_created_directory
+  check_mode: false
+
+- name: Setting up certificate path
+  ansible.builtin.stat:
+    path: "{{ path_for_import_cert }}"
+  register: idrac_certificate_check_file_created
+  check_mode: false
+
+- name: Downloading certificate file
+  when: idrac_cert_name is defined and (idrac_cert_name | length > 0)
+         and idrac_certificate_check_file_created.stat.exists
+  register: http_dnld_curl_cmd_out
+  no_log: false
+  changed_when: http_dnld_curl_cmd_out.rc == 0
+  failed_when: http_dnld_curl_cmd_out.rc != 0
+  ansible.builtin.command: >
+      {{ curl_cmd | format(https_share_username, https_share_password, path_for_import_cert + item, curl_http_url) }}
+  check_mode: false
+  loop: "{{ idrac_cert_name }}"
 import sys
 import json
 
-manager_details = sys.argv[1]
-nic_details = sys.argv[2]
-NOT_AVAILABLE = "Not Available"
+nic_api_output = sys.argv[1]
+nic_capability_api_output = sys.argv[2]
+nic_portmetrics_api_output = sys.argv[3]
+nic_statistics_api_output = sys.argv[4]
+ethernet_ethernet_data_api_output = sys.argv[5]
+NA = "Not Available"
 
 
-def get_idrac_nic_info_api(manager_details, nic_details):
-    output = {}
-    resp = json.loads(manager_details)
-    output["Key"] = resp.get("Id", NOT_AVAILABLE)
-    output["FQDD"] = resp.get("Id", NOT_AVAILABLE)
-    if resp.get("Status", {}).get("Health") == "OK":
-        output["PrimaryStatus"] = "Healthy"
-    else:
-        output["PrimaryStatus"] = resp.\
-            get("Status", {}).get("Health", NOT_AVAILABLE)
-    idrac_attributes_response = json.loads(nic_details)
-    output["IPv6Address"] = idrac_attributes_response.\
-        get("Attributes", {}).get("IPv6.1.Address1", NOT_AVAILABLE)
-    output["NICSpeed"] = idrac_attributes_response.\
-        get("Attributes", {}).get("NIC.1.Speed", NOT_AVAILABLE)
-    output["NICDuplex"] = idrac_attributes_response.\
-        get("Attributes", {}).get("NIC.1.Duplex", NOT_AVAILABLE)
-    output["IPv4Address"] = idrac_attributes_response.\
-        get("Attributes", {}).get("IPv4.1.Address", NOT_AVAILABLE)
-    output["PermanentMACAddress"] = idrac_attributes_response.\
-        get("Attributes", {}).get("NIC.1.MACAddress", NOT_AVAILABLE)
-    output["GroupName"] = NOT_AVAILABLE
-    output["GroupStatus"] = NOT_AVAILABLE
-    output["NICEnabled"] = idrac_attributes_response.\
-        get("Attributes", {}).get("NIC.1.Enable", NOT_AVAILABLE)
-    output["SwitchConnection"] = idrac_attributes_response.\
-        get("Attributes", {}).get("NIC.1.SwitchConnection", NOT_AVAILABLE)
-    output["ProductInfo"] = idrac_attributes_response.\
-        get("Attributes", {}).get("Info.1.Product")
-    output["SwitchPortConnection"] = \
-        idrac_attributes_response.\
-        get("Attributes", {}).\
-        get("NIC.1.SwitchPortConnection", NOT_AVAILABLE)
-    return [output]
+def get_capability_nic_details(id):
+    nic_capability_output = json.loads(nic_capability_api_output)
+    dcb_protocol, fcoe_boot_support, fcoe_offload_support, flex_add_support, \
+        nic_part_support, pxe_boot_support, tcp_chimney_support, wol_support, \
+        iscsi_boot_support, iscsi_offload_support = "", "", "", "", \
+        "", "", "", "", "", ""
+    for member in nic_capability_output.get("Members", []):
+        if member.get("Id", "") == id:
+            iscsi_offload_support = member.get("iSCSIOffloadSupport", "")
+            dcb_protocol = member.get("DCBExchangeProtocol", "")
+            wol_support = member.get("PartitionWOLSupport", "")
+            fcoe_boot_support = member.get("FCoEBootSupport", "")
+            pxe_boot_support = member.get("PXEBootSupport", "")
+            fcoe_offload_support = member.get("FCoEOffloadSupport", "")
+            flex_add_support = member.get("FlexAddressingSupport", "")
+            iscsi_boot_support = member.get("iSCSIBootSupport", "")
+            nic_part_support = member.get("NicPartitioningSupport", "")
+            tcp_chimney_support = member.get("TCPChimneySupport", "")
+    return dcb_protocol, fcoe_boot_support, fcoe_offload_support, \
+        flex_add_support, nic_part_support, pxe_boot_support, \
+        tcp_chimney_support, wol_support, iscsi_boot_support, \
+        iscsi_offload_support
 
 
-print(get_idrac_nic_info_api(manager_details, nic_details))
+def get_nic_portmetrics_details(nic_port_id):
+    nic_portmetrics_output = json.loads(nic_portmetrics_api_output)
+    link_status = ""
+    for member in nic_portmetrics_output.get("Members", []):
+        if member.get("Id", "") == nic_port_id:
+            link_status = member.get("PartitionLinkStatus", "")
+    return link_status
+
+
+def get_nicstatistics_details(id):
+    nic_statistics_output = json.loads(nic_statistics_api_output)
+    rx_bytes, rx_multicast, rx_unicast, tx_bytes, tx_multicast, \
+        tx_unicast = "", "", "", "", "", ""
+    for member in nic_statistics_output.get("Members", []):
+        if member.get("Id", "") == id:
+            rx_bytes = member.get("RxBytes", "")
+            rx_multicast = member.get("RxMutlicastPackets", "")
+            rx_unicast = member.get("RxUnicastPackets", "")
+            tx_bytes = member.get("TxBytes", "")
+            tx_multicast = member.get("TxMutlicastPackets", "")
+            tx_unicast = member.get("TxUnicastPackets", "")
+    return rx_bytes, rx_multicast, rx_unicast, tx_bytes, \
+        tx_multicast, tx_unicast
+
+
+def get_nic_ethernet_details():
+    ethernet_ethernet_data_output = json.loads(ethernet_ethernet_data_api_output)
+    mac_address = ethernet_ethernet_data_output.get("MACAddress", "")
+    link_speed = ethernet_ethernet_data_output.get("SpeedMbps", "")
+    auto_neg = ethernet_ethernet_data_output.get("AutoNeg", "")
+    perm_mac_addr = ethernet_ethernet_data_output.get("PermanentMACAddress", "")
+    health = ethernet_ethernet_data_output.get("Status", {}).get("Health", NA)
+    return mac_address, link_speed, auto_neg, perm_mac_addr, health
+
+
+def mapped_nic_data(nic, nic_port_id):
+    """Maps NIC fields from the API response to a structured format."""
+    def sanitize(value):
+        return NA if value == "" else value
+
+    dcb_protocol, fcoe_boot_support, fcoe_offload_support, flex_add_support, \
+        nic_part_support, pxe_boot_support, tcp_chimney_support, wol_support, \
+        iscsi_boot_support, iscsi_offload_support = get_capability_nic_details(nic_port_id)
+
+    link_status = get_nic_portmetrics_details(nic_port_id)
+    mac_address, link_speed, auto_neg, perm_mac_addr, health = get_nic_ethernet_details()
+    rx_bytes, rx_multicast, rx_unicast, tx_bytes, tx_multicast, tx_unicast = get_nicstatistics_details(id)
+
+    output = {
+        "AutoNegotiation": sanitize(auto_neg),
+        "ControllerBIOSVersion": nic.get("ControllerBIOSVersion", NA),
+        "CurrentMACAddress": sanitize(mac_address),
+        "DCBExchangeProtocol": sanitize(dcb_protocol),
+        "DataBusWidth": nic.get("DataBusWidth", NA),
+        "DeviceDescription": nic.get("Description", NA),
+        "EFIVersion": nic.get("EFIVersion", NA),
+        "FCoEBootSupport": sanitize(fcoe_boot_support),
+        "FCoEOffloadMode": nic.get("FCoEOffloadMode", NA),
+        "FCoEOffloadSupport": sanitize(fcoe_offload_support),
+        "FCoEWWNN": nic.get("FCoEWWNN", NA),
+        "FQDD": nic.get("Id", NA),
+        "FamilyVersion": nic.get("FamilyVersion", NA),
+        "FlexAddressingSupport": sanitize(flex_add_support),
+        "IPv4Address": nic.get("IPv4Addresses", NA),
+        "IPv6Address": nic.get("IPv6Addresses", NA),
+        "Key": nic.get("Id", NA),
+        "LinkDuplex": nic.get("LinkDuplex", NA),
+        "LinkSpeed": sanitize(link_speed),
+        "LinkStatus": sanitize(link_status),
+        "MaxBandwidthPercent": nic.get("MaxBandwidthPercent", NA),
+        "MediaType": nic.get("MediaType", NA),
+        "NICCapabilities": nic.get("NICCapabilities", NA),
+        "NicMode": nic.get("NicMode", NA),
+        "NicPartitioningSupport": sanitize(nic_part_support),
+        "PXEBootSupport": sanitize(pxe_boot_support),
+        "PermanentFCOEMACAddress": nic.get("PermanentFCOEMACAddress", NA),
+        "PermanentMACAddress": sanitize(perm_mac_addr),
+        "PermanentiSCSIMACAddress": nic.get("PermanentiSCSIMACAddress", NA),
+        "PrimaryStatus": "Healthy" if health == "OK" else health,
+        "ProductName": nic.get("ProductName", NA),
+        "Protocol": nic.get("Protocol", NA),
+        "RxBytes": sanitize(rx_bytes),
+        "RxMutlicast": sanitize(rx_multicast),
+        "RxUnicast": sanitize(rx_unicast),
+        "SupportedBootProtocol": nic.get("SupportedBootProtocol", NA),
+        "SwitchConnectionID": nic.get("SwitchConnectionID", NA),
+        "SwitchPortConnectionID": nic.get("SwitchPortConnectionID", NA),
+        "TCPChimneySupport": sanitize(tcp_chimney_support),
+        "TxBytes": sanitize(tx_bytes),
+        "TxMutlicast": sanitize(tx_multicast),
+        "TxUnicast": sanitize(tx_unicast),
+        "VFSRIOVSupport": nic.get("VFSRIOVSupport", NA),
+        "VendorName": nic.get("VendorName", NA),
+        "VirtMacAddr": sanitize(mac_address),
+        "VirtWWN": nic.get("VirtWWN", NA),
+        "VirtWWPN": nic.get("VirtWWPN", NA),
+        "WOLSupport": sanitize(wol_support),
+        "WWN": nic.get("WWN", NA),
+        "WWPN": nic.get("WWPN", NA),
+        "iSCSIBootSupport": sanitize(iscsi_boot_support),
+        "iSCSIOffloadSupport": sanitize(iscsi_offload_support),
+        "iScsiOffloadMode": nic.get("iScsiOffloadMode", NA)
+    }
+    return output
+
+
+output = []
+nic_output = json.loads(nic_api_output)
+nic_members = nic_output.get("Members", [])
+for nic in nic_members:
+    output.append(mapped_nic_data(nic, nic.get("Id")))
+print(output)

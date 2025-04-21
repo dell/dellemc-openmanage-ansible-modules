@@ -27,7 +27,7 @@
 
 - name: Structuring idrac nic details
   ansible.builtin.command:
-    cmd: "python _get_nic_details.py {{ a }} {{ b }}"
+    cmd: "python _ge_idrac_nic_details.py {{ a }} {{ b }}"
     chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
   register: idrac_nic_updated_dict
   vars:
