@@ -1,42 +1,3 @@
----
-- name: Set the share vars
-  ansible.builtin.set_fact:
-    https_share_ip: "{{ lookup('env', 'https_share_ip') }}"
-    https_certificate_path: "{{  lookup('env', 'https_certificate_path') }}"
-    https_share_username: "{{ lookup('env', 'https_share_username') }}"
-    https_share_password: "{{ lookup('env', 'https_share_password') }}"
-    path_for_import_cert: "{{ lookup('env', 'path_for_import_cert') }}"
-
-- name: Set fact
-  ansible.builtin.set_fact:
-    curl_cmd: "curl --insecure -u %s:%s -o %s %s"
-    curl_http_url: "{{ https_share_ip }}/{{ https_certificate_path }}"
-
-- name: Create Directory
-  ansible.builtin.file:
-    path: "{{ path_for_import_cert }}"
-    state: directory
-    mode: "0755"
-  register: idrac_certificate_created_directory
-  check_mode: false
-
-- name: Setting up certificate path
-  ansible.builtin.stat:
-    path: "{{ path_for_import_cert }}"
-  register: idrac_certificate_check_file_created
-  check_mode: false
-
-- name: Downloading certificate file
-  when: idrac_cert_name is defined and (idrac_cert_name | length > 0)
-         and idrac_certificate_check_file_created.stat.exists
-  register: http_dnld_curl_cmd_out
-  no_log: false
-  changed_when: http_dnld_curl_cmd_out.rc == 0
-  failed_when: http_dnld_curl_cmd_out.rc != 0
-  ansible.builtin.command: >
-      {{ curl_cmd | format(https_share_username, https_share_password, path_for_import_cert + item, curl_http_url) }}
-  check_mode: false
-  loop: "{{ idrac_cert_name }}"
 import sys
 import json
 
@@ -88,11 +49,11 @@ def get_nicstatistics_details(id):
     for member in nic_statistics_output.get("Members", []):
         if member.get("Id", "") == id:
             rx_bytes = member.get("RxBytes", "")
-            rx_multicast = member.get("RxMutlicastPackets", "")
+            tx_unicast = member.get("TxUnicastPackets", "")
             rx_unicast = member.get("RxUnicastPackets", "")
             tx_bytes = member.get("TxBytes", "")
             tx_multicast = member.get("TxMutlicastPackets", "")
-            tx_unicast = member.get("TxUnicastPackets", "")
+            rx_multicast = member.get("RxMutlicastPackets", "")
     return rx_bytes, rx_multicast, rx_unicast, tx_bytes, \
         tx_multicast, tx_unicast
 
@@ -118,7 +79,7 @@ def mapped_nic_data(nic, nic_port_id):
 
     link_status = get_nic_portmetrics_details(nic_port_id)
     mac_address, link_speed, auto_neg, perm_mac_addr, health = get_nic_ethernet_details()
-    rx_bytes, rx_multicast, rx_unicast, tx_bytes, tx_multicast, tx_unicast = get_nicstatistics_details(id)
+    rx_bytes, rx_multicast, rx_unicast, tx_bytes, tx_multicast, tx_unicast = get_nicstatistics_details(nic_port_id)
 
     output = {
         "AutoNegotiation": sanitize(auto_neg),

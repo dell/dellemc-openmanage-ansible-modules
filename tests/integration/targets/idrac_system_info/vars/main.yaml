@@ -33,3 +33,5 @@ powersupply_uri: "{{ chassis_uri }}/System.Embedded.1/PowerSubsystem/\
   PowerSupplies?$expand=*($levels=1)"
 sensors_voltage_uri: "{{ idrac_system_uri }}/Oem/Dell/\
   DellSensors?$expand=*($levels=1)"
+controller_uri: "{{ base_uri }}/{{ redfish_uri }}\
+  Systems/System.Embedded.1/Oem/Dell/DellControllers"

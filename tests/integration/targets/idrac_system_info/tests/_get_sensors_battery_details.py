@@ -38,5 +38,4 @@ sensors_output = json.loads(sensors_api_output)
 for mem in sensors_output.get("Members", []):
     if mem.get("ElementName", "") == "System Board CMOS Battery":
         output.append(sensors_battery_mapped_data(mem))
-# print(json.dumps(output, indent=2, ensure_ascii=False))
 print(output)

@@ -26,12 +26,6 @@
     - name: Get Fan details - no omsdk required
       ansible.builtin.include_tasks: _validate_fan.yml
 
-    - name: assert
-      ansible.builtin.assert:
-        that:
-          - result.system_info.Fan| to_json |
-            symmetric_difference(fan_updated_dict| to_json)
-
     - name: Get Bios details - no omsdk required
       ansible.builtin.include_tasks: _validate_bios.yml
 
@@ -79,6 +73,9 @@
 
     - name: Get sensor battery details - no omsdk required
       ansible.builtin.include_tasks: _validate_sensors_battery.yml
+
+    - name: Get controller details - no omsdk required
+      ansible.builtin.include_tasks: _validate_controller.yml
 
     - name: Get nic details - no omsdk required
       ansible.builtin.include_tasks: _validate_nic.yml
