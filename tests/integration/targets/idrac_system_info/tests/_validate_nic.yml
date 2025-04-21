@@ -104,12 +104,26 @@
   when:
     - uri_data.status == 200
 
+- name: Set frequently updating attributes
+  set_fact:
+    attributes:
+      - 'RxBytes'
+      - 'TxBytes'
+      - 'TxUnicast'
+      - 'TxMutlicast'
+      - 'RxMutlicast'
+      - 'RxUnicast'
+
 - name: Comparing values inside list for memory
   ansible.builtin.include_tasks:
     file: _compare_diff.yml
   vars:
-    _before: "{{ item.0 }}"
-    _after: "{{ item.1 }}"
+    _before: "{{ item.0 | dict2items
+        | rejectattr('key', 'in', attributes)
+        | items2dict}}"
+    _after: "{{ item.1 | dict2items
+        | rejectattr('key', 'in', attributes)
+        | items2dict}}"
   when: uri_data.status == 200
   loop: >-
     {{
