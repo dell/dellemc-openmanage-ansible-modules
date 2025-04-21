@@ -65,13 +65,31 @@
           - result.system_info.EnclosureSensor| to_json |
             symmetric_difference(enclosure_updated_dict | to_json)
 
+    - name: Get System details - no omsdk required
+      ansible.builtin.include_tasks: _validate_system.yml
+
+    - name: assert
+      ansible.builtin.assert:
+        that:
+          - result.system_info.System| to_json |
+            symmetric_difference(system_updated_dict| to_json)
+
+    - name: Get sensor intrusion details - no omsdk required
+      ansible.builtin.include_tasks: _validate_sensors_intrusion.yml
+
+    - name: Get sensor battery details - no omsdk required
+      ansible.builtin.include_tasks: _validate_sensors_battery.yml
+
+    - name: Get nic details - no omsdk required
+      ansible.builtin.include_tasks: _validate_nic.yml
+  
     - name: Get Memory details and validate - no omsdk required
       ansible.builtin.include_tasks: _validate_memory.yml
 
     - name: Get License details and validate - no omsdk required
       ansible.builtin.include_tasks: _validate_license.yml
 
-    # - name: Get iDRACNIC details and validate - no omsdk required
-    #   ansible.builtin.include_tasks: _validate_idrac_nic.yml
+    - name: Get iDRACNIC details and validate - no omsdk required
+      ansible.builtin.include_tasks: _validate_idrac_nic.yml
   when:
     - not is_omsdk_required | bool

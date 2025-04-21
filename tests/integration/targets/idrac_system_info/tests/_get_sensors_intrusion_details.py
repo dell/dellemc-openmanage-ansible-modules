@@ -28,3 +28,4 @@ output = []
 for mem in sensors_output.get("Members", []):
     if mem.get("ElementName", "") == "System Board Intrusion":
         output.append(mapped_sensors_intrusion_data(mem))
+print(output)

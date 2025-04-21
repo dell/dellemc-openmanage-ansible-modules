@@ -28,7 +28,7 @@
 - name: Structuring idrac nic details
   ansible.builtin.command:
     cmd: >
-      python _get_nic_details.py
+      python _get_idrac_nic_details.py
       '{{ a | to_json }}'
       '{{ b | to_json }}'
     chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
