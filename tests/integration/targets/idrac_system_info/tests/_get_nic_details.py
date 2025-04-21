@@ -7,7 +7,7 @@ NOT_AVAILABLE = "Not Available"
 
 
 def get_idrac_nic_info_api(manager_details, nic_details):
-    output = []
+    output = {}
     resp = json.loads(manager_details)
     output["Key"] = resp.get("Id", NOT_AVAILABLE)
     output["FQDD"] = resp.get("Id", NOT_AVAILABLE)
@@ -39,7 +39,7 @@ def get_idrac_nic_info_api(manager_details, nic_details):
         idrac_attributes_response.\
         get("Attributes", {}).\
         get("NIC.1.SwitchPortConnection", NOT_AVAILABLE)
-    return output
+    return [output]
 
 
-print(get_idrac_nic_info_api(manager_details, nic_details)())
+print(get_idrac_nic_info_api(manager_details, nic_details))

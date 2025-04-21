@@ -27,15 +27,12 @@
 
 - name: Structuring idrac nic details
   ansible.builtin.command:
-    cmd: >
-      python _get_nic_details.py
-      '{{ a | to_json }}'
-      '{{ b | to_json }}'
+    cmd: "python _get_nic_details.py {{ a }} {{ b }}"
     chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
   register: idrac_nic_updated_dict
   vars:
-    a: "{{ uri_manager_data.json }}"
-    b: "{{ uri_data.json }}"
+    a: "{{ uri_manager_data.json | to_json | quote }}"
+    b: "{{ uri_data.json | to_json | quote }}"
   when:
     - uri_data.status == 200
     - uri_manager_data.status == 200
