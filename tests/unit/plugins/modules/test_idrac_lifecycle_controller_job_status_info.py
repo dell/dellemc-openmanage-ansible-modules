@@ -75,15 +75,6 @@ RESPONSE = {
     "@odata.type": "#Manager.v1_20_0.Manager",
     "Oem": {
         "Dell": {
-            # "DelliDRACCard": {
-            #     "LastSystemInventoryTime": "2025-01-28T12:51:04+00:00",
-            #     "Description": "An instance of DelliDRACCard will have data specific to the Integrated Dell Remote Access Controller (iDRAC) in the managed system.",
-            #     "IPMIVersion": "2.0",
-            #     "Id": "iDRAC.Embedded.1-1_0x23_IDRACinfo",
-            #     "Name": "DelliDRACCard",
-            #     "URLString": "https://100.68.200.192:443",
-            #     "LastUpdateTime": "2025-04-15T14:38:53+00:00"
-            # },
             "Jobs": {
                 "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs"
             },
@@ -132,13 +123,6 @@ class TestLcJobStatus(FakeAnsibleModule):
         omsdk_mock.job_mgr = idrac_obj
         type(idrac_obj).get_job_status = Mock(return_value="job_id")
         return idrac_obj
-
-    # @pytest.fixture
-    # def idrac_mock(mocker, redfish_response_mock):
-    #     connection_class_mock = mocker.patch(MODULE_PATH + 'iDRACRedfishAPI')
-    #     idrac_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
-    #     idrac_connection_mock_obj.invoke_request.return_value = redfish_response_mock
-    #     return idrac_connection_mock_obj
 
     @pytest.fixture
     def idrac_lc_job_status_info_mock(self):
