@@ -1,5 +1,4 @@
 ---
----
 - name: Fetch fan details
   ansible.builtin.uri:
     url: "{{ fan_uri }}"

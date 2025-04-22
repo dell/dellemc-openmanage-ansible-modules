@@ -91,5 +91,11 @@
 
     - name: Get PCIEDevice details and validate - no omsdk required
       ansible.builtin.include_tasks: _validate_pcie_devices.yml
+
+    - name: Get Powersupply details and validate - no omsdk required
+      ansible.builtin.include_tasks: _validate_powersupply.yml
+
+    - name: Get Sensors voltage details and validate - no omsdk required
+      ansible.builtin.include_tasks: _validate_sensors_voltage.yml
   when:
     - not is_omsdk_required | bool
