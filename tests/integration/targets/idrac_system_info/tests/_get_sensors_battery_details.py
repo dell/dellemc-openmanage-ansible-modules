@@ -8,27 +8,27 @@ NA = "Not Available"
 
 def sensors_battery_mapped_data(resp):
     health_state_map = {
-        "CriticalFailure": "Critical",
         "Degraded/Warning": "Warning",
-        "MajorFailure": "Critical",
-        "MinorFailure": "Critical",
+        "CriticalFailure": "Critical",
         "NonRecoverableError": "Critical",
+        "MajorFailure": "Critical",        
         "OK": "Healthy",
-        "Unknown": "Unknown"
+        "Unknown": "Unknown",
+        "MinorFailure": "Critical"
     }
     health_state = resp.get("HealthState", NA)
     primary_status = health_state_map.get(health_state, NA)
     output = {
         "CurrentReading": resp.get("CurrentReading", NA),
-        "CurrentState": resp.get("CurrentState", NA),
+        "State": resp.get("EnabledState", NA),
         "DeviceID": resp.get("Id", NA),
-        "HealthState": resp.get("HealthState", NA),
         "Key": resp.get("ElementName", NA),
+        "SensorType": resp.get("SensorType", NA),
         "Location": resp.get("ElementName", NA),
         "OtherSensorTypeDescription": NA,
         "PrimaryStatus": primary_status,
-        "SensorType": resp.get("SensorType", NA),
-        "State": resp.get("EnabledState", NA)
+        "HealthState": resp.get("HealthState", NA),
+        "CurrentState": resp.get("CurrentState", NA)
     }
     return output
 

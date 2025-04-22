@@ -35,3 +35,5 @@ sensors_voltage_uri: "{{ idrac_system_uri }}/Oem/Dell/\
   DellSensors?$expand=*($levels=1)"
 controller_uri: "{{ base_uri }}/{{ redfish_uri }}\
   Systems/System.Embedded.1/Oem/Dell/DellControllers"
+storage_uri: "{{ base_uri }}/{{ redfish_uri }}\
+  Systems/System.Embedded.1/Storage"

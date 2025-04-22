@@ -82,3 +82,19 @@
     - uri_bios_data.status == 200
     - uri_manager_system_attributes_data.status == 200
     - uri_idrac_attributes_data.status == 200
+
+- name: Output conversion to list
+  ansible.builtin.set_fact:
+    system_updated_dict: "{{ system_updated_dict.stdout | to_json |
+      from_json }}"
+  when:
+    - uri_data.status == 200
+
+- name: Comparing values inside list for memory
+  ansible.builtin.include_tasks:
+    file: _compare_diff.yml
+  vars:
+    _before: "{{ item.0 }}"
+    _after: "{{ item.1 }}"
+  when: uri_data.status == 200
+  loop: "{{ result.system_info.System | zip(system_updated_dict) }}"
