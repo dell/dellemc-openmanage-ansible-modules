@@ -50,7 +50,7 @@ SLOT_TYPE_MAPPING = {
     "PCI Express Gen 3 x2": "00B3",
     "PCI Express Gen 3 x4": "00B4",
     "PCI Express Gen 3 x8": "00B5",
-    "PCI Express Gen 3 x16": "00B6"
+    "PCI Express Gen 3 x16": "00B6",
     "PCI Express Gen 3": "00B1",
 }
 SLOT_LENGTH_MAPPING = {
