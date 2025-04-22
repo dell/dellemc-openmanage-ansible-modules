@@ -1,4 +1,5 @@
 ---
+---
 - name: Fetch fan details
   ansible.builtin.uri:
     url: "{{ fan_uri }}"
@@ -16,7 +17,7 @@
   ansible.builtin.command:
     cmd: >
       python _get_fan_details.py
-      '{{ uri_data.content | to_json | quote}}'
+      '{{ uri_data.json | to_json }}'
     chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
   register: fan_updated_dict
   no_log: true
