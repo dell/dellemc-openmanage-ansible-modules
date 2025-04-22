@@ -97,5 +97,8 @@
 
     - name: Get Sensors voltage details and validate - no omsdk required
       ansible.builtin.include_tasks: _validate_sensors_voltage.yml
+
+    - name: Get Physical disk details and validate - no omsdk required
+      ansible.builtin.include_tasks: _validate_physical_disk.yml
   when:
     - not is_omsdk_required | bool
