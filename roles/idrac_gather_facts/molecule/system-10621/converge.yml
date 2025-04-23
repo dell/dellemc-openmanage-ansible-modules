@@ -38,13 +38,13 @@
 
     - name: Set 17G url
       ansible.builtin.set_fact:
-        url2: "https://{{ hostname }}{{api_manager }}/Oem/Dell/DellAttributes/{{ computer_system_id }}"
+        url2: "https://{{ hostname }}{{ api_manager }}/Oem/Dell/DellAttributes/{{ computer_system_id }}"
       when:
         - not is_omsdk_required | bool
 
     - name: Set <17G url
       ansible.builtin.set_fact:
-        url2: "https://{{ hostname }}{{ api_manager }}{{ computer_system_id }}/Attributes"
+        url2: "https://{{ hostname }}/redfish/v1/Managers/{{ computer_system_id }}/Attributes"
       when:
         - is_omsdk_required | bool
 
