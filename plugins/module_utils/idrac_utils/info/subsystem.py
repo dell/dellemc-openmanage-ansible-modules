@@ -38,12 +38,12 @@ GET_IDRAC_SENSOR_TEMPERATURE_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedd
 GET_IDRAC_STORAGE_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Storage?$expand=*($levels=1)"
 GET_IDRAC_SENSOR_AMPERAGE_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Sensors/SystemBoardPwrConsumption"
 GET_IDRAC_SYSTEM_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1"
-Subsystem = []
 
 
 class IDRACSubsystemInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
+        self.sub_system = []
 
     def get_idrac_cpu_health_status(self):
         response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_CPU_DETAILS_URI_10)
@@ -53,10 +53,10 @@ class IDRACSubsystemInfo(object):
             health_status = members[0].get("Status", {}).get("Health", "Unknown")
         else:
             health_status = "Unknown"
-        Subsystem.append({
+        return {
             "Key": "CPU",
             "PrimaryStatus": "Healthy" if health_status == "OK" else health_status
-        })
+        }
 
     def get_idrac_license_health_status(self):
         response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_LICENSE_DETAILS_URI_10)
@@ -66,10 +66,10 @@ class IDRACSubsystemInfo(object):
             health_status = members[0].get("Status", {}).get("Health", "Unknown")
         else:
             health_status = "Unknown"
-        Subsystem.append({
+        return {
             "Key": "License",
             "PrimaryStatus": "Healthy" if health_status == "OK" else health_status
-        })
+        }
 
     def get_idrac_memory_health_status(self):
         response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_MEMORY_DETAILS_URI_10)
@@ -79,10 +79,10 @@ class IDRACSubsystemInfo(object):
             health_status = members[0].get("Status", {}).get("Health", "Unknown")
         else:
             health_status = "Unknown"
-        Subsystem.append({
+        return {
             "Key": "Memory",
             "PrimaryStatus": "Healthy" if health_status == "OK" else health_status
-        })
+        }
 
     def get_idrac_power_supply_health_status(self):
         response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_POWER_SUPPLY_DETAILS_URI_10)
@@ -92,10 +92,10 @@ class IDRACSubsystemInfo(object):
             health_status = members[0].get("Status", {}).get("Health", "Unknown")
         else:
             health_status = "Unknown"
-        Subsystem.append({
+        return {
             "Key": "PowerSupply",
             "PrimaryStatus": "Healthy" if health_status == "OK" else health_status
-        })
+        }
 
     def get_idrac_sensor_voltage_health_status(self):
         response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_SENSOR_VOLTAGE_DETAILS_URI_10)
@@ -105,10 +105,10 @@ class IDRACSubsystemInfo(object):
             health_status = members[0].get("Status", {}).get("Health", "Unknown")
         else:
             health_status = "Unknown"
-        Subsystem.append({
+        return {
             "Key": "Sensors_Voltage",
             "PrimaryStatus": "Healthy" if health_status == "OK" else health_status
-        })
+        }
 
     def get_idrac_sensor_battery_health_status(self):
         found = False
@@ -116,18 +116,16 @@ class IDRACSubsystemInfo(object):
         for mem in response.json_data.get("Members", []):
             if mem.get("ElementName", "") == "System Board CMOS Battery":
                 health_status = mem.get("HealthState")
-                Subsystem.append({
+                return {
                     "Key": "Sensors_Battery",
                     "PrimaryStatus": "Healthy" if health_status == "OK" else health_status
-                })
-                found = True
-                break
+                }
 
         if not found:
-            Subsystem.append({
+            return {
                 "Key": "Sensors_Battery",
                 "PrimaryStatus": "Unknown"
-            })
+            }
 
     def get_idrac_sensor_fan_health_status(self):
         response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_SENSOR_FAN_DETAILS_URI_10)
@@ -137,19 +135,19 @@ class IDRACSubsystemInfo(object):
             health_status = members[0].get("Status", {}).get("Health", "Unknown")
         else:
             health_status = "Unknown"
-        Subsystem.append({
+        return {
             "Key": "Sensors_Fan",
             "PrimaryStatus": "Healthy" if health_status == "OK" else health_status
-        })
+        }
 
     def get_idrac_sensor_intrusion_health_status(self):
         response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_SENSOR_INTRUSION_DETAILS_URI_10)
         output = response.json_data
         health_status = output["PhysicalSecurity"].get("IntrusionSensor", "Unknown")
-        Subsystem.append({
+        return {
             "Key": "Sensors_Intrusion",
             "PrimaryStatus": "Healthy" if health_status == "Normal" else health_status
-        })
+        }
 
     def get_idrac_sensor_temperature_health_status(self):
         response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_SENSOR_TEMPERATURE_DETAILS_URI_10)
@@ -159,35 +157,41 @@ class IDRACSubsystemInfo(object):
             health_status = members[0].get("Status", {}).get("Health", "Unknown")
         else:
             health_status = "Unknown"
-        Subsystem.append({
+        return {
             "Key": "Sensors_Temperature",
             "PrimaryStatus": "Healthy" if health_status == "OK" else health_status
-        })
+        }
 
     def get_idrac_system_health_status(self):
         response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_SYSTEM_DETAILS_URI_10)
         output = response.json_data
         health_status = output["Status"].get("Health", "Unknown")
-        Subsystem.append({
+        return {
             "Key": "System",
             "PrimaryStatus": "Healthy" if health_status == "OK" else health_status
-        })
+        }
 
     def get_idrac_vflash_health_status(self):
         # Hardcoding value, since no api is available
-        Subsystem.append({
+        return {
             "Key": "VFlash",
             "PrimaryStatus": "Unknown"
-        })
+        }
 
     def get_idrac_sensor_amperage_health_status(self):
         response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_SENSOR_AMPERAGE_DETAILS_URI_10)
         output = response.json_data
         health_status = output["Status"].get("Health", "Unknown")
-        Subsystem.append({
+        return {
             "Key": "Sensors_Amperage",
             "PrimaryStatus": "Healthy" if health_status == "OK" else health_status
-        })
+        }
+
+    def get_storage_health_status_data(self, uri):
+        response = self.idrac.invoke_request(method='GET', uri=uri)
+        output = response.json_data
+        health_status = output["Status"].get("Health", "Unknown") or "Unknown"
+        return health_status
 
     def get_idrac_storage_health_status(self):
         response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_STORAGE_DETAILS_URI_10)
@@ -196,26 +200,27 @@ class IDRACSubsystemInfo(object):
         health_status = "Unknown"
         if members:
             URI = members[0].get("@odata.id", "")
-            response = self.idrac.invoke_request(method='GET', uri=URI)
-            output = response.json_data
-            health_status = output["Status"].get("Health", "Unknown") or "Unknown"
-        Subsystem.append({
+            health_status = self.get_storage_health_status_data(uri=URI)
+            # response = self.idrac.invoke_request(method='GET', uri=URI)
+            # output = response.json_data
+            # health_status = output["Status"].get("Health", "Unknown") or "Unknown"
+        return {
             "Key": "Storage",
             "PrimaryStatus": "Healthy" if health_status == "OK" else health_status
-        })
+        }
 
     def get_subsystem_info(self):
-        self.get_idrac_system_health_status()
-        self.get_idrac_memory_health_status()
-        self.get_idrac_cpu_health_status()
-        self.get_idrac_sensor_fan_health_status()
-        self.get_idrac_power_supply_health_status()
-        self.get_idrac_storage_health_status()
-        self.get_idrac_license_health_status()
-        self.get_idrac_sensor_voltage_health_status()
-        self.get_idrac_sensor_temperature_health_status()
-        self.get_idrac_sensor_battery_health_status()
-        self.get_idrac_vflash_health_status()
-        self.get_idrac_sensor_intrusion_health_status()
-        self.get_idrac_sensor_amperage_health_status()
-        return Subsystem
+        self.sub_system.append(self.get_idrac_system_health_status())
+        self.sub_system.append(self.get_idrac_memory_health_status())
+        self.sub_system.append(self.get_idrac_cpu_health_status())
+        self.sub_system.append(self.get_idrac_sensor_fan_health_status())
+        self.sub_system.append(self.get_idrac_power_supply_health_status())
+        self.sub_system.append(self.get_idrac_storage_health_status())
+        self.sub_system.append(self.get_idrac_license_health_status())
+        self.sub_system.append(self.get_idrac_sensor_voltage_health_status())
+        self.sub_system.append(self.get_idrac_sensor_temperature_health_status())
+        self.sub_system.append(self.get_idrac_sensor_battery_health_status())
+        self.sub_system.append(self.get_idrac_vflash_health_status())
+        self.sub_system.append(self.get_idrac_sensor_intrusion_health_status())
+        self.sub_system.append(self.get_idrac_sensor_amperage_health_status())
+        return self.sub_system
