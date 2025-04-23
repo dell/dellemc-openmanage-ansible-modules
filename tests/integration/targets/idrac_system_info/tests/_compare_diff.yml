@@ -1,0 +1,12 @@
+---
+- name: Compare details
+  ansible.utils.fact_diff:
+    before: "{{ _before }}"
+    after: "{{ _after }}"
+  register: diff_result
+
+- name: Performing assertion on diff
+  ansible.builtin.assert:
+    that:
+      - not diff_result.changed
+      - not diff_result.diff_lines

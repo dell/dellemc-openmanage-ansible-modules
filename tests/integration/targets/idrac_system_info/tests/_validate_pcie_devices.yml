@@ -1,0 +1,38 @@
+---
+- name: Structuring pcie devices details
+  ansible.builtin.command:
+    cmd: >
+      python _get_pcie_device_details.py
+      '{{ idrac_ip }}'
+      '{{ idrac_user }}'
+      '{{ idrac_password }}'
+      '{{ idrac_port }}'
+    chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  register: pcie_devices_updated_dict
+  when:
+    - uri_data.status == 200
+
+- name: Output conversion to list
+  ansible.builtin.set_fact:
+    pcie_devices_updated_dict: "{{ pcie_devices_updated_dict.stdout | to_json |
+     from_json }}"
+  when:
+    - uri_data.status == 200
+
+- name: Sorting the data before compare
+  ansible.builtin.set_fact:
+    PCIDevice: "{{ result.system_info.PCIDevice | sort(attribute='FQDD') }}"
+    APIPCIDevice: "{{ pcie_devices_updated_dict | sort(attribute='FQDD') }}"
+
+- name: Asserting number of dictonary matches in list
+  ansible.builtin.assert:
+    that: "{{ PCIDevice | length == APIPCIDevice | length }}"
+
+- name: Comparing values inside list for pcie devices
+  ansible.builtin.include_tasks:
+    file: _compare_diff.yml
+  vars:
+    _before: "{{ item.0 }}"
+    _after: "{{ item.1 }}"
+  when: uri_data.status == 200
+  loop: "{{ PCIDevice | zip(APIPCIDevice) }}"

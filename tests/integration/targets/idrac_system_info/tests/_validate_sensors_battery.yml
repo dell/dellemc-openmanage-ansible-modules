@@ -1,0 +1,40 @@
+---
+- name: Fetch sensor_battery details
+  ansible.builtin.uri:
+    url: "{{ dell_sensors_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: uri_data
+
+- name: Structuring sensor_battery details
+  ansible.builtin.command:
+    cmd: >
+      python _get_sensors_battery_details.py
+      '{{ uri_data.json | to_json }}'
+    chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  register: sensor_battery_updated_dict
+  no_log: true
+  when:
+    - uri_data.status == 200
+- name: Output conversion to list
+  ansible.builtin.set_fact:
+    sensor_battery_updated_dict: "{{ sensor_battery_updated_dict.stdout |
+      to_json | from_json }}"
+  when:
+    - uri_data.status == 200
+
+- name: Comparing values inside list for memory
+  ansible.builtin.include_tasks:
+    file: _compare_diff.yml
+  vars:
+    _before: "{{ item.0 }}"
+    _after: "{{ item.1 }}"
+  when: uri_data.status == 200
+  loop: "{{ result.system_info.Sensors_Battery |
+    zip(sensor_battery_updated_dict) }}"

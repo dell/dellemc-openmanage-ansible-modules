@@ -1,0 +1,57 @@
+---
+- name: Fetch manager details
+  ansible.builtin.uri:
+    url: "{{ manager_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: uri_manager_data
+
+- name: Fetch idrac_nic details
+  ansible.builtin.uri:
+    url: "{{ manager_idrac_attributs_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: uri_data
+
+- name: Structuring idrac nic details
+  ansible.builtin.command:
+    cmd: "python _get_idrac_nic_details.py {{ a }} {{ b }}"
+    chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  register: idrac_nic_updated_dict
+  vars:
+    a: "{{ uri_manager_data.json | to_json | quote }}"
+    b: "{{ uri_data.json | to_json | quote }}"
+  when:
+    - uri_data.status == 200
+    - uri_manager_data.status == 200
+
+- name: Output conversion to list
+  ansible.builtin.set_fact:
+    idrac_nic_updated_dict: "{{ idrac_nic_updated_dict.stdout | to_json |
+      from_json }}"
+  when:
+    - uri_data.status == 200
+    - uri_manager_data.status == 200
+
+- name: Comparing values inside list for memory
+  ansible.builtin.include_tasks:
+    file: _compare_diff.yml
+  vars:
+    _before: "{{ item.0 }}"
+    _after: "{{ item.1 }}"
+  when:
+    - uri_data.status == 200
+    - uri_manager_data.status == 200
+  loop: "{{ result.system_info.iDRACNIC | zip(idrac_nic_updated_dict) }}"

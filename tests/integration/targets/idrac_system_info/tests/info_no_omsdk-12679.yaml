@@ -1,0 +1,74 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+    is not defined'
+
+- name: Check if module is calling omsdk
+  ansible.builtin.include_tasks: _check_firmware_version_supported.yml
+
+- block:
+    - name: Get System Inventory
+      dellemc.openmanage.idrac_system_info:
+        idrac_ip: "{{idrac_ip}}"
+        idrac_user: "{{idrac_user}}"
+        idrac_password: "{{idrac_password}}"
+        validate_certs: "{{validate_certs}}"
+      register: result
+
+    - name: Get Fan details - no omsdk required
+      ansible.builtin.include_tasks: _validate_fan.yml
+
+    - name: Get Bios details - no omsdk required
+      ansible.builtin.include_tasks: _validate_bios.yml
+
+    - name: Get CPU details - no omsdk required
+      ansible.builtin.include_tasks: _validate_cpu.yml
+
+    - name: Get Enclosure details - no omsdk required
+      ansible.builtin.include_tasks: _validate_enclosure_details.yml
+
+    - name: Get System details - no omsdk required
+      ansible.builtin.include_tasks: _validate_system.yml
+
+    - name: Get sensor intrusion details - no omsdk required
+      ansible.builtin.include_tasks: _validate_sensors_intrusion.yml
+
+    - name: Get sensor battery details - no omsdk required
+      ansible.builtin.include_tasks: _validate_sensors_battery.yml
+
+    - name: Get controller details - no omsdk required
+      ansible.builtin.include_tasks: _validate_controller.yml
+
+    - name: Get nic details - no omsdk required
+      ansible.builtin.include_tasks: _validate_nic.yml
+
+    - name: Get Memory details and validate - no omsdk required
+      ansible.builtin.include_tasks: _validate_memory.yml
+
+    - name: Get License details and validate - no omsdk required
+      ansible.builtin.include_tasks: _validate_license.yml
+
+    - name: Get iDRACNIC details and validate - no omsdk required
+      ansible.builtin.include_tasks: _validate_idrac_nic.yml
+
+    - name: Get PCIEDevice details and validate - no omsdk required
+      ansible.builtin.include_tasks: _validate_pcie_devices.yml
+
+    - name: Get Powersupply details and validate - no omsdk required
+      ansible.builtin.include_tasks: _validate_powersupply.yml
+
+    - name: Get Sensors voltage details and validate - no omsdk required
+      ansible.builtin.include_tasks: _validate_sensors_voltage.yml
+
+    - name: Get Physical disk details and validate - no omsdk required
+      ansible.builtin.include_tasks: _validate_physical_disk.yml
+  when:
+    - not is_omsdk_required | bool

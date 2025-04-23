@@ -1,0 +1,27 @@
+---
+- name: Structure BIOS details using validation script
+  ansible.builtin.command:
+    cmd: >
+      python _get_bios_details.py
+      "{{ idrac_ip }}"
+      "{{ idrac_user }}"
+      "{{ idrac_password }}"
+      "{{ idrac_port }}"
+    chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  register: bios_updated_dict
+
+- name: Output conversion to list
+  ansible.builtin.set_fact:
+    bios_updated_dict: "{{ bios_updated_dict.stdout | to_json |
+      from_json }}"
+  when:
+    - uri_data.status == 200
+
+- name: Comparing values inside list for bios
+  ansible.builtin.include_tasks:
+    file: _compare_diff.yml
+  vars:
+    _before: "{{ item.0 }}"
+    _after: "{{ item.1 }}"
+  when: uri_data.status == 200
+  loop: "{{ result.system_info.BIOS | zip(bios_updated_dict) }}"

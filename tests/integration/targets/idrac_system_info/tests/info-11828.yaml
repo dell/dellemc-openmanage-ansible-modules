@@ -1,0 +1,135 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+    is not defined'
+
+- name: Check if module is calling omsdk
+  ansible.builtin.include_tasks: _check_firmware_version_supported.yml
+
+- block:
+    - name: Get System Inventory
+      dellemc.openmanage.idrac_system_info:
+        idrac_ip: "{{idrac_ip}}"
+        idrac_user: "{{idrac_user}}"
+        idrac_password: "{{idrac_password}}"
+        validate_certs: "{{validate_certs}}"
+      register: result
+
+    - name: Set baseuri
+      ansible.builtin.set_fact:
+        baseuri: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/"
+
+    - name: Get Storage controllers information.
+      uri:
+        url: "{{ baseuri }}Systems/System.Embedded.1/Storage"
+        user: "{{idrac_user}}"
+        password: "{{idrac_password}}"
+        validate_certs: false
+        headers: 'Accept=application/json'
+      register: storage_uri
+
+    - name: Get BIOS controllers information.
+      uri:
+        url: "{{ baseuri }}Systems/System.Embedded.1/Bios"
+        user: "{{idrac_user}}"
+        password: "{{idrac_password}}"
+        validate_certs: false
+        headers: 'Accept=application/json'
+      register: bios_uri
+
+    - name: Get Licenses information.
+      uri:
+        url: "{{ baseuri }}Managers/iDRAC.Embedded.1/Oem/Dell/DellLicenses"
+        user: "{{idrac_user}}"
+        password: "{{idrac_password}}"
+        validate_certs: false
+        headers: 'Accept=application/json'
+      register: license_uri
+
+    - name: Get Memory information.
+      uri:
+        url: "{{ baseuri }}Systems/System.Embedded.1/Memory"
+        user: "{{idrac_user}}"
+        password: "{{idrac_password}}"
+        validate_certs: false
+        headers: 'Accept=application/json'
+      register: memory_uri
+
+    - name: Get power supply information.
+      uri:
+        url: "{{ baseuri }}Systems/System.Embedded.1"
+        user: "{{idrac_user}}"
+        password: "{{idrac_password}}"
+        validate_certs: false
+        headers: 'Accept=application/json'
+      register: power_uri
+
+    - name: Verify status of tasks
+      assert:
+        that:
+          - not result.changed
+          - result.msg == "Successfully fetched the system inventory details."
+          - result.system_info.iDRAC[0].IPv4Address == idrac_ip
+          - result.system_info.Video
+          - result.system_info.iDRAC
+          - result.system_info.System
+          - result.system_info.SystemMetrics
+          - result.system_info.iDRACNIC
+          - result.system_info.Sensors_Voltage
+          - result.system_info.BIOS
+          - result.system_info.CPU
+          - result.system_info.NIC
+          - result.system_info.Memory
+          - result.system_info.License
+          - bios_uri.json.Attributes.SystemBiosVersion ==
+            result.system_info.BIOS[0].VersionString
+
+    - name: Verify controller information
+      assert:
+        that:
+          - storage_uri.json.Members |
+            length == result.system_info.Controller | length
+      when:
+        - storage_uri.json.Members | length > 0
+
+    - name: Verify license information
+      assert:
+        that:
+          - license_uri.json.Members | length ==
+            result.system_info.License | length
+      when:
+        - license_uri.json.Members | length > 0
+
+    - name: Verify memory information
+      assert:
+        that:
+          - memory_uri.json.Members |
+            length == result.system_info.Memory | length
+      when:
+        - memory_uri.json.Members | length > 0
+
+    - name: Filter power supplies with presence detected
+      set_fact:
+        present_power_supplies:
+          "{{ result.system_info.PowerSupply |
+            selectattr('DetailedState', 'equalto', 'Presence Detected') |
+            list }}"
+
+    - name: Verify power supply information
+      assert:
+        that:
+          - power_uri.json.Links.PoweredBy | length ==
+            present_power_supplies | length
+      when:
+        - power_uri.json.Links.PoweredBy | length > 0
+
+  when:
+    - is_omsdk_required | bool
