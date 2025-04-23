@@ -134,7 +134,7 @@ def mapped_nic_data(nic, nic_port_id):
         "AutoNegotiation": sanitize(auto_neg),
         "RxBytes": sanitize(rx_bytes),
         "RxMutlicast": sanitize(rx_multicast),
-        "RxUnicast": sanitize(rx_unicast
+        "RxUnicast": sanitize(rx_unicast)
     }
     return output
 
