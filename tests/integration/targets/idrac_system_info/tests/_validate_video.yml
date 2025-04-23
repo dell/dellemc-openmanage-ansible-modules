@@ -1,0 +1,32 @@
+---
+- name: Fetch Video details
+  ansible.builtin.uri:
+    url: "{{ video_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: uri_data
+
+- name: Structuring video details
+  ansible.builtin.command:
+    cmd: >
+      python _get_video_details.py '{{ uri_data.content | to_json }}'
+    chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  register: video_updated_dict
+  no_log: true
+  when:
+    - uri_data.status == 200
+
+- name: Comparing values inside list for video
+  ansible.builtin.include_tasks:
+    file: _compare_diff.yml
+  vars:
+    _before: "{{ item.0 }}"
+    _after: "{{ item.1 }}"
+  when: uri_data.status == 200
+  loop: "{{ result.system_info.Video | zip(video_updated_dict) }}"

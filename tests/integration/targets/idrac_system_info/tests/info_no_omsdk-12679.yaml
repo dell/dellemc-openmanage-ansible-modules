@@ -70,5 +70,16 @@
 
     - name: Get Physical disk details and validate - no omsdk required
       ansible.builtin.include_tasks: _validate_physical_disk.yml
+
+    - name: Get iDRAC details and validate - no omsdk required
+      ansible.builtin.include_tasks: _validate_idrac.yml
+
+    - name: Get Subsystem details and validate - no omsdk required
+      ansible.builtin.include_tasks: _validate_subsystem.yml
+
+    - name: Get Video details and validate - no omsdk required
+      ansible.builtin.include_tasks: _validate_video.yml
+
+
   when:
     - not is_omsdk_required | bool

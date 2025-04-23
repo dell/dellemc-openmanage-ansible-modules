@@ -1,0 +1,210 @@
+---
+- name: Fetch cpu health details
+  ansible.builtin.uri:
+    url: "{{ cpu_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: cpu_health_data
+
+- name: Fetch license health details
+  ansible.builtin.uri:
+    url: "{{ license_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: license_health_data
+
+- name: Fetch memory health details
+  ansible.builtin.uri:
+    url: "{{ memory_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: memory_health_data
+
+
+- name: Fetch power supply health details
+  ansible.builtin.uri:
+    url: "{{ power_supply_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: power_supply_data
+
+- name: Fetch sensor voltage health details
+  ansible.builtin.uri:
+    url: "{{ voltage_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: voltage_health_data
+
+- name: Fetch DELL sensors health details
+  ansible.builtin.uri:
+    url: "{{ sensor_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: sensor_health_data
+
+- name: Fetch sensor fan health details
+  ansible.builtin.uri:
+    url: "{{ fan_sensor_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: fan_sensor_health_data
+
+- name: Fetch sensor intrusion health details
+  ansible.builtin.uri:
+    url: "{{ intrusion_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: intrusion_health_data
+
+- name: Fetch sensor temperature health details
+  ansible.builtin.uri:
+    url: "{{ temperature_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: temperature_uri_health_data
+
+- name: Fetch storage health details
+  ansible.builtin.uri:
+    url: "{{ storage_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: storage_health_data
+
+- name: Fetch storage members health details
+  ansible.builtin.uri:
+    url: 'https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+      {{ storage_health_data.json.get("Members", [])[0].get("@odata.id", "")}}'
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: storage_health_data
+
+- name: Fetch sensor amperage health details
+  ansible.builtin.uri:
+    url: "{{ sensor_amperage_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: sensor_amperage_health_data
+
+- name: Fetch system health details
+  ansible.builtin.uri:
+    url: "{{ system_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: system_health_data
+
+- name: Structuring subsystem details
+  ansible.builtin.command:
+    cmd: "python _get_subsystem_details.py {{ a }} {{ b }} {{ c }} {{ d }}
+      {{ e }} {{ f }} {{ g }} {{ h }} {{ i }} {{ j }} {{ k }} {{ l }}"
+    chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  register: subsystem_updated_dict
+  no_log: false
+  vars:
+    a: "{{ cpu_health_data.content | to_json }}"
+    b: "{{ license_health_data.content | to_json }}"
+    c: "{{ memory_health_data.content | to_json }}"
+    d: "{{ power_supply_data.content | to_json }}"
+    e: "{{ voltage_health_data.content | to_json }}"
+    f: "{{ sensor_health_data.content | to_json }}"
+    g: "{{ fan_sensor_health_data.content | to_json }}"
+    h: "{{ intrusion_health_data.content | to_json }}"
+    i: "{{ temperature_uri_health_data.content | to_json }}"
+    j: "{{ storage_health_data.content | to_json }}"
+    k: "{{ sensor_amperage_health_data.content | to_json }}"
+    l: "{{ system_health_data.content | to_json }}"
+  when:
+    - system_health_data.status == 200
+
+- name: Output conversion to list
+  ansible.builtin.set_fact:
+    subsystem_updated_dict: "{{ subsystem_updated_dict.stdout |
+      to_json | from_json }}"
+  when:
+    - system_health_data.status == 200
+
+- name: Comparing values inside list for subsystem
+  ansible.builtin.include_tasks:
+    file: _compare_diff.yml
+  vars:
+    _before: "{{ item.0 }}"
+    _after: "{{ item.1 }}"
+  when: system_health_data.status == 200
+  loop: "{{ result.system_info.Subsystem | zip(subsystem_updated_dict) }}"
