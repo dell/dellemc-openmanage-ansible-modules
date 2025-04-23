@@ -112,6 +112,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.\
     idrac_utils.info.firmware import IDRACFirmwareInfo
 
 ERR_STATUS = 404
+FETCH_MESSAGE = "Successfully fetched the job info."
 
 
 def main():
@@ -135,16 +136,16 @@ def main():
                         IDRACLifecycleControllerJobStatusInfo(idrac). \
                         transform_job_status_data(info_data=response.json_data)
                 else:
-                    module.exit_json(msg=response,
-                                     failed=True)
+                    module.exit_json(msg=FETCH_MESSAGE,
+                                     job_info={})
             else:
                 with iDRACConnection(module.params) as idrac:
-                    job_id, msg = module.params.get('job_id'), {}
+                    job_id = module.params.get('job_id')
                     lifecycle_controller_job_status_info = \
                         idrac.job_mgr.get_job_status(job_id)
-                    if msg.get('Status') == "Found Fault":
-                        module.exit_json(msg="Job ID is invalid.",
-                                         failed=True)
+                    if lifecycle_controller_job_status_info.get('Status') == "Found Fault":
+                        module.exit_json(msg=FETCH_MESSAGE,
+                                         job_info={})
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err),
                          failed=True)

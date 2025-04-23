@@ -28,6 +28,7 @@
 
 GET_IDRAC_LIFECYCLE_CONTROLLER_JOB_STATUS_INFO_10 = "/redfish/v1/Managers/iDRAC.Embedded.1"
 NA = "Not Available"
+odata = "@odata.id"
 
 
 class IDRACLifecycleControllerJobStatusInfo(object):
@@ -79,8 +80,8 @@ class IDRACLifecycleControllerJobStatusInfo(object):
     def get_lifecycle_controller_job_details(self, job_id, members):
         response = "Job ID is invalid"
         for member in members:
-            if job_id in member.get("@odata.id"):
-                response = self.idrac.invoke_request(method='GET', uri=member.get("@odata.id"))
+            if job_id in member.get(odata):
+                response = self.idrac.invoke_request(method='GET', uri=member.get(odata))
                 break
         return response
 
@@ -92,6 +93,6 @@ class IDRACLifecycleControllerJobStatusInfo(object):
 
     def get_lifecycle_controller_job_status_info(self, job_id):
         manager_response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_LIFECYCLE_CONTROLLER_JOB_STATUS_INFO_10)
-        jobs = manager_response.json_data.get("Oem", {}).get("Dell", {}).get("Jobs", {}).get("@odata.id", "")
+        jobs = manager_response.json_data.get("Oem", {}).get("Dell", {}).get("Jobs", {}).get(odata, "")
         response = self.get_lifecycle_controller_job_list(job_id=job_id, jobs=jobs)
         return response

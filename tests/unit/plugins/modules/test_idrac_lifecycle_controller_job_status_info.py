@@ -28,12 +28,12 @@ importorskip("omsdk.sdkfile")
 importorskip("omsdk.sdkcreds")
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
-JOB_LINK = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/job_id"
 JOB_MEMBERS = [
     {
         "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/job_id"
     },
 ]
+JOB_LINK = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/job_id"
 RESPONSE = {
     "Status": {
         "Health": "OK",
@@ -61,6 +61,10 @@ RESPONSE = {
     "LogServices": {
         "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices"
     },
+    "TimeZoneName": "CST6CDT",
+    "ServiceIdentification": "DN04203",
+    "Model": "17G Monolithic",
+    "Name": "Manager",
     "DateTimeLocalOffset": "-05:00",
     "Certificates": {
         "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/Certificates"
@@ -68,10 +72,6 @@ RESPONSE = {
     "EthernetInterfaces": {
         "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/EthernetInterfaces"
     },
-    "TimeZoneName": "CST6CDT",
-    "ServiceIdentification": "DN04203",
-    "Model": "17G Monolithic",
-    "Name": "Manager",
     "@odata.type": "#Manager.v1_20_0.Manager",
     "Oem": {
         "Dell": {
@@ -90,16 +90,16 @@ RESPONSE = {
 }
 
 JOB_RESPONSE = {
-    "Description": "Job Instance",
-    "MessageId": "RED106",
-    "Message": "Unable to parse the lc_validator_output.xml file because of an internal error.",
-    "Name": "update:new",
-    "StartTime": "2025-04-15T06:01:03",
     "ActualRunningStopTime": None,
     "@odata.etag": "W/\"gen-31\"",
     "Id": "job_id",
     "EndTime": None,
     "PercentComplete": 100,
+    "Description": "Job Instance",
+    "MessageId": "RED106",
+    "Message": "Unable to parse the lc_validator_output.xml file because of an internal error.",
+    "Name": "update:new",
+    "StartTime": "2025-04-15T06:01:03",
     "JobType": "FirmwareUpdate",
     "MessageArgs": [],
     "MessageArgs@odata.count": 0,
@@ -170,6 +170,31 @@ class TestLcJobStatus(FakeAnsibleModule):
         result = self._run_module(idrac_default_args)
         assert result["changed"] is False
 
+    @pytest.mark.parametrize("exc_type", [HTTPError])
+    def test_main_idrac_get_lc_job_status_success_case03(self, idrac_get_lc_job_status_connection_mock,
+                                                         exc_type,
+                                                         idrac_lc_job_status_info_mock,
+                                                         idrac_lc_job_status_info_connection_mock,
+                                                         idrac_default_args,
+                                                         mocker):
+        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_job_status_info",
+                     return_value=True)
+        json_str = to_text(json.dumps({"data": "out"}))
+        idrac_lc_job_status_info_mock.get_entityjson.return_value = None
+        idrac_lc_job_status_info_connection_mock.get_json_device.return_value = ""
+        idrac_lc_job_status_info_connection_mock.invoke_request.side_effect = exc_type(
+            'https://testhost.com', 404,
+            'http error message',
+            {"accept-type": "application/json"},
+            StringIO(json_str))
+        idrac_default_args.update({"job_id": "job_id"})
+        idrac_get_lc_job_status_connection_mock.job_mgr.get_job_status.return_value = {"Status": "Found Fault"}
+        result = self._run_module(idrac_default_args)
+        assert result == {
+            "msg": "Successfully fetched the job info.",
+            "job_info": {},
+            "changed": False}
+
     def test_get_lifecycle_controller_job_status_info_case02(
             self,
             idrac_default_args,
@@ -205,8 +230,8 @@ class TestLcJobStatus(FakeAnsibleModule):
                      return_value=response1)
         result = self._run_module(idrac_default_args)
         assert result == {
-            "msg": "Job ID is invalid",
-            "failed": True,
+            "msg": "Successfully fetched the job info.",
+            "job_info": {},
             "changed": False}
 
     def test_get_lifecycle_controller_job_status_info(self, idrac_mock, idrac_default_args):
@@ -224,11 +249,11 @@ class TestLcJobStatus(FakeAnsibleModule):
             'ActualRunningStartTime': None,
             'ActualRunningStopTime': None,
             'CompletionTime': '2025-04-15T06:01:14',
+            'JobType': 'FirmwareUpdate',
             'Description': 'Job Instance',
             'EndTime': None,
             'Id': 'job_id',
             'JobState': 'Failed',
-            'JobType': 'FirmwareUpdate',
             'Message': 'Unable to parse the lc_validator_output.xml file because of an internal '
             'error.',
             'MessageArgs': [],
