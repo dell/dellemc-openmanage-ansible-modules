@@ -129,7 +129,7 @@ def main():
             if not firmware_obj.is_omsdk_required():
                 response = \
                     IDRACLifecycleControllerJobStatusInfo(idrac). \
-                    get_lifecycle_controller_job_status_info(module)
+                    get_lifecycle_controller_job_status_info(job_id=module.params["job_id"])
                 if response != "Job ID is invalid":
                     lifecycle_controller_job_status_info = \
                         IDRACLifecycleControllerJobStatusInfo(idrac). \

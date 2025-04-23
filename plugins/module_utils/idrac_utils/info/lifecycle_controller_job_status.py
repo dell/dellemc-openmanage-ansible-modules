@@ -35,7 +35,6 @@ class IDRACLifecycleControllerJobStatusInfo(object):
         self.idrac = idrac
 
     def transform_job_status_data(self, info_data):
-
         job_success_list = ['Completed', 'Success']
         job_failed_list = ['Failed', 'Errors']
         job_state = str(info_data.get("JobState", NA))
@@ -77,27 +76,22 @@ class IDRACLifecycleControllerJobStatusInfo(object):
         }
         return transformed_info_data
 
-    def get_lifecycle_controller_job_details(self, module, members):
+    def get_lifecycle_controller_job_details(self, job_id, members):
         response = "Job ID is invalid"
-        print(members)
         for member in members:
-            print(member.get("@odata.id"))
-            print("BOFHGVBN")
-            if module.params.get('job_id') in member.get("@odata.id"):
+            if job_id in member.get("@odata.id"):
                 response = self.idrac.invoke_request(method='GET', uri=member.get("@odata.id"))
-                print("dxgfcbh")
-                print(response)
                 break
         return response
 
-    def get_lifecycle_controller_job_list(self, module, jobs):
+    def get_lifecycle_controller_job_list(self, job_id, jobs):
         job_response = self.idrac.invoke_request(method='GET', uri=jobs)
         members = job_response.json_data.get("Members", [])
-        response =  self.get_lifecycle_controller_job_details(module, members)
+        response = self.get_lifecycle_controller_job_details(job_id, members)
         return response
 
-    def get_lifecycle_controller_job_status_info(self, module):
+    def get_lifecycle_controller_job_status_info(self, job_id):
         manager_response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_LIFECYCLE_CONTROLLER_JOB_STATUS_INFO_10)
         jobs = manager_response.json_data.get("Oem", {}).get("Dell", {}).get("Jobs", {}).get("@odata.id", "")
-        response = self.get_lifecycle_controller_job_list(module=module, jobs=jobs)
+        response = self.get_lifecycle_controller_job_list(job_id=job_id, jobs=jobs)
         return response
