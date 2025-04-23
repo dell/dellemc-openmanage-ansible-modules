@@ -15,8 +15,11 @@
 
 - name: Set memory facts
   ansible.builtin.set_fact:
-    api_response: "{{ memory_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', '@odata.etag', 'AllowedSpeedsMHz@odata.count',
-      'CPUAffinity@odata.count', 'Processors@odata.count', 'MaxTDPMilliWatts@odata.count', 'OperatingMemoryModes@odata.count']) }}"
+    api_response: "{{ memory_result.json | ansible.utils.remove_keys(
+      target=['@odata.context', '@odata.id', '@odata.type', '@odata.etag',
+      'AllowedSpeedsMHz@odata.count', 'CPUAffinity@odata.count',
+      'Processors@odata.count', 'MaxTDPMilliWatts@odata.count',
+      'OperatingMemoryModes@odata.count']) }}"
 
 - name: Set the keys diff
   ansible.builtin.set_fact:

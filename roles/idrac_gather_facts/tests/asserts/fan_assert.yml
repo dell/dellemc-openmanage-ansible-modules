@@ -14,14 +14,6 @@
   register: fan_result
   no_log: false
 
-- name: debug role
-  ansible.builtin.debug:
-    var: fan_data
-
-- name: debug API
-  ansible.builtin.debug:
-    var: fan_result
-
 - name: Set fan facts
   ansible.builtin.set_fact:
     api_response: "{{ fan_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', '@odata.etag']) }}"
