@@ -36,8 +36,8 @@ notes:
     - This module supports C(check_mode).
     - The functionality to get I(temperature_sensors), I(fan_sensors),
       I(controller_sensor), I(controller_battery), I(system_metrics),
-      I(system_board_metrics) and I(sensors_amperage) component is not
-      available through iDRAC10.
+      I(system_board_metrics), I(sensors_amperage) and I(video) component
+      is not available through iDRAC10.
 """
 
 EXAMPLES = """
