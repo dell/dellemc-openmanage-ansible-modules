@@ -34,8 +34,10 @@ notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
     - This module supports C(check_mode).
-    - The functionality to get I(temperature_sensors) and I(fan_sensors)
-      component is not available through iDRAC10.
+    - The functionality to get I(temperature_sensors), I(fan_sensors),
+      I(controller_sensor), I(controller_battery), I(system_metrics),
+      I(system_board_metrics) and I(sensors_amperage) component is not
+      available through iDRAC10.
 """
 
 EXAMPLES = """

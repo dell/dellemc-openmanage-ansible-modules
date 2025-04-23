@@ -6,7 +6,6 @@ idrac_ip = sys.argv[1]
 idrac_user = sys.argv[2]
 idrac_password = sys.argv[3]
 idrac_port = sys.argv[4]
-# NA = "Not Available"
 
 GET_IDRAC_SYSTEM_URI = "/redfish/v1/Systems/System.Embedded.1"
 GET_IDRAC_FIRMWARE_URI = "/redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory"
