@@ -32,11 +32,11 @@ class TestIDRACInfo(TestUtils):
 
     def test_get_idrac_manager_details(self, idrac_mock):
         mock_response = {
-            "FirmwareVersion": "1.20.25.00",
+            "FirmwareVersion": "x.x.x.x",
             "Oem": {
                 "Dell": {
                     "DelliDRACCard": {
-                        "URLString": "https://100.100.100.100:443",
+                        "URLString": "https://x.x.x.x:443",
                     }
                 }
             },
@@ -45,8 +45,8 @@ class TestIDRACInfo(TestUtils):
         idrac_mock.invoke_request.return_value.json_data = mock_response
         idrac_info = IDRACInfo(idrac_mock)
         idrac_info.get_idrac_manager_details()
-        assert idrac_info.idrac_data["FirmwareVersion"] == "1.20.25.00"
-        assert idrac_info.idrac_data["URLString"] == "https://100.100.100.100:443"
+        assert idrac_info.idrac_data["FirmwareVersion"] == "x.x.x.x"
+        assert idrac_info.idrac_data["URLString"] == "https://x.x.x.x:443"
         assert idrac_info.idrac_data["Key"] == "iDRAC.Embedded.1"
         assert idrac_info.idrac_data["FQDD"] == "iDRAC.Embedded.1"
 
@@ -64,7 +64,7 @@ class TestIDRACInfo(TestUtils):
                 "NIC.1.Duplex": "Full",
                 "NIC.1.DNSDomainName": "laas.adc.delllabs.net",
                 "Network.1.DNSRacName": "idrac-W405105",
-                "IPv4.1.Address": "100.100.100.100",
+                "IPv4.1.Address": "x.x.x.x",
                 "IPv6.1.Address1": "::",
                 "Users.1.SolEnable": 0,
                 "IPMILan.1.Enable": 0,
@@ -81,7 +81,7 @@ class TestIDRACInfo(TestUtils):
         assert idrac_info.idrac_data["GroupName"] == "Not Available"
         assert idrac_info.idrac_data["GroupStatus"] == "Not Available"
         assert idrac_info.idrac_data["IPMIVersion"] == "2.0"
-        assert idrac_info.idrac_data["IPv4Address"] == "100.100.100.100"
+        assert idrac_info.idrac_data["IPv4Address"] == "x.x.x.x"
         assert idrac_info.idrac_data["IPv6Address"] == "::"
         assert idrac_info.idrac_data["LANEnabledState"] == 0
         assert idrac_info.idrac_data["MACAddress"] == "6c:3c:8c:8c:6c:7e"
@@ -103,8 +103,8 @@ class TestIDRACInfo(TestUtils):
             "Model": "PowerEdge R770"
         }
         idrac_manager_details = {
-            "FirmwareVersion": "1.20.25.00",
-            "URLString": "https://100.100.100.100:443",
+            "FirmwareVersion": "x.x.x.x",
+            "URLString": "https://x.x.x.x:443",
             "Key": "iDRAC.Embedded.1",
             "FQDD": "iDRAC.Embedded.1",
             "GUID": "44454c4c-3400-1030-8035-d7c04f313035",
@@ -115,12 +115,12 @@ class TestIDRACInfo(TestUtils):
             "DNSRacName": "idrac-W405105",
             "DeviceDescription": "iDRAC",
             "FQDD": "iDRAC.Embedded.1",
-            "FirmwareVersion": "1.20.25.00",
+            "FirmwareVersion": "x.x.x.x",
             "GUID": "44454c4c-3400-1030-8035-d7c04f313035",
             "GroupName": "Not Available",
             "GroupStatus": "Not Available",
             "IPMIVersion": "2.0",
-            "IPv4Address": "100.100.100.100",
+            "IPv4Address": "x.x.x.x",
             "IPv6Address": "::",
             "Key": "iDRAC.Embedded.1",
             "LANEnabledState": 0,
@@ -133,7 +133,7 @@ class TestIDRACInfo(TestUtils):
             "ProductInfo": "Integrated Dell Remote Access Controller",
             "SOLEnabledState": 0,
             "SystemLockDown": "Disabled",
-            "URLString": "https://100.100.100.100:443"
+            "URLString": "https://x.x.x.x:443"
         }
         idrac_info = IDRACInfo(idrac_mock)
         idrac_info.get_idrac_details = MagicMock(
@@ -152,12 +152,12 @@ class TestIDRACInfo(TestUtils):
                 "DNSRacName": "idrac-W405105",
                 "DeviceDescription": "iDRAC",
                 "FQDD": "iDRAC.Embedded.1",
-                "FirmwareVersion": "1.20.25.00",
+                "FirmwareVersion": "x.x.x.x",
                 "GUID": "44454c4c-3400-1030-8035-d7c04f313035",
                 "GroupName": "Not Available",
                 "GroupStatus": "Not Available",
                 "IPMIVersion": "2.0",
-                "IPv4Address": "100.100.100.100",
+                "IPv4Address": "x.x.x.x",
                 "IPv6Address": "::",
                 "Key": "iDRAC.Embedded.1",
                 "LANEnabledState": 0,
@@ -170,7 +170,7 @@ class TestIDRACInfo(TestUtils):
                 "ProductInfo": "Integrated Dell Remote Access Controller",
                 "SOLEnabledState": 0,
                 "SystemLockDown": "Disabled",
-                "URLString": "https://100.100.100.100:443"
+                "URLString": "https://x.x.x.x:443"
             }
         ]
         assert result == expected_result
