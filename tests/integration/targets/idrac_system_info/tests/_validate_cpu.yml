@@ -1,0 +1,43 @@
+---
+- name: Fetch CPU details
+  ansible.builtin.uri:
+    url: "{{ cpu_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: uri_data
+
+- name: Structuring CPU details
+  ansible.builtin.command:
+    cmd: >
+      python _get_cpu_details.py '{{ uri_data.content | to_json }}'
+    chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  register: cpu_updated_dict
+  no_log: true
+  when:
+    - uri_data.status == 200
+
+- name: Output conversion to list
+  ansible.builtin.set_fact:
+    cpu_updated_dict: "{{ cpu_updated_dict.stdout | to_json |
+      from_json }}"
+
+- name: Comparing values inside list for cpu
+  ansible.builtin.include_tasks:
+    file: _compare_diff.yml
+  vars:
+    _before: "{{ item.0 }}"
+    _after: "{{ item.1 }}"
+  when: uri_data.status == 200
+  loop: >-
+    {{
+    result.system_info.CPU
+    | sort(attribute='DeviceDescription')
+    | zip(cpu_updated_dict | sort(attribute='DeviceDescription'))
+    | list
+    }}

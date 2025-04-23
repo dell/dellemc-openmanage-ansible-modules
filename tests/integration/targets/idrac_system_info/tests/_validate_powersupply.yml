@@ -1,0 +1,39 @@
+---
+- name: Fetch powersupply details
+  ansible.builtin.uri:
+    url: "{{ powersupply_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: uri_data
+
+- name: Structuring powersupply details
+  ansible.builtin.command:
+    cmd: >
+      python _get_powersupply_details.py
+      '{{ uri_data.json | to_json }}'
+    chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  register: powersupply_updated_dict
+  when:
+    - uri_data.status == 200
+
+- name: Output conversion to list
+  ansible.builtin.set_fact:
+    powersupply_updated_dict: "{{ powersupply_updated_dict.stdout | to_json |
+      from_json }}"
+  when:
+    - uri_data.status == 200
+
+- name: Comparing values inside list for powersupply
+  ansible.builtin.include_tasks:
+    file: _compare_diff.yml
+  vars:
+    _before: "{{ item.0 }}"
+    _after: "{{ item.1 }}"
+  when: uri_data.status == 200
+  loop: "{{ result.system_info.PowerSupply | zip(powersupply_updated_dict) }}"

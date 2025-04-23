@@ -1,0 +1,137 @@
+---
+- name: Fetch nic details
+  ansible.builtin.uri:
+    url: "{{ idrac_nic_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: uri_data
+
+- name: Fetch nic capability details
+  ansible.builtin.uri:
+    url: "{{ nic_capability_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: nic_capability_data
+
+- name: Fetch nic port metrics details
+  ansible.builtin.uri:
+    url: "{{ nic_portmetrics_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: nic_portmetrics_data
+
+- name: Fetch nic statistics details
+  ansible.builtin.uri:
+    url: "{{ nic_statistics_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: nic_statistics_data
+
+- name: Fetch idrac ethernet details
+  ansible.builtin.uri:
+    url: "{{ idrac_ethernet_interface_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: nic_ethernet_interfacedata
+
+- name: Extract member ID
+  set_fact:
+    eth_link_uri:
+      "{{ nic_ethernet_interfacedata.json.Members[0]['@odata.id'] }}"
+
+- name: Fetch idrac ethernet details
+  ansible.builtin.uri:
+    url: "{{ base_uri }}{{ eth_link_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: nic_ethernet_data
+
+- name: Structuring nic details
+  ansible.builtin.command:
+    cmd: "python _get_nic_details.py {{ a }} {{ b }} {{ c }} {{ d }} {{ e }}"
+    chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  register: nic_updated_dict
+  vars:
+    a: "{{ uri_data.json | to_json | quote }}"
+    b: "{{ nic_capability_data.json | to_json | quote }}"
+    c: "{{ nic_portmetrics_data.json | to_json | quote }}"
+    d: "{{ nic_statistics_data.json | to_json | quote }}"
+    e: "{{ nic_ethernet_data.json | to_json | quote }}"
+  when:
+    - uri_data.status == 200
+    - nic_capability_data.status == 200
+    - nic_portmetrics_data.status == 200
+    - nic_statistics_data.status == 200
+    - nic_ethernet_data.status == 200
+
+- name: Output conversion to list
+  ansible.builtin.set_fact:
+    nic_updated_dict: "{{ nic_updated_dict.stdout |
+      to_json | from_json }}"
+  when:
+    - uri_data.status == 200
+
+- name: Set frequently updating attributes
+  set_fact:
+    attributes:
+      - 'RxBytes'
+      - 'TxBytes'
+      - 'TxUnicast'
+      - 'TxMutlicast'
+      - 'RxMutlicast'
+      - 'RxUnicast'
+
+- name: Comparing values inside list for memory
+  ansible.builtin.include_tasks:
+    file: _compare_diff.yml
+  vars:
+    _before: "{{ item.0 | dict2items
+        | rejectattr('key', 'in', attributes)
+        | items2dict}}"
+    _after: "{{ item.1 | dict2items
+        | rejectattr('key', 'in', attributes)
+        | items2dict}}"
+  when: uri_data.status == 200
+  loop: >-
+    {{
+    result.system_info.NIC
+    | sort(attribute='FQDD')
+    | zip(nic_updated_dict | sort(attribute='FQDD'))
+    | list
+    }}

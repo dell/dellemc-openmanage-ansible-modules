@@ -1,0 +1,39 @@
+---
+base_uri: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
+redfish_uri: "redfish/v1/"
+fan_uri: "{{ base_uri }}/{{ redfish_uri }}\
+  Chassis/System.Embedded.1/ThermalSubsystem/Fans?$expand=*($levels=1)"
+manager_uri: "{{ base_uri }}/{{ redfish_uri }}\
+  Managers/iDRAC.Embedded.1/"
+bios_uri: "{{ base_uri }}/{{ redfish_uri }}\
+  Systems/System.Embedded.1/Bios"
+manager_system_attributes_uri: "{{ base_uri }}/\
+  {{ redfish_uri }}Managers/iDRAC.Embedded.1/Oem/\
+  Dell/DellAttributes/System.Embedded.1"
+manager_idrac_attributs_uri: "{{ base_uri }}/\
+  {{ redfish_uri }}Managers/iDRAC.Embedded.1/\
+  Oem/Dell/DellAttributes/iDRAC.Embedded.1"
+idrac_system_uri: "{{ base_uri }}/\
+  {{ redfish_uri }}Systems/System.Embedded.1"
+bios_firmware_uri: "{{ base_uri }}/\
+  {{ redfish_uri }}UpdateService/Oem/Dell/DellSoftwareInventory"
+cpu_uri: "{{ base_uri }}/\
+  {{ redfish_uri }}Systems/System.Embedded.1/Processors?$expand=*($levels=1)"
+chassis_uri: "{{ base_uri }}/{{ redfish_uri }}Chassis"
+dell_sensors_uri: "{{ idrac_system_uri }}/Oem/Dell/DellSensors"
+memory_uri: "/redfish/v1/Systems/System.Embedded.1/Memory"
+license_uri: "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLicenses"
+idrac_nic_uri: "{{ chassis_uri }}/System.Embedded.1/Oem/Dell/DellNIC"
+ome_dell_uri: "{{ chassis_uri }}/System.Embedded.1/Oem/Dell/"
+nic_capability_uri: "{{ ome_dell_uri }}DellNICCapabilities"
+nic_portmetrics_uri: "{{ ome_dell_uri }}DellNICPortMetrics"
+nic_statistics_uri: "{{ ome_dell_uri }}DellNICStatistics"
+idrac_ethernet_interface_uri: "{{ manager_uri }}EthernetInterfaces/"
+powersupply_uri: "{{ chassis_uri }}/System.Embedded.1/PowerSubsystem/\
+  PowerSupplies?$expand=*($levels=1)"
+sensors_voltage_uri: "{{ idrac_system_uri }}/Oem/Dell/\
+  DellSensors?$expand=*($levels=1)"
+controller_uri: "{{ base_uri }}/{{ redfish_uri }}\
+  Systems/System.Embedded.1/Oem/Dell/DellControllers"
+storage_uri: "{{ base_uri }}/{{ redfish_uri }}\
+  Systems/System.Embedded.1/Storage"
