@@ -172,7 +172,7 @@
 
 - name: Structuring subsystem details
   ansible.builtin.command:
-    cmd: "python _get_subsystem_details.py {{ a }} {{ b }} {{ c }} {{ d }} 
+    cmd: "python _get_subsystem_details.py {{ a }} {{ b }} {{ c }} {{ d }}
       {{ e }} {{ f }} {{ g }} {{ h }} {{ i }} {{ j }} {{ k }} {{ l }}"
     chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
   register: subsystem_updated_dict
