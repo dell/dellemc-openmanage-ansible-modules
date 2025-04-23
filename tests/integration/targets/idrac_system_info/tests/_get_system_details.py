@@ -1,45 +1,72 @@
 import json
+import json
 import sys
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
 
+idrac_ip = sys.argv[1]
+idrac_user = sys.argv[2]
+idrac_password = sys.argv[3]
+idrac_port = sys.argv[4]
 NA = "Not Available"
-system_api_output = sys.argv[1]
-manager_api_output = sys.argv[2]
-bios_api_data = sys.argv[3]
-manager_system_attributes_api_output = sys.argv[4]
-idrac_attributes_api_output = sys.argv[5]
+
+GET_IDRAC_MANAGER_IDRAC_ATTRIBUTES = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
+GET_IDRAC_SYSTEM_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1"
+GET_IDRAC_BIOS_URI = "/redfish/v1/Systems/System.Embedded.1/Bios"
+GET_IDRAC_MANAGER_SYSTEM_ATTRIBUTES = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/System.Embedded.1"
+GET_IDRAC_MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/"
+
+params = {
+    "idrac_ip": idrac_ip,
+    "idrac_user": idrac_user,
+    "idrac_password": idrac_password,
+    "idrac_port": idrac_port
+}
+idrac_obj = iDRACRedfishAPI(params)
 
 
-def get_firmwarever_idrac_url(manager_output):
-    power_state = manager_output.get("PowerState", "")
-    idrac_url = manager_output.get("Oem", {}).\
-        get("Dell", {}).get("DelliDRACCard", {}).get("URLString", "")
-    version = manager_output.get("FirmwareVersion", "")
-    return version , idrac_url , power_state
+def get_firmwarever_idrac_url():
+    response = idrac_obj.invoke_request(method='GET', uri=GET_IDRAC_MANAGER_URI)
+    if response.status_code == 200:
+        idrac_url = response.json_data.get("Oem", {}).\
+            get("Dell", {}).get("DelliDRACCard", {}).get("URLString")
+        version = response.json_data.get("FirmwareVersion", "")
+        power_state = response.json_data.get("PowerState", "")
+        return version , idrac_url , power_state
+    return "", "", ""
 
 
 def get_system_memsize_and_cpldversion_and_manufacturer():
-    bios_data = json.loads(bios_api_data)
-    manufacturer = bios_data.get("Attributes", {}).get("SystemManufacturer", "")
-    memsize = bios_data.get("Attributes", {}).get("SysMemSize", "")
-    cpld_version = bios_data.get("Attributes", {}).get("SystemCpldVersion", "")
-    return cpld_version, memsize, manufacturer
+    response = idrac_obj.invoke_request(method='GET', uri=GET_IDRAC_BIOS_URI)
+    if response.status_code == 200:
+        memsize = response.json_data.get("Attributes", {}).get("SysMemSize", "")
+        cpld_version = response.json_data.get("Attributes", {}).\
+            get("SystemCpldVersion", "")
+        manufacturer = response.json_data.get("Attributes", {}).get("SystemManufacturer", "")
+        return cpld_version, memsize, manufacturer
+    return "", "", ""
 
 
 def get_system_os_version_and_os_name():
-    system_attributes_output = json.loads(manager_system_attributes_api_output)
-    os_version = system_attributes_output.get("Attributes", {}).get("ServerOS.1.OSVersion", "")
-    os_name = system_attributes_output.get("Attributes", {}).get("ServerOS.1.OSName", "")
-    return os_name, os_version
+    response = idrac_obj.invoke_request(method='GET', uri=GET_IDRAC_MANAGER_SYSTEM_ATTRIBUTES)
+    if response.status_code == 200:
+        os_version = response.json_data.get("Attributes", {}).\
+            get("ServerOS.1.OSVersion", "")
+        os_name = response.json_data.get("Attributes", {}).get("ServerOS.1.OSName", "")
+        return os_name, os_version
+    return "", ""
 
 
 def get_sys_lockdownmode():
-    idrac_attributes = json.loads(idrac_attributes_api_output)
-    system_lockdown_mode = idrac_attributes.get("Attributes", {}).get("Lockdown.1.SystemLockdown", "")
-    return system_lockdown_mode
+    response = idrac_obj.invoke_request(method='GET', uri=GET_IDRAC_MANAGER_IDRAC_ATTRIBUTES)
+    if response.status_code == 200:
+        system_lockdown_mode = response.json_data.\
+            get("Attributes", {}).get("Lockdown.1.SystemLockdown", "")
+        return system_lockdown_mode
+    return "", ""
 
 
-def mapped_data_system(resp, manager_output):
-    firmware_ver, idrac_url, power_state = get_firmwarever_idrac_url(manager_output)
+def mapped_data_system(resp):
+    firmware_ver, idrac_url, power_state = get_firmwarever_idrac_url()
     system_data = resp.get("Oem", {}).get("Dell", {}).get("DellSystem", {})
     os_name, os_version = get_system_os_version_and_os_name()
     cpld_version, memsize, manufacturer = get_system_memsize_and_cpldversion_and_manufacturer()
@@ -90,8 +117,9 @@ def mapped_data_system(resp, manager_output):
         "PowerCap": system_data.get("PowerCap", NA),
         "NodeID": system_data.get("NodeID", NA),
         "DeviceDescription": resp.get("Name"),
-        "PrimaryStatus": "Healthy" if health_rollup == "OK" \
-            else (health_rollup or "Not Available"),
+        "PrimaryStatus": "Healthy" if health_rollup == "OK" else (
+            health_rollup or "Not Available"
+        ),
         "MachineName": system_data.get("MachineName", NA),
         "OSName": NA if (os_name == "") else os_name,
         "ServerAllocation": system_data.get("ServerAllocation", NA),
@@ -99,8 +127,12 @@ def mapped_data_system(resp, manager_output):
     return output
 
 
-system_output = json.loads(system_api_output)
-manager_output = json.loads(manager_api_output)
-output = []
-output.append(mapped_data_system(system_output, manager_output))
-print(json.dumps(output, indent=2, ensure_ascii=False))
+def get_system_info():
+    output = []
+    resp = idrac_obj.invoke_request(method='GET', uri=GET_IDRAC_SYSTEM_DETAILS_URI_10)
+    if resp.status_code == 200:
+        output.append(mapped_data_system(resp.json_data))
+    return output
+
+
+print(json.dumps(get_system_info()))

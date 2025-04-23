@@ -1,96 +1,22 @@
 ---
-- name: Fetch system details
-  ansible.builtin.uri:
-    url: "{{ idrac_system_uri }}"
-    user: "{{ idrac_user }}"
-    password: "{{ idrac_password }}"
-    method: GET
-    force_basic_auth: true
-    validate_certs: false
-    body_format: json
-    return_content: true
-    status_code: 200
-  register: uri_system_data
-
-- name: Fetch manager details
-  ansible.builtin.uri:
-    url: "{{ manager_uri }}"
-    user: "{{ idrac_user }}"
-    password: "{{ idrac_password }}"
-    method: GET
-    force_basic_auth: true
-    validate_certs: false
-    body_format: json
-    return_content: true
-    status_code: 200
-  register: uri_manager_data
-
-- name: Fetch bios details
-  ansible.builtin.uri:
-    url: "{{ bios_uri }}"
-    user: "{{ idrac_user }}"
-    password: "{{ idrac_password }}"
-    method: GET
-    force_basic_auth: true
-    validate_certs: false
-    body_format: json
-    return_content: true
-    status_code: 200
-  register: uri_bios_data
-
-- name: Fetch manager system attributes details
-  ansible.builtin.uri:
-    url: "{{ manager_system_attributes_uri }}"
-    user: "{{ idrac_user }}"
-    password: "{{ idrac_password }}"
-    method: GET
-    force_basic_auth: true
-    validate_certs: false
-    body_format: json
-    return_content: true
-    status_code: 200
-  register: uri_manager_system_attributes_data
-
-- name: Fetch manager idrac attributes details
-  ansible.builtin.uri:
-    url: "{{ manager_idrac_attributs_uri }}"
-    user: "{{ idrac_user }}"
-    password: "{{ idrac_password }}"
-    method: GET
-    force_basic_auth: true
-    validate_certs: false
-    body_format: json
-    return_content: true
-    status_code: 200
-  register: uri_idrac_attributes_data
-
 - name: Structure System details using validation script
   ansible.builtin.command:
     cmd: >
       python _get_system_details.py
-      {{ uri_system_data.content | to_json }}
-      {{ uri_manager_data.content | to_json }}
-      {{ uri_bios_data.content | to_json }}
-      {{ uri_manager_system_attributes_data.content | to_json }}
-      {{ uri_idrac_attributes_data.content | to_json }}
+      '{{ idrac_ip }}'
+      '{{ idrac_user }}'
+      '{{ idrac_password }}'
+      '{{ idrac_port }}'
     chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
   register: system_updated_dict
-  no_log: true
-  when:
-    - uri_system_data.status == 200
-    - uri_manager_data.status == 200
-    - uri_bios_data.status == 200
-    - uri_manager_system_attributes_data.status == 200
-    - uri_idrac_attributes_data.status == 200
 
 - name: Output conversion to list
   ansible.builtin.set_fact:
-    system_updated_dict: "{{ system_updated_dict.stdout | to_json |
-      from_json }}"
+    system_updated_dict: "{{ system_updated_dict.stdout | to_json | from_json}}"
   when:
     - uri_data.status == 200
 
-- name: Comparing values inside list for memory
+- name: Comparing values inside list for system
   ansible.builtin.include_tasks:
     file: _compare_diff.yml
   vars:
