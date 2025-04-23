@@ -1,0 +1,68 @@
+---
+- block:
+    - name: Final url
+      ansible.builtin.set_fact:
+        job_url: "{{ base_uri }}{{ job_uri }}{{ JID }}"
+
+    - name: Get job details on iDRAC10
+      ansible.builtin.uri:
+        url: "{{ job_url }}"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        force_basic_auth: true
+        validate_certs: false
+        method: GET
+        status_code: 200
+        headers: "Accept=application/json"
+        body_format: json
+        return_content: true
+      register: info_data
+      no_log: false
+
+    - name: Set job state
+      ansible.builtin.set_fact:
+        job_state: "{{ info_data.json.JobState | string }}"
+
+    - name: Set job state
+      ansible.builtin.set_fact:
+        job_success_list: ["Completed", "Success"]
+
+    - name: Set job state
+      ansible.builtin.set_fact:
+        job_failed_list: ["Failed", "Errors"]
+
+    - name: Determine job status
+      ansible.builtin.set_fact:
+        job_status: >-
+          {{ ('Success' if job_state in job_success_list else 'Failed' if
+          job_state in job_failed_list else 'Success' if 'Message' in
+          info_data.json and info_data.json.Message | string and
+          'completed' in info_data.json.Message |
+          string and 'errors' not in info_data.json.Message | string else
+          'InProgress') | trim }}
+
+    - name: Set fact for api_response
+      ansible.builtin.set_fact:
+        api_response:
+          ElapsedTimeSinceCompletion: ""
+          InstanceID: "{{ info_data.json.Id }}"
+          JobStartTime: "{{ info_data.json.StartTime }}"
+          JobStatus: "{{ job_state}}"
+          JobUntilTime: "NA"
+          Message: "{{ info_data.json.Message }}"
+          MessageArguments: "{{ (info_data.json.MessageArgs | default([]))[0] |
+            default('') }}"
+          MessageID: "{{ info_data.json.MessageId }}"
+          Name: "{{ info_data.json.Name }}"
+          PercentComplete: "{{ info_data.json.PercentComplete }}"
+          ActualRunningStopTime: "{{ info_data.json.ActualRunningStopTime |
+            default('None', true) }}"
+          JobType: "{{ info_data.json.JobType }}"
+          ActualRunningStartTime: "{{ info_data.json.ActualRunningStartTime }}"
+          EndTime: "{{ info_data.json.EndTime | default('None', true) }}"
+          CompletionTime: "{{ info_data.json.CompletionTime |
+            default('None', true) }}"
+          Description: "{{ info_data.json.Description }}"
+          Status: "{{ job_status }}"
+          TargetSettingsURI: "{{ info_data.json.TargetSettingsURI |
+            default('None', true)}}"

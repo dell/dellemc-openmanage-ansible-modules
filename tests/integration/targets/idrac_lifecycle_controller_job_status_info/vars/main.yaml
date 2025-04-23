@@ -1,0 +1,6 @@
+---
+base_uri: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/"
+job_uri: "Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/"
+managers: "Managers/iDRAC.Embedded.1/Actions/Oem/"
+export_scp: "OemManager.ExportSystemConfiguration"
+import_scp: "OemManager.ImportSystemConfiguration"

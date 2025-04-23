@@ -4,7 +4,7 @@
 #
 # Dell OpenManage Ansible Modules
 # Version 7.1.0
-# Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2018-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -32,6 +32,7 @@ requirements:
 author:
     - "Rajeev Arakkal (@rajeevarakkal)"
     - "Anooja Vardhineni (@anooja-vardhineni)"
+    - "Trisha Datta (@trisha-dell)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
@@ -97,10 +98,21 @@ error_info:
 
 
 import json
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac \
+    import iDRACConnection, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish \
+    import iDRACRedfishAPI
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.\
+    idrac_utils.info.lifecycle_controller_job_status \
+    import IDRACLifecycleControllerJobStatusInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.\
+    idrac_utils.info.firmware import IDRACFirmwareInfo
+
+ERR_STATUS = 404
+FETCH_MESSAGE = "Successfully fetched the job info."
 
 
 def main():
@@ -113,19 +125,41 @@ def main():
         supports_check_mode=True)
 
     try:
-        with iDRACConnection(module.params) as idrac:
-            job_id, msg = module.params.get('job_id'), {}
-            msg = idrac.job_mgr.get_job_status(job_id)
-            if msg.get('Status') == "Found Fault":
-                module.fail_json(msg="Job ID is invalid.")
+        with iDRACRedfishAPI(module.params) as idrac:
+            firmware_obj = IDRACFirmwareInfo(idrac)
+            if not firmware_obj.is_omsdk_required():
+                response = \
+                    IDRACLifecycleControllerJobStatusInfo(idrac). \
+                    get_lifecycle_controller_job_status_info(job_id=module.params["job_id"])
+                if response != "Job ID is invalid":
+                    lifecycle_controller_job_status_info = \
+                        IDRACLifecycleControllerJobStatusInfo(idrac). \
+                        transform_job_status_data(info_data=response.json_data)
+                else:
+                    module.exit_json(msg=FETCH_MESSAGE,
+                                     job_info={})
+            else:
+                with iDRACConnection(module.params) as idrac:
+                    job_id = module.params.get('job_id')
+                    lifecycle_controller_job_status_info = \
+                        idrac.job_mgr.get_job_status(job_id)
+                    if lifecycle_controller_job_status_info.get('Status') == "Found Fault":
+                        module.exit_json(msg=FETCH_MESSAGE,
+                                         job_info={})
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err),
+                         failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (RuntimeError, SSLValidationError, ConnectionError, KeyError,
-            ImportError, ValueError, TypeError) as e:
-        module.fail_json(msg=str(e))
-    module.exit_json(msg="Successfully fetched the job info", job_info=msg)
+    except (RuntimeError,
+            SSLValidationError,
+            IOError, ValueError,
+            TypeError,
+            ConnectionError) as e:
+        module.exit_json(msg=str(e), failed=True)
+
+    module.exit_json(msg="Successfully fetched the job info.",
+                     job_info=lifecycle_controller_job_status_info)
 
 
 if __name__ == '__main__':
