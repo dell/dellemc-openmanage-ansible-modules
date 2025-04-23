@@ -201,9 +201,6 @@ class IDRACSubsystemInfo(object):
         if members:
             URI = members[0].get("@odata.id", "")
             health_status = self.get_storage_health_status_data(uri=URI)
-            # response = self.idrac.invoke_request(method='GET', uri=URI)
-            # output = response.json_data
-            # health_status = output["Status"].get("Health", "Unknown") or "Unknown"
         return {
             "Key": "Storage",
             "PrimaryStatus": "Healthy" if health_status == "OK" else health_status
