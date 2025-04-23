@@ -7,14 +7,121 @@
     https_cert_name: "{{ lookup('env', 'https_cert_name') }}"
     import_cert_path: "{{ lookup('env', 'path_for_import_cert') }}"
     export_cert_path: "{{ lookup('env', 'path_for_export_cert') }}"
+    cert_export_path: "{{ lookup('env', 'path_for_import_cert') }}"
 
   tasks:
-    - name: Fetching HTTPS certificate from share
-      ansible.builtin.include_tasks:
-        file: ../__get_helper.yml
+    - name: Install OpenSSL
+      ansible.builtin.package:
+        name: openssl
+        state: present
+      check_mode: false
+
+    - name: Create Directory
+      ansible.builtin.file:
+        path: "{{ cert_export_path }}"
+        state: directory
+        mode: "0755"
+      register: idrac_certificate_created_directory
+      check_mode: false
+
+    - name: Generate CA private key
+      ansible.builtin.command: >
+        openssl genpkey -algorithm RSA \
+        -out "{{ export_cert_path }}"ca_key.pem \
+        -aes-256-cbc -pass pass:pass_123
+      args:
+        creates: /tmp/idrac_certificate/ca_key.pem
+      check_mode: false
+
+    - name: Generate self-signed CA certificate
+      ansible.builtin.command: >
+        openssl req -x509 -new -key "{{ export_cert_path }}"ca_key.pem -sha256 \
+        -days 3650 -out "{{ export_cert_path }}"ca_cert.pem -passin \
+        pass:pass_123 \
+        -subj "/C=IN/ST=Karnataka/L=Bengaluru/O=Development \
+        /OU=Dev/CN=sample.domain.com"
+      args:
+        creates: /tmp/idrac_certificate/ca_cert.pem
+      check_mode: false
+
+    - name: Generate HTTPS CSR signing request
+      ansible.builtin.import_role:
+        name: idrac_certificate
       vars:
-        idrac_cert_name:
-          - "{{ https_cert_name }}"
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        command: "generate_csr"
+        certificate_type: "HTTPS"
+        certificate_path: "{{ cert_export_path }}"
+        cert_params:
+          common_name: "sample.domain.com"
+          organization_unit: "OrgUnit"
+          locality_name: "Bangalore"
+          state_name: "Karnataka"
+          country_code: "IN"
+          email_address: "admin@domain.com"
+          organization_name: "OrgName"
+          subject_alt_name:
+            - "hostname1.chassis.com"
+
+    - name: Fetch the single file name from a directory
+      ansible.builtin.find:
+        paths: "{{ cert_export_path }}"
+        recurse: false
+        file_type: file
+        patterns: "*.txt"
+      register: found_files
+
+    - name: Set the file name as a variable
+      ansible.builtin.set_fact:
+        file_name: "{{ found_files.files[-1].path }}"
+
+    - name: Setting up HTTPS CSR certificate path for exported file
+      ansible.builtin.stat:
+        path: "{{ idrac_certificate_out.certificate_path }}"
+      register: csr_cert_file
+      no_log: true
+
+    - name: Verifying HTTPS generate CSR certificate
+      ansible.builtin.assert:
+        that:
+          - csr_cert_file.stat.exists
+          - not idrac_certificate_out.changed
+          - not idrac_certificate_out.failed
+          - idrac_certificate_out.msg == "Successfully performed
+            the 'generate_csr' certificate operation."
+
+    - name: Delete ca_cert.pem if it exists
+      ansible.builtin.file:
+        path: /tmp/idrac_certificate/https_cert.pem
+        state: absent
+      check_mode: false
+
+    - name: Convert CSR from txt to pem format
+      ansible.builtin.command:
+        cmd: cp "{{ file_name }}" "{{ export_cert_path }}"https_cert.pem
+      args:
+        creates: /tmp/idrac_certificate/https_cert.pem
+      check_mode: false
+
+    - name: Delete ca_cert.pem if it exists
+      ansible.builtin.file:
+        path: /tmp/idrac_certificate/idrac_cert.pem
+        state: absent
+      check_mode: false
+
+    - name: Sign CSR with OpenSSL
+      ansible.builtin.command: >
+        openssl x509 -req -in "{{ export_cert_path }}"https_cert.pem \
+        -CA /tmp/idrac_certificate/ca_cert.pem \
+        -CAkey /tmp/idrac_certificate/ca_key.pem -CAcreateserial \
+        -out /tmp/idrac_certificate/idrac_cert.pem -days 365 -sha256 \
+        -passin pass:pass_123
+      args:
+        creates: /tmp/idrac_certificate/idrac_cert.pem
+      check_mode: false
 
     - name: Import HTTPS certificate
       ansible.builtin.import_role:
@@ -24,10 +131,10 @@
         username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
-        ca_path: "{{ ca_cert_path }}"
         command: "import"
+        reset: true
         certificate_type: "HTTPS"
-        certificate_path: "{{ import_cert_path }}{{ https_cert_name }}"
+        certificate_path: "{{ import_cert_path }}/idrac_cert.pem"
 
     - name: Waiting for idrac readiness
       ansible.builtin.wait_for:
@@ -57,7 +164,6 @@
         username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
-        ca_path: "{{ ca_cert_path }}"
         command: "export"
         certificate_type: "HTTPS"
         certificate_path: "{{ export_cert_path }}"

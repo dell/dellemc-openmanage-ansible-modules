@@ -9,5 +9,14 @@
   ansible.builtin.set_fact:
     bios:
       "{{ bios_result.json | ansible.utils.remove_keys(target=['@odata.context',
-      '@odata.type', '@odata.id', 'SettingsObject', 'Actions', 'AttributeRegistry', 'Description',
+      '@odata.type', '@odata.id', '@odata.etag', 'SettingsObject', 'Actions',
+      'AttributeRegistry', 'Description',
       'Id', 'Links', 'Name']) }}"
+
+- name: Error capture
+  ansible.builtin.include_tasks:
+    file: ./__capture_error.yml
+  vars:
+    register_vars:
+      - "{{ bios_result }}"
+    component: 'bios'

@@ -26,3 +26,11 @@
                                         'reset' certificate operation.iDRAC
                                         has been reset successfully."
       when: not ansible_check_mode and idrac_certificate_out.changed
+
+    - name: Waiting for idrac readiness
+      ansible.builtin.wait_for:
+        timeout: 30
+      when:
+        - not ansible_check_mode
+        - idrac_certificate_out is defined
+        - idrac_certificate_out.changed

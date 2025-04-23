@@ -1,12 +1,28 @@
 ---
+- name: API based on iDRAC generation
+  ansible.builtin.set_fact:
+    backplane_uri: "{{ idrac10 if '17G' in idrac_gen else idrac9 }}"
+  vars:
+    idrac9: "/redfish/v1/Chassis/Oem/Dell/DellPCIeSSDBackPlanes"
+    idrac10: "{{ api_chassis }}/Oem/Dell/DellPCIeSSDBackPlanes"
+
 - name: Get PCIeSSDBackPlane information.
   ansible.builtin.uri:
-    url: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Chassis/Oem/Dell/DellPCIeSSDBackPlanes"
+    url: "https://{{ hostname }}:{{ https_port }}{{ backplane_uri }}"
   register: pcie_result
   delegate_to: "{{ idrac_gather_facts_delegate }}"
 
 - name: Set PCIeSSDBackPlane facts
   ansible.builtin.set_fact:
-    backplane: "{{ pcie_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type']) }}"
+    backplane: "{{ pcie_result.json.Members | ansible.utils.remove_keys(target=[
+      '@odata.context', '@odata.id', '@odata.etag', '@odata.type']) }}"
   when: pcie_result.status == 200
   register: pcie_result_register
+
+- name: Error capture
+  ansible.builtin.include_tasks:
+    file: ./__capture_error.yml
+  vars:
+    register_vars:
+      - "{{ pcie_result }}"
+    component: 'backplane'

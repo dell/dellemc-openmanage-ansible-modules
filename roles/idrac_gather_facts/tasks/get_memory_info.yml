@@ -8,6 +8,16 @@
 - name: Set Memory facts
   ansible.builtin.set_fact:
     memory:
-      "{{ memory_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type',
-      'AllowedSpeedsMHz@odata.count', 'CPUAffinity@odata.count', 'Processors@odata.count', 'MaxTDPMilliWatts@odata.count',
-      'OperatingMemoryModes@odata.count']) }}"
+      "{{ memory_result.json.Members | ansible.utils.remove_keys(target=[
+        '@odata.context', '@odata.id', '@odata.etag', '@odata.type',
+        'AllowedSpeedsMHz@odata.count', 'CPUAffinity@odata.count',
+        'Processors@odata.count', 'MaxTDPMilliWatts@odata.count',
+        'OperatingMemoryModes@odata.count']) }}"
+
+- name: Error capture
+  ansible.builtin.include_tasks:
+    file: ./__capture_error.yml
+  vars:
+    register_vars:
+      - "{{ memory_result }}"
+    component: 'memory'

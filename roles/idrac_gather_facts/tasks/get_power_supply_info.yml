@@ -9,8 +9,17 @@
 - name: Set PowerSupply facts
   ansible.builtin.set_fact:
     power_supply:
-      "{{ power_supply_result.json.Members | ansible.utils.remove_keys(target=['@odata.context',
-      '@odata.id', '@odata.type', 'ActiveInputVoltage@Redfish.Deprecated', 'OperationalStatus@odata.count',
-      'RedTypeOfSet@odata.count']) }}"
+      "{{ power_supply_result.json.Members | ansible.utils.remove_keys(
+        target=['@odata.context', '@odata.id', '@odata.etag', '@odata.type',
+        'ActiveInputVoltage@Redfish.Deprecated',
+        'OperationalStatus@odata.count', 'RedTypeOfSet@odata.count']) }}"
   when: power_supply_result.status == 200
   register: power_supply_result_register
+
+- name: Error capture
+  ansible.builtin.include_tasks:
+    file: ./__capture_error.yml
+  vars:
+    register_vars:
+      - "{{ power_supply_result }}"
+    component: 'power_supply'
