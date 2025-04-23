@@ -132,7 +132,8 @@
 
 - name: Fetch storage members health details
   ansible.builtin.uri:
-    url: 'https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}{{ storage_health_data.json.get("Members", [])[0].get("@odata.id", "") }}'
+    url: 'https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+      {{ storage_health_data.json.get("Members", [])[0].get("@odata.id", "")}}'
     user: "{{ idrac_user }}"
     password: "{{ idrac_password }}"
     method: GET
@@ -171,11 +172,24 @@
 
 - name: Structuring subsystem details
   ansible.builtin.command:
-    cmd: >
-      python _get_subsystem_details.py '{{ cpu_health_data.content | to_json }}' '{{ license_health_data.content | to_json }}'  '{{ memory_health_data.content | to_json }}'  '{{ power_supply_data.content | to_json }}'  '{{ voltage_health_data.content | to_json }}'  '{{ sensor_health_data.content | to_json }}' '{{ fan_sensor_health_data.content | to_json }}' '{{ intrusion_health_data.content | to_json }}' '{{ temperature_uri_health_data.content | to_json }}' '{{ storage_health_data.content | to_json }}' '{{ sensor_amperage_health_data.content | to_json }}' '{{ system_health_data.content | to_json }}'
+    cmd: "python _get_subsystem_details.py {{ a }} {{ b }} {{ c }} {{ d }} 
+      {{ e }} {{ f }} {{ g }} {{ h }} {{ i }} {{ j }} {{ k }} {{ l }}"
     chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
   register: subsystem_updated_dict
   no_log: false
+  vars:
+    a: "{{ cpu_health_data.content | to_json }}"
+    b: "{{ license_health_data.content | to_json }}"
+    c: "{{ memory_health_data.content | to_json }}"
+    d: "{{ power_supply_data.content | to_json }}"
+    e: "{{ voltage_health_data.content | to_json }}"
+    f: "{{ sensor_health_data.content | to_json }}"
+    g: "{{ fan_sensor_health_data.content | to_json }}"
+    h: "{{ intrusion_health_data.content | to_json }}"
+    i: "{{ temperature_uri_health_data.content | to_json }}"
+    j: "{{ storage_health_data.content | to_json }}"
+    k: "{{ sensor_amperage_health_data.content | to_json }}"
+    l: "{{ system_health_data.content | to_json }}"
   when:
     - system_health_data.status == 200
 
