@@ -25,20 +25,41 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from urllib.error import HTTPError
 
-GET_IDRAC_FIRMWARE_URI = "/redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory"
-GET_IDRAC_FIRMWARE_URI_9 = "/redfish/v1/Managers/iDRAC.Embedded.1"
+GET_IDRAC_SENSOR_FAN_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Oem/Dell/DellEnclosureFanSensors"
+NA = "Not Available"
 
 
-class IDRACFirmwareInfo(object):
+class IDRACSensorsFanInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
 
-    def is_omsdk_required(self):
-        try:
-            response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_URI)
-            if response.status_code == 200:
-                return False
-        except HTTPError:
-            return True
+    def sensors_fan_mapped_data(self, resp):
+        response = self.idrac.invoke_request(method='GET', uri=resp)
+        if response.status_code == 200:
+            output = {
+                "CurrentReading": NA,
+                "CurrentState": NA,
+                "DeviceID": NA,
+                "FQDD": NA,
+                "HealthState": NA,
+                "Key": NA,
+                "Location": NA,
+                "Name": NA,
+                "OtherSensorTypeDescription": NA,
+                "PrimaryStatus": NA,
+                "SensorType": NA,
+                "State": NA,
+                "SubType": NA,
+                "Type": NA,
+                "coolingUnitIndexReference": NA
+            }
+            return output
+
+    def get_sensors_fan_info(self):
+        output = []
+        resp = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_SENSOR_FAN_DETAILS_URI_10)
+        if resp.status_code == 200:
+            for each_member in resp.json_data.get("Members", []):
+                output.append(self.sensors_fan_mapped_data(each_member))
+        return output

@@ -1,0 +1,41 @@
+---
+- name: Fetch all chassis
+  ansible.builtin.uri:
+    url: "{{ storage_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: chassis_response
+
+- name: Fetch and structure each enclosure
+  ansible.builtin.command:
+    cmd: >
+      python _get_physical_disk_details.py
+      '{{ chassis_response.json | to_json }}'
+      "{{ idrac_ip }}"
+      "{{ idrac_user }}"
+      "{{ idrac_password }}"
+      "{{ idrac_port }}"
+    chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  register: enclosure_updated_dict
+
+- name: Output conversion to list
+  ansible.builtin.set_fact:
+    enclosure_updated_dict: "{{ enclosure_updated_dict.stdout | to_json |
+      from_json }}"
+  when:
+    - uri_data.status == 200
+
+- name: Comparing values inside list for memory
+  ansible.builtin.include_tasks:
+    file: _compare_diff.yml
+  vars:
+    _before: "{{ item.0 }}"
+    _after: "{{ item.1 }}"
+  when: uri_data.status == 200
+  loop: "{{ result.system_info.PhysicalDisk | zip(enclosure_updated_dict) }}"

@@ -25,20 +25,37 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from urllib.error import HTTPError
+GET_IDRAC_DELL_SENSORS_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellSensors"
+GET_IDRAC_SENSOR_INTRUSION_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1?$select=PhysicalSecurity/IntrusionSensor"
+NA = "Not Available"
 
-GET_IDRAC_FIRMWARE_URI = "/redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory"
-GET_IDRAC_FIRMWARE_URI_9 = "/redfish/v1/Managers/iDRAC.Embedded.1"
 
-
-class IDRACFirmwareInfo(object):
+class IDRACSensorsIntrusionInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
 
-    def is_omsdk_required(self):
-        try:
-            response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_URI)
-            if response.status_code == 200:
-                return False
-        except HTTPError:
-            return True
+    def sensors_intrusion_mapped_data(self, resp):
+        health_state = resp.get("HealthState", NA)
+        output = {
+            "CurrentReading": resp.get("CurrentReading", NA),
+            "CurrentState": resp.get("CurrentState", NA),
+            "DeviceID": resp.get("Id", NA),
+            "HealthState": resp.get("HealthState", NA),
+            "Key": resp.get("ElementName", NA),
+            "Location": resp.get("ElementName", NA),
+            "OtherSensorTypeDescription": NA,
+            "PrimaryStatus": "Healthy" if health_state == "OK" else health_state,
+            "SensorType": resp.get("SensorType", NA),
+            "State": resp.get("EnabledState", NA),
+            "Type": NA
+        }
+        return output
+
+    def get_sensors_intrusion_info(self):
+        output = []
+        response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_DELL_SENSORS_DETAILS_URI_10)
+        if response.status_code == 200:
+            for mem in response.json_data.get("Members", []):
+                if mem.get("ElementName", "") == "System Board Intrusion":
+                    output.append(self.sensors_intrusion_mapped_data(mem))
+        return output

@@ -1,0 +1,84 @@
+---
+- name: Fetch all chassis
+  ansible.builtin.uri:
+    url: "{{ chassis_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: chassis_response
+
+- name: Manually build enclosure_uri_list
+  ansible.builtin.set_fact:
+    enclosure_uri_list: >-
+      {{ enclosure_uri_list | default([])
+         + [ item['@odata.id'] ] }}
+  loop: "{{ chassis_response.json.Members }}"
+  when: >-
+    'Enclosure' in item['@odata.id']
+
+- name: Filter only enclosure URIs
+  ansible.builtin.set_fact:
+    enclosure_uris: >-
+      {{ enclosure_uri_list
+         | select('search', 'Enclosure')
+         | list }}
+
+- name: Fetch and structure each enclosure
+  ansible.builtin.command:
+    cmd: >
+      python _get_enclosure_details.py
+      "{{ item | trim }}"
+      "{{ idrac_ip }}"
+      "{{ idrac_user }}"
+      "{{ idrac_password }}"
+      "{{ idrac_port }}"
+    chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  loop: "{{ enclosure_uris }}"
+  register: enclosure_updated_dict
+
+- name: Parse Enclosure data
+  ansible.builtin.set_fact:
+    enclosure_list: >-
+      {{
+        enclosure_updated_dict.results
+        | map(attribute='stdout')
+        | map('from_json')
+        | map(attribute='Enclosure')
+        | list
+        | flatten
+      }}
+
+- name: Comparing values inside list for enclosure
+  ansible.builtin.include_tasks:
+    file: _compare_diff.yml
+  vars:
+    _before: "{{ item.0 }}"
+    _after: "{{ item.1 }}"
+  when: uri_data.status == 200
+  loop: "{{ result.system_info.Enclosure | zip(enclosure_list) }}"
+
+- name: Parse EnclosureSensor data
+  ansible.builtin.set_fact:
+    enclosure_sensor_list: >-
+      {{
+        enclosure_updated_dict.results
+        | map(attribute='stdout')
+        | map('from_json')
+        | map(attribute='EnclosureSensor')
+        | list
+        | flatten
+      }}
+
+- name: Comparing values inside list for enclosure_sensor
+  ansible.builtin.include_tasks:
+    file: _compare_diff.yml
+  vars:
+    _before: "{{ item.0 }}"
+    _after: "{{ item.1 }}"
+  when: uri_data.status == 200
+  loop: "{{ result.system_info.EnclosureSensor | zip(enclosure_sensor_list) }}"

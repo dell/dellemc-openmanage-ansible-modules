@@ -25,20 +25,31 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from urllib.error import HTTPError
-
-GET_IDRAC_FIRMWARE_URI = "/redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory"
-GET_IDRAC_FIRMWARE_URI_9 = "/redfish/v1/Managers/iDRAC.Embedded.1"
+GET_IDRAC_VIDEO_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellVideo"
 
 
-class IDRACFirmwareInfo(object):
+class IDRACVideoInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
 
-    def is_omsdk_required(self):
-        try:
-            response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_URI)
-            if response.status_code == 200:
-                return False
-        except HTTPError:
-            return True
+    def get_idrac_video_details(self):
+        response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_VIDEO_DETAILS_URI_10)
+        final_output = self.extract_video_data(response.json_data)
+        return final_output
+
+    def extract_video_data(self, response):
+        keys_to_search = {
+            "Description": "Description",
+            "DeviceDescription": "DeviceDescription",
+            "FQDD": "FQDD",
+            "Key": "Key",
+            "Manufacturer": "Manufacturer"
+        }
+        video_list = []
+        if "Members" in response and response["Members"]:
+            for member in response["Members"]:
+                video_data = {}
+                for key, response_key in keys_to_search.items():
+                    video_data[key] = member.get(response_key, "Not Available")
+                video_list.append(video_data)
+        return video_list

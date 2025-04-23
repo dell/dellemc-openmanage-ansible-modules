@@ -1,0 +1,101 @@
+- '  Get the PowerEdge Server System Inventory.'
+- ''
+- "\e[1mOPTIONS\e[0m (red indicates it is required):"
+- ''
+- "   \e[0;33mca_path\e[0m  The Privacy Enhanced Mail (PEM) file that contains a CA
+    certificate"
+- '            to be used for the validation.'
+- '        default: null'
+- '        type: path'
+- ''
+- "   \e[0;31m\e[1midrac_ip\e[0m\e[0m  iDRAC IP Address."
+- '        type: str'
+- ''
+- "   \e[0;31m\e[1midrac_password\e[0m\e[0m  iDRAC user password."
+- '                   If the password is not provided, then the'
+- '                   environment variable `IDRAC_PASSWORD'' is used.'
+- '                   Example: export IDRAC_PASSWORD=password'
+- '        aliases: [idrac_pwd]'
+- '        type: str'
+- ''
+- "   \e[0;33midrac_port\e[0m  iDRAC port."
+- '        default: 443'
+- '        type: int'
+- ''
+- "   \e[0;31m\e[1midrac_user\e[0m\e[0m  iDRAC username."
+- '               If the username is not provided, then the environment'
+- '               variable `IDRAC_USERNAME'' is used.'
+- '               Example: export IDRAC_USERNAME=username'
+- '        type: str'
+- ''
+- "   \e[0;33mtimeout\e[0m  The socket level timeout in seconds."
+- '        default: 30'
+- '        type: int'
+- ''
+- "   \e[0;33mvalidate_certs\e[0m  If \e[1;30m`false'\e[0m, the SSL certificates will
+    not be validated."
+- "                   Configure \e[1;30m`false'\e[0m only on personally"
+- '                   controlled sites where self-signed certificates are'
+- '                   used.'
+- "                   Prior to collection version \e[1;30m`5.0.0'\e[0m, the"
+- "                   \e[4mvalidate_certs\e[0m is \e[1;30m`false'\e[0m by"
+- '                   default.'
+- '        default: true'
+- '        type: bool'
+- ''
+- "\e[1mNOTES:\e[0m"
+- '      * Run this module from a system that has direct access to'
+- '        Dell iDRAC.'
+- '      * This module supports both IPv4 and IPv6 address for'
+- "        \e[4midrac_ip\e[0m."
+- "      * This module supports \e[1;30m`check_mode'\e[0m."
+- ''
+- "\e[1mREQUIREMENTS:\e[0m  omsdk >= 1.2.488, python >= 3.9.6"
+- ''
+- ''
+- "\e[1mAUTHOR\e[0m: Rajeev Arakkal (@rajeevarakkal)"
+- ''
+- "\e[1mEXAMPLES:\e[0m"
+- '---'
+- '- name: Get System Inventory'
+- '  dellemc.openmanage.idrac_system_info:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- ''
+- "\e[1mRETURN VALUES:\e[0m"
+- ''
+- "   \e[0;33merror_info\e[0m  Details of the HTTP Error."
+- '        returned: on HTTP error'
+- '        sample:'
+- '          error:'
+- '            ''@Message.ExtendedInfo'':'
+- '            - Message: Unable to process the request because an error occurred.'
+- '              MessageArgs: []'
+- '              MessageId: GEN1234'
+- '              RelatedProperties: []'
+- '              Resolution: Retry the operation. If the issue persists, contact your
+    system'
+- '                administrator.'
+- '              Severity: Critical'
+- '            code: Base.1.0.GeneralError'
+- '            message: A general error has occurred. See ExtendedInfo for more information.'
+- '        type: dict'
+- ''
+- "   \e[0;33mmsg\e[0m     Overall system inventory information status."
+- '        returned: always'
+- '        sample: Successfully fetched the system inventory details.'
+- '        type: str'
+- ''
+- "   \e[0;33msystem_info\e[0m  Details of the PowerEdge Server System Inventory."
+- '        returned: success'
+- '        sample:'
+- '          BIOS:'
+- '          - BIOSReleaseDate: 11/26/2019'
+- '            FQDD: BIOS.Setup.1-1'
+- '            InstanceID: DCIM:INSTALLED#741__BIOS.Setup.1-1'
+- '            Key: DCIM:INSTALLED#741__BIOS.Setup.1-1'
+- '            SMBIOSPresent: ''True'''
+- '            VersionString: 2.4.8'
+- '        type: dict'
