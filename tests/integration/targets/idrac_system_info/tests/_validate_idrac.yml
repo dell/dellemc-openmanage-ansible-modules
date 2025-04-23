@@ -1,0 +1,86 @@
+---
+- name: Fetch system details
+  ansible.builtin.uri:
+    url: "{{ system_details_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: system_details_data
+
+- name: Fetch iDRAC system details
+  ansible.builtin.uri:
+    url: "{{ idrac_system_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: idrac_system_data
+
+- name: Fetch manager details
+  ansible.builtin.uri:
+    url: "{{ manager_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: manager_data
+
+
+- name: Fetch manager iDRAC details
+  ansible.builtin.uri:
+    url: "{{ manager_idrac_attributs_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: manager_idrac_data
+
+- name: Structuring iDRAC details
+  ansible.builtin.command:
+    cmd: "python _get_idrac_details.py {{ d }} {{ c }} {{ b }} {{ a }}"
+    chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  register: idrac_updated_dict
+  no_log: false
+  vars:
+    a: "{{ manager_idrac_data.content | to_json | quote }}"
+    b: "{{ manager_data.content | to_json | quote }}"
+    c: "{{ idrac_system_data.content | to_json | quote }}"
+    d: "{{ system_details_data.content | to_json | quote }}"
+  when:
+    - manager_idrac_data.status == 200
+    - manager_data.status == 200
+    - idrac_system_data.status == 200
+    - system_details_data.status == 200
+
+- name: Output conversion to list
+  ansible.builtin.set_fact:
+    idrac_updated_dict: "{{ idrac_updated_dict.stdout |
+      to_json | from_json }}"
+  when:
+    - system_details_data.status == 200
+
+- name: Comparing values inside list for idrac
+  ansible.builtin.include_tasks:
+    file: _compare_diff.yml
+  vars:
+    _before: "{{ item.0 }}"
+    _after: "{{ item.1 }}"
+  when: system_details_data.status == 200
+  loop: "{{ result.system_info.iDRAC | zip(idrac_updated_dict) }}"
