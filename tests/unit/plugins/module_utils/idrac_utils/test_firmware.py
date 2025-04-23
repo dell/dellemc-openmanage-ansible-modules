@@ -4,32 +4,6 @@ from ansible.module_utils.six.moves.urllib.error import HTTPError
 
 
 class TestIDRACFirmwareInfo(TestUtils):
-    def test_get_firmware_version(self, idrac_mock):
-        fimrware_version = "xx.xx"
-        response = {
-            "Members":
-                {
-                    "Version": fimrware_version
-                }
-        }
-        idrac_mock.invoke_request.return_value.json_data = response
-        idrac_firmware_info = IDRACFirmwareInfo(idrac_mock)
-        result = idrac_firmware_info.get_firmware_version()
-        assert result == fimrware_version
-
-    def test_get_firmware_version_empty(self, idrac_mock):
-        response = {"Members": {}}
-        idrac_mock.invoke_request.return_value.json_data = response
-        idrac_firmware_info = IDRACFirmwareInfo(idrac_mock)
-        result = idrac_firmware_info.get_firmware_version()
-        assert not result
-
-    def test_get_firmware_version_error_handling(self, idrac_mock):
-        idrac_mock.invoke_request.return_value.status_code = 400
-        idrac_firmware_info = IDRACFirmwareInfo(idrac_mock)
-        result = idrac_firmware_info.get_firmware_version()
-        assert not result
-
     def test_is_omsdk_required(self, idrac_mock):
         idrac_mock.invoke_request.return_value.status_code = 200
         idrac_firmware_info = IDRACFirmwareInfo(idrac_mock)

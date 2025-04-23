@@ -35,22 +35,6 @@ class IDRACFirmwareInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
 
-    def get_firmware_version(self):
-        try:
-            response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_URI)
-            if response.status_code == 200:
-                members = response.json_data.get("Members")
-                if members:
-                    return members["Version"]
-                return ""
-        except HTTPError:
-            response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_URI_9)
-            if response.status_code == 200:
-                firmware_version = response.json_data.get("FirmwareVersion")
-                if firmware_version:
-                    return response.json_data.get("FirmwareVersion")
-            return ""
-
     def is_omsdk_required(self):
         try:
             response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_URI)
