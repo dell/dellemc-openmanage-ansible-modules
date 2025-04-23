@@ -20,6 +20,7 @@ def get_red_type_set_api(dellpowersupplyview, output):
     else:
         output["RedTypeOfSet"] = NA
 
+
 def get_power_supply_details_api(member):
     output = {}
     dellpowersupplyview = member.get("Oem", {}).get("Dell", {}).\
@@ -60,6 +61,7 @@ def get_power_supply_details_api(member):
         get("RedundancyStatus", NA)
     get_red_type_set_api(dellpowersupplyview, output)
     return output
+
 
 def get_power_supply_info_api():
     power_supply_output = []

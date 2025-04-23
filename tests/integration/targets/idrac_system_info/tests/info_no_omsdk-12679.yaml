@@ -29,35 +29,11 @@
     - name: Get Bios details - no omsdk required
       ansible.builtin.include_tasks: _validate_bios.yml
 
-    - name: assert
-      ansible.builtin.assert:
-        that:
-          - result.system_info.BIOS| to_json |
-            symmetric_difference(bios_updated_dict| to_json)
-
     - name: Get CPU details - no omsdk required
       ansible.builtin.include_tasks: _validate_cpu.yml
 
-    - name: assert
-      ansible.builtin.assert:
-        that:
-          - result.system_info.CPU| to_json |
-            symmetric_difference(cpu_updated_dict| to_json)
-
     - name: Get Enclosure details - no omsdk required
       ansible.builtin.include_tasks: _validate_enclosure_details.yml
-
-    - name: Assert enclosure info is correct
-      ansible.builtin.assert:
-        that:
-          - result.system_info.Enclosure| to_json |
-            symmetric_difference(enclosure_updated_dict| to_json)
-
-    - name: Assert enclosure sensor info is correct
-      ansible.builtin.assert:
-        that:
-          - result.system_info.EnclosureSensor| to_json |
-            symmetric_difference(enclosure_updated_dict | to_json)
 
     - name: Get System details - no omsdk required
       ansible.builtin.include_tasks: _validate_system.yml

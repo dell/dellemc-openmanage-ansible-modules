@@ -40,3 +40,45 @@
     chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
   loop: "{{ enclosure_uris }}"
   register: enclosure_updated_dict
+
+- name: Parse Enclosure data
+  ansible.builtin.set_fact:
+    enclosure_list: >-
+      {{
+        enclosure_updated_dict.results
+        | map(attribute='stdout')
+        | map('from_json')
+        | map(attribute='Enclosure')
+        | list
+        | flatten
+      }}
+
+- name: Comparing values inside list for enclosure
+  ansible.builtin.include_tasks:
+    file: _compare_diff.yml
+  vars:
+    _before: "{{ item.0 }}"
+    _after: "{{ item.1 }}"
+  when: uri_data.status == 200
+  loop: "{{ result.system_info.Enclosure | zip(enclosure_list) }}"
+
+- name: Parse EnclosureSensor data
+  ansible.builtin.set_fact:
+    enclosure_sensor_list: >-
+      {{
+        enclosure_updated_dict.results
+        | map(attribute='stdout')
+        | map('from_json')
+        | map(attribute='EnclosureSensor')
+        | list
+        | flatten
+      }}
+
+- name: Comparing values inside list for enclosure_sensor
+  ansible.builtin.include_tasks:
+    file: _compare_diff.yml
+  vars:
+    _before: "{{ item.0 }}"
+    _after: "{{ item.1 }}"
+  when: uri_data.status == 200
+  loop: "{{ result.system_info.EnclosureSensor | zip(enclosure_sensor_list) }}"

@@ -4,6 +4,7 @@ import json
 GET_IDRAC_SENSORS_VOLTAGE_LIST = sys.argv[1]
 NA = "Not Available"
 
+
 def sensors_voltage_mapped_data_api(resp):
     health = resp.get("HealthState", NA)
 
@@ -23,6 +24,7 @@ def sensors_voltage_mapped_data_api(resp):
     }
 
     return output
+
 
 def get_sensors_voltage_info_api():
     output = []

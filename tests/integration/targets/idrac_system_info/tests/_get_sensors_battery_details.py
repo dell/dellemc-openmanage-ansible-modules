@@ -11,7 +11,7 @@ def sensors_battery_mapped_data(resp):
         "Degraded/Warning": "Warning",
         "CriticalFailure": "Critical",
         "NonRecoverableError": "Critical",
-        "MajorFailure": "Critical",        
+        "MajorFailure": "Critical",
         "OK": "Healthy",
         "Unknown": "Unknown",
         "MinorFailure": "Critical"

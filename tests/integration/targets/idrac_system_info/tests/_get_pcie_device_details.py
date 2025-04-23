@@ -86,13 +86,13 @@ idrac_obj = iDRACRedfishAPI(params)
 
 
 def get_device_links_api():
-        resp = idrac_obj.invoke_request(method='GET', uri=GET_IDRAC_PCI_DETAILS_API)
-        device_links_list = []
-        if resp.status_code == 200:
-            members = resp.json_data.get("Members")
-            for each in members:
-                device_links_list.append(each.get("@odata.id"))
-        return device_links_list
+    resp = idrac_obj.invoke_request(method='GET', uri=GET_IDRAC_PCI_DETAILS_API)
+    device_links_list = []
+    if resp.status_code == 200:
+        members = resp.json_data.get("Members")
+        for each in members:
+            device_links_list.append(each.get("@odata.id"))
+    return device_links_list
 
 
 def get_device_function_details_api(function_link_uri):
@@ -107,6 +107,7 @@ def get_device_function_details_api(function_link_uri):
     slot_length = SLOT_LENGTH_MAPPING.get(pcie_function.get("SlotLength"), NA)
     slot_length_api = pcie_function.get("SlotLength", NA)
     return buswidth, buswidth_api, deviceid, slot_type, slot_type_api, slot_length, slot_length_api
+
 
 def get_device_details_api(device_link):
     response = idrac_obj.invoke_request(method='GET', uri=device_link)
@@ -134,6 +135,7 @@ def get_device_details_api(device_link):
                 tmp["SlotType_API"] = slot_type_api
             output.append(tmp)
     return output
+
 
 def get_pcidevice_info_api():
     pcidevice_output = []
