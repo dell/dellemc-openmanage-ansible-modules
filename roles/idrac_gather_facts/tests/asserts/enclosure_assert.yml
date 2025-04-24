@@ -13,7 +13,7 @@
   register: enclosure_result
   no_log: false
 
-- name: fetch the enclosure id
+- name: Fetch the enclosure id
   ansible.builtin.set_fact:
     url2: "https://{{ hostname }}{{ enclosure_result.json['Members'][0]['@odata.id'] }}"
   when: enclosure_result.json['Members'] != []
