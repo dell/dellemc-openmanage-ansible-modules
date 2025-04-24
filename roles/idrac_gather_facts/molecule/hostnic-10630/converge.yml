@@ -33,7 +33,7 @@
     - name: Assert hostnic dict for length
       ansible.builtin.assert:
         that:
-          - "{{ hostnic | length > 0 }}"
+          - hostnic | length > 0
 
     - name: Call assertion
       ansible.builtin.include_tasks: ../../tests/asserts/hostnic_assert.yml

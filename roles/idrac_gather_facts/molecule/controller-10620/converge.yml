@@ -1,11 +1,12 @@
 ---
-- name: Converge idrac_gather_facts for controller
-  hosts: all
+- name: Get system API for controller
+  hosts: localhost
   gather_facts: false
   vars:
     hostname: "{{ lookup('env', 'IDRAC_IP') }}"
     username: "{{ lookup('env', 'IDRAC_USER') }}"
     password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    idrac_port: "{{ lookup('env', 'IDRAC_PORT') }}"
     validate_certs: false
     target:
       - Controller
@@ -24,9 +25,13 @@
     idrac_gather_facts_uri_return_content: true
     diff_data: {}
     exclude_keys: ["Description"]
-    api_system: "/redfish/v1/Systems/System.Embedded.1"
 
   tasks:
+
+    - name: Find the system API
+      ansible.builtin.include_tasks:
+        ../../tests/asserts/_check_system_url.yml
+
     - name: Gather Facts for the Controller component
       ansible.builtin.include_role:
         name: "idrac_gather_facts"

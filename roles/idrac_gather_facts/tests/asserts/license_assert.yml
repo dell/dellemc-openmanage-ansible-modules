@@ -11,7 +11,7 @@
     status_code: "{{ idrac_gather_facts_uri_status_code }}"
     return_content: "{{ idrac_gather_facts_uri_return_content }}"
   register: license_result
-  no_log: true
+  no_log: false
 
 - name: Set license facts
   ansible.builtin.set_fact:

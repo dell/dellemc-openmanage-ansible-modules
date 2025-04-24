@@ -45,7 +45,7 @@
         return_content: "{{ idrac_gather_facts_uri_return_content }}"
       register: response_sys_attr
       ignore_errors: true
-      no_log: true
+      no_log: false
 
     - name: Get Manager information.
       ansible.builtin.uri:

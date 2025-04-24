@@ -1,6 +1,6 @@
 - name: Fetching Enclosure info
   ansible.builtin.uri:
-    url: "https://{{ hostname }}/redfish/v1/Chassis/Oem/Dell/DellEnclosures/{{ enclosure_data.Id }}"
+    url: "{{ url1 }}"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
     method: "{{ idrac_gather_facts_uri_method }}"
@@ -11,11 +11,14 @@
     status_code: "{{ idrac_gather_facts_uri_status_code }}"
     return_content: "{{ idrac_gather_facts_uri_return_content }}"
   register: enclosure_result
-  no_log: true
+  no_log: false
 
 - name: Set enclosure facts
   ansible.builtin.set_fact:
-    api_response: "{{ enclosure_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'Links', 'Description']) }}"
+    api_response:
+      "{{ enclosure_result.json | ansible.utils.remove_keys(target=
+      ['@odata.context', '@odata.id', '@odata.type', 'Links',
+      'Description']) }}"
 
 - name: Set the keys diff
   ansible.builtin.set_fact:

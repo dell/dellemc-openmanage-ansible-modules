@@ -12,7 +12,7 @@
     status_code: "{{ idrac_gather_facts_uri_status_code }}"
     return_content: "{{ idrac_gather_facts_uri_return_content }}"
   register: idrac_gather_facts_storage_entity
-  no_log: true
+  no_log: false
 
 - name: Get storage entities
   ansible.builtin.set_fact:

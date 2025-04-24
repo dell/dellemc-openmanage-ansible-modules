@@ -10,7 +10,7 @@
     body_format: "{{ idrac_gather_facts_uri_body_format }}"
     status_code: "{{ idrac_gather_facts_uri_status_code }}"
     return_content: "{{ idrac_gather_facts_uri_return_content }}"
-  no_log: true
+  no_log: false
   register: pci_result
 
 - name: Set pcie device facts

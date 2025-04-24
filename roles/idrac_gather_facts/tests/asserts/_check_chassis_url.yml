@@ -1,0 +1,35 @@
+---
+- name: Set common access parameters
+  ansible.builtin.set_fact:
+    idrac_ip: "{{ hostname }}"
+    idrac_user: "{{ username }}"
+    idrac_password: "{{ password}}"
+
+- name: Check if module is calling omsdk
+  ansible.builtin.include_tasks:
+    ../../../../tests/integration/targets/idrac_system_info/tests/_check_firmware_version_supported.yml
+
+- name: Get chassis resource api id
+  ansible.builtin.uri:
+    url: https://{{ hostname }}:{{ idrac_port }}/redfish/v1/Chassis
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    method: "{{ idrac_gather_facts_uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    headers: "{{ idrac_gather_facts_uri_headers }}"
+    body_format: "{{ idrac_gather_facts_uri_body_format }}"
+    status_code: "{{ idrac_gather_facts_uri_status_code }}"
+    return_content: "{{ idrac_gather_facts_uri_return_content }}"
+  register: chassis_api_result
+
+- name: Get first chassis resource id from manager response.
+  ansible.builtin.set_fact:
+    api_chassis: "{{ chassis_api_result.json.Members[0]
+      ['@odata.id'] | default('') }}"
+
+- name: Get enclosure chassis resource id from manager response.
+  ansible.builtin.set_fact:
+    api_enclosure_chassis: "{{ item['@odata.id'] | default('') }}"
+  loop: "{{ chassis_api_result.json.Members }}"
+  when: "'Enclosure' in item['@odata.id']"

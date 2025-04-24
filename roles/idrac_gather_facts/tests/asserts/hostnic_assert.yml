@@ -11,12 +11,12 @@
     status_code: "{{ idrac_gather_facts_uri_status_code }}"
     return_content: "{{ idrac_gather_facts_uri_return_content }}"
   register: hostnic_result
-  no_log: true
+  no_log: false
 
 - name: Set hostnic facts
   ansible.builtin.set_fact:
     api_response: "{{ hostnic_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'HostEthernetInterfaces',
-     'ManagerEthernetInterface']) }}"
+     'ManagerEthernetInterface', '@odata.etag']) }}"
 
 - name: Set the keys diff
   ansible.builtin.set_fact:
@@ -34,7 +34,7 @@
 - name: Assert the difference in Keys
   ansible.builtin.assert:
     that:
-      - "{{ (diff_keys | length) == 0 }}"
-      - "{{ (diff_data | length) == 0 }}"
+      - (diff_keys | length) == 0
+      - (diff_data | length) == 0
     fail_msg: "The response from the role does not match | Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
     success_msg: "The response from the role matches |  Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"

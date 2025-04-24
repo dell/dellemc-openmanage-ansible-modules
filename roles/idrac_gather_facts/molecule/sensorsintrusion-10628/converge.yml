@@ -6,6 +6,7 @@
     hostname: "{{ lookup('env', 'IDRAC_IP') }}"
     username: "{{ lookup('env', 'IDRAC_USER') }}"
     password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    idrac_port: "{{ lookup('env', 'IDRAC_PORT') }}"
     validate_certs: false
     target:
       - Sensors_Intrusion
@@ -26,6 +27,11 @@
     exclude_keys: []
 
   tasks:
+
+    - name: Find the chassis API
+      ansible.builtin.include_tasks:
+        ../../tests/asserts/_check_chassis_url.yml
+
     - name: Gather Facts for the Sensors Intrusion component
       ansible.builtin.include_role:
         name: "idrac_gather_facts"
@@ -33,7 +39,7 @@
     - name: Assert sensor battery dict for length
       ansible.builtin.assert:
         that:
-          - "{{ intrusion_sensor | length > 0 }}"
+          - intrusion_sensor | length > 0
       when: intrusion_result.status == 200
 
     - name: Fetching Sensor Battery info
@@ -47,15 +53,14 @@
         body_format: "{{ idrac_gather_facts_uri_body_format }}"
         status_code: "{{ idrac_gather_facts_uri_status_code }}"
         return_content: "{{ idrac_gather_facts_uri_return_content }}"
-      no_log: true
-      ignore_errors: true
+      no_log: false
       register: sensorintrusion_result
 
     - name: Response filter
       ansible.builtin.set_fact:
         api_response:
           "{{ sensorintrusion_result.json | ansible.utils.remove_keys(target=['@odata.context',
-          '@odata.id', '@odata.type']) }}"
+          '@odata.id', '@odata.type', '@odata.etag']) }}"
       vars:
         jquery: "Oem.Dell.DellSystem"
       when: sensorintrusion_result is defined and
@@ -79,8 +84,8 @@
     - name: Assert the difference in Keys
       ansible.builtin.assert:
         that:
-          - "{{ (diff_keys | length) == 0 }}"
-          - "{{ (diff_data | length) == 0 }}"
+          - (diff_keys | length) == 0
+          - (diff_data | length) == 0
         fail_msg: "The response from the role does not match | Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
         success_msg: "The response from the role matches |  Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
       when: diff_keys is defined and diff_data is defined
