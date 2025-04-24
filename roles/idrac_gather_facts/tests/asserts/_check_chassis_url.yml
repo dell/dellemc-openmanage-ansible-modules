@@ -22,16 +22,8 @@
     api_chassis: "{{ chassis_api_result.json.Members[0]
       ['@odata.id'] | default('') }}"
 
-- name: debug members
-  ansible.builtin.debug:
-    var: chassis_api_result.json.Members[0]['@odata.id']
-
 - name: Get enclosure chassis resource id from manager response.
   ansible.builtin.set_fact:
     api_enclosure_chassis: "{{ item['@odata.id'] | default('') }}"
   loop: "{{ chassis_api_result.json.Members }}"
   when: "'Enclosure' in item['@odata.id']"
-
-- name: debug enclose id
-  ansible.builtin.debug:
-    var: api_enclosure_chassis

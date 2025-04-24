@@ -36,7 +36,7 @@
       ansible.builtin.set_fact:
         url1_1: "https://{{ hostname }}{{ api_system }}"
         url1_2: "/Oem/Dell/DellPresenceAndStatusSensors"
-  
+
     - name: Set url1
       ansible.builtin.set_fact:
         url1: "{{ url1_1 }}{{ url1_2 }}"
