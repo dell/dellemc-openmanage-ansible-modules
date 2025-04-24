@@ -11,12 +11,13 @@
   ansible.builtin.set_fact:
     curl_cmd: "curl --insecure -u %s:%s -o %s %s"
     curl_http_url: "{{ https_share_ip }}/{{ https_certificate_path }}"
+    per_mode: "0755"
 
 - name: Create Directory
   ansible.builtin.file:
     path: "{{ path_for_import_cert }}"
     state: directory
-    mode: "0755"
+    mode: "{{ per_mode }}"
   register: idrac_certificate_created_directory
   check_mode: false
 
@@ -36,7 +37,7 @@
     headers:
       Authorization: "Basic {{ (https_share_username + ':' +
         https_share_password) | b64encode }}"
-    mode: "0755"
+    mode: "{{ per_mode }}"
     dest: "{{ path_for_import_cert }}"
   check_mode: false
   loop: "{{ idrac_cert_name }}"
