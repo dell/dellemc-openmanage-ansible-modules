@@ -1,6 +1,33 @@
-- name: Fetching Enclosure info
+---
+- name: Fetching Enclosure members
   ansible.builtin.uri:
     url: "{{ url1 }}"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    method: "{{ idrac_gather_facts_uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    headers: "{{ idrac_gather_facts_uri_headers }}"
+    body_format: "{{ idrac_gather_facts_uri_body_format }}"
+    status_code: "{{ idrac_gather_facts_uri_status_code }}"
+    return_content: "{{ idrac_gather_facts_uri_return_content }}"
+  register: enclosure_result
+  no_log: false
+
+- name: Fetch the enclosure id
+  ansible.builtin.set_fact:
+    url2_1: "https://{{ hostname }}"
+    url2_2: "{{ enclosure_result.json['Members'][0]['@odata.id'] }}"
+  when: enclosure_result.json['Members'] != []
+
+- name: Construct enclosure id
+  ansible.builtin.set_fact:
+    url2: "{{ url2_1}}{{ url2_2 }}"
+  when: enclosure_result.json['Members'] != []
+
+- name: Fetching Enclosure info
+  ansible.builtin.uri:
+    url: "{{ url2 }}"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
     method: "{{ idrac_gather_facts_uri_method }}"
