@@ -6,6 +6,7 @@
     hostname: "{{ lookup('env', 'IDRAC_IP') }}"
     username: "{{ lookup('env', 'IDRAC_USER') }}"
     password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    idrac_port: "{{ lookup('env', 'IDRAC_PORT') }}"
     validate_certs: false
     target:
       - Fan

@@ -15,7 +15,8 @@
 - name: Set Power Supply Metrics facts
   ansible.builtin.set_fact:
     api_power_metrics: "{{ response_power_metrics.json |
-      ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', 'DataSourceUri']) }}"
+      ansible.utils.remove_keys(target=['@odata.context',
+      '@odata.type', '@odata.id', '@odata.etag', 'DataSourceUri']) }}"
 
 - name: Set the keys diff
   ansible.builtin.set_fact:
@@ -24,6 +25,6 @@
 - name: Assert the difference in Keys
   ansible.builtin.assert:
     that:
-      - "{{ (diff_keys | length) == 0 }}"
+      - (diff_keys | length) == 0
     fail_msg: "The response from the role does not match | Diff Keys : {{ diff_keys }}"
     success_msg: "The response from the role matches |  Diff Keys : {{ diff_keys }}"
