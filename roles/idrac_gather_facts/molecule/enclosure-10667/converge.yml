@@ -33,9 +33,25 @@
       ansible.builtin.include_tasks:
         ../../tests/asserts/_check_chassis_url.yml
 
+    - name: Set 17G url
+      ansible.builtin.set_fact:
+        url1: "https://{{ hostname }}{{ api_chassis }}/Oem/Dell/DellEnclosures/"
+      when:
+        - not is_omsdk_required | bool
+
+    - name: Set <17G url
+      ansible.builtin.set_fact:
+        url1: "https://{{ hostname }}/redfish/v1/Chassis/Oem/Dell/DellEnclosures/"
+      when:
+        - is_omsdk_required | bool
+
     - name: Gather Facts for the Enclosure component
       ansible.builtin.include_role:
         name: "idrac_gather_facts"
+
+    - name: Gather enclosure data
+      ansible.builtin.debug:
+        var: enclosure_data
 
     - name: Assert enclosure dict for length
       ansible.builtin.assert:

@@ -32,9 +32,18 @@
       ansible.builtin.include_tasks:
         ../../tests/asserts/_check_system_url.yml
 
+    - name: Set url1 part1 and part2
+      ansible.builtin.set_fact:
+        url1_1: "https://{{ hostname }}{{ api_system }}"
+        url1_2: "/Oem/Dell/DellPresenceAndStatusSensors"
+  
+    - name: Set url1
+      ansible.builtin.set_fact:
+        url1: "{{ url1_1 }}{{ url1_2 }}"
+
     - name: Fetching Presence and Status Sensor info
       ansible.builtin.uri:
-        url: "https://{{ hostname }}{{ api_system }}/Oem/Dell/DellPresenceAndStatusSensors"
+        url: "{{ url1 }}"
         validate_certs: "{{ validate_certs }}"
         ca_path: "{{ ca_path | default(omit) }}"
         method: "{{ idrac_gather_facts_uri_method }}"

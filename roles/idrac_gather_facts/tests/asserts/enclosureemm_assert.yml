@@ -1,16 +1,21 @@
 ---
 - name: Set 17G url
   ansible.builtin.set_fact:
-    url1: "https://{{ hostname }}{{ api_chassis }}/Oem/Dell/DellEnclosureEMM/{{ enclosureemm_data.Id }}"
+    url1_1: "https://{{ hostname }}{{ api_chassis }}/Oem/Dell/"
+    url1_2: "DellEnclosureEMM/{{ enclosureemm_data.Id }}"
   when:
     - not is_omsdk_required | bool
 
 - name: Set <17G url
   ansible.builtin.set_fact:
-    url1: "https://{{ hostname }}/Oem/Dell/DellEnclosureEMM/{{ enclosureemm_data.Id }}"
+    url1_1: "https://{{ hostname }}/Oem/Dell/"
+    url1_2: "DellEnclosureEMM/{{ enclosureemm_data.Id }}"
   when:
     - is_omsdk_required | bool
 
+- name: Set url
+  ansible.builtin.set_fact:
+    url1: "{{ url1_1 }}{{ url1_2 }}"
 - name: Fetching EnclosureEMM info
   ansible.builtin.uri:
     url: "{{ url1 }}"

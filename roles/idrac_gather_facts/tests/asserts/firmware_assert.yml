@@ -15,8 +15,11 @@
 
 - name: Set firmware facts
   ansible.builtin.set_fact:
-    api_response: "{{ firmware_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'Classifications@odata.count',
-      'IdentityInfoType@odata.count', 'IdentityInfoValue@odata.count', '@odata.etag']) }}"
+    api_response:
+      "{{ firmware_result.json | ansible.utils.remove_keys(target=
+      ['@odata.context', '@odata.id', '@odata.type',
+      'Classifications@odata.count', 'IdentityInfoType@odata.count',
+      'IdentityInfoValue@odata.count', '@odata.etag']) }}"
 
 - name: Set the keys diff
   ansible.builtin.set_fact:

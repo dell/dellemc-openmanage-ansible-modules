@@ -15,7 +15,8 @@
 - name: Set Power Supply Metrics facts
   ansible.builtin.set_fact:
     api_power_metrics: "{{ response_power_metrics.json |
-      ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', '@odata.etag', 'DataSourceUri']) }}"
+      ansible.utils.remove_keys(target=['@odata.context',
+      '@odata.type', '@odata.id', '@odata.etag', 'DataSourceUri']) }}"
 
 - name: Set the keys diff
   ansible.builtin.set_fact:

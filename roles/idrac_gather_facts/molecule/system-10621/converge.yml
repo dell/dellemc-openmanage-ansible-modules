@@ -38,15 +38,21 @@
 
     - name: Set 17G url
       ansible.builtin.set_fact:
-        url2: "https://{{ hostname }}{{ api_manager }}/Oem/Dell/DellAttributes/{{ computer_system_id }}"
+        url2_1: "https://{{ hostname }}{{ api_manager }}"
+        url2_2: "/Oem/Dell/DellAttributes/{{ computer_system_id }}"
       when:
         - not is_omsdk_required | bool
 
     - name: Set < 17G url
       ansible.builtin.set_fact:
-        url2: "https://{{ hostname }}/redfish/v1/Managers/{{ computer_system_id }}/Attributes"
+        url2_1: "https://{{ hostname }}/redfish/v1/"
+        url2_2: "Managers/{{ computer_system_id }}/Attributes"
       when:
         - is_omsdk_required | bool
+
+    - name: Set < 17G url
+      ansible.builtin.set_fact:
+        url2: "{{ url2_1 }}{{ url2_2 }}"
 
     - name: Gather Facts for the System component
       ansible.builtin.include_role:
@@ -74,7 +80,7 @@
 
     - name: Fetching operating system info
       ansible.builtin.uri:
-        url: "{{ url2 }}" # verification firmware version 5.00.00
+        url: "{{ url2 }}"  # verification firmware version 5.00.00
         validate_certs: "{{ validate_certs }}"
         ca_path: "{{ ca_path | default(omit) }}"
         method: "{{ idrac_gather_facts_uri_method }}"
@@ -89,7 +95,8 @@
 
     - name: Extracting Server OS
       ansible.builtin.set_fact:
-        os_attrs: "{{ os_attrs | default({}) | combine({item.key: item.value}) }}"
+        os_attrs:
+          "{{ os_attrs | default({}) | combine({item.key: item.value}) }}"
       when: "'ServerOS' in item.key"
       loop: "{{ os_result.json.Attributes | dict2items }}"
 

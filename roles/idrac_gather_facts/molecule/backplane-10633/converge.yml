@@ -33,15 +33,21 @@
 
     - name: Set 17G url
       ansible.builtin.set_fact:
-        url1: "https://{{ hostname }}{{ api_chassis }}/Oem/Dell/DellPCIeSSDBackPlanes"
+        url1_1: "https://{{ hostname }}{{ api_chassis }}"
+        url1_2: "/Oem/Dell/DellPCIeSSDBackPlanes"
       when:
         - not is_omsdk_required | bool
 
     - name: Set <17G url
       ansible.builtin.set_fact:
-        url1: "https://{{ hostname }}/redfish/v1/Chassis/Oem/Dell/DellPCIeSSDBackPlanes"
+        url1_1: "https://{{ hostname }}/redfish/v1/Chassis"
+        url1_2: "/Oem/Dell/DellPCIeSSDBackPlanes"
       when:
         - is_omsdk_required | bool
+
+    - name: Set < 17G url
+      ansible.builtin.set_fact:
+        url1: "{{ url1_1 }}{{ url1_2 }}"
 
     - name: Collecting PCIeSSDBackPlane information from API
       ansible.builtin.uri:

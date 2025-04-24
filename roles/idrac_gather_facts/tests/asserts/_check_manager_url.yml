@@ -19,6 +19,7 @@
 
 - name: Get first manager resource id from manager response.
   ansible.builtin.set_fact:
-    api_manager: "{{ manager_api_result.json.Members[0]['@odata.id'] | default('') }}"
+    api_manager:
+      "{{ manager_api_result.json.Members[0]['@odata.id'] | default('') }}"
     computer_manager_id: "{{ manager_api_result.json.Members[0]['@odata.id'] |
       split('/') | last }}"

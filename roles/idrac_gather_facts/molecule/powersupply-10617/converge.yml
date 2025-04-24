@@ -53,8 +53,9 @@
       ansible.builtin.set_fact:
         api_response:
           "{{ powersupply_result.json.Members |
-            ansible.utils.remove_keys(target=['@odata.context', '@odata.id',
-            '@odata.type', '@odata.etag', 'ActiveInputVoltage@Redfish.Deprecated',
+            ansible.utils.remove_keys(target=['@odata.context',
+            '@odata.id', '@odata.type', '@odata.etag',
+            'ActiveInputVoltage@Redfish.Deprecated',
             'OperationalStatus@odata.count', 'RedTypeOfSet@odata.count']) }}"
       when: powersupply_result is defined and powersupply_result.status == 200
 
