@@ -1,3 +1,4 @@
+---
 - name: Fetching Enclosure members
   ansible.builtin.uri:
     url: "{{ url1 }}"
@@ -15,7 +16,13 @@
 
 - name: Fetch the enclosure id
   ansible.builtin.set_fact:
-    url2: "https://{{ hostname }}{{ enclosure_result.json['Members'][0]['@odata.id'] }}"
+    url2_1: "https://{{ hostname }}"
+    url2_2: "{{ enclosure_result.json['Members'][0]['@odata.id'] }}"
+  when: enclosure_result.json['Members'] != []
+
+- name: Construct enclosure id
+  ansible.builtin.set_fact:
+    url2: "{{ url2_1}}{{ url2_2 }}"
   when: enclosure_result.json['Members'] != []
 
 - name: Fetching Enclosure info
