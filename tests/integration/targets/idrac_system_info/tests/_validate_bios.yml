@@ -2,12 +2,11 @@
 - name: Structure BIOS details using validation script
   ansible.builtin.command:
     cmd: >
-      python _get_bios_details.py
+      python targets/idrac_system_info/tests/_get_bios_details.py
       "{{ idrac_ip }}"
       "{{ idrac_user }}"
       "{{ idrac_password }}"
       "{{ idrac_port }}"
-    chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
   register: bios_updated_dict
 
 - name: Output conversion to list
