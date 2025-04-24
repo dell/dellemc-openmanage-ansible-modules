@@ -1,4 +1,10 @@
 ---
+- name: Set common access parameters
+  ansible.builtin.set_fact:
+    idrac_ip: "{{ hostname }}"
+    idrac_user: "{{ username }}"
+    idrac_password: "{{ password}}"
+
 - name: Check if module is calling omsdk
   ansible.builtin.include_tasks:
     ../../../../tests/integration/targets/idrac_system_info/tests/_check_firmware_version_supported.yml
