@@ -1,7 +1,8 @@
 ---
-idrac_firmware_uri:
- "http://{{ http_share }}{{ http_share_no_auth }}{{ idrac_firmware_dup_file }}"
-bios_firmware_uri:
- "http://{{ http_share }}{{ http_share_no_auth }}{{ bios_firmware_dup_file }}"
+base_uri: "http:"
+idrac_firmware_uri: "{{ base_uri }}//{{ http_share }}\
+  {{ http_share_no_auth }}{{ idrac_firmware_dup_file }}"
+bios_firmware_uri: "{{ base_uri }}//{{ http_share }}\
+  {{ http_share_no_auth }}{{ bios_firmware_dup_file }}"
 powerstate_uri:
  "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/Systems/System.Embedded.1"

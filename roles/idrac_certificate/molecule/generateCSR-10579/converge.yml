@@ -6,12 +6,15 @@
     cert_export_path: "{{ lookup('env', 'path_for_import_cert') }}"
 
   tasks:
+    - name: Set fact
+      ansible.builtin.set_fact:
+        per_mode: "0755"
 
     - name: Create Directory
       ansible.builtin.file:
         path: "{{ cert_export_path }}"
         state: directory
-        mode: "0755"
+        mode: "{{ per_mode }}"
       register: idrac_certificate_created_directory
       check_mode: false
 
