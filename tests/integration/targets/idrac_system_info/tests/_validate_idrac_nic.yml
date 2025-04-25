@@ -29,6 +29,8 @@
   ansible.builtin.command:
     cmd: "python _get_idrac_nic_details.py {{ a }} {{ b }}"
     chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  environment:
+    PYTHONPATH: "{{ lookup('env', 'ANSIBLE_COLLECTIONS_PATH') }}"
   register: idrac_nic_updated_dict
   vars:
     a: "{{ uri_manager_data.json | to_json | quote }}"

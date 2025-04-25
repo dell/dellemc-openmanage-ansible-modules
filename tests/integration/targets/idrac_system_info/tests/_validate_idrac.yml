@@ -56,6 +56,8 @@
   ansible.builtin.command:
     cmd: "python _get_idrac_details.py {{ d }} {{ c }} {{ b }} {{ a }}"
     chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  environment:
+    PYTHONPATH: "{{ lookup('env', 'ANSIBLE_COLLECTIONS_PATH') }}"
   register: idrac_updated_dict
   no_log: false
   vars:

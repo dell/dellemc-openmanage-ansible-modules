@@ -175,6 +175,8 @@
     cmd: "python _get_subsystem_details.py {{ a }} {{ b }} {{ c }} {{ d }}
       {{ e }} {{ f }} {{ g }} {{ h }} {{ i }} {{ j }} {{ k }} {{ l }}"
     chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  environment:
+    PYTHONPATH: "{{ lookup('env', 'ANSIBLE_COLLECTIONS_PATH') }}"
   register: subsystem_updated_dict
   no_log: false
   vars:

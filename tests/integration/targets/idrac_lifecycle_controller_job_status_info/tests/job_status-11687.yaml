@@ -38,23 +38,47 @@
     - name: Extracting iDRAC generation
       ansible.builtin.set_fact:
         idrac_gen: "{{ sys_detail.json.Oem.Dell.DellSystem.SystemGeneration }}"
+      ignore_errors: true
 
-    - name: Export SCP for iDRAC8 and iDRAC9 to a local path and wait for this
+    - name: Export SCP for iDRAC8 or iDRAC9
         job to get completed.
       idrac_server_config_profile:
         share_name: "{{ role_path }}/files"
         job_wait: true
       register: result_export_scp
-      when: idrac_gen != "17G Monolithic"
+      when: idrac_gen is undefined or idrac_gen != "17G Monolithic"
 
-    - name: Exrtact Export SCP Job ID
+    - name: Exrtact Export SCP Job ID for iDRAC8 or iDRAC9
       ansible.builtin.set_fact:
         JID: "{{ result_export_scp.scp_status.Id }}"
-      when: idrac_gen != "17G Monolithic"
+      when: idrac_gen is undefined or idrac_gen != "17G Monolithic"
 
-    - name: Final url
+    - name: Get Lifecycle Controller Job Status for iDRAC8 or iDRAC9
+      idrac_lifecycle_controller_job_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        job_id: "{{ JID }}"
+      register: lc_status
+      until:
+        - lc_status.job_info is defined
+        - lc_status.job_info.JobStatus in ["Completed", "Failed"]
+      retries: 10
+      delay: 30
+      when: idrac_gen is undefined or idrac_gen != "17G Monolithic"
+
+    - name: Verify the status of tasks for iDRAC8 or iDRAC9
+      ansible.builtin.assert:
+        that:
+          - not lc_status.changed
+          - lc_status.job_info.InstanceID == result_export_scp.scp_status.Id
+      when: idrac_gen is undefined or idrac_gen != "17G Monolithic"
+
+    - name: Final url for iDRAC10
       ansible.builtin.set_fact:
         final_url: "{{ base_uri }}{{ managers }}{{ export_scp }}"
+      when: idrac_gen is defined and idrac_gen == "17G Monolithic"
 
     - name: Create Success Export SCP Job on iDRAC10
       ansible.builtin.uri: &idrac_export_scp_uri
@@ -76,16 +100,17 @@
         return_content: true
       register: resp_export_scp
       no_log: false
-      when: idrac_gen == "17G Monolithic"
+      when: idrac_gen is defined and idrac_gen == "17G Monolithic"
 
     - name: Waiting for 30 seconds
       ansible.builtin.wait_for:
         timeout: 30
+      when: idrac_gen is defined and idrac_gen == "17G Monolithic"
 
     - name: Extract Export SCP Job ID on iDRAC10
       ansible.builtin.set_fact:
         JID: "{{ resp_export_scp.location.split('/')[-1] }}"
-      when: idrac_gen == "17G Monolithic"
+      when: idrac_gen is defined and idrac_gen == "17G Monolithic"
 
     - name: Get Lifecycle Controller Job Status.
       idrac_lifecycle_controller_job_status_info:
@@ -100,26 +125,20 @@
         - lc_status.job_info.JobStatus in ["Completed", "Failed"]
       retries: 10
       delay: 30
+      when: idrac_gen is defined and idrac_gen == "17G Monolithic"
 
     - name: Get and construct job details
       ansible.builtin.include_tasks: _job_details.yml
       vars:
         job_id: "{{ JID }}"
-      when: idrac_gen == "17G Monolithic"
-
-    - name: Verify the status of tasks
-      ansible.builtin.assert:
-        that:
-          - not lc_status.changed
-          - lc_status.job_info.InstanceID == result_export_scp.scp_status.Id
-      when: idrac_gen != "17G Monolithic"
+      when: idrac_gen is defined and idrac_gen == "17G Monolithic"
 
     - name: Verify the diff for success tasks and uri status for iDRAC10
       ansible.utils.fact_diff:
         before: "{{ lc_status.job_info }}"
         after: "{{ api_response }}"
       register: diff_result
-      when: idrac_gen == "17G Monolithic"
+      when: idrac_gen is defined and idrac_gen == "17G Monolithic"
 
     - name: Verify the complete status of tasks on iDRAC10
       ansible.builtin.assert:
@@ -129,20 +148,20 @@
           - resp_export_scp.status == 202
           - not diff_result.changed
           - not diff_result.diff_lines
-      when: idrac_gen == "17G Monolithic"
+      when: idrac_gen is defined and idrac_gen == "17G Monolithic"
 
     - name: Create running export scp job on iDRAC10
       ansible.builtin.uri:
         <<: *idrac_export_scp_uri
       register: reg_progress_exp
-      when: idrac_gen == "17G Monolithic"
+      when: idrac_gen is defined and idrac_gen == "17G Monolithic"
 
     - name: Extract Export in running SCP Job ID on iDRAC10
       ansible.builtin.set_fact:
         JID: "{{ reg_progress_exp.location.split('/')[-1] }}"
-      when: idrac_gen == "17G Monolithic"
+      when: idrac_gen is defined and idrac_gen == "17G Monolithic"
 
-    - name: Get running Lifecycle Controller Job Status.
+    - name: Get running Lifecycle Controller Job Status for iDRAC10
       idrac_lifecycle_controller_job_status_info:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
@@ -155,20 +174,20 @@
         - lc_status.job_info.JobStatus in ["Completed", "Failed", "Running"]
       retries: 10
       delay: 30
-      when: idrac_gen == "17G Monolithic"
+      when: idrac_gen is defined and idrac_gen == "17G Monolithic"
 
     - name: Get and construct job details
       ansible.builtin.include_tasks: _job_details.yml
       vars:
         job_id: "{{ JID }}"
-      when: idrac_gen == "17G Monolithic"
+      when: idrac_gen is defined and idrac_gen == "17G Monolithic"
 
     - name: Verify the diff for running tasks and uri status in iDRAC10
       ansible.utils.fact_diff:
         before: "{{ lc_status.job_info }}"
         after: "{{ api_response }}"
       register: diff_result
-      when: idrac_gen == "17G Monolithic"
+      when: idrac_gen is defined and idrac_gen == "17G Monolithic"
 
     - name: Verify the running status of tasks on iDRAC10
       ansible.builtin.assert:
@@ -178,15 +197,17 @@
           - resp_export_scp.status == 202
           - not diff_result.changed
           - not diff_result.diff_lines
-      when: idrac_gen == "17G Monolithic"
+      when: idrac_gen is defined and idrac_gen == "17G Monolithic"
 
     - name: Wait for the job to get completed
       ansible.builtin.pause:
         seconds: 30
+      when: idrac_gen is defined and idrac_gen == "17G Monolithic"
 
     - name: Final url for import scp
       ansible.builtin.set_fact:
         final_url: "{{ base_uri }}{{ managers }}{{ import_scp }}"
+      when: idrac_gen is defined and idrac_gen == "17G Monolithic"
 
     - name: Create failed import scp job on iDRAC10
       ansible.builtin.uri:
@@ -198,17 +219,18 @@
               '{{ role_path }}/files/import_custom_failed.xml') }}",
             "ShareParameters": {"Target": ["IDRAC"]},
           }
-      when: idrac_gen == "17G Monolithic"
+      when: idrac_gen is defined and idrac_gen == "17G Monolithic"
       register: resp_import_scp
 
     - name: Waiting for 30 seconds
       ansible.builtin.wait_for:
         timeout: 30
+      when: idrac_gen is defined and idrac_gen == "17G Monolithic"
 
     - name: Extract import SCP Job ID on iDRAC10
       ansible.builtin.set_fact:
         JID: "{{ resp_import_scp.location.split('/')[-1] }}"
-      when: idrac_gen == "17G Monolithic"
+      when: idrac_gen is defined and idrac_gen == "17G Monolithic"
 
     - name: Get Lifecycle Controller Job Status of failed job.
       idrac_lifecycle_controller_job_status_info:
@@ -223,19 +245,20 @@
         - lc_status.job_info.JobStatus in ["Completed", "Failed"]
       retries: 10
       delay: 30
+      when: idrac_gen is defined and idrac_gen == "17G Monolithic"
 
     - name: Get and construct job details
       ansible.builtin.include_tasks: _job_details.yml
       vars:
         job_id: "{{ JID }}"
-      when: idrac_gen == "17G Monolithic"
+      when: idrac_gen is defined and idrac_gen == "17G Monolithic"
 
     - name: Verify the diff for failed tasks and uri status in iDRAC10
       ansible.utils.fact_diff:
         before: "{{ lc_status.job_info }}"
         after: "{{ api_response }}"
       register: diff_result
-      when: idrac_gen == "17G Monolithic"
+      when: idrac_gen is defined and idrac_gen == "17G Monolithic"
 
     - name: Verify the status of failed tasks on iDRAC10
       ansible.builtin.assert:
@@ -245,7 +268,7 @@
           - resp_import_scp.status == 202
           - not diff_result.changed
           - not diff_result.diff_lines
-      when: idrac_gen == "17G Monolithic"
+      when: idrac_gen is defined and idrac_gen == "17G Monolithic"
 
   module_defaults:
     dellemc.openmanage.idrac_lifecycle_controller_job_status_info:

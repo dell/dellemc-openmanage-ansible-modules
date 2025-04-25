@@ -21,6 +21,7 @@
         idrac_user: "{{idrac_user}}"
         idrac_password: "{{idrac_password}}"
         validate_certs: "{{validate_certs}}"
+        timeout: 180
       register: result
 
     - name: Get Fan details - no omsdk required

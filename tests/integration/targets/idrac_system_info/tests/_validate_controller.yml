@@ -18,6 +18,8 @@
       python _get_controller_details.py
       '{{ uri_data.json | to_json }}'
     chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  environment:
+    PYTHONPATH: "{{ lookup('env', 'ANSIBLE_COLLECTIONS_PATH') }}"
   register: controller_updated_dict
   when:
     - uri_data.status == 200
