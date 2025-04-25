@@ -37,3 +37,13 @@ controller_uri: "{{ base_uri }}/{{ redfish_uri }}\
   Systems/System.Embedded.1/Oem/Dell/DellControllers"
 storage_uri: "{{ base_uri }}/{{ redfish_uri }}\
   Systems/System.Embedded.1/Storage"
+system_details_uri: "{{ base_uri }}/{{ redfish_uri }}\
+  /Systems/System.Embedded.1/Oem/Dell/DellSystem/System.Embedded.1"
+fan_sensor_uri: "{{ base_uri }}/{{ redfish_uri }}\
+  Chassis/System.Embedded.1/Oem/Dell/DellEnclosureFanSensors"
+temperature_uri: "{{ base_uri }}/{{ redfish_uri }}\
+  Chassis/System.Embedded.1/Oem/Dell/DellEnclosureTemperatureSensors"
+intrusion_uri: "{{ base_uri }}/{{ redfish_uri }}\
+  Chassis/System.Embedded.1?$select=PhysicalSecurity/IntrusionSensor"
+sensor_amperage_uri: "{{ base_uri }}/{{ redfish_uri }}\
+  Chassis/System.Embedded.1/Sensors/SystemBoardPwrConsumption"
