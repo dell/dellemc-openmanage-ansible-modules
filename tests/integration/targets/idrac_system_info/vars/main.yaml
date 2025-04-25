@@ -21,7 +21,8 @@ cpu_uri: "{{ base_uri }}/\
   {{ redfish_uri }}Systems/System.Embedded.1/Processors?$expand=*($levels=1)"
 chassis_uri: "{{ base_uri }}/{{ redfish_uri }}Chassis"
 dell_sensors_uri: "{{ idrac_system_uri }}/Oem/Dell/DellSensors"
-memory_uri: "/redfish/v1/Systems/System.Embedded.1/Memory"
+memory_uri: "/redfish/v1/Systems/System.Embedded.1/\
+  Memory?%24expand=*(%24levels%3D1)"
 license_uri: "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLicenses"
 idrac_nic_uri: "{{ chassis_uri }}/System.Embedded.1/Oem/Dell/DellNIC"
 ome_dell_uri: "{{ chassis_uri }}/System.Embedded.1/Oem/Dell/"
@@ -47,3 +48,5 @@ intrusion_uri: "{{ base_uri }}/{{ redfish_uri }}\
   Chassis/System.Embedded.1?$select=PhysicalSecurity/IntrusionSensor"
 sensor_amperage_uri: "{{ base_uri }}/{{ redfish_uri }}\
   Chassis/System.Embedded.1/Sensors/SystemBoardPwrConsumption"
+subsystem_license_uri: "{{ base_uri }}/\
+  {{ redfish_uri }}LicenseService/Licenses?$expand=*($levels=1)"
