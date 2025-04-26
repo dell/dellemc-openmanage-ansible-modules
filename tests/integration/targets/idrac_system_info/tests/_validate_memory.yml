@@ -1,7 +1,7 @@
 ---
 - name: Fetch memory details
   ansible.builtin.uri:
-    url: "{{ base_uri }}{{ memory_uri }}?$expand=*($levels=1)"
+    url: "{{ base_uri }}{{ memory_uri }}"
     user: "{{ idrac_user }}"
     password: "{{ idrac_password }}"
     method: GET

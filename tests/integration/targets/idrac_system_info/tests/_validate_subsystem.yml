@@ -14,7 +14,7 @@
 
 - name: Fetch license health details
   ansible.builtin.uri:
-    url: "{{ base_uri }}{{ license_uri }}"
+    url: "{{ subsystem_license_uri }}"
     user: "{{ idrac_user }}"
     password: "{{ idrac_password }}"
     method: GET
@@ -54,7 +54,7 @@
 
 - name: Fetch sensor voltage health details
   ansible.builtin.uri:
-    url: "{{ sensors_voltage_uri }}"
+    url: "{{ subsystem_sensor_voltage_uri }}"
     user: "{{ idrac_user }}"
     password: "{{ idrac_password }}"
     method: GET
