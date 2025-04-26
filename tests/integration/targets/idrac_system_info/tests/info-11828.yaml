@@ -120,7 +120,7 @@
       set_fact:
         present_power_supplies:
           "{{ result.system_info.PowerSupply |
-            selectattr('DetailedState', 'equalto', 'Presence Detected') |
+            selectattr('DetailedState', 'contains', 'Presence Detected') |
             list }}"
 
     - name: Verify power supply information
