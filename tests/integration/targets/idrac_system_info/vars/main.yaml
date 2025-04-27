@@ -50,5 +50,6 @@ sensor_amperage_uri: "{{ base_uri }}/{{ redfish_uri }}\
   Chassis/System.Embedded.1/Sensors/SystemBoardPwrConsumption"
 subsystem_license_uri: "{{ base_uri }}/\
   {{ redfish_uri }}LicenseService/Licenses?$expand=*($levels=1)"
-subsystem_sensor_voltage_uri: "{{ chassis_uri }}/System.Embedded.1/Power#/Voltages"
+subsystem_sensor_voltage_uri: "{{ chassis_uri }}/\
+  System.Embedded.1/Power#/Voltages"
 video_uri: "{{ base_uri }}/{{ redfish_uri }}Systems/System.Embedded.1/"
