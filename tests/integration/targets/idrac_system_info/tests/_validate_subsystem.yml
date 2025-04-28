@@ -14,7 +14,7 @@
 
 - name: Fetch license health details
   ansible.builtin.uri:
-    url: "{{ license_uri }}"
+    url: "{{ subsystem_license_uri }}"
     user: "{{ idrac_user }}"
     password: "{{ idrac_password }}"
     method: GET
@@ -27,7 +27,7 @@
 
 - name: Fetch memory health details
   ansible.builtin.uri:
-    url: "{{ memory_uri }}"
+    url: "{{ base_uri }}{{ memory_uri }}"
     user: "{{ idrac_user }}"
     password: "{{ idrac_password }}"
     method: GET
@@ -41,7 +41,7 @@
 
 - name: Fetch power supply health details
   ansible.builtin.uri:
-    url: "{{ power_supply_uri }}"
+    url: "{{ powersupply_uri }}"
     user: "{{ idrac_user }}"
     password: "{{ idrac_password }}"
     method: GET
@@ -54,7 +54,7 @@
 
 - name: Fetch sensor voltage health details
   ansible.builtin.uri:
-    url: "{{ voltage_uri }}"
+    url: "{{ subsystem_sensor_voltage_uri }}"
     user: "{{ idrac_user }}"
     password: "{{ idrac_password }}"
     method: GET
@@ -67,7 +67,7 @@
 
 - name: Fetch DELL sensors health details
   ansible.builtin.uri:
-    url: "{{ sensor_uri }}"
+    url: "{{ dell_sensors_uri }}"
     user: "{{ idrac_user }}"
     password: "{{ idrac_password }}"
     method: GET
@@ -159,7 +159,7 @@
 
 - name: Fetch system health details
   ansible.builtin.uri:
-    url: "{{ system_uri }}"
+    url: "{{ idrac_system_uri }}"
     user: "{{ idrac_user }}"
     password: "{{ idrac_password }}"
     method: GET

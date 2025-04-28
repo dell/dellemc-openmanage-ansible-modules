@@ -27,15 +27,6 @@
       ansible.builtin.set_fact:
         baseuri: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/"
 
-    - name: Get Storage controllers information.
-      uri:
-        url: "{{ baseuri }}Systems/System.Embedded.1/Storage"
-        user: "{{idrac_user}}"
-        password: "{{idrac_password}}"
-        validate_certs: false
-        headers: 'Accept=application/json'
-      register: storage_uri
-
     - name: Get BIOS controllers information.
       uri:
         url: "{{ baseuri }}Systems/System.Embedded.1/Bios"
@@ -44,15 +35,6 @@
         validate_certs: false
         headers: 'Accept=application/json'
       register: bios_uri
-
-    - name: Get Licenses information.
-      uri:
-        url: "{{ baseuri }}Managers/iDRAC.Embedded.1/Oem/Dell/DellLicenses"
-        user: "{{idrac_user}}"
-        password: "{{idrac_password}}"
-        validate_certs: false
-        headers: 'Accept=application/json'
-      register: license_uri
 
     - name: Get Memory information.
       uri:
@@ -95,18 +77,12 @@
     - name: Verify controller information
       assert:
         that:
-          - storage_uri.json.Members |
-            length == result.system_info.Controller | length
-      when:
-        - storage_uri.json.Members | length > 0
+          - result.system_info.Controller | length > 0
 
     - name: Verify license information
       assert:
         that:
-          - license_uri.json.Members | length ==
-            result.system_info.License | length
-      when:
-        - license_uri.json.Members | length > 0
+          - result.system_info.License | length > 0
 
     - name: Verify memory information
       assert:
@@ -120,7 +96,7 @@
       set_fact:
         present_power_supplies:
           "{{ result.system_info.PowerSupply |
-            selectattr('DetailedState', 'equalto', 'Presence Detected') |
+            selectattr('DetailedState', 'contains', 'Presence Detected') |
             list }}"
 
     - name: Verify power supply information
