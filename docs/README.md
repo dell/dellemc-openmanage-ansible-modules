@@ -10,7 +10,7 @@ You may obtain a copy of the License at
 # OpenManage Ansible Modules Documentation
 
 ### iDRAC Modules
-| Module Name                                                                                          | iDRAC8 | iDRAC9 |
+| Module Name                                                                                          | iDRAC8 | iDRAC9 | iDRAC10 |
 | ---------------------------------------------------------------------------------------------------- | ------ | ------ |
 | [dellemc_configure_idrac_eventing](modules/dellemc_configure_idrac_eventing.rst)                     | ✓      | ✓      |
 | [dellemc_configure_idrac_services](modules/dellemc_configure_idrac_services.rst)                     | ✓      | ✓      |
@@ -25,7 +25,7 @@ You may obtain a copy of the License at
 | [idrac_firmware](modules/idrac_firmware.rst)                                                         | ✓      | ✓      |
 | [idrac_firmware_info](modules/idrac_firmware_info.rst)                                               | ✓      | ✓      |
 | [idrac_license](modules/idrac_license.rst)                                                           | ✕      | ✓      |
-| [idrac_lifecycle_controller_job_status_info](modules/idrac_lifecycle_controller_job_status_info.rst) | ✓      | ✓      |
+| [idrac_lifecycle_controller_job_status_info](modules/idrac_lifecycle_controller_job_status_info.rst) | ✓      | ✓      | ✓      |
 | [idrac_lifecycle_controller_jobs](modules/idrac_lifecycle_controller_jobs.rst)                       | ✓      | ✓      |
 | [idrac_lifecycle_controller_logs](modules/idrac_lifecycle_controller_logs.rst)                       | ✓      | ✓      |
 | [idrac_lifecycle_controller_status_info](modules/idrac_lifecycle_controller_status_info.rst)         | ✓      | ✓      |
@@ -41,7 +41,7 @@ You may obtain a copy of the License at
 | [idrac_support_assist](modules/idrac_support_assists.rst)                                            | ✕      | ✓      |
 | [idrac_syslog](modules/idrac_syslog.rst)                                                             | ✓      | ✓      |
 | [idrac_system_erase](modules/idrac_system_erase.rst)                                                 | ✕      | ✓      |
-| [idrac_system_info](modules/idrac_system_info.rst)                                                   | ✓      | ✓      |
+| [idrac_system_info](modules/idrac_system_info.rst)                                                   | ✓      | ✓      | ✓      |
 | [idrac_timezone_ntp](modules/idrac_timezone_ntp.rst)                                                 | ✓      | ✓      |
 | [idrac_user](modules/idrac_user.rst)                                                                 | ✓      | ✓      |
 | [idrac_user_info](modules/idrac_user_info.rst)                                                       | ✓      | ✓      |
