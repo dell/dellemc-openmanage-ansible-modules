@@ -2095,7 +2095,7 @@ releases:
         - The ``omevv_firmware_repository_profile`` module is added to support
           management of firmware repository profile.
         - The ``idrac_firmware_info`` module is enhanced to support
-          iDRAC10 and OMSDK dependency is removed.'
+          iDRAC10.'
       major_changes:
         - omevv_vcenter_info - This module allows to retrieve vCenter
           information.
@@ -2104,8 +2104,7 @@ releases:
         - omevv_firmware_repository_profile - This module allows to manage
           firmware repository profile.
       minor_changes:
-        - idrac_firmware_info - This module is enhanced to support iDRAC10 and
-          OMSDK dependency is removed.
+        - idrac_firmware_info - This module is enhanced to support iDRAC10.
       bugfixes:
         - idrac_storage_volume - Issue(290766) - The module will report success
           instead of showing failure for new virtual creation on the BOSS-N1
@@ -2259,3 +2258,33 @@ releases:
           created using the same name as an existing uplink, then the existing
           uplink is modified.
     release_date: '2025-03-28'
+
+  9.12.0:
+    changes:
+      release_summary: '- The ``idrac_system_info`` module is enhanced to
+          support iDRAC10.
+        - The ``idrac_lifecycle_controller_job_status_info`` module is
+          enhanced to support iDRAC10.
+        - The ``idrac_gather_facts`` role is enhanced to support
+          iDRAC10.'
+      major_changes:
+        - idrac_system_info - This module is enhanced to support iDRAC10.
+        - idrac_lifecycle_controller_job_status_info - This module is
+          enhanced to support iDRAC10.
+        - idrac_gather_facts - This role is enhanced to support iDRAC10.
+      bugfixes:
+        - idrac_system_info - (Issue 812) - idrac_system_info fails on
+          iDRAC10.
+      known_issues:
+        - idrac_diagnostics - Issue(285322) - This module doesn't support
+          export of diagnostics file to HTTP and HTTPS share via SOCKS
+          proxy.
+        - idrac_firmware - Issue(279282) - This module does not support
+          firmware update using HTTP, HTTPS, and FTP shares with
+          authentication on iDRAC8.
+        - ome_smart_fabric_uplink - Issue(186024) - The module supported by
+          OpenManage Enterprise Modular, however it does not allow the
+          creation of multiple uplinks of the same name. If an uplink is
+          created using the same name as an existing uplink, then the existing
+          uplink is modified.
+    release_date: '2025-04-30'
