@@ -11,7 +11,7 @@ You may obtain a copy of the License at
 
 ### iDRAC Modules
 | Module Name                                                                                          | iDRAC8 | iDRAC9 | iDRAC10 |
-| ---------------------------------------------------------------------------------------------------- | ------ | ------ |
+| ---------------------------------------------------------------------------------------------------- | ------ | ------ | ------ |
 | [dellemc_configure_idrac_eventing](modules/dellemc_configure_idrac_eventing.rst)                     | ✓      | ✓      |
 | [dellemc_configure_idrac_services](modules/dellemc_configure_idrac_services.rst)                     | ✓      | ✓      |
 | [dellemc_idrac_lc_attributes](modules/dellemc_idrac_lc_attributes.rst)                               | ✓      | ✓      |
