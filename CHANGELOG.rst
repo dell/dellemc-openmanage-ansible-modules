@@ -122,7 +122,7 @@ Release Summary
 - The ``omevv_vcenter_info`` module is added to support retrieval of vCenter information.
 - The ``omevv_firmware_repository_profile_info`` module is added to support retrieval of firmware repository profile information.
 - The ``omevv_firmware_repository_profile`` module is added to support management of firmware repository profile.
-- The ``idrac_firmware_info`` module is enhanced to support iDRAC10 and OMSDK dependency is removed.
+- The ``idrac_firmware_info`` module is enhanced to support iDRAC10.
 
 Major Changes
 -------------
@@ -134,7 +134,7 @@ Major Changes
 Minor Changes
 -------------
 
-- idrac_firmware_info - This module is enhanced to support iDRAC10 and OMSDK dependency is removed.
+- idrac_firmware_info - This module is enhanced to support iDRAC10.
 
 Bugfixes
 --------
