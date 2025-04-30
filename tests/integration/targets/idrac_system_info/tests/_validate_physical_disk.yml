@@ -22,6 +22,8 @@
       "{{ idrac_password }}"
       "{{ idrac_port }}"
     chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  environment:
+    PYTHONPATH: "{{ lookup('env', 'ANSIBLE_COLLECTIONS_PATH') }}"
   register: enclosure_updated_dict
 
 - name: Output conversion to list

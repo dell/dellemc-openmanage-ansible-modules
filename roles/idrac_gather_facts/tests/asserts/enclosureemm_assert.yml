@@ -1,6 +1,24 @@
+---
+- name: Set 17G url
+  ansible.builtin.set_fact:
+    url1_1: "https://{{ hostname }}{{ api_chassis }}/Oem/Dell/"
+    url1_2: "DellEnclosureEMM/{{ enclosureemm_data.Id }}"
+  when:
+    - not is_omsdk_required | bool
+
+- name: Set <17G url
+  ansible.builtin.set_fact:
+    url1_1: "https://{{ hostname }}/Oem/Dell/"
+    url1_2: "DellEnclosureEMM/{{ enclosureemm_data.Id }}"
+  when:
+    - is_omsdk_required | bool
+
+- name: Set url
+  ansible.builtin.set_fact:
+    url1: "{{ url1_1 }}{{ url1_2 }}"
 - name: Fetching EnclosureEMM info
   ansible.builtin.uri:
-    url: "https://{{ hostname }}/redfish/v1/Chassis/Oem/Dell/DellEnclosureEMM/{{ enclosureemm_data.Id }}"
+    url: "{{ url1 }}"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
     method: "{{ idrac_gather_facts_uri_method }}"
@@ -11,7 +29,7 @@
     status_code: "{{ idrac_gather_facts_uri_status_code }}"
     return_content: "{{ idrac_gather_facts_uri_return_content }}"
   register: enclosureemm_result
-  no_log: true
+  no_log: false
 
 - name: Set enclosureemm facts
   ansible.builtin.set_fact:

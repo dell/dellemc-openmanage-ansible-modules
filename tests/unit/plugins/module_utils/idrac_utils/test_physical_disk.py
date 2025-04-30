@@ -8,34 +8,67 @@ PHYSICAL_DISK_RESPONSE = [
         "BusProtocol": "Not Available",
         "DeviceDescription": "Disk 0 in Backplane 1 of RAID Controller in SL 3",
         "DriveFormFactor": "2.5Inch",
-        "FQDD": "Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.3-1",
+        "FreeSize": "479559942144",
         "HotSpareStatus": "Not Available",
         "Key": "Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.3-1",
         "Manufacturer": "SAMSUNG",
         "ManufacturingDay": "0",
         "ManufacturingWeek": "0",
         "ManufacturingYear": "0",
+        "Size": "Not Available",
         "MaxCapableSpeed": "6 Gbps",
-        "FreeSize": "479559942144",
         "MediaType": "SSD",
         "Model": "MZ7L3480HCHQAD3",
         "PPID": "KR-0C2C58-SSW00-3BU-01TE-A00",
         "PredictiveFailureState": "SmartAlertAbsent",
         "PrimaryStatus": "Not Available",
         "RAIDNegotiatedSpeed": "None",
+        "FQDD": "Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.3-1",
+        "RaidStatus": "Ready",
         "RemainingRatedWriteEndurance": "Not Available",
         "Revision": "HJ53",
         "SASAddress": "3F4EE0806EB75A1F",
         "SecurityState": "Not Available",
         "SerialNumber": "S6NANG0WB09554",
-        "Size": "Not Available",
-        "RaidStatus": "Ready",
         "Slot": "0",
         "SupportedEncryptionTypes": "Not Available",
         "T10PICapability": "NotSupported",
         "UsedSize": "0"
     }
 ]
+
+expected_result = {
+    "BlockSize": "512",
+    "BusProtocol": "Not Available",
+    "DeviceDescription": "Disk 0 in Backplane 1 of RAID Controller in SL 3",
+    "DriveFormFactor": "2.5Inch",
+    "FQDD": "Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.3-1",
+    "FreeSize": "479559942144",
+    "HotSpareStatus": "Not Available",
+    "Key": "Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.3-1",
+    "Manufacturer": "SAMSUNG",
+    "ManufacturingWeek": "0",
+    "RaidStatus": "Ready",
+    "ManufacturingYear": "0",
+    "MaxCapableSpeed": "6 Gbps",
+    "MediaType": "SSD",
+    "Model": "MZ7L3480HCHQAD3",
+    "PPID": "KR-0C2C58-SSW00-3BU-01TE-A00",
+    "PredictiveFailureState": "SmartAlertAbsent",
+    "PrimaryStatus": "Not Available",
+    "RAIDNegotiatedSpeed": "None",
+    "RemainingRatedWriteEndurance": "Not Available",
+    "Revision": "HJ53",
+    "SASAddress": "3F4EE0806EB75A1F",
+    "SecurityState": "Not Available",
+    "SerialNumber": "S6NANG0WB09554",
+    "ManufacturingDay": "0",
+    "Size": "Not Available",
+    "Slot": "0",
+    "SupportedEncryptionTypes": "Not Available",
+    "T10PICapability": "NotSupported",
+    "UsedSize": "0"
+}
 
 drive_response = {
     "BlockSizeBytes": 512,
@@ -47,13 +80,13 @@ drive_response = {
     "EncryptionStatus": "Unencrypted",
     "FailurePredicted": False,
     "HotspareType": "None",
+    "Id": "Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.3-1",
     "PCIeFunctions": [],
     "PCIeFunctions@odata.count": 0,
     "Location": [],
     "LocationIndicatorActive": None,
     "Manufacturer": "SAMSUNG",
     "MediaType": "SSD",
-    "Id": "Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.3-1",
     "Model": "MZ7L3480HCHQAD3",
     "Name": "Solid State Disk 0:1:0",
     "NegotiatedSpeedGbs": 6,
@@ -80,7 +113,6 @@ drive_response = {
                 "LastSystemInventoryTime": "2025-04-01T11:13:14+00:00",
                 "LastUpdateTime": "2025-04-01T11:13:28+00:00",
                 "ManufacturingDay": 0,
-                "ManufacturingWeek": 0,
                 "ManufacturingYear": 0,
                 "Name": "DellPhysicalDisk",
                 "NonRAIDDiskCachePolicy": "Unknown",
@@ -89,12 +121,13 @@ drive_response = {
                 "PCIeCapableLinkWidth": "None",
                 "PCIeNegotiatedLinkWidth": "None",
                 "PPID": "KR-0C2C58-SSW00-3BU-01TE-A00",
+                "ManufacturingWeek": 0,
                 "PowerStatus": "On",
-                "SASAddress": "3F4EE0806EB75A1F",
                 "PredictiveFailureState": "SmartAlertAbsent",
                 "ProductID": "MZ7L3480HCHQAD3",
                 "RAIDType": "Unknown",
                 "RaidStatus": "Ready",
+                "SASAddress": "3F4EE0806EB75A1F",
                 "Slot": 0,
                 "SystemEraseCapability": "CryptographicErasePD",
                 "T10PICapability": "NotSupported",
@@ -157,42 +190,7 @@ class TestIDRACPhysicalDiskInfo(TestUtils):
         physical_disk_info = IDRACPhysicalDiskInfo(idrac_mock)
         result = physical_disk_info.get_physical_disk_info()
 
-        expected_result = [
-            {
-                "BlockSize": "512",
-                "BusProtocol": "Not Available",
-                "DeviceDescription": "Disk 0 in Backplane 1 of RAID Controller in SL 3",
-                "DriveFormFactor": "2.5Inch",
-                "FQDD": "Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.3-1",
-                "FreeSize": "479559942144",
-                "HotSpareStatus": "Not Available",
-                "Key": "Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.3-1",
-                "Manufacturer": "SAMSUNG",
-                "ManufacturingDay": "0",
-                "ManufacturingWeek": "0",
-                "ManufacturingYear": "0",
-                "MaxCapableSpeed": "6 Gbps",
-                "MediaType": "SSD",
-                "Model": "MZ7L3480HCHQAD3",
-                "PPID": "KR-0C2C58-SSW00-3BU-01TE-A00",
-                "PredictiveFailureState": "SmartAlertAbsent",
-                "PrimaryStatus": "Not Available",
-                "RAIDNegotiatedSpeed": "None",
-                "RaidStatus": "Ready",
-                "RemainingRatedWriteEndurance": "Not Available",
-                "Revision": "HJ53",
-                "SASAddress": "3F4EE0806EB75A1F",
-                "SecurityState": "Not Available",
-                "SerialNumber": "S6NANG0WB09554",
-                "Size": "Not Available",
-                "Slot": "0",
-                "SupportedEncryptionTypes": "Not Available",
-                "T10PICapability": "NotSupported",
-                "UsedSize": "0"
-            }
-        ]
-
-        assert result == expected_result
+        assert result == [expected_result]
 
     def test_get_idrac_physical_disk_info_empty_storage(self, idrac_mock):
         storage_response = {
@@ -237,44 +235,10 @@ class TestIDRACPhysicalDiskInfo(TestUtils):
         physical_disk_info = IDRACPhysicalDiskInfo(idrac_mock)
         result = physical_disk_info.get_physical_disk_info()
 
-        expected_result = [
-        ]
-
-        assert result == expected_result
+        assert result == []
 
     def test_get_physical_disk_mapped_info(self, idrac_mock):
         idrac_physical_disk_info = IDRACPhysicalDiskInfo(idrac_mock)
         result = idrac_physical_disk_info.physical_disk_mapped_data(disk=drive_response)
-        expected_result = {
-            "BlockSize": "512",
-            "BusProtocol": "Not Available",
-            "DeviceDescription": "Disk 0 in Backplane 1 of RAID Controller in SL 3",
-            "DriveFormFactor": "2.5Inch",
-            "FQDD": "Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.3-1",
-            "FreeSize": "479559942144",
-            "HotSpareStatus": "Not Available",
-            "Key": "Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.3-1",
-            "Manufacturer": "SAMSUNG",
-            "ManufacturingDay": "0",
-            "ManufacturingWeek": "0",
-            "ManufacturingYear": "0",
-            "MaxCapableSpeed": "6 Gbps",
-            "MediaType": "SSD",
-            "Model": "MZ7L3480HCHQAD3",
-            "PPID": "KR-0C2C58-SSW00-3BU-01TE-A00",
-            "PredictiveFailureState": "SmartAlertAbsent",
-            "PrimaryStatus": "Not Available",
-            "RAIDNegotiatedSpeed": "None",
-            "RaidStatus": "Ready",
-            "RemainingRatedWriteEndurance": "Not Available",
-            "Revision": "HJ53",
-            "SASAddress": "3F4EE0806EB75A1F",
-            "SecurityState": "Not Available",
-            "SerialNumber": "S6NANG0WB09554",
-            "Size": "Not Available",
-            "Slot": "0",
-            "SupportedEncryptionTypes": "Not Available",
-            "T10PICapability": "NotSupported",
-            "UsedSize": "0"
-        }
+
         assert result == expected_result

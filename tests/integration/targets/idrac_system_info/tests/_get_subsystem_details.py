@@ -1,6 +1,5 @@
 import sys
 import json
-import ast
 
 cpu_api_output = sys.argv[1]
 license_api_output = sys.argv[2]
@@ -17,8 +16,7 @@ system_api_output = sys.argv[12]
 
 
 def map_cpu_health_status(cpu_api_output, output):
-    subsystem_data = ast.literal_eval(cpu_api_output)
-    subsystem_data = json.loads(subsystem_data)
+    subsystem_data = json.loads(cpu_api_output)
 
     members = subsystem_data.get("Members", [])
     if members:
@@ -32,8 +30,7 @@ def map_cpu_health_status(cpu_api_output, output):
 
 
 def map_license_health_status(license_api_output, output):
-    subsystem_data = ast.literal_eval(license_api_output)
-    subsystem_data = json.loads(subsystem_data)
+    subsystem_data = json.loads(license_api_output)
     members = subsystem_data.get("Members", [])
     if members:
         health_status = members[0].get("Status", {}).get("Health", "Unknown")
@@ -46,8 +43,7 @@ def map_license_health_status(license_api_output, output):
 
 
 def map_memory_health_status(memory_api_output, output):
-    subsystem_data = ast.literal_eval(memory_api_output)
-    subsystem_data = json.loads(subsystem_data)
+    subsystem_data = json.loads(memory_api_output)
     members = subsystem_data.get("Members", [])
     if members:
         health_status = members[0].get("Status", {}).get("Health", "Unknown")
@@ -60,8 +56,7 @@ def map_memory_health_status(memory_api_output, output):
 
 
 def map_power_supply_health_status(power_supply_data_output, output):
-    subsystem_data = ast.literal_eval(power_supply_data_output)
-    subsystem_data = json.loads(subsystem_data)
+    subsystem_data = json.loads(power_supply_data_output)
     members = subsystem_data.get("Members", [])
     if members:
         health_status = members[0].get("Status", {}).get("Health", "Unknown")
@@ -74,8 +69,7 @@ def map_power_supply_health_status(power_supply_data_output, output):
 
 
 def map_sensor_voltage_health_status(voltage_api_output, output):
-    subsystem_data = ast.literal_eval(voltage_api_output)
-    subsystem_data = json.loads(subsystem_data)
+    subsystem_data = json.loads(voltage_api_output)
     members = subsystem_data.get("Redundancy", [])
     if members:
         health_status = members[0].get("Status", {}).get("Health", "Unknown")
@@ -89,8 +83,7 @@ def map_sensor_voltage_health_status(voltage_api_output, output):
 
 def map_sensor_battery_health_status(sensor_api_output, output):
     found = False
-    subsystem_data = ast.literal_eval(sensor_api_output)
-    subsystem_data = json.loads(subsystem_data)
+    subsystem_data = json.loads(sensor_api_output)
     for mem in subsystem_data.get("Members", []):
         if mem.get("ElementName", "") == "System Board CMOS Battery":
             health_status = mem.get("HealthState")
@@ -109,8 +102,7 @@ def map_sensor_battery_health_status(sensor_api_output, output):
 
 
 def map_sensor_fan_health_status(fan_sensor_api_output, output):
-    subsystem_data = ast.literal_eval(fan_sensor_api_output)
-    subsystem_data = json.loads(subsystem_data)
+    subsystem_data = json.loads(fan_sensor_api_output)
     members = subsystem_data.get("Members", [])
     if members:
         health_status = members[0].get("Status", {}).get("Health", "Unknown")
@@ -123,8 +115,7 @@ def map_sensor_fan_health_status(fan_sensor_api_output, output):
 
 
 def map_sensor_intrusion_health_status(intrusion_api_output, output):
-    subsystem_data = ast.literal_eval(intrusion_api_output)
-    subsystem_data = json.loads(subsystem_data)
+    subsystem_data = json.loads(intrusion_api_output)
     health_status = subsystem_data["PhysicalSecurity"].get("IntrusionSensor", "Unknown")
     output.append({
         "Key": "Sensors_Intrusion",
@@ -133,8 +124,7 @@ def map_sensor_intrusion_health_status(intrusion_api_output, output):
 
 
 def map_sensor_temperature_health_status(temperature_api_output, output):
-    subsystem_data = ast.literal_eval(temperature_api_output)
-    subsystem_data = json.loads(subsystem_data)
+    subsystem_data = json.loads(temperature_api_output)
     members = subsystem_data.get("Members", [])
     if members:
         health_status = members[0].get("Status", {}).get("Health", "Unknown")
@@ -147,8 +137,7 @@ def map_sensor_temperature_health_status(temperature_api_output, output):
 
 
 def map_system_health_status(system_api_output, output):
-    subsystem_data = ast.literal_eval(system_api_output)
-    subsystem_data = json.loads(subsystem_data)
+    subsystem_data = json.loads(system_api_output)
     health_status = subsystem_data["Status"].get("Health", "Unknown")
     output.append({
         "Key": "System",
@@ -165,8 +154,7 @@ def map_vflash_health_status(output):
 
 
 def map_sensor_amperage_health_status(sensor_amperage_api_output, output):
-    subsystem_data = ast.literal_eval(sensor_amperage_api_output)
-    subsystem_data = json.loads(subsystem_data)
+    subsystem_data = json.loads(sensor_amperage_api_output)
     health_status = subsystem_data["Status"].get("Health", "Unknown")
     output.append({
         "Key": "Sensors_Amperage",
@@ -175,8 +163,7 @@ def map_sensor_amperage_health_status(sensor_amperage_api_output, output):
 
 
 def map_storage_health_status(storage_api_output, output):
-    subsystem_data = ast.literal_eval(storage_api_output)
-    subsystem_data = json.loads(subsystem_data)
+    subsystem_data = json.loads(storage_api_output)
     health_status = subsystem_data["Status"].get("Health", "Unknown") or "Unknown"
     output.append({
         "Key": "Storage",

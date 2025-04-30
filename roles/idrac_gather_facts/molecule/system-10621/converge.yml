@@ -6,6 +6,7 @@
     hostname: "{{ lookup('env', 'IDRAC_IP') }}"
     username: "{{ lookup('env', 'IDRAC_USER') }}"
     password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    idrac_port: "{{ lookup('env', 'IDRAC_PORT') }}"
     validate_certs: false
     target:
       - System
@@ -24,9 +25,35 @@
     idrac_gather_facts_uri_return_content: true
     diff_data: {}
     exclude_keys: ["ServerOS.1.ServerPoweredOnTime"]
-    api_system: "/redfish/v1/Systems/System.Embedded.1"
 
   tasks:
+
+    - name: Find the system API
+      ansible.builtin.include_tasks:
+        ../../tests/asserts/_check_system_url.yml
+
+    - name: Find the manager API
+      ansible.builtin.include_tasks:
+        ../../tests/asserts/_check_manager_url.yml
+
+    - name: Set 17G url
+      ansible.builtin.set_fact:
+        url2_1: "https://{{ hostname }}{{ api_manager }}"
+        url2_2: "/Oem/Dell/DellAttributes/{{ computer_system_id }}"
+      when:
+        - not is_omsdk_required | bool
+
+    - name: Set < 17G url
+      ansible.builtin.set_fact:
+        url2_1: "https://{{ hostname }}/redfish/v1/"
+        url2_2: "Managers/{{ computer_system_id }}/Attributes"
+      when:
+        - is_omsdk_required | bool
+
+    - name: Set < 17G url
+      ansible.builtin.set_fact:
+        url2: "{{ url2_1 }}{{ url2_2 }}"
+
     - name: Gather Facts for the System component
       ansible.builtin.include_role:
         name: "idrac_gather_facts"
@@ -49,11 +76,11 @@
         status_code: "{{ idrac_gather_facts_uri_status_code }}"
         return_content: "{{ idrac_gather_facts_uri_return_content }}"
       register: system_result
-      no_log: true
+      no_log: false
 
     - name: Fetching operating system info
       ansible.builtin.uri:
-        url: "https://{{ hostname }}/redfish/v1/Managers/System.Embedded.1/Attributes?$select=ServerOS.*" # verification firmware version 5.00.00
+        url: "{{ url2 }}"  # verification firmware version 5.00.00
         validate_certs: "{{ validate_certs }}"
         ca_path: "{{ ca_path | default(omit) }}"
         method: "{{ idrac_gather_facts_uri_method }}"
@@ -64,13 +91,21 @@
         status_code: "{{ idrac_gather_facts_uri_status_code }}"
         return_content: "{{ idrac_gather_facts_uri_return_content }}"
       register: os_result
-      no_log: true
+      no_log: false
 
-    - name: Response filter
+    - name: Extracting Server OS
+      ansible.builtin.set_fact:
+        os_attrs:
+          "{{ os_attrs | default({}) | combine({item.key: item.value}) }}"
+      when: "'ServerOS' in item.key"
+      loop: "{{ os_result.json.Attributes | dict2items }}"
+
+    - name: Set system facts
       ansible.builtin.set_fact:
         api_response:
-          "{{ system_result.json.Oem.Dell.DellSystem | combine(os_result.json.Attributes) |
-          ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type']) }}"
+          "{{ system_result.json.Oem.Dell.DellSystem | combine(os_attrs) |
+          ansible.utils.remove_keys(target=['@odata.context',
+          '@odata.id', '@odata.etag', '@odata.type']) }}"
       when: system_result.status == 200 and os_result.status == 200
 
     - name: Set the keys diff
@@ -87,12 +122,14 @@
         - diff_keys | length == 0
         - system[item] != api_response[item]
         - item not in exclude_keys
+        - item != "EstimatedSystemAirflowCFM"
+        - item != "EstimatedExhaustTemperatureCelsius"
 
     - name: Assert the difference in Keys
       ansible.builtin.assert:
         that:
-          - "{{ (diff_keys | length) == 0 }}"
-          - "{{ (diff_data | length) == 0 }}"
+          - (diff_keys | length) == 0
+          - (diff_data | length) == 0
         fail_msg: "The response from the role does not match | Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
         success_msg: "The response from the role matches |  Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
       when: diff_keys is defined and diff_data is defined

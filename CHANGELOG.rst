@@ -4,6 +4,35 @@ Dell OpenManage Ansible Modules Release Notes
 
 .. contents:: Topics
 
+v9.12.0
+=======
+
+Release Summary
+---------------
+
+- The ``idrac_system_info`` module is enhanced to support iDRAC10. 
+- The ``idrac_lifecycle_controller_job_status_info`` module is enhanced to support iDRAC10. 
+- The ``idrac_gather_facts`` role is enhanced to support iDRAC10.
+
+Major Changes
+-------------
+
+- idrac_system_info - This module is enhanced to support iDRAC10.
+- idrac_lifecycle_controller_job_status_info - This module is enhanced to support iDRAC10.
+- idrac_gather_facts - This role is enhanced to support iDRAC10.
+
+Bugfixes
+--------
+
+- idrac_system_info - (Issue 812) - idrac_system_info fails on iDRAC10.
+
+Known Issues
+------------
+
+- idrac_diagnostics - Issue(285322) - This module doesn't support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
+- idrac_firmware - Issue(279282) - This module does not support firmware update using HTTP, HTTPS, and FTP shares with authentication on iDRAC8.
+- ome_smart_fabric_uplink - Issue(186024) - The module supported by OpenManage Enterprise Modular, however it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, then the existing uplink is modified.
+
 v9.11.0
 =======
 
@@ -93,7 +122,7 @@ Release Summary
 - The ``omevv_vcenter_info`` module is added to support retrieval of vCenter information.
 - The ``omevv_firmware_repository_profile_info`` module is added to support retrieval of firmware repository profile information.
 - The ``omevv_firmware_repository_profile`` module is added to support management of firmware repository profile.
-- The ``idrac_firmware_info`` module is enhanced to support iDRAC10 and OMSDK dependency is removed.
+- The ``idrac_firmware_info`` module is enhanced to support iDRAC10.
 
 Major Changes
 -------------
@@ -105,7 +134,7 @@ Major Changes
 Minor Changes
 -------------
 
-- idrac_firmware_info - This module is enhanced to support iDRAC10 and OMSDK dependency is removed.
+- idrac_firmware_info - This module is enhanced to support iDRAC10.
 
 Bugfixes
 --------

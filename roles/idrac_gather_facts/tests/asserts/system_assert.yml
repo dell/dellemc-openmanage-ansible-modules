@@ -18,11 +18,12 @@
     - diff_keys | length == 0
     - idrac_system_attributes[item] != api_idrac_system_attributes[item]
     - item not in exclude_keys
+    - item != "ThermalSettings.1.SystemExhaustTemperature"
 
 - name: Assert the difference in Keys
   ansible.builtin.assert:
     that:
-      - "{{ (diff_keys | length) == 0 }}"
-      - "{{ (diff_data | length) == 0 }}"
+      - (diff_keys | length) == 0
+      - (diff_data | length) == 0
     fail_msg: "The response from the role does not match | Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
     success_msg: "The response from the role matches |  Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"

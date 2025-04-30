@@ -1,7 +1,7 @@
 ---
 - name: Fetch memory details
   ansible.builtin.uri:
-    url: "{{ base_uri }}{{ memory_uri }}?$expand=*($levels=1)"
+    url: "{{ base_uri }}{{ memory_uri }}"
     user: "{{ idrac_user }}"
     password: "{{ idrac_password }}"
     method: GET
@@ -18,6 +18,8 @@
       python _get_memory_details.py
       '{{ uri_data.json | to_json }}'
     chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  environment:
+    PYTHONPATH: "{{ lookup('env', 'ANSIBLE_COLLECTIONS_PATH') }}"
   register: memory_updated_dict
   when:
     - uri_data.status == 200
