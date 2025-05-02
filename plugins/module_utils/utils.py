@@ -47,6 +47,8 @@ IDRAC_RESET_URI = "/redfish/v1/Managers/{res_id}/Actions/Manager.Reset"
 SYSTEM_RESET_URI = "/redfish/v1/Systems/{res_id}/Actions/ComputerSystem.Reset"
 MANAGER_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
 MANAGER_JOB_ID_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{0}"
+MANAGER_JOB_URI_9_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs?$expand=*($levels=1)"
+MANAGER_JOB_ID_URI_9_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{0}"
 GET_IDRAC_FIRMWARE_VER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
 HOSTNAME_REGEX = r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
 OME_INFO = "ApplicationService/Info"
@@ -362,17 +364,19 @@ def wait_for_idrac_job_completion(idrac, uri, job_wait=True, wait_timeout=120, s
     return {}, "The job is not complete after {0} seconds.".format(wait_timeout)
 
 
-def idrac_system_reset(idrac, res_id, payload=None, job_wait=True, wait_time_sec=300, interval=30):
+def idrac_system_reset(idrac, res_id, payload=None, job_wait=True, wait_time_sec=300, interval=30, idrac_hw_model=""):
     track_failed, reset, job_resp = True, False, {}
     reset_msg = RESET_UNTRACK
     try:
         idrac.invoke_request(SYSTEM_RESET_URI.format(res_id=res_id), 'POST', data=payload)
         time.sleep(10)
         if wait_time_sec:
-            resp = idrac.invoke_request(MANAGER_JOB_URI, "GET")
+            manager_job_uri = MANAGER_JOB_URI if idrac_hw_model == "" else MANAGER_JOB_URI_9_10
+            manager_job_uri_id = MANAGER_JOB_ID_URI if idrac_hw_model == "" else MANAGER_JOB_ID_URI_9_10
+            resp = idrac.invoke_request(manager_job_uri, "GET")
             job = list(filter(lambda d: d["JobState"] in ["RebootPending", "RebootCompleted"], resp.json_data["Members"]))
             if job:
-                job_resp, msg = wait_for_idrac_job_completion(idrac, MANAGER_JOB_ID_URI.format(job[0]["Id"]),
+                job_resp, msg = wait_for_idrac_job_completion(idrac, manager_job_uri_id.format(job[0]["Id"]),
                                                               job_wait=job_wait, wait_timeout=wait_time_sec)
                 if "job is not complete" in msg:
                     reset, reset_msg = False, msg
