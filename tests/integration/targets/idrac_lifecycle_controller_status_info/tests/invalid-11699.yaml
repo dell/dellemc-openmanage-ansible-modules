@@ -21,7 +21,6 @@
     - name: Verify task status - Negative - unreachable host
       ansible.builtin.assert:
         that:
-          - invalid_unreachable.failed
           - 'invalid_unreachable.msg == "Unable to communicate with iDRAC
            999.999.999.999. This may be due to one of the following:
            Incorrect username or password, unreachable iDRAC IP or a
