@@ -25,7 +25,8 @@
           - 'invalid_unreachable.msg == "Unable to communicate with iDRAC
            999.999.999.999. This may be due to one of the following:
            Incorrect username or password, unreachable iDRAC IP or a
-           failure in TLS/SSL handshake."'
+           failure in TLS/SSL handshake." or invalid_unreachable.msg ==
+           "<urlopen error [Errno -2] Name or service not known>"'
 
     - name: Negative - invalid user
       dellemc.openmanage.idrac_lifecycle_controller_status_info:
