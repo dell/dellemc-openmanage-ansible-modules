@@ -157,7 +157,7 @@ class TestConfigBios(FakeAnsibleModule):
             self.module.configure_boot_options(f_module, boot_connection_mock, "System.Embedded.1", {"Boot001": False})
         assert err.value.args[0] == "Completed Reset"
 
-        redfish_response_mock.status_code = 200
+        redfish_response_mock.status_code = 201
         redfish_response_mock.success = True
         mocker.patch(MODULE_PATH + 'idrac_boot.get_scheduled_job', return_value=(False, {}))
         job_data = self.module.configure_boot_options(f_module, boot_connection_mock, "System.Embedded.1", {"Boot001": False})
