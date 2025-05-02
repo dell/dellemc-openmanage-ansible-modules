@@ -26,27 +26,49 @@
 #
 
 
-GET_IDRAC_LIFECYCLE_CONTROLLER_STATUS_INFO = (
-    "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/"
-    "DellLCService/Actions/"
-    "DellLCService.GetRemoteServicesAPIStatus"
-)
-NA = "Not Available"
+BASE_URI = "/redfish/v1/Managers/"
+ODATA_ID = "@odata.id"
 
 
 class IDRACLifecycleControllerStatusInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
 
+    def get_lifecycle_controller_status_api(self):
+        controller_status_baseuri_response =\
+            self.idrac.invoke_request(uri=BASE_URI, method="GET")
+        manager_uri = controller_status_baseuri_response.json_data.\
+            get("Members")[0].get(ODATA_ID)
+        if manager_uri:
+            manager_response = self.idrac.invoke_request(uri=manager_uri,
+                                                         method="GET")
+            lc_service_uri = manager_response.json_data.get("Links", {}).\
+                get("Oem", {}).get("Dell", {}).get("DellLCService", {}).\
+                get(ODATA_ID, "")
+            if lc_service_uri:
+                lc_service_response = self.idrac.invoke_request(
+                    uri=lc_service_uri,
+                    method="GET"
+                )
+                lc_status_check_uri = lc_service_response.json_data.\
+                    get("Actions", {}).\
+                    get("#DellLCService.GetRemoteServicesAPIStatus", {}).\
+                    get("target", "")
+                if lc_status_check_uri:
+                    return lc_status_check_uri
+        return ""
+
     def get_lifecycle_controller_status_info(self):
-        controller_status_response = self.idrac.invoke_request(
-            uri=GET_IDRAC_LIFECYCLE_CONTROLLER_STATUS_INFO,
-            method='POST',
-            data="{}",
-            dump=False
-        )
-        if controller_status_response.status_code == 200:
-            lc_status = controller_status_response.json_data.get("LCStatus")
-            return lc_status
-        else:
-            return ""
+        lc_status_check_uri = self.get_lifecycle_controller_status_api()
+        if lc_status_check_uri:
+            controller_status_response = self.idrac.invoke_request(
+                uri=lc_status_check_uri,
+                method='POST',
+                data="{}",
+                dump=False
+            )
+            if controller_status_response.status_code == 200:
+                lc_status = controller_status_response.json_data.\
+                    get("LCStatus")
+                return lc_status
+        return ""
