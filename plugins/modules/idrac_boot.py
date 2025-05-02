@@ -569,7 +569,7 @@ def main():
     except HTTPError as err:
         if err.code == 401:
             module.fail_json(msg=AUTH_ERROR_MSG.format(module.params["idrac_ip"]))
-        module.fail_json(msg=str(err), error_info=json.load(err), failed=True)
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError:
         module.exit_json(msg=AUTH_ERROR_MSG.format(module.params["idrac_ip"]), unreachable=True)
     except (ImportError, ValueError, RuntimeError, SSLValidationError,
