@@ -16,6 +16,7 @@
       dellemc.openmanage.idrac_lifecycle_controller_status_info:
         idrac_ip: "999.999.999.999"
       ignore_errors: true
+      ignore_unreachable: true
       register: invalid_unreachable
 
     - name: Verify task status - Negative - unreachable host
