@@ -12,6 +12,9 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
+- name: Check if module is calling omsdk
+  ansible.builtin.include_tasks: ../../../../../../integration/targets/idrac_system_info/tests/_check_firmware_version_supported.yml
+
 - block:
 
     - ansible.builtin.include_tasks: get_data_uri.yml
@@ -29,12 +32,20 @@
         that:
           - "firmware_version_from_api_response >= firmware_version_expected"
         fail_msg: "Firmware version is not supported"
+      when:
+        - is_omsdk_required | bool
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
         url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
-        url_1: "System.Embedded.1/VirtualMedia/2"
+        url_1: "System.Embedded.1/VirtualMedia"
         url: "{{ url_0 }}/{{ url_1 }}"
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}"
+        url_1: "{{ uri_data.Members.1['@odata.id'] }}"
+        url:  "{{ url_0 }}{{ url_1 }}"
 
     - name: Prerequisite - Insert image at RFS2
       dellemc.openmanage.idrac_virtual_media:
@@ -47,8 +58,15 @@
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
         url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
-        url_1: "System.Embedded.1/VirtualMedia/2"
+        url_1: "System.Embedded.1/VirtualMedia"
         url: "{{ url_0 }}/{{ url_1 }}"
+      when: not uri_data.Image
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}"
+        url_1: "{{ uri_data.Members.1['@odata.id'] }}"
+        url:  "{{ url_0 }}{{ url_1 }}"
       when: not uri_data.Image
 
     - name: Verify status of task - Prerequisite - Insert image at RFS2
@@ -91,8 +109,14 @@
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
         url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
-        url_1: "System.Embedded.1/VirtualMedia/1"
+        url_1: "System.Embedded.1/VirtualMedia"
         url: "{{ url_0 }}/{{ url_1 }}"
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}"
+        url_1: "{{ uri_data.Members.0['@odata.id'] }}"
+        url:  "{{ url_0 }}{{ url_1 }}"
 
     - name: Verify image insertion to RFS1 using uri
       ansible.builtin.assert:
@@ -105,8 +129,14 @@
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
         url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
-        url_1: "System.Embedded.1/VirtualMedia/2"
+        url_1: "System.Embedded.1/VirtualMedia"
         url: "{{ url_0 }}/{{ url_1 }}"
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}"
+        url_1: "{{ uri_data.Members.1['@odata.id'] }}"
+        url:  "{{ url_0 }}{{ url_1 }}"
 
     - name: Verify image ejection from RFS2 using uri
       ansible.builtin.assert:
@@ -165,8 +195,14 @@
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
         url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
-        url_1: "System.Embedded.1/VirtualMedia/2"
+        url_1: "System.Embedded.1/VirtualMedia"
         url: "{{ url_0 }}/{{ url_1 }}"
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}"
+        url_1: "{{ uri_data.Members.1['@odata.id'] }}"
+        url:  "{{ url_0 }}{{ url_1 }}"
 
     - name: Verify image insertion to RFS1 using uri
       ansible.builtin.assert:
@@ -179,8 +215,14 @@
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
         url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
-        url_1: "System.Embedded.1/VirtualMedia/1"
+        url_1: "System.Embedded.1/VirtualMedia"
         url: "{{ url_0 }}/{{ url_1 }}"
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}"
+        url_1: "{{ uri_data.Members.0['@odata.id'] }}"
+        url:  "{{ url_0 }}{{ url_1 }}"
 
     - name: Verify image ejection from RFS1 using uri
       ansible.builtin.assert:
