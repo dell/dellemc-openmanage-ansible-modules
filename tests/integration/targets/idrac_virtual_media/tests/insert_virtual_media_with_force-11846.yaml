@@ -123,7 +123,7 @@
         url_1: "iDRAC.Embedded.1/VirtualMedia/CD"
         url: "{{ url_0 }}/{{ url_1 }}"
       when:
-       - is_omsdk_required | bool
+        - is_omsdk_required | bool
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
