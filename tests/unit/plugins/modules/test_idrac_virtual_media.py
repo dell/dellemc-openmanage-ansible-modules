@@ -3,7 +3,7 @@
 #
 # Dell OpenManage Ansible Modules
 # Version 6.3.0
-# Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2022-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -20,6 +20,7 @@ from io import StringIO
 from ansible.module_utils._text import to_text
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import AnsibleFailJSonException
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 ISO_PATH = "//XX.XX.XX.XX/path/file.iso"
@@ -53,6 +54,24 @@ class TestVirtualMedia(FakeAnsibleModule):
                                                          "image": "\\\\XX.XX.XX.XX\\path\\image.iso", "index": 1},
                                               "141")
         assert result is None
+        with pytest.raises(AnsibleFailJSonException) as exc:
+            idrac_default_args.update({"virtual_media": [{"index": 1, "insert": True, "username": "user", "password": "pwd",
+                                                          "image": "\\\\XX.XX.XX.XX\\path\\image.iso"}]})
+            f_module = self.get_module_mock(params=idrac_default_args)
+            result = self.module._validate_params(f_module, {"password": "pwd", "insert": True, "username": "usr",
+                                                             "image": "\\\\XX.XX.XX.XX\\path\\image.iso", "index": 1},
+                                                  "139")
+            result = self._run_module_with_fail_json(idrac_default_args)
+        assert exc.value.args[0] == "The system does not support the CIFS network share feature."
+        with pytest.raises(AnsibleFailJSonException) as exc:
+            idrac_default_args.update({"virtual_media": [{"index": 1, "insert": True, "username": "user", "password": "pwd",
+                                                          "image": "\\\\XX.XX.XX.XX\\path\\image.iso"}]})
+            f_module = self.get_module_mock(params=idrac_default_args)
+            result = self.module._validate_params(f_module, {"password": "pwd", "insert": True, "username": "usr",
+                                                             "image": "https://XX.XX.XX.XX//path//image.iso", "index": 1},
+                                                  "139")
+            result = self._run_module_with_fail_json(idrac_default_args)
+        assert exc.value.args[0] == "The system does not support the HTTPS network share feature with credentials."
 
     def test_get_virtual_media_info(self, virtual_media_conn_mock, redfish_response_mock, idrac_default_args):
         redfish_response_mock.json_data = {
@@ -195,6 +214,12 @@ class TestVirtualMedia(FakeAnsibleModule):
         result = self.module.virtual_media(virtual_media_conn_mock, f_module, vr_member, "manager", "141")
         assert result == []
         result = self.module.virtual_media(virtual_media_conn_mock, f_module, vr_member, "system", "141")
+        assert result == []
+        idrac_default_args.update({"virtual_media": [{"insert": False, "image": None,
+                                                      "index": None, "media_type": "CD"}], "force": True})
+        f_module = self.get_module_mock(params=idrac_default_args)
+        mocker.patch(MODULE_PATH + 'idrac_virtual_media.get_payload_data', return_value=(True, {}, {}, None))
+        result = self.module.virtual_media(virtual_media_conn_mock, f_module, vr_member, "manager", "141")
         assert result == []
         f_module.check_mode = True
         mocker.patch(MODULE_PATH + 'idrac_virtual_media.get_payload_data', return_value=(True, {"Insert": True},
