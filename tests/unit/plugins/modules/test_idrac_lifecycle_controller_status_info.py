@@ -52,6 +52,8 @@ class TestLcStatus(FakeAnsibleModule):
     def test_main_get_lcstatus_success_case00(self,
                                               idrac_default_args,
                                               mocker):
+        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_status_info.IDRACInfo.get_idrac_hw_model",
+                     return_value="9")
         lcstatus = "Ready"
         mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_status_info.IDRACLifecycleControllerStatusInfo.get_lifecycle_controller_status_info",
                      return_value=lcstatus)
@@ -63,6 +65,8 @@ class TestLcStatus(FakeAnsibleModule):
                                               idrac_connection_lcstatus_mock,
                                               idrac_default_args,
                                               mocker):
+        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_status_info.IDRACInfo.get_idrac_hw_model",
+                     return_value="")
         mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_status_info.IDRACLifecycleControllerStatusInfo.get_lifecycle_controller_status_info",
                      return_value="")
         obj2 = MagicMock()
@@ -77,6 +81,8 @@ class TestLcStatus(FakeAnsibleModule):
                                           ImportError, ValueError, TypeError, HTTPError, URLError])
     def test_main_get_lcstatus_exception_handling_case(self, exc_type, idrac_connection_lcstatus_mock,
                                                        idrac_default_args, mocker):
+        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_status_info.IDRACInfo.get_idrac_hw_model",
+                     return_value="")
         mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_status_info.IDRACLifecycleControllerStatusInfo.get_lifecycle_controller_status_info",
                      return_value="")
         obj2 = MagicMock()
