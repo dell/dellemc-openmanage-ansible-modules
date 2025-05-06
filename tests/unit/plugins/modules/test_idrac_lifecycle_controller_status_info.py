@@ -49,6 +49,16 @@ class TestLcStatus(FakeAnsibleModule):
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_lc_status_mock
         return idrac_lc_status_mock
 
+    def test_main_get_lcstatus_success_case00(self,
+                                              idrac_default_args,
+                                              mocker):
+        lcstatus = "Ready"
+        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_status_info.IDRACLifecycleControllerStatusInfo.get_lifecycle_controller_status_info",
+                     return_value=lcstatus)
+        result = self._run_module(idrac_default_args)
+        assert result['lc_status_info']['LCReady'] is True
+        assert result['lc_status_info']['LCStatus'] == lcstatus
+
     def test_main_get_lcstatus_success_case01(self,
                                               idrac_connection_lcstatus_mock,
                                               idrac_default_args,

@@ -35,28 +35,35 @@ class IDRACLifecycleControllerStatusInfo(object):
         self.idrac = idrac
 
     def get_lifecycle_controller_status_api(self):
-        controller_status_baseuri_response =\
-            self.idrac.invoke_request(uri=BASE_URI, method="GET")
-        manager_uri = controller_status_baseuri_response.json_data.\
-            get("Members")[0].get(ODATA_ID)
+        controller_status_baseuri_response = self._get_controller_status_baseuri_response()
+        manager_uri = self._get_manager_uri(controller_status_baseuri_response)
         if manager_uri:
-            manager_response = self.idrac.invoke_request(uri=manager_uri,
-                                                         method="GET")
-            lc_service_uri = manager_response.json_data.get("Links", {}).\
-                get("Oem", {}).get("Dell", {}).get("DellLCService", {}).\
-                get(ODATA_ID, "")
+            manager_response = self._get_manager_response(manager_uri)
+            lc_service_uri = self._get_lc_service_uri(manager_response)
             if lc_service_uri:
-                lc_service_response = self.idrac.invoke_request(
-                    uri=lc_service_uri,
-                    method="GET"
-                )
-                lc_status_check_uri = lc_service_response.json_data.\
-                    get("Actions", {}).\
-                    get("#DellLCService.GetRemoteServicesAPIStatus", {}).\
-                    get("target", "")
+                lc_service_response = self._get_lc_service_response(lc_service_uri)
+                lc_status_check_uri = self._get_lc_status_check_uri(lc_service_response)
                 if lc_status_check_uri:
                     return lc_status_check_uri
         return ""
+
+    def _get_controller_status_baseuri_response(self):
+        return self.idrac.invoke_request(uri=BASE_URI, method="GET")
+
+    def _get_manager_uri(self, controller_status_baseuri_response):
+        return controller_status_baseuri_response.json_data.get("Members", [])[0].get(ODATA_ID, "")
+
+    def _get_manager_response(self, manager_uri):
+        return self.idrac.invoke_request(uri=manager_uri, method="GET")
+
+    def _get_lc_service_uri(self, manager_response):
+        return manager_response.json_data.get("Links", {}).get("Oem", {}).get("Dell", {}).get("DellLCService", {}).get(ODATA_ID, "")
+
+    def _get_lc_service_response(self, lc_service_uri):
+        return self.idrac.invoke_request(uri=lc_service_uri, method="GET")
+
+    def _get_lc_status_check_uri(self, lc_service_response):
+        return lc_service_response.json_data.get("Actions", {}).get("#DellLCService.GetRemoteServicesAPIStatus", {}).get("target", "")
 
     def get_lifecycle_controller_status_info(self):
         lc_status_check_uri = self.get_lifecycle_controller_status_api()
