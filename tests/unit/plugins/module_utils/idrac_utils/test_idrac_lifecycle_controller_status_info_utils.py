@@ -4,6 +4,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.\
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.module_utils.idrac_utils.test_idrac_utils import TestUtils
 from unittest.mock import MagicMock
 
+
 class TestIDRACLifecycleControllerStatusInfo(TestUtils):
     def test_get_lifecycle_controller_info(self, idrac_mock):
         lc_info = IDRACLifecycleControllerStatusInfo(idrac_mock)
