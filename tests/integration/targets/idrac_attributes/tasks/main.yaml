@@ -8,7 +8,9 @@
   delegate_to: localhost
 
 - name: Set test_items
-  ansible.builtin.set_fact: test_items="{{ test_cases.files | map(attribute='path') | list }}"
+  ansible.builtin.set_fact:
+    test_items: "{{ test_cases.files | map(attribute='path') | list }}"
+
 
 - name: Fail if no test cases are found as per pattern.
   ansible.builtin.fail:

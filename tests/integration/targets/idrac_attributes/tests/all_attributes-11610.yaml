@@ -45,7 +45,7 @@
 
     - ansible.builtin.include_tasks: _helper.yml
       vars:
-        fqdd: ['iDRAC.Embedded.1','System.Embedded.1','LifecycleController.Embedded.1']
+        fqdd: ['iDRAC.Embedded.1', 'System.Embedded.1', 'LifecycleController.Embedded.1']
         attrs: "{{ all_attributes }}"
 
     - ansible.builtin.set_fact:

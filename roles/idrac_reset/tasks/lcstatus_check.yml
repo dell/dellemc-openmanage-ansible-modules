@@ -14,9 +14,26 @@
       ansible.builtin.pause:
         seconds: "{{ idrac_reset_delay }}"
 
+    - name: Get iDRAC attributes response
+      ansible.builtin.uri:
+        url: "https://{{ lookup('env', 'IDRAC_IP') }}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
+        method: GET
+        user: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        return_content: true
+        status_code: 200
+      register: idrac_response
+      no_log: true
+      ignore_errors: true
+
+    - name: Extract HWModel
+      set_fact:
+        hw_model: "{{ idrac_response.json.Attributes['Info.1.HWModel'] | default('') }}"
+
     - name: Check whether lifecycle controller status is ready or not for iDRAC9
       when:
-        - idrac_reset_fwm_ver is version('3.0', '>=')
+        - hw_model != "" and idrac_reset_fwm_ver is version('3.0', '>=')
       block:
         - name: Get lifecycle controller status for iDRAC9
           ansible.builtin.uri:
@@ -48,7 +65,7 @@
 
     - name: Check whether lifecycle controller status is ready or not for iDRAC8
       when:
-        - idrac_reset_fwm_ver is version('3.0', '<')
+        - hw_model == "" and idrac_reset_fwm_ver is version('3.0', '<')
       block:
         - name: Check whether lifecycle controller status is ready or not
           ansible.builtin.uri:
