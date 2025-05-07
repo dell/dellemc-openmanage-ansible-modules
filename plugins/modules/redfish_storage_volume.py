@@ -945,7 +945,7 @@ def is_fw_ver_greater(session_obj):
     firm_version = session_obj.invoke_request('GET', GET_IDRAC_FIRMWARE_VER_URI)
     version = firm_version.json_data.get('FirmwareVersion', '')
     server_hw_model = IDRACInfo(session_obj).get_idrac_hw_model()
-    if server_hw_model in ['iDRAC9', 'iDRAC10'] and LooseVersion(version) > '3.0':
+    if server_hw_model in ['iDRAC9', 'iDRAC10'] or LooseVersion(version) > '3.0':
         return True
     else:
         return False
