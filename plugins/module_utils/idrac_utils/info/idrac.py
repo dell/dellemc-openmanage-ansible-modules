@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 9.12.0
+# Version 9.13.0
 # Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -24,6 +24,7 @@
 # LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+from urllib.error import HTTPError
 
 GET_IDRAC_DELL_SYSTEM_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellSystem/System.Embedded.1"
 GET_IDRAC_SYSTEM_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/"
@@ -164,3 +165,14 @@ class IDRACInfo(object):
                     get("Status", {}).get("Health", NOT_AVAILABLE)
         output = self.get_idrac_nic_attributes(output=output)
         return [output]
+
+    def get_idrac_hw_model(self):
+        '''
+        Fetches server model for iDRAC 9/10, return empty value for lower model
+        '''
+        try:
+            response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_MANAGER_ATTRIBUTES)
+            if response.status_code == 200:
+                return response.json_data.get('Attributes', {}).get('Info.1.HWModel')
+        except HTTPError:
+            return ""
