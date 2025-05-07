@@ -23,6 +23,7 @@ from io import StringIO
 from ansible.module_utils._text import to_text
 from pytest import importorskip
 
+
 importorskip("omsdk.sdkfile")
 importorskip("omsdk.sdkcreds")
 
@@ -48,7 +49,26 @@ class TestLcStatus(FakeAnsibleModule):
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_lc_status_mock
         return idrac_lc_status_mock
 
-    def test_main_get_lcstatus_success_case01(self, idrac_connection_lcstatus_mock, idrac_default_args):
+    def test_main_get_lcstatus_success_case00(self,
+                                              idrac_default_args,
+                                              mocker):
+        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_status_info.IDRACInfo.get_idrac_hw_model",
+                     return_value="9")
+        lcstatus = "Ready"
+        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_status_info.IDRACLifecycleControllerStatusInfo.get_lifecycle_controller_status_info",
+                     return_value=lcstatus)
+        result = self._run_module(idrac_default_args)
+        assert result['lc_status_info']['LCReady'] is True
+        assert result['lc_status_info']['LCStatus'] == lcstatus
+
+    def test_main_get_lcstatus_success_case01(self,
+                                              idrac_connection_lcstatus_mock,
+                                              idrac_default_args,
+                                              mocker):
+        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_status_info.IDRACInfo.get_idrac_hw_model",
+                     return_value="")
+        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_status_info.IDRACLifecycleControllerStatusInfo.get_lifecycle_controller_status_info",
+                     return_value="")
         obj2 = MagicMock()
         idrac_connection_lcstatus_mock.config_mgr = obj2
         type(obj2).LCStatus = PropertyMock(return_value="lcstatus")
@@ -60,7 +80,11 @@ class TestLcStatus(FakeAnsibleModule):
     @pytest.mark.parametrize("exc_type", [RuntimeError, SSLValidationError, ConnectionError, KeyError,
                                           ImportError, ValueError, TypeError, HTTPError, URLError])
     def test_main_get_lcstatus_exception_handling_case(self, exc_type, idrac_connection_lcstatus_mock,
-                                                       idrac_default_args):
+                                                       idrac_default_args, mocker):
+        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_status_info.IDRACInfo.get_idrac_hw_model",
+                     return_value="")
+        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_status_info.IDRACLifecycleControllerStatusInfo.get_lifecycle_controller_status_info",
+                     return_value="")
         obj2 = MagicMock()
         idrac_connection_lcstatus_mock.config_mgr = obj2
         json_str = to_text(json.dumps({"data": "out"}))
