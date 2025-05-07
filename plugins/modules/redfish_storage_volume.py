@@ -378,17 +378,20 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import 
 from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import MANAGER_JOB_ID_URI, wait_for_redfish_reboot_job, \
-    strip_substr_dict, wait_for_job_completion
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_valid_uri, \
+    strip_substr_dict, wait_for_job_completion, wait_for_redfish_reboot_job, MANAGER_JOB_ID_URI, JOB_URI_9_10
 
 
 VOLUME_INITIALIZE_URI = "{storage_base_uri}/Volumes/{volume_id}/Actions/Volume.Initialize"
 DRIVES_URI = "{storage_base_uri}/Drives/{driver_id}"
 CONTROLLER_URI = "{storage_base_uri}/{controller_id}"
 SETTING_VOLUME_ID_URI = "{storage_base_uri}/Volumes/{volume_id}/Settings"
-CONTROLLER_VOLUME_URI = "{storage_base_uri}/{controller_id}/Volumes"
+CONTROLLER_VOLUME_URI = CONTROLLER_URI + "/Volumes"
+DRIVES_URI_9_10 = CONTROLLER_URI + "/Drives/{driver_id}"
+VOLUME_ID_URI_9_10 = CONTROLLER_VOLUME_URI + "/{volume_id}"
+SETTING_VOLUME_ID_URI_9_10 = CONTROLLER_VOLUME_URI + "/{volume_id}/Settings"
+VOLUME_INITIALIZE_URI_9_10 = CONTROLLER_VOLUME_URI + "/{volume_id}/Actions/Volume.Initialize"
 VOLUME_ID_URI = "{storage_base_uri}/Volumes/{volume_id}"
-APPLY_TIME_INFO_API = CONTROLLER_URI + "/Volumes"
 REBOOT_API = "Actions/ComputerSystem.Reset"
 storage_collection_map = {}
 CHANGES_FOUND = "Changes found to be applied."
@@ -438,7 +441,7 @@ def fetch_storage_resource(module, session_obj):
         raise err
 
 
-def volume_payload(module, greater_version):
+def volume_payload(module, greater_version, session_obj, controller_id):
     params = module.params
     drives = params.get("drives")
     capacity_bytes = params.get("capacity_bytes")
@@ -453,14 +456,15 @@ def volume_payload(module, greater_version):
         capacity_bytes = int(capacity_bytes)
     if drives:
         storage_base_uri = storage_collection_map["storage_base_uri"]
-        physical_disks = [{ODATA_ID: DRIVES_URI.format(storage_base_uri=storage_base_uri,
-                           driver_id=drive_id)} for drive_id in drives]
+        physical_disks = [{ODATA_ID: get_valid_uri(session_obj, DRIVES_URI_9_10.format(storage_base_uri=storage_base_uri,
+                           controller_id=controller_id, driver_id=drive_id), DRIVES_URI.format(storage_base_uri=storage_base_uri,
+                           driver_id=drive_id))} for drive_id in drives]
     raid_mapper = {
         "Name": params.get("name"),
         "BlockSizeBytes": params.get("block_size_bytes"),
         "CapacityBytes": capacity_bytes,
         "OptimumIOSizeBytes": params.get("optimum_io_size_bytes"),
-        "Drives": physical_disks
+        "Links": {"Drives": physical_disks}
     }
     raid_payload = dict([(k, v) for k, v in raid_mapper.items() if v])
     if oem:
@@ -541,7 +545,11 @@ def check_volume_id_exists(module, session_obj, volume_id):
     """
     validation to check if volume id is valid in case of modify, delete, initialize operation
     """
-    uri = VOLUME_ID_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"], volume_id=volume_id)
+    controller_id = volume_id.split(':')[-1]
+    old_uri = VOLUME_ID_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"], volume_id=volume_id)
+    new_uri = VOLUME_ID_URI_9_10.format(storage_base_uri=storage_collection_map["storage_base_uri"],
+                                        controller_id=controller_id, volume_id=volume_id)
+    uri = get_valid_uri(session_obj, new_uri, old_uri)
     err_message = "Specified Volume Id {0} does not exist in the System.".format(volume_id)
     resp = check_specified_identifier_exists_in_the_system(module, session_obj, uri, err_message)
     return resp
@@ -600,9 +608,14 @@ def check_mode_validation(module, session_obj, action, uri, greater_version):
 def _volume_id_check_mode(module, session_obj, greater_version, volume_id, name,
                           block_size_bytes, capacity_bytes, optimum_io_size_bytes,
                           encryption_types, encrypted, volume_type, raid_type, drives):
-    resp = session_obj.invoke_request("GET", SETTING_VOLUME_ID_URI.format(
-        storage_base_uri=storage_collection_map["storage_base_uri"],
-        volume_id=volume_id))
+    controller_id = volume_id.split(':')[-1]
+    new_uri = SETTING_VOLUME_ID_URI_9_10.format(storage_base_uri=storage_collection_map["storage_base_uri"],
+                                                controller_id=controller_id,
+                                                volume_id=volume_id)
+    old_uri = SETTING_VOLUME_ID_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"],
+                                           volume_id=volume_id)
+    setting_uri = get_valid_uri(session_obj, new_uri, old_uri)
+    resp = session_obj.invoke_request("GET", setting_uri)
     resp_data = resp.json_data
     exist_value = _get_payload_for_version(greater_version, resp_data)
     exit_value_filter = dict(
@@ -695,7 +708,7 @@ def get_apply_time(module, session_obj, controller_id, greater_version):
     """
     apply_time = module.params.get("apply_time")
     try:
-        uri = APPLY_TIME_INFO_API.format(storage_base_uri=storage_collection_map["storage_base_uri"], controller_id=controller_id)
+        uri = CONTROLLER_VOLUME_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"], controller_id=controller_id)
         resp = session_obj.invoke_request("GET", uri)
         if greater_version:
             supported_apply_time_values = resp.json_data['@Redfish.OperationApplyTimeSupport']['SupportedValues']
@@ -741,11 +754,16 @@ def perform_volume_create_modify(module, session_obj, greater_version):
     else:
         resp = check_volume_id_exists(module, session_obj, volume_id)
         if resp.success:
-            uri = SETTING_VOLUME_ID_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"],
-                                               volume_id=volume_id)
+            specified_controller_id = volume_id.split(':')[-1]
+            new_uri = SETTING_VOLUME_ID_URI_9_10.format(storage_base_uri=storage_collection_map["storage_base_uri"],
+                                                        controller_id=specified_controller_id,
+                                                        volume_id=volume_id)
+            old_uri = SETTING_VOLUME_ID_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"],
+                                                   volume_id=volume_id)
+            uri = get_valid_uri(session_obj, new_uri, old_uri)
             method = "PATCH"
             action = "modify"
-    payload = volume_payload(module, greater_version)
+    payload = volume_payload(module, greater_version, session_obj, specified_controller_id)
     check_mode_validation(module, session_obj, action, uri, greater_version)
     if not payload:
         module.fail_json(msg="Input options are not provided for the {0} volume task.".format(action))
@@ -760,7 +778,12 @@ def perform_volume_deletion(module, session_obj):
     if volume_id:
         resp = check_volume_id_exists(module, session_obj, volume_id)
         if hasattr(resp, "success") and resp.success and not module.check_mode:
-            uri = VOLUME_ID_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"], volume_id=volume_id)
+            controller_id = volume_id.split(':')[-1]
+            old_uri = VOLUME_ID_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"], volume_id=volume_id)
+            new_uri = VOLUME_ID_URI_9_10.format(storage_base_uri=storage_collection_map["storage_base_uri"],
+                                                controller_id=controller_id,
+                                                volume_id=volume_id)
+            uri = get_valid_uri(session_obj, new_uri, old_uri)
             method = "DELETE"
             return perform_storage_volume_action(method, uri, session_obj, "delete")
         elif hasattr(resp, "success") and resp.success and module.check_mode:
@@ -789,8 +812,13 @@ def perform_volume_initialization(module, session_obj):
             module.fail_json(msg=operation_message)
         else:
             method = "POST"
-            uri = VOLUME_INITIALIZE_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"],
-                                               volume_id=specified_volume_id)
+            controller_id = specified_volume_id.split(':')[-1]
+            old_uri = VOLUME_INITIALIZE_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"],
+                                                   volume_id=specified_volume_id)
+            new_uri = VOLUME_INITIALIZE_URI_9_10.format(storage_base_uri=storage_collection_map["storage_base_uri"],
+                                                        controller_id=controller_id,
+                                                        volume_id=specified_volume_id)
+            uri = get_valid_uri(session_obj, new_uri, old_uri)
             payload = {"InitializeType": module.params["initialize_type"]}
             return perform_storage_volume_action(method, uri, session_obj, "initialize", payload)
     else:
@@ -844,7 +872,8 @@ def perform_force_reboot(module, session_obj):
     payload = {"ResetType": "ForceRestart"}
     job_resp_status, reset_status, reset_fail = wait_for_redfish_reboot_job(session_obj, SYSTEM_ID, payload=payload)
     if reset_status and job_resp_status:
-        job_uri = MANAGER_JOB_ID_URI.format(job_resp_status["Id"])
+        job_uri = get_valid_uri(session_obj, primary_uri=JOB_URI_9_10.format(job_resp_status["Id"]),
+                                secondary_uri=MANAGER_JOB_ID_URI.format(job_resp_status["Id"]))
         resp, msg = wait_for_job_completion(session_obj, job_uri, wait_timeout=module.params.get("job_wait_timeout"))
         if resp:
             job_data = strip_substr_dict(resp.json_data)
@@ -861,7 +890,8 @@ def perform_reboot(module, session_obj):
     force_reboot = module.params.get("force_reboot")
     job_resp_status, reset_status, reset_fail = wait_for_redfish_reboot_job(session_obj, SYSTEM_ID, payload=payload)
     if reset_status and job_resp_status:
-        job_uri = MANAGER_JOB_ID_URI.format(job_resp_status["Id"])
+        job_uri = get_valid_uri(session_obj, primary_uri=JOB_URI_9_10.format(job_resp_status["Id"]),
+                                secondary_uri=MANAGER_JOB_ID_URI.format(job_resp_status["Id"]))
         resp, msg = wait_for_job_completion(session_obj, job_uri, wait_timeout=module.params.get("job_wait_timeout"))
         if resp:
             job_data = strip_substr_dict(resp.json_data)
@@ -981,7 +1011,8 @@ def main():
             if status_message.get("task_id"):
                 job_tracking_required = check_job_tracking_required(module, session_obj, reboot_required, controller_id, greater_version)
                 job_id = status_message.get("task_id")
-                job_url = MANAGER_JOB_ID_URI.format(job_id)
+                job_url = get_valid_uri(session_obj, primary_uri=JOB_URI_9_10.format(job_id),
+                                        secondary_uri=MANAGER_JOB_ID_URI.format(job_id))
                 if job_tracking_required and job_id:
                     track_job(module, session_obj, job_id, job_url)
                 else:

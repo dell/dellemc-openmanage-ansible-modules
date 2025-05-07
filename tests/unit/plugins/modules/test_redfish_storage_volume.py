@@ -492,7 +492,7 @@ class TestStorageVolume(FakeAnsibleModule):
             self.module.check_physical_disk_exists(f_module, drive)
         assert exc.value.args[0] == "No Drive(s) are attached to the specified Controller Id: RAID.Mezzanine.1C-1."
 
-    def test_volume_payload_case_01(self, storage_volume_base_uri, greater_version):
+    def test_volume_payload_case_01(self, storage_volume_base_uri, greater_version, redfish_connection_mock_for_storage_volume):
         param = {
             "drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"],
             "capacity_bytes": 299439751168,
@@ -512,9 +512,11 @@ class TestStorageVolume(FakeAnsibleModule):
                                                  "SpanLength": 2,
                                                  "WriteCachePolicy": "WriteThrough"}}}}
         f_module = self.get_module_mock(params=param)
-        payload = self.module.volume_payload(f_module, greater_version)
-        assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/" \
-                                                    "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
+        payload = self.module.volume_payload(f_module, greater_version,
+                                             redfish_connection_mock_for_storage_volume,
+                                             'RAID.Mezzanine.1C-1')
+        assert payload["Links"]["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Mezzanine.1C-1/" \
+            "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
         assert payload["RAIDType"] == "RAID0"
         assert payload["Name"] == "VD1"
         assert payload["BlockSizeBytes"] == 512
@@ -525,19 +527,21 @@ class TestStorageVolume(FakeAnsibleModule):
         assert payload["Dell"]["DellVirtualDisk"]["ReadCachePolicy"] == "NoReadAhead"
         assert payload["@Redfish.OperationApplyTime"] == "Immediate"
 
-    def test_volume_payload_case_02(self, greater_version):
+    def test_volume_payload_case_02(self, greater_version, redfish_connection_mock_for_storage_volume):
         param = {"block_size_bytes": 512,
                  "raid_type": "RAID0",
                  "name": "VD1",
                  "optimum_io_size_bytes": 65536}
         f_module = self.get_module_mock(params=param)
-        payload = self.module.volume_payload(f_module, greater_version)
+        payload = self.module.volume_payload(f_module, greater_version,
+                                             redfish_connection_mock_for_storage_volume,
+                                             'RAID.Mezzanine.1C-1')
         assert payload["RAIDType"] == "RAID0"
         assert payload["Name"] == "VD1"
         assert payload["BlockSizeBytes"] == 512
         assert payload["OptimumIOSizeBytes"] == 65536
 
-    def test_volume_payload_case_03(self, storage_volume_base_uri, greater_version):
+    def test_volume_payload_case_03(self, storage_volume_base_uri, greater_version, redfish_connection_mock_for_storage_volume):
         """Testing encrypted value in case value is passed false"""
         param = {
             "drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"],
@@ -557,9 +561,11 @@ class TestStorageVolume(FakeAnsibleModule):
                                                  "SpanLength": 2,
                                                  "WriteCachePolicy": "WriteThrough"}}}}
         f_module = self.get_module_mock(params=param)
-        payload = self.module.volume_payload(f_module, greater_version)
-        assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/" \
-                                                    "Storage/Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
+        payload = self.module.volume_payload(f_module, greater_version,
+                                             redfish_connection_mock_for_storage_volume,
+                                             'RAID.Mezzanine.1C-1')
+        assert payload["Links"]["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Mezzanine.1C-1/" \
+                                                             "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
         assert payload["RAIDType"] == "RAID0"
         assert payload["Name"] == "VD1"
         assert payload["BlockSizeBytes"] == 512
@@ -569,7 +575,7 @@ class TestStorageVolume(FakeAnsibleModule):
         assert payload["EncryptionTypes"] == ["NativeDriveEncryption"]
         assert payload["Dell"]["DellVirtualDisk"]["ReadCachePolicy"] == "NoReadAhead"
 
-    def test_volume_payload_case_04(self, storage_volume_base_uri, greater_version):
+    def test_volume_payload_case_04(self, storage_volume_base_uri, greater_version, redfish_connection_mock_for_storage_volume):
         param = {
             "drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"],
             "capacity_bytes": 299439751168,
@@ -588,9 +594,11 @@ class TestStorageVolume(FakeAnsibleModule):
                                                  "SpanLength": 2,
                                                  "WriteCachePolicy": "WriteThrough"}}}}
         f_module = self.get_module_mock(params=param)
-        payload = self.module.volume_payload(f_module, greater_version)
-        assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/" \
-                                                    "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
+        payload = self.module.volume_payload(f_module, greater_version,
+                                             redfish_connection_mock_for_storage_volume,
+                                             'RAID.Mezzanine.1C-1')
+        assert payload["Links"]["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Mezzanine.1C-1/" \
+                                                             "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
         assert payload["RAIDType"] == "RAID0"
         assert payload["Name"] == "VD1"
         assert payload["BlockSizeBytes"] == 512
@@ -600,7 +608,7 @@ class TestStorageVolume(FakeAnsibleModule):
         assert payload["EncryptionTypes"] == ["NativeDriveEncryption"]
         assert payload["Dell"]["DellVirtualDisk"]["ReadCachePolicy"] == "NoReadAhead"
 
-    def test_volume_payload_case_05(self, storage_volume_base_uri, greater_version):
+    def test_volume_payload_case_05(self, storage_volume_base_uri, greater_version, redfish_connection_mock_for_storage_volume):
         param = {
             "drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1",
                        "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Mezzanine.1C-1",
@@ -622,9 +630,11 @@ class TestStorageVolume(FakeAnsibleModule):
                                                  "SpanLength": 2,
                                                  "WriteCachePolicy": "WriteThrough"}}}}
         f_module = self.get_module_mock(params=param)
-        payload = self.module.volume_payload(f_module, greater_version)
-        assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/" \
-                                                    "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
+        payload = self.module.volume_payload(f_module, greater_version,
+                                             redfish_connection_mock_for_storage_volume,
+                                             'RAID.Mezzanine.1C-1')
+        assert payload["Links"]["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Mezzanine.1C-1/" \
+                                                             "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
         assert payload["RAIDType"] == "RAID6"
         assert payload["Name"] == "VD1"
         assert payload["BlockSizeBytes"] == 512
@@ -634,7 +644,7 @@ class TestStorageVolume(FakeAnsibleModule):
         assert payload["EncryptionTypes"] == ["NativeDriveEncryption"]
         assert payload["Dell"]["DellVirtualDisk"]["ReadCachePolicy"] == "NoReadAhead"
 
-    def test_volume_payload_case_06(self, storage_volume_base_uri, greater_version):
+    def test_volume_payload_case_06(self, storage_volume_base_uri, greater_version, redfish_connection_mock_for_storage_volume):
         param = {
             "drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1",
                        "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Mezzanine.1C-1",
@@ -660,9 +670,11 @@ class TestStorageVolume(FakeAnsibleModule):
                                                  "SpanLength": 2,
                                                  "WriteCachePolicy": "WriteThrough"}}}}
         f_module = self.get_module_mock(params=param)
-        payload = self.module.volume_payload(f_module, greater_version)
-        assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/" \
-                                                    "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
+        payload = self.module.volume_payload(f_module, greater_version,
+                                             redfish_connection_mock_for_storage_volume,
+                                             'RAID.Mezzanine.1C-1')
+        assert payload["Links"]["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Mezzanine.1C-1/" \
+                                                             "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
         assert payload["RAIDType"] == "RAID60"
         assert payload["Name"] == "VD1"
         assert payload["BlockSizeBytes"] == 512

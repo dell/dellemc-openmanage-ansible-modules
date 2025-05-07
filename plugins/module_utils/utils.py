@@ -47,6 +47,8 @@ IDRAC_RESET_URI = "/redfish/v1/Managers/{res_id}/Actions/Manager.Reset"
 SYSTEM_RESET_URI = "/redfish/v1/Systems/{res_id}/Actions/ComputerSystem.Reset"
 MANAGER_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
 MANAGER_JOB_ID_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{0}"
+JOB_URI_9_10 = "/redfish/v1/JobService/Jobs?$expand=*($levels=1)"
+JOB_ID_URI_9_10 = "/redfish/v1/JobService/Jobs/{0}"
 GET_IDRAC_FIRMWARE_VER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
 HOSTNAME_REGEX = r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
 OME_INFO = "ApplicationService/Info"
@@ -446,7 +448,9 @@ def wait_for_redfish_reboot_job(redfish_obj, res_id, payload=None, wait_time_sec
         resp = redfish_obj.invoke_request('POST', SYSTEM_RESET_URI.format(res_id=res_id), data=payload, api_timeout=120)
         time.sleep(10)
         if wait_time_sec and resp.status_code == 204:
-            resp = redfish_obj.invoke_request("GET", MANAGER_JOB_URI)
+            job_uri = get_valid_uri(redfish_obj, primary_uri=JOB_URI_9_10,
+                                    secondary_uri=MANAGER_JOB_URI)
+            resp = redfish_obj.invoke_request("GET", job_uri)
             reboot_job_lst = list(filter(lambda d: (d["JobType"] in ["RebootNoForce"]), resp.json_data["Members"]))
             job_resp = max(reboot_job_lst, key=lambda d: datetime.strptime(d["StartTime"], "%Y-%m-%dT%H:%M:%S"))
             if job_resp:
@@ -777,3 +781,14 @@ def validate_time(time, module):
     # Check if the time matches the 24-hour format (HH:MM)
     if time and not re.match(r"^(?:[01]\d|2[0-3]):[0-5]\d$", time):
         module.exit_json(msg=INVALID_TIME_FORMAT_MSG, failed=True)
+
+
+def get_valid_uri(idrac, primary_uri, secondary_uri):
+    uri = ""
+    try:
+        idrac.invoke_request("GET", primary_uri)
+        uri = primary_uri
+    except HTTPError:
+        idrac.invoke_request("GET", secondary_uri)
+        uri = secondary_uri
+    return uri
