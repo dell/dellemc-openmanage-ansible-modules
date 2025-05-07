@@ -25,6 +25,10 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common im
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 ISO_PATH = "//XX.XX.XX.XX/path/file.iso"
 ISO_IMAGE_PATH = "//XX.XX.XX.XX/path/image_file.iso"
+SLEEP = 'idrac_virtual_media.time.sleep'
+PAYLOAD_DATA = 'idrac_virtual_media.get_payload_data'
+GET_INFO = 'idrac_virtual_media.get_virtual_media_info'
+SAMPLE_IMAGE = "\\\\XX.XX.XX.XX\\path\\image.iso"
 
 
 @pytest.fixture
@@ -48,27 +52,28 @@ class TestVirtualMedia(FakeAnsibleModule):
                                                     "image": "//XX.XX.XX.XX/path/image.iso"}, "140")
         assert err.value.args[0] == "CIFS share required username and password."
         idrac_default_args.update({"virtual_media": [{"index": 1, "insert": True, "username": "user", "password": "pwd",
-                                                      "image": "\\\\XX.XX.XX.XX\\path\\image.iso"}]})
+                                                      "image": SAMPLE_IMAGE}]})
         f_module = self.get_module_mock(params=idrac_default_args)
         result = self.module._validate_params(f_module, {"password": "pwd", "insert": True, "username": "usr",
-                                                         "image": "\\\\XX.XX.XX.XX\\path\\image.iso", "index": 1},
+                                                         "image": SAMPLE_IMAGE, "index": 1},
                                               "141")
         assert result is None
         with pytest.raises(AnsibleFailJSonException) as exc:
             idrac_default_args.update({"virtual_media": [{"index": 1, "insert": True, "username": "user", "password": "pwd",
-                                                          "image": "\\\\XX.XX.XX.XX\\path\\image.iso"}]})
+                                                          "image": SAMPLE_IMAGE}]})
             f_module = self.get_module_mock(params=idrac_default_args)
-            result = self.module._validate_params(f_module, {"password": "pwd", "insert": True, "username": "usr",
-                                                             "image": "\\\\XX.XX.XX.XX\\path\\image.iso", "index": 1},
-                                                  "139")
+            self.module._validate_params(f_module, {"password": "pwd", "insert": True, "username": "usr",
+                                                    "image": SAMPLE_IMAGE, "index": 1},
+                                         "139")
         assert exc.value.args[0] == "The system does not support the CIFS network share feature."
         with pytest.raises(AnsibleFailJSonException) as exc:
             idrac_default_args.update({"virtual_media": [{"index": 1, "insert": True, "username": "user", "password": "pwd",
-                                                          "image": "\\\\XX.XX.XX.XX\\path\\image.iso"}]})
+                                                          "image": SAMPLE_IMAGE}]})
             f_module = self.get_module_mock(params=idrac_default_args)
-            result = self.module._validate_params(f_module, {"password": "pwd", "insert": True, "username": "usr",
-                                                             "image": "https://XX.XX.XX.XX//path//image.iso", "index": 1},
-                                                  "139")
+            self.module._validate_params(f_module, {"password": "pwd", "insert": True, "username": "usr",
+                                                    "image": "https://XX.XX.XX.XX//path//image.iso", "index": 1},
+                                         "139")
+
         assert exc.value.args[0] == "The system does not support the HTTPS network share feature with credentials."
 
     def test_get_virtual_media_info(self, virtual_media_conn_mock, redfish_response_mock, idrac_default_args):
@@ -128,7 +133,7 @@ class TestVirtualMedia(FakeAnsibleModule):
         idrac_default_args.update({"virtual_media": [{"insert": True, "image": ISO_PATH}],
                                    "force": True})
         f_module = self.get_module_mock(params=idrac_default_args)
-        mocker.patch(MODULE_PATH + 'idrac_virtual_media.time.sleep', return_value=None)
+        mocker.patch(MODULE_PATH + SLEEP, return_value=None)
         payload = [{
             "vr_mem": {"Inserted": True, "Actions": {
                 "#VirtualMedia.EjectMedia": {
@@ -158,7 +163,7 @@ class TestVirtualMedia(FakeAnsibleModule):
         idrac_default_args.update({"virtual_media": [{"insert": True, "image": ISO_PATH}],
                                    "force": True})
         f_module = self.get_module_mock(params=idrac_default_args)
-        mocker.patch(MODULE_PATH + 'idrac_virtual_media.time.sleep', return_value=None)
+        mocker.patch(MODULE_PATH + SLEEP, return_value=None)
         payload = [{
             "vr_mem": {"Inserted": True, "Actions": {
                 "#VirtualMedia.EjectMedia": {
@@ -175,7 +180,7 @@ class TestVirtualMedia(FakeAnsibleModule):
             })
             json_str = to_text(json.dumps({"data": "out"}))
             mocker.patch(
-                MODULE_PATH + 'idrac_virtual_media.time.sleep',
+                MODULE_PATH + SLEEP,
                 side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str)))
             result = self.module.virtual_media_operation(virtual_media_conn_mock, f_module, payload, "system")
@@ -186,7 +191,7 @@ class TestVirtualMedia(FakeAnsibleModule):
                       "UserName": "username", "Password": "password", "Id": "CD", "MediaTypes": ["CD", "DVD"]}]
         mocker.patch(MODULE_PATH + 'idrac_virtual_media.virtual_media_operation', return_value=[])
         mocker.patch(MODULE_PATH + 'idrac_virtual_media._validate_params', return_value=None)
-        mocker.patch(MODULE_PATH + 'idrac_virtual_media.get_payload_data', return_value=(True, {}, {}, 1))
+        mocker.patch(MODULE_PATH + PAYLOAD_DATA, return_value=(True, {}, {}, 1))
         idrac_default_args.update({"virtual_media": [{"insert": True, "image": ISO_PATH}],
                                    "force": True})
         f_module = self.get_module_mock(params=idrac_default_args)
@@ -208,7 +213,7 @@ class TestVirtualMedia(FakeAnsibleModule):
         idrac_default_args.update({"virtual_media": [{"insert": True, "image": ISO_PATH,
                                                       "index": 1, "media_type": "CD"}], "force": True})
         f_module = self.get_module_mock(params=idrac_default_args)
-        mocker.patch(MODULE_PATH + 'idrac_virtual_media.get_payload_data', return_value=(True, {}, {}, None))
+        mocker.patch(MODULE_PATH + PAYLOAD_DATA, return_value=(True, {}, {}, None))
         result = self.module.virtual_media(virtual_media_conn_mock, f_module, vr_member, "manager", "141")
         assert result == []
         result = self.module.virtual_media(virtual_media_conn_mock, f_module, vr_member, "system", "141")
@@ -216,12 +221,12 @@ class TestVirtualMedia(FakeAnsibleModule):
         idrac_default_args.update({"virtual_media": [{"insert": False, "image": None,
                                                       "index": None, "media_type": "CD"}], "force": True})
         f_module = self.get_module_mock(params=idrac_default_args)
-        mocker.patch(MODULE_PATH + 'idrac_virtual_media.get_payload_data', return_value=(True, {}, {}, None))
+        mocker.patch(MODULE_PATH + PAYLOAD_DATA, return_value=(True, {}, {}, None))
         result = self.module.virtual_media(virtual_media_conn_mock, f_module, vr_member, "manager", "141")
         assert result == []
         f_module.check_mode = True
-        mocker.patch(MODULE_PATH + 'idrac_virtual_media.get_payload_data', return_value=(True, {"Insert": True},
-                                                                                         {}, None))
+        mocker.patch(MODULE_PATH + PAYLOAD_DATA,
+                     return_value=(True, {"Insert": True}, {}, None))
         with pytest.raises(Exception) as ex:
             self.module.virtual_media(virtual_media_conn_mock, f_module, vr_member, "manager", "141")
         assert ex.value.args[0] == "Changes found to be applied."
@@ -229,7 +234,7 @@ class TestVirtualMedia(FakeAnsibleModule):
                                                       "index": 1, "media_type": "CD"}], "force": False})
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = True
-        mocker.patch(MODULE_PATH + 'idrac_virtual_media.get_payload_data', return_value=(False, {}, {}, None))
+        mocker.patch(MODULE_PATH + PAYLOAD_DATA, return_value=(False, {}, {}, None))
         with pytest.raises(Exception) as ex:
             self.module.virtual_media(virtual_media_conn_mock, f_module, vr_member, "manager", "141")
         assert ex.value.args[0] == "No changes found to be applied."
@@ -238,7 +243,7 @@ class TestVirtualMedia(FakeAnsibleModule):
         idrac_default_args.update({"virtual_media": [
             {"insert": True, "image": "https://XX.XX.XX.XX/path/file.iso"},
             {"insert": True, "image": "YY.YY.YY.YY:/file/file.iso"}], "force": True})
-        mocker.patch(MODULE_PATH + 'idrac_virtual_media.get_virtual_media_info',
+        mocker.patch(MODULE_PATH + GET_INFO,
                      return_value=([{"Insert": True}, {"Insert": True}], "manager", "141"))
         with pytest.raises(Exception) as ex:
             self._run_module(idrac_default_args)
@@ -260,10 +265,10 @@ class TestVirtualMedia(FakeAnsibleModule):
         idrac_default_args.update({"virtual_media": [{"index": 1, "insert": False}]})
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type not in [HTTPError]:
-            mocker.patch(MODULE_PATH + 'idrac_virtual_media.get_virtual_media_info', side_effect=exc_type('test'))
+            mocker.patch(MODULE_PATH + GET_INFO, side_effect=exc_type('test'))
         else:
             mocker.patch(
-                MODULE_PATH + 'idrac_virtual_media.get_virtual_media_info',
+                MODULE_PATH + GET_INFO,
                 side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str)))
         if not exc_type == URLError:
