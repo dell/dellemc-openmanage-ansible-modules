@@ -378,6 +378,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import 
 from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.idrac import IDRACInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_valid_uri, \
     strip_substr_dict, wait_for_job_completion, wait_for_redfish_reboot_job, MANAGER_JOB_ID_URI, JOB_URI_9_10
 
@@ -943,10 +944,11 @@ def validate_negative_job_time_out(module):
 def is_fw_ver_greater(session_obj):
     firm_version = session_obj.invoke_request('GET', GET_IDRAC_FIRMWARE_VER_URI)
     version = firm_version.json_data.get('FirmwareVersion', '')
-    if LooseVersion(version) <= '3.0':
-        return False
-    else:
+    server_hw_model = IDRACInfo(session_obj).get_idrac_hw_model()
+    if server_hw_model in ['iDRAC9', 'iDRAC10'] and LooseVersion(version) > '3.0':
         return True
+    else:
+        return False
 
 
 def main():
