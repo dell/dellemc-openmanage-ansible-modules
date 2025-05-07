@@ -61,7 +61,6 @@ class TestVirtualMedia(FakeAnsibleModule):
             result = self.module._validate_params(f_module, {"password": "pwd", "insert": True, "username": "usr",
                                                              "image": "\\\\XX.XX.XX.XX\\path\\image.iso", "index": 1},
                                                   "139")
-            result = self._run_module_with_fail_json(idrac_default_args)
         assert exc.value.args[0] == "The system does not support the CIFS network share feature."
         with pytest.raises(AnsibleFailJSonException) as exc:
             idrac_default_args.update({"virtual_media": [{"index": 1, "insert": True, "username": "user", "password": "pwd",
@@ -70,7 +69,6 @@ class TestVirtualMedia(FakeAnsibleModule):
             result = self.module._validate_params(f_module, {"password": "pwd", "insert": True, "username": "usr",
                                                              "image": "https://XX.XX.XX.XX//path//image.iso", "index": 1},
                                                   "139")
-            result = self._run_module_with_fail_json(idrac_default_args)
         assert exc.value.args[0] == "The system does not support the HTTPS network share feature with credentials."
 
     def test_get_virtual_media_info(self, virtual_media_conn_mock, redfish_response_mock, idrac_default_args):
