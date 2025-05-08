@@ -12,6 +12,14 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
+- name: Set path fact
+  ansible.builtin.set_fact:
+    path_1: '../../../../../../integration/targets'
+    path_2: '/idrac_system_info/tests/_check_firmware_version_supported.yml'
+
+- name: Check if module is calling omsdk
+  ansible.builtin.include_tasks: "{{ path_1 }}{{ path_2 }}"
+
 - block:
 
     - name: Prerequisite - Eject virtual media from Remote File Share 1
@@ -53,6 +61,22 @@
         url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers"
         url_1: "iDRAC.Embedded.1/VirtualMedia/RemovableDisk"
         url: "{{ url_0 }}/{{ url_1 }}"
+      when:
+        - is_omsdk_required | bool
+
+    - ansible.builtin.include_tasks: get_system_uris.yml
+      vars:
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
+        url_1: "System.Embedded.1/VirtualMedia"
+        url: "{{ url_0 }}/{{ url_1 }}"
+      when:
+        - not is_omsdk_required | bool
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "{{ uri_data_1 }}"
+      when:
+        - not is_omsdk_required | bool
 
     - name: Verify task status - Insert "media_type -> USBStick" from HTTPS
         share with "domain" user to Remote File Share 1 (Normal mode)
@@ -119,6 +143,22 @@
         url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers"
         url_1: "iDRAC.Embedded.1/VirtualMedia/RemovableDisk"
         url: "{{ url_0 }}/{{ url_1 }}"
+      when:
+        - is_omsdk_required | bool
+
+    - ansible.builtin.include_tasks: get_system_uris.yml
+      vars:
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
+        url_1: "System.Embedded.1/VirtualMedia"
+        url: "{{ url_0 }}/{{ url_1 }}"
+      when:
+        - not is_omsdk_required | bool
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "{{ uri_data_1 }}"
+      when:
+        - not is_omsdk_required | bool
 
     - name: Verify task status - Insert ".img" image file from HTTPS share
         with "domain" user in format "domain\user" to RFS1 without providing

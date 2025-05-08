@@ -52,8 +52,8 @@ idrac_auth_params = {
 }
 
 SESSION_RESOURCE_COLLECTION = {
-    "SESSION": "/redfish/v1/Sessions",
-    "SESSION_ID": "/redfish/v1/Sessions/{Id}",
+    "SESSION": "/redfish/v1/SessionService/Sessions",
+    "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
 }
 MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
 EXPORT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ExportSystemConfiguration"
