@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.1.0
-# Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.13.0
+# Copyright (C) 2018-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -18,6 +18,11 @@ DOCUMENTATION = """
 module: idrac_syslog
 short_description: Enable or disable the syslog on iDRAC
 version_added: "2.1.0"
+deprecated:
+  removed_at_date: "2027-05-27"
+  why: Replaced with M(dellemc.openmanage.idrac_attributes).
+  alternative: Use M(dellemc.openmanage.idrac_attributes) instead.
+  removed_from_collection: dellemc.openmanage
 description:
   - This module allows to enable or disable the iDRAC syslog.
 extends_documentation_fragment:
@@ -35,6 +40,7 @@ requirements:
 author:
   - "Felix Stephen (@felixs88)"
   - "Anooja Vardhineni (@anooja-vardhineni)"
+  - "Abhishek Sinha (@ABHISHEK-SINHA10)"
 notes:
     - This module requires 'Administrator' privilege for I(idrac_user).
     - Run this module from a system that has direct access to Dell iDRAC.

@@ -39,7 +39,7 @@ Parameters
   idrac_user (True, str, None)
     iDRAC username.
 
-    If the username is not provided, then the environment variable \ :envvar:`IDRAC\_USERNAME`\  is used.
+    If the username is not provided, then the environment variable :envvar:`IDRAC\_USERNAME` is used.
 
     Example: export IDRAC\_USERNAME=username
 
@@ -47,7 +47,7 @@ Parameters
   idrac_password (True, str, None)
     iDRAC user password.
 
-    If the password is not provided, then the environment variable \ :envvar:`IDRAC\_PASSWORD`\  is used.
+    If the password is not provided, then the environment variable :envvar:`IDRAC\_PASSWORD` is used.
 
     Example: export IDRAC\_PASSWORD=password
 
@@ -57,11 +57,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If \ :literal:`false`\ , the SSL certificates will not be validated.
+    If :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
+    Configure :literal:`false` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
+    Prior to collection version :literal:`5.0.0`\ , the :emphasis:`validate\_certs` is :literal:`false` by default.
 
 
   ca_path (optional, path, None)
@@ -95,10 +95,10 @@ Notes
 -----
 
 .. note::
-   - This module requires 'Administrator' privilege for \ :emphasis:`idrac\_user`\ .
+   - This module requires 'Administrator' privilege for :emphasis:`idrac\_user`.
    - Run this module from a system that has direct access to Dell iDRAC.
-   - This module supports both IPv4 and IPv6 address for \ :emphasis:`idrac\_ip`\ .
-   - This module supports \ :literal:`check\_mode`\ .
+   - This module supports both IPv4 and IPv6 address for :emphasis:`idrac\_ip`.
+   - This module supports :literal:`check\_mode`.
 
 
 
@@ -158,7 +158,9 @@ Status
 ------
 
 
-
+- This module will be removed in version
+  .
+  *[deprecated]*
 
 
 Authors
@@ -166,4 +168,5 @@ Authors
 
 - Felix Stephen (@felixs88)
 - Anooja Vardhineni (@anooja-vardhineni)
+- Abhishek Sinha (@ABHISHEK-SINHA10)
 

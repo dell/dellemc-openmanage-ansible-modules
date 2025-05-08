@@ -41,3 +41,10 @@ plugin_routing:
         warning_text: dellemc_idrac_storage_volume will be removed in a future
                       release of this collection.
                       Use dellemc.openmanage.idrac_storage_volume instead.
+    idrac_syslog:
+      redirect: dellemc.openmanage.idrac_attributes
+      deprecation:
+        removal_date: "2027-05-27"
+        warning_text: idrac_syslog will be removed in a future
+                      release of this collection.
+                      Use dellemc.openmanage.idrac_attributes instead.

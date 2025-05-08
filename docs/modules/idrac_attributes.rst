@@ -28,19 +28,19 @@ Parameters
 ----------
 
   idrac_attributes (optional, dict, None)
-    Dictionary of iDRAC attributes and value. The attributes should be part of the Integrated Dell Remote Access Controller Attribute Registry. To view the list of attributes in Attribute Registry for iDRAC9 and above, see, \ https://I(idrac_ip\ /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1) and \ https://I(idrac_ip\ /redfish/v1/Registries/ManagerAttributeRegistry).
+    Dictionary of iDRAC attributes and value. The attributes should be part of the Integrated Dell Remote Access Controller Attribute Registry. To view the list of attributes in Attribute Registry for iDRAC9 and above, see, \ `https://I(idrac\_ip <https://I(idrac_ip>`__\ /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1) and \ `https://I(idrac\_ip <https://I(idrac_ip>`__\ /redfish/v1/Registries/ManagerAttributeRegistry).
 
     For iDRAC8 based servers, derive the manager attribute name from Server Configuration Profile. If the manager attribute name in Server Configuration Profile is \<GroupName\>.\<Instance\>#\<AttributeName\> (for Example, 'SNMP.1#AgentCommunity') then the equivalent attribute name for Redfish is \<GroupName\>.\<Instance\>.\<AttributeName\> (for Example, 'SNMP.1.AgentCommunity').
 
 
   system_attributes (optional, dict, None)
-    Dictionary of System attributes and value. The attributes should be part of the Integrated Dell Remote Access Controller Attribute Registry. To view the list of attributes in Attribute Registry for iDRAC9 and above, see, \ https://I(idrac_ip\ /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/System.Embedded.1) and \ https://I(idrac_ip\ /redfish/v1/Registries/ManagerAttributeRegistry).
+    Dictionary of System attributes and value. The attributes should be part of the Integrated Dell Remote Access Controller Attribute Registry. To view the list of attributes in Attribute Registry for iDRAC9 and above, see, \ `https://I(idrac\_ip <https://I(idrac_ip>`__\ /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/System.Embedded.1) and \ `https://I(idrac\_ip <https://I(idrac_ip>`__\ /redfish/v1/Registries/ManagerAttributeRegistry).
 
     For iDRAC8 based servers, derive the manager attribute name from Server Configuration Profile. If the manager attribute name in Server Configuration Profile is \<GroupName\>.\<Instance\>#\<AttributeName\> (for Example, 'ThermalSettings.1#ThermalProfile') then the equivalent attribute name for Redfish is \<GroupName\>.\<Instance\>.\<AttributeName\> (for Example, 'ThermalSettings.1.ThermalProfile').
 
 
   lifecycle_controller_attributes (optional, dict, None)
-    Dictionary of Lifecycle Controller attributes and value. The attributes should be part of the Integrated Dell Remote Access Controller Attribute Registry.To view the list of attributes in Attribute Registry for iDRAC9 and above, see, \ https://I(idrac_ip\ /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/LifecycleController.Embedded.1) and \ https://I(idrac_ip\ /redfish/v1/Registries/ManagerAttributeRegistry).
+    Dictionary of Lifecycle Controller attributes and value. The attributes should be part of the Integrated Dell Remote Access Controller Attribute Registry.To view the list of attributes in Attribute Registry for iDRAC9 and above, see, \ `https://I(idrac\_ip <https://I(idrac_ip>`__\ /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/LifecycleController.Embedded.1) and \ `https://I(idrac\_ip <https://I(idrac_ip>`__\ /redfish/v1/Registries/ManagerAttributeRegistry).
 
     For iDRAC8 based servers, derive the manager attribute name from Server Configuration Profile. If the manager attribute name in Server Configuration Profile is \<GroupName\>.\<Instance\>#\<AttributeName\> (for Example, 'LCAttributes.1#AutoUpdate') then the equivalent attribute name for Redfish is \<GroupName\>.\<Instance\>.\<AttributeName\> (for Example, 'LCAttributes.1.AutoUpdate').
 
@@ -56,7 +56,7 @@ Parameters
   idrac_user (False, str, None)
     iDRAC username.
 
-    If the username is not provided, then the environment variable \ :envvar:`IDRAC\_USERNAME`\  is used.
+    If the username is not provided, then the environment variable :envvar:`IDRAC\_USERNAME` is used.
 
     Example: export IDRAC\_USERNAME=username
 
@@ -64,7 +64,7 @@ Parameters
   idrac_password (False, str, None)
     iDRAC user password.
 
-    If the password is not provided, then the environment variable \ :envvar:`IDRAC\_PASSWORD`\  is used.
+    If the password is not provided, then the environment variable :envvar:`IDRAC\_PASSWORD` is used.
 
     Example: export IDRAC\_PASSWORD=password
 
@@ -72,7 +72,7 @@ Parameters
   x_auth_token (False, str, None)
     Authentication token.
 
-    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`IDRAC\_X\_AUTH\_TOKEN`\  is used.
+    If the x\_auth\_token is not provided, then the environment variable :envvar:`IDRAC\_X\_AUTH\_TOKEN` is used.
 
     Example: export IDRAC\_X\_AUTH\_TOKEN=x\_auth\_token
 
@@ -82,11 +82,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If \ :literal:`false`\ , the SSL certificates will not be validated.
+    If :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
+    Configure :literal:`false` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
+    Prior to collection version :literal:`5.0.0`\ , the :emphasis:`validate\_certs` is :literal:`false` by default.
 
 
   ca_path (optional, path, None)
@@ -105,7 +105,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell iDRAC.
-   - This module supports \ :literal:`check\_mode`\ .
+   - This module supports :literal:`check\_mode`.
    - For iDRAC8 based servers, the value provided for the attributes are not be validated. Ensure appropriate values are passed.
 
 
@@ -251,6 +251,49 @@ Examples
           ServerOS.1.HostName: demohostname
         lifecycle_controller_attributes:
           LCAttributes.1.AutoUpdate: Disabled
+
+    - name: Enable idrac basic syslog
+      dellemc.openmanage.idrac_attributes:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        idrac_attributes:
+          SysLog.1.SysLogEnable: Enabled
+          SysLog.1.Server1: 192.168.0.2
+          SysLog.1.Server2: 192.168.0.3
+          SysLog.1.Server3: 192.168.0.4
+          SysLog.1.Port: 514
+
+    - name: Disable idrac basic syslog
+      dellemc.openmanage.idrac_attributes:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        idrac_attributes:
+          SysLog.1.SysLogEnable: Disabled
+
+    - name: Enable idrac secure syslog
+      dellemc.openmanage.idrac_attributes:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        idrac_attributes:
+          SysLog.1.securesyslogenable: Enabled
+          SysLog.1.secureserver1: 192.168.0.2
+          SysLog.1.secureport: 6511
+          SysLog.1.secureclientauth: Anonymous
+
+    - name: Disable idrac secure syslog
+      dellemc.openmanage.idrac_attributes:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        idrac_attributes:
+          SysLog.1.securesyslogenable: Disabled
 
 
 
