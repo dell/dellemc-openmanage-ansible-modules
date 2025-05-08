@@ -17,3 +17,14 @@
 - name: Extracting data from uri response
   ansible.builtin.set_fact:
     uri_data: "{{ uri_res.content }}"
+
+- name: Setting urls
+  ansible.builtin.set_fact:
+    url_1_0: "https://{{idrac_ip}}:{{idrac_port}}"
+    url_1_1: "{{ uri_data.Members.0['@odata.id'] }}"
+    url_2_1: "{{ uri_data.Members.1['@odata.id'] }}"
+
+- name: Setting first and second member url
+  ansible.builtin.set_fact:
+    uri_data_1: "{{ url_1_0 }}{{ url_1_1 }}"
+    uri_data_2: "{{ url_1_0 }}{{ url_2_1 }}"

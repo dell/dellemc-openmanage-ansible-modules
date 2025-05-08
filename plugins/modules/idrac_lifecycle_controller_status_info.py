@@ -29,6 +29,7 @@ requirements:
 author:
     - "Rajeev Arakkal (@rajeevarakkal)"
     - "Anooja Vardhineni (@anooja-vardhineni)"
+    - "Kritika Bhateja (@Kritika-Bhateja-03)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
@@ -85,7 +86,15 @@ error_info:
 '''
 
 
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.\
+    dellemc_idrac import iDRACConnection, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.\
+    idrac_utils.info.lifecycle_controller_status \
+    import IDRACLifecycleControllerStatusInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish \
+    import iDRACRedfishAPI
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
+    info.idrac import IDRACInfo
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.basic import AnsibleModule
@@ -98,11 +107,18 @@ def main():
     module = AnsibleModule(
         argument_spec=specs,
         supports_check_mode=True)
-
     try:
-        with iDRACConnection(module.params) as idrac:
-            lcready = idrac.config_mgr.LCReady
-            lcstatus = idrac.config_mgr.LCStatus
+        with iDRACRedfishAPI(module.params) as idrac:
+            server_hw_model = IDRACInfo(idrac).get_idrac_hw_model()
+            if server_hw_model:
+                lifecycle_status_obj = IDRACLifecycleControllerStatusInfo(idrac)
+                lcstatus = lifecycle_status_obj.get_lifecycle_controller_status_info()
+                if lcstatus:
+                    lcready = (lcstatus == "Ready")
+            else:
+                with iDRACConnection(module.params) as idrac:
+                    lcready = idrac.config_mgr.LCReady
+                    lcstatus = idrac.config_mgr.LCStatus
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
