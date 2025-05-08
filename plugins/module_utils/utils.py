@@ -782,11 +782,13 @@ def validate_time(time, module):
     if time and not re.match(r"^(?:[01]\d|2[0-3]):[0-5]\d$", time):
         module.exit_json(msg=INVALID_TIME_FORMAT_MSG, failed=True)
 
+
 def get_job_uri_id(rest_obj):
     firmware_obj = IDRACFirmwareInfo(rest_obj)
     if not firmware_obj.is_omsdk_required():
         MANAGER_JOB_ID_URI = MANAGER_JOB_ID_URI_10
     return MANAGER_JOB_ID_URI
+
 
 def get_job_uri(rest_obj):
     firmware_obj = IDRACFirmwareInfo(rest_obj)
