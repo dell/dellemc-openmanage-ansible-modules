@@ -382,7 +382,8 @@ from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.idrac import IDRACInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_valid_uri, \
-    strip_substr_dict, wait_for_job_completion, wait_for_redfish_reboot_job, MANAGER_JOB_ID_URI, JOB_URI_9_10
+    strip_substr_dict, wait_for_job_completion, wait_for_redfish_reboot_job, \
+    MANAGER_JOB_ID_URI, JOB_ID_URI_9_10
 
 
 VOLUME_INITIALIZE_URI = "{storage_base_uri}/Volumes/{volume_id}/Actions/Volume.Initialize"
@@ -826,7 +827,7 @@ def perform_volume_initialization(module, session_obj):
             new_uri = VOLUME_INITIALIZE_URI_9_10.format(storage_base_uri=storage_collection_map["storage_base_uri"],
                                                         controller_id=controller_id,
                                                         volume_id=specified_volume_id)
-            uri = get_valid_uri(session_obj, new_uri, old_uri)
+            uri = get_valid_uri(session_obj, new_uri, old_uri, method='POST', dump=False)
             payload = {"InitializeType": module.params["initialize_type"]}
             return perform_storage_volume_action(method, uri, session_obj, "initialize", payload)
     else:
@@ -880,7 +881,7 @@ def perform_force_reboot(module, session_obj):
     payload = {"ResetType": "ForceRestart"}
     job_resp_status, reset_status, reset_fail = wait_for_redfish_reboot_job(session_obj, SYSTEM_ID, payload=payload)
     if reset_status and job_resp_status:
-        job_uri = get_valid_uri(session_obj, primary_uri=JOB_URI_9_10.format(job_resp_status["Id"]),
+        job_uri = get_valid_uri(session_obj, primary_uri=JOB_ID_URI_9_10.format(job_resp_status["Id"]),
                                 secondary_uri=MANAGER_JOB_ID_URI.format(job_resp_status["Id"]))
         resp, msg = wait_for_job_completion(session_obj, job_uri, wait_timeout=module.params.get("job_wait_timeout"))
         if resp:
@@ -898,7 +899,7 @@ def perform_reboot(module, session_obj):
     force_reboot = module.params.get("force_reboot")
     job_resp_status, reset_status, reset_fail = wait_for_redfish_reboot_job(session_obj, SYSTEM_ID, payload=payload)
     if reset_status and job_resp_status:
-        job_uri = get_valid_uri(session_obj, primary_uri=JOB_URI_9_10.format(job_resp_status["Id"]),
+        job_uri = get_valid_uri(session_obj, primary_uri=JOB_ID_URI_9_10.format(job_resp_status["Id"]),
                                 secondary_uri=MANAGER_JOB_ID_URI.format(job_resp_status["Id"]))
         resp, msg = wait_for_job_completion(session_obj, job_uri, wait_timeout=module.params.get("job_wait_timeout"))
         if resp:
@@ -1020,7 +1021,7 @@ def main():
             if status_message.get("task_id"):
                 job_tracking_required = check_job_tracking_required(module, session_obj, reboot_required, controller_id, greater_version)
                 job_id = status_message.get("task_id")
-                job_url = get_valid_uri(session_obj, primary_uri=JOB_URI_9_10.format(job_id),
+                job_url = get_valid_uri(session_obj, primary_uri=JOB_ID_URI_9_10.format(job_id),
                                         secondary_uri=MANAGER_JOB_ID_URI.format(job_id))
                 if job_tracking_required and job_id:
                     track_job(module, session_obj, job_id, job_url)
@@ -1032,7 +1033,7 @@ def main():
             else:
                 module.exit_json(msg=status_message["msg"])
     except HTTPError as err:
-        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
+        module.fail_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (SSLValidationError, ConnectionError, ImportError, ValueError,

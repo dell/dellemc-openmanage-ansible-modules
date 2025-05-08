@@ -25,6 +25,7 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 from urllib.error import HTTPError
+from inspect import getfullargspec
 
 GET_IDRAC_DELL_SYSTEM_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellSystem/System.Embedded.1"
 GET_IDRAC_SYSTEM_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/"
@@ -171,7 +172,9 @@ class IDRACInfo(object):
         Fetches server model for iDRAC 9/10, return empty value for lower model
         '''
         try:
-            response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_MANAGER_ATTRIBUTES)
+            args = getfullargspec(self.idrac.invoke_request)[0]
+            data = {'uri': GET_IDRAC_MANAGER_ATTRIBUTES} if 'uri' in args else {'path': GET_IDRAC_MANAGER_ATTRIBUTES}
+            response = self.idrac.invoke_request(method='GET', **data)
             if response.status_code == 200:
                 return response.json_data.get('Attributes', {}).get('Info.1.HWModel')
         except HTTPError:

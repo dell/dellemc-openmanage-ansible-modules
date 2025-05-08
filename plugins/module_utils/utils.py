@@ -783,12 +783,26 @@ def validate_time(time, module):
         module.exit_json(msg=INVALID_TIME_FORMAT_MSG, failed=True)
 
 
-def get_valid_uri(idrac, primary_uri, secondary_uri):
+def get_valid_uri(idrac, primary_uri, secondary_uri, method='GET', payload=None, dump=True):
     uri = ""
+    args = getfullargspec(idrac.invoke_request)[0]
     try:
-        idrac.invoke_request("GET", primary_uri)
+        data = {'uri': primary_uri} if 'uri' in args else {'path': primary_uri}
+        if method == 'POST':
+            data['data'] = {} if payload is None else payload
+            data['dump'] = dump
+        idrac.invoke_request(method, **data)
         uri = primary_uri
-    except HTTPError:
-        idrac.invoke_request("GET", secondary_uri)
+    except HTTPError as err:
+        if err.code == 400:
+            '''
+            When payload is incorrect but uri is correct we get 400
+            '''
+            return primary_uri
+        data = {'uri': secondary_uri} if 'uri' in args else {'path': secondary_uri}
+        if method == 'POST':
+            data['data'] = {} if payload is None else payload
+            data['dump'] = dump
+        idrac.invoke_request(method, **data)
         uri = secondary_uri
     return uri
