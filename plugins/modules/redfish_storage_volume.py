@@ -83,6 +83,7 @@ options:
   block_size_bytes:
     description:
       - Block size in bytes.Only applicable when I(state) is C(present).
+      - This is read-only property in iDRAC9 and iDRAC10 and cannot be assigned or changed.
     type: int
   capacity_bytes:
     description:
@@ -93,6 +94,7 @@ options:
     description:
       - Stripe size value must be in multiples of 64 * 1024.
       - Only applicable when I(state) is C(present).
+      - This is read-only property in iDRAC9 and iDRAC10 and cannot be assigned or changed.
     type: int
   encryption_types:
     description:
@@ -464,9 +466,14 @@ def volume_payload(module, greater_version, session_obj, controller_id):
         "Name": params.get("name"),
         "BlockSizeBytes": params.get("block_size_bytes"),
         "CapacityBytes": capacity_bytes,
-        "OptimumIOSizeBytes": params.get("optimum_io_size_bytes"),
-        "Links": {"Drives": physical_disks}
+        "OptimumIOSizeBytes": params.get("optimum_io_size_bytes")
     }
+    drive_dict = {"Drives": physical_disks}
+    server_hw_model = IDRACInfo(session_obj).get_idrac_hw_model()
+    if server_hw_model in ['iDRAC9', 'iDRAC10']:
+      raid_mapper.update({'Links': drive_dict})
+    else:
+      raid_mapper.update(drive_dict)
     raid_payload = dict([(k, v) for k, v in raid_mapper.items() if v])
     if oem:
         raid_payload.update(params.get("oem"))
