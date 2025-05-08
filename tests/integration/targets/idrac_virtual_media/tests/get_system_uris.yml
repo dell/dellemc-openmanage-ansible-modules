@@ -11,6 +11,7 @@
     return_content: true
     status_code: 200
     headers: 'Accept=application/json'
+    force_basic_auth: true
   register: uri_res
 
 - name: Extracting data from uri response
