@@ -3,6 +3,23 @@
         list_attr: []
         scp_val_attr: []
 
+    - name: Get iDRAC attributes response
+      ansible.builtin.uri:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
+        method: GET
+        user: "{{idrac_user}}"
+        password: "{{idrac_password}}"
+        validate_certs: false
+        return_content: true
+        status_code: 200
+      register: idrac_response
+      no_log: true
+      ignore_errors: true
+
+    - name: Extract HWModel
+      ansible.builtin.set_fact:
+        idrac_hw_model: "{{ idrac_response.json.Attributes['Info.1.HWModel'] | default('') }}"
+
     - name: Create Export SCP job.
       uri:
         url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ExportSystemConfiguration
@@ -18,7 +35,33 @@
         return_content: true
         status_code: 202
         headers: 'Accept=application/json'
-      register: all_uri
+      register: all_uri_1
+      when: idrac_hw_model in ["", "iDRAC 9"]
+
+    - name: Create Export SCP job.
+      uri:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/OemManager.ExportSystemConfiguration
+        user: "{{idrac_user}}"
+        password: "{{idrac_password}}"
+        method: POST
+        body:
+          ExportFormat: JSON
+          ShareParameters:
+            Target: [ALL]
+        validate_certs: false
+        body_format: json
+        return_content: true
+        status_code: 202
+        headers: 'Accept=application/json'
+      register: all_uri_2
+      when: idrac_hw_model in ["iDRAC 10"]
+
+    - name: Set common SCP job result
+      set_fact:
+        all_uri: >-
+          {{ all_uri_1
+            if ('all_uri_1' in vars and (not (all_uri_1.skipped | default(false))))
+            else all_uri_2 }}
 
     - name: Get Exported SCP contents.
       uri:
