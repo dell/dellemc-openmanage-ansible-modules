@@ -12,6 +12,14 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
+- name: Set path fact
+  ansible.builtin.set_fact:
+    path_1: '../../../../../../integration/targets'
+    path_2: '/idrac_system_info/tests/_check_firmware_version_supported.yml'
+
+- name: Check if module is calling omsdk
+  ansible.builtin.include_tasks: "{{ path_1 }}{{ path_2 }}"
+
 - block:
 
     - ansible.builtin.include_tasks: get_data_uri.yml
@@ -29,6 +37,8 @@
         that:
           - "firmware_version_from_api_response >= firmware_version_expected"
         fail_msg: "Firmware version is not supported"
+      when:
+        - is_omsdk_required | bool
 
     - name: Prerequisite - Eject virtual media from RFS2
       dellemc.openmanage.idrac_virtual_media:
@@ -36,11 +46,15 @@
           - index: 2
             insert: false
 
-    - ansible.builtin.include_tasks: get_data_uri.yml
+    - ansible.builtin.include_tasks: get_system_uris.yml
       vars:
         url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
-        url_1: "System.Embedded.1/VirtualMedia/2"
+        url_1: "System.Embedded.1/VirtualMedia"
         url: "{{ url_0 }}/{{ url_1 }}"
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "{{ uri_data_2 }}"
 
     - name: Verify task status - Prerequisite - Eject virtual media from RFS2
       ansible.builtin.assert:
@@ -74,9 +88,7 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
-        url_1: "System.Embedded.1/VirtualMedia/2"
-        url: "{{ url_0 }}/{{ url_1 }}"
+        url: "{{ uri_data_2 }}"
 
     - name: Verify task status - Insertion of virtual media with media_type as
         USBStick from NFS share to RFS2 (Normal mode)
