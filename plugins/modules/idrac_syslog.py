@@ -19,7 +19,7 @@ module: idrac_syslog
 short_description: Enable or disable the syslog on iDRAC
 version_added: "2.1.0"
 deprecated:
-  removed_at_date: "2027-05-31"
+  removed_at_date: "2027-05-27"
   why: Replaced with M(dellemc.openmanage.idrac_attributes).
   alternative: Use M(dellemc.openmanage.idrac_attributes) instead.
   removed_from_collection: dellemc.openmanage
