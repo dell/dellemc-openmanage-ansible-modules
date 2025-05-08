@@ -45,11 +45,15 @@
         <<: *eject_index_rfs1
       register: eject_index_rfs1_output
 
-    - ansible.builtin.include_tasks: get_data_uri.yml
+    - ansible.builtin.include_tasks: get_system_uris.yml
       vars:
         url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
-        url_1: "System.Embedded.1/VirtualMedia/1"
+        url_1: "System.Embedded.1/VirtualMedia"
         url: "{{ url_0 }}/{{ url_1 }}"
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "{{ uri_data_1 }}"
 
     - name: Verify task status - Ejection of image from RFS1 by
         providing index (Normal mode)
@@ -101,9 +105,7 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
-        url_1: "System.Embedded.1/VirtualMedia/1"
-        url: "{{ url_0 }}/{{ url_1 }}"
+        url: "{{ uri_data_1 }}"
 
     - name: Verify task status - Ejection of image from RFS1 without
         providing index (Normal mode)
@@ -151,9 +153,7 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
-        url_1: "System.Embedded.1/VirtualMedia/2"
-        url: "{{ url_0 }}/{{ url_1 }}"
+        url: "{{ uri_data_2 }}"
 
     - name: Verify task status - Ejection of image from RFS2 by providing
         index (Normal mode)
@@ -211,9 +211,7 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
-        url_1: "System.Embedded.1/VirtualMedia/1"
-        url: "{{ url_0 }}/{{ url_1 }}"
+        url: "{{ uri_data_1 }}"
 
     - name: Verify task status - Ejection of image from both RFS1 and RFS2 by
         providing index (Normal mode) - RFS1 verification
@@ -227,9 +225,7 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url_0: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1
-        url_1: Systems/System.Embedded.1/VirtualMedia/2
-        url: "{{ url_0 }}/{{ url_1 }}"
+        url: "{{ uri_data_2 }}"
 
     - name: Verify task status - Ejection of image from both RFS1 and RFS2 by
         providing index (Normal mode) - RFS2 verification
@@ -285,9 +281,7 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url_0: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems
-        url_1: System.Embedded.1/VirtualMedia/1
-        url: "{{ url_0 }}/{{ url_1 }}"
+        url: "{{ uri_data_1 }}"
 
     - name: Verify task status - Ejection of image from both RFS1 and RFS2
         without providing index (Normal mode) - RFS1 verification
@@ -301,9 +295,7 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url_0: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/
-        url_1: System.Embedded.1/VirtualMedia/2
-        url: "{{ url_0 }}/{{ url_1 }}"
+        url: "{{ uri_data_2 }}"
 
     - name: Verify task status - Ejection of image from both RFS1 and RFS2
         without providing index (Normal mode) - RFS2 verification
