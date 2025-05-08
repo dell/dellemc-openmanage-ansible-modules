@@ -28,7 +28,7 @@
       ignore_errors: true
 
     - name: Extract HWModel
-      set_fact:
+      ansible.builtin.set_fact:
         hw_model: "{{ idrac_response.json.Attributes['Info.1.HWModel'] | default('') }}"
 
     - name: Check whether lifecycle controller status is ready or not for iDRAC9
