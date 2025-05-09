@@ -650,7 +650,6 @@ class NetworkAttributes(IDRACNetworkAttributes):
         return resp, invalid_attr, job_wait
 
 
-
 def perform_operation_for_main(idrac, module, obj, diff, _invalid_attr):
     job_wait_timeout = module.params.get('job_wait_timeout')
     if diff:
