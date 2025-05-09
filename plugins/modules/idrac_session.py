@@ -80,7 +80,7 @@ options:
     description:
      - Session ID of the iDRAC.
      - I(session_id) is required when I(state) is C(absent).
-    type: int
+    type: str
 requirements:
   - "python >= 3.9.6"
 author:

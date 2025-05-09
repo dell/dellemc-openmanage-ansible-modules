@@ -10,7 +10,7 @@
         username: username
         password: password
         state: present
-      register : session
+      register: session
       delegate_to: localhost
 
     - name: Delete a session
