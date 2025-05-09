@@ -86,6 +86,7 @@ requirements:
 author:
   - "Rajshekar P(@rajshekarp87)"
   - "Kritika Bhateja (@Kritika-Bhateja-03)"
+  - "Saksham Nautiyal (@Saksham-Nautiyal)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports IPv4 and IPv6 addresses.
@@ -344,7 +345,7 @@ class DeleteSession(Session):
                     session_response = self.idrac.invoke_request(session_url + f"/{session_id}",
                                                                  "DELETE")
                     status = session_response.status_code
-                    if status == 200:
+                    if status in [200, 204]:
                         self.module.exit_json(msg=DELETE_SUCCESS_MSG, changed=True)
                 except HTTPError as err:
                     filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
@@ -459,7 +460,7 @@ def get_argument_spec():
         "timeout": {"type": "int", "default": 30},
         "state": {"type": 'str', "default": "present", "choices": ["present", "absent"]},
         "x_auth_token": {"type": "str", "no_log": True, "aliases": ['auth_token']},
-        "session_id": {"type": "int"}
+        "session_id": {"type": "str"}
     }
 
 
