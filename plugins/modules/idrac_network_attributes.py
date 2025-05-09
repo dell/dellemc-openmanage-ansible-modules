@@ -364,9 +364,15 @@ class IDRACNetworkAttributes:
         self.redfish_uri = None
         self.oem_uri = None
 
-    def _validate_idrac10_and_above(self):
+    def validate_idrac10_and_above(self):
         firmware_obj = IDRACFirmwareInfo(self.idrac)
         return not firmware_obj.is_omsdk_required()
+
+    def get_job_uri(self):
+        idrac10_or_above = self.validate_idrac10_and_above()
+        if idrac10_or_above:
+            return iDRAC_JOB_URI_10
+        return iDRAC_JOB_URI
 
     def __perform_validation_for_network_adapter_id(self):
         odata = '@odata.id'
@@ -474,7 +480,7 @@ class IDRACNetworkAttributes:
             'oem_network_attributes')
         network_attributes = self.module.params.get('network_attributes')
         firm_ver = get_idrac_firmware_version(self.idrac)
-        idrac10_or_above = self._validate_idrac10_and_above()
+        idrac10_or_above = self.validate_idrac10_and_above()
         if oem_network_attributes:
             if LooseVersion(firm_ver) >= '6.0' or idrac10_or_above:
                 reg = get_dynamic_uri(self.idrac, self.oem_uri, 'Attributes')
@@ -547,7 +553,7 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
 
     def clear_pending(self):
         firm_ver = get_idrac_firmware_version(self.idrac)
-        idrac10_or_above = self._validate_idrac10_and_above()
+        idrac10_or_above = self.validate_idrac10_and_above()
         oem_network_attributes = self.module.params.get(
             'oem_network_attributes')
         if LooseVersion(firm_ver) < '3.0' and not idrac10_or_above:
@@ -596,7 +602,7 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
         job_wait = self.module.params.get('job_wait')
         invalid_attr = {}
         firm_ver = get_idrac_firmware_version(self.idrac)
-        idrac10_or_above = self._validate_idrac10_and_above()
+        idrac10_or_above = self.validate_idrac10_and_above()
         if LooseVersion(firm_ver) < '3.0' and not idrac10_or_above:
             root = """<SystemConfiguration>{0}</SystemConfiguration>"""
             scp_payload = root.format(xml_data_conversion(
@@ -644,13 +650,6 @@ class NetworkAttributes(IDRACNetworkAttributes):
         return resp, invalid_attr, job_wait
 
 
-def get_job_uri(obj):
-    idrac10_or_above = obj._validate_idrac10_and_above()
-    if idrac10_or_above:
-        return iDRAC_JOB_URI_10
-    else:
-        return iDRAC_JOB_URI
-
 
 def perform_operation_for_main(idrac, module, obj, diff, _invalid_attr):
     job_wait_timeout = module.params.get('job_wait_timeout')
@@ -663,7 +662,7 @@ def perform_operation_for_main(idrac, module, obj, diff, _invalid_attr):
             job_dict = {}
             if (job_tracking_uri := job_resp.headers.get("Location")):
                 job_id = job_tracking_uri.split("/")[-1]
-                job_uri = get_job_uri(obj).format(job_id=job_id)
+                job_uri = obj.get_job_uri().format(job_id=job_id)
                 if job_wait:
                     job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(idrac, job_uri,
                                                                                       max_job_wait_sec=job_wait_timeout,
@@ -684,7 +683,7 @@ def perform_operation_for_main(idrac, module, obj, diff, _invalid_attr):
 
             if job_dict.get('JobState') == "Completed":
                 firm_ver = get_idrac_firmware_version(idrac)
-                idrac10_or_above = module._validate_idrac10_and_above()
+                idrac10_or_above = module.validate_idrac10_and_above()
                 msg = SUCCESS_MSG if not invalid_attr else VALID_AND_INVALID_ATTR_MSG
                 if LooseVersion(firm_ver) < '3.0' and isinstance(obj, OEMNetworkAttributes) and not idrac10_or_above:
                     message_id = job_dict.get("MessageId")
