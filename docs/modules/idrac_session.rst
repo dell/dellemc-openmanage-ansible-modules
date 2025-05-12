@@ -32,15 +32,15 @@ Parameters
 
 
   username (optional, str, None)
-    Username of the iDRAC. If the username is not provided, then the environment variable \ :envvar:`IDRAC\_USERNAME`\  is used.
+    Username of the iDRAC. If the username is not provided, then the environment variable :envvar:`IDRAC\_USERNAME` is used.
 
-    \ :emphasis:`username`\  is required when \ :emphasis:`state`\  is \ :literal:`present`\ .
+    :emphasis:`username` is required when :emphasis:`state` is :literal:`present`.
 
 
   password (optional, str, None)
-    Password of the iDRAC. If the password is not provided, then the environment variable \ :envvar:`IDRAC\_PASSWORD`\  is used.
+    Password of the iDRAC. If the password is not provided, then the environment variable :envvar:`IDRAC\_PASSWORD` is used.
 
-    \ :emphasis:`password`\  is required when \ :emphasis:`state`\  is \ :literal:`present`\ .
+    :emphasis:`password` is required when :emphasis:`state` is :literal:`present`.
 
 
   port (optional, int, 443)
@@ -48,9 +48,9 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If \ :literal:`false`\ , the SSL certificates will not be validated.
+    If :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
+    Configure :literal:`false` only on personally controlled sites where self-signed certificates are used.
 
 
   ca_path (optional, path, None)
@@ -64,23 +64,23 @@ Parameters
   state (optional, str, present)
     The state of the session in an iDRAC.
 
-    \ :literal:`present`\  creates a session.
+    :literal:`present` creates a session.
 
-    \ :literal:`absent`\  deletes a session.
+    :literal:`absent` deletes a session.
 
-    Module will always report changes found to be applied when \ :emphasis:`state`\  is \ :literal:`present`\ .
+    Module will always report changes found to be applied when :emphasis:`state` is :literal:`present`.
 
 
   x_auth_token (optional, str, None)
     Authentication token.
 
-    \ :emphasis:`x\_auth\_token`\  is required when \ :emphasis:`state`\  is \ :literal:`absent`\ .
+    :emphasis:`x\_auth\_token` is required when :emphasis:`state` is :literal:`absent`.
 
 
-  session_id (optional, int, None)
+  session_id (optional, str, None)
     Session ID of the iDRAC.
 
-    \ :emphasis:`session\_id`\  is required when \ :emphasis:`state`\  is \ :literal:`absent`\ .
+    :emphasis:`session\_id` is required when :emphasis:`state` is :literal:`absent`.
 
 
 
@@ -92,8 +92,8 @@ Notes
 .. note::
    - Run this module from a system that has direct access to Dell iDRAC.
    - This module supports IPv4 and IPv6 addresses.
-   - This module supports \ :literal:`check\_mode`\ .
-   - This module will always report changes found to be applied when \ :emphasis:`state`\  is \ :literal:`present`\ .
+   - This module supports :literal:`check\_mode`.
+   - This module will always report changes found to be applied when :emphasis:`state` is :literal:`present`.
 
 
 
@@ -188,4 +188,5 @@ Authors
 
 - Rajshekar P(@rajshekarp87)
 - Kritika Bhateja (@Kritika-Bhateja-03)
+- Saksham Nautiyal (@Saksham-Nautiyal)
 
