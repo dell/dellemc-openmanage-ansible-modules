@@ -113,12 +113,13 @@ class iDRACRedfishAPI(object):
             "SESSION": "/redfish/v1/SessionService/Sessions",
             "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
         }
-        generation, firmware_version = self.get_server_generation()
-        if "13" in genertaion:
+        generation, _ = self.get_server_generation
+        if generation == 13:
             self.SESSION_RESOURCE_COLLECTION = {
                 "SESSION": "/redfish/v1/Sessions",
                 "SESSION_ID": "/redfish/v1/Sessions/{Id}",
             }
+
 
     def _get_url(self, uri):
         return "{0}://{1}:{2}{3}".format(self.protocol, self.ipaddress, self.port, uri)
