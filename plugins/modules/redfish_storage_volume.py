@@ -472,9 +472,9 @@ def volume_payload(module, greater_version, session_obj, controller_id):
     drive_dict = {"Drives": physical_disks}
     server_hw_model = IDRACInfo(session_obj).get_idrac_hw_model()
     if server_hw_model in ['iDRAC9', 'iDRAC10']:
-      raid_mapper.update({'Links': drive_dict})
+        raid_mapper.update({'Links': drive_dict})
     else:
-      raid_mapper.update(drive_dict)
+        raid_mapper.update(drive_dict)
     raid_payload = dict([(k, v) for k, v in raid_mapper.items() if v])
     if oem:
         raid_payload.update(params.get("oem"))

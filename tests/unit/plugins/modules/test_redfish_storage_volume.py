@@ -565,7 +565,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                              redfish_connection_mock_for_storage_volume,
                                              'RAID.Mezzanine.1C-1')
         assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Mezzanine.1C-1/" \
-                                                             "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
+                                                    "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
         assert payload["RAIDType"] == "RAID0"
         assert payload["Name"] == "VD1"
         assert payload["BlockSizeBytes"] == 512
@@ -598,7 +598,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                              redfish_connection_mock_for_storage_volume,
                                              'RAID.Mezzanine.1C-1')
         assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Mezzanine.1C-1/" \
-                                                             "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
+                                                    "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
         assert payload["RAIDType"] == "RAID0"
         assert payload["Name"] == "VD1"
         assert payload["BlockSizeBytes"] == 512
@@ -634,7 +634,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                              redfish_connection_mock_for_storage_volume,
                                              'RAID.Mezzanine.1C-1')
         assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Mezzanine.1C-1/" \
-                                                             "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
+                                                    "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
         assert payload["RAIDType"] == "RAID6"
         assert payload["Name"] == "VD1"
         assert payload["BlockSizeBytes"] == 512
@@ -674,7 +674,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                              redfish_connection_mock_for_storage_volume,
                                              'RAID.Mezzanine.1C-1')
         assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Mezzanine.1C-1/" \
-                                                             "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
+                                                    "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
         assert payload["RAIDType"] == "RAID60"
         assert payload["Name"] == "VD1"
         assert payload["BlockSizeBytes"] == 512
