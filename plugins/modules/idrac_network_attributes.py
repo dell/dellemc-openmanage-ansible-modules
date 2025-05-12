@@ -324,7 +324,7 @@ from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    delete_job, get_current_time, get_dynamic_uri, get_idrac_firmware_version,
+    delete_job, get_current_time, get_dynamic_uri,
     get_scheduled_job_resp, remove_key, validate_and_get_first_resource_id_uri,
     idrac_redfish_job_tracking, xml_data_conversion)
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
@@ -479,12 +479,12 @@ class IDRACNetworkAttributes:
         oem_network_attributes = self.module.params.get(
             'oem_network_attributes')
         network_attributes = self.module.params.get('network_attributes')
-        firm_ver = get_idrac_firmware_version(self.idrac)
-        idrac10_or_above = self.validate_idrac10_and_above()
+        generation, firm_ver, hw_model = self.idrac.get_server_generation
+        idrac_9_flag = LooseVersion(firm_ver) >= '6.0' and hw_model == "iDRAC 9"
         if oem_network_attributes:
-            if LooseVersion(firm_ver) >= '6.0' or idrac10_or_above:
+            if idrac_9_flag or hw_model == "iDRAC 10":
                 reg = get_dynamic_uri(self.idrac, self.oem_uri, 'Attributes')
-            elif '3.0' < LooseVersion(firm_ver) < '6.0':
+            elif '3.0' < LooseVersion(firm_ver) < '6.0' and hw_model == "iDRAC 9":
                 reg = self.__get_registry_fw_less_than_6_more_than_3()
             else:
                 reg = self.__get_registry_fw_less_than_3()
@@ -552,11 +552,10 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
         super().__init__(idrac, module)
 
     def clear_pending(self):
-        firm_ver = get_idrac_firmware_version(self.idrac)
-        idrac10_or_above = self.validate_idrac10_and_above()
+        generation , firm_ver, hw_model = self.idrac.get_server_generation
         oem_network_attributes = self.module.params.get(
             'oem_network_attributes')
-        if LooseVersion(firm_ver) < '3.0' and not idrac10_or_above:
+        if LooseVersion(firm_ver) < '3.0' and hw_model == "iDRAC 8":
             if oem_network_attributes:
                 return None
             self.module.exit_json(
@@ -574,8 +573,11 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
         if job_id:
             if job_state in ["Running"]:
                 job_resp = remove_key(job_resp, regex_pattern='(.*?)@odata')
-                self.module.exit_json(failed=True, msg=JOB_RUNNING_CLEAR_PENDING_ATTR.format('NICConfiguration'),
-                                      job_status=job_resp)
+                self.module.exit_json(
+                    failed=True,
+                    msg=JOB_RUNNING_CLEAR_PENDING_ATTR.format('NICConfiguration'),
+                    job_status=job_resp
+                )
             elif job_state in ["Starting", "Scheduled", "Scheduling"]:
                 if self.module.check_mode and not oem_network_attributes:
                     self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
@@ -601,9 +603,8 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
         apply_time = self.module.params.get('apply_time')
         job_wait = self.module.params.get('job_wait')
         invalid_attr = {}
-        firm_ver = get_idrac_firmware_version(self.idrac)
-        idrac10_or_above = self.validate_idrac10_and_above()
-        if LooseVersion(firm_ver) < '3.0' and not idrac10_or_above:
+        generation, firm_ver, hw_model = self.idrac.get_server_generation
+        if LooseVersion(firm_ver) < '3.0' and hw_model == "iDRAC 8":
             root = """<SystemConfiguration>{0}</SystemConfiguration>"""
             scp_payload = root.format(xml_data_conversion(
                 oem_network_attributes, network_device_function_id))
@@ -681,10 +682,9 @@ def perform_operation_for_main(idrac, module, obj, diff, _invalid_attr):
                                           regex_pattern='(.*?)@odata')
 
             if job_dict.get('JobState') == "Completed":
-                firm_ver = get_idrac_firmware_version(idrac)
-                idrac10_or_above = module.validate_idrac10_and_above()
+                generation, firm_ver, hw_model = idrac.get_server_generation
                 msg = SUCCESS_MSG if not invalid_attr else VALID_AND_INVALID_ATTR_MSG
-                if LooseVersion(firm_ver) < '3.0' and isinstance(obj, OEMNetworkAttributes) and not idrac10_or_above:
+                if LooseVersion(firm_ver) < '3.0' and isinstance(obj, OEMNetworkAttributes) and hw_model == "iDRAC 8":
                     message_id = job_dict.get("MessageId")
                     if message_id == "SYS053":
                         module.exit_json(msg=msg, changed=True, job_status=job_dict)
