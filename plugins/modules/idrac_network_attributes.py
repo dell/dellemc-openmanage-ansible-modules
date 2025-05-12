@@ -354,6 +354,7 @@ JOB_RUNNING_CLEAR_PENDING_ATTR = "{0} Config job is running. Wait for the job to
 ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE = 'Attribute is not valid.'
 CLEAR_PENDING_NOT_SUPPORTED_WITHOUT_ATTR_IDRAC8 = "Clear pending is not supported."
 WAIT_TIMEOUT_MSG = "The job is not complete after {0} seconds."
+HARDWARE_8 = "iDRAC 8"
 
 
 class IDRACNetworkAttributes:
@@ -555,7 +556,7 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
         generation , firm_ver, hw_model = self.idrac.get_server_generation
         oem_network_attributes = self.module.params.get(
             'oem_network_attributes')
-        if LooseVersion(firm_ver) < '3.0' and hw_model == "iDRAC 8":
+        if LooseVersion(firm_ver) < '3.0' and hw_model == HARDWARE_8:
             if oem_network_attributes:
                 return None
             self.module.exit_json(
@@ -604,7 +605,7 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
         job_wait = self.module.params.get('job_wait')
         invalid_attr = {}
         generation, firm_ver, hw_model = self.idrac.get_server_generation
-        if LooseVersion(firm_ver) < '3.0' and hw_model == "iDRAC 8":
+        if LooseVersion(firm_ver) < '3.0' and hw_model == HARDWARE_8:
             root = """<SystemConfiguration>{0}</SystemConfiguration>"""
             scp_payload = root.format(xml_data_conversion(
                 oem_network_attributes, network_device_function_id))
@@ -684,7 +685,7 @@ def perform_operation_for_main(idrac, module, obj, diff, _invalid_attr):
             if job_dict.get('JobState') == "Completed":
                 generation, firm_ver, hw_model = idrac.get_server_generation
                 msg = SUCCESS_MSG if not invalid_attr else VALID_AND_INVALID_ATTR_MSG
-                if LooseVersion(firm_ver) < '3.0' and isinstance(obj, OEMNetworkAttributes) and hw_model == "iDRAC 8":
+                if LooseVersion(firm_ver) < '3.0' and isinstance(obj, OEMNetworkAttributes) and hw_model == HARDWARE_8:
                     message_id = job_dict.get("MessageId")
                     if message_id == "SYS053":
                         module.exit_json(msg=msg, changed=True, job_status=job_dict)

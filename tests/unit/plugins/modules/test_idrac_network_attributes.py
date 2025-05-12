@@ -879,8 +879,10 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
                      return_value=error_info)
         mocker.patch(MODULE_PATH + "idrac_network_attributes.idrac_redfish_job_tracking",
                      return_value=(False, 'msg', obj.json_data, 500))
-        mocker.patch(MODULE_PATH + "idrac_network_attributes.get_idrac_firmware_version",
-                     return_value='6.1')
+        hw_model = HARDWARE_9
+        gen = GENERATION_15
+        firm_ver = '7.0'
+        idrac_connection_ntwrk_attr_mock.get_server_generation = (gen, firm_ver, hw_model)
 
         idrac_default_args.update({'network_attributes': {'VlanId': 1},
                                    'job_wait': True,
@@ -925,8 +927,10 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         #             There is invalid_attr in normal mode
         resp = MagicMock()
         resp.headers = {'Location': self.uri}
-        mocker.patch(MODULE_PATH + "idrac_network_attributes.get_idrac_firmware_version",
-                     return_value='6.1')
+        gen = GENERATION_14
+        hw_model = HARDWARE_9
+        firm_ver = '7.05'
+        idrac_connection_ntwrk_attr_mock.get_server_generation = (gen, firm_ver, hw_model)
 
         def return_data():
             return (resp, invalid_attr, False)
