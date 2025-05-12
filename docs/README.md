@@ -17,7 +17,7 @@ You may obtain a copy of the License at
 | [dellemc_idrac_lc_attributes](modules/dellemc_idrac_lc_attributes.rst)                               | ✓      | ✓      |
 | [dellemc_idrac_storage_volume](modules/dellemc_idrac_storage_volume.rst)                             | ✓      | ✓      |
 | [dellemc_system_lockdown_mode](modules/dellemc_system_lockdown_mode.rst)                             | ✓      | ✓      |
-| [idrac_attributes](modules/idrac_attributes.rst)                                                     | ✓      | ✓      |
+| [idrac_attributes](modules/idrac_attributes.rst)                                                     | ✓      | ✓      | ✓
 | [idrac_bios](modules/idrac_bios.rst)                                                                 | ✓      | ✓      |
 | [idrac_boot](modules/idrac_boot.rst)                                                                 | ✓      | ✓      |
 | [idrac_certificates](modules/idrac_certificates.rst)                                                 | ✕      | ✓      |
@@ -36,7 +36,7 @@ You may obtain a copy of the License at
 | [idrac_reset](modules/idrac_reset.rst)                                                               | ✓      | ✓      |
 | [idrac_secure_boot](modules/idrac_secure_boot.rst)                                                   | ✕      | ✓      |
 | [idrac_server_config_profile](modules/idrac_server_config_profile.rst)                               | ✓      | ✓      |
-| [idrac_session](modules/idrac_session.rst)                                                           | ✓      | ✓      |
+| [idrac_session](modules/idrac_session.rst)                                                           | ✓      | ✓      | ✓
 | [idrac_storage_volume](modules/idrac_storage_volume.rst)                                             | ✓      | ✓      |
 | [idrac_support_assist](modules/idrac_support_assists.rst)                                            | ✕      | ✓      |
 | [idrac_syslog](modules/idrac_syslog.rst)                                                             | ✓      | ✓      |

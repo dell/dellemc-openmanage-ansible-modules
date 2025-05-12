@@ -1,5 +1,5 @@
 # Test code for the Dell OpenManage modules
-# Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
@@ -123,7 +123,7 @@
 
   module_defaults:
     dellemc.openmanage.idrac_attributes:
-      idrac_ip: "{{idrac_ip}}"
-      idrac_user: "{{idrac_user}}"
-      idrac_password: "{{idrac_password}}"
-      validate_certs: "{{validate_certs}}"
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
