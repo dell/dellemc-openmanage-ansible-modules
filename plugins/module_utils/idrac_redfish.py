@@ -113,9 +113,8 @@ class iDRACRedfishAPI(object):
             "SESSION": "/redfish/v1/SessionService/Sessions",
             "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
         }
-        firmware_resp = self.invoke_request(MANAGER_URI, 'GET')
-        firmware_version = firmware_resp.json_data.get("FirmwareVersion", "")
-        if str(firmware_version) >= "2.85.85.85" and str(firmware_version) < "6.00.00.00":
+        generation, firmware_version = self.get_server_generation()
+        if "13" in genertaion:
             self.SESSION_RESOURCE_COLLECTION = {
                 "SESSION": "/redfish/v1/Sessions",
                 "SESSION_ID": "/redfish/v1/Sessions/{Id}",
