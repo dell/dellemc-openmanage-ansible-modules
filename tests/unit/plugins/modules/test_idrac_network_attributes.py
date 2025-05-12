@@ -45,6 +45,15 @@ JOB_RUNNING_CLEAR_PENDING_ATTR = "{0} Config job is running. Wait for the job to
 ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE = 'Attribute is not valid.'
 CLEAR_PENDING_NOT_SUPPORTED_WITHOUT_ATTR_IDRAC8 = "Clear pending is not supported."
 WAIT_TIMEOUT_MSG = "The job is not complete after {0} seconds."
+iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
+iDRAC_JOB_URI_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{job_id}"
+HARDWARE_9 = "iDRAC 9"
+HARDWARE_8 = "iDRAC 8"
+HARDWARE_10 = "iDRAC 10"
+GENERATION_13 = 13
+GENERATION_14 = 14
+GENERATION_15 = 15
+GENERATION_17 = 17
 
 
 class TestIDRACNetworkAttributes(FakeAnsibleModule):
@@ -333,9 +342,10 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
                                                           "duration": 600}})
 
         # Scenario 1: When Firmware version is greater and equal to 6.0 and oem_network_attributes is not given
+        gen = GENERATION_15
+        hw_model = HARDWARE_9
         firm_ver = '6.1'
-        mocker.patch(MODULE_PATH + "idrac_network_attributes.get_idrac_firmware_version",
-                     return_value=firm_ver)
+        idrac_connection_ntwrk_attr_mock.get_server_generation = (gen, firm_ver, hw_model)
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
         idr_obj = self.module.IDRACNetworkAttributes(
@@ -344,9 +354,6 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         assert data == {}
 
         # Scenario 2: When Firmware version is greater and equal to 6.0 and oem_network_attributes is given
-        firm_ver = '6.1'
-        mocker.patch(MODULE_PATH + "idrac_network_attributes.get_idrac_firmware_version",
-                     return_value=firm_ver)
         idrac_default_args.update({'oem_network_attributes': 'some value'})
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
@@ -355,10 +362,25 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         data = idr_obj.get_current_server_registry()
         assert data == {'abc': False}
 
-        # Scenario 3: When Firmware version is less than 6.0 and oem_network_attributes is given
+        # Scenario 3: When Firmware version is greater and equal to 1.10 and
+        # oem_network_attributes is given and model is 17g
+        hw_model = HARDWARE_10
+        gen = GENERATION_17
+        firm_ver = '1.10'
+        idrac_connection_ntwrk_attr_mock.get_server_generation = (gen, firm_ver, hw_model)
+        idrac_default_args.update({'oem_network_attributes': 'some value'})
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module)
+        data = idr_obj.get_current_server_registry()
+        assert data == {'abc': False}
+
+        # Scenario 4: When Firmware version is less than 6.0 and oem_network_attributes is given
+        hw_model = HARDWARE_9
+        gen = GENERATION_14
         firm_ver = '4.0'
-        mocker.patch(MODULE_PATH + "idrac_network_attributes.get_idrac_firmware_version",
-                     return_value=firm_ver)
+        idrac_connection_ntwrk_attr_mock.get_server_generation = (gen, firm_ver, hw_model)
         idrac_default_args.update({'oem_network_attributes': 'some value'})
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
@@ -367,10 +389,11 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         data = idr_obj.get_current_server_registry()
         assert data == {'xyz': True}
 
-        # Scenario 4: When Firmware version is less than 3.0 and oem_network_attributes is given
+        # Scenario 5: When Firmware version is less than 3.0 and oem_network_attributes is given
+        gen = GENERATION_13
+        hw_model = HARDWARE_8
         firm_ver = '2.9'
-        mocker.patch(MODULE_PATH + "idrac_network_attributes.get_idrac_firmware_version",
-                     return_value=firm_ver)
+        idrac_connection_ntwrk_attr_mock.get_server_generation = (gen, firm_ver, hw_model)
         idrac_default_args.update({'oem_network_attributes': 'some value'})
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
@@ -379,10 +402,11 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         data = idr_obj.get_current_server_registry()
         assert data == {'Qwerty': False}
 
-        # Scenario 5: When network_attributes is given
+        # Scenario 6: When network_attributes is given
+        gen = GENERATION_15
+        hw_model = HARDWARE_9
         firm_ver = '7.0'
-        mocker.patch(MODULE_PATH + "idrac_network_attributes.get_idrac_firmware_version",
-                     return_value=firm_ver)
+        idrac_connection_ntwrk_attr_mock.get_server_generation = (gen, firm_ver, hw_model)
         idrac_default_args.update({'network_attributes': 'some value',
                                    'oem_network_attributes': None})
         f_module = self.get_module_mock(
