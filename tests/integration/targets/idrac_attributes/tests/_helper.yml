@@ -36,7 +36,7 @@
         status_code: 202
         headers: 'Accept=application/json'
       register: all_uri_1
-      when: idrac_hw_model in ["", "iDRAC 9"]
+      when: idrac_hw_model in [""]
 
     - name: Create Export SCP job.
       uri:
@@ -54,7 +54,7 @@
         status_code: 202
         headers: 'Accept=application/json'
       register: all_uri_2
-      when: idrac_hw_model in ["iDRAC 10"]
+      when: idrac_hw_model in ["iDRAC 9", "iDRAC 10"]
 
     - name: Set common SCP job result
       set_fact:
