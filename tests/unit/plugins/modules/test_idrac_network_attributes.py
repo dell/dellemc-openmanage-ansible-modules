@@ -693,8 +693,10 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
             return action_setting_uri_resp
         mocker.patch(MODULE_PATH + "idrac_network_attributes.get_dynamic_uri",
                      side_effect=mock_get_dynamic_uri_request)
-        mocker.patch(MODULE_PATH + "idrac_network_attributes.get_idrac_firmware_version",
-                     return_value='6.1')
+        hw_model = HARDWARE_9
+        gen = GENERATION_14
+        firm_ver = '6.1'
+        idrac_connection_ntwrk_attr_mock.get_server_generation = (gen, firm_ver, hw_model)
 
         # Scenario 1: When there's no pending attributes
         f_module = self.get_module_mock(
@@ -772,8 +774,10 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         assert exc.value.args[0] == CHANGES_FOUND_MSG
 
         # Scenario 8: When Firmware version is less 3 and oem_network_attribute is not given
-        mocker.patch(MODULE_PATH + "idrac_network_attributes.get_idrac_firmware_version",
-                     return_value='2.9')
+        hw_model = HARDWARE_8
+        gen = GENERATION_13
+        firm_ver = '2.9'
+        idrac_connection_ntwrk_attr_mock.get_server_generation = (gen, firm_ver, hw_model)
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=True)
         idr_obj = self.module.OEMNetworkAttributes(
@@ -783,8 +787,6 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         assert exc.value.args[0] == CLEAR_PENDING_NOT_SUPPORTED_WITHOUT_ATTR_IDRAC8
 
         # Scenario 9: When Firmware version is less 3 and oem_network_attribute is given
-        mocker.patch(MODULE_PATH + "idrac_network_attributes.get_idrac_firmware_version",
-                     return_value='2.9')
         idrac_default_args.update(
             {'oem_network_attributes': {'somedata': 'somevalue'}})
         f_module = self.get_module_mock(
@@ -795,8 +797,11 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         assert data is None
 
         # Scenario 10: When Fw vers is greater than 3, job exists, in starting, normal mode, without oem_network_attribute
-        mocker.patch(MODULE_PATH + "idrac_network_attributes.get_idrac_firmware_version",
-                     return_value='3.1')
+        hw_model = HARDWARE_9
+        gen = GENERATION_13
+        firm_ver = '3.1'
+        idrac_connection_ntwrk_attr_mock.get_server_generation = (gen, firm_ver, hw_model)
+
         mocker.patch(MODULE_PATH + "idrac_network_attributes.get_scheduled_job_resp",
                      return_value={'Id': 'JIDXXXXXX', 'JobState': 'Starting'})
         idrac_default_args.update({'oem_network_attributes': None})
@@ -830,8 +835,11 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
                      return_value=apply_time)
         mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes.extract_error_msg",
                      return_value=error_info)
-        mocker.patch(MODULE_PATH + "idrac_network_attributes.get_idrac_firmware_version",
-                     return_value='6.1')
+        hw_model = HARDWARE_9
+        gen = GENERATION_14
+        firm_ver = '6.1'
+        idrac_connection_ntwrk_attr_mock.get_server_generation = (gen, firm_ver, hw_model)
+
         mocker.patch(MODULE_PATH + "idrac_network_attributes.idrac_redfish_job_tracking",
                      return_value=(False, 'msg', obj.json_data, 600))
 
