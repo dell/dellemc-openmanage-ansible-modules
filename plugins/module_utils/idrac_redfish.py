@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.13.0
 # Copyright (C) 2019-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -113,8 +113,9 @@ class iDRACRedfishAPI(object):
             "SESSION": "/redfish/v1/SessionService/Sessions",
             "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
         }
-        generation, _ = self.get_server_generation
-        if generation == 13:
+        gen_details = self.get_server_generation
+        generation = gen_details[0]
+        if generation <= 13:
             self.SESSION_RESOURCE_COLLECTION = {
                 "SESSION": "/redfish/v1/Sessions",
                 "SESSION_ID": "/redfish/v1/Sessions/{Id}",
