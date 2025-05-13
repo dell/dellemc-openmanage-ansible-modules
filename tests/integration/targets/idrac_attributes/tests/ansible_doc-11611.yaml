@@ -1,3 +1,4 @@
+---
 - block:
     - name: ansible-doc
       ansible.builtin.command: ansible-doc dellemc.openmanage.idrac_attributes

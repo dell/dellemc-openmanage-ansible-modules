@@ -165,8 +165,9 @@
         that:
           - not missing_params.changed
           - missing_params.failed
-          - "'one of the following is required: idrac_attributes, system_attributes,
-            lifecycle_controller_attributes' in missing_params.msg"
+          - "'one of the following is required: idrac_attributes,
+             system_attributes, lifecycle_controller_attributes'
+             in missing_params.msg"
 
     - name: Negative - unsupported parameters
       dellemc.openmanage.idrac_attributes:
