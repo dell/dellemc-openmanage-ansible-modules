@@ -1033,7 +1033,7 @@ def main():
             else:
                 module.exit_json(msg=status_message["msg"])
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err), failed=True)
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (SSLValidationError, ConnectionError, ImportError, ValueError,
