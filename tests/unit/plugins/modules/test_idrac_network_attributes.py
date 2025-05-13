@@ -1045,3 +1045,23 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         else:
             assert result['failed'] is True
         assert 'msg' in result
+
+    def test_get_job_uri_10(self, idrac_default_args, idrac_connection_ntwrk_attr_mock, mocker):
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module)
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes.validate_idrac10_and_above",
+                     return_value=True)
+        data = idr_obj.get_job_uri()
+        assert data == iDRAC_JOB_URI_10
+
+    def test_get_job_uri(self, idrac_default_args, idrac_connection_ntwrk_attr_mock, mocker):
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module)
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes.validate_idrac10_and_above",
+                     return_value=False)
+        data = idr_obj.get_job_uri()
+        assert data == iDRAC_JOB_URI
