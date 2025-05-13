@@ -458,9 +458,9 @@ def get_argument_spec():
         "validate_certs": {"type": "bool", "default": True},
         "ca_path": {"type": "path", "default": None},
         "timeout": {"type": "int", "default": 30},
+        "session_id": {"type": "str"},
         "state": {"type": 'str', "default": "present", "choices": ["present", "absent"]},
-        "x_auth_token": {"type": "str", "no_log": True, "aliases": ['auth_token']},
-        "session_id": {"type": "str"}
+        "x_auth_token": {"type": "str", "no_log": True, "aliases": ['auth_token']}
     }
 
 
