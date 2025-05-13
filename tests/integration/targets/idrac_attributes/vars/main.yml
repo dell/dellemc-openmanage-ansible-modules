@@ -1,3 +1,4 @@
+---
 idrac_single_attribute:
   SNMP.1.AgentCommunity: public
 idrac_multiple_attributes:

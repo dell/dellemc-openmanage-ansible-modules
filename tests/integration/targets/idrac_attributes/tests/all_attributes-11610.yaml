@@ -1,12 +1,15 @@
-# Test code for the Dell OpenManage modules
+# Dell OpenManage Ansible modules
 # Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
-  fail:
-    msg: 'Please define the following variables: idrac_ip, idrac_user and idrac_password.'
-  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
 
 - block:
     - name: Update all attributes
@@ -45,7 +48,10 @@
 
     - ansible.builtin.include_tasks: _helper.yml
       vars:
-        fqdd: ['iDRAC.Embedded.1', 'System.Embedded.1', 'LifecycleController.Embedded.1']
+        fqdd:
+          - iDRAC.Embedded.1
+          - System.Embedded.1
+          - LifecycleController.Embedded.1
         attrs: "{{ all_attributes }}"
 
     - ansible.builtin.set_fact:
@@ -71,10 +77,13 @@
           - all_attributes["SNMP.1.AgentCommunity"] in all_attr_result
           - all_attributes["SNMP.1.AgentEnable"] in all_attr_result
           - (all_attributes["SNMP.1.DiscoveryPort"] | string) in all_attr_result
-          - (all_attributes["ThermalConfig.1.CriticalEventGenerationInterval"] | string) in all_attr_result
+          - >-
+            (all_attributes["ThermalConfig.1.CriticalEventGenerationInterval"]
+            | string) in all_attr_result
           - all_attributes["ServerOS.1.HostName"] in all_attr_result
           - all_attributes["LCAttributes.1.AutoUpdate"] in all_attr_result
-          - all_attributes["LCAttributes.1.CollectSystemInventoryOnRestart"] in all_attr_result
+          - all_attributes["LCAttributes.1.CollectSystemInventoryOnRestart"] in
+             all_attr_result
           - not no_cm_results.changed
           - no_cm_results.msg == "No changes found to be applied."
           - not idempotence_results.changed

@@ -1,3 +1,4 @@
+---
 - block:
     - set_fact:
         list_attr: []
@@ -5,7 +6,8 @@
 
     - name: Get Server Model
       ansible.builtin.uri:
-        url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1"
+        url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/Managers\
+          /iDRAC.Embedded.1"
         method: GET
         user: "{{ idrac_user }}"
         password: "{{ idrac_password }}"
@@ -16,13 +18,19 @@
       register: idrac_model_response
       no_log: true
 
+    - name: Set fact for model
+      ansible.builtin.set_fact:
+        model1: "{{ idrac_model_response.json.Model }}"
+
     - name: Set the server generation fact
-      set_fact:
-        model: "{{ idrac_model_response.json.Model | regex_search('([0-9]+)G', '\\1') | first }}"
+      ansible.builtin.set_fact:
+        model: "{{ model1 | regex_search('([0-9]+)G', '\\1') | first | int }}"
 
     - name: Create Export SCP job.
       ansible.builtin.uri:
-        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ExportSystemConfiguration
+        url: "https://{{idrac_ip}}:{{idrac_port}}\
+          /redfish/v1/Managers/iDRAC.Embedded.1/Actions\
+          /Oem/EID_674_Manager.ExportSystemConfiguration"
         user: "{{idrac_user}}"
         password: "{{idrac_password}}"
         method: POST
@@ -41,7 +49,9 @@
 
     - name: Create Export SCP job.
       ansible.builtin.uri:
-        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/OemManager.ExportSystemConfiguration
+        url: "https://{{idrac_ip}}:{{idrac_port}}\
+          /redfish/v1/Managers/iDRAC.Embedded.1/Actions\
+          /Oem/OemManager.ExportSystemConfiguration"
         user: "{{idrac_user}}"
         password: "{{idrac_password}}"
         method: POST
@@ -61,9 +71,14 @@
     - name: Set common SCP job result
       ansible.builtin.set_fact:
         all_uri: >-
-          {{ all_uri_1
-            if ('all_uri_1' in vars and (not (all_uri_1.skipped | default(false))))
-            else all_uri_2 }}
+          {{
+            all_uri_1
+            if (
+              'all_uri_1' in vars and
+              not (all_uri_1.skipped | default(false))
+            )
+            else all_uri_2
+          }}
 
     - name: Get Exported SCP contents.
       ansible.builtin.uri:
@@ -80,7 +95,9 @@
       retries: 5
       delay: 15
 
-    - copy: content={{uri_scp_content.content | string}} dest=uri_scp_export_{{idrac_ip}}.json
+    - copy:
+        content: "{{ uri_scp_content.content | string }}"
+        dest: "uri_scp_export_{{ idrac_ip }}.json"
       register: uri_file
 
     - name: "Read SCP file and store in variable"
@@ -93,25 +110,43 @@
 
     - name: Extract iDRAC.Embedded.1
       set_fact:
-        idrac_settings: "{{ all_settings | selectattr('FQDD','in',fqdd) | list | flatten}}"
+        idrac_settings: >-
+          {{
+            all_settings
+            | selectattr('FQDD', 'in', fqdd)
+            | list
+            | flatten
+          }}
 
     - name: Extract all iDRAC attributes
       set_fact:
-        idrac_settings_attr: "{{ idrac_settings | map(attribute='Attributes') | list | flatten}}"
+        idrac_settings_attr: >-
+          {{
+            idrac_settings
+            | map(attribute='Attributes')
+            | list
+            | flatten
+          }}
 
     - name: Fetch keys of input
       set_fact:
         input_list: "{{ attrs.keys() }}"
 
-    - name: Replace last occurrence of . with #
+    - name: Replace last occurrence of . with (#)
       set_fact:
-        list_attr: "{{ list_attr + [item | regex_replace('^(.*)\\.', '\\1#')] }}"
+        list_attr: "{{ list_attr + [modified_item] }}"
+      vars:
+        modified_item: "{{ item | regex_replace('^(.*)\\.', '\\1#') }}"
       with_items:
-        - "{{input_list}}"
+        - "{{ input_list }}"
 
     - name: Fetch idrac settings
       set_fact:
-        scp_attr: "{{ idrac_settings_attr | selectattr('Name','in',list_attr) }}"
+        scp_attr: >-
+          {{
+            idrac_settings_attr
+            | selectattr('Name', 'in', list_attr)
+          }}
 
     - name: Fetch values
       set_fact:

@@ -1,12 +1,15 @@
-# Test code for the Dell OpenManage modules
+# Dell OpenManage Ansible modules
 # Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
-    msg: 'Please define the following variables: idrac_ip, idrac_user and idrac_password.'
-  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
 
 - block:
     - name: Update iDRAC attributes
@@ -82,7 +85,8 @@
     - ansible.builtin.set_fact:
         idrac_multiple_attr_result: "{{scp_val_attr}}"
 
-    - name: Update multiple iDRAC attributes - check mode - (No change expected)
+    - name: Update multiple iDRAC attributes - check mode
+       (No change expected)
       dellemc.openmanage.idrac_attributes:
         idrac_attributes:
           SNMP.1.AgentCommunity: public
@@ -91,7 +95,8 @@
       register: no_cm_results
       check_mode: true
 
-    - name: Update multiple iDRAC attributes - Idempotency - (No change expected)
+    - name: Update multiple iDRAC attributes - Idempotency
+       (No change expected)
       dellemc.openmanage.idrac_attributes:
         idrac_attributes:
           SNMP.1.AgentCommunity: public
@@ -105,7 +110,8 @@
           - cm_result.changed
           - cm_result.msg == "Changes found to be applied."
           - idrac_result.msg == "Successfully updated the attributes."
-          - idrac_single_attribute["SNMP.1.AgentCommunity"] in idrac_single_attr_result
+          - idrac_single_attribute["SNMP.1.AgentCommunity"] in
+             idrac_single_attr_result
           - not no_cm_result.changed
           - no_cm_result.msg == "No changes found to be applied."
           - not idempotence_result.changed
@@ -113,9 +119,12 @@
           - idrac_cm_results.changed
           - idrac_cm_results.msg == "Changes found to be applied."
           - multiple_idrac_results.msg == "Successfully updated the attributes."
-          - (idrac_multiple_attributes["SNMP.1.AgentCommunity"] | string) in idrac_multiple_attr_result
-          - idrac_multiple_attributes["SNMP.1.AgentEnable"] in idrac_multiple_attr_result
-          - (idrac_multiple_attributes["SNMP.1.DiscoveryPort"] | string) in idrac_multiple_attr_result
+          - (idrac_multiple_attributes["SNMP.1.AgentCommunity"] | string)
+             in idrac_multiple_attr_result
+          - idrac_multiple_attributes["SNMP.1.AgentEnable"] in
+             idrac_multiple_attr_result
+          - (idrac_multiple_attributes["SNMP.1.DiscoveryPort"] | string)
+             in idrac_multiple_attr_result
           - not no_cm_results.changed
           - no_cm_results.msg == "No changes found to be applied."
           - not idempotence_results.changed

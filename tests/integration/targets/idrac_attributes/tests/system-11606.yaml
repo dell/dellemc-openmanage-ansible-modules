@@ -1,12 +1,15 @@
-# Test code for the Dell OpenManage modules
+# Dell OpenManage Ansible modules
 # Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
-  fail:
-    msg: 'Please define the following variables: idrac_ip, idrac_user and idrac_password.'
-  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
 
 - block:
     - name: Update system attributes
@@ -80,7 +83,8 @@
     - ansible.builtin.set_fact:
         system_multiple_attr_result: "{{scp_val_attr}}"
 
-    - name: Update multiple system attributes - check mode - (No change expected)
+    - name: Update multiple system attributes - check mode
+       (No change expected)
       dellemc.openmanage.idrac_attributes:
         system_attributes:
           ThermalConfig.1.CriticalEventGenerationInterval: 30
@@ -88,7 +92,8 @@
       register: no_cm_results
       check_mode: true
 
-    - name: Update multiple system attributes - Idempotency - (No change expected)
+    - name: Update multiple system attributes - Idempotency
+       (No change expected)
       dellemc.openmanage.idrac_attributes:
         system_attributes:
           ThermalConfig.1.CriticalEventGenerationInterval: 30
@@ -101,16 +106,22 @@
           - cm_result.changed
           - cm_result.msg == "Changes found to be applied."
           - system_results.msg == "Successfully updated the attributes."
-          - system_single_attribute["ServerOS.1.HostName"] in system_single_attr_result
+          - system_single_attribute["ServerOS.1.HostName"] in
+             system_single_attr_result
           - not no_cm_result.changed
           - no_cm_result.msg == "No changes found to be applied."
           - not idempotence_result.changed
           - idempotence_result.msg == "No changes found to be applied."
           - system_cm_results.changed
           - system_cm_results.msg == "Changes found to be applied."
-          - multiple_system_results.msg == "Successfully updated the attributes."
-          - system_multiple_attributes["ServerOS.1.HostName"] in system_multiple_attr_result
-          - (system_multiple_attributes["ThermalConfig.1.CriticalEventGenerationInterval"] | string) in system_multiple_attr_result
+          - multiple_system_results.msg ==
+             "Successfully updated the attributes."
+          - system_multiple_attributes["ServerOS.1.HostName"] in
+             system_multiple_attr_result
+          - >-
+            (system_multiple_attributes
+            ["ThermalConfig.1.CriticalEventGenerationInterval"]
+            | string) in system_multiple_attr_result
           - not no_cm_results.changed
           - no_cm_results.msg == "No changes found to be applied."
           - not idempotence_results.changed
