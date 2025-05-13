@@ -47,6 +47,8 @@ IDRAC_RESET_URI = "/redfish/v1/Managers/{res_id}/Actions/Manager.Reset"
 SYSTEM_RESET_URI = "/redfish/v1/Systems/{res_id}/Actions/ComputerSystem.Reset"
 MANAGER_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
 MANAGER_JOB_ID_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{0}"
+MANAGER_JOB_URI_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs?$expand=*($levels=1)"
+MANAGER_JOB_ID_URI_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{0}"
 GET_IDRAC_FIRMWARE_VER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
 HOSTNAME_REGEX = r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
 OME_INFO = "ApplicationService/Info"
@@ -65,6 +67,8 @@ import re
 from ansible.module_utils.six.moves.urllib.error import HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.\
+    idrac_utils.info.firmware import IDRACFirmwareInfo
 
 
 def strip_substr_dict(odata_dict, chkstr='@odata.', case_sensitive=False):
@@ -369,10 +373,10 @@ def idrac_system_reset(idrac, res_id, payload=None, job_wait=True, wait_time_sec
         idrac.invoke_request(SYSTEM_RESET_URI.format(res_id=res_id), 'POST', data=payload)
         time.sleep(10)
         if wait_time_sec:
-            resp = idrac.invoke_request(MANAGER_JOB_URI, "GET")
+            resp = idrac.invoke_request(get_job_uri(idrac), "GET")
             job = list(filter(lambda d: d["JobState"] in ["RebootPending", "RebootCompleted"], resp.json_data["Members"]))
             if job:
-                job_resp, msg = wait_for_idrac_job_completion(idrac, MANAGER_JOB_ID_URI.format(job[0]["Id"]),
+                job_resp, msg = wait_for_idrac_job_completion(idrac, get_job_uri_id(idrac).format(job[0]["Id"]),
                                                               job_wait=job_wait, wait_timeout=wait_time_sec)
                 if "job is not complete" in msg:
                     reset, reset_msg = False, msg
@@ -446,7 +450,7 @@ def wait_for_redfish_reboot_job(redfish_obj, res_id, payload=None, wait_time_sec
         resp = redfish_obj.invoke_request('POST', SYSTEM_RESET_URI.format(res_id=res_id), data=payload, api_timeout=120)
         time.sleep(10)
         if wait_time_sec and resp.status_code == 204:
-            resp = redfish_obj.invoke_request("GET", MANAGER_JOB_URI)
+            resp = redfish_obj.invoke_request("GET", get_job_uri(redfish_obj))
             reboot_job_lst = list(filter(lambda d: (d["JobType"] in ["RebootNoForce"]), resp.json_data["Members"]))
             job_resp = max(reboot_job_lst, key=lambda d: datetime.strptime(d["StartTime"], "%Y-%m-%dT%H:%M:%S"))
             if job_resp:
@@ -499,7 +503,7 @@ def get_dynamic_uri(idrac_obj, base_uri, search_label=''):
 def get_scheduled_job_resp(idrac_obj, job_type):
     job_state = {"Scheduled", "New", "Running"}
     args = getfullargspec(idrac_obj.invoke_request)[0]
-    data = {'uri': MANAGER_JOB_URI} if 'uri' in args else {'path': MANAGER_JOB_URI}
+    data = {'uri': get_job_uri(idrac_obj)} if 'uri' in args else {'path': get_job_uri(idrac_obj)}
     job_list = idrac_obj.invoke_request(method="GET", **data).json_data.get('Members', [])
     if isinstance(job_type, str):
         job_resp = next((j for j in job_list if (j.get("JobState") in job_state) and (j.get("JobType") == job_type)), {})
@@ -509,7 +513,7 @@ def get_scheduled_job_resp(idrac_obj, job_type):
 
 
 def delete_job(idrac_obj, job_id):
-    resp = idrac_obj.invoke_request(uri=MANAGER_JOB_ID_URI.format(job_id), method="DELETE")
+    resp = idrac_obj.invoke_request(uri=get_job_uri_id(idrac_obj).format(job_id), method="DELETE")
     return resp.json_data
 
 
@@ -777,3 +781,19 @@ def validate_time(time, module):
     # Check if the time matches the 24-hour format (HH:MM)
     if time and not re.match(r"^(?:[01]\d|2[0-3]):[0-5]\d$", time):
         module.exit_json(msg=INVALID_TIME_FORMAT_MSG, failed=True)
+
+
+def get_job_uri_id(rest_obj):
+    firmware_obj = IDRACFirmwareInfo(rest_obj)
+    job_uri_id = MANAGER_JOB_ID_URI
+    if not firmware_obj.is_omsdk_required():
+        job_uri_id = MANAGER_JOB_ID_URI_10
+    return job_uri_id
+
+
+def get_job_uri(rest_obj):
+    firmware_obj = IDRACFirmwareInfo(rest_obj)
+    job_uri = MANAGER_JOB_URI
+    if not firmware_obj.is_omsdk_required():
+        job_uri = MANAGER_JOB_URI_10
+    return job_uri
