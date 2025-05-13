@@ -480,7 +480,8 @@ class IDRACNetworkAttributes:
         oem_network_attributes = self.module.params.get(
             'oem_network_attributes')
         network_attributes = self.module.params.get('network_attributes')
-        generation, firm_ver, hw_model = self.idrac.get_server_generation
+        gen_details = self.idrac.get_server_generation
+        firm_ver, hw_model = gen_details[1], gen_details[2]
         idrac_9_flag = LooseVersion(firm_ver) >= '6.0' and hw_model == "iDRAC 9"
         if oem_network_attributes:
             if idrac_9_flag or hw_model == "iDRAC 10":
@@ -553,7 +554,8 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
         super().__init__(idrac, module)
 
     def clear_pending(self):
-        generation , firm_ver, hw_model = self.idrac.get_server_generation
+        gen_details = self.idrac.get_server_generation
+        firm_ver, hw_model = gen_details[1], gen_details[2]
         oem_network_attributes = self.module.params.get(
             'oem_network_attributes')
         if LooseVersion(firm_ver) < '3.0' and hw_model == HARDWARE_8:
@@ -604,7 +606,8 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
         apply_time = self.module.params.get('apply_time')
         job_wait = self.module.params.get('job_wait')
         invalid_attr = {}
-        generation, firm_ver, hw_model = self.idrac.get_server_generation
+        gen_details = self.idrac.get_server_generation
+        firm_ver, hw_model = gen_details[1], gen_details[2]
         if LooseVersion(firm_ver) < '3.0' and hw_model == HARDWARE_8:
             root = """<SystemConfiguration>{0}</SystemConfiguration>"""
             scp_payload = root.format(xml_data_conversion(
@@ -683,7 +686,8 @@ def perform_operation_for_main(idrac, module, obj, diff, _invalid_attr):
                                           regex_pattern='(.*?)@odata')
 
             if job_dict.get('JobState') == "Completed":
-                generation, firm_ver, hw_model = idrac.get_server_generation
+                gen_details = idrac.get_server_generation
+                firm_ver, hw_model = gen_details[1], gen_details[2]
                 msg = SUCCESS_MSG if not invalid_attr else VALID_AND_INVALID_ATTR_MSG
                 if LooseVersion(firm_ver) < '3.0' and isinstance(obj, OEMNetworkAttributes) and hw_model == HARDWARE_8:
                     message_id = job_dict.get("MessageId")
