@@ -1,0 +1,337 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Negative - unreachable host
+      dellemc.openmanage.idrac_attributes:
+        idrac_ip: "999.999.999.999"
+        idrac_attributes:
+          SNMP.1.AgentCommunity: public
+      register: invalid_hostname
+      ignore_errors: true
+      ignore_unreachable: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - not invalid_hostname.changed
+          - invalid_hostname.unreachable
+          - "'urlopen error' in invalid_hostname.msg"
+
+    - name: Negative - invalid username
+      dellemc.openmanage.idrac_attributes:
+        idrac_user: "invalidUsername"
+        idrac_attributes:
+          SNMP.1.AgentCommunity: public
+      register: invalid_username
+      ignore_errors: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - not invalid_username.changed
+          - invalid_username.failed
+          - ("'Unable to complete the operation because an invalid
+            username and/or password is entered' in invalid_username.msg")
+            or ("'HTTP Error 401' in invalid_username.msg")
+
+    - name: Negative - invalid password
+      dellemc.openmanage.idrac_attributes:
+        idrac_password: "invalidPassword"
+        idrac_attributes:
+          SNMP.1.AgentCommunity: public
+      register: invalid_password
+      ignore_errors: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - not invalid_password.changed
+          - invalid_password.failed
+          - ("'Unable to complete the operation because an invalid
+            username and/or password is entered' in invalid_password.msg")
+            or ("'HTTP Error 401' in invalid_password.msg")
+
+    - name: Perform update with invalid port
+      dellemc.openmanage.idrac_attributes:
+        validate_certs: false
+        idrac_port: 9999999
+        idrac_attributes:
+          SSH.1.Timeout: 1800
+      ignore_errors: true
+      ignore_unreachable: true
+      register: invalid_port
+
+    - name: Asserting after performing operation with invalid port
+      ansible.builtin.assert:
+        that:
+          - not invalid_port.changed
+          - invalid_port.unreachable
+          - ('"Connection refused" in invalid_port.msg')
+            or
+            ('"urlopen error timed out" in invalid_port.msg')
+
+    - name: Perform update with invalid validate_certs
+      dellemc.openmanage.idrac_attributes:
+        idrac_port: 443
+        validate_certs: "someStringValue"
+        idrac_attributes:
+          SSH.1.Timeout: 1800
+      ignore_errors: true
+      ignore_unreachable: true
+      register: invalid_validate_certs
+
+    - name: Asserting after performing operation with invalid validate_certs
+      ansible.builtin.assert:
+        that:
+          - not invalid_validate_certs.changed
+          - invalid_validate_certs.failed
+          - '"Valid booleans include" in invalid_validate_certs.msg'
+
+    - name: Perform update with ca_path as null
+      dellemc.openmanage.idrac_attributes:
+        ca_path: ""
+        validate_certs: true
+        idrac_attributes:
+          SSH.1.Timeout: 1800
+      ignore_errors: true
+      ignore_unreachable: true
+      register: invalid_ca_path
+
+    - name: Asserting after performing operation with ca_path as null
+      ansible.builtin.assert:
+        that:
+          - not invalid_ca_path.changed
+          - ('"certificate verify failed" in invalid_ca_path.msg')
+            or
+            ('"No such file or directory" in invalid_ca_path.msg')
+
+    - name: Negative - invalid timeout type
+      dellemc.openmanage.idrac_attributes:
+        timeout: invalid
+        validate_certs: false
+        idrac_attributes:
+          SSH.1.Timeout: 1800
+      register: invalid_timeout_type
+      ignore_errors: true
+
+    - name: set fact for invalid timeout_type msg
+      ansible.builtin.set_fact:
+        timeout_type_msg: "{{ invalid_timeout_type.msg }}"
+
+    - name: Verify task status - Negative - invalid timeout type
+      ansible.builtin.assert:
+        that:
+          - invalid_timeout_type.failed
+          - not invalid_timeout_type.changed
+          - timeout_type_msg in invalid_timeout_type.msg
+
+    - name: Perform update with wrong resource_id
+      dellemc.openmanage.idrac_attributes:
+        idrac_port: 443
+        validate_certs: false
+        lifecycle_controller_attributes:
+          LCAttributes.1.CollectSystemInventoryOnRestart: Enabled
+        resource_id: idrac.random.5
+      ignore_errors: true
+      ignore_unreachable: true
+      register: invalid_resource_id
+
+    - name: Asserting after performing operation with wrong resource_id
+      ansible.builtin.assert:
+        that:
+          - not invalid_resource_id.changed
+          - invalid_resource_id.failed
+          - '"HTTP Error 404" in invalid_resource_id.msg'
+
+    - name: Negative - none of required parameters passed
+      dellemc.openmanage.idrac_attributes:
+        idrac_ip: "{{ idrac_ip }}"
+      register: missing_params
+      ignore_errors: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - not missing_params.changed
+          - missing_params.failed
+          - "'one of the following is required: idrac_attributes,
+             system_attributes, lifecycle_controller_attributes'
+             in missing_params.msg"
+
+    - name: Negative - unsupported parameters
+      dellemc.openmanage.idrac_attributes:
+        res_id: "XYZ.1"
+        system_attributes:
+          ServerOS.1.HostName: host
+      register: unsupported_params
+      ignore_errors: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - not unsupported_params.changed
+          - unsupported_params.failed
+          - "'Unsupported parameters for (dellemc.openmanage.idrac_attributes)
+            module:' in unsupported_params.msg"
+
+    - name: Negative - invalid idrac attribute
+      dellemc.openmanage.idrac_attributes:
+        idrac_attributes:
+          SNMP.1.agentComm: public
+      register: invalid_idrac_attr
+      ignore_errors: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - not invalid_idrac_attr.changed
+          - invalid_idrac_attr.failed
+          - invalid_idrac_attr.msg.startswith
+            ('Attributes have invalid values')
+
+    - name: Negative - invalid idrac attribute value
+      dellemc.openmanage.idrac_attributes:
+        idrac_attributes:
+          SNMP.1.AgentCommunity: -1
+      register: invalid_idrac_attr_val
+      ignore_errors: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - not invalid_idrac_attr_val.changed
+          - invalid_idrac_attr_val.failed
+          - (invalid_idrac_attr_val.msg.endswith
+            ('different type than the property can accept.'))
+            or
+            (invalid_idrac_attr_val.msg.startswith('HTTP Error 400:'))
+
+    - name: Negative - invalid and valid idrac attributes
+      dellemc.openmanage.idrac_attributes:
+        idrac_attributes:
+          SNMP.1.agentCom: public
+          NIC.1.SwitchConnection: Management Module
+      register: invalid_idrac_attr_val
+      ignore_errors: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - not invalid_idrac_attr_val.changed
+          - invalid_idrac_attr_val.failed
+          - invalid_idrac_attr_val.msg.startswith
+            ('Attributes have invalid values')
+
+    - name: Negative - invalid system attribute
+      dellemc.openmanage.idrac_attributes:
+        system_attributes:
+          ThermalConfig.1.FreshCompliantConfig: "No"
+      register: invalid_idrac_attr
+      ignore_errors: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - not invalid_idrac_attr.changed
+          - invalid_idrac_attr.failed
+          - invalid_idrac_attr.msg.startswith
+            ('Attributes have invalid values')
+
+    - name: Negative - invalid system attribute value
+      dellemc.openmanage.idrac_attributes:
+        system_attributes:
+          PCIeSlotLFM.33.LFMMode: -1
+      register: invalid_idrac_attr_val
+      ignore_errors: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - not invalid_idrac_attr_val.changed
+          - invalid_idrac_attr_val.failed
+          - (invalid_idrac_attr_val.msg.startswith
+            ('Attributes have invalid values'))
+            or
+            (invalid_idrac_attr_val.msg.startswith('HTTP Error 400:'))
+
+    - name: Negative - invalid and valid system attributes
+      dellemc.openmanage.idrac_attributes:
+        system_attributes:
+          ThermalConfig.1.FreshCompliantConfig: "No"
+          PCIeSlotLFM.33.LFMMode: Automatic
+      register: invalid_idrac_attr_val
+      ignore_errors: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - not invalid_idrac_attr_val.changed
+          - invalid_idrac_attr_val.failed
+          - invalid_idrac_attr_val.msg.startswith
+            ('Attributes have invalid values')
+
+    - name: Negative - invalid LifecycleController attribute
+      dellemc.openmanage.idrac_attributes:
+        lifecycle_controller_attributes:
+          LCAttributes.1.AutoDis: "Off"
+      register: invalid_idrac_attr
+      ignore_errors: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - not invalid_idrac_attr.changed
+          - invalid_idrac_attr.failed
+          - invalid_idrac_attr.msg.startswith
+            ('Attributes have invalid values')
+
+    - name: Negative - invalid LifecycleController attribute value
+      dellemc.openmanage.idrac_attributes:
+        lifecycle_controller_attributes:
+          LCAttributes.1.UserProxyType: -1
+      register: invalid_idrac_attr_val
+      ignore_errors: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - not invalid_idrac_attr_val.changed
+          - invalid_idrac_attr_val.failed
+          - (invalid_idrac_attr_val.msg.startswith
+            ('Attributes have invalid values'))
+            or
+            (invalid_idrac_attr_val.msg.startswith('HTTP Error 400:'))
+
+    - name: Negative - invalid and valid LifecycleController attributes
+      dellemc.openmanage.idrac_attributes:
+        lifecycle_controller_attributes:
+          LCAttributes.1.AutoDis: "Off"
+          LCAttributes.1.UserProxyType: HTTP
+      register: invalid_idrac_attr_val
+      ignore_errors: true
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - not invalid_idrac_attr_val.changed
+          - invalid_idrac_attr_val.failed
+          - invalid_idrac_attr_val.msg.startswith
+            ('Attributes have invalid values')
+
+  module_defaults:
+    dellemc.openmanage.idrac_attributes:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

@@ -1,0 +1,135 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Update system attributes
+      dellemc.openmanage.idrac_attributes:
+        system_attributes:
+          ServerOS.1.HostName: host
+      register: result
+
+    - name: Update system attributes - check mode - (Change expected)
+      dellemc.openmanage.idrac_attributes:
+        system_attributes:
+          ServerOS.1.HostName: test
+      register: cm_result
+      check_mode: true
+
+    - name: Update system attributes - Normal
+      dellemc.openmanage.idrac_attributes:
+        system_attributes:
+          ServerOS.1.HostName: test
+      register: system_result
+
+    - ansible.builtin.include_tasks: _helper.yml
+      vars:
+        fqdd: ['System.Embedded.1']
+        attrs: "{{system_single_attribute}}"
+
+    - ansible.builtin.set_fact:
+        system_single_attr_result: "{{scp_val_attr}}"
+
+    - name: Update system attributes - check mode - (No change expected)
+      dellemc.openmanage.idrac_attributes:
+        system_attributes:
+          ServerOS.1.HostName: test
+      register: no_cm_result
+      check_mode: true
+
+    - name: Update system attributes - Idempotency - (No change expected)
+      dellemc.openmanage.idrac_attributes:
+        system_attributes:
+          ServerOS.1.HostName: test
+      register: idempotence_result
+
+    - name: Update multiple system attributes
+      dellemc.openmanage.idrac_attributes:
+        system_attributes:
+          ThermalConfig.1.CriticalEventGenerationInterval: 29
+          ServerOS.1.HostName: host
+      register: system_results
+
+    - name: Update multiple system attributes - check mode - (Change expected)
+      dellemc.openmanage.idrac_attributes:
+        system_attributes:
+          ThermalConfig.1.CriticalEventGenerationInterval: 30
+          ServerOS.1.HostName: test
+      register: system_cm_results
+      check_mode: true
+
+    - name: Update multiple system attributes - Normal
+      dellemc.openmanage.idrac_attributes:
+        system_attributes:
+          ThermalConfig.1.CriticalEventGenerationInterval: 30
+          ServerOS.1.HostName: test
+      register: multiple_system_results
+
+    - ansible.builtin.include_tasks: _helper.yml
+      vars:
+        fqdd: ['System.Embedded.1']
+        attrs: "{{system_multiple_attributes}}"
+      no_log: true
+
+    - ansible.builtin.set_fact:
+        system_multiple_attr_result: "{{scp_val_attr}}"
+
+    - name: Update multiple system attributes - check mode
+       (No change expected)
+      dellemc.openmanage.idrac_attributes:
+        system_attributes:
+          ThermalConfig.1.CriticalEventGenerationInterval: 30
+          ServerOS.1.HostName: test
+      register: no_cm_results
+      check_mode: true
+
+    - name: Update multiple system attributes - Idempotency
+       (No change expected)
+      dellemc.openmanage.idrac_attributes:
+        system_attributes:
+          ThermalConfig.1.CriticalEventGenerationInterval: 30
+          ServerOS.1.HostName: test
+      register: idempotence_results
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - cm_result.changed
+          - cm_result.msg == "Changes found to be applied."
+          - system_results.msg == "Successfully updated the attributes."
+          - system_single_attribute["ServerOS.1.HostName"] in
+             system_single_attr_result
+          - not no_cm_result.changed
+          - no_cm_result.msg == "No changes found to be applied."
+          - not idempotence_result.changed
+          - idempotence_result.msg == "No changes found to be applied."
+          - system_cm_results.changed
+          - system_cm_results.msg == "Changes found to be applied."
+          - multiple_system_results.msg ==
+             "Successfully updated the attributes."
+          - system_multiple_attributes["ServerOS.1.HostName"] in
+             system_multiple_attr_result
+          - >-
+            (system_multiple_attributes
+            ["ThermalConfig.1.CriticalEventGenerationInterval"]
+            | string) in system_multiple_attr_result
+          - not no_cm_results.changed
+          - no_cm_results.msg == "No changes found to be applied."
+          - not idempotence_results.changed
+          - idempotence_results.msg == "No changes found to be applied."
+
+  module_defaults:
+    dellemc.openmanage.idrac_attributes:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

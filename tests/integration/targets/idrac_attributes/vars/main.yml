@@ -1,0 +1,25 @@
+---
+idrac_single_attribute:
+  SNMP.1.AgentCommunity: public
+idrac_multiple_attributes:
+  SNMP.1.AgentCommunity: public
+  SNMP.1.AgentEnable: Enabled
+  SNMP.1.DiscoveryPort: 161
+system_single_attribute:
+  ServerOS.1.HostName: test
+system_multiple_attributes:
+  ThermalConfig.1.CriticalEventGenerationInterval: 30
+  ServerOS.1.HostName: test
+lc_single_attribute:
+  LCAttributes.1.AutoUpdate: Disabled
+lc_multiple_attributes:
+  LCAttributes.1.AutoUpdate: Disabled
+  LCAttributes.1.CollectSystemInventoryOnRestart: Enabled
+all_attributes:
+  SNMP.1.AgentCommunity: public
+  SNMP.1.AgentEnable: Enabled
+  SNMP.1.DiscoveryPort: 161
+  ThermalConfig.1.CriticalEventGenerationInterval: 30
+  ServerOS.1.HostName: test
+  LCAttributes.1.AutoUpdate: Disabled
+  LCAttributes.1.CollectSystemInventoryOnRestart: Enabled

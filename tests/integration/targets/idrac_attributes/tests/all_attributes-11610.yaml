@@ -1,0 +1,97 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Update all attributes
+      dellemc.openmanage.idrac_attributes:
+        idrac_attributes:
+          SNMP.1.AgentCommunity: private
+          SNMP.1.AgentEnable: Disabled
+          SNMP.1.DiscoveryPort: 160
+        system_attributes:
+          ThermalConfig.1.CriticalEventGenerationInterval: 31
+          ServerOS.1.HostName: host
+        lifecycle_controller_attributes:
+          LCAttributes.1.AutoUpdate: Enabled
+          LCAttributes.1.CollectSystemInventoryOnRestart: Disabled
+      register: result
+
+    - name: Update all attributes - check mode - (Change expected)
+      dellemc.openmanage.idrac_attributes: &update_all_attributes
+        idrac_attributes:
+          SNMP.1.AgentCommunity: public
+          SNMP.1.AgentEnable: Enabled
+          SNMP.1.DiscoveryPort: 161
+        system_attributes:
+          ThermalConfig.1.CriticalEventGenerationInterval: 30
+          ServerOS.1.HostName: test
+        lifecycle_controller_attributes:
+          LCAttributes.1.AutoUpdate: Disabled
+          LCAttributes.1.CollectSystemInventoryOnRestart: Enabled
+      register: cm_result
+      check_mode: true
+
+    - name: Update all attributes - Normal
+      dellemc.openmanage.idrac_attributes:
+        <<: *update_all_attributes
+      register: all_result
+
+    - ansible.builtin.include_tasks: _helper.yml
+      vars:
+        fqdd:
+          - iDRAC.Embedded.1
+          - System.Embedded.1
+          - LifecycleController.Embedded.1
+        attrs: "{{ all_attributes }}"
+
+    - ansible.builtin.set_fact:
+        all_attr_result: "{{ scp_val_attr }}"
+
+    - name: Update all attributes - check mode - (No change expected)
+      dellemc.openmanage.idrac_attributes:
+        <<: *update_all_attributes
+      register: no_cm_results
+      check_mode: true
+
+    - name: Update all attributes - Idempotency - (No change expected)
+      dellemc.openmanage.idrac_attributes:
+        <<: *update_all_attributes
+      register: idempotence_results
+
+    - name: Verify status of tasks
+      assert:
+        that:
+          - cm_result.changed
+          - cm_result.msg == "Changes found to be applied."
+          - all_result.msg == "Successfully updated the attributes."
+          - all_attributes["SNMP.1.AgentCommunity"] in all_attr_result
+          - all_attributes["SNMP.1.AgentEnable"] in all_attr_result
+          - (all_attributes["SNMP.1.DiscoveryPort"] | string) in all_attr_result
+          - >-
+            (all_attributes["ThermalConfig.1.CriticalEventGenerationInterval"]
+            | string) in all_attr_result
+          - all_attributes["ServerOS.1.HostName"] in all_attr_result
+          - all_attributes["LCAttributes.1.AutoUpdate"] in all_attr_result
+          - all_attributes["LCAttributes.1.CollectSystemInventoryOnRestart"] in
+             all_attr_result
+          - not no_cm_results.changed
+          - no_cm_results.msg == "No changes found to be applied."
+          - not idempotence_results.changed
+          - idempotence_results.msg == "No changes found to be applied."
+
+  module_defaults:
+    dellemc.openmanage.idrac_attributes:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
