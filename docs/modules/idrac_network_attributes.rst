@@ -40,17 +40,17 @@ Parameters
 
 
   network_attributes (optional, dict, None)
-    Dictionary of network attributes and value. To view the list of attributes and its structure, see the below API \ https://I(idrac_ip\ /redfish/v1/Systems/System.Embedded.1/NetworkAdapters/\<network\_adapter\_id\>/NetworkDeviceFunctions/ \<network\_device\_function\_id\>/Settings) and \ https://%3Cidrac_ip%3E/redfish/v1/Schemas/NetworkDeviceFunction.v1_8_0.json\ .
+    Dictionary of network attributes and value. To view the list of attributes and its structure, see the below API \ `https://I(idrac\_ip <https://I(idrac_ip>`__\ /redfish/v1/Systems/System.Embedded.1/NetworkAdapters/\<network\_adapter\_id\>/NetworkDeviceFunctions/ \<network\_device\_function\_id\>/Settings) and \ `https://\<idrac\_ip\>/redfish/v1/Schemas/NetworkDeviceFunction.v1\_8\_0.json <https://%3Cidrac_ip%3E/redfish/v1/Schemas/NetworkDeviceFunction.v1_8_0.json>`__.
 
-    \ :emphasis:`network\_attributes`\  is mutually exclusive with \ :emphasis:`oem\_network\_attributes`\ .
+    :emphasis:`network\_attributes` is mutually exclusive with :emphasis:`oem\_network\_attributes`.
 
 
   oem_network_attributes (optional, dict, None)
-    The attributes must be part of the Integrated Dell Remote Access Controller Attribute Registry. To view the list of attributes in Attribute Registry for iDRAC9 and newer versions. For more information, see, \ https://I(idrac_ip\ /redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/\<network\_adapter\_id\>/NetworkDeviceFunctions/ \<network\_device\_function\_id\>/Oem/Dell/DellNetworkAttributes/\<network\_device\_function\_id\>) and \ https://I(idrac_ip\ /redfish/v1/Registries/NetworkAttributesRegistry\_\<network\_device\_function\_id\>/ NetworkAttributesRegistry\_network\_port\_id.json).
+    The attributes must be part of the Integrated Dell Remote Access Controller Attribute Registry. To view the list of attributes in Attribute Registry for iDRAC9 and newer versions. For more information, see, \ `https://I(idrac\_ip <https://I(idrac_ip>`__\ /redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/\<network\_adapter\_id\>/NetworkDeviceFunctions/ \<network\_device\_function\_id\>/Oem/Dell/DellNetworkAttributes/\<network\_device\_function\_id\>) and \ `https://I(idrac\_ip <https://I(idrac_ip>`__\ /redfish/v1/Registries/NetworkAttributesRegistry\_\<network\_device\_function\_id\>/ NetworkAttributesRegistry\_network\_port\_id.json).
 
     For iDRAC8 based servers, derive the network attribute name from Server Configuration Profile.
 
-    \ :emphasis:`oem\_network\_attributes`\  is mutually exclusive with \ :emphasis:`network\_attributes`\ .
+    :emphasis:`oem\_network\_attributes` is mutually exclusive with :emphasis:`network\_attributes`.
 
 
   resource_id (optional, str, None)
@@ -62,35 +62,35 @@ Parameters
   clear_pending (optional, bool, False)
     This parameter allows you to clear all the pending OEM network attributes changes.
 
-    \ :literal:`false`\  does not perform any operation.
+    :literal:`false` does not perform any operation.
 
-    \ :literal:`true`\  discards any pending changes to network attributes, or if a job is in scheduled state, removes the job.
+    :literal:`true` discards any pending changes to network attributes, or if a job is in scheduled state, removes the job.
 
-    \ :emphasis:`apply\_time`\  value will be ignored and will not have any impact for \ :emphasis:`clear\_pending`\  operation.
+    :emphasis:`apply\_time` value will be ignored and will not have any impact for :emphasis:`clear\_pending` operation.
 
     This operation is not supported for iDRAC8.
 
 
   apply_time (True, str, None)
-    Apply time of the \ :emphasis:`network\_attributes`\  and \ :emphasis:`oem\_network\_attributes`\ .
+    Apply time of the :emphasis:`network\_attributes` and :emphasis:`oem\_network\_attributes`.
 
-    This is applicable only to \ :emphasis:`network\_attributes`\  and \ :emphasis:`oem\_network\_attributes`\ .
+    This is applicable only to :emphasis:`network\_attributes` and :emphasis:`oem\_network\_attributes`.
 
-    \ :literal:`Immediate`\  allows the user to immediately reboot the host and apply the changes. \ :emphasis:`job\_wait`\  is applicable. This is applicable for \ :emphasis:`oem\_network\_attributes`\  and \ :emphasis:`job\_wait`\ .
+    :literal:`Immediate` allows the user to immediately reboot the host and apply the changes. :emphasis:`job\_wait` is applicable. This is applicable for :emphasis:`oem\_network\_attributes` and :emphasis:`job\_wait`.
 
-    \ :literal:`OnReset`\  allows the user to apply the changes on the next reboot of the host server.
+    :literal:`OnReset` allows the user to apply the changes on the next reboot of the host server.
 
-    \ :literal:`AtMaintenanceWindowStart`\  allows the user to apply at the start of a maintenance window as specified in \ :emphasis:`maintenance\_window`\ . A reboot job is scheduled.
+    :literal:`AtMaintenanceWindowStart` allows the user to apply at the start of a maintenance window as specified in :emphasis:`maintenance\_window`. A reboot job is scheduled.
 
-    \ :literal:`InMaintenanceWindowOnReset`\  allows to apply after a manual reset but within the maintenance window as specified in \ :emphasis:`maintenance\_window`\ .
+    :literal:`InMaintenanceWindowOnReset` allows to apply after a manual reset but within the maintenance window as specified in :emphasis:`maintenance\_window`.
 
-    This is not applicable for iDRAC8 and value will be ignored and will not have any impact for configuring \ :emphasis:`oem\_network\_attributes`\ .
+    This is not applicable for iDRAC8 and value will be ignored and will not have any impact for configuring :emphasis:`oem\_network\_attributes`.
 
 
   maintenance_window (optional, dict, None)
     This option allows you to schedule the maintenance window.
 
-    This is required when \ :emphasis:`apply\_time`\  is \ :literal:`AtMaintenanceWindowStart`\  or \ :literal:`InMaintenanceWindowOnReset`\ .
+    This is required when :emphasis:`apply\_time` is :literal:`AtMaintenanceWindowStart` or :literal:`InMaintenanceWindowOnReset`.
 
 
     start_time (True, str, None)
@@ -109,13 +109,13 @@ Parameters
   job_wait (optional, bool, True)
     Provides the option to wait for job completion.
 
-    This is applicable when \ :emphasis:`apply\_time`\  is \ :literal:`Immediate`\  for \ :emphasis:`oem\_network\_attributes`\ .
+    This is applicable when :emphasis:`apply\_time` is :literal:`Immediate` for :emphasis:`oem\_network\_attributes`.
 
 
   job_wait_timeout (optional, int, 1200)
-    The maximum wait time of \ :emphasis:`job\_wait`\  in seconds. The job is tracked only for this duration.
+    The maximum wait time of :emphasis:`job\_wait` in seconds. The job is tracked only for this duration.
 
-    This option is applicable when \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .
+    This option is applicable when :emphasis:`job\_wait` is :literal:`true`.
 
 
   idrac_ip (True, str, None)
@@ -125,7 +125,7 @@ Parameters
   idrac_user (False, str, None)
     iDRAC username.
 
-    If the username is not provided, then the environment variable \ :envvar:`IDRAC\_USERNAME`\  is used.
+    If the username is not provided, then the environment variable :envvar:`IDRAC\_USERNAME` is used.
 
     Example: export IDRAC\_USERNAME=username
 
@@ -133,7 +133,7 @@ Parameters
   idrac_password (False, str, None)
     iDRAC user password.
 
-    If the password is not provided, then the environment variable \ :envvar:`IDRAC\_PASSWORD`\  is used.
+    If the password is not provided, then the environment variable :envvar:`IDRAC\_PASSWORD` is used.
 
     Example: export IDRAC\_PASSWORD=password
 
@@ -141,7 +141,7 @@ Parameters
   x_auth_token (False, str, None)
     Authentication token.
 
-    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`IDRAC\_X\_AUTH\_TOKEN`\  is used.
+    If the x\_auth\_token is not provided, then the environment variable :envvar:`IDRAC\_X\_AUTH\_TOKEN` is used.
 
     Example: export IDRAC\_X\_AUTH\_TOKEN=x\_auth\_token
 
@@ -151,11 +151,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If \ :literal:`false`\ , the SSL certificates will not be validated.
+    If :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
+    Configure :literal:`false` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
+    Prior to collection version :literal:`5.0.0`\ , the :emphasis:`validate\_certs` is :literal:`false` by default.
 
 
   ca_path (optional, path, None)
@@ -175,7 +175,7 @@ Notes
 .. note::
    - Run this module from a system that has direct access to Dell iDRAC.
    - This module supports both IPv4 and IPv6 address.
-   - This module supports \ :literal:`check\_mode`\ .
+   - This module supports :literal:`check\_mode`.
 
 
 
@@ -353,4 +353,5 @@ Authors
 ~~~~~~~
 
 - Abhishek Sinha(@ABHISHEK-SINHA10)
+- Kritika Bhateja (@Kritika-Bhateja-03)
 

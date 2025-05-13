@@ -59,6 +59,7 @@ MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
 EXPORT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ExportSystemConfiguration"
 IMPORT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ImportSystemConfiguration"
 IMPORT_PREVIEW = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ImportSystemConfigurationPreview"
+GET_IDRAC_MANAGER_ATTRIBUTES_9_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
 
 
 class OpenURLResponse(object):
@@ -215,7 +216,14 @@ class iDRACRedfishAPI(object):
         if response.status_code == 200:
             generation = int(re.search(r"\d+(?=G)", response.json_data["Model"]).group())
             firmware_version = response.json_data["FirmwareVersion"]
-        return generation, firmware_version
+        hw_model = ""
+        try:
+            hw_model_out = self.invoke_request(GET_IDRAC_MANAGER_ATTRIBUTES_9_10, 'GET')
+            if hw_model_out.status_code == 200:
+                hw_model = hw_model_out.json_data.get('Attributes', {}).get('Info.1.HWModel')
+        except HTTPError:
+            hw_model = "iDRAC 8"
+        return generation, firmware_version, hw_model
 
     def wait_for_job_complete(self, task_uri, job_wait=False):
         """

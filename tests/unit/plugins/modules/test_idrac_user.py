@@ -24,6 +24,8 @@ from io import StringIO
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 VERSION = "3.60.60.60"
 VERSION13G = "2.70.70.70"
+HARDWARE_13G = 13
+HARDWARE_14G = 14
 SLOT_API = "/redfish/v1/Managers/iDRAC.Embedded.1/Accounts/{0}/"
 CHANGES_FOUND = "Changes found to commit!"
 SLEEP_PATH = 'idrac_user.time.sleep'
@@ -213,11 +215,11 @@ class TestIDRACUser(FakeAnsibleModule):
             "empty_slot_uri": SLOT_API.format(2)},
         {"ret_val": SUCCESS_UPDATED, "slot_id": 2,
             "slot_uri": SLOT_API.format(2)},
-        {"firm_ver": (14, VERSION), "ret_val": SUCCESS_MSG,
+        {"firm_ver": (14, VERSION, HARDWARE_14G), "ret_val": SUCCESS_MSG,
          "empty_slot_id": 2, "empty_slot_uri": SLOT_API.format(2)},
-        {"firm_ver": (14, VERSION), "ret_val": SUCCESS_UPDATED,
+        {"firm_ver": (14, VERSION, HARDWARE_14G), "ret_val": SUCCESS_UPDATED,
          "slot_id": 2, "slot_uri": SLOT_API.format(2)},
-        {"firm_ver": (14, VERSION), "ret_val": SUCCESS_UPDATED, "slot_id": 2, "slot_uri": SLOT_API.format(2),
+        {"firm_ver": (14, VERSION, HARDWARE_14G), "ret_val": SUCCESS_UPDATED, "slot_id": 2, "slot_uri": SLOT_API.format(2),
          "empty_slot_id": 2, "empty_slot_uri": SLOT_API.format(2)},
     ])
     def test_create_or_modify_account(self, idrac_connection_user_mock, idrac_default_args, mocker, params):
@@ -230,7 +232,7 @@ class TestIDRACUser(FakeAnsibleModule):
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
         idrac_connection_user_mock.get_server_generation = params.get(
-            "firm_ver", (13, VERSION13G))
+            "firm_ver", (13, VERSION13G, HARDWARE_13G))
         mocker.patch(MODULE_PATH + GET_PAYLOAD,
                      return_value={USERNAME2: "test_user"})
         mocker.patch(MODULE_PATH + PAYLOAD_XML,
@@ -253,7 +255,7 @@ class TestIDRACUser(FakeAnsibleModule):
 
     @pytest.mark.parametrize("params", [
         {"ret_val": "Requested changes are already present in the user slot."},
-        {"firm_ver": (14, VERSION), "slot_id": None, "slot_uri": None,
+        {"firm_ver": (14, VERSION, HARDWARE_14G), "slot_id": None, "slot_uri": None,
          "ret_val": "Maximum number of users reached. Delete a user account and retry the operation."},
         {"check_mode": True, "ret_val": "No changes found to commit!"},
         {"check_mode": True, "user_attr": {
@@ -271,7 +273,7 @@ class TestIDRACUser(FakeAnsibleModule):
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=params.get("check_mode", False))
         idrac_connection_user_mock.get_server_generation = params.get(
-            "firm_ver", (13, VERSION13G))
+            "firm_ver", (13, VERSION13G, HARDWARE_13G))
         mocker.patch(MODULE_PATH + GET_PAYLOAD,
                      return_value={USERNAME2: "test_user"})
         mocker.patch(MODULE_PATH + PAYLOAD_XML,

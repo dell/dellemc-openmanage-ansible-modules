@@ -328,7 +328,8 @@ def create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id, em
     :param empty_slot_uri: empty slot uri for create
     :return: json
     """
-    generation, firmware_version = idrac.get_server_generation
+    gen_details = idrac.get_server_generation
+    generation = gen_details[0]
     msg, response = "Unable to retrieve the user details.", {}
     if (slot_id and slot_uri) is None and (empty_slot_id and empty_slot_uri) is not None:
         msg = "Successfully created user account."
