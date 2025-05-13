@@ -121,7 +121,6 @@ class iDRACRedfishAPI(object):
                 "SESSION_ID": "/redfish/v1/Sessions/{Id}",
             }
 
-
     def _get_url(self, uri):
         return "{0}://{1}:{2}{3}".format(self.protocol, self.ipaddress, self.port, uri)
 
