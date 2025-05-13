@@ -785,13 +785,15 @@ def validate_time(time, module):
 
 def get_job_uri_id(rest_obj):
     firmware_obj = IDRACFirmwareInfo(rest_obj)
+    job_uri_id = MANAGER_JOB_ID_URI
     if not firmware_obj.is_omsdk_required():
-        MANAGER_JOB_ID_URI = MANAGER_JOB_ID_URI_10
-    return MANAGER_JOB_ID_URI
+        job_uri_id = MANAGER_JOB_ID_URI_10
+    return job_uri_id
 
 
 def get_job_uri(rest_obj):
     firmware_obj = IDRACFirmwareInfo(rest_obj)
+    job_uri = MANAGER_JOB_URI
     if not firmware_obj.is_omsdk_required():
-        MANAGER_JOB_URI = MANAGER_JOB_URI_10
-    return MANAGER_JOB_URI
+        job_uri = MANAGER_JOB_URI_10
+    return job_uri
