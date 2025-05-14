@@ -688,6 +688,7 @@ def job_tracking_in_diff(idrac, module, obj, job_resp, invalid_attr, job_wait, j
     if job_dict.get('JobState') == "Completed":
         gen_details = idrac.get_server_generation
         firm_ver, hw_model = gen_details[1], gen_details[2]
+        msg = SUCCESS_MSG if not invalid_attr else VALID_AND_INVALID_ATTR_MSG
         if LooseVersion(firm_ver) < '3.0' and isinstance(obj, OEMNetworkAttributes) and hw_model == HARDWARE_8:
             message_id = job_dict.get("MessageId")
             if message_id == "SYS053":
