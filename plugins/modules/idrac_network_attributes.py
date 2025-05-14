@@ -354,6 +354,7 @@ ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE = 'Attribute is not valid.'
 CLEAR_PENDING_NOT_SUPPORTED_WITHOUT_ATTR_IDRAC8 = "Clear pending is not supported."
 WAIT_TIMEOUT_MSG = "The job is not complete after {0} seconds."
 HARDWARE_8 = "iDRAC 8"
+ODATA_ID = "(.*?)@odata"
 
 
 class IDRACNetworkAttributes:
@@ -553,32 +554,17 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
     def __init__(self, idrac, module):
         super().__init__(idrac, module)
 
-    def check_idrac8(self, firm_ver, hw_model):
-        return LooseVersion(firm_ver) < '3.0' and hw_model == HARDWARE_8
-
-    def clear_pending(self):
-        gen_details = self.idrac.get_server_generation
-        firm_ver, hw_model = gen_details[1], gen_details[2]
-        oem_network_attributes = self.module.params.get(
-            'oem_network_attributes')
-        if self.check_idrac8(firm_ver, hw_model):
+    def check_idrac8(self, firm_ver, hw_model, oem_network_attributes):
+        if LooseVersion(firm_ver) < '3.0' and hw_model == HARDWARE_8:
             if oem_network_attributes:
                 return None
             self.module.exit_json(
                 msg=CLEAR_PENDING_NOT_SUPPORTED_WITHOUT_ATTR_IDRAC8)
-        resp = get_dynamic_uri(self.idrac, self.oem_uri, '@Redfish.Settings')
-        settings_uri = resp.get('SettingsObject').get('@odata.id')
-        settings_uri_resp = get_dynamic_uri(self.idrac, settings_uri)
-        pending_attributes = settings_uri_resp.get('Attributes')
-        clear_pending_uri = settings_uri_resp.get('Actions').get(
-            '#DellManager.ClearPending').get('target')
-        if not pending_attributes and not oem_network_attributes:
-            self.module.exit_json(msg=NO_CHANGES_FOUND_MSG)
-        job_resp = get_scheduled_job_resp(self.idrac, 'NICConfiguration')
-        job_id, job_state = job_resp.get('Id'), job_resp.get('JobState')
+
+    def clear_pending_job_track(self, job_state, job_id, oem_network_attributes, job_resp):
         if job_id:
-            if job_state == ["Running"]:
-                job_resp = remove_key(job_resp, regex_pattern='(.*?)@odata')
+            if job_state in ["Running"]:
+                job_resp = remove_key(job_resp, regex_pattern=ODATA_ID)
                 self.module.exit_json(
                     failed=True,
                     msg=JOB_RUNNING_CLEAR_PENDING_ATTR.format('NICConfiguration'),
@@ -589,6 +575,24 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
                     self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
                 if not self.module.check_mode:
                     delete_job(self.idrac, job_id)
+
+    def clear_pending(self):
+        gen_details = self.idrac.get_server_generation
+        firm_ver, hw_model = gen_details[1], gen_details[2]
+        oem_network_attributes = self.module.params.get(
+            'oem_network_attributes')
+        self.check_idrac8(firm_ver, hw_model, oem_network_attributes)
+        resp = get_dynamic_uri(self.idrac, self.oem_uri, '@Redfish.Settings')
+        settings_uri = resp.get('SettingsObject').get('@odata.id')
+        settings_uri_resp = get_dynamic_uri(self.idrac, settings_uri)
+        pending_attributes = settings_uri_resp.get('Attributes')
+        clear_pending_uri = settings_uri_resp.get('Actions').get(
+            '#DellManager.ClearPending').get('target')
+        if not pending_attributes and not oem_network_attributes:
+            self.module.exit_json(msg=NO_CHANGES_FOUND_MSG)
+        job_resp = get_scheduled_job_resp(self.idrac, 'NICConfiguration')
+        job_id, job_state = job_resp.get('Id'), job_resp.get('JobState')
+        self.clear_pending_job_track(job_state, job_id, oem_network_attributes, job_resp)
         if self.module.check_mode and not oem_network_attributes:
             self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
         time.sleep(5)
@@ -670,7 +674,7 @@ def check_status_on_idrac8(idrac, module, obj, job_dict, msg):
                 msg=VALID_AND_INVALID_ATTR_MSG, changed=True, job_status=job_dict)
         elif message_id == "SYS067":
             module.fail_json(msg=INVALID_ATTR_MSG,
-                                job_status=job_dict)
+                             job_status=job_dict)
         else:
             module.fail_json(msg=job_dict.get("Message"))
 
@@ -682,13 +686,13 @@ def job_tracking_in_diff(idrac, module, obj, job_resp, invalid_attr, job_wait, j
         job_uri = obj.get_job_uri().format(job_id=job_id)
         if job_wait:
             job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(
-            idrac,
-            job_uri,
-            max_job_wait_sec=job_wait_timeout,
-            sleep_interval_secs=1
-        )
+                idrac,
+                job_uri,
+                max_job_wait_sec=job_wait_timeout,
+                sleep_interval_secs=1
+            )
             job_dict = remove_key(job_dict,
-                                regex_pattern='(.*?)@odata')
+                                  regex_pattern=ODATA_ID)
             if int(wait_time) >= int(job_wait_timeout):
                 module.exit_json(msg=WAIT_TIMEOUT_MSG.format(
                     job_wait_timeout), changed=True, job_status=job_dict)
@@ -698,8 +702,9 @@ def job_tracking_in_diff(idrac, module, obj, job_resp, invalid_attr, job_wait, j
         else:
             job_resp = idrac.invoke_request(job_uri, 'GET')
             job_dict = job_resp.json_data
+            job_dict = job_resp.json_data
             job_dict = remove_key(job_dict,
-                                  regex_pattern='(.*?)@odata')
+                                  regex_pattern=ODATA_ID)
     if job_dict.get('JobState') == "Completed":
         msg = SUCCESS_MSG if not invalid_attr else VALID_AND_INVALID_ATTR_MSG
         check_status_on_idrac8(idrac, module, obj, job_dict, msg)
@@ -774,7 +779,7 @@ def main():
             perform_operation_for_main(idrac,
                                        module, network_attr_obj, diff, invalid_attr)
     except HTTPError as err:
-        filter_err = remove_key(json.load(err), regex_pattern='(.*?)@odata')
+        filter_err = remove_key(json.load(err), regex_pattern=ODATA_ID)
         module.exit_json(msg=str(err), error_info=filter_err, failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
