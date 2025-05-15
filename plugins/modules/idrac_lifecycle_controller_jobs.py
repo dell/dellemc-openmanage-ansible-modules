@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.1.0
-# Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.13.0
+# Copyright (C) 2018-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -35,6 +35,7 @@ requirements:
 author:
     - "Felix Stephen (@felixs88)"
     - "Anooja Vardhineni (@anooja-vardhineni)"
+    - "Saksham Nautiyal (@Saksham-Nautiyal)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
@@ -97,9 +98,17 @@ error_info:
 
 
 import json
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.\
+    dellemc_idrac import iDRACConnection, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish \
+    import iDRACRedfishAPI
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
+    info.idrac import IDRACInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.\
+    idrac_utils.info.lifecycle_controller_jobs \
+    import IDRACLifecycleControllerJobs
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
+from urllib.error import URLError, HTTPError
 
 
 def main():
@@ -111,18 +120,31 @@ def main():
         argument_spec=specs,
         supports_check_mode=False)
     try:
-        with iDRACConnection(module.params) as idrac:
-            job_id, resp = module.params.get('job_id'), {}
-            if job_id is not None:
-                resp = idrac.job_mgr.delete_job(job_id)
-                jobstr = "job"
+        with iDRACRedfishAPI(module.params) as idrac:
+            server_hw_model = IDRACInfo(idrac).get_idrac_hw_model()
+            if server_hw_model:
+                job_id, resp = module.params.get('job_id'), {}
+                lifecycle_controller_jobs_obj = IDRACLifecycleControllerJobs(idrac)
+                resp, jobstr = lifecycle_controller_jobs_obj.lifecycle_controller_jobs_operation(module)
+
             else:
-                resp = idrac.job_mgr.delete_all_jobs()
-                jobstr = "job queue"
-            if resp["Status"] == "Error":
-                msg = "Failed to delete the Job: {0}.".format(job_id)
-                module.fail_json(msg=msg, status=resp)
+                with iDRACConnection(module.params) as idrac:
+                    job_id, resp = module.params.get('job_id'), {}
+                    if job_id is not None:
+                        resp = idrac.job_mgr.delete_job(job_id)
+                        jobstr = "job"
+                    else:
+                        resp = idrac.job_mgr.delete_all_jobs()
+                        jobstr = "job queue"
+                    if resp["Status"] == "Error":
+                        msg = "Failed to delete the Job: {0}.".format(job_id)
+                        module.fail_json(msg=msg, status=resp)
     except HTTPError as err:
+        if err.code == 400:
+            error_info = json.load(err)
+            resp = lifecycle_controller_jobs_obj.extract_error_info(error_info)
+            msg = "Failed to delete the Job: {0}.".format(job_id)
+            module.fail_json(msg=msg, status=resp)
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
