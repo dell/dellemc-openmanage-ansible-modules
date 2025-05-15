@@ -10,12 +10,13 @@
         username: username
         password: password
         state: present
+      register: session
       delegate_to: localhost
 
     - name: Delete a session
       dellemc.openmanage.idrac_session:
         hostname: 198.162.0.1
         state: absent
-        auth_token: aed4aa802b748d2f3b31deec00a6b28a
-        session_id: 2
+        auth_token: "{{ session.x_auth_token }}"
+        session_id: "{{ session.session_data.Id }}"
       delegate_to: localhost
