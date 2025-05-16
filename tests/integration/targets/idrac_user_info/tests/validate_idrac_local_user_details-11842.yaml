@@ -15,9 +15,9 @@
 - block:
     - name: Fetching all user details using URI
       vars:
-        account_uri: "AccountService/Accounts?$expand=*($levels=1)"
+        acc_uri: "AccountService/Accounts?$expand=*($levels=1)"
       ansible.builtin.uri: &fetch_data
-        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/{{ account_uri }}"
+        url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/{{ acc_uri }}"
         user: "{{ idrac_user }}"
         password: "{{ idrac_password }}"
         method: GET
@@ -43,10 +43,11 @@
 
     - name: Creating a user when user count is 1
       vars:
+        base: "redfish/v1/Managers"
         att: "iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
       ansible.builtin.uri:
         <<: *fetch_data
-        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/{{ att }}"
+        url: "https://{{ idrac_ip }}:{{ idrac_port }}/{{ base }}/{{ att }}"
         method: PATCH
         body_format: json
         body:
@@ -99,7 +100,7 @@
 
     - name: Retrieving all the user details - Check mode
       dellemc.openmanage.idrac_user_info:
-        idrac_ip: "{{idrac_ip}}"
+        idrac_ip: "{{ idrac_ip }}"
       register: all_check_mode
 
     - name: Set formatted message
@@ -124,7 +125,7 @@
 
     - name: Retrieving all the user details - Normal mode
       dellemc.openmanage.idrac_user_info:
-        idrac_ip: "{{idrac_ip}}"
+        idrac_ip: "{{ idrac_ip }}"
       register: all_normal_mode
 
     - name: Set formatted message
@@ -251,13 +252,13 @@
 
   module_defaults:
     dellemc.openmanage.idrac_user_info:
-      idrac_ip: "{{idrac_ip}}"
-      idrac_user: "{{idrac_user}}"
-      idrac_password: "{{idrac_password}}"
-      validate_certs: "{{validate_certs}}"
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
 
     dellemc.openmanage.idrac_user:
-      idrac_ip: "{{idrac_ip}}"
-      idrac_user: "{{idrac_user}}"
-      idrac_password: "{{idrac_password}}"
-      validate_certs: "{{validate_certs}}"
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
