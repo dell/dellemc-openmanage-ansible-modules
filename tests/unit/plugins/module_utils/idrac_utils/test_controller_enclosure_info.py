@@ -90,19 +90,21 @@ class TestIDRACCpuInfo(object):
 
     @pytest.fixture
     def idrac_redfish_object(self, module_params):
+        iDRACRedfishAPI.get_server_generation = [14]
         idrac_redfish_obj = iDRACRedfishAPI(module_params)
         return idrac_redfish_obj
 
     def mock_get_dynamic_idrac_invoke_request(self, *args, **kwargs):
         obj = MagicMock()
         obj.status_code = 200
-        if kwargs['uri'] == GET_IDRAC_CHASSIS_URI:
+        if 'uri' in kwargs and kwargs['uri'] == GET_IDRAC_CHASSIS_URI:
             obj.json_data = CHASSIS_RESP
         else:
             obj.json_data = ENCLOSURE_RESP
         return obj
 
     def test_get_cpu_system_info(self, mocker, module_params):
+        iDRACRedfishAPI.get_server_generation = [14]
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      self.mock_get_dynamic_idrac_invoke_request)
         idrac_obj = iDRACRedfishAPI(module_params=module_params)
@@ -110,6 +112,7 @@ class TestIDRACCpuInfo(object):
         assert resp == expected_resp
 
     def test_get_controller_enclosure_sensor_info(self, mocker, module_params):
+        iDRACRedfishAPI.get_server_generation = [14]
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      self.mock_get_dynamic_idrac_invoke_request)
         idrac_obj = iDRACRedfishAPI(module_params=module_params)
