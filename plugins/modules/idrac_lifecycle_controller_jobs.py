@@ -102,8 +102,6 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.\
     dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish \
     import iDRACRedfishAPI
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
-    info.idrac import IDRACInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
     idrac_utils.info.lifecycle_controller_jobs \
     import IDRACLifecycleControllerJobs
@@ -121,8 +119,8 @@ def main():
         supports_check_mode=False)
     try:
         with iDRACRedfishAPI(module.params) as idrac:
-            server_hw_model = IDRACInfo(idrac).get_idrac_hw_model()
-            if server_hw_model:
+            server_hw_model = idrac.get_server_generation[2]
+            if server_hw_model != "iDRAC8":
                 job_id, resp = module.params.get('job_id'), {}
                 lifecycle_controller_jobs_obj = IDRACLifecycleControllerJobs(idrac)
                 resp, jobstr = lifecycle_controller_jobs_obj.lifecycle_controller_jobs_operation(module)
@@ -138,18 +136,18 @@ def main():
                         jobstr = "job queue"
                     if resp["Status"] == "Error":
                         msg = "Failed to delete the Job: {0}.".format(job_id)
-                        module.fail_json(msg=msg, status=resp)
+                        module.exit_json(msg=msg, status=resp, failed=True)
     except HTTPError as err:
         if err.code == 400:
             error_info = json.load(err)
             resp = lifecycle_controller_jobs_obj.extract_error_info(error_info)
             msg = "Failed to delete the Job: {0}.".format(job_id)
-            module.fail_json(msg=msg, status=resp)
-        module.fail_json(msg=str(err), error_info=json.load(err))
+            module.exit_json(msg=msg, status=resp, failed=True)
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (ImportError, ValueError, RuntimeError, TypeError) as e:
-        module.fail_json(msg=str(e))
+        module.exit_json(msg=str(e), failed=True)
     module.exit_json(msg="Successfully deleted the {0}.".format(jobstr), status=resp, changed=True)
 
 
