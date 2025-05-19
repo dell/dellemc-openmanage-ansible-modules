@@ -102,8 +102,8 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.\
     dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish \
     import iDRACRedfishAPI
-from ansible_collections.dellemc.openmanage.plugins.module_utils.\
-    idrac_utils.info.lifecycle_controller_jobs \
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
+    lifecycle_controller.lifecycle_controller_jobs \
     import IDRACLifecycleControllerJobs
 from ansible.module_utils.basic import AnsibleModule
 from urllib.error import URLError, HTTPError
