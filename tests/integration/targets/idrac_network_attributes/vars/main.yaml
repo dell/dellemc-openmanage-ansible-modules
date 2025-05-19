@@ -1,0 +1,6 @@
+apply_time_immediate: Immediate
+apply_time_maintenancewindowstart: AtMaintenanceWindowStart
+apply_time_maintenancewindowonreset: InMaintenanceWindowOnReset
+apply_time_onreset: OnReset
+duration: 1200
+add_minutes: 1

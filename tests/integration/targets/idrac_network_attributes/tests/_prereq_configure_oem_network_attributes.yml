@@ -1,0 +1,35 @@
+- name: Fetching attibutes values
+  ansible.builtin.include_tasks: _fetch_oem_network_attributes.yml
+
+- name: Setting initial attibutes values
+  ansible.builtin.set_fact:
+    initial_parameters: "{{ fetched_attributes.json.Attributes }}"
+
+- name: Configure network attributes
+  dellemc.openmanage.idrac_network_attributes: &configure_network_attributes
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    validate_certs: "{{ validate_certs }}"
+    network_adapter_id: "{{ inp_network_adapter_id }}"
+    network_device_function_id: "{{ inp_network_device_function_id }}"
+    oem_network_attributes:
+      BannerMessageTimeout: 0
+      LnkSpeed: "AutoNeg"
+      WakeOnLan: "Disabled"
+      VLanMode: "Disabled"
+    apply_time: Immediate
+  register: prereq_result_set_attrs
+
+- name: Fetching network attributes
+  ansible.builtin.include_tasks: _fetch_oem_network_attributes.yml
+
+- name: Verify prerequisite - Fetching network attributes is set
+  ansible.builtin.assert:
+    that:
+      - fetched_attributes.json.Attributes.BannerMessageTimeout == 0
+      - fetched_attributes.json.Attributes.LnkSpeed == "AutoNeg"
+      - fetched_attributes.json.Attributes.WakeOnLan == "Disabled"
+      - fetched_attributes.json.Attributes.VLanMode == "Disabled"
+    fail_msg: "Attributes not set"
+    success_msg: "Attributes set successfully"

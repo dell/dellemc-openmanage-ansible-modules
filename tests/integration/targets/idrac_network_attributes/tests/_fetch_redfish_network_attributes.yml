@@ -1,0 +1,22 @@
+- name: Waiting for 30 secs before fetching redfish attributes
+  ansible.builtin.pause:
+    seconds: 30
+
+- name: Prerequisite - Fetching network attributes
+  vars:
+    network_adapt: "/redfish/v1/Systems/System.Embedded.1/NetworkAdapters/"
+  ansible.builtin.uri: &network_uri
+    url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}\
+    {{ network_adapt }}{{ inp_network_adapter_id }}\
+    /NetworkDeviceFunctions/{{ inp_network_device_function_id }}/Settings"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    body: {}
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+    headers: 'Accept=application/json'
+    force_basic_auth: true
+  register: fetched_attributes

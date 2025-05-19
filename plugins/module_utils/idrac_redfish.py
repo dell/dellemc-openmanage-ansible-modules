@@ -227,7 +227,7 @@ class iDRACRedfishAPI(object):
         try:
             hw_model_out = self.invoke_request(GET_IDRAC_MANAGER_ATTRIBUTES_9_10, 'GET')
             if hw_model_out.status_code == 200:
-                hw_model = hw_model_out.json_data.get('Attributes', {}).get('Info.1.HWModel')
+                hw_model = hw_model_out.json_data.get('Attributes', {}).get('Info.1.HWModel', "iDRAC 9")
         except HTTPError:
             hw_model = "iDRAC 8"
         return generation, firmware_version, hw_model
