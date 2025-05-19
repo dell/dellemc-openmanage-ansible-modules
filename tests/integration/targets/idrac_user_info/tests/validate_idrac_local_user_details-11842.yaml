@@ -21,7 +21,7 @@
         user: "{{ idrac_user }}"
         password: "{{ idrac_password }}"
         method: GET
-        body: {}
+        force_basic_auth: true
         validate_certs: false
         body_format: json
         return_content: true
