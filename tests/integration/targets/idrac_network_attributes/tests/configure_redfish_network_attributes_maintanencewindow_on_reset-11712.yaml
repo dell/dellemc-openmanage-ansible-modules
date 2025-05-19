@@ -79,7 +79,8 @@
 
     - ansible.builtin.include_tasks: _get_date_time.yml
 
-    - ansible.builtin.include_role: name=prepare_idrac_lifecycle_controller_status
+    - ansible.builtin.include_role:
+        name: prepare_idrac_lifecycle_controller_status
 
     - name: Configure network attributes - Idempotency
       dellemc.openmanage.idrac_network_attributes:

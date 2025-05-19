@@ -1,5 +1,5 @@
+---
 - block:
-
     - name: Get iDRAC time using uri
       ansible.builtin.uri:
         url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}\

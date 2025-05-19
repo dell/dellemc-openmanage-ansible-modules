@@ -1,3 +1,4 @@
+---
 - name: Fetching attibutes values
   ansible.builtin.include_tasks: _fetch_oem_network_attributes.yml
 

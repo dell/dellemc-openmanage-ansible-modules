@@ -69,7 +69,8 @@
         that:
           - fetched_attributes.json.Attributes.BannerMessageTimeout == 2
 
-    - name: Clear pending attributes and Configure network attributes  (Idempotence)
+    - name: Clear pending attributes and Configure network attributes
+        (Idempotence)
       dellemc.openmanage.idrac_network_attributes:
         <<: *clear_pending_attributes
       register: idempotence_configure_network_attributes

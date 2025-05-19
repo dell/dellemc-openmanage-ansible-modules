@@ -1,3 +1,4 @@
+---
 apply_time_immediate: Immediate
 apply_time_maintenancewindowstart: AtMaintenanceWindowStart
 apply_time_maintenancewindowonreset: InMaintenanceWindowOnReset

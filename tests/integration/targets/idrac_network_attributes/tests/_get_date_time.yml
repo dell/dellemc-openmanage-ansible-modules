@@ -1,7 +1,8 @@
+---
 - name: Get data using uri
   ansible.builtin.uri:
     url: https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}\
-    /redfish/v1/Managers/iDRAC.Embedded.1
+     /redfish/v1/Managers/iDRAC.Embedded.1
     user: "{{ idrac_user }}"
     password: "{{ idrac_password }}"
     method: GET

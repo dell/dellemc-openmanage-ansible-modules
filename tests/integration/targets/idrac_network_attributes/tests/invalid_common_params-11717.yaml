@@ -196,6 +196,7 @@
 
     - name: Negative - missing required argument
       dellemc.openmanage.idrac_network_attributes:
+        idrac_ip: "{{ idrac_ip }}"
       register: invalid_missing_argument
       ignore_errors: true
 

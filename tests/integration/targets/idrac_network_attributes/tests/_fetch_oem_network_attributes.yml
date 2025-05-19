@@ -1,3 +1,4 @@
+---
 - name: Waiting for 30 secs before fetching oem attributes
   ansible.builtin.pause:
     seconds: 30
