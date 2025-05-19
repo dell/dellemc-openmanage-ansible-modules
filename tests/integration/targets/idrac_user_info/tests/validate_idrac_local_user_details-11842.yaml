@@ -1,0 +1,264 @@
+---
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+      idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+    idrac_password is not defined
+
+- block:
+    - name: Fetching all user details using URI
+      vars:
+        acc_uri: "AccountService/Accounts?$expand=*($levels=1)"
+      ansible.builtin.uri: &fetch_data
+        url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/{{ acc_uri }}"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        method: GET
+        force_basic_auth: true
+        validate_certs: false
+        body_format: json
+        return_content: true
+        status_code: 200
+        headers: 'Accept=application/json'
+      register: uri_data
+
+    - ansible.builtin.set_fact:
+        members: "{{ uri_data.json.Members }}"
+
+    - ansible.builtin.set_fact:
+        current_user_list_with_odata: "{{ current_user_list_with_odata |
+          default([]) + [item] }}"
+      loop: "{{ members }}"
+      when: item.UserName != ""
+
+    - ansible.builtin.set_fact:
+        count: "{{ current_user_list_with_odata | length }}"
+
+    - name: Creating a user when user count is 1
+      vars:
+        base: "redfish/v1/Managers"
+        att: "iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
+      ansible.builtin.uri:
+        <<: *fetch_data
+        url: "https://{{ idrac_ip }}:{{ idrac_port }}/{{ base }}/{{ att }}"
+        method: PATCH
+        body_format: json
+        body:
+          Attributes:
+            Users.7.UserName: "testAnsible"
+            Users.7.Password: "Abcdef_123$"
+            Users.7.Enable: "Enabled"
+            Users.7.IpmiLanPrivilege: "User"
+            Users.7.IpmiSerialPrivilege: "Operator"
+            Users.7.SolEnable: "Enabled"
+            Users.7.ProtocolEnable: "Enabled"
+      register: new_user
+      when: count == '1'
+
+    - ansible.builtin.set_fact:
+        count: '2'
+      when: new_user.changed
+
+    - name: Fetching the current user list using URI when new user has created
+      ansible.builtin.uri:
+        <<: *fetch_data
+      register: new_fetched_data
+      when: new_user.changed
+
+    - ansible.builtin.set_fact:
+        members: "{{ new_fetched_data.json.Members }}"
+        current_user_list_with_odata: "{{ [] }}"
+      when: new_user.changed
+
+    - ansible.builtin.set_fact:
+        current_user_list_with_odata: "{{ current_user_list_with_odata |
+          default([]) + [item] }}"
+      loop: "{{ members }}"
+      when:
+        - item.UserName != ""
+        - new_user.changed
+
+    - ansible.builtin.set_fact:
+        count: "{{ current_user_list_with_odata | length }}"
+      when: new_user.changed
+
+    - ansible.builtin.set_fact:
+        user_list_without_odata: "{{ user_list_without_odata |
+          default([]) + [ item | dict2items | reject('search', '@odata') |
+          items2dict ] }}"
+      loop: "{{ current_user_list_with_odata }}"
+
+    - ansible.builtin.set_fact:
+        key_list: "{{ user_list_without_odata[0].keys() | list }}"
+
+    - name: Retrieving all the user details - Check mode
+      dellemc.openmanage.idrac_user_info:
+        idrac_ip: "{{ idrac_ip }}"
+      register: all_check_mode
+
+    - name: Set formatted message
+      ansible.builtin.set_fact:
+        formatted_msg: "Successfully retrieved the information of {{ count }}
+          user(s)."
+
+    - name: Verifying retrieve all user details - Check mode
+      ansible.builtin.assert:
+        that:
+          - not all_check_mode.changed
+          - all_check_mode.msg == formatted_msg
+
+    - name: Comparing module response vs URI response (except Oem as a key) -
+        All users - Check mode
+      ansible.builtin.assert:
+        that: all_check_mode.user_info[item[0]].get(item[1]) ==
+          user_list_without_odata[item[0]].get(item[1])
+      with_nested:
+        - "{{ range(0, (count | int)) | list }}"
+        - "{{ key_list }}"
+
+    - name: Retrieving all the user details - Normal mode
+      dellemc.openmanage.idrac_user_info:
+        idrac_ip: "{{ idrac_ip }}"
+      register: all_normal_mode
+
+    - name: Set formatted message
+      ansible.builtin.set_fact:
+        formatted_msg: "Successfully retrieved the information of {{ count }}
+          user(s)."
+
+    - name: Verifying retreive all user details - Normal mode
+      ansible.builtin.assert:
+        that:
+          - not all_normal_mode.changed
+          - all_normal_mode.msg == formatted_msg
+
+    - name: Comparing module response vs URI response (except Oem as a key) -
+        All users - Normal mode
+      ansible.builtin.assert:
+        that: all_check_mode.user_info[item[0]].get(item[1]) ==
+          user_list_without_odata[item[0]].get(item[1])
+      with_nested:
+        - "{{ range(0, (count | int)) | list }}"
+        - "{{ key_list }}"
+
+    - name: Retrieving specific user details - Check mode
+      dellemc.openmanage.idrac_user_info:
+        username: 'root'
+      register: root_check_mode
+
+    - name: Verifying retreive specific user details - Check mode
+      ansible.builtin.assert:
+        that:
+          - not root_check_mode.changed
+          - root_check_mode.msg  ==
+            'Successfully retrieved the user information.'
+
+    - name: Comparing module response vs URI response (except Oem as a key) -
+        Specific user - Check mode
+      ansible.builtin.assert:
+        that: root_check_mode.user_info[item[0]].get(item[1]) ==
+          user_list_without_odata[item[0]].get(item[1])
+      with_nested:
+        - "{{ range(0, (count | int)) | list }}"
+        - "{{ key_list }}"
+      when:
+        - item[0] == 0
+        - user_list_without_odata[0]['UserName'] == 'root'
+
+    - name: Retrieving specific user details - Normal mode
+      dellemc.openmanage.idrac_user_info:
+        username: 'root'
+      register: root_normal_mode
+
+    - name: Verifying retreive specific user details - Normal mode
+      ansible.builtin.assert:
+        that:
+          - not root_normal_mode.changed
+          - root_normal_mode.msg ==
+            'Successfully retrieved the user information.'
+
+    - name: Comparing module response vs URI response (except Oem as a key) -
+        Specific user - Normal mode
+      ansible.builtin.assert:
+        that: root_check_mode.user_info[item[0]].get(item[1]) ==
+          user_list_without_odata[item[0]].get(item[1])
+      with_nested:
+        - "{{ range(0, (count | int)) | list }}"
+        - "{{ key_list }}"
+      when:
+        - item[0] == 0
+        - user_list_without_odata[0]['UserName'] == 'root'
+
+    - name: Retrieving specific user details with Id - Check mode
+      dellemc.openmanage.idrac_user_info:
+        user_id: 2
+      register: id_check_mode
+
+    - name: Verifying retreive specific user details with Id - Check mode
+      ansible.builtin.assert:
+        that:
+          - not id_check_mode.changed
+          - id_check_mode.msg == 'Successfully retrieved the user information.'
+
+    - name: Comparing module response vs URI response (except Oem as a key) -
+        Specific Id - Check mode
+      ansible.builtin.assert:
+        that: id_check_mode.user_info[item[0]].get(item[1]) ==
+          user_list_without_odata[item[0]].get(item[1])
+      with_nested:
+        - "{{ range(0, (count | int)) | list }}"
+        - "{{ key_list }}"
+      when:
+        - item[0] == 0
+        - user_list_without_odata[0]['Id'] == '2'
+
+    - name: Retrieving specific user details with id - Normal mode
+      dellemc.openmanage.idrac_user_info:
+        user_id: 2
+      register: id_normal_mode
+
+    - name: Verifying retreive specific user details with id - Normal mode
+      ansible.builtin.assert:
+        that:
+          - not id_normal_mode.changed
+          - id_normal_mode.msg  ==
+            'Successfully retrieved the user information.'
+
+    - name: Comparing module response vs URI response (except Oem as a key) -
+        Specific Id - Normal mode
+      ansible.builtin.assert:
+        that: id_normal_mode.user_info[item[0]].get(item[1]) ==
+          user_list_without_odata[item[0]].get(item[1])
+      with_nested:
+        - "{{ range(0, (count | int)) | list }}"
+        - "{{ key_list }}"
+      when:
+        - item[0] == 0
+        - user_list_without_odata[0]['Id'] == '2'
+
+    - name: Deleting the new user after testcases if created.
+      dellemc.openmanage.idrac_user:
+        state: 'absent'
+        user_name: 'testAnsible'
+      when: new_user.changed
+
+
+  module_defaults:
+    dellemc.openmanage.idrac_user_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+    dellemc.openmanage.idrac_user:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
