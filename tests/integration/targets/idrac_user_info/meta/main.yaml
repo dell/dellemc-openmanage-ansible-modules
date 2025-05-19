@@ -1,0 +1,3 @@
+---
+dependencies:
+  - prepare_idrac_lifecycle_controller_status
