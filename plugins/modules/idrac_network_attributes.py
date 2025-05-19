@@ -702,7 +702,6 @@ def job_tracking_in_diff(idrac, module, obj, job_resp, invalid_attr, job_wait, j
         else:
             job_resp = idrac.invoke_request(job_uri, 'GET')
             job_dict = job_resp.json_data
-            job_dict = job_resp.json_data
             job_dict = remove_key(job_dict,
                                   regex_pattern=ODATA_ID)
     if job_dict.get('JobState') == "Completed":
