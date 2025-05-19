@@ -83,7 +83,7 @@
     - name: Get the job ID split
       ansible.builtin.set_fact:
         list_uri_location: "{{ all_uri.location | split('/') }}"
-        
+
     - name: Get the job ID
       ansible.builtin.set_fact:
         export_job_id: "{{ list_uri_location[-1] }}"

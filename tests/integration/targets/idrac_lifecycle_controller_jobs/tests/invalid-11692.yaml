@@ -30,7 +30,10 @@
           - invalid_job_id.msg == "Failed to delete the Job: 999."
           - '"Invalid Job ID" in invalid_job_id.status.Message'
           - 'invalid_unreachable.failed or invalid_unreachable.unreachable'
-          - 'invalid_unreachable.msg == "Unable to communicate with iDRAC 999.999.999.999. This may be due to one of the following: Incorrect username or password, unreachable iDRAC IP or a failure in TLS/SSL handshake." or "Name or service not known" in invalid_unreachable.msg'
+          - 'invalid_unreachable.msg == "Unable to communicate with iDRAC 999.999.999.999.
+            This may be due to one of the following: Incorrect username or password,
+            unreachable iDRAC IP or a failure in TLS/SSL handshake."
+            or "Name or service not known" in invalid_unreachable.msg'
 
   module_defaults:
     dellemc.openmanage.idrac_lifecycle_controller_jobs:
