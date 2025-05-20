@@ -16,7 +16,7 @@ import pytest
 import json
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_lifecycle_controller_jobs
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
-from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
+from urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import SSLValidationError
 from unittest.mock import MagicMock, PropertyMock
 from io import StringIO
@@ -194,7 +194,14 @@ class TestDeleteLcJob(FakeAnsibleModule):
 
     @pytest.mark.parametrize("exc_type", [URLError, HTTPError, ImportError, ValueError, RuntimeError, TypeError])
     def test_main_exception_handling_idrac_lc_job_case(self, exc_type, idrac_lc_jobs_connection_mock,
-                                                       idrac_default_args):
+                                                       idrac_default_args, mocker):
+        mock_idrac = MagicMock()
+        mock_idrac.get_server_generation.return_value = server_generation_info
+
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_jobs.iDRACRedfishAPI",
+            return_value=mock_idrac
+        )
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type not in [HTTPError, SSLValidationError]:
             idrac_lc_jobs_connection_mock.job_mgr.delete_all_jobs.side_effect = exc_type('test')
