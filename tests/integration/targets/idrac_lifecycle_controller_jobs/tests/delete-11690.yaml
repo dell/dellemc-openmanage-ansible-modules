@@ -5,7 +5,7 @@
 # https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
-  fail:
+  ansible.builtin.fail:
     msg:
       'Please define the following variables: idrac_ip,
       idrac_user and idrac_password.'
@@ -18,42 +18,44 @@
     - ansible.builtin.include_tasks: _helper.yml
 
     - name: Delete LC Job.
-      idrac_lifecycle_controller_jobs:
-        job_id: "{{export_job_id}}"
+      dellemc.openmanage.idrac_lifecycle_controller_jobs:
+        job_id: "{{ export_job_id }}"
       register: delete_single_job
 
     - name: Get the URLs
       ansible.builtin.set_fact:
-        url_1: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/"
+        url_1: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/"
         url_2: "Managers/iDRAC.Embedded.1/Oem/Dell/Jobs"
 
     - name: Get job detail by uri.
-      uri:
+      ansible.builtin.uri:
         url: "{{ url_1}}{{ url_2 }}"
-        user: "{{idrac_user}}"
-        password: "{{idrac_password}}"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
         validate_certs: false
         headers: 'Accept=application/json'
+        force_basic_auth: true
       register: uri_single_job
 
     - ansible.builtin.include_tasks: _helper.yml
 
     - name: Delete LC Job Queue.
-      idrac_lifecycle_controller_jobs:
+      dellemc.openmanage.idrac_lifecycle_controller_jobs:
         validate_certs: false
       register: delete_all_jobs
 
     - name: Get all job details by uri.
-      uri:
+      ansible.builtin.uri:
         url: "{{ url_1}}{{ url_2 }}"
-        user: "{{idrac_user}}"
-        password: "{{idrac_password}}"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
         validate_certs: false
         headers: 'Accept=application/json'
+        force_basic_auth: true
       register: uri_all_jobs
 
     - name: verify status of tasks
-      assert:
+      ansible.builtin.assert:
         that:
           - export_job_id not in (uri_single_job.json | string)
           - "uri_single_job.json['Members@odata.count'] != 0"
@@ -61,12 +63,12 @@
 
   module_defaults:
     dellemc.openmanage.idrac_lifecycle_controller_jobs:
-      idrac_ip: "{{idrac_ip}}"
-      idrac_user: "{{idrac_user}}"
-      idrac_password: "{{idrac_password}}"
-      validate_certs: "{{validate_certs}}"
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
     dellemc.openmanage.idrac_server_config_profile:
-      idrac_ip: "{{idrac_ip}}"
-      idrac_user: "{{idrac_user}}"
-      idrac_password: "{{idrac_password}}"
-      validate_certs: "{{validate_certs}}"
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

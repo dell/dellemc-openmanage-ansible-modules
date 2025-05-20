@@ -28,11 +28,11 @@
 
     - name: Create Export SCP job.
       ansible.builtin.uri:
-        url: "https://{{idrac_ip}}:{{idrac_port}}\
+        url: "https://{{ idrac_ip }}:{{ idrac_port }}\
           /redfish/v1/Managers/iDRAC.Embedded.1/Actions\
           /Oem/EID_674_Manager.ExportSystemConfiguration"
-        user: "{{idrac_user}}"
-        password: "{{idrac_password}}"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
         method: POST
         body:
           ExportFormat: JSON
@@ -49,11 +49,11 @@
 
     - name: Create Export SCP job.
       ansible.builtin.uri:
-        url: "https://{{idrac_ip}}:{{idrac_port}}\
+        url: "https://{{ idrac_ip }}:{{ idrac_port }}\
           /redfish/v1/Managers/iDRAC.Embedded.1/Actions\
           /Oem/OemManager.ExportSystemConfiguration"
-        user: "{{idrac_user}}"
-        password: "{{idrac_password}}"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
         method: POST
         body:
           ExportFormat: JSON
@@ -90,9 +90,9 @@
 
     - name: Get Exported SCP contents.
       ansible.builtin.uri:
-        url: "{{all_uri.location}}"
-        user: "{{idrac_user}}"
-        password: "{{idrac_password}}"
+        url: "{{ all_uri.location }}"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
         return_content: true
         validate_certs: false
         headers:
