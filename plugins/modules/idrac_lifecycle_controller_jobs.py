@@ -119,7 +119,8 @@ def main():
         supports_check_mode=False)
     try:
         with iDRACRedfishAPI(module.params) as idrac:
-            server_hw_model = idrac.get_server_generation[2]
+            server_det = idrac.get_server_generation
+            server_hw_model = server_det[2]
             if server_hw_model != "iDRAC 8":
                 job_id, resp = module.params.get('job_id'), {}
                 lifecycle_controller_jobs_obj = IDRACLifecycleControllerJobs(idrac)

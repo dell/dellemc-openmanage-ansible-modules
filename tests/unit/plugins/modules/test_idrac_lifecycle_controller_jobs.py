@@ -72,10 +72,14 @@ class TestDeleteLcJob(FakeAnsibleModule):
     def test_main_get_lc_job_success_case00(self,
                                             idrac_default_args,
                                             mocker):
-        mocker.patch(MODULE_PATH +
-                     "idrac_lifecycle_controller_jobs."
-                     "iDRACRedfishAPI.get_server_generation",
-                     return_value="iDRAC 9")
+        mock_idrac = MagicMock()
+        mock_idrac.get_server_generation.return_value = server_generation_info
+
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_jobs.iDRACRedfishAPI",
+            return_value=mock_idrac
+        )
+        mock_idrac.__enter__.return_value = mock_idrac
         idrac_default_args.update({"job_id": "job_id"})
         mocker.patch(MODULE_PATH +
                      "idrac_lifecycle_controller_jobs."
@@ -87,8 +91,14 @@ class TestDeleteLcJob(FakeAnsibleModule):
     def test_main_get_lc_job_success_case01(self,
                                             idrac_default_args,
                                             mocker):
-        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_jobs.iDRACRedfishAPI.get_server_generation",
-                     return_value="iDRAC 9")
+        mock_idrac = MagicMock()
+        mock_idrac.get_server_generation.return_value = server_generation_info
+
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_jobs.iDRACRedfishAPI",
+            return_value=mock_idrac
+        )
+        mock_idrac.__enter__.return_value = mock_idrac
         mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_jobs.IDRACLifecycleControllerJobs.lifecycle_controller_jobs_operation",
                      return_value=({"Status": "Success"}, "job queue"))
         result = self._run_module(idrac_default_args)
@@ -97,10 +107,14 @@ class TestDeleteLcJob(FakeAnsibleModule):
     def test_main_get_lc_job_failure_case(self,
                                           idrac_default_args,
                                           mocker):
-        mocker.patch(MODULE_PATH +
-                     "idrac_lifecycle_controller_jobs."
-                     "iDRACRedfishAPI.get_server_generation",
-                     return_value="iDRAC 9")
+        mock_idrac = MagicMock()
+        mock_idrac.get_server_generation.return_value = server_generation_info
+
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_jobs.iDRACRedfishAPI",
+            return_value=mock_idrac
+        )
+        mock_idrac.__enter__.return_value = mock_idrac
 
         error_response = {
             "error": {
