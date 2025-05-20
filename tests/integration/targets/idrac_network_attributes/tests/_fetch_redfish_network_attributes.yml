@@ -5,7 +5,7 @@
 
 - name: Prerequisite - Fetching network attributes
   vars:
-    network_adapt: "/redfish/v1/Systems/System.Embedded.1/NetworkAdapters/"
+    network_adapt: "/redfish/v1/Systems/System.Embedded.1/NetworkInterfaces/"
   ansible.builtin.uri: &network_uri
     url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}\
     {{ network_adapt }}{{ inp_network_adapter_id }}\
