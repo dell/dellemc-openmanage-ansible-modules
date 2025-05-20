@@ -4,12 +4,8 @@
     seconds: 30
 
 - name: Prerequisite - Fetching network attributes
-  vars:
-    base_uri: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}"
-    network_adapt: "/redfish/v1/Systems/System.Embedded.1/NetworkInterfaces/"
-  ansible.builtin.uri: &network_uri
-    url: "{{ base_uri }}{{ network_adapt }}{{ inp_network_adapter_id }}\
-    /NetworkDeviceFunctions/{{ inp_network_device_function_id }}\
+  ansible.builtin.uri:
+    url: "{{ base_uri }}{{ ntwk_fn_uri }}\
     /Oem/Dell/DellNetworkAttributes/{{ inp_network_device_function_id }}"
     user: "{{ idrac_user }}"
     password: "{{ idrac_password }}"

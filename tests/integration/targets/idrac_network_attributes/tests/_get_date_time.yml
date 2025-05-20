@@ -1,8 +1,7 @@
 ---
 - name: Get data using uri
   ansible.builtin.uri:
-    url: https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}\
-     /redfish/v1/Managers/iDRAC.Embedded.1
+    url: "{{ base_uri }}{{ idrac_emebedded_uri }}"
     user: "{{ idrac_user }}"
     password: "{{ idrac_password }}"
     method: GET
@@ -11,6 +10,7 @@
     return_content: true
     status_code: 200
     headers: 'Accept=application/json'
+    force_basic_auth: true
   register: fetched_data
 
 - name: Set date timeout

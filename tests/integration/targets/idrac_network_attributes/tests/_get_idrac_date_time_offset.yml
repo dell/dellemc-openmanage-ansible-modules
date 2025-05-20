@@ -2,8 +2,7 @@
 - block:
     - name: Get iDRAC time using uri
       ansible.builtin.uri:
-        url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}\
-        /redfish/v1/Managers/iDRAC.Embedded.1"
+        url: "{{ base_uri }}{{ idrac_emebedded_uri }}"
         user: "{{ idrac_user }}"
         password: "{{ idrac_password }}"
         method: GET
