@@ -65,7 +65,7 @@
 
     - name: Verify task status - Clear pending attributes and Configure network
         attributes  - attributes set
-      assert:
+      ansible.buitin.assert:
         that:
           - fetched_attributes.json.Attributes.BannerMessageTimeout == 2
 

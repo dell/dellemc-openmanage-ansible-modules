@@ -62,7 +62,7 @@
       ansible.builtin.include_tasks: _fetch_redfish_network_attributes.yml
 
     - name: Verify task status - Configure network attributes - attributes set
-      assert:
+      ansible.builtin.assert:
         that:
           - fetched_attributes.json.Ethernet.VLAN.VLANEnable == true
 
