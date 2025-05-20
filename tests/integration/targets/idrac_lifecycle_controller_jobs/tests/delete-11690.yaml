@@ -5,8 +5,12 @@
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   fail:
-    msg: 'Please define the following variables: idrac_ip, idrac_user and idrac_password.'
-  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+    msg:
+      'Please define the following variables: idrac_ip,
+      idrac_user and idrac_password.'
+  when:
+    idrac_ip is not defined or idrac_user is not defined or
+    idrac_password is not defined
 
 - block:
     - ansible.builtin.include_tasks: _helper.yml
@@ -17,9 +21,14 @@
         job_id: "{{export_job_id}}"
       register: delete_single_job
 
+    - name: Get the URLs
+      ansible.builtin.set_fact:
+        url_1: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/"
+        url_2: "Managers/iDRAC.Embedded.1/Oem/Dell/Jobs"
+
     - name: Get job detail by uri.
       uri:
-        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs
+        url: "{{ url_1}}{{ url_2 }}"
         user: "{{idrac_user}}"
         password: "{{idrac_password}}"
         validate_certs: false
@@ -30,11 +39,12 @@
 
     - name: Delete LC Job Queue.
       idrac_lifecycle_controller_jobs:
+        validate_certs: false
       register: delete_all_jobs
 
     - name: Get all job details by uri.
       uri:
-        url: https://{{idrac_ip}}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs
+        url: "{{ url_1}}{{ url_2 }}"
         user: "{{idrac_user}}"
         password: "{{idrac_password}}"
         validate_certs: false
