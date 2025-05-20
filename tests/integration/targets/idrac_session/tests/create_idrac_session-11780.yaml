@@ -59,10 +59,13 @@
           - actual_messages[item] in expected_messages[item]
       loop: "{{ range(expected_messages | length) }}"
 
+    - name: Get session URI
+      ansible.builtin.include_tasks: _get_session_uri.yml
+
     - name: Validate creation of session via API
       ansible.builtin.uri:
-        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
-         /redfish/v1/Sessions/{{ session_id }}"
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+          {{ session_uri }}/{{ session_id }}"
         method: GET
         status_code: 200
         user: "{{ idrac_user }}"

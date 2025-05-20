@@ -1,0 +1,24 @@
+---
+- block:
+    - name: Get System Inevntory.
+      dellemc.openmanage.idrac_system_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+      register: result
+
+    - name: Get Server Generation
+      ansible.builtin.set_fact:
+        generation: "{{result.system_info.System[0].SystemGeneration
+          | regex_search('[0-9]+') | int}}"
+
+    - name: Set session URI's
+      ansible.builtin.set_fact:
+        session_uri: "/redfish/v1/Sessions"
+      when: generation | int <=13
+
+    - name: Set session URI's
+      ansible.builtin.set_fact:
+        session_uri: "/redfish/v1/SessionService/Sessions"
+      when: generation | int > 13

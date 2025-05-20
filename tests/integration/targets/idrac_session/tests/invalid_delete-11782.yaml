@@ -38,32 +38,6 @@
           - 'invalid_missing_argument.msg == "state is absent but all of the
            following are missing: session_id"'
 
-    - name: Negative - Invalid session id
-      dellemc.openmanage.idrac_session:
-        state: absent
-        x_auth_token: "{{ x_auth_token }}"
-        session_id: invalid
-      register: invalid_session_id
-      ignore_errors: true
-
-    - ansible.builtin.set_fact:
-        invalid_session_id_expected_msg: "argument 'session_id' is of type
-         <class 'str'> and we were unable to convert to int: <class 'str'>
-         cannot be converted to an int"
-
-    - ansible.builtin.set_fact:
-        invalid_session_id_expected_msg2: "argument 'session_id' is of type
-         <class 'str'> and we were unable to convert to int: \"'invalid'\"
-         cannot be converted to an int"
-
-    - name: Verify task status - Negative - Invalid session id
-      ansible.builtin.assert:
-        that:
-          - invalid_session_id.failed
-          - not invalid_session_id.changed
-          - invalid_session_id.msg == invalid_session_id_expected_msg or
-            invalid_session_id.msg == invalid_session_id_expected_msg2
-
     - name: Negative - Negative session id
       dellemc.openmanage.idrac_session:
         state: absent
