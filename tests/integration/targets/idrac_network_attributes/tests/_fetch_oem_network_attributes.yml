@@ -5,7 +5,7 @@
 
 - name: Prerequisite - Fetching network attributes
   ansible.builtin.uri:
-    url: "{{ base_uri }}{{ ntwk_fn_uri }}\
+    url: "{{ base_uri }}{{ ntwk_fn_uri }}/\
     {{ inp_network_device_function_id }}\
     /Oem/Dell/DellNetworkAttributes/{{ inp_network_device_function_id }}"
     user: "{{ idrac_user }}"
