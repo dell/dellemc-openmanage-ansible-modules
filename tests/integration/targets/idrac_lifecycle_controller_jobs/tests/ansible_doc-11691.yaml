@@ -1,0 +1,20 @@
+---
+- name: ansible-doc
+  ansible.builtin.command: ansible-doc dellemc.openmanage.idrac_lifecycle_controller_jobs
+  register: ansible_doc_hash
+  run_once: true
+
+- local_action:
+    copy content={{ansible_doc_hash.stdout_lines[2:] | to_nice_yaml }}
+    dest={{ role_path }}/files/ansible_doc.txt
+  register: ansible_doc
+  check_mode: true
+  diff: true
+  run_once: true
+
+- name: Verify if doc changed
+  ansible.builtin.assert:
+    that: not ansible_doc.changed
+  run_once: true
+  when:
+    - SKIP_DOC is not defined or not SKIP_DOC | bool
