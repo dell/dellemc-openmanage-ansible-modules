@@ -290,9 +290,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     cert_file_format_string, strip_substr_dict, idrac_redfish_job_tracking, reset_host, get_idrac_firmware_version)
 
 SYSTEMS_URI = "/redfish/v1/Systems"
-IDRAC_JOBS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs"
-iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
-iDRAC_JOBS_EXP = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
+IDRAC_MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
 BIOS_JOB_EXISTS = "BIOS Configuration job already exists."
 TIME_FORMAT = "%Y%m%d_%H%M%S"
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be negative or zero."
@@ -340,9 +338,9 @@ SYS_CODES = ["SYS410", "SYS409"]
 
 class IDRACSecureBoot:
 
-    def __init__(self, idrac, module):
-        self.module = module
-        self.idrac = idrac
+    def __init__(self, idrac: iDRACRedfishAPI, module: IdracAnsibleModule):
+        self.module: IdracAnsibleModule = module
+        self.idrac: iDRACRedfishAPI = idrac
         plt_key = self.module.params.get('platform_key')
         self.platform_key = [plt_key] if plt_key else []
         self.KEK = self.module.params.get(
@@ -623,7 +621,7 @@ class IDRACResetCertificates(IDRACSecureBoot):
 
 class IDRACAttributes(IDRACSecureBoot):
 
-    def __init__(self, idrac, module):
+    def __init__(self, idrac: iDRACRedfishAPI, module: IdracAnsibleModule):
         super().__init__(idrac, module)
         self.boot_mode = self.module.params.get('boot_mode')
         self.secure_boot = self.module.params.get('secure_boot')
@@ -631,8 +629,16 @@ class IDRACAttributes(IDRACSecureBoot):
         self.secure_boot_policy = self.module.params.get('secure_boot_policy')
         self.force_int_10 = self.module.params.get('force_int_10')
 
+        self.generation, self.idrac_firmware_version, _ = self.idrac.get_server_generation
+        
+        self.iDRAC_JOBS_URI = IDRAC_MANAGER_URI+"/Jobs"        
+        if self.generation >= 17:
+            self.iDRAC_JOBS_URI = IDRAC_MANAGER_URI+"/Oem/Dell/Jobs"
+        self.iDRAC_JOB_URI = self.iDRAC_JOBS_URI+"/{job_id}"
+        self.iDRAC_JOBS_EXP = self.iDRAC_JOBS_URI+"?$expand=*($levels=1)"
+
     def check_scheduled_bios_job(self):
-        job_resp = self.idrac.invoke_request(iDRAC_JOBS_EXP, "GET")
+        job_resp = self.idrac.invoke_request(self.iDRAC_JOBS_EXP, "GET")
         job_list = job_resp.json_data.get('Members', [])
         sch_jb = None
         for jb in job_list:
@@ -652,7 +658,7 @@ class IDRACAttributes(IDRACSecureBoot):
     def trigger_bios_job(self):
         job_id = None
         payload = {"TargetSettingsURI": self.bios_setting_uri}
-        resp = self.idrac.invoke_request(IDRAC_JOBS_URI, "POST", data=payload)
+        resp = self.idrac.invoke_request(self.iDRAC_JOBS_URI, "POST", data=payload)
         job_id = resp.headers["Location"].split("/")[-1]
         return job_id
 
@@ -675,6 +681,15 @@ class IDRACAttributes(IDRACSecureBoot):
         self.module.exit_json(msg=FAILED_BIOS_JOB, failed=True)
 
     def compare_attr_val(self, curr_attr):
+        """
+        Compare the current attributes with the new attributes.
+
+        Parameters:
+            curr_attr (dict): The current attributes.
+
+        Returns:
+            dict: A dictionary containing the attributes that are different.
+        """
         new_payload = {"BootMode": self.boot_mode, "SecureBoot": self.secure_boot,
                        "SecureBootMode": self.secure_boot_mode, "SecureBootPolicy": self.secure_boot_policy,
                        "ForceInt10": self.force_int_10}
@@ -728,7 +743,7 @@ class IDRACAttributes(IDRACSecureBoot):
         reboot_required = False
         job_id, reboot_required, partial_update = self.apply_attributes(attr)
         job_wait = self.module.params.get("job_wait")
-        job_resp = self.idrac.invoke_request(iDRAC_JOB_URI.format(job_id=job_id), 'GET')
+        job_resp = self.idrac.invoke_request(self.iDRAC_JOB_URI.format(job_id=job_id), 'GET')
         job_dict = job_resp.json_data
         if self.import_op or self.export_op or self.reset_keys:
             reboot_required = True
@@ -753,7 +768,7 @@ class IDRACAttributes(IDRACSecureBoot):
 
     def handle_job_wait(self, job_id, partial_update):
         job_failed, msg, job_dict, _wait_time = idrac_redfish_job_tracking(
-            self.idrac, iDRAC_JOB_URI.format(job_id=job_id),
+            self.idrac, self.iDRAC_JOB_URI.format(job_id=job_id),
             max_job_wait_sec=self.module.params.get('job_wait_timeout'))
         if job_failed:
             self.module.exit_json(failed=True, msg=msg, job_id=job_id)
@@ -768,9 +783,13 @@ class IDRACAttributes(IDRACSecureBoot):
         Perform operation
         """
         self.validate_job_wait()
-        idrac_firmware_version = get_idrac_firmware_version(self.idrac)
-        if LooseVersion(idrac_firmware_version) < '3.0':
+        if self.generation < 17 and LooseVersion(self.idrac_firmware_version) < '3.0':
             self.module.exit_json(msg=OPERATION_NOT_SUPPORTED.format(op='Secure Boot settings update'), skipped=True)
+        if self.generation >= 17:
+            # Legacy BIOS boot mode and Force int 10 are not supported from 17G onwards
+            # boot mode is a readonly attribute and Force int 10 is not an attribute in 17G
+            if self.boot_mode is not None or self.force_int_10 is not None:
+                self.module.exit_json(msg="boot mode and Force int 10 are not supported from 17G onwards", failed=True, changed=False)
         self.get_current_attributes()
         self.attributes_config()
 

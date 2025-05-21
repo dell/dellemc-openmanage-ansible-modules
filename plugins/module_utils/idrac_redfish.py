@@ -27,6 +27,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
+from typing import Tuple
 __metaclass__ = type
 
 import json
@@ -213,23 +214,25 @@ class iDRACRedfishAPI(object):
         return False
 
     @property
-    def get_server_generation(self):
+    def get_server_generation(self) -> Tuple[int, str, str]:
         """
-        This method fetches the connected server generation.
-        :return: 14, 4.11.11.11
+        Fetches the connected server generation.
+
+        Returns:
+            Tuple[int, str, str]: A tuple containing the server generation, firmware version, and hardware model.
         """
-        firmware_version = None
+        firmware_version: str = None
         response = self.invoke_request(MANAGER_URI, 'GET')
         if response.status_code == 200:
-            generation = int(re.search(r"\d+(?=G)", response.json_data["Model"]).group())
-            firmware_version = response.json_data["FirmwareVersion"]
-        hw_model = ""
+            generation: int = int(re.search(r"\d+(?=G)", response.json_data["Model"]).group())
+            firmware_version: str = response.json_data["FirmwareVersion"]
+        hw_model: str = ""
         try:
             hw_model_out = self.invoke_request(GET_IDRAC_MANAGER_ATTRIBUTES_9_10, 'GET')
             if hw_model_out.status_code == 200:
-                hw_model = hw_model_out.json_data.get('Attributes', {}).get('Info.1.HWModel')
+                hw_model: str = hw_model_out.json_data.get('Attributes', {}).get('Info.1.HWModel')
         except HTTPError:
-            hw_model = "iDRAC 8"
+            hw_model: str = "iDRAC 8"
         return generation, firmware_version, hw_model
 
     def wait_for_job_complete(self, task_uri, job_wait=False):

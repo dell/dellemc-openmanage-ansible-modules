@@ -12,68 +12,95 @@
    is not defined'
 
 - block:
-    - name: Prerequisite - Enable force_int_10
-      dellemc.openmanage.idrac_secure_boot:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        force_int_10: Enabled
-        validate_certs: false
-        restart: true
-        restart_type: GracefulRestart
-
-    - name: Get force_int_10 details by uri.
+    - name: Get Model from iDRAC by going to Managers URI
       ansible.builtin.uri:
-        url: "https://{{ idrac_ip | ansible.utils.ipwrap
-         }}/redfish/v1/Systems/System.Embedded.1/Bios"
+        url: "{{ idrac_manager_url }}?$select=Model"
+        method: GET
         user: "{{ idrac_user }}"
         password: "{{ idrac_password }}"
         validate_certs: false
+        return_content: true
         status_code: 200
-      register: boot_md_uri
+        force_basic_auth: true
+      register: idrac_model_response
 
-    - name: Verify - Force_int_10 is enabled
-      ansible.builtin.assert:
-        that:
-          - 'boot_md_uri.json.Attributes.ForceInt10 == "Enabled"'
+    - name: Set fact for model
+      # its the first word in the response suffixed by G and it is supposed to be a number
+      ansible.builtin.set_fact:
+        hw_model: "{{ idrac_model_response.json.Model | regex_search('([0-9]+)G', '\\1') | first | int }}"
 
-    - name: Disable force_int_10
-      dellemc.openmanage.idrac_secure_boot:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        force_int_10: Disabled
-        validate_certs: false
-        restart: false
+    - name: debug iDRAC hardware model
+      ansible.builtin.debug:
+        var: hw_model
 
-    - name: Bios configuration exists (check mode - changes expected)
-      dellemc.openmanage.idrac_secure_boot: &bios_config_exists
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        force_int_10: Disabled
-        validate_certs: false
-        restart: false
-      register: cm_changes
-      check_mode: true
+    - block:
+    # this block of tests will only be executed for 16G and below
+      - name: Prerequisite - Enable force_int_10
+        dellemc.openmanage.idrac_secure_boot:
+          idrac_ip: "{{ idrac_ip }}"
+          idrac_user: "{{ idrac_user }}"
+          idrac_password: "{{ idrac_password }}"
+          force_int_10: Enabled
+          validate_certs: false
+          restart: true
+          restart_type: GracefulRestart
 
-    - name: Verify - Bios configuration exists (check mode - changes expected)
-      ansible.builtin.assert:
-        that:
-          - cm_changes.changed
-          - cm_changes.msg == 'Changes found to be applied.'
+      - name: Get force_int_10 details by uri.
+        ansible.builtin.uri:
+          url: "{{ idrac_bios_url }}"
+          user: "{{ idrac_user }}"
+          password: "{{ idrac_password }}"
+          validate_certs: false
+          status_code: 200
+        retries: 10
+        delay: 20
+        until: "'ForceInt10' in boot_md_uri.json.Attributes"
+        register: boot_md_uri
 
-    - name: Bios configuration exists (normal mode)
-      dellemc.openmanage.idrac_secure_boot:
-        <<: *bios_config_exists
-      register: bios_config_exists
+      - name: Verify - Force_int_10 is enabled
+        ansible.builtin.assert:
+          that:
+            - 'boot_md_uri.json.Attributes.ForceInt10 == "Enabled"'
 
-    - name: Verify - Bios configuration exists (normal mode)
-      ansible.builtin.assert:
-        that:
-          - bios_config_exists.skipped
-          - 'bios_config_exists.msg == "BIOS Configuration job already
-           exists."'
+      - name: Disable force_int_10
+        dellemc.openmanage.idrac_secure_boot:
+          idrac_ip: "{{ idrac_ip }}"
+          idrac_user: "{{ idrac_user }}"
+          idrac_password: "{{ idrac_password }}"
+          force_int_10: Disabled
+          validate_certs: false
+          restart: false
+
+      - name: Bios configuration exists (check mode - changes expected)
+        dellemc.openmanage.idrac_secure_boot: &bios_config_exists
+          idrac_ip: "{{ idrac_ip }}"
+          idrac_user: "{{ idrac_user }}"
+          idrac_password: "{{ idrac_password }}"
+          force_int_10: Disabled
+          validate_certs: false
+          restart: false
+        register: cm_changes
+        check_mode: true
+
+      - name: Verify - Bios configuration exists (check mode - changes expected)
+        ansible.builtin.assert:
+          that:
+            - cm_changes.changed
+            - cm_changes.msg == 'Changes found to be applied.'
+
+      - name: Bios configuration exists (normal mode)
+        dellemc.openmanage.idrac_secure_boot:
+          <<: *bios_config_exists
+        register: bios_config_exists
+
+      - name: Verify - Bios configuration exists (normal mode)
+        ansible.builtin.assert:
+          that:
+            - bios_config_exists.skipped
+            - 'bios_config_exists.msg == "BIOS Configuration job already exists."'
+
+      
+      when: "hw_model | int < 17"
 
     - ansible.builtin.include_tasks: _configure_generic_bios_attributes.yml
 
@@ -145,3 +172,7 @@
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"
+
+  vars:
+    idrac_manager_url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1"
+    idrac_bios_url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/Systems/System.Embedded.1/Bios"

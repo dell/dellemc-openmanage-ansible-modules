@@ -97,39 +97,84 @@
           - 'invalid_ft.msg == "value of force_int_10 must be
            one of: Disabled, Enabled, got: invalid"'
 
-    - name: Prerequisite - Set boot mode to bios and enable force_int_10
-      dellemc.openmanage.idrac_secure_boot: &boot_md_bios
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        boot_mode: Bios
-        force_int_10: Enabled
+    - name: Prerequisite - Get Model from iDRAC by going to Managers URI
+      ansible.builtin.uri:
+        url: "{{ idrac_manager_url }}?$select=Model"
+        method: GET
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
         validate_certs: false
-        restart: true
-        restart_type: GracefulRestart
+        return_content: true
+        status_code: 200
+        force_basic_auth: true
+      register: idrac_model_response
 
-    - name: Wait for iDRAC
-      ansible.builtin.pause:
-        minutes: 1
+    - name: Prerequisite - Set fact for model
+      # its the first word in the response suffixed by G and it is supposed to be a number
+      ansible.builtin.set_fact:
+        hw_model: "{{ idrac_model_response.json.Model | regex_search('([0-9]+)G', '\\1') | first | int }}"
 
-    - name: Negative - Enable secure boot with boot mode Bios and
-        force_int_10 enabled.
-      dellemc.openmanage.idrac_secure_boot:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        validate_certs: false
-        secure_boot: Enabled
-      ignore_errors: true
-      register: invalid_boot
+    - block:
+    # this block of tests will only be executed for 16G and below
+    # tests invalid boot mode and force_int_10 scenarios 
+      - name: Prerequisite - Set boot mode to bios and enable force_int_10
+        dellemc.openmanage.idrac_secure_boot:
+          idrac_ip: "{{ idrac_ip }}"
+          idrac_user: "{{ idrac_user }}"
+          idrac_password: "{{ idrac_password }}"
+          boot_mode: Bios
+          force_int_10: Enabled
+          validate_certs: false
+          restart: true
+          restart_type: GracefulRestart
 
-    - name: Verify task status - Negative - Enable secure boot with
-        boot mode Bios.
-      ansible.builtin.assert:
-        that:
-          - invalid_boot.skipped
-          - 'invalid_boot.msg == "Unable to modify the attribute because
-           the attribute is read-only and depends on other attributes."'
+      - name: Wait for iDRAC
+        ansible.builtin.pause:
+          minutes: 1
+
+      - name: Negative - Enable secure boot with boot mode Bios and
+          force_int_10 enabled.
+        dellemc.openmanage.idrac_secure_boot:
+          idrac_ip: "{{ idrac_ip }}"
+          idrac_user: "{{ idrac_user }}"
+          idrac_password: "{{ idrac_password }}"
+          validate_certs: false
+          secure_boot: Enabled
+        ignore_errors: true
+        register: invalid_boot
+
+      - name: Verify task status - Negative - Enable secure boot with
+          boot mode Bios.
+        ansible.builtin.assert:
+          that:
+            - invalid_boot.skipped
+            - 'invalid_boot.msg == "Unable to modify the attribute because the attribute is read-only and depends on other attributes."'
+      
+      when: "hw_model | int < 17"
+
+    - block:
+    # this block of tests will only be executed for 17G and above
+    # tests that boot mode and force_int_10 cannot be used
+      - name: Negative - Configure boot mode Bios and Force_int_10
+          force_int_10 enabled.
+        dellemc.openmanage.idrac_secure_boot:
+          idrac_ip: "{{ idrac_ip }}"
+          idrac_user: "{{ idrac_user }}"
+          idrac_password: "{{ idrac_password }}"
+          validate_certs: false
+          boot_mode: Bios
+          force_int_10: Enabled
+        ignore_errors: true
+        register: invalid_boot
+
+      - name: Verify task status - Negative - Enable secure boot with
+          boot mode Bios.
+        ansible.builtin.assert:
+          that:
+            - invalid_boot.failed
+            - 'invalid_boot.msg == "boot mode and Force int 10 are not supported from 17G onwards"'
+      
+      when: "hw_model | int >= 17"
 
   module_defaults:
     dellemc.openmanage.idrac_secure_boot:
@@ -137,3 +182,5 @@
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"
+  vars:
+    idrac_manager_url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1"
