@@ -1,0 +1,49 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg:
+      'Please define the following variables: idrac_ip,
+      idrac_user and idrac_password.'
+  when:
+    idrac_ip is not defined or idrac_user is not defined or
+    idrac_password is not defined
+
+- block:
+    - name: Negative - invalid job id
+      dellemc.openmanage.idrac_lifecycle_controller_jobs:
+        job_id: "999"
+      ignore_errors: true
+      register: invalid_job_id
+
+    - name: Negative - unreachable host
+      dellemc.openmanage.idrac_lifecycle_controller_jobs:
+        idrac_ip: "999.999.999.999"
+        job_id: "999"
+      ignore_errors: true
+      ignore_unreachable: true
+      register: invalid_unreachable
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_job_id.failed
+          - invalid_job_id.msg == "Failed to delete the Job: 999."
+          - '"Invalid Job ID" in invalid_job_id.status.Message'
+          - 'invalid_unreachable.failed or invalid_unreachable.unreachable'
+          - 'invalid_unreachable.msg == "Unable to communicate with iDRAC
+            999.999.999.999. This may be due to one of the following:
+            Incorrect username or password,
+            unreachable iDRAC IP or a failure in TLS/SSL handshake."
+            or "Name or service not known" in invalid_unreachable.msg'
+
+  module_defaults:
+    dellemc.openmanage.idrac_lifecycle_controller_jobs:
+      idrac_ip: "{{idrac_ip}}"
+      idrac_user: "{{idrac_user}}"
+      idrac_password: "{{idrac_password}}"
+      validate_certs: "{{validate_certs}}"
