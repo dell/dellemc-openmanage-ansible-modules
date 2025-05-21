@@ -1,7 +1,7 @@
 ---
 - block:
     - name: ansible-doc
-      ansbile.builtin.command:
+      ansible.builtin.command:
         cmd: ansible-doc dellemc.openmanage.idrac_network_attributes
       register: ansible_doc_hash
 
