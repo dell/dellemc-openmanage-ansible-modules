@@ -1,6 +1,7 @@
 ---
 - block:
-    - ansible.builtin.set_fact:
+    - name: Setting empty lists
+      ansible.builtin.set_fact:
         list_attr: []
         scp_val_attr: []
 
@@ -26,7 +27,7 @@
       ansible.builtin.set_fact:
         model: "{{ model1 | regex_search('([0-9]+)G', '\\1') | first | int }}"
 
-    - name: Create Export SCP job.
+    - name: Export first SCP job.
       ansible.builtin.uri:
         url: "https://{{ idrac_ip }}:{{ idrac_port }}\
           /redfish/v1/Managers/iDRAC.Embedded.1/Actions\
@@ -47,7 +48,7 @@
       register: all_uri_1
       when: model | int <= 16
 
-    - name: Create Export SCP job.
+    - name: Export first SCP job.
       ansible.builtin.uri:
         url: "https://{{ idrac_ip }}:{{ idrac_port }}\
           /redfish/v1/Managers/iDRAC.Embedded.1/Actions\

@@ -14,8 +14,11 @@
     idrac_password is not defined
 
 - block:
-    - ansible.builtin.include_tasks: _helper.yml
-    - ansible.builtin.include_tasks: _helper.yml
+    - name: Creating first job
+      ansible.builtin.include_tasks: _helper.yml
+
+    - name: Creating second job
+      ansible.builtin.include_tasks: _helper.yml
 
     - name: Delete LC Job.
       dellemc.openmanage.idrac_lifecycle_controller_jobs:
@@ -37,7 +40,8 @@
         force_basic_auth: true
       register: uri_single_job
 
-    - ansible.builtin.include_tasks: _helper.yml
+    - name: Creating third job
+      ansible.builtin.include_tasks: _helper.yml
 
     - name: Delete LC Job Queue.
       dellemc.openmanage.idrac_lifecycle_controller_jobs:
