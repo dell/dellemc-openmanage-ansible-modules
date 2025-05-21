@@ -1,6 +1,6 @@
 ---
 - block:
-    - set_fact:
+    - ansible.builtin.set_fact:
         list_attr: []
         scp_val_attr: []
 
