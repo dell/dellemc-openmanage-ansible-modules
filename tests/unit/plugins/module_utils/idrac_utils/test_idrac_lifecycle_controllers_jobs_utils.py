@@ -138,8 +138,10 @@ class TestIDRACLifecycleControllerJobs(TestUtils):
 
         job_info = IDRACLifecycleControllerJobs(idrac_mock)
 
-        with pytest.raises(KeyError):
+        with pytest.raises(KeyError) as exc_info:
             job_info.extract_job_deletion_info(job_deletion_response)
+
+        assert "@Message.ExtendedInfo" in str(exc_info.value)
 
     def test_extract_error_info(self, idrac_mock):
         job_deletion_response = {
@@ -179,8 +181,10 @@ class TestIDRACLifecycleControllerJobs(TestUtils):
 
         job_info = IDRACLifecycleControllerJobs(idrac_mock)
 
-        with pytest.raises(KeyError):
+        with pytest.raises(KeyError) as exc_info:
             job_info.extract_error_info(job_deletion_response)
+
+        assert "@Message.ExtendedInfo" in str(exc_info.value)
 
     def test_get_lifecycle_controller_status_api(self, idrac_mock):
         job_info = IDRACLifecycleControllerJobs(idrac_mock)
