@@ -89,7 +89,7 @@
         that:
           - not idempotence_configure_network_attributes.changed
           - 'idempotence_configure_network_attributes.msg == "No changes found
-           Pto be applied."'
+           to be applied."'
 
     - name: Reset network attributes to initial value
       dellemc.openmanage.idrac_network_attributes:
