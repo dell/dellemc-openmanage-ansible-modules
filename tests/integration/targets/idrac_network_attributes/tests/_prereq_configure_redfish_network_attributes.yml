@@ -30,7 +30,7 @@
 
 - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
   vars:
-    job_id: "{{ cleanup.job_status.Id }}"
+    job_id: "{{ prereq_result_set_attrs.job_status.Id }}"
   when: initial_VLANEnable != false
 
 - name: Fetching network attributes
