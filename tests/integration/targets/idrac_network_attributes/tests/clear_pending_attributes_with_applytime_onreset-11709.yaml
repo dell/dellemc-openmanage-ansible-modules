@@ -18,22 +18,13 @@
   ansible.builtin.include_tasks: _prereq_configure_oem_network_attributes.yml
 
 - block:
-    - name: Pre-req - Configure network attributes
-      dellemc.openmanage.idrac_network_attributes:
-        network_adapter_id: "{{ inp_network_adapter_id }}"
-        network_device_function_id: "{{ inp_network_device_function_id }}"
-        oem_network_attributes:
-          BannerMessageTimeout: 2
-        apply_time: OnReset
-      register: check_configure_network_attributes
-
     - name: Clear pending attributes and configure network attributes
         (Check mode - Changes expected)
       dellemc.openmanage.idrac_network_attributes: &configure_network_attributes
         network_adapter_id: "{{ inp_network_adapter_id }}"
         network_device_function_id: "{{ inp_network_device_function_id }}"
         oem_network_attributes:
-          BannerMessageTimeout: 2
+          BlnkLeds: 1
         apply_time: OnReset
         clear_pending: true
       register: check_configure_network_attributes
@@ -74,7 +65,7 @@
         attributes - attributes set
       ansible.builtin.assert:
         that:
-          - fetched_attributes.json.Attributes.BannerMessageTimeout == 2
+          - fetched_attributes.json.Attributes.BlnkLeds == 1
 
     - name: Clear pending attributes and configure network attributes
         (Idempotence)

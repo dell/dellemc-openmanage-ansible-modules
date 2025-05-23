@@ -25,7 +25,7 @@
         network_adapter_id: "{{ inp_network_adapter_id }}"
         network_device_function_id: "{{ inp_network_device_function_id }}"
         oem_network_attributes:
-          BannerMessageTimeout: 2
+          BlnkLeds: 1
         apply_time: OnReset
 
     - name: Clear pending attributes (Check mode - Changes expected)

@@ -23,17 +23,15 @@
       Ethernet:
         VLAN:
           VLANEnable: false
-    apply_time: AtMaintenanceWindowStart
-    maintenance_window:
-      start_time: "{{ updated_datetime_with_offset }}"
-      duration: 1200
+    apply_time: OnReset
   register: prereq_result_set_attrs
   when: initial_VLANEnable != false
 
-- ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+- name: Restart server
+  ansible.builtin.include_tasks: _restart_server.yml
   vars:
     job_id: "{{ prereq_result_set_attrs.job_status.Id }}"
-  when: initial_VLANEnable != false
+  when: prereq_result_set_attrs.changed
 
 - name: Fetching network attributes
   ansible.builtin.include_tasks: _fetch_redfish_network_attributes.yml

@@ -25,7 +25,7 @@
         network_adapter_id: "{{ inp_network_adapter_id }}"
         network_device_function_id: "{{ inp_network_device_function_id }}"
         oem_network_attributes:
-          BannerMessageTimeout: 2
+          BlnkLeds: 1
         apply_time: Immediate
         job_wait: true
         job_wait_timeout: 600
@@ -60,7 +60,7 @@
     - name: Verify task status - Configure network attributes - attributes set
       ansible.builtin.assert:
         that:
-          - fetched_attributes.json.Attributes.BannerMessageTimeout == 2
+          - fetched_attributes.json.Attributes.BlnkLeds == 1
 
     - name: Configure network attributes (Idempotence)
       dellemc.openmanage.idrac_network_attributes:
