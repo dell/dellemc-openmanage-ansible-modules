@@ -372,7 +372,7 @@
         network_adapter_id: "{{ inp_network_adapter_id }}"
         network_device_function_id: "{{ inp_network_device_function_id }}"
         oem_network_attributes:
-          BlnkLeds: 1
+          PermitTotalPortShutdown: "Disabled"
       check_mode: true
       register: cm_invalid_time_for_start_time
       ignore_errors: true

@@ -17,7 +17,7 @@
     network_adapter_id: "{{ inp_network_adapter_id }}"
     network_device_function_id: "{{ inp_network_device_function_id }}"
     oem_network_attributes:
-      BlnkLeds: 0
+      PermitTotalPortShutdown: "Enabled"
       WakeOnLan: "Disabled"
       VLanMode: "Disabled"
     apply_time: OnReset

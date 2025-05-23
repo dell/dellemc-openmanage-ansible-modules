@@ -26,7 +26,7 @@
         network_adapter_id: "{{ inp_network_adapter_id }}"
         network_device_function_id: "{{ inp_network_device_function_id }}"
         oem_network_attributes:
-          BlnkLeds: 1
+          PermitTotalPortShutdown: "Disabled"
         apply_time: Immediate
       register: check_configure_network_attributes
       check_mode: true
@@ -57,7 +57,7 @@
     - name: Verify task status - Configure network attributes - attributes set
       ansible.builtin.assert:
         that:
-          - fetched_attributes.json.Attributes.BlnkLeds == 1
+          - fetched_attributes.json.Attributes.PermitTotalPortShutdown == "Disabled"
 
     - name: Configure network attributes (Idempotence)
       dellemc.openmanage.idrac_network_attributes:
@@ -97,7 +97,7 @@
       dellemc.openmanage.idrac_network_attributes:
         <<: *config_multiple_netwrk_attr
         oem_network_attributes:
-          BlnkLeds: 1
+          PermitTotalPortShutdown: "Disabled"
           WakeOnLan: "Enabled"
           VLanMode: "Enabled"
       register: result_configure_multiple_network_attributes
@@ -115,7 +115,7 @@
     - name: Verify task status - Configure network attributes - attributes set
       ansible.builtin.assert:
         that:
-          - fetched_attributes.json.Attributes.BlnkLeds == 1
+          - fetched_attributes.json.Attributes.PermitTotalPortShutdown == "Disabled"
           - fetched_attributes.json.Attributes.WakeOnLan == "Enabled"
           - fetched_attributes.json.Attributes.VLanMode == "Enabled"
 
@@ -123,7 +123,7 @@
       dellemc.openmanage.idrac_network_attributes:
         <<: *config_multiple_netwrk_attr
         oem_network_attributes:
-          BlnkLeds: 1
+          PermitTotalPortShutdown: "Disabled"
           WakeOnLan: "Enabled"
           VLanMode: "Enabled"
       register: idempotence_configure_multiple_network_attributes

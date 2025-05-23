@@ -26,7 +26,7 @@
         network_adapter_id: "{{ inp_network_adapter_id }}"
         network_device_function_id: "{{ inp_network_device_function_id }}"
         oem_network_attributes:
-          BlnkLeds: 1
+          PermitTotalPortShutdown: "Disabled"
         apply_time: Immediate
         clear_pending: true
       register: check_configure_network_attributes
@@ -60,7 +60,7 @@
         attributes  - attributes set
       ansible.builtin.assert:
         that:
-          - fetched_attributes.json.Attributes.BlnkLeds == 1
+          - fetched_attributes.json.Attributes.PermitTotalPortShutdown == "Disabled"
 
     - name: Clear pending attributes and Configure network attributes
         (Idempotence)

@@ -34,10 +34,6 @@
     supported_apply_times: "{{ network_device_resp.
       json['@Redfish.Settings']['SupportedApplyTimes'] }}"
 
-- name: debug
-  ansible.builtin.debug:
-    var: supported_apply_times
-
 - name: Ending play if apply time operation is not supported
   ansible.builtin.meta: end_host
   when: module_apply_time is defined and module_apply_time not in
