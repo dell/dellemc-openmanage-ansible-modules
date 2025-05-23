@@ -90,10 +90,7 @@
           Ethernet:
             VLAN:
               VLANEnable: "{{ initial_VLANEnable }}"
-        apply_time: AtMaintenanceWindowStart
-        maintenance_window:
-          start_time: "{{ updated_datetime_with_offset }}"
-          duration: 1200
+        apply_time: OnReset
       register: cleanup
 
     - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
