@@ -621,28 +621,30 @@ def validate_vs_registry(registry, attr_dict):
     for k, v in attr_dict.items():
         if k in registry:
             val_dict = registry.get(k)
-            if val_dict.get("ReadOnly"):
-                invalid[k] = "Read only attribute cannot be modified."
-            else:
-                type = val_dict.get("Type")
-                if type == "Enumeration":
-                    found = False
-                    for val in val_dict.get("Value", []):
-                        if v == val.get("ValueName"):
-                            found = True
-                            break
-                    if not found:
-                        invalid[k] = "Invalid value for enumeration."
-                if type == "Integer":
-                    try:
-                        i = int(v)
-                    except Exception:
-                        invalid[k] = "Invalid integer."
-                    else:
-                        if not (val_dict.get("LowerBound") <= i <= val_dict.get("UpperBound")):
-                            invalid[k] = "Integer not in a valid range."
+            type = val_dict.get("Type")
+            if type == "Enumeration":
+                found = False
+                for val in val_dict.get("Value", []):
+                    if v == val.get("ValueName"):
+                        found = True
+                        break
+                if not found:
+                    invalid[k] = "Invalid value for enumeration."
+            if type == "Integer":
+                try:
+                    i = int(v)
+                except Exception:
+                    invalid[k] = "Invalid integer."
+                else:
+                    if not (val_dict.get("LowerBound") <= i <= val_dict.get("UpperBound")):
+                        invalid[k] = "Integer not in a valid range."
         else:
             invalid[k] = "The attribute does not exist."
+    
+    # Removing invalid keys from the payload
+    if invalid:
+        for k, v in invalid.items():
+            del attr_dict[k]
     return invalid
 
 
@@ -723,8 +725,6 @@ def attributes_config(module, redfish_obj):
     attr_registry = get_attributes_registry(redfish_obj)
     if attr_registry:
         invalid.update(validate_vs_registry(attr_registry, attr))
-        if invalid:
-            module.exit_json(failed=True, status_msg=INVALID_ATTRIBUTES_MSG, invalid_attributes=invalid)
     if not attr:
         module.exit_json(status_msg=NO_CHANGES_MSG)
     if module.check_mode:
@@ -754,11 +754,11 @@ def attributes_config(module, redfish_obj):
                 max_job_wait_sec=module.params.get('job_wait_timeout'))
             if job_failed:
                 module.exit_json(failed=True, status_msg=msg, job_id=job_id)
-            module.exit_json(status_msg=SUCCESS_COMPLETE, job_id=job_id, msg=strip_substr_dict(job_dict), changed=True)
+            module.exit_json(status_msg=SUCCESS_COMPLETE, job_id=job_id, msg=strip_substr_dict(job_dict), invalid_attributes=invalid, changed=True)
         else:
-            module.exit_json(status_msg=SCHEDULED_SUCCESS, job_id=job_id, changed=True)
+            module.exit_json(status_msg=SCHEDULED_SUCCESS, job_id=job_id, invalid_attributes=invalid, changed=True)
     module.exit_json(status_msg=COMMITTED_SUCCESS.format(module.params.get('apply_time')),
-                     job_id=job_id, changed=True)
+                     job_id=job_id, invalid_attributes=invalid, changed=True)
 
 
 def validate_negative_job_time_out(module):
