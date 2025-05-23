@@ -16,6 +16,8 @@
 
 - name: Fetch oem network attribute details
   ansible.builtin.include_tasks: _fetch_oem_network_attributes.yml
+  vars:
+    apply_time: "Immediate"
 
 - name: Set pre attribute value
   ansible.builtin.set_fact:

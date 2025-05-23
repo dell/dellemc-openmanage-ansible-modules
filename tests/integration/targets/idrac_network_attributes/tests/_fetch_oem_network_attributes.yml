@@ -19,3 +19,17 @@
     headers: 'Accept=application/json'
     force_basic_auth: true
   register: fetched_attributes
+
+- name: Set fact for supported_apply_times
+  ansible.builtin.set_fact:
+    supported_apply_times: "{{ fetched_attributes.
+      json['@Redfish.Settings']['SupportedApplyTimes'] }}"
+
+- name: debug
+  ansible.builtin.debug:
+    var: supported_apply_times
+
+- name: Ending play if apply time operation is not supported
+  ansible.builtin.meta: end_host
+  when: module_apply_time is defined and module_apply_time not in
+    supported_apply_times

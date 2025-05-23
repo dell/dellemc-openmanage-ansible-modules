@@ -14,6 +14,7 @@
         headers: 'Accept=application/json'
         force_basic_auth: true
       register: fetched_system
+      no_log: true
 
     - name: Fetch network adapter url
       ansible.builtin.set_fact:
@@ -25,6 +26,7 @@
         <<: *network_uri
         url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}\
         {{ network_base_uri }}"
+      no_log: true
       register: fetched_network_adapter_id
 
     - name: Extracting network adapter id
@@ -42,6 +44,7 @@
         <<: *network_uri
         url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}\
         {{ network_adapter_id['@odata.id'] }}"
+      no_log: true
       register: network_device_function_uri
 
     - name: Fetch network adapter url
