@@ -1,0 +1,53 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Prepare URLs
+  ansible.builtin.set_fact:
+    url1: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
+    url2: "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/"
+    url4: "Actions/DellLCService.ExportePSADiagnosticsResult"
+
+- name: Export Diagnostics local via api uri
+  ansible.builtin.uri:
+    url: "{{ url1 }}{{ url2 }}{{ url4 }}"
+    method: POST
+    body:
+      "ShareType": "Local"
+    status_code:
+      - 200
+      - 202
+      - 400
+  register: export_api_result
+
+- name: Trigger the run diagnostics
+  ansible.builtin.include_tasks: _run_diagnostics_track.yml
+  vars:
+    job_track: true
+  when: export_api_result.status == 400
+  register: run_api_result
+
+- name: Get diagnostics content.
+  ansible.builtin.uri:
+    url: "{{ export_api_result.location }}"
+  register: diag_content
+
+- name: Create Directory
+  ansible.builtin.file:
+    path: "{{ exported_diagnostics_local_path }}"
+    state: directory
+  no_log: true
+  delegate_to: localhost
+
+- name: Prepare paths
+  ansible.builtin.set_fact:
+    path1: "{{ exported_diagnostics_local_path }}/{{ idrac_ip }}"
+    path2: "_api_diagnostics.txt"
+
+- name: Save content to file
+  ansible.builtin.copy:
+    content: "{{ diag_content.content | string }}"
+    dest: "{{ path1 }}{{ path2 }}"
+  register: api_diagnostics_file
