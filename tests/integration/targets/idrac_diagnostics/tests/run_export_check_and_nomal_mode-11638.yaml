@@ -63,7 +63,7 @@
       ansible.builtin.assert:
         that:
           - result_diagnostics_scheduled.skipped
-          - 'result_diagnostics_scheduled.msg == 
+          - 'result_diagnostics_scheduled.msg ==
             "The diagnostics job is already present."'
 
     - name:
@@ -99,7 +99,7 @@
       ansible.builtin.assert:
         that:
           - result_export_diagnostics_scheduled.skipped
-          - 'result_export_diagnostics_scheduled.msg == 
+          - 'result_export_diagnostics_scheduled.msg ==
             "The diagnostics file does not exist."'
 
     - name: Pause for 10 minutes

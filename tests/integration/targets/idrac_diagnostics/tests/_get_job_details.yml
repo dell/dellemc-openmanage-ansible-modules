@@ -17,7 +17,7 @@
 
 - name: Remove odata from uri response
   ansible.builtin.set_fact:
-    job_data_uri: 
+    job_data_uri:
       "{{ uri_res.json | ansible.utils.remove_keys(target=['@odata',
       'MessageArgs@odata.count'], matching_parameter='regex') }}"
 

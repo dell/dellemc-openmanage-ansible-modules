@@ -10,7 +10,6 @@
         url: "{{ url1 }}{{ url2 }}"
         method: GET
         body: {}
-        force_basic_auth: True
         status_code: 200
       register: fetched_data
 

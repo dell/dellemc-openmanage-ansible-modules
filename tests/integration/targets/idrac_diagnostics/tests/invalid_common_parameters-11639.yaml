@@ -16,6 +16,7 @@
 - block:
     - name: Negative - missing required argument
       dellemc.openmanage.idrac_diagnostics:
+        validate_certs: false
       register: invalid_missing_argument
       ignore_errors: true
 
@@ -36,7 +37,7 @@
 
     - name: setting fact for unsuppoerted argument message
       ansible.builtin.set_fact:
-        msg_var :
+        msg_var:
           "Unsupported parameters for (dellemc.openmanage.idrac_diagnostics)
           module: unsupported_argument. Supported parameters include: ca_path,
           export, idrac_ip, idrac_password, idrac_port, idrac_user, job_wait,
@@ -144,8 +145,8 @@
 
     - name: setting fact for unsuppoerted argument message
       ansible.builtin.set_fact:
-        msg_var1 : "[Errno 2] No such file or directory: b''/invalid/path''"
-        msg_var2 : "[Errno 2] No such file or directory"
+        msg_var1: "[Errno 2] No such file or directory: b''/invalid/path''"
+        msg_var2: "[Errno 2] No such file or directory"
 
     - name: Verify task status - Negative - invalid ca_path path
       ansible.builtin.assert:

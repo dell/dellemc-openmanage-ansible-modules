@@ -92,9 +92,6 @@
           - "'diagnostics_file_path' in cifs_export_no_filename"
           - "{{ cifs_export_no_filename.diagnostics_file_path.startswith
             (('//' + cifs_share_ip + '/')) }}"
-          # + cifs_share_dir_path.replace('\\\\', '/').strip('/') + '/')) }}"
-          # - "{{ (((cifs_export_no_filename.diagnostics_file_path | basename
-          #  | splitext | first | split('_'))[-2:] | join('')) | to_datetime('%Y%m%d%H%M%S')) > current_local_time }}"
           - "{{ ((cifs_export_no_filename.diagnostics_file_path | basename
             ).endswith('.txt')) }}"
           - "{{ (cifs_export_no_filename.diagnostics_file_path | basename

@@ -75,7 +75,8 @@
       ansible.builtin.assert:
         that:
           - nfs_export_no_filename.changed
-          - nfs_export_no_filename.msg == "Successfully exported the diagnostics."
+          - nfs_export_no_filename.msg ==
+            "Successfully exported the diagnostics."
           - "'diagnostics_file_path' in nfs_export_no_filename"
           - "{{ nfs_export_no_filename.diagnostics_file_path.startswith(
             (nfs_share_ip + ':/' + nfs_share_dir_path.strip('/') + '/'

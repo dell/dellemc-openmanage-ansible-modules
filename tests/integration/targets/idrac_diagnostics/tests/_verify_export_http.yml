@@ -100,7 +100,8 @@
       ansible.builtin.assert:
         that:
           - http_export_no_filename.changed
-          - http_export_no_filename.msg == "Successfully exported the diagnostics."
+          - 'http_export_no_filename.msg ==
+            "Successfully exported the diagnostics."'
           - "'diagnostics_file_path' in http_export_no_filename"
           - "{{ http_export_no_filename.diagnostics_file_path.startswith(
             (diag_share_type + '://' + (diag_http_share_ip |
@@ -157,8 +158,8 @@
 
     - name: Set fact
       ansible.builtin.set_fact:
-       share_dest_path:
-         "{{ exported_diagnostics_local_path }}/{{ local_filename }}"
+        share_dest_path:
+          "{{ exported_diagnostics_local_path }}/{{ local_filename }}"
 
     - name: Set fact
       ansible.builtin.set_fact:

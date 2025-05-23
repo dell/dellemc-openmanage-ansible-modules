@@ -209,7 +209,8 @@
         that:
           - https_export_invalid_proxy_port.failed
           - not https_export_invalid_proxy_port.changed
-          - https_export_invalid_proxy_port.msg == "Cannot access network share."
+          - 'https_export_invalid_proxy_port.msg ==
+            "Cannot access network share."'
           - "'error_info' in https_export_invalid_proxy_port"
 
     - name: Set the CIFS IP and directory path- first step
@@ -219,8 +220,10 @@
 
     - name: Set the CIFS IP and directory path- final step
       ansible.builtin.set_fact:
-        cifs_share_ip: "{{ cifs_share_tmp | regex_replace('(\\\\)(.*)', '') }}"
-        cifs_share_dir_path: "{{ cifs_share_tmp | regex_replace('.*(\\\\)(.*)', '\\2') }}"
+        cifs_share_ip:
+          "{{ cifs_share_tmp | regex_replace('(\\\\)(.*)', '') }}"
+        cifs_share_dir_path:
+          "{{ cifs_share_tmp | regex_replace('.*(\\\\)(.*)', '\\2') }}"
       no_log: true
 
     - name: Check Mode - Export cifs invalid path

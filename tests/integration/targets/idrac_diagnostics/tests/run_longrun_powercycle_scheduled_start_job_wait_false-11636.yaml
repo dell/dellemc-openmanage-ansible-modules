@@ -61,7 +61,8 @@
       ansible.builtin.assert:
         that:
           - result_diagnostics.changed
-          - result_diagnostics.msg == "Successfully triggered the job to run diagnostics."
+          - result_diagnostics.msg ==
+            "Successfully triggered the job to run diagnostics."
 
     - name:
         "Verify iDRAC job status - Run diagnostics with run_mode as long_run,
