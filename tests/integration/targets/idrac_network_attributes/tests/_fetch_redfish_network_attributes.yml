@@ -33,7 +33,6 @@
   ansible.builtin.set_fact:
     supported_apply_times: "{{ network_device_resp.
       json['@Redfish.Settings']['SupportedApplyTimes'] }}"
-    run_once: true
 
 - name: debug
   ansible.builtin.debug:

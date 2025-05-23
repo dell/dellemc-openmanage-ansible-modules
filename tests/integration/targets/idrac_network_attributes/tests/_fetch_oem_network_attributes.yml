@@ -24,7 +24,6 @@
   ansible.builtin.set_fact:
     supported_apply_times: "{{ fetched_attributes.
       json['@Redfish.Settings']['SupportedApplyTimes'] }}"
-  run_once: true
 
 - name: debug
   ansible.builtin.debug:
