@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.2.0
-# Copyright (C) 2020-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.13.0
+# Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -26,6 +26,7 @@ importorskip("omsdk.sdkfile")
 importorskip("omsdk.sdkcreds")
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+server_generation_info = (13, "2.8", "iDRAC 8")
 
 
 class TestExportLcLogs(FakeAnsibleModule):
@@ -38,6 +39,24 @@ class TestExportLcLogs(FakeAnsibleModule):
         omsdk_mock.file_share_manager = idrac_obj
         omsdk_mock.log_mgr = idrac_obj
         return idrac_obj
+
+    @pytest.fixture
+    def idrac_lc_logs_mock(self, idrac_export_lc_logs_mock):
+        return idrac_export_lc_logs_mock()
+
+    @pytest.fixture
+    def idrac_redfish_lc_logs_mock(self, idrac_export_lc_logs_mock):
+        return idrac_export_lc_logs_mock()
+
+    @pytest.fixture
+    def idrac_redfish_connection_export_lc_logs_mock(self, mocker, idrac_redfish_lc_logs_mock):
+        idrac_redfish_conn_class_mock = mocker.patch(
+            MODULE_PATH + 'idrac_lifecycle_controller_logs.iDRACRedfishAPI',
+            return_value=idrac_redfish_lc_logs_mock
+        )
+        idrac_redfish_conn_class_mock.return_value.__enter__.return_value = idrac_redfish_lc_logs_mock
+        idrac_redfish_lc_logs_mock.get_server_generation.return_value = "iDRAC9"
+        return idrac_redfish_lc_logs_mock
 
     @pytest.fixture
     def idrac_connection_export_lc_logs_mock(self, mocker, idrac_export_lc_logs_mock):
@@ -59,7 +78,9 @@ class TestExportLcLogs(FakeAnsibleModule):
         return file_manager_obj
 
     def test_main_export_lc_logs_success_case(self, idrac_connection_export_lc_logs_mock, idrac_default_args, mocker,
-                                              idrac_file_manager_export_lc_logs_mock):
+                                              idrac_file_manager_export_lc_logs_mock, idrac_redfish_connection_export_lc_logs_mock):
+
+        idrac_redfish_connection_export_lc_logs_mock.get_server_generation = server_generation_info
         idrac_default_args.update({"share_name": "sharename", "share_user": "shareuser",
                                    "share_password": "sharepassword", "job_wait": True})
         message = {"Status": "Success", "JobStatus": "Success"}
@@ -81,7 +102,9 @@ class TestExportLcLogs(FakeAnsibleModule):
     @pytest.mark.parametrize("exc_type", [RuntimeError, SSLValidationError, ConnectionError, KeyError,
                                           ImportError, ValueError, TypeError, HTTPError, URLError])
     def test_main_export_lc_logs_exception_handling_case(self, exc_type, mocker, idrac_connection_export_lc_logs_mock,
-                                                         idrac_default_args, idrac_file_manager_export_lc_logs_mock):
+                                                         idrac_default_args, idrac_file_manager_export_lc_logs_mock,
+                                                         idrac_redfish_connection_export_lc_logs_mock):
+        idrac_redfish_connection_export_lc_logs_mock.get_server_generation = server_generation_info
         idrac_default_args.update({"share_name": "sharename", "share_user": "shareuser",
                                    "share_password": "sharepassword", "job_wait": True})
         idrac_connection_export_lc_logs_mock.log_mgr.lclog_export.return_value = {"Status": "Failed"}
@@ -98,6 +121,7 @@ class TestExportLcLogs(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             result = self._run_module(idrac_default_args)
+            print(result)
         assert 'msg' in result
 
     @pytest.mark.parametrize("args_update", [{"share_user": "share@user"}, {"share_user": "shareuser"}, {"share_user": "share\\user"}])
@@ -129,8 +153,6 @@ class TestExportLcLogs(FakeAnsibleModule):
             MODULE_PATH + "idrac_lifecycle_controller_logs.socket.getaddrinfo", return_value=([[obj]]))
         mocker.patch(
             MODULE_PATH + "idrac_lifecycle_controller_logs.copy.deepcopy", return_value=("idrac_ip"))
-        # mocker.patch(
-        #     MODULE_PATH + "idrac_lifecycle_controller_logs.myshare.new_file", return_value=("idrac_ip_file"))
         mocker.patch(
             MODULE_PATH + "idrac_lifecycle_controller_logs.copy.deepcopy", return_value=("idrac_ip"))
         idrac_connection_export_lc_logs_mock.log_mgr.lclog_export.return_value = {

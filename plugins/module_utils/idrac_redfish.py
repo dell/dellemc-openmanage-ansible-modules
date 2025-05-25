@@ -39,6 +39,10 @@ from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible.module_utils.common.parameters import env_fallback
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
 from ansible.module_utils.basic import AnsibleModule
+import logging
+from ansible_collections.dellemc.openmanage.plugins.module_utils.logging_handler \
+    import CustomRotatingFileHandler
+
 
 idrac_auth_params = {
     "idrac_ip": {"required": True, "type": 'str'},
@@ -453,6 +457,29 @@ class iDRACRedfishAPI(object):
         """Check if the value is set in REQUESTS_CA_BUNDLE or CURL_CA_BUNDLE or OMAM_CA_BUNDLE or returns None"""
         return os.environ.get("REQUESTS_CA_BUNDLE") or os.environ.get("CURL_CA_BUNDLE") or os.environ.get("OMAM_CA_BUNDLE")
 
+    def validate_idrac10_and_above(self):
+        gen_details = self.get_server_generation
+        hw_model = gen_details[2]
+        return hw_model == 'iDRAC 10'
+
+    def get_job_uri(self):
+        idrac10_or_above = self.validate_idrac10_and_above()
+        if idrac10_or_above:
+            return "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{job_id}"
+        return "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
+
+    def find_ip_address(self, sharename):
+        pattern_ipv4 = r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b'
+        ipv4_addresses = re.findall(pattern_ipv4, sharename)
+        pattern_ipv6 = r'\b(?:[A-Fa-f0-9]{1,4}:){7}[A-Fa-f0-9]{1,4}\b'
+        ipv6_addresses = re.findall(pattern_ipv6, sharename)
+        address = None
+        if ipv4_addresses:
+            address = ipv4_addresses[0]
+        elif ipv6_addresses:
+            address = ipv6_addresses[0]
+        return address
+
 
 class IdracAnsibleModule(AnsibleModule):
     def __init__(self, argument_spec, bypass_checks=False, no_log=False,
@@ -491,3 +518,19 @@ class IdracAnsibleModule(AnsibleModule):
                          mutually_exclusive, required_together,
                          required_one_of, add_file_common_args,
                          supports_check_mode, required_if, required_by)
+
+    def get_logger(self, module_name, log_file_name='ansible_openmanage.log',
+                   log_devel=logging.INFO):
+        FORMAT = '%(asctime)-15s %(filename)s %(levelname)s : %(message)s'
+        max_bytes = 5 * 1024 * 1024
+        logging.basicConfig(filename=log_file_name, format=FORMAT)
+        LOG = logging.getLogger(module_name)
+        LOG.setLevel(log_devel)
+        handler = CustomRotatingFileHandler(log_file_name,
+                                            maxBytes=max_bytes,
+                                            backupCount=5)
+        formatter = logging.Formatter(FORMAT)
+        handler.setFormatter(formatter)
+        LOG.addHandler(handler)
+        LOG.propagate = False
+        return LOG
