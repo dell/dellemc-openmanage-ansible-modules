@@ -93,6 +93,12 @@
         apply_time: OnReset
       register: cleanup
 
+    - name: Restart server
+      ansible.builtin.include_tasks: _restart_server.yml
+      vars:
+        job_id: "{{ cleanup.job_status.Id }}"
+      when: cleanup.changed
+
     - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
       vars:
         job_id: "{{ cleanup.job_status.Id }}"

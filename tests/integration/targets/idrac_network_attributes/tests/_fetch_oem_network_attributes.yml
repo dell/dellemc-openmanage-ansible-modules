@@ -27,5 +27,7 @@
 
 - name: Ending play if apply time operation is not supported
   ansible.builtin.meta: end_host
-  when: module_apply_time is defined and module_apply_time not in
-    supported_apply_times
+  when: (module_apply_time is defined and module_apply_time not in
+    supported_apply_times) or
+    (_module_apply_time is defined and _module_apply_time not in
+    supported_apply_times)

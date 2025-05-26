@@ -2,7 +2,7 @@
 - name: Fetching attibutes values
   ansible.builtin.include_tasks: _fetch_oem_network_attributes.yml
   vars:
-    module_apply_time: "{{ apply_time }}"
+    _module_apply_time: "{{ module_apply_time }}"
 
 - name: Setting initial attibutes values
   ansible.builtin.set_fact:

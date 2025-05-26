@@ -17,7 +17,7 @@
 - name: Fetch redfish network attribute details
   ansible.builtin.include_tasks: _fetch_redfish_network_attributes.yml
   vars:
-    apply_time: "AtMaintenanceWindowStart"
+    module_apply_time: "AtMaintenanceWindowStart"
 
 - name: Set pre attribute value
   ansible.builtin.set_fact:

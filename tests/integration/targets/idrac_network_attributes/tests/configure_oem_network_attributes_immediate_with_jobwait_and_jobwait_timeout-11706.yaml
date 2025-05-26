@@ -17,7 +17,7 @@
 - name: Set prerequisite
   ansible.builtin.include_tasks: _prereq_configure_oem_network_attributes.yml
   vars:
-    apply_time: "Immediate"
+    module_apply_time: "Immediate"
 
 - block:
     - name: Configure network attributes (Check mode - Changes expected)

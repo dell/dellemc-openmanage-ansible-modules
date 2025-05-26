@@ -78,9 +78,15 @@
     - name: Cleanup - Setting all the network parameters to initial value
       dellemc.openmanage.idrac_network_attributes:
         <<: *configure_network_attributes
-        apply_time: Immediate
+        apply_time: OnReset
         oem_network_attributes: "{{ initial_parameters }}"
       register: cleanup
+
+    - name: Restart server
+      ansible.builtin.include_tasks: _restart_server.yml
+      vars:
+        job_id: "{{ cleanup.job_status.Id }}"
+      when: cleanup.changed
 
     - name: Verify task status - Configure network attributes
       ansible.builtin.assert:
