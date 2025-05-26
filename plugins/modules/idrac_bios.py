@@ -640,7 +640,7 @@ def validate_vs_registry(registry, attr_dict):
                         invalid[k] = "Integer not in a valid range."
         else:
             invalid[k] = "The attribute does not exist."
-    
+
     # Removing invalid keys from the payload
     if invalid:
         for k, v in invalid.items():
