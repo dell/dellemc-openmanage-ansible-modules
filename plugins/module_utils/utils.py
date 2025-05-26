@@ -802,7 +802,7 @@ def get_job_uri(rest_obj):
     return job_uri
 
 def get_logger(module_name, log_file_name='ansible_openmanage.log',
-                log_devel=logging.INFO):
+               log_devel=logging.INFO):
     FORMAT = '%(asctime)-15s %(filename)s %(levelname)s : %(message)s'
     max_bytes = 5 * 1024 * 1024
     logging.basicConfig(filename=log_file_name, format=FORMAT)
