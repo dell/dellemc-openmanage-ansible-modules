@@ -6,10 +6,8 @@
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
-    msg: 'Please define the following variables: idrac_ip, idrac_user and
-     idrac_password.'
-  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
-   is not defined'
+    msg: "Please define the following variables: idrac_ip, idrac_user and idrac_password."
+  when: "idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined"
 
 - block:
     - name: Get Model from iDRAC by going to Managers URI
@@ -35,71 +33,70 @@
 
     - block:
     # this block of tests will only be executed for 16G and below
-      - name: Prerequisite - Enable force_int_10
-        dellemc.openmanage.idrac_secure_boot:
-          idrac_ip: "{{ idrac_ip }}"
-          idrac_user: "{{ idrac_user }}"
-          idrac_password: "{{ idrac_password }}"
-          force_int_10: Enabled
-          validate_certs: false
-          restart: true
-          restart_type: GracefulRestart
+        - name: Prerequisite - Enable force_int_10
+          dellemc.openmanage.idrac_secure_boot:
+            idrac_ip: "{{ idrac_ip }}"
+            idrac_user: "{{ idrac_user }}"
+            idrac_password: "{{ idrac_password }}"
+            force_int_10: Enabled
+            validate_certs: false
+            restart: true
+            restart_type: GracefulRestart
 
-      - name: Get force_int_10 details by uri.
-        ansible.builtin.uri:
-          url: "{{ idrac_bios_url }}"
-          user: "{{ idrac_user }}"
-          password: "{{ idrac_password }}"
-          validate_certs: false
-          status_code: 200
-        retries: 10
-        delay: 20
-        until: "'ForceInt10' in boot_md_uri.json.Attributes"
-        register: boot_md_uri
+        - name: Get force_int_10 details by uri.
+          ansible.builtin.uri:
+            url: "{{ idrac_bios_url }}"
+            user: "{{ idrac_user }}"
+            password: "{{ idrac_password }}"
+            validate_certs: false
+            status_code: 200
+          retries: 10
+          delay: 20
+          until: "'ForceInt10' in boot_md_uri.json.Attributes"
+          register: boot_md_uri
 
-      - name: Verify - Force_int_10 is enabled
-        ansible.builtin.assert:
-          that:
-            - 'boot_md_uri.json.Attributes.ForceInt10 == "Enabled"'
+        - name: Verify - Force_int_10 is enabled
+          ansible.builtin.assert:
+            that:
+              - 'boot_md_uri.json.Attributes.ForceInt10 == "Enabled"'
 
-      - name: Disable force_int_10
-        dellemc.openmanage.idrac_secure_boot:
-          idrac_ip: "{{ idrac_ip }}"
-          idrac_user: "{{ idrac_user }}"
-          idrac_password: "{{ idrac_password }}"
-          force_int_10: Disabled
-          validate_certs: false
-          restart: false
+        - name: Disable force_int_10
+          dellemc.openmanage.idrac_secure_boot:
+            idrac_ip: "{{ idrac_ip }}"
+            idrac_user: "{{ idrac_user }}"
+            idrac_password: "{{ idrac_password }}"
+            force_int_10: Disabled
+            validate_certs: false
+            restart: false
 
-      - name: Bios configuration exists (check mode - changes expected)
-        dellemc.openmanage.idrac_secure_boot: &bios_config_exists
-          idrac_ip: "{{ idrac_ip }}"
-          idrac_user: "{{ idrac_user }}"
-          idrac_password: "{{ idrac_password }}"
-          force_int_10: Disabled
-          validate_certs: false
-          restart: false
-        register: cm_changes
-        check_mode: true
+        - name: Bios configuration exists (check mode - changes expected)
+          dellemc.openmanage.idrac_secure_boot: &bios_config_exists
+            idrac_ip: "{{ idrac_ip }}"
+            idrac_user: "{{ idrac_user }}"
+            idrac_password: "{{ idrac_password }}"
+            force_int_10: Disabled
+            validate_certs: false
+            restart: false
+          register: cm_changes
+          check_mode: true
 
-      - name: Verify - Bios configuration exists (check mode - changes expected)
-        ansible.builtin.assert:
-          that:
-            - cm_changes.changed
-            - cm_changes.msg == 'Changes found to be applied.'
+        - name: Verify - Bios configuration exists (check mode - changes expected)
+          ansible.builtin.assert:
+            that:
+              - cm_changes.changed
+              - cm_changes.msg == 'Changes found to be applied.'
 
-      - name: Bios configuration exists (normal mode)
-        dellemc.openmanage.idrac_secure_boot:
-          <<: *bios_config_exists
-        register: bios_config_exists
+        - name: Bios configuration exists (normal mode)
+          dellemc.openmanage.idrac_secure_boot:
+            <<: *bios_config_exists
+          register: bios_config_exists
 
-      - name: Verify - Bios configuration exists (normal mode)
-        ansible.builtin.assert:
-          that:
-            - bios_config_exists.skipped
-            - 'bios_config_exists.msg == "BIOS Configuration job already exists."'
+        - name: Verify - Bios configuration exists (normal mode)
+          ansible.builtin.assert:
+            that:
+              - bios_config_exists.skipped
+              - 'bios_config_exists.msg == "BIOS Configuration job already exists."'
 
-      
       when: "hw_model | int < 17"
 
     - ansible.builtin.include_tasks: _configure_generic_bios_attributes.yml
@@ -120,8 +117,7 @@
 
     - ansible.builtin.include_tasks: _get_file_path.yml
 
-    - name: Set secure_boot_mode with import operation
-        (check mode - changes expected)
+    - name: Set secure_boot_mode with import operation (check mode - changes expected)
       dellemc.openmanage.idrac_secure_boot: &secure_with_import
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
@@ -135,8 +131,7 @@
       register: cm_changes
       check_mode: true
 
-    - name: Verify - Set secure_boot_mode with import operation
-        (check mode - changes expected)
+    - name: Verify - Set secure_boot_mode with import operation (check mode - changes expected)
       ansible.builtin.assert:
         that:
           - cm_changes.changed
@@ -150,14 +145,11 @@
         <<: *secure_with_import
       register: secure_with_import
 
-    - name: Verify - Set secure_boot_mode with import
-        operation (normal mode)
+    - name: Verify - Set secure_boot_mode with import operation (normal mode)
       ansible.builtin.assert:
         that:
           - not secure_with_import.changed
-          - 'secure_with_import.msg == "The SecureBoot Certificate Import
-            operation is successfully scheduled. Restart the host server for
-            the changes to take effect."'
+          - 'secure_with_import.msg == "The SecureBoot Certificate Import operation is successfully scheduled. Restart the host server for the changes to take effect."'
       when: secure_with_import.changed
 
     - name: Verify - Secure boot Log entries
