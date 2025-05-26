@@ -65,7 +65,8 @@
         attributes - attributes set
       ansible.builtin.assert:
         that:
-          - fetched_attributes.json.Attributes.PermitTotalPortShutdown == "Disabled"
+          - fetched_attributes.json.Attributes.
+           PermitTotalPortShutdown == "Disabled"
 
     - name: Clear pending attributes and configure network attributes
         (Idempotence)

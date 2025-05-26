@@ -61,7 +61,8 @@
     - name: Verify task status - Configure network attributes - attributes set
       ansible.builtin.assert:
         that:
-          - fetched_attributes.json.Attributes.PermitTotalPortShutdown == "Disabled"
+          - fetched_attributes.json.Attributes.
+           PermitTotalPortShutdown == "Disabled"
 
     - name: Configure network attributes (Idempotence)
       dellemc.openmanage.idrac_network_attributes:

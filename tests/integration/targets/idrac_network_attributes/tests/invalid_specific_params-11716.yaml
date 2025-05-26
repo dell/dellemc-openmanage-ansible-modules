@@ -333,7 +333,7 @@
       when: "'AtMaintenanceWindowStart' in supported_apply_times"
       block:
         - name: Negative - Invalid offset for start_time (Check mode)
-          dellemc.openmanage.idrac_network_attributes: &task_invalid_off_set_time
+          dellemc.openmanage.idrac_network_attributes: &task_invalid_off_set_tim
             apply_time: AtMaintenanceWindowStart
             maintenance_window:
               start_time: "{{ datetime }}"
@@ -356,7 +356,7 @@
 
         - name: Negative - Invalid offset for start_time (Normal mode)
           dellemc.openmanage.idrac_network_attributes:
-            <<: *task_invalid_off_set_time
+            <<: *task_invalid_off_set_tim
           register: invalid_offset_for_start_time
           ignore_errors: true
 
