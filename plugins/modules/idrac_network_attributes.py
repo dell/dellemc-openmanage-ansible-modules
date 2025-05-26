@@ -82,6 +82,7 @@ options:
       - C(InMaintenanceWindowOnReset) allows to apply after a manual reset but within the maintenance window as
         specified in I(maintenance_window).
       - This is not applicable for iDRAC8 and value will be ignored and will not have any impact for configuring I(oem_network_attributes).
+      - For iDRAC10, only C(OnReset) is supported.
     choices: [Immediate, OnReset, AtMaintenanceWindowStart, InMaintenanceWindowOnReset]
   maintenance_window:
     type: dict
