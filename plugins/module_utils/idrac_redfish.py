@@ -39,9 +39,6 @@ from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible.module_utils.common.parameters import env_fallback
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
 from ansible.module_utils.basic import AnsibleModule
-import logging
-from ansible_collections.dellemc.openmanage.plugins.module_utils.logging_handler \
-    import CustomRotatingFileHandler
 
 
 idrac_auth_params = {
@@ -518,19 +515,3 @@ class IdracAnsibleModule(AnsibleModule):
                          mutually_exclusive, required_together,
                          required_one_of, add_file_common_args,
                          supports_check_mode, required_if, required_by)
-
-    def get_logger(self, module_name, log_file_name='ansible_openmanage.log',
-                   log_devel=logging.INFO):
-        FORMAT = '%(asctime)-15s %(filename)s %(levelname)s : %(message)s'
-        max_bytes = 5 * 1024 * 1024
-        logging.basicConfig(filename=log_file_name, format=FORMAT)
-        LOG = logging.getLogger(module_name)
-        LOG.setLevel(log_devel)
-        handler = CustomRotatingFileHandler(log_file_name,
-                                            maxBytes=max_bytes,
-                                            backupCount=5)
-        formatter = logging.Formatter(FORMAT)
-        handler.setFormatter(formatter)
-        LOG.addHandler(handler)
-        LOG.propagate = False
-        return LOG

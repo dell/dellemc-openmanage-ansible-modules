@@ -36,8 +36,8 @@ import datetime
 
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import IdracAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    remove_key, idrac_redfish_job_tracking)
-LOG = IdracAnsibleModule.get_logger('idrac_lifecycle_controller_logs')
+    remove_key, idrac_redfish_job_tracking, get_logger)
+LOG = get_logger(module_name='idrac_lifecycle_controller_logs')
 ODATA_PATTERN = '(.*?)@odata'
 
 

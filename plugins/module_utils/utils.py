@@ -69,6 +69,9 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
     idrac_utils.info.firmware import IDRACFirmwareInfo
+import logging
+from ansible_collections.dellemc.openmanage.plugins.module_utils.logging_handler \
+    import CustomRotatingFileHandler
 
 
 def strip_substr_dict(odata_dict, chkstr='@odata.', case_sensitive=False):
@@ -797,3 +800,19 @@ def get_job_uri(rest_obj):
     if not firmware_obj.is_omsdk_required():
         job_uri = MANAGER_JOB_URI_10
     return job_uri
+
+def get_logger(self, module_name, log_file_name='ansible_openmanage.log',
+                log_devel=logging.INFO):
+    FORMAT = '%(asctime)-15s %(filename)s %(levelname)s : %(message)s'
+    max_bytes = 5 * 1024 * 1024
+    logging.basicConfig(filename=log_file_name, format=FORMAT)
+    LOG = logging.getLogger(module_name)
+    LOG.setLevel(log_devel)
+    handler = CustomRotatingFileHandler(log_file_name,
+                                        maxBytes=max_bytes,
+                                        backupCount=5)
+    formatter = logging.Formatter(FORMAT)
+    handler.setFormatter(formatter)
+    LOG.addHandler(handler)
+    LOG.propagate = False
+    return LOG
