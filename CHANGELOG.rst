@@ -13,6 +13,7 @@ Release Summary
 - The ``idrac_user_info`` module is enhanced to support iDRAC10.
 - The ``idrac_lifecycle_controller_status_info`` module is enhanced to support iDRAC10.
 - The ``idrac_lifecycle_controller_jobs`` module is enhanced to support iDRAC10.
+- The ``idrac_virtual_media`` module is enhanced to support iDRAC10.
 - The ``idrac_attributes`` module is enhanced to support iDRAC10.
 - The ``idrac_reset`` module is enhanced to support iDRAC10.
 - The ``idrac_attributes`` role is enhanced to support iDRAC10.
