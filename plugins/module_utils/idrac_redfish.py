@@ -109,6 +109,8 @@ class iDRACRedfishAPI(object):
         self.session_id = None
         self.protocol = 'https'
         self._headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
+        if self.x_auth_token is not None:
+            self._headers["X-Auth-Token"] = self.x_auth_token
         self.ipaddress = config_ipv6(self.ipaddress)
         self.SESSION_RESOURCE_COLLECTION = {
             "SESSION": "/redfish/v1/SessionService/Sessions",
