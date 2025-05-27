@@ -86,6 +86,8 @@ Parameters
 
     This is not applicable for iDRAC8 and value will be ignored and will not have any impact for configuring :emphasis:`oem\_network\_attributes`.
 
+    For iDRAC10, only :literal:`OnReset` is supported.
+
 
   maintenance_window (optional, dict, None)
     This option allows you to schedule the maintenance window.
