@@ -631,6 +631,7 @@ def get_server_generation(idrac: iDRACRedfishAPI):
     """
     return idrac.get_server_generation
 
+
 class IDRACAttributes(IDRACSecureBoot):
 
     def __init__(self, idrac: iDRACRedfishAPI, module: IdracAnsibleModule):
