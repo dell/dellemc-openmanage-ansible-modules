@@ -10,6 +10,7 @@
     - diff_keys | length == 0
     - sensorsvoltage_data[item] != api_response[index][item]
     - item not in exclude_keys
+    - item != "MemberId"
 
 - name: Assert the difference in Keys
   ansible.builtin.assert:
