@@ -15,7 +15,6 @@ Release Summary
 - The ``idrac_lifecycle_controller_jobs`` module is enhanced to support iDRAC10.
 - The ``idrac_virtual_media`` module is enhanced to support iDRAC10.
 - The ``idrac_attributes`` module is enhanced to support iDRAC10.
-- The ``idrac_reset`` module is enhanced to support iDRAC10.
 - The ``idrac_attributes`` role is enhanced to support iDRAC10.
 - The ``idrac_syslog`` module is deprecated.
 
@@ -26,7 +25,6 @@ Major Changes
 - idrac_attributes - This role is enhanced to support iDRAC10.
 - idrac_lifecycle_controller_jobs - This module is enhanced to support iDRAC10.
 - idrac_lifecycle_controller_status_info - This module is enhanced to support iDRAC10.
-- idrac_reset - This module is enhanced to support iDRAC10.
 - idrac_syslog - This module is deprecated.
 - idrac_user_info - This module is enhanced to support iDRAC10.
 

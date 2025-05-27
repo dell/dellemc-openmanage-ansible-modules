@@ -33,7 +33,7 @@ You may obtain a copy of the License at
 | [idrac_network_attributes](modules/idrac_network_attributes.rst)                                     | ✓      | ✓      |
 | [idrac_os_deployment](modules/idrac_os_deployment.rst)                                               | ✓      | ✓      |
 | [idrac_redfish_storage_controller](modules/idrac_redfish_storage_controller.rst)                     | ✕      | ✓      |
-| [idrac_reset](modules/idrac_reset.rst)                                                               | ✓      | ✓      | ✓
+| [idrac_reset](modules/idrac_reset.rst)                                                               | ✓      | ✓
 | [idrac_secure_boot](modules/idrac_secure_boot.rst)                                                   | ✕      | ✓      |
 | [idrac_server_config_profile](modules/idrac_server_config_profile.rst)                               | ✓      | ✓      |
 | [idrac_session](modules/idrac_session.rst)                                                           | ✓      | ✓      | ✓

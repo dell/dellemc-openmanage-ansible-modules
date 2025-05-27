@@ -2301,7 +2301,6 @@ releases:
           iDRAC10.
         - The ``idrac_attributes`` module is enhanced to support
           iDRAC10.
-        - The ``idrac_reset`` module is enhanced to support iDRAC10.
         - The ``idrac_attributes`` role is enhanced to support
           iDRAC10.
         - The ``idrac_syslog`` module is deprecated.'
@@ -2314,7 +2313,6 @@ releases:
         - idrac_virtual_media - This module is enhanced to support
           iDRAC10.
         - idrac_attributes - This module is enhanced to support iDRAC10.
-        - idrac_reset - This module is enhanced to support iDRAC10.
         - idrac_attributes - This role is enhanced to support iDRAC10.
         - idrac_syslog - This module is deprecated.
       known_issues:
