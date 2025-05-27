@@ -41,6 +41,10 @@
         that:
           - "{{ voltages | length > 0 }}"
 
+    - name: Sort the role response
+      ansible.builtin.set_fact:
+        "voltages": "{{ voltages | sort(attribute='SensorNumber') }}"
+
     - name: Get Sensor Voltage information.
       ansible.builtin.uri:
         url: "https://{{ hostname }}{{ api_chassis }}/Power#/Voltages"
@@ -58,9 +62,13 @@
 
     - name: Set Sensor Voltage facts
       ansible.builtin.set_fact:
-        "api_response":
+        "api_response1":
           "{{ voltage_result.json.Voltages | ansible.utils.remove_keys(target=['@odata.context',
           '@odata.id', '@odata.type']) }}"
+
+    - name: Sort the API response
+      ansible.builtin.set_fact:
+        "api_response": "{{ api_response1 | sort(attribute='SensorNumber') }}"
 
     - name: Call assertion
       ansible.builtin.include_tasks: ../../tests/asserts/sensorsvoltage_assert.yml
