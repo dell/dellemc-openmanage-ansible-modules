@@ -40,5 +40,5 @@ class IDRACFirmwareInfo(object):
             response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_URI)
             if response.status_code == 200:
                 return False
-        except HTTPError:
+        except (HTTPError, TypeError):
             return True
