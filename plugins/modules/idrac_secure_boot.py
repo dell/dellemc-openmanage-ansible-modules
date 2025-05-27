@@ -287,7 +287,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish i
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     get_dynamic_uri, remove_key, validate_and_get_first_resource_id_uri,
     trigger_restart_operation, wait_for_lc_status, get_lc_log_or_current_log_time,
-    cert_file_format_string, strip_substr_dict, idrac_redfish_job_tracking, reset_host, get_idrac_firmware_version)
+    cert_file_format_string, strip_substr_dict, idrac_redfish_job_tracking, reset_host)
 
 SYSTEMS_URI = "/redfish/v1/Systems"
 IDRAC_MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
@@ -619,6 +619,18 @@ class IDRACResetCertificates(IDRACSecureBoot):
             self.module.exit_json(msg=FAILED_RESET_KEYS.format(reset_key_op=self.reset_keys), failed=True)
 
 
+def get_server_generation(idrac: iDRACRedfishAPI):
+    """
+    Function wrapping idrac.get_server_generation. Helps with mocked testing.
+
+    Args:
+        idrac (iDRACRedfishAPI): iDRACRedfishAPI object.
+
+    Returns:
+        Tuple[int, str, str]: A tuple containing the server generation, firmware version, and hardware model.
+    """
+    return idrac.get_server_generation
+
 class IDRACAttributes(IDRACSecureBoot):
 
     def __init__(self, idrac: iDRACRedfishAPI, module: IdracAnsibleModule):
@@ -629,13 +641,13 @@ class IDRACAttributes(IDRACSecureBoot):
         self.secure_boot_policy = self.module.params.get('secure_boot_policy')
         self.force_int_10 = self.module.params.get('force_int_10')
 
-        self.generation, self.idrac_firmware_version, _ = self.idrac.get_server_generation
-        
-        self.iDRAC_JOBS_URI = IDRAC_MANAGER_URI+"/Jobs"        
+        self.generation, self.idrac_firmware_version, hw_model = get_server_generation(self.idrac)
+
+        self.iDRAC_JOBS_URI = IDRAC_MANAGER_URI + "/Jobs"
         if self.generation >= 17:
-            self.iDRAC_JOBS_URI = IDRAC_MANAGER_URI+"/Oem/Dell/Jobs"
-        self.iDRAC_JOB_URI = self.iDRAC_JOBS_URI+"/{job_id}"
-        self.iDRAC_JOBS_EXP = self.iDRAC_JOBS_URI+"?$expand=*($levels=1)"
+            self.iDRAC_JOBS_URI = IDRAC_MANAGER_URI + "/Oem/Dell/Jobs"
+        self.iDRAC_JOB_URI = self.iDRAC_JOBS_URI + "/{job_id}"
+        self.iDRAC_JOBS_EXP = self.iDRAC_JOBS_URI + "?$expand=*($levels=1)"
 
     def check_scheduled_bios_job(self):
         job_resp = self.idrac.invoke_request(self.iDRAC_JOBS_EXP, "GET")

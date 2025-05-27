@@ -434,7 +434,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
                      side_effect=mock_get_dynamic_uri_request)
         mocker.patch(MODULE_PATH + "idrac_secure_boot.validate_and_get_first_resource_id_uri",
                      return_value=(uri, ''))
-        mocker.patch(MODULE_PATH + GET_FIRMWARE_VERSION, return_value=("7.00.00"))
+        mocker.patch(MODULE_PATH + "idrac_secure_boot.get_server_generation", return_value=(16, "7.00.00", "bcd"))
 
         # Scenario 1: When secure_boot is enabled when already enabled in check_mode
         idrac_default_args.update({'secure_boot': 'Enabled'})
@@ -539,7 +539,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
 
         # Scenario 12: When secure_boot is updated on iDRAC8
         idrac_default_args.update({'secure_boot': 'Enabled'})
-        mocker.patch(MODULE_PATH + GET_FIRMWARE_VERSION, return_value=("2.86.86"))
+        mocker.patch(MODULE_PATH + "idrac_secure_boot.get_server_generation", return_value=(15, "2.86.86", "bcd"))
         resp = self._run_module(idrac_default_args, check_mode=True)
         assert resp['msg'] == "Secure Boot settings update is not supported on this firmware version of iDRAC."
         assert resp['skipped'] is True

@@ -149,7 +149,9 @@
       ansible.builtin.assert:
         that:
           - not secure_with_import.changed
-          - 'secure_with_import.msg == "The SecureBoot Certificate Import operation is successfully scheduled. Restart the host server for the changes to take effect."'
+          - '"The SecureBoot Certificate Import operation is successfully scheduled." in secure_with_import.msg'
+          - '"Restart the host server for the changes to take effect." in secure_with_import.msg'
+
       when: secure_with_import.changed
 
     - name: Verify - Secure boot Log entries

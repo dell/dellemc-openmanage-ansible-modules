@@ -116,7 +116,7 @@
 
     - block:
     # this block of tests will only be executed for 16G and below
-    # tests invalid boot mode and force_int_10 scenarios 
+    # tests invalid boot mode and force_int_10 scenarios
         - name: Prerequisite - Set boot mode to bios and enable force_int_10
           dellemc.openmanage.idrac_secure_boot:
             idrac_ip: "{{ idrac_ip }}"
