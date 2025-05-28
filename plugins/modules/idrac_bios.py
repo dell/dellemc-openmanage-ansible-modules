@@ -617,8 +617,8 @@ def get_attributes_registry(idrac):
 
 
 def check_bios_attributes_enum(val_dict, invalid, k, v):
-    type = val_dict.get("Type")
-    if type == "Enumeration":
+    enum_type = val_dict.get("Type")
+    if enum_type == "Enumeration":
         found = False
         for val in val_dict.get("Value", []):
             if v == val.get("ValueName"):
@@ -629,8 +629,8 @@ def check_bios_attributes_enum(val_dict, invalid, k, v):
 
 
 def check_bios_attributes_int(val_dict, invalid, k, v):
-    type = val_dict.get("Type")
-    if type == "Integer":
+    field_type = val_dict.get("Type")
+    if field_type == "Integer":
         try:
             i = int(v)
         except Exception:
