@@ -615,29 +615,35 @@ def get_attributes_registry(idrac):
         reggy = {}
     return reggy
 
+def check_bios_attributes_enum(val_dict, invalid, k, v):
+    type = val_dict.get("Type")
+    if type == "Enumeration":
+        found = False
+        for val in val_dict.get("Value", []):
+            if v == val.get("ValueName"):
+                found = True
+                break
+        if not found:
+            invalid[k] = "Invalid value for enumeration."
+
+def check_bios_attributes_int(val_dict, invalid, k, v):
+    type = val_dict.get("Type")
+    if type == "Integer":
+        try:
+            i = int(v)
+        except Exception:
+            invalid[k] = "Invalid integer."
+        else:
+            if not (val_dict.get("LowerBound") <= i <= val_dict.get("UpperBound")):
+                invalid[k] = "Integer not in a valid range."
 
 def validate_vs_registry(registry, attr_dict):
     invalid = {}
     for k, v in attr_dict.items():
         if k in registry:
             val_dict = registry.get(k)
-            type = val_dict.get("Type")
-            if type == "Enumeration":
-                found = False
-                for val in val_dict.get("Value", []):
-                    if v == val.get("ValueName"):
-                        found = True
-                        break
-                if not found:
-                    invalid[k] = "Invalid value for enumeration."
-            if type == "Integer":
-                try:
-                    i = int(v)
-                except Exception:
-                    invalid[k] = "Invalid integer."
-                else:
-                    if not (val_dict.get("LowerBound") <= i <= val_dict.get("UpperBound")):
-                        invalid[k] = "Integer not in a valid range."
+            check_bios_attributes_enum(val_dict, invalid, k, v)
+            check_bios_attributes_int(val_dict, invalid, k, v)
         else:
             invalid[k] = "The attribute does not exist."
 
