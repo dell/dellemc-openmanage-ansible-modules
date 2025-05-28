@@ -1,6 +1,7 @@
 ---
 - name: ansible-doc
-  ansible.builtin.command: ansible-doc dellemc.openmanage.idrac_lifecycle_controller_jobs
+  ansible.builtin.command:
+    ansible-doc dellemc.openmanage.idrac_lifecycle_controller_jobs
   register: ansible_doc_hash
   run_once: true
 
