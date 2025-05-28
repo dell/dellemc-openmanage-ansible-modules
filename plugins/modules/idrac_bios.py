@@ -615,6 +615,7 @@ def get_attributes_registry(idrac):
         reggy = {}
     return reggy
 
+
 def check_bios_attributes_enum(val_dict, invalid, k, v):
     type = val_dict.get("Type")
     if type == "Enumeration":
@@ -626,6 +627,7 @@ def check_bios_attributes_enum(val_dict, invalid, k, v):
         if not found:
             invalid[k] = "Invalid value for enumeration."
 
+
 def check_bios_attributes_int(val_dict, invalid, k, v):
     type = val_dict.get("Type")
     if type == "Integer":
@@ -636,6 +638,7 @@ def check_bios_attributes_int(val_dict, invalid, k, v):
         else:
             if not (val_dict.get("LowerBound") <= i <= val_dict.get("UpperBound")):
                 invalid[k] = "Integer not in a valid range."
+
 
 def validate_vs_registry(registry, attr_dict):
     invalid = {}
