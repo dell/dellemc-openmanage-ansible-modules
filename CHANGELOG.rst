@@ -4,6 +4,37 @@ Dell OpenManage Ansible Modules Release Notes
 
 .. contents:: Topics
 
+v9.12.1
+=======
+
+Release Summary
+---------------
+
+- The ``idrac_user_info`` module is enhanced to support iDRAC10.
+- The ``idrac_lifecycle_controller_status_info`` module is enhanced to support iDRAC10.
+- The ``idrac_lifecycle_controller_jobs`` module is enhanced to support iDRAC10.
+- The ``idrac_virtual_media`` module is enhanced to support iDRAC10.
+- The ``idrac_attributes`` module is enhanced to support iDRAC10.
+- The ``idrac_attributes`` role is enhanced to support iDRAC10.
+- The ``idrac_syslog`` module is deprecated.
+
+Major Changes
+-------------
+
+- idrac_attributes - This module is enhanced to support iDRAC10.
+- idrac_attributes - This role is enhanced to support iDRAC10.
+- idrac_lifecycle_controller_jobs - This module is enhanced to support iDRAC10.
+- idrac_lifecycle_controller_status_info - This module is enhanced to support iDRAC10.
+- idrac_syslog - This module is deprecated.
+- idrac_user_info - This module is enhanced to support iDRAC10.
+
+Known Issues
+------------
+
+- idrac_diagnostics - Issue(285322) - This module doesn't support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
+- idrac_firmware - Issue(279282) - This module does not support firmware update using HTTP, HTTPS, and FTP shares with authentication on iDRAC8.
+- ome_smart_fabric_uplink - Issue(186024) - The module supported by OpenManage Enterprise Modular, however it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, then the existing uplink is modified.
+
 v9.12.0
 =======
 

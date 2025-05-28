@@ -1,6 +1,6 @@
 namespace: dellemc
 name: openmanage
-version: 9.12.0
+version: 9.12.1
 readme: README.md
 authors:
   - Jagadeesh N V <Jagadeesh.N.V@Dell.com>
