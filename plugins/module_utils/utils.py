@@ -50,6 +50,7 @@ MANAGER_JOB_ID_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{0}"
 MANAGER_JOB_URI_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs?$expand=*($levels=1)"
 MANAGER_JOB_ID_URI_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{0}"
 GET_IDRAC_FIRMWARE_VER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
+GET_IDRAC_MODEL_VER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/"
 HOSTNAME_REGEX = r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
 OME_INFO = "ApplicationService/Info"
 ODATA_ID = "@odata.id"
@@ -561,6 +562,11 @@ def get_idrac_firmware_version(idrac):
     data = {'uri': GET_IDRAC_FIRMWARE_VER_URI} if 'uri' in args else {'path': GET_IDRAC_FIRMWARE_VER_URI}
     firm_version = idrac.invoke_request(method='GET', **data)
     return firm_version.json_data.get('FirmwareVersion', '')
+
+def get_idrac_model_version(idrac):
+    model_version = idrac.get_server_generation
+    model_version = model_version[0]
+    return model_version
 
 
 def get_ome_version(ome_obj):

@@ -26,6 +26,7 @@
          'ResetAllWithRootDefaults']
         - operation is defined and operation == 'export'
       register: scp_export_before_reset
+      ignore_errors: true
 
     - name: Importing all the iDRAC settings after reset
       dellemc.openmanage.idrac_server_config_profile:

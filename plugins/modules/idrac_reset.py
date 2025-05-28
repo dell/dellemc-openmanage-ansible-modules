@@ -209,7 +209,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish i
 from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    get_idrac_firmware_version, remove_key, get_dynamic_uri, validate_and_get_first_resource_id_uri, idrac_redfish_job_tracking)
+    get_idrac_firmware_version, remove_key, get_dynamic_uri, validate_and_get_first_resource_id_uri, idrac_redfish_job_tracking, get_idrac_model_version)
 
 
 MANAGERS_URI = "/redfish/v1/Managers"
@@ -218,7 +218,7 @@ MANUFACTURER = "Dell"
 ACTIONS = "Actions"
 IDRAC_RESET_RETRIES = 50
 LC_STATUS_CHECK_SLEEP = 30
-IDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
+IDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{job_id}"
 RESET_TO_DEFAULT_ERROR = "{reset_to_default} is not supported. The supported values are {supported_values}. Enter the valid values and retry the operation."
 RESET_TO_DEFAULT_ERROR_MSG = "{reset_to_default} is not supported."
 CUSTOM_ERROR = "{reset_to_default} is not supported on this firmware version of iDRAC. The supported values are {supported_values}. \
@@ -255,6 +255,7 @@ class Validation():
         self.idrac = idrac
         self.module = module
         self.base_uri = self.get_base_uri()
+        self.idrac_model_version = get_idrac_model_version(idrac)
 
     def get_base_uri(self):
         uri, error_msg = validate_and_get_first_resource_id_uri(
@@ -273,6 +274,8 @@ class Validation():
             reset_to_defaults_val = res.json_data["Actions"][key_list[0]][key_list[1]]
             reset_type_values = reset_to_defaults_val["ResetType@Redfish.AllowableValues"]
             allowed_values = reset_type_values
+            if self.idrac_model_version >= 13 and "CustomDefaults" not in allowed_values:
+                allowed_values.append("CustomDefaults")
             if reset_to_default not in reset_type_values:
                 is_valid = False
         else:
@@ -331,6 +334,7 @@ class FactoryReset():
         self.validate_obj = Validation(self.idrac, self.module)
         self.uri = self.validate_obj.base_uri
         self.idrac_firmware_version = get_idrac_firmware_version(self.idrac)
+        self.idrac_model_version = get_idrac_model_version(self.idrac)
 
     def execute(self):
         msg_res, job_res = None, None
@@ -358,8 +362,8 @@ class FactoryReset():
         return msg_res, job_res
 
     def check_mode_output(self, is_idrac9):
-        if is_idrac9 and self.reset_to_default == 'CustomDefaults' and LooseVersion(self.idrac_firmware_version) < MINIMUM_SUPPORTED_FIRMWARE_VERSION:
-            self.module.exit_json(msg=CHANGES_NOT_FOUND)
+        if is_idrac9 and self.reset_to_default == 'CustomDefaults' and (LooseVersion(self.idrac_firmware_version) < MINIMUM_SUPPORTED_FIRMWARE_VERSION and self.idrac_model_version < 13):
+            self.module.exit_json(msg="Check")
         if self.reset_to_default:
             allowed_values, is_valid_option = self.validate_obj.validate_reset_options(RESET_KEY)
         else:
@@ -374,7 +378,7 @@ class FactoryReset():
             self.module.exit_json(msg=CHANGES_NOT_FOUND)
 
     def is_check_idrac_latest(self):
-        if LooseVersion(self.idrac_firmware_version) >= '3.0':
+        if LooseVersion(self.idrac_firmware_version) >= '3.0' or self.idrac_model_version >= 13:
             return True
 
     def update_credentials_for_post_lc_statuc_check(self):
@@ -516,7 +520,7 @@ class FactoryReset():
 
     def reset_custom_defaults(self):
         self.allowed_choices, is_valid_option = self.validate_obj.validate_reset_options(RESET_KEY)
-        if LooseVersion(self.idrac_firmware_version) < MINIMUM_SUPPORTED_FIRMWARE_VERSION:
+        if LooseVersion(self.idrac_firmware_version) < MINIMUM_SUPPORTED_FIRMWARE_VERSION and self.idrac_model_version < 13:
             self.module.exit_json(msg=CUSTOM_ERROR.format(reset_to_default=self.reset_to_default,
                                                           supported_values=self.allowed_choices), skipped=True)
         custom_default_file = self.module.params.get('custom_defaults_file')
