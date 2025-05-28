@@ -2,7 +2,7 @@
 
 # Dell OpenManage Ansible Modules
 # Version 9.3.0
-# Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2019-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
