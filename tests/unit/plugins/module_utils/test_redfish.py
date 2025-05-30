@@ -51,14 +51,23 @@ class TestRedfishRest(object):
     def test_invoke_request_with_session(self, mock_response, mocker, module_params):
         mocker.patch(MODULE_UTIL_PATH + OPEN_URL,
                      return_value=mock_response)
+        obj = MagicMock()
+        obj.status_code = 200
+        obj.success = True
+        resp = {'Model': '17G Monolithic',
+                'Attributes': {'Info.1.HWModel': 'iDRAC 10'},
+                'FirmwareVersion': 'x.x.x.x'}
+        obj.json_data = resp
+        mocker.patch(MODULE_UTIL_PATH + 'redfish.Redfish.invoke_request', return_value=obj)
         req_session = True
         with Redfish(module_params, req_session) as obj:
             response = obj.invoke_request(TEST_PATH, "GET")
         assert response.status_code == 200
-        assert response.json_data == {"value": "data"}
+        assert response.json_data == resp
         assert response.success is True
 
     def test_invoke_request_without_session(self, mock_response, mocker):
+        Redfish.get_server_generation = [12]
         mocker.patch(MODULE_UTIL_PATH + OPEN_URL,
                      return_value=mock_response)
         module_params = {'baseuri': '[2001:db8:3333:4444:5555:6666:7777:8888]:443', 'username': 'username',
