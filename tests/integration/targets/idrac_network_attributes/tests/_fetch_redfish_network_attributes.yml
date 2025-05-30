@@ -1,0 +1,42 @@
+---
+- name: Waiting for 30 secs before fetching redfish attributes
+  ansible.builtin.pause:
+    seconds: 30
+
+- name: Set fact for uri
+  ansible.builtin.set_fact:
+    network_device: "{{ base_uri }}{{ ntwk_fn_uri }}\
+    /{{ inp_network_device_function_id }}"
+
+- name: Fetching data for allowable apply_time
+  ansible.builtin.uri: &redfish_uri
+    url: "{{ network_device }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    body: {}
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+    headers: 'Accept=application/json'
+    force_basic_auth: true
+  register: network_device_resp
+
+- name: Prerequisite - Fetching network attributes
+  ansible.builtin.uri:
+    <<: *redfish_uri
+    url: "{{ network_device }}/Settings"
+  register: fetched_attributes
+
+- name: Set fact for supported_apply_times
+  ansible.builtin.set_fact:
+    supported_apply_times: "{{ network_device_resp.
+      json['@Redfish.Settings']['SupportedApplyTimes'] }}"
+
+- name: Ending play if apply time operation is not supported
+  ansible.builtin.meta: end_host
+  when: (module_apply_time is defined and module_apply_time not in
+    supported_apply_times) or
+    (_module_apply_time is defined and _module_apply_time not in
+    supported_apply_times)

@@ -1,0 +1,33 @@
+---
+- name: Get data using uri
+  ansible.builtin.uri:
+    url: "{{ base_uri }}{{ idrac_emebedded_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    validate_certs: "{{ validate_certs }}"
+    body_format: json
+    return_content: true
+    status_code: 200
+    headers: 'Accept=application/json'
+    force_basic_auth: true
+  register: fetched_data
+
+- name: Set date timeout
+  ansible.builtin.set_fact:
+    original_datetime: "{{ fetched_data.json.DateTime }}"
+
+- ansible.builtin.set_fact:
+    offset: "{{ fetched_data.json.DateTimeLocalOffset }}"
+
+- ansible.builtin.set_fact:
+    current_datetime_without_offset: "{{ original_datetime.split(offset)[0] }}"
+
+- ansible.builtin.command: "{{ input }}"
+  vars:
+    x: "date +'%Y-%m-%dT%H:%M:%S' -d"
+    input: "{{ x }} '{{ current_datetime_without_offset }} 1 minutes'"
+  register: result
+
+- ansible.builtin.set_fact:
+    updated_datetime_with_offset: "{{ result.stdout }}{{ offset }}"

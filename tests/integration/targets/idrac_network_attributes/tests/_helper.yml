@@ -1,0 +1,70 @@
+---
+- block:
+    - name: Fetch System Emdeded
+      ansible.builtin.uri: &network_uri
+        url: "{{ base_uri }}/redfish/v1/Systems/System.Embedded.1"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        method: GET
+        body: {}
+        validate_certs: false
+        body_format: json
+        return_content: true
+        status_code: 200
+        headers: 'Accept=application/json'
+        force_basic_auth: true
+      register: fetched_system
+      no_log: true
+
+    - name: Fetch network adapter url
+      ansible.builtin.set_fact:
+        network_base_uri: "{{ fetched_system.json.
+         NetworkInterfaces['@odata.id'] }}"
+
+    - name: Fetch network adapter
+      ansible.builtin.uri:
+        <<: *network_uri
+        url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}\
+        {{ network_base_uri }}"
+      no_log: true
+      register: fetched_network_adapter_id
+
+    - name: Extracting network adapter id
+      ansible.builtin.set_fact:
+        network_adapter_id: "{{ fetched_network_adapter_id.json.Members |
+         first }}"
+
+    - name: Setting network adapter id
+      ansible.builtin.set_fact:
+        inp_network_adapter_id: "{{ '@odata.id'| extract(network_adapter_id) |
+         split('/') | last}}"
+
+    - name: Get network apdater uri
+      ansible.builtin.uri:
+        <<: *network_uri
+        url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}\
+        {{ network_adapter_id['@odata.id'] }}"
+      no_log: true
+      register: network_device_function_uri
+
+    - name: Fetch network adapter url
+      ansible.builtin.set_fact:
+        ntwk_fn_uri: "{{ network_device_function_uri.json.
+         NetworkDeviceFunctions['@odata.id'] }}"
+
+    - name: Fetch network device function id
+      ansible.builtin.uri:
+        <<: *network_uri
+        url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}\
+        {{ ntwk_fn_uri }}"
+      register: device_function
+
+    - name: extracting network device function id
+      ansible.builtin.set_fact:
+        network_device_function_id: "{{ device_function.json.Members |
+         first }}"
+
+    - name: Setting network device function id
+      ansible.builtin.set_fact:
+        inp_network_device_function_id: "{{ '@odata.id'|
+         extract(network_device_function_id) | split('/') | last}}"

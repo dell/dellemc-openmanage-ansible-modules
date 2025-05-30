@@ -1,0 +1,112 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined
+
+- name: Set prerequisite
+  ansible.builtin.include_tasks: _helper.yml
+
+- name: Set prerequisite
+  ansible.builtin.include_tasks:
+    file: _prereq_configure_redfish_network_attributes.yml
+
+- block:
+    - name: Configure network attributes (Check mode - Changes expected)
+      dellemc.openmanage.idrac_network_attributes: &configure_network_attributes
+        network_adapter_id: "{{ inp_network_adapter_id }}"
+        network_device_function_id: "{{ inp_network_device_function_id }}"
+        network_attributes:
+          Ethernet:
+            VLAN:
+              VLANEnable: true
+        apply_time: OnReset
+      register: check_configure_network_attributes
+      check_mode: true
+
+    - name: Verify task status - Configure network attributes
+        (Check mode - Changes expected)
+      ansible.builtin.assert:
+        that:
+          - check_configure_network_attributes.changed
+          - 'check_configure_network_attributes.msg == "Changes found to be
+           applied."'
+
+    - name: Configure network attributes
+      dellemc.openmanage.idrac_network_attributes:
+        <<: *configure_network_attributes
+      register: result_configure_network_attributes
+
+    - name: Restart server
+      ansible.builtin.include_tasks: _restart_server.yml
+      vars:
+        job_id: "{{ result_configure_network_attributes.job_status.Id }}"
+      when: result_configure_network_attributes.msg == "Successfully scheduled
+       the job for network attributes update."
+
+    - name: Verify task status - Configure network attributes
+      ansible.builtin.assert:
+        that:
+          - result_configure_network_attributes.changed
+          - 'result_configure_network_attributes.msg == "Successfully scheduled
+           the job for network attributes update."'
+
+    - name: Fetching attibutes values
+      ansible.builtin.include_tasks: _fetch_redfish_network_attributes.yml
+
+    - name: Verify task status - Configure network attributes - attributes set
+      ansible.builtin.assert:
+        that:
+          - fetched_attributes.json.Ethernet.VLAN.VLANEnable == true
+
+    - name: Configure network attributes (Idempotence)
+      dellemc.openmanage.idrac_network_attributes:
+        <<: *configure_network_attributes
+      register: idempotence_configure_network_attributes
+
+    - name: Verify task status - Configure network attributes (Idempotence)
+      ansible.builtin.assert:
+        that:
+          - not idempotence_configure_network_attributes.changed
+          - 'idempotence_configure_network_attributes.msg == "No changes found
+           to be applied."'
+
+    - name: checking idrac lifecycle controller status
+      include_role: name=prepare_idrac_lifecycle_controller_status
+
+    - ansible.builtin.include_tasks: _get_date_time.yml
+
+    - name: Cleanup - Setting all the network parameters to initial value
+      dellemc.openmanage.idrac_network_attributes:
+        <<: *configure_network_attributes
+        network_attributes:
+          Ethernet:
+            VLAN:
+              VLANEnable: "{{ initial_VLANEnable }}"
+        apply_time: OnReset
+      register: cleanup
+
+    - name: Restart server
+      ansible.builtin.include_tasks: _restart_server.yml
+      vars:
+        job_id: "{{ cleanup.job_status.Id }}"
+      when: cleanup.changed
+
+    - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{ cleanup.job_status.Id }}"
+
+  module_defaults:
+    dellemc.openmanage.idrac_network_attributes:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_port: "{{ idrac_port }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

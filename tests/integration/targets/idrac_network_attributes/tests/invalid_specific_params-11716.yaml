@@ -1,0 +1,494 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+      idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+    idrac_password is not defined
+
+- block:
+    - ansible.builtin.include_tasks: _helper.yml
+
+    - name: Negative - invalid network_adapter_id (Check mode)
+      dellemc.openmanage.idrac_network_attributes:
+        apply_time: OnReset
+        network_adapter_id: invalid_adapter_id
+        network_device_function_id: device_function_id
+        oem_network_attributes:
+          VLanId: 1
+      check_mode: true
+      register: cm_invalid_network_adapter_id
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid network_adapter_id
+        (Check mode)
+      ansible.builtin.assert:
+        that:
+          - cm_invalid_network_adapter_id.failed
+          - not cm_invalid_network_adapter_id.changed
+          - 'cm_invalid_network_adapter_id.msg == "Unable to complete the
+           operation because the value `invalid_adapter_id` for
+           the input `network_adapter_id` parameter is invalid."'
+
+    - name: Negative - invalid network_adapter_id (Normal mode)
+      dellemc.openmanage.idrac_network_attributes:
+        apply_time: OnReset
+        network_adapter_id: invalid_adapter_id
+        network_device_function_id: device_function_id
+        oem_network_attributes:
+          VLanId: 1
+      register: invalid_network_adapter_id
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid network_adapter_id
+        (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - invalid_network_adapter_id.failed
+          - not invalid_network_adapter_id.changed
+          - 'invalid_network_adapter_id.msg == "Unable to complete the operation
+           because the value `invalid_adapter_id` for
+           the input `network_adapter_id` parameter is invalid."'
+
+    - name: Negative - invalid network_device_function_id (Check mode)
+      dellemc.openmanage.idrac_network_attributes:
+        apply_time: OnReset
+        network_adapter_id: "{{ inp_network_adapter_id }}"
+        network_device_function_id: invalid_device_function_id
+        oem_network_attributes:
+          VLanId: 1
+      check_mode: true
+      register: cm_network_device_function_id
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid network_device_function_id
+        (Check mode)
+      ansible.builtin.assert:
+        that:
+          - cm_network_device_function_id.failed
+          - not cm_network_device_function_id.changed
+          - 'cm_network_device_function_id.msg == "Unable to complete the
+           operation because the value `invalid_device_function_id`
+           for the input `network_device_function_id` parameter is invalid."'
+
+    - name: Negative - invalid network_device_function_id (Normal mode)
+      dellemc.openmanage.idrac_network_attributes:
+        apply_time: OnReset
+        network_adapter_id: "{{ inp_network_adapter_id }}"
+        network_device_function_id: invalid_device_function_id
+        oem_network_attributes:
+          VLanId: 1
+      register: network_device_function_id
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid network_device_function_id
+        (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - network_device_function_id.failed
+          - not network_device_function_id.changed
+          - 'network_device_function_id.msg == "Unable to complete the operation
+           because the value `invalid_device_function_id`
+           for the input `network_device_function_id` parameter is invalid."'
+
+    - name: Negative - invalid oem_network_attributes (Check mode)
+      dellemc.openmanage.idrac_network_attributes:
+        apply_time: OnReset
+        network_adapter_id: "{{ inp_network_adapter_id }}"
+        network_device_function_id: "{{ inp_network_device_function_id }}"
+        oem_network_attributes:
+          invalid_attribute: attribute_value
+      check_mode: true
+      register: cm_oem_network_attributes
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid oem_network_attributes
+        (Check mode)
+      ansible.builtin.assert:
+        that:
+          - not cm_oem_network_attributes.changed
+          - 'cm_oem_network_attributes.msg == "No changes found to be applied."'
+
+    - name: Negative - invalid oem_network_attributes (Normal mode)
+      dellemc.openmanage.idrac_network_attributes:
+        apply_time: OnReset
+        network_adapter_id: "{{ inp_network_adapter_id }}"
+        network_device_function_id: "{{ inp_network_device_function_id }}"
+        oem_network_attributes:
+          invalid_attribute: attribute_value
+      register: oem_network_attributes
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid oem_network_attributes
+        (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - oem_network_attributes.failed
+          - not oem_network_attributes.changed
+          - 'oem_network_attributes.msg == "HTTP Error 400: Bad Request"'
+          - oem_network_attributes.error_info
+
+    - name: Negative - Read only attribute for oem_network_attributes
+        (Check mode)
+      dellemc.openmanage.idrac_network_attributes:
+        apply_time: OnReset
+        network_adapter_id: "{{ inp_network_adapter_id }}"
+        network_device_function_id: "{{ inp_network_device_function_id }}"
+        network_attributes:
+          DeviceName: "Network Card"
+      check_mode: true
+      register: cm_read_only_oem_network_attributes
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Read only attribute for
+        oem_network_attributes (Check mode)
+      ansible.builtin.assert:
+        that:
+          - not cm_read_only_oem_network_attributes.changed
+          - 'cm_read_only_oem_network_attributes.msg == "No changes found to be
+           applied."'
+
+    - name: Negative - Read only attribute for oem_network_attributes
+        (Normal mode)
+      dellemc.openmanage.idrac_network_attributes:
+        apply_time: OnReset
+        network_adapter_id: "{{ inp_network_adapter_id }}"
+        network_device_function_id: "{{ inp_network_device_function_id }}"
+        network_attributes:
+          DeviceName: "Network Card"
+      register: read_only_oem_network_attributes
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Read only attribute for
+        oem_network_attributes (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - read_only_oem_network_attributes.failed
+          - not read_only_oem_network_attributes.changed
+          - 'read_only_oem_network_attributes.msg == "HTTP Error 400: Bad
+           Request"'
+          - read_only_oem_network_attributes.error_info
+
+    - name: Negative - Invalid attribute value for oem_network_attributes
+        (Check mode)
+      dellemc.openmanage.idrac_network_attributes: &task_invalid_ref_value
+        apply_time: OnReset
+        network_adapter_id: "{{ inp_network_adapter_id }}"
+        network_device_function_id: "{{ inp_network_device_function_id }}"
+        oem_network_attributes:
+          BlnkLeds: Invalid_value
+      check_mode: true
+      register: cm_invalid_oem_network_attributes_value
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Invalid attribute value for
+        oem_network_attributes (Check mode)
+      ansible.builtin.assert:
+        that:
+          - cm_invalid_oem_network_attributes_value.changed
+          - 'cm_invalid_oem_network_attributes_value.msg == "Changes found to be
+           applied."'
+
+    - name: Negative - Invalid attribute value for oem_network_attributes
+        (Normal mode)
+      dellemc.openmanage.idrac_network_attributes:
+        <<: *task_invalid_ref_value
+      register: invalid_oem_network_attributes_value
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Invalid attribute value for
+        oem_network_attributes (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - invalid_oem_network_attributes_value.failed
+          - not invalid_oem_network_attributes_value.changed
+          - 'invalid_oem_network_attributes_value.msg == "HTTP Error 400: Bad
+           Request"'
+          - invalid_oem_network_attributes_value.error_info
+
+    - name: Negative - invalid network_attributes (Check mode)
+      dellemc.openmanage.idrac_network_attributes:
+        apply_time: OnReset
+        network_adapter_id: "{{ inp_network_adapter_id }}"
+        network_device_function_id: "{{ inp_network_device_function_id }}"
+        network_attributes:
+          invalid_attribute: attribute_value
+      check_mode: true
+      register: cm_network_attributes
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid network_attributes
+        (Check mode)
+      ansible.builtin.assert:
+        that:
+          - not cm_network_attributes.changed
+          - 'cm_network_attributes.msg == "No changes found to be applied."'
+
+    - name: Negative - invalid network_attributes (Normal mode)
+      dellemc.openmanage.idrac_network_attributes:
+        apply_time: OnReset
+        network_adapter_id: "{{ inp_network_adapter_id }}"
+        network_device_function_id: "{{ inp_network_device_function_id }}"
+        network_attributes:
+          invalid_attribute: attribute_value
+      register: invalid_network_attributes
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid network_attributes
+        (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - invalid_network_attributes.failed
+          - not invalid_network_attributes.changed
+          - 'invalid_network_attributes.msg == "HTTP Error 400: Bad Request"'
+          - invalid_network_attributes.error_info
+
+    - name: Negative - Read only attribute for network_attributes (Check mode)
+      dellemc.openmanage.idrac_network_attributes:
+        apply_time: OnReset
+        network_adapter_id: "{{ inp_network_adapter_id }}"
+        network_device_function_id: "{{ inp_network_device_function_id }}"
+        network_attributes:
+          MTUSizeMaximum: 5
+      check_mode: true
+      register: cm_read_only_network_attributes
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Read only attribute for
+        network_attributes (Check mode)
+      ansible.builtin.assert:
+        that:
+          - not cm_read_only_network_attributes.changed
+          - 'cm_read_only_network_attributes.msg == "No changes found to be
+            applied."'
+
+    - name: Negative - Read only attribute for network_attributes (Normal mode)
+      dellemc.openmanage.idrac_network_attributes:
+        apply_time: OnReset
+        network_adapter_id: "{{ inp_network_adapter_id }}"
+        network_device_function_id: "{{ inp_network_device_function_id }}"
+        network_attributes:
+          MTUSizeMaximum: 5
+      register: read_only_network_attributes
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Read only attribute for
+        network_attributes (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - read_only_network_attributes.failed
+          - not read_only_network_attributes.changed
+          - 'read_only_network_attributes.msg == "HTTP Error 400: Bad Request"'
+          - read_only_network_attributes.error_info
+
+    - name: Negative - Invalid attribute value for network_attributes
+        (Check mode)
+      dellemc.openmanage.idrac_network_attributes: &task_invalid_ref_nwt_value
+        apply_time: OnReset
+        network_adapter_id: "{{ inp_network_adapter_id }}"
+        network_device_function_id: "{{ inp_network_device_function_id }}"
+        network_attributes:
+          MTUSize: invalid
+      check_mode: true
+      register: cm_invalid_network_attributes_value
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Invalid attribute value for
+        network_attributes (Check mode)
+      ansible.builtin.assert:
+        that:
+          - not cm_invalid_network_attributes_value.changed
+          - 'cm_invalid_network_attributes_value.msg == "No changes found to be
+           applied."'
+
+    - name: Negative - Invalid attribute value for network_attributes
+        (Normal mode)
+      dellemc.openmanage.idrac_network_attributes:
+        <<: *task_invalid_ref_nwt_value
+      register: invalid_network_attributes_value
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Invalid attribute value for
+        network_attributes (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - invalid_network_attributes_value.failed
+          - not invalid_network_attributes_value.changed
+          - 'invalid_network_attributes_value.msg == "HTTP Error 400: Bad
+           Request"'
+          - invalid_network_attributes_value.error_info
+
+    - name: Prerequisite - Get iDRAC Date, Time and Offset
+      ansible.builtin.include_tasks: _get_idrac_date_time_offset.yml
+
+    - name: Fetching attibutes values
+      ansible.builtin.include_tasks: _fetch_redfish_network_attributes.yml
+
+    - name: AtMaintenanceWindowStart block for negative testcase
+      when: "'AtMaintenanceWindowStart' in supported_apply_times"
+      block:
+        - name: Negative - Invalid offset for start_time (Check mode)
+          dellemc.openmanage.idrac_network_attributes: &task_invalid_off_set_tim
+            apply_time: AtMaintenanceWindowStart
+            maintenance_window:
+              start_time: "{{ datetime }}"
+              duration: 300
+            network_adapter_id: "{{ inp_network_adapter_id }}"
+            network_device_function_id: "{{ inp_network_device_function_id }}"
+            network_attributes:
+              MTUSize: 10
+          check_mode: true
+          register: cm_invalid_offset_for_start_time
+          ignore_errors: true
+
+        - name: Verify task status - Negative - Invalid offset for start_time
+            (Check mode)
+          ansible.builtin.assert:
+            that:
+              - not cm_invalid_offset_for_start_time.changed
+              - 'cm_invalid_offset_for_start_time.msg == "No changes found to be
+               applied."'
+
+        - name: Negative - Invalid offset for start_time (Normal mode)
+          dellemc.openmanage.idrac_network_attributes:
+            <<: *task_invalid_off_set_tim
+          register: invalid_offset_for_start_time
+          ignore_errors: true
+
+        - name: Verify task status - Negative - Invalid offset for start_time
+            (Normal mode)
+          ansible.builtin.assert:
+            that:
+              - invalid_offset_for_start_time.failed
+              - not invalid_offset_for_start_time.changed
+              - "'The maintenance time must be post-fixed' in
+               invalid_offset_for_start_time.msg"
+
+    - name: Fetching attibutes values
+      ansible.builtin.include_tasks: _fetch_oem_network_attributes.yml
+
+    - name: InMaintenanceWindowOnReset block for negative testcase
+      when: "'InMaintenanceWindowOnReset' in supported_apply_times"
+      block:
+        - name: Negative - Invalid time for start_time (Check mode)
+          dellemc.openmanage.idrac_network_attributes: &task_invalid_time
+            apply_time: InMaintenanceWindowOnReset
+            maintenance_window:
+              start_time: "{{ idrac_datetime_with_offset }}"
+              duration: 300
+            network_adapter_id: "{{ inp_network_adapter_id }}"
+            network_device_function_id: "{{ inp_network_device_function_id }}"
+            oem_network_attributes:
+              PermitTotalPortShutdown: "Disabled"
+          check_mode: true
+          register: cm_invalid_time_for_start_time
+          ignore_errors: true
+
+        - name: Verify task status - Negative - Invalid time for start_time
+            (Check mode)
+          ansible.builtin.assert:
+            that:
+              - cm_invalid_time_for_start_time.changed
+              - 'cm_invalid_time_for_start_time.msg == "Changes found to be
+               applied."'
+
+        - name: Negative - Invalid time for start_time (Normal mode)
+          dellemc.openmanage.idrac_network_attributes:
+            <<: *task_invalid_time
+          register: invalid_time_for_start_time
+          ignore_errors: true
+
+        - name: Verify task status - Negative - Invalid time for start_time
+            (Normal mode)
+          ansible.builtin.assert:
+            that:
+              - invalid_time_for_start_time.failed
+              - not invalid_time_for_start_time.changed
+              - 'invalid_time_for_start_time.msg == "The specified maintenance
+               time window occurs in the past, provide a future
+               time to schedule the maintenance window."'
+
+    - name: Negative - Negative value for job_wait_timeout (Check mode)
+      dellemc.openmanage.idrac_network_attributes: &task_negative_job_timeout
+        apply_time: OnReset
+        network_adapter_id: "{{ inp_network_adapter_id }}"
+        network_device_function_id: "{{ inp_network_device_function_id }}"
+        network_attributes:
+          MTUSize: 10
+        job_wait_timeout: -1
+      check_mode: true
+      register: cm_negative_value_for_job_wait_timeout
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Negative value for job_wait_timeout
+        (Check mode)
+      ansible.builtin.assert:
+        that:
+          - cm_negative_value_for_job_wait_timeout.failed
+          - not cm_negative_value_for_job_wait_timeout.changed
+          - 'cm_negative_value_for_job_wait_timeout.msg == "The value for
+           the `job_wait_timeout` parameter cannot be negative or zero."'
+
+    - name: Negative - Negative value for job_wait_timeout (Normal mode)
+      dellemc.openmanage.idrac_network_attributes:
+        <<: *task_negative_job_timeout
+      register: negative_value_for_job_wait_timeout
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Negative value for start_time
+        (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - negative_value_for_job_wait_timeout.failed
+          - not negative_value_for_job_wait_timeout.changed
+          - 'negative_value_for_job_wait_timeout.msg == "The value for
+           the `job_wait_timeout` parameter cannot be negative or zero."'
+
+    - name: Negative - Value 0 for job_wait_timeout (Check mode)
+      dellemc.openmanage.idrac_network_attributes: &task_value_0
+        apply_time: OnReset
+        network_adapter_id: "{{ inp_network_adapter_id }}"
+        network_device_function_id: "{{ inp_network_device_function_id }}"
+        network_attributes:
+          MTUSize: 10
+        job_wait_timeout: -1
+      check_mode: true
+      register: cm_value_zero_for_job_wait_timeout
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Value 0 for job_wait_timeout
+        (Check mode)
+      ansible.builtin.assert:
+        that:
+          - cm_value_zero_for_job_wait_timeout.failed
+          - not cm_value_zero_for_job_wait_timeout.changed
+          - 'cm_value_zero_for_job_wait_timeout.msg == "The value for
+           the `job_wait_timeout` parameter cannot be negative or zero."'
+
+    - name: Negative - Value 0 for job_wait_timeout (Normal mode)
+      dellemc.openmanage.idrac_network_attributes:
+        <<: *task_value_0
+      register: value_zero_for_job_wait_timeout
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Value 0 for job_wait_timeout
+        (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - value_zero_for_job_wait_timeout.failed
+          - not value_zero_for_job_wait_timeout.changed
+          - 'value_zero_for_job_wait_timeout.msg == "The value for
+           the `job_wait_timeout` parameter cannot be negative or zero."'
+
+  module_defaults:
+    dellemc.openmanage.idrac_network_attributes:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_port: "{{ idrac_port }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

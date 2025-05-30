@@ -1,0 +1,33 @@
+---
+- name: Waiting for 30 secs before fetching oem attributes
+  ansible.builtin.pause:
+    seconds: 30
+
+- name: Prerequisite - Fetching network attributes
+  ansible.builtin.uri:
+    url: "{{ base_uri }}{{ ntwk_fn_uri }}/\
+    {{ inp_network_device_function_id }}\
+    /Oem/Dell/DellNetworkAttributes/{{ inp_network_device_function_id }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    body: {}
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+    headers: 'Accept=application/json'
+    force_basic_auth: true
+  register: fetched_attributes
+
+- name: Set fact for supported_apply_times
+  ansible.builtin.set_fact:
+    supported_apply_times: "{{ fetched_attributes.
+      json['@Redfish.Settings']['SupportedApplyTimes'] }}"
+
+- name: Ending play if apply time operation is not supported
+  ansible.builtin.meta: end_host
+  when: (module_apply_time is defined and module_apply_time not in
+    supported_apply_times) or
+    (_module_apply_time is defined and _module_apply_time not in
+    supported_apply_times)

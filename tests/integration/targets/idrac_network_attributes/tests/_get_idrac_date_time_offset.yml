@@ -1,0 +1,28 @@
+---
+- block:
+    - name: Get iDRAC time using uri
+      ansible.builtin.uri:
+        url: "{{ base_uri }}{{ idrac_emebedded_uri }}"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        method: GET
+        body: {}
+        validate_certs: false
+        body_format: json
+        return_content: true
+        status_code: 200
+        headers: 'Accept=application/json'
+        force_basic_auth: true
+      register: fetched_data
+
+    - name: Extract iDRAC Date, Time and Offset
+      ansible.builtin.set_fact:
+        idrac_datetime_with_offset: "{{ fetched_data.json.DateTime }}"
+
+    - name: Set offset
+      ansible.builtin.set_fact:
+        offset: "{{ fetched_data.json.DateTimeLocalOffset }}"
+
+    - name: Set Date and Time
+      ansible.builtin.set_fact:
+        datetime: "{{ idrac_datetime_with_offset.split(offset)[0] }}"

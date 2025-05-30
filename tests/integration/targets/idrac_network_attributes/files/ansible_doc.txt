@@ -1,0 +1,381 @@
+- '  This module allows you to configure the port and partition network'
+- '  attributes on the network interface cards.'
+- ''
+- "\e[1mOPTIONS\e[0m (red indicates it is required):"
+- ''
+- "   \e[0;31m\e[1mapply_time\e[0m\e[0m  Apply time of the \e[4mnetwork_attributes\e[0m
+    and"
+- "               \e[4moem_network_attributes\e[0m."
+- "               This is applicable only to \e[4mnetwork_attributes\e[0m"
+- "               and \e[4moem_network_attributes\e[0m."
+- "               \e[1;30m`Immediate'\e[0m allows the user to immediately"
+- "               reboot the host and apply the changes. \e[4mjob_wait\e[0m"
+- '               is applicable. This is applicable for'
+- "               \e[4moem_network_attributes\e[0m and \e[4mjob_wait\e[0m."
+- "               \e[1;30m`OnReset'\e[0m allows the user to apply the"
+- '               changes on the next reboot of the host server.'
+- "               \e[1;30m`AtMaintenanceWindowStart'\e[0m allows the user"
+- '               to apply at the start of a maintenance window as'
+- "               specified in \e[4mmaintenance_window\e[0m. A reboot job"
+- '               is scheduled.'
+- "               \e[1;30m`InMaintenanceWindowOnReset'\e[0m allows to apply"
+- '               after a manual reset but within the maintenance window'
+- "               as specified in \e[4mmaintenance_window\e[0m."
+- '               This is not applicable for iDRAC8 and value will be'
+- '               ignored and will not have any impact for configuring'
+- "               \e[4moem_network_attributes\e[0m."
+- "               For iDRAC10, only \e[1;30m`OnReset'\e[0m is supported."
+- '        choices: [Immediate, OnReset, AtMaintenanceWindowStart, InMaintenanceWindowOnReset]'
+- '        type: str'
+- ''
+- "   \e[0;33mca_path\e[0m  The Privacy Enhanced Mail (PEM) file that contains a CA
+    certificate"
+- '            to be used for the validation.'
+- '        default: null'
+- '        type: path'
+- ''
+- "   \e[0;33mclear_pending\e[0m  This parameter allows you to clear all the pending
+    OEM network"
+- '                  attributes changes.'
+- "                  \e[1;30m`false'\e[0m does not perform any operation."
+- "                  \e[1;30m`true'\e[0m discards any pending changes to"
+- '                  network attributes, or if a job is in scheduled'
+- '                  state, removes the job.'
+- "                  \e[4mapply_time\e[0m value will be ignored and will"
+- "                  not have any impact for \e[4mclear_pending\e[0m"
+- '                  operation.'
+- '                  This operation is not supported for iDRAC8.'
+- '        default: false'
+- '        type: bool'
+- ''
+- "   \e[0;31m\e[1midrac_ip\e[0m\e[0m  iDRAC IP Address."
+- '        type: str'
+- ''
+- "   \e[0;33midrac_password\e[0m  iDRAC user password."
+- '                   If the password is not provided, then the'
+- '                   environment variable `IDRAC_PASSWORD'' is used.'
+- '                   Example: export IDRAC_PASSWORD=password'
+- '        aliases: [idrac_pwd]'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33midrac_port\e[0m  iDRAC port."
+- '        default: 443'
+- '        type: int'
+- ''
+- "   \e[0;33midrac_user\e[0m  iDRAC username."
+- '               If the username is not provided, then the environment'
+- '               variable `IDRAC_USERNAME'' is used.'
+- '               Example: export IDRAC_USERNAME=username'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mjob_wait\e[0m  Provides the option to wait for job completion."
+- "             This is applicable when \e[4mapply_time\e[0m is"
+- "             \e[1;30m`Immediate'\e[0m for"
+- "             \e[4moem_network_attributes\e[0m."
+- '        default: true'
+- '        type: bool'
+- ''
+- "   \e[0;33mjob_wait_timeout\e[0m  The maximum wait time of \e[4mjob_wait\e[0m in
+    seconds. The job is"
+- '                     tracked only for this duration.'
+- "                     This option is applicable when \e[4mjob_wait\e[0m"
+- "                     is \e[1;30m`true'\e[0m."
+- '        default: 1200'
+- '        type: int'
+- ''
+- "   \e[0;33mmaintenance_window\e[0m  This option allows you to schedule the maintenance
+    window."
+- "                       This is required when \e[4mapply_time\e[0m is"
+- "                       \e[1;30m`AtMaintenanceWindowStart'\e[0m or"
+- "                       \e[1;30m`InMaintenanceWindowOnReset'\e[0m."
+- '        default: null'
+- '        type: dict'
+- '        suboptions:'
+- ''
+- "           \e[0;31m\e[1mduration\e[0m\e[0m          The duration in seconds for
+    the maintenance window."
+- '          type: int'
+- ''
+- "           \e[0;31m\e[1mstart_time\e[0m\e[0m          The start time for the maintenance
+    window to be scheduled."
+- '                       The format is YYYY-MM-DDThh:mm:ss<offset>'
+- '                       <offset> is the time offset from UTC that the'
+- '                       current timezone set in iDRAC in the format:'
+- '                       +05:30 for IST.'
+- '          type: str'
+- ''
+- "   \e[0;31m\e[1mnetwork_adapter_id\e[0m\e[0m  FQDD of the network adapter device
+    that represents the physical"
+- '                       network adapter capable of connecting to a'
+- '                       computer network.'
+- '                       An example of FQDD of the network adapter is'
+- '                       ''NIC.Mezzanine.1A'''
+- '        type: str'
+- ''
+- "   \e[0;33mnetwork_attributes\e[0m  Dictionary of network attributes and value.
+    To view the list of"
+- '                       attributes and its structure, see the below API'
+- "                       https://\e[4midrac_ip\e[0m/redfish/v1/Systems/System.Embedded.1/NetworkAdapters/<network_adapter_id>/NetworkDeviceFunctions/"
+- '                       <network_device_function_id>/Settings and'
+- '                       https://<idrac_ip>/redfish/v1/Schemas/NetworkDeviceFunction.v1_8_0.json.'
+- "                       \e[4mnetwork_attributes\e[0m is mutually"
+- "                       exclusive with \e[4moem_network_attributes\e[0m."
+- '        default: null'
+- '        type: dict'
+- ''
+- "   \e[0;31m\e[1mnetwork_device_function_id\e[0m\e[0m  FQDD of the network adapter
+    device function that represents a"
+- '                               logical interface exposed by the'
+- '                               network adapter.'
+- '                               An example of FQDD of the network'
+- '                               adapter device function is'
+- '                               ''NIC.Mezzanine.1A-1-1'''
+- '        type: str'
+- ''
+- "   \e[0;33moem_network_attributes\e[0m  The attributes must be part of the Integrated
+    Dell Remote Access"
+- '                           Controller Attribute Registry. To view the'
+- '                           list of attributes in Attribute Registry'
+- '                           for iDRAC9 and newer versions. For more'
+- '                           information, see,'
+- "                           https://\e[4midrac_ip\e[0m/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/<network_adapter_id>/NetworkDeviceFunctions/"
+- '                           <network_device_function_id>/Oem/Dell/DellNetworkAttributes/<network_device_function_id>'
+- '                           and'
+- "                           https://\e[4midrac_ip\e[0m/redfish/v1/Registries/NetworkAttributesRegistry_<network_device_function_id>/"
+- '                           NetworkAttributesRegistry_network_port_id.json.'
+- '                           For iDRAC8 based servers, derive the'
+- '                           network attribute name from Server'
+- '                           Configuration Profile.'
+- "                           \e[4moem_network_attributes\e[0m is mutually"
+- "                           exclusive with \e[4mnetwork_attributes\e[0m."
+- '        default: null'
+- '        type: dict'
+- ''
+- "   \e[0;33mresource_id\e[0m  Id of the resource."
+- '                If the value for resource ID is not provided, the'
+- '                module picks the first resource ID available from the'
+- '                list of system resources returned by the iDRAC.'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mtimeout\e[0m  The socket level timeout in seconds."
+- '        default: 30'
+- '        type: int'
+- ''
+- "   \e[0;33mvalidate_certs\e[0m  If \e[1;30m`false'\e[0m, the SSL certificates will
+    not be validated."
+- "                   Configure \e[1;30m`false'\e[0m only on personally"
+- '                   controlled sites where self-signed certificates are'
+- '                   used.'
+- "                   Prior to collection version \e[1;30m`5.0.0'\e[0m, the"
+- "                   \e[4mvalidate_certs\e[0m is \e[1;30m`false'\e[0m by"
+- '                   default.'
+- '        default: true'
+- '        type: bool'
+- ''
+- "   \e[0;33mx_auth_token\e[0m  Authentication token."
+- '                 If the x_auth_token is not provided, then the'
+- '                 environment variable `IDRAC_X_AUTH_TOKEN'' is used.'
+- '                 Example: export IDRAC_X_AUTH_TOKEN=x_auth_token'
+- '        default: null'
+- '        type: str'
+- ''
+- "\e[1mNOTES:\e[0m"
+- '      * Run this module from a system that has direct access to'
+- '        Dell iDRAC.'
+- '      * This module supports both IPv4 and IPv6 address.'
+- "      * This module supports \e[1;30m`check_mode'\e[0m."
+- ''
+- "\e[1mREQUIREMENTS:\e[0m  python >= 3.9.6"
+- ''
+- ''
+- "\e[1mAUTHOR\e[0m: Abhishek Sinha(@ABHISHEK-SINHA10), Kritika Bhateja (@Kritika-Bhateja-03)"
+- ''
+- "\e[1mEXAMPLES:\e[0m"
+- '---'
+- '- name: Configure OEM network attributes'
+- '  dellemc.openmanage.idrac_network_attributes:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    network_adapter_id: "NIC.Integrated.1"'
+- '    network_device_function_id: "NIC.Integrated.1-1-1"'
+- '    apply_time: "Immediate"'
+- '    oem_network_attributes:'
+- '      BannerMessageTimeout: "4"'
+- ''
+- '- name: Configure OEM network attributes to apply on reset'
+- '  dellemc.openmanage.idrac_network_attributes:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    network_adapter_id: NIC.Integrated.1'
+- '    network_device_function_id: "NIC.Integrated.1-1-1"'
+- '    oem_network_attributes:'
+- '      BannerMessageTimeout: "4"'
+- '    apply_time: OnReset'
+- ''
+- '- name: Configure OEM network attributes to apply at maintainance window'
+- '  dellemc.openmanage.idrac_network_attributes:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    network_adapter_id: NIC.Integrated.1'
+- '    network_device_function_id: "NIC.Integrated.1-1-1"'
+- '    oem_network_attributes:'
+- '      BannerMessageTimeout: "4"'
+- '    apply_time: AtMaintenanceWindowStart'
+- '    maintenance_window:'
+- '      start_time: "2022-09-30T05:15:40-05:00"'
+- '      duration: 600'
+- ''
+- '- name: Clearing the pending attributes'
+- '  dellemc.openmanage.idrac_network_attributes:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    network_adapter_id: NIC.Integrated.1'
+- '    network_device_function_id: "NIC.Integrated.1-1-1"'
+- '    apply_time: "Immediate"'
+- '    clear_pending: true'
+- ''
+- '- name: Clearing the OEM pending attributes and apply the OEM network attributes'
+- '  dellemc.openmanage.idrac_network_attributes:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    network_adapter_id: NIC.Integrated.1'
+- '    network_device_function_id: "NIC.Integrated.1-1-1"'
+- '    apply_time: "Immediate"'
+- '    clear_pending: true'
+- '    oem_network_attributes:'
+- '      BannerMessageTimeout: "4"'
+- ''
+- '- name: Configure OEM network attributes and wait for the job'
+- '  dellemc.openmanage.idrac_network_attributes:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    network_adapter_id: NIC.Integrated.1'
+- '    network_device_function_id: "NIC.Integrated.1-1-1"'
+- '    apply_time: "Immediate"'
+- '    oem_network_attributes:'
+- '      LnkSpeed: "10MbpsHalf"'
+- '      WakeOnLan: "Enabled"'
+- '      VLanMode: "Enabled"'
+- '    job_wait: true'
+- '    job_wait_timeout: 2000'
+- ''
+- '- name: Configure redfish network attributes to update fiber channel on reset'
+- '  dellemc.openmanage.idrac_network_attributes:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    network_adapter_id: NIC.Integrated.1'
+- '    network_device_function_id: "NIC.Integrated.1-1-1"'
+- '    apply_time: OnReset'
+- '    network_attributes:'
+- '      Ethernet:'
+- '        VLAN:'
+- '          VLANEnable: true'
+- ''
+- '- name: Configure redfish network attributes to apply on reset'
+- '  dellemc.openmanage.idrac_network_attributes:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    network_adapter_id: NIC.Integrated.1'
+- '    network_device_function_id: "NIC.Integrated.1-1-1"'
+- '    network_attributes:'
+- '      Ethernet:'
+- '        VLAN:'
+- '          VLANEnable: true'
+- '    apply_time: OnReset'
+- ''
+- '- name: Configure redfish network attributes of iscsi to apply at maintainance
+    window start'
+- '  dellemc.openmanage.idrac_network_attributes:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    network_adapter_id: NIC.Integrated.1'
+- '    network_device_function_id: "NIC.Integrated.1-1-1"'
+- '    network_attributes:'
+- '      iSCSIBoot:'
+- '        InitiatorIPAddress: 1.0.0.1'
+- '    apply_time: AtMaintenanceWindowStart'
+- '    maintenance_window:'
+- '      start_time: "2022-09-30T05:15:40-05:00"'
+- '      duration: 600'
+- ''
+- '- name: Configure redfish network attributes to apply at maintainance window on
+    reset'
+- '  dellemc.openmanage.idrac_network_attributes:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    network_adapter_id: NIC.Integrated.1'
+- '    network_device_function_id: "NIC.Integrated.1-1-1"'
+- '    network_attributes:'
+- '      Ethernet:'
+- '        VLAN:'
+- '          VLANEnable: false'
+- '          VLANId: 1'
+- '    apply_time: AtMaintenanceWindowStart'
+- '    maintenance_window:'
+- '      start_time: "2022-09-30T05:15:40-05:00"'
+- '      duration: 600'
+- ''
+- "\e[1mRETURN VALUES:\e[0m"
+- ''
+- "   \e[0;33merror_info\e[0m  Details of the HTTP Error."
+- '        returned: on HTTP error'
+- '        sample:'
+- '          error:'
+- '            ''@Message.ExtendedInfo'':'
+- '            - Message: Unable to process the request because an error occurred.'
+- '              MessageArgs: []'
+- '              MessageId: GEN1234'
+- '              RelatedProperties: []'
+- '              Resolution: Retry the operation. If the issue persists, contact your
+    system'
+- '                administrator.'
+- '              Severity: Critical'
+- '            code: Base.1.0.GeneralError'
+- '            message: A general error has occurred. See ExtendedInfo for more information.'
+- '        type: dict'
+- ''
+- "   \e[0;33minvalid_attributes\e[0m  Dictionary of invalid attributes provided that
+    cannot be applied."
+- '        returned: On invalid attributes or values'
+- '        sample:'
+- '          IscsiInitiatorIpAddr: Attribute is not valid.'
+- '          IscsiInitiatorSubnet: Attribute is not valid.'
+- '        type: dict'
+- ''
+- "   \e[0;33mjob_status\e[0m  Returns the output for status of the job."
+- '        returned: always'
+- '        sample:'
+- '          ActualRunningStartTime: null'
+- '          ActualRunningStopTime: null'
+- '          CompletionTime: null'
+- '          Description: Job Instance'
+- '          EndTime: TIME_NA'
+- '          Id: JID_XXXXXXXXX'
+- '          JobState: Scheduled'
+- '          JobType: NICConfiguration'
+- '          Message: Task successfully scheduled.'
+- '          MessageArgs: []'
+- '          MessageId: JCP001'
+- '          Name: ''Configure: NIC.Integrated.1-1-1'''
+- '          PercentComplete: 0'
+- '          StartTime: ''2023-08-07T06:21:24'''
+- '          TargetSettingsURI: null'
+- '        type: dict'
+- ''
+- "   \e[0;33mmsg\e[0m     Status of the attribute update operation."
+- '        returned: when network attributes is applied'
+- '        sample: Successfully updated the network attributes.'
+- '        type: str'

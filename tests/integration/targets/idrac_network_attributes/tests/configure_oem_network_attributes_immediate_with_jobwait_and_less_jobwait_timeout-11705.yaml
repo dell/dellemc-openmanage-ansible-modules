@@ -1,0 +1,76 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined
+
+- name: Set prerequisite
+  ansible.builtin.include_tasks: _helper.yml
+
+- name: Set prerequisite
+  ansible.builtin.include_tasks: _prereq_configure_oem_network_attributes.yml
+  vars:
+    module_apply_time: "Immediate"
+
+- block:
+    - name: Configure network attributes (Check mode - Changes expected)
+      dellemc.openmanage.idrac_network_attributes: &configure_network_attributes
+        network_adapter_id: "{{ inp_network_adapter_id }}"
+        network_device_function_id: "{{ inp_network_device_function_id }}"
+        oem_network_attributes:
+          PermitTotalPortShutdown: "Disabled"
+        apply_time: Immediate
+        job_wait: true
+        job_wait_timeout: 30
+      register: check_configure_network_attributes
+      check_mode: true
+
+    - name: Verify task status - Configure network attributes
+        (Check mode - Changes expected)
+      ansible.builtin.assert:
+        that:
+          - check_configure_network_attributes.changed
+          - 'check_configure_network_attributes.msg == "Changes found to be
+           applied."'
+
+    - name: Configure network attributes
+      dellemc.openmanage.idrac_network_attributes:
+        <<: *configure_network_attributes
+      register: result_configure_network_attributes
+
+    - name: Verify task status - Configure network attributes
+      ansible.builtin.assert:
+        that:
+          - result_configure_network_attributes.changed
+          - 'result_configure_network_attributes.msg == "The job is not complete
+           after 30 seconds."'
+
+    - name: Cleanup - Setting all the network parameters to initial value
+      dellemc.openmanage.idrac_network_attributes:
+        network_adapter_id: "{{ inp_network_adapter_id }}"
+        network_device_function_id: "{{ inp_network_device_function_id }}"
+        apply_time: Immediate
+        clear_pending: true
+      register: cleanup
+
+    - name: Cleanup - Setting all the network parameters to initial value
+      ansible.builtin.assert:
+        that:
+          - cleanup.changed
+          - 'cleanup.msg == "Successfully cleared the pending network
+           attributes."'
+
+  module_defaults:
+    dellemc.openmanage.idrac_network_attributes:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_port: "{{ idrac_port }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
