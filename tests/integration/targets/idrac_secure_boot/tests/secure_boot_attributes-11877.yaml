@@ -803,8 +803,9 @@
 
   vars:
     ip_wrapped: "{{ idrac_ip | ansible.utils.ipwrap }}"
+    endpt: "https://{{ ip_wrapped }}:{{ idrac_port }}"
     idrac_manager_uri: "redfish/v1/Managers/iDRAC.Embedded.1"
-    idrac_manager_url: "https://{{ ip_wrapped }}:{{ idrac_port }}/{{ idrac_manager_uri }}"
+    idrac_manager_url: "{{ endpt }}/{{ idrac_manager_uri }}"
     idrac_bios_uri: "redfish/v1/Systems/System.Embedded.1/Bios"
-    idrac_bios_url: "https://{{ ip_wrapped }}:{{ idrac_port }}/{{ idrac_bios_uri }}"
+    idrac_bios_url: "{{ endpt }}/{{ idrac_bios_uri }}"
     sboot_smsg: 'Successfully updated the iDRAC Secure Boot settings.'

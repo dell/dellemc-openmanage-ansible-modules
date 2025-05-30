@@ -22,17 +22,28 @@
         force_basic_auth: true
       register: idrac_model_response
 
-    - name: Set fact for model
-      # its the first word in the response suffixed by G and it is supposed to be a number
-      ansible.builtin.set_fact:
-        hw_model: "{{ idrac_model_response.json.Model | regex_search('([0-9]+)G', '\\1') | first | int }}"
+    - name: Extract model from idrac_model_response
+      set_fact:
+        model_raw: "{{ idrac_model_response.json.Model }}"
+
+    - name: Search for the Hardware model number in the model string
+      set_fact:
+        model_search: "{{ model_raw | regex_search('([0-9]+)G', '\\1') }}"
+
+    - name: Extract the Hardware model number
+      set_fact:
+        hw_model: "{{ model_search | first }}"
+
+    - name: Check if less than 17G
+      set_fact:
+        less_than_17G: "{{ hw_model | int < 17 }}"
 
     - name: debug iDRAC hardware model
       ansible.builtin.debug:
         var: hw_model
 
     - block:
-    # this block of tests will only be executed for 16G and below
+        # this block of tests will only be executed for 16G and below
         - name: Prerequisite - Enable force_int_10
           dellemc.openmanage.idrac_secure_boot:
             idrac_ip: "{{ idrac_ip }}"
@@ -95,7 +106,8 @@
           ansible.builtin.assert:
             that:
               - bios_config_exists.skipped
-              - 'bios_config_exists.msg == "BIOS Configuration job already exists."'
+              - 'bios_config_exists.msg == "BIOS
+               Configuration job already exists."'
 
       when: "hw_model | int < 17"
 
@@ -117,7 +129,8 @@
 
     - ansible.builtin.include_tasks: _get_file_path.yml
 
-    - name: Set secure_boot_mode with import operation (check mode - changes expected)
+    - name: 'Set secure_boot_mode with import operation
+       (check mode - changes expected)'
       dellemc.openmanage.idrac_secure_boot: &secure_with_import
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
@@ -131,7 +144,8 @@
       register: cm_changes
       check_mode: true
 
-    - name: Verify - Set secure_boot_mode with import operation (check mode - changes expected)
+    - name: 'Verify - Set secure_boot_mode with import operation
+       (check mode - changes expected)'
       ansible.builtin.assert:
         that:
           - cm_changes.changed
@@ -149,8 +163,9 @@
       ansible.builtin.assert:
         that:
           - not secure_with_import.changed
-          - '"The SecureBoot Certificate Import operation is successfully scheduled." in secure_with_import.msg'
-          - '"Restart the host server for the changes to take effect." in secure_with_import.msg'
+          - 'secure_with_import.msg == "The SecureBoot Certificate
+           Import operation is successfully scheduled. Restart the
+           host server for the changes to take effect."'
 
       when: secure_with_import.changed
 
@@ -168,5 +183,9 @@
       validate_certs: "{{ validate_certs }}"
 
   vars:
-    idrac_manager_url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1"
-    idrac_bios_url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/Systems/System.Embedded.1/Bios"
+    ip_wrapped: "{{ idrac_ip | ansible.utils.ipwrap }}"
+    endpt: "https://{{ ip_wrapped }}:{{ idrac_port }}"
+    idrac_manager_uri: "redfish/v1/Managers/iDRAC.Embedded.1"
+    idrac_manager_url: "{{ endpt }}/{{ idrac_manager_uri }}"
+    idrac_bios_uri: "redfish/v1/Systems/System.Embedded.1/Bios"
+    idrac_bios_url: "{{ endpt }}/{{ idrac_bios_uri }}"
