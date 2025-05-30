@@ -138,7 +138,6 @@
             that:
               - boot_md_uefi.changed
               - 'boot_md_uefi.msg == sboot_smsg'
-                
 
         - name: Wait for iDRAC
           ansible.builtin.pause:
@@ -760,8 +759,8 @@
         - name: Verify - Disable force_int_10 (normal mode)
           ansible.builtin.assert:
             that:
-              - force_disabled.changed
-              - force_disabled.msg == sboot_smsg
+              - force_disbled.changed
+              - force_disbled.msg == sboot_smsg
 
         - name: Wait for iDRAC
           ansible.builtin.pause:
