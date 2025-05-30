@@ -109,14 +109,25 @@
         force_basic_auth: true
       register: idrac_model_response
 
-    - name: Prerequisite - Set fact for model
-      # its the first word in the response suffixed by G and it is supposed to be a number
-      ansible.builtin.set_fact:
-        hw_model: "{{ idrac_model_response.json.Model | regex_search('([0-9]+)G', '\\1') | first | int }}"
+    - name: Extract model from idrac_model_response
+      set_fact:
+        model_raw: "{{ idrac_model_response.json.Model }}"
+
+    - name: Search for the Hardware model number in the model string
+      set_fact:
+        model_search: "{{ model_raw | regex_search('([0-9]+)G', '\\1') }}"
+
+    - name: Extract the Hardware model number
+      set_fact:
+        hw_model: "{{ model_search | first }}"
+
+    - name: Check if less than 17G
+      set_fact:
+        less_than_17G: "{{ hw_model | int < 17 }}"
 
     - block:
-    # this block of tests will only be executed for 16G and below
-    # tests invalid boot mode and force_int_10 scenarios
+      # this block of tests will only be executed for 16G and below
+      # tests invalid boot mode and force_int_10 scenarios
         - name: Prerequisite - Set boot mode to bios and enable force_int_10
           dellemc.openmanage.idrac_secure_boot:
             idrac_ip: "{{ idrac_ip }}"
@@ -146,13 +157,14 @@
           ansible.builtin.assert:
             that:
               - invalid_boot.skipped
-              - 'invalid_boot.msg == "Unable to modify the attribute because the attribute is read-only and depends on other attributes."'
+              - 'invalid_boot.msg == "Unable to modify the attribute because 
+               the attribute is read-only and depends on other attributes."'
 
       when: "hw_model | int < 17"
 
     - block:
-    # this block of tests will only be executed for 17G and above
-    # tests that boot mode and force_int_10 cannot be used
+      # this block of tests will only be executed for 17G and above
+      # tests that boot mode and force_int_10 cannot be used
         - name: Negative - Configure boot mode Bios and Force_int_10 force_int_10 enabled.
           dellemc.openmanage.idrac_secure_boot:
             idrac_ip: "{{ idrac_ip }}"

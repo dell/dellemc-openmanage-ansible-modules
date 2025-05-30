@@ -27,7 +27,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-from typing import Tuple
+from typing import Optional, Tuple
 __metaclass__ = type
 
 import json
@@ -216,7 +216,7 @@ class iDRACRedfishAPI(object):
         return False
 
     @property
-    def get_server_generation(self) -> Tuple[int, str, str]:
+    def get_server_generation(self) -> Tuple[int, Optional[str], str]:
         """
         Fetches the connected server generation.
 
