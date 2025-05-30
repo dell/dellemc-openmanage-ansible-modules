@@ -33,7 +33,7 @@ options:
     type: str
     choices: [Uefi, Bios]
     description:
-      - Boot mode of the iDRAC.
+      - Boot mode of the iDRAC. Not supported for iDRAC 10 (17G) and above.
       - C(Uefi) enables the secure boot in UEFI mode.
       - C(Bios) enables the secure boot in BIOS mode.
   secure_boot:
@@ -72,6 +72,7 @@ options:
     description:
       - Determines whether the system BIOS loads the legacy video (INT 10h) option ROM from the video controller.
       - This parameter is supported only in UEFI boot mode. If UEFI Secure Boot mode is enabled, you cannot enable this parameter.
+      - This parameter is not supported for iDRAC 10 (17G) and above.
       - C(Disabled) if the operating system supports UEFI video output standards.
       - C(Enabled) if the operating system does not support UEFI video output standards.
   export_certificates:
@@ -642,7 +643,8 @@ class IDRACAttributes(IDRACSecureBoot):
         self.secure_boot_policy = self.module.params.get('secure_boot_policy')
         self.force_int_10 = self.module.params.get('force_int_10')
 
-        self.generation, self.idrac_firmware_version, hw_model = get_server_generation(self.idrac)
+        server_generation_op = get_server_generation(self.idrac)
+        self.generation, self.idrac_firmware_version = server_generation_op[0], server_generation_op[1]
 
         self.iDRAC_JOBS_URI = IDRAC_MANAGER_URI + "/Jobs"
         if self.generation >= 17:

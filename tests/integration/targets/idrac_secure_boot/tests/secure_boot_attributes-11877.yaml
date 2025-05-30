@@ -24,17 +24,28 @@
         force_basic_auth: true
       register: idrac_model_response
 
-    - name: Set fact for model
-      # its the first word in the response suffixed by G and it is supposed to be a number
-      ansible.builtin.set_fact:
-        hw_model: "{{ idrac_model_response.json.Model | regex_search('([0-9]+)G', '\\1') | first | int }}"
+    - name: Extract model from idrac_model_response
+      set_fact:
+        model_raw: "{{ idrac_model_response.json.Model }}"
+
+    - name: Search for the Hardware model number in the model string
+      set_fact:
+        model_search: "{{ model_raw | regex_search('([0-9]+)G', '\\1') }}"
+
+    - name: Extract the Hardware model number
+      set_fact:
+        hw_model: "{{ model_search | first }}"
+
+    - name: Check if less than 17G
+      set_fact:
+        less_than_17G: "{{ hw_model | int < 17 }}"
 
     - name: debug iDRAC hardware model
       ansible.builtin.debug:
         var: hw_model
 
     - block:
-    # this block of tests will only be executed for 16G and below
+        # this block of tests will only be executed for 16G and below
         - name: Pre-req - Set boot mode to Uefi
           dellemc.openmanage.idrac_secure_boot:
             idrac_ip: "{{ idrac_ip }}"
@@ -72,7 +83,7 @@
           ansible.builtin.assert:
             that:
               - boot_md_bios.changed
-              - boot_md_bios.msg == 'Successfully updated the iDRAC Secure Boot settings.'
+              - 'boot_md_bios.msg == sboot_smsg'
 
         - name: Wait for iDRAC
           ansible.builtin.pause:
@@ -85,6 +96,9 @@
             password: "{{ idrac_password }}"
             validate_certs: false
             status_code: 200
+          retries: 10
+          delay: 20
+          until: "'BootMode' in boot_md_uri.json.Attributes"
           register: boot_md_uri
 
         - name: Verify -  Get details by uri.
@@ -123,7 +137,8 @@
           ansible.builtin.assert:
             that:
               - boot_md_uefi.changed
-              - boot_md_uefi.msg == 'Successfully updated the iDRAC Secure Boot settings.'
+              - 'boot_md_uefi.msg == sboot_smsg'
+                
 
         - name: Wait for iDRAC
           ansible.builtin.pause:
@@ -136,6 +151,9 @@
             password: "{{ idrac_password }}"
             validate_certs: false
             status_code: 200
+          retries: 10
+          delay: 20
+          until: "'BootMode' in boot_md_uri.json.Attributes"
           register: boot_md_uri
 
         - name: Verify -  Get details by uri.
@@ -147,7 +165,7 @@
         - ansible.builtin.include_role:
             name: prepare_idrac_lifecycle_controller_status
 
-      when: "hw_model | int < 17"
+      when: less_than_17G
 
     - name: Pre-req - Disable secure boot
       dellemc.openmanage.idrac_secure_boot:
@@ -156,7 +174,7 @@
         idrac_password: "{{ idrac_password }}"
         secure_boot: Disabled
         validate_certs: false
-        force_int_10: "{{ ((hw_model | int) < 17) | ternary('Disabled', omit) }}"
+        force_int_10: "{{ less_than_17G | ternary('Disabled', omit) }}"
         restart: true
         restart_type: GracefulRestart
 
@@ -167,7 +185,7 @@
         idrac_password: "{{ idrac_password }}"
         secure_boot: Enabled
         validate_certs: false
-        force_int_10: "{{ ((hw_model | int) < 17) | ternary('Disabled', omit) }}"
+        force_int_10: "{{ less_than_17G | ternary('Disabled', omit) }}"
         restart: true
         restart_type: GracefulRestart
       register: cm_changes
@@ -191,8 +209,7 @@
       ansible.builtin.assert:
         that:
           - secure_boot_enable.changed
-          - 'secure_boot_enable.msg == "Successfully updated the iDRAC
-           Secure Boot settings."'
+          - 'secure_boot_enable.msg == sboot_smsg'
       when: secure_boot_enable.changed
 
     - name: Wait for iDRAC
@@ -206,6 +223,9 @@
         password: "{{ idrac_password }}"
         validate_certs: false
         status_code: 200
+      retries: 10
+      delay: 20
+      until: "'SecureBoot' in boot_md_uri.json.Attributes"
       register: boot_md_uri
 
     - name: Verify -  Get details by uri.
@@ -245,8 +265,7 @@
       ansible.builtin.assert:
         that:
           - secure_boot_disable.changed
-          - secure_boot_disable.msg == 'Successfully updated the iDRAC
-           Secure Boot settings.'
+          - 'secure_boot_disable.msg == sboot_smsg'
 
     - name: Wait for iDRAC
       ansible.builtin.pause:
@@ -259,6 +278,9 @@
         password: "{{ idrac_password }}"
         validate_certs: false
         status_code: 200
+      retries: 10
+      delay: 20
+      until: "'SecureBoot' in boot_md_uri.json.Attributes"
       register: boot_md_uri
 
     - name: Verify -  Get details by uri.
@@ -310,8 +332,7 @@
       ansible.builtin.assert:
         that:
           - secure_boot_mode_user.changed
-          - 'secure_boot_mode_user.msg == "Successfully updated the iDRAC
-           Secure Boot settings."'
+          - 'secure_boot_mode_user.msg == sboot_smsg'
       when: secure_boot_mode_user.changed
 
     - name: Wait for iDRAC
@@ -325,6 +346,9 @@
         password: "{{ idrac_password }}"
         validate_certs: false
         status_code: 200
+      retries: 10
+      delay: 20
+      until: "'SecureBootMode' in boot_md_uri.json.Attributes"
       register: boot_md_uri
 
     - name: Verify -  Get details by uri.
@@ -364,7 +388,7 @@
       ansible.builtin.assert:
         that:
           - secure_boot_mode_deployed.changed
-          - 'secure_boot_mode_deployed.msg == "Successfully updated the iDRAC Secure Boot settings."'
+          - 'secure_boot_mode_deployed.msg == sboot_smsg'
       when: secure_boot_mode_deployed.changed
 
     - name: Wait for iDRAC
@@ -378,6 +402,9 @@
         password: "{{ idrac_password }}"
         validate_certs: false
         status_code: 200
+      retries: 10
+      delay: 20
+      until: "'SecureBootMode' in boot_md_uri.json.Attributes"
       register: boot_md_uri
 
     - name: Verify -  Get details by uri.
@@ -458,7 +485,7 @@
       ansible.builtin.assert:
         that:
           - secure_boot_mode_audit.changed
-          - 'secure_boot_mode_audit.msg == "Successfully updated the iDRAC Secure Boot settings."'
+          - 'secure_boot_mode_audit.msg == sboot_smsg'
 
     - name: Wait for iDRAC
       ansible.builtin.pause:
@@ -471,6 +498,9 @@
         password: "{{ idrac_password }}"
         validate_certs: false
         status_code: 200
+      retries: 10
+      delay: 20
+      until: "'SecureBootMode' in boot_md_uri.json.Attributes"
       register: boot_md_uri
 
     - name: Verify -  Get details by uri.
@@ -548,7 +578,7 @@
       ansible.builtin.assert:
         that:
           - secure_boot_policy_standard.changed
-          - 'secure_boot_policy_standard.msg == "Successfully updated the iDRAC Secure Boot settings."'
+          - 'secure_boot_policy_standard.msg == sboot_smsg'
       when: secure_boot_policy_standard.changed
 
     - name: Wait for iDRAC
@@ -562,6 +592,9 @@
         password: "{{ idrac_password }}"
         validate_certs: false
         status_code: 200
+      retries: 10
+      delay: 20
+      until: "'SecureBootPolicy' in boot_md_uri.json.Attributes"
       register: boot_md_uri
 
     - name: Verify -  Get details by uri.
@@ -602,7 +635,7 @@
       ansible.builtin.assert:
         that:
           - secure_boot_policy_custom.changed
-          - 'secure_boot_policy_custom.msg == "Successfully updated the iDRAC Secure Boot settings."'
+          - 'secure_boot_policy_custom.msg == sboot_smsg'
       when: secure_boot_policy_custom.changed
 
     - name: Wait for iDRAC
@@ -616,6 +649,9 @@
         password: "{{ idrac_password }}"
         validate_certs: false
         status_code: 200
+      retries: 10
+      delay: 20
+      until: "'SecureBootPolicy' in boot_md_uri.json.Attributes"
       register: boot_md_uri
 
     - name: Verify -  Get details by uri.
@@ -629,8 +665,8 @@
         name: prepare_idrac_lifecycle_controller_status
 
     - block:
-    # this block of tests will only be executed for 16G and below
-    # this block of tests are related to force_int_10
+        # this block of tests will only be executed for 16G and below
+        # this block of tests are related to force_int_10
         - name: Pre-req - Disable force_int_10
           dellemc.openmanage.idrac_secure_boot:
             idrac_ip: "{{ idrac_ip }}"
@@ -671,7 +707,7 @@
           ansible.builtin.assert:
             that:
               - force_enabled.changed
-              - 'force_enabled.msg == "Successfully updated the iDRAC Secure Boot settings."'
+              - 'force_enabled.msg == sboot_smsg'
 
         - name: Wait for iDRAC
           ansible.builtin.pause:
@@ -684,6 +720,9 @@
             password: "{{ idrac_password }}"
             validate_certs: false
             status_code: 200
+          retries: 10
+          delay: 20
+          until: "'ForceInt10' in boot_md_uri.json.Attributes"
           register: boot_md_uri
 
         - name: Verify -  Get details by uri.
@@ -721,8 +760,8 @@
         - name: Verify - Disable force_int_10 (normal mode)
           ansible.builtin.assert:
             that:
-              - force_disbled.changed
-              - 'force_disbled.msg == "Successfully updated the iDRAC Secure Boot settings."'
+              - force_disabled.changed
+              - force_disabled.msg == sboot_smsg
 
         - name: Wait for iDRAC
           ansible.builtin.pause:
@@ -730,11 +769,14 @@
 
         - name: Get details by uri.
           ansible.builtin.uri:
-            url: "https://{{ idrac_ip | ansible.utils.ipwrap}}/redfish/v1/Systems/System.Embedded.1/Bios"
+            url: "{{ idrac_bios_url }}"
             user: "{{ idrac_user }}"
             password: "{{ idrac_password }}"
             validate_certs: false
             status_code: 200
+          retries: 10
+          delay: 20
+          until: "'ForceInt10' in boot_md_uri.json.Attributes"
           register: boot_md_uri
 
         - name: Verify -  Get details by uri.
@@ -743,7 +785,7 @@
               - force_disbled.changed
               - 'boot_md_uri.json.Attributes.ForceInt10 == "Disabled"'
 
-      when: "hw_model | int < 17"
+      when: less_than_17G
 
   always:
     - name: Cleanup
@@ -757,5 +799,8 @@
       validate_certs: "{{ validate_certs }}"
 
   vars:
-    idrac_manager_url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1"
-    idrac_bios_url: "https://{{ idrac_ipidrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/Systems/System.Embedded.1/Bios"
+    idrac_manager_uri: "redfish/v1/Managers/iDRAC.Embedded.1"
+    idrac_manager_url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/{{ idrac_manager_uri }}"
+    idrac_bios_uri: "redfish/v1/Systems/System.Embedded.1/Bios"
+    idrac_bios_url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/{{ idrac_bios_uri }}"
+    sboot_smsg: 'Successfully updated the iDRAC Secure Boot settings.'

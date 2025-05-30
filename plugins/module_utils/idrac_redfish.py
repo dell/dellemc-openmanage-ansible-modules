@@ -221,9 +221,9 @@ class iDRACRedfishAPI(object):
         Fetches the connected server generation.
 
         Returns:
-            Tuple[int, str, str]: A tuple containing the server generation, firmware version, and hardware model.
+            Tuple[int, Optional[str], str]: A tuple containing the server generation, firmware version, and hardware model.
         """
-        firmware_version: str = None
+        firmware_version: Optional[str] = None
         response = self.invoke_request(MANAGER_URI, 'GET')
         if response.status_code == 200:
             generation: int = int(re.search(r"\d+(?=G)", response.json_data["Model"]).group())

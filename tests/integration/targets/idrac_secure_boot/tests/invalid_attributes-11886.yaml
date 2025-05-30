@@ -157,8 +157,7 @@
           ansible.builtin.assert:
             that:
               - invalid_boot.skipped
-              - 'invalid_boot.msg == "Unable to modify the attribute because 
-               the attribute is read-only and depends on other attributes."'
+              - 'invalid_boot.msg == readonly_attr_msg'
 
       when: "hw_model | int < 17"
 
@@ -192,3 +191,4 @@
       validate_certs: "{{ validate_certs }}"
   vars:
     idrac_manager_url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1"
+    readonly_attr_msg: "Unable to modify the attribute because the attribute is read-only and depends on other attributes."
