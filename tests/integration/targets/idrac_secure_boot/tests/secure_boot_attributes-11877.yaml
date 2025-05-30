@@ -369,7 +369,8 @@
       register: cm_changes
       check_mode: true
 
-    - name: Verify - Set secure boot mode to DeployedMode (check mode - changes expected)
+    - name: 'Verify - Set secure boot mode to DeployedMode
+       (check mode - changes expected)'
       ansible.builtin.assert:
         that:
           - cm_changes.changed
@@ -466,7 +467,8 @@
       register: cm_changes
       check_mode: true
 
-    - name: Verify - Set secure boot mode to AuditMode (check mode - changes expected)
+    - name: 'Verify - Set secure boot mode to AuditMode
+       (check mode - changes expected)'
       ansible.builtin.assert:
         that:
           - cm_changes.changed
@@ -558,7 +560,8 @@
       register: cm_changes
       check_mode: true
 
-    - name: Verify - Set secure boot policy to Standard (check mode - changes expected)
+    - name: 'Verify - Set secure boot policy to Standard
+       (check mode - changes expected)'
       ansible.builtin.assert:
         that:
           - cm_changes.changed
@@ -615,7 +618,8 @@
       register: cm_changes
       check_mode: true
 
-    - name: Verify - Set secure boot policy to Custom (check mode - changes expected)
+    - name: 'Verify - Set secure boot policy to Custom
+       (check mode - changes expected)'
       ansible.builtin.assert:
         that:
           - cm_changes.changed
@@ -798,8 +802,9 @@
       validate_certs: "{{ validate_certs }}"
 
   vars:
+    ip_wrapped: "{{ idrac_ip | ansible.utils.ipwrap }}"
     idrac_manager_uri: "redfish/v1/Managers/iDRAC.Embedded.1"
-    idrac_manager_url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/{{ idrac_manager_uri }}"
+    idrac_manager_url: "https://{{ ip_wrapped }}:{{ idrac_port }}/{{ idrac_manager_uri }}"
     idrac_bios_uri: "redfish/v1/Systems/System.Embedded.1/Bios"
-    idrac_bios_url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/{{ idrac_bios_uri }}"
+    idrac_bios_url: "https://{{ ip_wrapped }}:{{ idrac_port }}/{{ idrac_bios_uri }}"
     sboot_smsg: 'Successfully updated the iDRAC Secure Boot settings.'

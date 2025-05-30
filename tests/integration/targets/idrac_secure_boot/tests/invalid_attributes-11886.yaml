@@ -178,7 +178,8 @@
           ignore_errors: true
           register: invalid_boot
 
-        - name: Verify task status - Negative - Enable secure boot with boot mode Bios.
+        - name: 'Verify task status - Negative - Enable secure boot
+           with boot mode Bios.'
           ansible.builtin.assert:
             that:
               - invalid_boot.failed
@@ -193,6 +194,9 @@
       idrac_password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"
   vars:
-    idrac_manager_url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1"
-    readonly_attr_msg: "Unable to modify the attribute because the attribute is read-only and depends on other attributes."
+    ip_wrapped: "{{ idrac_ip | ansible.utils.ipwrap }}"
+    idrac_manager_uri: "redfish/v1/Managers/iDRAC.Embedded.1"
+    idrac_manager_url: "https://{{ ip_wrapped }}:{{ idrac_port }}/{{ idrac_manager_uri }}"
+    readonly_attr_msg: 'Unable to modify the attribute because the attribute is read-only
+     and depends on other attributes.'
     rmv_17g_msg: "boot mode and Force int 10 are not supported from 17G onwards"
