@@ -3,11 +3,10 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.1.0
+# Version 9.12.2
 # Copyright (C) 2018-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-#
 
 
 from __future__ import (absolute_import, division, print_function)
@@ -141,10 +140,10 @@ import copy
 import datetime
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
-# from ansible.module_utils.compat.version import LooseVersion
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import IdracAnsibleModule, iDRACRedfishAPI
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (get_logger)
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
     idrac_lifecycle_controller_logs_utils import IDRACLifecycleControllerLogs
 try:
@@ -152,7 +151,7 @@ try:
     from omsdk.sdkcreds import UserCredentials
 except ImportError:
     pass
-
+LOG = get_logger(module_name='idrac_lifecycle_controller_logs')
 EXPORT_LC_LOGS = '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions/DellLCService.ExportLCLog'
 SUCCESS_MSG = "Successfully exported the lifecycle controller logs."
 SCHEDULE_MSG = "The export lifecycle controller log job is submitted successfully."
@@ -233,6 +232,7 @@ def main():
             server_det = idrac.get_server_generation
             server_hw_model = server_det[2]
             if server_hw_model != "iDRAC 8":
+                LOG.info("hello")
                 lifecycle_controller_logs_obj = IDRACLifecycleControllerLogs(idrac)
                 msg, job_dict, changed = lifecycle_controller_logs_obj.lifecycle_controller_logs_operation(idrac, module)
                 module.exit_json(msg=msg, lc_logs_status=job_dict, changed=changed)

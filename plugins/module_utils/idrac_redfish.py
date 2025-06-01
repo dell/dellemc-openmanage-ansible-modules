@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 9.13.0
+# Version 9.12.2
 # Copyright (C) 2019-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -110,18 +110,22 @@ class iDRACRedfishAPI(object):
         self.session_id = None
         self.protocol = 'https'
         self._headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
+        if self.x_auth_token is not None:
+            self._headers["X-Auth-Token"] = self.x_auth_token
         self.ipaddress = config_ipv6(self.ipaddress)
-        self.SESSION_RESOURCE_COLLECTION = {
-            "SESSION": "/redfish/v1/SessionService/Sessions",
-            "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
-        }
-        gen_details = self.get_server_generation
-        generation = gen_details[0]
+        self.SESSION_RESOURCE_COLLECTION = self._get_session_resource_collection
+
+    def _get_session_resource_collection(self):
+        generation = self.get_server_generation[0]
         if generation <= 13:
-            self.SESSION_RESOURCE_COLLECTION = {
+            return {
                 "SESSION": "/redfish/v1/Sessions",
                 "SESSION_ID": "/redfish/v1/Sessions/{Id}",
             }
+        return {
+            "SESSION": "/redfish/v1/SessionService/Sessions",
+            "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
+        }
 
     def _get_url(self, uri):
         return "{0}://{1}:{2}{3}".format(self.protocol, self.ipaddress, self.port, uri)
@@ -213,24 +217,25 @@ class iDRACRedfishAPI(object):
             self.invoke_request(path, 'DELETE')
         return False
 
-    @property
     def get_server_generation(self):
         """
         This method fetches the connected server generation.
         :return: 14, 4.11.11.11
         """
         firmware_version = None
-        response = self.invoke_request(MANAGER_URI, 'GET')
+        response = self.invoke_request(uri=MANAGER_URI, method='GET')
+        generation = 0
         if response.status_code == 200:
             generation = int(re.search(r"\d+(?=G)", response.json_data["Model"]).group())
             firmware_version = response.json_data["FirmwareVersion"]
         hw_model = ""
         try:
-            hw_model_out = self.invoke_request(GET_IDRAC_MANAGER_ATTRIBUTES_9_10, 'GET')
+            hw_model_out = self.invoke_request(uri=GET_IDRAC_MANAGER_ATTRIBUTES_9_10, method='GET')
             if hw_model_out.status_code == 200:
                 hw_model = hw_model_out.json_data.get('Attributes', {}).get('Info.1.HWModel', "iDRAC 9")
         except HTTPError:
             hw_model = "iDRAC 8"
+
         return generation, firmware_version, hw_model
 
     def wait_for_job_complete(self, task_uri, job_wait=False):

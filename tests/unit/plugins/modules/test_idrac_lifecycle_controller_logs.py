@@ -2,11 +2,10 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.13.0
+# Version 9.12.2
 # Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-#
 
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
@@ -121,7 +120,6 @@ class TestExportLcLogs(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             result = self._run_module(idrac_default_args)
-            print(result)
         assert 'msg' in result
 
     @pytest.mark.parametrize("args_update", [{"share_user": "share@user"}, {"share_user": "shareuser"}, {"share_user": "share\\user"}])

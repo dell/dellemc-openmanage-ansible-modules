@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 9.13.0
+# Version 9.12.2
 # Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -79,7 +79,6 @@ class IDRACLifecycleControllerLogs(object):
         job_tracking_data = idrac_redfish_job_tracking(
             idrac, job_uri, sleep_interval_secs=1)
         job_failed = job_tracking_data[0]
-        # msg = job_tracking_data[1]
         job_dict = job_tracking_data[2]
         job_dict["file"] = file_path
         job_dict = remove_key(job_dict, regex_pattern=ODATA_PATTERN)
@@ -109,43 +108,50 @@ class IDRACLifecycleControllerLogs(object):
                               regex_pattern=ODATA_PATTERN)
         return msg, job_dict, changed
 
-    def export_local_logs(self, idrac, module, file_path, job_resp, final_data):
+    def create_local_file(self, module, file_path, job_resp_file):
         try:
-            job_resp_file = idrac.invoke_request(method='GET', uri=job_resp.headers.get("Location"), data=final_data)
             with open(file_path, "w") as log_file:
                 log_file.write(str(job_resp_file.body))
-            msg = SUCCESS_MSG
-            changed = True
-            job_dict = {
-                "ElapsedTimeSinceCompletion": "0",
-                "InstanceID": "",
-                "JobStartTime": "NA",
-                "JobStatus": "Completed",
-                "JobUntilTime": "NA",
-                "Message": "LCL Export was successful",
-                "MessageArguments": "NA",
-                "MessageID": "LC022",
-                "Name": "LC Export",
-                "PercentComplete": "100",
-                "Status": "Success",
-                "file": file_path,
-                "retval": True
-            }
-            return msg, job_dict, changed
-
         except FileNotFoundError:
             msg = "No such file or directory"
             module.fail_json(
                 msg=msg, failed=True,
                 lc_logs_status={}, changed=False)
 
+    def export_local_logs(self, idrac, module, file_path, job_resp, final_data):
+        job_resp_file = idrac.invoke_request(
+            method='GET',
+            uri=job_resp.headers.get("Location"), data=final_data)
+        self.create_local_file(
+            module=module,
+            file_path=file_path,
+            job_resp_file=job_resp_file)
+        msg = SUCCESS_MSG
+        changed = True
+        job_dict = {
+            "ElapsedTimeSinceCompletion": "0",
+            "InstanceID": "",
+            "JobStartTime": "NA",
+            "JobStatus": "Completed",
+            "JobUntilTime": "NA",
+            "Message": "LCL Export was successful",
+            "MessageArguments": "NA",
+            "MessageID": "LC022",
+            "Name": "LC Export",
+            "PercentComplete": "100",
+            "Status": "Success",
+            "file": file_path,
+            "retval": True
+        }
+        return msg, job_dict, changed
+
     def export_lc_logs_idrac_9_10(self, idrac, module, share_name, share_type, file_name, ip_address, file_path):
         changed = False
         payload_data = {
             "ShareName": share_name,
             "ShareType": share_type,
-            "UserName": module.params["share_user"],
-            "Password": module.params["share_password"],
+            "UserName": module.params.get("share_user"),
+            "Password": module.params.get("share_password"),
             "FileName": file_name,
             "IPAddress": ip_address,
             "IgnoreCertWarning": "Off"
@@ -161,7 +167,7 @@ class IDRACLifecycleControllerLogs(object):
         if (job_tracking_uri := job_resp.headers.get("Location")) and share_type != 'Local':
             job_id = job_tracking_uri.split("/")[-1]
             job_uri = idrac.get_job_uri().format(job_id=job_id)
-            if module.params['job_wait']:
+            if module.params.get('job_wait'):
                 msg, job_dict, changed = self.export_logs_job_wait(
                     idrac=idrac,
                     module=module,
