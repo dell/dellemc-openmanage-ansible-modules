@@ -31,7 +31,7 @@ API_TASK = '/api/tasks'
 SLEEP_TIME = 'idrac_redfish.time.sleep'
 MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
 GET_IDRAC_MANAGER_ATTRIBUTES_9_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
-
+SESSION_FUNCTION = 'idrac_redfish.iDRACRedfishAPI._get_session_resource_collection'
 RESP = {
     "Model": "17G",
     "FirmwareVersion": "1.20.30"
@@ -42,7 +42,8 @@ RESP_10 = {
         "Info.1.HWModel": "iDRAC 10"
     }
 }
-
+SESSION_ID_10 = "/redfish/v1/SessionService/Sessions/{Id}"
+SESSION_10 = "/redfish/v1/SessionService/Sessions"
 
 class TestIdracRedfishRest(object):
 
@@ -64,15 +65,11 @@ class TestIdracRedfishRest(object):
     @pytest.fixture
     def idrac_redfish_object(self, module_params, mocker):
         resp = {
-            "SESSION": "/redfish/v1/SessionService/Sessions",
-            "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
+            "SESSION": SESSION_10,
+            "SESSION_ID": SESSION_ID_10,
         }
-        mocker.patch(MODULE_UTIL_PATH + 'idrac_redfish.iDRACRedfishAPI._get_session_resource_collection',
+        mocker.patch(MODULE_UTIL_PATH + SESSION_FUNCTION,
                      return_value=resp)
-        # iDRACRedfishAPI._get_session_resource_collection.to_dict = {
-        #     "SESSION": "/redfish/v1/SessionService/Sessions",
-        #     "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
-        # }
         idrac_redfish_obj = iDRACRedfishAPI(module_params)
         return idrac_redfish_obj
 
@@ -103,10 +100,10 @@ class TestIdracRedfishRest(object):
                          'idrac_password': 'password', "idrac_port": '443'}
         req_session = False
         resp = {
-            "SESSION": "/redfish/v1/SessionService/Sessions",
-            "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
+            "SESSION": SESSION_10,
+            "SESSION_ID": SESSION_ID_10,
         }
-        mocker.patch(MODULE_UTIL_PATH + 'idrac_redfish.iDRACRedfishAPI._get_session_resource_collection',
+        mocker.patch(MODULE_UTIL_PATH + SESSION_FUNCTION,
                      return_value=resp)
         with iDRACRedfishAPI(module_params, req_session) as obj:
             response = obj.invoke_request(TEST_PATH, "GET")
@@ -118,10 +115,10 @@ class TestIdracRedfishRest(object):
         mocker.patch(MODULE_UTIL_PATH + OPEN_URL,
                      return_value=mock_response)
         resp = {
-            "SESSION": "/redfish/v1/SessionService/Sessions",
-            "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
+            "SESSION": SESSION_10,
+            "SESSION_ID": SESSION_ID_10,
         }
-        mocker.patch(MODULE_UTIL_PATH + 'idrac_redfish.iDRACRedfishAPI._get_session_resource_collection',
+        mocker.patch(MODULE_UTIL_PATH + SESSION_FUNCTION,
                      return_value=resp)
         req_session = False
         with iDRACRedfishAPI(module_params, req_session) as obj:
@@ -437,19 +434,26 @@ class TestIdracRedfishRest(object):
         result = idrac_redfish_object.get_job_uri()
         assert result == "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
 
-    def mock_get_dynamic_idrac_invoke_request(self, *args, **kwargs):
+    # def test_validate_idrac10_and_above(self, idrac_redfish_object, mocker):
+    #     resp = (17, "1.20", "iDRAC 10")
+    #     mocker.patch(MODULE_UTIL_PATH + 'idrac_redfish.iDRACRedfishAPI.get_server_generation',
+    #                  return_value=resp)
+    #     # idrac_redfish_object.get_server_generation = MagicMock(
+    #     #     return_value=[17, "1.20", "iDRAC 10"])
+    #     #idrac_redfish_object.get_server_generation[2] = "iDRAC 10"
+    #     result = idrac_redfish_object.validate_idrac10_and_above()
+    #     assert result is True
+
+    def mock_get_dynamic_idrac_invoke_request(self, *args):
         obj = MagicMock()
         obj.status_code = 200
-        print(kwargs)
-        print(args)
-        #if 'uri' in kwargs and kwargs['uri'] == MANAGER_URI:
         if MANAGER_URI in args:
             obj.json_data = RESP
         else:
             obj.json_data = RESP_10
         return obj
 
-    def test_get_server_generation(self, idrac_redfish_object, mocker, mock_response, module_params):
+    def test_get_server_generation(self, idrac_redfish_object, mocker):
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      self.mock_get_dynamic_idrac_invoke_request)
         result = idrac_redfish_object.get_server_generation

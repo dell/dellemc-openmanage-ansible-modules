@@ -25,6 +25,7 @@ importorskip("omsdk.sdkfile")
 importorskip("omsdk.sdkcreds")
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+EXPORT_LOGS = 'idrac_lifecycle_controller_logs.run_export_lc_logs'
 server_generation_info = (13, "2.8", "iDRAC 8")
 
 
@@ -83,17 +84,17 @@ class TestExportLcLogs(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "sharename", "share_user": "shareuser",
                                    "share_password": "sharepassword", "job_wait": True})
         message = {"Status": "Success", "JobStatus": "Success"}
-        mocker.patch(MODULE_PATH + 'idrac_lifecycle_controller_logs.run_export_lc_logs', return_value=message)
+        mocker.patch(MODULE_PATH + EXPORT_LOGS, return_value=message)
         result = self._run_module(idrac_default_args)
         assert result["msg"] == "Successfully exported the lifecycle controller logs."
 
         idrac_default_args.update({"job_wait": False})
-        mocker.patch(MODULE_PATH + 'idrac_lifecycle_controller_logs.run_export_lc_logs', return_value=message)
+        mocker.patch(MODULE_PATH + EXPORT_LOGS, return_value=message)
         result = self._run_module(idrac_default_args)
         assert result["msg"] == "The export lifecycle controller log job is submitted successfully."
 
         message = {"Status": "Failed", "JobStatus": "Failed"}
-        mocker.patch(MODULE_PATH + 'idrac_lifecycle_controller_logs.run_export_lc_logs', return_value=message)
+        mocker.patch(MODULE_PATH + EXPORT_LOGS, return_value=message)
         result = self._run_module_with_fail_json(idrac_default_args)
         assert result["msg"] == "Unable to export the lifecycle controller logs."
         assert result["failed"] is True
@@ -109,10 +110,10 @@ class TestExportLcLogs(FakeAnsibleModule):
         idrac_connection_export_lc_logs_mock.log_mgr.lclog_export.return_value = {"Status": "Failed"}
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type not in [HTTPError, SSLValidationError]:
-            mocker.patch(MODULE_PATH + 'idrac_lifecycle_controller_logs.run_export_lc_logs',
+            mocker.patch(MODULE_PATH + EXPORT_LOGS,
                          side_effect=exc_type('test'))
         else:
-            mocker.patch(MODULE_PATH + 'idrac_lifecycle_controller_logs.run_export_lc_logs',
+            mocker.patch(MODULE_PATH + EXPORT_LOGS,
                          side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
         if exc_type != URLError:

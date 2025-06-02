@@ -34,7 +34,6 @@ EXPORT_LC_LOGS = '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/A
 import copy
 import datetime
 
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import IdracAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     remove_key, idrac_redfish_job_tracking, get_logger)
 LOG = get_logger(module_name='idrac_lifecycle_controller_logs')
@@ -89,15 +88,15 @@ class IDRACLifecycleControllerLogs(object):
             msg = SUCCESS_MSG
             message_id = job_dict.get("MessageId")
             if message_id == "LC022":
-                changed = True
+                changed = False
             else:
                 module.fail_json(msg=job_dict.get("Message"))
         elif job_dict.get('JobState') is None:
             msg = SUCCESS_MSG
-            changed = True
+            changed = False
         else:
             msg = SCHEDULE_MSG
-            changed = True
+            changed = False
         job_dict["Return"] = "JobCreated"
         job_dict["Status"] = "Success"
         job_dict["Job"] = {
@@ -127,7 +126,7 @@ class IDRACLifecycleControllerLogs(object):
             file_path=file_path,
             job_resp_file=job_resp_file)
         msg = SUCCESS_MSG
-        changed = True
+        changed = False
         job_dict = {
             "ElapsedTimeSinceCompletion": "0",
             "InstanceID": "",
@@ -186,7 +185,7 @@ class IDRACLifecycleControllerLogs(object):
                     job_dict,
                     regex_pattern=ODATA_PATTERN)
                 msg = SCHEDULE_MSG
-                changed = True
+                changed = False
 
         return msg, job_dict, changed
 

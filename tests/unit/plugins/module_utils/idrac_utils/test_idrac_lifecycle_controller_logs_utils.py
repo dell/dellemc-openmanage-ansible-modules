@@ -3,10 +3,6 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.\
     import IDRACLifecycleControllerLogs
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.module_utils.idrac_utils.test_idrac_utils import TestUtils
 from unittest.mock import MagicMock
-from ansible_collections.dellemc.openmanage.plugins.modules import \
-    idrac_lifecycle_controller_logs
-import pytest
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.utils import AnsibleFailJson
 
 
 MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
@@ -20,7 +16,17 @@ MANAGER_RESPONSE = {
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 UTILS_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.'
 EXPORT_LC_LOGS = '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions/DellLCService.ExportLCLog'
-
+CIFS_FILE_PATH = "\\\\100.96.37.71\\cifsshare\\20250525.log"
+BASE_URI = "redfish/v1/"
+START_TIME = "2025-05-26T22:39:11"
+JOB_TRACKING = "idrac_lifecycle_controller_logs_utils.idrac_redfish_job_tracking"
+JOB_NAME = "Export: Lifecycle log"
+LOG_FILE_NAME = "20250525.log"
+FILE_PATH_1 = "sample/20250525.log"
+COMPLETION_TIME = "2025-05-26T22:39:12"
+EXPORT_SUCCESS = "LCL Export was successful"
+MODULE_SUCCESS = 'Successfully exported the lifecycle controller logs.'
+DESCRIPTION = "Job Instance"
 
 class TestIDRACLifecycleControllerLogs(TestUtils):
 
@@ -33,15 +39,15 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
             }
         else:
             obj.json_data = {
-                "StartTime": "2025-05-26T22:39:11",
-                "CompletionTime": "2025-05-26T22:39:12",
+                "StartTime": START_TIME,
+                "CompletionTime": COMPLETION_TIME,
                 "PercentComplete": 100,
                 "JobType": "LCExport",
                 "ActualRunningStopTime": None,
                 "MessageId": "LC022",
-                "Description": "Job Instance",
+                "Description": DESCRIPTION,
                 "@odata.context": "/redfish/v1/$metadata#DellJob.DellJob",
-                "Message": "LCL Export was successful",
+                "Message": EXPORT_SUCCESS,
                 "@odata.etag": "W/\"gen-32\"",
                 "ActualRunningStartTime": None,
                 "JobState": "Completed",
@@ -49,7 +55,7 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
                 "EndTime": None,
                 "MessageArgs": [],
                 "MessageArgs@odata.count": 0,
-                "Name": "Export: Lifecycle log",
+                "Name": JOB_NAME,
                 "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/JID_483171510194",
                 "Id": "JID_483171510194",
                 "TargetSettingsURI": None
@@ -60,13 +66,13 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
         module_mock = MagicMock()
         logs_info = IDRACLifecycleControllerLogs(idrac_mock)
         logs_info.get_share_details = MagicMock(
-            return_value=("cifsshare", "CIFS", "20250525.log", "10.10.10.10", "\\\\100.96.37.71\\cifsshare\\20250525.log")
+            return_value=("cifsshare", "CIFS", LOG_FILE_NAME, "10.10.10.10", CIFS_FILE_PATH)
         )
         logs_info.export_lc_logs_idrac_9_10 = MagicMock(
-            return_value=("Successfully exported", {'file': '\\\\100.96.37.71\\cifsshare\\20250525.log'}, True)
+            return_value=("Successfully exported", {'file': '\\\\100.96.37.71\\cifsshare\\20250525.log'}, False)
         )
         result = logs_info.lifecycle_controller_logs_operation(idrac=idrac_mock, module=module_mock)
-        assert result == ("Successfully exported", {'file': '\\\\100.96.37.71\\cifsshare\\20250525.log'}, True)
+        assert result == ("Successfully exported", {'file': '\\\\100.96.37.71\\cifsshare\\20250525.log'}, False)
 
     def test_get_file_name(self, idrac_mock):
         module_mock = MagicMock()
@@ -81,10 +87,10 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
         logs_info = IDRACLifecycleControllerLogs(idrac_mock)
         idrac_mock.find_ip_address.return_value = "100.96.37.71"
         logs_info.get_file_name = MagicMock(
-            return_value="20250525.log"
+            return_value=LOG_FILE_NAME
         )
         result = logs_info.get_share_details(idrac=idrac_mock, module=module_mock, sharename="\\\\100.96.37.71\\cifsshare")
-        assert result == ("cifsshare", "CIFS", "20250525.log", "100.96.37.71", "\\\\100.96.37.71\\cifsshare\\20250525.log")
+        assert result == ("cifsshare", "CIFS", LOG_FILE_NAME, "100.96.37.71", CIFS_FILE_PATH)
 
     def test_get_share_details_nfs(self, idrac_mock):
         module_mock = MagicMock()
@@ -92,10 +98,10 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
         logs_info = IDRACLifecycleControllerLogs(idrac_mock)
         idrac_mock.find_ip_address.return_value = "100.64.26.122"
         logs_info.get_file_name = MagicMock(
-            return_value="20250525.log"
+            return_value=LOG_FILE_NAME
         )
         result = logs_info.get_share_details(idrac=idrac_mock, module=module_mock, sharename="100.64.26.122:/nfsshare")
-        assert result == ("nfsshare", "NFS", "20250525.log", "100.64.26.122", "100.64.26.122:/nfsshare/20250525.log")
+        assert result == ("nfsshare", "NFS", LOG_FILE_NAME, "100.64.26.122", "100.64.26.122:/nfsshare/20250525.log")
 
     def test_get_share_details_local(self, idrac_mock):
         module_mock = MagicMock()
@@ -103,25 +109,26 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
         logs_info = IDRACLifecycleControllerLogs(idrac_mock)
         idrac_mock.find_ip_address.return_value = None
         logs_info.get_file_name = MagicMock(
-            return_value="20250525.log"
+            return_value=LOG_FILE_NAME
         )
         result = logs_info.get_share_details(idrac=idrac_mock, module=module_mock, sharename="sample")
-        assert result == ("sample", "Local", "20250525.log", None, "sample/20250525.log")
+        assert result == ("sample", "Local", LOG_FILE_NAME, None, FILE_PATH_1)
 
     def test_export_logs_job_wait(self, idrac_mock, mocker):
         module_mock = MagicMock()
-        mocker.patch(UTILS_PATH + "idrac_lifecycle_controller_logs_utils.idrac_redfish_job_tracking",
-                     return_value=(
-                     False,
-                     'Successfully exported the lifecycle controller logs.',
-                     {
-                         "JobState": "Completed",
-                         "MessageId": "LC022",
-                         "Id": "JID_1010101"
-                     },
-                     2))
+        mocker.patch(
+            UTILS_PATH + JOB_TRACKING,
+            return_value=(
+                False,
+                MODULE_SUCCESS,
+                {
+                    "JobState": "Completed",
+                    "MessageId": "LC022",
+                    "Id": "JID_1010101"
+                },
+                2))
         logs_info = IDRACLifecycleControllerLogs(idrac_mock)
-        result = logs_info.export_logs_job_wait(idrac=idrac_mock, module=module_mock, job_uri="redfish/v1/", file_path="sample/20250525.log")
+        result = logs_info.export_logs_job_wait(idrac=idrac_mock, module=module_mock, job_uri=BASE_URI, file_path=FILE_PATH_1)
         expected_job = {
             "JobState": "Completed",
             "MessageId": "LC022",
@@ -129,25 +136,26 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
             "Status": "Success",
             "Job": {"jobId": "JID_1010101"},
             "JobStatus": "Completed",
-            "file": "sample/20250525.log",
+            "file": FILE_PATH_1,
             "Id": "JID_1010101"
         }
-        assert result == ('Successfully exported the lifecycle controller logs.', expected_job, True)
+        assert result == (MODULE_SUCCESS, expected_job, False)
 
     def test_export_logs_job_wait_new_job(self, idrac_mock, mocker):
         module_mock = MagicMock()
-        mocker.patch(UTILS_PATH + "idrac_lifecycle_controller_logs_utils.idrac_redfish_job_tracking",
-                     return_value=(
-                     False,
-                     'Successfully exported the lifecycle controller logs.',
-                     {
-                        "JobState": "New",
-                        "MessageId": "LC025",
-                        "Id": "JID_1010102"
-                     },
-                        2))
+        mocker.patch(
+            UTILS_PATH + JOB_TRACKING,
+            return_value=(
+                False,
+                MODULE_SUCCESS,
+                {
+                    "JobState": "New",
+                    "MessageId": "LC025",
+                    "Id": "JID_1010102"
+                },
+                2))
         logs_info = IDRACLifecycleControllerLogs(idrac_mock)
-        result = logs_info.export_logs_job_wait(idrac=idrac_mock, module=module_mock, job_uri="redfish/v1/", file_path="sample/20250525.log")
+        result = logs_info.export_logs_job_wait(idrac=idrac_mock, module=module_mock, job_uri=BASE_URI, file_path=FILE_PATH_1)
         expected_job = {
             "JobState": "New",
             "MessageId": "LC025",
@@ -155,25 +163,26 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
             "Status": "Success",
             "Job": {"jobId": "JID_1010102"},
             "JobStatus": "New",
-            "file": "sample/20250525.log",
+            "file": FILE_PATH_1,
             "Id": "JID_1010102"
         }
-        assert result == ('The export lifecycle controller log job is submitted successfully.', expected_job, True)
+        assert result == ('The export lifecycle controller log job is submitted successfully.', expected_job, False)
 
     def test_export_logs_job_wait_job_state_none(self, idrac_mock, mocker):
         module_mock = MagicMock()
-        mocker.patch(UTILS_PATH + "idrac_lifecycle_controller_logs_utils.idrac_redfish_job_tracking",
-                     return_value=(
-                     False,
-                     'Successfully exported the lifecycle controller logs.',
-                     {
-                         "JobState": None,
-                         "MessageId": "LC025",
-                         "Id": "JID_1010102"
-                     },
-                     2))
+        mocker.patch(
+            UTILS_PATH + JOB_TRACKING,
+            return_value=(
+                False,
+                MODULE_SUCCESS,
+                {
+                    "JobState": None,
+                    "MessageId": "LC025",
+                    "Id": "JID_1010102"
+                },
+                2))
         logs_info = IDRACLifecycleControllerLogs(idrac_mock)
-        result = logs_info.export_logs_job_wait(idrac=idrac_mock, module=module_mock, job_uri="redfish/v1/", file_path="sample/20250525.log")
+        result = logs_info.export_logs_job_wait(idrac=idrac_mock, module=module_mock, job_uri=BASE_URI, file_path=FILE_PATH_1)
         expected_job = {
             "JobState": None,
             "MessageId": "LC025",
@@ -181,10 +190,10 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
             "Status": "Success",
             "Job": {"jobId": "JID_1010102"},
             "JobStatus": None,
-            "file": "sample/20250525.log",
+            "file": FILE_PATH_1,
             "Id": "JID_1010102"
         }
-        assert result == ('Successfully exported the lifecycle controller logs.', expected_job, True)
+        assert result == (MODULE_SUCCESS, expected_job, False)
 
     def test_export_local_logs(self, idrac_mock, mocker):
         module_mock = MagicMock()
@@ -212,19 +221,19 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
             "JobStartTime": "NA",
             "JobStatus": "Completed",
             "JobUntilTime": "NA",
-            "Message": "LCL Export was successful",
+            "Message": EXPORT_SUCCESS,
             "MessageArguments": "NA",
             "MessageID": "LC022",
             "Name": "LC Export",
             "PercentComplete": "100",
             "Status": "Success",
-            "file": "sample/20250525.log",
+            "file": FILE_PATH_1,
             "retval": True
         }
         logs_info = IDRACLifecycleControllerLogs(idrac_mock)
         idrac_mock.invoke_request.return_value = file_data
-        result = logs_info.export_local_logs(idrac=idrac_mock, module=module_mock, file_path="sample/20250525.log", job_resp=job_resp, final_data=FINAL_DATA)
-        assert result == ('Successfully exported the lifecycle controller logs.', JOB_DICT, True)
+        result = logs_info.export_local_logs(idrac=idrac_mock, module=module_mock, file_path=FILE_PATH_1, job_resp=job_resp, final_data=FINAL_DATA)
+        assert result == (MODULE_SUCCESS, JOB_DICT, False)
 
     def test_export_lc_logs_idrac_9_10_job_wait(self, idrac_mock):
         module_mock = MagicMock()
@@ -233,22 +242,22 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
         idrac_mock.invoke_request.return_value = self.mock_get_dynamic_idrac_invoke_request()
         result = logs_info.export_lc_logs_idrac_9_10(
             idrac=idrac_mock, module=module_mock, share_name="cifsshare",
-            share_type="CIFS", file_name="20250525.log", ip_address="100.96.37.71",
-            file_path= "\\\\100.96.37.71\\cifsshare\\20250525.log")
+            share_type="CIFS", file_name=LOG_FILE_NAME, ip_address="100.96.37.71",
+            file_path=CIFS_FILE_PATH)
         expected_job = {
-            "StartTime": "2025-05-26T22:39:11",
-            "CompletionTime": "2025-05-26T22:39:12",
+            "StartTime": START_TIME,
+            "CompletionTime": COMPLETION_TIME,
             "PercentComplete": 100,
             "JobType": "LCExport",
             "ActualRunningStopTime": None,
             "MessageId": "LC022",
-            "Description": "Job Instance",
-            "Message": "LCL Export was successful",
+            "Description": DESCRIPTION,
+            "Message": EXPORT_SUCCESS,
             "ActualRunningStartTime": None,
             "JobState": "Completed",
             "EndTime": None,
             "MessageArgs": [],
-            "Name": "Export: Lifecycle log",
+            "Name": JOB_NAME,
             "Id": "JID_483171510194",
             "TargetSettingsURI": None,
             "Return": "JobCreated",
@@ -256,10 +265,10 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
                 "jobId": "JID_483171510194",
             },
             "JobStatus": "Completed",
-            "file": "\\\\100.96.37.71\\cifsshare\\20250525.log",
+            "file": CIFS_FILE_PATH,
             "Status": "Success"
         }
-        assert result == ('Successfully exported the lifecycle controller logs.', expected_job, True)
+        assert result == (MODULE_SUCCESS, expected_job, False)
 
     def test_export_lc_logs_idrac_9_10_job_wait_false(self, idrac_mock):
         module_mock = MagicMock()
@@ -268,32 +277,32 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
         idrac_mock.invoke_request.return_value = self.mock_get_dynamic_idrac_invoke_request()
         result = logs_info.export_lc_logs_idrac_9_10(
             idrac=idrac_mock, module=module_mock, share_name="cifsshare",
-            share_type="CIFS", file_name="20250525.log", ip_address="100.96.37.71",
-            file_path= "\\\\100.96.37.71\\cifsshare\\20250525.log")
+            share_type="CIFS", file_name=LOG_FILE_NAME, ip_address="100.96.37.71",
+            file_path=CIFS_FILE_PATH)
         expected_job = {
-            "StartTime": "2025-05-26T22:39:11",
-            "CompletionTime": "2025-05-26T22:39:12",
+            "StartTime": START_TIME,
+            "CompletionTime": COMPLETION_TIME,
             "PercentComplete": 100,
             "JobType": "LCExport",
             "ActualRunningStopTime": None,
             "MessageId": "LC022",
-            "Description": "Job Instance",
-            "Message": "LCL Export was successful",
+            "Description": DESCRIPTION,
+            "Message": EXPORT_SUCCESS,
             "ActualRunningStartTime": None,
             "JobState": "Completed",
             "EndTime": None,
             "MessageArgs": [],
-            "Name": "Export: Lifecycle log",
+            "Name": JOB_NAME,
             "Id": "JID_483171510194",
             "TargetSettingsURI": None,
             "Return": "JobCreated",
             "Job": {
                 "jobId": "JID_483171510194",
             },
-            "file": "\\\\100.96.37.71\\cifsshare\\20250525.log",
+            "file": CIFS_FILE_PATH,
             "Status": "Success"
         }
-        assert result == ('The export lifecycle controller log job is submitted successfully.', expected_job, True)
+        assert result == ('The export lifecycle controller log job is submitted successfully.', expected_job, False)
 
     def test_export_lc_logs_idrac_9_10_local(self, idrac_mock):
         module_mock = MagicMock()
@@ -308,14 +317,14 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
             "Job": {
                 "jobId": "JID_1010101"},
             "JobStatus": "Completed",
-            "file": "sample/20250525.log",
+            "file": FILE_PATH_1,
             "Id": "JID_1010101"
         }
         logs_info.export_local_logs = MagicMock(
-            return_value=('Successfully exported the lifecycle controller logs.', local_job_details, True)
+            return_value=(MODULE_SUCCESS, local_job_details, False)
         )
         result = logs_info.export_lc_logs_idrac_9_10(
             idrac=idrac_mock, module=module_mock, share_name="sample",
-            share_type="Local", file_name="20250525.log", ip_address=None,
-            file_path="sample/20250525.log")
-        assert result == ('Successfully exported the lifecycle controller logs.', local_job_details, True)
+            share_type="Local", file_name=LOG_FILE_NAME, ip_address=None,
+            file_path=FILE_PATH_1)
+        assert result == (MODULE_SUCCESS, local_job_details, False)

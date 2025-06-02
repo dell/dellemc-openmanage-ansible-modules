@@ -140,7 +140,7 @@ import copy
 import datetime
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import IdracAnsibleModule, iDRACRedfishAPI
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (get_logger)
@@ -232,7 +232,6 @@ def main():
             server_det = idrac.get_server_generation
             server_hw_model = server_det[2]
             if server_hw_model != "iDRAC 8":
-                LOG.info("hello")
                 lifecycle_controller_logs_obj = IDRACLifecycleControllerLogs(idrac)
                 msg, job_dict, changed = lifecycle_controller_logs_obj.lifecycle_controller_logs_operation(idrac, module)
                 module.exit_json(msg=msg, lc_logs_status=job_dict, changed=changed)

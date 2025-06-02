@@ -39,9 +39,6 @@ from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible.module_utils.common.parameters import env_fallback
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
 from ansible.module_utils.basic import AnsibleModule
-# from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-#     remove_key, idrac_redfish_job_tracking, get_logger)
-# LOG = get_logger(module_name='idrac_redfish')
 
 idrac_auth_params = {
     "idrac_ip": {"required": True, "type": 'str'},
