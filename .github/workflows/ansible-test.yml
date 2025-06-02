@@ -26,6 +26,8 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v3
+        with:
+          path: ansible_collections/dellemc/openmanage
 
       - name: Set up Python
         uses: actions/setup-python@v4
