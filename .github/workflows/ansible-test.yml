@@ -56,7 +56,7 @@ jobs:
   
       - name: Run Pytest with coverage
         env:
-          PYTHONPATH: "$PYTHONPATH:${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanage"
+          PYTHONPATH: "$PYTHONPATH:${GITHUB_WORKSPACE}"
         run: pytest -vvvv --rootdir="${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanage" --cov="${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanage/plugins/" "${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanage/tests/unit" --cov-config=.coveragerc --cov-report=xml:coverage.xml
 
       - name: Upload coverage to Codecov
