@@ -53,7 +53,7 @@ jobs:
         run: pwd
   
       - name: Run Pytest with coverage
-        run: pytest -vvvv --cov="${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanage/plugins/" "${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanagetests/unit" --cov-config=.coveragerc --cov-report=xml:coverage.xml
+        run: pytest -vvvv --cov="${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanage/plugins/" "${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanage/tests/unit" --cov-config=.coveragerc --cov-report=xml:coverage.xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
