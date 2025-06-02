@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell OpenManage Ansible Modules
+# Dell OpenManage Ansible Module
 # Version 9.12.2
 # Copyright (C) 2018-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
