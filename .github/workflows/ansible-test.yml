@@ -48,7 +48,7 @@ jobs:
         run: pip install -r test-requirements.txt
   
       - name: Run Pytest with coverage
-        run: pytest -vvvv --cov=ansible_collections/dellemc/openmanage/plugins --cov-branch ansible_collections/dellemc/openmanage/tests/unit --cov-config=.coveragerc --cov-report=xml:coverage.xml
+        run: pytest -vvvv --cov=plugins/ tests/unit --cov-config=.coveragerc --cov-report=xml:coverage.xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
