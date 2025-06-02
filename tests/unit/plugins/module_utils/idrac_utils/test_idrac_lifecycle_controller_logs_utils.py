@@ -28,6 +28,7 @@ EXPORT_SUCCESS = "LCL Export was successful"
 MODULE_SUCCESS = 'Successfully exported the lifecycle controller logs.'
 DESCRIPTION = "Job Instance"
 
+
 class TestIDRACLifecycleControllerLogs(TestUtils):
 
     def mock_get_dynamic_idrac_invoke_request(self, *args, **kwargs):

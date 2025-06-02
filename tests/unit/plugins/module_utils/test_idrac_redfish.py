@@ -45,6 +45,7 @@ RESP_10 = {
 SESSION_ID_10 = "/redfish/v1/SessionService/Sessions/{Id}"
 SESSION_10 = "/redfish/v1/SessionService/Sessions"
 
+
 class TestIdracRedfishRest(object):
 
     @pytest.fixture
@@ -433,16 +434,6 @@ class TestIdracRedfishRest(object):
             MagicMock(return_value=False)
         result = idrac_redfish_object.get_job_uri()
         assert result == "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
-
-    # def test_validate_idrac10_and_above(self, idrac_redfish_object, mocker):
-    #     resp = (17, "1.20", "iDRAC 10")
-    #     mocker.patch(MODULE_UTIL_PATH + 'idrac_redfish.iDRACRedfishAPI.get_server_generation',
-    #                  return_value=resp)
-    #     # idrac_redfish_object.get_server_generation = MagicMock(
-    #     #     return_value=[17, "1.20", "iDRAC 10"])
-    #     #idrac_redfish_object.get_server_generation[2] = "iDRAC 10"
-    #     result = idrac_redfish_object.validate_idrac10_and_above()
-    #     assert result is True
 
     def mock_get_dynamic_idrac_invoke_request(self, *args):
         obj = MagicMock()
