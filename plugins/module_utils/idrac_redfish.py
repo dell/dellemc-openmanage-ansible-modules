@@ -39,7 +39,9 @@ from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible.module_utils.common.parameters import env_fallback
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
 from ansible.module_utils.basic import AnsibleModule
-
+# from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
+#     remove_key, idrac_redfish_job_tracking, get_logger)
+# LOG = get_logger(module_name='idrac_redfish')
 
 idrac_auth_params = {
     "idrac_ip": {"required": True, "type": 'str'},
@@ -113,19 +115,21 @@ class iDRACRedfishAPI(object):
         if self.x_auth_token is not None:
             self._headers["X-Auth-Token"] = self.x_auth_token
         self.ipaddress = config_ipv6(self.ipaddress)
-        self.SESSION_RESOURCE_COLLECTION = self._get_session_resource_collection
-
-    def _get_session_resource_collection(self):
-        generation = self.get_server_generation[0]
-        if generation <= 13:
-            return {
-                "SESSION": "/redfish/v1/Sessions",
-                "SESSION_ID": "/redfish/v1/Sessions/{Id}",
-            }
-        return {
+        self.SESSION_RESOURCE_COLLECTION = {
             "SESSION": "/redfish/v1/SessionService/Sessions",
             "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
         }
+        self.SESSION_RESOURCE_COLLECTION = self._get_session_resource_collection(session_dict=self.SESSION_RESOURCE_COLLECTION)
+
+    def _get_session_resource_collection(self, session_dict):
+        gen_details = self.get_server_generation
+        generation = gen_details[0]
+        if generation <= 13:
+            session_dict = {
+                "SESSION": "/redfish/v1/Sessions",
+                "SESSION_ID": "/redfish/v1/Sessions/{Id}",
+            }
+        return session_dict
 
     def _get_url(self, uri):
         return "{0}://{1}:{2}{3}".format(self.protocol, self.ipaddress, self.port, uri)
@@ -217,20 +221,21 @@ class iDRACRedfishAPI(object):
             self.invoke_request(path, 'DELETE')
         return False
 
+    @property
     def get_server_generation(self):
         """
         This method fetches the connected server generation.
         :return: 14, 4.11.11.11
         """
         firmware_version = None
-        response = self.invoke_request(uri=MANAGER_URI, method='GET')
+        response = self.invoke_request(MANAGER_URI, 'GET')
         generation = 0
         if response.status_code == 200:
             generation = int(re.search(r"\d+(?=G)", response.json_data["Model"]).group())
             firmware_version = response.json_data["FirmwareVersion"]
         hw_model = ""
         try:
-            hw_model_out = self.invoke_request(uri=GET_IDRAC_MANAGER_ATTRIBUTES_9_10, method='GET')
+            hw_model_out = self.invoke_request(GET_IDRAC_MANAGER_ATTRIBUTES_9_10, 'GET')
             if hw_model_out.status_code == 200:
                 hw_model = hw_model_out.json_data.get('Attributes', {}).get('Info.1.HWModel', "iDRAC 9")
         except HTTPError:

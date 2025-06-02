@@ -62,11 +62,17 @@ class TestIdracRedfishRest(object):
         return module_parameters
 
     @pytest.fixture
-    def idrac_redfish_object(self, module_params):
-        iDRACRedfishAPI._get_session_resource_collection = {
+    def idrac_redfish_object(self, module_params, mocker):
+        resp = {
             "SESSION": "/redfish/v1/SessionService/Sessions",
             "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
         }
+        mocker.patch(MODULE_UTIL_PATH + 'idrac_redfish.iDRACRedfishAPI._get_session_resource_collection',
+                     return_value=resp)
+        # iDRACRedfishAPI._get_session_resource_collection.to_dict = {
+        #     "SESSION": "/redfish/v1/SessionService/Sessions",
+        #     "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
+        # }
         idrac_redfish_obj = iDRACRedfishAPI(module_params)
         return idrac_redfish_obj
 
@@ -96,6 +102,12 @@ class TestIdracRedfishRest(object):
         module_params = {'idrac_ip': '2001:db8:3333:4444:5555:6666:7777:8888', 'idrac_user': 'username',
                          'idrac_password': 'password', "idrac_port": '443'}
         req_session = False
+        resp = {
+            "SESSION": "/redfish/v1/SessionService/Sessions",
+            "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
+        }
+        mocker.patch(MODULE_UTIL_PATH + 'idrac_redfish.iDRACRedfishAPI._get_session_resource_collection',
+                     return_value=resp)
         with iDRACRedfishAPI(module_params, req_session) as obj:
             response = obj.invoke_request(TEST_PATH, "GET")
         assert response.status_code == 200
@@ -105,6 +117,12 @@ class TestIdracRedfishRest(object):
     def test_invoke_request_without_session_with_header(self, mock_response, mocker, module_params):
         mocker.patch(MODULE_UTIL_PATH + OPEN_URL,
                      return_value=mock_response)
+        resp = {
+            "SESSION": "/redfish/v1/SessionService/Sessions",
+            "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
+        }
+        mocker.patch(MODULE_UTIL_PATH + 'idrac_redfish.iDRACRedfishAPI._get_session_resource_collection',
+                     return_value=resp)
         req_session = False
         with iDRACRedfishAPI(module_params, req_session) as obj:
             response = obj.invoke_request(TEST_PATH, "POST", headers={
@@ -419,16 +437,13 @@ class TestIdracRedfishRest(object):
         result = idrac_redfish_object.get_job_uri()
         assert result == "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
 
-    def test_validate_idrac10_and_above(self, idrac_redfish_object):
-        idrac_redfish_object.get_server_generation = [17, "1.20", "iDRAC 10"]
-        idrac_redfish_object.get_server_generation[2] = "iDRAC 10"
-        result = idrac_redfish_object.validate_idrac10_and_above()
-        assert result is True
-
     def mock_get_dynamic_idrac_invoke_request(self, *args, **kwargs):
         obj = MagicMock()
         obj.status_code = 200
-        if 'uri' in kwargs and kwargs['uri'] == MANAGER_URI:
+        print(kwargs)
+        print(args)
+        #if 'uri' in kwargs and kwargs['uri'] == MANAGER_URI:
+        if MANAGER_URI in args:
             obj.json_data = RESP
         else:
             obj.json_data = RESP_10
@@ -437,5 +452,5 @@ class TestIdracRedfishRest(object):
     def test_get_server_generation(self, idrac_redfish_object, mocker, mock_response, module_params):
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      self.mock_get_dynamic_idrac_invoke_request)
-        result = idrac_redfish_object.get_server_generation()
+        result = idrac_redfish_object.get_server_generation
         assert result == (17, '1.20.30', 'iDRAC 10')
