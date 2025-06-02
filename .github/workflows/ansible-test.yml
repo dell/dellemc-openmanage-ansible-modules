@@ -46,6 +46,9 @@ jobs:
 
       - name: Install test dependencies
         run: pip install -r test-requirements.txt
+
+      - name: Print current directory
+        run: pwd
   
       - name: Run Pytest with coverage
         run: pytest -vvvv --cov=plugins/ tests/unit --cov-config=.coveragerc --cov-report=xml:coverage.xml
