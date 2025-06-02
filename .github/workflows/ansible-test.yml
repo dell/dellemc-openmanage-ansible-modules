@@ -58,9 +58,9 @@ jobs:
         run: export PYTHONPATH="${GITHUB_WORKSPACE}":$PYTHONPATH && pytest -vvvv --cov="${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanage/plugins/" --cov-branch "${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanage/tests/unit" --cov-config=.coveragerc --cov-report=xml:coverage.xml
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
-          file: ./coverage.xml
+          files: ./coverage.xml, 
           token: ${{ secrets.CODECOV_TOKEN }}
   ansible-lint:
     needs: [build]
