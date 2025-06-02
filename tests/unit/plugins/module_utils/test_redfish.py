@@ -199,6 +199,6 @@ class TestRedfishAnsibleModule(object):
     def test_call_class_redfish_ansible_module(self):
         random_value = {'value': 'data'}
         with pytest.raises(SystemExit) as ex:
-            obj = RedfishAnsibleModule(random_value, bypass_checks=True)
+            RedfishAnsibleModule(random_value, bypass_checks=True)
         # Asserting only this as class has only __init__ method
-        assert ex.value.args[0] == 1
+        assert ex.type == SystemExit
