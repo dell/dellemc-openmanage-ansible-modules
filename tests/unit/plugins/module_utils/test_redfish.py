@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.3.0
-# Copyright (C) 2023 Dell Inc.
+# Version 9.13.0
+# Copyright (C) 2023-2025 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
@@ -196,8 +196,9 @@ class TestRedfishRest(object):
 
 
 class TestRedfishAnsibleModule(object):
-    def test_call_class_RedfishAnsibleModule(self, mocker):
+    def test_call_class_redfish_ansible_module(self):
         random_value = {'value': 'data'}
-        with pytest.raises(SystemExit):
+        with pytest.raises(SystemExit) as ex:
             obj = RedfishAnsibleModule(random_value, bypass_checks=True)
-            assert isinstance(obj, RedfishAnsibleModule)
+        # Asserting only this as class has only __init__ method
+        assert ex.value.args[0] == 1
