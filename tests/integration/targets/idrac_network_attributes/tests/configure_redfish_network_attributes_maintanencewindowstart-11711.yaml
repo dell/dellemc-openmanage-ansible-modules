@@ -1,0 +1,123 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined
+
+- name: Set prerequisites
+  ansible.builtin.include_tasks: _helper.yml
+
+- name: Fetch redfish network attribute details
+  ansible.builtin.include_tasks: _fetch_redfish_network_attributes.yml
+  vars:
+    module_apply_time: "AtMaintenanceWindowStart"
+
+- name: Set pre attribute value
+  ansible.builtin.set_fact:
+    exist_vlan_enable: "{{ fetched_attributes.json.Ethernet.VLAN.VLANEnable }}"
+
+- name: Set Vlan Enable to update
+  ansible.builtin.set_fact:
+    vlan_en: "{{ false if exist_vlan_enable else true }}"
+
+- block:
+    - ansible.builtin.include_tasks: _get_date_time.yml
+
+    - name: Configure redfish network attributes - check mode
+      dellemc.openmanage.idrac_network_attributes: &configure_network_attributes
+        network_adapter_id: "{{ inp_network_adapter_id }}"
+        network_device_function_id: "{{ inp_network_device_function_id }}"
+        network_attributes:
+          Ethernet:
+            VLAN:
+              VLANEnable: "{{ vlan_en }}"
+        apply_time: "{{ apply_time_maintenancewindowstart }}"
+        maintenance_window:
+          start_time: "{{ updated_datetime_with_offset }}"
+          duration: "{{ duration }}"
+      check_mode: true
+      register: check_configure_network_attributes
+
+    - name: Verify task status - Configure redfish network attributes -
+        check mode
+      ansible.builtin.assert:
+        that:
+          - check_configure_network_attributes.changed
+          - 'check_configure_network_attributes.msg == "Changes found to be
+           applied."'
+
+    - ansible.builtin.include_tasks: _get_date_time.yml
+
+    - name: Configure redfish network attributes - normal mode
+      dellemc.openmanage.idrac_network_attributes:
+        <<: *configure_network_attributes
+      register: result_configure_network_attributes
+
+    - name: Verify task status - Configure redifh network attributes -
+        normal mode
+      ansible.builtin.assert:
+        that:
+          - result_configure_network_attributes.changed
+          - 'result_configure_network_attributes.msg == "Successfully scheduled
+           the job for network attributes update."'
+
+    - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{ result_configure_network_attributes.job_status.Id }}"
+
+    - name: Fetching attibutes values
+      ansible.builtin.include_tasks: _fetch_redfish_network_attributes.yml
+
+    - name: Verify task status - Configure network attributes - attributes set
+      ansible.builtin.assert:
+        that:
+          - fetched_attributes.json.Ethernet.VLAN.VLANEnable: "{{ vlan_en }}"
+
+    - ansible.builtin.include_tasks: _get_date_time.yml
+
+    - name: Configure network attributes - Idempotency
+      dellemc.openmanage.idrac_network_attributes:
+        <<: *configure_network_attributes
+      register: idempotence_configure_network_attributes
+
+    - name: Verify task status - Configure network attributes - Idempotency
+      ansible.builtin.assert:
+        that:
+          - not idempotence_configure_network_attributes.changed
+          - 'idempotence_configure_network_attributes.msg == "No changes found
+           to be applied."'
+
+    - ansible.builtin.include_tasks: _get_date_time.yml
+
+    - name: Reset network attributes to initial value
+      dellemc.openmanage.idrac_network_attributes:
+        network_adapter_id: "{{ inp_network_adapter_id }}"
+        network_device_function_id: "{{ inp_network_device_function_id }}"
+        network_attributes:
+          Ethernet:
+            VLAN:
+              VLANEnable: "{{ exist_vlan_enable }}"
+        apply_time: "{{ apply_time_maintenancewindowstart }}"
+        maintenance_window:
+          start_time: "{{ updated_datetime_with_offset }}"
+          duration: "{{ duration }}"
+      register: reset_network_attributes
+
+    - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{ reset_network_attributes.job_status.Id }}"
+
+  module_defaults:
+    dellemc.openmanage.idrac_network_attributes:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_port: "{{ idrac_port }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
