@@ -16,7 +16,7 @@ MANAGER_RESPONSE = {
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 UTILS_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.'
 EXPORT_LC_LOGS = '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions/DellLCService.ExportLCLog'
-CIFS_FILE_PATH = "\\\\100.96.37.71\\cifsshare\\20250525.log"
+CIFS_FILE_PATH = "\\\\100.100.100.100\\cifsshare\\20250525.log"
 BASE_URI = "redfish/v1/"
 START_TIME = "2025-05-26T22:39:11"
 JOB_TRACKING = "idrac_lifecycle_controller_logs_utils.idrac_redfish_job_tracking"
@@ -70,10 +70,10 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
             return_value=("cifsshare", "CIFS", LOG_FILE_NAME, "10.10.10.10", CIFS_FILE_PATH)
         )
         logs_info.export_lc_logs_idrac_9_10 = MagicMock(
-            return_value=("Successfully exported", {'file': '\\\\100.96.37.71\\cifsshare\\20250525.log'}, False)
+            return_value=("Successfully exported", {'file': '\\\\100.100.100.100\\cifsshare\\20250525.log'}, False)
         )
         result = logs_info.lifecycle_controller_logs_operation(idrac=idrac_mock, module=module_mock)
-        assert result == ("Successfully exported", {'file': '\\\\100.96.37.71\\cifsshare\\20250525.log'}, False)
+        assert result == ("Successfully exported", {'file': '\\\\100.100.100.100\\cifsshare\\20250525.log'}, False)
 
     def test_get_file_name(self, idrac_mock):
         module_mock = MagicMock()
@@ -84,25 +84,25 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
 
     def test_get_share_details_cifs(self, idrac_mock):
         module_mock = MagicMock()
-        module_mock.params.get.return_value = "\\\\100.96.37.71\\cifsshare"
+        module_mock.params.get.return_value = "\\\\100.100.100.100\\cifsshare"
         logs_info = IDRACLifecycleControllerLogs(idrac_mock)
-        idrac_mock.find_ip_address.return_value = "100.96.37.71"
+        idrac_mock.find_ip_address.return_value = "100.100.100.100"
         logs_info.get_file_name = MagicMock(
             return_value=LOG_FILE_NAME
         )
-        result = logs_info.get_share_details(idrac=idrac_mock, module=module_mock, sharename="\\\\100.96.37.71\\cifsshare")
-        assert result == ("cifsshare", "CIFS", LOG_FILE_NAME, "100.96.37.71", CIFS_FILE_PATH)
+        result = logs_info.get_share_details(idrac=idrac_mock, module=module_mock, sharename="\\\\100.100.100.100\\cifsshare")
+        assert result == ("cifsshare", "CIFS", LOG_FILE_NAME, "100.100.100.100", CIFS_FILE_PATH)
 
     def test_get_share_details_nfs(self, idrac_mock):
         module_mock = MagicMock()
-        module_mock.params.get.return_value = "100.64.26.122:/nfsshare"
+        module_mock.params.get.return_value = "100.100.100.10:/nfsshare"
         logs_info = IDRACLifecycleControllerLogs(idrac_mock)
-        idrac_mock.find_ip_address.return_value = "100.64.26.122"
+        idrac_mock.find_ip_address.return_value = "100.100.100.10"
         logs_info.get_file_name = MagicMock(
             return_value=LOG_FILE_NAME
         )
-        result = logs_info.get_share_details(idrac=idrac_mock, module=module_mock, sharename="100.64.26.122:/nfsshare")
-        assert result == ("nfsshare", "NFS", LOG_FILE_NAME, "100.64.26.122", "100.64.26.122:/nfsshare/20250525.log")
+        result = logs_info.get_share_details(idrac=idrac_mock, module=module_mock, sharename="100.100.100.10:/nfsshare")
+        assert result == ("nfsshare", "NFS", LOG_FILE_NAME, "100.100.100.10", "100.100.100.10:/nfsshare/20250525.log")
 
     def test_get_share_details_local(self, idrac_mock):
         module_mock = MagicMock()
@@ -210,10 +210,10 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
         FINAL_DATA = {
             "ShareName": "cifsshare",
             "ShareType": "CIFS",
-            "UserName": "administrator",
-            "Password": "Dell123",
+            "UserName": "sample_user",
+            "Password": "sample_pass",
             "FileName": "new_LC_Log.log",
-            "IPAddress": "100.96.37.71",
+            "IPAddress": "100.100.100.100",
             "IgnoreCertWarning": "Off"
         }
         JOB_DICT = {
@@ -243,7 +243,7 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
         idrac_mock.invoke_request.return_value = self.mock_get_dynamic_idrac_invoke_request()
         result = logs_info.export_lc_logs_idrac_9_10(
             idrac=idrac_mock, module=module_mock, share_name="cifsshare",
-            share_type="CIFS", file_name=LOG_FILE_NAME, ip_address="100.96.37.71",
+            share_type="CIFS", file_name=LOG_FILE_NAME, ip_address="100.100.100.100",
             file_path=CIFS_FILE_PATH)
         expected_job = {
             "StartTime": START_TIME,
@@ -278,7 +278,7 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
         idrac_mock.invoke_request.return_value = self.mock_get_dynamic_idrac_invoke_request()
         result = logs_info.export_lc_logs_idrac_9_10(
             idrac=idrac_mock, module=module_mock, share_name="cifsshare",
-            share_type="CIFS", file_name=LOG_FILE_NAME, ip_address="100.96.37.71",
+            share_type="CIFS", file_name=LOG_FILE_NAME, ip_address="100.100.100.100",
             file_path=CIFS_FILE_PATH)
         expected_job = {
             "StartTime": START_TIME,
