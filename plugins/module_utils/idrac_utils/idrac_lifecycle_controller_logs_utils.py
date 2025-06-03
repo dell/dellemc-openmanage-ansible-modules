@@ -113,7 +113,7 @@ class IDRACLifecycleControllerLogs(object):
                 log_file.write(str(job_resp_file.body))
         except FileNotFoundError:
             msg = "No such file or directory"
-            module.fail_json(
+            module.exit_json(
                 msg=msg, failed=True,
                 lc_logs_status={}, changed=False)
 
