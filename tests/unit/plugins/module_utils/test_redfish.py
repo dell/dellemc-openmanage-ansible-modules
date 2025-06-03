@@ -24,6 +24,7 @@ import json
 MODULE_UTIL_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.'
 OPEN_URL = 'redfish.open_url'
 TEST_PATH = "/testpath"
+MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
 
 
 class TestRedfishRest(object):
@@ -48,23 +49,24 @@ class TestRedfishRest(object):
         redfish_obj = Redfish(module_params=module_params)
         return redfish_obj
 
+    def mock_get_dynamic_redfish_invoke_request(self, *args, **kwargs):
+        obj = MagicMock()
+        obj.status_code = 200
+        obj.success = True
+        if 'path' in kwargs and kwargs['path'] == MANAGER_URI:
+            obj.json_data = {'Model': '17G Monolithic',
+                             'FirmwareVersion': 'x.x.x.x'}
+        else:
+            obj.json_data = {'Attributes': {'Info.1.HWModel': 'iDRAC 10'}}
+        return obj
+
     def test_get_server_generation(self, mocker, module_params):
-        _obj = MagicMock()
-        _obj.status_code = 200
-        _obj.success = True
-        resp = {'Model': '17G Monolithic',
-                'Attributes': {'Info.1.HWModel': 'iDRAC 10'},
-                'FirmwareVersion': 'x.x.x.x'}
-        _obj.json_data = resp
-        mocker.patch(MODULE_UTIL_PATH + 'redfish.Redfish.invoke_request', return_value=_obj)
+        mocker.patch(MODULE_UTIL_PATH + 'redfish.Redfish.invoke_request', self.mock_get_dynamic_redfish_invoke_request)
         req_session = False
         module_params.update({'x_auth_token': 'token_id'})
         with Redfish(module_params, req_session) as obj:
-            response = obj.invoke_request(TEST_PATH, "GET", headers={
-                                          "application": "octstream"})
-        assert response.status_code == 200
-        assert response.json_data == resp
-        assert response.success is True
+            response = obj.get_server_generation
+        assert response == (17, 'x.x.x.x', 'iDRAC 10')
 
     def test_invoke_request_with_session_with_header(self, mock_response, mocker, module_params):
         Redfish.get_server_generation = [12]

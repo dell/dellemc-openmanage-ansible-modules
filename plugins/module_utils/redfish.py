@@ -231,13 +231,13 @@ class Redfish(object):
         :return: 14, 4.11.11.11, iDRAC 9
         """
         firmware_version = None
-        response = self.invoke_request('GET', MANAGER_URI)
+        response = self.invoke_request(method='GET', path=MANAGER_URI)
         if response.status_code == 200:
             generation = int(re.search(r"\d+(?=G)", response.json_data["Model"]).group())
             firmware_version = response.json_data["FirmwareVersion"]
         hw_model = ""
         try:
-            hw_model_out = self.invoke_request('GET', GET_IDRAC_MANAGER_ATTRIBUTES_9_10)
+            hw_model_out = self.invoke_request(method='GET', path=GET_IDRAC_MANAGER_ATTRIBUTES_9_10)
             if hw_model_out.status_code == 200:
                 hw_model = hw_model_out.json_data.get('Attributes', {}).get('Info.1.HWModel', "iDRAC 9")
         except HTTPError:
