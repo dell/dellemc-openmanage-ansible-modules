@@ -1,0 +1,283 @@
+- '  Update the Firmware by connecting to a network share (CIFS, NFS,'
+- '  HTTP, HTTPS, FTP) that contains a catalog of available updates.'
+- '  Network share should contain a valid repository of Update Packages'
+- '  (DUPs) and a catalog file describing the DUPs.'
+- '  All applicable updates contained in the repository are applied to'
+- '  the system.'
+- '  This feature is available only with iDRAC Enterprise License.'
+- ''
+- "\e[1mOPTIONS\e[0m (red indicates it is required):"
+- ''
+- "   \e[0;33mapply_update\e[0m  If \e[4mapply_update\e[0m is set to \e[1;30m`true'\e[0m,
+    then the"
+- '                 packages are applied.'
+- "                 If \e[4mapply_update\e[0m is set to \e[1;30m`false'\e[0m,"
+- '                 no updates are applied, and a catalog report of'
+- '                 packages is generated and returned.'
+- '        default: true'
+- '        type: bool'
+- ''
+- "   \e[0;33mca_path\e[0m  The Privacy Enhanced Mail (PEM) file that contains a CA
+    certificate"
+- '            to be used for the validation.'
+- '        default: null'
+- '        type: path'
+- ''
+- "   \e[0;33mcatalog_file_name\e[0m  Catalog file name relative to the \e[4mshare_name\e[0m."
+- '        default: Catalog.xml'
+- '        type: str'
+- ''
+- "   \e[0;31m\e[1midrac_ip\e[0m\e[0m  iDRAC IP Address."
+- '        type: str'
+- ''
+- "   \e[0;31m\e[1midrac_password\e[0m\e[0m  iDRAC user password."
+- '                   If the password is not provided, then the'
+- '                   environment variable `IDRAC_PASSWORD'' is used.'
+- '                   Example: export IDRAC_PASSWORD=password'
+- '        aliases: [idrac_pwd]'
+- '        type: str'
+- ''
+- "   \e[0;33midrac_port\e[0m  iDRAC port."
+- '        default: 443'
+- '        type: int'
+- ''
+- "   \e[0;31m\e[1midrac_user\e[0m\e[0m  iDRAC username."
+- '               If the username is not provided, then the environment'
+- '               variable `IDRAC_USERNAME'' is used.'
+- '               Example: export IDRAC_USERNAME=username'
+- '        type: str'
+- ''
+- "   \e[0;33mignore_cert_warning\e[0m  Specifies if certificate warnings are ignored
+    when HTTPS share is"
+- "                        used. If \e[1;30m`true'\e[0m option is set, then"
+- '                        the certificate warnings are ignored.'
+- '        default: true'
+- '        type: bool'
+- ''
+- "   \e[0;33mjob_wait\e[0m  Whether to wait for job completion or not."
+- '        default: true'
+- '        type: bool'
+- ''
+- "   \e[0;33mproxy_passwd\e[0m  The password for the proxy server."
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mproxy_port\e[0m  The Port for the proxy server."
+- "               This is required when \e[4mproxy_support\e[0m is"
+- "               \e[1;30m`ParametersProxy'\e[0m."
+- '        default: null'
+- '        type: int'
+- ''
+- "   \e[0;33mproxy_server\e[0m  The IP address of the proxy server."
+- '                 This IP will not be validated. The download job will'
+- "                 be created even for invalid \e[4mproxy_server\e[0m."
+- '                 Please check the results of the job for error'
+- '                 details.'
+- "                 This is required when \e[4mproxy_support\e[0m is"
+- "                 \e[1;30m`ParametersProxy'\e[0m."
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mproxy_support\e[0m  Specifies if a proxy should be used."
+- '                  Proxy parameters are applicable on'
+- "                  \e[1;30m`HTTP'\e[0m, \e[1;30m`HTTPS'\e[0m, and"
+- "                  \e[1;30m`FTP'\e[0m share type of repositories."
+- "                  \e[1;30m`ParametersProxy'\e[0m, sets the proxy"
+- '                  parameters for the current firmware operation.'
+- "                  \e[1;30m`DefaultProxy'\e[0m, iDRAC uses the proxy"
+- '                  values set by default.'
+- '                  Default Proxy can be set in the Lifecycle Controller'
+- '                  attributes using'
+- "                  \e[0;33mdellemc.openmanage.idrac_attributes\e[0m."
+- "                  \e[1;30m`Off'\e[0m, will not use the proxy."
+- '                  For iDRAC8 based servers, use proxy server with'
+- '                  basic authentication.'
+- '                  For iDRAC9 based servers, ensure that you use digest'
+- '                  authentication for the proxy server, basic'
+- '                  authentication is not supported.'
+- '        choices: [ParametersProxy, DefaultProxy, ''Off'']'
+- '        default: ''Off'''
+- '        type: str'
+- ''
+- "   \e[0;33mproxy_type\e[0m  The proxy type of the proxy server."
+- "               This is required when \e[4mproxy_support\e[0m is"
+- "               \e[1;30m`ParametersProxy'\e[0m."
+- '               Note: SOCKS4 proxy does not support IPv6 address.'
+- '        choices: [HTTP, SOCKS]'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mproxy_uname\e[0m  The user name for the proxy server."
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mreboot\e[0m  Provides the option to apply the update packages immediately
+    or in"
+- '           the next reboot.'
+- "           If \e[4mreboot\e[0m is set to \e[1;30m`true'\e[0m,  then the"
+- '           packages  are applied immediately.'
+- "           If \e[4mreboot\e[0m is set to \e[1;30m`false'\e[0m, then the"
+- '           packages are staged and applied in the next reboot.'
+- '           Packages that do not require a reboot are applied'
+- '           immediately irrespective of I (reboot).'
+- '        default: false'
+- '        type: bool'
+- ''
+- "   \e[0;33mshare_mnt\e[0m  Local mount path of the network share with read-write
+    permission for"
+- '              ansible user.'
+- '              This option is not applicable for HTTP, HTTPS, and FTP'
+- '              shares.'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;31m\e[1mshare_name\e[0m\e[0m  Network share path of update repository.
+    CIFS, NFS, HTTP, HTTPS and"
+- '               FTP share types are supported.'
+- '        type: str'
+- ''
+- "   \e[0;33mshare_password\e[0m  Network share user password. This option is mandatory
+    for CIFS"
+- '                   Network Share.'
+- '        aliases: [share_pwd]'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mshare_user\e[0m  Network share user in the format 'user@domain' or 'domain\\\\user'
+    if"
+- '               user is part of a domain else ''user''. This option is'
+- '               mandatory for CIFS Network Share.'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mtimeout\e[0m  The socket level timeout in seconds."
+- '        default: 30'
+- '        type: int'
+- ''
+- "   \e[0;33mvalidate_certs\e[0m  If \e[1;30m`false'\e[0m, the SSL certificates will
+    not be validated."
+- "                   Configure \e[1;30m`false'\e[0m only on personally"
+- '                   controlled sites where self-signed certificates are'
+- '                   used.'
+- "                   Prior to collection version \e[1;30m`5.0.0'\e[0m, the"
+- "                   \e[4mvalidate_certs\e[0m is \e[1;30m`false'\e[0m by"
+- '                   default.'
+- '        default: true'
+- '        type: bool'
+- ''
+- "\e[1mNOTES:\e[0m"
+- '      * Run this module from a system that has direct access to'
+- '        Dell iDRAC.'
+- '      * Module will report success based on the iDRAC firmware'
+- '        update parent job status if there are no individual'
+- '        component jobs present.'
+- '      * For server with iDRAC firmware 5.00.00.00 and later, if'
+- '        the repository contains unsupported packages, then the'
+- '        module will return success with a proper message.'
+- '      * This module supports both IPv4 and IPv6 address for'
+- "        \e[4midrac_ip\e[0m and \e[4mshare_name\e[0m."
+- "      * This module supports \e[1;30m`check_mode'\e[0m."
+- ''
+- "\e[1mREQUIREMENTS:\e[0m  omsdk >= 1.2.503, python >= 3.9.6"
+- ''
+- ''
+- "\e[1mAUTHOR\e[0m: Rajeev Arakkal (@rajeevarakkal), Felix Stephen (@felixs88), Jagadeesh
+    N V (@jagadeeshnv)"
+- ''
+- "\e[1mEXAMPLES:\e[0m"
+- '---'
+- '- name: Update firmware from repository on a NFS Share'
+- '  dellemc.openmanage.idrac_firmware:'
+- '       idrac_ip: "192.168.0.1"'
+- '       idrac_user: "user_name"'
+- '       idrac_password: "user_password"'
+- '       ca_path: "/path/to/ca_cert.pem"'
+- '       share_name: "192.168.0.0:/share"'
+- '       reboot: true'
+- '       job_wait: true'
+- '       apply_update: true'
+- '       catalog_file_name: "Catalog.xml"'
+- ''
+- '- name: Update firmware from repository on a CIFS Share'
+- '  dellemc.openmanage.idrac_firmware:'
+- '       idrac_ip: "192.168.0.1"'
+- '       idrac_user: "user_name"'
+- '       idrac_password: "user_password"'
+- '       ca_path: "/path/to/ca_cert.pem"'
+- '       share_name: "full_cifs_path"'
+- '       share_user: "share_user"'
+- '       share_password: "share_password"'
+- '       reboot: true'
+- '       job_wait: true'
+- '       apply_update: true'
+- '       catalog_file_name: "Catalog.xml"'
+- ''
+- '- name: Update firmware from repository on a HTTP'
+- '  dellemc.openmanage.idrac_firmware:'
+- '       idrac_ip: "192.168.0.1"'
+- '       idrac_user: "user_name"'
+- '       idrac_password: "user_password"'
+- '       ca_path: "/path/to/ca_cert.pem"'
+- '       share_name: "http://downloads.dell.com"'
+- '       reboot: true'
+- '       job_wait: true'
+- '       apply_update: true'
+- ''
+- '- name: Update firmware from repository on a HTTPS'
+- '  dellemc.openmanage.idrac_firmware:'
+- '       idrac_ip: "192.168.0.1"'
+- '       idrac_user: "user_name"'
+- '       idrac_password: "user_password"'
+- '       ca_path: "/path/to/ca_cert.pem"'
+- '       share_name: "https://downloads.dell.com"'
+- '       reboot: true'
+- '       job_wait: true'
+- '       apply_update: true'
+- ''
+- '- name: Update firmware from repository on a HTTPS via proxy'
+- '  dellemc.openmanage.idrac_firmware:'
+- '       idrac_ip: "192.168.0.1"'
+- '       idrac_user: "user_name"'
+- '       idrac_password: "user_password"'
+- '       ca_path: "/path/to/ca_cert.pem"'
+- '       share_name: "https://downloads.dell.com"'
+- '       reboot: true'
+- '       job_wait: true'
+- '       apply_update: true'
+- '       proxy_support: ParametersProxy'
+- '       proxy_server: 192.168.1.10'
+- '       proxy_type: HTTP'
+- '       proxy_port: 80'
+- '       proxy_uname: "proxy_user"'
+- '       proxy_passwd: "proxy_pwd"'
+- ''
+- '- name: Update firmware from repository on a FTP'
+- '  dellemc.openmanage.idrac_firmware:'
+- '       idrac_ip: "192.168.0.1"'
+- '       idrac_user: "user_name"'
+- '       idrac_password: "user_password"'
+- '       ca_path: "/path/to/ca_cert.pem"'
+- '       share_name: "ftp://ftp.mydomain.com"'
+- '       reboot: true'
+- '       job_wait: true'
+- '       apply_update: true'
+- ''
+- "\e[1mRETURN VALUES:\e[0m"
+- ''
+- "   \e[0;33mmsg\e[0m     Overall firmware update status."
+- '        returned: always'
+- '        sample: Successfully updated the firmware.'
+- '        type: str'
+- ''
+- "   \e[0;33mupdate_status\e[0m  Firmware Update job and progress details from the
+    iDRAC."
+- '        returned: success'
+- '        sample:'
+- '          InstanceID: JID_XXXXXXXXXXXX'
+- '          JobStartTime: NA'
+- '          JobState: Completed'
+- '          Message: Job completed successfully.'
+- '          MessageId: REDXXX'
+- '          Name: Repository Update'
+- '          Status: Success'
+- '        type: dict'

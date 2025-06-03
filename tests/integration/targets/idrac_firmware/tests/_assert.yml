@@ -1,0 +1,41 @@
+---
+- name: Verify status of tasks
+  ansible.builtin.assert:
+    that:
+      - cm_changes.changed
+      - cm_changes.msg == "Changes found to commit!"
+      - update_result.changed
+      - update_result.msg ==
+        "Successfully updated the firmware."
+      - not cm_no_changes.changed
+      - not idempotence.changed
+      - applicable_updates_packages.msg ==
+        "Successfully fetched the applicable firmware update package list."
+
+- name: Verify outputs of tasks specific to iDRAC9 and iDRAC10
+  ansible.builtin.assert:
+    that:
+      - cm_changes.update_status.job_details.PackageList | length > 0
+      - update_result.update_status.job_details.PackageList | length > 0
+      - applicable_updates_packages.update_status.job_details.PackageList|
+       length > 0
+      - cm_changes.update_status.job_details.PackageList | length ==
+        update_result.update_status.job_details.PackageList | length
+      - cm_no_changes.msg == idempotence.msg ==
+        applicable_updates_no_packages.msg == "Unable to complete the
+        operation because the catalog name entered has either unsupported
+        firmware packages or same version installed on the server."
+  when: generation | int >= 14
+
+- name: Verify outputs of tasks specific to iDRAC8
+  ansible.builtin.assert:
+    that:
+      - cm_changes.update_status.job_details.Data.GetRepoBasedUpdateList_OUTPUT.PackageList | length > 0
+      - update_result.update_status.job_details.Data.GetRepoBasedUpdateList_OUTPUT.PackageList | length > 0
+      - applicable_updates_packages.update_status.job_details.Data.GetRepoBasedUpdateList_OUTPUT.PackageList | length > 0
+      - cm_changes.update_status.job_details.Data.GetRepoBasedUpdateList_OUTPUT.PackageList | length ==
+        update_result.update_status.job_details.Data.GetRepoBasedUpdateList_OUTPUT.PackageList | length
+      - cm_no_changes.msg == "No changes found to commit!"
+      - idempotence.msg == applicable_updates_no_packages.msg ==
+        "The catalog in the repository specified in the operation has the same firmware versions as currently present on the server."
+  when: generation | int < 14

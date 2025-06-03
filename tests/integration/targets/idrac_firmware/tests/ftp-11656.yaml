@@ -1,0 +1,64 @@
+- block:
+    - ansible.builtin.include_tasks: _get_server_generation.yml
+
+    - ansible.builtin.include_tasks: _downgrade_helper.yml
+
+    - name: Get applicable Update packages lists from repository through FTP Share (packages expected)
+      dellemc.openmanage.idrac_firmware: &update_check
+        share_name: "ftp://{{ ftp_share_ip_no_auth }}{{ new_catalog_location }}"
+        share_user: "{{ ftp_no_auth_username }}"
+        share_password: "Dell" # FTP no auth doesn't authenticate password - this is dummy password
+        job_wait: true
+        apply_update: false
+      register: applicable_updates_packages
+
+    - name: Update firmware from repository through FTP Share (check mode - changes expected)
+      dellemc.openmanage.idrac_firmware: &update
+        <<: *update_check
+        reboot: true
+        job_wait: true
+        apply_update: true
+      check_mode: true
+      register: cm_changes
+
+    - name: Update firmware from repository through FTP Share
+      dellemc.openmanage.idrac_firmware:
+        <<: *update
+      register: update_result
+
+    - ansible.builtin.include_tasks: _post_update_helper.yml
+
+    - name: Update firmware from repository through FTP Share (check mode - no changes expected)
+      dellemc.openmanage.idrac_firmware:
+        <<: *update
+      check_mode: true
+      register: cm_no_changes
+
+    - name: Update firmware from repository through FTP Share (idempotence)
+      dellemc.openmanage.idrac_firmware:
+        <<: *update
+      register: idempotence
+
+    - name: Get applicable Update packages lists from repository through FTP Share (No packages expected)
+      dellemc.openmanage.idrac_firmware:
+        <<: *update_check
+      register: applicable_updates_no_packages
+
+    - ansible.builtin.include_tasks: _assert.yml
+
+  module_defaults:
+    dellemc.openmanage.idrac_firmware:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+    dellemc.openmanage.idrac_lifecycle_controller_status_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+    dellemc.openmanage.idrac_lifecycle_controller_job_status_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
