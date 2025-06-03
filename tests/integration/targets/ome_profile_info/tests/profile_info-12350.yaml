@@ -8,92 +8,91 @@
   when: hostname is not defined or username is not defined or password is not defined
 
 - block:
-    - include_tasks: _delete_template_helper.yml
+  - include_tasks: _delete_template_helper.yml
 
-    - include_tasks: _create_template_helper.yml
+  - include_tasks: _create_template_helper.yml
 
-    - include_tasks: _create_profile_helper.yml
+  - include_tasks: _create_profile_helper.yml
 
-    - include_tasks: _profile_info_uri_helper.yml
-      vars:
-        profile_id: "{{ create.profile_ids[0] }}"
+  - include_tasks: _profile_info_uri_helper.yml
+    vars:
+      profile_id: "{{ create.profile_ids[0] }}"
 
-    - name: Retrieve all ome profiles (Check mode)
-      ome_profile_info:
-      register: result
-      check_mode: true
+  - name: Retrieve all ome profiles (Check mode)
+    ome_profile_info:
+    register: result
+    check_mode: true
 
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
 
-    - name: Verify task status - Retrieve all ome profiles (Check mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
+  - name: Verify task status - Retrieve all ome profiles (Check mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
 
-    - name: Compare profile info from task and uri
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
+  - name: Compare profile info from task and uri
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
 
-    - name: Verify task status - Compare profile info from task and uri
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
+  - name: Verify task status - Compare profile info from task and uri
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
 
-    - name: Retrieve all ome profiles (Normal mode)
-      ome_profile_info:
-      register: result
+  - name: Retrieve all ome profiles (Normal mode)
+    ome_profile_info:
+    register: result
 
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
 
-    - name: Verify task status - Retrieve all ome profiles (Normal mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
+  - name: Verify task status - Retrieve all ome profiles (Normal mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
 
-    - name: Compare profile info from task and uri (Normal mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
+  - name: Compare profile info from task and uri (Normal mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
 
-    - name: Verify task status - Compare profile info from task and uri (Normal mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
+  - name: Verify task status - Compare profile info from task and uri (Normal mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
 
-    - name: Retrieve all ome profiles (Idempotency mode)
-      ome_profile_info:
-      register: result
+  - name: Retrieve all ome profiles (Idempotency mode)
+    ome_profile_info:
+    register: result
 
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
 
-    - name: Verify task status - Retrieve all ome profiles (Idempotency mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
+  - name: Verify task status - Retrieve all ome profiles (Idempotency mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
 
-    - name: Compare profile info from task and uri (Idempotency mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
+  - name: Compare profile info from task and uri (Idempotency mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
 
-    - name: Verify task status - Compare profile info from task and uri (Idempotency mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
-
+  - name: Verify task status - Compare profile info from task and uri (Idempotency mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
 
   module_defaults:
     dellemc.openmanage.ome_profile_info:

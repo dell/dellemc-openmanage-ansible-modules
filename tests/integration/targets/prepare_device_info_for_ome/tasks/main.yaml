@@ -24,29 +24,29 @@
     dellemc.openmanage.ome_discovery:
       discovery_job_name: "pre_discovery_task_deivce_1_for_omam_tests"
       discovery_config_targets:
-        - network_address_detail:
-            - "{{ device_ip }}"
-          device_types:
-            - SERVER
-          wsman:
-            username: "{{ device_user }}"
-            password: "{{ device_password }}"
+      - network_address_detail:
+        - "{{ device_ip }}"
+        device_types:
+        - SERVER
+        wsman:
+          username: "{{ device_user }}"
+          password: "{{ device_password }}"
     when:
-      - target_host != "OME-M" and device_ip not in all_devices | string
+    - target_host != "OME-M" and device_ip not in all_devices | string
 
   - name: Pre-req - Discover Server 2
     dellemc.openmanage.ome_discovery:
       discovery_job_name: "pre_discovery_task_for_device_2_omam_tests"
       discovery_config_targets:
-        - network_address_detail:
-            - "{{ device_ip_2 }}"
-          device_types:
-            - SERVER
-          wsman:
-            username: "{{ device_user_2 }}"
-            password: "{{ device_password_2 }}"
+      - network_address_detail:
+        - "{{ device_ip_2 }}"
+        device_types:
+        - SERVER
+        wsman:
+          username: "{{ device_user_2 }}"
+          password: "{{ device_password_2 }}"
     when:
-      - target_host != "OME-M" and device_ip_2 not in all_devices | string
+    - target_host != "OME-M" and device_ip_2 not in all_devices | string
 
   - name: Get the device service tag of a server present under idrac group in inventory.
     dellemc.openmanage.ome_device_info:
@@ -106,7 +106,7 @@
   - name: Add devices to group with name omam_test_group.
     dellemc.openmanage.ome_device_group:
       name: "omam_test_group"
-      ip_addresses: ["{{ device_ip }}"]
+      ip_addresses: [ "{{ device_ip }}" ]
     when: "'OME-M' not in target_host"
 
   module_defaults:

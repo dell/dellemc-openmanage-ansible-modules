@@ -8,470 +8,469 @@
   when: hostname is not defined or username is not defined or password is not defined
 
 - block:
-    - include_tasks: _delete_template_helper.yml
-
-    - include_tasks: _create_template_helper.yml
-
-    - include_tasks: _create_profile_helper.yml
-
-    - include_tasks: _profile_info_uri_helper.yml
-      vars:
-        profile_id: "{{ create.profile_ids[0] }}"
-
-    - name: Retrieval of Profile information using filter with ProfileName and TemplateName (Check mode)
-      ome_profile_info:
-        system_query_options:
-          filter: (ProfileName eq '{{uri_profile_res.json.ProfileName}}') and (TemplateName eq '{{template_name}}')
-      register: result
-      check_mode: true
-
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
-
-    - name: Verify task status - Retrieval of Profile information using filter with ProfileName and TemplateName (Check mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
-
-    - name: Compare profile info from task and uri (Check mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
-
-    - name: Verify task status - Compare profile info from task and uri (Check mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
-
-    - name: Retrieval of Profile information using filter with ProfileName and TemplateName (Normal mode)
-      ome_profile_info:
-        system_query_options:
-          filter: (ProfileName eq '{{uri_profile_res.json.ProfileName}}') and (TemplateName eq '{{template_name}}')
-      register: result
-
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
-
-    - name: Verify task status - Retrieval of Profile information using filter with ProfileName and TemplateName (Normal mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
-
-    - name: Compare profile info from task and uri (Normal mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
-
-    - name: Verify task status - Compare profile info from task and uri (Normal mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
-
-###################################################################################################################
-
-    - name: Retrieval of Profile information using filter with ProfileName (Check mode)
-      ome_profile_info:
-        system_query_options:
-          filter: contains(ProfileName, '{{uri_profile_res.json.ProfileName}}')
-      register: result
-      check_mode: true
-
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
-
-    - name: Verify task status - Retrieval of Profile information using filter with ProfileName (Check mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
-
-    - name: Compare profile info from task and uri (Check mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
-
-    - name: Verify task status - Compare profile info from task and uri (Check mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
-
-    - name: Retrieval of Profile information using filter with ProfileName (Normal mode)
-      ome_profile_info:
-        system_query_options:
-          filter: contains(ProfileName, '{{uri_profile_res.json.ProfileName}}')
-      register: result
-
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
-
-    - name: Verify task status - Retrieval of Profile information using filter with ProfileName (Normal mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
-
-    - name: Compare profile info from task and uri (Normal mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
-
-    - name: Verify task status - Compare profile info from task and uri (Normal mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
-
-###################################################################################################################
-
-    - name: Retrieval of Profile information using filter with TargetTypeId (Check mode)
-      ome_profile_info:
-        system_query_options:
-          filter: (TargetTypeId eq {{uri_profile_res.json.TargetTypeId}})
-      register: result
-      check_mode: true
-
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
-
-    - name: Verify task status - Retrieval of Profile information using filter with TargetTypeId (Check mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
-
-    - name: Compare profile info from task and uri (Check mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
-
-    - name: Verify task status - Compare profile info from task and uri (Check mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
-
-    - name: Retrieval of Profile information using filter with TargetTypeId (Normal mode)
-      ome_profile_info:
-        system_query_options:
-          filter: (TargetTypeId eq {{uri_profile_res.json.TargetTypeId}})
-      register: result
-
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
-
-    - name: Verify task status - Retrieval of Profile information using filter with TargetTypeId (Normal mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
-
-    - name: Compare profile info from task and uri (Normal mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
-
-    - name: Verify task status - Compare profile info from task and uri (Normal mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
-
-###################################################################################################################
-
-    - name: Retrieval of Profile information using filter with TargetName (Check mode)
-      ome_profile_info:
-        system_query_options:
-          filter: (TargetName eq '{{uri_profile_res.json.TargetName}}')
-      register: result
-      check_mode: true
-
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
-
-    - name: Verify task status - Retrieval of Profile information using filter with TargetName (Check mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
-
-    - name: Compare profile info from task and uri (Check mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
-
-    - name: Verify task status - Compare profile info from task and uri (Check mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
-
-    - name: Retrieval of Profile information using filter with TargetName (Normal mode)
-      ome_profile_info:
-        system_query_options:
-          filter: (TargetName eq '{{uri_profile_res.json.TargetName}}')
-      register: result
-
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
-
-    - name: Verify task status - Retrieval of Profile information using filter with TargetName (Normal mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
-
-    - name: Compare profile info from task and uri (Normal mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
-
-    - name: Verify task status - Compare profile info from task and uri (Normal mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
-
-
-###################################################################################################################
-
-    - name: Retrieval of Profile information using filter with ChassisName  (Check mode)
-      ome_profile_info:
-        system_query_options:
-          filter: (ChassisName eq '{{uri_profile_res.json.ChassisName}}')
-      register: result
-      check_mode: true
-
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
-
-    - name: Verify task status - Retrieval of Profile information using filter with ChassisName  (Check mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
-
-    - name: Compare profile info from task and uri (Check mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
-
-    - name: Verify task status - Compare profile info from task and uri (Check mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
-
-    - name: Retrieval of Profile information using filter with ChassisName  (Normal mode)
-      ome_profile_info:
-        system_query_options:
-          filter: (ChassisName eq '{{uri_profile_res.json.ChassisName}}')
-      register: result
-
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
-
-    - name: Verify task status - Retrieval of Profile information using filter with ChassisName  (Normal mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
-
-    - name: Compare profile info from task and uri (Normal mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
-
-    - name: Verify task status - Compare profile info from task and uri (Normal mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
-
-###################################################################################################################
-
-    - name: Retrieval of Profile information using filter with ProfileState  (Check mode)
-      ome_profile_info:
-        system_query_options:
-          filter: (ProfileState eq {{uri_profile_res.json.ProfileState}})
-      register: result
-      check_mode: true
-
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
-
-    - name: Verify task status - Retrieval of Profile information using filter with ProfileState  (Check mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
-
-    - name: Compare profile info from task and uri (Check mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
-
-    - name: Verify task status - Compare profile info from task and uri (Check mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
-
-    - name: Retrieval of Profile information using filter with ProfileState  (Normal mode)
-      ome_profile_info:
-        system_query_options:
-          filter: (ProfileState eq {{uri_profile_res.json.ProfileState}})
-      register: result
-
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
-
-    - name: Verify task status - Retrieval of Profile information using filter with ProfileState  (Normal mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
-
-    - name: Compare profile info from task and uri (Normal mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
-
-    - name: Verify task status - Compare profile info from task and uri (Normal mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
-
-###################################################################################################################
-
-    - name: Retrieval of Profile information using filter with LastRunStatus  (Check mode)
-      ome_profile_info:
-        system_query_options:
-          filter: (LastRunStatus eq {{uri_profile_res.json.LastRunStatus}})
-      register: result
-      check_mode: true
-
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
-
-    - name: Verify task status - Retrieval of Profile information using filter with LastRunStatus  (Check mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
-
-    - name: Compare profile info from task and uri (Check mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
-
-    - name: Verify task status - Compare profile info from task and uri (Check mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
-
-    - name: Retrieval of Profile information using filter with LastRunStatus  (Normal mode)
-      ome_profile_info:
-        system_query_options:
-          filter: (LastRunStatus eq {{uri_profile_res.json.LastRunStatus}})
-      register: result
-
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
-
-    - name: Verify task status - Retrieval of Profile information using filter with LastRunStatus  (Normal mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
-
-    - name: Compare profile info from task and uri (Normal mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
-
-    - name: Verify task status - Compare profile info from task and uri (Normal mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
-
-###################################################################################################################
-
-    - name: Retrieval of Profile information using filter with ProfileModified  (Check mode)
-      ome_profile_info:
-        system_query_options:
-          filter: (ProfileModified eq {{uri_profile_res.json.ProfileModified}})
-      register: result
-      check_mode: true
-
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
-
-    - name: Verify task status - Retrieval of Profile information using filter with ProfileModified  (Check mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
-
-    - name: Compare profile info from task and uri (Check mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
-
-    - name: Verify task status - Compare profile info from task and uri (Check mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
-
-    - name: Retrieval of Profile information using filter with ProfileModified  (Normal mode)
-      ome_profile_info:
-        system_query_options:
-          filter: (ProfileModified eq {{uri_profile_res.json.ProfileModified}})
-      register: result
-
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
-
-    - name: Verify task status - Retrieval of Profile information using filter with ProfileModified  (Normal mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
-
-    - name: Compare profile info from task and uri (Normal mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
-
-    - name: Verify task status - Compare profile info from task and uri (Normal mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
+  - include_tasks: _delete_template_helper.yml
+
+  - include_tasks: _create_template_helper.yml
+
+  - include_tasks: _create_profile_helper.yml
+
+  - include_tasks: _profile_info_uri_helper.yml
+    vars:
+      profile_id: "{{ create.profile_ids[0] }}"
+
+  - name: Retrieval of Profile information using filter with ProfileName and TemplateName (Check mode)
+    ome_profile_info:
+      system_query_options:
+        filter: (ProfileName eq '{{uri_profile_res.json.ProfileName}}') and (TemplateName eq '{{template_name}}')
+    register: result
+    check_mode: true
+
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
+
+  - name: Verify task status - Retrieval of Profile information using filter with ProfileName and TemplateName (Check mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
+
+  - name: Compare profile info from task and uri (Check mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
+
+  - name: Verify task status - Compare profile info from task and uri (Check mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
+
+  - name: Retrieval of Profile information using filter with ProfileName and TemplateName (Normal mode)
+    ome_profile_info:
+      system_query_options:
+        filter: (ProfileName eq '{{uri_profile_res.json.ProfileName}}') and (TemplateName eq '{{template_name}}')
+    register: result
+
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
+
+  - name: Verify task status - Retrieval of Profile information using filter with ProfileName and TemplateName (Normal mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
+
+  - name: Compare profile info from task and uri (Normal mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
+
+  - name: Verify task status - Compare profile info from task and uri (Normal mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
+
+  ###################################################################################################################
+
+  - name: Retrieval of Profile information using filter with ProfileName (Check mode)
+    ome_profile_info:
+      system_query_options:
+        filter: contains(ProfileName, '{{uri_profile_res.json.ProfileName}}')
+    register: result
+    check_mode: true
+
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
+
+  - name: Verify task status - Retrieval of Profile information using filter with ProfileName (Check mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
+
+  - name: Compare profile info from task and uri (Check mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
+
+  - name: Verify task status - Compare profile info from task and uri (Check mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
+
+  - name: Retrieval of Profile information using filter with ProfileName (Normal mode)
+    ome_profile_info:
+      system_query_options:
+        filter: contains(ProfileName, '{{uri_profile_res.json.ProfileName}}')
+    register: result
+
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
+
+  - name: Verify task status - Retrieval of Profile information using filter with ProfileName (Normal mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
+
+  - name: Compare profile info from task and uri (Normal mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
+
+  - name: Verify task status - Compare profile info from task and uri (Normal mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
+
+  ###################################################################################################################
+
+  - name: Retrieval of Profile information using filter with TargetTypeId (Check mode)
+    ome_profile_info:
+      system_query_options:
+        filter: (TargetTypeId eq {{uri_profile_res.json.TargetTypeId}})
+    register: result
+    check_mode: true
+
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
+
+  - name: Verify task status - Retrieval of Profile information using filter with TargetTypeId (Check mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
+
+  - name: Compare profile info from task and uri (Check mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
+
+  - name: Verify task status - Compare profile info from task and uri (Check mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
+
+  - name: Retrieval of Profile information using filter with TargetTypeId (Normal mode)
+    ome_profile_info:
+      system_query_options:
+        filter: (TargetTypeId eq {{uri_profile_res.json.TargetTypeId}})
+    register: result
+
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
+
+  - name: Verify task status - Retrieval of Profile information using filter with TargetTypeId (Normal mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
+
+  - name: Compare profile info from task and uri (Normal mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
+
+  - name: Verify task status - Compare profile info from task and uri (Normal mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
+
+  ###################################################################################################################
+
+  - name: Retrieval of Profile information using filter with TargetName (Check mode)
+    ome_profile_info:
+      system_query_options:
+        filter: (TargetName eq '{{uri_profile_res.json.TargetName}}')
+    register: result
+    check_mode: true
+
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
+
+  - name: Verify task status - Retrieval of Profile information using filter with TargetName (Check mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
+
+  - name: Compare profile info from task and uri (Check mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
+
+  - name: Verify task status - Compare profile info from task and uri (Check mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
+
+  - name: Retrieval of Profile information using filter with TargetName (Normal mode)
+    ome_profile_info:
+      system_query_options:
+        filter: (TargetName eq '{{uri_profile_res.json.TargetName}}')
+    register: result
+
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
+
+  - name: Verify task status - Retrieval of Profile information using filter with TargetName (Normal mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
+
+  - name: Compare profile info from task and uri (Normal mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
+
+  - name: Verify task status - Compare profile info from task and uri (Normal mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
+
+  ###################################################################################################################
+
+  - name: Retrieval of Profile information using filter with ChassisName  (Check mode)
+    ome_profile_info:
+      system_query_options:
+        filter: (ChassisName eq '{{uri_profile_res.json.ChassisName}}')
+    register: result
+    check_mode: true
+
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
+
+  - name: Verify task status - Retrieval of Profile information using filter with ChassisName  (Check mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
+
+  - name: Compare profile info from task and uri (Check mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
+
+  - name: Verify task status - Compare profile info from task and uri (Check mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
+
+  - name: Retrieval of Profile information using filter with ChassisName  (Normal mode)
+    ome_profile_info:
+      system_query_options:
+        filter: (ChassisName eq '{{uri_profile_res.json.ChassisName}}')
+    register: result
+
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
+
+  - name: Verify task status - Retrieval of Profile information using filter with ChassisName  (Normal mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
+
+  - name: Compare profile info from task and uri (Normal mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
+
+  - name: Verify task status - Compare profile info from task and uri (Normal mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
+
+  ###################################################################################################################
+
+  - name: Retrieval of Profile information using filter with ProfileState  (Check mode)
+    ome_profile_info:
+      system_query_options:
+        filter: (ProfileState eq {{uri_profile_res.json.ProfileState}})
+    register: result
+    check_mode: true
+
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
+
+  - name: Verify task status - Retrieval of Profile information using filter with ProfileState  (Check mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
+
+  - name: Compare profile info from task and uri (Check mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
+
+  - name: Verify task status - Compare profile info from task and uri (Check mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
+
+  - name: Retrieval of Profile information using filter with ProfileState  (Normal mode)
+    ome_profile_info:
+      system_query_options:
+        filter: (ProfileState eq {{uri_profile_res.json.ProfileState}})
+    register: result
+
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
+
+  - name: Verify task status - Retrieval of Profile information using filter with ProfileState  (Normal mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
+
+  - name: Compare profile info from task and uri (Normal mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
+
+  - name: Verify task status - Compare profile info from task and uri (Normal mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
+
+  ###################################################################################################################
+
+  - name: Retrieval of Profile information using filter with LastRunStatus  (Check mode)
+    ome_profile_info:
+      system_query_options:
+        filter: (LastRunStatus eq {{uri_profile_res.json.LastRunStatus}})
+    register: result
+    check_mode: true
+
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
+
+  - name: Verify task status - Retrieval of Profile information using filter with LastRunStatus  (Check mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
+
+  - name: Compare profile info from task and uri (Check mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
+
+  - name: Verify task status - Compare profile info from task and uri (Check mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
+
+  - name: Retrieval of Profile information using filter with LastRunStatus  (Normal mode)
+    ome_profile_info:
+      system_query_options:
+        filter: (LastRunStatus eq {{uri_profile_res.json.LastRunStatus}})
+    register: result
+
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
+
+  - name: Verify task status - Retrieval of Profile information using filter with LastRunStatus  (Normal mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
+
+  - name: Compare profile info from task and uri (Normal mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
+
+  - name: Verify task status - Compare profile info from task and uri (Normal mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
+
+  ###################################################################################################################
+
+  - name: Retrieval of Profile information using filter with ProfileModified  (Check mode)
+    ome_profile_info:
+      system_query_options:
+        filter: (ProfileModified eq {{uri_profile_res.json.ProfileModified}})
+    register: result
+    check_mode: true
+
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
+
+  - name: Verify task status - Retrieval of Profile information using filter with ProfileModified  (Check mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
+
+  - name: Compare profile info from task and uri (Check mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
+
+  - name: Verify task status - Compare profile info from task and uri (Check mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
+
+  - name: Retrieval of Profile information using filter with ProfileModified  (Normal mode)
+    ome_profile_info:
+      system_query_options:
+        filter: (ProfileModified eq {{uri_profile_res.json.ProfileModified}})
+    register: result
+
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
+
+  - name: Verify task status - Retrieval of Profile information using filter with ProfileModified  (Normal mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
+
+  - name: Compare profile info from task and uri (Normal mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
+
+  - name: Verify task status - Compare profile info from task and uri (Normal mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
 
   module_defaults:
     dellemc.openmanage.ome_profile_info:

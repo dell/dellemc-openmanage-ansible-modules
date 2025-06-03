@@ -8,274 +8,273 @@
   when: hostname is not defined or username is not defined or password is not defined
 
 - block:
-    - include_tasks: _delete_template_helper.yml
+  - include_tasks: _delete_template_helper.yml
 
-    - include_tasks: _create_template_helper.yml
+  - include_tasks: _create_template_helper.yml
 
-    - include_tasks: _create_profile_helper.yml
+  - include_tasks: _create_profile_helper.yml
 
-    - include_tasks: _profile_info_uri_helper.yml
-      vars:
-        profile_id: "{{ create.profile_ids[0] }}"
+  - include_tasks: _profile_info_uri_helper.yml
+    vars:
+      profile_id: "{{ create.profile_ids[0] }}"
 
-    - name: Retrieval of Profile information by "orderby = ProfileName" (Check mode)
-      ome_profile_info:
-        system_query_options:
-          orderby: ProfileName
-      register: result
-      check_mode: true
+  - name: Retrieval of Profile information by "orderby = ProfileName" (Check mode)
+    ome_profile_info:
+      system_query_options:
+        orderby: ProfileName
+    register: result
+    check_mode: true
 
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
 
-    - name: Verify task status - Retrieval of Profile information by "orderby = ProfileName" Check mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
+  - name: Verify task status - Retrieval of Profile information by "orderby = ProfileName" Check mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
 
-    - name: Compare profile info from task and uri (Check mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
+  - name: Compare profile info from task and uri (Check mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
 
-    - name: Verify task status - Compare profile info from task and uri (Check mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
+  - name: Verify task status - Compare profile info from task and uri (Check mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
 
-    - name: Retrieval of Profile information by "orderby = ProfileName" (Normal mode)
-      ome_profile_info:
-        system_query_options:
-          orderby: ProfileName
-      register: result
+  - name: Retrieval of Profile information by "orderby = ProfileName" (Normal mode)
+    ome_profile_info:
+      system_query_options:
+        orderby: ProfileName
+    register: result
 
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
 
-    - name: Verify task status - Retrieval of Profile information by "orderby = ProfileName" (Normal mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
+  - name: Verify task status - Retrieval of Profile information by "orderby = ProfileName" (Normal mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
 
-    - name: Compare profile info from task and uri (Normal mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
+  - name: Compare profile info from task and uri (Normal mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
 
-    - name: Verify task status - Compare profile info from task and uri (Normal mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
+  - name: Verify task status - Compare profile info from task and uri (Normal mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
 
-###################################################################################################################
+  ###################################################################################################################
 
-    - name: Retrieval of Profile information by "orderby = TemplateName" (Normal mode)
-      ome_profile_info:
-        system_query_options:
-          orderby: TemplateName
-      register: result
+  - name: Retrieval of Profile information by "orderby = TemplateName" (Normal mode)
+    ome_profile_info:
+      system_query_options:
+        orderby: TemplateName
+    register: result
 
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
 
-    - name: Verify task status - Retrieval of Profile information by "orderby = TemplateName" (Normal mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
+  - name: Verify task status - Retrieval of Profile information by "orderby = TemplateName" (Normal mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
 
-    - name: Compare profile info from task and uri (Normal mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
+  - name: Compare profile info from task and uri (Normal mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
 
-    - name: Verify task status - Compare profile info from task and uri (Normal mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
+  - name: Verify task status - Compare profile info from task and uri (Normal mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
 
-###################################################################################################################
+  ###################################################################################################################
 
-    - name: Retrieval of Profile information by "orderby = TargetTypeId" (Normal mode)
-      ome_profile_info:
-        system_query_options:
-          orderby: TargetTypeId
-      register: result
+  - name: Retrieval of Profile information by "orderby = TargetTypeId" (Normal mode)
+    ome_profile_info:
+      system_query_options:
+        orderby: TargetTypeId
+    register: result
 
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
 
-    - name: Verify task status - Retrieval of Profile information by "orderby = TargetTypeId" (Normal mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
+  - name: Verify task status - Retrieval of Profile information by "orderby = TargetTypeId" (Normal mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
 
-    - name: Compare profile info from task and uri (Normal mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
+  - name: Compare profile info from task and uri (Normal mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
 
-    - name: Verify task status - Compare profile info from task and uri (Normal mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
+  - name: Verify task status - Compare profile info from task and uri (Normal mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
 
-###################################################################################################################
+  ###################################################################################################################
 
-    - name: Retrieval of Profile information by "orderby = TargetName" (Normal mode)
-      ome_profile_info:
-        system_query_options:
-          orderby: TargetName
-      register: result
+  - name: Retrieval of Profile information by "orderby = TargetName" (Normal mode)
+    ome_profile_info:
+      system_query_options:
+        orderby: TargetName
+    register: result
 
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
 
-    - name: Verify task status - Retrieval of Profile information by "orderby = TargetName" (Normal mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
+  - name: Verify task status - Retrieval of Profile information by "orderby = TargetName" (Normal mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
 
-    - name: Compare profile info from task and uri (Normal mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
+  - name: Compare profile info from task and uri (Normal mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
 
-    - name: Verify task status - Compare profile info from task and uri (Normal mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
+  - name: Verify task status - Compare profile info from task and uri (Normal mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
 
-###################################################################################################################
+  ###################################################################################################################
 
-    - name: Retrieval of Profile information by "orderby = ChassisName" (Normal mode)
-      ome_profile_info:
-        system_query_options:
-          orderby: ChassisName
-      register: result
+  - name: Retrieval of Profile information by "orderby = ChassisName" (Normal mode)
+    ome_profile_info:
+      system_query_options:
+        orderby: ChassisName
+    register: result
 
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
 
-    - name: Verify task status - Retrieval of Profile information by "orderby = ChassisName" (Normal mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
+  - name: Verify task status - Retrieval of Profile information by "orderby = ChassisName" (Normal mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
 
-    - name: Compare profile info from task and uri (Normal mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
+  - name: Compare profile info from task and uri (Normal mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
 
-    - name: Verify task status - Compare profile info from task and uri (Normal mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
+  - name: Verify task status - Compare profile info from task and uri (Normal mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
 
-###################################################################################################################
+  ###################################################################################################################
 
-    - name: Retrieval of Profile information by "orderby = ProfileState" (Normal mode)
-      ome_profile_info:
-        system_query_options:
-          orderby: ProfileState
-      register: result
+  - name: Retrieval of Profile information by "orderby = ProfileState" (Normal mode)
+    ome_profile_info:
+      system_query_options:
+        orderby: ProfileState
+    register: result
 
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
 
-    - name: Verify task status - Retrieval of Profile information by "orderby = ProfileState" (Normal mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
+  - name: Verify task status - Retrieval of Profile information by "orderby = ProfileState" (Normal mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
 
-    - name: Compare profile info from task and uri (Normal mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
+  - name: Compare profile info from task and uri (Normal mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
 
-    - name: Verify task status - Compare profile info from task and uri (Normal mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
+  - name: Verify task status - Compare profile info from task and uri (Normal mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
 
-###################################################################################################################
+  ###################################################################################################################
 
-    - name: Retrieval of Profile information by "orderby = LastRunStatus" (Normal mode)
-      ome_profile_info:
-        system_query_options:
-          orderby: LastRunStatus
-      register: result
+  - name: Retrieval of Profile information by "orderby = LastRunStatus" (Normal mode)
+    ome_profile_info:
+      system_query_options:
+        orderby: LastRunStatus
+    register: result
 
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
 
-    - name: Verify task status - Retrieval of Profile information by "orderby = LastRunStatus" (Normal mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
+  - name: Verify task status - Retrieval of Profile information by "orderby = LastRunStatus" (Normal mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
 
-    - name: Compare profile info from task and uri (Normal mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
+  - name: Compare profile info from task and uri (Normal mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
 
-    - name: Verify task status - Compare profile info from task and uri (Normal mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
+  - name: Verify task status - Compare profile info from task and uri (Normal mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
 
-###################################################################################################################
+  ###################################################################################################################
 
-    - name: Retrieval of Profile information by "orderby = ProfileModified" (Normal mode)
-      ome_profile_info:
-        system_query_options:
-          orderby: ProfileModified
-      register: result
+  - name: Retrieval of Profile information by "orderby = ProfileModified" (Normal mode)
+    ome_profile_info:
+      system_query_options:
+        orderby: ProfileModified
+    register: result
 
-    - set_fact:
-        task_profile_info: "{{ result.profile_info[0] }}"
+  - set_fact:
+      task_profile_info: "{{ result.profile_info[0] }}"
 
-    - name: Verify task status - Retrieval of Profile information by "orderby = ProfileModified" (Normal mode)
-      assert:
-        that:
-          - not result.changed
-          - result.msg == "Successfully retrieved the profile information."
+  - name: Verify task status - Retrieval of Profile information by "orderby = ProfileModified" (Normal mode)
+    assert:
+      that:
+      - not result.changed
+      - result.msg == "Successfully retrieved the profile information."
 
-    - name: Compare profile info from task and uri (Normal mode)
-      ansible.utils.fact_diff:
-        before: "{{ uri_profile_info }}"
-        after: "{{ task_profile_info }}"
-      register: diff_result
+  - name: Compare profile info from task and uri (Normal mode)
+    ansible.utils.fact_diff:
+      before: "{{ uri_profile_info }}"
+      after: "{{ task_profile_info }}"
+    register: diff_result
 
-    - name: Verify task status - Compare profile info from task and uri (Normal mode)
-      assert:
-        that:
-          - not diff_result.changed
-          - not diff_result.diff_lines
-
+  - name: Verify task status - Compare profile info from task and uri (Normal mode)
+    assert:
+      that:
+      - not diff_result.changed
+      - not diff_result.diff_lines
 
   module_defaults:
     dellemc.openmanage.ome_profile_info:

@@ -6,7 +6,6 @@
       Description: "OMAM Template Description"
   register: create_template
 
-
   module_defaults:
     dellemc.openmanage.ome_template:
       validate_certs: "{{validate_certs}}"

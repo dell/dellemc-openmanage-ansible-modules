@@ -1,34 +1,33 @@
 - block:
-    - name: Prerequisite - Unassign a profiles with substring "Profile"
-      ome_profile:
-        command: "unassign"
-        filters:
-          SelectAll: true
-          Filters: =contains(ProfileName,'Profile')
-      register: unassign
-      ignore_errors: true
+  - name: Prerequisite - Unassign a profiles with substring "Profile"
+    ome_profile:
+      command: "unassign"
+      filters:
+        SelectAll: true
+        Filters: =contains(ProfileName,'Profile')
+    register: unassign
+    ignore_errors: true
 
-    - include_role:
-        name: prepare_track_ome_job
-      vars:
-        job_id: "{{unassign.job_id}}"
-      when: unassign.changed
+  - include_role:
+      name: prepare_track_ome_job
+    vars:
+      job_id: "{{unassign.job_id}}"
+    when: unassign.changed
 
-    - name: Prerequisite - delete all profiles with substring 'Profile' using filter
-      ome_profile:
-        command: "delete"
-        filters:
-          SelectAll: true
-          Filters: =contains(ProfileName,'Profile')
+  - name: Prerequisite - delete all profiles with substring 'Profile' using filter
+    ome_profile:
+      command: "delete"
+      filters:
+        SelectAll: true
+        Filters: =contains(ProfileName,'Profile')
 
-    - wait_for: timeout=10
+  - wait_for: timeout=10
 
-    - name: Prerequisite - delete template
-      ome_template:
-        command: "delete"
-        template_name: "{{template_name}}"
-      register: delete_template
-
+  - name: Prerequisite - delete template
+    ome_template:
+      command: "delete"
+      template_name: "{{template_name}}"
+    register: delete_template
 
   module_defaults:
     dellemc.openmanage.ome_profile:
