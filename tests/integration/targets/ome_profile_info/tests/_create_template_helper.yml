@@ -1,0 +1,16 @@
+- name: Create a template from a reference device
+  ome_template:
+    device_service_tag: "{{device_service_tag}}"
+    attributes:
+      Name: "{{template_name}}"
+      Description: "OMAM Template Description"
+  register: create_template
+
+
+  module_defaults:
+    dellemc.openmanage.ome_template:
+      validate_certs: "{{validate_certs}}"
+      hostname: "{{hostname}}"
+      username: "{{username}}"
+      password: "{{password}}"
+      port: "{{port}}"

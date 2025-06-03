@@ -1,0 +1,107 @@
+# Copyright (C) 2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+- name: Test that we have an OME host, OME username and OME password
+  fail:
+    msg: 'Please define the following variables: hostname, username and password.'
+  when: hostname is not defined or username is not defined or password is not defined
+
+- block:
+    - include_tasks: _delete_template_helper.yml
+
+    - include_tasks: _create_template_helper.yml
+
+    - include_tasks: _create_profile_helper.yml
+
+    - include_tasks: _profile_info_uri_helper.yml
+      vars:
+        profile_id: "{{ create.profile_ids[0] }}"
+
+    - name: Retrieval of Profile information using "profile_name" (Check mode)
+      ome_profile_info:
+        profile_name: "{{ uri_profile_res.json.ProfileName }}"
+      register: result
+      check_mode: true
+
+    - set_fact:
+        task_profile_info: "{{ result.profile_info[0] }}"
+
+    - name: Verify task status - Retrieval of Profile information using "profile_name" (Check mode)
+      assert:
+        that:
+          - not result.changed
+          - result.msg == "Successfully retrieved the profile information."
+
+    - name: Compare profile info from task and uri (Check mode)
+      ansible.utils.fact_diff:
+        before: "{{ uri_profile_info }}"
+        after: "{{ task_profile_info }}"
+      register: diff_result
+
+    - name: Verify task status - Compare profile info from task and uri (Check mode)
+      assert:
+        that:
+          - not diff_result.changed
+          - not diff_result.diff_lines
+
+    - name: Retrieval of Profile information using "profile_name" (Normal mode)
+      ome_profile_info:
+        profile_name: "{{ uri_profile_res.json.ProfileName }}"
+      register: result
+
+    - set_fact:
+        task_profile_info: "{{ result.profile_info[0] }}"
+
+    - name: Verify task status - Retrieval of Profile information using "profile_name" (Normal mode)
+      assert:
+        that:
+          - not result.changed
+          - result.msg == "Successfully retrieved the profile information."
+
+    - name: Compare profile info from task and uri (Normal mode)
+      ansible.utils.fact_diff:
+        before: "{{ uri_profile_info }}"
+        after: "{{ task_profile_info }}"
+      register: diff_result
+
+    - name: Verify task status - Compare profile info from task and uri (Normal mode)
+      assert:
+        that:
+          - not diff_result.changed
+          - not diff_result.diff_lines
+
+    - name: Retrieval of Profile information using "profile_name" (Idempotency mode)
+      ome_profile_info:
+        profile_name: "{{ uri_profile_res.json.ProfileName }}"
+      register: result
+
+    - set_fact:
+        task_profile_info: "{{ result.profile_info[0] }}"
+
+    - name: Verify task status - Retrieval of Profile information using "profile_name" (Idempotency mode)
+      assert:
+        that:
+          - not result.changed
+          - result.msg == "Successfully retrieved the profile information."
+
+    - name: Compare profile info from task and uri (Idempotency mode)
+      ansible.utils.fact_diff:
+        before: "{{ uri_profile_info }}"
+        after: "{{ task_profile_info }}"
+      register: diff_result
+
+    - name: Verify task status - Compare profile info from task and uri (Idempotency mode)
+      assert:
+        that:
+          - not diff_result.changed
+          - not diff_result.diff_lines
+
+
+  module_defaults:
+    dellemc.openmanage.ome_profile_info:
+      validate_certs: "{{validate_certs}}"
+      hostname: "{{hostname}}"
+      username: "{{username}}"
+      password: "{{password}}"
+      port: "{{port}}"

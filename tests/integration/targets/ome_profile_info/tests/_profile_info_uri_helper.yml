@@ -1,0 +1,139 @@
+- block:
+    - name: Get profile details by uri.
+      uri:
+        url: https://{{hostname}}:{{port}}/api/ProfileService/Profiles({{profile_id}})
+        user: "{{username}}"
+        password: "{{password}}"
+        validate_certs: false
+        status_code: 200
+      register: uri_profile_res
+
+    - name: Get profile attribute details by uri.
+      uri:
+        url: https://{{hostname}}:{{port}}/api/ProfileService/Profiles({{profile_id}})/AttributeDetails
+        user: "{{username}}"
+        password: "{{password}}"
+        validate_certs: false
+        status_code: 200
+      register: uri_attributes_res
+
+    - set_fact:
+        uri_other_profile_info: "{{ uri_profile_res.json |ansible.utils.remove_keys(target=['@odata.type', '@odata.id', 'AttributeDetails', '@odata.context']) }}"
+
+    - set_fact:
+        uri_profile_attributes: "{{ uri_attributes_res.json.AttributeGroups }}"
+
+    - set_fact:
+        uri_AttributeDetails: |-
+          {%- set uri_AttributeDetails = {} -%}
+          {%- for item in uri_profile_attributes -%}
+          {%- set x1 = item.DisplayName -%}
+          {%- set x = uri_AttributeDetails.__setitem__(x1, {}) -%}
+          
+          {%- if item.SubAttributeGroups -%}
+          {%- for sub_item in item.SubAttributeGroups -%}
+          {%- set x2 = sub_item.DisplayName -%}
+          {%- set x = uri_AttributeDetails[x1].__setitem__(x2, {}) -%}
+          
+          {%- if sub_item.SubAttributeGroups -%}
+          {%- for sub_attr in sub_item.SubAttributeGroups -%}
+          {%- set x3 = sub_attr.DisplayName -%}
+          {%- set x = uri_AttributeDetails[x1][x2].__setitem__(x3, {}) -%}
+         
+          {%- if sub_attr.SubAttributeGroups -%}
+          {%- for s_attr in sub_attr.SubAttributeGroups -%}
+          {%- set x4 = s_attr.DisplayName -%}
+          {%- set x = uri_AttributeDetails[x1][x2][x3].__setitem__(x4, {}) -%}
+          {%- for attr in s_attr.Attributes -%}
+          {%- set x = uri_AttributeDetails[x1][x2][x3][x4].__setitem__(attr.DisplayName, attr.AttributeId) -%}
+          {%- endfor -%}
+          {%- endfor -%}
+
+          {% else %}
+          {%- for attr in sub_attr.Attributes -%}
+          {%- set x = uri_AttributeDetails[x1][x2][x3].__setitem__(attr.DisplayName, attr.AttributeId) -%}
+          {%- endfor -%}
+          {%- endif -%}
+          {%- endfor -%}
+          
+          {% else %}
+          {%- for attr in sub_item.Attributes -%}
+          {%- set x = uri_AttributeDetails[x1][x2].__setitem__(attr.DisplayName, attr.AttributeId) -%}
+          {%- endfor -%}
+          {%- endif -%}
+          {%- endfor -%}
+          
+          {% else %}           
+          {%- for attr in item.Attributes -%}
+          {%- set x = uri_AttributeDetails[x1].__setitem__(attr.DisplayName, attr.AttributeId) -%}
+          {%- endfor -%}
+          {%- endif -%}
+          
+          {%- endfor -%}
+          {{ uri_AttributeDetails }}
+
+
+
+    - set_fact:
+        uri_AttributeIdMap: |-
+          {%- set uri_AttributeIdMap = {} -%}
+          {%- for item in uri_profile_attributes -%}
+
+          {%- if item.SubAttributeGroups -%}
+          {%- for sub_item in item.SubAttributeGroups -%}         
+          {%- if sub_item.SubAttributeGroups -%}
+          {%- for sub_attr in sub_item.SubAttributeGroups -%}         
+          
+          {%- if sub_attr.SubAttributeGroups -%}
+          {%- for s_attr in sub_attr.SubAttributeGroups -%}
+          {%- for attr in s_attr.Attributes -%}
+          {%- set id = attr.AttributeId -%}
+          {%- set x = uri_AttributeIdMap.__setitem__(id, {}) -%}
+          {%- set x = uri_AttributeIdMap[id].__setitem__("IsIgnored", attr.IsIgnored) -%}
+          {%- set x = uri_AttributeIdMap[id].__setitem__("IsReadOnly", attr.IsReadOnly) -%}
+          {%- set x = uri_AttributeIdMap[id].__setitem__("Value", attr.Value) -%}
+          {%- endfor -%}
+          {%- endfor -%}
+
+          {% else %}
+          {%- for attr in sub_attr.Attributes -%}
+          {%- set id = attr.AttributeId -%}
+          {%- set x = uri_AttributeIdMap.__setitem__(id, {}) -%}
+          {%- set x = uri_AttributeIdMap[id].__setitem__("IsIgnored", attr.IsIgnored) -%}
+          {%- set x = uri_AttributeIdMap[id].__setitem__("IsReadOnly", attr.IsReadOnly) -%}
+          {%- set x = uri_AttributeIdMap[id].__setitem__("Value", attr.Value) -%}          
+          {%- endfor -%}
+          {%- endif -%}
+          {%- endfor -%}
+          
+          {% else %}
+          {%- for attr in sub_item.Attributes -%}
+          {%- set id = attr.AttributeId -%}
+          {%- set x = uri_AttributeIdMap.__setitem__(id, {}) -%}
+          {%- set x = uri_AttributeIdMap[id].__setitem__("IsIgnored", attr.IsIgnored) -%}
+          {%- set x = uri_AttributeIdMap[id].__setitem__("IsReadOnly", attr.IsReadOnly) -%}
+          {%- set x = uri_AttributeIdMap[id].__setitem__("Value", attr.Value) -%}            
+          {%- endfor -%}
+          {%- endif -%}
+          {%- endfor -%}
+          
+          {% else %}           
+          {%- for attr in item.Attributes -%}
+          {%- set id = attr.AttributeId -%}
+          {%- set x = uri_AttributeIdMap.__setitem__(id, {}) -%}
+          {%- set x = uri_AttributeIdMap[id].__setitem__("IsIgnored", attr.IsIgnored) -%}
+          {%- set x = uri_AttributeIdMap[id].__setitem__("IsReadOnly", attr.IsReadOnly) -%}
+          {%- set x = uri_AttributeIdMap[id].__setitem__("Value", attr.Value) -%}            {%- endfor -%}
+          {%- endif -%}
+          {%- endfor -%}
+          {{ uri_AttributeIdMap }}
+
+
+    - set_fact:
+        uri_profile_info: "{{ uri_profile_info | default({}) | combine ({ item.key : item.value }) }}"
+      with_items:
+        - { 'key': 'AttributeDetails' , 'value': "{{ uri_AttributeDetails }}" }
+        - { 'key': 'AttributeIdMap' , 'value': "{{ uri_AttributeIdMap }}" }
+
+    - set_fact:
+        uri_profile_info: "{{ uri_profile_info | combine (uri_other_profile_info) }}"

@@ -1,0 +1,3 @@
+dependencies:
+  - prepare_device_info_for_ome
+  - prepare_track_ome_job

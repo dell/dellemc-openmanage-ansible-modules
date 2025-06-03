@@ -1,0 +1,45 @@
+- block:
+    - name: "Create profile"
+      ome_profile:
+        description: "description"
+        template_id: "{{ create_template.return_id }}"
+        name_prefix: "omam_test_profile"
+      register: create
+
+    - name: Get all profiles details by uri.
+      uri:
+        url: https://{{hostname}}:{{port}}/api/ProfileService/Profiles
+        user: "{{username}}"
+        password: "{{password}}"
+        validate_certs: false
+        status_code: 200
+      register: uri_all
+
+    - name: Get profile details by uri.
+      uri:
+        url: https://{{hostname}}:{{port}}/api/ProfileService/Profiles({{create.profile_ids[0]}})
+        user: "{{username}}"
+        password: "{{password}}"
+        validate_certs: false
+        status_code: 200
+      register: uri_profile
+
+    - name: Verify the status of tasks for profile creation
+      assert:
+        that:
+          - create.changed
+          - create.msg == "Successfully created 1 profile(s)."
+          - '"{{uri_all.json.value|length|int}}" == "1"'
+          - '"{{uri_profile.json.ProfileName}}" == "omam_test_profile 00001"'
+          - '"{{uri_profile.json.ProfileDescription}}" == "description"'
+          - '"{{uri_profile.json.TemplateName}}" == "{{template_name}}"'
+          - '"{{uri_profile.json.NetworkBootToIso}}" == ""'
+
+
+  module_defaults:
+    dellemc.openmanage.ome_profile:
+      validate_certs: "{{validate_certs}}"
+      hostname: "{{hostname}}"
+      username: "{{username}}"
+      password: "{{password}}"
+      port: "{{port}}"

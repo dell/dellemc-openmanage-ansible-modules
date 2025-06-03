@@ -1,0 +1,31 @@
+- block:
+    - name: Unassign a profile using profile name
+      ome_profile:
+        command: "unassign"
+        filters:
+          SelectAll: true
+          Filters: =contains(ProfileName,'Profile')
+      register: unassign
+      ignore_errors: true
+
+    - include_role:
+        name: prepare_track_ome_job
+      vars:
+       job_id: "{{unassign.job_id}}"
+      when: unassign.changed
+
+    - name: Delete all profiles with substring 'Profile' using filter
+      ome_profile:
+        command: "delete"
+        filters:
+          SelectAll: true
+          Filters: =contains(ProfileName,'Profile')
+
+  ignore_errors: true
+  module_defaults:
+    dellemc.openmanage.ome_profile:
+      validate_certs: "{{validate_certs}}"
+      hostname: "{{hostname}}"
+      username: "{{username}}"
+      password: "{{password}}"
+      port: "{{port}}"

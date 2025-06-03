@@ -1,0 +1,270 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  fail:
+    msg: 'Please define the following variables: hostname, username and password.'
+  when: hostname is not defined or username is not defined or password is not defined
+
+- block:
+    - include_tasks: _delete_template_helper.yml
+
+    - name: Retrieval of profile information using "template_name" with invalid value when no templates available (Check mode - Negative)
+      ome_profile_info:
+        template_name: "invalid"
+      register: result
+      check_mode: true
+      ignore_errors: true
+
+    - name: Verify task status - Retrieval of profile information using "template_name" with invalid value when no templates available (Check mode - Negative)
+      assert:
+        that:
+          - result.failed
+          - not result.changed
+          - result.msg == "Template with name 'invalid' not found."
+
+    - name: Retrieval of profile information using "template_name" with invalid value when no templates available (Normal mode - Negative)
+      ome_profile_info:
+        template_name: "invalid"
+      register: result
+      ignore_errors: true
+
+    - name: Verify task status - Retrieval of profile information using "template_name" with invalid value when no templates available (Normal mode - Negative)
+      assert:
+        that:
+          - result.failed
+          - not result.changed
+          - result.msg == "Template with name 'invalid' not found."
+
+    - name: Retrieval of profile information using "template_id" with invalid value when no templates available (Check mode - Negative)
+      ome_profile_info:
+        template_id: 9999999
+      register: result
+      check_mode: true
+      ignore_errors: true
+
+    - name: Verify task status - Retrieval of profile information using "template_id" with invalid value when no templates available (Check mode - Negative)
+      assert:
+        that:
+          - result.failed
+          - not result.changed
+          - result.msg == "Template with id '9999999' not found."
+
+    - name: Retrieval of profile information using "template_id" with invalid value when no templates available (Normal mode - Negative)
+      ome_profile_info:
+        template_id: 9999999
+      register: result
+      ignore_errors: true
+
+    - name: Verify task status - Retrieval of profile information using "template_id" with invalid value when no templates available (Normal mode - Negative)
+      assert:
+        that:
+          - result.failed
+          - not result.changed
+          - result.msg == "Template with id '9999999' not found."
+
+    - include_tasks: _create_template_helper.yml
+
+    - name: Retrieval of all profile information when no profiles available (Check mode - Negative)
+      ome_profile_info:
+      register: result
+      check_mode: true
+
+    - name: Verify task status - Retrieval of all profile information when no profiles available (Check mode - Negative)
+      assert:
+        that:
+          - result.profile_info == []
+          - not result.changed
+          - result.msg == "Successfully retrieved the profile information."
+
+    - name: Retrieval of all profile information when no profiles available (Normal mode - Negative)
+      ome_profile_info:
+      register: result
+
+    - name: Verify task status - Retrieval of all profile information when no profiles available (Normal mode - Negative)
+      assert:
+        that:
+          - result.profile_info == []
+          - not result.changed
+          - result.msg == "Successfully retrieved the profile information."
+
+    - name: Retrieval of profile information using "profile_id" with invalid value (Check mode - Negative)
+      ome_profile_info:
+        profile_id: 99999999
+      register: result
+      check_mode: true
+      ignore_errors: true
+
+    - name: Verify task status - Retrieval of profile information using "profile_id" with invalid value (Check mode - Negative)
+      assert:
+        that:
+          - result.failed
+          - not result.changed
+          - result.msg ==  "Profiles with profile_id 99999999 not found."
+
+    - name: Retrieval of profile information using "profile_id" with invalid value (Normal mode - Negative)
+      ome_profile_info:
+        profile_id: 99999999
+      register: result
+      ignore_errors: true
+
+    - name: Verify task status - Retrieval of profile information using "profile_id" with invalid value (Normal mode - Negative)
+      assert:
+        that:
+          - result.failed
+          - not result.changed
+          - result.msg ==  "Profiles with profile_id 99999999 not found."
+
+    - name: Retrieval of profile information using "profile_name" with invalid value (Check mode - Negative)
+      ome_profile_info:
+        profile_name: "invalid"
+      register: result
+      check_mode: true
+      ignore_errors: true
+
+    - name: Verify task status - Retrieval of profile information using "profile_name" with invalid value (Check mode - Negative)
+      assert:
+        that:
+          - result.failed
+          - not result.changed
+          - result.msg ==  "Profiles with profile_name invalid not found."
+
+    - name: Retrieval of profile information using "profile_name" with invalid value (Normal mode - Negative)
+      ome_profile_info:
+        profile_name: "invalid"
+      register: result
+      ignore_errors: true
+
+    - name: Verify task status - Retrieval of profile information using "profile_name" with invalid value (Normal mode - Negative)
+      assert:
+        that:
+          - result.failed
+          - not result.changed
+          - result.msg ==  "Profiles with profile_name invalid not found."
+
+    - name: Retrieval of profile information using "template_name" with invalid value (Check mode - Negative)
+      ome_profile_info:
+        template_name: "invalid"
+      register: result
+      check_mode: true
+      ignore_errors: true
+
+    - name: Verify task status - Retrieval of profile information using "template_name" with invalid value (Check mode - Negative)
+      assert:
+        that:
+          - result.failed
+          - not result.changed
+          - result.msg == "Template with name 'invalid' not found."
+
+    - name: Retrieval of profile information using "template_name" with invalid value (Normal mode - Negative)
+      ome_profile_info:
+        template_name: "invalid"
+      register: result
+      ignore_errors: true
+
+    - name: Verify task status - Retrieval of profile information using "template_name" with invalid value (Normal mode - Negative)
+      assert:
+        that:
+          - result.failed
+          - not result.changed
+          - result.msg == "Template with name 'invalid' not found."
+
+    - name: Retrieval of profile information using "template_id" with invalid value (Check mode - Negative)
+      ome_profile_info:
+        template_id: 9999999
+      register: result
+      check_mode: true
+      ignore_errors: true
+
+    - name: Verify task status - Retrieval of profile information using "template_id" with invalid value (Check mode - Negative)
+      assert:
+        that:
+          - result.failed
+          - not result.changed
+          - result.msg == "Template with id '9999999' not found."
+
+    - name: Retrieval of profile information using "template_id" with invalid value (Normal mode - Negative)
+      ome_profile_info:
+        template_id: 9999999
+      register: result
+      ignore_errors: true
+
+    - name: Verify task status - Retrieval of profile information using "template_id" with invalid value (Normal mode - Negative)
+      assert:
+        that:
+          - result.failed
+          - not result.changed
+          - result.msg == "Template with id '9999999' not found."
+
+    - include_tasks: _create_profile_helper.yml
+
+    - name: Retrieval of profile information using system_query_options using "orderby" with invalid value (Check mode - Negative)
+      ome_profile_info:
+        system_query_options:
+          orderby: ProfileNameInvalid
+      register: result
+      check_mode: true
+      ignore_errors: true
+
+    - name: Verify task status - Retrieval of profile information using system_query_options using "orderby" with invalid value (Check mode - Negative)
+      assert:
+        that:
+          - result.failed
+          - not result.changed
+          - result.msg == "Profiles with provided system_query_options not found."
+
+    - name: Retrieval of profile information using system_query_options using "orderby" with invalid value (Normal mode - Negative)
+      ome_profile_info:
+        system_query_options:
+          orderby: ProfileNameInvalid
+      register: result
+      ignore_errors: true
+
+    - name: Verify task status - Retrieval of profile information using system_query_options using "orderby" with invalid value (Normal mode - Negative)
+      assert:
+        that:
+          - result.failed
+          - not result.changed
+          - result.msg == "Profiles with provided system_query_options not found."
+
+
+    - name: Retrieval of profile information using system_query_options using "filter" with invalid value (Check mode - Negative)
+      ome_profile_info:
+        system_query_options:
+          filter: (ProfileName eq 'invalid')
+      register: result
+      check_mode: true
+      ignore_errors: true
+
+    - name: Verify task status - Retrieval of profile information using system_query_options using "filter" with invalid value (Check mode - Negative)
+      assert:
+        that:
+          - result.failed
+          - not result.changed
+          - result.msg == "Profiles with provided system_query_options not found."
+
+    - name: Retrieval of profile information using system_query_options using "filter" with invalid value (Normal mode - Negative)
+      ome_profile_info:
+        system_query_options:
+          filter: (ProfileName eq 'invalid')
+      register: result
+      ignore_errors: true
+
+    - name: Verify task status - Retrieval of profile information using system_query_options using "filter" with invalid value (Normal mode - Negative)
+      assert:
+        that:
+          - result.failed
+          - not result.changed
+          - result.msg == "Profiles with provided system_query_options not found."
+
+
+  module_defaults:
+    dellemc.openmanage.ome_profile_info:
+      validate_certs: "{{validate_certs}}"
+      hostname: "{{hostname}}"
+      username: "{{username}}"
+      password: "{{password}}"
+      port: "{{port}}"
+
