@@ -1,0 +1,45 @@
+---
+- name: Fetching attibutes values
+  ansible.builtin.include_tasks: _fetch_redfish_network_attributes.yml
+  vars:
+    _module_apply_time: "{{ module_apply_time }}"
+
+- name: Setting initial attibutes values
+  ansible.builtin.set_fact:
+    initial_VLANEnable: "{{ fetched_attributes.json.Ethernet.VLAN.VLANEnable }}"
+
+- ansible.builtin.include_tasks: _get_date_time.yml
+
+- name: Configure network attributes
+  dellemc.openmanage.idrac_network_attributes: &configure_network_attributes
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_port: "{{ idrac_port }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    validate_certs: "{{ validate_certs }}"
+    network_adapter_id: "{{ inp_network_adapter_id }}"
+    network_device_function_id: "{{ inp_network_device_function_id }}"
+    network_attributes:
+      Ethernet:
+        VLAN:
+          VLANEnable: false
+    apply_time: OnReset
+  register: prereq_result_set_attrs
+  when: initial_VLANEnable != false
+
+- name: Restart server
+  ansible.builtin.include_tasks: _restart_server.yml
+  vars:
+    job_id: "{{ prereq_result_set_attrs.job_status.Id }}"
+  when: prereq_result_set_attrs.changed
+
+- name: Fetching network attributes
+  ansible.builtin.include_tasks: _fetch_redfish_network_attributes.yml
+  when: initial_VLANEnable != false
+
+- name: Verify prerequisite - Fetching network attributes is set
+  ansible.builtin.assert:
+    that:
+      - fetched_attributes.json.Ethernet.VLAN.VLANEnable == false
+    fail_msg: "Attributes not set"
+    success_msg: "Attributes set successfully"
