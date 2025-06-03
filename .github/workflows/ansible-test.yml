@@ -33,8 +33,6 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: 3.12
-        env:
-          PYTHONPATH: "${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanage"
 
       - name: Install ansible (${{ matrix.ansible-version }})
         run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
@@ -50,12 +48,9 @@ jobs:
 
       - name: Install test dependencies
         run: pip install -r "${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanage/test-requirements.txt"
-
-      - name: Print current directory
-        run: pwd
   
       - name: Run Pytest with coverage
-        run: export PYTHONPATH="${GITHUB_WORKSPACE}":$PYTHONPATH && pytest -vvvv --cov="${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanage/plugins/" --cov-branch "${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanage/tests/unit" --cov-config=.coveragerc --cov-report=xml:coverage.xml
+        run: export PYTHONPATH="${GITHUB_WORKSPACE}":$PYTHONPATH && pytest -vvvv --cov="${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanage/" --cov-branch "${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanage/tests/unit" --cov-config=.coveragerc --cov-report=xml:coverage.xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
