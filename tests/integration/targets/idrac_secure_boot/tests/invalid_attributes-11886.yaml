@@ -198,6 +198,6 @@
     endpt: "https://{{ ip_wrapped }}:{{ idrac_port }}"
     idrac_manager_uri: "redfish/v1/Managers/iDRAC.Embedded.1"
     idrac_manager_url: "{{ endpt }}/{{ idrac_manager_uri }}"
-    readonly_attr_msg: 'Unable to modify the attribute because the 
+    readonly_attr_msg: 'Unable to modify the attribute because the
      attribute is read-only and depends on other attributes.'
     rmv_17g_msg: "boot mode and Force int 10 are not supported from 17G onwards"
