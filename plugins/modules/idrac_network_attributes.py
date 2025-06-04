@@ -4,7 +4,7 @@
 #
 # Dell OpenManage Ansible Modules
 # Version 9.3.0
-# Copyright (C) 2023-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2023-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -82,6 +82,7 @@ options:
       - C(InMaintenanceWindowOnReset) allows to apply after a manual reset but within the maintenance window as
         specified in I(maintenance_window).
       - This is not applicable for iDRAC8 and value will be ignored and will not have any impact for configuring I(oem_network_attributes).
+      - For iDRAC10, only C(OnReset) is supported.
     choices: [Immediate, OnReset, AtMaintenanceWindowStart, InMaintenanceWindowOnReset]
   maintenance_window:
     type: dict
