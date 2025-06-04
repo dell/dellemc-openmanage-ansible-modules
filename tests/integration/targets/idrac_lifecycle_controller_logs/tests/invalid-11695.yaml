@@ -59,8 +59,8 @@
     - name: Verify status of tasks
       ansible.builtin.assert:
         that:
-          # - invalid_1.failed
-          # - "'invalid does not exist' in invalid_1.msg"
+          - invalid_1.failed
+          - invalid_1.msg == "No such file or directory"
           - invalid_2.failed
           - invalid_3.failed
           - invalid_4.failed
