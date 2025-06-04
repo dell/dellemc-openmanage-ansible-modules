@@ -7,8 +7,8 @@
     - name: Get applicable Update packages lists from repository through HTTPs
         Share (packages expected)
       dellemc.openmanage.idrac_firmware: &update_check
-        share_name: "https://{{ https_share_ip_no_auth }}{{http_share_no_auth}}\
-          {{ new_catalog_location }}"
+        share_name: "https://{{ https_share_ip_no_auth }}\
+          {{http_share_no_auth}}{{ new_catalog_location }}"
         reboot: true
         job_wait: true
         apply_update: false

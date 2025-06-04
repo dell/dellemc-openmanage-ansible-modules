@@ -1,6 +1,6 @@
 ---
 - block:
-    - ansible.builtin.include_role: 
+    - ansible.builtin.include_role:
         name=prepare_idrac_lifecycle_controller_status
   ignore_errors: true
 

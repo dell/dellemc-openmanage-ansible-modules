@@ -1,6 +1,6 @@
 ---
 - block:
-    - ansible.builtin.include_role: 
+    - ansible.builtin.include_role:
         name=prepare_idrac_lifecycle_controller_status
 
     - name: Get System Inevntory.
@@ -16,5 +16,5 @@
         generation: "{{result.system_info.System[0].SystemGeneration | \
           regex_search('[0-9]+') | int}}"
 
-    - ansible.builtin.include_role: 
+    - ansible.builtin.include_role:
         name=prepare_idrac_lifecycle_controller_status
