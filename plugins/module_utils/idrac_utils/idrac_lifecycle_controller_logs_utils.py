@@ -181,6 +181,7 @@ class IDRACLifecycleControllerLogs(object):
                 job_dict["Job"] = {
                     "jobId": job_dict["Id"]
                 }
+                job_dict["JobStatus"] = job_dict["JobState"]
                 job_dict = remove_key(
                     job_dict,
                     regex_pattern=ODATA_PATTERN)
