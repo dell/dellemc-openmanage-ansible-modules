@@ -292,6 +292,9 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
 
 SYSTEMS_URI = "/redfish/v1/Systems"
 IDRAC_MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
+IDRAC_JOBS_URI = IDRAC_MANAGER_URI + "/Oem/Dell/Jobs"
+iDRAC_JOB_URI = IDRAC_JOBS_URI + "/{job_id}"
+iDRAC_JOBS_EXP = IDRAC_JOBS_URI + "?$expand=*($levels=1)"
 BIOS_JOB_EXISTS = "BIOS Configuration job already exists."
 TIME_FORMAT = "%Y%m%d_%H%M%S"
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be negative or zero."
@@ -646,14 +649,8 @@ class IDRACAttributes(IDRACSecureBoot):
         server_generation_op = get_server_generation(self.idrac)
         self.generation, self.idrac_firmware_version = server_generation_op[0], server_generation_op[1]
 
-        self.iDRAC_JOBS_URI = IDRAC_MANAGER_URI + "/Jobs"
-        if self.generation >= 17:
-            self.iDRAC_JOBS_URI = IDRAC_MANAGER_URI + "/Oem/Dell/Jobs"
-        self.iDRAC_JOB_URI = self.iDRAC_JOBS_URI + "/{job_id}"
-        self.iDRAC_JOBS_EXP = self.iDRAC_JOBS_URI + "?$expand=*($levels=1)"
-
     def check_scheduled_bios_job(self):
-        job_resp = self.idrac.invoke_request(self.iDRAC_JOBS_EXP, "GET")
+        job_resp = self.idrac.invoke_request(iDRAC_JOBS_EXP, "GET")
         job_list = job_resp.json_data.get('Members', [])
         sch_jb = None
         for jb in job_list:
@@ -673,7 +670,7 @@ class IDRACAttributes(IDRACSecureBoot):
     def trigger_bios_job(self):
         job_id = None
         payload = {"TargetSettingsURI": self.bios_setting_uri}
-        resp = self.idrac.invoke_request(self.iDRAC_JOBS_URI, "POST", data=payload)
+        resp = self.idrac.invoke_request(IDRAC_JOBS_URI, "POST", data=payload)
         job_id = resp.headers["Location"].split("/")[-1]
         return job_id
 
@@ -758,7 +755,7 @@ class IDRACAttributes(IDRACSecureBoot):
         reboot_required = False
         job_id, reboot_required, partial_update = self.apply_attributes(attr)
         job_wait = self.module.params.get("job_wait")
-        job_resp = self.idrac.invoke_request(self.iDRAC_JOB_URI.format(job_id=job_id), 'GET')
+        job_resp = self.idrac.invoke_request(iDRAC_JOB_URI.format(job_id=job_id), 'GET')
         job_dict = job_resp.json_data
         if self.import_op or self.export_op or self.reset_keys:
             reboot_required = True
@@ -783,7 +780,7 @@ class IDRACAttributes(IDRACSecureBoot):
 
     def handle_job_wait(self, job_id, partial_update):
         job_failed, msg, job_dict, _wait_time = idrac_redfish_job_tracking(
-            self.idrac, self.iDRAC_JOB_URI.format(job_id=job_id),
+            self.idrac, iDRAC_JOB_URI.format(job_id=job_id),
             max_job_wait_sec=self.module.params.get('job_wait_timeout'))
         if job_failed:
             self.module.exit_json(failed=True, msg=msg, job_id=job_id)
