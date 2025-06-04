@@ -13,44 +13,44 @@
 
 - block:
     - name: System Lockdown Mode (Negative - invalid local path).
-      idrac_lifecycle_controller_logs:
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
         share_name: "{{ role_path }}/invalid"
       ignore_errors: true
       register: invalid_1
 
     - name: Export Lifecycle Controller Logs (Negative - invalid share IP)
-      idrac_lifecycle_controller_logs:
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
         share_name: "999.999.999.999:/share"
       ignore_errors: true
       register: invalid_2
 
     - name: Export Lifecycle Controller Logs
        (Negative - invalid NFS share path)
-      idrac_lifecycle_controller_logs:
-        share_name: "{{nfs_share_name}}/invalid"
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        share_name: "{{ nfs_share_name }}/invalid"
       ignore_errors: true
       register: invalid_3
 
     - name: Export Lifecycle Controller Logs
        (Negative - invalid CIFS share path)
-      idrac_lifecycle_controller_logs:
-        share_name: "{{cifs_share_name}}/invalid"
-        share_user: "{{cifs_share_user}}"
-        share_password: "{{cifs_share_password}}"
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        share_name: "{{ cifs_share_name }}/invalid"
+        share_user: "{{ cifs_share_user }}"
+        share_password: "{{ cifs_share_password }}"
       ignore_errors: true
       register: invalid_4
 
     - name: Export Lifecycle Controller Logs
        (Negative - invalid CIFS share credentials)
-      idrac_lifecycle_controller_logs:
-        share_name: "{{cifs_share_name}}"
-        share_user: "{{cifs_share_user}}"
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        share_name: "{{ cifs_share_name }}"
+        share_user: "{{ cifs_share_user }}"
         share_password: "invalid"
       ignore_errors: true
       register: invalid_5
 
     - name: Export Lifecycle Controller Logs (Negative - unreachable host)
-      idrac_lifecycle_controller_logs:
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
         idrac_ip: "999.999.999.999"
         share_name: "{{ role_path }}/files"
       ignore_unreachable: true

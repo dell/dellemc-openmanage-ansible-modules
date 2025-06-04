@@ -12,18 +12,18 @@
    is not defined'
 
 - block:
-    - include_tasks: _helper.yml
+    - ansible.builtin.include_tasks: _helper.yml
 
     - block:
         - name: Export Lifecycle Controller Logs with job wait true
            (Local Path)
-          idrac_lifecycle_controller_logs:
+          dellemc.openmanage.idrac_lifecycle_controller_logs:
             share_name: "{{ role_path }}/files"
           register: result_local
 
         - name: Check that the exported file exists in LOCAL path.
-          stat:
-            path: "{{result_local.lc_logs_status.file}}"
+          ansible.builtin.stat:
+            path: "{{ result_local.lc_logs_status.file }}"
           register: local_stat
 
         - name: Verify the status of tasks
@@ -38,26 +38,26 @@
       when: generation | int >= 14
 
     - name: Export Lifecycle Controller Logs with job wait true (NFS Share)
-      idrac_lifecycle_controller_logs:
-        share_name: "{{nfs_share_name}}"
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        share_name: "{{ nfs_share_name }}"
       register: result_nfs
 
     - name: Check that the exported file exists for NFS share
-      stat:
+      ansible.builtin.stat:
         path: |-
           {{ nfs_share_mnt
             ~ '/' ~ (result_nfs.lc_logs_status.file | basename) }}
       register: nfs_stat
 
     - name: Export Lifecycle Controller Logs with job wait true (CIFS Share)
-      idrac_lifecycle_controller_logs:
-        share_name: "{{cifs_share_name}}"
-        share_user: "{{cifs_share_user}}"
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        share_name: "{{ cifs_share_name }}"
+        share_user: "{{ cifs_share_user }}"
         share_password: "{{cifs_share_password}}"
       register: result_cifs
 
     - name: Check that the exported file exists for CIFS share
-      stat:
+      ansible.builtin.stat:
         path: |-
           {{ cifs_share_mnt
             ~ '/' ~ (result_cifs.lc_logs_status.file | win_basename) }}
