@@ -117,7 +117,7 @@ class TestExportLcLogs(FakeAnsibleModule):
                          side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
         if exc_type != URLError:
-            result = self._run_module_with_fail_json(idrac_default_args)
+            result = self._run_module(idrac_default_args)
             assert result['failed'] is True
         else:
             result = self._run_module(idrac_default_args)

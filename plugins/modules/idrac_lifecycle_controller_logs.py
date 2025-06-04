@@ -248,12 +248,12 @@ def main():
                         message = "The export lifecycle controller log job is submitted successfully."
                     module.exit_json(msg=message, lc_logs_status=msg)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (RuntimeError, SSLValidationError, ConnectionError, KeyError,
             ImportError, ValueError, TypeError) as e:
-        module.fail_json(msg=str(e))
+        module.exit_json(msg=str(e), failed=True)
 
 
 if __name__ == '__main__':
