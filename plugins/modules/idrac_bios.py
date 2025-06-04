@@ -318,9 +318,9 @@ CLEAR_PENDING_URI = "/redfish/v1/Systems/System.Embedded.1/Bios/Settings/Actions
 RESET_BIOS_DEFAULT = "/redfish/v1/Systems/System.Embedded.1/Bios/Actions/Bios.ResetBios"
 BIOS_SETTINGS = "/redfish/v1/Systems/System.Embedded.1/Bios/Settings"
 POWER_HOST_URI = "/redfish/v1/Systems/System.Embedded.1/Actions/ComputerSystem.Reset"
-IDRAC_JOBS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs"
-iDRAC_JOBS_EXP = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
-iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
+IDRAC_JOBS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs"
+iDRAC_JOBS_EXP = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs?$expand=*($levels=1)"
+iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{job_id}"
 LOG_SERVICE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog"
 iDRAC9_LC_LOG = "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries"
 iDRAC8_LC_LOG = "/redfish/v1/Managers/iDRAC.Embedded.1/Logs/Lclog"
@@ -576,7 +576,7 @@ def reset_bios(module, redfish_obj):
         module.exit_json(status_msg=BIOS_RESET_PENDING, failed=True)
     if module.check_mode:
         module.exit_json(status_msg=CHANGES_MSG, changed=True)
-    redfish_obj.invoke_request(RESET_BIOS_DEFAULT, "POST", data="{}", dump=True)
+    redfish_obj.invoke_request(RESET_BIOS_DEFAULT, "POST", data={}, dump=True)
     reset_success = reset_host(module, redfish_obj)
     if not reset_success:
         module.exit_json(failed=True, status_msg="{0} {1}".format(RESET_TRIGGERRED, HOST_RESTART_FAILED))
