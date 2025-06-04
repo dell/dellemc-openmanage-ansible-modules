@@ -27,6 +27,30 @@ COMPLETION_TIME = "2025-05-26T22:39:12"
 EXPORT_SUCCESS = "LCL Export was successful"
 MODULE_SUCCESS = 'Successfully exported the lifecycle controller logs.'
 DESCRIPTION = "Job Instance"
+EXPECTED_JOB_DATA = {
+    "StartTime": START_TIME,
+    "CompletionTime": COMPLETION_TIME,
+    "PercentComplete": 100,
+    "JobType": "LCExport",
+    "ActualRunningStopTime": None,
+    "MessageId": "LC022",
+    "Description": DESCRIPTION,
+    "Message": EXPORT_SUCCESS,
+    "ActualRunningStartTime": None,
+    "JobState": "Completed",
+    "EndTime": None,
+    "MessageArgs": [],
+    "Name": JOB_NAME,
+    "Id": "JID_483171510194",
+    "TargetSettingsURI": None,
+    "Return": "JobCreated",
+    "Job": {
+        "jobId": "JID_483171510194",
+    },
+    "JobStatus": "Completed",
+    "file": CIFS_FILE_PATH,
+    "Status": "Success"
+}
 
 
 class TestIDRACLifecycleControllerLogs(TestUtils):
@@ -245,31 +269,7 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
             idrac=idrac_mock, module=module_mock, share_name="cifsshare",
             share_type="CIFS", file_name=LOG_FILE_NAME, ip_address="100.100.100.100",
             file_path=CIFS_FILE_PATH)
-        expected_job = {
-            "StartTime": START_TIME,
-            "CompletionTime": COMPLETION_TIME,
-            "PercentComplete": 100,
-            "JobType": "LCExport",
-            "ActualRunningStopTime": None,
-            "MessageId": "LC022",
-            "Description": DESCRIPTION,
-            "Message": EXPORT_SUCCESS,
-            "ActualRunningStartTime": None,
-            "JobState": "Completed",
-            "EndTime": None,
-            "MessageArgs": [],
-            "Name": JOB_NAME,
-            "Id": "JID_483171510194",
-            "TargetSettingsURI": None,
-            "Return": "JobCreated",
-            "Job": {
-                "jobId": "JID_483171510194",
-            },
-            "JobStatus": "Completed",
-            "file": CIFS_FILE_PATH,
-            "Status": "Success"
-        }
-        assert result == (MODULE_SUCCESS, expected_job, False)
+        assert result == (MODULE_SUCCESS, EXPECTED_JOB_DATA, False)
 
     def test_export_lc_logs_idrac_9_10_job_wait_false(self, idrac_mock):
         module_mock = MagicMock()
@@ -280,30 +280,7 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
             idrac=idrac_mock, module=module_mock, share_name="cifsshare",
             share_type="CIFS", file_name=LOG_FILE_NAME, ip_address="100.100.100.100",
             file_path=CIFS_FILE_PATH)
-        expected_job = {
-            "StartTime": START_TIME,
-            "CompletionTime": COMPLETION_TIME,
-            "PercentComplete": 100,
-            "JobType": "LCExport",
-            "ActualRunningStopTime": None,
-            "MessageId": "LC022",
-            "Description": DESCRIPTION,
-            "Message": EXPORT_SUCCESS,
-            "ActualRunningStartTime": None,
-            "JobState": "Completed",
-            "EndTime": None,
-            "MessageArgs": [],
-            "Name": JOB_NAME,
-            "Id": "JID_483171510194",
-            "TargetSettingsURI": None,
-            "Return": "JobCreated",
-            "Job": {
-                "jobId": "JID_483171510194",
-            },
-            "file": CIFS_FILE_PATH,
-            "Status": "Success"
-        }
-        assert result == ('The export lifecycle controller log job is submitted successfully.', expected_job, False)
+        assert result == ('The export lifecycle controller log job is submitted successfully.', EXPECTED_JOB_DATA, False)
 
     def test_export_lc_logs_idrac_9_10_local(self, idrac_mock):
         module_mock = MagicMock()
