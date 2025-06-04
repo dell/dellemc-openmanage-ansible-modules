@@ -339,8 +339,8 @@ class FactoryReset():
     def execute(self):
         msg_res, job_res = None, None
         self.validate_obj.validate_job_timeout()
-        is_idrac9 = self.is_check_idrac_latest()
-        if not is_idrac9 and self.reset_to_default:
+        is_gt_idrac8 = self.is_check_idrac_latest()
+        if not is_gt_idrac8 and self.reset_to_default:
             allowed_values, is_valid_option = self.validate_obj.validate_reset_options(RESET_KEY)
             if self.module.check_mode and not is_valid_option:
                 self.module.exit_json(msg=CHANGES_NOT_FOUND)
@@ -348,8 +348,9 @@ class FactoryReset():
                 self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR_MSG.format(reset_to_default=self.reset_to_default),
                                       skipped=True)
         if self.module.check_mode:
-            self.check_mode_output(is_idrac9)
-        if is_idrac9 and self.reset_to_default and not self.force_reset:
+            is_idrac_9 = is_gt_idrac8 and self.idrac_model_version < 13
+            self.check_mode_output(is_idrac_9)
+        if is_gt_idrac8 and self.reset_to_default and not self.force_reset:
             self.check_lcstatus(post_op=False)
         reset_status_mapping = {key: self.reset_to_default_mapped for key in ['Default', 'All', 'ResetAllWithRootDefaults']}
         reset_status_mapping.update({
@@ -357,12 +358,12 @@ class FactoryReset():
             'None': self.graceful_restart
         })
         msg_res, job_res = reset_status_mapping[str(self.reset_to_default)]()
-        if is_idrac9 and self.wait_for_idrac and self.reset_to_default:
+        if is_gt_idrac8 and self.wait_for_idrac and self.reset_to_default:
             self.check_lcstatus()
         return msg_res, job_res
 
     def check_mode_output(self, is_idrac9):
-        if is_idrac9 and self.reset_to_default == 'CustomDefaults' and (LooseVersion(self.idrac_firmware_version) < MINIMUM_SUPPORTED_FIRMWARE_VERSION and self.idrac_model_version < 13):
+        if is_idrac9 and self.reset_to_default == 'CustomDefaults' and (LooseVersion(self.idrac_firmware_version) < MINIMUM_SUPPORTED_FIRMWARE_VERSION):
             self.module.exit_json(msg=CHANGES_NOT_FOUND)
         if self.reset_to_default:
             allowed_values, is_valid_option = self.validate_obj.validate_reset_options(RESET_KEY)

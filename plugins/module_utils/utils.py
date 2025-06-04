@@ -563,6 +563,7 @@ def get_idrac_firmware_version(idrac):
     firm_version = idrac.invoke_request(method='GET', **data)
     return firm_version.json_data.get('FirmwareVersion', '')
 
+
 def get_idrac_model_version(idrac):
     model_version = idrac.get_server_generation
     model_version = model_version[0]
