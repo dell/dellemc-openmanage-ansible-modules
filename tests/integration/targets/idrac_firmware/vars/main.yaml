@@ -1,3 +1,4 @@
+---
 # catalog path for different iDRAC versions
 old_catalog_location_idrac10: "/firmwares/10_17_catalog_17G"
 new_catalog_location_idrac10: "/firmwares/20_25_Catalog_17G"

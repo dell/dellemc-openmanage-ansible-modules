@@ -1,12 +1,15 @@
 # Test code for the Dell OpenManage modules
 # Copyright (C) 2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   fail:
-    msg: "Please define the following variables: idrac_ip, idrac_user and idrac_password."
-  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+    msg: "Please define the following variables: idrac_ip, idrac_user and
+      idrac_password."
+  when: idrac_ip is not defined or idrac_user is not defined or
+    idrac_password is not defined
 
 - block:
     - ansible.builtin.include_tasks: _get_server_generation.yml
@@ -37,7 +40,8 @@
       ansible.builtin.assert:
         that:
           - not invalid_share_pass.changed
-          - invalid_share_pass.msg == "Unable to complete the operation because the catalog name entered has either unsupported
+          - invalid_share_pass.msg == "Unable to complete the operation
+            because the catalog name entered has either unsupported
             firmware packages or same version installed on the server." or
             invalid_share_pass.msg ==  "Mount of remote share failed."
 
@@ -57,7 +61,8 @@
       ansible.builtin.assert:
         that:
           - not invalid_share_user.changed
-          - invalid_share_user.msg == "Unable to complete the operation because the catalog name entered has either unsupported
+          - invalid_share_user.msg == "Unable to complete the operation
+            because the catalog name entered has either unsupported
             firmware packages or same version installed on the server." or
             invalid_share_user.msg ==  "Mount of remote share failed."
 
@@ -75,7 +80,8 @@
       ansible.builtin.assert:
         that:
           - not invalid_share_mount.changed
-          - invalid_share_mount.msg == "Unable to complete the operation because the catalog name entered has either unsupported
+          - invalid_share_mount.msg == "Unable to complete the operation
+            because the catalog name entered has either unsupported
             firmware packages or same version installed on the server." or
             invalid_share_mount.msg == "Unable to transfer the file
             because the file is not available at the remote host location."
@@ -94,7 +100,8 @@
       ansible.builtin.assert:
         that:
           - not invalid_share_path.changed
-          - invalid_share_path.msg == "Unable to complete the operation because the catalog name entered has either unsupported
+          - invalid_share_path.msg == "Unable to complete the operation
+            because the catalog name entered has either unsupported
             firmware packages or same version installed on the server." or
             invalid_share_path.msg == "Unable to transfer the file
             because the file is not available at the remote host location."
@@ -113,7 +120,8 @@
       ansible.builtin.assert:
         that:
           - not invalid_share_ip.changed
-          - invalid_share_ip.msg == "Unable to complete the operation because the catalog name entered has either unsupported
+          - invalid_share_ip.msg == "Unable to complete the operation because
+            the catalog name entered has either unsupported
             firmware packages or same version installed on the server." or
             invalid_share_ip.msg == "The specified URI is invalid."
 
@@ -132,8 +140,10 @@
       ansible.builtin.assert:
         that:
           - invalid_unreachable.failed
-          - 'invalid_unreachable.msg ==  "Unable to communicate with iDRAC 999.999.999.999. This may be due to one of the following:
-            Incorrect username or password, unreachable iDRAC IP or a failure in TLS/SSL handshake."'
+          - 'invalid_unreachable.msg ==  "Unable to communicate with iDRAC
+            999.999.999.999. This may be due to one of the following:
+            Incorrect username or password, unreachable iDRAC IP or a failure
+            in TLS/SSL handshake."'
 
     - name: Negative - invalid idrac user
       dellemc.openmanage.idrac_firmware:
@@ -150,8 +160,10 @@
       ansible.builtin.assert:
         that:
           - invalid_idrac_user.failed
-          - 'invalid_idrac_user.msg ==  "Unable to communicate with iDRAC {{ idrac_ip }}. This may be due to one of the following:
-            Incorrect username or password, unreachable iDRAC IP or a failure in TLS/SSL handshake."'
+          - 'invalid_idrac_user.msg ==  "Unable to communicate with iDRAC
+            {{ idrac_ip }}. This may be due to one of the following:
+            Incorrect username or password, unreachable iDRAC IP or a failure
+            in TLS/SSL handshake."'
 
     - name: Negative - invalid idrac password
       dellemc.openmanage.idrac_firmware:
@@ -168,8 +180,10 @@
       ansible.builtin.assert:
         that:
           - invalid_idrac_pass.failed
-          - 'invalid_idrac_pass.msg == "Unable to communicate with iDRAC {{ idrac_ip }}. This may be due to one of the following:
-            Incorrect username or password, unreachable iDRAC IP or a failure in TLS/SSL handshake."'
+          - 'invalid_idrac_pass.msg == "Unable to communicate with iDRAC
+            {{ idrac_ip }}. This may be due to one of the following:
+            Incorrect username or password, unreachable iDRAC IP or a failure
+            in TLS/SSL handshake."'
 
     - name: Negative - invalid catalog
       dellemc.openmanage.idrac_firmware:
@@ -209,7 +223,8 @@
         that:
           - invalid_proxy_support.failed
           - not invalid_proxy_support.changed
-          - 'invalid_proxy_support.msg == "value of proxy_support must be one of: Off, ParametersProxy, DefaultProxy, got: invalid"'
+          - 'invalid_proxy_support.msg == "value of proxy_support must be
+            one of: Off, ParametersProxy, DefaultProxy, got: invalid"'
 
     - name: Negative - invalid proxy type
       dellemc.openmanage.idrac_firmware:
@@ -231,7 +246,8 @@
         that:
           - invalid_proxy_type.failed
           - not invalid_proxy_type.changed
-          - 'invalid_proxy_type.msg == "value of proxy_type must be one of: HTTP, SOCKS, got: invalid"'
+          - 'invalid_proxy_type.msg == "value of proxy_type must be one of:
+            HTTP, SOCKS, got: invalid"'
 
     - name: Negative - invalid proxy username
       dellemc.openmanage.idrac_firmware:
@@ -252,7 +268,8 @@
       ansible.builtin.assert:
         that:
           - not invalid_proxy_user.changed
-          - invalid_proxy_user.msg == "Unable to complete the operation because the catalog name entered has either unsupported
+          - invalid_proxy_user.msg == "Unable to complete the operation
+            because the catalog name entered has either unsupported
             firmware packages or same version installed on the server." or
             invalid_proxy_user.msg == "Mount of remote share failed."
 
@@ -275,7 +292,8 @@
       ansible.builtin.assert:
         that:
           - not invalid_proxy_pass.changed
-          - invalid_proxy_pass.msg == "Unable to complete the operation because the catalog name entered has either unsupported
+          - invalid_proxy_pass.msg == "Unable to complete the operation
+            because the catalog name entered has either unsupported
             firmware packages or same version installed on the server." or
             invalid_proxy_pass.msg == "Mount of remote share failed."
 

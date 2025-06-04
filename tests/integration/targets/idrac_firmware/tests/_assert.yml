@@ -30,12 +30,18 @@
 - name: Verify outputs of tasks specific to iDRAC8
   ansible.builtin.assert:
     that:
-      - cm_changes.update_status.job_details.Data.GetRepoBasedUpdateList_OUTPUT.PackageList | length > 0
-      - update_result.update_status.job_details.Data.GetRepoBasedUpdateList_OUTPUT.PackageList | length > 0
-      - applicable_updates_packages.update_status.job_details.Data.GetRepoBasedUpdateList_OUTPUT.PackageList | length > 0
-      - cm_changes.update_status.job_details.Data.GetRepoBasedUpdateList_OUTPUT.PackageList | length ==
-        update_result.update_status.job_details.Data.GetRepoBasedUpdateList_OUTPUT.PackageList | length
+      - cm_changes.update_status.job_details.Data.GetRepoBasedUpdateList_OUTPUT
+        .PackageList | length > 0
+      - update_result.update_status.job_details.Data.GetRepoBasedUpdateList_OUTPUT
+        .PackageList | length > 0
+      - applicable_updates_packages.update_status.job_details.Data.
+        GetRepoBasedUpdateList_OUTPUT.PackageList | length > 0
+      - cm_changes.update_status.job_details.Data.GetRepoBasedUpdateList_OUTPUT
+        .PackageList | length ==
+        update_result.update_status.job_details.Data.GetRepoBasedUpdateList_OUTPUT
+        .PackageList | length
       - cm_no_changes.msg == "No changes found to commit!"
       - idempotence.msg == applicable_updates_no_packages.msg ==
-        "The catalog in the repository specified in the operation has the same firmware versions as currently present on the server."
+        "The catalog in the repository specified in the operation has the same
+        firmware versions as currently present on the server."
   when: generation | int < 14

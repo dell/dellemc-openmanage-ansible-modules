@@ -1,3 +1,4 @@
+---
 - ansible.builtin.include_role: name=prepare_idrac_lifecycle_controller_status
 
 - name: Set catalog location for iDRAC10

@@ -1,18 +1,21 @@
+---
 - block:
     - ansible.builtin.include_tasks: _get_server_generation.yml
 
     - ansible.builtin.include_tasks: _downgrade_helper.yml
 
-    - name: Get applicable Update packages lists from repository through FTP Share (packages expected)
+    - name: Get applicable Update packages lists from repository through FTP
+        Share (packages expected)
       dellemc.openmanage.idrac_firmware: &update_check
         share_name: "ftp://{{ ftp_share_ip_no_auth }}{{ new_catalog_location }}"
         share_user: "{{ ftp_no_auth_username }}"
-        share_password: "Dell" # FTP no auth doesn't authenticate password - this is dummy password
+        share_password: "Dell"
         job_wait: true
         apply_update: false
       register: applicable_updates_packages
 
-    - name: Update firmware from repository through FTP Share (check mode - changes expected)
+    - name: Update firmware from repository through FTP Share (check mode -
+        changes expected)
       dellemc.openmanage.idrac_firmware: &update
         <<: *update_check
         reboot: true
@@ -28,7 +31,8 @@
 
     - ansible.builtin.include_tasks: _post_update_helper.yml
 
-    - name: Update firmware from repository through FTP Share (check mode - no changes expected)
+    - name: Update firmware from repository through FTP Share (check mode -
+        no changes expected)
       dellemc.openmanage.idrac_firmware:
         <<: *update
       check_mode: true
@@ -39,7 +43,8 @@
         <<: *update
       register: idempotence
 
-    - name: Get applicable Update packages lists from repository through FTP Share (No packages expected)
+    - name: Get applicable Update packages lists from repository through FTP
+        Share (No packages expected)
       dellemc.openmanage.idrac_firmware:
         <<: *update_check
       register: applicable_updates_no_packages
