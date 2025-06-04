@@ -95,7 +95,7 @@ class TestExportLcLogs(FakeAnsibleModule):
 
         message = {"Status": "Failed", "JobStatus": "Failed"}
         mocker.patch(MODULE_PATH + EXPORT_LOGS, return_value=message)
-        result = self._run_module_with_fail_json(idrac_default_args)
+        result = self._run_module(idrac_default_args)
         assert result["msg"] == "Unable to export the lifecycle controller logs."
         assert result["failed"] is True
 

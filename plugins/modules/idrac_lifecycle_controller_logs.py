@@ -240,7 +240,9 @@ def main():
                     msg = run_export_lc_logs(idrac, module)
                     if msg.get("Status") in ["Failed", "Failure"] or msg.get("JobStatus") in ["Failed", "Failure"]:
                         msg.pop("file", None)
-                        module.fail_json(msg="Unable to export the lifecycle controller logs.", lc_logs_status=msg)
+                        module.exit_json(
+                            msg="Unable to export the lifecycle controller logs.",
+                            lc_logs_status=msg, failed=True)
                     message = "Successfully exported the lifecycle controller logs."
                     if module.params['job_wait'] is False:
                         message = "The export lifecycle controller log job is submitted successfully."

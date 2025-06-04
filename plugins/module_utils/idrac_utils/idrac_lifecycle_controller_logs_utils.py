@@ -82,15 +82,15 @@ class IDRACLifecycleControllerLogs(object):
         job_dict["file"] = file_path
         job_dict = remove_key(job_dict, regex_pattern=ODATA_PATTERN)
         if job_failed:
-            module.fail_json(
-                msg=job_dict.get("Message"), job_status=job_dict)
+            module.exit_json(
+                msg=job_dict.get("Message"), job_status=job_dict, failed=True)
         if job_dict.get('JobState') == "Completed":
             msg = SUCCESS_MSG
             message_id = job_dict.get("MessageId")
             if message_id == "LC022":
                 changed = False
             else:
-                module.fail_json(msg=job_dict.get("Message"))
+                module.exit_json(msg=job_dict.get("Message"), failed=True)
         elif job_dict.get('JobState') is None:
             msg = SUCCESS_MSG
             changed = False
