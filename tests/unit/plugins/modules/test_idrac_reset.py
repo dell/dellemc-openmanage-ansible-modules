@@ -67,6 +67,7 @@ RESET_ALLOWABLE_KEY = "ResetType@Redfish.AllowableValues"
 VALIDATE_RESET_OPTION_KEY = "Validation.validate_reset_options"
 FILE_PATH = "/root/custom_default_content.xml"
 CHECK_IDRAC_VERSION = "FactoryReset.is_check_idrac_latest"
+GET_IDRAC_MODEL_VERSION = 'get_idrac_model_version'
 EXECUTE_KEY = "FactoryReset.execute"
 HTTP_ERROR_MSG = "http error message"
 RETURN_TYPE = "application/json"
@@ -129,6 +130,7 @@ class TestValidation(FakeAnsibleModule):
         obj.json_data = {'Actions': {}}
         mocker.patch(MODULE_PATH + GET_BASE_URI_KEY, return_value=IDRAC_URI)
         mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, return_value=obj)
+        mocker.patch(MODULE_PATH + GET_IDRAC_MODEL_VERSION, return_value=11)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         idrac_default_args.update({"reset_to_default": 'All'})
         idr_obj = self.module.Validation(
@@ -384,6 +386,7 @@ class TestFactoryReset(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + GET_BASE_URI_KEY, return_value=IDRAC_URI)
         mocker.patch(MODULE_PATH + "Validation.validate_graceful_restart_option", return_value=False)
         mocker.patch(MODULE_PATH + CHECK_IDRAC_VERSION, return_value=False)
+        mocker.patch(MODULE_PATH + GET_IDRAC_MODEL_VERSION, return_value=11)
         idrac_default_args.update({})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
         reset_obj = self.module.FactoryReset(idrac_connection_reset_mock, f_module, allowed_choices=allowed_values)

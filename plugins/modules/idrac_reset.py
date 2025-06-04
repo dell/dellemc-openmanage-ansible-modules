@@ -363,7 +363,7 @@ class FactoryReset():
 
     def check_mode_output(self, is_idrac9):
         if is_idrac9 and self.reset_to_default == 'CustomDefaults' and (LooseVersion(self.idrac_firmware_version) < MINIMUM_SUPPORTED_FIRMWARE_VERSION and self.idrac_model_version < 13):
-            self.module.exit_json(msg="Check")
+            self.module.exit_json(msg=CHANGES_NOT_FOUND)
         if self.reset_to_default:
             allowed_values, is_valid_option = self.validate_obj.validate_reset_options(RESET_KEY)
         else:

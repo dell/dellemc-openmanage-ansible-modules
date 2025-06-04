@@ -15,7 +15,6 @@
         body_format: json
         return_content: true
       when: operation is defined and operation == 'update_settings'
-      no_log: true
 
     - name: Checking current settings
       ansible.builtin.uri:
@@ -25,7 +24,6 @@
       register: current_settings
       when: "operation is defined and operation in ['fetch_settings',
         'update_settings']"
-      no_log: true
 
     - name: Fetch the service tag details from the device
       ansible.builtin.uri:
@@ -54,18 +52,16 @@
 
     - name: Get Server Model
       ansible.builtin.uri:
-        url: "https://{{ IDRAC_IP }}/redfish/v1/Managers\
+        url: "https://{{ idrac_ip }}/redfish/v1/Managers\
           /iDRAC.Embedded.1"
         method: GET
-        user: "{{ IDRAC_USER }}"
-        password: "{{ IDRAC_PASSWORD }}"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
         validate_certs: false
         return_content: true
         status_code: 200
         force_basic_auth: true
       register: idrac_model_response
-      no_log: true
-      ignore_errors: true
 
     - name: Set fact for model
       ansible.builtin.set_fact:
