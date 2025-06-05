@@ -54,6 +54,7 @@ notes:
   - Run this module from a system that has direct access to Dell iDRAC.
   - This module supports both IPv4 and IPv6 address for I(idrac_ip).
   - This module does not support C(check_mode).
+  - No job will be created when exporting data to a local share in iDRAC9 and iDRAC 10.
 """
 
 EXAMPLES = r'''
