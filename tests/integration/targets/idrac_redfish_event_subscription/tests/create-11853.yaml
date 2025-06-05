@@ -89,7 +89,8 @@
       register: result_metric
       when: generation | int >= 17
 
-    - name: Add Redfish metric subscription with event format as Event (Idempotence)
+    - name: Add Redfish metric subscription with event format as Event
+       (Idempotence)
       dellemc.openmanage.redfish_event_subscription:
         <<: *metric1
       register: idempotence_metric
