@@ -26,6 +26,8 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v3
+        with:
+          path: ansible_collections/dellemc/openmanage
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -36,13 +38,25 @@ jobs:
         run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
 
       - name: Build a collection tarball
-        run: ansible-galaxy collection build --output-path "${GITHUB_WORKSPACE}/.cache/collection-tarballs"
+        run: ansible-galaxy collection build --output-path "${GITHUB_WORKSPACE}/.cache/collection-tarballs" "${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanage"
 
       - name: Store migrated collection artifacts
         uses: actions/upload-artifact@v4
         with:
           name: collection
           path: .cache/collection-tarballs
+
+      - name: Install test dependencies
+        run: pip install -r "${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanage/test-requirements.txt"
+  
+      - name: Run Pytest with coverage
+        run: export PYTHONPATH="${GITHUB_WORKSPACE}":$PYTHONPATH && pytest -vvvv --cov="${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanage/" --cov-branch "${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanage/tests/unit" --cov-config=.coveragerc --cov-report=xml:coverage.xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage.xml, 
+          token: ${{ secrets.CODECOV_TOKEN }}
   ansible-lint:
     needs: [build]
     uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@main
