@@ -1,0 +1,77 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: System Lockdown Mode (Negative - invalid local path).
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        share_name: "{{ role_path }}/invalid"
+      ignore_errors: true
+      register: invalid_1
+
+    - name: Export Lifecycle Controller Logs (Negative - invalid share IP)
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        share_name: "999.999.999.999:/share"
+      ignore_errors: true
+      register: invalid_2
+
+    - name: Export Lifecycle Controller Logs
+       (Negative - invalid NFS share path)
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        share_name: "{{ nfs_share_name }}/invalid"
+      ignore_errors: true
+      register: invalid_3
+
+    - name: Export Lifecycle Controller Logs
+       (Negative - invalid CIFS share path)
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        share_name: "{{ cifs_share_name }}/invalid"
+        share_user: "{{ cifs_share_user }}"
+        share_password: "{{ cifs_share_password }}"
+      ignore_errors: true
+      register: invalid_4
+
+    - name: Export Lifecycle Controller Logs
+       (Negative - invalid CIFS share credentials)
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        share_name: "{{ cifs_share_name }}"
+        share_user: "{{ cifs_share_user }}"
+        share_password: "invalid"
+      ignore_errors: true
+      register: invalid_5
+
+    - name: Export Lifecycle Controller Logs (Negative - unreachable host)
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_ip: "999.999.999.999"
+        share_name: "{{ role_path }}/files"
+      ignore_unreachable: true
+      register: invalid_unreachable
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_1.failed
+          - invalid_1.msg == "No such file or directory"
+          - invalid_2.failed
+          - invalid_3.failed
+          - invalid_4.failed
+          - invalid_5.failed
+          - invalid_unreachable.unreachable
+          - invalid_unreachable.msg: "<urlopen error [Errno -2] Name or
+             service not known>"
+
+  module_defaults:
+    dellemc.openmanage.idrac_lifecycle_controller_logs:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
