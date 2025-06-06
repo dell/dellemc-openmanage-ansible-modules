@@ -11,7 +11,8 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
-- ansible.builtin.include_tasks: _get_server_generation.yml
+- name: Get Server generation details
+  ansible.builtin.include_tasks: _get_server_generation.yml
 
 - block:
     - ansible.builtin.include_tasks: _enable_telemetry.yml
@@ -20,6 +21,7 @@
       dellemc.openmanage.redfish_event_subscription:
         destination: "https://192.168.1.10:8188"
         state: absent
+      when: generation | int >= 14
 
     - name: Add Redfish metric subscription
       dellemc.openmanage.redfish_event_subscription: &metric
@@ -27,11 +29,13 @@
         event_type: MetricReport
         event_format_type: MetricReport
       register: result
+      when: generation | int >= 14
 
     - name: Add Redfish metric subscription (Idempotence)
       dellemc.openmanage.redfish_event_subscription:
         <<: *metric
       register: idempotence
+      when: generation | int >= 14
 
     - name: Verify status of tasks for metric reports
       ansible.builtin.assert:
@@ -40,11 +44,13 @@
           - result.msg == "Successfully added the subscription."
           - not idempotence.changed
           - idempotence.msg == "No changes found to be applied."
+      when: generation | int >= 14
 
     - name: Delete Redfish subscription with a specified destination
       dellemc.openmanage.redfish_event_subscription:
         destination: "https://server01.example.co:8188"
         state: absent
+      when: generation | int >= 14
 
     - name: Add Redfish alert subscription
       dellemc.openmanage.redfish_event_subscription: &alert
@@ -52,11 +58,13 @@
         event_type: Alert
         event_format_type: Event
       register: result
+      when: generation | int >= 14
 
     - name: Add Redfish alert subscription (Idempotence)
       dellemc.openmanage.redfish_event_subscription:
         <<: *alert
       register: idempotence
+      when: generation | int >= 14
 
     - name: Verify status of tasks for alert subscription
       assert:
@@ -65,8 +73,38 @@
           - result.msg == "Successfully added the subscription."
           - not idempotence.changed
           - idempotence.msg == "No changes found to be applied."
+      when: generation | int >= 14
 
-  when: generation | int >= 14
+    - name: Delete Redfish subscription with a specified destination
+      dellemc.openmanage.redfish_event_subscription:
+        destination: "https://192.168.1.10:8188"
+        state: absent
+      when: generation | int >= 17
+
+    - name: Add Redfish metric subscription with event format as Event
+      dellemc.openmanage.redfish_event_subscription: &metric1
+        destination: "https://192.168.1.10:8188"
+        event_type: MetricReport
+        event_format_type: Event
+      register: result_metric
+      when: generation | int >= 17
+
+    - name: Add Redfish metric subscription with event format as Event
+       (Idempotence)
+      dellemc.openmanage.redfish_event_subscription:
+        <<: *metric1
+      register: idempotence_metric
+      when: generation | int >= 17
+
+    - name: Verify status of tasks for metric reports
+      ansible.builtin.assert:
+        that:
+          - result_metric.changed
+          - result_metric.msg == "Successfully added the subscription."
+          - not idempotence_metric.changed
+          - idempotence_metric.msg == "No changes found to be applied."
+      when: generation | int >= 17
+
   always:
     - name: Delete Redfish subscription with a specified destination
       dellemc.openmanage.redfish_event_subscription:
