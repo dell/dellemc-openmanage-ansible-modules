@@ -332,6 +332,7 @@ odata = '@odata.id'
 OPERATION_NOT_SUPPORTED = "{op} is not supported on this firmware version of iDRAC."
 SECURE_BOOT_NOT_FOUND = "Secure Boot operations are not supported on this iDRAC."
 NO_KEY_FOUND = "The entered {secure_boot_key} is not supported on this host."
+LEGACY_BIOS_UNSUPPORTED_MSG = "boot mode and Force int are not supported for 17G and later."
 FAILED_RESET_KEYS = "Failed to complete the Reset Certificates operation using {reset_key_op}. Retry the operation."
 MESSAGE_EXTENDED_INFO = "@Message.ExtendedInfo"
 NO_SECURE_BOOT_SUCCESS = "Unable to update the iDRAC Secure Boot settings because the entered parameter is not supported."
@@ -802,7 +803,7 @@ class IDRACAttributes(IDRACSecureBoot):
             # Legacy BIOS boot mode and Force int 10 are not supported from 17G onwards
             # boot mode is a readonly attribute and Force int 10 is not an attribute in 17G
             if self.boot_mode is not None or self.force_int_10 is not None:
-                self.module.exit_json(msg="boot mode and Force int are not supported for 17G and later.", failed=True, changed=False)
+                self.module.exit_json(msg=LEGACY_BIOS_UNSUPPORTED_MSG, failed=True, changed=False)
         self.get_current_attributes()
         self.attributes_config()
 
