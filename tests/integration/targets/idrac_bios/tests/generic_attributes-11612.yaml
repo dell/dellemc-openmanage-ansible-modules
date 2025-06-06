@@ -33,8 +33,8 @@
         method: POST
         body:
           {
-            "TargetSettingsURI": "/redfish/v1/Systems/System.Embedded.1/Bios/
-              Settings",
+            "TargetSettingsURI": "/redfish/v1/Systems/System.Embedded.1/Bios\
+              /Settings",
             "RebootJobType": "ForceReboot",
           }
         uri_trigger: 1
@@ -61,8 +61,8 @@
         method: POST
         body:
           {
-            "TargetSettingsURI": "/redfish/v1/Systems/System.Embedded.1/Bios/
-              Settings",
+            "TargetSettingsURI": "/redfish/v1/Systems/System.Embedded.1/Bios\
+              /Settings",
             "RebootJobType": "ForceReboot",
           }
         uri_trigger: 1
@@ -91,8 +91,8 @@
         method: POST
         body:
           {
-            "TargetSettingsURI": "/redfish/v1/Systems/System.Embedded.1/Bios/
-              Settings",
+            "TargetSettingsURI": "/redfish/v1/Systems/System.Embedded.1/Bios\
+              /Settings",
             "RebootJobType": "ForceReboot",
           }
         uri_trigger: 1
@@ -119,8 +119,8 @@
         method: POST
         body:
           {
-            "TargetSettingsURI": "/redfish/v1/Systems/System.Embedded.1/Bios/
-             Settings",
+            "TargetSettingsURI": "/redfish/v1/Systems/System.Embedded.1/Bios\
+              /Settings",
             "RebootJobType": "ForceReboot",
           }
         uri_trigger: 1
