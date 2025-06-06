@@ -444,11 +444,8 @@ class TestIdracRedfishRest(object):
             obj.json_data = RESP_10
         return obj
 
-    def test_get_server_generation(self, mocker, module_params):
+    def test_get_server_generation(self, idrac_redfish_object, mocker):
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      self.mock_get_dynamic_idrac_invoke_request)
-        req_session = False
-        module_params.update({'x_auth_token': 'token_id'})
-        with iDRACRedfishAPI(module_params, req_session) as obj:
-            response = obj.get_server_generation
-        assert response == (17, '1.20.30', 'iDRAC 10')
+        result = idrac_redfish_object.get_server_generation
+        assert result == (17, '1.20.30', 'iDRAC 10')
