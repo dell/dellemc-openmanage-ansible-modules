@@ -2,12 +2,11 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell OpenManage Ansible Modules
-# Version 9.12.1
+# Dell OpenManage Ansible Module
+# Version 9.12.2
 # Copyright (C) 2018-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-#
 
 
 from __future__ import (absolute_import, division, print_function)
@@ -48,12 +47,14 @@ requirements:
 author:
   - "Rajeev Arakkal (@rajeevarakkal)"
   - "Anooja Vardhineni (@anooja-vardhineni)"
+  - "Trisha Datta (@trisha-dell)"
 notes:
   - This module requires 'Administrator' privilege for I(idrac_user).
   - Exporting data to a local share is supported only on iDRAC9-based PowerEdge Servers and later.
   - Run this module from a system that has direct access to Dell iDRAC.
   - This module supports both IPv4 and IPv6 address for I(idrac_ip).
   - This module does not support C(check_mode).
+  - No job will be created when exporting data to a local share in iDRAC9 and iDRAC 10.
 """
 
 EXAMPLES = r'''
@@ -137,15 +138,26 @@ error_info:
 import socket
 import json
 import copy
+import datetime
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (get_logger)
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
+    idrac_lifecycle_controller_logs_utils import IDRACLifecycleControllerLogs
 try:
     from omsdk.sdkfile import file_share_manager
     from omsdk.sdkcreds import UserCredentials
 except ImportError:
     pass
+LOG = get_logger(module_name='idrac_lifecycle_controller_logs')
+EXPORT_LC_LOGS = '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions/DellLCService.ExportLCLog'
+SUCCESS_MSG = "Successfully exported the lifecycle controller logs."
+SCHEDULE_MSG = "The export lifecycle controller log job is submitted successfully."
+NO_CHANGES_FOUND_MSG = "No changes found to be applied."
+CHANGES_FOUND_MSG = "Changes found to be applied."
 
 
 def get_user_credentials(module):
@@ -186,12 +198,21 @@ def run_export_lc_logs(idrac, module):
                                                       isFolder=True)
     data = socket.getaddrinfo(module.params["idrac_ip"], module.params["idrac_port"])
     if "AF_INET6" == data[0][0]._name_:
-        ip = copy.deepcopy(module.params["idrac_ip"])
-        lclog_file_name_format = "{ip}_%Y%m%d_%H%M%S_LC_Log.log".format(ip=ip.replace(":", ".").replace("..", "."))
+        lclog_file_name_format = get_file_name(module)
     lc_log_file = myshare.new_file(lclog_file_name_format)
     job_wait = module.params['job_wait']
     msg = idrac.log_mgr.lclog_export(lc_log_file, job_wait)
     return msg
+
+
+def get_file_name(module):
+    file_name = None
+    ip = copy.deepcopy(module.params["idrac_ip"])
+    file_format = "{ip}_%Y%m%d_%H%M%S_LC_Log.log".format(ip=ip.replace(":", ".").replace("..", "."))
+    current_date = datetime.datetime.now()
+    current_date_str = current_date.strftime("%Y%m%d_%H%M%S")
+    file_name = file_format.replace("%Y%m%d_%H%M%S", current_date_str)
+    return file_name
 
 
 # Main()
@@ -208,22 +229,32 @@ def main():
         supports_check_mode=False)
 
     try:
-        with iDRACConnection(module.params) as idrac:
-            msg = run_export_lc_logs(idrac, module)
-            if msg.get("Status") in ["Failed", "Failure"] or msg.get("JobStatus") in ["Failed", "Failure"]:
-                msg.pop("file", None)
-                module.fail_json(msg="Unable to export the lifecycle controller logs.", lc_logs_status=msg)
-            message = "Successfully exported the lifecycle controller logs."
-            if module.params['job_wait'] is False:
-                message = "The export lifecycle controller log job is submitted successfully."
-            module.exit_json(msg=message, lc_logs_status=msg)
+        with iDRACRedfishAPI(module.params) as idrac:
+            server_det = idrac.get_server_generation
+            server_hw_model = server_det[2]
+            if server_hw_model != "iDRAC 8":
+                lifecycle_controller_logs_obj = IDRACLifecycleControllerLogs(idrac)
+                msg, job_dict, changed = lifecycle_controller_logs_obj.lifecycle_controller_logs_operation(idrac, module)
+                module.exit_json(msg=msg, lc_logs_status=job_dict, changed=changed)
+            else:
+                with iDRACConnection(module.params) as idrac:
+                    msg = run_export_lc_logs(idrac, module)
+                    if msg.get("Status") in ["Failed", "Failure"] or msg.get("JobStatus") in ["Failed", "Failure"]:
+                        msg.pop("file", None)
+                        module.exit_json(
+                            msg="Unable to export the lifecycle controller logs.",
+                            lc_logs_status=msg, failed=True)
+                    message = "Successfully exported the lifecycle controller logs."
+                    if module.params['job_wait'] is False:
+                        message = "The export lifecycle controller log job is submitted successfully."
+                    module.exit_json(msg=message, lc_logs_status=msg)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (RuntimeError, SSLValidationError, ConnectionError, KeyError,
             ImportError, ValueError, TypeError) as e:
-        module.fail_json(msg=str(e))
+        module.exit_json(msg=str(e), failed=True)
 
 
 if __name__ == '__main__':

@@ -67,7 +67,7 @@ class TestIDRACCpuInfo(object):
 
     @pytest.fixture
     def idrac_redfish_object(self, module_params):
-        iDRACRedfishAPI.get_server_generation = [14]
+        iDRACRedfishAPI.get_server_generation = [17, '1.20.30', 'iDRAC 10']
         idrac_redfish_obj = iDRACRedfishAPI(module_params)
         return idrac_redfish_obj
 
@@ -79,7 +79,7 @@ class TestIDRACCpuInfo(object):
         return obj
 
     def test_get_cpu_system_info(self, mocker, module_params):
-        iDRACRedfishAPI.get_server_generation = [14]
+        iDRACRedfishAPI.get_server_generation = (17, '1.20.30', 'iDRAC 10')
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      self.mock_get_dynamic_idrac_invoke_request)
         idrac_obj = iDRACRedfishAPI(module_params=module_params)
