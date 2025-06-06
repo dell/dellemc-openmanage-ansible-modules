@@ -110,19 +110,19 @@
       register: idrac_model_response
 
     - name: Extract model from idrac_model_response
-      set_fact:
+      ansible.builtin.set_fact:
         model_raw: "{{ idrac_model_response.json.Model }}"
 
     - name: Search for the Hardware model number in the model string
-      set_fact:
+      ansible.builtin.set_fact:
         model_search: "{{ model_raw | regex_search('([0-9]+)G', '\\1') }}"
 
     - name: Extract the Hardware model number
-      set_fact:
+      ansible.builtin.set_fact:
         hw_model: "{{ model_search | first }}"
 
     - name: Check if less than 17G
-      set_fact:
+      ansible.builtin.set_fact:
         less_than_17G: "{{ hw_model | int < 17 }}"
 
     - block:
