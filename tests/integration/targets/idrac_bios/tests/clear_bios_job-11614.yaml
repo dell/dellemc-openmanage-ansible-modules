@@ -1,7 +1,7 @@
 # Test code for the Dell OpenManage modules
 # Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or 
+# GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
@@ -36,7 +36,7 @@
       assert:
         that:
           - change_bios_setting.changed
-          - change_bios_setting.status_msg == "Successfully committed changes. 
+          - change_bios_setting.status_msg == "Successfully committed changes.
             The job is in pending state. The changes will be applied OnReset"
 
     - pause: seconds=10
@@ -79,7 +79,7 @@
       assert:
         that:
           - clear_jobs_results.changed
-          - clear_jobs_results.status_msg == "Successfully cleared the pending 
+          - clear_jobs_results.status_msg == "Successfully cleared the pending
             BIOS attributes."
 
     # verify scheduled job is cleared from idrac using api

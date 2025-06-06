@@ -1,14 +1,14 @@
 # Test code for the Dell OpenManage modules
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or 
+# GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   fail:
-    msg: "Please define the following variables: idrac_ip, idrac_user 
+    msg: "Please define the following variables: idrac_ip, idrac_user
      and idrac_password."
-  when: idrac_ip is not defined or idrac_user is not defined or 
+  when: idrac_ip is not defined or idrac_user is not defined or
    idrac_password is not defined
 
 - block:
@@ -137,7 +137,7 @@
         current_bootseq_retry: "{{uri_data.json.Attributes.BootSeqRetry}}"
 
     - set_fact:
-        set_bootseq_retry: "{{'Disabled' if 
+        set_bootseq_retry: "{{'Disabled' if
          (current_bootseq_retry == 'Enabled') else 'Enabled'}}"
 
     - name: Configure generic attributes -Change. (nfs share-Normal)
@@ -152,7 +152,7 @@
     - include_role: name=prepare_idrac_lifecycle_controller_status
 
     - set_fact:
-        set_bootseq_retry: "{{'Disabled' if 
+        set_bootseq_retry: "{{'Disabled' if
          (set_bootseq_retry == 'Enabled') else 'Enabled'}}"
 
     - name: Configure generic attributes (nfs_share) (check mode - change expected)
@@ -201,12 +201,12 @@
       assert:
         that:
           - result_nfs.changed
-          - result_nfs.status_msg == "Successfully applied the BIOS 
+          - result_nfs.status_msg == "Successfully applied the BIOS
             attributes update."
           - cm_result_nfs.changed
           - cm_result_nfs.status_msg == "Changes found to be applied."
           - result_local.changed
-          - result_local.status_msg == "Successfully applied the BIOS 
+          - result_local.status_msg == "Successfully applied the BIOS
             attributes update."
           - not idempotence.changed
           - idempotence.status_msg == "No changes found to be applied."
