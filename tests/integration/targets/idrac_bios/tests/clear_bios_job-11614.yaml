@@ -1,19 +1,23 @@
 # Test code for the Dell OpenManage modules
 # Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
+# GNU General Public License v3.0+ (see COPYING or 
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   fail:
-    msg: "Please define the following variables: idrac_ip, idrac_user and idrac_password."
-  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+    msg: "Please define the following variables: idrac_ip,
+     idrac_user and idrac_password."
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
 
 - include_tasks: _get_server_generation.yml
 
 - block:
     - include_tasks: get_data.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/System.Embedded.1/Bios
+        url: https://{{idrac_ip}}:{{idrac_port}}
+         /redfish/v1/Systems/System.Embedded.1/Bios
 
     - set_fact:
         current_boot_mode: "{{uri_data.json.Attributes.BootMode}}"
@@ -32,7 +36,8 @@
       assert:
         that:
           - change_bios_setting.changed
-          - change_bios_setting.status_msg == "Successfully committed changes. The job is in pending state. The changes will be applied OnReset"
+          - change_bios_setting.status_msg == "Successfully committed changes. 
+            The job is in pending state. The changes will be applied OnReset"
 
     - pause: seconds=10
       when: change_bios_setting.changed
@@ -43,7 +48,8 @@
 
     - include_tasks: get_data.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{job_id}}
+        url: https://{{idrac_ip}}:{{idrac_port}}
+         /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{job_id}}
 
     # verify job is scheduled using idrac api
     - name: Verify scheduled job details using idrac api
@@ -73,12 +79,14 @@
       assert:
         that:
           - clear_jobs_results.changed
-          - clear_jobs_results.status_msg == "Successfully cleared the pending BIOS attributes."
+          - clear_jobs_results.status_msg == "Successfully cleared the pending 
+            BIOS attributes."
 
     # verify scheduled job is cleared from idrac using api
     - name: Get Job Details
       uri:
-        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{job_id}}
+        url: https://{{idrac_ip}}:{{idrac_port}}
+         /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{job_id}}
         user: "{{idrac_user}}"
         password: "{{idrac_password}}"
         method: GET

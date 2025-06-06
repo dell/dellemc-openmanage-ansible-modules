@@ -1,21 +1,27 @@
 # Test code for the Dell OpenManage modules
 # Copyright (C) 2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
+# GNU General Public License v3.0+ (see COPYING or 
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   fail:
-    msg: "Please define the following variables: idrac_ip, idrac_user and idrac_password."
-  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+    msg: "Please define the following variables: idrac_ip, idrac_user 
+     and idrac_password."
+  when: idrac_ip is not defined or idrac_user is not defined or 
+   idrac_password is not defined
 
 - block:
     - include_tasks: _get_server_generation.yml
 
     - set_fact:
-        lc_logs_url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries?$filter=MessageId%20eq%20'UEFI0157'"
+        lc_logs_url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers\
+         /iDRAC.Embedded.1/LogServices/Lclog\
+         /Entries?$filter=MessageId%20eq%20'UEFI0157'"
 
     - set_fact:
-        lc_logs_url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1/Logs/Lclog?$filter=MessageId%20eq%20'UEFI0157'"
+        lc_logs_url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers\
+         /iDRAC.Embedded.1/Logs/Lclog?$filter=MessageId%20eq%20'UEFI0157'"
       when: generation | int < 14
 
     - include_tasks: get_data.yml
@@ -36,7 +42,8 @@
       register: result
       check_mode: true
 
-    - name: Verify task status - Reset BIOS with "reset_type = force_restart" (Check mode)
+    - name: Verify task status - Reset BIOS with "reset_type = force_restart"
+       (Check mode)
       assert:
         that:
           - result.changed
@@ -62,12 +69,15 @@
           {% endfor %}
           {{ new_LC_log }}
 
-    - name: Verify task status - Reset BIOS with "reset_type = force_restart" (Normal mode)
+    - name: Verify task status - Reset BIOS with "reset_type = force_restart" 
+       (Normal mode)
       assert:
         that:
           - result.changed
-          - result.status_msg == "BIOS reset to defaults has been completed successfully."
-          - new_LC_log[0].Message == "The iDRAC request to reset BIOS to default settings is successfully completed."
+          - result.status_msg == "BIOS reset to defaults has been completed
+            successfully."
+          - new_LC_log[0].Message == "The iDRAC request to reset BIOS to 
+            default settings is successfully completed."
           - new_LC_log[0].Id not in old_msg_ids
 
     - ansible.builtin.wait_for: timeout=120
@@ -90,7 +100,8 @@
       register: result
       check_mode: true
 
-    - name: Verify task status - Reset BIOS with "reset_type = graceful_restart" (Check mode)
+    - name: Verify task status - Reset BIOS with "reset_type = 
+       graceful_restart" (Check mode)
       assert:
         that:
           - result.changed
@@ -116,12 +127,15 @@
           {% endfor %}
           {{ new_LC_log }}
 
-    - name: Verify task status - Reset BIOS with "reset_type = graceful_restart" (Normal mode)
+    - name: Verify task status - Reset BIOS with "reset_type = 
+       graceful_restart" (Normal mode)
       assert:
         that:
           - result.changed
-          - result.status_msg == "BIOS reset to defaults has been completed successfully."
-          - new_LC_log[0].Message == "The iDRAC request to reset BIOS to default settings is successfully completed."
+          - result.status_msg == "BIOS reset to defaults has been completed 
+            successfully."
+          - new_LC_log[0].Message == "The iDRAC request to reset BIOS to 
+            default settings is successfully completed."
           - new_LC_log[0].Id not in old_msg_ids
 
   module_defaults:

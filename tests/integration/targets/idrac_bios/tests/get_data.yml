@@ -1,3 +1,4 @@
+---
 - name: Get uri data
   uri:
     url: "{{url}}"
