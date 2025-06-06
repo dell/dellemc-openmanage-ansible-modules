@@ -11,6 +11,9 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
+- name: Get Server generation details
+  ansible.builtin.include_tasks: _get_server_generation.yml
+
 - block:
     - name: Negative - unreachable host
       dellemc.openmanage.redfish_event_subscription:
@@ -62,7 +65,8 @@
       register: invalid_validate_certs
       ignore_errors: true
 
-    - ansible.builtin.set_fact:
+    - name: Set fact for invalid_validate_certs msg
+      ansible.builtin.set_fact:
         invalid_validate_certs_expected_msg: "argument 'validate_certs' is
          of type <class 'str'> and we were unable to convert to bool: The
          value 'invalid' is not a valid boolean.  Valid booleans include: "
@@ -89,6 +93,7 @@
         event_format_type: Event
       ignore_errors: true
       register: invalid_combination
+      when: generation | int < 17
 
     - name: Negative - invalid event format type
       dellemc.openmanage.redfish_event_subscription:
@@ -110,10 +115,13 @@
       ansible.builtin.assert:
         that:
           - invalid_dest.failed
-          - invalid_combination.failed
           - invalid_event_format_type.failed
           - invalid_event_type.failed
           - invalid_unreachable.unreachable
+          - ((generation | int >= 17 and (invalid_combination.skipped |
+             default(false))) or
+            (generation | int < 17 and (invalid_combination.failed |
+             default(false))))
 
   module_defaults:
     dellemc.openmanage.redfish_event_subscription:
