@@ -4,6 +4,7 @@
 
     - name: Get System Inevntory.
       idrac_system_info:
+        idrac_ip: "{{idrac_ip}}"
       register: result
 
     - name: Get Server Generation

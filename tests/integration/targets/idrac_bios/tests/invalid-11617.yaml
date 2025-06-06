@@ -14,6 +14,7 @@
 - block:
     - name: Perform idrac bios operation without required parameter
       idrac_bios:
+        idrac_ip: "{{idrac_ip}}"
       ignore_errors: true
       register: no_required_param
 

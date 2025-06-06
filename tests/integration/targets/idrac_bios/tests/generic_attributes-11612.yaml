@@ -155,7 +155,8 @@
         set_bootseq_retry: "{{'Disabled' if
          (set_bootseq_retry == 'Enabled') else 'Enabled'}}"
 
-    - name: Configure generic attributes (nfs_share) (check mode - change expected)
+    - name: Configure generic attributes (nfs_share) (check mode - change
+       expected)
       idrac_bios:
         <<: *configure_generic_attributes
         attributes:
@@ -174,7 +175,8 @@
 
     - include_role: name=prepare_idrac_lifecycle_controller_status
 
-    - name: Configure generic attributes (cifs_share) (Check-mode - no changes found to commit)
+    - name: Configure generic attributes (cifs_share) (Check-mode -
+       no changes found to commit)
       idrac_bios:
         <<: *configure_generic_attributes
         share_name: "{{cifs_share_name}}"
