@@ -50,7 +50,7 @@ jobs:
         run: pip install -r "${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanage/test-requirements.txt"
   
       - name: Run Pytest with coverage
-        run: export PYTHONPATH="${GITHUB_WORKSPACE}":$PYTHONPATH && pytest -vvvv --cov="${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanage/" --cov-branch "${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanage/tests/unit" --cov-config=.coveragerc --cov-report=xml:coverage.xml
+        run: export PYTHONPATH="${GITHUB_WORKSPACE}":$PYTHONPATH && pytest -vvvv --cov="${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanage/plugins/" --cov-branch "${GITHUB_WORKSPACE}/ansible_collections/dellemc/openmanage/tests/unit" --cov-config=.coveragerc --cov-report=xml:coverage.xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
