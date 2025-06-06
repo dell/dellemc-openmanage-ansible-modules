@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.7.0
+# Version 9.12.2
 # Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -33,7 +33,7 @@ options:
     type: str
     choices: [Uefi, Bios]
     description:
-      - Boot mode of the iDRAC. Not supported for iDRAC 10 (17G) and above.
+      - Boot mode of the iDRAC. Not supported for 17G iDRAC10 and later.
       - C(Uefi) enables the secure boot in UEFI mode.
       - C(Bios) enables the secure boot in BIOS mode.
   secure_boot:
@@ -72,7 +72,7 @@ options:
     description:
       - Determines whether the system BIOS loads the legacy video (INT 10h) option ROM from the video controller.
       - This parameter is supported only in UEFI boot mode. If UEFI Secure Boot mode is enabled, you cannot enable this parameter.
-      - This parameter is not supported for iDRAC 10 (17G) and above.
+      - This parameter is not supported for 17G iDRAC10 and later.
       - C(Disabled) if the operating system supports UEFI video output standards.
       - C(Enabled) if the operating system does not support UEFI video output standards.
   export_certificates:
@@ -155,6 +155,7 @@ requirements:
 author:
     - "Abhishek Sinha(@ABHISHEK-SINHA10)"
     - "Lovepreet Singh (@singh-lovepreet1)"
+    - "Rounak Adhikary (@rounak-adhikary)"
 attributes:
     check_mode:
         description: Runs task to validate without performing action on the target machine.
@@ -801,7 +802,7 @@ class IDRACAttributes(IDRACSecureBoot):
             # Legacy BIOS boot mode and Force int 10 are not supported from 17G onwards
             # boot mode is a readonly attribute and Force int 10 is not an attribute in 17G
             if self.boot_mode is not None or self.force_int_10 is not None:
-                self.module.exit_json(msg="boot mode and Force int 10 are not supported from 17G onwards", failed=True, changed=False)
+                self.module.exit_json(msg="boot mode and Force int are not supported for 17G and later.", failed=True, changed=False)
         self.get_current_attributes()
         self.attributes_config()
 

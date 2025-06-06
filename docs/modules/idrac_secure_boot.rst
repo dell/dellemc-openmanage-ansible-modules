@@ -38,7 +38,7 @@ Parameters
 ----------
 
   boot_mode (optional, str, None)
-    Boot mode of the iDRAC. Not supported for iDRAC 10 (17G) and above.
+    Boot mode of the iDRAC. Not supported for 17G iDRAC10 and later.
 
     :literal:`Uefi` enables the secure boot in UEFI mode.
 
@@ -80,7 +80,7 @@ Parameters
 
     This parameter is supported only in UEFI boot mode. If UEFI Secure Boot mode is enabled, you cannot enable this parameter.
 
-    This parameter is not supported for iDRAC 10 (17G) and above.
+    This parameter is not supported for 17G iDRAC10 and later.
 
     :literal:`Disabled` if the operating system supports UEFI video output standards.
 
@@ -348,4 +348,5 @@ Authors
 
 - Abhishek Sinha(@ABHISHEK-SINHA10)
 - Lovepreet Singh (@singh-lovepreet1)
+- Rounak Adhikary (@rounak-adhikary)
 
