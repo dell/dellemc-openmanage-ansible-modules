@@ -1,0 +1,127 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg:
+      'Please define the following variables: idrac_ip,
+      idrac_user and idrac_password.'
+  when:
+    idrac_ip is not defined or idrac_user is not defined
+    or idrac_password is not defined
+
+- name: Prepare file name
+  ansible.builtin.set_fact:
+    path1: "{{ exported_diagnostics_local_path }}/{{ idrac_ip }}"
+    path2: "_api_diagnostics.txt"
+
+- name: Local export validate
+  vars:
+    local_filename: "test_local_diagnostics.txt"
+    api_exported_filename: "{{ path1 }}{{ path2 }}"
+
+  block:
+    - name: Delete file if existing
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - "{{ exported_diagnostics_local_path }}/{{ local_filename }}"
+        - "{{ api_exported_filename }}"
+
+    - name: Ensure the diagnostics is present
+      ansible.builtin.include_tasks: _ensure_run.yml
+
+    - name: CheckMode - Export diagnostics to local
+      dellemc.openmanage.idrac_diagnostics:
+        export: true
+        run: false
+        share_parameters:
+          file_name: "{{ local_filename }}"
+          share_name: "{{ exported_diagnostics_local_path }}"
+          share_type: local
+      register: local_export_check
+      check_mode: true
+
+    - name: CheckMode - Verify
+      ansible.builtin.assert:
+        that:
+          - local_export_check.changed
+          - local_export_check.msg == "Changes found to be applied."
+
+    - name: Get current time
+      ansible.builtin.set_fact:
+        current_local_time: "{{ now() }}"
+
+    - name: Export diagnostics to local without filename
+      dellemc.openmanage.idrac_diagnostics:
+        export: true
+        run: false
+        share_parameters:
+          share_name: "{{ exported_diagnostics_local_path }}"
+          share_type: local
+      register: local_export_no_filename
+
+    - name: Module - Verify diagnostics was exported successfully
+      ansible.builtin.assert:
+        that:
+          - local_export_no_filename.changed
+          - local_export_no_filename.msg ==
+            "Successfully exported the diagnostics."
+          - "'diagnostics_file_path' in local_export_no_filename"
+          - "{{ local_export_no_filename.diagnostics_file_path.startswith(
+            ('/' + exported_diagnostics_local_path.strip('/') + '/'
+            + (((idrac_ip | ansible.utils.ipv6form('expand')) if (
+            idrac_ip | ansible.utils.ipv6) else idrac_ip).replace(
+            ':', '.')) + '_')) }}"
+
+    - name: Get time from file name
+      ansible.builtin.set_fact:
+        diagnostics_file_time:
+          "{{ ((local_export_no_filename.diagnostics_file_path | basename
+          | splitext | first | split('_'))[-2:] | join('')) | to_datetime(
+          '%Y%m%d%H%M%S') }}"
+
+    - name: Assert dynamic filename time
+      ansible.builtin.assert:
+        that:
+          - current_local_time < diagnostics_file_time
+
+    - name: Export diagnostics to local
+      dellemc.openmanage.idrac_diagnostics:
+        export: true
+        run: false
+        share_parameters:
+          file_name: "{{ local_filename }}"
+          share_name: "{{ exported_diagnostics_local_path }}"
+          share_type: local
+      register: local_export
+
+    - name: Module - Verify diagnostics was exported successfully
+      ansible.builtin.assert:
+        that:
+          - local_export.changed
+          - local_export.msg == "Successfully exported the diagnostics."
+          - "'diagnostics_file_path' in local_export"
+          - "{{ local_export.diagnostics_file_path == (
+            exported_diagnostics_local_path + '/' + local_filename) }}"
+
+    - name: Compare the local files
+      ansible.builtin.include_tasks: _verify_diag_file.yml
+      vars:
+        api_file: "{{ api_exported_filename }}"
+        module_file:
+          "{{ exported_diagnostics_local_path }}/{{ local_filename }}"
+
+  always:
+    - name: Delete files after use
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - "{{ exported_diagnostics_local_path }}/{{ local_filename }}"
+        - "{{ api_exported_filename }}"
+        - "{{ local_export_no_filename.diagnostics_file_path }}"

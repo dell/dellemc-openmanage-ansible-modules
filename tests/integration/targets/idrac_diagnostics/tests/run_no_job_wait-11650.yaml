@@ -1,0 +1,44 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+
+# Ansible - idrac_diagnostics - [Check Mode][Idempotency] Validate run
+# and export of diagnostics job to local path with run_mode as long_run
+# and reboot_type as force and job_wait as false
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg:
+      'Please define the following variables: idrac_ip,
+      idrac_user and idrac_password.'
+  when:
+    idrac_ip is not defined or idrac_user is not defined
+    or idrac_password is not defined
+
+- name: Run with job wait false
+  ansible.builtin.include_tasks: _run_no_wait.yml
+  vars:
+    diag_run_mode: "{{ item[0] }}"
+    diag_reboot_type: "{{ item[1][0] }}"
+    reboot_job_type: "{{ item[1][1] }}"
+  loop: "{{ ['long_run'] | product([['force', 'RebootForce']])  | list }}"
+
+- name: Negative - export when file diagnostics file does not exist
+  dellemc.openmanage.idrac_diagnostics:
+    run: false
+    export: true
+    share_parameters:
+      file_name: "test_nfs_diagnostics.txt"
+      share_name: "{{ exported_diagnostics_local_path }}"
+      share_type: local
+  register: export_no_diag
+  ignore_errors: true
+
+- name: Assert - Negative - export when file diagnostics file does not exist
+  ansible.builtin.assert:
+    that:
+      - export_no_diag.skipped
+      - not export_no_diag.changed
+      - export_no_diag.msg == "The diagnostics file does not exist."

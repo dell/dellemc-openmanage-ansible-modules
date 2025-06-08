@@ -1,0 +1,48 @@
+---
+- block:
+    - name: Prepare URLs
+      ansible.builtin.set_fact:
+        url1: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
+        url2: "/redfish/v1/Managers/iDRAC.Embedded.1"
+
+    - name: Get iDRAC time using uri
+      ansible.builtin.uri:
+        url: "{{ url1 }}{{ url2 }}"
+        method: GET
+        body: {}
+        status_code: 200
+      register: fetched_data
+
+    - name: Extract iDRAC Date, Time and Offset
+      ansible.builtin.set_fact:
+        idrac_datetime_with_offset: "{{ fetched_data.json.DateTime }}"
+
+    - name: Set offset
+      ansible.builtin.set_fact:
+        offset: "{{ fetched_data.json.DateTimeLocalOffset }}"
+
+    - name: Set Date and Time
+      ansible.builtin.set_fact:
+        current_idrac_datetime_without_offset:
+          "{{ idrac_datetime_with_offset.split(offset)[0] }}"
+
+    - name: Frame date and time
+      ansible.builtin.command:
+        "date +'%Y%m%d%H%M%S' -d '{{ current_idrac_datetime_without_offset }}
+        {{ add_minutes }} minutes'"
+      register: result_1
+      when: add_minutes is defined
+
+    - name: Set updated date and time for start
+      ansible.builtin.set_fact:
+        updated_datetime_for_start: "{{ result_1.stdout }}"
+
+    - name: Frame date and time
+      ansible.builtin.command:
+        "date +'%Y%m%d%H%M%S' -d '{{ current_idrac_datetime_without_offset }}
+        {{ add_minutes + 10 }} minutes'"
+      register: result_2
+
+    - name: Set updated date and time for end
+      ansible.builtin.set_fact:
+        updated_datetime_for_end: "{{ result_2.stdout }}"

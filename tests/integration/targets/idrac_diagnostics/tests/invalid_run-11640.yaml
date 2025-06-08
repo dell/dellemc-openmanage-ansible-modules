@@ -1,0 +1,167 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg:
+      'Please define the following variables: idrac_ip,
+      idrac_user and idrac_password.'
+  when:
+    idrac_ip is not defined or idrac_user is not defined
+    or idrac_password is not defined
+
+- block:
+
+    - name: Negative - Invalid value for run
+      dellemc.openmanage.idrac_diagnostics:
+        run: invalid
+      register: invalid_value_for_run
+      ignore_errors: true
+
+    - name: Set fact - invalid value for run - expected message
+      ansible.builtin.set_fact:
+        invalid_value_for_run_expected_msg:
+          "argument 'run' is of type <class 'str'> and we were unable to
+          convert to bool: The value 'invalid' is
+          not a valid boolean.  Valid booleans include: "
+
+    - name: Verify task status - Negative - Invalid value for run
+      ansible.builtin.assert:
+        that:
+          - invalid_value_for_run.failed
+          - not invalid_value_for_run.changed
+          - invalid_value_for_run_expected_msg in invalid_value_for_run.msg
+
+    - name: Negative - Invalid value for run_mode
+      dellemc.openmanage.idrac_diagnostics:
+        run: true
+        run_mode: invalid
+      register: invalid_value_for_run_mode
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Invalid value for run_mode
+      ansible.builtin.assert:
+        that:
+          - invalid_value_for_run_mode.failed
+          - not invalid_value_for_run_mode.changed
+          - 'invalid_value_for_run_mode.msg ==
+            "value of run_mode must be one of: express, extended,
+            long_run, got: invalid"'
+
+    - name: Negative - Invalid value for reboot_type
+      dellemc.openmanage.idrac_diagnostics:
+        run: true
+        reboot_type: invalid
+      register: invalid_value_for_reboot_type
+      ignore_errors: true
+
+    - name: Verify task status - Negative - Invalid value for reboot_type
+      ansible.builtin.assert:
+        that:
+          - invalid_value_for_reboot_type.failed
+          - not invalid_value_for_reboot_type.changed
+          - 'invalid_value_for_reboot_type.msg ==
+            "value of reboot_type must be one of: force, graceful,
+            power_cycle, got: invalid"'
+
+    - name: Negative - Invalid value for scheduled_start_time
+      dellemc.openmanage.idrac_diagnostics:
+        run: true
+        reboot_type: power_cycle
+        scheduled_start_time: 2000
+      register: invalid_value_for_scheduled_start_time
+      ignore_errors: true
+
+    - name:
+        Verify task status - Negative - Invalid value for scheduled_start_time
+      ansible.builtin.assert:
+        that:
+          - invalid_value_for_scheduled_start_time.failed
+          - not invalid_value_for_scheduled_start_time.changed
+          - 'invalid_value_for_scheduled_start_time.msg ==
+            "The specified date and time `2000` to schedule the diagnostics
+            is not valid. Enter a valid date and time."'
+
+    - name: Negative - Invalid value for scheduled_end_time
+      dellemc.openmanage.idrac_diagnostics:
+        run: true
+        reboot_type: power_cycle
+        scheduled_end_time: 2000T25061987
+      register: invalid_value_for_scheduled_end_time
+      ignore_errors: true
+
+    - name:
+        Verify task status - Negative - Invalid value for scheduled_end_time
+      ansible.builtin.assert:
+        that:
+          - invalid_value_for_scheduled_end_time.failed
+          - not invalid_value_for_scheduled_end_time.changed
+          - 'invalid_value_for_scheduled_end_time.msg ==
+            "The specified date and time `2000T25061987` to schedule the
+            diagnostics is not valid. Enter a valid date and time."'
+
+    - name: Negative - Invalid type for job_wait
+      dellemc.openmanage.idrac_diagnostics:
+        run: true
+        job_wait: invalid
+      register: invalid_type_for_job_wait
+      ignore_errors: true
+
+    - name: Set fact - invalid type for job_wait - expected message
+      ansible.builtin.set_fact:
+        invalid_type_for_job_wait_expected_msg:
+          "argument 'job_wait' is of type <class 'str'> and we were unable
+          to convert to bool: The value 'invalid' is
+          not a valid boolean.  Valid booleans include: "
+
+    - name: Verify task status - Negative - Invalid type for job_wait
+      ansible.builtin.assert:
+        that:
+          - invalid_type_for_job_wait.failed
+          - not invalid_type_for_job_wait.changed
+          - invalid_type_for_job_wait_expected_msg in
+            invalid_type_for_job_wait.msg
+
+    - name: Negative - Invalid type for job_wait_timeout
+      dellemc.openmanage.idrac_diagnostics:
+        run: true
+        job_wait_timeout: invalid
+      register: invalid_type_for_job_wait_timeout
+      ignore_errors: true
+
+    - name: setting fact for invalid argument message
+      ansible.builtin.set_fact:
+        msg_var1: "argument 'job_wait_timeout' is of type <class 'str'>
+          and we were unable to convert to int: <class 'str'>
+          cannot be converted to an int"
+        msg_var2: "argument 'job_wait_timeout' is of type <class 'str'>
+         and we were unable to convert to int: \"'invalid'\"
+         cannot be converted to an int"
+
+    - name: Verify task status - Negative - Invalid type for job_wait_timeout
+      ansible.builtin.assert:
+        that:
+          - invalid_type_for_job_wait_timeout.failed
+          - not invalid_type_for_job_wait_timeout.changed
+          - invalid_type_for_job_wait_timeout.msg ==
+            msg_var1 or invalid_type_for_job_wait_timeout.msg == msg_var2
+
+    - name: Negative - Invalid value for job_wait_timeout
+      dellemc.openmanage.idrac_diagnostics:
+        run: true
+        job_wait_timeout: -1
+      register: invalid_value_for_job_wait_timeout
+      ignore_errors: true
+
+    - name:
+        Verify task status - Negative - Invalid value for job_wait_timeout
+      ansible.builtin.assert:
+        that:
+          - invalid_value_for_job_wait_timeout.failed
+          - not invalid_value_for_job_wait_timeout.changed
+          - 'invalid_value_for_job_wait_timeout.msg ==
+            "The parameter `job_wait_timeout` value cannot be
+            negative or zero."'
