@@ -342,7 +342,6 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
             file_path=FILE_PATH_1)
         assert result == (MODULE_SUCCESS, local_job_details, False)
 
-
     def test_get_lc_logs_uri(self, idrac_mock, mocker):
         logs_info = IDRACLifecycleControllerLogs(idrac_mock)
         response_1 = [{'@odata.id': '/redfish/v1/Managers/iDRAC.Embedded.1'}]
