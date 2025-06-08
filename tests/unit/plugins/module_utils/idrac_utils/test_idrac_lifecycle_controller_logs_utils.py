@@ -108,7 +108,7 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
             obj.json_data = {
                 "Actions": {
                     "#DellLCService.ExportLCLog": {
-                       "target": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions/DellLCService.ExportLCLog"
+                        "target": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions/DellLCService.ExportLCLog"
                     }
                 }
             }

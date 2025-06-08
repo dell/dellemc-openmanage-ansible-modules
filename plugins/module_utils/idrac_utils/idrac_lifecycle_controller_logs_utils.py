@@ -147,12 +147,12 @@ class IDRACLifecycleControllerLogs(object):
         managers_details = get_dynamic_uri(
             self.idrac, MANAGER_URI, search_label='Members')
         if len(managers_details) > 0:
-            manager_uri=  managers_details[0].get("@odata.id", "")
+            manager_uri = managers_details[0].get("@odata.id", "")
             manager_data = idrac.invoke_request(method='GET', uri=manager_uri).json_data
             lc_service_uri = manager_data.get("Links", {}).get("Oem", {}).get("Dell", {}).get("DellLCService", {}).get("@odata.id", "")
             lc_service_data = idrac.invoke_request(method='GET', uri=lc_service_uri).json_data
             lc_logs_uri = lc_service_data.get("Actions", {}).get("#DellLCService.ExportLCLog", {}).get("target", "")
-            return  lc_logs_uri
+            return lc_logs_uri
 
     def export_lc_logs_idrac_9_10(self, idrac, module, share_name, share_type, file_name, ip_address, file_path):
         changed = False

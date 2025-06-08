@@ -91,10 +91,10 @@ class TestIDRACCpuInfo(object):
     @pytest.fixture
     def idrac_redfish_object(self, module_params):
         iDRACRedfishAPI._get_session_resource_collection = MagicMock(
-            return_value = {
-            "SESSION": "/redfish/v1/SessionService/Sessions",
-            "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
-        }
+            return_value={
+                "SESSION": "/redfish/v1/SessionService/Sessions",
+                "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
+            }
         )
         idrac_redfish_obj = iDRACRedfishAPI(module_params)
         return idrac_redfish_obj

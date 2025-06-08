@@ -80,10 +80,10 @@ class TestIDRACCpuInfo(object):
 
     def test_get_cpu_system_info(self, mocker, module_params):
         iDRACRedfishAPI._get_session_resource_collection = MagicMock(
-            return_value = {
-            "SESSION": "/redfish/v1/SessionService/Sessions",
-            "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
-        }
+            return_value={
+                "SESSION": "/redfish/v1/SessionService/Sessions",
+                "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
+            }
         )
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      self.mock_get_dynamic_idrac_invoke_request)
