@@ -1,0 +1,188 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg:
+      'Please define the following variables: idrac_ip,
+      idrac_user and idrac_password.'
+  when:
+    idrac_ip is not defined or idrac_user is not defined
+    or idrac_password is not defined
+
+- name: Prerequisite - Get updated iDRAC date and time
+  ansible.builtin.include_tasks: _get_updated_idrac_date_time.yml
+  vars:
+    add_minutes: 3
+
+- name:
+    Set prerequisite - Run diagnostics with run_mode as extended, reboot_type
+    as power_cycle and with job_wait as false
+  dellemc.openmanage.idrac_diagnostics:
+    run: true
+    run_mode: extended
+    reboot_type: power_cycle
+    scheduled_start_time: "{{ updated_datetime_for_start }}"
+    job_wait: false
+  register: result_prerequisite
+
+- block:
+    - name:
+        Task to verify check mode behaviour for run when diagnostics
+        job is in scheduled state
+      dellemc.openmanage.idrac_diagnostics: &run_diagnostics_schedule
+        run: true
+        run_mode: express
+        reboot_type: force
+        job_wait: true
+      register: cm_result_diagnostics_scheduled
+      check_mode: true
+
+    - name:
+        Verify task status - Task to verify check mode behaviour
+        for run when diagnostics job is in scheduled state
+      ansible.builtin.assert:
+        that:
+          - cm_result_diagnostics_scheduled.skipped
+          - 'cm_result_diagnostics_scheduled.msg ==
+            "The diagnostics job is already present."'
+
+    - name:
+        Task to verify normal mode behaviour for run when
+        diagnostics job is in scheduled state
+      dellemc.openmanage.idrac_diagnostics:
+        <<: *run_diagnostics_schedule
+      register: result_diagnostics_scheduled
+
+    - name:
+        Verify task status - Task to verify normal mode behaviour
+        for run when diagnostics job is in scheduled state
+      ansible.builtin.assert:
+        that:
+          - result_diagnostics_scheduled.skipped
+          - 'result_diagnostics_scheduled.msg ==
+            "The diagnostics job is already present."'
+
+    - name:
+        Task to verify check mode behaviour for export when
+        diagnostics job is in scheduled state
+      dellemc.openmanage.idrac_diagnostics: &export_diagnostics_schedule
+        export: true
+        share_parameters:
+          share_type: local
+          share_name: /tmp
+      register: cm_result_export_diagnostics_scheduled
+      check_mode: true
+
+    - name:
+        Verify task status - Task to verify check mode behaviour for
+        export when diagnostics job is in scheduled state
+      ansible.builtin.assert:
+        that:
+          - cm_result_export_diagnostics_scheduled.skipped
+          - 'cm_result_export_diagnostics_scheduled.msg ==
+            "The diagnostics file does not exist."'
+
+    - name:
+        Task to verify normal mode behaviour for export
+        when diagnostics job is in scheduled state
+      dellemc.openmanage.idrac_diagnostics:
+        <<: *export_diagnostics_schedule
+      register: result_export_diagnostics_scheduled
+
+    - name:
+        Verify task status - Task to verify normal mode behaviour
+        for export when diagnostics job is in scheduled state
+      ansible.builtin.assert:
+        that:
+          - result_export_diagnostics_scheduled.skipped
+          - 'result_export_diagnostics_scheduled.msg ==
+            "The diagnostics file does not exist."'
+
+    - name: Pause for 10 minutes
+      ansible.builtin.pause:
+        minutes: 10
+
+    - name:
+        Task to verify check mode behaviour when
+        diagnostics job is in running state
+      dellemc.openmanage.idrac_diagnostics: &run_diagnostics_running
+        run: true
+        run_mode: express
+        reboot_type: force
+        job_wait: true
+      register: cm_result_diagnostics_running
+      check_mode: true
+
+    - name:
+        Verify task status - Task to verify check mode behaviour
+        when diagnostics job is in running state
+      ansible.builtin.assert:
+        that:
+          - cm_result_diagnostics_running.skipped
+          - 'cm_result_diagnostics_running.msg ==
+            "The diagnostics job is already present."'
+
+    - name:
+        Task to verify normal mode behaviour when diagnostics
+        job is in running state
+      dellemc.openmanage.idrac_diagnostics:
+        <<: *run_diagnostics_running
+      register: result_diagnostics_running
+
+    - name:
+        Verify task status - Task to verify normal mode behaviour
+        when diagnostics job is in running state
+      ansible.builtin.assert:
+        that:
+          - result_diagnostics_running.skipped
+          - 'result_diagnostics_running.msg ==
+            "The diagnostics job is already present."'
+
+    - name:
+        Task to verify check mode behaviour for
+        export when diagnostics job is in running state
+      dellemc.openmanage.idrac_diagnostics: &export_diagnostics_running
+        export: true
+        share_parameters:
+          share_type: local
+          share_name: /tmp
+      register: cm_result_export_diagnostics_running
+      check_mode: true
+
+    - name:
+        Verify task status - Task to verify check mode behaviour for
+        export when diagnostics job is in running state
+      ansible.builtin.assert:
+        that:
+          - cm_result_export_diagnostics_running.skipped
+          - 'cm_result_export_diagnostics_running.msg ==
+            "The diagnostics file does not exist."'
+
+    - name:
+        Task to verify normal mode behaviour for export when
+        diagnostics job is in running state
+      dellemc.openmanage.idrac_diagnostics:
+        <<: *export_diagnostics_running
+      register: result_export_diagnostics_running
+
+    - name:
+        Verify task status - Task to verify normal mode behaviour for
+        export when diagnostics job is in running state
+      ansible.builtin.assert:
+        that:
+          - result_export_diagnostics_running.skipped
+          - 'result_export_diagnostics_running.msg ==
+            "The diagnostics file does not exist."'
+
+    - name:
+        Post clean up - Track the diagnostics job for completion
+      ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{ result_prerequisite.job_details.Id }}"
+      when:
+        'result_prerequisite.msg ==
+        "Successfully triggered the job to run diagnostics."'
