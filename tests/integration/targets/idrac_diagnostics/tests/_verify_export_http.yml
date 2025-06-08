@@ -1,0 +1,207 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg:
+      'Please define the following variables: idrac_ip,
+      idrac_user and idrac_password.'
+  when:
+    idrac_ip is not defined or idrac_user is not defined
+    or idrac_password is not defined
+
+- name: Prepare file name
+  ansible.builtin.set_fact:
+    path1: "{{ exported_diagnostics_local_path }}/{{ idrac_ip }}"
+    path2: "_api_diagnostics.txt"
+
+- name: HTTP export validate
+  vars:
+    local_filename: "test_http_diagnostics.txt"
+    api_exported_filename: "{{ path1 }}{{ path2 }}"
+    diag_pause_time: 5
+  block:
+    - name: Delete file if existing
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - "{{ exported_diagnostics_local_path }}/{{ local_filename }}"
+        - "{{ api_exported_filename }}"
+
+    - name: Ensure the diagnostics is present
+      ansible.builtin.include_tasks: _ensure_run.yml
+
+    - name: Pause
+      ansible.builtin.pause:
+        seconds: "{{ diag_pause_time | default(5) }}"
+
+    - name: CheckMode - Export diagnostics to http
+      dellemc.openmanage.idrac_diagnostics:
+        export: true
+        run: false
+        share_parameters:
+          file_name: "{{ local_filename }}"
+          ip_address: "{{ diag_http_share_ip }}"
+          share_name: "{{ diag_http_share_dir_path }}"
+          username: "{{ diag_http_share_user | default(omit) }}"
+          password: "{{ diag_http_share_password | default(omit) }}"
+          share_type: "{{ diag_share_type }}"
+          ignore_certificate_warning: "on"
+          proxy_support: "{{ diag_http_proxy_support }}"
+          proxy_server: "{{ diag_http_proxy_server | default(omit) }}"
+          proxy_port: "{{ diag_http_proxy_port | default(omit) }}"
+          proxy_username: "{{ diag_http_proxy_username | default(omit) }}"
+          proxy_password: "{{ diag_http_proxy_password | default(omit) }}"
+          proxy_type: "{{ diag_http_proxy_type | default(omit) }}"
+      register: http_export_check
+      check_mode: true
+
+    - name: CheckMode - Verify
+      ansible.builtin.assert:
+        that:
+          - http_export_check.changed
+          - http_export_check.msg == "Changes found to be applied."
+
+    - name: Get current time
+      ansible.builtin.set_fact:
+        current_local_time: "{{ now() }}"
+
+    - name: Pause
+      ansible.builtin.pause:
+        seconds: "{{ diag_pause_time | default(5) }}"
+
+    - name: Export diagnostics to http without filename
+      dellemc.openmanage.idrac_diagnostics:
+        export: true
+        run: false
+        share_parameters:
+          ip_address: "{{ diag_http_share_ip }}"
+          share_name: "{{ diag_http_share_dir_path }}"
+          username: "{{ diag_http_share_user | default(omit) }}"
+          password: "{{ diag_http_share_password | default(omit) }}"
+          share_type: "{{ diag_share_type }}"
+          ignore_certificate_warning: "on"
+          proxy_support: "{{ diag_http_proxy_support }}"
+          proxy_server: "{{ diag_http_proxy_server | default(omit) }}"
+          proxy_port: "{{ diag_http_proxy_port | default(omit) }}"
+          proxy_username: "{{ diag_http_proxy_username | default(omit) }}"
+          proxy_password: "{{ diag_http_proxy_password | default(omit) }}"
+          proxy_type: "{{ diag_http_proxy_type | default(omit) }}"
+      register: http_export_no_filename
+
+    # TODO: delete the http file
+
+    - name:
+        Module - Verify diagnostics without filename was exported successfully
+      ansible.builtin.assert:
+        that:
+          - http_export_no_filename.changed
+          - 'http_export_no_filename.msg ==
+            "Successfully exported the diagnostics."'
+          - "'diagnostics_file_path' in http_export_no_filename"
+          - "{{ http_export_no_filename.diagnostics_file_path.startswith(
+            (diag_share_type + '://' + (diag_http_share_ip |
+            ansible.utils.ipwrap) + '/' + diag_http_share_dir_path.strip('/')
+            + '/' + (((idrac_ip | ansible.utils.ipv6form('expand')) if (
+            idrac_ip | ansible.utils.ipv6) else idrac_ip).replace(
+            ':', '.')) + '_')) }}"
+
+    - name: Get time from file name
+      ansible.builtin.set_fact:
+        diagnostics_file_time:
+          "{{ ((http_export_no_filename.diagnostics_file_path | basename
+          | splitext | first | split('_'))[-2:] | join(''))
+          | to_datetime('%Y%m%d%H%M%S') }}"
+
+    - name: Assert dynamic filename time
+      ansible.builtin.assert:
+        that:
+          - current_local_time < diagnostics_file_time
+
+    - name: Pause
+      ansible.builtin.pause:
+        seconds: "{{ diag_pause_time | default(5) }}"
+
+    - name: Export diagnostics to http
+      dellemc.openmanage.idrac_diagnostics:
+        export: true
+        run: false
+        share_parameters:
+          file_name: "{{ local_filename }}"
+          ip_address: "{{ diag_http_share_ip }}"
+          share_name: "{{ diag_http_share_dir_path }}"
+          username: "{{ diag_http_share_user | default(omit) }}"
+          password: "{{ diag_http_share_password | default(omit) }}"
+          share_type: "{{ diag_share_type }}"
+          ignore_certificate_warning: "on"
+          proxy_support: "{{ diag_http_proxy_support }}"
+          proxy_server: "{{ diag_http_proxy_server | default(omit) }}"
+          proxy_port: "{{ diag_http_proxy_port | default(omit) }}"
+          proxy_username: "{{ diag_http_proxy_username | default(omit) }}"
+          proxy_password: "{{ diag_http_proxy_password | default(omit) }}"
+          proxy_type: "{{ diag_http_proxy_type | default(omit) }}"
+      register: http_export
+
+    - name: Module - Verify diagnostics was exported successfully
+      ansible.builtin.assert:
+        that:
+          - http_export.changed
+          - http_export.msg == "Successfully exported the diagnostics."
+          - "'diagnostics_file_path' in http_export"
+          - "{{ http_export.diagnostics_file_path == (diag_share_type +
+            '://' + (diag_http_share_ip | ansible.utils.ipwrap) + '/' +
+            diag_http_share_dir_path.strip('/') + '/' + local_filename ) }}"
+
+    - name: Set fact
+      ansible.builtin.set_fact:
+        share_dest_path:
+          "{{ exported_diagnostics_local_path }}/{{ local_filename }}"
+
+    - name: Set fact
+      ansible.builtin.set_fact:
+        curl_cmd: "curl -v --insecure --ntlm -u %s:%s -o %s %s"
+        curl_https_url: "{{ http_export_no_filename.diagnostics_file_path }}"
+
+    - name: Downloading certificate file
+      register: http_dnld_curl_cmd_out
+      no_log: false
+      changed_when: http_dnld_curl_cmd_out.rc == 0
+      failed_when: http_dnld_curl_cmd_out.rc != 0
+      ansible.builtin.command: >
+          {{ curl_cmd | format(diag_http_share_user, diag_http_share_password,
+          share_dest_path, curl_https_url) }}
+      check_mode: false
+
+    - name: Compare the local files
+      ansible.builtin.include_tasks: _verify_diag_file.yml
+      vars:
+        api_file: "{{ api_exported_filename }}"
+        module_file:
+          "{{ exported_diagnostics_local_path }}/{{ local_filename }}"
+
+  always:
+    - name: Delete files after use
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - "{{ exported_diagnostics_local_path }}/{{ local_filename }}"
+        - "{{ api_exported_filename }}"
+
+    - name: Delete the diagnostics file
+      ansible.builtin.shell:
+        sshpass -p {{ http_share_password }} ssh administrator@{{ http_share }} "powershell -Command Remove-Item -Path 'E:\httpshare\test_http_diagnostics.txt'"
+      no_log: true
+
+    - name: Get and set the dynamic file name
+      ansible.builtin.set_fact:
+        no_file_name: "{{ http_export_no_filename.diagnostics_file_path.split('/')[-1] }}"
+
+    - name: Delete the diagnostics file without filename
+      ansible.builtin.shell:
+        sshpass -p {{ http_share_password }} ssh administrator@{{ http_share }} "powershell -Command Remove-Item -Path 'E:\httpshare\{{ no_file_name }}'"
+      no_log: true
