@@ -1,0 +1,72 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Run with job wait true
+  vars:
+    diag_run_mode: "express"
+    diag_reboot_type: "graceful"
+    diag_share_params:
+      file_name: "test_nfs_diagnostics.txt"
+      ip_address: "{{ nfs_share_ip }}"
+      share_name: "{{ nfs_share_dir_path }}"
+      share_type: nfs
+  block:
+    - name: Set the NFS IP and directory path
+      ansible.builtin.set_fact:
+        nfs_share_ip: "{{ nfs_share_name.split(':')[0] }}"
+        nfs_share_dir_path: "{{ nfs_share_name.split(':')[1] }}"
+
+    - name: Check mode - Run diagnostics with job_wait true
+      dellemc.openmanage.idrac_diagnostics:
+        run: true
+        export: true
+        job_wait: true
+        run_mode: "{{ diag_run_mode }}"
+        reboot_type: "{{ diag_reboot_type }}"
+        share_parameters: "{{ diag_share_params }}"
+      check_mode: true
+      register: run_export_wait_check
+
+    - name: CheckMode - Verify
+      ansible.builtin.assert:
+        that:
+          - run_export_wait_check.changed
+          - run_export_wait_check.msg == "Changes found to be applied."
+
+    - name: Delete file if existing
+      ansible.builtin.file:
+        path: "{{ nfs_share_mnt }}/test_nfs_diagnostics.txt"
+        state: absent
+      ignore_errors: true
+
+    - name: Run diagnostics with job_wait true
+      dellemc.openmanage.idrac_diagnostics:
+        run: true
+        export: true
+        job_wait: true
+        run_mode: "{{ diag_run_mode }}"
+        reboot_type: "{{ diag_reboot_type }}"
+        share_parameters: "{{ diag_share_params }}"
+      register: run_export_wait
+
+    - name: Module - Verify export job details
+      ansible.builtin.assert:
+        that:
+          - run_export_wait.changed
+          - "'job_details' in run_export_wait"
+          - run_export_wait.msg ==
+            "Successfully ran and exported the diagnostics."
+          - "run_export_wait.job_details.JobType == 'ExportToolResults'"
+          - "run_export_wait.job_details.JobState == 'Completed'"
+          - "'diagnostics_file_path' in run_export_wait"
+
+  always:
+    - name: Delete files after use
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - "{{ nfs_share_mnt }}/test_nfs_diagnostics.txt"

@@ -98,6 +98,7 @@ Notes
    - Run this module from a system that has direct access to Dell iDRAC.
    - This module supports both IPv4 and IPv6 address for \ :emphasis:`idrac\_ip`\ .
    - This module does not support \ :literal:`check\_mode`\ .
+   - No job will be created when exporting data to a local share in iDRAC9 and iDRAC 10.
 
 
 

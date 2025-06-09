@@ -1,0 +1,26 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Convert line endings to Unix style
+  ansible.builtin.replace:
+    path: "{{ item }}"
+    regexp: "\r"
+  with_items:
+    - "{{ api_file }}"
+    - "{{ module_file }}"
+
+- name: Compare file content
+  ansible.builtin.copy:
+    src: "{{ api_file }}"
+    dest: "{{ module_file }}"
+  check_mode: true
+  diff: true
+  delegate_to: localhost
+  register: diff_local
+
+- name: Check difference
+  ansible.builtin.assert:
+    that: not diff_local.changed

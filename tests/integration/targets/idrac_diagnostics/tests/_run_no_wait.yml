@@ -1,0 +1,115 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Run with job wait false
+  vars:
+    retries_count: 60
+    poll_interval: 10
+    diag_share_params:
+      file_name: "test_local_diagnostics.txt"
+      share_name: "{{ exported_diagnostics_local_path }}"
+      share_type: local
+  block:
+    - name: Check mode - Run diagnostics to local with job_wait false
+      dellemc.openmanage.idrac_diagnostics:
+        run: true
+        export: false
+        job_wait: false
+        run_mode: "{{ diag_run_mode }}"
+        reboot_type: "{{ diag_reboot_type }}"
+      register: run_no_wait_check
+      check_mode: true
+
+    - name: CheckMode - Verify
+      ansible.builtin.assert:
+        that:
+          - run_no_wait_check.changed
+          - run_no_wait_check.msg == "Changes found to be applied."
+
+    - name: Get idrac time
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+         /redfish/v1/Managers/iDRAC.Embedded.1"
+        status_code:
+          - 200
+      register: idrac_time
+      no_log: true
+
+    - name: Get the list of job ids
+      ansible.builtin.set_fact:
+        idrac_current_time: "{{ idrac_time.json.DateTime[:-6] }}"
+
+    - name: Run diagnostics to local with job_wait false
+      dellemc.openmanage.idrac_diagnostics:
+        run: true
+        export: true
+        job_wait: false
+        share_parameters: "{{ diag_share_params }}"
+        run_mode: "{{ diag_run_mode }}"
+        reboot_type: "{{ diag_reboot_type }}"
+      register: run_no_wait
+
+    - name: Module - Verify diagnostics job was triggered
+      ansible.builtin.assert:
+        that:
+          - run_no_wait.changed
+          - "'job_details' in run_no_wait"
+          - run_no_wait.msg ==
+            "Successfully triggered the job to run diagnostics."
+
+    - name: Prepare URLs
+      ansible.builtin.set_fact:
+        url1: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
+        url2: "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs"
+        url3: "/{{ run_no_wait.job_details.Id }}"
+        url4: "?$expand=*($levels=1)"
+
+    - name: Delete the diagnostics job
+      ansible.builtin.uri:
+        url: "{{ url1 }}{{ url2 }}{{ url3 }}"
+        method: DELETE
+        status_code:
+          - 200
+      register: delete_diag_job
+      ignore_errors: true
+
+    - name: Get jobs list
+      ansible.builtin.uri:
+        url: "{{ url1 }}{{ url2 }}{{ url4 }}"
+        status_code:
+          - 200
+      register: all_job_list
+      no_log: true
+
+    - name: Get the list of job ids
+      ansible.builtin.set_fact:
+        new_jobs:
+          "{{ all_job_list.json.Members | selectattr(
+          'StartTime', 'gt', idrac_current_time)
+          | selectattr('Id', 'search', '^RID_') | list }}"
+
+    - name: Verify reboot job
+      ansible.builtin.assert:
+        that:
+          - new_jobs | length > 0
+          - "{{ (new_jobs | first).JobType == reboot_job_type }}"
+
+    - name: Job tracking iDRAC
+      ansible.builtin.uri:
+        url:
+          "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+          /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{ (
+          new_jobs | first).Id }}"
+        method: "GET"
+        status_code: 200, 202
+      register: result
+      until:
+        result.json.JobState in ['RebootCompleted', 'Failed'] or
+        result.json.PercentComplete == 100
+      retries: "{{ retries_count | default(30) }}"
+      delay: "{{ polling_interval | default(10) }}"
+      delegate_to: localhost
+      no_log: true

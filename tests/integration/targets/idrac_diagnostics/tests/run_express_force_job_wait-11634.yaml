@@ -1,0 +1,147 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg:
+      'Please define the following variables: idrac_ip,
+      idrac_user and idrac_password.'
+  when:
+    idrac_ip is not defined or idrac_user is not defined
+    or idrac_password is not defined
+
+- block:
+    - name:
+        Run diagnostics with run_mode as express, reboot_type as force
+        and with job_wait as true (Check mode - Changes expected)
+      dellemc.openmanage.idrac_diagnostics: &run_diagnostics_job_wait_true
+        run: true
+        run_mode: express
+        reboot_type: force
+        job_wait: true
+      register: cm_result_diagnostics
+      check_mode: true
+
+    - name:
+        Verify task status - Run diagnostics with run_mode as express,
+        reboot_type as force and with job_wait as true
+        (Check mode - Changes expected)
+      ansible.builtin.assert:
+        that:
+          - cm_result_diagnostics.changed
+          - 'cm_result_diagnostics.msg == "Changes found to be applied."'
+
+    - name:
+        Run diagnostics with run_mode as express, reboot_type as force and
+        with job_wait as true (Normal mode)
+      dellemc.openmanage.idrac_diagnostics:
+        <<: *run_diagnostics_job_wait_true
+      register: result_diagnostics
+
+    - name: Get job id
+      ansible.builtin.include_tasks: _get_job_details.yml
+      vars:
+        job_id: "{{ result_diagnostics.job_details.Id }}"
+
+    - name: Set job details
+      ansible.builtin.set_fact:
+        module_job_status: "{{ result_diagnostics.job_details }}"
+
+    - name: Assert - Verify Job details
+      ansible.builtin.include_tasks: _assert_job_status.yml
+
+    - name:
+        Verify task status - Run diagnostics with run_mode as express,
+        reboot_type as force and with job_wait as true (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - result_diagnostics.changed
+          - 'result_diagnostics.msg ==
+            "Successfully ran the diagnostics operation."'
+
+    - name:
+        Verify iDRAC job status - Run diagnostics with run_mode as express,
+        reboot_type as force and with job_wait as true (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - uri_job_status.JobState == "Completed"
+          - uri_job_status.JobType == "RemoteDiagnostics"
+
+    - name:
+        Run diagnostics with run_mode as express, reboot_type as force
+        and with job_wait as false (Check mode - Changes expected)
+      dellemc.openmanage.idrac_diagnostics: &run_diagnostics_job_wait_false
+        run: true
+        run_mode: express
+        reboot_type: force
+        job_wait: false
+      register: cm_result_diagnostics_job_wait_false
+      check_mode: true
+
+    - name:
+        Verify task status - Run diagnostics with run_mode as express,
+        reboot_type as force and with job_wait as false
+        (Check mode - Changes expected)
+      ansible.builtin.assert:
+        that:
+          - cm_result_diagnostics_job_wait_false.changed
+          - 'cm_result_diagnostics_job_wait_false.msg ==
+            "Changes found to be applied."'
+
+    - name:
+        Run diagnostics with run_mode as express, reboot_type as force
+        and with job_wait as false (Normal mode)
+      dellemc.openmanage.idrac_diagnostics:
+        <<: *run_diagnostics_job_wait_false
+      register: result_diagnostics_job_wait_false
+
+    - name: Get job id
+      ansible.builtin.include_tasks: _get_job_details.yml
+      vars:
+        job_id: "{{ result_diagnostics_job_wait_false.job_details.Id }}"
+
+    - name:
+        Verify task status - Run diagnostics with run_mode as express,
+        reboot_type as force and with job_wait as false (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - result_diagnostics_job_wait_false.changed
+          - result_diagnostics_job_wait_false.msg ==
+            "Successfully triggered the job to run diagnostics."
+
+    - name:
+        Verify iDRAC job status - Run diagnostics with run_mode as express,
+        reboot_type as force and with job_wait as false (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - uri_job_status.JobState == "Scheduled" or "Running"
+          - uri_job_status.JobType == "RemoteDiagnostics"
+
+    - name: Track the job
+      ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{ result_diagnostics_job_wait_false.job_details.Id }}"
+      when:
+        'result_diagnostics_job_wait_false.msg ==
+        "Successfully triggered the job to run diagnostics."'
+
+    - name: Pause for 2 minutes
+      ansible.builtin.pause:
+        minutes: 2
+
+    - name: Get job details
+      ansible.builtin.include_tasks: _get_job_details.yml
+      vars:
+        job_id: "{{ result_diagnostics_job_wait_false.job_details.Id }}"
+
+    - name:
+        "Verify iDRAC job status post job completion - Run diagnostics with
+        run_mode as express, reboot_type as force and with job_wait as
+        false (Normal mode)"
+      ansible.builtin.assert:
+        that:
+          - uri_job_status.JobState == "Completed"
+          - uri_job_status.JobType == "RemoteDiagnostics"

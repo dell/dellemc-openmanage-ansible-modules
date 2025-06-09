@@ -1,0 +1,147 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg:
+      'Please define the following variables: idrac_ip,
+      idrac_user and idrac_password.'
+  when:
+    idrac_ip is not defined or idrac_user is not defined
+    or idrac_password is not defined
+
+- name: Get filenames
+  ansible.builtin.set_fact:
+    file_part_1: "{{ exported_diagnostics_local_path }}/{{ idrac_ip }}"
+    file_part_2: "_api_diagnostics.txt"
+- name: CIFS export validate
+  vars:
+    local_filename: "test_cifs_diagnostics.txt"
+    api_exported_filename:
+      "{{ file_part_1 }}{{ file_part_2 }}"
+  block:
+    - name: Delete file if existing
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - "{{ cifs_share_mnt }}/{{ local_filename }}"
+        - "{{ api_exported_filename }}"
+
+    - name: Ensure the diagnostics is present
+      ansible.builtin.include_tasks: _ensure_run.yml
+
+    - name: Set the CIFS IP and directory path- first step
+      ansible.builtin.set_fact:
+        cifs_share_tmp: "{{ cifs_share_name | split('\\\\') | last }}"
+      no_log: true
+
+    - name: Set the CIFS IP and directory path- final step
+      ansible.builtin.set_fact:
+        cifs_share_ip:
+          "{{ cifs_share_tmp | regex_replace('(\\\\)(.*)', '') }}"
+        cifs_share_dir_path:
+          "{{ cifs_share_tmp | regex_replace('.*(\\\\)(.*)', '\\2') }}"
+      no_log: true
+
+    - name: CheckMode - Export diagnostics to cifs
+      dellemc.openmanage.idrac_diagnostics:
+        export: true
+        run: false
+        share_parameters:
+          file_name: "{{ local_filename }}"
+          ip_address: "{{ cifs_share_ip }}"
+          share_name: "{{ cifs_share_dir_path }}"
+          username: "{{ cifs_share_user | default(omit) }}"
+          password: "{{ cifs_share_password | default(omit) }}"
+          share_type: cifs
+      register: cifs_export_check
+      check_mode: true
+
+    - name: CheckMode - Verify
+      ansible.builtin.assert:
+        that:
+          - cifs_export_check.changed
+          - cifs_export_check.msg == "Changes found to be applied."
+
+    - name: Get current time
+      ansible.builtin.set_fact:
+        current_local_time: "{{ now() }}"
+
+    - name: Export diagnostics to cifs without filename
+      dellemc.openmanage.idrac_diagnostics:
+        export: true
+        run: false
+        share_parameters:
+          ip_address: "{{ cifs_share_ip }}"
+          share_name: "{{ cifs_share_dir_path }}"
+          username: "{{ cifs_share_user | default(omit) }}"
+          password: "{{ cifs_share_password | default(omit) }}"
+          share_type: cifs
+      register: cifs_export_no_filename
+
+    - name: Module - Verify diagnostics was exported successfully
+      ansible.builtin.assert:
+        that:
+          - cifs_export_no_filename.changed
+          - cifs_export_no_filename.msg ==
+            "Successfully exported the diagnostics."
+          - "'diagnostics_file_path' in cifs_export_no_filename"
+          - "{{ cifs_export_no_filename.diagnostics_file_path.startswith
+            (('//' + cifs_share_ip + '/')) }}"
+          - "{{ ((cifs_export_no_filename.diagnostics_file_path | basename
+            ).endswith('.txt')) }}"
+          - "{{ (cifs_export_no_filename.diagnostics_file_path | basename
+             ).startswith(((idrac_ip | ansible.utils.ipv6form('expand')) if
+             (idrac_ip | ansible.utils.ipv6) else idrac_ip)
+             .replace(':', '.')) }}"
+
+
+    - name: Get time from file name
+      ansible.builtin.set_fact:
+        diagnostics_file_time:
+          "{{ ((cifs_export_no_filename.diagnostics_file_path | basename
+          | splitext | first | split('_'))[-2:] | join('')) |
+          to_datetime('%Y%m%d%H%M%S') }}"
+
+    - name: Assert dynamic filename time
+      ansible.builtin.assert:
+        that:
+          - current_local_time < diagnostics_file_time
+
+    - name: Export diagnostics to cifs
+      dellemc.openmanage.idrac_diagnostics:
+        export: true
+        run: false
+        share_parameters:
+          file_name: "{{ local_filename }}"
+          ip_address: "{{ cifs_share_ip }}"
+          share_name: "{{ cifs_share_dir_path }}"
+          username: "{{ cifs_share_user | default(omit) }}"
+          password: "{{ cifs_share_password | default(omit) }}"
+          share_type: cifs
+      register: cifs_export
+
+    - name: Module - Verify diagnostics was exported successfully
+      ansible.builtin.assert:
+        that:
+          - cifs_export.changed
+          - cifs_export.msg == "Successfully exported the diagnostics."
+
+    - name: Compare the local files
+      ansible.builtin.include_tasks: _verify_diag_file.yml
+      vars:
+        api_file: "{{ api_exported_filename }}"
+        module_file: "{{ cifs_share_mnt }}/{{ local_filename }}"
+
+  always:
+    - name: Delete files after use
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - "{{ cifs_share_mnt }}/{{ local_filename }}"
+        - "{{ api_exported_filename }}"
