@@ -5,28 +5,28 @@
 # https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
-  fail:
+  ansible.builtin.fail:
     msg: "Please define the following variables: idrac_ip, idrac_user
      and idrac_password."
   when: idrac_ip is not defined or idrac_user is not defined or
    idrac_password is not defined
 
 - block:
-    - include_tasks: get_data.yml
+    - ansible.builtin.include_tasks: get_data.yml
       vars:
         url: https://{{idrac_ip}}:{{idrac_port}}
          /redfish/v1/Systems/System.Embedded.1/Bios
 
-    - include_tasks: set_bios_setting.yml
+    - ansible.builtin.include_tasks: set_bios_setting.yml
       vars:
         url: https://{{idrac_ip}}:{{idrac_port}}
          /redfish/v1/Systems/System.Embedded.1/Bios/Settings
         method: PATCH
-        body: {"Attributes": {"SecureBoot": "{{secure_boot}}"}}
+        body: {"Attributes": {"SecureBoot": "{{ secure_boot }}"}}
         uri_trigger: 1
       when: uri_data.json.Attributes.SecureBoot != secure_boot
 
-    - include_tasks: set_bios_setting.yml
+    - ansible.builtin.include_tasks: set_bios_setting.yml
       vars:
         url: https://{{idrac_ip}}:{{idrac_port}}
          /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs
@@ -40,21 +40,21 @@
         uri_trigger: 1
       when: uri_data.json.Attributes.SecureBoot != secure_boot
 
-    - include_role: name=prepare_lifecycle_controller_job
+    - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
       vars:
-        location: "{{result_uri.location}}"
+        location: "{{ result_uri.location }}"
       when: uri_data.json.Attributes.SecureBoot != secure_boot
 
-    - include_tasks: set_bios_setting.yml
+    - ansible.builtin.include_tasks: set_bios_setting.yml
       vars:
         url: https://{{idrac_ip}}:{{idrac_port}}
          /redfish/v1/Systems/System.Embedded.1/Bios/Settings
         method: PATCH
-        body: {"Attributes": {"EmbVideo": "{{emb_video}}"}}
+        body: {"Attributes": {"EmbVideo": "{{ emb_video }}"}}
         uri_trigger: 1
       when: uri_data.json.Attributes.EmbVideo != emb_video
 
-    - include_tasks: set_bios_setting.yml
+    - ansible.builtin.include_tasks: set_bios_setting.yml
       vars:
         url: https://{{idrac_ip}}:{{idrac_port}}
          /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs
@@ -68,14 +68,14 @@
         uri_trigger: 1
       when: uri_data.json.Attributes.EmbVideo != emb_video
 
-    - include_role: name=prepare_lifecycle_controller_job
+    - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
       vars:
-        location: "{{result_uri.location}}"
+        location: "{{ result_uri.location }}"
       when: uri_data.json.Attributes.EmbVideo != emb_video
 
-    - include_role: name=prepare_idrac_lifecycle_controller_status
+    - ansible.builtin.include_role: name=prepare_idrac_lifecycle_controller_status
 
-    - include_tasks: set_bios_setting.yml
+    - ansible.builtin.include_tasks: set_bios_setting.yml
       vars:
         url: https://{{idrac_ip}}:{{idrac_port}}
          /redfish/v1/Systems/System.Embedded.1/Bios/Settings
@@ -84,7 +84,7 @@
         uri_trigger: 1
       when: uri_data.json.Attributes.NvmeMode != "NonRaid"
 
-    - include_tasks: set_bios_setting.yml
+    - ansible.builtin.include_tasks: set_bios_setting.yml
       vars:
         url: https://{{idrac_ip}}:{{idrac_port}}
          /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs
@@ -98,12 +98,12 @@
         uri_trigger: 1
       when: uri_data.json.Attributes.NvmeMode != "NonRaid"
 
-    - include_role: name=prepare_lifecycle_controller_job
+    - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
       vars:
-        location: "{{result_uri.location}}"
+        location: "{{ result_uri.location }}"
       when: uri_data.json.Attributes.NvmeMode != "NonRaid"
 
-    - include_tasks: set_bios_setting.yml
+    - ansible.builtin.include_tasks: set_bios_setting.yml
       vars:
         url: https://{{idrac_ip}}:{{idrac_port}}
          /redfish/v1/Systems/System.Embedded.1/Bios/Settings
@@ -112,7 +112,7 @@
         uri_trigger: 1
       when: uri_data.json.Attributes.BootMode == "Bios"
 
-    - include_tasks: set_bios_setting.yml
+    - ansible.builtin.include_tasks: set_bios_setting.yml
       vars:
         url: https://{{idrac_ip}}:{{idrac_port}}
          /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs
@@ -126,22 +126,22 @@
         uri_trigger: 1
       when: uri_data.json.Attributes.BootMode == "Bios"
 
-    - include_role: name=prepare_lifecycle_controller_job
+    - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
       vars:
         location: "{{result_uri.location}}"
       when: uri_data.json.Attributes.BootMode == "Bios"
 
-    - include_role: name=prepare_idrac_lifecycle_controller_status
+    - ansible.builtin.include_role: name=prepare_idrac_lifecycle_controller_status
 
-    - set_fact:
+    - ansible.builtin.set_fact:
         current_bootseq_retry: "{{uri_data.json.Attributes.BootSeqRetry}}"
 
-    - set_fact:
+    - ansible.builtin.set_fact:
         set_bootseq_retry: "{{'Disabled' if
          (current_bootseq_retry == 'Enabled') else 'Enabled'}}"
 
     - name: Configure generic attributes -Change. (nfs share-Normal)
-      idrac_bios: &configure_generic_attributes
+      dellemc.openmanage.idrac_bios: &configure_generic_attributes
         share_name: "{{nfs_share_name}}"
         share_mnt: "/tmp"
         attributes:
@@ -149,15 +149,15 @@
           BootSeqRetry: "{{set_bootseq_retry}}"
       register: result_nfs
 
-    - include_role: name=prepare_idrac_lifecycle_controller_status
+    - ansible.builtin.include_role: name=prepare_idrac_lifecycle_controller_status
 
-    - set_fact:
+    - ansible.builtin.set_fact:
         set_bootseq_retry: "{{'Disabled' if
          (set_bootseq_retry == 'Enabled') else 'Enabled'}}"
 
     - name: Configure generic attributes (nfs_share) (check mode - change
        expected)
-      idrac_bios:
+      dellemc.openmanage.idrac_bios:
         <<: *configure_generic_attributes
         attributes:
           BootMode: "Uefi"
@@ -166,22 +166,22 @@
       check_mode: true
 
     - name: Configure generic attributes -change (local_share)- normal
-      idrac_bios:
+      dellemc.openmanage.idrac_bios:
         share_name: "{{ role_path }}/files"
         attributes:
           BootMode: "Uefi"
           BootSeqRetry: "{{set_bootseq_retry}}"
       register: result_local
 
-    - include_role: name=prepare_idrac_lifecycle_controller_status
+    - ansible.builtin.include_role: name=prepare_idrac_lifecycle_controller_status
 
     - name: Configure generic attributes (cifs_share) (Check-mode -
        no changes found to commit)
-      idrac_bios:
+      dellemc.openmanage.idrac_bios:
         <<: *configure_generic_attributes
-        share_name: "{{cifs_share_name}}"
-        share_user: "{{cifs_share_user}}"
-        share_password: "{{cifs_share_password}}"
+        share_name: "{{ cifs_share_name }}"
+        share_user: "{{ cifs_share_user }}"
+        share_password: "{{ cifs_share_password }}"
         share_mnt: "/tmp"
         attributes:
           BootMode: "Uefi"
@@ -189,18 +189,18 @@
       check_mode: true
 
     - name: Configure generic attributes (cifs_share) (Idempotence mode)
-      idrac_bios:
+      dellemc.openmanage.idrac_bios:
         <<: *configure_generic_attributes
-        share_name: "{{cifs_share_name}}"
-        share_user: "{{cifs_share_user}}"
-        share_password: "{{cifs_share_password}}"
+        share_name: "{{ cifs_share_name }}"
+        share_user: "{{ cifs_share_user }}"
+        share_password: "{{ cifs_share_password }}"
         share_mnt: "/tmp"
         attributes:
           BootMode: "Uefi"
       register: idempotence
 
     - name: Verify status of tasks
-      assert:
+      ansible.builtin.assert:
         that:
           - result_nfs.changed
           - result_nfs.status_msg == "Successfully applied the BIOS
@@ -217,7 +217,7 @@
 
   module_defaults:
     dellemc.openmanage.idrac_bios:
-      idrac_ip: "{{idrac_ip}}"
-      idrac_user: "{{idrac_user}}"
-      idrac_password: "{{idrac_password}}"
-      validate_certs: "{{validate_certs}}"
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

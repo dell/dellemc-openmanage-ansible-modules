@@ -5,38 +5,38 @@
 # https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
-  fail:
+  ansible.builtin.fail:
     msg: "Please define the following variables: idrac_ip, idrac_user
      and idrac_password."
   when: idrac_ip is not defined or idrac_user is not defined or
    idrac_password is not defined
 
 - block:
-    - include_tasks: _get_server_generation.yml
+    - ansible.builtin.include_tasks: _get_server_generation.yml
 
-    - set_fact:
+    - ansible.builtin.set_fact:
         lc_logs_url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers\
          /iDRAC.Embedded.1/LogServices/Lclog\
          /Entries?$filter=MessageId%20eq%20'UEFI0157'"
 
-    - set_fact:
+    - ansible.builtin.set_fact:
         lc_logs_url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers\
          /iDRAC.Embedded.1/Logs/Lclog?$filter=MessageId%20eq%20'UEFI0157'"
       when: generation | int < 14
 
-    - include_tasks: get_data.yml
+    - ansible.builtin.include_tasks: get_data.yml
       vars:
-        url: "{{lc_logs_url}}"
+        url: "{{ lc_logs_url }}"
 
-    - set_fact:
+    - ansible.builtin.set_fact:
         msg_ids: "{{ msg_ids | default([]) + [item.Id] }}"
-      loop: "{{uri_data.json.Members}}"
+      loop: "{{ uri_data.json.Members }}"
 
-    - set_fact:
+    - ansible.builtin.set_fact:
         old_msg_ids: "{{ msg_ids | default([]) | unique }}"
 
     - name: Reset BIOS with "reset_type = force_restart" (Check mode)
-      idrac_bios:
+      dellemc.openmanage.idrac_bios:
         reset_bios: true
         reset_type: force_restart
       register: result
@@ -44,22 +44,22 @@
 
     - name: Verify task status - Reset BIOS with "reset_type = force_restart"
        (Check mode)
-      assert:
+      ansible.builtin.assert:
         that:
           - result.changed
           - result.status_msg == "Changes found to be applied."
 
     - name: Reset BIOS with "reset_type = force_restart" (Normal mode)
-      idrac_bios:
+      dellemc.openmanage.idrac_bios:
         reset_bios: true
         reset_type: force_restart
       register: result
 
-    - include_tasks: get_data.yml
+    - ansible.builtin.include_tasks: get_data.yml
       vars:
         url: "{{lc_logs_url}}"
 
-    - set_fact:
+    - ansible.builtin.set_fact:
         new_LC_log: |
           {% set new_LC_log = [] %}
           {% for dict_item in uri_data.json.Members %}
@@ -71,7 +71,7 @@
 
     - name: Verify task status - Reset BIOS with "reset_type = force_restart"
        (Normal mode)
-      assert:
+      ansible.builtin.assert:
         that:
           - result.changed
           - result.status_msg == "BIOS reset to defaults has been completed
@@ -82,19 +82,19 @@
 
     - ansible.builtin.wait_for: timeout=120
 
-    - include_tasks: get_data.yml
+    - ansible.builtin.include_tasks: get_data.yml
       vars:
-        url: "{{lc_logs_url}}"
+        url: "{{ lc_logs_url }}"
 
-    - set_fact:
+    - ansible.builtin.set_fact:
         msg_ids: "{{ msg_ids | default([]) + [item.Id] }}"
-      loop: "{{uri_data.json.Members}}"
+      loop: "{{ uri_data.json.Members }}"
 
-    - set_fact:
+    - ansible.builtin.set_fact:
         old_msg_ids: "{{ msg_ids | default([]) | unique }}"
 
     - name: Reset BIOS with "reset_type = graceful_restart" (Check mode)
-      idrac_bios:
+      dellemc.openmanage.idrac_bios:
         reset_bios: true
         reset_type: graceful_restart
       register: result
@@ -102,22 +102,22 @@
 
     - name: Verify task status - Reset BIOS with "reset_type =
        graceful_restart" (Check mode)
-      assert:
+      ansible.builtin.assert:
         that:
           - result.changed
           - result.status_msg == "Changes found to be applied."
 
     - name: Reset BIOS with "reset_type = force_restart" (Normal mode)
-      idrac_bios:
+      dellemc.openmanage.idrac_bios:
         reset_bios: true
         reset_type: graceful_restart
       register: result
 
-    - include_tasks: get_data.yml
+    - ansible.builtin.include_tasks: get_data.yml
       vars:
-        url: "{{lc_logs_url}}"
+        url: "{{ lc_logs_url }}"
 
-    - set_fact:
+    - ansible.builtin.set_fact:
         new_LC_log: |
           {% set new_LC_log = [] %}
           {% for dict_item in uri_data.json.Members %}
@@ -129,7 +129,7 @@
 
     - name: Verify task status - Reset BIOS with "reset_type =
        graceful_restart" (Normal mode)
-      assert:
+      ansible.builtin.assert:
         that:
           - result.changed
           - result.status_msg == "BIOS reset to defaults has been completed
@@ -140,13 +140,13 @@
 
   module_defaults:
     dellemc.openmanage.idrac_bios:
-      idrac_ip: "{{idrac_ip}}"
-      idrac_user: "{{idrac_user}}"
-      idrac_password: "{{idrac_password}}"
-      validate_certs: "{{validate_certs}}"
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
 
     dellemc.openmanage.idrac_system_info:
-      idrac_ip: "{{idrac_ip}}"
-      idrac_user: "{{idrac_user}}"
-      idrac_password: "{{idrac_password}}"
-      validate_certs: "{{validate_certs}}"
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

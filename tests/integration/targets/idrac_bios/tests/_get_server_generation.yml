@@ -1,22 +1,22 @@
 ---
 - block:
-    - include_role: name=prepare_idrac_lifecycle_controller_status
+    - ansible.builtin.include_role: name=prepare_idrac_lifecycle_controller_status
 
     - name: Get System Inevntory.
-      idrac_system_info:
-        idrac_ip: "{{idrac_ip}}"
+      dellemc.openmanage.idrac_system_info:
+        idrac_ip: "{{ idrac_ip }}"
       register: result
 
     - name: Get Server Generation
-      set_fact:
-        generation: "{{result.system_info.System[0].SystemGeneration |
-         regex_search('[0-9]+') | int}}"
+      ansible.builtin.set_fact:
+        generation: "{{ result.system_info.System[0].SystemGeneration |
+         regex_search('[0-9]+') | int }}"
 
-    - include_role: name=prepare_idrac_lifecycle_controller_status
+    - ansible.builtin.include_role: name=prepare_idrac_lifecycle_controller_status
 
   module_defaults:
     dellemc.openmanage.idrac_system_info:
-      idrac_ip: "{{idrac_ip}}"
-      idrac_user: "{{idrac_user}}"
-      idrac_password: "{{idrac_password}}"
-      validate_certs: "{{validate_certs}}"
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

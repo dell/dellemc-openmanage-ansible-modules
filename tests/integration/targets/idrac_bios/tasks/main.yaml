@@ -14,7 +14,7 @@
 - name: Fail if no test cases are found as per pattern.
   ansible.builtin.fail:
     msg: "Could not find test cases to run!!!"
-  when: not test_items|length > 0
+  when: not test_items | length > 0
 
 - name: Run test case
   ansible.builtin.include_tasks: "{{ test_case_to_run }}"

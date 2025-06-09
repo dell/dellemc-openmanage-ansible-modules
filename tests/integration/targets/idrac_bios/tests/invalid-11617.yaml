@@ -5,7 +5,7 @@
 # https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
-  fail:
+  ansible.builtin.fail:
     msg: 'Please define the following variables: idrac_ip, idrac_user and
      idrac_password.'
   when: idrac_ip is not defined or idrac_user is not defined or
@@ -13,20 +13,20 @@
 
 - block:
     - name: Perform idrac bios operation without required parameter
-      idrac_bios:
-        idrac_ip: "{{idrac_ip}}"
+      dellemc.openmanage.idrac_bios:
+        idrac_ip: "{{ idrac_ip }}"
       ignore_errors: true
       register: no_required_param
 
     - name: Verify status of tasks
-      assert:
+      ansible.builtin.assert:
         that:
           - no_required_param.failed
           - no_required_param.msg == "one of the following is required:
               boot_sources, attributes, clear_pending, reset_bios"
 
     - name: Perform reset bios with invalid username
-      idrac_bios:
+      dellemc.openmanage.idrac_bios:
         idrac_user: "invalid_user"
         reset_bios: true
       register: invalid_user
@@ -38,7 +38,7 @@
           - "'HTTP Error 401' in invalid_user.msg"
 
     - name: Perform reset bios with invalid password
-      idrac_bios:
+      dellemc.openmanage.idrac_bios:
         idrac_password: "invalid_password"
         reset_bios: true
       register: invalid_pass
@@ -51,7 +51,7 @@
           ("'urlopen error timed out' in invalid_pass.msg")
 
     - name: Perform bios with invalid clear_pending value
-      idrac_bios:
+      dellemc.openmanage.idrac_bios:
         clear_pending: invalid
       register: invalid_clear
       ignore_errors: true
@@ -62,7 +62,7 @@
               search('unable to convert to bool')
 
     - name: Perform bios with invalid reset type value
-      idrac_bios:
+      dellemc.openmanage.idrac_bios:
         reset_type: invalid
       register: invalid_reset
       ignore_errors: true
@@ -72,7 +72,7 @@
         that: invalid_reset.msg is search('graceful_restart, force_restart')
 
     - name: Perform bios with clear pending with reset type
-      idrac_bios:
+      dellemc.openmanage.idrac_bios:
         clear_pending: true
         reset_bios: true
       register: mutually_exl
@@ -85,7 +85,7 @@
 
   module_defaults:
     dellemc.openmanage.idrac_bios:
-      idrac_ip: "{{idrac_ip}}"
-      idrac_user: "{{idrac_user}}"
-      idrac_password: "{{idrac_password}}"
-      validate_certs: "{{validate_certs}}"
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
