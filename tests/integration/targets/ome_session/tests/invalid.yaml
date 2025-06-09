@@ -81,7 +81,6 @@
           - 'invalid_port.msg == "<urlopen error [Errno 113] No route to host>"
             or invalid_port.msg == "<urlopen error [Errno 13] Permission denied>"
             or invalid_port.msg == "<urlopen error timed out>"'
-              
 
     - name: Negative - invalid validate_certs
       dellemc.openmanage.ome_session:
@@ -127,9 +126,9 @@
         that:
           - invalid_timeout_type.failed
           - not invalid_timeout_type.changed
-          - 'invalid_timeout_type.msg == "argument ''timeout'' is of type <class ''str''> 
-             and we were unable to convert to int: <class ''str''> cannot be converted to an int" or 
-             invalid_timeout_type.msg ==  "argument ''timeout'' is of type <class ''str''> 
+          - 'invalid_timeout_type.msg == "argument ''timeout'' is of type <class ''str''>
+             and we were unable to convert to int: <class ''str''> cannot be converted to an int" or
+             invalid_timeout_type.msg ==  "argument ''timeout'' is of type <class ''str''>
              and we were unable to convert to int: \"''invalid''\" cannot be converted to an int"'
 
     - name: Negative - invalid timeout value
