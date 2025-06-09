@@ -6,7 +6,7 @@
     method: GET
     user: "{{ username | default(lookup('env', 'IDRAC_USERNAME')) }}"
     password: "{{ password | default(lookup('env', 'IDRAC_PASSWORD')) }}"
-    validate_certs: false
+    validate_certs: "{{ validate_certs }}"
     return_content: true
     status_code: 200
     force_basic_auth: true
