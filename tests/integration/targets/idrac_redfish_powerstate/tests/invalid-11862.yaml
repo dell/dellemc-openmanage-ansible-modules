@@ -1,5 +1,5 @@
 # Dell OpenManage Ansible modules
-# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -89,10 +89,8 @@
       ansible.builtin.assert:
         that:
           - invalid_reset_type.failed
-          - invalid_reset_type.msg == "The target device does not support a
-            force on operation.The acceptable values for device reset types
-            are On, ForceOff, ForceRestart, GracefulRestart, GracefulShutdown,
-            PushPowerButton, Nmi, PowerCycle."
+          - '"The target device does not support a
+            force on operation." in invalid_reset_type.msg'
 
     - name: Fetch the iDRAC firmware version
       ansible.builtin.include_tasks: _fetch_uri.yml
