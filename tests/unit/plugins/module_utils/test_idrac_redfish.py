@@ -42,6 +42,10 @@ RESP_10 = {
         "Info.1.HWModel": "iDRAC 10"
     }
 }
+RESP_MANAGER_8 = {
+    "Model": "13G xxx",
+    "FirmwareVersion": "x.x.x"
+}
 SESSION_ID_10 = "/redfish/v1/SessionService/Sessions/{Id}"
 SESSION_10 = "/redfish/v1/SessionService/Sessions"
 
@@ -443,9 +447,24 @@ class TestIdracRedfishRest(object):
         else:
             obj.json_data = RESP_10
         return obj
+    
+    def mock_get_dynamic_idrac_invoke_request_idrac8(self, *args):
+        obj = MagicMock()
+        obj.status_code = 200
+        if MANAGER_URI in args:
+            obj.json_data = RESP_MANAGER_8
+            return obj
+        else:
+            raise HTTPError('https://testhost.com/', 400, 'Bad Request Error', {}, None)
 
     def test_get_server_generation(self, idrac_redfish_object, mocker):
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      self.mock_get_dynamic_idrac_invoke_request)
         result = idrac_redfish_object.get_server_generation
         assert result == (17, '1.20.30', 'iDRAC 10')
+
+    def test_get_server_generation_idrac8(self, idrac_redfish_object, mocker):
+        mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
+                     self.mock_get_dynamic_idrac_invoke_request_idrac8)
+        result = idrac_redfish_object.get_server_generation
+        assert result == (13, 'x.x.x', 'iDRAC 8')

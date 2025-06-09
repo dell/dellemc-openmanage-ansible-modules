@@ -12,5 +12,6 @@ venv:
 # 2. make unit-test TC=tests/unit/plugins/modules/
 # 3. make unit-test TC=tests/unit/plugins/modules/test_idrac_secure_boot.py
 unit-test:
+	rm -rf coverage
 	PYTHONPATH=$(subst ansible_collections/dellemc/openmanage,,$(CURDIR)) \
 	pytest $(TC) --cov --cov-report=html:coverage
