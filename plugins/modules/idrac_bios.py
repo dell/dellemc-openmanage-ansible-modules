@@ -439,9 +439,9 @@ def check_params(each, fields):
 
 
 def check_scheduled_bios_job(redfish_obj):
-    job_uri = iDRAC_JOBS_EXP
-    if redfish_obj.get_server_generation[2] == "iDRAC 10":
-        job_uri = iDRAC10_JOBS_EXP
+    job_uri = iDRAC10_JOBS_EXP
+    if redfish_obj.get_server_generation[2] == "iDRAC 8":
+        job_uri = iDRAC_JOBS_EXP
     job_resp = redfish_obj.invoke_request(job_uri, "GET")
     job_list = job_resp.json_data.get('Members', [])
     sch_jb = None
@@ -455,9 +455,9 @@ def check_scheduled_bios_job(redfish_obj):
 
 
 def delete_scheduled_bios_job(redfish_obj, job_id):
-    job_uri = iDRAC_JOB_URI
-    if redfish_obj.get_server_generation[2] == "iDRAC 10":
-        job_uri = iDRAC10_JOB_URI
+    job_uri = iDRAC10_JOB_URI
+    if redfish_obj.get_server_generation[2] == "iDRAC 8":
+        job_uri = iDRAC_JOB_URI
     resp = redfish_obj.invoke_request(job_uri.format(job_id=job_id), "DELETE")
     return resp
 
@@ -709,9 +709,9 @@ def get_redfish_apply_time(module, redfish_obj, aplytm, rf_settings):
 def trigger_bios_job(redfish_obj):
     job_id = None
     payload = {"TargetSettingsURI": BIOS_SETTINGS}
-    job_uri = IDRAC_JOBS_URI
-    if redfish_obj.get_server_generation[2] == "iDRAC 10":
-        job_uri = IDRAC10_JOBS_URI
+    job_uri = IDRAC10_JOBS_URI
+    if redfish_obj.get_server_generation[2] == "iDRAC 8":
+        job_uri = IDRAC_JOBS_URI
     resp = redfish_obj.invoke_request(job_uri, "POST", data=payload)
     job_id = resp.headers["Location"].split("/")[-1]
     return job_id
@@ -771,9 +771,9 @@ def attributes_config(module, redfish_obj):
             module.exit_json(status_msg="Attributes committed but reboot has failed {0}".format(HOST_RESTART_FAILED),
                              failed=True)
         if module.params.get("job_wait"):
-            job_uri = iDRAC_JOB_URI
-            if redfish_obj.get_server_generation[2] == "iDRAC 10":
-                job_uri = iDRAC10_JOB_URI
+            job_uri = iDRAC10_JOB_URI
+            if redfish_obj.get_server_generation[2] == "iDRAC 8":
+                job_uri = iDRAC_JOB_URI
             job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(
                 redfish_obj, job_uri.format(job_id=job_id),
                 max_job_wait_sec=module.params.get('job_wait_timeout'))
