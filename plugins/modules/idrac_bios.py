@@ -351,6 +351,7 @@ MAINTENANCE_TIME = "The specified maintenance time window occurs in the past, " 
 NEGATIVE_TIMEOUT_MESSAGE = "The parameter job_wait_timeout value cannot be negative or zero."
 POWER_CHECK_RETRIES = 30
 POWER_CHECK_INTERVAL = 10
+HARDWARE_8 = "iDRAC 8"
 
 
 import json
@@ -440,7 +441,7 @@ def check_params(each, fields):
 
 def check_scheduled_bios_job(redfish_obj):
     job_uri = iDRAC10_JOBS_EXP
-    if redfish_obj.get_server_generation[2] == "iDRAC 8":
+    if redfish_obj.get_server_generation[2] == "HARDWARE_8":
         job_uri = iDRAC_JOBS_EXP
     job_resp = redfish_obj.invoke_request(job_uri, "GET")
     job_list = job_resp.json_data.get('Members', [])
@@ -456,7 +457,7 @@ def check_scheduled_bios_job(redfish_obj):
 
 def delete_scheduled_bios_job(redfish_obj, job_id):
     job_uri = iDRAC10_JOB_URI
-    if redfish_obj.get_server_generation[2] == "iDRAC 8":
+    if redfish_obj.get_server_generation[2] == "HARDWARE_8":
         job_uri = iDRAC_JOB_URI
     resp = redfish_obj.invoke_request(job_uri.format(job_id=job_id), "DELETE")
     return resp
@@ -710,7 +711,7 @@ def trigger_bios_job(redfish_obj):
     job_id = None
     payload = {"TargetSettingsURI": BIOS_SETTINGS}
     job_uri = IDRAC10_JOBS_URI
-    if redfish_obj.get_server_generation[2] == "iDRAC 8":
+    if redfish_obj.get_server_generation[2] == "HARDWARE_8":
         job_uri = IDRAC_JOBS_URI
     resp = redfish_obj.invoke_request(job_uri, "POST", data=payload)
     job_id = resp.headers["Location"].split("/")[-1]
@@ -734,6 +735,19 @@ def apply_attributes(module, redfish_obj, pending, rf_settings):
     return job_id, reboot_required
 
 
+def check_pending_jobs(module, redfish_obj, pending):
+    if pending:
+        job_id, job_state = check_scheduled_bios_job(redfish_obj)
+        if job_id:
+            if job_state in ["Running", "Starting"]:
+                module.exit_json(status_msg=BIOS_JOB_RUNNING, job_id=job_id, failed=True)
+            elif job_state in ["Scheduled", "Scheduling"]:
+                # changes staged in pending attributes
+                # if module.params.get("force", True) == False:
+                #     module.exit_json(status_msg=FORCE_BIOS_DELETE, job_id=job_id, failed=True)
+                delete_scheduled_bios_job(redfish_obj, job_id)
+
+
 def attributes_config(module, redfish_obj):
     curr_resp = get_current_attributes(redfish_obj)
     curr_attr = curr_resp.get("Attributes", {})
@@ -753,16 +767,7 @@ def attributes_config(module, redfish_obj):
         module.exit_json(status_msg=CHANGES_MSG, changed=True)
     pending = get_pending_attributes(redfish_obj)
     pending.update(attr)
-    if pending:
-        job_id, job_state = check_scheduled_bios_job(redfish_obj)
-        if job_id:
-            if job_state in ["Running", "Starting"]:
-                module.exit_json(status_msg=BIOS_JOB_RUNNING, job_id=job_id, failed=True)
-            elif job_state in ["Scheduled", "Scheduling"]:
-                # changes staged in pending attributes
-                # if module.params.get("force", True) == False:
-                #     module.exit_json(status_msg=FORCE_BIOS_DELETE, job_id=job_id, failed=True)
-                delete_scheduled_bios_job(redfish_obj, job_id)
+    check_pending_jobs(module, redfish_obj, pending)
     rf_settings = curr_resp.get("@Redfish.Settings", {}).get("SupportedApplyTimes", [])
     job_id, reboot_required = apply_attributes(module, redfish_obj, pending, rf_settings)
     if reboot_required and job_id:
@@ -772,7 +777,7 @@ def attributes_config(module, redfish_obj):
                              failed=True)
         if module.params.get("job_wait"):
             job_uri = iDRAC10_JOB_URI
-            if redfish_obj.get_server_generation[2] == "iDRAC 8":
+            if redfish_obj.get_server_generation[2] == "HARDWARE_8":
                 job_uri = iDRAC_JOB_URI
             job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(
                 redfish_obj, job_uri.format(job_id=job_id),

@@ -39,7 +39,8 @@
     - ansible.builtin.pause: seconds=90
       when: result.changed
 
-    - ansible.builtin.include_role: name=prepare_idrac_lifecycle_controller_status
+    - ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
 
     - name: verify status of the tasks (using uri)
       ansible.builtin.assert:

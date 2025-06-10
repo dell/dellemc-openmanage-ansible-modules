@@ -78,7 +78,8 @@
         location: "{{ result_uri.location }}"
       when: uri_data.json.Attributes.EmbVideo != emb_video
 
-    - ansible.builtin.include_role: name=prepare_idrac_lifecycle_controller_status
+    - ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
 
     - ansible.builtin.include_tasks:
         file: set_bios_setting.yml
@@ -140,7 +141,8 @@
         location: "{{result_uri.location}}"
       when: uri_data.json.Attributes.BootMode == "Bios"
 
-    - ansible.builtin.include_role: name=prepare_idrac_lifecycle_controller_status
+    - ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
 
     - ansible.builtin.set_fact:
         current_bootseq_retry: "{{uri_data.json.Attributes.BootSeqRetry}}"
@@ -158,7 +160,8 @@
           BootSeqRetry: "{{set_bootseq_retry}}"
       register: result_nfs
 
-    - ansible.builtin.include_role: name=prepare_idrac_lifecycle_controller_status
+    - ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
 
     - ansible.builtin.set_fact:
         set_bootseq_retry: "{{'Disabled' if
@@ -182,7 +185,8 @@
           BootSeqRetry: "{{set_bootseq_retry}}"
       register: result_local
 
-    - ansible.builtin.include_role: name=prepare_idrac_lifecycle_controller_status
+    - ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
 
     - name: Configure generic attributes (cifs_share) (Check-mode -
        no changes found to commit)
