@@ -9,18 +9,13 @@
           hostname: "{{ lookup('env', 'IDRAC_IP') }}"
           username: "{{ lookup('env', 'IDRAC_USER') }}"
           password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+          idrac_port: "{{ lookup('env', 'IDRAC_PORT') }}"
           validate_certs: false
       no_log: true
 
-    - name: Creating a job to which configures iDRAC attributes
-      ansible.builtin.include_role:
-        name: idrac_import_server_config_profile
-      vars:
-        <<: *input
-        target: ["NIC"]
-        import_buffer:
-          "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'>
-          Disabled</Attribute></Component></SystemConfiguration>"
+    - name: Creating a job
+      ansible.builtin.include_tasks:
+        file: ../_create_job.yml
 
     - name: Clear the job queue
       ansible.builtin.include_role:
@@ -38,15 +33,9 @@
       ansible.builtin.wait_for:
         timeout: 180
 
-    - name: Creating a job which configures iDRAC attributes
-      ansible.builtin.include_role:
-        name: idrac_import_server_config_profile
-      vars:
-        <<: *input
-        target: ["NIC"]
-        import_buffer:
-          "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'>
-          Disabled</Attribute></Component></SystemConfiguration>"
+    - name: Creating a job
+      ansible.builtin.include_tasks:
+        file: ../_create_job.yml
 
     - name: Force clear the job queue
       ansible.builtin.include_role:
@@ -80,21 +69,9 @@
             that:
               - idrac_job_queue_out.msg == "There are no jobs in the job queue."
 
-    - name: Creating a job which exports SCP local path with all components
-      dellemc.openmanage.idrac_server_config_profile:
-        idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
-        idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
-        idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
-        validate_certs: false
-        scp_components:
-          - IDRAC
-        share_name: "/root/"
-        scp_file: "file1.xml"
-        export_format: JSON
-        export_use: Clone
-        job_wait: false
-      async: 45
-      poll: 0
+    - name: Creating a job
+      ansible.builtin.include_tasks:
+        file: ../_create_job.yml
 
     - name: Clear the job queue
       block:
