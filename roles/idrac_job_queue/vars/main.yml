@@ -14,6 +14,7 @@ idrac_job_queue_uri_status_code:
   - -1
 idrac_job_queue_uri_return_content: true
 idrac_job_queue_validate_job_api: /redfish/v1/Managers/iDRAC.Embedded.1/Jobs
+idrac_job_queue_job_uri10: /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/
 idrac_job_queue_clear_job_queue_api:
   /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellJobService/Actions/DellJobService.DeleteJobQueue
 idrac_job_queue_delete_job_success_msg: The job {{ job_id }} has been deleted

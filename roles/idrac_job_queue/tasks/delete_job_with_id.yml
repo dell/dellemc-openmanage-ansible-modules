@@ -13,9 +13,25 @@
       timeout: "{{ https_timeout }}"
   no_log: true
 
+- name: Checking iDRAC version
+  ansible.builtin.include_tasks:
+    file: ../_get_server_generation.yml
+
+- name: Set job uri for iDRAC9 and above
+  ansible.builtin.set_fact:
+    job_uri: "https://{{ hostname }}:{{ https_port }}\
+      {{ idrac_job_queue_job_uri10 }}"
+  when: model | int >= 14
+
+- name: Set job uri for iDRAC8
+  ansible.builtin.set_fact:
+    job_uri: "https://{{ hostname }}:{{ https_port }}\
+      {{ idrac_job_queue_validate_job_api }}"
+  when: model | int <= 13
+
 - name: Perform delete job operation
   ansible.builtin.uri:
-    url: "https://{{ hostname }}:{{ https_port }}{{ idrac_job_queue_validate_job_api }}/{{ job_id }}"
+    url: "{{ job_uri }}/{{ job_id }}"
     <<: *idrac_job_queue_idrac_opts
     method: "DELETE"
     status_code: [200, 400]
