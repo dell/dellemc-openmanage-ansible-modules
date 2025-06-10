@@ -767,7 +767,7 @@ def wait_for_job_completion(module, redfish_obj, reboot_required, job_id, invali
         else:
             module.exit_json(status_msg=SCHEDULED_SUCCESS, job_id=job_id, invalid_attributes=invalid, changed=True)
 
-            
+
 def attributes_config(module, redfish_obj):
     curr_resp = get_current_attributes(redfish_obj)
     curr_attr = curr_resp.get("Attributes", {})
