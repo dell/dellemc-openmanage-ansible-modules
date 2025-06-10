@@ -758,9 +758,12 @@ def wait_for_job_completion(module, redfish_obj, reboot_required, job_id, invali
             job_uri = iDRAC10_JOB_URI
             if redfish_obj.get_server_generation[2] == "HARDWARE_8":
                 job_uri = iDRAC_JOB_URI
-            job_failed, msg, job_dict, _ = idrac_redfish_job_tracking(
+            job_details = idrac_redfish_job_tracking(
                 redfish_obj, job_uri.format(job_id=job_id),
                 max_job_wait_sec=module.params.get('job_wait_timeout'))
+            job_failed = job_details[0]
+            msg = job_details[1]
+            job_dict = job_details[2]
             if job_failed:
                 module.exit_json(failed=True, status_msg=msg, job_id=job_id)
             module.exit_json(status_msg=SUCCESS_COMPLETE, job_id=job_id, msg=strip_substr_dict(job_dict), invalid_attributes=invalid, changed=True)
