@@ -35,11 +35,11 @@
          /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs
         method: POST
         body:
-        {
-          "TargetSettingsURI": "/redfish/v1/Systems/System.Embedded.1/Bios\
-            /Settings",
-          "RebootJobType": "ForceReboot",
-        }
+          {
+            "TargetSettingsURI": "/redfish/v1/Systems/System.Embedded.1/Bios\
+              /Settings",
+            "RebootJobType": "ForceReboot",
+          }
         uri_trigger: 1
       when: uri_data.json.Attributes.SecureBoot != secure_boot
 
@@ -65,11 +65,11 @@
          /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs
         method: POST
         body:
-        {
-          "TargetSettingsURI": "/redfish/v1/Systems/System.Embedded.1/Bios\
-            /Settings",
-          "RebootJobType": "ForceReboot",
-        }
+          {
+            "TargetSettingsURI": "/redfish/v1/Systems/System.Embedded.1/Bios\
+              /Settings",
+            "RebootJobType": "ForceReboot",
+          }
         uri_trigger: 1
       when: uri_data.json.Attributes.EmbVideo != emb_video
 
