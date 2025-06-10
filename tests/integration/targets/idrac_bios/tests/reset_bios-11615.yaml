@@ -12,7 +12,8 @@
    idrac_password is not defined
 
 - block:
-    - ansible.builtin.include_tasks: _get_server_generation.yml
+    - ansible.builtin.include_tasks:
+        file: _get_server_generation.yml
 
     - ansible.builtin.set_fact:
         lc_logs_url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers\
@@ -24,7 +25,8 @@
          /iDRAC.Embedded.1/Logs/Lclog?$filter=MessageId%20eq%20'UEFI0157'"
       when: generation | int < 14
 
-    - ansible.builtin.include_tasks: get_data.yml
+    - ansible.builtin.include_tasks:
+        file: get_data.yml
       vars:
         url: "{{ lc_logs_url }}"
 
@@ -55,7 +57,8 @@
         reset_type: force_restart
       register: result
 
-    - ansible.builtin.include_tasks: get_data.yml
+    - ansible.builtin.include_tasks:
+        file: get_data.yml
       vars:
         url: "{{lc_logs_url}}"
 
@@ -82,7 +85,8 @@
 
     - ansible.builtin.wait_for: timeout=120
 
-    - ansible.builtin.include_tasks: get_data.yml
+    - ansible.builtin.include_tasks:
+        file: get_data.yml
       vars:
         url: "{{ lc_logs_url }}"
 
@@ -113,7 +117,8 @@
         reset_type: graceful_restart
       register: result
 
-    - ansible.builtin.include_tasks: get_data.yml
+    - ansible.builtin.include_tasks:
+        file: get_data.yml
       vars:
         url: "{{ lc_logs_url }}"
 

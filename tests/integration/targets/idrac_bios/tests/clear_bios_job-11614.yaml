@@ -11,13 +11,15 @@
   when: idrac_ip is not defined or idrac_user is not defined or
    idrac_password is not defined
 
-- ansible.builtin.include_tasks: _get_server_generation.yml
+- ansible.builtin.include_tasks:
+    file: _get_server_generation.yml
 
 - block:
-    - ansible.builtin.include_tasks: get_data.yml
+    - ansible.builtin.include_tasks:
+        file: get_data.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}
-         /redfish/v1/Systems/System.Embedded.1/Bios
+          url: https://{{idrac_ip}}:{{idrac_port}}
+           /redfish/v1/Systems/System.Embedded.1/Bios
 
     - ansible.builtin.set_fact:
         current_boot_mode: "{{uri_data.json.Attributes.BootMode}}"
@@ -46,10 +48,11 @@
     - name: Get the jobId
       ansible.builtin.set_fact: job_id={{ change_bios_setting.job_id }}
 
-    - ansible.builtin.include_tasks: get_data.yml
+    - ansible.builtin.include_tasks:
+        file: get_data.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}
-         /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{job_id}}
+          url: https://{{idrac_ip}}:{{idrac_port}}
+           /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{job_id}}
 
     # verify job is scheduled using idrac api
     - name: Verify scheduled job details using idrac api

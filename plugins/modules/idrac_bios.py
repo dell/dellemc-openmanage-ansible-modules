@@ -318,9 +318,12 @@ CLEAR_PENDING_URI = "/redfish/v1/Systems/System.Embedded.1/Bios/Settings/Actions
 RESET_BIOS_DEFAULT = "/redfish/v1/Systems/System.Embedded.1/Bios/Actions/Bios.ResetBios"
 BIOS_SETTINGS = "/redfish/v1/Systems/System.Embedded.1/Bios/Settings"
 POWER_HOST_URI = "/redfish/v1/Systems/System.Embedded.1/Actions/ComputerSystem.Reset"
-IDRAC_JOBS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs"
-iDRAC_JOBS_EXP = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs?$expand=*($levels=1)"
-iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{job_id}"
+IDRAC_JOBS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs"
+iDRAC_JOBS_EXP = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
+iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
+IDRAC10_JOBS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs"
+iDRAC10_JOBS_EXP = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs?$expand=*($levels=1)"
+iDRAC10_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{job_id}"
 LOG_SERVICE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog"
 iDRAC9_LC_LOG = "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries"
 iDRAC8_LC_LOG = "/redfish/v1/Managers/iDRAC.Embedded.1/Logs/Lclog"
@@ -348,6 +351,7 @@ MAINTENANCE_TIME = "The specified maintenance time window occurs in the past, " 
 NEGATIVE_TIMEOUT_MESSAGE = "The parameter job_wait_timeout value cannot be negative or zero."
 POWER_CHECK_RETRIES = 30
 POWER_CHECK_INTERVAL = 10
+
 
 import json
 import time
@@ -435,7 +439,10 @@ def check_params(each, fields):
 
 
 def check_scheduled_bios_job(redfish_obj):
-    job_resp = redfish_obj.invoke_request(iDRAC_JOBS_EXP, "GET")
+    job_uri = iDRAC_JOBS_EXP
+    if redfish_obj.get_server_generation[2] == "iDRAC 10":
+        job_uri = iDRAC10_JOBS_EXP
+    job_resp = redfish_obj.invoke_request(job_uri, "GET")
     job_list = job_resp.json_data.get('Members', [])
     sch_jb = None
     jb_state = 'Unknown'
@@ -448,7 +455,10 @@ def check_scheduled_bios_job(redfish_obj):
 
 
 def delete_scheduled_bios_job(redfish_obj, job_id):
-    resp = redfish_obj.invoke_request(iDRAC_JOB_URI.format(job_id=job_id), "DELETE")
+    job_uri = iDRAC_JOB_URI
+    if redfish_obj.get_server_generation[2] == "iDRAC 10":
+        job_uri = iDRAC10_JOB_URI
+    resp = redfish_obj.invoke_request(job_uri.format(job_id=job_id), "DELETE")
     return resp
 
 
@@ -699,7 +709,10 @@ def get_redfish_apply_time(module, redfish_obj, aplytm, rf_settings):
 def trigger_bios_job(redfish_obj):
     job_id = None
     payload = {"TargetSettingsURI": BIOS_SETTINGS}
-    resp = redfish_obj.invoke_request(IDRAC_JOBS_URI, "POST", data=payload)
+    job_uri = IDRAC_JOBS_URI
+    if redfish_obj.get_server_generation[2] == "iDRAC 10":
+        job_uri = IDRAC10_JOBS_URI
+    resp = redfish_obj.invoke_request(job_uri, "POST", data=payload)
     job_id = resp.headers["Location"].split("/")[-1]
     return job_id
 
@@ -758,8 +771,11 @@ def attributes_config(module, redfish_obj):
             module.exit_json(status_msg="Attributes committed but reboot has failed {0}".format(HOST_RESTART_FAILED),
                              failed=True)
         if module.params.get("job_wait"):
+            job_uri = iDRAC_JOB_URI
+            if redfish_obj.get_server_generation[2] == "iDRAC 10":
+                job_uri = iDRAC10_JOB_URI
             job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(
-                redfish_obj, iDRAC_JOB_URI.format(job_id=job_id),
+                redfish_obj, job_uri.format(job_id=job_id),
                 max_job_wait_sec=module.params.get('job_wait_timeout'))
             if job_failed:
                 module.exit_json(failed=True, status_msg=msg, job_id=job_id)

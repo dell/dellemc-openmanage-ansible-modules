@@ -12,32 +12,35 @@
    idrac_password is not defined
 
 - block:
-    - ansible.builtin.include_tasks: get_data.yml
+    - ansible.builtin.include_tasks:
+        file: get_data.yml
       vars:
         url: https://{{idrac_ip}}:{{idrac_port}}
          /redfish/v1/Systems/System.Embedded.1/Bios
 
-    - ansible.builtin.include_tasks: set_bios_setting.yml
+    - ansible.builtin.include_tasks:
+        file: set_bios_setting.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}
-         /redfish/v1/Systems/System.Embedded.1/Bios/Settings
-        method: PATCH
-        body: {"Attributes": {"SecureBoot": "{{ secure_boot }}"}}
-        uri_trigger: 1
+          url: https://{{idrac_ip}}:{{idrac_port}}
+           /redfish/v1/Systems/System.Embedded.1/Bios/Settings
+          method: PATCH
+          body: {"Attributes": {"SecureBoot": "{{ secure_boot }}"}}
+          uri_trigger: 1
       when: uri_data.json.Attributes.SecureBoot != secure_boot
 
-    - ansible.builtin.include_tasks: set_bios_setting.yml
+    - ansible.builtin.include_tasks:
+        file: set_bios_setting.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}
-         /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs
-        method: POST
-        body:
-          {
-            "TargetSettingsURI": "/redfish/v1/Systems/System.Embedded.1/Bios\
-              /Settings",
-            "RebootJobType": "ForceReboot",
-          }
-        uri_trigger: 1
+          url: https://{{idrac_ip}}:{{idrac_port}}
+           /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs
+          method: POST
+          body:
+            {
+              "TargetSettingsURI": "/redfish/v1/Systems/System.Embedded.1/Bios\
+                /Settings",
+              "RebootJobType": "ForceReboot",
+            }
+          uri_trigger: 1
       when: uri_data.json.Attributes.SecureBoot != secure_boot
 
     - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
@@ -45,27 +48,29 @@
         location: "{{ result_uri.location }}"
       when: uri_data.json.Attributes.SecureBoot != secure_boot
 
-    - ansible.builtin.include_tasks: set_bios_setting.yml
+    - ansible.builtin.include_tasks:
+        file: set_bios_setting.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}
-         /redfish/v1/Systems/System.Embedded.1/Bios/Settings
-        method: PATCH
-        body: {"Attributes": {"EmbVideo": "{{ emb_video }}"}}
-        uri_trigger: 1
+          url: https://{{idrac_ip}}:{{idrac_port}}
+           /redfish/v1/Systems/System.Embedded.1/Bios/Settings
+          method: PATCH
+          body: {"Attributes": {"EmbVideo": "{{ emb_video }}"}}
+          uri_trigger: 1
       when: uri_data.json.Attributes.EmbVideo != emb_video
 
-    - ansible.builtin.include_tasks: set_bios_setting.yml
+    - ansible.builtin.include_tasks:
+        file: set_bios_setting.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}
-         /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs
-        method: POST
-        body:
-          {
-            "TargetSettingsURI": "/redfish/v1/Systems/System.Embedded.1/Bios\
-              /Settings",
-            "RebootJobType": "ForceReboot",
-          }
-        uri_trigger: 1
+          url: https://{{idrac_ip}}:{{idrac_port}}
+           /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs
+          method: POST
+          body:
+            {
+              "TargetSettingsURI": "/redfish/v1/Systems/System.Embedded.1/Bios\
+                /Settings",
+              "RebootJobType": "ForceReboot",
+            }
+          uri_trigger: 1
       when: uri_data.json.Attributes.EmbVideo != emb_video
 
     - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
@@ -75,7 +80,8 @@
 
     - ansible.builtin.include_role: name=prepare_idrac_lifecycle_controller_status
 
-    - ansible.builtin.include_tasks: set_bios_setting.yml
+    - ansible.builtin.include_tasks:
+        file: set_bios_setting.yml
       vars:
         url: https://{{idrac_ip}}:{{idrac_port}}
          /redfish/v1/Systems/System.Embedded.1/Bios/Settings
@@ -84,7 +90,8 @@
         uri_trigger: 1
       when: uri_data.json.Attributes.NvmeMode != "NonRaid"
 
-    - ansible.builtin.include_tasks: set_bios_setting.yml
+    - ansible.builtin.include_tasks:
+        file: set_bios_setting.yml
       vars:
         url: https://{{idrac_ip}}:{{idrac_port}}
          /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs
@@ -103,7 +110,8 @@
         location: "{{ result_uri.location }}"
       when: uri_data.json.Attributes.NvmeMode != "NonRaid"
 
-    - ansible.builtin.include_tasks: set_bios_setting.yml
+    - ansible.builtin.include_tasks:
+        file: set_bios_setting.yml
       vars:
         url: https://{{idrac_ip}}:{{idrac_port}}
          /redfish/v1/Systems/System.Embedded.1/Bios/Settings
@@ -112,7 +120,8 @@
         uri_trigger: 1
       when: uri_data.json.Attributes.BootMode == "Bios"
 
-    - ansible.builtin.include_tasks: set_bios_setting.yml
+    - ansible.builtin.include_tasks:
+        file: set_bios_setting.yml
       vars:
         url: https://{{idrac_ip}}:{{idrac_port}}
          /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs
