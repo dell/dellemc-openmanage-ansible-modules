@@ -194,14 +194,19 @@
 
     - name: Delete the diagnostics file
       ansible.builtin.shell:
-        sshpass -p {{ http_share_password }} ssh administrator@{{ http_share }} "powershell -Command Remove-Item -Path 'E:\httpshare\test_http_diagnostics.txt'"
+        sshpass -p {{ http_share_password }}
+        ssh administrator@{{ http_share }} "powershell -Command Remove-Item
+        -Path 'E:\httpshare\test_http_diagnostics.txt'"
       no_log: true
 
     - name: Get and set the dynamic file name
       ansible.builtin.set_fact:
-        no_file_name: "{{ http_export_no_filename.diagnostics_file_path.split('/')[-1] }}"
+        no_file_name:
+          "{{ http_export_no_filename.diagnostics_file_path.split('/')[-1] }}"
 
     - name: Delete the diagnostics file without filename
       ansible.builtin.shell:
-        sshpass -p {{ http_share_password }} ssh administrator@{{ http_share }} "powershell -Command Remove-Item -Path 'E:\httpshare\{{ no_file_name }}'"
+        sshpass -p {{ http_share_password }}
+        ssh administrator@{{ http_share }} "powershell -Command Remove-Item
+        -Path 'E:\httpshare\{{ no_file_name }}'"
       no_log: true
