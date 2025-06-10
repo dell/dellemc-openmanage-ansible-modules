@@ -748,6 +748,26 @@ def check_pending_jobs(module, redfish_obj, pending):
                 delete_scheduled_bios_job(redfish_obj, job_id)
 
 
+def wait_for_job_completion(module, redfish_obj, reboot_required, job_id, invalid):
+    if reboot_required and job_id:
+        reset_success = reset_host(module, redfish_obj)
+        if not reset_success:
+            module.exit_json(status_msg="Attributes committed but reboot has failed {0}".format(HOST_RESTART_FAILED),
+                             failed=True)
+        if module.params.get("job_wait"):
+            job_uri = iDRAC10_JOB_URI
+            if redfish_obj.get_server_generation[2] == "HARDWARE_8":
+                job_uri = iDRAC_JOB_URI
+            job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(
+                redfish_obj, job_uri.format(job_id=job_id),
+                max_job_wait_sec=module.params.get('job_wait_timeout'))
+            if job_failed:
+                module.exit_json(failed=True, status_msg=msg, job_id=job_id)
+            module.exit_json(status_msg=SUCCESS_COMPLETE, job_id=job_id, msg=strip_substr_dict(job_dict), invalid_attributes=invalid, changed=True)
+        else:
+            module.exit_json(status_msg=SCHEDULED_SUCCESS, job_id=job_id, invalid_attributes=invalid, changed=True)
+
+            
 def attributes_config(module, redfish_obj):
     curr_resp = get_current_attributes(redfish_obj)
     curr_attr = curr_resp.get("Attributes", {})
@@ -770,23 +790,7 @@ def attributes_config(module, redfish_obj):
     check_pending_jobs(module, redfish_obj, pending)
     rf_settings = curr_resp.get("@Redfish.Settings", {}).get("SupportedApplyTimes", [])
     job_id, reboot_required = apply_attributes(module, redfish_obj, pending, rf_settings)
-    if reboot_required and job_id:
-        reset_success = reset_host(module, redfish_obj)
-        if not reset_success:
-            module.exit_json(status_msg="Attributes committed but reboot has failed {0}".format(HOST_RESTART_FAILED),
-                             failed=True)
-        if module.params.get("job_wait"):
-            job_uri = iDRAC10_JOB_URI
-            if redfish_obj.get_server_generation[2] == "HARDWARE_8":
-                job_uri = iDRAC_JOB_URI
-            job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(
-                redfish_obj, job_uri.format(job_id=job_id),
-                max_job_wait_sec=module.params.get('job_wait_timeout'))
-            if job_failed:
-                module.exit_json(failed=True, status_msg=msg, job_id=job_id)
-            module.exit_json(status_msg=SUCCESS_COMPLETE, job_id=job_id, msg=strip_substr_dict(job_dict), invalid_attributes=invalid, changed=True)
-        else:
-            module.exit_json(status_msg=SCHEDULED_SUCCESS, job_id=job_id, invalid_attributes=invalid, changed=True)
+    wait_for_job_completion(module, redfish_obj, reboot_required, job_id, invalid)
     module.exit_json(status_msg=COMMITTED_SUCCESS.format(module.params.get('apply_time')),
                      job_id=job_id, invalid_attributes=invalid, changed=True)
 
