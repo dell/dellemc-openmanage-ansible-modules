@@ -1,5 +1,18 @@
 ---
-- name: Delete the directory
+- name: Force unmount the mount point
+  ansible.builtin.shell: "umount -l {{ lookup('env', 'path_for_import_cert') }}"
+  ignore_errors: true  # continue even if already unmounted or fails
+  register: umount_result
+  check_mode: false
+
+- name: Show unmount result
+  ansible.builtin.debug:
+    var: umount_result.stdout_lines
+  check_mode: false
+
+- name: Delete the directory (force)
   ansible.builtin.file:
     path: "{{ lookup('env', 'path_for_import_cert') }}"
     state: absent
+    force: true
+  check_mode: false
