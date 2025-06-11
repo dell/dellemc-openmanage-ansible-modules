@@ -15,13 +15,13 @@
     - ansible.builtin.include_tasks:
         file: get_data.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
          /redfish/v1/Systems/System.Embedded.1/Bios
 
     - ansible.builtin.include_tasks:
         file: set_bios_setting.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
          /redfish/v1/Systems/System.Embedded.1/Bios/Settings
         method: PATCH
         body: {"Attributes": {"SecureBoot": "{{ secure_boot }}"}}
@@ -31,7 +31,7 @@
     - ansible.builtin.include_tasks:
         file: set_bios_setting.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
          /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs
         method: POST
         body:
@@ -51,7 +51,7 @@
     - ansible.builtin.include_tasks:
         file: set_bios_setting.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
          /redfish/v1/Systems/System.Embedded.1/Bios/Settings
         method: PATCH
         body: {"Attributes": {"EmbVideo": "{{ emb_video }}"}}
@@ -61,7 +61,7 @@
     - ansible.builtin.include_tasks:
         file: set_bios_setting.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
          /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs
         method: POST
         body:
@@ -84,7 +84,7 @@
     - ansible.builtin.include_tasks:
         file: set_bios_setting.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
          /redfish/v1/Systems/System.Embedded.1/Bios/Settings
         method: PATCH
         body: {"Attributes": {"NvmeMode": "NonRaid"}}
@@ -94,7 +94,7 @@
     - ansible.builtin.include_tasks:
         file: set_bios_setting.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
          /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs
         method: POST
         body:
@@ -114,7 +114,7 @@
     - ansible.builtin.include_tasks:
         file: set_bios_setting.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
          /redfish/v1/Systems/System.Embedded.1/Bios/Settings
         method: PATCH
         body: {"Attributes": {"BootMode": "Uefi"}}
@@ -124,7 +124,7 @@
     - ansible.builtin.include_tasks:
         file: set_bios_setting.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
          /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs
         method: POST
         body:
@@ -138,14 +138,14 @@
 
     - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
       vars:
-        location: "{{result_uri.location}}"
+        location: "{{ result_uri.location }}"
       when: uri_data.json.Attributes.BootMode == "Bios"
 
     - ansible.builtin.include_role:
         name=prepare_idrac_lifecycle_controller_status
 
     - ansible.builtin.set_fact:
-        current_bootseq_retry: "{{uri_data.json.Attributes.BootSeqRetry}}"
+        current_bootseq_retry: "{{ uri_data.json.Attributes.BootSeqRetry }}"
 
     - ansible.builtin.set_fact:
         set_bootseq_retry: "{{'Disabled' if
@@ -153,11 +153,11 @@
 
     - name: Configure generic attributes -Change. (nfs share-Normal)
       dellemc.openmanage.idrac_bios: &configure_generic_attributes
-        share_name: "{{nfs_share_name}}"
+        share_name: "{{ nfs_share_name }}"
         share_mnt: "/tmp"
         attributes:
           # BootMode: "Bios"
-          BootSeqRetry: "{{set_bootseq_retry}}"
+          BootSeqRetry: "{{ set_bootseq_retry }}"
       register: result_nfs
 
     - ansible.builtin.include_role:
@@ -173,7 +173,7 @@
         <<: *configure_generic_attributes
         attributes:
           BootMode: "Uefi"
-          BootSeqRetry: "{{set_bootseq_retry}}"
+          BootSeqRetry: "{{ set_bootseq_retry }}"
       register: cm_result_nfs
       check_mode: true
 
@@ -182,7 +182,7 @@
         share_name: "{{ role_path }}/files"
         attributes:
           BootMode: "Uefi"
-          BootSeqRetry: "{{set_bootseq_retry}}"
+          BootSeqRetry: "{{ set_bootseq_retry }}"
       register: result_local
 
     - ansible.builtin.include_role:

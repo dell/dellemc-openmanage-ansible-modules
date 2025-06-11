@@ -18,7 +18,7 @@
     - ansible.builtin.include_tasks:
         file: get_data.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
          /redfish/v1/Systems/System.Embedded.1/Bios
 
     - ansible.builtin.set_fact:
@@ -51,8 +51,8 @@
     - ansible.builtin.include_tasks:
         file: get_data.yml
       vars:
-        url: https://{{idrac_ip}}:{{idrac_port}}
-         /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{job_id}}
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
+         /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{ job_id }}
 
     # verify job is scheduled using idrac api
     - name: Verify scheduled job details using idrac api
@@ -88,8 +88,8 @@
     # verify scheduled job is cleared from idrac using api
     - name: Get Job Details
       ansible.builtin.uri:
-        url: https://{{idrac_ip}}:{{idrac_port}}
-         /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{job_id}}
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
+         /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{ job_id }}
         user: "{{ idrac_user }}"
         password: "{{ idrac_password }}"
         force_basic_auth: true

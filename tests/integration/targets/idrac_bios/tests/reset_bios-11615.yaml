@@ -16,12 +16,12 @@
         file: _get_server_generation.yml
 
     - ansible.builtin.set_fact:
-        lc_logs_url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers\
+        lc_logs_url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/Managers\
          /iDRAC.Embedded.1/LogServices/Lclog\
          /Entries?$filter=MessageId%20eq%20'UEFI0157'"
 
     - ansible.builtin.set_fact:
-        lc_logs_url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers\
+        lc_logs_url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/Managers\
          /iDRAC.Embedded.1/Logs/Lclog?$filter=MessageId%20eq%20'UEFI0157'"
       when: generation | int < 14
 
@@ -60,7 +60,7 @@
     - ansible.builtin.include_tasks:
         file: get_data.yml
       vars:
-        url: "{{lc_logs_url}}"
+        url: "{{ lc_logs_url }}"
 
     - ansible.builtin.set_fact:
         new_LC_log: |
