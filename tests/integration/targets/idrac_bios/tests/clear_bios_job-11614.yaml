@@ -22,15 +22,16 @@
          /redfish/v1/Systems/System.Embedded.1/Bios
 
     - ansible.builtin.set_fact:
-        current_boot_mode: "{{uri_data.json.Attributes.BootMode}}"
+        current_bootseq_retry: "{{ uri_data.json.Attributes.BootSeqRetry }}"
 
     - ansible.builtin.set_fact:
-        set_boot_mode: "{{'Bios' if (current_boot_mode == 'Uefi') else 'Uefi'}}"
+        set_bootseq_retry: "{{'Disabled' if
+         (current_bootseq_retry == 'Enabled') else 'Enabled'}}"
 
     - name: Pre-Requisite Schedule bios configuration
       dellemc.openmanage.idrac_bios:
         attributes:
-          "BootMode": "{{ set_boot_mode }}"
+          "BootSeqRetry": "{{ set_bootseq_retry }}"
         apply_time: "OnReset"
       register: change_bios_setting
 
@@ -113,7 +114,7 @@
         that:
           - not clear_jobs_results.changed
           - clear_jobs_results.status_msg == "No changes found to be applied."
-  when: generation | int < 17
+
 
   module_defaults:
     dellemc.openmanage.idrac_bios:
