@@ -198,7 +198,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
 
 
 MANAGERS_URI = "/redfish/v1/Managers"
-IDRAC_JOB_URI = "{res_uri}/Jobs/{job_id}"
+IDRAC_JOB_URI = "{res_uri}/Oem/Dell/Jobs/{job_id}"
 ODATA = "@odata.id"
 ODATA_REGEX = "(.*?)@odata"
 
