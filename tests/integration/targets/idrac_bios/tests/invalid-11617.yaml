@@ -1,0 +1,91 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- block:
+    - name: Perform idrac bios operation without required parameter
+      dellemc.openmanage.idrac_bios:
+        idrac_ip: "{{ idrac_ip }}"
+      ignore_errors: true
+      register: no_required_param
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - no_required_param.failed
+          - no_required_param.msg == "one of the following is required:
+              boot_sources, attributes, clear_pending, reset_bios"
+
+    - name: Perform reset bios with invalid username
+      dellemc.openmanage.idrac_bios:
+        idrac_user: "invalid_user"
+        reset_bios: true
+      register: invalid_user
+      ignore_errors: true
+
+    - name: Verify reset bios with invalid username
+      ansible.builtin.assert:
+        that:
+          - "'HTTP Error 401' in invalid_user.msg"
+
+    - name: Perform reset bios with invalid password
+      dellemc.openmanage.idrac_bios:
+        idrac_password: "invalid_password"
+        reset_bios: true
+      register: invalid_pass
+      ignore_errors: true
+
+    - name: Verify reset bios with invalid password
+      ansible.builtin.assert:
+        that: |-
+          ("'HTTP Error 401' in invalid_pass.msg") or
+          ("'urlopen error timed out' in invalid_pass.msg")
+
+    - name: Perform bios with invalid clear_pending value
+      dellemc.openmanage.idrac_bios:
+        clear_pending: invalid
+      register: invalid_clear
+      ignore_errors: true
+
+    - name: Verify reset bios with invalid clear_pending value
+      ansible.builtin.assert:
+        that: invalid_clear.msg is
+              search('unable to convert to bool')
+
+    - name: Perform bios with invalid reset type value
+      dellemc.openmanage.idrac_bios:
+        reset_type: invalid
+      register: invalid_reset
+      ignore_errors: true
+
+    - name: Verify reset bios with invalid reset type value
+      ansible.builtin.assert:
+        that: invalid_reset.msg is search('graceful_restart, force_restart')
+
+    - name: Perform bios with clear pending with reset type
+      dellemc.openmanage.idrac_bios:
+        clear_pending: true
+        reset_bios: true
+      register: mutually_exl
+      ignore_errors: true
+
+    - name: Verify reset bios with clear pending with reset type
+      ansible.builtin.assert:
+        that: mutually_exl.msg is search('boot_sources|attributes|
+         clear_pending|reset_bios')
+
+  module_defaults:
+    dellemc.openmanage.idrac_bios:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

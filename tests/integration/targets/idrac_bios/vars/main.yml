@@ -1,0 +1,7 @@
+---
+boot_mode: "Bios"
+secure_boot: "Disabled"
+secure_boot_mode: "AuditMode"
+secure_boot_policy: "Standard"
+# EmbSata_mode: "RaidMode"
+emb_video: "Disabled"

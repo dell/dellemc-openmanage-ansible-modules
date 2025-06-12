@@ -1,0 +1,124 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: idrac_ip,
+     idrac_user and idrac_password."
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- ansible.builtin.include_tasks:
+    file: _get_server_generation.yml
+
+- block:
+    - ansible.builtin.include_tasks:
+        file: get_data.yml
+      vars:
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
+         /redfish/v1/Systems/System.Embedded.1/Bios
+
+    - ansible.builtin.set_fact:
+        current_bootseq_retry: "{{ uri_data.json.Attributes.BootSeqRetry }}"
+
+    - ansible.builtin.set_fact:
+        set_bootseq_retry: "{{'Disabled' if
+         (current_bootseq_retry == 'Enabled') else 'Enabled'}}"
+
+    - name: Pre-Requisite Schedule bios configuration
+      dellemc.openmanage.idrac_bios:
+        attributes:
+          "BootSeqRetry": "{{ set_bootseq_retry }}"
+        apply_time: "OnReset"
+      register: change_bios_setting
+
+    - name: Verify job is scheduled
+      ansible.builtin.assert:
+        that:
+          - change_bios_setting.changed
+          - change_bios_setting.status_msg == "Successfully committed changes.
+            The job is in pending state. The changes will be applied OnReset"
+
+    - ansible.builtin.pause: seconds=10
+      when: change_bios_setting.changed
+
+    # Get scheduled the job id
+    - name: Get the jobId
+      ansible.builtin.set_fact: job_id={{ change_bios_setting.job_id }}
+
+    - ansible.builtin.include_tasks:
+        file: get_data.yml
+      vars:
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
+         /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{ job_id }}
+
+    # verify job is scheduled using idrac api
+    - name: Verify scheduled job details using idrac api
+      ansible.builtin.assert:
+        that:
+          - uri_data.json.JobState == "Scheduled"
+
+    - name: Clear bios job queue Check mode - Changes expected
+      dellemc.openmanage.idrac_bios: &clear_bios_job
+        clear_pending: true
+      register: clear_jobs_results
+      check_mode: true
+
+    - name: Verify clear job queue status Check mode - Changes expected
+      ansible.builtin.assert:
+        that:
+          - clear_jobs_results.changed
+          - clear_jobs_results.status_msg == "Changes found to be applied."
+
+    # Re-Run task to clear bios job queue
+    - name: Run clear bios job queue - Normal
+      dellemc.openmanage.idrac_bios:
+        <<: *clear_bios_job
+      register: clear_jobs_results
+
+    - name: Verify clear job queue status - Normal
+      ansible.builtin.assert:
+        that:
+          - clear_jobs_results.changed
+          - clear_jobs_results.status_msg == "Successfully cleared the pending
+            BIOS attributes."
+
+    # verify scheduled job is cleared from idrac using api
+    - name: Get Job Details
+      ansible.builtin.uri:
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
+         /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{ job_id }}
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        force_basic_auth: true
+        method: GET
+        validate_certs: "{{ validate_certs }}"
+        body_format: json
+        return_content: true
+        status_code: 404
+        headers: "Accept=application/json"
+      register: job_details
+
+    #  Re-run clear bios task to verify idempotency
+    - name: Run clear bios job queue - Idempotency
+      dellemc.openmanage.idrac_bios:
+        <<: *clear_bios_job
+      register: clear_jobs_results
+
+    # Verify clear job status details
+    - name: Verify clear job queue status - Idempotency
+      ansible.builtin.assert:
+        that:
+          - not clear_jobs_results.changed
+          - clear_jobs_results.status_msg == "No changes found to be applied."
+
+
+  module_defaults:
+    dellemc.openmanage.idrac_bios:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

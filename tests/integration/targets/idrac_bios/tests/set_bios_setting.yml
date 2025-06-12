@@ -1,0 +1,56 @@
+---
+- block:
+    - name: Pre-req - change boot Setting
+      ansible.builtin.uri:
+        url: "{{ url }}"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        force_basic_auth: true
+        method: "{{ method }}"
+        body: "{{ body }}"
+        validate_certs: false
+        body_format: json
+        return_content: true
+        status_code: 200
+        headers: "Accept=application/json"
+      register: result_uri
+      when: uri_trigger is defined
+
+    - ansible.builtin.pause: seconds=90
+      when: result_uri.changed
+
+    - name: Pre-req - change BIOS Setting (Using idrac_bios module)
+      dellemc.openmanage.idrac_bios:
+        share_name: "{{ role_path }}/files"
+        boot_mode: "{{ boot_mode }}"
+      register: result
+      when: boot_mode_trigger is defined
+
+    - ansible.builtin.pause: seconds=90
+      when: result.changed
+
+    - name: Pre-req - change nvme mode (local_share)
+      dellemc.openmanage.idrac_bios:
+        share_name: "{{ role_path }}/files"
+        nvme_mode: "{{ nvme_mode }}"
+      register: result
+      when: nvme_mode_trigger is defined
+
+    - ansible.builtin.pause: seconds=90
+      when: result.changed
+
+    - ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
+
+    - name: verify status of the tasks (using uri)
+      ansible.builtin.assert:
+        that:
+          - result_uri.status == 200
+      when: uri_trigger is defined
+
+  module_defaults:
+    dellemc.openmanage.idrac_bios:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
