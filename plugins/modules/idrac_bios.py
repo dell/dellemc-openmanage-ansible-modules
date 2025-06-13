@@ -348,11 +348,13 @@ MAINTENANCE_TIME = "The specified maintenance time window occurs in the past, " 
 NEGATIVE_TIMEOUT_MESSAGE = "The parameter job_wait_timeout value cannot be negative or zero."
 POWER_CHECK_RETRIES = 30
 POWER_CHECK_INTERVAL = 10
+AUTH_ERROR_MSG = "Unable to communicate with iDRAC {0}. This may be due to one of the following: " \
+                 "Incorrect username or password, unreachable iDRAC IP or a failure in TLS/SSL handshake."
 
 import json
 import time
 from ansible.module_utils.common.dict_transformations import recursive_diff
-from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
+from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
@@ -826,13 +828,14 @@ def main():
                     attributes_config(module, redfish_obj)
             module.exit_json(status_msg=NO_CHANGES_MSG)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
-    except URLError as err:
-        message = err.reason if err.reason else str(err)
-        module.exit_json(msg=message, unreachable=True)
-    except (RuntimeError, SSLValidationError, ConnectionError, KeyError,
-            ImportError, ValueError, TypeError) as e:
-        module.fail_json(msg=str(e))
+        if err.code == 401:
+            module.fail_json(msg=AUTH_ERROR_MSG.format(module.params["idrac_ip"]))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
+    except URLError:
+        module.exit_json(msg=AUTH_ERROR_MSG.format(module.params["idrac_ip"]), unreachable=True)
+    except (ImportError, ValueError, RuntimeError, SSLValidationError,
+            ConnectionError, KeyError, TypeError, IndexError) as e:
+        module.exit_json(msg=str(type(e))+str(e))      
 
 
 if __name__ == '__main__':
