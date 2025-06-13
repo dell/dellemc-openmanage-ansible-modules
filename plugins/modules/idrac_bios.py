@@ -318,9 +318,9 @@ CLEAR_PENDING_URI = "/redfish/v1/Systems/System.Embedded.1/Bios/Settings/Actions
 RESET_BIOS_DEFAULT = "/redfish/v1/Systems/System.Embedded.1/Bios/Actions/Bios.ResetBios"
 BIOS_SETTINGS = "/redfish/v1/Systems/System.Embedded.1/Bios/Settings"
 POWER_HOST_URI = "/redfish/v1/Systems/System.Embedded.1/Actions/ComputerSystem.Reset"
-IDRAC_JOBS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs"
-iDRAC_JOBS_EXP = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
-iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
+IDRAC_JOBS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs"
+iDRAC_JOBS_EXP = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs?$expand=*($levels=1)"
+iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{job_id}"
 LOG_SERVICE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog"
 iDRAC9_LC_LOG = "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries"
 iDRAC8_LC_LOG = "/redfish/v1/Managers/iDRAC.Embedded.1/Logs/Lclog"
@@ -348,6 +348,7 @@ MAINTENANCE_TIME = "The specified maintenance time window occurs in the past, " 
 NEGATIVE_TIMEOUT_MESSAGE = "The parameter job_wait_timeout value cannot be negative or zero."
 POWER_CHECK_RETRIES = 30
 POWER_CHECK_INTERVAL = 10
+
 
 import json
 import time
@@ -576,7 +577,7 @@ def reset_bios(module, redfish_obj):
         module.exit_json(status_msg=BIOS_RESET_PENDING, failed=True)
     if module.check_mode:
         module.exit_json(status_msg=CHANGES_MSG, changed=True)
-    redfish_obj.invoke_request(RESET_BIOS_DEFAULT, "POST", data="{}", dump=True)
+    redfish_obj.invoke_request(RESET_BIOS_DEFAULT, "POST", data={}, dump=True)
     reset_success = reset_host(module, redfish_obj)
     if not reset_success:
         module.exit_json(failed=True, status_msg="{0} {1}".format(RESET_TRIGGERRED, HOST_RESTART_FAILED))
@@ -721,6 +722,39 @@ def apply_attributes(module, redfish_obj, pending, rf_settings):
     return job_id, reboot_required
 
 
+def check_pending_jobs(module, redfish_obj, pending):
+    if pending:
+        job_id, job_state = check_scheduled_bios_job(redfish_obj)
+        if job_id:
+            if job_state in ["Running", "Starting"]:
+                module.exit_json(status_msg=BIOS_JOB_RUNNING, job_id=job_id, failed=True)
+            elif job_state in ["Scheduled", "Scheduling"]:
+                # changes staged in pending attributes
+                # if module.params.get("force", True) == False:
+                #     module.exit_json(status_msg=FORCE_BIOS_DELETE, job_id=job_id, failed=True)
+                delete_scheduled_bios_job(redfish_obj, job_id)
+
+
+def wait_for_job_completion(module, redfish_obj, reboot_required, job_id, invalid):
+    if reboot_required and job_id:
+        reset_success = reset_host(module, redfish_obj)
+        if not reset_success:
+            module.exit_json(status_msg="Attributes committed but reboot has failed {0}".format(HOST_RESTART_FAILED),
+                             failed=True)
+        if module.params.get("job_wait"):
+            job_details = idrac_redfish_job_tracking(
+                redfish_obj, iDRAC_JOB_URI.format(job_id=job_id),
+                max_job_wait_sec=module.params.get('job_wait_timeout'))
+            job_failed = job_details[0]
+            msg = job_details[1]
+            job_dict = job_details[2]
+            if job_failed:
+                module.exit_json(failed=True, status_msg=msg, job_id=job_id)
+            module.exit_json(status_msg=SUCCESS_COMPLETE, job_id=job_id, msg=strip_substr_dict(job_dict), invalid_attributes=invalid, changed=True)
+        else:
+            module.exit_json(status_msg=SCHEDULED_SUCCESS, job_id=job_id, invalid_attributes=invalid, changed=True)
+
+
 def attributes_config(module, redfish_obj):
     curr_resp = get_current_attributes(redfish_obj)
     curr_attr = curr_resp.get("Attributes", {})
@@ -740,32 +774,10 @@ def attributes_config(module, redfish_obj):
         module.exit_json(status_msg=CHANGES_MSG, changed=True)
     pending = get_pending_attributes(redfish_obj)
     pending.update(attr)
-    if pending:
-        job_id, job_state = check_scheduled_bios_job(redfish_obj)
-        if job_id:
-            if job_state in ["Running", "Starting"]:
-                module.exit_json(status_msg=BIOS_JOB_RUNNING, job_id=job_id, failed=True)
-            elif job_state in ["Scheduled", "Scheduling"]:
-                # changes staged in pending attributes
-                # if module.params.get("force", True) == False:
-                #     module.exit_json(status_msg=FORCE_BIOS_DELETE, job_id=job_id, failed=True)
-                delete_scheduled_bios_job(redfish_obj, job_id)
+    check_pending_jobs(module, redfish_obj, pending)
     rf_settings = curr_resp.get("@Redfish.Settings", {}).get("SupportedApplyTimes", [])
     job_id, reboot_required = apply_attributes(module, redfish_obj, pending, rf_settings)
-    if reboot_required and job_id:
-        reset_success = reset_host(module, redfish_obj)
-        if not reset_success:
-            module.exit_json(status_msg="Attributes committed but reboot has failed {0}".format(HOST_RESTART_FAILED),
-                             failed=True)
-        if module.params.get("job_wait"):
-            job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(
-                redfish_obj, iDRAC_JOB_URI.format(job_id=job_id),
-                max_job_wait_sec=module.params.get('job_wait_timeout'))
-            if job_failed:
-                module.exit_json(failed=True, status_msg=msg, job_id=job_id)
-            module.exit_json(status_msg=SUCCESS_COMPLETE, job_id=job_id, msg=strip_substr_dict(job_dict), invalid_attributes=invalid, changed=True)
-        else:
-            module.exit_json(status_msg=SCHEDULED_SUCCESS, job_id=job_id, invalid_attributes=invalid, changed=True)
+    wait_for_job_completion(module, redfish_obj, reboot_required, job_id, invalid)
     module.exit_json(status_msg=COMMITTED_SUCCESS.format(module.params.get('apply_time')),
                      job_id=job_id, invalid_attributes=invalid, changed=True)
 

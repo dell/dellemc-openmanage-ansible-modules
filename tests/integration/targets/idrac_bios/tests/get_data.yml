@@ -1,0 +1,17 @@
+---
+- name: Get uri data
+  ansible.builtin.uri:
+    url: "{{ url }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    validate_certs: false
+    force_basic_auth: true
+    body: {}
+    body_format: json
+    return_content: true
+    status_code: 200
+    headers: 'Accept=application/json'
+  register: uri_data
+
+- ansible.builtin.pause: seconds=20
+  when: uri_data.status == 200
