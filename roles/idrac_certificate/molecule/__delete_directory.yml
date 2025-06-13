@@ -3,7 +3,8 @@
   ansible.builtin.command:
     cmd: umount -l {{ lookup('env', 'path_for_import_cert') }}
   register: umount_result
-  failed_when: umount_result.rc != 0 and 'not mounted' not in umount_result.stderr
+  failed_when: umount_result.rc != 0 and
+    'not mounted' not in umount_result.stderr
   changed_when: "'not mounted' not in umount_result.stderr"
   check_mode: false
 

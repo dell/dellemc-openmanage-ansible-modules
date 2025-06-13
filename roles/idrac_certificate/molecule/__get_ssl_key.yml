@@ -16,7 +16,9 @@
 
 - name: Generate private RSA key using OpenSSL (certified-compliant)
   ansible.builtin.command: >
-    openssl genpkey -algorithm RSA -out "{{ lookup('env', 'path_for_import_cert') }}/cert.key" -pkeyopt rsa_keygen_bits:2048
+    openssl genpkey -algorithm RSA
+    -out "{{ lookup('env', 'path_for_import_cert') }}/cert.key"
+    -pkeyopt rsa_keygen_bits:2048
   args:
     creates: "{{ lookup('env', 'path_for_import_cert') }}/cert.key"
   no_log: false
