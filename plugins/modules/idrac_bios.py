@@ -835,7 +835,7 @@ def main():
         module.exit_json(msg=AUTH_ERROR_MSG.format(module.params["idrac_ip"]), unreachable=True)
     except (ImportError, ValueError, RuntimeError, SSLValidationError,
             ConnectionError, KeyError, TypeError, IndexError) as e:
-        module.exit_json(msg=str(type(e))+str(e))      
+        module.exit_json(msg=str(e))      
 
 
 if __name__ == '__main__':
