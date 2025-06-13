@@ -210,7 +210,7 @@ ACTIONS = "Actions"
 SYSTEM_ERASE = "DellLCService.SystemErase"
 SYSTEM_ERASE_FETCH = "#DellLCService.SystemErase"
 COMPONENT_ALLOWABLE_VALUES = "Component@Redfish.AllowableValues"
-JOB_FILTER = "Jobs?$expand=*($levels=1)"
+JOB_FILTER = "/Oem/Dell/Jobs?$expand=*($levels=1)"
 
 ERASE_SUCCESS_COMPLETION_MSG = "Successfully completed the system erase operation."
 ERASE_SUCCESS_SCHEDULED_MSG = "Successfully submitted the job for system erase operation."
