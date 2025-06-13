@@ -1,8 +1,10 @@
 ---
-- name: Force unmount the mount point
-  ansible.builtin.shell: "umount -l {{ lookup('env', 'path_for_import_cert') }}"
-  ignore_errors: true  # continue even if already unmounted or fails
+- name: Force unmount the mount point (lazy unmount)
+  ansible.builtin.command:
+    cmd: umount -l {{ lookup('env', 'path_for_import_cert') }}
   register: umount_result
+  failed_when: umount_result.rc != 0 and 'not mounted' not in umount_result.stderr
+  changed_when: "'not mounted' not in umount_result.stderr"
   check_mode: false
 
 - name: Show unmount result

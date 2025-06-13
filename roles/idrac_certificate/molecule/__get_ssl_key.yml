@@ -23,11 +23,13 @@
   check_mode: false
 
 - name: Generate self-signed certificate using OpenSSL
-  ansible.builtin.command: >
-    openssl req -x509 -new -nodes
-    -key "{{ lookup('env', 'path_for_import_cert') }}/cert.key"
-    -sha256 -days 365
-    -out "{{ lookup('env', 'path_for_import_cert') }}/cert.pem"
-    -subj "/CN=localhost"
+  ansible.builtin.command:
+    cmd: >
+      openssl req -x509 -new -nodes
+      -key "{{ lookup('env', 'path_for_import_cert') }}/cert.key"
+      -sha256 -days 365
+      -out "{{ lookup('env', 'path_for_import_cert') }}/cert.pem"
+      -subj "/CN=localhost"
   check_mode: false
   no_log: false
+  changed_when: true

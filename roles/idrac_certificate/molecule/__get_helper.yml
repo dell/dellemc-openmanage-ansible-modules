@@ -29,7 +29,7 @@
 
 - name: Downloading certificate file
   ansible.builtin.get_url:
-    url: "http://{{ https_share_ip }}{{ https_certificate_path }}{{ item }}"
+    url: "https://{{ https_share_ip }}{{ https_certificate_path }}{{ item }}"
     force_basic_auth: true
     validate_certs: false
     url_username: "{{ https_share_username }}"
