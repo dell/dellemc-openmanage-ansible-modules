@@ -1,0 +1,236 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: idrac_ip, idrac_user
+     and idrac_password."
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- block:
+    - ansible.builtin.include_tasks:
+        file: get_data.yml
+      vars:
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
+         /redfish/v1/Systems/System.Embedded.1/Bios
+
+    - ansible.builtin.include_tasks:
+        file: set_bios_setting.yml
+      vars:
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
+         /redfish/v1/Systems/System.Embedded.1/Bios/Settings
+        method: PATCH
+        body: {"Attributes": {"SecureBoot": "{{ secure_boot }}"}}
+        uri_trigger: 1
+      when: uri_data.json.Attributes.SecureBoot != secure_boot
+
+    - ansible.builtin.include_tasks:
+        file: set_bios_setting.yml
+      vars:
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
+         /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs
+        method: POST
+        body:
+          {
+            "TargetSettingsURI": "/redfish/v1/Systems/System.Embedded.1/Bios\
+              /Settings",
+            "RebootJobType": "ForceReboot",
+          }
+        uri_trigger: 1
+      when: uri_data.json.Attributes.SecureBoot != secure_boot
+
+    - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        location: "{{ result_uri.location }}"
+      when: uri_data.json.Attributes.SecureBoot != secure_boot
+
+    - ansible.builtin.include_tasks:
+        file: set_bios_setting.yml
+      vars:
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
+         /redfish/v1/Systems/System.Embedded.1/Bios/Settings
+        method: PATCH
+        body: {"Attributes": {"EmbVideo": "{{ emb_video }}"}}
+        uri_trigger: 1
+      when: uri_data.json.Attributes.EmbVideo != emb_video
+
+    - ansible.builtin.include_tasks:
+        file: set_bios_setting.yml
+      vars:
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
+         /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs
+        method: POST
+        body:
+          {
+            "TargetSettingsURI": "/redfish/v1/Systems/System.Embedded.1/Bios\
+              /Settings",
+            "RebootJobType": "ForceReboot",
+          }
+        uri_trigger: 1
+      when: uri_data.json.Attributes.EmbVideo != emb_video
+
+    - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        location: "{{ result_uri.location }}"
+      when: uri_data.json.Attributes.EmbVideo != emb_video
+
+    - ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
+
+    - ansible.builtin.include_tasks:
+        file: set_bios_setting.yml
+      vars:
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
+         /redfish/v1/Systems/System.Embedded.1/Bios/Settings
+        method: PATCH
+        body: {"Attributes": {"NvmeMode": "NonRaid"}}
+        uri_trigger: 1
+      when: uri_data.json.Attributes.NvmeMode != "NonRaid"
+
+    - ansible.builtin.include_tasks:
+        file: set_bios_setting.yml
+      vars:
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
+         /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs
+        method: POST
+        body:
+          {
+            "TargetSettingsURI": "/redfish/v1/Systems/System.Embedded.1/Bios\
+              /Settings",
+            "RebootJobType": "ForceReboot",
+          }
+        uri_trigger: 1
+      when: uri_data.json.Attributes.NvmeMode != "NonRaid"
+
+    - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        location: "{{ result_uri.location }}"
+      when: uri_data.json.Attributes.NvmeMode != "NonRaid"
+
+    - ansible.builtin.include_tasks:
+        file: set_bios_setting.yml
+      vars:
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
+         /redfish/v1/Systems/System.Embedded.1/Bios/Settings
+        method: PATCH
+        body: {"Attributes": {"BootMode": "Uefi"}}
+        uri_trigger: 1
+      when: uri_data.json.Attributes.BootMode == "Bios"
+
+    - ansible.builtin.include_tasks:
+        file: set_bios_setting.yml
+      vars:
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
+         /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs
+        method: POST
+        body:
+          {
+            "TargetSettingsURI": "/redfish/v1/Systems/System.Embedded.1/Bios\
+              /Settings",
+            "RebootJobType": "ForceReboot",
+          }
+        uri_trigger: 1
+      when: uri_data.json.Attributes.BootMode == "Bios"
+
+    - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        location: "{{ result_uri.location }}"
+      when: uri_data.json.Attributes.BootMode == "Bios"
+
+    - ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
+
+    - ansible.builtin.set_fact:
+        current_bootseq_retry: "{{ uri_data.json.Attributes.BootSeqRetry }}"
+
+    - ansible.builtin.set_fact:
+        set_bootseq_retry: "{{'Disabled' if
+         (current_bootseq_retry == 'Enabled') else 'Enabled'}}"
+
+    - name: Configure generic attributes -Change. (nfs share-Normal)
+      dellemc.openmanage.idrac_bios: &configure_generic_attributes
+        share_name: "{{ nfs_share_name }}"
+        share_mnt: "/tmp"
+        attributes:
+          # BootMode: "Bios"
+          BootSeqRetry: "{{ set_bootseq_retry }}"
+      register: result_nfs
+
+    - ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
+
+    - ansible.builtin.set_fact:
+        set_bootseq_retry: "{{'Disabled' if
+         (set_bootseq_retry == 'Enabled') else 'Enabled'}}"
+
+    - name: Configure generic attributes (nfs_share) (check mode - change
+       expected)
+      dellemc.openmanage.idrac_bios:
+        <<: *configure_generic_attributes
+        attributes:
+          BootMode: "Uefi"
+          BootSeqRetry: "{{ set_bootseq_retry }}"
+      register: cm_result_nfs
+      check_mode: true
+
+    - name: Configure generic attributes -change (local_share)- normal
+      dellemc.openmanage.idrac_bios:
+        share_name: "{{ role_path }}/files"
+        attributes:
+          BootMode: "Uefi"
+          BootSeqRetry: "{{ set_bootseq_retry }}"
+      register: result_local
+
+    - ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
+
+    - name: Configure generic attributes (cifs_share) (Check-mode -
+       no changes found to commit)
+      dellemc.openmanage.idrac_bios:
+        <<: *configure_generic_attributes
+        share_name: "{{ cifs_share_name }}"
+        share_user: "{{ cifs_share_user }}"
+        share_password: "{{ cifs_share_password }}"
+        share_mnt: "/tmp"
+        attributes:
+          BootMode: "Uefi"
+      register: cm_result_cifs
+      check_mode: true
+
+    - name: Configure generic attributes (cifs_share) (Idempotence mode)
+      dellemc.openmanage.idrac_bios:
+        <<: *configure_generic_attributes
+        share_name: "{{ cifs_share_name }}"
+        share_user: "{{ cifs_share_user }}"
+        share_password: "{{ cifs_share_password }}"
+        share_mnt: "/tmp"
+        attributes:
+          BootMode: "Uefi"
+      register: idempotence
+
+    - name: Verify status of tasks
+      ansible.builtin.assert:
+        that:
+          - result_nfs.changed
+          - result_nfs.status_msg == "Successfully applied the BIOS
+            attributes update."
+          - cm_result_nfs.changed
+          - cm_result_nfs.status_msg == "Changes found to be applied."
+          - result_local.changed
+          - result_local.status_msg == "Successfully applied the BIOS
+            attributes update."
+          - not idempotence.changed
+          - idempotence.status_msg == "No changes found to be applied."
+          - not cm_result_cifs.changed
+          - cm_result_cifs.status_msg == "No changes found to be applied."
+
+  module_defaults:
+    dellemc.openmanage.idrac_bios:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
