@@ -15,12 +15,12 @@
 
 - name: Reset the iDRAC to default and wait till the iDRAC is accessible.
   dellemc.openmanage.idrac_reset:
-   idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
-   idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
-   idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
-   validate_certs: false
-   reset_to_default: "Default"
-   wait_for_idrac: true
+    idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+    idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+    idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+    reset_to_default: "Default"
+    wait_for_idrac: true
 
 - name: Create Directory
   ansible.builtin.file:
