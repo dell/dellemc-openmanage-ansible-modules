@@ -352,7 +352,7 @@ def get_all_ips(ip_addresses, module):
                 single_ip = IPAddress(ip)
                 ip_addresses_list.append(single_ip)
         except (AddrFormatError, ValueError):
-            module.fail_json(msg=INVALID_IP_FORMAT.format(ip))
+            module.exit_json(msg=INVALID_IP_FORMAT.format(ip), failed=True)
     return ip_addresses_list
 
 
