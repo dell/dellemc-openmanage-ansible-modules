@@ -348,6 +348,7 @@ MAINTENANCE_TIME = "The specified maintenance time window occurs in the past, " 
 NEGATIVE_TIMEOUT_MESSAGE = "The parameter job_wait_timeout value cannot be negative or zero."
 POWER_CHECK_RETRIES = 30
 POWER_CHECK_INTERVAL = 10
+ODATA_REGEX = "(.*?)@odata"
 AUTH_ERROR_MSG = "Unable to communicate with iDRAC {0}. This may be due to one of the following: " \
                  "Incorrect username or password, unreachable iDRAC IP or a failure in TLS/SSL handshake."
 
@@ -359,7 +360,7 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import idrac_redfish_job_tracking, \
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import idrac_redfish_job_tracking, remove_key, \
     strip_substr_dict
 
 
@@ -828,14 +829,13 @@ def main():
                     attributes_config(module, redfish_obj)
             module.exit_json(status_msg=NO_CHANGES_MSG)
     except HTTPError as err:
-        if err.code == 401:
-            module.fail_json(msg=AUTH_ERROR_MSG.format(module.params["idrac_ip"]))
-        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
+        filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
+        module.exit_json(msg=str(err), error_info=filter_err, failed=True)
     except URLError:
         module.exit_json(msg=AUTH_ERROR_MSG.format(module.params["idrac_ip"]), unreachable=True)
     except (ImportError, ValueError, RuntimeError, SSLValidationError,
             ConnectionError, KeyError, TypeError, IndexError) as e:
-        module.exit_json(msg=str(e))
+        module.exit_json(msg=str(e), failed=True)
 
 
 if __name__ == '__main__':
