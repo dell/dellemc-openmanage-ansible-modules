@@ -449,6 +449,34 @@ class TestSystemErase(FakeAnsibleModule):
             system_erase_obj.check_allowable_value(component)
         assert exc.value.args[0] == NO_CHANGES_FOUND_MSG
 
+        # Scenario 4: Mixed components in check_mode
+        mocker.patch(
+            MODULE_PATH + SYSTEM_ERASE_URL, return_value=API_ONE)
+        mocker.patch(MODULE_PATH + API_INVOKE_MOCKER, return_value=obj)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=True)
+        system_erase_obj = self.module.SystemErase(
+            idrac_connection_system_erase_mock, f_module)
+        component = ["BIOS", "invalid"]
+        with pytest.raises(Exception) as exc:
+            system_erase_obj.check_allowable_value(component)
+        assert exc.value.args[0] == CHANGES_FOUND_MSG
+
+    def test_warn_unmatching_components(self, mocker):
+        # Setup: mock module and warn method
+        f_module = MagicMock()
+        system_erase_obj = self.module.SystemErase(None, f_module)
+        # Sample unmatching component list
+        unmatching_components = ["invalid1", "invalid2"]
+        warn_mock = mocker.patch.object(f_module, "warn")
+        system_erase_obj.warn_unmatching_components(unmatching_components)
+
+        expected_str = "invalid1', 'invalid2'"
+        expected_msg = INVALID_COMPONENT_WARN_MSG.format(
+            unmatching_components_str_format=expected_str)
+
+        warn_mock.assert_called_once_with(expected_msg)
+
     @pytest.mark.parametrize("exc",
                              [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
     def test_idrac_system_erase_main_exception_handling_case(self, exc, mocker, idrac_default_args):

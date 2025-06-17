@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.7.0
+# Version 9.12.2
 # Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -74,6 +74,7 @@ requirements:
   - "python >= 3.9.6"
 author:
   - "Rajshekar P(@rajshekarp87)"
+  - "Saksham Nautiyal (@Saksham-Nautiyal)"
 attributes:
     check_mode:
         description: Runs task to validate without performing action on the target machine.
@@ -198,7 +199,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
 
 
 MANAGERS_URI = "/redfish/v1/Managers"
-IDRAC_JOB_URI = "{res_uri}/Jobs/{job_id}"
+IDRAC_JOB_URI = "{res_uri}/Oem/Dell/Jobs/{job_id}"
 ODATA = "@odata.id"
 ODATA_REGEX = "(.*?)@odata"
 
@@ -209,7 +210,7 @@ ACTIONS = "Actions"
 SYSTEM_ERASE = "DellLCService.SystemErase"
 SYSTEM_ERASE_FETCH = "#DellLCService.SystemErase"
 COMPONENT_ALLOWABLE_VALUES = "Component@Redfish.AllowableValues"
-JOB_FILTER = "Jobs?$expand=*($levels=1)"
+JOB_FILTER = "/Oem/Dell/Jobs?$expand=*($levels=1)"
 
 ERASE_SUCCESS_COMPLETION_MSG = "Successfully completed the system erase operation."
 ERASE_SUCCESS_SCHEDULED_MSG = "Successfully submitted the job for system erase operation."
