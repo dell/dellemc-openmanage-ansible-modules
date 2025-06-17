@@ -291,7 +291,7 @@ def exit_settings(module, rest_obj, job_id):
     msg = SEC_JOB_TRIGGERED
     time.sleep(SETTLING_TIME)
     if module.params.get("job_wait") and module.params.get("job_wait_timeout") <= 0:
-       module.exit_json(msg=TIMEOUT_NEGATIVE_OR_ZERO_MSG, failed=True)
+        module.exit_json(msg=TIMEOUT_NEGATIVE_OR_ZERO_MSG, failed=True)
     if module.params.get("job_wait"):
         job_failed, job_message = rest_obj.job_tracking(
             job_id=job_id, job_wait_sec=module.params["job_wait_timeout"], sleep_time=JOB_POLL_INTERVAL)
