@@ -425,6 +425,17 @@
         job_wait: true
         job_wait_timeout: 1000
 
+    - name: Wait for a minutes
+      ansible.builtin.pause:
+        minutes: 1
+
+    - ansible.builtin.include_tasks: _get_file_path.yml
+
+    - name: Verify - PK is present on filesystem
+      ansible.builtin.assert:
+        that:
+          - pk_files.files|length > 0
+
     - name: Delete pk
       dellemc.openmanage.idrac_secure_boot:
         idrac_ip: "{{ idrac_ip }}"
@@ -509,8 +520,6 @@
         that:
           - secure_boot_mode_audit.changed
           - 'boot_md_uri.json.Attributes.SecureBootMode == "AuditMode"'
-
-    - ansible.builtin.include_tasks: _get_file_path.yml
 
     - ansible.builtin.include_role:
         name: prepare_idrac_lifecycle_controller_status
