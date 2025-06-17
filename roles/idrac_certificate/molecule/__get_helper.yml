@@ -13,6 +13,15 @@
     curl_http_url: "{{ https_share_ip }}/{{ https_certificate_path }}"
     per_mode: "0755"
 
+- name: Reset the iDRAC to default and wait till the iDRAC is accessible.
+  dellemc.openmanage.idrac_reset:
+    idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+    idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+    idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+    reset_to_default: "Default"
+    wait_for_idrac: true
+
 - name: Create Directory
   ansible.builtin.file:
     path: "{{ path_for_import_cert }}"
@@ -29,7 +38,7 @@
 
 - name: Downloading certificate file
   ansible.builtin.get_url:
-    url: "http://{{ https_share_ip }}{{ https_certificate_path }}{{ item }}"
+    url: "https://{{ https_share_ip }}{{ https_certificate_path }}{{ item }}"
     force_basic_auth: true
     validate_certs: false
     url_username: "{{ https_share_username }}"
