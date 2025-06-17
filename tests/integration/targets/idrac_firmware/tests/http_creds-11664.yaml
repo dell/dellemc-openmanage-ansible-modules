@@ -28,7 +28,7 @@
 
     - name: Update firmware from repository through HTTP Share
       dellemc.openmanage.idrac_firmware:
-        share_name: "http://{{ http_share }}{{ http_share_dir_path }}
+        share_name: "http://{{ http_share }}{{ http_share_dir_path }}\
           {{ new_catalog_location }}"
         share_user: "{{ http_share_user }}"
         share_password: "{{ http_share_password }}"
