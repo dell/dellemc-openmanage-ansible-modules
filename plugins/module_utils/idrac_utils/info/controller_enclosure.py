@@ -40,7 +40,7 @@ class IDRACEnclosureInfo(object):
             "AssetTag": NA if (asset := resp.get("AssetTag")) == "" else asset,
             "Connector": str(dellchasis.get("Connector")),
             "DeviceDescription": resp.get("Description"),
-            "EMMCount": str(dellchasis.get("Links").get("DellEnclosureEMMCollection@odata.count")),
+            "EMMCount": str(dellchasis.get("Links", {}).get("DellEnclosureEMMCollection@odata.count", 0)),
             "FQDD": resp.get("Id", NA),
             "FanCount": NA,
             "Key": resp.get("Id", NA),
