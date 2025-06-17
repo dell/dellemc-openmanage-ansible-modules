@@ -251,7 +251,7 @@ def get_user_account(module, idrac):
     """
     slot_uri, slot_id, empty_slot, empty_slot_uri = None, None, None, None
     if not module.params["user_name"]:
-        module.fail_json(msg="User name is not valid.")
+        module.exit_json(msg="User name is not valid.", failed=True)
     response = idrac.export_scp(export_format="JSON", export_use="Default", target="IDRAC", job_wait=True)
     user_attributes = idrac.get_idrac_local_account_attr(response.json_data, fqdd="iDRAC.Embedded.1")
     slot_num = tuple(range(2, 17))
@@ -359,7 +359,11 @@ def create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id, em
             time.sleep(10)
             response = idrac.import_scp(import_buffer=xml_payload, target="ALL", job_wait=True)
     elif (slot_id and slot_uri and empty_slot_id and empty_slot_uri) is None:
-        module.fail_json(msg="Maximum number of users reached. Delete a user account and retry the operation.")
+        module.exit_json(
+            msg="Maximum number of users reached. Delete a \
+user account and retry the operation.",
+            failed=True
+        )
     return response, msg
 
 
@@ -392,7 +396,8 @@ def validate_input(module):
         user_privilege = module.params["custom_privilege"] if "custom_privilege" in module.params and \
             module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"], 0)
         if INVALID_PRIVILAGE_MIN > user_privilege or user_privilege > INVALID_PRIVILAGE_MAX:
-            module.fail_json(msg=INVALID_PRIVILAGE_MSG)
+            module.exit_json(msg=INVALID_PRIVILAGE_MSG,
+                             failed=True)
 
 
 def main():
@@ -430,17 +435,23 @@ def main():
                 error_msg = ["Unable to complete application of configuration profile values.",
                              "Import of Server Configuration Profile operation completed with errors."]
                 if oem_msg in error_msg:
-                    module.fail_json(msg=oem_msg, error_info=response.json_data)
+                    module.exit_json(msg=oem_msg,
+                                     error_info=response.json_data,
+                                     failed=True)
             if error:
-                module.fail_json(msg=error.get("message"), error_info=response.json_data)
+                module.exit_json(msg=error.get("message"),
+                                 error_info=response.json_data,
+                                 failed=True)
             module.exit_json(msg=message, status=response.json_data, changed=True)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err),
+                         error_info=json.load(err),
+                         failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (RuntimeError, SSLValidationError, ConnectionError, KeyError,
             ImportError, ValueError, TypeError, SSLError) as e:
-        module.fail_json(msg=str(e))
+        module.exit_json(msg=str(e), failed=True)
 
 
 if __name__ == '__main__':
