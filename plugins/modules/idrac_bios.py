@@ -852,6 +852,6 @@ def _handle_redfish_api(module, redfish_obj):
         reset_bios(module, redfish_obj)
     if module.params.get('attributes'):
         attributes_config(module, redfish_obj)
-        
+ 
 if __name__ == '__main__':
     main()
