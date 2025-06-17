@@ -9,11 +9,13 @@ def get_controller_data(resp):
     output = {
         "Bus": NA,
         "T10PICapability": str(resp.get("T10PICapability", NA)),
-        "ControllerFirmwareVersion": \
-            str(resp.get("ControllerFirmwareVersion", NA)),
+        "ControllerFirmwareVersion": (
+            str(resp.get("ControllerFirmwareVersion", NA))
+        ),
         "DeviceCardDataBusWidth": str(resp.get("DeviceCardDataBusWidth", NA)),
-        "SupportControllerBootMode": \
-            str(resp.get("SupportControllerBootMode", NA)),
+        "SupportControllerBootMode": (
+            str(resp.get("SupportControllerBootMode", NA))
+        ),
         "DeviceCardManufacturer": NA,
         "DeviceCardSlotLength": str(resp.get("DeviceCardSlotLength", NA)),
         "DeviceCardSlotType": str(resp.get("DeviceCardSlotType", NA)),
@@ -22,23 +24,28 @@ def get_controller_data(resp):
         "FQDD": str(resp.get("Id", NA)),
         "RollupStatus": str(resp.get("RollupStatus", NA)),
         "Key": str(resp.get("Id", NA)),
-        "MaxAvailablePCILinkSpeed": \
-            str(resp.get("MaxAvailablePCILinkSpeed", NA)),
+        "MaxAvailablePCILinkSpeed": (
+            str(resp.get("MaxAvailablePCILinkSpeed", NA))
+        ),
         "PCISlot": str(resp.get("PCISlot", NA)),
         "PCIVendorID": NA,
         "PrimaryStatus": NA,
         "DriverVersion": str(resp.get("DriverVersion", NA)),
         "SASAddress": str(resp.get("SASAddress", NA)),
         "SecurityStatus": str(resp.get("SecurityStatus", NA)),
-        "MaxPossiblePCILinkSpeed": \
-            str(resp.get("MaxPossiblePCILinkSpeed", NA)),
-        "SlicedVDCapability": \
-            str(resp.get("SlicedVDCapability", NA)),
-        "SupportEnhancedAutoForeignImport": \
-            str(resp.get("SupportEnhancedAutoForeignImport", NA)),
+        "MaxPossiblePCILinkSpeed": (
+            str(resp.get("MaxPossiblePCILinkSpeed", NA))
+        ),
+        "SlicedVDCapability": (
+            str(resp.get("SlicedVDCapability", NA))
+        ),
+        "SupportEnhancedAutoForeignImport": (
+            str(resp.get("SupportEnhancedAutoForeignImport", NA))
+        ),
         "CachecadeCapability": str(resp.get("CachecadeCapability", NA)),
-        "SupportRAID10UnevenSpans": \
-            str(resp.get("SupportRAID10UnevenSpans", NA)),
+        "SupportRAID10UnevenSpans": (
+            str(resp.get("SupportRAID10UnevenSpans", NA))
+        ),
         "CacheSize": str(resp.get("CacheSizeInMB")) + " MB",
         "DeviceDescription": NA,
         "ProductName": NA,
