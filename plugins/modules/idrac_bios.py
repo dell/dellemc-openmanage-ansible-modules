@@ -821,12 +821,7 @@ def main():
             module.exit_json(msg=msg, changed=changed, failed=failed)
         else:
             with iDRACRedfishAPI(module.params, req_session=True) as redfish_obj:
-                if module.params.get("clear_pending"):
-                    clear_pending_bios(module, redfish_obj)
-                if module.params.get("reset_bios"):
-                    reset_bios(module, redfish_obj)
-                if module.params.get('attributes'):
-                    attributes_config(module, redfish_obj)
+                _handle_redfish_api(module, redfish_obj)
             module.exit_json(status_msg=NO_CHANGES_MSG)
     except HTTPError as err:
         filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
@@ -838,5 +833,13 @@ def main():
         module.exit_json(msg=str(e), failed=True)
 
 
+def _handle_redfish_api(module, redfish_obj):
+    if module.params.get("clear_pending"):
+        clear_pending_bios(module, redfish_obj)
+    if module.params.get("reset_bios"):
+        reset_bios(module, redfish_obj)
+    if module.params.get('attributes'):
+        attributes_config(module, redfish_obj)
+        
 if __name__ == '__main__':
     main()

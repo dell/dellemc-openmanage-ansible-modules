@@ -397,7 +397,7 @@ class TestConfigBios(FakeAnsibleModule):
     def test_main_idrac_config_bios_exception_handling_case(self, exc_type, mocker,
                                                             idrac_connection_configure_bios_mock,
                                                             idrac_default_args):
-        idrac_default_args.update({"share_name": "sharename"})
+        idrac_default_args.update({"share_name": "sharename", "boot_sources": 1})
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + 'run_server_bios_config',
@@ -408,7 +408,7 @@ class TestConfigBios(FakeAnsibleModule):
                 side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str)))
         if not exc_type == URLError:
-            result = self._run_module_with_fail_json(idrac_default_args)
+            result = self._run_module(idrac_default_args)
             assert result['failed'] is True
         else:
             result = self._run_module(idrac_default_args)
