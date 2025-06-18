@@ -18,23 +18,23 @@ You may obtain a copy of the License at
 | [dellemc_idrac_storage_volume](modules/dellemc_idrac_storage_volume.rst)                             | ✓      | ✓      |
 | [dellemc_system_lockdown_mode](modules/dellemc_system_lockdown_mode.rst)                             | ✓      | ✓      |
 | [idrac_attributes](modules/idrac_attributes.rst)                                                     | ✓      | ✓      | ✓
-| [idrac_bios](modules/idrac_bios.rst)                                                                 | ✓      | ✓      |
+| [idrac_bios](modules/idrac_bios.rst)                                                                 | ✓      | ✓      | ✓      |
 | [idrac_boot](modules/idrac_boot.rst)                                                                 | ✓      | ✓      |
 | [idrac_certificates](modules/idrac_certificates.rst)                                                 | ✕      | ✓      |
-| [idrac_diagnostics](modules/idrac_diagnostics.rst)                                                   | ✕      | ✓      |
-| [idrac_firmware](modules/idrac_firmware.rst)                                                         | ✓      | ✓      |
+| [idrac_diagnostics](modules/idrac_diagnostics.rst)                                                   | ✕      | ✓      | ✓      |
+| [idrac_firmware](modules/idrac_firmware.rst)                                                         | ✓      | ✓      | ✓      |
 | [idrac_firmware_info](modules/idrac_firmware_info.rst)                                               | ✓      | ✓      | ✓
 | [idrac_license](modules/idrac_license.rst)                                                           | ✕      | ✓      |
 | [idrac_lifecycle_controller_job_status_info](modules/idrac_lifecycle_controller_job_status_info.rst) | ✓      | ✓      | ✓      |
 | [idrac_lifecycle_controller_jobs](modules/idrac_lifecycle_controller_jobs.rst)                       | ✓      | ✓      | ✓
-| [idrac_lifecycle_controller_logs](modules/idrac_lifecycle_controller_logs.rst)                       | ✓      | ✓      |
+| [idrac_lifecycle_controller_logs](modules/idrac_lifecycle_controller_logs.rst)                       | ✓      | ✓      | ✓      |
 | [idrac_lifecycle_controller_status_info](modules/idrac_lifecycle_controller_status_info.rst)         | ✓      | ✓      | ✓
 | [idrac_network](modules/idrac_network.rst)                                                           | ✓      | ✓      |
-| [idrac_network_attributes](modules/idrac_network_attributes.rst)                                     | ✓      | ✓      |
+| [idrac_network_attributes](modules/idrac_network_attributes.rst)                                     | ✓      | ✓      | ✓      |
 | [idrac_os_deployment](modules/idrac_os_deployment.rst)                                               | ✓      | ✓      |
 | [idrac_redfish_storage_controller](modules/idrac_redfish_storage_controller.rst)                     | ✕      | ✓      |
 | [idrac_reset](modules/idrac_reset.rst)                                                               | ✓      | ✓
-| [idrac_secure_boot](modules/idrac_secure_boot.rst)                                                   | ✕      | ✓      |
+| [idrac_secure_boot](modules/idrac_secure_boot.rst)                                                   | ✕      | ✓      | ✓      |
 | [idrac_server_config_profile](modules/idrac_server_config_profile.rst)                               | ✓      | ✓      |
 | [idrac_session](modules/idrac_session.rst)                                                           | ✓      | ✓      | ✓
 | [idrac_storage_volume](modules/idrac_storage_volume.rst)                                             | ✓      | ✓      |
@@ -46,10 +46,10 @@ You may obtain a copy of the License at
 | [idrac_user](modules/idrac_user.rst)                                                                 | ✓      | ✓      |
 | [idrac_user_info](modules/idrac_user_info.rst)                                                       | ✓      | ✓      | ✓
 | [idrac_virtual_media](modules/idrac_virtual_media.rst)                                               | ✓      | ✓      | ✓
-| [redfish_event_subscription](modules/redfish_event_subscription.rst)                                 | ✕      | ✓      |
+| [redfish_event_subscription](modules/redfish_event_subscription.rst)                                 | ✕      | ✓      | ✓      |
 | [redfish_firmware](modules/redfish_firmware.rst)                                                     | ✕      | ✓      |
 | [redfish_firmware_rollback](modules/redfish_firmware_rollback.rst)                                   | ✓      | ✓      |
-| [redfish_powerstate](modules/redfish_powerstate.rst)                                                 | ✓      | ✓      |
+| [redfish_powerstate](modules/redfish_powerstate.rst)                                                 | ✓      | ✓      | ✓      |
 | [redfish_storage_volume](modules/redfish_storage_volume.rst)                                         | ✓      | ✓      | 
 
 ### OpenManage Enterprise Modules

@@ -4,6 +4,42 @@ Dell OpenManage Ansible Modules Release Notes
 
 .. contents:: Topics
 
+v9.12.2
+=======
+
+Release Summary
+---------------
+
+- The ``idrac_bios`` module is enhanced to support iDRAC10.
+- The ``idrac_session``module is enhanced to support iDRAC10.
+- The ``idrac_firmware`` module is enhanced to support iDRAC10.
+- The ``idrac_diagnostics`` module is enhanced to support iDRAC10.
+- The ``idrac_secure_boot`` module is enhanced to support iDRAC10.
+- The ``idrac_network_attributes`` module is enhanced to support iDRAC10.
+- The ``idrac_lifecycle_controller_logs`` module is enhanced to support iDRAC10.
+- The ``redfish_power_state`` module is enhanced to support iDRAC10.
+- The ``redfish_event_subscription`` module is enhanced to support iDRAC10.
+
+Major Changes
+-------------
+
+- idrac_bios - This module is enhanced to support iDRAC10.
+- idrac_diagnostics - This module is enhanced to support iDRAC10.
+- idrac_firmware - This module is enhanced to support iDRAC10.
+- idrac_lifecycle_controller_logs - This module is enhanced to support iDRAC10.
+- idrac_network_attributes - This module is enhanced to support iDRAC10.
+- idrac_secure_boot - This module is enhanced to support iDRAC10.
+- idrac_session - This module is enhanced to support iDRAC10.
+- redfish_event_subscription - This module is enhanced to support iDRAC10.
+- redfish_power_state - This module is enhanced to support iDRAC10.
+
+Known Issues
+------------
+
+- idrac_attributes - The module accepts both the string as well as integer value for the field "SNMP.1.AgentCommunity" for iDRAC10.
+- idrac_diagnostics - This module doesn't support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
+- ome_smart_fabric_uplink - The module supported by OpenManage Enterprise Modular, however it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, then the existing uplink is modified.
+
 v9.12.1
 =======
 
