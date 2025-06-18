@@ -19,8 +19,8 @@
 
     - name: Set the boot mode
       ansible.builtin.set_fact:
-        set_bootseq_retry: "{{'Disabled' if
-         (current_bootseq_retry == 'Enabled') else 'Enabled'}}"
+        set_bootseq_retry: "{{ 'Disabled' if
+         (current_bootseq_retry == 'Enabled') else 'Enabled' }}"
       when: set_bootseq_retry is not defined
 
     - name: Copy the variable 'set_bootseq_retry' in file
