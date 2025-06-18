@@ -209,7 +209,10 @@ import time
 from ssl import SSLError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish\
+    import iDRACRedfishAPI, IdracAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
+    remove_key)
 
 ACCOUNT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Accounts/"
 ATTRIBUTE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Attributes/"
@@ -218,6 +221,8 @@ ACCESS = {0: "Disabled", 1: "Enabled"}
 INVALID_PRIVILAGE_MSG = "custom_privilege value should be from 0 to 511."
 INVALID_PRIVILAGE_MIN = 0
 INVALID_PRIVILAGE_MAX = 511
+CHANGES_FOUND_MSG = "Changes found to commit!"
+ODATA_ID = "(.*?)@odata"
 
 
 def compare_payload(json_payload, idrac_attr):
@@ -335,7 +340,7 @@ def create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id, em
         msg = "Successfully created user account."
         payload = get_payload(module, empty_slot_id, action="create")
         if module.check_mode:
-            module.exit_json(msg="Changes found to commit!", changed=True)
+            module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
         if generation >= 14:
             response = idrac.invoke_request(ATTRIBUTE_URI, "PATCH", data={"Attributes": payload})
         elif generation < 14:
@@ -349,7 +354,7 @@ def create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id, em
         value = compare_payload(json_payload, user_attr)
         if module.check_mode:
             if value:
-                module.exit_json(msg="Changes found to commit!", changed=True)
+                module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
             module.exit_json(msg="No changes found to commit!")
         if not value:
             module.exit_json(msg="Requested changes are already present in the user slot.")
@@ -378,9 +383,10 @@ def remove_user_account(module, idrac, slot_uri, slot_id):
     """
     response, msg = {}, "Successfully deleted user account."
     payload = get_payload(module, slot_id, action="delete")
-    xml_payload, json_payload = convert_payload_xml(payload)
+    payload = convert_payload_xml(payload)
+    xml_payload = payload[0]
     if module.check_mode and (slot_id and slot_uri) is not None:
-        module.exit_json(msg="Changes found to commit!", changed=True)
+        module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
     elif module.check_mode and (slot_uri and slot_id) is None:
         module.exit_json(msg="No changes found to commit!")
     elif not module.check_mode and (slot_uri and slot_id) is not None:
@@ -430,19 +436,20 @@ def main():
                 response, message = remove_user_account(module, idrac, slot_uri, slot_id)
             error = response.json_data.get("error")
             oem = response.json_data.get("Oem")
+            out_data = remove_key(response.json_data, regex_pattern=ODATA_ID)
             if oem:
                 oem_msg = oem.get("Dell").get("Message")
                 error_msg = ["Unable to complete application of configuration profile values.",
                              "Import of Server Configuration Profile operation completed with errors."]
                 if oem_msg in error_msg:
                     module.exit_json(msg=oem_msg,
-                                     error_info=response.json_data,
+                                     error_info=out_data,
                                      failed=True)
             if error:
                 module.exit_json(msg=error.get("message"),
-                                 error_info=response.json_data,
+                                 error_info=out_data,
                                  failed=True)
-            module.exit_json(msg=message, status=response.json_data, changed=True)
+            module.exit_json(msg=message, status=out_data, changed=True)
     except HTTPError as err:
         module.exit_json(msg=str(err),
                          error_info=json.load(err),
