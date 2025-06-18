@@ -17,8 +17,8 @@
     - name: Set maintenance_window_start variable
       ansible.builtin.set_fact:
         maintenance_window_start: "{{ 'AtMaintenanceWindowStart' in
-         idrac_bios_uri_data
-         .json['@Redfish.Settings']['SupportedApplyTimes'] }}"
+         idrac_bios_uri_data.json['@Redfish.Settings'][
+         'SupportedApplyTimes'] }}"
 
     - name: Read file content for set_bootseq_retry variable
       ansible.builtin.command: cat /tmp/boot_seq_retry.txt
