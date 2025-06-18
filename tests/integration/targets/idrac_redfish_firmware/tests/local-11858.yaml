@@ -199,9 +199,9 @@
             job_wait_timeout: 300
           register: result
 
-        - name: Verify task status - Update a firmware from a single executable file from Local path
-            with job_wait=true and job_wait_timeout=300 when the component is of
-            type manual reboot
+        - name: Verify task status - Update a firmware from a single executable
+            file from Local path with job_wait=true and job_wait_timeout=300
+            when the component is of type manual reboot
           ansible.builtin.assert:
             that:
               - result.changed
@@ -234,7 +234,8 @@
         - name: Constructing url
           ansible.builtin.set_fact:
             url_1: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/"
-            url_2: "Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{ result.task.id }}"
+            url_2: "Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/\
+              {{ result.task.id }}"
 
         - name: Final url
           ansible.builtin.set_fact:
@@ -293,7 +294,7 @@
               - result.changed
               - result.msg ==  "Successfully updated the firmware."
       when: generation | int >= 17
-    
+
     - name: Constructing url
       ansible.builtin.set_fact:
         url_1: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/"

@@ -98,14 +98,15 @@
       ansible.builtin.set_fact:
         invalid_reset_type_expected_msg: >-
           {{
-           "The target device does not support a "
-           "force on operation.The acceptable values for device reset types are "
+           "The target device does not support a force on "
+           "operation.The acceptable values for device reset types are "
            "On, ForceOff, ForceRestart, GracefulRestart, GracefulShutdown, "
            "PushPowerButton, Nmi, PowerCycle."
            if generation | int < 17 else
            "The target device does not support a force on operation."
            "The acceptable values for device reset types are On, ForceOff, "
-           "GracefulRestart, GracefulShutdown, ForceRestart, Nmi, PowerCycle, PushPowerButton."
+           "GracefulRestart, GracefulShutdown, ForceRestart, Nmi, "
+           "PowerCycle, PushPowerButton."
           }}
 
     - name: Verify status of tasks
