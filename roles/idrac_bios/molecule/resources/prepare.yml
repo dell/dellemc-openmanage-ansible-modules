@@ -15,7 +15,8 @@
 
     - name: Fetch the existing boot sequence retry
       ansible.builtin.set_fact:
-        current_bootseq_retry: "{{ idrac_bios_uri_data.json.Attributes.BootSeqRetry }}"
+        current_bootseq_retry: "{{
+         idrac_bios_uri_data.json.Attributes.BootSeqRetry }}"
 
     - name: Set the boot mode
       ansible.builtin.set_fact:

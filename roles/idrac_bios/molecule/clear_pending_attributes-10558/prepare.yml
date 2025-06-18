@@ -36,12 +36,13 @@
 
         - name: Fetch the existing bootseq retry status
           ansible.builtin.set_fact:
-            current_bootseq_retry: "{{ idrac_bios_uri_data.json.Attributes.BootSeqRetry }}"
+            current_bootseq_retry: "{{
+             idrac_bios_uri_data.json.Attributes.BootSeqRetry }}"
 
         - name: Set the bootseq retry status
           ansible.builtin.set_fact:
-            set_bootseq_retry: "{{ 'Disabled' if (current_bootseq_retry == 'Enabled')
-             else 'Enabled' }}"
+            set_bootseq_retry: "{{ 'Disabled'
+             if (current_bootseq_retry == 'Enabled') else 'Enabled' }}"
           when: set_bootseq_retry is not defined
 
         - name: Update attributes with apply time as Immediate
