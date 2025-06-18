@@ -161,7 +161,7 @@
               username: user
               password: password
               ca_check: true
-              certificate_data: "{{ Contents of the file located at /path/to/certificate_data_file }}"
+              certificate_data: "{{ contents_of_file_located_at_/path/to/certificate_data_file }}"
       tags:
         - server_ca_check
       delegate_to: localhost
