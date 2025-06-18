@@ -3,15 +3,15 @@
   hosts: all
   gather_facts: false
   tasks:
-    - name: Checking file exists- boot_mode.txt
+    - name: Checking file exists- boot_seq_retry.txt
       ansible.builtin.stat:
-        path: "/tmp/boot_mode.txt"
+        path: "/tmp/boot_seq_retry.txt"
       delegate_to: localhost
-      register: boot_mode_file
+      register: boot_seq_retry_file
 
     - name: Deleting the file if exists
       ansible.builtin.file:
-        path: "/tmp/boot_mode.txt"
+        path: "/tmp/boot_seq_retry.txt"
         state: absent
       delegate_to: localhost
-      when: boot_mode_file.stat.exists
+      when: boot_seq_retry_file.stat.exists
