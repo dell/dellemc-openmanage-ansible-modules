@@ -168,14 +168,15 @@ class TestRedfishFirmware(FakeAnsibleModule):
             },
             "transfer_protocol": "HTTP",
             "HttpPushUri": HTTPS_ADDRESS_DELL,
+            "MultipartHttpPushUri": HTTPS_ADDRESS_DELL,
             "FirmwareInventory": {
                 "@odata.id": "2134"
             }
         }
-        result = self.module._get_update_service_target(redfish_firmware_connection_mock, f_module, generation=16)
+        result = self.module._get_update_service_target(redfish_firmware_connection_mock, f_module, generation=17)
         assert result == ('2134', HTTPS_ADDRESS_DELL, '')
 
-    @pytest.mark.parametrize("generation", [16,17])
+    @pytest.mark.parametrize("generation", [16, 17])
     def test_get_update_service_target_uri_none_case(self, redfish_default_args, redfish_firmware_connection_mock,
                                                      redfish_response_mock, generation):
         redfish_default_args.update({"transfer_protocol": "HTTP", "job_wait_timeout": 0})
@@ -191,6 +192,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
             },
             "transfer_protocol": "HTTP",
             "HttpPushUri": None,
+            "MultipartHttpPushUri": None,
             "FirmwareInventory": {
                 "@odata.id": None
             }
@@ -199,7 +201,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
             self.module._get_update_service_target(redfish_firmware_connection_mock, f_module, generation)
         assert ex.value.args[0] == "Target firmware version does not support redfish firmware update."
 
-    @pytest.mark.parametrize("generation", [16,17])
+    @pytest.mark.parametrize("generation", [16, 17])
     def test_get_update_service_target_failed_case(self, redfish_default_args, redfish_firmware_connection_mock,
                                                    redfish_response_mock, generation):
         redfish_default_args.update({"transfer_protocol": "HTTP", "job_wait_timeout": 0})
@@ -214,6 +216,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
             },
             "transfer_protocol": "HTTP",
             "HttpPushUri": HTTPS_ADDRESS_DELL,
+            "MultipartHttpPushUri": HTTPS_ADDRESS_DELL,
             "FirmwareInventory": {
                 "@odata.id": "2134"
             }
