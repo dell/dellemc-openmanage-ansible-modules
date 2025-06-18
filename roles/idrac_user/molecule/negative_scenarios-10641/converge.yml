@@ -116,7 +116,7 @@
       ignore_unreachable: true
       register: idrac_user_fail_case
 
-    - name: Asserting for invalid username
+    - name: Asserting for invalid username.
       ansible.builtin.assert:
         that:
           - '"HTTP Error 400" in idrac_user_out.msg'
