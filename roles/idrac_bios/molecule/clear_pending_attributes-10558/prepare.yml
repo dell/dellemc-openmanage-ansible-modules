@@ -40,7 +40,8 @@
 
         - name: Set the bootseq retry status
           ansible.builtin.set_fact:
-            set_bootseq_retry: "{{'Disabled' if (current_bootseq_retry == 'Enabled') else 'Enabled'}}"
+            set_bootseq_retry: "{{ 'Disabled' if (current_bootseq_retry == 'Enabled')
+             else 'Enabled' }}"
           when: set_bootseq_retry is not defined
 
         - name: Update attributes with apply time as Immediate

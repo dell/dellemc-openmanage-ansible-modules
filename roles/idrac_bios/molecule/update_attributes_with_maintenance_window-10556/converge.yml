@@ -13,11 +13,12 @@
       vars:
         url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1\
           /Systems/System.Embedded.1/Bios"
-    
-    - ansible.builtin.set_fact:
-        maintenance_window_start: "{{ 'AtMaintenanceWindowStart' in 
-         idrac_bios_uri_data.json['@Redfish.Settings']
-         ['SupportedApplyTimes'] }}"
+
+    - name: Set maintenance_window_start variable
+      ansible.builtin.set_fact:
+        maintenance_window_start: "{{ 'AtMaintenanceWindowStart' in
+         idrac_bios_uri_data.json
+         ['@Redfish.Settings']['SupportedApplyTimes'] }}"
 
     - name: Read file content for set_bootseq_retry variable
       ansible.builtin.command: cat /tmp/boot_seq_retry.txt
@@ -53,10 +54,11 @@
       when: maintenance_window_start
 
     - name: Set the local offset
-      when: idrac_bios_uri_data.json.DateTimeLocalOffset is defined
       ansible.builtin.set_fact:
         local_offset: "{{ idrac_bios_uri_data.json.DateTimeLocalOffset }}"
-      when: maintenance_window_start
+      when:
+        - maintenance_window_start
+        - idrac_bios_uri_data.json.DateTimeLocalOffset is defined
 
     - name: Update attributes with apply time at start of maintenance window
       ansible.builtin.import_role:
