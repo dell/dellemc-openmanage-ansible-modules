@@ -80,7 +80,7 @@ jobs:
         run: pip install -r test-requirements.txt
 
       - name: Run Pytest with coverage
-        run: export PYTHONPATH="${GITHUB_WORKSPACE}":$PYTHONPATH && pytest -vvvv --cov=plugins/ --cov-branch tests/unit --cov-config=.coveragerc --cov-report=xml:coverage.xml
+        run: export PYTHONPATH="${GITHUB_WORKSPACE}":$PYTHONPATH && pytest -vvvv --cov --cov-branch --cov-report=xml:coverage.xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

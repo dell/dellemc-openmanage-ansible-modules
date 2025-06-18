@@ -25,6 +25,10 @@
         - job_id is defined and job_id != ""
         - clear_job_queue is false
 
+    - name: Checking iDRAC version
+      ansible.builtin.include_tasks:
+        file: ../_get_server_generation.yml
+
     - name: Clear Job queue operation
       when: clear_job_queue is true
       block:
@@ -33,11 +37,13 @@
 
         - name: Clear job queue operation using rest
           ansible.builtin.include_tasks: clear_jobs_with_api.yml
-          when: idrac_job_queue_idrac_firmware_version is version('3.0', '>=')
+          when: (model|int) >=14
 
         - name: Clear job queue operation for wsman
           ansible.builtin.include_tasks: clear_jobs_with_wsman.yml
-          when: idrac_job_queue_idrac_firmware_version is version('3.0', '<')
+          when:
+            - (model|int) <= 13
+
   rescue:
     - name: Set the failure messages
       ansible.builtin.set_fact:

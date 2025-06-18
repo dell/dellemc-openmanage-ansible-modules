@@ -1,0 +1,366 @@
+- '  This module allows to modify the BIOS attributes. Also clears'
+- '  pending BIOS attributes and resets BIOS to default settings.'
+- '  Boot sources can be enabled or disabled. Boot sequence can be'
+- '  configured.'
+- ''
+- "\e[1mOPTIONS\e[0m (red indicates it is required):"
+- ''
+- "   \e[0;33mapply_time\e[0m  Apply time of the \e[4mattributes\e[0m."
+- "               This is applicable only to \e[4mattributes\e[0m."
+- "               \e[1;30m`Immediate'\e[0m Allows the user to immediately"
+- "               reboot the host and apply the changes. \e[4mjob_wait\e[0m"
+- '               is applicable.'
+- "               \e[1;30m`OnReset'\e[0m Allows the user to apply the"
+- '               changes on the next reboot of the host server.'
+- "               \e[1;30m`AtMaintenanceWindowStart'\e[0m Allows the user"
+- '               to apply at the start of a maintenance window as'
+- "               specified in \e[4mmaintenance_window\e[0m. A reboot job"
+- '               will be scheduled.'
+- "               \e[1;30m`InMaintenanceWindowOnReset'\e[0m Allows to apply"
+- '               after a manual reset but within the maintenance window'
+- "               as specified in \e[4mmaintenance_window\e[0m."
+- '        choices: [Immediate, OnReset, AtMaintenanceWindowStart, InMaintenanceWindowOnReset]'
+- '        default: Immediate'
+- '        type: str'
+- ''
+- "   \e[0;33mattributes\e[0m  Dictionary of BIOS attributes and value pair. Attributes
+    should be"
+- '               part of the Redfish Dell BIOS Attribute Registry. Use'
+- "               https://\e[4midrac_ip\e[0m/redfish/v1/Systems/System.Embedded.1/Bios"
+- '               to view the Redfish URI.'
+- "               This is mutually exclusive with \e[4mboot_sources\e[0m,"
+- "               \e[4mclear_pending\e[0m, and \e[4mreset_bios\e[0m."
+- '        default: null'
+- '        type: dict'
+- ''
+- "   \e[0;33mboot_sources\e[0m  (deprecated)List of boot devices to set the boot
+    sources settings."
+- "                 \e[4mboot_sources\e[0m is mutually exclusive with"
+- "                 \e[4mattributes\e[0m, \e[4mclear_pending\e[0m, and"
+- "                 \e[4mreset_bios\e[0m."
+- "                 \e[4mjob_wait\e[0m is not applicable. The module waits"
+- '                 till the completion of this task.'
+- '                 This feature is deprecated, please use'
+- "                 \e[0;33mdellemc.openmanage.idrac_boot\e[0m for"
+- '                 configuring boot sources.'
+- '        default: null'
+- '        elements: raw'
+- '        type: list'
+- ''
+- "   \e[0;33mca_path\e[0m  The Privacy Enhanced Mail (PEM) file that contains a CA
+    certificate"
+- '            to be used for the validation.'
+- '        default: null'
+- '        type: path'
+- ''
+- "   \e[0;33mclear_pending\e[0m  Allows the user to clear all pending BIOS attributes
+    changes."
+- "                  \e[1;30m`true'\e[0m will discard any pending changes"
+- '                  to bios attributes or remove job if in scheduled'
+- '                  state.'
+- '                  This operation will not create any job.'
+- "                  \e[1;30m`false'\e[0m will not perform any operation."
+- '                  This is mutually exclusive with'
+- "                  \e[4mboot_sources\e[0m, \e[4mattributes\e[0m, and"
+- "                  \e[4mreset_bios\e[0m."
+- "                  \e[1;30m`Note'\e[0m Any BIOS job scheduled due to boot"
+- '                  sources configuration will not be cleared.'
+- '        default: null'
+- '        type: bool'
+- ''
+- "   \e[0;31m\e[1midrac_ip\e[0m\e[0m  iDRAC IP Address."
+- '        type: str'
+- ''
+- "   \e[0;31m\e[1midrac_password\e[0m\e[0m  iDRAC user password."
+- '                   If the password is not provided, then the'
+- '                   environment variable `IDRAC_PASSWORD'' is used.'
+- '                   Example: export IDRAC_PASSWORD=password'
+- '        aliases: [idrac_pwd]'
+- '        type: str'
+- ''
+- "   \e[0;33midrac_port\e[0m  iDRAC port."
+- '        default: 443'
+- '        type: int'
+- ''
+- "   \e[0;31m\e[1midrac_user\e[0m\e[0m  iDRAC username."
+- '               If the username is not provided, then the environment'
+- '               variable `IDRAC_USERNAME'' is used.'
+- '               Example: export IDRAC_USERNAME=username'
+- '        type: str'
+- ''
+- "   \e[0;33mjob_wait\e[0m  Provides the option to wait for job completion."
+- "             This is applicable for \e[4mattributes\e[0m when"
+- "             \e[4mapply_time\e[0m is \e[1;30m`Immediate'\e[0m."
+- '        default: true'
+- '        type: bool'
+- ''
+- "   \e[0;33mjob_wait_timeout\e[0m  The maximum wait time of \e[4mjob_wait\e[0m in
+    seconds. The job is"
+- '                     tracked only for this duration.'
+- "                     This option is applicable when \e[4mjob_wait\e[0m"
+- "                     is \e[1;30m`true'\e[0m."
+- '        default: 1200'
+- '        type: int'
+- ''
+- "   \e[0;33mmaintenance_window\e[0m  Option to schedule the maintenance window."
+- "                       This is required when \e[4mapply_time\e[0m is"
+- "                       \e[1;30m`AtMaintenanceWindowStart'\e[0m or"
+- "                       \e[1;30m`InMaintenanceWindowOnReset'\e[0m."
+- '        default: null'
+- '        type: dict'
+- '        suboptions:'
+- ''
+- "           \e[0;31m\e[1mduration\e[0m\e[0m          The duration in seconds for
+    the maintenance window."
+- '          type: int'
+- ''
+- "           \e[0;31m\e[1mstart_time\e[0m\e[0m          The start time for the maintenance
+    window to be scheduled."
+- '                       The format is YYYY-MM-DDThh:mm:ss<offset>'
+- '                       <offset> is the time offset from UTC that the'
+- '                       current timezone set in iDRAC in the format:'
+- '                       +05:30 for IST.'
+- '          type: str'
+- ''
+- "   \e[0;33mreset_bios\e[0m  Resets the BIOS to default settings and triggers a
+    reboot of host"
+- '               system.'
+- '               This is applied to the host after the restart.'
+- '               This operation will not create any job.'
+- "               \e[1;30m`false'\e[0m will not perform any operation."
+- "               This is mutually exclusive with \e[4mboot_sources\e[0m,"
+- "               \e[4mattributes\e[0m, and \e[4mclear_pending\e[0m."
+- "               When \e[1;30m`true'\e[0m, this action will always report"
+- '               as changes found to be applicable.'
+- '        default: null'
+- '        type: bool'
+- ''
+- "   \e[0;33mreset_type\e[0m  \e[1;30m`force_restart'\e[0m Forcefully reboot the
+    host system."
+- "               \e[1;30m`graceful_restart'\e[0m Gracefully reboot the"
+- '               host system.'
+- "               This is applicable for \e[4mreset_bios\e[0m, and"
+- "               \e[4mattributes\e[0m when \e[4mapply_time\e[0m is"
+- "               \e[1;30m`Immediate'\e[0m."
+- '        choices: [graceful_restart, force_restart]'
+- '        default: graceful_restart'
+- '        type: str'
+- ''
+- "   \e[0;33mshare_mnt\e[0m  (deprecated)Local mount path of the network share with
+    read-write"
+- '              permission for ansible user. This option is mandatory'
+- '              for network shares.'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mshare_name\e[0m  (deprecated)Network share or a local path."
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mshare_password\e[0m  (deprecated)Network share user password. This option
+    is mandatory"
+- '                   for CIFS share.'
+- '        aliases: [share_pwd]'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mshare_user\e[0m  (deprecated)Network share user name. Use the format
+    'user@domain' or"
+- '               domain//user if user is part of a domain. This option'
+- '               is mandatory for CIFS share.'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mtimeout\e[0m  The socket level timeout in seconds."
+- '        default: 30'
+- '        type: int'
+- ''
+- "   \e[0;33mvalidate_certs\e[0m  If \e[1;30m`false'\e[0m, the SSL certificates will
+    not be validated."
+- "                   Configure \e[1;30m`false'\e[0m only on personally"
+- '                   controlled sites where self-signed certificates are'
+- '                   used.'
+- "                   Prior to collection version \e[1;30m`5.0.0'\e[0m, the"
+- "                   \e[4mvalidate_certs\e[0m is \e[1;30m`false'\e[0m by"
+- '                   default.'
+- '        default: true'
+- '        type: bool'
+- ''
+- "\e[1mNOTES:\e[0m"
+- '      * omsdk is required to be installed only for'
+- "        \e[4mboot_sources\e[0m operation."
+- '      * This module requires ''Administrator'' privilege for'
+- "        \e[4midrac_user\e[0m."
+- '      * Run this module from a system that has direct access to'
+- '        Dell iDRAC.'
+- '      * This module supports both IPv4 and IPv6 address for'
+- "        \e[4midrac_ip\e[0m."
+- "      * This module supports \e[1;30m`check_mode'\e[0m."
+- ''
+- "\e[1mREQUIREMENTS:\e[0m  omsdk >= 1.2.490, python >= 3.9.6"
+- ''
+- ''
+- "\e[1mAUTHOR\e[0m: Felix Stephen (@felixs88), Anooja Vardhineni (@anooja-vardhineni),
+    Jagadeesh N V (@jagadeeshnv), Shivam Sharma (@shivam-sharma)"
+- ''
+- "\e[1mEXAMPLES:\e[0m"
+- '---'
+- '- name: Configure generic attributes of the BIOS'
+- '  dellemc.openmanage.idrac_bios:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    attributes:'
+- '      BootMode: "Bios"'
+- '      OneTimeBootMode: "Enabled"'
+- '      BootSeqRetry: "Enabled"'
+- ''
+- '- name: Configure PXE generic attributes'
+- '  dellemc.openmanage.idrac_bios:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    attributes:'
+- '      PxeDev1EnDis: "Enabled"'
+- '      PxeDev1Protocol: "IPV4"'
+- '      PxeDev1VlanEnDis: "Enabled"'
+- '      PxeDev1VlanId: 1'
+- '      PxeDev1Interface: "NIC.Embedded.1-1-1"'
+- '      PxeDev1VlanPriority: 2'
+- ''
+- '- name: Configure BIOS attributes at Maintenance window'
+- '  dellemc.openmanage.idrac_bios:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    apply_time: AtMaintenanceWindowStart'
+- '    maintenance_window:'
+- '      start_time: "2022-09-30T05:15:40-05:00"'
+- '      duration: 600'
+- '    attributes:'
+- '      BootMode: "Bios"'
+- '      OneTimeBootMode: "Enabled"'
+- '      BootSeqRetry: "Enabled"'
+- ''
+- '- name: Clear pending BIOS attributes'
+- '  dellemc.openmanage.idrac_bios:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    clear_pending: true'
+- ''
+- '- name: Reset BIOS attributes to default settings.'
+- '  dellemc.openmanage.idrac_bios:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    validate_certs: false'
+- '    reset_bios: true'
+- ''
+- '- name: Configure boot sources'
+- '  dellemc.openmanage.idrac_bios:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    boot_sources:'
+- '      - Name: "NIC.Integrated.1-2-3"'
+- '        Enabled: true'
+- '        Index: 0'
+- ''
+- '- name: Configure multiple boot sources'
+- '  dellemc.openmanage.idrac_bios:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    boot_sources:'
+- '      - Name: "NIC.Integrated.1-1-1"'
+- '        Enabled: true'
+- '        Index: 0'
+- '      - Name: "NIC.Integrated.2-2-2"'
+- '        Enabled: true'
+- '        Index: 1'
+- '      - Name: "NIC.Integrated.3-3-3"'
+- '        Enabled: true'
+- '        Index: 2'
+- ''
+- '- name: Configure boot sources - Enabling'
+- '  dellemc.openmanage.idrac_bios:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    boot_sources:'
+- '      - Name: "NIC.Integrated.1-1-1"'
+- '        Enabled: true'
+- ''
+- '- name: Configure boot sources - Index'
+- '  dellemc.openmanage.idrac_bios:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    boot_sources:'
+- '      - Name: "NIC.Integrated.1-1-1"'
+- '        Index: 0'
+- ''
+- "\e[1mRETURN VALUES:\e[0m"
+- ''
+- "   \e[0;33merror_info\e[0m  Details of the HTTP Error."
+- '        returned: on HTTP error'
+- '        sample:'
+- '          error:'
+- '            ''@Message.ExtendedInfo'':'
+- '            - Message: Unable to process the request because an error occurred.'
+- '              MessageArgs: []'
+- '              MessageId: GEN1234'
+- '              RelatedProperties: []'
+- '              Resolution: Retry the operation. If the issue persists, contact your
+    system'
+- '                administrator.'
+- '              Severity: Critical'
+- '            code: Base.1.0.GeneralError'
+- '            message: A general error has occurred. See ExtendedInfo for more information.'
+- '        type: dict'
+- ''
+- "   \e[0;33minvalid_attributes\e[0m  Dict of invalid attributes provided."
+- '        returned: on invalid attributes or values.'
+- '        sample:'
+- '          AcPwrRcvryUserDelay: Integer out of valid range.'
+- '          AssetTag: Attribute does not exist.'
+- '          BootSeqRetry: Invalid value for Enumeration.'
+- '          Proc1Brand: Read only Attribute cannot be modified.'
+- '          PxeDev1VlanId: Not a valid integer.'
+- '        type: dict'
+- ''
+- "   \e[0;33mmsg\e[0m     Status of the job for \e[4mboot_sources\e[0m or status
+    of the"
+- '           action performed on bios.'
+- '        returned: success'
+- '        sample:'
+- '          CompletionTime: ''2020-04-20T18:50:20'''
+- '          Description: Job Instance'
+- '          EndTime: null'
+- '          Id: JID_873888162305'
+- '          JobState: Completed'
+- '          JobType: ImportConfiguration'
+- '          Message: Successfully imported and applied Server Configuration Profile.'
+- '          MessageArgs: []'
+- '          MessageId: SYS053'
+- '          Name: Import Configuration'
+- '          PercentComplete: 100'
+- '          StartTime: TIME_NOW'
+- '          Status: Success'
+- '          TargetSettingsURI: null'
+- '          retval: true'
+- '        type: dict'
+- ''
+- "   \e[0;33mstatus_msg\e[0m  Overall status of the bios operation."
+- '        returned: success'
+- '        sample: Successfully cleared pending BIOS attributes.'
+- '        type: str'

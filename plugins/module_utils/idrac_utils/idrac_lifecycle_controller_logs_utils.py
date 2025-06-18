@@ -29,14 +29,13 @@ SUCCESS_MSG = "Successfully exported the lifecycle controller logs."
 SCHEDULE_MSG = "The export lifecycle controller log job is submitted successfully."
 NO_CHANGES_FOUND_MSG = "No changes found to be applied."
 CHANGES_FOUND_MSG = "Changes found to be applied."
-EXPORT_LC_LOGS = '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions/DellLCService.ExportLCLog'
+MANAGER_URI = '/redfish/v1/Managers'
 
 import copy
 import datetime
 
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    remove_key, idrac_redfish_job_tracking, get_logger)
-LOG = get_logger(module_name='idrac_lifecycle_controller_logs')
+    remove_key, idrac_redfish_job_tracking, get_dynamic_uri)
 ODATA_PATTERN = '(.*?)@odata'
 
 
@@ -144,6 +143,17 @@ class IDRACLifecycleControllerLogs(object):
         }
         return msg, job_dict, changed
 
+    def get_export_lc_logs_uri(self, idrac):
+        managers_details = get_dynamic_uri(
+            self.idrac, MANAGER_URI, search_label='Members')
+        if len(managers_details) > 0:
+            manager_uri = managers_details[0].get("@odata.id", "")
+            manager_data = idrac.invoke_request(method='GET', uri=manager_uri).json_data
+            lc_service_uri = manager_data.get("Links", {}).get("Oem", {}).get("Dell", {}).get("DellLCService", {}).get("@odata.id", "")
+            lc_service_data = idrac.invoke_request(method='GET', uri=lc_service_uri).json_data
+            lc_logs_uri = lc_service_data.get("Actions", {}).get("#DellLCService.ExportLCLog", {}).get("target", "")
+            return lc_logs_uri
+
     def export_lc_logs_idrac_9_10(self, idrac, module, share_name, share_type, file_name, ip_address, file_path):
         changed = False
         payload_data = {
@@ -159,7 +169,8 @@ class IDRACLifecycleControllerLogs(object):
         for key in payload_data.keys():
             if payload_data[key] is not None:
                 final_data[key] = payload_data[key]
-        job_resp = idrac.invoke_request(method='POST', uri=EXPORT_LC_LOGS, data=final_data)
+        log_uri = self.get_export_lc_logs_uri(idrac=idrac)
+        job_resp = idrac.invoke_request(method='POST', uri=log_uri, data=final_data)
         job_dict = {}
         if share_type == 'Local':
             msg, job_dict, changed = self.export_local_logs(idrac, module, file_path, job_resp, final_data)
