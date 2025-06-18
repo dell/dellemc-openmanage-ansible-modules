@@ -136,7 +136,7 @@
 
       when: not ansible_check_mode
 
-    - name: Setting up CSC certificate path for exported file
+    - name: Setting up CSC certificate path for exported file.
       when: idrac_certificate_out is defined
             and idrac_certificate_out.certificate_path is defined
       ansible.builtin.stat:

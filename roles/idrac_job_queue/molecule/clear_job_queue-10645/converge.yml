@@ -50,7 +50,7 @@
         that:
           - idrac_job_queue_out.msg == "The job queue has been cleared successfully."
 
-    - name: Waiting for the data to be available on iDRAC
+    - name: Waiting for the data to be available on iDRAC.
       ansible.builtin.wait_for:
         timeout: 180
 
