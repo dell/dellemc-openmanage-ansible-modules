@@ -152,9 +152,10 @@ class TestRedfishFirmware(FakeAnsibleModule):
         assert result['failed'] is True
         if exc_type == HTTPError:
             assert 'error_info' in result
-
+    
+    @pytest.mark.parametrize("generation", [16, 17])
     def test_get_update_service_target_success_case(self, redfish_default_args, redfish_firmware_connection_mock,
-                                                    redfish_response_mock):
+                                                    redfish_response_mock, generation):
         redfish_default_args.update({"transfer_protocol": "HTTP", "job_wait_timeout": 0})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.status_code = 200
@@ -173,7 +174,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
                 "@odata.id": "2134"
             }
         }
-        result = self.module._get_update_service_target(redfish_firmware_connection_mock, f_module, generation=17)
+        result = self.module._get_update_service_target(redfish_firmware_connection_mock, f_module, generation)
         assert result == ('2134', HTTPS_ADDRESS_DELL, '')
 
     @pytest.mark.parametrize("generation", [16, 17])

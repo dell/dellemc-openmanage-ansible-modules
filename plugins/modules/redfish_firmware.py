@@ -219,7 +219,7 @@ def firmware_update(obj, module):
         payload_file_header = FILE_PAYLOAD_HEADER
         headers = {}
         if generation <= 16:
-            resp_inv = obj.invoke_request("GET", inventory_uri)           
+            resp_inv = obj.invoke_request("GET", inventory_uri)    
             headers = {"If-Match": resp_inv.headers.get("etag")}
             payload_file_header = "file"
 
