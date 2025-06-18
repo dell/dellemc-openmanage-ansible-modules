@@ -102,7 +102,7 @@
         that:
           - idrac_user_out.failed
 
-    - name: Invalid username value
+    - name: Invalid username value.
       ansible.builtin.import_role:
         name: idrac_user
       vars:
