@@ -44,7 +44,7 @@
     - name: Constructing url
       ansible.builtin.set_fact:
         url_1: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/"
-        url_2: "Managers/iDRAC.Embedded.1/Jobs/{{ result.task.id }}"
+        url_2: "Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{ result.task.id }}"
 
     - name: Final url
       ansible.builtin.set_fact:
@@ -98,7 +98,7 @@
     - name: Constructing url
       ansible.builtin.set_fact:
         url_1: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/"
-        url_2: "Managers/iDRAC.Embedded.1/Jobs/{{ result.task.id }}"
+        url_2: "Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{ result.task.id }}"
 
     - name: Final url
       ansible.builtin.set_fact:
@@ -151,7 +151,7 @@
     - name: Constructing url
       ansible.builtin.set_fact:
         url_1: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/"
-        url_2: "Managers/iDRAC.Embedded.1/Jobs/{{ result.task.id }}"
+        url_2: "Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{ result.task.id }}"
 
     - name: Final url
       ansible.builtin.set_fact:

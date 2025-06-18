@@ -172,11 +172,12 @@ class TestRedfishFirmware(FakeAnsibleModule):
                 "@odata.id": "2134"
             }
         }
-        result = self.module._get_update_service_target(redfish_firmware_connection_mock, f_module)
+        result = self.module._get_update_service_target(redfish_firmware_connection_mock, f_module, generation=16)
         assert result == ('2134', HTTPS_ADDRESS_DELL, '')
 
+    @pytest.mark.parametrize("generation", [16,17])
     def test_get_update_service_target_uri_none_case(self, redfish_default_args, redfish_firmware_connection_mock,
-                                                     redfish_response_mock):
+                                                     redfish_response_mock, generation):
         redfish_default_args.update({"transfer_protocol": "HTTP", "job_wait_timeout": 0})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.status_code = 200
@@ -195,11 +196,12 @@ class TestRedfishFirmware(FakeAnsibleModule):
             }
         }
         with pytest.raises(Exception) as ex:
-            self.module._get_update_service_target(redfish_firmware_connection_mock, f_module)
+            self.module._get_update_service_target(redfish_firmware_connection_mock, f_module, generation)
         assert ex.value.args[0] == "Target firmware version does not support redfish firmware update."
 
+    @pytest.mark.parametrize("generation", [16,17])
     def test_get_update_service_target_failed_case(self, redfish_default_args, redfish_firmware_connection_mock,
-                                                   redfish_response_mock):
+                                                   redfish_response_mock, generation):
         redfish_default_args.update({"transfer_protocol": "HTTP", "job_wait_timeout": 0})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.status_code = 200
@@ -217,7 +219,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
             }
         }
         with pytest.raises(Exception) as ex:
-            self.module._get_update_service_target(redfish_firmware_connection_mock, f_module)
+            self.module._get_update_service_target(redfish_firmware_connection_mock, f_module, generation)
         assert ex.value.args[0] == "Target firmware version does not support {0} protocol.".format("HTTP")
 
     def test_firmware_update_success_case01(self, redfish_default_args, redfish_firmware_connection_mock,
