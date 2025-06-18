@@ -2340,6 +2340,8 @@ releases:
           iDRAC10.
         - The ``idrac_secure_boot`` module is enhanced to support
           iDRAC10.
+        - The ``idrac_system_erase`` module is enhanced to support
+          iDRAC10.
         - The ``idrac_network_attributes`` module is enhanced to support
           iDRAC10.
         - The ``idrac_lifecycle_controller_logs`` module is
@@ -2354,6 +2356,7 @@ releases:
         - idrac_firmware - This module is enhanced to support iDRAC10.
         - idrac_diagnostics - This module is enhanced to support iDRAC10.
         - idrac_secure_boot - This module is enhanced to support iDRAC10.
+        - idrac_system_erase - This module is enhanced to support iDRAC10.
         - idrac_network_attributes - This module is enhanced to support iDRAC10.
         - idrac_lifecycle_controller_logs - This module is enhanced to
           support iDRAC10.
