@@ -93,7 +93,8 @@
           register: cm_changes
           check_mode: true
 
-        - name: Verify - Bios configuration exists (check mode - changes expected)
+        - name: Verify - Bios configuration exists
+           (check mode - changes expected)
           ansible.builtin.assert:
             that:
               - cm_changes.changed
