@@ -12,7 +12,7 @@
           validate_certs: false
       no_log: true
 
-    - name: Creating a job
+    - name: Creating a job (first job)
       ansible.builtin.include_tasks:
         file: ../_create_job.yml
 
@@ -28,7 +28,7 @@
         that:
           - '"deleted sucessfully" in idrac_job_queue_out.msg'
 
-    - name: Creating a job
+    - name: Creating a job (second job)
       ansible.builtin.include_tasks:
         file: ../_create_job.yml
 

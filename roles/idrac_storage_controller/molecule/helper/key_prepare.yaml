@@ -62,7 +62,7 @@
       register: idrac_storage_controller_res_set_attrs
       ignore_errors: true
 
-    - name: Waiting for iDRAC to be in ready state
+    - name: Waiting for iDRAC to be in ready state (pause 30 seconds)
       ansible.builtin.pause:
         seconds: 30
       when: idrac_storage_controller_res_set_attrs.msg == "Successfully
@@ -83,7 +83,7 @@
       when: idrac_storage_controller_res_set_attrs.msg == "Successfully
        performed the 'SetControllerKey' operation."
 
-    - name: Waiting for iDRAC to be in ready state
+    - name: Waiting for iDRAC to be in ready state (pause 10 seconds)
       ansible.builtin.pause:
         seconds: 10
       when: idrac_storage_controller_res_set_attrs.changed   # noqa: no-handler

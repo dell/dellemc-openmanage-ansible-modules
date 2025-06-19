@@ -95,7 +95,7 @@
       ansible.builtin.command: >
         {{ curl_cmd | format(https_username, https_password, https_dest, curl_https_url) }}
 
-    - name: Checking file exists in current location
+    - name: Checking file exists in current location.
       ansible.builtin.stat:
         path: "/tmp/{{ https_filename }}"
       register: https_file

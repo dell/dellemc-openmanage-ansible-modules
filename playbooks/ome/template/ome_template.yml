@@ -288,7 +288,7 @@
         attributes:
           Name: "Imported Template Name"
           Type: 2
-          Content: "{{ lookup('ansible.builtin.file', '/path/to/xmlfile') }}"
+          Content: "{{ contents_of_file_located_at_/path/to/xmlfile }}"
       delegate_to: localhost
 
     - name: Deploy template and Operating System (OS) on multiple devices."
@@ -350,6 +350,6 @@
         template_view_type: "Compliance"
         attributes:
           Name: "Configuration Compliance"
-          Content: "{{ lookup('ansible.builtin.file', './test.xml') }}"
+          Content: "{{ contents_of_file_located_at_/path/to/xmlfile }}"
           Type: 2
       delegate_to: localhost

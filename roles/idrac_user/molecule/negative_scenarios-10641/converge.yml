@@ -102,7 +102,7 @@
         that:
           - idrac_user_out.failed
 
-    - name: Invalid username value
+    - name: Invalid username value.
       ansible.builtin.import_role:
         name: idrac_user
       vars:
@@ -116,7 +116,7 @@
       ignore_unreachable: true
       register: idrac_user_fail_case
 
-    - name: Asserting for invalid username
+    - name: Asserting for invalid username.
       ansible.builtin.assert:
         that:
           - '"HTTP Error 400" in idrac_user_out.msg'
