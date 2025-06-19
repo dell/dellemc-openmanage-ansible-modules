@@ -11,7 +11,7 @@
     - role: idrac_attributes
       vars:
         system_attributes:
-          ServerOS.1.HostName: demohostname
+          ServerOS.1.HostName: 'xyzQwertyy'
   tasks:
     - name: Asserting system_attributes update in check mode
       ansible.builtin.assert:

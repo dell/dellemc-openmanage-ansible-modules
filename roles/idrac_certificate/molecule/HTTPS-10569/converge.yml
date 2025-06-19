@@ -110,7 +110,7 @@
         creates: /tmp/idrac_certificate/https_cert.pem
       check_mode: false
 
-    - name: Delete ca_cert.pem if it exists
+    - name: Delete ca_cert.pem if it exists.
       ansible.builtin.file:
         path: /tmp/idrac_certificate/idrac_cert.pem
         state: absent
@@ -181,7 +181,7 @@
       register: https_cert_file
       no_log: true
 
-    - name: Asserting operation with Normal/Idempotence mode.
+    - name: Asserting operation with Normal/Idempotence mode
       ansible.builtin.assert:
         that:
           - https_cert_file.stat.exists

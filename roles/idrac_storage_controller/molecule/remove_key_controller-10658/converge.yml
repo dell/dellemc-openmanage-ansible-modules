@@ -32,7 +32,7 @@
       when: remove_controller_key_out.msg == "Successfully performed the
        'RemoveControllerKey' operation."    # noqa: no-handler
 
-    - name: Waiting for iDRAC to be in ready state
+    - name: Waiting for iDRAC to be in ready state.
       ignore_errors: true
       register: idrac_storage_controller_pd_state_out_lc
       ansible.builtin.include_tasks:
