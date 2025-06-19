@@ -142,7 +142,8 @@
       ignore_errors: true
       register: idrac_storage_controller_tmp
 
-    - name: Verifying disk status change to online in Normal mode
+    - name: Verifying disk status change to online in Normal
+       mode (invalid apply_time)
       ansible.builtin.assert:
         that:
           - "attributes_config_out.msg == 'value of apply_time must be one
@@ -171,7 +172,8 @@
       ignore_errors: true
       register: idrac_storage_controller_tmp
 
-    - name: Verifying disk status change to online in Normal mode
+    - name: Verifying disk status change to online in Normal
+       mode (invalid start time)
       ansible.builtin.assert:
         that:
           - "'The start time should be in the format
@@ -344,7 +346,7 @@
       register: idrac_storage_controller_tmp
 
     - name: Verifying set controller attributes with Job wait when
-            key_id is missing
+            key_id is missing.
       ansible.builtin.assert:
         that:
           - "'All of the following: key, key_id and old_key are required for
@@ -399,7 +401,8 @@
       ignore_errors: true
       register: idrac_storage_controller_tmp
 
-    - name: Verifying disk status change to online in Normal mode
+    - name: Verifying disk status change to online in Normal
+       mode (invalid attribute)
       ansible.builtin.assert:
         that:
           - "attributes_config_out.msg == 'The following attributes
@@ -428,7 +431,8 @@
       ignore_errors: true
       register: idrac_storage_controller_tmp
 
-    - name: Verifying disk status change to online in Normal mode
+    - name: Verifying disk status change to online in Normal
+       mode (invalid virtual disk)
       ansible.builtin.assert:
         that:
           - "oce_vd_out.msg == 'Unable to locate the virtual disk with
@@ -462,7 +466,7 @@
         that:
           - oce_vd_out.failed
 
-    - name: Create a list of dictionaries of dictionaries
+    - name: Create a list of dictionaries of dictionaries.
       ansible.builtin.set_fact:
         disk_details:
           status: "online"
@@ -480,7 +484,7 @@
       ignore_errors: true
       register: idrac_storage_controller_tmp
 
-    - name: Update the value of the id key
+    - name: Update the value of the id key.
       ansible.builtin.set_fact:
         disk_details: "{{ disk_details | combine({'id': 'Invalid'}) }}"
 

@@ -37,12 +37,12 @@
         path: "{{ cifs_mount_path }}/{{ cifs_filename }}"
       register: cifs_file
 
-    - name: Checking file exists in current location
+    - name: Checking file exists in current location for http filename
       ansible.builtin.stat:
         path: "{{ http_filename }}"
       register: http_file
 
-    - name: Checking file exists in current location
+    - name: Checking file exists in current location for https filename
       ansible.builtin.stat:
         path: "{{ https_filename }}"
       register: https_file
