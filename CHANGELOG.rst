@@ -10,7 +10,7 @@ v9.12.2
 Release Summary
 ---------------
 
-The ``idrac_bios``, ``idrac_session``, ``idrac_firmware``, ``idrac_diagnostics``, ``idrac_secure_boot``, ``idrac_system_erase``, ``idrac_network_attributes``, ``idrac_lifecycle_controller_logs``, ``redfish_power_state``, ``redfish_event_subscription`` modules are enhanced to support iDRAC10
+The ``idrac_bios``, ``idrac_session``, ``idrac_firmware``, ``idrac_diagnostics``, ``idrac_secure_boot``, ``idrac_system_erase``, ``idrac_network_attributes``, ``idrac_lifecycle_controller_logs``, ``redfish_power_state``, ``redfish_event_subscription`` modules and ``idrac_server_powerstate`` role are enhanced to support iDRAC10
 
 Major Changes
 -------------
@@ -21,6 +21,7 @@ Major Changes
 - idrac_lifecycle_controller_logs - This module is enhanced to support iDRAC10.
 - idrac_network_attributes - This module is enhanced to support iDRAC10.
 - idrac_secure_boot - This module is enhanced to support iDRAC10.
+- idrac_server_powerstate - This role is enhanced to support iDRAC10.
 - idrac_session - This module is enhanced to support iDRAC10.
 - idrac_system_erase - This module is enhanced to support iDRAC10.
 - redfish_event_subscription - This module is enhanced to support iDRAC10.
