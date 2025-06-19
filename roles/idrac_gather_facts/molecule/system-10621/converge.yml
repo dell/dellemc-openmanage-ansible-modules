@@ -50,7 +50,7 @@
       when:
         - is_omsdk_required | bool
 
-    - name: Set < 17G url
+    - name: Set < 17G url.
       ansible.builtin.set_fact:
         url2: "{{ url2_1 }}{{ url2_2 }}"
 

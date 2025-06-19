@@ -24,7 +24,7 @@
             that:
               - idrac_job_queue_out.msg == "The job JID_12345678 is invalid."
 
-    - name: Clear job queue
+    - name: Clear job queue for invalid hostname
       block:
         - name: Clearing job queue with an invalid hostname
           ansible.builtin.import_role:
@@ -43,7 +43,7 @@
               - "'<urlopen error [Errno -2] Name or service not known>' in idrac_job_queue_out.msg or
                 '<urlopen error [Errno -3] Temporary failure in name resolution>' in idrac_job_queue_out.msg"
 
-    - name: Clear job queue
+    - name: Clear job queue for invalid username
       block:
         - name: Clearing job queue with an invalid username
           ansible.builtin.import_role:
@@ -61,7 +61,7 @@
             that:
               - "'The authentication credentials included with this request are missing or invalid.' in idrac_job_queue_out.msg"
 
-    - name: Clear job queue
+    - name: Clear job queue for invalid password
       block:
         - name: Clearing job queue with an invalid password
           ansible.builtin.import_role:
