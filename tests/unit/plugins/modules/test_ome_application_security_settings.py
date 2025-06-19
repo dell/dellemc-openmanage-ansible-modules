@@ -359,15 +359,15 @@ class TestOmeSecuritySettings(FakeAnsibleModule):
                                 },
                                 {
                                     "Name": "LoginSecurity.1#LockoutFailCount",
-                                    "Value": 3
+                                    "Value": 7
                                 },
                                 {
                                     "Name": "LoginSecurity.1#LockoutFailCountTime",
-                                    "Value": 32
+                                    "Value": 27
                                 },
                                 {
                                     "Name": "LoginSecurity.1#LockoutPenaltyTime",
-                                    "Value": 850
+                                    "Value": 859
                                 },
                                 {
                                     "Name": "LoginSecurity.1#IPRangeAddr",
@@ -375,11 +375,11 @@ class TestOmeSecuritySettings(FakeAnsibleModule):
                                 },
                                 {
                                     "Name": "LoginSecurity.1#LockoutByUsernameEnable",
-                                    "Value": True
+                                    "Value": False
                                 },
                                 {
                                     "Name": "LoginSecurity.1#LockoutByIPEnable",
-                                    "Value": True
+                                    "Value": False
                                 },
                                 {
                                     "Name": "LoginSecurity.1#IPRangeEnable",
