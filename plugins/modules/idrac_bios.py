@@ -348,17 +348,20 @@ MAINTENANCE_TIME = "The specified maintenance time window occurs in the past, " 
 NEGATIVE_TIMEOUT_MESSAGE = "The parameter job_wait_timeout value cannot be negative or zero."
 POWER_CHECK_RETRIES = 30
 POWER_CHECK_INTERVAL = 10
+ODATA_REGEX = "(.*?)@odata"
+AUTH_ERROR_MSG = "Unable to communicate with iDRAC {0}. This may be due to one of the following: " \
+                 "Incorrect username or password, unreachable iDRAC IP or a failure in TLS/SSL handshake."
 
 
 import json
 import time
 from ansible.module_utils.common.dict_transformations import recursive_diff
-from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
+from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import idrac_redfish_job_tracking, \
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import idrac_redfish_job_tracking, remove_key, \
     strip_substr_dict
 
 
@@ -830,21 +833,25 @@ def main():
             module.exit_json(msg=msg, changed=changed, failed=failed)
         else:
             with iDRACRedfishAPI(module.params, req_session=True) as redfish_obj:
-                if module.params.get("clear_pending"):
-                    clear_pending_bios(module, redfish_obj)
-                if module.params.get("reset_bios"):
-                    reset_bios(module, redfish_obj)
-                if module.params.get('attributes'):
-                    attributes_config(module, redfish_obj)
+                _handle_redfish_api(module, redfish_obj)
             module.exit_json(status_msg=NO_CHANGES_MSG)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
-    except URLError as err:
-        message = err.reason if err.reason else str(err)
-        module.exit_json(msg=message, unreachable=True)
-    except (RuntimeError, SSLValidationError, ConnectionError, KeyError,
-            ImportError, ValueError, TypeError) as e:
-        module.fail_json(msg=str(e))
+        filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
+        module.exit_json(msg=str(err), error_info=filter_err, failed=True)
+    except URLError:
+        module.exit_json(msg=AUTH_ERROR_MSG.format(module.params["idrac_ip"]), unreachable=True)
+    except (ImportError, ValueError, RuntimeError, SSLValidationError,
+            ConnectionError, KeyError, TypeError, IndexError) as e:
+        module.exit_json(msg=str(e), failed=True)
+
+
+def _handle_redfish_api(module, redfish_obj):
+    if module.params.get("clear_pending"):
+        clear_pending_bios(module, redfish_obj)
+    if module.params.get("reset_bios"):
+        reset_bios(module, redfish_obj)
+    if module.params.get('attributes'):
+        attributes_config(module, redfish_obj)
 
 
 if __name__ == '__main__':

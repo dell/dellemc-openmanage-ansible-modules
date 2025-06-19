@@ -43,7 +43,8 @@
         that: idrac_certificate_out.msg == "Changes found to be applied."
       when: ansible_check_mode
 
-    - name: Asserting operation with Normal/Idempotence mode.
+    - name: Asserting operation with Normal/Idempotence
+       mode (Import certificate).
       ansible.builtin.assert:
         that: idrac_certificate_out.msg == "Successfully performed the
                                         'import' certificate operation.iDRAC
@@ -72,7 +73,8 @@
       register: csc_cert_file
       no_log: true
 
-    - name: Asserting operation with Normal/Idempotence mode.
+    - name: Asserting operation with Normal/Idempotence
+       mode (Export certificate).
       ansible.builtin.assert:
         that:
           - csc_cert_file.stat.exists
@@ -82,7 +84,7 @@
                                         'export' certificate operation."
       when: not ansible_check_mode and not idrac_certificate_out.changed
 
-    - name: Fetching CSC certificates from share
+    - name: Fetching CSC certificates from share.
       ansible.builtin.include_tasks:
         file: ../__get_helper.yml
       vars:
@@ -102,7 +104,7 @@
         passphrase: "{{ lookup('env', 'passphrase') }}"
         certificate_path: "{{ import_cert_path }}{{ csc_cert_pass_name }}"
 
-    - name: Waiting for idrac readiness
+    - name: Waiting for idrac readiness.
       ansible.builtin.wait_for:
         timeout: 30
       when:
@@ -110,7 +112,7 @@
         - idrac_certificate_out is defined
         - idrac_certificate_out.changed
 
-    - name: Asserting operation with check mode.
+    - name: Asserting operation with check mode
       ansible.builtin.assert:
         that: idrac_certificate_out.msg == "Changes found to be applied."
       when: ansible_check_mode
@@ -136,7 +138,7 @@
 
       when: not ansible_check_mode
 
-    - name: Setting up CSC certificate path for exported file
+    - name: Setting up CSC certificate path for exported file.
       when: idrac_certificate_out is defined
             and idrac_certificate_out.certificate_path is defined
       ansible.builtin.stat:
@@ -144,7 +146,7 @@
       register: csc_cert_file
       no_log: true
 
-    - name: Asserting operation with Normal/Idempotence mode.
+    - name: Asserting operation with Normal/Idempotence mode
       ansible.builtin.assert:
         that:
           - csc_cert_file.stat.exists

@@ -71,7 +71,7 @@
       register: ca_cert_file
       no_log: true
 
-    - name: Asserting operation with Normal/Idempotence mode.
+    - name: Asserting operation with Normal/Idempotence mode
       ansible.builtin.assert:
         that:
           - ca_cert_file.stat.exists
