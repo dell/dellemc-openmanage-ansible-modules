@@ -21,7 +21,7 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common im
 from unittest.mock import MagicMock
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from io import StringIO
+from io import StringIO, BytesIO
 from ansible.module_utils._text import to_text
 from unittest.mock import patch, mock_open
 
@@ -285,3 +285,11 @@ class TestRedfishFirmware(FakeAnsibleModule):
         with patch("{0}.open".format(builtin_module_name), mock_open(read_data="data")) as mock_file:
             result = self.module.firmware_update(redfish_firmware_connection_mock, f_module)
         assert result == redfish_response_mock
+
+    def test_encode_form_data(self, mocker):
+        payload_file = {'UpdateFile': ('image.exe', BytesIO(b'example data'), 'application/octet-stream')}
+        payload_file_header = 'UpdateFile'
+        mocker.patch('urllib3.filepost.encode_multipart_formdata', return_value=(b'example data', 'multipart/form-data'))
+        result = redfish_firmware._encode_form_data(payload_file, payload_file_header)
+        assert b'example data' in result[0]
+        assert 'multipart/form-data' in result[1]
