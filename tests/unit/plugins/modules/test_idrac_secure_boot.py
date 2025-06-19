@@ -546,7 +546,7 @@ class TestIDRACSecureBoot(FakeAnsibleModule):
 
         # Scenario 12: When boot_mode is updated to Legacy BIOS on iDRAC10
         idrac_default_args.update({'boot_mode': 'Bios'})
-        mocker.patch(MODULE_PATH + "idrac_secure_boot.get_server_generation", return_value=(17, "1.0.20.20", "bcd"))
+        mocker.patch(MODULE_PATH + "idrac_secure_boot.get_server_generation", return_value=(17, "1.0.x.x", "bcd"))
         resp = self._run_module(idrac_default_args, check_mode=True)
         assert resp['msg'] == "boot mode and Force int 10 are not supported for 17G and later."
         assert resp['failed'] is True
