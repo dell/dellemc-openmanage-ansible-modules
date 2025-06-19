@@ -440,7 +440,7 @@ class TestOmeSecuritySettings(FakeAnsibleModule):
             mocker.patch(
                 MODULE_PATH + 'login_security_setting',
                 side_effect=exc_type("exception message"))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'login_security_setting',
@@ -449,6 +449,6 @@ class TestOmeSecuritySettings(FakeAnsibleModule):
                                               'http error message',
                                               {"accept-type": "application/json"},
                                               StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'msg' in result
