@@ -36,7 +36,7 @@
       ansible.builtin.include_tasks:
         file: ../__lc_status_check.yaml
 
-    - name: Waiting for the iDRAC to be available
+    - name: Waiting for the iDRAC to be available (first timeout)
       ansible.builtin.wait_for:
         timeout: 60
       tags: molecule-idempotence-notest
@@ -71,7 +71,7 @@
       ansible.builtin.include_tasks:
         file: ../__lc_status_check.yaml
 
-    - name: Waiting for the iDRAC to be available
+    - name: Waiting for the iDRAC to be available (second timeout)
       ansible.builtin.wait_for:
         timeout: 60
       tags: molecule-idempotence-notest
@@ -87,7 +87,7 @@
       ansible.builtin.include_tasks:
         file: ../__lc_status_check.yaml
 
-    - name: Waiting for the iDRAC to be available
+    - name: Waiting for the iDRAC to be available (third timeout)
       ansible.builtin.wait_for:
         timeout: 60
       tags: molecule-idempotence-notest
