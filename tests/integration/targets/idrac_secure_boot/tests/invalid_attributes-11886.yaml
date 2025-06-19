@@ -200,4 +200,5 @@
     idrac_manager_url: "{{ endpt }}/{{ idrac_manager_uri }}"
     readonly_attr_msg: 'Unable to modify the attribute because the
      attribute is read-only and depends on other attributes.'
-    rmv_17g_msg: "boot mode and Force int 10 are not supported for 17G and later."
+    rmv_17g_msg: boot mode and Force int 10 are not supported
+     for 17G and later.
