@@ -161,7 +161,8 @@
               username: user
               password: password
               ca_check: true
-              certificate_data: "{{ lookup('ansible.builtin.file', '/path/to/certificate_data_file') }}"
+              certificate_data: "{{
+               contents_of_file_located_at_/path/to/certificate_data_file }}"
       tags:
         - server_ca_check
       delegate_to: localhost
