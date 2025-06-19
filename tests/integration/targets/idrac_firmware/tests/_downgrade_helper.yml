@@ -1,0 +1,29 @@
+---
+- ansible.builtin.include_role: name=prepare_idrac_lifecycle_controller_status
+
+- name: Set catalog location for iDRAC10
+  set_fact:
+    old_catalog_location: "{{ old_catalog_location_idrac10 }}"
+    new_catalog_location: "{{ new_catalog_location_idrac10 }}"
+  when: generation | int >= 17
+
+- name: Set catalog location for iDRAC9
+  set_fact:
+    old_catalog_location: "{{ old_catalog_location_idrac9 }}"
+    new_catalog_location: "{{ new_catalog_location_idrac9 }}"
+  when: generation | int < 17
+
+- name: Downgrade firmwares from repository through CIFS Share
+  dellemc.openmanage.idrac_firmware:
+    share_name: "{{ cifs_share_name }}{{ old_catalog_location }}"
+    share_mnt: "{{ cifs_share_mnt }}"
+    share_user: "{{ cifs_share_user }}"
+    share_password: "{{ cifs_share_password }}"
+    reboot: true
+    job_wait: true
+    apply_update: true
+  register: downgrade
+
+- ansible.builtin.include_tasks: _post_update_helper.yml
+
+- ansible.builtin.include_tasks: _get_server_generation.yml
