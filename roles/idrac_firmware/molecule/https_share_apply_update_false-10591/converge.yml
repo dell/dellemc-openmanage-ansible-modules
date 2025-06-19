@@ -64,7 +64,7 @@
           - idrac_firmware_out.msg == "Successfully updated the firmware."
       when: not ansible_check_mode
 
-    - name: "Waiting for idrac to be reachable"
+    - name: "Waiting for idrac to be reachable (first wait)"
       ansible.builtin.include_tasks:
         file: "../resources/_wait_for_port_to_open.yaml"
       when: not ansible_check_mode
@@ -99,7 +99,7 @@
             firmware update packages."
       when: not ansible_check_mode
 
-    - name: "Waiting for idrac to be reachable"
+    - name: "Waiting for idrac to be reachable (second wait)"
       ansible.builtin.include_tasks:
         file: "../resources/_wait_for_port_to_open.yaml"
       when: not ansible_check_mode
@@ -113,7 +113,7 @@
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
       tags: molecule-idempotence-notest
 
-    - name: "Pre-requisites"
+    - name: "Pre-requisites."
       ansible.builtin.include_tasks:
         file: "../resources/tests/downgrade.yml"
       tags: molecule-idempotence-notest
@@ -142,13 +142,13 @@
             the job to update the firmware."
       when: not ansible_check_mode
 
-    - name: "Waiting for idrac to be reachable"
+    - name: "Waiting for idrac to be reachable (third wait)"
       ansible.builtin.include_tasks:
         file: "../resources/_wait_for_port_to_open.yaml"
       when: not ansible_check_mode
       tags: molecule-idempotence-notest
 
-    - name: Check LC status after restart/reset operation
+    - name: Check LC status after restart/reset operation.
       ansible.builtin.include_tasks: "../resources/tests/lcstatus_check.yml"
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
