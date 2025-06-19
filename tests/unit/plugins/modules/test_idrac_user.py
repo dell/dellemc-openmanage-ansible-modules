@@ -20,6 +20,8 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common im
 from unittest.mock import MagicMock
 from ansible.module_utils._text import to_text
 from io import StringIO
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.utils \
+    import AnsibleFailJson
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 VERSION = "3.60.60.60"
@@ -42,6 +44,8 @@ SUCCESS_UPDATED = "Successfully updated user account."
 INVOKE_REQUEST = "idrac_user.iDRACRedfishAPI.invoke_request"
 CM_ACCOUNT = "idrac_user.create_or_modify_account"
 USER_PRIVILAGE = "Users.1#Privilege"
+MAX_USERS_MSG = "Maximum number of users reached. Delete a user \
+account and retry the operation."
 
 
 class TestIDRACUser(FakeAnsibleModule):
@@ -256,7 +260,7 @@ class TestIDRACUser(FakeAnsibleModule):
     @pytest.mark.parametrize("params", [
         {"ret_val": "Requested changes are already present in the user slot."},
         {"firm_ver": (14, VERSION, HARDWARE_14G), "slot_id": None, "slot_uri": None,
-         "ret_val": "Maximum number of users reached. Delete a user account and retry the operation."},
+         "ret_val": MAX_USERS_MSG},
         {"check_mode": True, "ret_val": "No changes found to commit!"},
         {"check_mode": True, "user_attr": {
             USERNAME1: "test_user"}, "ret_val": CHANGES_FOUND},
@@ -310,7 +314,7 @@ class TestIDRACUser(FakeAnsibleModule):
                          side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
         if exc_type != URLError:
-            result = self._run_module_with_fail_json(idrac_default_args)
+            result = self._run_module(idrac_default_args)
             assert result['failed'] is True
         else:
             result = self._run_module(idrac_default_args)
@@ -327,7 +331,7 @@ class TestIDRACUser(FakeAnsibleModule):
         obj.json_data = {"error": {"message": "Some Error Occured"}}
         mocker.patch(MODULE_PATH + "idrac_user.remove_user_account",
                      return_value=(obj, "error"))
-        result = self._run_module_with_fail_json(idrac_default_args)
+        result = self._run_module(idrac_default_args)
         assert result['failed'] is True
         assert result['msg'] == "Some Error Occured"
 
@@ -343,7 +347,7 @@ class TestIDRACUser(FakeAnsibleModule):
             "Message": "Unable to complete application of configuration profile values."}}}
         mocker.patch(MODULE_PATH + "idrac_user.remove_user_account",
                      return_value=(obj, "error"))
-        result = self._run_module_with_fail_json(idrac_default_args)
+        result = self._run_module(idrac_default_args)
         assert result['failed'] is True
         assert result['msg'] == "Unable to complete application of configuration profile values."
 
@@ -370,9 +374,11 @@ class TestIDRACUser(FakeAnsibleModule):
                                    "ipmi_serial_privilege": "Administrator", "enable": True,
                                    "sol_enable": True, "protocol_enable": True,
                                    "authentication_protocol": "SHA", "privacy_protocol": "AES"})
-        result = self._run_module_with_fail_json(idrac_default_args)
-        assert result['failed'] is True
-        assert result['msg'] == "value of state must be one of: present, absent, got: some"
+        try:
+            self._run_module(idrac_default_args)
+        except AnsibleFailJson as err:
+            assert err.args[0]["msg"] == "value of state must be one of: present, absent, got: some"
+            assert err.args[0].get('failed') is True
 
     def test_validate_input(self, idrac_connection_user_mock, idrac_default_args, mocker):
         idrac_default_args.update({"state": "present", "new_user_name": "new_user_name",

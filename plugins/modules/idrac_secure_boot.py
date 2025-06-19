@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.7.0
+# Version 9.12.2
 # Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -33,7 +33,7 @@ options:
     type: str
     choices: [Uefi, Bios]
     description:
-      - Boot mode of the iDRAC.
+      - Boot mode of the iDRAC. Not supported for 17G iDRAC10 and later.
       - C(Uefi) enables the secure boot in UEFI mode.
       - C(Bios) enables the secure boot in BIOS mode.
   secure_boot:
@@ -72,6 +72,7 @@ options:
     description:
       - Determines whether the system BIOS loads the legacy video (INT 10h) option ROM from the video controller.
       - This parameter is supported only in UEFI boot mode. If UEFI Secure Boot mode is enabled, you cannot enable this parameter.
+      - This parameter is not supported for 17G iDRAC10 and later.
       - C(Disabled) if the operating system supports UEFI video output standards.
       - C(Enabled) if the operating system does not support UEFI video output standards.
   export_certificates:
@@ -154,6 +155,7 @@ requirements:
 author:
     - "Abhishek Sinha(@ABHISHEK-SINHA10)"
     - "Lovepreet Singh (@singh-lovepreet1)"
+    - "Rounak Adhikary (@rounak-adhikary)"
 attributes:
     check_mode:
         description: Runs task to validate without performing action on the target machine.
@@ -287,12 +289,13 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish i
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     get_dynamic_uri, remove_key, validate_and_get_first_resource_id_uri,
     trigger_restart_operation, wait_for_lc_status, get_lc_log_or_current_log_time,
-    cert_file_format_string, strip_substr_dict, idrac_redfish_job_tracking, reset_host, get_idrac_firmware_version)
+    cert_file_format_string, strip_substr_dict, idrac_redfish_job_tracking, reset_host)
 
 SYSTEMS_URI = "/redfish/v1/Systems"
-IDRAC_JOBS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs"
-iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
-iDRAC_JOBS_EXP = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
+IDRAC_MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
+IDRAC_JOBS_URI = IDRAC_MANAGER_URI + "/Oem/Dell/Jobs"
+iDRAC_JOB_URI = IDRAC_JOBS_URI + "/{job_id}"
+iDRAC_JOBS_EXP = IDRAC_JOBS_URI + "?$expand=*($levels=1)"
 BIOS_JOB_EXISTS = "BIOS Configuration job already exists."
 TIME_FORMAT = "%Y%m%d_%H%M%S"
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be negative or zero."
@@ -329,6 +332,7 @@ odata = '@odata.id'
 OPERATION_NOT_SUPPORTED = "{op} is not supported on this firmware version of iDRAC."
 SECURE_BOOT_NOT_FOUND = "Secure Boot operations are not supported on this iDRAC."
 NO_KEY_FOUND = "The entered {secure_boot_key} is not supported on this host."
+LEGACY_BIOS_UNSUPPORTED_MSG = "boot mode and Force int 10 are not supported for 17G and later."
 FAILED_RESET_KEYS = "Failed to complete the Reset Certificates operation using {reset_key_op}. Retry the operation."
 MESSAGE_EXTENDED_INFO = "@Message.ExtendedInfo"
 NO_SECURE_BOOT_SUCCESS = "Unable to update the iDRAC Secure Boot settings because the entered parameter is not supported."
@@ -340,9 +344,9 @@ SYS_CODES = ["SYS410", "SYS409"]
 
 class IDRACSecureBoot:
 
-    def __init__(self, idrac, module):
-        self.module = module
-        self.idrac = idrac
+    def __init__(self, idrac: iDRACRedfishAPI, module: IdracAnsibleModule):
+        self.module: IdracAnsibleModule = module
+        self.idrac: iDRACRedfishAPI = idrac
         plt_key = self.module.params.get('platform_key')
         self.platform_key = [plt_key] if plt_key else []
         self.KEK = self.module.params.get(
@@ -621,15 +625,31 @@ class IDRACResetCertificates(IDRACSecureBoot):
             self.module.exit_json(msg=FAILED_RESET_KEYS.format(reset_key_op=self.reset_keys), failed=True)
 
 
+def get_server_generation(idrac: iDRACRedfishAPI):
+    """
+    Function wrapping idrac.get_server_generation. Helps with mocked testing.
+
+    Args:
+        idrac (iDRACRedfishAPI): iDRACRedfishAPI object.
+
+    Returns:
+        Tuple[int, str, str]: A tuple containing the server generation, firmware version, and hardware model.
+    """
+    return idrac.get_server_generation
+
+
 class IDRACAttributes(IDRACSecureBoot):
 
-    def __init__(self, idrac, module):
+    def __init__(self, idrac: iDRACRedfishAPI, module: IdracAnsibleModule):
         super().__init__(idrac, module)
         self.boot_mode = self.module.params.get('boot_mode')
         self.secure_boot = self.module.params.get('secure_boot')
         self.secure_boot_mode = self.module.params.get('secure_boot_mode')
         self.secure_boot_policy = self.module.params.get('secure_boot_policy')
         self.force_int_10 = self.module.params.get('force_int_10')
+
+        server_generation_op = get_server_generation(self.idrac)
+        self.generation, self.idrac_firmware_version = server_generation_op[0], server_generation_op[1]
 
     def check_scheduled_bios_job(self):
         job_resp = self.idrac.invoke_request(iDRAC_JOBS_EXP, "GET")
@@ -675,6 +695,15 @@ class IDRACAttributes(IDRACSecureBoot):
         self.module.exit_json(msg=FAILED_BIOS_JOB, failed=True)
 
     def compare_attr_val(self, curr_attr):
+        """
+        Compare the current attributes with the new attributes.
+
+        Parameters:
+            curr_attr (dict): The current attributes.
+
+        Returns:
+            dict: A dictionary containing the attributes that are different.
+        """
         new_payload = {"BootMode": self.boot_mode, "SecureBoot": self.secure_boot,
                        "SecureBootMode": self.secure_boot_mode, "SecureBootPolicy": self.secure_boot_policy,
                        "ForceInt10": self.force_int_10}
@@ -768,9 +797,13 @@ class IDRACAttributes(IDRACSecureBoot):
         Perform operation
         """
         self.validate_job_wait()
-        idrac_firmware_version = get_idrac_firmware_version(self.idrac)
-        if LooseVersion(idrac_firmware_version) < '3.0':
+        if self.generation < 17 and LooseVersion(self.idrac_firmware_version) < '3.0':
             self.module.exit_json(msg=OPERATION_NOT_SUPPORTED.format(op='Secure Boot settings update'), skipped=True)
+        if self.generation >= 17:
+            # Legacy BIOS boot mode and Force int 10 are not supported from 17G onwards
+            # boot mode is a readonly attribute and Force int 10 is not an attribute in 17G
+            if self.boot_mode is not None or self.force_int_10 is not None:
+                self.module.exit_json(msg=LEGACY_BIOS_UNSUPPORTED_MSG, failed=True, changed=False)
         self.get_current_attributes()
         self.attributes_config()
 
