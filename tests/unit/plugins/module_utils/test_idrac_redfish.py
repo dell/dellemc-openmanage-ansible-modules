@@ -42,6 +42,10 @@ RESP_10 = {
         "Info.1.HWModel": "iDRAC 10"
     }
 }
+RESP_MANAGER_8 = {
+    "Model": "13G xxx",
+    "FirmwareVersion": "x.x.x"
+}
 SESSION_ID_10 = "/redfish/v1/SessionService/Sessions/{Id}"
 SESSION_10 = "/redfish/v1/SessionService/Sessions"
 

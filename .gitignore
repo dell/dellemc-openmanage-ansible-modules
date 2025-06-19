@@ -12,3 +12,5 @@ demo
 .vscode
 .coverage
 .ansible
+.venv
+*.log
