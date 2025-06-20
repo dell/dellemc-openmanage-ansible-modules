@@ -88,21 +88,26 @@ options:
     description:
       - This option allows to configure one of the following authentication protocol
         types to authenticate the iDRAC user.
-      - Secure Hash Algorithm C(SHA).
-      - Message Digest 5 C(MD5).
+      - Secure Hash Algorithm C(SHA). Not applicable for iDRAC10.
+      - Message Digest 5 C(MD5). Not applicable for iDRAC10.
+      - Secure Hash Algorithm 384-bit C(SHA-384). Only applicable for iDRAC10.
+      - Secure Hash Algorithm 512-bit C(SHA-512). Only applicable for iDRAC10.
       - An authentication protocol is not configured if C(None) is selected.
-    choices: [None, SHA, MD5]
+    choices: [None, SHA, MD5, SHA-384, SHA-512]
   privacy_protocol:
     type: str
     description:
       - This option allows to configure one of the following privacy encryption protocols for the iDRAC user.
-      - Data Encryption Standard C(DES).
-      - Advanced Encryption Standard C(AES).
+      - Data Encryption Standard C(DES). Not applicable for iDRAC10.
+      - Advanced Encryption Standard C(AES). Not applicable for iDRAC10.
+      - Advanced Encryption Standard 256-bit C(AES-256). Only applicable for iDRAC9 and iDRAC10.
       - A privacy protocol is not configured if C(None) is selected.
-    choices: [None, DES, AES]
+    choices: [None, DES, AES, AES-256]
 requirements:
   - "python >= 3.9.6"
-author: "Felix Stephen (@felixs88)"
+author:
+    - "Felix Stephen (@felixs88)"
+    - "Kritika Bhateja (@Kritika-Bhateja-03)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports C(check_mode).
@@ -216,6 +221,8 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
 
 ACCOUNT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Accounts/"
 ATTRIBUTE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Attributes/"
+MANAGERS_ATTRIBUTES_REGISTRY = "/redfish/v1/Registries/\
+  ManagerAttributeRegistry/ManagerAttributeRegistry.v1_0_0.json"
 USER_ROLES = {"Administrator": 511, "Operator": 499, "ReadOnly": 1, "None": 0}
 ACCESS = {0: "Disabled", 1: "Enabled"}
 INVALID_PRIVILAGE_MSG = "custom_privilege value should be from 0 to 511."
@@ -223,6 +230,13 @@ INVALID_PRIVILAGE_MIN = 0
 INVALID_PRIVILAGE_MAX = 511
 CHANGES_FOUND_MSG = "Changes found to commit!"
 ODATA_ID = "(.*?)@odata"
+UNSUPPORTED_APPLY_TIME = "Apply time {0} is not supported."
+INVALID_AUTHENTICATION_PROTOCOL_MSG = "Authentication protocol {protocol} is\
+  not supported. The supported authentication protocols are\
+  {supported_auth_protocol}"
+INVALID_PRIVACY_PROTOCOL_MSG = "Authentication protocol {protocol} is\
+  not supported. The supported authentication protocols are\
+  {supported_auth_protocol}"
 
 
 def compare_payload(json_payload, idrac_attr):
@@ -397,12 +411,58 @@ def remove_user_account(module, idrac, slot_uri, slot_id):
     return response, msg
 
 
-def validate_input(module):
+def validate_choices_for_protocol(idrac):
+    try:
+        resp = idrac.invoke_request(MANAGERS_ATTRIBUTES_REGISTRY, "GET")
+        reg_entries = resp.json_data.get("RegistryEntries", {})
+        attributes = reg_entries.get("Attributes", [[]])[0]
+        auth_dict = None
+        privacy_dict = None
+        for sub_dict in attributes:
+            attr_name = sub_dict.get("AttributeName")
+            if attr_name == "Users.1.AuthenticationProtocol":
+                auth_dict = sub_dict
+            elif attr_name == "Users.1.PrivacyProtocol":
+                privacy_dict = sub_dict
+            if auth_dict and privacy_dict:
+                break
+        auth_choices = [
+            item.get("ValueDisplayName")
+            for item in auth_dict.get("Value", [])
+        ] if auth_dict else []
+
+        privacy_choices = [
+            item.get("ValueDisplayName")
+            for item in privacy_dict.get("Value", [])
+        ] if privacy_dict else []
+        return privacy_choices, auth_choices
+    except Exception:
+        return [], []
+
+
+def validate_input(module, idrac):
     if module.params["state"] == "present":
         user_privilege = module.params["custom_privilege"] if "custom_privilege" in module.params and \
             module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"], 0)
         if INVALID_PRIVILAGE_MIN > user_privilege or user_privilege > INVALID_PRIVILAGE_MAX:
             module.exit_json(msg=INVALID_PRIVILAGE_MSG,
+                             failed=True)
+        authentication_protocol = module.params.get("authentication_protocol")
+        privacy_protocol = module.params.get("privacy_protocol")
+        auth_list, privacy_list = validate_choices_for_protocol(idrac)
+        auth_invalid_msg = INVALID_AUTHENTICATION_PROTOCOL_MSG.format(
+            protocol=authentication_protocol,
+            supported_auth_protocol=auth_list
+        )
+        privacy_invalid_msg = INVALID_PRIVACY_PROTOCOL_MSG.format(
+            protocol=privacy_protocol,
+            supported_privacy_protocol=privacy_list
+        )
+        if authentication_protocol and authentication_protocol not in auth_list:
+            module.exit_json(msg=auth_invalid_msg,
+                             failed=True)
+        if privacy_protocol and privacy_protocol not in privacy_list:
+            module.exit_json(msg=privacy_invalid_msg,
                              failed=True)
 
 
@@ -419,15 +479,15 @@ def main():
         "enable": {"required": False, "type": "bool"},
         "sol_enable": {"required": False, "type": "bool"},
         "protocol_enable": {"required": False, "type": "bool"},
-        "authentication_protocol": {"required": False, "choices": ['SHA', 'MD5', 'None']},
-        "privacy_protocol": {"required": False, "choices": ['AES', 'DES', 'None']},
+        "authentication_protocol": {"required": False, "choices": ['SHA', 'MD5', 'None', 'SHA-384', 'SHA-512']},
+        "privacy_protocol": {"required": False, "choices": ['AES', 'DES', 'None', 'AES-256']},
     }
     module = IdracAnsibleModule(
         argument_spec=specs,
         supports_check_mode=True)
     try:
-        validate_input(module)
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:
+            validate_input(module, idrac)
             user_attr, slot_uri, slot_id, empty_slot_id, empty_slot_uri = get_user_account(module, idrac)
             if module.params["state"] == "present":
                 response, message = create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id,

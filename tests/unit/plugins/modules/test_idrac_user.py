@@ -359,6 +359,8 @@ class TestIDRACUser(FakeAnsibleModule):
                                    "sol_enable": True, "protocol_enable": True,
                                    "authentication_protocol": "SHA", "privacy_protocol": "AES"})
         obj = MagicMock()
+        mocker.patch(MODULE_PATH + "idrac_user.validate_input",
+                     return_value=None)
         obj.json_data = {
             "Oem": {"Dell": {"Message": "This Message Does Not Exists"}}}
         mocker.patch(MODULE_PATH + CM_ACCOUNT, return_value=(obj, "created"))
@@ -390,11 +392,11 @@ class TestIDRACUser(FakeAnsibleModule):
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
         with pytest.raises(Exception) as err:
-            self.module.validate_input(f_module)
+            self.module.validate_input(f_module, idrac_default_args)
         assert err.value.args[0] == "custom_privilege value should be from 0 to 511."
 
         idrac_default_args.update({"state": "absent"})
-        ret = self.module.validate_input(f_module)
+        ret = self.module.validate_input(f_module, idrac_default_args)
         assert ret is None
 
     def test_compare_payload(self, idrac_connection_user_mock, idrac_default_args, mocker):
