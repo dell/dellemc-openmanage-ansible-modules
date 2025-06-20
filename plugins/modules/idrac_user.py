@@ -59,6 +59,7 @@ options:
       - A user with C(None), no privileges assigned.
       - Will be ignored, if custom_privilege parameter is provided.
     choices: [Administrator, ReadOnly, Operator, None]
+    aliases: ['role']
   custom_privilege:
     type: int
     description:
