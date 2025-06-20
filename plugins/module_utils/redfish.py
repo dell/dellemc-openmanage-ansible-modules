@@ -106,6 +106,8 @@ class Redfish(object):
         self.root_uri = '/redfish/v1/'
         self._headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
         self.hostname = config_ipv6(self.hostname)
+        if self.x_auth_token is not None:
+            self._headers["X-Auth-Token"] = self.x_auth_token
         self.SESSION_RESOURCE_COLLECTION = {
             "SESSION": "/redfish/v1/SessionService/Sessions",
             "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
