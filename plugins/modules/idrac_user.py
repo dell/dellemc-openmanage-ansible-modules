@@ -233,11 +233,11 @@ CHANGES_FOUND_MSG = "Changes found to commit!"
 ODATA_ID = "(.*?)@odata"
 UNSUPPORTED_APPLY_TIME = "Apply time {0} is not supported."
 INVALID_AUTHENTICATION_PROTOCOL_MSG = "Authentication protocol {protocol} is\
-  not supported. The supported authentication protocols are\
-  {supported_auth_protocol}"
-INVALID_PRIVACY_PROTOCOL_MSG = "Authentication protocol {protocol} is\
-  not supported. The supported authentication protocols are\
-  {supported_auth_protocol}"
+ not supported. The supported authentication protocols are\
+ {supported_auth_protocol}."
+INVALID_PRIVACY_PROTOCOL_MSG = "Privacy protocol {protocol} is\
+ not supported. The supported privacy protocols are\
+ {supported_privacy_protocol}."
 
 
 def compare_payload(json_payload, idrac_attr):
@@ -450,19 +450,19 @@ def validate_input(module, idrac):
                              failed=True)
         authentication_protocol = module.params.get("authentication_protocol")
         privacy_protocol = module.params.get("privacy_protocol")
-        auth_list, privacy_list = validate_choices_for_protocol(idrac)
-        auth_invalid_msg = INVALID_AUTHENTICATION_PROTOCOL_MSG.format(
-            protocol=authentication_protocol,
-            supported_auth_protocol=auth_list
-        )
-        privacy_invalid_msg = INVALID_PRIVACY_PROTOCOL_MSG.format(
-            protocol=privacy_protocol,
-            supported_privacy_protocol=privacy_list
-        )
+        privacy_list, auth_list = validate_choices_for_protocol(idrac)
         if authentication_protocol and authentication_protocol not in auth_list:
+            auth_invalid_msg = INVALID_AUTHENTICATION_PROTOCOL_MSG.format(
+                protocol=authentication_protocol,
+                supported_auth_protocol=auth_list
+            )
             module.exit_json(msg=auth_invalid_msg,
                              failed=True)
         if privacy_protocol and privacy_protocol not in privacy_list:
+            privacy_invalid_msg = INVALID_PRIVACY_PROTOCOL_MSG.format(
+                protocol=privacy_protocol,
+                supported_privacy_protocol=privacy_list
+            )
             module.exit_json(msg=privacy_invalid_msg,
                              failed=True)
 
