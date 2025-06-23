@@ -58,6 +58,8 @@ CREATE_USER_DICT = {"state": "present",
                     "protocol_enable": True,
                     "authentication_protocol": "MD5",
                     "privacy_protocol": "AES"}
+ATTRIBUTE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1/"
+ATTRIBUTE_URI_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1/"
 MANAGERS_ATTRIBUTES_REGISTRY_OUT = {
     "RegistryEntries": {
         "Attributes": [
@@ -108,6 +110,8 @@ class TestIDRACUser(FakeAnsibleModule):
                                    "authentication_protocol": "SHA", "privacy_protocol": "AES"})
         f_module = self.get_module_mock(params=idrac_default_args)
         resp = self.module.get_payload(f_module, 1, HARDWARE_14G, action="update")
+        assert resp["Users.1.UserName"] == idrac_default_args["new_user_name"]
+        resp = self.module.get_payload(f_module, 1, 17, action="update")
         assert resp["Users.1.UserName"] == idrac_default_args["new_user_name"]
 
     def test_get_payload_2(self, idrac_connection_user_mock, idrac_default_args, mocker):
@@ -490,3 +494,8 @@ supported. The supported privacy protocols are ['AES-256']."
             idrac_connection_user_mock)
         assert auth_protocols == []
         assert privacy_protocols == []
+
+    def test_set_attribute_uri_generation_17(self):
+        global ATTRIBUTE_URI
+        self.module.set_attribute_uri(17)
+        assert ATTRIBUTE_URI == ATTRIBUTE_URI_10
