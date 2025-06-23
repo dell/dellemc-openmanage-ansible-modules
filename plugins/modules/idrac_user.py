@@ -221,7 +221,8 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     remove_key)
 
 ACCOUNT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Accounts/"
-ATTRIBUTE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1/"
+ATTRIBUTE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Attributes/"
+ATTRIBUTE_URI_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1/"
 MANAGERS_ATTRIBUTES_REGISTRY = "/redfish/v1/Registries/\
 ManagerAttributeRegistry/ManagerAttributeRegistry.v1_0_0.json"
 USER_ROLES = {"Administrator": 511, "Operator": 499, "ReadOnly": 1, "None": 0}
@@ -287,7 +288,7 @@ def get_user_account(module, idrac):
     return user_attributes, slot_uri, slot_id, empty_slot, empty_slot_uri
 
 
-def get_payload(module, slot_id, action=None):
+def get_payload(module, slot_id, generation, action=None):
     """
     This function creates the payload with slot id.
     :param module: ansible module arguments
@@ -316,6 +317,9 @@ def get_payload(module, slot_id, action=None):
                         "Users.{0}.IpmiLanPrivilege": "No Access", "Users.{0}.IpmiSerialPrivilege": "No Access",
                         "Users.{0}.SolEnable": "Disabled", "Users.{0}.ProtocolEnable": "Disabled",
                         "Users.{0}.AuthenticationProtocol": "SHA", "Users.{0}.PrivacyProtocol": "AES"}
+    if generation >= 17:
+        slot_payload["Users.{0}.Role"] = slot_payload["Users.{0}.Privilege"]
+        del slot_payload["Users.{0}.Privilege"]
     payload = dict([(k.format(slot_id), v) for k, v in slot_payload.items() if v is not None])
     return payload
 
@@ -337,7 +341,13 @@ def convert_payload_xml(payload):
     return root, json_payload
 
 
-def create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id, empty_slot_uri, user_attr):
+def set_attribute_uri(generation):
+    global ATTRIBUTE_URI
+    if generation >= 17:
+        ATTRIBUTE_URI = ATTRIBUTE_URI_10
+
+
+def create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id, empty_slot_uri, user_attr, generation):
     """
     This function create user account in case not exists else update it.
     :param module: user account module arguments
@@ -348,12 +358,10 @@ def create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id, em
     :param empty_slot_uri: empty slot uri for create
     :return: json
     """
-    gen_details = idrac.get_server_generation
-    generation = gen_details[0]
     msg, response = "Unable to retrieve the user details.", {}
     if (slot_id and slot_uri) is None and (empty_slot_id and empty_slot_uri) is not None:
         msg = "Successfully created user account."
-        payload = get_payload(module, empty_slot_id, action="create")
+        payload = get_payload(module, empty_slot_id, generation, action="create")
         if module.check_mode:
             module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
         if generation >= 14:
@@ -364,7 +372,7 @@ def create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id, em
             response = idrac.import_scp(import_buffer=xml_payload, target=["ALL"], job_wait=True)
     elif (slot_id and slot_uri) is not None:
         msg = "Successfully updated user account."
-        payload = get_payload(module, slot_id, action="update")
+        payload = get_payload(module, slot_id, generation, action="update")
         xml_payload, json_payload = convert_payload_xml(payload)
         value = compare_payload(json_payload, user_attr)
         if module.check_mode:
@@ -387,7 +395,7 @@ user account and retry the operation.",
     return response, msg
 
 
-def remove_user_account(module, idrac, slot_uri, slot_id):
+def remove_user_account(module, idrac, slot_uri, slot_id, generation):
     """
     remove user user account by passing empty payload details.
     :param module: user account module arguments.
@@ -397,7 +405,7 @@ def remove_user_account(module, idrac, slot_uri, slot_id):
     :return: json.
     """
     response, msg = {}, "Successfully deleted user account."
-    payload = get_payload(module, slot_id, action="delete")
+    payload = get_payload(module, slot_id, generation, action="delete")
     payload = convert_payload_xml(payload)
     xml_payload = payload[0]
     if module.check_mode and (slot_id and slot_uri) is not None:
@@ -491,12 +499,15 @@ def main():
     try:
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:
             validate_input(module, idrac)
+            gen_details = idrac.get_server_generation
+            generation = gen_details[0]
+            set_attribute_uri(generation)
             user_attr, slot_uri, slot_id, empty_slot_id, empty_slot_uri = get_user_account(module, idrac)
             if module.params["state"] == "present":
                 response, message = create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id,
-                                                             empty_slot_uri, user_attr)
+                                                             empty_slot_uri, user_attr, generation)
             elif module.params["state"] == "absent":
-                response, message = remove_user_account(module, idrac, slot_uri, slot_id)
+                response, message = remove_user_account(module, idrac, slot_uri, slot_id, generation)
             error = response.json_data.get("error")
             oem = response.json_data.get("Oem")
             out_data = remove_key(response.json_data, regex_pattern=ODATA_ID)
