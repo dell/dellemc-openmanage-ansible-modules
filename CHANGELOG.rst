@@ -4,19 +4,43 @@ Dell OpenManage Ansible Modules Release Notes
 
 .. contents:: Topics
 
+v9.12.2
+=======
+
+Release Summary
+---------------
+
+The ``idrac_bios``, ``idrac_session``, ``idrac_firmware``, ``idrac_diagnostics``, ``idrac_secure_boot``, ``idrac_system_erase``, ``idrac_network_attributes``, ``idrac_lifecycle_controller_logs``, ``redfish_power_state``, ``redfish_event_subscription`` modules and ``idrac_server_powerstate`` role are enhanced to support iDRAC10
+
+Major Changes
+-------------
+
+- idrac_bios - This module is enhanced to support iDRAC10.
+- idrac_diagnostics - This module is enhanced to support iDRAC10.
+- idrac_firmware - This module is enhanced to support iDRAC10.
+- idrac_lifecycle_controller_logs - This module is enhanced to support iDRAC10.
+- idrac_network_attributes - This module is enhanced to support iDRAC10.
+- idrac_secure_boot - This module is enhanced to support iDRAC10.
+- idrac_server_powerstate - This role is enhanced to support iDRAC10.
+- idrac_session - This module is enhanced to support iDRAC10.
+- idrac_system_erase - This module is enhanced to support iDRAC10.
+- redfish_event_subscription - This module is enhanced to support iDRAC10.
+- redfish_power_state - This module is enhanced to support iDRAC10.
+
+Known Issues
+------------
+
+- idrac_attributes - The module accepts both the string as well as integer value for the field "SNMP.1.AgentCommunity" for iDRAC10.
+- idrac_diagnostics - This module doesn't support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
+- ome_smart_fabric_uplink - The module supported by OpenManage Enterprise Modular, however it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, then the existing uplink is modified.
+
 v9.12.1
 =======
 
 Release Summary
 ---------------
 
-- The ``idrac_user_info`` module is enhanced to support iDRAC10.
-- The ``idrac_lifecycle_controller_status_info`` module is enhanced to support iDRAC10.
-- The ``idrac_lifecycle_controller_jobs`` module is enhanced to support iDRAC10.
-- The ``idrac_virtual_media`` module is enhanced to support iDRAC10.
-- The ``idrac_attributes`` module is enhanced to support iDRAC10.
-- The ``idrac_attributes`` role is enhanced to support iDRAC10.
-- The ``idrac_syslog`` module is deprecated.
+- The ``idrac_user_info`` module is enhanced to support iDRAC10. - The ``idrac_lifecycle_controller_status_info`` module is enhanced to support iDRAC10. - The ``idrac_lifecycle_controller_jobs`` module is enhanced to support iDRAC10. - The ``idrac_virtual_media`` module is enhanced to support iDRAC10. - The ``idrac_attributes`` module is enhanced to support iDRAC10. - The ``idrac_attributes`` role is enhanced to support iDRAC10. - The ``idrac_syslog`` module is deprecated.
 
 Major Changes
 -------------
@@ -27,6 +51,7 @@ Major Changes
 - idrac_lifecycle_controller_status_info - This module is enhanced to support iDRAC10.
 - idrac_syslog - This module is deprecated.
 - idrac_user_info - This module is enhanced to support iDRAC10.
+- idrac_virtual_media - This module is enhanced to support iDRAC10.
 
 Known Issues
 ------------
@@ -41,16 +66,14 @@ v9.12.0
 Release Summary
 ---------------
 
-- The ``idrac_system_info`` module is enhanced to support iDRAC10. 
-- The ``idrac_lifecycle_controller_job_status_info`` module is enhanced to support iDRAC10. 
-- The ``idrac_gather_facts`` role is enhanced to support iDRAC10.
+- The ``idrac_system_info`` module is enhanced to support iDRAC10. - The ``idrac_lifecycle_controller_job_status_info`` module is enhanced to support iDRAC10. - The ``idrac_gather_facts`` role is enhanced to support iDRAC10.
 
 Major Changes
 -------------
 
-- idrac_system_info - This module is enhanced to support iDRAC10.
-- idrac_lifecycle_controller_job_status_info - This module is enhanced to support iDRAC10.
 - idrac_gather_facts - This role is enhanced to support iDRAC10.
+- idrac_lifecycle_controller_job_status_info - This module is enhanced to support iDRAC10.
+- idrac_system_info - This module is enhanced to support iDRAC10.
 
 Bugfixes
 --------
@@ -70,8 +93,7 @@ v9.11.0
 Release Summary
 ---------------
 
-- The modules ``idrac_network_attributes``, ``idrac_certificates``, ``idrac_redfish_storage_controller``, ``idrac_boot`` and ``idrac_firmware`` have been enhanced to resolve all internal defects. 
-- The ``idrac_redfish_storage_volume`` module is enhanced to prevent a 404 error during job creation when enabling encryption for virtual drives.
+- The modules ``idrac_network_attributes``, ``idrac_certificates``, ``idrac_redfish_storage_controller``, ``idrac_boot`` and ``idrac_firmware`` have been enhanced to resolve all internal defects. - The ``idrac_redfish_storage_volume`` module is enhanced to prevent a 404 error during job creation when enabling encryption for virtual drives.
 
 Bugfixes
 --------
@@ -92,9 +114,7 @@ v9.10.0
 Release Summary
 ---------------
 
-- The ``omevv_firmware`` module is added to support the firmware update of the single host and single cluster.
-- The ``omevv_firmware_repository_profile`` module is enhanced to support resync of repository profiles from the OpenManage Update Manager Plug-in.
-- The ``idrac_certificates`` module is enhanced to support SSL CSR generation for 4096 key size. (Issue #737) 
+- The ``omevv_firmware`` module is added to support the firmware update of the single host and single cluster. - The ``omevv_firmware_repository_profile`` module is enhanced to support resync of repository profiles from the OpenManage Update Manager Plug-in. - The ``idrac_certificates`` module is enhanced to support SSL CSR generation for 4096 key size.
 
 Major Changes
 -------------
@@ -104,8 +124,8 @@ Major Changes
 Minor Changes
 -------------
 
-- omevv_firmware_repository_profile - This module allows to resync the repository profiles from the OpenManage Update Manager Plug-in.
 - idrac_certificates -  This module is enhanced to support SSL CSR generation for 4096 key size.
+- omevv_firmware_repository_profile - This module allows to resync the repository profiles from the OpenManage Update Manager Plug-in.
 
 Bugfixes
 --------
@@ -125,9 +145,7 @@ v9.9.0
 Release Summary
 ---------------
 
-- The ``omevv_baseline_profile_info`` module is added to support retrieval of baseline profile information.
-- The ``omevv_compliance_info`` module is added to support retrieval of firmware compliance reports.
-- The ``omevv_baseline_profile`` module is added to support management of baseline profile.
+- Modules are added to support OpenManage Enterprise Integration for VMWare vCenter Plug-in. - The ``omevv_baseline_profile_info`` module is added to support retrieval of baseline profile information. - The ``omevv_compliance_info`` module is added to support retrieval of firmware compliance reports. - The ``omevv_baseline_profile`` module is added to support management of baseline profile.
 
 Major Changes
 -------------
@@ -149,11 +167,7 @@ v9.8.0
 Release Summary
 ---------------
 
-- Modules are added to support OpenManage Enterprise Integration for VMWare vCenter Plug-in.
-- The ``omevv_vcenter_info`` module is added to support retrieval of vCenter information.
-- The ``omevv_firmware_repository_profile_info`` module is added to support retrieval of firmware repository profile information.
-- The ``omevv_firmware_repository_profile`` module is added to support management of firmware repository profile.
-- The ``idrac_firmware_info`` module is enhanced to support iDRAC10.
+- Modules are added to support OpenManage Enterprise Integration for VMWare vCenter Plug-in. - The ``omevv_vcenter_info`` module is added to support retrieval of vCenter information. - The ``omevv_firmware_repository_profile_info`` module is added to support retrieval of firmware repository profile information. - The ``omevv_firmware_repository_profile`` module is added to support management of firmware repository profile. - The ``idrac_firmware_info`` module is enhanced to support iDRAC10.
 
 Major Changes
 -------------
@@ -187,8 +201,7 @@ v9.7.0
 Release Summary
 ---------------
 
-- The ``idrac_secure_boot`` module is enhanced to export, reset and configure the attributes of boot certificate.
-- The ``idrac_system_erase`` module is added to add support to erase system and storage components of the server.
+- The ``idrac_secure_boot`` module is enhanced to export, reset and configure the attributes of boot certificate. - The ``idrac_system_erase`` module is added to add support to erase system and storage components of the server.
 
 Major Changes
 -------------
