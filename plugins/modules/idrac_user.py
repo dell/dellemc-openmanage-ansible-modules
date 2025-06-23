@@ -361,7 +361,7 @@ def create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id, em
         elif generation < 14:
             xml_payload, json_payload = convert_payload_xml(payload)
             time.sleep(10)
-            response = idrac.import_scp(import_buffer=xml_payload, target="ALL", job_wait=True)
+            response = idrac.import_scp(import_buffer=xml_payload, target=["ALL"], job_wait=True)
     elif (slot_id and slot_uri) is not None:
         msg = "Successfully updated user account."
         payload = get_payload(module, slot_id, action="update")
@@ -377,7 +377,7 @@ def create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id, em
             response = idrac.invoke_request(ATTRIBUTE_URI, "PATCH", data={"Attributes": payload})
         elif generation < 14:
             time.sleep(10)
-            response = idrac.import_scp(import_buffer=xml_payload, target="ALL", job_wait=True)
+            response = idrac.import_scp(import_buffer=xml_payload, target=["ALL"], job_wait=True)
     elif (slot_id and slot_uri and empty_slot_id and empty_slot_uri) is None:
         module.exit_json(
             msg="Maximum number of users reached. Delete a \
@@ -406,7 +406,7 @@ def remove_user_account(module, idrac, slot_uri, slot_id):
         module.exit_json(msg="No changes found to commit!")
     elif not module.check_mode and (slot_uri and slot_id) is not None:
         time.sleep(10)
-        response = idrac.import_scp(import_buffer=xml_payload, target="ALL", job_wait=True)
+        response = idrac.import_scp(import_buffer=xml_payload, target=["ALL"], job_wait=True)
     else:
         module.exit_json(msg="The user account is absent.")
     return response, msg
