@@ -386,7 +386,6 @@ class TestIDRACUser(FakeAnsibleModule):
                                    "sol_enable": True, "protocol_enable": True,
                                    "authentication_protocol": "SHA", "privacy_protocol": "AES"})
         obj = MagicMock()
-        # idrac_connection_user_mock.get_server_generation.return_value = (HARDWARE_14G, "5.10", "iDRAC 9")
         mocker.patch(
             MODULE_PATH + "idrac_user.iDRACRedfishAPI.get_server_generation",
             return_value=(HARDWARE_14G, "5.10", "iDRAC 9")

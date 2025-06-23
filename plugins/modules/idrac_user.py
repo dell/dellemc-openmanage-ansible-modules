@@ -239,6 +239,7 @@ INVALID_AUTHENTICATION_PROTOCOL_MSG = "Authentication protocol {protocol} is\
 INVALID_PRIVACY_PROTOCOL_MSG = "Privacy protocol {protocol} is\
  not supported. The supported privacy protocols are\
  {supported_privacy_protocol}."
+PRIVILEGE_KEY = "Users.{0}.Privilege"
 
 
 def compare_payload(json_payload, idrac_attr):
@@ -302,7 +303,7 @@ def get_payload(module, slot_id, generation, action=None):
     slot_payload = {"Users.{0}.UserName": module.params["user_name"],
                     "Users.{0}.Password": module.params["user_password"],
                     "Users.{0}.Enable": ACCESS.get(module.params["enable"]),
-                    "Users.{0}.Privilege": user_privilege,
+                    PRIVILEGE_KEY: user_privilege,
                     "Users.{0}.IpmiLanPrivilege": module.params["ipmi_lan_privilege"],
                     "Users.{0}.IpmiSerialPrivilege": module.params["ipmi_serial_privilege"],
                     "Users.{0}.SolEnable": ACCESS.get(module.params["sol_enable"]),
@@ -313,13 +314,13 @@ def get_payload(module, slot_id, generation, action=None):
         user_name = "Users.{0}.UserName".format(slot_id)
         slot_payload[user_name] = module.params["new_user_name"]
     elif module.params["state"] == "absent":
-        slot_payload = {"Users.{0}.UserName": "", "Users.{0}.Enable": "Disabled", "Users.{0}.Privilege": 0,
+        slot_payload = {"Users.{0}.UserName": "", "Users.{0}.Enable": "Disabled", PRIVILEGE_KEY: 0,
                         "Users.{0}.IpmiLanPrivilege": "No Access", "Users.{0}.IpmiSerialPrivilege": "No Access",
                         "Users.{0}.SolEnable": "Disabled", "Users.{0}.ProtocolEnable": "Disabled",
                         "Users.{0}.AuthenticationProtocol": "SHA", "Users.{0}.PrivacyProtocol": "AES"}
     if generation >= 17:
-        slot_payload["Users.{0}.Role"] = slot_payload["Users.{0}.Privilege"]
-        del slot_payload["Users.{0}.Privilege"]
+        slot_payload["Users.{0}.Role"] = slot_payload[PRIVILEGE_KEY]
+        del slot_payload[PRIVILEGE_KEY]
     payload = dict([(k.format(slot_id), v) for k, v in slot_payload.items() if v is not None])
     return payload
 
@@ -347,6 +348,34 @@ def set_attribute_uri(generation):
         ATTRIBUTE_URI = ATTRIBUTE_URI_10
 
 
+def handle_create(module, idrac, generation, payload):
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
+    if generation >= 14:
+        response = idrac.invoke_request(ATTRIBUTE_URI, "PATCH", data={"Attributes": payload})
+    elif generation < 14:
+        payloads = convert_payload_xml(payload)
+        xml_payload = payloads[0]
+        time.sleep(10)
+        response = idrac.import_scp(import_buffer=xml_payload, target=["ALL"], job_wait=True)
+    return response
+
+
+def handle_update(module, idrac, generation, payload, value, xml_payload):
+    if module.check_mode:
+        if value:
+            module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
+        module.exit_json(msg="No changes found to commit!")
+    if not value:
+        module.exit_json(msg="Requested changes are already present in the user slot.")
+    if generation >= 14:
+        response = idrac.invoke_request(ATTRIBUTE_URI, "PATCH", data={"Attributes": payload})
+    elif generation < 14:
+        time.sleep(10)
+        response = idrac.import_scp(import_buffer=xml_payload, target=["ALL"], job_wait=True)
+    return response
+
+
 def create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id, empty_slot_uri, user_attr, generation):
     """
     This function create user account in case not exists else update it.
@@ -362,30 +391,13 @@ def create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id, em
     if (slot_id and slot_uri) is None and (empty_slot_id and empty_slot_uri) is not None:
         msg = "Successfully created user account."
         payload = get_payload(module, empty_slot_id, generation, action="create")
-        if module.check_mode:
-            module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
-        if generation >= 14:
-            response = idrac.invoke_request(ATTRIBUTE_URI, "PATCH", data={"Attributes": payload})
-        elif generation < 14:
-            xml_payload, json_payload = convert_payload_xml(payload)
-            time.sleep(10)
-            response = idrac.import_scp(import_buffer=xml_payload, target=["ALL"], job_wait=True)
+        response = handle_create(module, idrac, generation, payload)
     elif (slot_id and slot_uri) is not None:
         msg = "Successfully updated user account."
         payload = get_payload(module, slot_id, generation, action="update")
         xml_payload, json_payload = convert_payload_xml(payload)
         value = compare_payload(json_payload, user_attr)
-        if module.check_mode:
-            if value:
-                module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
-            module.exit_json(msg="No changes found to commit!")
-        if not value:
-            module.exit_json(msg="Requested changes are already present in the user slot.")
-        if generation >= 14:
-            response = idrac.invoke_request(ATTRIBUTE_URI, "PATCH", data={"Attributes": payload})
-        elif generation < 14:
-            time.sleep(10)
-            response = idrac.import_scp(import_buffer=xml_payload, target=["ALL"], job_wait=True)
+        response = handle_update(module, idrac, generation, payload, value, xml_payload)
     elif (slot_id and slot_uri and empty_slot_id and empty_slot_uri) is None:
         module.exit_json(
             msg="Maximum number of users reached. Delete a \
