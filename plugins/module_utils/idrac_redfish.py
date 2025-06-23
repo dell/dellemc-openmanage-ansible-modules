@@ -319,7 +319,7 @@ class iDRACRedfishAPI(object):
             payload["ShareParameters"]["ProxyUserName"] = share["proxy_username"]
         if share.get("proxy_password") is not None:
             payload["ShareParameters"]["ProxyPassword"] = share["proxy_password"]
-        payload["IncludeInExport"] = include_in_export
+        payload["IncludeInExport"] = [include_in_export]
         response = self.invoke_request(EXPORT_URI, "POST", data=payload)
         if response.status_code == 202 and job_wait:
             task_uri = response.headers["Location"]

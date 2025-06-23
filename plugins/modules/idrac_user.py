@@ -221,7 +221,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     remove_key)
 
 ACCOUNT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Accounts/"
-ATTRIBUTE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Attributes/"
+ATTRIBUTE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1/"
 MANAGERS_ATTRIBUTES_REGISTRY = "/redfish/v1/Registries/\
 ManagerAttributeRegistry/ManagerAttributeRegistry.v1_0_0.json"
 USER_ROLES = {"Administrator": 511, "Operator": 499, "ReadOnly": 1, "None": 0}
@@ -272,7 +272,7 @@ def get_user_account(module, idrac):
     slot_uri, slot_id, empty_slot, empty_slot_uri = None, None, None, None
     if not module.params["user_name"]:
         module.exit_json(msg="User name is not valid.", failed=True)
-    response = idrac.export_scp(export_format="JSON", export_use="Default", target="IDRAC", job_wait=True)
+    response = idrac.export_scp(export_format="JSON", export_use="Default", target=["IDRAC"], job_wait=True)
     user_attributes = idrac.get_idrac_local_account_attr(response.json_data, fqdd="iDRAC.Embedded.1")
     slot_num = tuple(range(2, 17))
     for num in slot_num:
