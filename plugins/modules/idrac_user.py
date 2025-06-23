@@ -223,7 +223,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
 ACCOUNT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Accounts/"
 ATTRIBUTE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Attributes/"
 MANAGERS_ATTRIBUTES_REGISTRY = "/redfish/v1/Registries/\
-  ManagerAttributeRegistry/ManagerAttributeRegistry.v1_0_0.json"
+ManagerAttributeRegistry/ManagerAttributeRegistry.v1_0_0.json"
 USER_ROLES = {"Administrator": 511, "Operator": 499, "ReadOnly": 1, "None": 0}
 ACCESS = {0: "Disabled", 1: "Enabled"}
 INVALID_PRIVILAGE_MSG = "custom_privilege value should be from 0 to 511."
@@ -416,7 +416,7 @@ def validate_choices_for_protocol(idrac):
     try:
         resp = idrac.invoke_request(MANAGERS_ATTRIBUTES_REGISTRY, "GET")
         reg_entries = resp.json_data.get("RegistryEntries", {})
-        attributes = reg_entries.get("Attributes", [[]])[0]
+        attributes = reg_entries.get("Attributes", [[]])
         auth_dict = None
         privacy_dict = None
         for sub_dict in attributes:
