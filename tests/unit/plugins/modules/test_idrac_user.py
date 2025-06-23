@@ -46,6 +46,42 @@ CM_ACCOUNT = "idrac_user.create_or_modify_account"
 USER_PRIVILAGE = "Users.1#Privilege"
 MAX_USERS_MSG = "Maximum number of users reached. Delete a user \
 account and retry the operation."
+CREATE_USER_DICT = {"state": "present",
+                    "new_user_name": "new_user_name",
+                    "user_name": "test",
+                    "user_password": "password",
+                    "privilege": "Administrator",
+                    "ipmi_lan_privilege": "Administrator",
+                    "ipmi_serial_privilege": "Administrator",
+                    "enable": True,
+                    "sol_enable": True,
+                    "protocol_enable": True,
+                    "authentication_protocol": "MD5",
+                    "privacy_protocol": "AES"}
+MANAGERS_ATTRIBUTES_REGISTRY_OUT = {
+    "RegistryEntries": {
+        "Attributes": [
+            {
+                "AttributeName" : "Users.1.AuthenticationProtocol",
+				"Value" : 
+                [
+                    {
+                        "ValueDisplayName" : "SHA-384",
+						"ValueName" : "1"
+					},
+                ]
+        },
+            {
+                "AttributeName" : "Users.1.PrivacyProtocol",
+                "Value" : 
+                [
+                    {
+                        "ValueDisplayName" : "AES-256",
+                        "ValueName" : "1"
+                    },
+                ]
+        }]
+}}
 
 
 class TestIDRACUser(FakeAnsibleModule):
@@ -71,7 +107,7 @@ class TestIDRACUser(FakeAnsibleModule):
                                    "sol_enable": True, "protocol_enable": True,
                                    "authentication_protocol": "SHA", "privacy_protocol": "AES"})
         f_module = self.get_module_mock(params=idrac_default_args)
-        resp = self.module.get_payload(f_module, 1, action="update")
+        resp = self.module.get_payload(f_module, 1, HARDWARE_14G, action="update")
         assert resp["Users.1.UserName"] == idrac_default_args["new_user_name"]
 
     def test_get_payload_2(self, idrac_connection_user_mock, idrac_default_args, mocker):
@@ -82,7 +118,7 @@ class TestIDRACUser(FakeAnsibleModule):
                                    "sol_enable": True, "protocol_enable": True,
                                    "authentication_protocol": "SHA", "privacy_protocol": "AES"})
         f_module = self.get_module_mock(params=idrac_default_args)
-        resp = self.module.get_payload(f_module, 1)
+        resp = self.module.get_payload(f_module, 1, 16)
         assert resp["Users.1.Privilege"] == idrac_default_args["custom_privilege"]
 
     def test_convert_payload_xml(self, idrac_connection_user_mock, idrac_default_args, mocker):
@@ -117,7 +153,7 @@ class TestIDRACUser(FakeAnsibleModule):
         slot_uri = SLOT_API.format(slot_id)
         with pytest.raises(Exception) as exc:
             self.module.remove_user_account(
-                f_module, idrac_connection_user_mock, slot_uri, slot_id)
+                f_module, idrac_connection_user_mock, slot_uri, slot_id, HARDWARE_14G)
         assert exc.value.args[0] == CHANGES_FOUND
 
     def test_remove_user_account_check_mode_2(self, idrac_connection_user_mock, idrac_default_args, mocker):
@@ -130,7 +166,7 @@ class TestIDRACUser(FakeAnsibleModule):
             params=idrac_default_args, check_mode=True)
         with pytest.raises(Exception) as exc:
             self.module.remove_user_account(
-                f_module, idrac_connection_user_mock, None, None)
+                f_module, idrac_connection_user_mock, None, None, HARDWARE_14G)
         assert exc.value.args[0] == "No changes found to commit!"
 
     def test_remove_user_account_check_mode_3(self, idrac_connection_user_mock, idrac_default_args, mocker):
@@ -147,7 +183,7 @@ class TestIDRACUser(FakeAnsibleModule):
         slot_uri = SLOT_API.format(slot_id)
         mocker.patch(MODULE_PATH + SLEEP_PATH, return_value=None)
         self.module.remove_user_account(
-            f_module, idrac_connection_user_mock, slot_uri, slot_id)
+            f_module, idrac_connection_user_mock, slot_uri, slot_id, HARDWARE_14G)
 
     def test_remove_user_account_check_mode_4(self, idrac_connection_user_mock, idrac_default_args, mocker):
         idrac_default_args.update({"state": "absent", "user_name": "user_name", "new_user_name": None,
@@ -161,7 +197,7 @@ class TestIDRACUser(FakeAnsibleModule):
             params=idrac_default_args, check_mode=False)
         with pytest.raises(Exception) as exc:
             self.module.remove_user_account(
-                f_module, idrac_connection_user_mock, None, None)
+                f_module, idrac_connection_user_mock, None, None, HARDWARE_14G)
         assert exc.value.args[0] == 'The user account is absent.'
 
     def test_get_user_account_1(self, idrac_connection_user_mock, idrac_default_args, mocker):
@@ -252,9 +288,10 @@ class TestIDRACUser(FakeAnsibleModule):
         slot_id = params.get("slot_id", None)
         slot_uri = params.get("slot_uri", None)
         user_attr = {USER2: "test_user"}
+        gen = 13
 
         response = self.module.create_or_modify_account(f_module, idrac_connection_user_mock, slot_uri, slot_id,
-                                                        empty_slot_id, empty_slot_uri, user_attr)
+                                                        empty_slot_id, empty_slot_uri, user_attr, gen)
         assert response[1] == params.get("ret_val")
 
     @pytest.mark.parametrize("params", [
@@ -291,9 +328,10 @@ class TestIDRACUser(FakeAnsibleModule):
         empty_slot_id = params.get("empty_slot_id", None)
         empty_slot_uri = params.get("empty_slot_uri", None)
         user_attr = params.get("user_attr", {USERNAME2: "test_user"})
+        gener = 13
         with pytest.raises(Exception) as exc:
             self.module.create_or_modify_account(f_module, idrac_connection_user_mock, slot_uri, slot_id,
-                                                 empty_slot_id, empty_slot_uri, user_attr)
+                                                 empty_slot_id, empty_slot_uri, user_attr, gener)
         assert exc.value.args[0] == params.get("ret_val")
 
     @pytest.mark.parametrize("exc_type", [SSLValidationError, URLError, ValueError, TypeError,
@@ -320,7 +358,10 @@ class TestIDRACUser(FakeAnsibleModule):
             result = self._run_module(idrac_default_args)
         assert 'msg' in result
 
-    def test_main_error(self, idrac_connection_user_mock, idrac_default_args, mocker):
+    @pytest.mark.parametrize("params", [
+        {"firm_ver": (14, VERSION, HARDWARE_14G)}
+    ])
+    def test_main_error(self, idrac_connection_user_mock, idrac_default_args, mocker, params):
         idrac_default_args.update({"state": "absent", "new_user_name": "new_user_name",
                                    "user_name": "test", "user_password": "password",
                                    "privilege": "Administrator", "ipmi_lan_privilege": "Administrator",
@@ -328,6 +369,8 @@ class TestIDRACUser(FakeAnsibleModule):
                                    "sol_enable": True, "protocol_enable": True,
                                    "authentication_protocol": "SHA", "privacy_protocol": "AES"})
         obj = MagicMock()
+        idrac_connection_user_mock.get_server_generation.return_value = params.get(
+            "firm_ver")
         obj.json_data = {"error": {"message": "Some Error Occured"}}
         mocker.patch(MODULE_PATH + "idrac_user.remove_user_account",
                      return_value=(obj, "error"))
@@ -343,6 +386,12 @@ class TestIDRACUser(FakeAnsibleModule):
                                    "sol_enable": True, "protocol_enable": True,
                                    "authentication_protocol": "SHA", "privacy_protocol": "AES"})
         obj = MagicMock()
+        # idrac_connection_user_mock.get_server_generation.return_value = (HARDWARE_14G, "5.10", "iDRAC 9")
+        mocker.patch(
+            MODULE_PATH + "idrac_user.iDRACRedfishAPI.get_server_generation",
+            return_value=(HARDWARE_14G, "5.10", "iDRAC 9")
+        )
+
         obj.json_data = {"Oem": {"Dell": {
             "Message": "Unable to complete application of configuration profile values."}}}
         mocker.patch(MODULE_PATH + "idrac_user.remove_user_account",
@@ -361,6 +410,8 @@ class TestIDRACUser(FakeAnsibleModule):
         obj = MagicMock()
         mocker.patch(MODULE_PATH + "idrac_user.validate_input",
                      return_value=None)
+        mocker.patch(MODULE_PATH + "idrac_user.set_attribute_uri",
+                     return_value=(obj, ""))
         obj.json_data = {
             "Oem": {"Dell": {"Message": "This Message Does Not Exists"}}}
         mocker.patch(MODULE_PATH + CM_ACCOUNT, return_value=(obj, "created"))
@@ -368,6 +419,24 @@ class TestIDRACUser(FakeAnsibleModule):
         result = self._run_module(idrac_default_args)
         assert result['changed'] is True
         assert result['msg'] == "created"
+
+    def test_main_invalid_authentication(self, idrac_connection_user_mock, idrac_default_args, mocker):
+        idrac_default_args.update(CREATE_USER_DICT)
+        mocker.patch(MODULE_PATH + "idrac_user.validate_choices_for_protocol",
+                     return_value=(["AES"], ["SHA"]))
+        result = self._run_module(idrac_default_args)
+        assert result['failed'] is True
+        assert result['msg'] == "Authentication protocol MD5 \
+is not supported. The supported authentication protocols are ['SHA']."
+
+    def test_main_invalid_privacy(self, idrac_connection_user_mock, idrac_default_args, mocker):
+        idrac_default_args.update(CREATE_USER_DICT)
+        mocker.patch(MODULE_PATH + "idrac_user.validate_choices_for_protocol",
+                     return_value=(["AES-256"], ["MD5"]))
+        result = self._run_module(idrac_default_args)
+        assert result['failed'] is True
+        assert result['msg'] == "Privacy protocol AES is not \
+supported. The supported privacy protocols are ['AES-256']."
 
     def test_main_state_some(self, idrac_connection_user_mock, idrac_default_args, mocker):
         idrac_default_args.update({"state": "some", "new_user_name": "new_user_name",
@@ -415,3 +484,10 @@ class TestIDRACUser(FakeAnsibleModule):
         is_change_required = self.module.compare_payload(
             json_payload, idrac_attr)
         assert is_change_required is True
+
+    def test_validate_choices_for_protocol(self, idrac_connection_user_mock, idrac_default_args, mocker):
+        idrac_connection_user_mock.invoke_request.return_value = []
+        privacy_protocols, auth_protocols = self.module.validate_choices_for_protocol(
+            idrac_connection_user_mock)
+        assert auth_protocols == []
+        assert privacy_protocols == []
