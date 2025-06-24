@@ -509,3 +509,33 @@ supported. The supported privacy protocols are ['AES-256']."
         }
         expected_output = (["HTTPS"], ["LDAP"])
         assert self.module.validate_choices_for_protocol(idrac) == expected_output
+
+    def test_handle_create_generation_14(self):
+        module = MagicMock()
+        module.check_mode = False
+        idrac = MagicMock()
+        idrac.invoke_request.return_value = "response"
+        generation = 14
+        payload = {}
+        response = self.module.handle_create(module, idrac, generation, payload)
+        assert response == "response"
+
+    def test_handle_create_check_mode(self):
+        module = MagicMock()
+        module.check_mode = True
+        idrac = MagicMock()
+        generation = 14
+        payload = {}
+        idrac.invoke_request.return_value = "response"
+        res = self.module.handle_create(module, idrac, generation, payload)
+        assert res == "response"
+
+    def test_handle_update_generation_14(self):
+        module = MagicMock()
+        module.check_mode = False
+        idrac = MagicMock()
+        idrac.invoke_request.return_value = "response1"
+        generation = 14
+        payload = {}
+        response = self.module.handle_update(module, idrac, generation, payload, "Users.1#UserName", "test_user")
+        assert response == "response1"
