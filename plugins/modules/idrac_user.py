@@ -240,6 +240,7 @@ INVALID_PRIVACY_PROTOCOL_MSG = "Privacy protocol {protocol} is\
  not supported. The supported privacy protocols are\
  {supported_privacy_protocol}."
 PRIVILEGE_KEY = "Users.{0}.Privilege"
+USERNAME_KEY = "Users.{0}.UserName"
 
 
 def compare_payload(json_payload, idrac_attr):
@@ -300,7 +301,7 @@ def get_payload(module, slot_id, generation, action=None):
     user_privilege = module.params["custom_privilege"] if "custom_privilege" in module.params and \
         module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"])
 
-    slot_payload = {"Users.{0}.UserName": module.params["user_name"],
+    slot_payload = {USERNAME_KEY: module.params["user_name"],
                     "Users.{0}.Password": module.params["user_password"],
                     "Users.{0}.Enable": ACCESS.get(module.params["enable"]),
                     PRIVILEGE_KEY: user_privilege,
@@ -311,10 +312,10 @@ def get_payload(module, slot_id, generation, action=None):
                     "Users.{0}.AuthenticationProtocol": module.params["authentication_protocol"],
                     "Users.{0}.PrivacyProtocol": module.params["privacy_protocol"], }
     if module.params["new_user_name"] is not None and action == "update":
-        user_name = "Users.{0}.UserName".format(slot_id)
+        user_name = USERNAME_KEY.format(slot_id)
         slot_payload[user_name] = module.params["new_user_name"]
     elif module.params["state"] == "absent":
-        slot_payload = {"Users.{0}.UserName": "", "Users.{0}.Enable": "Disabled", PRIVILEGE_KEY: 0,
+        slot_payload = {USERNAME_KEY: "", "Users.{0}.Enable": "Disabled", PRIVILEGE_KEY: 0,
                         "Users.{0}.IpmiLanPrivilege": "No Access", "Users.{0}.IpmiSerialPrivilege": "No Access",
                         "Users.{0}.SolEnable": "Disabled", "Users.{0}.ProtocolEnable": "Disabled",
                         "Users.{0}.AuthenticationProtocol": "SHA", "Users.{0}.PrivacyProtocol": "AES"}

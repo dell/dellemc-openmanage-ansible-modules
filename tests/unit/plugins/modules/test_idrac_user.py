@@ -60,30 +60,6 @@ CREATE_USER_DICT = {"state": "present",
                     "privacy_protocol": "AES"}
 ATTRIBUTE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1/"
 ATTRIBUTE_URI_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1/"
-MANAGERS_ATTRIBUTES_REGISTRY_OUT = {
-    "RegistryEntries": {
-        "Attributes": [
-            {
-                "AttributeName" : "Users.1.AuthenticationProtocol",
-				"Value" : 
-                [
-                    {
-                        "ValueDisplayName" : "SHA-384",
-						"ValueName" : "1"
-					},
-                ]
-        },
-            {
-                "AttributeName" : "Users.1.PrivacyProtocol",
-                "Value" : 
-                [
-                    {
-                        "ValueDisplayName" : "AES-256",
-                        "ValueName" : "1"
-                    },
-                ]
-        }]
-}}
 
 
 class TestIDRACUser(FakeAnsibleModule):
@@ -362,10 +338,7 @@ class TestIDRACUser(FakeAnsibleModule):
             result = self._run_module(idrac_default_args)
         assert 'msg' in result
 
-    @pytest.mark.parametrize("params", [
-        {"firm_ver": (14, VERSION, HARDWARE_14G)}
-    ])
-    def test_main_error(self, idrac_connection_user_mock, idrac_default_args, mocker, params):
+    def test_main_error(self, idrac_connection_user_mock, idrac_default_args, mocker):
         idrac_default_args.update({"state": "absent", "new_user_name": "new_user_name",
                                    "user_name": "test", "user_password": "password",
                                    "privilege": "Administrator", "ipmi_lan_privilege": "Administrator",
@@ -373,8 +346,10 @@ class TestIDRACUser(FakeAnsibleModule):
                                    "sol_enable": True, "protocol_enable": True,
                                    "authentication_protocol": "SHA", "privacy_protocol": "AES"})
         obj = MagicMock()
-        idrac_connection_user_mock.get_server_generation.return_value = params.get(
-            "firm_ver")
+        mocker.patch(
+            MODULE_PATH + "idrac_user.set_attribute_uri",
+            return_value=None
+        )
         obj.json_data = {"error": {"message": "Some Error Occured"}}
         mocker.patch(MODULE_PATH + "idrac_user.remove_user_account",
                      return_value=(obj, "error"))
@@ -391,10 +366,11 @@ class TestIDRACUser(FakeAnsibleModule):
                                    "authentication_protocol": "SHA", "privacy_protocol": "AES"})
         obj = MagicMock()
         mocker.patch(
-            MODULE_PATH + "idrac_user.iDRACRedfishAPI.get_server_generation",
-            return_value=(HARDWARE_14G, "5.10", "iDRAC 9")
+            MODULE_PATH + "idrac_user.set_attribute_uri",
+            return_value=None
         )
-
+        mocker.patch(MODULE_PATH + "idrac_user.create_or_modify_account",
+                     return_value=(obj, "error"))
         obj.json_data = {"Oem": {"Dell": {
             "Message": "Unable to complete application of configuration profile values."}}}
         mocker.patch(MODULE_PATH + "idrac_user.remove_user_account",
@@ -496,6 +472,5 @@ supported. The supported privacy protocols are ['AES-256']."
         assert privacy_protocols == []
 
     def test_set_attribute_uri_generation_17(self):
-        global ATTRIBUTE_URI
         self.module.set_attribute_uri(17)
         assert ATTRIBUTE_URI == ATTRIBUTE_URI_10
