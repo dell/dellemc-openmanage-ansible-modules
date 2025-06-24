@@ -2335,8 +2335,8 @@ releases:
        ``idrac_firmware``, ``idrac_diagnostics``, ``idrac_secure_boot``,
        ``idrac_system_erase``, ``idrac_network_attributes``,
        ``idrac_lifecycle_controller_logs``, ``redfish_power_state``,
-       ``redfish_event_subscription`` modules and ``idrac_server_powerstate``
-       role are enhanced to support iDRAC10'
+       ``redfish_event_subscription`` modules and ``idrac_server_powerstate``,
+       ``idrac_job_queue`` roles are enhanced to support iDRAC10.'
       major_changes:
         - idrac_bios - This module is enhanced to support iDRAC10.
         - idrac_session - This module is enhanced to support iDRAC10.
@@ -2351,6 +2351,7 @@ releases:
         - redfish_event_subscription - This module is enhanced to
           support iDRAC10.
         - idrac_server_powerstate - This role is enhanced to support iDRAC10.
+        - idrac_job_queue - This role is enhanced to support iDRAC10.
       known_issues:
         - idrac_diagnostics - This module doesn't support
           export of diagnostics file to HTTP and HTTPS share via SOCKS
