@@ -474,3 +474,19 @@ supported. The supported privacy protocols are ['AES-256']."
     def test_set_attribute_uri_generation_17(self):
         self.module.set_attribute_uri(17)
         assert ATTRIBUTE_URI == ATTRIBUTE_URI_10
+
+    def test_get_role(self):
+        user_roles = {
+            0: "None",
+            1: "ReadOnly",
+            499: "Operator",
+            511: "Administrator",
+        }
+        for key, value in user_roles.items():
+            ret = self.module.get_role(key)
+            assert ret == value
+
+        ret = self.module.get_role(400)
+        assert ret == "Operator"
+        ret = self.module.get_role(505)
+        assert ret == "Administrator"

@@ -290,6 +290,16 @@ def get_user_account(module, idrac):
     return user_attributes, slot_uri, slot_id, empty_slot, empty_slot_uri
 
 
+def get_role(role_value):
+    user_role_rev = {value: key for key, value in USER_ROLES.items()}
+    if 2 <= role_value <= 499:
+        return user_role_rev[499]
+    elif 500 <= role_value <= INVALID_PRIVILAGE_MAX:
+        return user_role_rev[INVALID_PRIVILAGE_MAX]
+    else:
+        return user_role_rev[role_value]
+
+
 def get_payload(module, slot_id, generation, action=None):
     """
     This function creates the payload with slot id.
@@ -320,8 +330,7 @@ def get_payload(module, slot_id, generation, action=None):
                         "Users.{0}.SolEnable": "Disabled", "Users.{0}.ProtocolEnable": "Disabled",
                         "Users.{0}.AuthenticationProtocol": "SHA", "Users.{0}.PrivacyProtocol": "AES"}
     if generation >= 17:
-        user_role_rev = {value: key for key, value in USER_ROLES.items()}
-        slot_payload["Users.{0}.Role"] = user_role_rev[slot_payload[PRIVILEGE_KEY]]
+        slot_payload["Users.{0}.Role"] = get_role(slot_payload[PRIVILEGE_KEY])
         del slot_payload[PRIVILEGE_KEY]
     payload = dict([(k.format(slot_id), v) for k, v in slot_payload.items() if v is not None])
     return payload
