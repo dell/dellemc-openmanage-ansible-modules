@@ -320,7 +320,8 @@ def get_payload(module, slot_id, generation, action=None):
                         "Users.{0}.SolEnable": "Disabled", "Users.{0}.ProtocolEnable": "Disabled",
                         "Users.{0}.AuthenticationProtocol": "SHA", "Users.{0}.PrivacyProtocol": "AES"}
     if generation >= 17:
-        slot_payload["Users.{0}.Role"] = slot_payload[PRIVILEGE_KEY]
+        user_role_rev = {value: key for key, value in USER_ROLES.items()}
+        slot_payload["Users.{0}.Role"] = user_role_rev[slot_payload[PRIVILEGE_KEY]]
         del slot_payload[PRIVILEGE_KEY]
     payload = dict([(k.format(slot_id), v) for k, v in slot_payload.items() if v is not None])
     return payload
