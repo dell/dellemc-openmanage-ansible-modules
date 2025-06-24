@@ -490,3 +490,22 @@ supported. The supported privacy protocols are ['AES-256']."
         assert ret == "Operator"
         ret = self.module.get_role(505)
         assert ret == "Administrator"
+
+    def test_validate_choices_for_protocol_success(self):
+        idrac = MagicMock()
+        idrac.invoke_request.return_value.json_data = {
+            "RegistryEntries": {
+                "Attributes": [
+                    {
+                        "AttributeName": "Users.1.AuthenticationProtocol",
+                        "Value": [{"ValueDisplayName": "LDAP"}]
+                    },
+                    {
+                        "AttributeName": "Users.1.PrivacyProtocol",
+                        "Value": [{"ValueDisplayName": "HTTPS"}]
+                    }
+                ]
+            }
+        }
+        expected_output = (["HTTPS"], ["LDAP"])
+        assert self.module.validate_choices_for_protocol(idrac) == expected_output
