@@ -95,5 +95,5 @@
           - idrac_bios_out.attributes.status_msg == "Changes found to
             be applied."
       when:
-        - not ansible_check_mode
+        - ansible_check_mode
         - maintenance_window_start
