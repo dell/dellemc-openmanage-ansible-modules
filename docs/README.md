@@ -21,7 +21,7 @@ You may obtain a copy of the License at
 | [idrac_bios](modules/idrac_bios.rst)                                                                 | ✓      | ✓      |
 | [idrac_boot](modules/idrac_boot.rst)                                                                 | ✓      |
 | [idrac_certificates](modules/idrac_certificates.rst)                                                 | ✓     |
-| [idrac_diagnostics](modules/idrac_diagnostics.rst)                                                   | ✓      | ✓      |
+| [idrac_diagnostics](modules/idrac_diagnostics.rst)                                                   | ✓      |
 | [idrac_firmware](modules/idrac_firmware.rst)                                                         | ✓      | ✓      |
 | [idrac_firmware_info](modules/idrac_firmware_info.rst)                                               | ✓      | ✓      |
 | [idrac_license](modules/idrac_license.rst)                                                           | ✓      |
