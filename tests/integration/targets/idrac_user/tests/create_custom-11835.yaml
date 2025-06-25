@@ -92,11 +92,13 @@
         authentication_protocol: "{{ auth_protocol }}"
         privacy_protocol: "{{ priv_protocol }}"
       register: result_cp_none
+      when: generation | int < 17
 
     - name: Retrieve user details using user_name
       dellemc.openmanage.idrac_user_info:
         username: "omam_none"
       register: verify_none
+      when: generation | int < 17
 
     - name: Asserting the changes done
       ansible.builtin.assert:
@@ -104,6 +106,7 @@
           - "{{ (verify_none.user_info | length) != 0 }}"
           - verify_none.user_info[0].UserName == "omam_none"
           - verify_none.user_info[0].RoleId == "None"
+      when: generation | int < 17
 
     - name: Create a new iDRAC user using custom_privilege with none user role
        (Idempotence mode)
@@ -119,6 +122,7 @@
         authentication_protocol: "{{ auth_protocol }}"
         privacy_protocol: "{{ priv_protocol }}"
       register: idempotence_cp_none
+      when: generation | int < 17
 
     - name: Create a new iDRAC user using custom_privilege with read only user
        role (Normal Mode)
@@ -251,7 +255,7 @@
         privacy_protocol: "{{ priv_protocol }}"
       register: idempotence_cp_p
 
-    - name: verify status of tasks.
+    - name: verify common status of tasks (for all generations)
       ansible.builtin.assert:
         that:
           - cm_cp_changes.changed
@@ -259,13 +263,7 @@
           - result_cp.changed
           - result_cp.msg == "Successfully created user account."
           - not idempotence_cp.changed
-          - idempotence_cp.msg == "Requested changes are already present in the
-             user slot."
-          - result_cp_none.changed
-          - result_cp_none.msg == "Successfully created user account."
-          - not idempotence_cp_none.changed
-          - idempotence_cp_none.msg == "Requested changes are already present
-             in the user slot."
+          - idempotence_cp.msg == "Requested changes are already present in the user slot."
           - result_cp_readonly.changed
           - result_cp_readonly.msg == "Successfully created user account."
           - not idempotence_cp_readonly.changed
@@ -281,6 +279,16 @@
           - not idempotence_cp_p.changed
           - idempotence_cp_p.msg == "Requested changes are already present in
              the user slot."
+
+    - name: verify status of cp_none (only for gen < 17)
+      ansible.builtin.assert:
+        that:
+          - result_cp_none.changed
+          - result_cp_none.msg == "Successfully created user account."
+          - not idempotence_cp_none.changed
+          - idempotence_cp_none.msg == "Requested changes are already present in the user slot."
+      when: generation | int < 17
+
 
   always:
     - name: Delete the user

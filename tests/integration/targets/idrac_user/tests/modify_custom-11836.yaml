@@ -11,6 +11,9 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
+- name: Get Server generation details
+  ansible.builtin.include_tasks: _get_server_generation.yml
+
 - block:
     - name: Pre-req - Delete user
       dellemc.openmanage.idrac_user:
@@ -19,6 +22,11 @@
       loop:
         - "omam_test_user"
         - "omam_test"
+
+    - name: Set authentication and privacy protocols based on iDRAC generation
+      ansible.builtin.set_fact:
+        auth_protocol: "{{ 'SHA-384' if generation | int >= 17 else 'SHA' }}"
+        priv_protocol: "{{ 'AES-256' if generation | int >= 17 else 'AES' }}"
 
     - name: Create a new iDRAC user.
       dellemc.openmanage.idrac_user:
@@ -30,8 +38,8 @@
         enable: true
         sol_enable: false
         protocol_enable: true
-        authentication_protocol: SHA
-        privacy_protocol: AES
+        authentication_protocol: "{{ auth_protocol }}"
+        privacy_protocol: "{{ priv_protocol }}"
 
     - name: Retrieve user details using user_name
       dellemc.openmanage.idrac_user_info:
@@ -56,8 +64,8 @@
         enable: true
         sol_enable: false
         protocol_enable: true
-        authentication_protocol: SHA
-        privacy_protocol: AES
+        authentication_protocol: "{{ auth_protocol }}"
+        privacy_protocol: "{{ priv_protocol }}"
       check_mode: true
       register: cm_cp_changes
 
@@ -87,8 +95,8 @@
         enable: true
         sol_enable: false
         protocol_enable: true
-        authentication_protocol: SHA
-        privacy_protocol: AES
+        authentication_protocol: "{{ auth_protocol }}"
+        privacy_protocol: "{{ priv_protocol }}"
       register: cm_cp_no_changes
 
     - name: Modify the iDRAC user using custom_privilege (Idempotence mode)
@@ -107,8 +115,8 @@
         enable: true
         sol_enable: false
         protocol_enable: true
-        authentication_protocol: SHA
-        privacy_protocol: AES
+        authentication_protocol: "{{ auth_protocol }}"
+        privacy_protocol: "{{ priv_protocol }}"
 
     - name: Retrieve user details using user_name
       dellemc.openmanage.idrac_user_info:
@@ -134,8 +142,8 @@
         enable: true
         sol_enable: false
         protocol_enable: true
-        authentication_protocol: SHA
-        privacy_protocol: AES
+        authentication_protocol: "{{ auth_protocol }}"
+        privacy_protocol: "{{ priv_protocol }}"
       check_mode: true
       register: cm_cp_p
 
@@ -166,8 +174,8 @@
         enable: true
         sol_enable: false
         protocol_enable: true
-        authentication_protocol: SHA
-        privacy_protocol: AES
+        authentication_protocol: "{{ auth_protocol }}"
+        privacy_protocol: "{{ priv_protocol }}"
       register: cm_no_changes_cp_p
 
     - name: Modify the iDRAC user using custom_privilege (Idempotence mode)

@@ -1,14 +1,9 @@
 - block:
-    - ansible.builtin.include_role:
-        name=prepare_idrac_lifecycle_controller_status
 
     - name: Pre-req - Delete user
       dellemc.openmanage.idrac_user:
         state: "absent"
         user_name: "omam_test_user"
-
-    - ansible.builtin.include_role:
-        name=prepare_idrac_lifecycle_controller_status
 
     - ansible.builtin.wait_for: timeout=10
 
@@ -28,18 +23,12 @@
       register: cm_changes
       check_mode: true
 
-    - ansible.builtin.include_role:
-        name=prepare_idrac_lifecycle_controller_status
-
     - ansible.builtin.wait_for: timeout=10
 
     - name: Create a new iDRAC user (Normal mode)
       dellemc.openmanage.idrac_user:
         <<: *create
       register: result
-
-    - ansible.builtin.include_role:
-        name=prepare_idrac_lifecycle_controller_status
 
     - ansible.builtin.wait_for: timeout=10
 
@@ -58,9 +47,6 @@
         privacy_protocol: "{{user.privacy_protocol}}"
       check_mode: true
       register: cm_no_changes
-
-    - ansible.builtin.include_role:
-        name=prepare_idrac_lifecycle_controller_status
 
     - ansible.builtin.wait_for: timeout=10
 

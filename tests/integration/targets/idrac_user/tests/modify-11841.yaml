@@ -11,11 +11,19 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
+- name: Get Server generation details
+  ansible.builtin.include_tasks: _get_server_generation.yml
+
 - block:
 
     - include_role: name=prepare_idrac_lifecycle_controller_status
 
     - wait_for: timeout=10
+
+    - name: Set authentication and privacy protocols based on iDRAC generation
+      ansible.builtin.set_fact:
+        auth_protocol: "{{ 'SHA-384' if generation | int >= 17 else 'SHA' }}"
+        priv_protocol: "{{ 'AES-256' if generation | int >= 17 else 'AES' }}"
 
     - name: Create a new iDRAC user.
       dellemc.openmanage.idrac_user:
@@ -27,8 +35,8 @@
         enable: true
         sol_enable: false
         protocol_enable: true
-        authentication_protocol: SHA
-        privacy_protocol: AES
+        authentication_protocol: "{{ auth_protocol }}"
+        privacy_protocol: "{{ priv_protocol }}"
 
     - include_role: name=prepare_idrac_lifecycle_controller_status
 
@@ -45,8 +53,8 @@
         enable: true
         sol_enable: false
         protocol_enable: true
-        authentication_protocol: SHA
-        privacy_protocol: AES
+        authentication_protocol: "{{ auth_protocol }}"
+        privacy_protocol: "{{ priv_protocol }}"
       check_mode: true
       register: cm_changes
 
@@ -72,8 +80,8 @@
         enable: true
         sol_enable: false
         protocol_enable: true
-        authentication_protocol: SHA
-        privacy_protocol: AES
+        authentication_protocol: "{{ auth_protocol }}"
+        privacy_protocol: "{{ priv_protocol }}"
       register: cm_no_changes
 
     - include_role: name=prepare_idrac_lifecycle_controller_status
