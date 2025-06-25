@@ -403,8 +403,6 @@ class TestIDRACUser(FakeAnsibleModule):
         idrac_default_args.update(CREATE_USER_DICT)
         mocker.patch(MODULE_PATH + "idrac_user.validate_choices_for_protocol",
                      return_value=(["AES"], ["SHA"]))
-        mocker.patch(MODULE_PATH + "idrac_user.validate_input",
-                     return_value=None)
         result = self._run_module(idrac_default_args)
         assert result['failed'] is True
         assert result['msg'] == "Authentication protocol MD5 \
@@ -414,8 +412,6 @@ is not supported. The supported authentication protocols are ['SHA']."
         idrac_default_args.update(CREATE_USER_DICT)
         mocker.patch(MODULE_PATH + "idrac_user.validate_choices_for_protocol",
                      return_value=(["AES-256"], ["MD5"]))
-        mocker.patch(MODULE_PATH + "idrac_user.validate_input",
-                     return_value=None)
         result = self._run_module(idrac_default_args)
         assert result['failed'] is True
         assert result['msg'] == "Privacy protocol AES is not \

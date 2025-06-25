@@ -486,7 +486,7 @@ def validate_input(module, idrac, generation):
     if module.params["state"] == "present":
         user_privilege = module.params["custom_privilege"] if "custom_privilege" in module.params and \
             module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"], 0)
-        if generation >= 17:
+        if isinstance(generation, int) and generation >= 17:
             INVALID_PRIVILAGE_MIN = INVALID_PRIVILAGE_MIN_iDRAC10
         else:
             INVALID_PRIVILAGE_MIN = INVALID_PRIVILAGE_MIN_iDRAC9
