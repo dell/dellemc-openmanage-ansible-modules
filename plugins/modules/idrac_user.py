@@ -56,7 +56,7 @@ options:
       - A user with C(Operator) privilege can log in to iDRAC, and then configure iDRAC, control and configure system,
         access virtual console, access virtual media, and execute debug commands.
       - A user with C(ReadOnly) privilege can only log in to iDRAC.
-      - A user with C(None), no privileges assigned.
+      - A user with C(None), no privileges assigned. It is not applicable for iDRAC10.
       - Will be ignored, if custom_privilege parameter is provided.
     choices: [Administrator, ReadOnly, Operator, None]
     aliases: ['role']
@@ -64,6 +64,7 @@ options:
     type: int
     description:
       - The privilege level assigned to the user.
+      - Minimum value is 1 for iDRAC10.
     version_added: "8.1.0"
   ipmi_lan_privilege:
     type: str
@@ -227,8 +228,10 @@ MANAGERS_ATTRIBUTES_REGISTRY = "/redfish/v1/Registries/\
 ManagerAttributeRegistry/ManagerAttributeRegistry.v1_0_0.json"
 USER_ROLES = {"Administrator": 511, "Operator": 499, "ReadOnly": 1, "None": 0}
 ACCESS = {0: "Disabled", 1: "Enabled"}
-INVALID_PRIVILAGE_MSG = "custom_privilege value should be from 0 to 511."
-INVALID_PRIVILAGE_MIN = 0
+INVALID_PRIVILAGE_MSG = "custom_privilege value should be from {0} to 511."
+INVALID_PRIVILAGE_MSG_NONE = "None is not applicable value."
+INVALID_PRIVILAGE_MIN_iDRAC9 = 0
+INVALID_PRIVILAGE_MIN_iDRAC10 = 1
 INVALID_PRIVILAGE_MAX = 511
 CHANGES_FOUND_MSG = "Changes found to commit!"
 ODATA_ID = "(.*?)@odata"
@@ -308,6 +311,8 @@ def get_payload(module, slot_id, generation, action=None):
     :param slot_id: slot id for user slot
     :return: json data with slot id
     """
+    if generation >= 17 and module.params['privilege'] == 'None':
+        module.exit_json(msg=INVALID_PRIVILAGE_MSG_NONE, failed=True)
     user_privilege = module.params["custom_privilege"] if "custom_privilege" in module.params and \
         module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"])
 
@@ -477,12 +482,16 @@ def validate_choices_for_protocol(idrac):
         return [], []
 
 
-def validate_input(module, idrac):
+def validate_input(module, idrac, generation):
     if module.params["state"] == "present":
         user_privilege = module.params["custom_privilege"] if "custom_privilege" in module.params and \
             module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"], 0)
+        if generation >= 17:
+            INVALID_PRIVILAGE_MIN = INVALID_PRIVILAGE_MIN_iDRAC10
+        else:
+            INVALID_PRIVILAGE_MIN = INVALID_PRIVILAGE_MIN_iDRAC9
         if INVALID_PRIVILAGE_MIN > user_privilege or user_privilege > INVALID_PRIVILAGE_MAX:
-            module.exit_json(msg=INVALID_PRIVILAGE_MSG,
+            module.exit_json(msg=INVALID_PRIVILAGE_MSG.format(INVALID_PRIVILAGE_MIN),
                              failed=True)
         authentication_protocol = module.params.get("authentication_protocol")
         privacy_protocol = module.params.get("privacy_protocol")
@@ -526,9 +535,9 @@ def main():
         supports_check_mode=True)
     try:
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:
-            validate_input(module, idrac)
             gen_details = idrac.get_server_generation
             generation = gen_details[0]
+            validate_input(module, idrac, generation)
             set_attribute_uri(generation)
             user_attr, slot_uri, slot_id, empty_slot_id, empty_slot_uri = get_user_account(module, idrac)
             if module.params["state"] == "present":

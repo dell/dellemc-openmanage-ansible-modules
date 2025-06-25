@@ -403,6 +403,8 @@ class TestIDRACUser(FakeAnsibleModule):
         idrac_default_args.update(CREATE_USER_DICT)
         mocker.patch(MODULE_PATH + "idrac_user.validate_choices_for_protocol",
                      return_value=(["AES"], ["SHA"]))
+        mocker.patch(MODULE_PATH + "idrac_user.validate_input",
+                     return_value=None)
         result = self._run_module(idrac_default_args)
         assert result['failed'] is True
         assert result['msg'] == "Authentication protocol MD5 \
@@ -412,6 +414,8 @@ is not supported. The supported authentication protocols are ['SHA']."
         idrac_default_args.update(CREATE_USER_DICT)
         mocker.patch(MODULE_PATH + "idrac_user.validate_choices_for_protocol",
                      return_value=(["AES-256"], ["MD5"]))
+        mocker.patch(MODULE_PATH + "idrac_user.validate_input",
+                     return_value=None)
         result = self._run_module(idrac_default_args)
         assert result['failed'] is True
         assert result['msg'] == "Privacy protocol AES is not \
@@ -440,11 +444,15 @@ supported. The supported privacy protocols are ['AES-256']."
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
         with pytest.raises(Exception) as err:
-            self.module.validate_input(f_module, idrac_default_args)
+            self.module.validate_input(f_module, idrac_default_args, 15)
         assert err.value.args[0] == "custom_privilege value should be from 0 to 511."
 
+        with pytest.raises(Exception) as err:
+            self.module.validate_input(f_module, idrac_default_args, 17)
+        assert err.value.args[0] == "custom_privilege value should be from 1 to 511."
+
         idrac_default_args.update({"state": "absent"})
-        ret = self.module.validate_input(f_module, idrac_default_args)
+        ret = self.module.validate_input(f_module, idrac_default_args, 14)
         assert ret is None
 
     def test_compare_payload(self, idrac_connection_user_mock, idrac_default_args, mocker):
