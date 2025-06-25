@@ -291,6 +291,8 @@ def get_user_account(module, idrac):
 
 
 def get_role(role_value):
+    if isinstance(role_value, str):
+        return role_value
     user_role_rev = {value: key for key, value in USER_ROLES.items()}
     sorted_user_role_rev = dict(sorted(user_role_rev.items()))
     for key, value in sorted_user_role_rev.items():
