@@ -292,12 +292,10 @@ def get_user_account(module, idrac):
 
 def get_role(role_value):
     user_role_rev = {value: key for key, value in USER_ROLES.items()}
-    if 2 <= role_value <= 499:
-        return user_role_rev[499]
-    elif 500 <= role_value <= INVALID_PRIVILAGE_MAX:
-        return user_role_rev[INVALID_PRIVILAGE_MAX]
-    else:
-        return user_role_rev[role_value]
+    sorted_user_role_rev = dict(sorted(user_role_rev.items()))
+    for key, value in sorted_user_role_rev.items():
+        if key >= role_value:
+            return value
 
 
 def get_payload(module, slot_id, generation, action=None):
@@ -362,6 +360,11 @@ def set_attribute_uri(generation):
 def handle_create(module, idrac, generation, payload):
     if module.check_mode:
         module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
+    if generation >= 17:
+        # Performing patch twice because in iDRAC10, it gives 200 but not updating all values
+        # saying password is blank but password is given, this is workaround. will be fixed in future
+        response = idrac.invoke_request(ATTRIBUTE_URI, "PATCH", data={"Attributes": payload})
+        response = idrac.invoke_request(ATTRIBUTE_URI, "PATCH", data={"Attributes": payload})
     if generation >= 14:
         response = idrac.invoke_request(ATTRIBUTE_URI, "PATCH", data={"Attributes": payload})
     elif generation < 14:
