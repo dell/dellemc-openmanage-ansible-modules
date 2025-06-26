@@ -7,7 +7,7 @@
 - name: Run with job wait true
   vars:
     diag_run_mode: "express"
-    diag_reboot_type: "graceful"
+    diag_reboot_type: "force"
     diag_share_params:
       file_name: "test_nfs_diagnostics.txt"
       ip_address: "{{ nfs_share_ip }}"
