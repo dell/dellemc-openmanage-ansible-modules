@@ -370,7 +370,7 @@ def handle_create(module, idrac, generation, payload):
     if generation >= 17:
         # Performing patch twice because in iDRAC10, it gives 200 but not updating all values
         # saying password is blank but password is given, this is workaround. will be fixed in future
-        response = idrac.invoke_request(ATTRIBUTE_URI, "PATCH", data={"Attributes": payload})
+        idrac.invoke_request(ATTRIBUTE_URI, "PATCH", data={"Attributes": payload})
         response = idrac.invoke_request(ATTRIBUTE_URI, "PATCH", data={"Attributes": payload})
     if generation >= 14:
         response = idrac.invoke_request(ATTRIBUTE_URI, "PATCH", data={"Attributes": payload})
@@ -482,6 +482,27 @@ def validate_choices_for_protocol(idrac):
         return [], []
 
 
+def validate_authentication_and_privacy_protocols(module,
+                                                  idrac,
+                                                  authentication_protocol,
+                                                  privacy_protocol):
+    privacy_list, auth_list = validate_choices_for_protocol(idrac)
+    if authentication_protocol and authentication_protocol not in auth_list:
+        auth_invalid_msg = INVALID_AUTHENTICATION_PROTOCOL_MSG.format(
+            protocol=authentication_protocol,
+            supported_auth_protocol=auth_list
+        )
+        module.exit_json(msg=auth_invalid_msg,
+                         failed=True)
+    if privacy_protocol and privacy_protocol not in privacy_list:
+        privacy_invalid_msg = INVALID_PRIVACY_PROTOCOL_MSG.format(
+            protocol=privacy_protocol,
+            supported_privacy_protocol=privacy_list
+        )
+        module.exit_json(msg=privacy_invalid_msg,
+                         failed=True)
+
+
 def validate_input(module, idrac, generation):
     if module.params["state"] == "present":
         user_privilege = module.params["custom_privilege"] if "custom_privilege" in module.params and \
@@ -495,21 +516,10 @@ def validate_input(module, idrac, generation):
                              failed=True)
         authentication_protocol = module.params.get("authentication_protocol")
         privacy_protocol = module.params.get("privacy_protocol")
-        privacy_list, auth_list = validate_choices_for_protocol(idrac)
-        if authentication_protocol and authentication_protocol not in auth_list:
-            auth_invalid_msg = INVALID_AUTHENTICATION_PROTOCOL_MSG.format(
-                protocol=authentication_protocol,
-                supported_auth_protocol=auth_list
-            )
-            module.exit_json(msg=auth_invalid_msg,
-                             failed=True)
-        if privacy_protocol and privacy_protocol not in privacy_list:
-            privacy_invalid_msg = INVALID_PRIVACY_PROTOCOL_MSG.format(
-                protocol=privacy_protocol,
-                supported_privacy_protocol=privacy_list
-            )
-            module.exit_json(msg=privacy_invalid_msg,
-                             failed=True)
+        validate_authentication_and_privacy_protocols(module,
+                                                      idrac,
+                                                      authentication_protocol,
+                                                      privacy_protocol)
 
 
 def main():
