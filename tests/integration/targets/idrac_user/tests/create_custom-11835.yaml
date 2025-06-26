@@ -263,7 +263,8 @@
           - result_cp.changed
           - result_cp.msg == "Successfully created user account."
           - not idempotence_cp.changed
-          - idempotence_cp.msg == "Requested changes are already present in the user slot."
+          - idempotence_cp.msg == "Requested changes are already present in
+             the user slot."
           - result_cp_readonly.changed
           - result_cp_readonly.msg == "Successfully created user account."
           - not idempotence_cp_readonly.changed
@@ -286,7 +287,8 @@
           - result_cp_none.changed
           - result_cp_none.msg == "Successfully created user account."
           - not idempotence_cp_none.changed
-          - idempotence_cp_none.msg == "Requested changes are already present in the user slot."
+          - idempotence_cp_none.msg == "Requested changes are already present
+             in the user slot."
       when: generation | int < 17
 
 

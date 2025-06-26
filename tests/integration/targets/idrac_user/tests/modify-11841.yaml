@@ -101,9 +101,11 @@
           - result.changed
           - result.msg == "Successfully updated user account."
           - not cm_no_changes.changed
-          - cm_no_changes.msg == "Requested changes are already present in the user slot."
+          - cm_no_changes.msg == "Requested changes are already present in the
+             user slot."
           - not idempotence.changed
-          - idempotence.msg == "Requested changes are already present in the user slot."
+          - idempotence.msg == "Requested changes are already present in the
+             user slot."
 
   always:
     - name: Delete the modified user (clean up task)

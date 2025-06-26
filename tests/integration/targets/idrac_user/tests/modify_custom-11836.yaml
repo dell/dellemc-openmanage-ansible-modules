@@ -53,7 +53,8 @@
           - verify_new.user_info[0].UserName == "omam_test_user"
           - verify_new.user_info[0].RoleId == "Administrator"
 
-    - name: Modify the iDRAC user using custom_privilege. (check mode - changes expected)
+    - name: Modify the iDRAC user using custom_privilege.
+       (check mode - changes expected)
       dellemc.openmanage.idrac_user: &modify_cp
         user_name: "omam_test_user"
         new_user_name: "omam_modified"
@@ -86,7 +87,8 @@
           - verify_mod.user_info[0].UserName == "omam_modified"
           - verify_mod.user_info[0].RoleId == "Operator"
 
-    - name: Modify the iDRAC user using custom_privilege. (check mode - no changes expected)
+    - name: Modify the iDRAC user using custom_privilege.
+       (check mode - no changes expected)
       dellemc.openmanage.idrac_user: &modified_cp
         user_name: "omam_modified"
         custom_privilege: 2
