@@ -72,3 +72,8 @@ ome_application_certificate_local_temp_path=local_temp_path
 omevv_baseline_profile_catalog_file=catlog_file_name
 # make sure these directories has write permissions
 path_for_secure_boot_certificate=secure_boot_certitifate_path_1
+# Active Directory vars
+ad_fqdn = ""
+ad_username = "Administrator@domain_name"
+ad_password = ""
+ad_ip = ""

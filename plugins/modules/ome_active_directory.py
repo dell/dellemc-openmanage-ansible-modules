@@ -291,12 +291,14 @@ def get_ad(module, rest_obj):
 def test_http_error_fail(module, err):
     try:
         error_info = json.load(err)
-        err_list = error_info.get('error', {}).get('@Message.ExtendedInfo', [ERR_READ_FAIL])
+        err_list = error_info.get('error', {}).get('@Message.ExtendedInfo',
+                                                   [ERR_READ_FAIL])
         if err_list:
             err_rsn = err_list[0].get("Message")
     except Exception:
         err_rsn = ERR_READ_FAIL
-    module.fail_json(msg="{0}{1}".format(TEST_CONNECTION_FAIL, err_rsn), error_info=error_info)
+    module.exit_json(msg="{0}{1}".format(TEST_CONNECTION_FAIL, err_rsn),
+                     error_info=error_info, failed=True)
 
 
 def test_connection(module, rest_obj, create_payload):
@@ -310,9 +312,11 @@ def test_connection(module, rest_obj, create_payload):
     except HTTPError as err:
         test_http_error_fail(module, err)
     except SSLError as err:
-        module.fail_json(msg="{0}{1}".format(TEST_CONNECTION_FAIL, str(err)))
+        module.exit_json(msg="{0}{1}".format(TEST_CONNECTION_FAIL, str(err)),
+                         failed=True)
     except Exception as err:
-        module.fail_json(msg="{0}{1}".format(TEST_CONNECTION_FAIL, str(err)))
+        module.exit_json(msg="{0}{1}".format(TEST_CONNECTION_FAIL, str(err)),
+                         failed=True)
 
 
 def make_payload(prm):
@@ -330,11 +334,13 @@ def validate_n_testconnection(module, rest_obj, payload):
     dc_type = {'DNS': 'DnsServer', 'MANUAL': 'ServerName'}
     dc_lookup = payload.get('ServerType')
     if len(payload.get(dc_type[dc_lookup])) > dc_cnt[dc_lookup]:
-        module.fail_json(msg=DOMAIN_ALLOWED_COUNT.format(dc_lookup, dc_cnt[dc_lookup]))
+        module.exit_json(msg=DOMAIN_ALLOWED_COUNT.format(
+            dc_lookup, dc_cnt[dc_lookup]), failed=True)
     t_list = ['NetworkTimeOut', 'SearchTimeOut']
     for tx in t_list:
         if payload.get(tx) not in range(MIN_TIMEOUT, MAX_TIMEOUT + 1):
-            module.fail_json(msg=TIMEOUT_RANGE.format(tx, MIN_TIMEOUT, MAX_TIMEOUT))
+            module.exit_json(msg=TIMEOUT_RANGE.format(
+                tx, MIN_TIMEOUT, MAX_TIMEOUT), failed=True)
     payload['CertificateFile'] = ""
     if payload.get('CertificateValidation'):
         cert_path = module.params.get('certificate_file')
@@ -343,7 +349,7 @@ def validate_n_testconnection(module, rest_obj, payload):
                 cert_data = certfile.read()
                 payload['CertificateFile'] = cert_data
         else:
-            module.fail_json(msg=CERT_INVALID)
+            module.exit_json(msg=CERT_INVALID, failed=True)
     msg = ""
     if module.params.get('test_connection'):
         test_connection(module, rest_obj, payload)
@@ -354,9 +360,9 @@ def validate_n_testconnection(module, rest_obj, payload):
 def create_ad(module, rest_obj):
     prm = module.params
     if not prm.get('domain_server'):
-        module.fail_json(msg=DOM_SERVER_MSG)
+        module.exit_json(msg=DOM_SERVER_MSG, failed=True)
     if not prm.get('group_domain'):
-        module.fail_json(msg=GRP_DOM_MSG)
+        module.exit_json(msg=GRP_DOM_MSG, failed=True)
     create_payload = make_payload(prm)
     msg = validate_n_testconnection(module, rest_obj, create_payload)
     if module.check_mode:
@@ -377,10 +383,9 @@ def modify_ad(module, rest_obj, ad):
         (modify_payload.get('ServerName')).sort()
     diff = recursive_diff(modify_payload, ad)
     is_change = False
-    if diff:
-        if diff[0]:
-            is_change = True
-            ad.update(modify_payload)
+    if diff and diff[0]:
+        is_change = True
+        ad.update(modify_payload)
     msg = validate_n_testconnection(module, rest_obj, ad)
     if not is_change and not ad.get('CertificateValidation'):
         module.exit_json(msg="{0}{1}".format(msg, NO_CHANGES_MSG), active_directory=ad)
@@ -398,6 +403,17 @@ def delete_ad(module, rest_obj, ad):
         module.exit_json(msg=CHANGES_FOUND, active_directory=ad, changed=True)
     rest_obj.invoke_request('POST', DELETE_AD, data={"AccountProviderIds": [int(ad['Id'])]})
     module.exit_json(msg=DELETE_SUCCESS, active_directory=ad, changed=True)
+
+
+def _go_for_create_modify(module, rest_obj, ad, ad_cnt):
+    if ad:
+        modify_ad(module, rest_obj, ad)
+    else:
+        if module.params.get('id'):
+            module.exit_json(msg=INVALID_ID, failed=True)
+        if ad_cnt < MAX_AD:
+            create_ad(module, rest_obj)
+        module.exit_json(msg=MAX_AD_MSG.format(MAX_AD), failed=True)
 
 
 def main():
@@ -430,26 +446,19 @@ def main():
         with RestOME(module.params, req_session=True) as rest_obj:
             ad, ad_cnt = get_ad(module, rest_obj)
             if module.params.get('state') == 'present':
-                if ad:
-                    modify_ad(module, rest_obj, ad)
-                else:
-                    if module.params.get('id'):
-                        module.fail_json(msg=INVALID_ID)
-                    if ad_cnt < MAX_AD:
-                        create_ad(module, rest_obj)
-                    module.fail_json(msg=MAX_AD_MSG.format(MAX_AD))
+                _go_for_create_modify(module, rest_obj, ad, ad_cnt)
             else:
                 if ad:
                     delete_ad(module, rest_obj, ad)
                 module.exit_json(msg=NO_CHANGES_MSG)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
-        module.exit_json(msg=str(err), unreachable=True)
+        module.exit_json(msg=str(err), unreachable=True, failed=True)
     except (
-            IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError,
+            IOError, ValueError, TypeError, ConnectionError, AttributeError, IndexError, KeyError,
             OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
