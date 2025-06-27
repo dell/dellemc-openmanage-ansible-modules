@@ -1,0 +1,305 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  fail:
+    msg: "Please define the following variables: idrac_ip, idrac_user and
+      idrac_password."
+  when: idrac_ip is not defined or idrac_user is not defined or
+    idrac_password is not defined
+
+- block:
+    - ansible.builtin.include_tasks: _get_server_generation.yml
+
+    - name: Set catalog location for iDRAC10
+      set_fact:
+        new_catalog_location: "{{ new_catalog_location_idrac10 }}"
+      when: generation | int >= 17
+
+    - name: Set catalog location for iDRAC9
+      set_fact:
+        new_catalog_location: "{{ new_catalog_location_idrac9 }}"
+      when: generation | int < 17
+
+    - name: invalid share password
+      dellemc.openmanage.idrac_firmware:
+        share_name: "{{ cifs_share_name }}{{ new_catalog_location }}"
+        share_mnt: "{{ cifs_share_mnt }}"
+        share_user: "{{ cifs_share_user }}"
+        share_password: "invalid"
+        reboot: true
+        job_wait: true
+        apply_update: false
+      register: invalid_share_pass
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid share password
+      ansible.builtin.assert:
+        that:
+          - not invalid_share_pass.changed
+          - invalid_share_pass.msg == "Unable to complete the operation
+            because the catalog name entered has either unsupported
+            firmware packages or same version installed on the server." or
+            invalid_share_pass.msg ==  "Mount of remote share failed."
+
+    - name: invalid share user
+      dellemc.openmanage.idrac_firmware:
+        share_name: "{{ cifs_share_name }}{{ new_catalog_location }}"
+        share_mnt: "{{ cifs_share_mnt }}"
+        share_user: "invalid"
+        share_password: "{{ cifs_share_password }}"
+        reboot: true
+        job_wait: true
+        apply_update: false
+      register: invalid_share_user
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid share user
+      ansible.builtin.assert:
+        that:
+          - not invalid_share_user.changed
+          - invalid_share_user.msg == "Unable to complete the operation
+            because the catalog name entered has either unsupported
+            firmware packages or same version installed on the server." or
+            invalid_share_user.msg ==  "Mount of remote share failed."
+
+    - name: invalid share mount
+      dellemc.openmanage.idrac_firmware:
+        share_name: "{{ nfs_share_name }}/invalid"
+        share_mnt: "invalid"
+        reboot: true
+        job_wait: true
+        apply_update: false
+      register: invalid_share_mount
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid share mount
+      ansible.builtin.assert:
+        that:
+          - not invalid_share_mount.changed
+          - invalid_share_mount.msg == "Unable to complete the operation
+            because the catalog name entered has either unsupported
+            firmware packages or same version installed on the server." or
+            invalid_share_mount.msg == "Unable to transfer the file
+            because the file is not available at the remote host location."
+
+    - name: invalid share path
+      dellemc.openmanage.idrac_firmware:
+        share_name: "{{ nfs_share_name }}/invalid"
+        share_mnt: "{{ nfs_share_mnt }}"
+        reboot: true
+        job_wait: true
+        apply_update: false
+      register: invalid_share_path
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid share path
+      ansible.builtin.assert:
+        that:
+          - not invalid_share_path.changed
+          - invalid_share_path.msg == "Unable to complete the operation
+            because the catalog name entered has either unsupported
+            firmware packages or same version installed on the server." or
+            invalid_share_path.msg == "Unable to transfer the file
+            because the file is not available at the remote host location."
+
+    - name: invalid share IP
+      dellemc.openmanage.idrac_firmware:
+        share_name: "999.999.999.999:{{ new_catalog_location }}"
+        share_mnt: "{{ nfs_share_mnt }}"
+        reboot: true
+        job_wait: true
+        apply_update: false
+      register: invalid_share_ip
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid share IP
+      ansible.builtin.assert:
+        that:
+          - not invalid_share_ip.changed
+          - invalid_share_ip.msg == "Unable to complete the operation because
+            the catalog name entered has either unsupported
+            firmware packages or same version installed on the server." or
+            invalid_share_ip.msg == "The specified URI is invalid."
+
+    - name: Negative - unreachable host
+      dellemc.openmanage.idrac_firmware:
+        share_name: "{{ nfs_share_name }}{{ new_catalog_location }}"
+        share_mnt: "{{ nfs_share_mnt }}"
+        reboot: true
+        job_wait: true
+        apply_update: false
+        idrac_ip: "999.999.999.999"
+      register: invalid_unreachable
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid unreachable host
+      ansible.builtin.assert:
+        that:
+          - invalid_unreachable.failed
+          - 'invalid_unreachable.msg ==  "Unable to communicate with iDRAC
+            999.999.999.999. This may be due to one of the following:
+            Incorrect username or password, unreachable iDRAC IP or a failure
+            in TLS/SSL handshake."'
+
+    - name: Negative - invalid idrac user
+      dellemc.openmanage.idrac_firmware:
+        share_name: "{{ nfs_share_name }}{{ new_catalog_location }}"
+        share_mnt: "{{ nfs_share_mnt }}"
+        reboot: true
+        job_wait: true
+        apply_update: false
+        idrac_user: invalid
+      register: invalid_idrac_user
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid idrac user
+      ansible.builtin.assert:
+        that:
+          - invalid_idrac_user.failed
+          - 'invalid_idrac_user.msg ==  "Unable to communicate with iDRAC
+            {{ idrac_ip }}. This may be due to one of the following:
+            Incorrect username or password, unreachable iDRAC IP or a failure
+            in TLS/SSL handshake."'
+
+    - name: Negative - invalid idrac password
+      dellemc.openmanage.idrac_firmware:
+        share_name: "{{ nfs_share_name }}{{ new_catalog_location }}"
+        share_mnt: "{{ nfs_share_mnt }}"
+        reboot: true
+        job_wait: true
+        apply_update: false
+        idrac_user: invalid
+      register: invalid_idrac_pass
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid idrac password
+      ansible.builtin.assert:
+        that:
+          - invalid_idrac_pass.failed
+          - 'invalid_idrac_pass.msg == "Unable to communicate with iDRAC
+            {{ idrac_ip }}. This may be due to one of the following:
+            Incorrect username or password, unreachable iDRAC IP or a failure
+            in TLS/SSL handshake."'
+
+    - name: Negative - invalid catalog
+      dellemc.openmanage.idrac_firmware:
+        share_name: "{{ nfs_share_name }}{{ new_catalog_location }}"
+        share_mnt: "{{ nfs_share_mnt }}"
+        reboot: true
+        job_wait: true
+        apply_update: false
+        catalog_file_name: Catalog
+      register: invalid_catalog
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid catalog
+      ansible.builtin.assert:
+        that:
+          - invalid_catalog.failed
+          - not invalid_catalog.changed
+          - invalid_catalog.msg == "catalog_file_name should be an XML file."
+
+    - name: Negative - invalid proxy support
+      dellemc.openmanage.idrac_firmware:
+        share_name: "{{ http_share }}{{ new_catalog_location }}"
+        reboot: true
+        job_wait: true
+        apply_update: false
+        proxy_support: invalid
+        proxy_server: 192.168.1.10
+        proxy_type: HTTP
+        proxy_port: 80
+        proxy_uname: "proxy_user"
+        proxy_passwd: "proxy_pwd"
+      register: invalid_proxy_support
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid proxy support
+      ansible.builtin.assert:
+        that:
+          - invalid_proxy_support.failed
+          - not invalid_proxy_support.changed
+          - 'invalid_proxy_support.msg == "value of proxy_support must be
+            one of: Off, ParametersProxy, DefaultProxy, got: invalid"'
+
+    - name: Negative - invalid proxy type
+      dellemc.openmanage.idrac_firmware:
+        share_name: "{{ http_share }}{{ new_catalog_location }}"
+        reboot: true
+        job_wait: true
+        apply_update: false
+        proxy_support: ParametersProxy
+        proxy_server: 192.168.1.10
+        proxy_type: invalid
+        proxy_port: 80
+        proxy_uname: "proxy_user"
+        proxy_passwd: "proxy_pwd"
+      register: invalid_proxy_type
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid proxy type
+      ansible.builtin.assert:
+        that:
+          - invalid_proxy_type.failed
+          - not invalid_proxy_type.changed
+          - 'invalid_proxy_type.msg == "value of proxy_type must be one of:
+            HTTP, SOCKS, got: invalid"'
+
+    - name: Negative - invalid proxy username
+      dellemc.openmanage.idrac_firmware:
+        share_name: "{{ http_share }}{{ new_catalog_location }}"
+        reboot: true
+        job_wait: true
+        apply_update: false
+        proxy_support: ParametersProxy
+        proxy_server: 192.168.1.10
+        proxy_type: HTTP
+        proxy_port: 80
+        proxy_uname: invalid
+        proxy_passwd: "proxy_pwd"
+      register: invalid_proxy_user
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid proxy username
+      ansible.builtin.assert:
+        that:
+          - not invalid_proxy_user.changed
+          - invalid_proxy_user.msg == "Unable to complete the operation
+            because the catalog name entered has either unsupported
+            firmware packages or same version installed on the server." or
+            invalid_proxy_user.msg == "Mount of remote share failed."
+
+    - name: Negative - invalid proxy password
+      dellemc.openmanage.idrac_firmware:
+        share_name: "{{ ftp_share_ip }}{{ new_catalog_location }}"
+        reboot: true
+        job_wait: true
+        apply_update: false
+        proxy_support: ParametersProxy
+        proxy_server: 192.168.1.10
+        proxy_type: SOCKS
+        proxy_port: 80
+        proxy_uname: "proxy_user"
+        proxy_passwd: invalid
+      register: invalid_proxy_pass
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid proxy password
+      ansible.builtin.assert:
+        that:
+          - not invalid_proxy_pass.changed
+          - invalid_proxy_pass.msg == "Unable to complete the operation
+            because the catalog name entered has either unsupported
+            firmware packages or same version installed on the server." or
+            invalid_proxy_pass.msg == "Mount of remote share failed."
+
+  module_defaults:
+    dellemc.openmanage.idrac_firmware:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

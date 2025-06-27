@@ -33,6 +33,22 @@
       this request are missing or invalid."
   when: idrac_job_queue_idrac_connection.status == 401
 
+- name: Checking iDRAC version
+  ansible.builtin.include_tasks:
+    file: ../_get_server_generation.yml
+
+- name: Set job uri for iDARC10 and above
+  ansible.builtin.set_fact:
+    job_uri: "https://{{ hostname }}:{{ https_port }}\
+      {{ idrac_job_queue_job_uri10 }}"
+  when: model | int >= 14
+
+- name: Set job uri for iDARC10 and above
+  ansible.builtin.set_fact:
+    job_uri: "https://{{ hostname }}:{{ https_port }}\
+      {{ idrac_job_queue_validate_job_api }}"
+  when: model | int <= 13
+
 - name: Check for a valid job id
   when:
     - job_id is defined and job_id != ""
@@ -42,7 +58,7 @@
     - name: Get the Job with the job id
       register: idrac_job_queue_idrac_job_exists_out
       ansible.builtin.uri:
-        url: "https://{{ hostname }}:{{ https_port }}{{ idrac_job_queue_validate_job_api }}/{{ job_id }}"
+        url: "{{ job_uri }}/{{ job_id }}"
         <<: *idrac_job_queue_idrac_opts
         method: "GET"
         status_code: [200, 404]
@@ -61,7 +77,7 @@
   block:
     - name: Get all the jobs
       ansible.builtin.uri:
-        url: "https://{{ hostname }}:{{ https_port }}{{ idrac_job_queue_validate_job_api }}"
+        url: "{{ job_uri }}"
         <<: *idrac_job_queue_idrac_opts
         method: "GET"
         status_code: [200, 404]

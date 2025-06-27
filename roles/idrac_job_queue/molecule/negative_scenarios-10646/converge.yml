@@ -3,19 +3,9 @@
   hosts: all
   gather_facts: false
   tasks:
-    - name: Creating job to export SCP local path with all components
-      dellemc.openmanage.idrac_server_config_profile:
-        idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
-        idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
-        idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
-        validate_certs: false
-        scp_components:
-          - IDRAC
-        share_name: "/root/"
-        scp_file: "file1.xml"
-        export_format: JSON
-        export_use: Clone
-        job_wait: false
+    - name: Creating a job
+      ansible.builtin.include_tasks:
+        file: ../_create_job.yml
 
     - name: Deleting a job
       block:
@@ -34,7 +24,7 @@
             that:
               - idrac_job_queue_out.msg == "The job JID_12345678 is invalid."
 
-    - name: Clear job queue
+    - name: Clear job queue for invalid hostname
       block:
         - name: Clearing job queue with an invalid hostname
           ansible.builtin.import_role:
@@ -53,7 +43,7 @@
               - "'<urlopen error [Errno -2] Name or service not known>' in idrac_job_queue_out.msg or
                 '<urlopen error [Errno -3] Temporary failure in name resolution>' in idrac_job_queue_out.msg"
 
-    - name: Clear job queue
+    - name: Clear job queue for invalid username
       block:
         - name: Clearing job queue with an invalid username
           ansible.builtin.import_role:
@@ -71,7 +61,7 @@
             that:
               - "'The authentication credentials included with this request are missing or invalid.' in idrac_job_queue_out.msg"
 
-    - name: Clear job queue
+    - name: Clear job queue for invalid password
       block:
         - name: Clearing job queue with an invalid password
           ansible.builtin.import_role:

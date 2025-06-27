@@ -5,5 +5,5 @@ apply_time_maintenancewindowonreset: InMaintenanceWindowOnReset
 apply_time_onreset: OnReset
 duration: 1200
 add_minutes: 1
-base_uri: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}"
+base_uri: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
 idrac_emebedded_uri: "/redfish/v1/Managers/iDRAC.Embedded.1"

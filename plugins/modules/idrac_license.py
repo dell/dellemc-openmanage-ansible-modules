@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.12.2
 # Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -412,6 +412,8 @@ IMPORT_NETWORK_SHARE = "#DellLicenseManagementService.ImportLicenseFromNetworkSh
 ODATA = "@odata.id"
 ODATA_REGEX = "(.*?)@odata"
 
+AUTH_ERROR_MSG = "Unable to communicate with iDRAC {ip} with error: {error}. This may be due to one of the following: " \
+                 "Incorrect username or password, unreachable iDRAC IP or a failure in TLS/SSL handshake."
 INVALID_LICENSE_MSG = "License with ID '{license_id}' does not exist on the iDRAC."
 SUCCESS_EXPORT_MSG = "Successfully exported the license."
 SUCCESS_DELETE_MSG = "Successfully deleted the license."
@@ -1022,7 +1024,7 @@ def main():
         filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
         module.exit_json(msg=str(err), error_info=filter_err, failed=True)
     except URLError as err:
-        module.exit_json(msg=str(err), unreachable=True)
+        module.exit_json(msg=AUTH_ERROR_MSG.format(ip=module.params.get("idrac_ip"), error=str(err)), unreachable=True)
     except (SSLValidationError, ConnectionError, TypeError, ValueError, OSError) as err:
         module.exit_json(msg=str(err), failed=True)
 
