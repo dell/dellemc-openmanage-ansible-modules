@@ -6,6 +6,8 @@
         state: "absent"
         user_name: "omam_test_user"
 
+    - include_role: name=prepare_idrac_lifecycle_controller_status
+
     - ansible.builtin.wait_for: timeout=10
 
     - name: Create a new iDRAC user (check mode - changes expected)
