@@ -11,6 +11,9 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
+- name: Get Server generation details
+  ansible.builtin.include_tasks: _get_server_generation.yml
+
 - block:
     - name: Create a new iDRAC user with invalid custom_privilege (Negative)
       dellemc.openmanage.idrac_user:
@@ -45,16 +48,24 @@
          were unable to convert to int: \"'invalidValue'\" cannot be converted
          to an int"
 
-    - name: Verify status of tasks.
-      assert:
+    - name: Verify status of tasks based on generation
+      ansible.builtin.assert:
         that:
           - invalid_cp_n.failed
-          - invalid_cp_n.msg == "custom_privilege value should be from 0 to
-             511."
           - invalid_cp_uv.failed
-          - invalid_cp_uv.msg == "custom_privilege value should be from 0 to
-             511."
           - invalid_cp_sv.failed
+          - >
+              invalid_cp_n.msg == (
+                'custom_privilege value should be from 0 to 511.'
+                if generation | int < 17 else
+                'custom_privilege value should be from 1 to 511.'
+              )
+          - >
+              invalid_cp_uv.msg == (
+                'custom_privilege value should be from 0 to 511.'
+                if generation | int < 17 else
+                'custom_privilege value should be from 1 to 511.'
+              )
           - set_msg in invalid_cp_sv.msg
 
   module_defaults:

@@ -40,7 +40,7 @@
         authentication_protocol: "{{ auth_protocol }}"
         privacy_protocol: "{{ priv_protocol }}"
 
-    # - include_role: name=prepare_idrac_lifecycle_controller_status
+    - include_role: name=prepare_idrac_lifecycle_controller_status
 
     - ansible.builtin.wait_for: timeout=10
 
@@ -51,16 +51,12 @@
       register: cm_changes
       check_mode: true
 
-    # - include_role: name=prepare_idrac_lifecycle_controller_status
-
     - ansible.builtin.wait_for: timeout=10
 
     - name: Delete user (Normal mode)
       dellemc.openmanage.idrac_user:
         <<: *delete
       register: result
-
-    # - include_role: name=prepare_idrac_lifecycle_controller_status
 
     - ansible.builtin.wait_for: timeout=10
 
@@ -70,18 +66,12 @@
       check_mode: true
       register: cm_no_changes
 
-    # - include_role: name=prepare_idrac_lifecycle_controller_status
-
     - ansible.builtin.wait_for: timeout=10
 
     - name: Delete user (Idempotence mode)
       dellemc.openmanage.idrac_user:
         <<: *delete
       register: idempotence
-
-    # - include_role: name=prepare_idrac_lifecycle_controller_status
-
-    - ansible.builtin.wait_for: timeout=10
 
     - name: verify status of tasks.
       ansible.builtin.assert:
