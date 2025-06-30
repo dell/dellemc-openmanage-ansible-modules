@@ -189,6 +189,7 @@ class TestConfigBios(FakeAnsibleModule):
     def test_apply_boot_settings(self, boot_connection_mock, redfish_response_mock, idrac_default_args, mocker):
         idrac_default_args.update({"boot_source_override_mode": "uefi", "job_wait": True, "reset_type": "none",
                                    "job_wait_timeout": 900})
+        boot_connection_mock.get_server_generation = (16, 'abc', 'iDRAC 9')
         f_module = self.get_module_mock(params=idrac_default_args)
         payload = {"Boot": {"BootSourceOverrideMode": "UEFI"}}
         redfish_response_mock.success = True
@@ -208,6 +209,7 @@ class TestConfigBios(FakeAnsibleModule):
     def test_apply_boot_settings_reset_type(self, boot_connection_mock, redfish_response_mock, idrac_default_args, mocker):
         idrac_default_args.update({"boot_source_override_mode": "uefi", "job_wait": True, "reset_type": "graceful_restart",
                                    "job_wait_timeout": 900})
+        boot_connection_mock.get_server_generation = (17, 'abc', 'iDRAC 10')
         f_module = self.get_module_mock(params=idrac_default_args)
         payload = {"Boot": {"BootSourceOverrideMode": "UEFI"}}
         redfish_response_mock.success = True

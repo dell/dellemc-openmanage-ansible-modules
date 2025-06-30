@@ -265,7 +265,6 @@ import json
 import time
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.idrac import IDRACInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (strip_substr_dict, idrac_system_reset,
                                                                                get_system_res_id,
@@ -299,7 +298,6 @@ BS_OVERRIDE_TARGET = {"none": "None", "pxe": "Pxe", "floppy": "Floppy", "cd": "C
                       "hdd": "Hdd", "bios_setup": "BiosSetup", "utilities": "Utilities",
                       "uefi_target": "UefiTarget", "sd_card": "SDCard", "uefi_http": "UefiHttp"}
 RESET_TYPE = {"graceful_restart": "GracefulRestart", "force_restart": "ForceRestart", "none": None}
-SERVER_HW_MODEL = ""
 
 
 def get_response_attributes(module, idrac, res_id):
@@ -331,8 +329,7 @@ def system_reset(module, idrac, res_id):
     reset_msg, track_failed, reset, reset_type, job_resp = "", False, True, module.params.get("reset_type"), {}
     if reset_type is not None and not reset_type == "none":
         data = {"ResetType": RESET_TYPE[reset_type]}
-        reset, track_failed, reset_msg, job_resp = idrac_system_reset(idrac, res_id, payload=data, job_wait=True,
-                                                                      idrac_hw_model=SERVER_HW_MODEL)
+        reset, track_failed, reset_msg, job_resp = idrac_system_reset(idrac, res_id, payload=data, job_wait=True)
         if RESET_TYPE["graceful_restart"] == "ForceRestart":
             reset = True
         if reset_type == "force_restart" and RESET_TYPE["graceful_restart"] == "GracefulRestart":
@@ -496,7 +493,6 @@ def configure_idrac_boot(module, idrac, res_id):
 
 
 def main():
-    global SERVER_HW_MODEL
     specs = {
         "boot_options": {
             "required": False, "type": "list", "elements": "dict",
@@ -545,7 +541,6 @@ def main():
                 res_id, error_msg = get_system_res_id(idrac)
                 if error_msg:
                     module.fail_json(msg=error_msg)
-            SERVER_HW_MODEL = IDRACInfo(idrac).get_idrac_hw_model()
             job_resp = configure_idrac_boot(module, idrac, res_id)
             job_resp_data = strip_substr_dict(job_resp)
             boot_option_data = get_existing_boot_options(idrac, res_id)
