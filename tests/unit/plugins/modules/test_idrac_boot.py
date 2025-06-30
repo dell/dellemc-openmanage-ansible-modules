@@ -23,6 +23,7 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from unittest.mock import MagicMock
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+MODULE_UTIL_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.utils.'
 
 
 @pytest.fixture
@@ -77,7 +78,7 @@ class TestConfigBios(FakeAnsibleModule):
         assert result == resp_data
 
     def test_system_reset(self, boot_connection_mock, redfish_response_mock, idrac_default_args, mocker):
-        mocker.patch(MODULE_PATH + 'idrac_boot.idrac_system_reset', return_value=(True, False, "Completed", {}))
+        mocker.patch(MODULE_UTIL_PATH + 'time.sleep', return_value=None)
         idrac_default_args.update({"boot_source_override_mode": "uefi", "reset_type": "force_restart"})
         f_module = self.get_module_mock(params=idrac_default_args)
         reset, track_failed, reset_msg, resp_data = self.module.system_reset(f_module, boot_connection_mock,
