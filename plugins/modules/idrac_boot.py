@@ -274,15 +274,11 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (s
 
 SYSTEM_URI = "/redfish/v1/Systems"
 BOOT_OPTIONS_URI = "/redfish/v1/Systems/{0}/BootOptions?$expand=*($levels=1)"
-JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
-JOB_URI_ID = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{0}"
-JOB_URI_9_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs?$expand=*($levels=1)"
-JOB_URI_ID_9_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{0}"
-BOOT_SEQ_URI = "/redfish/v1/Systems/{0}/BootSources"
-BOOT_SEQ_URI_9_10 = "/redfish/v1/Systems/{0}/Oem/Dell/DellBootSources"
-PATCH_BOOT_SEQ_URI = "/redfish/v1/Systems/{0}/BootSources/Settings"
-PATCH_BOOT_SEQ_URI_9_10 = "/redfish/v1/Systems/{0}/Oem/Dell/DellBootSources/Settings"
-BOOT_SETTINGS_URI_9_10 = "/redfish/v1/Systems/{0}/Settings"
+JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs?$expand=*($levels=1)"
+JOB_URI_ID = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{0}"
+BOOT_SEQ_URI = "/redfish/v1/Systems/{0}/Oem/Dell/DellBootSources"
+PATCH_BOOT_SEQ_URI = "/redfish/v1/Systems/{0}/Oem/Dell/DellBootSources/Settings"
+BOOT_SETTINGS_URI_10 = "/redfish/v1/Systems/{0}/Settings"
 
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
@@ -349,8 +345,7 @@ def get_scheduled_job(idrac, job_state=None):
         job_state = ["Scheduled", "New", "Running"]
     is_job, job_type_name, progress_job = False, "BIOSConfiguration", []
     time.sleep(10)
-    job_uri = JOB_URI if SERVER_HW_MODEL == "" else JOB_URI_9_10
-    job_resp = idrac.invoke_request(job_uri, "GET")
+    job_resp = idrac.invoke_request(JOB_URI, "GET")
     job_resp_member = job_resp.json_data["Members"]
     if job_resp_member:
         bios_config_job = list(filter(lambda d: d.get("JobType") in [job_type_name], job_resp_member))
@@ -369,8 +364,7 @@ def configure_boot_options(module, idrac, res_id, payload):
         job_wait = False
     if is_job:
         module.fail_json(msg=JOB_EXISTS)
-    BOOT_SEQ_URI_LOGIC = BOOT_SEQ_URI if SERVER_HW_MODEL == "" else BOOT_SEQ_URI_9_10
-    boot_seq_resp = idrac.invoke_request(BOOT_SEQ_URI_LOGIC.format(res_id), "GET")
+    boot_seq_resp = idrac.invoke_request(BOOT_SEQ_URI.format(res_id), "GET")
     seq_key = "BootSeq" if override_mode == "Legacy" else "UefiBootSeq"
     boot_seq_data = boot_seq_resp.json_data["Attributes"][seq_key]
     [each.update({"Enabled": payload.get(each["Name"])}
@@ -381,8 +375,7 @@ def configure_boot_options(module, idrac, res_id, payload):
             if payload.get(resp_data["BootOrder"][i]) is not None:
                 boot_seq_data[i].update({"Enabled": payload.get(resp_data["BootOrder"][i])})
         seq_payload["Attributes"][seq_key] = boot_seq_data
-    PATCH_BOOT_SEQ_URI_LOGIC = PATCH_BOOT_SEQ_URI if SERVER_HW_MODEL == "" else PATCH_BOOT_SEQ_URI_9_10
-    resp = idrac.invoke_request(PATCH_BOOT_SEQ_URI_LOGIC.format(res_id), "PATCH", data=seq_payload)
+    resp = idrac.invoke_request(PATCH_BOOT_SEQ_URI.format(res_id), "PATCH", data=seq_payload)
     if resp.status_code in [200, 202]:
         location = resp.headers["Location"]
         job_id = location.split("/")[-1]
@@ -390,8 +383,7 @@ def configure_boot_options(module, idrac, res_id, payload):
         if reset_job_resp:
             job_data = reset_job_resp.json_data
         if reset:
-            job_uri_id = JOB_URI_ID if SERVER_HW_MODEL == "" else JOB_URI_ID_9_10
-            job_resp, error_msg = wait_for_idrac_job_completion(idrac, job_uri_id.format(job_id),
+            job_resp, error_msg = wait_for_idrac_job_completion(idrac, JOB_URI_ID.format(job_id),
                                                                 job_wait=job_wait,
                                                                 wait_timeout=module.params["job_wait_timeout"])
             if error_msg:
@@ -406,8 +398,10 @@ def apply_boot_settings(module, idrac, payload, res_id):
     job_data, job_wait = {}, module.params["job_wait"]
     if module.params["reset_type"] == "none":
         job_wait = False
-    BOOT_SETTINGS_URI_LOGIC = f"{SYSTEM_URI}/{res_id}" if SERVER_HW_MODEL == "" \
-                              else BOOT_SETTINGS_URI_9_10.format(res_id)
+    gen = idrac.get_server_generation
+    generation = gen[0]
+    BOOT_SETTINGS_URI_LOGIC = f"{SYSTEM_URI}/{res_id}" if generation <= 16 \
+                              else BOOT_SETTINGS_URI_10.format(res_id)
     resp = idrac.invoke_request(BOOT_SETTINGS_URI_LOGIC, "PATCH", data=payload)
     if resp.status_code in [200, 202]:
         reset, track_failed, reset_msg, reset_job_resp = system_reset(module, idrac, res_id)
@@ -416,8 +410,7 @@ def apply_boot_settings(module, idrac, payload, res_id):
         is_job, progress_job = get_scheduled_job(idrac)
         if is_job:
             if reset:
-                job_uri_id = JOB_URI_ID if SERVER_HW_MODEL == "" else JOB_URI_ID_9_10
-                job_resp, error_msg = wait_for_idrac_job_completion(idrac, job_uri_id.format(progress_job[0]["Id"]),
+                job_resp, error_msg = wait_for_idrac_job_completion(idrac, JOB_URI_ID.format(progress_job[0]["Id"]),
                                                                     job_wait=job_wait,
                                                                     wait_timeout=module.params["job_wait_timeout"])
                 if error_msg:
