@@ -107,17 +107,16 @@
       dellemc.openmanage.redfish_storage_volume:
         <<: *delete_raid
       register: idempotence_result_delete_volume
-      ignore_errors: true
 
     - name: Set expected message for assertion
       ansible.builtin.set_fact:
-        expected_msg: "Specified Volume Id {{ uri_data.Id }} does not exist in
-          the System."
+        expected_msg: "No changes found to be applied."
 
     - name: Verify task status - Delete a RAID0 volume (Idempotence)
       ansible.builtin.assert:
         that:
           - not idempotence_result_delete_volume.changed
+          - not idempotence_result_delete_volume.failed
           - idempotence_result_delete_volume.msg == expected_msg
 
   module_defaults:
@@ -197,18 +196,17 @@
       dellemc.openmanage.redfish_storage_volume:
         <<: *delete_raid_job_wait
       register: idempotence_result_delete_volume
-      ignore_errors: true
 
     - name: Set expected message for assertion
       ansible.builtin.set_fact:
-        expected_msg: "Specified Volume Id {{ uri_data.Id }} does not exist in
-          the System."
+        expected_msg: "No changes found to be applied."
 
     - name: Verify task status - Delete a RAID0 volume with job_wait
         (Idempotence)
       ansible.builtin.assert:
         that:
           - not idempotence_result_delete_volume.changed
+          - not idempotence_result_delete_volume.failed
           - idempotence_result_delete_volume.msg == expected_msg
 
   module_defaults:
