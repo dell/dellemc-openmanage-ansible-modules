@@ -36,7 +36,7 @@
       when: storage_controller_rekey.msg == "Successfully performed the
        'ReKey' operation."    # noqa: no-handler
 
-    - name: Waiting for iDRAC to be in ready state
+    - name: Waiting for iDRAC to be in ready state.
       ignore_errors: true
       register: idrac_storage_controller_pd_state_out_lc
       ansible.builtin.include_tasks:

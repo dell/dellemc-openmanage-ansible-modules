@@ -119,6 +119,7 @@ author:
     - "Rajeev Arakkal (@rajeevarakkal)"
     - "Felix Stephen (@felixs88)"
     - "Jagadeesh N V (@jagadeeshnv)"
+    - "Sakshi Makkar (@Sakshi-dell)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - Module will report success based on the iDRAC firmware update parent job status if there are no individual
@@ -253,13 +254,13 @@ SHARE_TYPE = {'nfs': 'NFS', 'cifs': 'CIFS', 'ftp': 'FTP',
               'http': 'HTTP', 'https': 'HTTPS', 'tftp': 'TFTP'}
 CERT_WARN = {True: 'On', False: 'Off'}
 PROXY_SUPPORT = {"DefaultProxy": "Use_Default_Settings", "Off": "Off", "ParametersProxy": "Use_Custom_Settings"}
-IDRAC_PATH = "/redfish/v1/Dell/Systems/System.Embedded.1/DellSoftwareInstallationService"
-PATH = "/redfish/v1/Dell/Systems/System.Embedded.1/DellSoftwareInstallationService/Actions/" \
+IDRAC_PATH = "/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellSoftwareInstallationService"
+PATH = "/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellSoftwareInstallationService/Actions/" \
        "DellSoftwareInstallationService.InstallFromRepository"
-GET_REPO_BASED_UPDATE_LIST_PATH = "/redfish/v1/Dell/Systems/System.Embedded.1/DellSoftwareInstallationService/" \
+GET_REPO_BASED_UPDATE_LIST_PATH = "/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellSoftwareInstallationService/" \
                                   "Actions/DellSoftwareInstallationService.GetRepoBasedUpdateList"
 JOB_URI = "/redfish/v1/JobService/Jobs/{job_id}"
-iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
+iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{job_id}"
 LOG_SERVICE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog"
 iDRAC9_LC_LOG = "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries"
 iDRAC8_LC_LOG = "/redfish/v1/Managers/iDRAC.Embedded.1/Logs/Lclog"

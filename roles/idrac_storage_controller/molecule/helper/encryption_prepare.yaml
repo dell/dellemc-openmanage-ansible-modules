@@ -54,7 +54,7 @@
       when: idrac_storage_controller_set_attrs.msg == "Successfully
        performed the 'RemoveControllerKey' operation."
 
-    - name: Waiting for iDRAC to be in ready state
+    - name: Waiting for iDRAC to be in ready state.
       ignore_errors: true
       register: idrac_storage_controller_pd_state_out_lc
       ansible.builtin.include_tasks:

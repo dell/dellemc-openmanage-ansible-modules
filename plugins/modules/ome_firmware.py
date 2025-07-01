@@ -568,7 +568,7 @@ def baseline_based_update(rest_obj, module, baseline, dev_comp_map):
                     else:
                         comp_list = list(icomp["SourceName"] for icomp in compliance_report
                                          if ((icomp["UpdateAction"] in update_actions) and
-                                         (icomp.get('Name') in comps)))  # regex filtering ++
+                                         (icomp.get('Name').strip() in comps)))  # regex filtering ++
                     if comp_list:
                         data_dict["Id"] = dev_id
                         data_dict["Data"] = str(";").join(comp_list)

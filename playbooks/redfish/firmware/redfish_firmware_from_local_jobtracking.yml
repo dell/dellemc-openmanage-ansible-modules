@@ -18,7 +18,8 @@
       register: result
       delegate_to: localhost
 
-    - name: Update the firmware from a single executable with job tracking till completion.
+    - name: Update the firmware from a single executable with job tracking
+       till completion
       ansible.builtin.uri:
         url: "https://{{ baseuri }}{{ result.task.uri }}"
         user: "{{ username }}"

@@ -60,7 +60,8 @@
             that: idrac_certificate_out.msg == "Changes found to be applied."
           when: ansible_check_mode
 
-        - name: Asserting operation with Normal/Idempotence mode.
+        - name: Asserting operation with Normal/Idempotence
+           mode (import certificate)
           ansible.builtin.assert:
             that: idrac_certificate_out.msg == "Successfully performed the
                                            'import' certificate operation.iDRAC
@@ -174,7 +175,7 @@
             - idrac_certificate_out is defined
             - idrac_certificate_out.changed
 
-        - name: Asserting operation with Normal/Idempotence mode.
+        - name: Asserting operation with Normal/Idempotence mode
           ansible.builtin.assert:
             that: idrac_certificate_out.msg == "Successfully performed the
                          'import' certificate operation.iDRAC

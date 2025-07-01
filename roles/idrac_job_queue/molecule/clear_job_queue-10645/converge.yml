@@ -13,11 +13,11 @@
           validate_certs: false
       no_log: true
 
-    - name: Creating a job
+    - name: Creating a job (first job)
       ansible.builtin.include_tasks:
         file: ../_create_job.yml
 
-    - name: Clear the job queue
+    - name: Clear the job queue (first job)
       ansible.builtin.include_role:
         name: "idrac_job_queue"
       vars:
@@ -33,7 +33,7 @@
       ansible.builtin.wait_for:
         timeout: 180
 
-    - name: Creating a job
+    - name: Creating a job (second job)
       ansible.builtin.include_tasks:
         file: ../_create_job.yml
 
@@ -50,11 +50,11 @@
         that:
           - idrac_job_queue_out.msg == "The job queue has been cleared successfully."
 
-    - name: Waiting for the data to be available on iDRAC
+    - name: Waiting for the data to be available on iDRAC.
       ansible.builtin.wait_for:
         timeout: 180
 
-    - name: Clear the job queue
+    - name: Clear the job queue (second job)
       block:
         - name: Clear the job queue when there is no jobs
           ansible.builtin.include_role:
@@ -69,11 +69,11 @@
             that:
               - idrac_job_queue_out.msg == "There are no jobs in the job queue."
 
-    - name: Creating a job
+    - name: Creating a job (third job)
       ansible.builtin.include_tasks:
         file: ../_create_job.yml
 
-    - name: Clear the job queue
+    - name: Clear the job queue (third job)
       block:
         - name: Clear the job queue when any of the job is not in state to be deleted
           ansible.builtin.include_role:

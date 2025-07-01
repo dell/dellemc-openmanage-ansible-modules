@@ -516,6 +516,8 @@ def check_specified_identifier_exists_in_the_system(module, session_obj, uri, er
         return resp
     except HTTPError as err:
         if err.code == 404:
+            if module.params.get("state") == "absent" and module.params.get("volume_id"):
+                module.exit_json(msg=NO_CHANGES_FOUND)
             module.exit_json(msg=err_message, failed=True)
         raise err
     except (URLError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:

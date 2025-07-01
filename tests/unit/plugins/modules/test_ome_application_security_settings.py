@@ -30,6 +30,7 @@ FIPS_TOGGLED = "Successfully {0} the FIPS mode."
 FIPS_CONN_RESET = "The network connection may have changed. Verify the connection and try again."
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_FOUND = "Changes found to be applied."
+TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be negative or zero."
 
 
 @pytest.fixture
@@ -337,6 +338,58 @@ class TestOmeSecuritySettings(FakeAnsibleModule):
         {"module_args": {"fips_mode_enable": False},
          "json_data": {"FipsMode": "ON"},
          "msg": CHANGES_FOUND, "check_mode": True},
+        {"module_args": {
+            "job_wait": True, "job_wait_timeout": -120,
+            "login_lockout_policy": {
+                "by_ip_address": False, "by_user_name": True, "lockout_fail_count": 5,
+                "lockout_fail_window": 30, "lockout_penalty_time": 900},
+        },
+            "json_data": {
+                "JobId": 1234,
+                "SystemConfiguration": {
+                    "Comments": ["Export type is Normal,JSON"],
+                    "Model": "", "ServiceTag": "",
+                    "Components": [
+                        {
+                            "FQDD": "MM.Embedded.1",
+                            "Attributes": [
+                                {
+                                    "Name": "LoginSecurity.1#Id",
+                                    "Value": "10"
+                                },
+                                {
+                                    "Name": "LoginSecurity.1#LockoutFailCount",
+                                    "Value": 7
+                                },
+                                {
+                                    "Name": "LoginSecurity.1#LockoutFailCountTime",
+                                    "Value": 27
+                                },
+                                {
+                                    "Name": "LoginSecurity.1#LockoutPenaltyTime",
+                                    "Value": 859
+                                },
+                                {
+                                    "Name": "LoginSecurity.1#IPRangeAddr",
+                                    "Value": None
+                                },
+                                {
+                                    "Name": "LoginSecurity.1#LockoutByUsernameEnable",
+                                    "Value": False
+                                },
+                                {
+                                    "Name": "LoginSecurity.1#LockoutByIPEnable",
+                                    "Value": False
+                                },
+                                {
+                                    "Name": "LoginSecurity.1#IPRangeEnable",
+                                    "Value": False
+                                }
+                            ]
+                        }
+                    ]
+                }
+        }, "msg": TIMEOUT_NEGATIVE_OR_ZERO_MSG}
     ])
     def test_ome_application_security_success(
             self,
@@ -387,7 +440,7 @@ class TestOmeSecuritySettings(FakeAnsibleModule):
             mocker.patch(
                 MODULE_PATH + 'login_security_setting',
                 side_effect=exc_type("exception message"))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'login_security_setting',
@@ -396,6 +449,6 @@ class TestOmeSecuritySettings(FakeAnsibleModule):
                                               'http error message',
                                               {"accept-type": "application/json"},
                                               StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'msg' in result

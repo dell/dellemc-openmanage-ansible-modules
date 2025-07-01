@@ -196,6 +196,7 @@ FIPS_TOGGLED = "Successfully {0} the FIPS mode."
 FIPS_CONN_RESET = "The network connection may have changed. Verify the connection and try again."
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_FOUND = "Changes found to be applied."
+TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the 'job_wait_timeout' parameter cannot be negative or zero."
 SETTLING_TIME = 2
 JOB_POLL_INTERVAL = 3
 
@@ -288,6 +289,8 @@ def get_execution_details(rest_obj, job_id, job_message):
 def exit_settings(module, rest_obj, job_id):
     msg = SEC_JOB_TRIGGERED
     time.sleep(SETTLING_TIME)
+    if module.params.get("job_wait") and module.params.get("job_wait_timeout") <= 0:
+        module.exit_json(msg=TIMEOUT_NEGATIVE_OR_ZERO_MSG, failed=True)
     if module.params.get("job_wait"):
         job_failed, job_message = rest_obj.job_tracking(
             job_id=job_id, job_wait_sec=module.params["job_wait_timeout"], sleep_time=JOB_POLL_INTERVAL)
@@ -347,11 +350,11 @@ def main():
             else:
                 login_security_setting(module, rest_obj)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':

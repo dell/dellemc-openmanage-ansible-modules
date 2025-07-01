@@ -25,7 +25,7 @@
         proxy_passwd: "{{ lookup('env', 'proxy_password') }}"
         catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
 
-    - name: "Waiting for idrac to be reachable"
+    - name: "Waiting for idrac to be reachable (first wait)"
       ansible.builtin.include_tasks:
         file: "../resources/_wait_for_port_to_open.yaml"
       when: not ansible_check_mode
@@ -73,7 +73,7 @@
         proxy_support: "DefaultProxy"
         catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
 
-    - name: "Waiting for idrac to be reachable"
+    - name: "Waiting for idrac to be reachable (second wait)"
       ansible.builtin.include_tasks:
         file: "../resources/_wait_for_port_to_open.yaml"
       when: not ansible_check_mode
@@ -98,7 +98,7 @@
             or same version installed on the server."
       when: not ansible_check_mode and not idrac_firmware_out.changed
 
-    - name: "Pre-requisites"
+    - name: "Pre-requisites."
       ansible.builtin.include_tasks:
         file: "../resources/tests/downgrade.yml"
       when: not ansible_check_mode
@@ -124,7 +124,7 @@
         proxy_port: "{{ lookup('env', 'proxyserversocks_port') }}"
         catalog_file_name: "{{ lookup('env', 'catalog_file_name') }}"
 
-    - name: "Waiting for idrac to be reachable"
+    - name: "Waiting for idrac to be reachable (third wait)"
       ansible.builtin.include_tasks:
         file: "../resources/_wait_for_port_to_open.yaml"
       when: not ansible_check_mode
