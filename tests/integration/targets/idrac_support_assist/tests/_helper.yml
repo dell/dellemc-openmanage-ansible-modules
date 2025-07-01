@@ -65,7 +65,6 @@
         return_content: true
         force_basic_auth: true
         status_code: 200
-        validate_certs: false
       check_mode: false
       register: powerstate
       no_log: true
