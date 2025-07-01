@@ -58,6 +58,7 @@ options:
         boot source is booted from.
       - C(legacy) The system boot in non-UEFI(Legacy) boot mode to the I(boot_source_override_target).
       - C(uefi) The system boot in UEFI boot mode to the I(boot_source_override_target).
+      - In iDRAC10 only C(uefi) is supported.
       - This is mutually exclusive with I(boot_options).
     choices: [legacy, uefi]
   boot_source_override_enabled:
@@ -392,12 +393,10 @@ def configure_boot_options(module, idrac, res_id, payload):
     return job_data
 
 
-def apply_boot_settings(module, idrac, payload, res_id):
+def apply_boot_settings(module, idrac, payload, res_id, generation):
     job_data, job_wait = {}, module.params["job_wait"]
     if module.params["reset_type"] == "none":
         job_wait = False
-    gen = idrac.get_server_generation
-    generation = gen[0]
     system_uri = f"{SYSTEM_URI}/{res_id}"
     BOOT_SETTINGS_URI_LOGIC = system_uri if generation < 17 else system_uri + "/Settings"
     resp = idrac.invoke_request(BOOT_SETTINGS_URI_LOGIC, "PATCH", data=payload)
@@ -441,6 +440,8 @@ def configure_boot_settings(module, idrac, res_id):
                                  "are required for this operation.")
         if not boot_order == exist_boot_order:
             payload["Boot"].update({"BootOrder": boot_order})
+    gen = idrac.get_server_generation
+    generation = gen[0]
     if override_mode is not None and \
             (not BS_OVERRIDE_MODE.get(override_mode) == response.get("BootSourceOverrideMode")):
         payload["Boot"].update({"BootSourceOverrideMode": BS_OVERRIDE_MODE.get(override_mode)})
@@ -458,7 +459,7 @@ def configure_boot_settings(module, idrac, res_id):
     elif (module.check_mode or not module.check_mode) and not payload["Boot"]:
         module.exit_json(msg=NO_CHANGES_MSG)
     else:
-        job_resp = apply_boot_settings(module, idrac, payload, res_id)
+        job_resp = apply_boot_settings(module, idrac, payload, res_id, generation)
     return job_resp
 
 
