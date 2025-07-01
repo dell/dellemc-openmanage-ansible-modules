@@ -373,7 +373,10 @@ def idrac_system_reset(idrac, res_id, payload=None, job_wait=True, wait_time_sec
     track_failed, reset, job_resp = True, False, {}
     reset_msg = RESET_UNTRACK
     try:
-        idrac.invoke_request(SYSTEM_RESET_URI.format(res_id=res_id), 'POST', data=payload)
+        resp = idrac.invoke_request(SYSTEM_RESET_URI.format(res_id=res_id), 'POST', data=payload)
+        if resp.status_code == 204:
+            reset = True
+            return reset, track_failed, reset_msg, job_resp
         time.sleep(10)
         if wait_time_sec:
             resp = idrac.invoke_request(MANAGER_JOB_URI_10, "GET")

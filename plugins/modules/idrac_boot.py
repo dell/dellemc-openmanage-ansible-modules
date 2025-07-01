@@ -277,7 +277,6 @@ JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs?$expand=*($levels
 JOB_URI_ID = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{0}"
 BOOT_SEQ_URI = "/redfish/v1/Systems/{0}/Oem/Dell/DellBootSources"
 PATCH_BOOT_SEQ_URI = "/redfish/v1/Systems/{0}/Oem/Dell/DellBootSources/Settings"
-BOOT_SETTINGS_URI_10 = "/redfish/v1/Systems/{0}/Settings"
 
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
@@ -329,7 +328,9 @@ def system_reset(module, idrac, res_id):
     reset_msg, track_failed, reset, reset_type, job_resp = "", False, True, module.params.get("reset_type"), {}
     if reset_type is not None and not reset_type == "none":
         data = {"ResetType": RESET_TYPE[reset_type]}
-        reset, track_failed, reset_msg, job_resp = idrac_system_reset(idrac, res_id, payload=data, job_wait=True)
+        job_wait_timeout = module.params.get("job_wait_timeout")
+        reset, track_failed, reset_msg, job_resp = idrac_system_reset(idrac, res_id, payload=data, job_wait=True,
+                                                                      wait_time_sec=job_wait_timeout)
         if RESET_TYPE["graceful_restart"] == "ForceRestart":
             reset = True
         if reset_type == "force_restart" and RESET_TYPE["graceful_restart"] == "GracefulRestart":
@@ -397,8 +398,8 @@ def apply_boot_settings(module, idrac, payload, res_id):
         job_wait = False
     gen = idrac.get_server_generation
     generation = gen[0]
-    BOOT_SETTINGS_URI_LOGIC = f"{SYSTEM_URI}/{res_id}" if generation <= 16 \
-                              else BOOT_SETTINGS_URI_10.format(res_id)
+    system_uri = f"{SYSTEM_URI}/{res_id}"
+    BOOT_SETTINGS_URI_LOGIC = system_uri if generation < 17 else system_uri + "/Settings"
     resp = idrac.invoke_request(BOOT_SETTINGS_URI_LOGIC, "PATCH", data=payload)
     if resp.status_code in [200, 202]:
         reset, track_failed, reset_msg, reset_job_resp = system_reset(module, idrac, res_id)
