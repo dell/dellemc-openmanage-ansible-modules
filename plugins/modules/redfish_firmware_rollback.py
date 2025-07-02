@@ -167,8 +167,8 @@ NEGATIVE_TIMEOUT_MESSAGE = "The parameter reboot_timeout value cannot be negativ
 JOB_WAIT_MSG = "Task excited after waiting for {0} seconds. Check console for firmware rollback status."
 REBOOT_COMP = ["Integrated Dell Remote Access Controller"]
 SESSION_RESOURCE_COLLECTION = {
-    "SESSION": "/redfish/v1/Sessions",
-    "SESSION_ID": "/redfish/v1/Sessions/{Id}"
+    "SESSION": "/redfish/v1/SessionService/Sessions",
+    "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
 }
 
 
