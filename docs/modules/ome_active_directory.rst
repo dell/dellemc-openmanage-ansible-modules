@@ -286,4 +286,5 @@ Authors
 ~~~~~~~
 
 - Jagadeesh N V(@jagadeeshnv)
+- Bhavneet Sharma (@sharmb5) <ansible.team@dell.com>
 

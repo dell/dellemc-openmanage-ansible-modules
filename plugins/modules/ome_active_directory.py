@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.12.4
 # Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -22,6 +22,7 @@ Service."
 version_added: "4.0.0"
 author:
   - Jagadeesh N V(@jagadeeshnv)
+  - Bhavneet Sharma (@sharmb5) <ansible.team@dell.com>
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
 options:
