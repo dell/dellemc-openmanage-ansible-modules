@@ -63,7 +63,7 @@ Parameters
 
     :literal:`uefi` The system boot in UEFI boot mode to the :emphasis:`boot\_source\_override\_target`.
 
-    This is read-only property in iDRAC 17G and later.
+    This is read-only property for iDRAC 17G and later.
 
     This is mutually exclusive with :emphasis:`boot\_options`.
 

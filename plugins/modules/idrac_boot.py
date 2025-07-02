@@ -58,7 +58,7 @@ options:
         boot source is booted from.
       - C(legacy) The system boot in non-UEFI(Legacy) boot mode to the I(boot_source_override_target).
       - C(uefi) The system boot in UEFI boot mode to the I(boot_source_override_target).
-      - This is read-only property in iDRAC 17G and later.
+      - This is read-only property for iDRAC 17G and later.
       - This is mutually exclusive with I(boot_options).
     choices: [legacy, uefi]
   boot_source_override_enabled:
