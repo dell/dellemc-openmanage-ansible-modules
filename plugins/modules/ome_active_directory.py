@@ -22,7 +22,7 @@ Service."
 version_added: "4.0.0"
 author:
   - Jagadeesh N V(@jagadeeshnv)
-  - Bhavneet Sharma (@sharmb5) <ansible.team@dell.com>
+  - Bhavneet Sharma (Bhavneet-Sharma) <ansible.team@dell.com>
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
 options:

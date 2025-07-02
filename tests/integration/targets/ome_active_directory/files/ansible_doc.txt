@@ -188,7 +188,7 @@
 - ''
 - 'REQUIREMENTS:  python >= 3.9.6'
 - ''
-- 'AUTHOR: Jagadeesh N V(@jagadeeshnv), Bhavneet Sharma (@sharmb5) <ansible.team@dell.com>'
+- 'AUTHOR: Jagadeesh N V(@jagadeeshnv), Bhavneet Sharma (Bhavneet-Sharma) <ansible.team@dell.com>'
 - ''
 - 'EXAMPLES:'
 - ''
