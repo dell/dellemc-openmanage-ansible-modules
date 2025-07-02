@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.12.4
 # Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -90,6 +90,7 @@ notes:
   - This module supports C(check_mode).
 author:
   - Sachin Apagundi(@sachin-apa)
+  - Sapana Gupta (@sapana05)
 '''
 
 EXAMPLES = """

@@ -160,7 +160,7 @@
 - ''
 - 'REQUIREMENTS:  python >= 3.9.6'
 - ''
-- 'AUTHOR: Sachin Apagundi(@sachin-apa)'
+- 'AUTHOR: Sachin Apagundi(@sachin-apa), Sapana Gupta (@sapana05)'
 - ''
 - 'EXAMPLES:'
 - ''
