@@ -60,7 +60,8 @@
           - not invalid_destination_address.changed
           - invalid_destination_address.error_info.
             error['@Message.ExtendedInfo'][0].Message == 'Unable to update the
-            SMTP settings because the Destination Address is invalid or missing.'
+            SMTP settings because the Destination Address is invalid
+            or missing.'
           - 'invalid_destination_address.msg == "HTTP Error 400: 400"'
           - invalid_port_number.failed
           - not invalid_port_number.changed
