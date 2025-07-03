@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.12.4
+# Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -69,7 +69,6 @@ class TestAppAlertsSMTP(FakeAnsibleModule):
     ])
     def test_fetch_smtp_settings(self, params, ome_connection_mock_for_smtp, ome_response_mock):
         ome_response_mock.success = True
-        f_module = self.get_module_mock(params=params['module_args'])
         ome_response_mock.json_data = params["json_data"]
         ret_data = self.module.fetch_smtp_settings(ome_connection_mock_for_smtp)
         assert ret_data.get("DestinationAddress") == "localhost"
@@ -107,7 +106,6 @@ class TestAppAlertsSMTP(FakeAnsibleModule):
     def test_update_smtp_settings(self, params, ome_connection_mock_for_smtp, ome_response_mock):
         ome_response_mock.success = True
         ome_response_mock.status_code = 201
-        f_module = self.get_module_mock(params=params['module_args'])
         ome_response_mock.json_data = params["json_data"]
         payload = params["payload"]
         ret_data = self.module.update_smtp_settings(ome_connection_mock_for_smtp, payload)
@@ -410,8 +408,6 @@ class TestAppAlertsSMTP(FakeAnsibleModule):
         ome_response_mock.json_data = params["json_data"]
         ome_default_args.update(params['module_args'])
         f_module = self.get_module_mock(params=ome_default_args)
-        get_json_data = params["json_data"]
-        update_json_data = params["json_data"]
 
         f_module.check_mode = True
 
@@ -446,11 +442,11 @@ class TestAppAlertsSMTP(FakeAnsibleModule):
             assert result["unreachable"] is True
         elif exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + 'fetch_smtp_settings', side_effect=exc_type("exception message"))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'fetch_smtp_settings',
                          side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
