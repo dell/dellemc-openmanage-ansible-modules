@@ -1,5 +1,5 @@
 # Dell OpenManage Ansible modules
-# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -115,7 +115,13 @@
         that:
           - invalid_api_sessions.failed
           - not invalid_api_sessions.changed
-          - invalid_msg in invalid_api_sessions.msg
+          - 'invalid_api_sessions.msg == "argument ''api_sessions'' is of type
+            <class ''str''> found in ''session_inactivity_timeout''. and we were
+            unable to convert to int: <class ''str''> cannot be converted to an
+            int" or invalid_api_sessions.msg == "argument ''api_sessions'' is
+            of type <class ''str''> found in ''session_inactivity_timeout''.
+            and we were unable to convert to int: \"''invalid''\" cannot be
+            converted to an int"'
 
     - name: Negative - Invalid gui_sessions
       dellemc.openmanage.ome_application_network_settings:
@@ -142,7 +148,13 @@
         that:
           - invalid_gui_sessions.failed
           - not invalid_gui_sessions.changed
-          - invalid_msg in invalid_gui_sessions.msg
+          - 'invalid_gui_sessions.msg == "argument ''gui_sessions'' is of type
+            <class ''str''> found in ''session_inactivity_timeout''. and we were
+            unable to convert to int: <class ''str''> cannot be converted to an
+            int" or invalid_gui_sessions.msg == "argument ''gui_sessions'' is
+            of type <class ''str''> found in ''session_inactivity_timeout''.
+            and we were unable to convert to int: \"''invalid''\" cannot be
+            converted to an int"'
 
     - name: Negative - Invalid universal and api timeout combination
       dellemc.openmanage.ome_application_network_settings:
