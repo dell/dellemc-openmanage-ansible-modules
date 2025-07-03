@@ -1,0 +1,72 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: hostname, username and
+      password."
+  when: hostname is not defined or username is not defined or
+    password is not defined
+
+- block:
+    - name: Delete Active Directory service by directory name
+      dellemc.openmanage.ome_active_directory:
+        state: absent
+        name: "{{ directory_name }}"
+
+    - name: Create AD service using IP of domain controller (Check mode)
+      dellemc.openmanage.ome_active_directory: &create_fqdn
+        name: "{{ directory_name }}"
+        domain_controller_lookup: MANUAL
+        domain_server:
+          - "{{ ad_ip }}"
+        group_domain: "{{ ad_fqdn }}"
+      register: cm_changes
+      check_mode: true
+
+    - name: Create AD service using DNS lookup along with test connection
+        (Normal mode)
+      dellemc.openmanage.ome_active_directory:
+        <<: *create_fqdn
+      register: result
+
+    - name: Create AD service using DNS lookup along with test connection
+        (Check mode - no changes expected)
+      dellemc.openmanage.ome_active_directory:
+        <<: *create_fqdn
+      register: cm_no_changes
+      check_mode: true
+
+    - name: Create AD service using DNS lookup along with test connection
+        (Idempotence  mode)
+      dellemc.openmanage.ome_active_directory:
+        <<: *create_fqdn
+      register: idempotence
+
+    - name: Verify the status of tasks
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == "Changes found to be applied."
+          - result.changed
+          - result.msg == "Successfully added the Active Directory service."
+          - not cm_no_changes.changed
+          - not idempotence.changed
+          - cm_no_changes.msg == idempotence.msg == (
+            "No changes found to be applied.")
+  always:
+    - name: Delete Active Directory service by directory name
+      dellemc.openmanage.ome_active_directory:
+        state: absent
+        name: "{{ directory_name }}"
+
+  module_defaults:
+    dellemc.openmanage.ome_active_directory:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"
