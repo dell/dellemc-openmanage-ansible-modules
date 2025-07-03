@@ -1,0 +1,126 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: hostname, username and
+      password."
+  when: hostname is not defined or username is not defined or
+    password is not defined
+
+- block:
+    - name: Create AD service using DNS lookup along with test connection
+        (Check mode - changes expected)
+      dellemc.openmanage.ome_active_directory:
+        name: "{{ directory_name }}"
+        domain_server:
+          - "{{ ad_fqdn }}"
+        group_domain: "{{ ad_fqdn }}"
+        test_connection: true
+        domain_username: "{{ ad_username }}"
+        domain_password: "{{ ad_password }}"
+
+    - name: Modify AD service with IP address of domain controller
+        (Check mode - changes expected)
+      dellemc.openmanage.ome_active_directory: &modify_by_name
+        name: "{{ directory_name }}"
+        domain_controller_lookup: MANUAL
+        domain_server:
+          - "{{ ad_ip }}"
+        group_domain: "{{ ad_fqdn }}"
+      register: cm_changes
+      check_mode: true
+
+    - name: Modify AD service with IP address of domain controller
+        (Normal mode)
+      dellemc.openmanage.ome_active_directory:
+        <<: *modify_by_name
+      register: result
+
+    - name: Modify AD service with IP address of domain controller
+        (Check mode - no changes expected)
+      dellemc.openmanage.ome_active_directory:
+        <<: *modify_by_name
+      register: cm_no_changes
+      check_mode: true
+
+    - name: Modify AD service with IP address of domain controller
+        (Idempotence  mode)
+      dellemc.openmanage.ome_active_directory:
+        <<: *modify_by_name
+      register: idempotence
+
+    - name: Verify the status of tasks to modify AD by name.
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == "Changes found to be applied."
+          - result.changed
+          - result.msg == "Successfully modified the Active Directory service."
+          - not cm_no_changes.changed
+          - cm_no_changes.msg == idempotence.msg == (
+            "No changes found to be applied.")
+          - not idempotence.changed
+
+    - name: Modify AD service using DNS lookup along with test connection
+        (Check mode - changes expected)
+      dellemc.openmanage.ome_active_directory: &modify_by_id
+        id: "{{ result.active_directory.Id }}"
+        domain_server:
+          - "{{ ad_fqdn }}"
+        group_domain: "{{ ad_fqdn }}"
+        test_connection: true
+        domain_username: "{{ ad_username }}"
+        domain_password: "{{ ad_password }}"
+      register: cm_changes
+      check_mode: true
+
+    - name: Modify AD service using DNS lookup along with test connection
+        (Normal mode)
+      dellemc.openmanage.ome_active_directory:
+        <<: *modify_by_id
+      register: result
+
+    - name: Modify AD service using DNS lookup along with test connection
+        (Check mode - no changes expected)
+      dellemc.openmanage.ome_active_directory:
+        <<: *modify_by_id
+      register: cm_no_changes
+      check_mode: true
+
+    - name: Modify AD service using DNS lookup along with test connection
+        (Idempotence  mode)
+      dellemc.openmanage.ome_active_directory:
+        <<: *modify_by_id
+      register: idempotence
+
+    - name: Verify the status of tasks to modify AD by id.
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == (
+            "Test Connection is successful. Changes found to be applied.")
+          - result.changed
+          - result.msg == "Test Connection is successful. Successfully modified
+            the Active Directory service."
+          - not cm_no_changes.changed
+          - cm_no_changes.msg == idempotence.msg == "Test Connection is
+            successful. No changes found to be applied."
+          - not idempotence.changed
+
+  always:
+    - name: Delete AD service by directory name
+      dellemc.openmanage.ome_active_directory:
+        state: absent
+        name: "{{ directory_name }}"
+
+  module_defaults:
+    dellemc.openmanage.ome_active_directory:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"
