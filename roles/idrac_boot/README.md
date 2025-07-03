@@ -142,7 +142,7 @@ dellemc.openmanage
     <td></td>
     <td>'legacy', 'uefi'</td>
     <td>str</td>
-    <td>- The BIOS boot mode (either Legacy or UEFI) to be used when I(boot_source_override_target) boot source is booted.<br>- C(legacy) The system boot in non-UEFI(Legacy) boot mode to the I(boot_source_override_target).<br>- C(uefi) The system boot in UEFI boot mode to the I(boot_source_override_target).<br>- This is mutually exclusive with I(boot_options).</td>
+    <td>- The BIOS boot mode (either Legacy or UEFI) to be used when I(boot_source_override_target) boot source is booted.<br>- C(legacy) The system boot in non-UEFI(Legacy) boot mode to the I(boot_source_override_target).<br>- C(uefi) The system boot in UEFI boot mode to the I(boot_source_override_target).<br>- This is read-only property for iDRAC 17G and later.<br>- This is mutually exclusive with I(boot_options).</td>
   </tr>
   <tr>
     <td>boot_source_override_enabled</td>
