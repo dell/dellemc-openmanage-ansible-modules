@@ -369,11 +369,7 @@ def configure_boot_options(module, idrac, res_id, payload):
     [each.update({"Enabled": payload.get(each["Name"])}
                  ) for each in boot_seq_data if payload.get(each["Name"]) is not None]
     seq_payload = {"Attributes": {seq_key: boot_seq_data}, "@Redfish.SettingsApplyTime": {"ApplyTime": "OnReset"}}
-    if seq_key == "UefiBootSeq":
-        for i in range(len(boot_seq_data)):
-            if payload.get(resp_data["BootOrder"][i]) is not None:
-                boot_seq_data[i].update({"Enabled": payload.get(resp_data["BootOrder"][i])})
-        seq_payload["Attributes"][seq_key] = boot_seq_data
+    seq_payload = _update_seq_payload(payload, resp_data, seq_key, boot_seq_data, seq_payload)
     resp = idrac.invoke_request(PATCH_BOOT_SEQ_URI.format(res_id), "PATCH", data=seq_payload)
     if resp.status_code in [200, 202]:
         location = resp.headers["Location"]
@@ -391,6 +387,15 @@ def configure_boot_options(module, idrac, res_id, payload):
         else:
             module.fail_json(msg=reset_msg)
     return job_data
+
+
+def _update_seq_payload(payload, resp_data, seq_key, boot_seq_data, seq_payload):
+    if seq_key == "UefiBootSeq":
+        for i in range(len(boot_seq_data)):
+            if payload.get(resp_data["BootOrder"][i]) is not None:
+                boot_seq_data[i].update({"Enabled": payload.get(resp_data["BootOrder"][i])})
+        seq_payload["Attributes"][seq_key] = boot_seq_data
+    return seq_payload
 
 
 def apply_boot_settings(module, idrac, payload, res_id, generation):
