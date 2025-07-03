@@ -366,6 +366,19 @@ class TestStorageVolume(FakeAnsibleModule):
         resp = self.module.check_volume_id_exists(f_module, redfish_connection_mock_for_storage_volume, "volume_id")
         assert resp.status_code == 200
 
+    def test_check_volume_id_does_not_exist(self, mocker, redfish_connection_mock_for_storage_volume, storage_volume_base_uri,
+                                            redfish_response_mock):
+        f_module = self.get_module_mock(params={"volume_id": "volume_id",
+                                                "state": "absent"})
+        redfish_response_mock.status_code = 404
+        redfish_connection_mock_for_storage_volume.invoke_request.side_effect = HTTPError(HTTPS_ADDRESS,
+                                                                                          404,
+                                                                                          "msg",
+                                                                                          {}, None)
+        with pytest.raises(Exception) as exc:
+            self.module.check_volume_id_exists(f_module, redfish_connection_mock_for_storage_volume, "volume_id")
+        assert exc.value.args[0] == "No changes found to be applied."
+
     def test_check_controller_id_exists_success_case_01(self, mocker, redfish_connection_mock_for_storage_volume,
                                                         storage_volume_base_uri,
                                                         redfish_response_mock):

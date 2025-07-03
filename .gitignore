@@ -14,3 +14,4 @@ demo
 .ansible
 .venv
 *.log
+dellemc-openmanage*.tar.gz
