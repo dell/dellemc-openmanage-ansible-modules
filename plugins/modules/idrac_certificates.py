@@ -600,7 +600,7 @@ def main():
         }},
         "resource_id": {"type": 'str'},
         "reset": {"type": 'bool', "default": True},
-        "wait": {"type": 'int', "default": 300}
+        "wait": {"type": 'int', "default": 600}
     }
 
     module = IdracAnsibleModule(
