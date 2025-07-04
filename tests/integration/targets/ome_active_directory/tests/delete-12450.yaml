@@ -1,0 +1,113 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: hostname, username and
+      password."
+  when: hostname is not defined or username is not defined or
+    password is not defined
+
+- block:
+    - name: Create AD service using DNS lookup along with test connection
+      dellemc.openmanage.ome_active_directory:
+        name: "{{ directory_name }}"
+        domain_server:
+          - "{{ ad_fqdn }}"
+        group_domain: "{{ ad_fqdn }}"
+        test_connection: true
+        domain_username: "{{ ad_username }}"
+        domain_password: "{{ ad_password }}"
+      register: result
+
+    - name: Delete AD service by directory name (Check mode - changes expected)
+      dellemc.openmanage.ome_active_directory: &delete_by_name
+        state: absent
+        name: "{{ directory_name }}"
+      register: cm_changes
+      check_mode: true
+
+    - name: Delete AD service by directory name (Normal mode)
+      dellemc.openmanage.ome_active_directory:
+        <<: *delete_by_name
+      register: result
+
+    - name: Delete AD service by directory name (Check mode - changes expected)
+      dellemc.openmanage.ome_active_directory:
+        <<: *delete_by_name
+      register: cm_no_changes
+      check_mode: true
+
+    - name: Delete AD service by directory name (Idempotence mode)
+      dellemc.openmanage.ome_active_directory:
+        <<: *delete_by_name
+      register: idempotence
+
+    - name: Verify the status of deleteon by directory name
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == "Changes found to be applied."
+          - result.changed
+          - result.msg == "Successfully deleted the Active Directory service."
+          - not cm_no_changes.changed
+          - cm_no_changes.msg == idempotence.msg == (
+            "No changes found to be applied.")
+          - not idempotence.changed
+
+    - name: Create AD service using DNS lookup along with test connection
+      dellemc.openmanage.ome_active_directory:
+        name: "{{ directory_name }}"
+        domain_server:
+          - "{{ ad_fqdn }}"
+        group_domain: "{{ ad_fqdn }}"
+        test_connection: true
+        domain_username: "{{ ad_username }}"
+        domain_password: "{{ ad_password }}"
+      register: result
+
+    - name: Delete AD service by directory id (Check mode - changes expected)
+      dellemc.openmanage.ome_active_directory: &delete_by_id
+        state: absent
+        id: "{{ result.active_directory.Id }}"
+      register: cm_changes
+      check_mode: true
+
+    - name: Delete AD service  by directory id (Normal mode)
+      dellemc.openmanage.ome_active_directory:
+        <<: *delete_by_id
+      register: result
+
+    - name: Delete AD service by directory id (Check mode - changes expected)
+      dellemc.openmanage.ome_active_directory:
+        <<: *delete_by_id
+      register: cm_no_changes
+      check_mode: true
+
+    - name: Delete AD service by directory id (Idempotence mode)
+      dellemc.openmanage.ome_active_directory:
+        <<: *delete_by_id
+      register: idempotence
+
+    - name: Verify the status of deleteon by directory id
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == "Changes found to be applied."
+          - result.changed
+          - result.msg == "Successfully deleted the Active Directory service."
+          - not cm_no_changes.changed
+          - cm_no_changes.msg == idempotence.msg == (
+            "No changes found to be applied.")
+          - not idempotence.changed
+
+  module_defaults:
+    dellemc.openmanage.ome_active_directory:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"

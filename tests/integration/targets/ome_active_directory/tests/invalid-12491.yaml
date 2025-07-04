@@ -1,0 +1,135 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: hostname, username and
+      password."
+  when: hostname is not defined or username is not defined or
+    password is not defined
+
+- block:
+    - name: Negative - invalid id
+      dellemc.openmanage.ome_active_directory:
+        id: 999999999
+        domain_server:
+          - "{{ ad_fqdn }}"
+        group_domain: "{{ ad_fqdn }}"
+        test_connection: true
+        domain_username: "{{ ad_username }}"
+        domain_password: "{{ ad_password }}"
+      register: invalid_id
+      ignore_errors: true
+
+    - name: Negative - invalid certificate
+      dellemc.openmanage.ome_active_directory:
+        name: "{{ directory_name }}"
+        domain_server:
+          - "{{ ad_fqdn }}"
+        group_domain: "{{ ad_fqdn }}"
+        test_connection: true
+        domain_username: "{{ ad_username }}"
+        domain_password: "{{ ad_password }}"
+        validate_certificate: true
+        certificate_file: "{{ role_path }}/files/ansible_doc.txt"
+      register: invalid_certificate
+      ignore_errors: true
+
+    - name: Negative - invalid domain controller port
+      dellemc.openmanage.ome_active_directory:
+        name: "{{ directory_name }}"
+        domain_server:
+          - "{{ ad_fqdn }}"
+        group_domain: "{{ ad_fqdn }}"
+        test_connection: true
+        domain_username: "{{ ad_username }}"
+        domain_password: "{{ ad_password }}"
+        domain_controller_port: 999999
+      register: invalid_domain_controller_port
+      ignore_errors: true
+
+    - name: Negative - invalid domain creds
+      dellemc.openmanage.ome_active_directory:
+        name: "{{ directory_name }}"
+        domain_server:
+          - "{{ ad_fqdn }}"
+        group_domain: "{{ ad_fqdn }}"
+        test_connection: true
+        domain_username: "{{ ad_username }}"
+        domain_password: invalid_1
+      register: invalid_domain_creds
+      ignore_errors: true
+
+    - name: Negative - invalid group domain
+      dellemc.openmanage.ome_active_directory:
+        name: "{{ directory_name }}"
+        domain_server:
+          - "{{ ad_fqdn }}"
+        group_domain: invalid
+        test_connection: true
+        domain_username: "{{ ad_username }}"
+        domain_password: "{{ ad_password }}"
+      register: invalid_group_domain
+      ignore_errors: true
+
+    - name: Negative - invalid domain server
+      dellemc.openmanage.ome_active_directory:
+        name: "{{ directory_name }}"
+        domain_server:
+          - invalid
+        group_domain: "{{ ad_fqdn }}"
+        test_connection: true
+        domain_username: "{{ ad_username }}"
+        domain_password: "{{ ad_password }}"
+      register: invalid_domain_server
+      ignore_errors: true
+
+    - name: Negative - unreachable hosts
+      dellemc.openmanage.ome_active_directory:
+        hostname: 999.999.999.999
+        name: "{{ directory_name }}"
+        domain_server:
+          - "{{ ad_fqdn }}"
+        group_domain: "{{ ad_fqdn }}"
+        test_connection: true
+        domain_username: "{{ ad_username }}"
+        domain_password: "{{ ad_password }}"
+      register: invalid_unreachable
+      ignore_unreachable: true
+      ignore_errors: true
+
+    - name: Verify the status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_group_domain.failed
+          - invalid_group_domain.msg == "Test Connection has failed. Unable to
+            connect to AD Server because the provided Group Domain is
+            empty or invalid."
+          - invalid_domain_server.failed
+          - '"Unable to add or modify the account provider because the DNS
+            server is missing or invalid for Server type
+            DNS" in invalid_domain_server.msg'
+          - invalid_domain_controller_port.failed
+          - '"Unable to add or modify the account provider because the entered
+            port number is invalid" in invalid_domain_controller_port.msg'
+          - invalid_id.failed
+          - invalid_id.msg == "The provided Active Directory ID is invalid."
+          - invalid_domain_creds.failed
+          - invalid_domain_creds.msg == "Test Connection has failed. Unable to
+            connect to the LDAP or AD server because the entered credentials
+            are invalid."
+          - invalid_certificate.failed
+          - invalid_certificate.msg == "Test Connection has failed. Could not
+            connect to the server because the uploaded certificate is invalid."
+          - invalid_unreachable.unreachable
+
+  module_defaults:
+    dellemc.openmanage.ome_active_directory:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname}}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"

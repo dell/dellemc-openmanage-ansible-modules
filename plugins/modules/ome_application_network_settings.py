@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.12.4
 # Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -90,6 +90,7 @@ notes:
   - This module supports C(check_mode).
 author:
   - Sachin Apagundi(@sachin-apa)
+  - Sapana Gupta (@sapana05)
 '''
 
 EXAMPLES = """
@@ -369,13 +370,13 @@ def main():
                              session_inactivity_setting=resp.json_data, changed=True)
 
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (
             IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError,
             OSError) as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=err, failed=True)
 
 
 if __name__ == '__main__':
