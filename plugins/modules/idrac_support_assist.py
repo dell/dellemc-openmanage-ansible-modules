@@ -320,6 +320,7 @@ error_info:
 import json
 import os
 from datetime import datetime
+import time
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -683,9 +684,13 @@ class RunSupportAssist(SupportAssist):
             hostname = hostname.replace(":", ".")
             sa_file_name = f"{hostname}_{now.strftime(TIME_FORMAT)}.zip"
             file_name = (os.path.join(file_path, sa_file_name))
-            file_dict = self.idrac.invoke_request(job_tracking_uri, "GET")
+            time.sleep(10)
+            file_dict = self.idrac.invoke_request(job_tracking_uri, "GET", api_timeout=200)
+            time.sleep(10)
             file_dnld = self.idrac.invoke_request(file_dict.headers.get(
-                "Location"), "GET", headers={"Content-Type": "application/x-tar"})
+                "Location"), "GET",
+                headers={"Content-Type": "application/x-tar"},
+                api_timeout=200)
             if file_dnld.status_code == 200:
                 with open(file_name, "wb") as file:
                     file.write(file_dnld.body)
