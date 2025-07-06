@@ -1267,7 +1267,7 @@ class TestSupportAssistType(FakeAnsibleModule):
                          side_effect=exc('test'))
         res_out = self._run_module(idrac_default_args)
         if exc == URLError:
-            assert res_out["failed"] is True
+            assert res_out['unreachable'] is True
         assert 'msg' in res_out
 
         # Scenario 2: HTTPError with message id SRV085
