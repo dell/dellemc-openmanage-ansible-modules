@@ -251,7 +251,7 @@ class iDRACRedfishAPI(object):
         while job_wait:
             try:
                 response = self.invoke_request(task_uri, "GET")
-                if response.json_data.get("TaskState") == "Running":
+                if response.json_data.get("TaskState") == "Running" or response.json_data.get("TaskState") == "New":
                     time.sleep(10)
                 else:
                     break
