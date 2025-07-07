@@ -11,6 +11,9 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
+- name: Check firmware version
+  include_tasks: _check_firmware_version_supported.yml
+
 - name: Verify iDRAC Certificate Signing Request
   module_defaults:
     dellemc.openmanage.idrac_certificates:
@@ -212,3 +215,14 @@
         validate_certs: "{{ validate_certs }}"
         idrac_attributes:
           Security.1.CsrKeySize: "3072"
+      when: '"17G" in uri_data.json.Model'
+
+    - name: Postclean - Configure security csr key to 2048
+      dellemc.openmanage.idrac_attributes:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        idrac_attributes:
+          Security.1.CsrKeySize: "2048"
+      when: '"16G" in uri_data.json.Model'

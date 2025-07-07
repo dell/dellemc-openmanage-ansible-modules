@@ -1,18 +1,4 @@
 ---
-# - name: Ensure private key is present
-#   community.crypto.openssl_privatekey:
-#     path: "{{ base_path_for_import_certificate }}/cert.key"
-#     size: 2048
-#     type: RSA
-#   delegate_to: localhost
-
-# - name: Ensure self-signed cert is pres
-#   community.crypto.x509_certificate:
-#     path: "{{ base_path_for_import_certificate }}/cert.pem"
-#     privatekey_path: "{{ base_path_for_import_certificate }}/cert.key"
-#     provider: selfsigned
-#   delegate_to: localhost
-
 - name: Install OpenSSL package (RHEL/CentOS/AlmaLinux/Rocky)
   ansible.builtin.package:
     name: openssl

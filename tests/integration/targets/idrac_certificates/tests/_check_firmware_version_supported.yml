@@ -12,13 +12,3 @@
     return_content: true
     status_code: 200
   register: uri_data
-
-- ansible.builtin.set_fact:
-    firmware_version_from_api_response: "{{ uri_data.json.FirmwareVersion }}"
-    firmware_version_expected: "{{ firmware_version_expected }}"
-
-# - name: Prerequisite - Validate firmware version
-#   ansible.builtin.assert:
-#     that:
-#       - "firmware_version_from_api_response >= firmware_version_expected"
-#     fail_msg: "Firmware version is not supported"

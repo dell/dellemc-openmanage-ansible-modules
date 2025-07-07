@@ -1,5 +1,5 @@
 # Dell OpenManage Ansible modules
-# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -12,30 +12,11 @@
    is not defined'
 
 - block:
-    - name: Check firmware version
-      include_tasks: _check_firmware_version_supported.yml
-      vars:
-        firmware_version_expected: "6.00.02.00"
-
     - name: Create Directory
       ansible.builtin.file:
         path: "{{ base_path_for_import_certificate }}"
         state: directory
       register: created_directory
-
-    # - name: Create private key is present
-    #   community.crypto.openssl_privatekey:
-    #     path: "{{ base_path_for_import_certificate }}/cert.key"
-    #     size: 2048
-    #     type: RSA
-    #   delegate_to: localhost
-
-    # - name: Ensure self-signed cert is present
-    #   community.crypto.x509_certificate:
-    #     path: "{{ base_path_for_import_certificate }}/cert.pem"
-    #     privatekey_path: "{{ base_path_for_import_certificate }}/cert.key"
-    #     provider: selfsigned
-    #   delegate_to: localhost
 
     - name: Install OpenSSL package (RHEL/CentOS/AlmaLinux/Rocky)
       ansible.builtin.package:
