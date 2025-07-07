@@ -441,11 +441,11 @@ supported. The supported privacy protocols are ['AES-256']."
             params=idrac_default_args, check_mode=False)
         with pytest.raises(Exception) as err:
             self.module.validate_input(f_module, idrac_default_args, 15)
-        assert err.value.args[0] == "custom_privilege value should be from 0 to 511."
+        assert err.value.args[0] == "custom_privilege value must range from 0 to 511."
 
         with pytest.raises(Exception) as err:
             self.module.validate_input(f_module, idrac_default_args, 17)
-        assert err.value.args[0] == "custom_privilege value should be from 1 to 511."
+        assert err.value.args[0] == "custom_privilege value must range from 1 to 511."
 
         idrac_default_args.update({"state": "absent"})
         ret = self.module.validate_input(f_module, idrac_default_args, 14)
