@@ -56,15 +56,15 @@
           - invalid_cp_sv.failed
           - >
               invalid_cp_n.msg == (
-                'custom_privilege value should be from 0 to 511.'
+                'custom_privilege value must range from 0 to 511.'
                 if generation | int < 17 else
-                'custom_privilege value should be from 1 to 511.'
+                'custom_privilege value must range from 1 to 511.'
               )
           - >
               invalid_cp_uv.msg == (
-                'custom_privilege value should be from 0 to 511.'
+                'custom_privilege value must range from 0 to 511.'
                 if generation | int < 17 else
-                'custom_privilege value should be from 1 to 511.'
+                'custom_privilege value must range from 1 to 511.'
               )
           - set_msg in invalid_cp_sv.msg
 

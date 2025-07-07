@@ -228,7 +228,7 @@ MANAGERS_ATTRIBUTES_REGISTRY = "/redfish/v1/Registries/\
 ManagerAttributeRegistry/ManagerAttributeRegistry.v1_0_0.json"
 USER_ROLES = {"Administrator": 511, "Operator": 499, "ReadOnly": 1, "None": 0}
 ACCESS = {0: "Disabled", 1: "Enabled"}
-INVALID_PRIVILAGE_MSG = "custom_privilege value must range from 0 to 511."
+INVALID_PRIVILAGE_MSG = "custom_privilege value must range from {0} to 511."
 INVALID_PRIVILAGE_MSG_NONE = "None is not an applicable value for privilege in iDRAC 17G and later."
 INVALID_PRIVILAGE_MIN_iDRAC9 = 0
 INVALID_PRIVILAGE_MIN_iDRAC10 = 1
@@ -512,7 +512,7 @@ def validate_input(module, idrac, generation):
         else:
             INVALID_PRIVILAGE_MIN = INVALID_PRIVILAGE_MIN_iDRAC9
         if INVALID_PRIVILAGE_MIN > user_privilege or user_privilege > INVALID_PRIVILAGE_MAX:
-            module.exit_json(msg=INVALID_PRIVILAGE_MSG,
+            module.exit_json(msg=INVALID_PRIVILAGE_MSG.format(INVALID_PRIVILAGE_MIN),
                              failed=True)
         authentication_protocol = module.params.get("authentication_protocol")
         privacy_protocol = module.params.get("privacy_protocol")
