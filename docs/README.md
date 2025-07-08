@@ -56,7 +56,7 @@ You may obtain a copy of the License at
 | Module Name                                                                                          | iDRAC9 | iDRAC10 |
 | ---------------------------------------------------------------------------------------------------- | ------ | ------  |
 | [idrac_attributes](../roles/idrac_attributes/README.md)                                                     | ✓      | ✓      |
-| [idrac_bios](../roles/idrac_bios/README.md)                                                                 | ✓      | ✓       |
+| [idrac_bios](../roles/idrac_bios/README.md)                                                                 | ✓      |        |
 | [idrac_boot](../roles/idrac_boot/README.md)                                                                 | ✓      |        |
 | [idrac_certificate](../roles/idrac_certificate/README.md)                                                  | ✓      |        |
 | [idrac_export_server_config_profile](../roles/idrac_export_server_config_profile/README.md)                                  | ✓      |       |
