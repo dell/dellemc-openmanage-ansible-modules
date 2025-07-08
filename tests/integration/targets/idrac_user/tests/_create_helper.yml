@@ -1,0 +1,79 @@
+---
+- block:
+
+    - name: Pre-req - Delete user
+      dellemc.openmanage.idrac_user:
+        state: "absent"
+        user_name: "omam_test_user"
+
+    - include_role: name=prepare_idrac_lifecycle_controller_status
+
+    - ansible.builtin.wait_for: timeout=10
+
+    - name: Create a new iDRAC user (check mode - changes expected)
+      dellemc.openmanage.idrac_user: &create
+        state: "present"
+        user_name: "omam_test_user"
+        user_password: "#DKMS_1234%"
+        privilege: "{{user.privilege}}"
+        ipmi_lan_privilege: "{{user.ipmi_lan_privilege}}"
+        ipmi_serial_privilege: "{{user.ipmi_serial_privilege}}"
+        enable: "{{user.enable}}"
+        sol_enable: "{{user.sol_enable}}"
+        protocol_enable: "{{user.protocol_enable}}"
+        authentication_protocol: "{{user.authentication_protocol}}"
+        privacy_protocol: "{{user.privacy_protocol}}"
+      register: cm_changes
+      check_mode: true
+
+    - ansible.builtin.wait_for: timeout=10
+
+    - name: Create a new iDRAC user (Normal mode)
+      dellemc.openmanage.idrac_user:
+        <<: *create
+      register: result
+
+    - ansible.builtin.wait_for: timeout=10
+
+    # User creation with password is not idempotent
+    - name: Create iDRAC user (Check mode - no changes expected)
+      dellemc.openmanage.idrac_user: &create_without_password
+        state: "present"
+        user_name: "omam_test_user"
+        privilege: "{{user.privilege}}"
+        ipmi_lan_privilege: "{{user.ipmi_lan_privilege}}"
+        ipmi_serial_privilege: "{{user.ipmi_serial_privilege}}"
+        enable: "{{user.enable}}"
+        sol_enable: "{{user.sol_enable}}"
+        protocol_enable: "{{user.protocol_enable}}"
+        authentication_protocol: "{{user.authentication_protocol}}"
+        privacy_protocol: "{{user.privacy_protocol}}"
+      check_mode: true
+      register: cm_no_changes
+
+    - ansible.builtin.wait_for: timeout=10
+
+    - name: Create iDRAC user (Idempotence mode)
+      dellemc.openmanage.idrac_user:
+        <<: *create_without_password
+      register: idempotence
+
+    - name: verify status of tasks.
+      assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == "Changes found to commit!"
+          - result.changed
+          - result.msg == "Successfully created user account."
+          - not cm_no_changes.changed
+          - cm_no_changes.msg == "No changes found to commit!"
+          - not idempotence.changed
+          - idempotence.msg == "Requested changes are already present in the
+             user slot."
+
+  module_defaults:
+    dellemc.openmanage.idrac_user:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

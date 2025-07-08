@@ -1,0 +1,104 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Get Server generation details
+  ansible.builtin.include_tasks: _get_server_generation.yml
+
+- block:
+
+    - ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
+
+    - ansible.builtin.wait_for: timeout=10
+
+    - name: Set authentication and privacy protocols based on iDRAC generation
+      ansible.builtin.set_fact:
+        auth_protocol: "{{ 'SHA-384' if generation | int >= 17 else 'SHA' }}"
+        priv_protocol: "{{ 'AES-256' if generation | int >= 17 else 'AES' }}"
+
+    - name: Create a new iDRAC user.
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_test_user"
+        user_password: "#DKMS_1234%"
+        privilege: Administrator
+        ipmi_lan_privilege: No Access
+        ipmi_serial_privilege: Operator
+        enable: true
+        sol_enable: false
+        protocol_enable: true
+        authentication_protocol: "{{ auth_protocol }}"
+        privacy_protocol: "{{ priv_protocol }}"
+
+    - include_role: name=prepare_idrac_lifecycle_controller_status
+
+    - ansible.builtin.wait_for: timeout=10
+
+    - name: Delete user (check mode - changes expected)
+      dellemc.openmanage.idrac_user: &delete
+        state: "absent"
+        user_name: "omam_test_user"
+      register: cm_changes
+      check_mode: true
+
+    - ansible.builtin.wait_for: timeout=10
+
+    - name: Delete user (Normal mode)
+      dellemc.openmanage.idrac_user:
+        <<: *delete
+      register: result
+
+    - ansible.builtin.wait_for: timeout=10
+
+    - name: Delete user (Check mode - no changes expected)
+      dellemc.openmanage.idrac_user:
+        <<: *delete
+      check_mode: true
+      register: cm_no_changes
+
+    - ansible.builtin.wait_for: timeout=10
+
+    - name: Delete user (Idempotence mode)
+      dellemc.openmanage.idrac_user:
+        <<: *delete
+      register: idempotence
+
+    - name: verify status of tasks.
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == "Changes found to commit!"
+          - result.changed
+          - result.msg == "Successfully deleted user account."
+          - not cm_no_changes.changed
+          - cm_no_changes.msg == "No changes found to commit!"
+          - not idempotence.changed
+          - idempotence.msg == "The user account is absent."
+
+  always:
+    - name: Delete the user
+      dellemc.openmanage.idrac_user:
+        state: "absent"
+        user_name: "omam_test_user"
+
+  module_defaults:
+    dellemc.openmanage.idrac_lifecycle_controller_status_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+    dellemc.openmanage.idrac_user:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

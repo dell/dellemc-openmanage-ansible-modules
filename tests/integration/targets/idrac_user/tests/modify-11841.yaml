@@ -1,0 +1,121 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Get Server generation details
+  ansible.builtin.include_tasks: _get_server_generation.yml
+
+- block:
+
+    - include_role: name=prepare_idrac_lifecycle_controller_status
+
+    - wait_for: timeout=10
+
+    - name: Set authentication and privacy protocols based on iDRAC generation
+      ansible.builtin.set_fact:
+        auth_protocol: "{{ 'SHA-384' if generation | int >= 17 else 'SHA' }}"
+        priv_protocol: "{{ 'AES-256' if generation | int >= 17 else 'AES' }}"
+
+    - name: Create a new iDRAC user.
+      dellemc.openmanage.idrac_user:
+        user_name: "omam_test_user"
+        user_password: "#DKMS_1234%"
+        privilege: Administrator
+        ipmi_lan_privilege: No Access
+        ipmi_serial_privilege: Operator
+        enable: true
+        sol_enable: false
+        protocol_enable: true
+        authentication_protocol: "{{ auth_protocol }}"
+        privacy_protocol: "{{ priv_protocol }}"
+
+    - include_role: name=prepare_idrac_lifecycle_controller_status
+
+    - wait_for: timeout=10
+
+    - name: Modify the iDRAC user. (check mode - changes expected)
+      dellemc.openmanage.idrac_user: &modify
+        user_name: "omam_test_user"
+        new_user_name: "omam_modified"
+        user_password: "#DKMS_1234%"
+        privilege: Operator
+        ipmi_lan_privilege: No Access
+        ipmi_serial_privilege: Operator
+        enable: true
+        sol_enable: false
+        protocol_enable: true
+        authentication_protocol: "{{ auth_protocol }}"
+        privacy_protocol: "{{ priv_protocol }}"
+      check_mode: true
+      register: cm_changes
+
+    - include_role: name=prepare_idrac_lifecycle_controller_status
+
+    - wait_for: timeout=10
+
+    - name: Modify the iDRAC user. (Normal mode)
+      dellemc.openmanage.idrac_user:
+        <<: *modify
+      register: result
+
+    - include_role: name=prepare_idrac_lifecycle_controller_status
+
+    - wait_for: timeout=10
+
+    - name: Modify the iDRAC user. (check mode - no changes expected)
+      dellemc.openmanage.idrac_user: &modified
+        user_name: "omam_modified"
+        privilege: Operator
+        ipmi_lan_privilege: No Access
+        ipmi_serial_privilege: Operator
+        enable: true
+        sol_enable: false
+        protocol_enable: true
+        authentication_protocol: "{{ auth_protocol }}"
+        privacy_protocol: "{{ priv_protocol }}"
+      register: cm_no_changes
+
+    - include_role: name=prepare_idrac_lifecycle_controller_status
+
+    - wait_for: timeout=10
+
+    - name: Modify the iDRAC user. (Idempotence mode)
+      dellemc.openmanage.idrac_user:
+        <<: *modified
+      register: idempotence
+
+    - name: verify status of tasks.
+      assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == "Changes found to commit!"
+          - result.changed
+          - result.msg == "Successfully updated user account."
+          - not cm_no_changes.changed
+          - cm_no_changes.msg == "Requested changes are already present in the
+             user slot."
+          - not idempotence.changed
+          - idempotence.msg == "Requested changes are already present in the
+             user slot."
+
+  always:
+    - name: Delete the modified user (clean up task)
+      dellemc.openmanage.idrac_user:
+        state: "absent"
+        user_name: "omam_modified"
+
+  module_defaults:
+    dellemc.openmanage.idrac_user:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
