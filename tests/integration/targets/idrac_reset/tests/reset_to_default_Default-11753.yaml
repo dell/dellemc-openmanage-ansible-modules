@@ -20,10 +20,6 @@
       vars:
         operation: check_firmware_version
 
-    - name: Adding tasks for export iDRAC settings before reset
-      ansible.builtin.include_tasks:
-        file: ../_export_scp_via_uri.yaml
-
     - name: Pre-requisite - Updating settings to non-default before reset
       ansible.builtin.include_tasks:
         file: ../_get_or_update_settings.yml

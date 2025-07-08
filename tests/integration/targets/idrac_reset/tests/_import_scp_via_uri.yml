@@ -1,7 +1,7 @@
 ---
-# _export_scp_via_uri.yaml is supposed to be called as a prereq.
+# _export_scp_via_uri.yml is supposed to be called as a prereq.
 # Only then can this playbook be called for cleanup.
-# The variables scp_oem and uri_scp_content are set in _export_scp_via_uri.yaml
+# The variables scp_oem and uri_scp_content are set in _export_scp_via_uri.yml
 - name: Trigger Import SCP job
   ansible.builtin.uri:
     url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\

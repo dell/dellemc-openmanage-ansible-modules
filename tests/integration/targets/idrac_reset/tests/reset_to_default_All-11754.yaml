@@ -22,7 +22,7 @@
 
     - name: Adding tasks for export iDRAC settings before reset
       ansible.builtin.include_tasks:
-        file: ../_export_scp_via_uri.yaml
+        file: ../_export_scp_via_uri.yml
 
     - name: Wait for 30 seconds
       ansible.builtin.pause:
@@ -85,7 +85,7 @@
   always:
     - name: Adding tasks for import iDRAC settings after reset
       ansible.builtin.include_tasks:
-        file: ../_import_scp_via_uri.yaml
+        file: ../_import_scp_via_uri.yml
 
   module_defaults:
     dellemc.openmanage.idrac_reset:
