@@ -170,7 +170,7 @@
 - '        seconds.'
 - '        This is applicable when `command'' is `import'' or `reset'' and'
 - '        `reset'' is `true''.'
-- '        default: 300'
+- '        default: 600'
 - '        type: int'
 - ''
 - '- x_auth_token'
