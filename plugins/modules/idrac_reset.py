@@ -209,7 +209,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish i
 from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    get_idrac_firmware_version, remove_key, get_dynamic_uri, validate_and_get_first_resource_id_uri, idrac_redfish_job_tracking, get_idrac_model_version)
+    remove_key, get_dynamic_uri, validate_and_get_first_resource_id_uri, idrac_redfish_job_tracking, get_idrac_model_version)
 
 
 MANAGERS_URI = "/redfish/v1/Managers"
@@ -325,6 +325,7 @@ class Validation():
             if err.code in ERR_STATUS_CODE:
                 self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default=reset_to_default, supported_values=allowed_choices), skipped=True)
 
+
 def get_server_generation(idrac: iDRACRedfishAPI):
     """
     Function wrapping idrac.get_server_generation. Helps with mocked testing.
@@ -336,6 +337,7 @@ def get_server_generation(idrac: iDRACRedfishAPI):
         Tuple[int, str, str]: A tuple containing the server generation, firmware version, and hardware model.
     """
     return idrac.get_server_generation
+
 
 class FactoryReset():
     def __init__(self, idrac: iDRACRedfishAPI, module, allowed_choices):
@@ -368,7 +370,7 @@ class FactoryReset():
             self.check_lcstatus()
         return msg_res, job_res
 
-    def check_mode_output(self):        
+    def check_mode_output(self):
         if not self.custom_defaults_supported() and self.reset_to_default == 'CustomDefaults':
             self.module.exit_json(msg=CHANGES_NOT_FOUND)
         if self.reset_to_default:
@@ -568,8 +570,10 @@ class FactoryReset():
     def custom_defaults_supported(self) -> bool:
         # iDRAC 9 has generation == 16
         # CustomDefaults is supported from 7.00.00.00 in iDRAC 9 and above
-        return self.idrac_generation > 16 or (self.idrac_generation == 16 and 
-            LooseVersion(self.idrac_firmware_version) >= MINIMUM_SUPPORTED_FIRMWARE_VERSION)
+        return self.idrac_generation > 16 or (
+            self.idrac_generation == 16 and
+            LooseVersion(self.idrac_firmware_version) >= MINIMUM_SUPPORTED_FIRMWARE_VERSION
+        )
 
     def graceful_restart(self):
         url = None

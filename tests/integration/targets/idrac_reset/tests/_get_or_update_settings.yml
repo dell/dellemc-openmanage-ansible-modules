@@ -50,39 +50,40 @@
       'update_settings']"
 
 - block:
-  # Get iDRAC model and firmware version for
-  # check_firmware_version operation
-  - name: Get iDRAC firmware version
-    ansible.builtin.uri:
-      url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{idrac_port }}\
-        /redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion,Model"
-      <<: *uri_input
-      method: GET
-      body: "{{ body | default(omit) }}"
-    register: firmware_version
+    # Get iDRAC model and firmware version for
+    # check_firmware_version operation
+    - name: Get iDRAC firmware version
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:\
+          {{idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1?\
+          $select=FirmwareVersion,Model"
+        <<: *uri_input
+        method: GET
+        body: "{{ body | default(omit) }}"
+      register: firmware_version
 
-  - name: Extract model from firmware_version
-    ansible.builtin.set_fact:
-      model_raw: "{{ firmware_version.json.Model }}"
-      fw_raw: "{{ firmware_version.json.FirmwareVersion }}"
+    - name: Extract model from firmware_version
+      ansible.builtin.set_fact:
+        model_raw: "{{ firmware_version.json.Model }}"
+        fw_raw: "{{ firmware_version.json.FirmwareVersion }}"
 
-  - name: Search for the Hardware model number in the model string
-    ansible.builtin.set_fact:
-      model_search: "{{ model_raw | regex_search('([0-9]+)G', '\\1') }}"
+    - name: Search for the Hardware model number in the model string
+      ansible.builtin.set_fact:
+        model_search: "{{ model_raw | regex_search('([0-9]+)G', '\\1') }}"
 
-  - name: Extract the Hardware model number
-    ansible.builtin.set_fact:
-      hw_model: "{{ model_search | first }}"
+    - name: Extract the Hardware model number
+      ansible.builtin.set_fact:
+        hw_model: "{{ model_search | first }}"
 
-  - name: Check if less than 17G
-    ansible.builtin.set_fact:
-      less_than_17G: "{{ hw_model | int < 17 }}"
+    - name: Check if less than 17G
+      ansible.builtin.set_fact:
+        less_than_17G: "{{ hw_model | int < 17 }}"
 
-  - name: Set fact to check iDRAC version and custom_default supported
-    ansible.builtin.set_fact:
-      it_is_iDRAC9: "{{ less_than_17G and fw_raw >= '3.0' }}"
-      custom_default_supported: "{{ not less_than_17G or 
-        fw_raw >= '7.00.00'}}"
+    - name: Set fact to check iDRAC version and custom_default supported
+      ansible.builtin.set_fact:
+        it_is_iDRAC9: "{{ less_than_17G and fw_raw >= '3.0' }}"
+        custom_default_supported: "{{ not less_than_17G or
+          fw_raw >= '7.00.00'}}"
   when: operation is defined and operation == 'check_firmware_version'
 
 - name: Fetch allowable values from iDRAC for reset
