@@ -1,0 +1,140 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Create a new iDRAC user without user_name (Negative)
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "1234@dell"
+        validate_certs: false
+      register: invalid_1
+      ignore_errors: true
+
+    - name: invalid state (Negative)
+      dellemc.openmanage.idrac_user:
+        state: "invalid"
+        user_name: "omam_test_user"
+      register: invalid_2
+      ignore_errors: true
+
+    - name: Create a new iDRAC user with invalid privilege (Negative)
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_test_user"
+        privilege: invalid
+      register: invalid_3
+      ignore_errors: true
+
+    - name: Create a new iDRAC user with invalid ipmi_lan_privilege (Negative)
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_test_user"
+        ipmi_lan_privilege: invalid
+      register: invalid_4
+      ignore_errors: true
+
+    - name: Create a new iDRAC user with invalid ipmi_serial_privilege
+       (Negative)
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_test_user"
+        ipmi_serial_privilege: invalid
+      register: invalid_5
+      ignore_errors: true
+
+    - name: Create a new iDRAC user with invalid enable (Negative)
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_test_user"
+        enable: invalid
+      register: invalid_6
+      ignore_errors: true
+
+    - name: Create a new iDRAC user with invalid sol_enable (Negative)
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_test_user"
+        sol_enable: invalid
+      register: invalid_7
+      ignore_errors: true
+
+    - name: Create a new iDRAC user with invalid protocol_enable (Negative)
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_test_user"
+        protocol_enable: invalid
+      register: invalid_8
+      ignore_errors: true
+
+    - name: Create a new iDRAC user with invalid authentication_protocol
+       (Negative)
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_test_user"
+        authentication_protocol: invalid
+      register: invalid_9
+      ignore_errors: true
+
+    - name: Create a new iDRAC user with invalid privacy_protocol (Negative)
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_test_user"
+        privacy_protocol: invalid
+      register: invalid_10
+      ignore_errors: true
+
+    - name: Create a new iDRAC user on a non-existent host (Negative)
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_test_user"
+        idrac_ip: "999.999.999.999"
+      register: invalid_unreachable
+      ignore_unreachable: true
+
+    - name: Verify status of tasks.
+      ansible.builtin.assert:
+        that:
+          - invalid_1.failed
+          - invalid_1.msg == 'missing required arguments: user_name'
+          - invalid_2.failed
+          - invalid_2.msg == 'value of state must be one of: present, absent,
+             got":" invalid'
+          - invalid_3.failed
+          - invalid_3.msg == "value of privilege must be one of: Administrator,
+             ReadOnly, Operator, None, got':' invalid"
+          - invalid_4.failed
+          - invalid_4.msg == "value of ipmi_lan_privilege must be one of:
+              Administrator, Operator, User, No Access, got':' invalid"
+          - invalid_5.failed
+          - invalid_5.msg == "value of ipmi_serial_privilege must be one of:
+              Administrator, Operator, User, No Access, got':' invalid"
+          - invalid_6.failed
+          - '"not a valid boolean" in invalid_6.msg'
+          - invalid_7.failed
+          - '"not a valid boolean" in invalid_7.msg'
+          - invalid_8.failed
+          - '"not a valid boolean" in invalid_8.msg'
+          - invalid_9.failed
+          - invalid_9.msg == "value of authentication_protocol must be one of:
+              SHA, MD5, None, got':' invalid"
+          - invalid_10.failed
+          - invalid_10.msg == "value of privacy_protocol must be one of:
+              AES, DES, None, got':' invalid"
+          - invalid_unreachable.unreachable
+
+  module_defaults:
+    dellemc.openmanage.idrac_user:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
