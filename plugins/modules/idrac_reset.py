@@ -209,7 +209,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish i
 from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    remove_key, get_dynamic_uri, validate_and_get_first_resource_id_uri, idrac_redfish_job_tracking, get_idrac_model_version)
+    remove_key, get_dynamic_uri, validate_and_get_first_resource_id_uri, idrac_redfish_job_tracking)
 
 
 MANAGERS_URI = "/redfish/v1/Managers"
@@ -254,11 +254,11 @@ GRACEFUL_RESTART_KEY = "#Manager.Reset"
 
 
 class Validation():
-    def __init__(self, idrac, module):
+    def __init__(self, idrac, module, generation: int):
         self.idrac = idrac
         self.module = module
         self.base_uri = self.get_base_uri()
-        self.idrac_model_version = get_idrac_model_version(idrac)
+        self.idrac_model_version = generation
 
     def get_base_uri(self):
         uri, error_msg = validate_and_get_first_resource_id_uri(
@@ -347,11 +347,11 @@ class FactoryReset():
         self.reset_to_default = self.module.params.get('reset_to_default')
         self.force_reset = self.module.params.get('force_reset')
         self.wait_for_idrac = self.module.params.get('wait_for_idrac')
-        self.validate_obj = Validation(self.idrac, self.module)
-        self.uri = self.validate_obj.base_uri
         t = get_server_generation(self.idrac)
         self.idrac_firmware_version: str = t[1]
         self.idrac_generation: int = t[0]
+        self.validate_obj = Validation(self.idrac, self.module, self.idrac_generation)
+        self.uri = self.validate_obj.base_uri
 
     def execute(self):
         msg_res, job_res = None, None
@@ -420,10 +420,14 @@ class FactoryReset():
         lc_status_dict = {}
         lc_status_dict['LCStatus'] = ""
         retry_count = 1
-        try:
-            self.check_service_availability()
-        except Exception as err:
-            self.module.exit_json(msg=FAILED_TO_LOGIN_POST_RESET_MSG, failed=True, changed=True, err_msg=str(err))
+        if post_op:
+            try:
+                self.check_service_availability()
+            except Exception as err:
+                self.module.exit_json(
+                    msg=FAILED_TO_LOGIN_POST_RESET_MSG, failed=True,
+                    changed=True, err_msg=str(err),
+                )
         resp = get_dynamic_uri(self.idrac, self.uri, "Links")
         url = resp.get(OEM, {}).get(MANUFACTURER, {}).get('DellLCService', {}).get(ODATA_ID, {})
         if url:

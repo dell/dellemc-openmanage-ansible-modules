@@ -236,8 +236,8 @@
       ansible.builtin.assert:
         that:
           - only_default_incorrect_credentials.failed
-          - 'only_default_incorrect_credentials.err_msg == "HTTP Error
-            401: Unauthorized"'
+          - '"Failed to login after iDRAC reset" in
+            only_default_incorrect_credentials.msg'
 
   module_defaults:
     dellemc.openmanage.idrac_reset:
