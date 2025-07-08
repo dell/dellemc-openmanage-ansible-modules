@@ -52,6 +52,26 @@ You may obtain a copy of the License at
 | [redfish_powerstate](modules/redfish_powerstate.rst)                                                 | ✓      | ✓      |
 | [redfish_storage_volume](modules/redfish_storage_volume.rst)                                         | ✓      |
 
+### iDRAC Roles
+| Module Name                                                                                          | iDRAC9 | iDRAC10 |
+| ---------------------------------------------------------------------------------------------------- | ------ | ------  |
+| [idrac_attributes](../roles/idrac_attributes/README.md)                                                     | ✓      | ✓      |
+| [idrac_bios](../roles/idrac_bios/README.md)                                                                 | ✓      | ✓       |
+| [idrac_boot](../roles/idrac_boot/README.md)                                                                 | ✓      |        |
+| [idrac_certificate](../roles/idrac_certificate/README.md)                                                  | ✓      |        |
+| [idrac_export_server_config_profile](../roles/idrac_export_server_config_profile/README.md)                                  | ✓      |       |
+| [idrac_firmware](../roles/idrac_firmware/README.md)                                                         | ✓      |        |
+| [idrac_gather_facts](../roles/idrac_gather_facts/README.md)                                                      | ✓      | ✓
+| [idrac_import_server_config_profile](../roles/idrac_import_server_config_profile/README.md)         | ✓      |       |
+| [idrac_job_queue](../roles/idrac_job_queue/README.md)                                       | ✓      | ✓      |
+| [idrac_os_deployment](../roles/idrac_os_deployment/README.md)                                               | ✓      |        |
+| [idrac_reset](../roles/idrac_reset/README.md)                                                               | ✓      |        |
+| [idrac_server_powerstate](../roles/idrac_server_powerstate/README.md)                                             | ✓      | ✓      |
+| [idrac_storage_controller](../roles/idrac_storage_controller/README.md)                                  | ✓      |        |
+| [idrac_user](../roles/idrac_user/README.md)                                                                 | ✓      |        |
+| [redfish_firmware](../roles/redfish_firmware/README.md)                                                     | ✓      |        |
+| [redfish_storage_volume](../roles/redfish_storage_volume/README.md)                                         | ✓      |        |
+
 ### OpenManage Enterprise Modules
 
 |  Module Name                                                                               |
