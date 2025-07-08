@@ -77,8 +77,10 @@ class TestConfigBios(FakeAnsibleModule):
         result = self.module.get_existing_boot_options(boot_connection_mock, "System.Embedded.1")
         assert result == resp_data
 
-    def test_system_reset(self, boot_connection_mock, redfish_response_mock, idrac_default_args, mocker):
+    @pytest.mark.parametrize("code", [200, 204])
+    def test_system_reset(self, boot_connection_mock, redfish_response_mock, idrac_default_args, mocker, code):
         mocker.patch(MODULE_UTIL_PATH + 'time.sleep', return_value=None)
+        redfish_response_mock.status_code = code
         idrac_default_args.update({"boot_source_override_mode": "uefi", "reset_type": "force_restart"})
         f_module = self.get_module_mock(params=idrac_default_args)
         reset, track_failed, reset_msg, resp_data = self.module.system_reset(f_module, boot_connection_mock,
