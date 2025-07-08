@@ -386,7 +386,7 @@ class TestFactoryReset(FakeAnsibleModule):
 
         def mock_get_dynamic_uri_error(*args, **kwargs):
             raise HTTPError("GET", 401, "Unauthorized", None, None)
-        
+
         mocker.patch(MODULE_PATH + "get_dynamic_uri", side_effect=mock_get_dynamic_uri_error)
         mocker.patch(MODULE_PATH + SLEEP_KEY, side_effect=lambda *args, **kwargs: None)
         with pytest.raises(Exception) as exc:
