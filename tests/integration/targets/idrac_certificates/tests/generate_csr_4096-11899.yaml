@@ -17,7 +17,7 @@
 - name: Verify iDRAC Certificate Signing Request
   module_defaults:
     dellemc.openmanage.idrac_certificates:
-      idrac_ip: "{{ idrac_ip }}"
+      idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"
@@ -43,7 +43,7 @@
 
     - name: Prereq - Configure security csr key to 4096
       dellemc.openmanage.idrac_attributes:
-        idrac_ip: "{{ idrac_ip }}"
+        idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: "{{ validate_certs }}"
@@ -86,7 +86,8 @@
 
     - name: Get CSR info check mode
       ansible.builtin.command:
-        cmd: openssl req -in "{{ generate_csr_cm.certificate_path }}" -noout -text
+        cmd:
+          openssl req -in "{{ generate_csr_cm.certificate_path }}" -noout -text
       register: csr_content_cm
 
     - name: Verify CSR info check mode
@@ -131,7 +132,8 @@
 
     - name: Get CSR info all parameters
       ansible.builtin.command:
-        cmd: openssl req -in "{{ generate_csr.certificate_path }}" -noout -text
+        cmd:
+          openssl req -in "{{ generate_csr.certificate_path }}" -noout -text
       register: csr_content
 
     - name: Verify CSR info all parameters
@@ -209,7 +211,7 @@
 
     - name: Postclean - Configure security csr key to 3072
       dellemc.openmanage.idrac_attributes:
-        idrac_ip: "{{ idrac_ip }}"
+        idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: "{{ validate_certs }}"
@@ -219,7 +221,7 @@
 
     - name: Postclean - Configure security csr key to 2048
       dellemc.openmanage.idrac_attributes:
-        idrac_ip: "{{ idrac_ip }}"
+        idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         validate_certs: "{{ validate_certs }}"

@@ -14,7 +14,7 @@
 - name: Verify iDRAC Certificate Signing Request
   module_defaults:
     dellemc.openmanage.idrac_certificates:
-      idrac_ip: "{{ idrac_ip }}"
+      idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"
@@ -119,7 +119,8 @@
 
     - name: Get CSR info all parameters
       ansible.builtin.command:
-        cmd: openssl req -in "{{ generate_csr.certificate_path }}" -noout -text
+        cmd:
+          openssl req -in "{{ generate_csr.certificate_path }}" -noout -text
       register: csr_content
 
     - name: Verify CSR info all parameters
@@ -173,7 +174,8 @@
 
     - name: Get CSR info mandatory parameters
       ansible.builtin.command:
-        cmd: openssl req -in "{{ generate_csr_mp.certificate_path }}" -noout -text
+        cmd:
+          openssl req -in "{{ generate_csr_mp.certificate_path }}" -noout -text
       register: csr_content_mp
 
     - name: Verify CSR info mandatory parameters
