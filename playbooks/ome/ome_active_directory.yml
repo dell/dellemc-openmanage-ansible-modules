@@ -4,7 +4,7 @@
   gather_facts: false
 
   tasks:
-    - name: Add Active Directory service using DNS lookup along with the test connection
+    - name: Add AD service using DNS lookup along with the test connection
       dellemc.openmanage.ome_active_directory:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
@@ -19,7 +19,8 @@
         domain_password: domain_password
       delegate_to: localhost
 
-    - name: Add Active Directory service using IP address of the domain controller with certificate validation
+    - name: Add AD service using IP address of the domain controller with
+            certificate validation
       dellemc.openmanage.ome_active_directory:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
@@ -34,7 +35,8 @@
         certificate_file: "/path/to/certificate/file.cer"
       delegate_to: localhost
 
-    - name: Modify domain controller IP address, network_timeout and group_domain
+    - name: Modify domain controller IP address, network_timeout and
+            group_domain
       dellemc.openmanage.ome_active_directory:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
@@ -58,7 +60,7 @@
         state: absent
       delegate_to: localhost
 
-    - name: Test connection to existing Active Directory service with certificate validation
+    - name: Test connection to existing AD service with certificate validation
       dellemc.openmanage.ome_active_directory:
         hostname: "{{ hostname }}"
         username: "{{ username }}"

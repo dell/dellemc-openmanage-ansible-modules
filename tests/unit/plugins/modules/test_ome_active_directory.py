@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.12.4
+# Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -119,19 +119,7 @@ class TestOmeAD(FakeAnsibleModule):
             "get_ad": ({"Name": "domdev", "Id": 21789, "ServerType": "MANUAL", "ServerName": ["XX.XX.XX.XX"],
                         "DnsServer": [], "GroupDomain": "dellemcdomain.com", "NetworkTimeOut": 120,
                         "SearchTimeOut": 120, "ServerPort": 3269, "CertificateValidation": False}, 1),
-            "msg": CHANGES_FOUND, "check_mode": True}
-    ])
-    def test_ome_active_directory_modify_success(self, params, ome_connection_mock_for_ad, ome_response_mock,
-                                                 ome_default_args, mocker):
-        ome_response_mock.success = params.get("success", True)
-        ome_response_mock.json_data = {"Name": "AD1"}
-        ome_connection_mock_for_ad.strip_substr_dict.return_value = params.get("get_ad", (None, 1))[0]
-        mocker.patch(MODULE_PATH + 'get_ad', return_value=params.get("get_ad", (None, 1)))
-        ome_default_args.update(params['module_args'])
-        result = self._run_module(ome_default_args, check_mode=params.get('check_mode', False))
-        assert result['msg'] == params['msg']
-
-    @pytest.mark.parametrize("params", [{
+            "msg": CHANGES_FOUND, "check_mode": True}, {
         "module_args": {"domain_controller_lookup": "MANUAL", "domain_server": ["192.96.20.181"],
                         "group_domain": "domain.com", "name": "domdev", "state": "absent"},
         "get_ad": ({"Name": "domdev", "Id": 21789, "ServerType": "MANUAL", "ServerName": ["XX.XX.XX.XX"],
@@ -148,8 +136,8 @@ class TestOmeAD(FakeAnsibleModule):
                         "SearchTimeOut": 120, "ServerPort": 3269, "CertificateValidation": False}, 1),
             "msg": CHANGES_FOUND, "check_mode": True}
     ])
-    def test_ome_active_directory_delete_success(self, params, ome_connection_mock_for_ad, ome_response_mock,
-                                                 ome_default_args, mocker):
+    def test_ome_active_directory_modify_delete_success(self, params, ome_connection_mock_for_ad, ome_response_mock,
+                                                        ome_default_args, mocker):
         ome_response_mock.success = params.get("success", True)
         ome_response_mock.json_data = {"Name": "AD1"}
         ome_connection_mock_for_ad.strip_substr_dict.return_value = params.get("get_ad", (None, 1))[0]
@@ -189,7 +177,7 @@ class TestOmeAD(FakeAnsibleModule):
         ome_response_mock.json_data = {"Name": "AD1"}
         mocker.patch(MODULE_PATH + 'get_ad', return_value=(None, params.get("ad_cnt", 1)))
         ome_default_args.update(params['module_args'])
-        result = self._run_module_with_fail_json(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result['msg'] == params['msg']
 
     @pytest.mark.parametrize("params", [{
@@ -222,7 +210,7 @@ class TestOmeAD(FakeAnsibleModule):
         else:
             ome_connection_mock_obj.invoke_request.side_effect = Exception(params['error_info'])
         ome_default_args.update(params['module_args'])
-        result = self._run_module_with_fail_json(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result['msg'] == params['msg']
 
     @pytest.mark.parametrize("exc_type",
@@ -239,12 +227,12 @@ class TestOmeAD(FakeAnsibleModule):
             assert result["unreachable"] is True
         elif exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + 'get_ad', side_effect=exc_type("exception message"))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'get_ad', side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                                                       {"accept-type": "application/json"},
                                                                       StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'msg' in result
