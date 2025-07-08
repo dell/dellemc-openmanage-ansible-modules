@@ -114,7 +114,7 @@
 
   always:
     - name: Delete the directory
-      file:
+      ansible.builtin.file:
         path: "{{ base_path_for_import_certificate }}"
         state: absent
 

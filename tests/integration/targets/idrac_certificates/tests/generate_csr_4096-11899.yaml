@@ -12,7 +12,7 @@
    is not defined'
 
 - name: Check firmware version
-  include_tasks: _check_firmware_version_supported.yml
+  ansible.builtin.include_tasks: _check_firmware_version_supported.yml
 
 - name: Verify iDRAC Certificate Signing Request
   module_defaults:
