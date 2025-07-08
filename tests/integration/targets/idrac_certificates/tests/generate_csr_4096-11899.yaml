@@ -187,7 +187,8 @@
 
     - name: Get CSR info mandatory parameters
       ansible.builtin.command:
-        cmd: openssl req -in "{{ generate_csr_mp.certificate_path }}" -noout -text
+        cmd:
+          openssl req -in "{{ generate_csr_mp.certificate_path }}" -noout -text
       register: csr_content_mp
 
     - name: Verify CSR info mandatory parameters

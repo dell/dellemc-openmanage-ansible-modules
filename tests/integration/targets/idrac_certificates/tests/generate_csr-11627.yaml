@@ -74,7 +74,8 @@
 
     - name: Get CSR info check mode
       ansible.builtin.command:
-        cmd: openssl req -in "{{ generate_csr_cm.certificate_path }}" -noout -text
+        cmd:
+          openssl req -in "{{ generate_csr_cm.certificate_path }}" -noout -text
       register: csr_content_cm
 
     - name: Verify CSR info check mode
