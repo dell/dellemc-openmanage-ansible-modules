@@ -383,9 +383,11 @@ class TestFactoryReset(FakeAnsibleModule):
                                    "default_password": "inv"})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         reset_obj = self.module.FactoryReset(idrac_connection_reset_mock, f_module, allowed_choices=allowed_values)
+
         def mock_get_dynamic_uri_error(*args, **kwargs):
             raise HTTPError("GET", 401, "Unauthorized", None, None)
-        mocker.patch(MODULE_PATH + "get_dynamic_uri", side_effect=mock_get_dynamic_uri_error)  
+        
+        mocker.patch(MODULE_PATH + "get_dynamic_uri", side_effect=mock_get_dynamic_uri_error)
         mocker.patch(MODULE_PATH + SLEEP_KEY, side_effect=lambda *args, **kwargs: None)
         with pytest.raises(Exception) as exc:
             reset_obj.check_lcstatus()
