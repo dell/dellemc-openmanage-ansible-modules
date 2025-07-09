@@ -1,0 +1,318 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Get Server generation details
+  ansible.builtin.include_tasks: _get_server_generation.yml
+
+- block:
+    - name: Pre-req - Delete user
+      dellemc.openmanage.idrac_user:
+        state: "absent"
+        user_name: "{{ item }}"
+      loop:
+        - "omam_test_user"
+        - "omam_test"
+
+    - name: Set authentication and privacy protocols based on iDRAC generation
+      ansible.builtin.set_fact:
+        auth_protocol: "{{ 'SHA-384' if generation | int >= 17 else 'SHA' }}"
+        priv_protocol: "{{ 'AES-256' if generation | int >= 17 else 'AES' }}"
+
+    - name: Create a new iDRAC user using custom_privilege
+       (check mode - changes expected)
+      dellemc.openmanage.idrac_user: &create_cp
+        state: "present"
+        user_name: "omam_test_user"
+        user_password: "#DKMS_1234%"
+        custom_privilege: 511
+        ipmi_lan_privilege: No Access
+        ipmi_serial_privilege: Operator
+        enable: true
+        sol_enable: false
+        protocol_enable: true
+        authentication_protocol: "{{ auth_protocol }}"
+        privacy_protocol: "{{ priv_protocol }}"
+
+      register: cm_cp_changes
+      check_mode: true
+
+    - name: Create a new iDRAC user using custom_privilege (Normal mode)
+      dellemc.openmanage.idrac_user:
+        <<: *create_cp
+      register: result_cp
+
+    - name: Retrieve user details using user_name
+      dellemc.openmanage.idrac_user_info:
+        username: "omam_test_user"
+      register: verify_new
+
+    - name: Asserting the changes done
+      ansible.builtin.assert:
+        that:
+          - "{{ (verify_new.user_info | length) != 0 }}"
+          - verify_new.user_info[0].UserName == "omam_test_user"
+          - verify_new.user_info[0].RoleId == "Administrator"
+
+    - name: Create a new iDRAC user using custom_privilege (Idempotence mode)
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_test_user"
+        custom_privilege: 511
+        ipmi_lan_privilege: No Access
+        ipmi_serial_privilege: Operator
+        enable: true
+        sol_enable: false
+        protocol_enable: true
+        authentication_protocol: "{{ auth_protocol }}"
+        privacy_protocol: "{{ priv_protocol }}"
+      register: idempotence_cp
+
+    - name: Create a new iDRAC user using custom_privilege with None user role
+       (Normal Mode)
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_none"
+        user_password: "#DKMS_1234%"
+        custom_privilege: 0
+        ipmi_lan_privilege: No Access
+        ipmi_serial_privilege: Operator
+        enable: true
+        sol_enable: false
+        protocol_enable: true
+        authentication_protocol: "{{ auth_protocol }}"
+        privacy_protocol: "{{ priv_protocol }}"
+      register: result_cp_none
+      when: generation | int < 17
+
+    - name: Retrieve user details using user_name
+      dellemc.openmanage.idrac_user_info:
+        username: "omam_none"
+      register: verify_none
+      when: generation | int < 17
+
+    - name: Asserting the changes done
+      ansible.builtin.assert:
+        that:
+          - "{{ (verify_none.user_info | length) != 0 }}"
+          - verify_none.user_info[0].UserName == "omam_none"
+          - verify_none.user_info[0].RoleId == "None"
+      when: generation | int < 17
+
+    - name: Create a new iDRAC user using custom_privilege with none user role
+       (Idempotence mode)
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_none"
+        custom_privilege: 0
+        ipmi_lan_privilege: No Access
+        ipmi_serial_privilege: Operator
+        enable: true
+        sol_enable: false
+        protocol_enable: true
+        authentication_protocol: "{{ auth_protocol }}"
+        privacy_protocol: "{{ priv_protocol }}"
+      register: idempotence_cp_none
+      when: generation | int < 17
+
+    - name: Create a new iDRAC user using custom_privilege with read only user
+       role (Normal Mode)
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_readonly"
+        user_password: "#DKMS_1234%"
+        custom_privilege: 1
+        ipmi_lan_privilege: No Access
+        ipmi_serial_privilege: Operator
+        enable: true
+        sol_enable: false
+        protocol_enable: true
+        authentication_protocol: "{{ auth_protocol }}"
+        privacy_protocol: "{{ priv_protocol }}"
+      register: result_cp_readonly
+
+    - name: Retrieve user details using user_name
+      dellemc.openmanage.idrac_user_info:
+        username: "omam_readonly"
+      register: verify_readonly
+
+    - name: Asserting the changes done
+      ansible.builtin.assert:
+        that:
+          - "{{ (verify_readonly.user_info | length) != 0 }}"
+          - verify_readonly.user_info[0].UserName == "omam_readonly"
+          - verify_readonly.user_info[0].RoleId == "ReadOnly"
+
+    - name: Create a new iDRAC user using custom_privilege with read only user
+       role (Idempotence mode)
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_readonly"
+        custom_privilege: 1
+        ipmi_lan_privilege: No Access
+        ipmi_serial_privilege: Operator
+        enable: true
+        sol_enable: false
+        protocol_enable: true
+        authentication_protocol: "{{ auth_protocol }}"
+        privacy_protocol: "{{ priv_protocol }}"
+      register: idempotence_cp_readonly
+
+    - name: Create a new iDRAC user using custom_privilege with operator user
+       role (Normal Mode)
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_operator"
+        user_password: "#DKMS_1234%"
+        custom_privilege: 2
+        ipmi_lan_privilege: No Access
+        ipmi_serial_privilege: Operator
+        enable: true
+        sol_enable: false
+        protocol_enable: true
+        authentication_protocol: "{{ auth_protocol }}"
+        privacy_protocol: "{{ priv_protocol }}"
+      register: result_cp_operator
+
+    - name: Retrieve user details using user_name
+      dellemc.openmanage.idrac_user_info:
+        username: "omam_operator"
+      register: verify_operator
+
+    - name: Asserting the changes done
+      ansible.builtin.assert:
+        that:
+          - "{{ (verify_operator.user_info | length) != 0 }}"
+          - verify_operator.user_info[0].UserName == "omam_operator"
+          - verify_operator.user_info[0].RoleId == "Operator"
+
+    - name: Create a new iDRAC user using custom_privilege with operator user
+       role (Idempotence mode)
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_operator"
+        custom_privilege: 2
+        ipmi_lan_privilege: No Access
+        ipmi_serial_privilege: Operator
+        enable: true
+        sol_enable: false
+        protocol_enable: true
+        authentication_protocol: "{{ auth_protocol }}"
+        privacy_protocol: "{{ priv_protocol }}"
+      register: idempotence_cp_operator
+
+    - name: Create a new iDRAC user using custom_privilege and privilege
+       (Normal Mode)
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_test"
+        user_password: "#DKMS_1234%"
+        privilege: "Administrator"
+        custom_privilege: 322
+        ipmi_lan_privilege: No Access
+        ipmi_serial_privilege: Operator
+        enable: true
+        sol_enable: false
+        protocol_enable: true
+        authentication_protocol: "{{ auth_protocol }}"
+        privacy_protocol: "{{ priv_protocol }}"
+      register: result_cp_p
+
+    - name: Retrieve user details using user_name
+      dellemc.openmanage.idrac_user_info:
+        username: "omam_test"
+      register: verify_cp_p
+
+    - name: Asserting the changes done
+      ansible.builtin.assert:
+        that:
+          - "{{ (verify_cp_p.user_info | length) != 0 }}"
+          - verify_cp_p.user_info[0].UserName == "omam_test"
+          - verify_cp_p.user_info[0].RoleId == "Operator"
+
+    - name: Create a new iDRAC user using custom_privilege and privilege
+       (Idempotence mode)
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_test"
+        privilege: "Administrator"
+        custom_privilege: 322
+        ipmi_lan_privilege: No Access
+        ipmi_serial_privilege: Operator
+        enable: true
+        sol_enable: false
+        protocol_enable: true
+        authentication_protocol: "{{ auth_protocol }}"
+        privacy_protocol: "{{ priv_protocol }}"
+      register: idempotence_cp_p
+
+    - name: verify common status of tasks (for all generations)
+      ansible.builtin.assert:
+        that:
+          - cm_cp_changes.changed
+          - cm_cp_changes.msg == "Changes found to commit!"
+          - result_cp.changed
+          - result_cp.msg == "Successfully created user account."
+          - not idempotence_cp.changed
+          - idempotence_cp.msg == "Requested changes are already present in
+             the user slot."
+          - result_cp_readonly.changed
+          - result_cp_readonly.msg == "Successfully created user account."
+          - not idempotence_cp_readonly.changed
+          - idempotence_cp_readonly.msg == "Requested changes are already
+             present in the user slot."
+          - result_cp_operator.changed
+          - result_cp_operator.msg == "Successfully created user account."
+          - not idempotence_cp_operator.changed
+          - idempotence_cp_operator.msg == "Requested changes are already
+             present in the user slot."
+          - result_cp_p.changed
+          - result_cp_p.msg == "Successfully created user account."
+          - not idempotence_cp_p.changed
+          - idempotence_cp_p.msg == "Requested changes are already present in
+             the user slot."
+
+    - name: verify status of cp_none (only for gen < 17)
+      ansible.builtin.assert:
+        that:
+          - result_cp_none.changed
+          - result_cp_none.msg == "Successfully created user account."
+          - not idempotence_cp_none.changed
+          - idempotence_cp_none.msg == "Requested changes are already present
+             in the user slot."
+      when: generation | int < 17
+
+
+  always:
+    - name: Delete the user
+      dellemc.openmanage.idrac_user:
+        state: "absent"
+        user_name: "{{ item }}"
+      loop:
+        - "omam_test_user"
+        - "omam_none"
+        - "omam_readonly"
+        - "omam_operator"
+        - "omam_test"
+
+  module_defaults:
+    dellemc.openmanage.idrac_user:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+    dellemc.openmanage.idrac_user_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

@@ -1,0 +1,76 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Get Server generation details
+  ansible.builtin.include_tasks: _get_server_generation.yml
+
+- block:
+    - name: Create a new iDRAC user with invalid custom_privilege (Negative)
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_test_user"
+        custom_privilege: -1
+      register: invalid_cp_n
+      ignore_errors: true
+
+    - name: Create a new iDRAC user with upper value of custom_privilege
+       (Negative)
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_test_user"
+        custom_privilege: 512
+      register: invalid_cp_uv
+      ignore_errors: true
+
+    - name: Create a new iDRAC user with invalid string value of
+       custom_privilege (Negative)
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_test_user"
+        custom_privilege: "invalidValue"
+      register: invalid_cp_sv
+      ignore_errors: true
+
+    - name: Set fact for invalid string value of
+       custom_privilege
+      ansible.builtin.set_fact:
+        set_msg: "argument 'custom_privilege' is of type <class 'str'> and we
+         were unable to convert to int: \"'invalidValue'\" cannot be converted
+         to an int"
+
+    - name: Verify status of tasks based on generation
+      ansible.builtin.assert:
+        that:
+          - invalid_cp_n.failed
+          - invalid_cp_uv.failed
+          - invalid_cp_sv.failed
+          - >
+              invalid_cp_n.msg == (
+                'custom_privilege value must range from 0 to 511.'
+                if generation | int < 17 else
+                'custom_privilege value must range from 1 to 511.'
+              )
+          - >
+              invalid_cp_uv.msg == (
+                'custom_privilege value must range from 0 to 511.'
+                if generation | int < 17 else
+                'custom_privilege value must range from 1 to 511.'
+              )
+          - set_msg in invalid_cp_sv.msg
+
+  module_defaults:
+    dellemc.openmanage.idrac_user:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

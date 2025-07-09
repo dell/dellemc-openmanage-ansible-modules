@@ -11,7 +11,7 @@
         file: ../__get_data.yml
       vars:
         url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/Managers\
-          /iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
+          /iDRAC.Embedded.1/Oem/Dell/Jobs?$expand=*($levels=1)"
 
     - name: Initialize idrac_bios_jobs_items variable
       ansible.builtin.set_fact:
@@ -31,17 +31,19 @@
           ansible.builtin.include_tasks:
             file: ../__get_data.yml
           vars:
-            url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/Managers\
-              /iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
+            url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/Systems\
+              /System.Embedded.1/Bios"
 
-        - name: Fetch the existing boot mode
+        - name: Fetch the existing bootseq retry status
           ansible.builtin.set_fact:
-            boot_mode: "{{ idrac_bios_uri_data.json.Attributes.BootMode }}"
+            current_bootseq_retry: "{{
+             idrac_bios_uri_data.json.Attributes.BootSeqRetry }}"
 
-        - name: Set the boot mode
+        - name: Set the bootseq retry status
           ansible.builtin.set_fact:
-            set_boot_mode: "{{ 'Bios' if (boot_mode == 'Uefi') else 'Uefi' }}"
-          when: set_boot_mode is not defined
+            set_bootseq_retry: "{{ 'Disabled'
+             if (current_bootseq_retry == 'Enabled') else 'Enabled' }}"
+          when: set_bootseq_retry is not defined
 
         - name: Update attributes with apply time as Immediate
           ansible.builtin.import_role:
@@ -53,7 +55,7 @@
             validate_certs: false
             apply_time: "OnReset"
             attributes:
-              BootMode: "{{ set_boot_mode }}"
+              "BootSeqRetry": "{{ set_bootseq_retry }}"
           register: idrac_bios_change_bios_setting
 
         - name: Verify job is scheduled

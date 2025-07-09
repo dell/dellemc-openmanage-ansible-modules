@@ -111,7 +111,7 @@ options:
       - Maximum wait time for iDRAC to start after the reset, in seconds.
       - This is applicable when I(command) is C(import) or C(reset) and I(reset) is C(true).
     type: int
-    default: 300
+    default: 600
 requirements:
   - "python >= 3.9.6"
 author:
@@ -600,7 +600,7 @@ def main():
         }},
         "resource_id": {"type": 'str'},
         "reset": {"type": 'bool', "default": True},
-        "wait": {"type": 'int', "default": 300}
+        "wait": {"type": 'int', "default": 600}
     }
 
     module = IdracAnsibleModule(
