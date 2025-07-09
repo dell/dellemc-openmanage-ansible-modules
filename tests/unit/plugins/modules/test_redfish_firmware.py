@@ -30,7 +30,7 @@ JOB_URI = "JobService/Jobs/{job_id}"
 FIRMWARE_DATA = "multipart/form-data"
 HTTPS_IMAGE_URI = "https://home/firmware_repo/component.exe"
 HTTPS_ADDRESS_DELL = "https://dell.com"
-
+LOCAL_IMAGE_URI = "/home/firmware_repo/component.exe"
 
 @pytest.fixture
 def redfish_firmware_connection_mock(mocker, redfish_response_mock):
@@ -293,3 +293,26 @@ class TestRedfishFirmware(FakeAnsibleModule):
         result = redfish_firmware._encode_form_data(payload_file, payload_file_header)
         assert b'example data' in result[0]
         assert 'multipart/form-data' in result[1]
+    
+    @pytest.mark.parametrize("generation", [16, 17])
+    def test_firmware_update_upload_status_201(self, redfish_default_args, redfish_firmware_connection_mock,
+                                        redfish_response_mock, mocker, generation):
+        mocker.patch(MODULE_PATH + 'redfish_firmware._get_update_service_target',
+                    return_value=('2134', HTTPS_ADDRESS_DELL, 'multipart/form-data'))
+        mocker.patch(MODULE_PATH + 'redfish_firmware._encode_form_data',
+                    return_value=({"file": (3, HTTPS_ADDRESS_DELL, FIRMWARE_DATA)}, FIRMWARE_DATA))
+        redfish_default_args.update({"image_uri": LOCAL_IMAGE_URI,
+                                    "transfer_protocol": "HTTP", "timeout": 0, "job_wait_timeout": 0})
+        f_module = self.get_module_mock(params=redfish_default_args)
+        redfish_response_mock.status_code = 201
+        redfish_response_mock.success = True
+        redfish_response_mock.json_data = {"image_uri": LOCAL_IMAGE_URI,
+                                        "transfer_protocol": "HTTP"}
+        if sys.version_info.major == 3:
+            builtin_module_name = 'builtins'
+        else:
+            builtin_module_name = '__builtin__'
+        with patch("{0}.open".format(builtin_module_name), mock_open(read_data="data")) as mock_file:          
+            redfish_firmware_connection_mock.get_server_generation = (generation, "firm_ver", "hw_model")
+            result = self.module.firmware_update(redfish_firmware_connection_mock, f_module)
+        assert result == redfish_response_mock

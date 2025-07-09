@@ -58,6 +58,7 @@ author:
     - "Shivam Sharma (@Shivam-Sharma)"
     - "Kritika Bhateja (@Kritika_Bhateja)"
     - "Abhishek Sinha (@ABHISHEK-SINHA10)"
+    - "Sakshi Makkar (@Sakshi-dell)"
 notes:
     - Run this module from a system that has direct access to Redfish APIs.
     - This module supports both IPv4 and IPv6 addresses.
