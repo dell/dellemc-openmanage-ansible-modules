@@ -13,18 +13,20 @@
         url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1\
           /Systems/System.Embedded.1/Bios"
 
-    - name: Fetch the existing boot mode
+    - name: Fetch the existing boot sequence retry
       ansible.builtin.set_fact:
-        boot_mode: "{{ idrac_bios_uri_data.json.Attributes.BootMode }}"
+        current_bootseq_retry: "{{
+         idrac_bios_uri_data.json.Attributes.BootSeqRetry }}"
 
-    - name: Set the boot mode
+    - name: Set the boot sequence retry mode
       ansible.builtin.set_fact:
-        set_boot_mode: "{{ 'Bios' if (boot_mode == 'Uefi') else 'Uefi' }}"
-      when: set_boot_mode is not defined
+        set_bootseq_retry: "{{ 'Disabled' if
+         (current_bootseq_retry == 'Enabled') else 'Enabled' }}"
+      when: set_bootseq_retry is not defined
 
-    - name: Copy the variable 'set_boot_mode' in file
+    - name: Copy the variable 'set_bootseq_retry' in file
       ansible.builtin.copy:
-        content: "{{ set_boot_mode }}"
-        dest: "/tmp/boot_mode.txt"
+        content: "{{ set_bootseq_retry }}"
+        dest: "/tmp/boot_seq_retry.txt"
         mode: "0755"
       delegate_to: localhost

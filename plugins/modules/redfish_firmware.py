@@ -58,6 +58,7 @@ author:
     - "Shivam Sharma (@Shivam-Sharma)"
     - "Kritika Bhateja (@Kritika_Bhateja)"
     - "Abhishek Sinha (@ABHISHEK-SINHA10)"
+    - "Sakshi Makkar (@Sakshi-dell)"
 notes:
     - Run this module from a system that has direct access to Redfish APIs.
     - This module supports both IPv4 and IPv6 addresses.
@@ -167,27 +168,31 @@ JOBSTATUS_FAILED = "failed"
 JOBSTATUS_TIMED_OUT = "timed_out"
 JOBSTATUS_SCHEDULED = "scheduled"
 JOBSTATUS_ERRORED = "errored"
+FILE_PAYLOAD_HEADER = "UpdateFile"
 
 
-def _encode_form_data(payload_file):
+def _encode_form_data(payload_file, payload_file_header):
     """Encode multipart/form-data for file upload."""
     fields = []
-    f_name, f_data, f_type = payload_file.get("file")
+    f_name, f_data, f_type = payload_file.get(payload_file_header)
     f_binary = f_data.read()
-    req_field = RequestField(name="file", data=f_binary, filename=f_name)
+    req_field = RequestField(name=payload_file_header, data=f_binary, filename=f_name)
     req_field.make_multipart(content_type=f_type)
     fields.append(req_field)
     data, content_type = encode_multipart_formdata(fields)
     return data, content_type
 
 
-def _get_update_service_target(obj, module):
+def _get_update_service_target(obj, module, generation):
     """Returns all the URI which is required for firmware update dynamically."""
     action_resp = obj.invoke_request("GET", "{0}{1}".format(obj.root_uri, UPDATE_SERVICE))
     action_attr = action_resp.json_data["Actions"]
     protocol = module.params["transfer_protocol"]
     update_uri = None
-    push_uri = action_resp.json_data.get('HttpPushUri')
+    if generation <= 16:
+        push_uri = action_resp.json_data.get('HttpPushUri')
+    else:
+        push_uri = action_resp.json_data.get('MultipartHttpPushUri')
     inventory_uri = action_resp.json_data.get('FirmwareInventory').get('@odata.id')
     if "#UpdateService.SimpleUpdate" in action_attr:
         update_service = action_attr.get("#UpdateService.SimpleUpdate")
@@ -203,21 +208,28 @@ def _get_update_service_target(obj, module):
 
 def firmware_update(obj, module):
     """Firmware update using single binary file from Local path or HTTP location."""
+    gen_details = obj.get_server_generation
+    generation = gen_details[0]
     image_path = module.params.get("image_uri")
     trans_proto = module.params["transfer_protocol"]
-    inventory_uri, push_uri, update_uri = _get_update_service_target(obj, module)
+    inventory_uri, push_uri, update_uri = _get_update_service_target(obj, module, generation)
     if image_path.startswith("http"):
         payload = {"ImageURI": image_path, "TransferProtocol": trans_proto}
         update_status = obj.invoke_request("POST", update_uri, data=payload)
     else:
-        resp_inv = obj.invoke_request("GET", inventory_uri)
+        payload_file_header = FILE_PAYLOAD_HEADER
+        headers = {}
+        if generation <= 16:
+            resp_inv = obj.invoke_request("GET", inventory_uri)
+            headers = {"If-Match": resp_inv.headers.get("etag")}
+            payload_file_header = "file"
+
         with open(os.path.join(image_path), "rb") as img_file:
-            binary_payload = {"file": (image_path.split(os.sep)[-1], img_file, "multipart/form-data")}
-            data, ctype = _encode_form_data(binary_payload)
-        headers = {"If-Match": resp_inv.headers.get("etag")}
+            binary_payload = {payload_file_header: (image_path.split(os.sep)[-1], img_file, "multipart/form-data")}
+            data, ctype = _encode_form_data(binary_payload, payload_file_header)
         headers.update({"Content-Type": ctype})
         upload_status = obj.invoke_request("POST", push_uri, data=data, headers=headers, dump=False, api_timeout=module.params["timeout"])
-        if upload_status.status_code == 201:
+        if generation <= 16 and upload_status.status_code == 201:
             payload = {"ImageURI": upload_status.headers.get("location")}
             update_status = obj.invoke_request("POST", update_uri, data=payload)
         else:
