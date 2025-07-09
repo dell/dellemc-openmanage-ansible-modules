@@ -204,6 +204,7 @@ error_info:
 import os
 import json
 import time
+from typing import List, Tuple
 from urllib.error import HTTPError, URLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.compat.version import LooseVersion
@@ -326,30 +327,30 @@ class Validation():
                 self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default=reset_to_default, supported_values=allowed_choices), skipped=True)
 
 
-def get_server_generation(idrac: iDRACRedfishAPI):
+def _get_server_version(idrac: iDRACRedfishAPI) -> Tuple[int, str]:
     """
-    Function wrapping idrac.get_server_generation. Helps with mocked testing.
+    Function wrapping idrac.get_server_generation. Helps with mocked testing and linting.
 
     Args:
         idrac (iDRACRedfishAPI): iDRACRedfishAPI object.
 
     Returns:
-        Tuple[int, str, str]: A tuple containing the server generation, firmware version, and hardware model.
+        Tuple[int, str]: A tuple containing the server generation and firmware version.
     """
-    return idrac.get_server_generation
+    t = idrac.get_server_generation
+    return t[0], t[1]
 
 
 class FactoryReset():
-    def __init__(self, idrac: iDRACRedfishAPI, module, allowed_choices):
+    def __init__(self, idrac: iDRACRedfishAPI, module: IdracAnsibleModule, allowed_choices: List[str]):
         self.idrac = idrac
         self.module = module
         self.allowed_choices = allowed_choices
         self.reset_to_default = self.module.params.get('reset_to_default')
         self.force_reset = self.module.params.get('force_reset')
         self.wait_for_idrac = self.module.params.get('wait_for_idrac')
-        t = get_server_generation(self.idrac)
-        self.idrac_firmware_version: str = t[1]
-        self.idrac_generation: int = t[0]
+        self.idrac_generation, self.idrac_firmware_version = \
+            _get_server_version(self.idrac)
         self.validate_obj = Validation(self.idrac, self.module, self.idrac_generation)
         self.uri = self.validate_obj.base_uri
 
@@ -394,53 +395,75 @@ class FactoryReset():
             self.idrac.password = default_password
             return True
 
-    def check_service_availability(self, retry_count=12, retry_interval=30) -> bool:
-        # After a reset, when the iDRAC IP is reachable again, often the internal services are still unresponsive
-        # This can lead to intermittent timeout, 4xx or 5xx errors which automatically resolve if given time
-        # So we should retry some basic GET operation, while ignoring errors for some time to check if the service is back up.
-        # By default, we shall retry for 6 mins
+    def check_service_availability(self, retry_count: int = 12, retry_interval: int = 30) -> dict:
+        """
+        Check if the iDRAC service is available after a reset.
+
+        After a reset, when the iDRAC IP is reachable again, often the internal services are still unresponsive.
+        This can lead to intermittent timeout, 4xx or 5xx errors which automatically resolve if given time.
+        So we should retry some basic GET operation, while ignoring errors for some time to check if the service is back up.
+        By default, we shall retry for 6 mins.
+
+        Args:
+            retry_count (int, optional): The number of times to retry the operation. Defaults to 12.
+            retry_interval (int, optional): The interval in seconds between retries. Defaults to 30.
+
+        Returns:
+            dict: The Manager Links object from the iDRAC if the service is back up.
+
+        Raises:
+            Module Exit JSON: If the service is not available after the specified number of retries.
+        """
         err_last = None
-        while retry_count > 0:
+        for _ in range(retry_count):  # pylint: disable=disallowed-name
+            time.sleep(retry_interval)
             try:
                 resp = get_dynamic_uri(self.idrac, self.uri, "Links")
-                return
+                return resp
             except Exception as err:
-                retry_count -= 1
-                time.sleep(retry_interval)
                 err_last = err
 
-        if err_last is not None:
-            raise err_last
+        self.module.exit_json(
+            msg=FAILED_TO_LOGIN_POST_RESET_MSG, failed=True,
+            changed=True, err_msg=str(err_last),
+        )
 
     def check_lcstatus(self, post_op=True):
         if self.reset_to_default in PASSWORD_CHANGE_OPTIONS and post_op and \
            not self.update_credentials_for_post_lc_statuc_check():
             return
 
-        lc_status_dict = {}
-        lc_status_dict['LCStatus'] = ""
-        retry_count = 1
+        # discover the Lifecycle Controller URL
         if post_op:
-            try:
-                self.check_service_availability()
-            except Exception as err:
-                self.module.exit_json(
-                    msg=FAILED_TO_LOGIN_POST_RESET_MSG, failed=True,
-                    changed=True, err_msg=str(err),
-                )
-        resp = get_dynamic_uri(self.idrac, self.uri, "Links")
-        url = resp.get(OEM, {}).get(MANUFACTURER, {}).get('DellLCService', {}).get(ODATA_ID, {})
-        if url:
-            action_resp = get_dynamic_uri(self.idrac, url)
-            lc_url = action_resp.get(ACTIONS, {}).get('#DellLCService.GetRemoteServicesAPIStatus', {}).get('target', {})
+            # if reset has just been done, check the service availability and get the link
+            manager_links_resp = self.check_service_availability()
         else:
+            manager_links_resp = get_dynamic_uri(self.idrac, self.uri, "Links")
+
+        url = manager_links_resp.get(OEM, {}).get(MANUFACTURER, {}).get('DellLCService', {}).get(ODATA_ID, {})
+        if not url:
             self.module.exit_json(msg=UNSUPPORTED_LC_STATUS_MSG, failed=True)
+
+        action_resp = get_dynamic_uri(self.idrac, url)
+        lc_url = action_resp.get(ACTIONS, {}).get('#DellLCService.GetRemoteServicesAPIStatus', {}).get('target', {})
+
+        # check the Lifecycle Controller status
+        self._check_lc_status_with_url(lc_url)
+
+    def _check_lc_status_with_url(self, lc_url: str):
+        """
+        This function checks the Lifecycle Controller status by sending a POST request to the given lc_url.
+        The function will retry the request up to IDRAC_RESET_RETRIES times with a 10-second delay between retries.
+        If the Lifecycle Controller is not ready after IDRAC_RESET_RETRIES attempts, the module will exit with an error message.
+        The function takes one parameter: lc_url (str) - The URL of the Lifecycle Controller API.
+        """
+        lc_status : str = ""
+        retry_count = 1
         while retry_count < IDRAC_RESET_RETRIES:
             try:
-                lcstatus = self.idrac.invoke_request(lc_url, "POST", data="{}", dump=False)
-                lcstatus_data = lcstatus.json_data.get('LCStatus')
-                lc_status_dict['LCStatus'] = lcstatus_data
-                if lc_status_dict.get('LCStatus') == 'Ready':
+                lcstatus_resp = self.idrac.invoke_request(lc_url, "POST", data="{}", dump=False)
+                lc_status = lcstatus_resp.json_data.get('LCStatus')
+                if lc_status == 'Ready':
                     break
                 time.sleep(10)
                 retry_count = retry_count + 1
@@ -450,8 +473,8 @@ class FactoryReset():
                 if retry_count == IDRAC_RESET_RETRIES:
                     self.module.exit_json(msg=LC_STATUS_MSG.format(lc_status='unreachable', retries=IDRAC_RESET_RETRIES), unreachable=True)
 
-        if retry_count == IDRAC_RESET_RETRIES and lc_status_dict.get('LCStatus') != "Ready":
-            self.module.exit_json(msg=LC_STATUS_MSG.format(lc_status=lc_status_dict.get('LCStatus'), retries=retry_count), failed=True)
+        if retry_count == IDRAC_RESET_RETRIES and lc_status != "Ready":
+            self.module.exit_json(msg=LC_STATUS_MSG.format(lc_status=lc_status, retries=retry_count), failed=True)
 
     def create_output(self, status):
         result = {}
