@@ -293,7 +293,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
         result = redfish_firmware._encode_form_data(payload_file, payload_file_header)
         assert b'example data' in result[0]
         assert 'multipart/form-data' in result[1]
-    
+
     @pytest.mark.parametrize("generation", [16, 17])
     def test_firmware_update_upload_status_201(self, redfish_default_args, redfish_firmware_connection_mock,
                                         redfish_response_mock, mocker, generation):
@@ -312,7 +312,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
             builtin_module_name = 'builtins'
         else:
             builtin_module_name = '__builtin__'
-        with patch("{0}.open".format(builtin_module_name), mock_open(read_data="data")) as mock_file:          
+        with patch("{0}.open".format(builtin_module_name), mock_open(read_data="data")) as mock_file:       
             redfish_firmware_connection_mock.get_server_generation = (generation, "firm_ver", "hw_model")
             result = self.module.firmware_update(redfish_firmware_connection_mock, f_module)
         assert result == redfish_response_mock
