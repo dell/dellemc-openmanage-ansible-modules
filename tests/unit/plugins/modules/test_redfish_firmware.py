@@ -297,7 +297,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
 
     @pytest.mark.parametrize("generation", [16, 17])
     def test_firmware_update_success_case04(self, redfish_default_args, redfish_firmware_connection_mock,
-                                        redfish_response_mock, mocker, generation):
+                                            redfish_response_mock, mocker, generation):
         mocker.patch(MODULE_PATH + "redfish_firmware._get_update_service_target",
                      return_value=('2134', HTTPS_ADDRESS_DELL, 'multipart/form-data'))
         mocker.patch(MODULE_PATH + "redfish_firmware._encode_form_data",
@@ -308,7 +308,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
         redfish_response_mock.status_code = 201
         redfish_response_mock.success = True
         redfish_response_mock.json_data = {"image_uri": LOCAL_IMAGE_URI,
-                                            "transfer_protocol": "HTTP"}
+                                           "transfer_protocol": "HTTP"}
         if sys.version_info.major == 3:
             builtin_module_name = 'builtins'
         else:
