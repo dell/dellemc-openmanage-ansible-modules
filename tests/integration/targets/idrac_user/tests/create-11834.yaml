@@ -1,0 +1,96 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Get Server generation details
+  ansible.builtin.include_tasks: _get_server_generation.yml
+
+- block:
+    - ansible.builtin.include_tasks: _create_helper.yml
+      loop:
+        - privilege: 'Administrator'
+          ipmi_lan_privilege: 'Administrator'
+          ipmi_serial_privilege: 'Administrator'
+          enable: true
+          sol_enable: true
+          protocol_enable: false
+          authentication_protocol: 'SHA'
+          privacy_protocol: 'AES'
+
+        - privilege: 'ReadOnly'
+          ipmi_lan_privilege: 'Operator'
+          ipmi_serial_privilege: 'Operator'
+          enable: false
+          sol_enable: false
+          protocol_enable: true
+          authentication_protocol: 'MD5'
+          privacy_protocol: 'DES'
+
+        - privilege: 'Operator'
+          ipmi_lan_privilege: 'User'
+          ipmi_serial_privilege: 'User'
+          enable: true
+          sol_enable: true
+          protocol_enable: false
+          authentication_protocol: 'None'
+          privacy_protocol: 'None'
+
+        - privilege: 'None'
+          ipmi_lan_privilege: 'No Access'
+          ipmi_serial_privilege: 'No Access'
+          enable: false
+          sol_enable: false
+          protocol_enable: true
+          authentication_protocol: 'SHA'
+          privacy_protocol: 'None'
+      loop_control:
+        loop_var: user
+      when: generation is defined and generation | int < 17
+
+    - name: Test for advanced authentication_protocols for iDRAC10
+      ansible.builtin.include_tasks: _create_helper.yml
+      when: generation is defined and generation | int >= 17
+      loop:
+        - authentication_protocol: 'SHA-384'
+          privacy_protocol: 'AES-256'
+        - authentication_protocol: 'SHA-512'
+          privacy_protocol: 'AES-256'
+      loop_control:
+        loop_var: user_protocol
+      vars:
+        user:
+          privilege: 'Administrator'
+          ipmi_lan_privilege: 'Administrator'
+          ipmi_serial_privilege: 'Administrator'
+          enable: true
+          sol_enable: true
+          protocol_enable: false
+          authentication_protocol: "{{ user_protocol.authentication_protocol }}"
+          privacy_protocol: "{{ user_protocol.privacy_protocol }}"
+
+  always:
+    - name: Delete the user
+      idrac_user:
+        state: "absent"
+        user_name: "omam_test_user"
+
+  module_defaults:
+    dellemc.openmanage.idrac_lifecycle_controller_status_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+    dellemc.openmanage.idrac_user:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

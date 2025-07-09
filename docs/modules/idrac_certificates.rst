@@ -116,7 +116,7 @@ Parameters
     This is applicable when \ :emphasis:`command`\  is \ :literal:`import`\  or \ :literal:`reset`\ .
 
 
-  wait (optional, int, 300)
+  wait (optional, int, 600)
     Maximum wait time for iDRAC to start after the reset, in seconds.
 
     This is applicable when \ :emphasis:`command`\  is \ :literal:`import`\  or \ :literal:`reset`\  and \ :emphasis:`reset`\  is \ :literal:`true`\ .

@@ -56,13 +56,15 @@ options:
       - A user with C(Operator) privilege can log in to iDRAC, and then configure iDRAC, control and configure system,
         access virtual console, access virtual media, and execute debug commands.
       - A user with C(ReadOnly) privilege can only log in to iDRAC.
-      - A user with C(None), no privileges assigned.
+      - A user with C(None), no privileges assigned. It is not applicable for iDRAC10.
       - Will be ignored, if custom_privilege parameter is provided.
     choices: [Administrator, ReadOnly, Operator, None]
+    aliases: ['role']
   custom_privilege:
     type: int
     description:
       - The privilege level assigned to the user.
+      - Minimum value is 1 for iDRAC10.
     version_added: "8.1.0"
   ipmi_lan_privilege:
     type: str
@@ -88,21 +90,26 @@ options:
     description:
       - This option allows to configure one of the following authentication protocol
         types to authenticate the iDRAC user.
-      - Secure Hash Algorithm C(SHA).
-      - Message Digest 5 C(MD5).
+      - Secure Hash Algorithm C(SHA). Not applicable for iDRAC10.
+      - Message Digest 5 C(MD5). Not applicable for iDRAC10.
+      - Secure Hash Algorithm 384-bit C(SHA-384). Only applicable for iDRAC10.
+      - Secure Hash Algorithm 512-bit C(SHA-512). Only applicable for iDRAC10.
       - An authentication protocol is not configured if C(None) is selected.
-    choices: [None, SHA, MD5]
+    choices: [None, SHA, MD5, SHA-384, SHA-512]
   privacy_protocol:
     type: str
     description:
       - This option allows to configure one of the following privacy encryption protocols for the iDRAC user.
-      - Data Encryption Standard C(DES).
-      - Advanced Encryption Standard C(AES).
+      - Data Encryption Standard C(DES). Not applicable for iDRAC10.
+      - Advanced Encryption Standard C(AES). Not applicable for iDRAC10.
+      - Advanced Encryption Standard 256-bit C(AES-256). Only applicable for iDRAC9 and iDRAC10.
       - A privacy protocol is not configured if C(None) is selected.
-    choices: [None, DES, AES]
+    choices: [None, DES, AES, AES-256]
 requirements:
   - "python >= 3.9.6"
-author: "Felix Stephen (@felixs88)"
+author:
+    - "Felix Stephen (@felixs88)"
+    - "Kritika Bhateja (@Kritika-Bhateja-03)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports C(check_mode).
@@ -216,13 +223,27 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
 
 ACCOUNT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Accounts/"
 ATTRIBUTE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Attributes/"
+ATTRIBUTE_URI_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1/"
+MANAGERS_ATTRIBUTES_REGISTRY = "/redfish/v1/Registries/\
+ManagerAttributeRegistry/ManagerAttributeRegistry.v1_0_0.json"
 USER_ROLES = {"Administrator": 511, "Operator": 499, "ReadOnly": 1, "None": 0}
 ACCESS = {0: "Disabled", 1: "Enabled"}
-INVALID_PRIVILAGE_MSG = "custom_privilege value should be from 0 to 511."
-INVALID_PRIVILAGE_MIN = 0
+INVALID_PRIVILAGE_MSG = "custom_privilege value must range from {0} to 511."
+INVALID_PRIVILAGE_MSG_NONE = "None is not an applicable value for privilege in iDRAC 17G and later."
+INVALID_PRIVILAGE_MIN_iDRAC9 = 0
+INVALID_PRIVILAGE_MIN_iDRAC10 = 1
 INVALID_PRIVILAGE_MAX = 511
 CHANGES_FOUND_MSG = "Changes found to commit!"
 ODATA_ID = "(.*?)@odata"
+UNSUPPORTED_APPLY_TIME = "Apply time {0} is not supported."
+INVALID_AUTHENTICATION_PROTOCOL_MSG = "Authentication protocol {protocol} is\
+ not supported. The supported authentication protocols are\
+ {supported_auth_protocol}."
+INVALID_PRIVACY_PROTOCOL_MSG = "Privacy protocol {protocol} is\
+ not supported. The supported privacy protocols are\
+ {supported_privacy_protocol}."
+PRIVILEGE_KEY = "Users.{0}.Privilege"
+USERNAME_KEY = "Users.{0}.UserName"
 
 
 def compare_payload(json_payload, idrac_attr):
@@ -257,7 +278,7 @@ def get_user_account(module, idrac):
     slot_uri, slot_id, empty_slot, empty_slot_uri = None, None, None, None
     if not module.params["user_name"]:
         module.exit_json(msg="User name is not valid.", failed=True)
-    response = idrac.export_scp(export_format="JSON", export_use="Default", target="IDRAC", job_wait=True)
+    response = idrac.export_scp(export_format="JSON", export_use="Default", target=["IDRAC"], job_wait=True)
     user_attributes = idrac.get_idrac_local_account_attr(response.json_data, fqdd="iDRAC.Embedded.1")
     slot_num = tuple(range(2, 17))
     for num in slot_num:
@@ -272,7 +293,17 @@ def get_user_account(module, idrac):
     return user_attributes, slot_uri, slot_id, empty_slot, empty_slot_uri
 
 
-def get_payload(module, slot_id, action=None):
+def get_role(role_value):
+    if isinstance(role_value, str):
+        return role_value
+    user_role_rev = {value: key for key, value in USER_ROLES.items()}
+    sorted_user_role_rev = dict(sorted(user_role_rev.items()))
+    for key, value in sorted_user_role_rev.items():
+        if key >= role_value:
+            return value
+
+
+def get_payload(module, slot_id, generation, action=None):
     """
     This function creates the payload with slot id.
     :param module: ansible module arguments
@@ -280,13 +311,15 @@ def get_payload(module, slot_id, action=None):
     :param slot_id: slot id for user slot
     :return: json data with slot id
     """
+    if generation >= 17 and module.params['privilege'] == 'None':
+        module.exit_json(msg=INVALID_PRIVILAGE_MSG_NONE, failed=True)
     user_privilege = module.params["custom_privilege"] if "custom_privilege" in module.params and \
         module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"])
 
-    slot_payload = {"Users.{0}.UserName": module.params["user_name"],
+    slot_payload = {USERNAME_KEY: module.params["user_name"],
                     "Users.{0}.Password": module.params["user_password"],
                     "Users.{0}.Enable": ACCESS.get(module.params["enable"]),
-                    "Users.{0}.Privilege": user_privilege,
+                    PRIVILEGE_KEY: user_privilege,
                     "Users.{0}.IpmiLanPrivilege": module.params["ipmi_lan_privilege"],
                     "Users.{0}.IpmiSerialPrivilege": module.params["ipmi_serial_privilege"],
                     "Users.{0}.SolEnable": ACCESS.get(module.params["sol_enable"]),
@@ -294,13 +327,16 @@ def get_payload(module, slot_id, action=None):
                     "Users.{0}.AuthenticationProtocol": module.params["authentication_protocol"],
                     "Users.{0}.PrivacyProtocol": module.params["privacy_protocol"], }
     if module.params["new_user_name"] is not None and action == "update":
-        user_name = "Users.{0}.UserName".format(slot_id)
+        user_name = USERNAME_KEY.format(slot_id)
         slot_payload[user_name] = module.params["new_user_name"]
     elif module.params["state"] == "absent":
-        slot_payload = {"Users.{0}.UserName": "", "Users.{0}.Enable": "Disabled", "Users.{0}.Privilege": 0,
+        slot_payload = {USERNAME_KEY: "", "Users.{0}.Enable": "Disabled", PRIVILEGE_KEY: 0,
                         "Users.{0}.IpmiLanPrivilege": "No Access", "Users.{0}.IpmiSerialPrivilege": "No Access",
                         "Users.{0}.SolEnable": "Disabled", "Users.{0}.ProtocolEnable": "Disabled",
                         "Users.{0}.AuthenticationProtocol": "SHA", "Users.{0}.PrivacyProtocol": "AES"}
+    if generation >= 17:
+        slot_payload["Users.{0}.Role"] = get_role(slot_payload[PRIVILEGE_KEY])
+        del slot_payload[PRIVILEGE_KEY]
     payload = dict([(k.format(slot_id), v) for k, v in slot_payload.items() if v is not None])
     return payload
 
@@ -322,7 +358,46 @@ def convert_payload_xml(payload):
     return root, json_payload
 
 
-def create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id, empty_slot_uri, user_attr):
+def set_attribute_uri(generation):
+    global ATTRIBUTE_URI
+    if generation >= 17:
+        ATTRIBUTE_URI = ATTRIBUTE_URI_10
+
+
+def handle_create(module, idrac, generation, payload):
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
+    if generation >= 17:
+        # Performing patch twice because in iDRAC10, it gives 200 but not updating all values
+        # saying password is blank but password is given, this is workaround. will be fixed in future
+        idrac.invoke_request(ATTRIBUTE_URI, "PATCH", data={"Attributes": payload})
+        response = idrac.invoke_request(ATTRIBUTE_URI, "PATCH", data={"Attributes": payload})
+    if generation >= 14:
+        response = idrac.invoke_request(ATTRIBUTE_URI, "PATCH", data={"Attributes": payload})
+    elif generation < 14:
+        payloads = convert_payload_xml(payload)
+        xml_payload = payloads[0]
+        time.sleep(10)
+        response = idrac.import_scp(import_buffer=xml_payload, target=["ALL"], job_wait=True)
+    return response
+
+
+def handle_update(module, idrac, generation, payload, value, xml_payload):
+    if module.check_mode:
+        if value:
+            module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
+        module.exit_json(msg="No changes found to commit!")
+    if not value:
+        module.exit_json(msg="Requested changes are already present in the user slot.")
+    if generation >= 14:
+        response = idrac.invoke_request(ATTRIBUTE_URI, "PATCH", data={"Attributes": payload})
+    elif generation < 14:
+        time.sleep(10)
+        response = idrac.import_scp(import_buffer=xml_payload, target=["ALL"], job_wait=True)
+    return response
+
+
+def create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id, empty_slot_uri, user_attr, generation):
     """
     This function create user account in case not exists else update it.
     :param module: user account module arguments
@@ -333,36 +408,17 @@ def create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id, em
     :param empty_slot_uri: empty slot uri for create
     :return: json
     """
-    gen_details = idrac.get_server_generation
-    generation = gen_details[0]
     msg, response = "Unable to retrieve the user details.", {}
     if (slot_id and slot_uri) is None and (empty_slot_id and empty_slot_uri) is not None:
         msg = "Successfully created user account."
-        payload = get_payload(module, empty_slot_id, action="create")
-        if module.check_mode:
-            module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
-        if generation >= 14:
-            response = idrac.invoke_request(ATTRIBUTE_URI, "PATCH", data={"Attributes": payload})
-        elif generation < 14:
-            xml_payload, json_payload = convert_payload_xml(payload)
-            time.sleep(10)
-            response = idrac.import_scp(import_buffer=xml_payload, target="ALL", job_wait=True)
+        payload = get_payload(module, empty_slot_id, generation, action="create")
+        response = handle_create(module, idrac, generation, payload)
     elif (slot_id and slot_uri) is not None:
         msg = "Successfully updated user account."
-        payload = get_payload(module, slot_id, action="update")
+        payload = get_payload(module, slot_id, generation, action="update")
         xml_payload, json_payload = convert_payload_xml(payload)
         value = compare_payload(json_payload, user_attr)
-        if module.check_mode:
-            if value:
-                module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
-            module.exit_json(msg="No changes found to commit!")
-        if not value:
-            module.exit_json(msg="Requested changes are already present in the user slot.")
-        if generation >= 14:
-            response = idrac.invoke_request(ATTRIBUTE_URI, "PATCH", data={"Attributes": payload})
-        elif generation < 14:
-            time.sleep(10)
-            response = idrac.import_scp(import_buffer=xml_payload, target="ALL", job_wait=True)
+        response = handle_update(module, idrac, generation, payload, value, xml_payload)
     elif (slot_id and slot_uri and empty_slot_id and empty_slot_uri) is None:
         module.exit_json(
             msg="Maximum number of users reached. Delete a \
@@ -372,7 +428,7 @@ user account and retry the operation.",
     return response, msg
 
 
-def remove_user_account(module, idrac, slot_uri, slot_id):
+def remove_user_account(module, idrac, slot_uri, slot_id, generation):
     """
     remove user user account by passing empty payload details.
     :param module: user account module arguments.
@@ -382,7 +438,7 @@ def remove_user_account(module, idrac, slot_uri, slot_id):
     :return: json.
     """
     response, msg = {}, "Successfully deleted user account."
-    payload = get_payload(module, slot_id, action="delete")
+    payload = get_payload(module, slot_id, generation, action="delete")
     payload = convert_payload_xml(payload)
     xml_payload = payload[0]
     if module.check_mode and (slot_id and slot_uri) is not None:
@@ -391,19 +447,79 @@ def remove_user_account(module, idrac, slot_uri, slot_id):
         module.exit_json(msg="No changes found to commit!")
     elif not module.check_mode and (slot_uri and slot_id) is not None:
         time.sleep(10)
-        response = idrac.import_scp(import_buffer=xml_payload, target="ALL", job_wait=True)
+        response = idrac.import_scp(import_buffer=xml_payload, target=["ALL"], job_wait=True)
     else:
         module.exit_json(msg="The user account is absent.")
     return response, msg
 
 
-def validate_input(module):
+def validate_choices_for_protocol(idrac):
+    try:
+        resp = idrac.invoke_request(MANAGERS_ATTRIBUTES_REGISTRY, "GET")
+        reg_entries = resp.json_data.get("RegistryEntries", {})
+        attributes = reg_entries.get("Attributes", [[]])
+        auth_dict = None
+        privacy_dict = None
+        for sub_dict in attributes:
+            attr_name = sub_dict.get("AttributeName")
+            if attr_name == "Users.1.AuthenticationProtocol":
+                auth_dict = sub_dict
+            elif attr_name == "Users.1.PrivacyProtocol":
+                privacy_dict = sub_dict
+            if auth_dict and privacy_dict:
+                break
+        auth_choices = [
+            item.get("ValueDisplayName")
+            for item in auth_dict.get("Value", [])
+        ] if auth_dict else []
+
+        privacy_choices = [
+            item.get("ValueDisplayName")
+            for item in privacy_dict.get("Value", [])
+        ] if privacy_dict else []
+        return privacy_choices, auth_choices
+    except Exception:
+        return [], []
+
+
+def validate_authentication_and_privacy_protocols(module,
+                                                  idrac,
+                                                  authentication_protocol,
+                                                  privacy_protocol):
+    privacy_list, auth_list = validate_choices_for_protocol(idrac)
+    if authentication_protocol and authentication_protocol not in auth_list:
+        auth_invalid_msg = INVALID_AUTHENTICATION_PROTOCOL_MSG.format(
+            protocol=authentication_protocol,
+            supported_auth_protocol=auth_list
+        )
+        module.exit_json(msg=auth_invalid_msg,
+                         failed=True)
+    if privacy_protocol and privacy_protocol not in privacy_list:
+        privacy_invalid_msg = INVALID_PRIVACY_PROTOCOL_MSG.format(
+            protocol=privacy_protocol,
+            supported_privacy_protocol=privacy_list
+        )
+        module.exit_json(msg=privacy_invalid_msg,
+                         failed=True)
+
+
+def validate_input(module, idrac, generation):
     if module.params["state"] == "present":
         user_privilege = module.params["custom_privilege"] if "custom_privilege" in module.params and \
             module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"], 0)
+        if isinstance(generation, int) and generation >= 17:
+            INVALID_PRIVILAGE_MIN = INVALID_PRIVILAGE_MIN_iDRAC10
+        else:
+            INVALID_PRIVILAGE_MIN = INVALID_PRIVILAGE_MIN_iDRAC9
         if INVALID_PRIVILAGE_MIN > user_privilege or user_privilege > INVALID_PRIVILAGE_MAX:
-            module.exit_json(msg=INVALID_PRIVILAGE_MSG,
+            module.exit_json(msg=INVALID_PRIVILAGE_MSG.format(INVALID_PRIVILAGE_MIN),
                              failed=True)
+        authentication_protocol = module.params.get("authentication_protocol")
+        privacy_protocol = module.params.get("privacy_protocol")
+        validate_authentication_and_privacy_protocols(module,
+                                                      idrac,
+                                                      authentication_protocol,
+                                                      privacy_protocol)
 
 
 def main():
@@ -412,28 +528,33 @@ def main():
         "new_user_name": {"required": False},
         "user_name": {"required": True},
         "user_password": {"required": False, "no_log": True},
-        "privilege": {"required": False, "choices": ['Administrator', 'ReadOnly', 'Operator', 'None']},
+        "privilege": {"required": False,
+                      "choices": ['Administrator', 'ReadOnly', 'Operator', 'None'],
+                      "aliases": ['role']},
         "custom_privilege": {"required": False, "type": "int"},
         "ipmi_lan_privilege": {"required": False, "choices": ['Administrator', 'Operator', 'User', 'No Access']},
         "ipmi_serial_privilege": {"required": False, "choices": ['Administrator', 'Operator', 'User', 'No Access']},
         "enable": {"required": False, "type": "bool"},
         "sol_enable": {"required": False, "type": "bool"},
         "protocol_enable": {"required": False, "type": "bool"},
-        "authentication_protocol": {"required": False, "choices": ['SHA', 'MD5', 'None']},
-        "privacy_protocol": {"required": False, "choices": ['AES', 'DES', 'None']},
+        "authentication_protocol": {"required": False, "choices": ['SHA', 'MD5', 'None', 'SHA-384', 'SHA-512']},
+        "privacy_protocol": {"required": False, "choices": ['AES', 'DES', 'None', 'AES-256']},
     }
     module = IdracAnsibleModule(
         argument_spec=specs,
         supports_check_mode=True)
     try:
-        validate_input(module)
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:
+            gen_details = idrac.get_server_generation
+            generation = gen_details[0]
+            validate_input(module, idrac, generation)
+            set_attribute_uri(generation)
             user_attr, slot_uri, slot_id, empty_slot_id, empty_slot_uri = get_user_account(module, idrac)
             if module.params["state"] == "present":
                 response, message = create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id,
-                                                             empty_slot_uri, user_attr)
+                                                             empty_slot_uri, user_attr, generation)
             elif module.params["state"] == "absent":
-                response, message = remove_user_account(module, idrac, slot_uri, slot_id)
+                response, message = remove_user_account(module, idrac, slot_uri, slot_id, generation)
             error = response.json_data.get("error")
             oem = response.json_data.get("Oem")
             out_data = remove_key(response.json_data, regex_pattern=ODATA_ID)
