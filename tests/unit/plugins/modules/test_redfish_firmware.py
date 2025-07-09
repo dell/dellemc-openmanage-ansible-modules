@@ -32,6 +32,7 @@ HTTPS_IMAGE_URI = "https://home/firmware_repo/component.exe"
 HTTPS_ADDRESS_DELL = "https://dell.com"
 LOCAL_IMAGE_URI = "/home/firmware_repo/component.exe"
 
+
 @pytest.fixture
 def redfish_firmware_connection_mock(mocker, redfish_response_mock):
     connection_class_mock = mocker.patch(MODULE_PATH + 'redfish_firmware.Redfish')
@@ -295,19 +296,19 @@ class TestRedfishFirmware(FakeAnsibleModule):
         assert 'multipart/form-data' in result[1]
 
     @pytest.mark.parametrize("generation", [16, 17])
-    def test_firmware_update_upload_status_201(self, redfish_default_args, redfish_firmware_connection_mock,
+    def test_firmware_update_success_case04(self, redfish_default_args, redfish_firmware_connection_mock,
                                         redfish_response_mock, mocker, generation):
-        mocker.patch(MODULE_PATH + 'redfish_firmware._get_update_service_target',
-                    return_value=('2134', HTTPS_ADDRESS_DELL, 'multipart/form-data'))
-        mocker.patch(MODULE_PATH + 'redfish_firmware._encode_form_data',
-                    return_value=({"file": (3, HTTPS_ADDRESS_DELL, FIRMWARE_DATA)}, FIRMWARE_DATA))
+        mocker.patch(MODULE_PATH + "redfish_firmware._get_update_service_target",
+                     return_value=('2134', HTTPS_ADDRESS_DELL, 'multipart/form-data'))
+        mocker.patch(MODULE_PATH + "redfish_firmware._encode_form_data",
+                     return_value=({"file": (3, HTTPS_ADDRESS_DELL, FIRMWARE_DATA)}, FIRMWARE_DATA))
         redfish_default_args.update({"image_uri": LOCAL_IMAGE_URI,
                                     "transfer_protocol": "HTTP", "timeout": 0, "job_wait_timeout": 0})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.status_code = 201
         redfish_response_mock.success = True
         redfish_response_mock.json_data = {"image_uri": LOCAL_IMAGE_URI,
-                                        "transfer_protocol": "HTTP"}
+                                            "transfer_protocol": "HTTP"}
         if sys.version_info.major == 3:
             builtin_module_name = 'builtins'
         else:
