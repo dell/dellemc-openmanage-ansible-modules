@@ -52,7 +52,7 @@
     - name: Constructing url
       ansible.builtin.set_fact:
         url_1: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/"
-        url_2: "Managers/iDRAC.Embedded.1/Jobs/{{ result.task.id }}"
+        url_2: "Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{ result.task.id }}"
 
     - name: Final url
       ansible.builtin.set_fact:
@@ -105,7 +105,7 @@
     - name: Constructing url
       ansible.builtin.set_fact:
         url_1: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/"
-        url_2: "Managers/iDRAC.Embedded.1/Jobs/{{ result.task.id }}"
+        url_2: "Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{ result.task.id }}"
 
     - name: Final url
       ansible.builtin.set_fact:
@@ -157,7 +157,7 @@
     - name: Constructing url
       ansible.builtin.set_fact:
         url_1: "https://{{idrac_ip}}:{{ idrac_port }}/redfish/v1/"
-        url_2: "Managers/iDRAC.Embedded.1/Jobs/{{ result.task.id }}"
+        url_2: "Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{ result.task.id }}"
 
     - name: Final url
       ansible.builtin.set_fact:
@@ -187,94 +187,118 @@
       delay: 60
       until: download_result is not failed
 
-    - name: Update a firmware from a single executable file from Local path
-       with job_wait=true and job_wait_timeout=300 when the component is of
-       type manual reboot
-      dellemc.openmanage.redfish_firmware:
-        image_uri: "{{ download_result.dest }}"
-        timeout: 300
-        job_wait: true
-        job_wait_timeout: 300
-      register: result
+    - name: Update and verify firmware for generation 16 and below
+      block:
+        - name: Update a firmware from a single executable file from Local path
+            with job_wait=true and job_wait_timeout=300 when the component is of
+            type manual reboot
+          dellemc.openmanage.redfish_firmware:
+            image_uri: "{{ download_result.dest }}"
+            timeout: 300
+            job_wait: true
+            job_wait_timeout: 300
+          register: result
 
-    - name: Verify task status - Update a firmware from a single executable
-       file from Local path with default value of job_wait and job_wait_timeout
-       when the component is of type manual reboot
-      ansible.builtin.assert:
-        that:
-          - result.changed
-          - result.msg ==  "Successfully scheduled the firmware job."
+        - name: Verify task status - Update a firmware from a single executable
+            file from Local path with job_wait=true and job_wait_timeout=300
+            when the component is of type manual reboot
+          ansible.builtin.assert:
+            that:
+              - result.changed
+              - result.msg ==  "Successfully scheduled the firmware job."
 
-    - name: Wait for iDRAC web interface to become reachable
-      ansible.builtin.uri:
-        url: "https://{{ idrac_ip }}"
-        method: GET
-        timeout: 30
-        validate_certs: false
-      register: uri_result
-      failed_when: false
-      until: uri_result is defined and uri_result.status is defined and
-       uri_result.status == 200
-      retries: 10
-      delay: 30
+        - name: Wait for iDRAC web interface to become reachable
+          ansible.builtin.uri:
+            url: "https://{{ idrac_ip }}"
+            method: GET
+            timeout: 30
+            validate_certs: false
+          register: uri_result
+          failed_when: false
+          until: uri_result is defined and uri_result.status is defined and
+            uri_result.status == 200
+          retries: 10
+          delay: 30
 
-    - name: Pause
-      ansible.builtin.pause:
-        seconds: 300
+        - name: Pause
+          ansible.builtin.pause:
+            seconds: 300
 
-    - name: Perform graceful restart of the device
-      dellemc.openmanage.redfish_powerstate:
-        reset_type: "GracefulRestart"
-      register: reboot_result
+        - name: Perform graceful restart of the device
+          dellemc.openmanage.redfish_powerstate:
+            reset_type: "GracefulRestart"
+          register: reboot_result
 
-    - ansible.builtin.wait_for: timeout=30
+        - ansible.builtin.wait_for: timeout=30
+
+        - name: Constructing url
+          ansible.builtin.set_fact:
+            url_1: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/"
+            url_2: "Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/\
+              {{ result.task.id }}"
+
+        - name: Final url
+          ansible.builtin.set_fact:
+            job_url: "{{ url_1 }}{{ url_2 }}"
+
+        - ansible.builtin.include_tasks: get_data.yml
+          vars:
+            url: "{{ job_url }}"
+
+        - name: Verify scheduled job status for component firmware update
+          ansible.builtin.assert:
+            that:
+              - uri_data.JobState == "Scheduled"
+              - 'uri_data.Name ==  "Firmware Update: BIOS"'
+              - uri_data.Message == "Task successfully scheduled."
+
+        - name: Wait for the device power state to be On
+          ansible.builtin.uri:
+            url: "{{ powerstate_uri }}"
+            user: "{{ idrac_user }}"
+            password: "{{ idrac_password }}"
+            validate_certs: false
+            headers: 'Accept=application/json'
+          register: current_powerstate
+          until: current_powerstate.json.PowerState == "On"
+          retries: 20
+          delay: 30
+
+        - name: Verify task status -  Perform graceful restart of the device
+          ansible.builtin.assert:
+            that:
+              - reboot_result.changed
+              - reboot_result.msg == "Successfully performed the reset type
+                operation 'GracefulRestart'."
+              - current_powerstate.json.PowerState == "On"
+
+        - ansible.builtin.include_tasks: _post_update_helper.yml
+
+      when: generation | int < 17
+
+    - name: Update and verify firmware for generation 17 and above
+      block:
+        - name: Update a firmware from a single executable file from Local path
+            with job_wait=true and job_wait_timeout=1000
+          dellemc.openmanage.redfish_firmware:
+            image_uri: "{{ download_result.dest }}"
+            timeout: 300
+            job_wait: true
+            job_wait_timeout: 1000
+          register: result
+
+        - name: Verify task status - Update a firmware from a single executable
+            file from Local path with job_wait=true and job_wait_timeout=1000
+          ansible.builtin.assert:
+            that:
+              - result.changed
+              - result.msg ==  "Successfully updated the firmware."
+      when: generation | int >= 17
 
     - name: Constructing url
       ansible.builtin.set_fact:
         url_1: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/"
-        url_2: "Managers/iDRAC.Embedded.1/Jobs/{{ result.task.id }}"
-
-    - name: Final url
-      ansible.builtin.set_fact:
-        job_url: "{{ url_1 }}{{ url_2 }}"
-
-    - ansible.builtin.include_tasks: get_data.yml
-      vars:
-        url: "{{ job_url }}"
-
-    - name: Verify scheduled job status for component firmware update
-      ansible.builtin.assert:
-        that:
-          - uri_data.JobState == "Scheduled"
-          - 'uri_data.Name ==  "Firmware Update: BIOS"'
-          - uri_data.Message == "Task successfully scheduled."
-
-    - name: Wait for the device power state to be On
-      ansible.builtin.uri:
-        url: "{{ powerstate_uri }}"
-        user: "{{ idrac_user }}"
-        password: "{{ idrac_password }}"
-        validate_certs: false
-        headers: 'Accept=application/json'
-      register: current_powerstate
-      until: current_powerstate.json.PowerState == "On"
-      retries: 20
-      delay: 30
-
-    - name: Verify task status -  Perform graceful restart of the device
-      ansible.builtin.assert:
-        that:
-          - reboot_result.changed
-          - reboot_result.msg == "Successfully performed the reset type
-           operation 'GracefulRestart'."
-          - current_powerstate.json.PowerState == "On"
-
-    - ansible.builtin.include_tasks: _post_update_helper.yml
-
-    - name: Constructing url
-      ansible.builtin.set_fact:
-        url_1: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/"
-        url_2: "Managers/iDRAC.Embedded.1/Jobs/{{ result.task.id }}"
+        url_2: "Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{ result.task.id }}"
 
     - name: Final url
       ansible.builtin.set_fact:
