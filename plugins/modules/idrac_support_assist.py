@@ -685,12 +685,13 @@ class RunSupportAssist(SupportAssist):
             sa_file_name = f"{hostname}_{now.strftime(TIME_FORMAT)}.zip"
             file_name = (os.path.join(file_path, sa_file_name))
             time.sleep(10)
-            file_dict = self.idrac.invoke_request(job_tracking_uri, "GET", api_timeout=200)
+            file_dict = self.idrac.invoke_request(job_tracking_uri, "GET",
+                                                  api_timeout=200)
             time.sleep(10)
             file_dnld = self.idrac.invoke_request(file_dict.headers.get(
                 "Location"), "GET",
                 headers={"Content-Type": "application/x-tar"},
-                api_timeout=200)
+                api_timeout = 200)
             if file_dnld.status_code == 200:
                 with open(file_name, "wb") as file:
                     file.write(file_dnld.body)
