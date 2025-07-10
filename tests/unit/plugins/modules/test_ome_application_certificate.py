@@ -96,6 +96,14 @@ class TestOmeAppCSR(FakeAnsibleModule):
             self.module.get_resource_parameters(f_module)
         assert exc.value.args[0] == "No such file or directory."
 
+    def test_invalid_command(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
+                               ome_response_mock):
+        args = {"command": "invalid", "upload_file": "/path/certificate.cer"}
+        f_module = self.get_module_mock(params=args)
+        with pytest.raises(Exception) as exc:
+            self.module.get_resource_parameters(f_module)
+        assert exc.value.args[0] == "Unknown command: invalid"
+
     def test_upload_csr_success(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
                                 ome_response_mock):
         payload = "--BEGIN-REQUEST--"

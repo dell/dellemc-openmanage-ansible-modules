@@ -239,17 +239,6 @@ def get_resource_parameters(module):
 
     return method, uri, payload
 
-
-def read_file(module):
-    """Reads the file content for 'upload' and 'upload_cert_chain' commands."""
-    file_path = module.params["upload_file"]
-    if os.path.exists(file_path):
-        with open(file_path, 'rb') as file:
-            return file.read()
-    else:
-        module.exit_json(msg="No such file or directory.", failed=True)
-
-
 def get_san(subject_alternative_names):
     if not subject_alternative_names:
         return subject_alternative_names
