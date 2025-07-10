@@ -407,6 +407,27 @@ class TestFactoryReset(FakeAnsibleModule):
             reset_obj.check_lcstatus()
         assert exc.value.args[0] == LC_LOGIN_ERR_MSG
 
+        # Scenario: When LC status service fails during _check_lcstatus_with_url
+        api_mock = MagicMock(**{'invoke_request.side_effect': URLError("urlopen error")})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        reset_obj = self.module.FactoryReset(api_mock, f_module, allowed_choices=allowed_values)
+        mocker.patch(MODULE_PATH + SLEEP_KEY, side_effect=lambda *args, **kwargs: None)
+        with pytest.raises(Exception) as exc:
+            reset_obj._check_lc_status_with_url(lc_url="")
+        assert exc.value.args[0] == LC_STATUS_MSG.format(lc_status='unreachable', retries=IDRAC_RESET_RETRIES)
+
+        # Scenario: When LC status never moves to ready state
+        api_mock = MagicMock(**{'invoke_request.return_value.json_data': self.lc_status_invoke_not_ready})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        reset_obj = self.module.FactoryReset(api_mock, f_module, allowed_choices=allowed_values)
+        mocker.patch(MODULE_PATH + SLEEP_KEY, side_effect=lambda *args, **kwargs: None)
+        with pytest.raises(Exception) as exc:
+            reset_obj._check_lc_status_with_url(lc_url="")
+        assert exc.value.args[0] == LC_STATUS_MSG.format(
+            lc_status=self.lc_status_invoke_not_ready['LCStatus'],
+            retries=IDRAC_RESET_RETRIES,
+        )
+
     def test_execute(self, idrac_default_args, idrac_connection_reset_mock, mocker):
         allowed_values = ["All", "Default", "ResetAllWithRootDefaults", "CustomDefaults"]
         allowed_values_without_cd = ["All", "Default", "ResetAllWithRootDefaults"]
