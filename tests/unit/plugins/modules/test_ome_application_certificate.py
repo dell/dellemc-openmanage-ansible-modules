@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.6.0
-# Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.12.4
+# Copyright (C) 2019-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -59,7 +59,7 @@ class TestOmeAppCSR(FakeAnsibleModule):
         elif exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + 'ome_application_certificate.get_resource_parameters',
                          side_effect=exc_type("exception message"))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'ome_application_certificate.get_resource_parameters',
@@ -67,7 +67,7 @@ class TestOmeAppCSR(FakeAnsibleModule):
                                               'http error message',
                                               {"accept-type": "application/json"},
                                               StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'csr_status' not in result
         assert 'msg' in result
@@ -103,7 +103,7 @@ class TestOmeAppCSR(FakeAnsibleModule):
                      return_value=("POST", "ApplicationService/Actions/ApplicationService.UploadCertificate", payload))
         ome_default_args.update({"command": "upload", "upload_file": "/path/certificate.cer"})
         ome_response_mock.success = True
-        result = self.execute_module(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result['msg'] == "Successfully uploaded application certificate."
 
     def test_upload_cert_chain_fail(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
@@ -121,7 +121,7 @@ class TestOmeAppCSR(FakeAnsibleModule):
                      return_value=("POST", "ApplicationService/Actions/ApplicationService.UploadCertChain", payload))
         mocker.patch(MODULE_PATH + 'ome_application_certificate.get_ome_version', return_value="4.1.0")
         ome_default_args.update({"command": "upload_cert_chain", "upload_file": "/path/certificate_chain.cer"})
-        result = self.execute_module(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result['msg'] == "Successfully uploaded application certificate."
 
     def test_generate_csr(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
@@ -139,7 +139,7 @@ class TestOmeAppCSR(FakeAnsibleModule):
                                  "email": EMAIL_ADDRESS, "subject_alternative_names": "XX.XX.XX.XX, YY.YY.YY.YY"})
         ome_response_mock.success = True
         ome_response_mock.json_data = csr_json
-        result = self.execute_module(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result['msg'] == "Successfully generated certificate signing request."
         data = '''-----BEGIN CERTIFICATE REQUEST-----\nMIIFMDCCAxgCAQAwgbAxCzAJBgNVBAYTAlVTMREwDwYDVQQIDAhWaXJnaW5pYTES\n-----END CERTIFICATE REQUEST-----'''
         assert result['csr_status']['CertificateData'] == data
