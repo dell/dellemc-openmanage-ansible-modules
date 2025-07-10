@@ -150,6 +150,17 @@ class TestValidation(FakeAnsibleModule):
         allowed_values, res = idr_obj.validate_reset_options(RESET_KEY)
         assert res is False
 
+        # Scenario - when reset_to_default is CustomDefaults in 17G
+        obj.json_data = self.allowed_values_api
+        mocker.patch(MODULE_PATH + GET_BASE_URI_KEY, return_value=IDRAC_URI)
+        mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, return_value=obj)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idrac_default_args.update({"reset_to_default": 'CustomDefaults'})
+        idr_obj = self.module.Validation(
+            idrac_connection_reset_mock, f_module, 17)
+        allowed_values, res = idr_obj.validate_reset_options(RESET_KEY)
+        assert res is True
+
     def test_validate_graceful_restart_option(self, idrac_default_args, idrac_connection_reset_mock, mocker):
         # Scenario - when key doesn't exist in output from invoke_request
         obj = MagicMock()
