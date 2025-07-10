@@ -115,4 +115,3 @@
         when: not ansible_check_mode and not idrac_boot_out.changed
       when:
         '"16G" in uri_data.json.Model'
-
