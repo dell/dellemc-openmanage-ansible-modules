@@ -7,26 +7,43 @@
     idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
     idrac_port: "{{ lookup('env', 'IDRAC_PORT') }}"
   tasks:
-    - name: Read file content for set_boot_mode variable
-      ansible.builtin.command: cat /tmp/boot_mode.txt
+    - name: Fetch IDRAC Data
+      ansible.builtin.include_tasks:
+        file: ../__get_data.yml
+      vars:
+        url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1\
+          /Systems/System.Embedded.1/Bios"
+
+    - name: Set maintenance_window_start variable
+      ansible.builtin.set_fact:
+        maintenance_window_start: "{{ 'AtMaintenanceWindowStart' in
+         idrac_bios_uri_data.json\
+         ['@Redfish.Settings']['SupportedApplyTimes'] }}"
+
+    - name: Read file content for set_bootseq_retry variable
+      ansible.builtin.command: cat /tmp/boot_seq_retry.txt
       register: file_content
       check_mode: false
       delegate_to: localhost
       changed_when: true
+      when: maintenance_window_start
 
-    - name: Set set_boot_mode variable
+    - name: Set set_bootseq_retry variable
       ansible.builtin.set_fact:
-        set_boot_mode: "{{ file_content.stdout }}"
+        set_bootseq_retry: "{{ file_content.stdout }}"
       delegate_to: localhost
+      when: maintenance_window_start
 
     - name: Get tomorrow's date
       ansible.builtin.command: date -d "+1 day" +'%Y-%m-%dT%H:%M:%S'
       register: tomorrow_date
       changed_when: false
+      when: maintenance_window_start
 
     - name: Convert tomorrow's date to string
       ansible.builtin.set_fact:
         date_str: "{{ tomorrow_date.stdout }}"
+      when: maintenance_window_start
 
     - name: Fetch IDRAC time offset
       ansible.builtin.include_tasks:
@@ -34,11 +51,14 @@
       vars:
         url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1\
           /Managers/iDRAC.Embedded.1"
+      when: maintenance_window_start
 
     - name: Set the local offset
-      when: idrac_bios_uri_data.json.DateTimeLocalOffset is defined
       ansible.builtin.set_fact:
         local_offset: "{{ idrac_bios_uri_data.json.DateTimeLocalOffset }}"
+      when:
+        - maintenance_window_start
+        - idrac_bios_uri_data.json.DateTimeLocalOffset is defined
 
     - name: Update attributes with apply time at start of maintenance window
       ansible.builtin.import_role:
@@ -53,7 +73,8 @@
           start_time: "{{ date_str }}{{ local_offset }}"
           duration: 600
         attributes:
-          BootMode: "{{ set_boot_mode }}"
+          BootSeqRetry: "{{ set_bootseq_retry }}"
+      when: maintenance_window_start
 
     - name: Assert update attributes with apply time at start of
             maintenance window in normal mode
@@ -63,7 +84,9 @@
             idrac_bios_out.attributes.status_msg"
           - idrac_bios_out.reset_bios.skipped
           - idrac_bios_out.clear_pending.skipped
-      when: not ansible_check_mode
+      when:
+        - not ansible_check_mode
+        - maintenance_window_start
 
     - name: Assert update attributes with apply time at start of
             maintenance window in check mode
@@ -71,4 +94,6 @@
         that:
           - idrac_bios_out.attributes.status_msg == "Changes found to
             be applied."
-      when: ansible_check_mode
+      when:
+        - ansible_check_mode
+        - maintenance_window_start
