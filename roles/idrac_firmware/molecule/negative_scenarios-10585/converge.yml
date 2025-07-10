@@ -106,7 +106,7 @@
 
     - name: Update firmware from repository on HTTPS Share with invalid share_user
       ansible.builtin.import_role:
-        name: "idrac_firmware"
+        name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -129,7 +129,7 @@
 
     - name: Update firmware from repository on HTTPS Share with invalid share_password
       ansible.builtin.import_role:
-        name: "idrac_firmware"
+        name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -152,7 +152,7 @@
 
     - name: Update firmware from repository on a HTTPS via parameter proxy Share with invalid proxy_uname
       ansible.builtin.import_role:
-        name: "idrac_firmware"
+        name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -182,7 +182,7 @@
 
     - name: Update firmware from repository on a HTTPS via parameter proxy Share with invalid proxy_passwd
       ansible.builtin.import_role:
-        name: "idrac_firmware"
+        name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
