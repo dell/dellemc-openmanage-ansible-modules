@@ -2,9 +2,12 @@
 - name: Prepare system for Molecule tests
   hosts: all
   become: true
+  vars:
+    _role_path: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}"
   tasks:
+    - name : "debug role path"
+      ansible.builtin.debug:
+        msg: "{{ _role_path }}"
     - name: "Pre-requisites"
-      vars:
-        role_path: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}"
       ansible.builtin.include_tasks:
-        file: "{{ role_path }}/molecule/resources/tests/downgrade.yml"
+        file: "{{ _role_path }}/molecule/resources/tests/downgrade.yml"
