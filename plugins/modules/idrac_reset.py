@@ -231,9 +231,9 @@ IDRAC_RESET_RESET_TRIGGER_MSG = "iDRAC reset operation triggered successfully."
 IDRAC_RESET_RESTART_TRIGGER_MSG = "iDRAC restart operation triggered successfully."
 INVALID_DIRECTORY_MSG = "Provided directory path '{path}' is invalid."
 FAILED_RESET_MSG = "Failed to perform the reset operation."
-FAILED_TO_LOGIN_POST_RESET_MSG = "Failed to login after iDRAC reset. \
-Either the iDRAC systems took too long to come online \
-or the iDRAC credentials are invalid now."
+FAILED_TO_LOGIN_POST_RESET_MSG = "Login failed after the iDRAC reset. \
+Either the iDRAC is taking longer than expected time to come online \
+or the iDRAC credentials are invalid."
 RESET_UNTRACK = "iDRAC reset is in progress. Changes will apply once the iDRAC reset operation is successfully completed."
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value of `job_wait_timeout` parameter cannot be negative or zero. Enter the valid value and retry the operation."
 INVALID_FILE_MSG = "File extension is invalid. Supported extension for 'custom_default_file' is: .xml."
@@ -396,6 +396,13 @@ class FactoryReset():
             self.idrac.password = default_password
             return True
 
+    @staticmethod
+    def _encode_error(err: Exception) -> dict:
+        try:
+            return json.load(err)
+        except Exception:
+            return {"error": str(err)}
+
     def check_service_availability(self, retry_count: int = 12, retry_interval: int = 30) -> dict:
         """
         Check if the iDRAC service is available after a reset.
@@ -426,7 +433,7 @@ class FactoryReset():
 
         self.module.exit_json(
             msg=FAILED_TO_LOGIN_POST_RESET_MSG, failed=True,
-            changed=True, err_msg=str(err_last),
+            changed=True, error_info=self._encode_error(err_last),
         )
 
     def check_lcstatus(self, post_op=True):

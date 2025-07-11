@@ -236,7 +236,7 @@
       ansible.builtin.assert:
         that:
           - only_default_incorrect_credentials.failed
-          - '"Failed to login after iDRAC reset" in
+          - '"Login failed after the iDRAC reset." in
             only_default_incorrect_credentials.msg'
 
   module_defaults:

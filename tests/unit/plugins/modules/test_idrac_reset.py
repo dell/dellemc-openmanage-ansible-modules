@@ -47,7 +47,9 @@ RESET_UNTRACK = "iDRAC reset is in progress. Changes will apply once the iDRAC r
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value of `job_wait_timeout` parameter cannot be negative or zero. Enter the valid value and retry the operation."
 INVALID_FILE_MSG = "File extension is invalid. Supported extension for 'custom_default_file' is: .xml."
 LC_STATUS_MSG = "Lifecycle controller status check is {lc_status} after {retries} number of retries, Exiting.."
-LC_LOGIN_ERR_MSG = "Failed to login after iDRAC reset. Either the iDRAC systems took too long to come online or the iDRAC credentials are invalid now."
+LC_LOGIN_ERR_MSG = "Login failed after the iDRAC reset. \
+Either the iDRAC is taking longer than expected time to come online \
+or the iDRAC credentials are invalid."
 INSUFFICIENT_DIRECTORY_PERMISSION_MSG = "Provided directory path '{path}' is not writable. Please check if the directory has appropriate permissions."
 UNSUPPORTED_LC_STATUS_MSG = "Lifecycle controller status check is not supported."
 CHANGES_NOT_FOUND = "No changes found to commit!"
@@ -327,6 +329,26 @@ class TestFactoryReset(FakeAnsibleModule):
 
     custom_default_content = "<SystemConfiguration Model=\"PowerEdge R7525\" ServiceTag=\"2V4TK93\">\n<Component FQDD=\"iDRAC.Embedded.1\">\n \
     <Attribute Name=\"IPMILan.1#Enable\">Disabled</Attribute>\n </Component>\n\n</SystemConfiguration>"
+
+    @pytest.mark.parametrize(
+        "err",
+        [
+            URLError("urlopen error"),
+            HTTPError(
+                'https://testhost.com',
+                500,
+                HTTP_ERROR_MSG,
+                {"accept-type": RETURN_TYPE},
+                StringIO(to_text(json.dumps({"data": "out"}))),
+            ),
+        ]
+    )
+    def test_encode_error(self, err):
+        result = self.module.FactoryReset._encode_error(err)
+        if result.get("data"):
+            assert result["data"] == "out"
+        else:
+            assert result["error"] == str(err)
 
     @pytest.fixture
     def idrac_reset_mock(self):
