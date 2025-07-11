@@ -423,7 +423,8 @@ class FactoryReset():
             Module Exit JSON: If the service is not available after the specified number of retries.
         """
         err_last = None
-        for _ in range(retry_count):  # pylint: disable=disallowed-name
+        while retry_count > 0:
+            retry_count -= 1
             time.sleep(retry_interval)
             try:
                 resp = get_dynamic_uri(self.idrac, self.uri, "Links")
