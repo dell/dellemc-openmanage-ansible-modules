@@ -5,4 +5,4 @@
   tasks:
     - name: "Pre-requisites"
       ansible.builtin.include_tasks:
-        file: "../resources/tests/downgrade.yml"
+        file: "{{ role_path }}/molecule/resources/tests/downgrade.yml"
