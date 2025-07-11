@@ -92,17 +92,17 @@ class TestOmeAppCSR(FakeAnsibleModule):
                                               ome_connection_mock_for_application_certificate,
                                               ome_response_mock):
         args = {"command": "generate_csr", "distinguished_name": "hostname.com",
-        "department_name": "Remote Access Group", "business_name": "Dell Inc.",
-        "locality": "Round Rock", "country_state": "Texas", "country": "US",
-        "email": EMAIL_ADDRESS, "subject_alternative_names": ""}
+                "department_name": "Remote Access Group", "business_name": "Dell Inc.",
+                "locality": "Round Rock", "country_state": "Texas", "country": "US",
+                "email": EMAIL_ADDRESS, "subject_alternative_names": ""}
         f_module = self.get_module_mock(params=args)
         result = self.module.get_resource_parameters(f_module)
         assert result[0] == "POST"
         assert result[1] == "ApplicationService/Actions/ApplicationService.GenerateCSR"
         assert result[2] == {'DistinguishedName': 'hostname.com', 'Locality': 'Round Rock',
-        'DepartmentName': 'Remote Access Group', 'BusinessName': 'Dell Inc.',
-        'State': 'Texas', 'Country': 'US', 'Email': 'support@dell.com',
-        'San': ''}
+                             'DepartmentName': 'Remote Access Group', 'BusinessName': 'Dell Inc.',
+                             'State': 'Texas', 'Country': 'US', 'Email': 'support@dell.com',
+                             'San': ''}
 
     def test_upload_csr_fail01(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
                                ome_response_mock):
@@ -113,7 +113,7 @@ class TestOmeAppCSR(FakeAnsibleModule):
         assert exc.value.args[0] == "No such file or directory."
 
     def test_invalid_command(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
-        ome_response_mock):
+                             ome_response_mock):
         args = {"command": "invalid", "upload_file": "/path/certificate.cer"}
         f_module = self.get_module_mock(params=args)
         with pytest.raises(Exception) as exc:
@@ -131,7 +131,7 @@ class TestOmeAppCSR(FakeAnsibleModule):
         assert result['msg'] == "Successfully uploaded application certificate."
 
     def test_upload_csr_failed(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
-                                ome_response_mock):
+                               ome_response_mock):
         payload = "--BEGIN-REQUEST--"
         mocker.patch(MODULE_PATH + 'ome_application_certificate.get_resource_parameters',
                      return_value=("POST", "ApplicationService/Actions/ApplicationService.UploadCertificate", payload))
