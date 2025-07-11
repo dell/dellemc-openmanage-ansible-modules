@@ -1,0 +1,27 @@
+---
+- name: Importing license - Normal
+  dellemc.openmanage.idrac_license:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    idrac_port: "{{ idrac_port }}"
+    validate_certs: "{{ validate_certs }}"
+    import: true
+    share_parameters:
+      share_type: http
+      file_name: "{{ idrac_license_file }}"
+      ip_address: "{{ http_share }}"
+      share_name: "{{ http_share_dir_path }}"
+      username: "{{ http_share_user | default(omit) }}"
+      password: "{{ http_share_password | default(omit) }}"
+  register: import_license_output
+
+- name: Verify status of task - import license - normal mode
+  ansible.builtin.assert:
+    that:
+      - import_license_output.changed
+      - 'import_license_output.msg == "Successfully imported the license."'
+
+- name: Waiting for idrac readiness
+  ansible.builtin.wait_for:
+    timeout: 60
