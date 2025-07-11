@@ -87,7 +87,7 @@ class TestOmeAppCSR(FakeAnsibleModule):
                              'DepartmentName': 'Remote Access Group', 'BusinessName': 'Dell Inc.',
                              'State': 'Texas', 'Country': 'US', 'Email': 'support@dell.com',
                              'San': 'XX.XX.XX.XX'}
-    
+
     def test_empty_san(self, mocker, ome_default_args,
                                               ome_connection_mock_for_application_certificate,
                                               ome_response_mock):
@@ -129,6 +129,16 @@ class TestOmeAppCSR(FakeAnsibleModule):
         ome_response_mock.success = True
         result = self._run_module(ome_default_args)
         assert result['msg'] == "Successfully uploaded application certificate."
+
+    def test_upload_csr_failed(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
+                                ome_response_mock):
+        payload = "--BEGIN-REQUEST--"
+        mocker.patch(MODULE_PATH + 'ome_application_certificate.get_resource_parameters',
+                     return_value=("POST", "ApplicationService/Actions/ApplicationService.UploadCertificate", payload))
+        ome_default_args.update({"command": "upload", "upload_file": "/path/certificate.cer"})
+        ome_response_mock.success = False
+        result = self._run_module(ome_default_args)
+        assert result['msg'] == "Request failed"
 
     def test_upload_cert_chain_fail(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
                                     ome_response_mock):

@@ -238,7 +238,7 @@ def get_resource_parameters(module):
     payload = command_details["payload_func"](module)
 
     return method, uri, payload
-    
+
 
 def get_san(subject_alternative_names):
     if not subject_alternative_names:
