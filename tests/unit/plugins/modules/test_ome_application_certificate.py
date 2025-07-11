@@ -89,8 +89,8 @@ class TestOmeAppCSR(FakeAnsibleModule):
                              'San': 'XX.XX.XX.XX'}
 
     def test_empty_san(self, mocker, ome_default_args,
-                                              ome_connection_mock_for_application_certificate,
-                                              ome_response_mock):
+                       ome_connection_mock_for_application_certificate,
+                       ome_response_mock):
         args = {"command": "generate_csr", "distinguished_name": "hostname.com",
                 "department_name": "Remote Access Group", "business_name": "Dell Inc.",
                 "locality": "Round Rock", "country_state": "Texas", "country": "US",
