@@ -138,7 +138,6 @@
           - invalid_type_for_job_wait_timeout.failed
           - not invalid_type_for_job_wait_timeout.changed
           - msg_var1 in invalid_type_for_job_wait_timeout.msg
-            
 
     - name: Negative - Invalid value for job_wait_timeout
       dellemc.openmanage.idrac_diagnostics:
