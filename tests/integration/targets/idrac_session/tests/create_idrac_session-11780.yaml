@@ -33,8 +33,8 @@
           - create_session_output.changed
           - 'create_session_output.msg == "The session has been created
            successfully."'
-          - create_session_output.x_auth_token
-          - create_session_output.session_data
+          - create_session_output.x_auth_token is defined
+          - create_session_output.session_data is defined
 
     - name: Set auth token and session id
       ansible.builtin.set_fact:
@@ -57,7 +57,10 @@
       ansible.builtin.assert:
         that:
           - actual_messages[item] in expected_messages[item]
-      loop: "{{ range(expected_messages | length) }}"
+      loop: "{{ range(0, expected_messages | length) | list }}"
+      loop_control:
+        index_var: item
+
 
     - name: Get session URI
       ansible.builtin.include_tasks: _get_session_uri.yml

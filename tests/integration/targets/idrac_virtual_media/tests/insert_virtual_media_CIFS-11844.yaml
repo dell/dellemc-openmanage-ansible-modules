@@ -128,7 +128,7 @@
         that:
           - not uri_data.Inserted
           - not uri_data.Image
-          -
+
     - name: Insertion of virtual media to RFS1 from CIFS share without
         providing media_type and index (Check mode)
       dellemc.openmanage.idrac_virtual_media: &idrac_virtual_media_3

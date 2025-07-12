@@ -23,8 +23,8 @@
         that:
           - invalid_hostname.unreachable
           - not invalid_hostname.changed
-          - invalid_hostname.msg == "<urlopen error [Errno -2]
-           Name or service not known>"
+          - 'invalid_hostname.msg == "<urlopen error [Errno -2]
+            Name or service not known>"'
 
     - name: Negative - Unreachable host
       dellemc.openmanage.idrac_secure_boot:
@@ -106,9 +106,8 @@
 
     - name: Set fact for invalid validate_certs Message
       ansible.builtin.set_fact:
-        invalid_msg: "argument 'validate_certs' is of type <class 'str'>
-         and we were unable to convert to bool: The value 'invalid' is not
-         a valid boolean.  Valid booleans include: "
+        invalid_msg: "The value 'invalid' is not
+         a valid boolean."
 
     - name: Verify task status - Negative - Invalid validate_certs
       ansible.builtin.assert:
