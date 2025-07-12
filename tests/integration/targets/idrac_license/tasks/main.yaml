@@ -17,12 +17,6 @@
   when: not test_items|length > 0
 
 - name: Run test cases
-  block:
-    - name: Run test case
-      ansible.builtin.include_tasks: "{{ test_case_to_run }}"
-      with_items: "{{ test_items }}"
-      loop_control:
-        loop_var: test_case_to_run
   environment:
     IDRAC_USERNAME: "{{ idrac_user }}"
     IDRAC_PASSWORD: "{{ idrac_password }}"
@@ -30,3 +24,9 @@
     dellemc.openmanage.idrac_license:
       idrac_ip: "{{ idrac_ip }}"
       validate_certs: "{{ validate_certs }}"
+  block:
+    - name: Run test case
+      ansible.builtin.include_tasks: "{{ test_case_to_run }}"
+      with_items: "{{ test_items }}"
+      loop_control:
+        loop_var: test_case_to_run
