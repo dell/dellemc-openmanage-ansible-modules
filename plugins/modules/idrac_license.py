@@ -717,10 +717,9 @@ class ExportLicense(License):
         :rtype: str
         """
         if self.module.params.get('share_parameters').get('share_type') != "local":
-          uri, error_msg = validate_and_get_first_resource_id_uri(
-              self.module, self.idrac, MANAGERS_URI)
+          uri, error_msg = validate_and_get_first_resource_id_uri(self.module, self.idrac, MANAGERS_URI)
           if error_msg:
-              self.module.exit_json(msg=error_msg, failed=True)
+            self.module.exit_json(msg=error_msg, failed=True)
           resp = get_dynamic_uri(self.idrac, uri)
           url = resp.get('Links', {}).get(OEM, {}).get(MANUFACTURER, {}).get(LICENSE_MANAGEMENT_SERVICE, {}).get(ODATA, {})
           action_resp = get_dynamic_uri(self.idrac, url)
