@@ -101,10 +101,8 @@
        display names
       ansible.builtin.assert:
         that:
-          - "'{{ enabled_legacy_normal_fetched_data[0].BootOptionEnabled }}'
-            == 'True'"
-          - "'{{ enabled_legacy_normal_fetched_data[1].BootOptionEnabled }}'
-            == 'True'"
+          - enabled_legacy_normal_fetched_data[0].BootOptionEnabled == true
+          - enabled_legacy_normal_fetched_data[1].BootOptionEnabled == true
           - enabled_legacy_normal_mode.changed
           - enabled_legacy_normal_mode.msg  == 'Successfully updated the
             boot settings.'
@@ -176,16 +174,10 @@
        display names
       ansible.builtin.assert:
         that:
-          - >
-            {{
-              disabled_bop_legacy_normal_fetched_data[0]
-                .BootOptionEnabled
-            }} == 'False'
-          - >
-            {{
-              disabled_bop_legacy_normal_fetched_data[1]
-                .BootOptionEnabled
-            }} == 'False'
+          - disabled_bop_legacy_normal_fetched_data[0].BootOptionEnabled
+            == false
+          - disabled_bop_legacy_normal_fetched_data[1].BootOptionEnabled
+            == false
           - disabled_bop_legacy_normal_mode.changed
           - disabled_bop_legacy_normal_mode.msg == 'Successfully updated the
            boot settings.'
@@ -255,10 +247,8 @@
     - name: Verify status of tasks - normal mode - enabling using display names
       ansible.builtin.assert:
         that:
-          - "'{{ mix_legacy_normal_fetched_data[0].BootOptionEnabled }}'
-           == 'True'"
-          - "'{{ mix_legacy_normal_fetched_data[1].BootOptionEnabled }}'
-           == 'False'"
+          - mix_legacy_normal_fetched_data[0].BootOptionEnabled == true
+          - mix_legacy_normal_fetched_data[1].BootOptionEnabled == false
           - mix_legacy_normal_mode.changed
           - mix_legacy_normal_mode.msg == 'Successfully updated the boot
             settings.'
@@ -289,6 +279,19 @@
       when: mix_legacy_normal_mode.changed
 
   when: generation | int < 17
+
+  module_defaults:
+    dellemc.openmanage.idrac_boot:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+    dellemc.openmanage.idrac_lifecycle_controller_status_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
 
 - block:
     - name: Setting boot mode to UEFI
