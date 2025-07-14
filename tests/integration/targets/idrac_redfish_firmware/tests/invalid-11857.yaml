@@ -11,6 +11,8 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
+- ansible.builtin.include_tasks: _get_server_generation.yml
+
 - block:
     - name: Negative - unreachable host
       dellemc.openmanage.redfish_powerstate:
@@ -92,15 +94,27 @@
       ignore_errors: true
       register: invalid_reset_type
 
+    - name: Set reset type errormsg based on generation
+      ansible.builtin.set_fact:
+        invalid_reset_type_expected_msg: >-
+          {{
+           "The target device does not support a force on "
+           "operation.The acceptable values for device reset types are "
+           "On, ForceOff, ForceRestart, GracefulRestart, GracefulShutdown, "
+           "PushPowerButton, Nmi, PowerCycle."
+           if generation | int < 17 else
+           "The target device does not support a force on operation."
+           "The acceptable values for device reset types are On, ForceOff, "
+           "GracefulRestart, GracefulShutdown, ForceRestart, Nmi, "
+           "PowerCycle, PushPowerButton."
+          }}
+
     - name: Verify status of tasks
       ansible.builtin.assert:
         that:
           - invalid_reset_type.failed
           - not invalid_reset_type.changed
-          - invalid_reset_type.msg == "The target device does not support a
-           force on operation.The acceptable values for device reset types are
-           On, ForceOff, ForceRestart, GracefulRestart, GracefulShutdown,
-           PushPowerButton, Nmi, PowerCycle."
+          - invalid_reset_type_expected_msg in invalid_reset_type.msg
 
   module_defaults:
     dellemc.openmanage.redfish_powerstate:

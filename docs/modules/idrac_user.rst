@@ -34,35 +34,35 @@ Parameters
 ----------
 
   state (optional, str, present)
-    Select \ :literal:`present`\  to create or modify a user account.
+    Select :literal:`present` to create or modify a user account.
 
-    Select \ :literal:`absent`\  to remove a user account.
+    Select :literal:`absent` to remove a user account.
 
 
   user_name (True, str, None)
-    Provide the \ :emphasis:`user\_name`\  of the account to be created, deleted or modified.
+    Provide the :emphasis:`user\_name` of the account to be created, deleted or modified.
 
 
   user_password (optional, str, None)
     Provide the password for the user account. The password can be changed when the user account is modified.
 
-    To ensure security, the \ :emphasis:`user\_password`\  must be at least eight characters long and must contain lowercase and upper-case characters, numbers, and special characters.
+    To ensure security, the :emphasis:`user\_password` must be at least eight characters long and must contain lowercase and upper-case characters, numbers, and special characters.
 
 
   new_user_name (optional, str, None)
-    Provide the \ :emphasis:`user\_name`\  for the account to be modified.
+    Provide the :emphasis:`user\_name` for the account to be modified.
 
 
   privilege (optional, str, None)
     Following are the role-based privileges.
 
-    A user with \ :literal:`Administrator`\  privilege can log in to iDRAC, and then configure iDRAC, configure users, clear logs, control and configure system, access virtual console, access virtual media, test alerts, and execute debug commands.
+    A user with :literal:`Administrator` privilege can log in to iDRAC, and then configure iDRAC, configure users, clear logs, control and configure system, access virtual console, access virtual media, test alerts, and execute debug commands.
 
-    A user with \ :literal:`Operator`\  privilege can log in to iDRAC, and then configure iDRAC, control and configure system, access virtual console, access virtual media, and execute debug commands.
+    A user with :literal:`Operator` privilege can log in to iDRAC, and then configure iDRAC, control and configure system, access virtual console, access virtual media, and execute debug commands.
 
-    A user with \ :literal:`ReadOnly`\  privilege can only log in to iDRAC.
+    A user with :literal:`ReadOnly` privilege can only log in to iDRAC.
 
-    A user with \ :literal:`None`\ , no privileges assigned.
+    A user with :literal:`None`\ , no privileges assigned.
 
     Will be ignored, if custom\_privilege parameter is provided.
 
@@ -96,21 +96,27 @@ Parameters
   authentication_protocol (optional, str, None)
     This option allows to configure one of the following authentication protocol types to authenticate the iDRAC user.
 
-    Secure Hash Algorithm \ :literal:`SHA`\ .
+    Secure Hash Algorithm :literal:`SHA`. Not applicable for iDRAC10.
 
-    Message Digest 5 \ :literal:`MD5`\ .
+    Message Digest 5 :literal:`MD5`. Not applicable for iDRAC10.
 
-    An authentication protocol is not configured if \ :literal:`None`\  is selected.
+    Secure Hash Algorithm 384-bit :literal:`SHA-384`. Only applicable for iDRAC10.
+
+    Secure Hash Algorithm 512-bit :literal:`SHA-512`. Only applicable for iDRAC10.
+
+    An authentication protocol is not configured if :literal:`None` is selected.
 
 
   privacy_protocol (optional, str, None)
     This option allows to configure one of the following privacy encryption protocols for the iDRAC user.
 
-    Data Encryption Standard \ :literal:`DES`\ .
+    Data Encryption Standard :literal:`DES`. Not applicable for iDRAC10.
 
-    Advanced Encryption Standard \ :literal:`AES`\ .
+    Advanced Encryption Standard :literal:`AES`. Not applicable for iDRAC10.
 
-    A privacy protocol is not configured if \ :literal:`None`\  is selected.
+    Advanced Encryption Standard 256-bit :literal:`AES-256`. Only applicable for iDRAC9 and iDRAC10.
+
+    A privacy protocol is not configured if :literal:`None` is selected.
 
 
   idrac_ip (True, str, None)
@@ -120,7 +126,7 @@ Parameters
   idrac_user (False, str, None)
     iDRAC username.
 
-    If the username is not provided, then the environment variable \ :envvar:`IDRAC\_USERNAME`\  is used.
+    If the username is not provided, then the environment variable :envvar:`IDRAC\_USERNAME` is used.
 
     Example: export IDRAC\_USERNAME=username
 
@@ -128,7 +134,7 @@ Parameters
   idrac_password (False, str, None)
     iDRAC user password.
 
-    If the password is not provided, then the environment variable \ :envvar:`IDRAC\_PASSWORD`\  is used.
+    If the password is not provided, then the environment variable :envvar:`IDRAC\_PASSWORD` is used.
 
     Example: export IDRAC\_PASSWORD=password
 
@@ -136,7 +142,7 @@ Parameters
   x_auth_token (False, str, None)
     Authentication token.
 
-    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`IDRAC\_X\_AUTH\_TOKEN`\  is used.
+    If the x\_auth\_token is not provided, then the environment variable :envvar:`IDRAC\_X\_AUTH\_TOKEN` is used.
 
     Example: export IDRAC\_X\_AUTH\_TOKEN=x\_auth\_token
 
@@ -146,11 +152,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If \ :literal:`false`\ , the SSL certificates will not be validated.
+    If :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
+    Configure :literal:`false` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
+    Prior to collection version :literal:`5.0.0`\ , the :emphasis:`validate\_certs` is :literal:`false` by default.
 
 
   ca_path (optional, path, None)
@@ -169,7 +175,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell iDRAC.
-   - This module supports \ :literal:`check\_mode`\ .
+   - This module supports :literal:`check\_mode`.
 
 
 
@@ -250,4 +256,5 @@ Authors
 ~~~~~~~
 
 - Felix Stephen (@felixs88)
+- Kritika Bhateja (@Kritika-Bhateja-03)
 
