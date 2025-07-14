@@ -398,13 +398,14 @@ class TestExportLicense(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri",
                      return_value=(REDFISH, None))
         mocker.patch(MODULE_PATH + "get_dynamic_uri",
-                     return_value={"Links": {"Oem": {"Dell": {"DellLicenseManagementService": {ODATA: "/LicenseService"}}}},
-                                   "Actions": {
-                                       "#DellLicenseManagementService.ExportLicenseToNetworkShare": {
-                                           "target": (
-                                                "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/"
-                                                "DellLicenseManagementService/Actions/"
-                                                "DellLicenseManagementService.ExportLicenseToNetworkShare"
+                     return_value={
+                                    "Links": {"Oem": {"Dell": {"DellLicenseManagementService": {ODATA: "/LicenseService"}}}},
+                                    "Actions": {
+                                        "#DellLicenseManagementService.ExportLicenseToNetworkShare": {
+                                            "target": (
+                                        "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/"
+                                        "DellLicenseManagementService/Actions/"
+                                        "DellLicenseManagementService.ExportLicenseToNetworkShare"
                                             )
                                         }
                                     }
