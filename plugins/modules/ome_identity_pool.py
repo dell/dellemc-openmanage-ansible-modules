@@ -1,13 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
-#
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.12.4
 # Copyright (C) 2020-2025 Dell Inc. or its subsidiaries.  All Rights Reserved.
-
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-#
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 
 from __future__ import (absolute_import, division, print_function)
@@ -262,7 +259,6 @@ import re
 import json
 import codecs
 import binascii
-from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
 from ansible.module_utils.urls import ConnectionError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -286,7 +282,8 @@ def get_identity_pool_id_by_name(pool_name, rest_obj):
 
 def mac_validation(mac_input):
     match_found = re.match("[0-9a-f]{2}([-:])[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$|"
-                           "([0-9a-f]{4}([.])[0-9a-f]{4}([.])[0-9a-f]{4})$", mac_input.lower())
+                           "([0-9a-f]{4}([.])[0-9a-f]{4}([.])[0-9a-f]{4})$",
+                           mac_input.lower())
     return match_found
 
 
@@ -301,12 +298,12 @@ def mac_to_base64_conversion(mac_address, module):
                     address = codecs.decode(b64_mac_address, 'utf-8').rstrip()
                     return address
     except binascii.Error:
-        module.fail_json(msg='Encoding of MAC address {0} to base64 '
-                             'failed'.format(mac_address))
+        module.exit_json(msg='Encoding of MAC address {0} to base64 '
+                             'failed'.format(mac_address), failed=True)
 
 
 def update_modify_setting(modify_payload, existing_payload, setting_type, sub_keys):
-    """update current pool sub setting setting to modify payload if not provided
+    """update current pool sub setting to modify payload if not provided
      in the options to avoid the null update from ome"""
     for sub_key in sub_keys:
         if sub_key not in modify_payload[setting_type] and sub_key in existing_payload[setting_type]:
@@ -321,7 +318,7 @@ def update_modify_setting(modify_payload, existing_payload, setting_type, sub_ke
 
 
 def get_updated_modify_payload(modify_payload, existing_payload):
-    """update current pool setting setting to modify payload if not provided
+    """update current pool setting to modify payload if not provided
      in the options to avoid the null update from ome"""
     remove_unwanted_key_list = ['@odata.type', '@odata.id', 'CreatedBy', 'CreationTime', 'LastUpdatedBy',
                                 'LastUpdateTime', 'UsageCounts', 'UsageIdentitySets@odata.navigationLink']
@@ -337,7 +334,7 @@ def get_updated_modify_payload(modify_payload, existing_payload):
             elif existing_payload.get(key) and key == "IscsiSettings":
                 update_modify_setting(modify_payload, existing_payload, key,
                                       ["Mac", "InitiatorConfig", "InitiatorIpPoolSettings"])
-    modify_payload = dict([(k, v) for k, v in modify_payload.items() if v is not None])
+    modify_payload = {k: v for k, v in modify_payload.items() if v is not None}
     return modify_payload
 
 
@@ -351,11 +348,11 @@ def update_mac_settings(payload, settings_params, setting_type, module):
         if match_found:
             mac_base_64_format = mac_to_base64_conversion(mac_address, module)
         else:
-            module.fail_json(msg="Please provide the valid MAC address format for {0} settings."
-                             .format(setting_type.split('Settings')[0]))
+            module.exit_json(msg="Please provide the valid MAC address format for {0} settings."
+                             .format(setting_type.split('Settings')[0]), failed=True)
     sub_setting_mapper = {"StartingMacAddress": mac_base_64_format,
                           "IdentityCount": settings_params.get("identity_count")}
-    sub_settings_payload = dict([(k, v) for k, v in sub_setting_mapper.items() if v is not None])
+    sub_settings_payload = {k: v for k, v in sub_setting_mapper.items() if v is not None}
     if any(sub_settings_payload):
         payload.update({setting_type: {"Mac": sub_settings_payload}})
 
@@ -374,14 +371,14 @@ def update_iscsi_specific_settings(payload, settings_params, setting_type):
                                       "Gateway": initiator_ip_pool_settings.get("gateway"),
                                       "PrimaryDnsServer": initiator_ip_pool_settings.get("primary_dns_server"),
                                       "SecondaryDnsServer": initiator_ip_pool_settings.get("secondary_dns_server")}
-        initiator_ip_pool_settings = dict([(k, v) for k, v in initiator_ip_pool_settings.items() if v is not None])
+        initiator_ip_pool_settings = {k: v for k, v in initiator_ip_pool_settings.items() if v is not None}
         sub_setting_mapper.update({
             "InitiatorIpPoolSettings": initiator_ip_pool_settings})
     if any(sub_setting_mapper):
         if "IscsiSettings" in payload:
             """update MAC address setting"""
             sub_setting_mapper.update(payload[setting_type])
-        sub_setting_mapper = dict([(key, val) for key, val in sub_setting_mapper.items() if any(val)])
+        sub_setting_mapper = {key: val for key, val in sub_setting_mapper.items() if any(val)}
         payload.update({setting_type: sub_setting_mapper})
 
 
@@ -417,7 +414,8 @@ def update_fc_settings(payload, settings_params, setting_type, module):
     wwpn_payload = {}
     if starting_address:
         if not mac_validation(starting_address):
-            module.fail_json(msg="Please provide the valid starting address format for FC settings.")
+            module.exit_json(msg="Please provide the valid starting address format for FC settings.",
+                             failed=True)
         wwnn_prefix, wwpn_prefix = get_wwn_address_prefix(starting_address)
         wwnn_address = mac_to_base64_conversion(wwnn_prefix + starting_address, module)
         wwpn_address = mac_to_base64_conversion(wwpn_prefix + starting_address, module)
@@ -428,7 +426,7 @@ def update_fc_settings(payload, settings_params, setting_type, module):
         wwpn_payload.update({"IdentityCount": identity_count})
     sub_setting_mapper.update({"Wwnn": wwnn_payload,
                                "Wwpn": wwpn_payload})
-    sub_setting_mapper = dict([(key, val) for key, val in sub_setting_mapper.items() if any(val)])
+    sub_setting_mapper = {key: val for key, val in sub_setting_mapper.items() if any(val)}
     if any(sub_setting_mapper):
         payload.update({setting_type: sub_setting_mapper})
 
@@ -458,7 +456,7 @@ def get_payload(module, pool_id=None):
         if new_name is not None:
             setting_payload.update({"Name": new_name})
         setting_payload["Id"] = pool_id
-    payload = dict([(k, v) for k, v in setting_payload.items() if v is not None])
+    payload = {k: v for k, v in setting_payload.items() if v is not None}
     return payload
 
 
@@ -481,23 +479,40 @@ def validate_modify_create_payload(setting_payload, module, action):
         if key in ["EthernetSettings", "FcoeSettings"] and val:
             sub_config = val.get("Mac")
             if sub_config is None or not all([sub_config.get("IdentityCount"), sub_config.get("StartingMacAddress")]):
-                module.fail_json(msg="Both starting MAC address and identity count is required to {0} an"
-                                     " identity pool using {1} settings.".format(action, ''.join(key.split('Settings'))))
+                module.exit_json(msg="Both starting MAC address and identity "
+                                     "count is required to {0} an identity pool "
+                                     "using {1} settings.".format(action, ''.join(key.split('Settings'))),
+                                 failed=True)
         elif key == "FcSettings" and val:
             sub_config = val.get("Wwnn")
-            if sub_config is None or not all([sub_config.get("IdentityCount"), sub_config.get("StartingAddress")]):
-                module.fail_json(msg="Both starting MAC address and identity count is required to"
-                                     " {0} an identity pool using Fc settings.".format(action))
+            validate_fc_settings(sub_config, module, action)
         elif key == "IscsiSettings" and val:
-            sub_config1 = val.get("Mac")
-            sub_config2 = val.get("InitiatorIpPoolSettings")
-            if sub_config1 is None or not all([sub_config1.get("IdentityCount"), sub_config1.get("StartingMacAddress")]):
-                module.fail_json(msg="Both starting MAC address and identity count is required to {0} an"
-                                     " identity pool using {1} settings.".format(action, ''.join(key.split('Settings'))))
-            elif sub_config2:
-                if not all([sub_config2.get("IpRange"), sub_config2.get("SubnetMask")]):
-                    module.fail_json(msg="Both ip range and subnet mask in required to {0} an identity"
-                                     " pool using iSCSI settings.".format(action))
+            validate_iscsi_settings(val, module, action, key)
+
+
+def validate_fc_settings(sub_config, module, action):
+    if sub_config is None or not all([sub_config.get("IdentityCount"), sub_config.get("StartingAddress")]):
+        module.exit_json(msg="Both starting MAC address and identity count is "
+                             "required to {0} an identity pool using Fc settings.".format(action),
+                         failed=True)
+
+
+def validate_iscsi_settings(val, module, action, key):
+    """
+    Validate iscsi settings for modify and create operations.
+    """
+    sub_config1 = val.get("Mac")
+    sub_config2 = val.get("InitiatorIpPoolSettings")
+    if sub_config1 is None or not all([sub_config1.get("IdentityCount"), sub_config1.get("StartingMacAddress")]):
+        module.exit_json(msg="Both starting MAC address and identity count is "
+                             "required to {0} an identity pool using {1} "
+                             "settings.".format(action, ''.join(key.split('Settings'))),
+                         failed=True)
+    elif sub_config2:
+        if not all([sub_config2.get("IpRange"), sub_config2.get("SubnetMask")]):
+            module.exit_json(msg="Both ip range and subnet mask in required to"
+                                 " {0} an identity pool using iSCSI settings.".format(action),
+                             failed=True)
 
 
 def pool_create_modify(module, rest_obj):
@@ -524,20 +539,17 @@ def pool_create_modify(module, rest_obj):
 
 
 def pool_delete(module, rest_obj):
-    try:
-        pool_name = module.params["pool_name"]
-        pool_id, existing_payload = get_identity_pool_id_by_name(pool_name, rest_obj)
-        if not pool_id:
-            message = "The identity pool '{0}' is not present in the system.".format(pool_name)
-            module.exit_json(msg=message)
-        method = "DELETE"
-        uri = IDENTITY_URI + "({0})".format(pool_id)
-        if module.check_mode:
-            module.exit_json(msg=CHANGES_FOUND, changed=True)
-        rest_obj.invoke_request(method, uri)
-        return {"msg": "Successfully deleted the identity pool."}
-    except Exception as err:
-        raise err
+    pool_name = module.params["pool_name"]
+    pool_id, _ = get_identity_pool_id_by_name(pool_name, rest_obj)  # pylint: disable=disallowed-name
+    if not pool_id:
+        message = "The identity pool '{0}' is not present in the system.".format(pool_name)
+        module.exit_json(msg=message)
+    method = "DELETE"
+    uri = IDENTITY_URI + "({0})".format(pool_id)
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
+    rest_obj.invoke_request(method, uri)
+    return {"msg": "Successfully deleted the identity pool."}
 
 
 def get_success_message(action, resp_data):
@@ -589,13 +601,11 @@ def main():
                 message = pool_delete(module, rest_obj)
                 module.exit_json(msg=message["msg"], changed=True)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
-        module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, OSError) as err:
-        module.fail_json(msg=str(err))
-    except Exception as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), unreachable=True, failed=True)
+    except (IOError, ValueError, TypeError, ConnectionError, OSError) as err:
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == "__main__":

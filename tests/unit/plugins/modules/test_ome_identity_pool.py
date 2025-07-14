@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
-
-#
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
-
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-#
+# Version 9.12.4
+# Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import (absolute_import, division, print_function)
 
@@ -72,7 +69,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'ome_identity_pool.pool_create_modify',
                      return_value=message_return)
         ome_default_args.update(sub_param)
-        result = self.execute_module(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result['changed'] is True
         assert 'pool_status' in result and "msg" in result
         assert result["msg"] == "Successfully created an identity pool."
@@ -96,7 +93,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
         elif exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + 'ome_identity_pool.pool_create_modify',
                          side_effect=exc_type("exception message"))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'ome_identity_pool.pool_create_modify',
@@ -104,13 +101,12 @@ class TestOMeIdentityPool(FakeAnsibleModule):
                                               'http error message',
                                               {"accept-type": "application/json"},
                                               StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'pool_status' not in result
         assert 'msg' in result
 
-    def test_main_ome_identity_pool_no_mandatory_arg_passed_failure_case(self, ome_default_args,
-                                                                         ome_connection_mock_for_identity_pool):
+    def test_main_ome_identity_pool_no_mandatory_arg_passed_failure_case(self, ome_default_args):
         result = self._run_module_with_fail_json(ome_default_args)
         assert 'pool_status' not in result
 
@@ -409,23 +405,6 @@ class TestOMeIdentityPool(FakeAnsibleModule):
             payload = self.module.get_payload(f_module)
         else:
             payload = self.module.get_payload(f_module, 11)
-        return_setting = {
-            "Name": "pool2",
-            "Description": "Identity pool with fc_settings",
-            "EthernetSettings": None,
-            "IscsiSettings": None,
-            "FcoeSettings": None,
-            "FcSettings": {
-                "Wwnn": {
-                    "IdentityCount": 48,
-                    "StartingAddress": "IABAQEBAQCI="
-                },
-                "Wwpn": {
-                    "IdentityCount": 48,
-                    "StartingAddress": "IAFAQEBAQCI="
-                }
-            }
-        }
 
         assert payload["FcSettings"]["Wwnn"]["StartingAddress"] == "IABAQEBAQCI="
         assert payload["FcSettings"]["Wwpn"]["StartingAddress"] == "IAFAQEBAQCI="
@@ -580,7 +559,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
         pool_list = {"resp_obj": ome_response_mock, "report_list": [{"Name": "pool1", "Id": 10},
                                                                     {"Name": "pool11", "Id": 11}]}
         ome_connection_mock_for_identity_pool.get_all_report_details.return_value = pool_list
-        pool_id, attributes = self.module.get_identity_pool_id_by_name("pool1", ome_connection_mock_for_identity_pool)
+        pool_id, _ = self.module.get_identity_pool_id_by_name("pool1", ome_connection_mock_for_identity_pool)  # pylint: disable=disallowed-name
         assert pool_id == 10
 
     def test_get_identity_pool_id_by_name_non_exist_case(self, mocker, ome_connection_mock_for_identity_pool,
@@ -1004,7 +983,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
             return_value=(1, "data"))
         f_module = self.get_module_mock(params=params)
         ome_connection_mock_for_identity_pool.invoke_request.side_effect = Exception(msg)
-        with pytest.raises(Exception, match=msg) as exc:
+        with pytest.raises(Exception, match=msg):
             self.module.pool_delete(f_module, ome_connection_mock_for_identity_pool)
 
     def test_main_ome_identity_pool_delete_success_case1(self, mocker, ome_default_args,
@@ -1015,7 +994,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'ome_identity_pool.pool_delete',
                      return_value=message_return)
         ome_default_args.update(sub_param)
-        result = self.execute_module(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert 'pool_status' not in result
         assert result["msg"] == "Successfully deleted the identity pool."
 
@@ -1094,7 +1073,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
         f_module = self.get_module_mock()
         msg = "Both starting MAC address and identity count is required to {0} an identity pool using {1} settings.".format(
             action, ''.join(setting.split('Settings')))
-        with pytest.raises(Exception, match=msg) as exc:
+        with pytest.raises(Exception, match=msg):
             self.module.validate_modify_create_payload(modify_payload, f_module, action)
 
     modify_fc_setting1 = {"FcSettings": {
@@ -1142,21 +1121,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
         f_module = self.get_module_mock()
         msg = "Both starting MAC address and identity count is required to {0} an identity pool using Fc settings.".format(
             action)
-        with pytest.raises(Exception, match=msg) as exc:
-            self.module.validate_modify_create_payload(modify_payload, f_module, action)
-
-    @pytest.mark.parametrize("action", ["create", "modify"])
-    @pytest.mark.parametrize("modify_payload",
-                             [modify_fc_setting1, modify_fc_setting2, modify_fc_setting3, modify_fc_setting4,
-                              modify_fc_setting5])
-    # @pytest.mark.parametrize("modify_payload", [modify_fc_setting1])
-    def test_validate_modify_create_payload_failure_fc_setting_case(self, modify_payload, action):
-        payload = {"Id": 59, "Name": "pool_new"}
-        modify_payload.update(payload)
-        f_module = self.get_module_mock()
-        msg = "Both starting MAC address and identity count is required to {0} an identity pool using Fc settings.".format(
-            action)
-        with pytest.raises(Exception, match=msg) as exc:
+        with pytest.raises(Exception, match=msg):
             self.module.validate_modify_create_payload(modify_payload, f_module, action)
 
     payload_iscsi1 = {"IscsiSettings": {
@@ -1180,7 +1145,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
         f_module = self.get_module_mock()
         msg = "Both starting MAC address and identity count is required to {0} an identity pool using Iscsi settings.".format(
             action)
-        with pytest.raises(Exception, match=msg) as exc:
+        with pytest.raises(Exception, match=msg):
             self.module.validate_modify_create_payload(modify_payload, f_module, action)
 
     payload_iscsi3 = {
@@ -1269,7 +1234,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
         setting_type = "FcSettings"
         f_module = self.get_module_mock()
         msg = "Please provide the valid starting address format for FC settings."
-        with pytest.raises(Exception, match=msg) as exc:
+        with pytest.raises(Exception, match=msg):
             self.module.update_fc_settings(payload, setting_params, setting_type, f_module)
 
     @pytest.mark.parametrize("mac", [{'50-50-50-50-50-50': ['20-00-', '20-01-']},

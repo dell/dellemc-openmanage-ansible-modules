@@ -4,7 +4,7 @@
   gather_facts: false
 
   tasks:
-    - name: Create an identity pool using ethernet, FCoE, iSCSI and FC settings.
+    - name: Create an identity pool using ethernet, FCoE, iSCSI and FC settings
       dellemc.openmanage.ome_identity_pool:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
@@ -12,7 +12,8 @@
         ca_path: "/path/to/ca_cert.pem"
         state: present
         pool_name: "pool1"
-        pool_description: "Identity pool with Ethernet, FCoE, ISCSI and FC settings"
+        pool_description: "Identity pool with Ethernet,
+          FCoE, ISCSI and FC settings"
         ethernet_settings:
           starting_mac_address: "50:50:50:50:50:00"
           identity_count: 60
@@ -23,7 +24,7 @@
           starting_mac_address: "60:60:60:60:60:00"
           identity_count: 30
           initiator_config:
-            iqn_prefix: "iqn.myprefix."
+            iqn_prefix: "iqn.2025-07.com.example:storage-system"
           initiator_ip_pool_settings:
             ip_range: "10.33.0.1-10.33.0.255"
             subnet_mask: "255.255.255.0"
@@ -62,7 +63,7 @@
           starting_mac_address: "10:10:10:10:10:00"
           identity_count: 30
           initiator_config:
-            iqn_prefix: "iqn.myprefix."
+            iqn_prefix: "iqn.2025-07.com.example:storage-system"
           initiator_ip_pool_settings:
             ip_range: "20.33.0.1-20.33.0.255"
             subnet_mask: "255.255.255.0"
@@ -94,7 +95,8 @@
         ca_path: "/path/to/ca_cert.pem"
         pool_name: "pool1"
         new_pool_name: "pool_new"
-        pool_description: "modifying identity pool with ethernet and fcoe settings"
+        pool_description: "modifying identity pool with ethernet and fcoe
+          settings"
         ethernet_settings:
           starting_mac_address: "90-90-90-90-90-90"
           identity_count: 61
@@ -116,7 +118,7 @@
         iscsi_settings:
           identity_count: 99
           initiator_config:
-            iqn_prefix: "iqn1.myprefix2."
+            iqn_prefix: "iqn.2025-27.com.example:storage-system"
           initiator_ip_pool_settings:
             gateway: "192.168.4.5"
         fc_settings:
