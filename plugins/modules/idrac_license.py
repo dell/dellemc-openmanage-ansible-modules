@@ -660,9 +660,9 @@ class ExportLicense(License):
         payload["EntitlementID"] = self.module.params.get('license_id')
         payload["ShareType"] = self.module.params.get('share_parameters').get('share_type')
         proxy_details = self.get_proxy_details()
-        share_Details = self.get_share_details()
+        share_details = self.get_share_details()
         payload.update(proxy_details)
-        payload.update(share_Details)
+        payload.update(share_details)
         export_status = self.__export_license(payload, export_license_url)
         return export_status
 

@@ -1,20 +1,26 @@
+---
 - name: Fetch all licenses
   ansible.builtin.include_tasks: _get_data_uri.yml
   vars:
-    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLicenses"
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+     /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLicenses"
     uri_method: GET
     status_code: 200
 
 - name: Extracting recently uploaded license
   ansible.builtin.set_fact:
-    license: "{{ result_get_data.json.Members | selectattr('LicenseInstallDate') | sort(attribute='LicenseInstallDate') | last }}"
+    license: "{{ result_get_data.json.Members |
+     selectattr('LicenseInstallDate') | sort(attribute='LicenseInstallDate') |
+     last }}"
   when: result_get_data.json.Members | length > 0
 
 - name: Delete license based on license id
   ansible.builtin.include_tasks: _get_data_uri.yml
   vars:
-    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell\
-    /DellLicenseManagementService/Actions/DellLicenseManagementService.DeleteLicense"
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+     /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell\
+     /DellLicenseManagementService/Actions\
+     /DellLicenseManagementService.DeleteLicense"
     uri_method: POST
     body: {"DeleteOptions": "Force", "EntitlementID": "{{ license.Id }}"}
     status_code: 200

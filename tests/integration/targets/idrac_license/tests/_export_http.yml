@@ -1,12 +1,15 @@
 # Test code for the Dell OpenManage modules
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
-    msg: 'Please define the following variables: idrac_ip, idrac_user and idrac_password.'
-  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+    msg: 'Please define the following variables: idrac_ip, idrac_user
+     and idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
 
 - block:
     - name: Include the helper task
@@ -20,11 +23,14 @@
 
     - name: Set the API
       ansible.builtin.set_fact:
-        idracApi: "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLicenseManagementService/Actions/DellLicenseManagementService.ExportLicenseToNetworkShare"
+        idracApi: "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell\
+         /DellLicenseManagementService/Actions\
+         /DellLicenseManagementService.ExportLicenseToNetworkShare"
 
     - name: Create Export license for iDRAC component by uri.
       ansible.builtin.uri:
-        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}{{ idracApi }}"
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+         {{ idracApi }}"
         method: POST
         user: "{{ idrac_user }}"
         password: "{{ idrac_password }}"
@@ -78,7 +84,8 @@
     - name: Compare the job detail output between module and uri
       ansible.utils.fact_diff:
         before: "{{ idrac_job_details | ansible.utils.remove_keys(
-                target=['^@odata','MessageArgs@odata.count'], matching_parameter='regex')}}"
+                target=['^@odata','MessageArgs@odata.count'],
+                matching_parameter='regex')}}"
         after: "{{ idrac_export_license.job_details }}"
       register: diff_result
 
@@ -87,7 +94,8 @@
         that:
           - idrac_export_license.changed
           - idrac_export_license.msg == "Successfully exported the license."
-          - "'The command was successful' in idrac_export_license.job_details.Message"
+          - "'The command was successful' in
+            idrac_export_license.job_details.Message"
           - not diff_result.changed
           - not diff_result.diff_lines
 
@@ -99,24 +107,28 @@
 
     - name: Get exported file from HTTP share
       ansible.builtin.uri:
-        url: "http://{{ http_share | ansible.utils.ipwrap }}{{ http_share_dir_path }}/{{ ServiceTag }}_{{ idrac_license_id }}.xml"
+        url: "http://{{ http_share | ansible.utils.ipwrap }}
+         {{ http_share_dir_path }}/{{ ServiceTag }}_{{ idrac_license_id }}.xml"
         force_basic_auth: true
         validate_certs: false
         use_proxy: false
         use_netrc: false
         url_username: "{{ http_share_user | default(omit) }}"
         url_password: "{{ http_share_password | default(omit) }}"
-        dest: "{{ base_path_for_exported_license }}/{{ ServiceTag }}_{{ idrac_license_id }}.xml"
+        dest: "{{ base_path_for_exported_license }}
+         /{{ ServiceTag }}_{{ idrac_license_id }}.xml"
       register: idrac_file
 
     - name: Get file stats for file exported using URI
       ansible.builtin.stat:
-        path: "{{ base_path_for_exported_license }}/{{ ServiceTag }}_{{ idrac_license_id }}.xml"
+        path: "{{ base_path_for_exported_license }}
+         /{{ ServiceTag }}_{{ idrac_license_id }}.xml"
       register: uri_file_stats
 
     - name: Get file stats for file exported using module
       ansible.builtin.stat:
-        path: "{{ base_path_for_exported_license }}/{{ ServiceTag }}_{{ idrac_license_id }}.xml"
+        path: "{{ base_path_for_exported_license }}
+         /{{ ServiceTag }}_{{ idrac_license_id }}.xml"
       register: module_file_stats
 
     - name: Compare file sizes
