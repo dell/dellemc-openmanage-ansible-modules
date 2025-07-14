@@ -1,0 +1,113 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Create Directory
+      ansible.builtin.file:
+        path: "{{ base_path_for_import_certificate }}"
+        state: directory
+      register: created_directory
+
+    - name: Set fact
+      ansible.builtin.set_fact:
+        curl_cmd: "curl --ntlm -u %s:%s -o %s %s"
+        curl_https_url: "{{ https_share_ip }}/{{ https_certificate_path }}{{
+         custom_certificate_name }}"
+
+    - name: Get custom certificate from share
+      register: http_dnld_curl_cmd_out
+      no_log: false
+      changed_when: http_dnld_curl_cmd_out.rc == 0
+      failed_when: http_dnld_curl_cmd_out.rc != 0
+      ansible.builtin.command: >
+          {{ curl_cmd | format(https_share_username, https_share_password,
+          base_path_for_import_certificate + custom_certificate_name,
+          curl_https_url) }}
+
+    - name: Importing custom certificate (check mode - changes expected)
+      dellemc.openmanage.idrac_certificates: &cert
+        command: import
+        certificate_type: "CUSTOMCERTIFICATE"
+        certificate_path: "{{ base_path_for_import_certificate }}{{
+          custom_certificate }}"
+        passphrase: "{{ pass }}"
+      register: check_import_certificate
+      check_mode: true
+
+    - name: Verify status of task - import custom certificate (check
+        mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - check_import_certificate.changed
+          - check_import_certificate.msg == 'Changes found to be applied.'
+
+    - name: Importing custom certificate - Normal
+      dellemc.openmanage.idrac_certificates:
+        <<: *cert
+      register: import_certificate_output
+
+    - ansible.builtin.set_fact:
+        import_successful_msg: "Successfully performed the 'import'
+          certificate operation.iDRAC has been reset successfully."
+
+    - name: Verify status of task - import custom certificate - normal mode
+      ansible.builtin.assert:
+        that:
+          - import_certificate_output.changed
+          - import_certificate_output.msg == import_successful_msg
+
+    - name: Waiting for idrac readiness
+      ansible.builtin.wait_for:
+        timeout: 60
+
+    - name: Importing custom certificate (check mode - changes expected)
+      dellemc.openmanage.idrac_certificates:
+        <<: *cert
+      register: check_import_certificate
+      check_mode: true
+
+    - name: Verify status of task - import custom certificate (check
+        mode - changes expected)
+      ansible.builtin.assert:
+        that:
+          - check_import_certificate.changed
+          - check_import_certificate.msg == 'Changes found to be applied.'
+
+    - name: Importing custom certificate  - Idempotency
+      dellemc.openmanage.idrac_certificates:
+        <<: *cert
+      register: import_certificate_idempotence
+
+    - name: Verify status of task - import custom
+        certificate - Idempotency mode
+      ansible.builtin.assert:
+        that:
+          - import_certificate_idempotence.changed
+          - import_certificate_idempotence.msg == import_successful_msg
+
+    - name: Waiting for idrac readiness
+      ansible.builtin.wait_for:
+        timeout: 60
+
+  always:
+    - name: Delete the directory
+      ansible.builtin.file:
+        path: "{{ base_path_for_import_certificate }}"
+        state: absent
+
+  module_defaults:
+    dellemc.openmanage.idrac_certificates:
+      idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
