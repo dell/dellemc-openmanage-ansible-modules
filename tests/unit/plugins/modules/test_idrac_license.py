@@ -397,20 +397,29 @@ class TestExportLicense(FakeAnsibleModule):
         }
         mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri",
                      return_value=(REDFISH, None))
-        mocker.patch(MODULE_PATH + "get_dynamic_uri",
-                     return_value={
-                                    "Links": {"Oem": {"Dell": {"DellLicenseManagementService": {ODATA: "/LicenseService"}}}},
-                                    "Actions": {
-                                        "#DellLicenseManagementService.ExportLicenseToNetworkShare": {
-                                            "target": (
-                                        "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/"
-                                        "DellLicenseManagementService/Actions/"
-                                        "DellLicenseManagementService.ExportLicenseToNetworkShare"
-                                            )
-                                        }
-                                    }
-                                }
-                            )
+        mocker.patch(
+            MODULE_PATH + "get_dynamic_uri",
+            return_value={
+                "Links": {
+                    "Oem": {
+                        "Dell": {
+                            "DellLicenseManagementService": {
+                                ODATA: "/LicenseService"
+                            }
+                        }
+                    }
+                },
+                "Actions": {
+                    "#DellLicenseManagementService.ExportLicenseToNetworkShare": {
+                        "target": (
+                            "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/"
+                            "DellLicenseManagementService/Actions/"
+                            "DellLicenseManagementService.ExportLicenseToNetworkShare"
+                        )
+                    }
+                }
+            }
+        )
         idrac_default_args.update(export_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         export_license_obj = self.module.ExportLicense(idrac_connection_license_mock, f_module)
