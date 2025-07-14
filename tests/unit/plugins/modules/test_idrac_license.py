@@ -646,7 +646,7 @@ class TestImportLicense(FakeAnsibleModule):
         idrac_default_args.update(import_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         import_license_obj = self.module.ImportLicense(idrac_connection_license_mock, f_module)
-        result = import_license_obj._ImportLicense__import_license_http(IMPORT_URL_MOCK, IDRAC_ID)
+        result = import_license_obj._ImportLicense__import_license_http(IMPORT_URL_MOCK)
         assert result.json_data == expected_result
 
     def test_import_license_cifs(self, idrac_default_args, idrac_connection_license_mock, mocker):
@@ -682,7 +682,7 @@ class TestImportLicense(FakeAnsibleModule):
         idrac_default_args.update(import_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         import_license_obj = self.module.ImportLicense(idrac_connection_license_mock, f_module)
-        result = import_license_obj._ImportLicense__import_license_cifs(IMPORT_URL_MOCK, IDRAC_ID)
+        result = import_license_obj._ImportLicense__import_license_cifs(IMPORT_URL_MOCK)
         assert result.json_data == expected_result
 
     def test_import_license_nfs(self, idrac_default_args, idrac_connection_license_mock, mocker):
@@ -715,7 +715,7 @@ class TestImportLicense(FakeAnsibleModule):
         idrac_default_args.update(import_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         import_license_obj = self.module.ImportLicense(idrac_connection_license_mock, f_module)
-        result = import_license_obj._ImportLicense__import_license_nfs(IMPORT_URL_MOCK, IDRAC_ID)
+        result = import_license_obj._ImportLicense__import_license_nfs(IMPORT_URL_MOCK)
         assert result.json_data == expected_result
 
     def test_get_import_license_url_local(self, idrac_default_args, idrac_connection_license_mock, mocker):

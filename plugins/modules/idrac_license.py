@@ -157,6 +157,7 @@ requirements:
   - "python >= 3.9.6"
 author:
   - "Rajshekar P(@rajshekarp87)"
+  - "Akash Shendge(@shenda1)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports only iDRAC9 and above.
@@ -772,13 +773,13 @@ class ImportLicense(License):
         if share_type == "local":
             import_license_response = self.__import_license_local(import_license_url, resource_id)
         elif share_type in ["http", "https"]:
-            import_license_response = self.__import_license_http(import_license_url, resource_id)
+            import_license_response = self.__import_license_http(import_license_url)
             job_status = self.get_job_status(import_license_response)
         elif share_type == "cifs":
-            import_license_response = self.__import_license_cifs(import_license_url, resource_id)
+            import_license_response = self.__import_license_cifs(import_license_url)
             job_status = self.get_job_status(import_license_response)
         elif share_type == "nfs":
-            import_license_response = self.__import_license_nfs(import_license_url, resource_id)
+            import_license_response = self.__import_license_nfs(import_license_url)
             job_status = self.get_job_status(import_license_response)
         status = import_license_response.status_code
         if status in self.STATUS_SUCCESS:
@@ -825,14 +826,13 @@ class ImportLicense(License):
                 self.module.exit_json(msg=message_details.get('Message'), error_info=filter_err, failed=True)
         return import_status
 
-    def __import_license_http(self, import_license_url, resource_id):
+    def __import_license_http(self, import_license_url):
         """
         Imports a license using HTTP.
 
         Args:
             module (object): The Ansible module object.
             import_license_url (str): The URL for importing the license.
-            resource_id (str): The ID of the resource.
 
         Returns:
             object: The import status.
@@ -854,7 +854,7 @@ class ImportLicense(License):
         import_status = self.idrac.invoke_request(import_license_url, "POST", data=payload)
         return import_status
 
-    def __import_license_cifs(self, import_license_url, resource_id):
+    def __import_license_cifs(self, import_license_url):
         """
         Imports a license using CIFS share type.
 
@@ -862,7 +862,6 @@ class ImportLicense(License):
             self (object): The instance of the class.
             module (object): The Ansible module object.
             import_license_url (str): The URL for importing the license.
-            resource_id (str): The ID of the resource.
 
         Returns:
             object: The import status of the license.
@@ -883,14 +882,13 @@ class ImportLicense(License):
         import_status = self.idrac.invoke_request(import_license_url, "POST", data=payload)
         return import_status
 
-    def __import_license_nfs(self, import_license_url, resource_id):
+    def __import_license_nfs(self, import_license_url):
         """
         Import a license from an NFS share.
 
         Args:
             module (object): The Ansible module object.
             import_license_url (str): The URL for importing the license.
-            resource_id (str): The ID of the resource.
 
         Returns:
             dict: The import status of the license.
@@ -998,10 +996,7 @@ def main():
     required arguments if conditions are met, and setting `supports_check_mode` to `False`.
 
     The function then attempts to establish a connection with the iDRAC Redfish API using the `iDRACRedfishAPI` class.
-    It retrieves the iDRAC firmware version using the `get_idrac_firmware_version` function and checks if it is less than or equal to '3.0'.
-    If it is, the function exits with a message indicating that the iDRAC firmware version is not supported and sets `failed` to `True`.
-
-    If the iDRAC firmware version is supported, the function creates a `LicenseType` object using the `license_operation` method of the
+    If the iDRAC version is supported, the function creates a `LicenseType` object using the `license_operation` method of the
     `LicenseType` class and calls the `execute` method on the `license_obj` object, passing in the `module` object.
 
     If an `HTTPError` occurs, the function loads the error response as JSON, removes a specific key using a regular expression pattern,
