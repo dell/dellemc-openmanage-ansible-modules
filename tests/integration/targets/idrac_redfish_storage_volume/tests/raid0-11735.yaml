@@ -77,7 +77,7 @@
         that:
           - result_raid.changed
           - changes_applied in result_raid.msg
-          - result_raid.task.id
+          - result_raid.task.id is defined
           - result_raid.task.uri == result_raid_expected_uri
           # Verify volume details
           - uri_data.DisplayName == "RAID0_Volume"
@@ -157,7 +157,7 @@
         that:
           - result_volume.changed
           - changes_applied in result_volume.msg
-          - result_volume.task.id
+          - result_volume.task.id is defined
           - result_volume.task.uri == result_volume_expected_uri
           # Verify volume details
           - uri_data.DisplayName == "RAID0_Volume"
