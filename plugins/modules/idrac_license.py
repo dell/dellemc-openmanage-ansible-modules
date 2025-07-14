@@ -897,8 +897,8 @@ class ImportLicense(License):
         payload = {}
         payload["TransferProtocol"] = "NFS"
         payload["LicenseFileURI"] = (
-            self.module.params.get('share_parameters').get('ip_address') + \
-            self.module.params.get('share_parameters').get('share_name') + \
+            self.module.params.get('share_parameters').get('ip_address') +
+            self.module.params.get('share_parameters').get('share_name') +
             "/" + self.module.params.get('share_parameters').get('file_name')
         )
         import_status = self.idrac.invoke_request(import_license_url, "POST", data=payload)
