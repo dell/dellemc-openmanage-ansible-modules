@@ -16,8 +16,7 @@ import tempfile
 import os
 
 import pytest
-from urllib.error import HTTPError, URLError
-from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from urllib.error import HTTPError
 from ansible.module_utils._text import to_text
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_license
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
@@ -402,9 +401,11 @@ class TestExportLicense(FakeAnsibleModule):
                      return_value={"Links": {"Oem": {"Dell": {"DellLicenseManagementService": {ODATA: "/LicenseService"}}}},
                                    "Actions": {
                                        "#DellLicenseManagementService.ExportLicenseToNetworkShare": {
-                                           "target": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/"
+                                           "target": (
+                                               "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/"
                                                 "DellLicenseManagementService/Actions/"
-                                                "DellLicenseManagementService.ExportLicenseToNetworkShare"}}})
+                                                "DellLicenseManagementService.ExportLicenseToNetworkShare"
+                                            )}}})
         idrac_default_args.update(export_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         export_license_obj = self.module.ExportLicense(idrac_connection_license_mock, f_module)
