@@ -385,6 +385,7 @@ class TestExportLicense(FakeAnsibleModule):
         result = export_license_obj._ExportLicense__get_export_license_url()
         assert result == "/redfish/v1/LicenseService/Licenses/test_license_id/DownloadURI"
 
+
     def test_get_export_license_url_share(self, idrac_default_args, idrac_connection_license_mock, mocker):
         export_params = {
             'license_id': 'test_license_id',
@@ -426,6 +427,12 @@ class TestExportLicense(FakeAnsibleModule):
         result = export_license_obj._ExportLicense__get_export_license_url()
         assert result == "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/" + \
             "DellLicenseManagementService/Actions/DellLicenseManagementService.ExportLicenseToNetworkShare"
+
+        mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri",
+                     return_value=(REDFISH, "error"))
+        with pytest.raises(Exception) as exc:
+            export_license_obj._ExportLicense__get_export_license_url()
+        assert exc.value.args[0] == "error"
 
     def test_execute(self, idrac_default_args, idrac_connection_license_mock, mocker):
         share_type = 'local'
