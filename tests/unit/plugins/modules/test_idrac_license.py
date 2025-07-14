@@ -280,14 +280,14 @@ class TestExportLicense(FakeAnsibleModule):
             }
         }
         idr_obj = MagicMock()
-        idr_obj.body = "<lns:LicenseData><lns:EntitlementID>ansible_open_manage</lns:EntitlementID></lns:LicenseData>"
+        idr_obj.body = "<lns:LicenseData><lns:EntitlementID>ansible_open_manage</lns:EntitlementID></lns:LicenseData>".encode('utf-8')
         mocker.patch(MODULE_PATH + API_INVOKE_MOCKER,
                      return_value=idr_obj)
         idrac_default_args.update(export_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         export_license_obj = self.module.ExportLicense(idrac_connection_license_mock, f_module)
         result = export_license_obj._ExportLicense__export_license_local(EXPORT_URL_MOCK)
-        assert result.body == "<lns:LicenseData><lns:EntitlementID>ansible_open_manage</lns:EntitlementID></lns:LicenseData>"
+        assert result.body == b"<lns:LicenseData><lns:EntitlementID>ansible_open_manage</lns:EntitlementID></lns:LicenseData>"
         assert os.path.exists(f"{tmp_path}/test_lic.xml")
         if os.path.exists(f"{tmp_path}/test_lic.xml"):
             os.remove(f"{tmp_path}/test_lic.xml")
@@ -300,7 +300,7 @@ class TestExportLicense(FakeAnsibleModule):
         }
         idrac_default_args.update(export_params)
         result = export_license_obj._ExportLicense__export_license_local(EXPORT_URL_MOCK)
-        assert result.body == "<lns:LicenseData><lns:EntitlementID>ansible_open_manage</lns:EntitlementID></lns:LicenseData>"
+        assert result.body == b"<lns:LicenseData><lns:EntitlementID>ansible_open_manage</lns:EntitlementID></lns:LicenseData>"
         assert os.path.exists(f"{tmp_path}/test_license_id_iDRAC_license.xml")
         if os.path.exists(f"{tmp_path}/test_license_id_iDRAC_license.xml"):
             os.remove(f"{tmp_path}/test_license_id_iDRAC_license.xml")
