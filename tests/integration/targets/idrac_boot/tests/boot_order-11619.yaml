@@ -22,6 +22,7 @@
 
     - name: Waiting idrac reset to complete before 2 - Normal
       dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
       register: result_lc
       until: result_lc.lc_status_info.LCStatus == 'Ready'
       retries: 100
@@ -72,6 +73,7 @@
 
     - name: Waiting idrac reset to complete after bios boot order  - Normal
       dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
       register: result_lc
       until: result_lc.lc_status_info.LCStatus == 'Ready'
       retries: 100
@@ -135,6 +137,7 @@
 
     - name: Waiting idrac reset to complete after bios boot order  - Normal
       dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
       register: result_lc
       until: result_lc.lc_status_info.LCStatus == 'Ready'
       retries: 100
@@ -186,6 +189,7 @@
 
     - name: Waiting idrac reset to complete after Uefi boot order  - Normal
       dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
       register: result_lc
       until: result_lc.lc_status_info.LCStatus == 'Ready'
       retries: 100

@@ -22,6 +22,7 @@
 
     - name: Waiting for idrac readiness
       dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
       register: result_lc
       until: result_lc.lc_status_info.LCStatus == 'Ready'
       retries: 100
@@ -55,6 +56,7 @@
 
     - name: Waiting for idrac readiness - Prerequisite
       idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
       register: result_lc
       until: result_lc.lc_status_info.LCStatus == 'Ready'
       retries: 100
@@ -144,6 +146,7 @@
 
     - name: Waiting for idrac readiness before disabling boot options for legacy
       idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
       register: result_lc
       until: result_lc.lc_status_info.LCStatus == 'Ready'
       retries: 100
@@ -219,6 +222,7 @@
 
     - name: Waiting for idrac readiness before legacy enable/disable - Normal
       idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
       register: result_lc
       until: result_lc.lc_status_info.LCStatus == 'Ready'
       retries: 100
@@ -270,6 +274,7 @@
 
     - name: Waiting for idrac readiness before booting to Uefi
       idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
       register: result_lc
       until: result_lc.lc_status_info.LCStatus == 'Ready'
       retries: 100
@@ -301,6 +306,7 @@
 
     - name: Waiting for idrac readiness after uefi mode
       idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
       register: result_lc
       until: result_lc.lc_status_info.LCStatus == 'Ready'
       retries: 100
@@ -336,6 +342,7 @@
     - name: Waiting for idrac readiness after disabled uefi boot options -
        Prerequisite
       dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
       register: result_lc
       until: result_lc.lc_status_info.LCStatus == 'Ready'
       retries: 100
@@ -429,6 +436,7 @@
 
     - name: Waiting for idrac readiness before disabling boot options for uefi
       idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
       register: result_lc
       until: result_lc.lc_status_info.LCStatus == 'Ready'
       retries: 100
@@ -507,6 +515,7 @@
 
     - name: Waiting for idrac readiness before Uefi enable/disable - Normal
       idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
       register: result_lc
       until: result_lc.lc_status_info.LCStatus == 'Ready'
       retries: 100
