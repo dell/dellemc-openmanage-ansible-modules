@@ -4,7 +4,5 @@
   become: true
   tasks:
     - name: "Pre-requisites"
-      vars:
-        role_path: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}"
       ansible.builtin.include_tasks:
         file: "{{ role_path }}/molecule/resources/tests/downgrade.yml"
