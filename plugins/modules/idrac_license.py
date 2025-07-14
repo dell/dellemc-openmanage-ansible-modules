@@ -845,9 +845,9 @@ class ImportLicense(License):
         payload.update(proxy_details)
         payload["TransferProtocol"] = "HTTP" if self.module.params.get('share_parameters').get('share_type') == "http" else "HTTPS"
         payload["LicenseFileURI"] = self.module.params.get('share_parameters').get('share_type') + \
-                                    "://" + self.module.params.get('share_parameters').get('ip_address') + \
-                                    self.module.params.get('share_parameters').get('share_name') + "/" + \
-                                    self.module.params.get('share_parameters').get('file_name')
+                                "://" + self.module.params.get('share_parameters').get('ip_address') + \
+                                self.module.params.get('share_parameters').get('share_name') + "/" + \
+                                self.module.params.get('share_parameters').get('file_name')
         import_status = self.idrac.invoke_request(import_license_url, "POST", data=payload)
         return import_status
 
@@ -872,8 +872,8 @@ class ImportLicense(License):
         if self.module.params.get('share_parameters').get('password'):
             payload["Password"] = self.module.params.get('share_parameters').get('password')
         payload["LicenseFileURI"] = "//" + self.module.params.get('share_parameters').get('ip_address') + \
-                                    self.module.params.get('share_parameters').get('share_name') + \
-                                    "/" + self.module.params.get('share_parameters').get('file_name')
+                                self.module.params.get('share_parameters').get('share_name') + \
+                                "/" + self.module.params.get('share_parameters').get('file_name')
         payload["TransferProtocol"] = "CIFS"
         import_status = self.idrac.invoke_request(import_license_url, "POST", data=payload)
         return import_status
@@ -893,8 +893,8 @@ class ImportLicense(License):
         payload = {}
         payload["TransferProtocol"] = "NFS"
         payload["LicenseFileURI"] = self.module.params.get('share_parameters').get('ip_address') + \
-                                    self.module.params.get('share_parameters').get('share_name') + \
-                                    "/" + self.module.params.get('share_parameters').get('file_name')
+                                self.module.params.get('share_parameters').get('share_name') + \
+                                "/" + self.module.params.get('share_parameters').get('file_name')
         import_status = self.idrac.invoke_request(import_license_url, "POST", data=payload)
         return import_status
 

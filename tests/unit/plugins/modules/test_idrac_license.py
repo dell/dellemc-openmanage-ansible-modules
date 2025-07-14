@@ -403,8 +403,8 @@ class TestExportLicense(FakeAnsibleModule):
                                    "Actions": {
                                        "#DellLicenseManagementService.ExportLicenseToNetworkShare": {
                                            "target": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/"
-                                                    "DellLicenseManagementService/Actions/"
-                                                    "DellLicenseManagementService.ExportLicenseToNetworkShare"}}})
+                                                "DellLicenseManagementService/Actions/"
+                                                "DellLicenseManagementService.ExportLicenseToNetworkShare"}}})
         idrac_default_args.update(export_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         export_license_obj = self.module.ExportLicense(idrac_connection_license_mock, f_module)
