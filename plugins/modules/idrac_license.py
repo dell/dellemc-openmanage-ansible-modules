@@ -385,16 +385,15 @@ error_info:
   }
 '''
 
-import logging
+
 import json
 import os
 import base64
 from urllib.error import HTTPError, URLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible.module_utils.compat.version import LooseVersion
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    get_idrac_firmware_version, get_dynamic_uri, get_manager_res_id,
+    get_dynamic_uri, get_manager_res_id,
     validate_and_get_first_resource_id_uri, remove_key, idrac_redfish_job_tracking)
 
 REDFISH = "/redfish/v1"
@@ -465,8 +464,6 @@ class License():
         :return: The response from the license URL.
         """
         license_uri = self.get_license_url()
-        print(license_uri)
-        print(license_id)
         license_url = license_uri + f"/{license_id}"
         try:
             response = self.idrac.invoke_request(license_url, 'GET')
@@ -528,9 +525,9 @@ class License():
         share_details["IPAddress"] = self.module.params.get('share_parameters').get('ip_address')
         share_details["ShareName"] = self.module.params.get('share_parameters').get('share_name')
         if self.module.params.get('share_parameters').get('username'):
-          share_details["UserName"] = self.module.params.get('share_parameters').get('username')
+            share_details["UserName"] = self.module.params.get('share_parameters').get('username')
         if self.module.params.get('share_parameters').get('password'):
-          share_details["Password"] = self.module.params.get('share_parameters').get('password')
+            share_details["Password"] = self.module.params.get('share_parameters').get('password')
         return share_details
 
     def get_proxy_details(self):
@@ -717,16 +714,16 @@ class ExportLicense(License):
         :rtype: str
         """
         if self.module.params.get('share_parameters').get('share_type') != "local":
-          uri, error_msg = validate_and_get_first_resource_id_uri(self.module, self.idrac, MANAGERS_URI)
-          if error_msg:
-            self.module.exit_json(msg=error_msg, failed=True)
-          resp = get_dynamic_uri(self.idrac, uri)
-          url = resp.get('Links', {}).get(OEM, {}).get(MANUFACTURER, {}).get(LICENSE_MANAGEMENT_SERVICE, {}).get(ODATA, {})
-          action_resp = get_dynamic_uri(self.idrac, url)
-          export_url = action_resp.get(ACTIONS, {}).get(EXPORT_NETWORK_SHARE, {}).get('target', {})
+            uri, error_msg = validate_and_get_first_resource_id_uri(self.module, self.idrac, MANAGERS_URI)
+            if error_msg:
+                self.module.exit_json(msg=error_msg, failed=True)
+            resp = get_dynamic_uri(self.idrac, uri)
+            url = resp.get('Links', {}).get(OEM, {}).get(MANUFACTURER, {}).get(LICENSE_MANAGEMENT_SERVICE, {}).get(ODATA, {})
+            action_resp = get_dynamic_uri(self.idrac, url)
+            export_url = action_resp.get(ACTIONS, {}).get(EXPORT_NETWORK_SHARE, {}).get('target', {})
         else:
-          response = self.check_license_id(self.module.params.get('license_id'))
-          export_url = response.json_data.get("DownloadURI", {})
+            response = self.check_license_id(self.module.params.get('license_id'))
+            export_url = response.json_data.get("DownloadURI", {})
         return export_url
 
     def __export_license(self, payload, export_license_url):
@@ -845,10 +842,12 @@ class ImportLicense(License):
             payload["Username"] = self.module.params.get('share_parameters').get('username')
         if self.module.params.get('share_parameters').get('password'):
             payload["Password"] = self.module.params.get('share_parameters').get('password')
-        
         payload.update(proxy_details)
         payload["TransferProtocol"] = "HTTP" if self.module.params.get('share_parameters').get('share_type') == "http" else "HTTPS"
-        payload["LicenseFileURI"] = self.module.params.get('share_parameters').get('ip_address') + self.module.params.get('share_parameters').get('share_name') + "/" + self.module.params.get('share_parameters').get('file_name')
+        payload["LicenseFileURI"] = self.module.params.get('share_parameters').get('share_type') + \
+                                    "://" + self.module.params.get('share_parameters').get('ip_address') + \
+                                    self.module.params.get('share_parameters').get('share_name') + "/" + \
+                                    self.module.params.get('share_parameters').get('file_name')
         import_status = self.idrac.invoke_request(import_license_url, "POST", data=payload)
         return import_status
 
@@ -872,7 +871,9 @@ class ImportLicense(License):
             payload["Username"] = self.module.params.get('share_parameters').get('username')
         if self.module.params.get('share_parameters').get('password'):
             payload["Password"] = self.module.params.get('share_parameters').get('password')
-        payload["LicenseFileURI"] = "//" + self.module.params.get('share_parameters').get('ip_address') + self.module.params.get('share_parameters').get('share_name') + "/" + self.module.params.get('share_parameters').get('file_name')
+        payload["LicenseFileURI"] = "//" + self.module.params.get('share_parameters').get('ip_address') + \
+                                    self.module.params.get('share_parameters').get('share_name') + \
+                                    "/" + self.module.params.get('share_parameters').get('file_name')
         payload["TransferProtocol"] = "CIFS"
         import_status = self.idrac.invoke_request(import_license_url, "POST", data=payload)
         return import_status
@@ -891,7 +892,9 @@ class ImportLicense(License):
         """
         payload = {}
         payload["TransferProtocol"] = "NFS"
-        payload["LicenseFileURI"] = self.module.params.get('share_parameters').get('ip_address') + self.module.params.get('share_parameters').get('share_name') + "/" + self.module.params.get('share_parameters').get('file_name')
+        payload["LicenseFileURI"] = self.module.params.get('share_parameters').get('ip_address') + \
+                                    self.module.params.get('share_parameters').get('share_name') + \
+                                    "/" + self.module.params.get('share_parameters').get('file_name')
         import_status = self.idrac.invoke_request(import_license_url, "POST", data=payload)
         return import_status
 
@@ -921,19 +924,18 @@ class ImportLicense(License):
         :rtype: str
         """
         if self.module.params.get('share_parameters').get('share_type') == "local":
-          uri, error_msg = validate_and_get_first_resource_id_uri(
-              self.module, self.idrac, MANAGERS_URI)
-          if error_msg:
-              self.module.exit_json(msg=error_msg, failed=True)
-          resp = get_dynamic_uri(self.idrac, uri)
-          url = resp.get('Links', {}).get(OEM, {}).get(MANUFACTURER, {}).get(LICENSE_MANAGEMENT_SERVICE, {}).get(ODATA, {})
-          action_resp = get_dynamic_uri(self.idrac, url)
-          import_url = action_resp.get(ACTIONS, {}).get(IMPORT_LOCAL, {}).get('target', {})
+            uri, error_msg = validate_and_get_first_resource_id_uri(self.module, self.idrac, MANAGERS_URI)
+            if error_msg:
+                self.module.exit_json(msg=error_msg, failed=True)
+            resp = get_dynamic_uri(self.idrac, uri)
+            url = resp.get('Links', {}).get(OEM, {}).get(MANUFACTURER, {}).get(LICENSE_MANAGEMENT_SERVICE, {}).get(ODATA, {})
+            action_resp = get_dynamic_uri(self.idrac, url)
+            import_url = action_resp.get(ACTIONS, {}).get(IMPORT_LOCAL, {}).get('target', {})
         else:
-          v1_resp = get_dynamic_uri(self.idrac, REDFISH)
-          license_service_url = v1_resp.get('LicenseService', {}).get(ODATA, {})
-          license_service_resp = get_dynamic_uri(self.idrac, license_service_url)
-          import_url = license_service_resp.get(ACTIONS, {}).get(IMPORT_NETWORK_SHARE, {}).get('target', {})
+            v1_resp = get_dynamic_uri(self.idrac, REDFISH)
+            license_service_url = v1_resp.get('LicenseService', {}).get(ODATA, {})
+            license_service_resp = get_dynamic_uri(self.idrac, license_service_url)
+            import_url = license_service_resp.get(ACTIONS, {}).get(IMPORT_NETWORK_SHARE, {}).get('target', {})
         return import_url
 
     def get_job_status(self, license_job_response):

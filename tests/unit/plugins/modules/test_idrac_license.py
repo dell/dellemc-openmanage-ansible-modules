@@ -376,7 +376,7 @@ class TestExportLicense(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + LIC_GET_LICENSE_URL, return_value=REDFISH_LICENSE_URL)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         idr_obj = MagicMock()
-        idr_obj.json_data = {"Id": "test_license_id", 
+        idr_obj.json_data = {"Id": "test_license_id",
                              "DownloadURI": "/redfish/v1/LicenseService/Licenses/test_license_id/DownloadURI"}
         mocker.patch(MODULE_PATH + API_INVOKE_MOCKER, return_value=idr_obj)
         lic_obj = self.module.License(idrac_connection_license_mock, f_module)
@@ -400,12 +400,17 @@ class TestExportLicense(FakeAnsibleModule):
                      return_value=(REDFISH, None))
         mocker.patch(MODULE_PATH + "get_dynamic_uri",
                      return_value={"Links": {"Oem": {"Dell": {"DellLicenseManagementService": {ODATA: "/LicenseService"}}}},
-                                   "Actions": {"#DellLicenseManagementService.ExportLicenseToNetworkShare": {"target": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLicenseManagementService/Actions/DellLicenseManagementService.ExportLicenseToNetworkShare"}}})
+                                   "Actions": {
+                                       "#DellLicenseManagementService.ExportLicenseToNetworkShare": {
+                                           "target": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/"
+                                                    "DellLicenseManagementService/Actions/"
+                                                    "DellLicenseManagementService.ExportLicenseToNetworkShare"}}})
         idrac_default_args.update(export_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         export_license_obj = self.module.ExportLicense(idrac_connection_license_mock, f_module)
         result = export_license_obj._ExportLicense__get_export_license_url()
-        assert result == "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLicenseManagementService/Actions/DellLicenseManagementService.ExportLicenseToNetworkShare"
+        assert result == "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/" + \
+            "DellLicenseManagementService/Actions/DellLicenseManagementService.ExportLicenseToNetworkShare"
 
     def test_execute(self, idrac_default_args, idrac_connection_license_mock, mocker):
         share_type = 'local'
@@ -614,7 +619,7 @@ class TestImportLicense(FakeAnsibleModule):
         }
         idr_obj = MagicMock()
         idr_obj.json_data = expected_result
-            
+
         mocker.patch(MODULE_PATH + API_INVOKE_MOCKER,
                      return_value=idr_obj)
         idrac_default_args.update(import_params)
