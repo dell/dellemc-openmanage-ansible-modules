@@ -96,7 +96,8 @@
         that:
           - idrac_export_license.changed
           - idrac_export_license.msg == "Successfully exported the license."
-          - "'The command was successful' in idrac_export_license.job_details.Message"
+          - "'The command was successful' in
+            idrac_export_license.job_details.Message"
           - not diff_result.changed
           - not diff_result.diff_lines
 

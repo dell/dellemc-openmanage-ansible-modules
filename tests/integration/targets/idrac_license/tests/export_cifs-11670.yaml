@@ -1,12 +1,15 @@
 # Test code for the Dell OpenManage modules
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
-    msg: 'Please define the following variables: idrac_ip, idrac_user and idrac_password.'
-  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
 
 - block:
     - name: Include the helper task
@@ -20,7 +23,9 @@
 
     - name: Set the API
       ansible.builtin.set_fact:
-        idracApi: "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLicenseManagementService/Actions/DellLicenseManagementService.ExportLicenseToNetworkShare"
+        idracApi: "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell\
+         /DellLicenseManagementService/Actions\
+         /DellLicenseManagementService.ExportLicenseToNetworkShare"
 
     - name: Set the CIFS IP and directory path- first step
       ansible.builtin.set_fact:
@@ -29,11 +34,13 @@
     - name: Set the CIFS IP and directory path- final step
       ansible.builtin.set_fact:
         cifs_share_ip: "{{ cifs_share_tmp | regex_replace('(\\\\)(.*)', '') }}"
-        cifs_share_dir_path: "{{ cifs_share_tmp | regex_replace('.*(\\\\)(.*)', '\\2') }}"
+        cifs_share_dir_path: "{{ cifs_share_tmp |
+         regex_replace('.*(\\\\)(.*)', '\\2') }}"
 
     - name: Create Export license for iDRAC component by uri.
       ansible.builtin.uri:
-        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}{{ idracApi }}"
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+         {{ idracApi }}"
         method: POST
         user: "{{ idrac_user }}"
         password: "{{ idrac_password }}"
@@ -81,7 +88,8 @@
     - name: Compare the job detail output between module and uri
       ansible.utils.fact_diff:
         before: "{{ idrac_job_details | ansible.utils.remove_keys(
-                target=['^@odata','MessageArgs@odata.count'], matching_parameter='regex')}}"
+                target=['^@odata','MessageArgs@odata.count'],
+                matching_parameter='regex')}}"
         after: "{{ idrac_export_license.job_details }}"
       register: diff_result
 
@@ -90,7 +98,8 @@
         that:
           - idrac_export_license.changed
           - idrac_export_license.msg == "Successfully exported the license."
-          - "'The command was successful' in idrac_export_license.job_details.Message"
+          - "'The command was successful' in
+            idrac_export_license.job_details.Message"
           - not diff_result.changed
           - not diff_result.diff_lines
 
@@ -115,7 +124,8 @@
     - name: Compare the job detail output between module and uri
       ansible.utils.fact_diff:
         before: "{{ idrac_job_details | ansible.utils.remove_keys(
-                target=['^@odata','MessageArgs@odata.count'], matching_parameter='regex')}}"
+                target=['^@odata','MessageArgs@odata.count'],
+                matching_parameter='regex')}}"
         after: "{{ idrac_export_license_workgroup.job_details }}"
       register: diff_result
 
@@ -124,23 +134,28 @@
         that:
           - idrac_export_license_workgroup.changed
           - idrac_export_license_workgroup.msg == "Successfully exported the license."
-          - "'The command was successful' in idrac_export_license.job_details.Message"
+          - "'The command was successful' in
+            idrac_export_license.job_details.Message"
           - not diff_result.changed
           - not diff_result.diff_lines
 
     - name: Check that the exported file exists for CIFS share- URI
       ansible.builtin.stat:
-        path: "{{ cifs_share_mnt }}/{{ ServiceTag }}_{{ idrac_license_id }}.xml"
+        path: "{{ cifs_share_mnt }}\
+         /{{ ServiceTag }}_{{ idrac_license_id }}.xml"
       register: uri_file_stats
 
     - name: Check that the exported file exists for CIFS share- Module
       ansible.builtin.stat:
-        path: "{{ cifs_share_mnt }}/{{ ServiceTag }}_{{ idrac_license_id }}.xml"
+        path: "{{ cifs_share_mnt }}\
+         /{{ ServiceTag }}_{{ idrac_license_id }}.xml"
       register: module_file_stats
 
-    - name: Check that the exported file exists for CIFS share with workgroup- Module
+    - name: Check that the exported file exists for CIFS share with
+       workgroup- Module
       ansible.builtin.stat:
-        path: "{{ cifs_share_mnt }}/{{ ServiceTag }}_{{ idrac_license_id }}.xml"
+        path: "{{ cifs_share_mnt }}\
+         /{{ ServiceTag }}_{{ idrac_license_id }}.xml"
       register: module_file_stats_workgroup
 
     - name: Compare file sizes
@@ -153,7 +168,8 @@
       ansible.builtin.assert:
         that:
           - uri_file_stats.stat.checksum == module_file_stats.stat.checksum
-          - uri_file_stats.stat.checksum == module_file_stats_workgroup.stat.checksum
+          - uri_file_stats.stat.checksum == \
+            module_file_stats_workgroup.stat.checksum
 
   always:
     - name: Perform the cleanup
