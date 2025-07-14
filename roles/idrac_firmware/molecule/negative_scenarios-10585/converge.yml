@@ -4,7 +4,7 @@
   gather_facts: false
   tasks:
     - name: Updating firmware with an invalid hostname
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "invalidHostname"
@@ -24,7 +24,7 @@
           - "'unreachable iDRAC IP' in idrac_firmware_out.msg"
 
     - name: Updating firmware with an invalid username
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
@@ -44,7 +44,7 @@
           - "'Incorrect username' in idrac_firmware_out.msg"
 
     - name: Updating firmware with an invalid password
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
@@ -64,7 +64,7 @@
           - "'password' in idrac_firmware_out.msg"
 
     - name: Updating firmware with an invalid ca_path
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
@@ -85,7 +85,7 @@
           - "'Incorrect username or password, unreachable iDRAC IP or a failure in TLS/SSL handshake.' in idrac_firmware_out.msg"
 
     - name: Updating firmware with catalog file without extension
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
@@ -105,7 +105,7 @@
           - idrac_firmware_out.msg == "catalog_file_name should be an XML file."
 
     - name: Update firmware from repository on HTTPS Share with invalid share_user
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
@@ -128,7 +128,7 @@
           - "'The specified user credentials necessary for downloading an update package were not correct.' in idrac_firmware_out.msg"
 
     - name: Update firmware from repository on HTTPS Share with invalid share_password
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
@@ -151,7 +151,7 @@
           - "'The specified user credentials necessary for downloading an update package were not correct.' in idrac_firmware_out.msg"
 
     - name: Update firmware from repository on a HTTPS via parameter proxy Share with invalid proxy_uname
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
@@ -181,7 +181,7 @@
           - "'because of some unknown reasons.' in idrac_firmware_out.msg"
 
     - name: Update firmware from repository on a HTTPS via parameter proxy Share with invalid proxy_passwd
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"

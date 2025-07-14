@@ -4,7 +4,7 @@
   gather_facts: false
   tasks:
     - name: Update firmware from repository on a FTP Share
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"

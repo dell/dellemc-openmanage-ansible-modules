@@ -4,7 +4,7 @@
   gather_facts: false
   tasks:
     - name: Update firmware from repository on a HTTPS via parameter proxy Share
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
@@ -57,7 +57,7 @@
       tags: molecule-idempotence-notest
 
     - name: Update firmware from repository on a HTTPS via default proxy Share
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
@@ -105,7 +105,7 @@
       tags: molecule-idempotence-notest
 
     - name: Update firmware from repository on a HTTPS via parameter proxy Share with proxy_type as SOCKS
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"

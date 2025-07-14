@@ -4,7 +4,7 @@
   gather_facts: false
   tasks:
     - name: Update firmware from repository on HTTPS Share with apply_update as false
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
@@ -39,7 +39,7 @@
       delegate_to: localhost
 
     - name: Update firmware from repository on HTTPS Share with ignore_cert_warning as false
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
@@ -76,7 +76,7 @@
       tags: molecule-idempotence-notest
 
     - name: Update firmware from repository on HTTPS Share with reboot as false
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
@@ -119,7 +119,7 @@
       tags: molecule-idempotence-notest
 
     - name: Update firmware from repository on HTTPS Share with job_wait as false
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
