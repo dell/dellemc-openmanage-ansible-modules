@@ -311,8 +311,11 @@ def get_payload(module, slot_id, generation, action=None):
     :param slot_id: slot id for user slot
     :return: json data with slot id
     """
-    if generation >= 17 and module.params['privilege'] == 'None':
-        module.exit_json(msg=INVALID_PRIVILAGE_MSG_NONE, failed=True)
+    if generation >= 17:
+        if module.params['privilege'] == 'None':
+            module.exit_json(msg=INVALID_PRIVILAGE_MSG_NONE, failed=True)
+        elif module.params['privilege'] is None:
+            module.params['privilege'] = 'ReadOnly'
     user_privilege = module.params["custom_privilege"] if "custom_privilege" in module.params and \
         module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"])
 
@@ -505,12 +508,13 @@ def validate_authentication_and_privacy_protocols(module,
 
 def validate_input(module, idrac, generation):
     if module.params["state"] == "present":
-        user_privilege = module.params["custom_privilege"] if "custom_privilege" in module.params and \
-            module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"], 0)
         if isinstance(generation, int) and generation >= 17:
             INVALID_PRIVILAGE_MIN = INVALID_PRIVILAGE_MIN_iDRAC10
         else:
             INVALID_PRIVILAGE_MIN = INVALID_PRIVILAGE_MIN_iDRAC9
+        user_privilege = module.params["custom_privilege"] if "custom_privilege" in module.params and \
+            module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"], INVALID_PRIVILAGE_MIN)
+
         if INVALID_PRIVILAGE_MIN > user_privilege or user_privilege > INVALID_PRIVILAGE_MAX:
             module.exit_json(msg=INVALID_PRIVILAGE_MSG.format(INVALID_PRIVILAGE_MIN),
                              failed=True)
