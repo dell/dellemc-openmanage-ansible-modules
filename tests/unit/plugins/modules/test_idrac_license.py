@@ -379,7 +379,6 @@ class TestExportLicense(FakeAnsibleModule):
                              "DownloadURI": "/redfish/v1/LicenseService/Licenses/test_license_id/DownloadURI"}
         mocker.patch(MODULE_PATH + API_INVOKE_MOCKER, return_value=idr_obj)
         lic_obj = self.module.License(idrac_connection_license_mock, f_module)
-        data = lic_obj.check_license_id(license_id="test_license_id")
         idrac_default_args.update(export_params)
         export_license_obj = self.module.ExportLicense(idrac_connection_license_mock, f_module)
         result = export_license_obj._ExportLicense__get_export_license_url()

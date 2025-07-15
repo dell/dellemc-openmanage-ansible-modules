@@ -1,3 +1,4 @@
+---
 base_path_for_exported_license: "/root/idrac_license/"
 b_true: true
 share_name_local: /root/tmp
