@@ -8,7 +8,6 @@
     - name: Get Server generation
       ansible.builtin.include_tasks:
         file: ../resources/idrac_user/_get_server_generation.yml
-      run_once: true
 
     - name: Setting up protocol dynamically
       ansible.builtin.set_fact:
@@ -18,7 +17,7 @@
 
     - name: Configure a new iDRAC user with all parameters except user_password
       ansible.builtin.import_role:
-        name: idrac_user
+        name: dellemc.openmanage.idrac_user
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
