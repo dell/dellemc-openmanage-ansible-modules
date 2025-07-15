@@ -207,7 +207,8 @@
         that:
           - result.skipped
           - not result.changed
-          - '"Task is skipped as none of import, export or delete is specified." in result.msg'
+          - '"Task is skipped as none of import, export or delete
+           is specified." in result.msg'
 
     - name: Export license when export is false
       dellemc.openmanage.idrac_license:
@@ -227,4 +228,5 @@
         that:
           - result.skipped
           - not result.changed
-          - '"Task is skipped as none of import, export or delete is specified." in result.msg'
+          - '"Task is skipped as none of import, export or delete
+           is specified." in result.msg'
