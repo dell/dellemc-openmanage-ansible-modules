@@ -67,8 +67,8 @@
           share_name: "{{ https_share_dir_path }}"
           username: "{{ https_share_username | default(omit) }}"
           password: "{{ https_share_password | default(omit) }}"
-          ignore_certificate_warning: 
-           "{{ export_https_ignore_certificate_warning }}"
+          ignore_certificate_warning:
+            "{{ export_https_ignore_certificate_warning }}"
           share_type: https
           proxy_support: "{{ export_https_proxy_support }}"
           proxy_server: "{{ export_https_proxy_server }}"
