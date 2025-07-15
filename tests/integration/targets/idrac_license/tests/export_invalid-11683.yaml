@@ -1,18 +1,22 @@
 # Test code for the Dell OpenManage modules
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
-    msg: 'Please define the following variables: idrac_ip, idrac_user and idrac_password.'
-  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+    msg: 'Please define the following variables: idrac_ip, idrac_user
+     and idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
 
 - block:
     - name: Fetch the license details from the device
       ansible.builtin.include_tasks: _get_data_uri.yml
       vars:
-        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLicenses"
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+         /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLicenses"
         uri_method: GET
         status_code: 200
 
@@ -26,7 +30,8 @@
         idrac_license_id: "{{ idrac_license_details.EntitlementID }}"
       when: idrac_license_details is defined
 
-    - name: Negative - Export a License from iDRAC with invalid value for export parameter
+    - name: Negative - Export a License from iDRAC with invalid value
+       for export parameter
       dellemc.openmanage.idrac_license:
         export: export
         license_id: "valid_license_id"
@@ -44,7 +49,8 @@
           - not invalid_export_value.changed
           - "'unable to convert to bool' in invalid_export_value.msg"
 
-    - name: Negative - Export a License from iDRAC with share_parameters not provided
+    - name: Negative - Export a License from iDRAC with
+       share_parameters not provided
       dellemc.openmanage.idrac_license:
         export: true
         license_id: "valid_license_id"
@@ -56,12 +62,14 @@
         that:
           - missing_share_parameters.failed
           - not missing_share_parameters.changed
-          - 'missing_share_parameters.msg == "export is True but all of the following are missing: share_parameters"'
+          - 'missing_share_parameters.msg == "export is True but all of the
+           following are missing: share_parameters"'
 
     - name: Negative - Export a License from iDRAC  when license is available
       when: idrac_license_id is defined
       block:
-        - name: Negative - Export a License from iDRAC with invalid share_name (share_type-Local)
+        - name: Negative - Export a License from iDRAC with invalid
+           share_name (share_type-Local)
           dellemc.openmanage.idrac_license:
             export: true
             license_id: "{{ idrac_license_id }}"
@@ -77,7 +85,8 @@
             that:
               - invalid_share_name.failed
               - not invalid_share_name.changed
-              - invalid_share_name.msg == "Provided directory path '/invalid_share' is not valid."
+              - invalid_share_name.msg == "Provided directory
+               path '/invalid_share' is not valid."
 
         - name: Negative - Export a License from iDRAC with invalid share_type
           dellemc.openmanage.idrac_license:
@@ -95,7 +104,8 @@
             that:
               - invalid_share_type.failed
               - not invalid_share_type.changed
-              - invalid_share_type.msg.startswith("value of share_type must be one of:")
+              - invalid_share_type.msg.startswith("value of
+               share_type must be one of:")
 
         - name: Negative - Export a License from iDRAC with invalid ip_address
           dellemc.openmanage.idrac_license:
@@ -116,7 +126,8 @@
               - not invalid_ip_address.changed
               - invalid_ip_address.msg == "Could not connect to network share."
 
-        - name: Negative - Export a License from iDRAC with invalid share username
+        - name: Negative - Export a License from iDRAC with invalid
+           share username
           dellemc.openmanage.idrac_license:
             export: true
             license_id: "{{ idrac_license_id }}"
@@ -136,9 +147,11 @@
               - invalid_share_user.failed
               - not invalid_share_user.changed
               - '"credentials are not entered, or the credentials entered do
-                not correspond to an authorized user of the remote host." in invalid_share_user.msg'
+                not correspond to an authorized user of the remote host." in
+                invalid_share_user.msg'
 
-        - name: Negative - Export a License from iDRAC with invalid share password
+        - name: Negative - Export a License from iDRAC with invalid
+           share password
           dellemc.openmanage.idrac_license:
             export: true
             license_id: "{{ idrac_license_id }}"
@@ -158,9 +171,11 @@
               - invalid_share_password.failed
               - not invalid_share_password.changed
               - '"credentials are not entered, or the credentials entered do
-                not correspond to an authorized user of the remote host." in invalid_share_password.msg'
+                not correspond to an authorized user of the remote host." in
+                invalid_share_password.msg'
 
-        - name: Negative - Export a License from iDRAC with invalid ignore_certificate_warning
+        - name: Negative - Export a License from iDRAC with invalid
+           ignore_certificate_warning
           dellemc.openmanage.idrac_license:
             export: true
             license_id: "{{ idrac_license_id }}"
@@ -180,9 +195,12 @@
             that:
               - invalid_ignore_certificate_warning.failed
               - not invalid_ignore_certificate_warning.changed
-              - "'value of ignore_certificate_warning must be one of: off, on, got: empty found in share_parameters' in invalid_ignore_certificate_warning.msg"
+              - "'value of ignore_certificate_warning must be one
+               of: off, on, got: empty found in share_parameters' in
+               invalid_ignore_certificate_warning.msg"
 
-        - name: Negative - Export a License from iDRAC with invalid proxy support value
+        - name: Negative - Export a License from iDRAC with invalid proxy
+           support value
           dellemc.openmanage.idrac_license:
             export: true
             license_id: "{{ idrac_license_id }}"
@@ -208,9 +226,11 @@
             that:
               - invalid_proxy_support.failed
               - not invalid_proxy_support.changed
-              - "'value of proxy_support must be one of: off, default_proxy, parameters_proxy' in invalid_proxy_support.msg"
+              - "'value of proxy_support must be one of: off, default_proxy,
+               parameters_proxy' in invalid_proxy_support.msg"
 
-        - name: Negative - Export a License from iDRAC with invalid proxy type value
+        - name: Negative - Export a License from iDRAC with invalid
+           proxy type value
           dellemc.openmanage.idrac_license:
             export: true
             license_id: "{{ idrac_license_id }}"
@@ -236,9 +256,11 @@
             that:
               - invalid_proxy_type.failed
               - not invalid_proxy_type.changed
-              - "'value of proxy_type must be one of: http, socks' in invalid_proxy_type.msg"
+              - "'value of proxy_type must be one of: http, socks' in
+               invalid_proxy_type.msg"
 
-        - name: Negative - Export a License from iDRAC with invalid proxy server value
+        - name: Negative - Export a License from iDRAC with invalid
+           proxy server value
           dellemc.openmanage.idrac_license:
             export: true
             license_id: "{{ idrac_license_id }}"
@@ -264,9 +286,12 @@
             that:
               - invalid_proxy_server.failed
               - not invalid_proxy_server.changed
-              - invalid_proxy_server.msg == "Unable to transfer a file, openmanage_enterprise_advance_license, because of an internal error."
+              - invalid_proxy_server.msg == "Unable to transfer a file,
+               openmanage_enterprise_advance_license, because of an
+               internal error."
 
-        - name: Negative - Export a License from iDRAC with invalid proxy username value
+        - name: Negative - Export a License from iDRAC with invalid
+           proxy username value
           dellemc.openmanage.idrac_license:
             export: true
             license_id: "{{ idrac_license_id }}"
@@ -292,10 +317,12 @@
             that:
               - invalid_proxy_username.failed
               - not invalid_proxy_username.changed
-              - invalid_proxy_username.msg == "Unable to transfer file, openmanage_enterprise_advance_license,
+              - invalid_proxy_username.msg == "Unable to transfer file,
+               openmanage_enterprise_advance_license,
                because of some unknown reasons."
 
-        - name: Negative - Export a License from iDRAC with invalid proxy password value
+        - name: Negative - Export a License from iDRAC with invalid
+           proxy password value
           dellemc.openmanage.idrac_license:
             export: true
             license_id: "{{ idrac_license_id }}"
@@ -321,10 +348,12 @@
             that:
               - invalid_proxy_password.failed
               - not invalid_proxy_password.changed
-              - invalid_proxy_password.msg == "Unable to transfer file, openmanage_enterprise_advance_license,
+              - invalid_proxy_password.msg == "Unable to transfer file,
+               openmanage_enterprise_advance_license,
                because of some unknown reasons."
 
-        - name: Negative - Export a License from iDRAC with invalid proxy port value
+        - name: Negative - Export a License from iDRAC with invalid
+           proxy port value
           dellemc.openmanage.idrac_license:
             export: true
             license_id: "{{ idrac_license_id }}"
@@ -350,7 +379,8 @@
             that:
               - invalid_proxy_port.failed
               - not invalid_proxy_port.changed
-              - - '"unsupported proxy port number value" in invalid_proxy_port.msg'
+              - '"unsupported proxy port number value" in
+               invalid_proxy_port.msg'
 
     - name: Negative - Export a License from iDRAC with missing license ID
       dellemc.openmanage.idrac_license:
@@ -377,7 +407,8 @@
         that:
           - missing_license_id.failed
           - not missing_license_id.changed
-          - 'missing_license_id.msg == "export is True but all of the following are missing: license_id"'
+          - 'missing_license_id.msg == "export is True but all of the
+           following are missing: license_id"'
 
     - name: Negative - Export a License from iDRAC with invalid license ID
       dellemc.openmanage.idrac_license:
@@ -399,7 +430,8 @@
         that:
           - invalid_license_id.skipped
           - not invalid_license_id.changed
-          - invalid_license_id.msg == "License with ID 'invalid_license_id' does not exist on the iDRAC."
+          - invalid_license_id.msg == "License with ID 'invalid_license_id'
+           does not exist on the iDRAC."
 
   module_defaults:
     dellemc.openmanage.idrac_license:

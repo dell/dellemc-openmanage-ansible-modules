@@ -1,12 +1,15 @@
 # Test code for the Dell OpenManage modules
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
-    msg: 'Please define the following variables: idrac_ip, idrac_user and idrac_password.'
-  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+    msg: 'Please define the following variables: idrac_ip, idrac_user
+     and idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined
 
 - block:
     - name: Include the helper task
@@ -22,11 +25,14 @@
 
     - name: Set the API
       ansible.builtin.set_fact:
-        idracApi: "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLicenseManagementService/Actions/DellLicenseManagementService.ExportLicense"
+        idracApi: "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell\
+         /DellLicenseManagementService/Actions\
+         /DellLicenseManagementService.ExportLicense"
 
     - name: Create Export license for IDRAC component by uri.
       ansible.builtin.uri:
-        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}{{ idracApi }}"
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+         {{ idracApi }}"
         method: POST
         user: "{{ idrac_user }}"
         password: "{{ idrac_password }}"
@@ -56,7 +62,8 @@
     - name: Export iDRAC License to local share- File Creation
       ansible.builtin.copy:
         content: "{{ license_file }}"
-        dest: "{{ base_path_for_exported_license }}/uri_license_export_{{ idrac_ip }}.txt"
+        dest: "{{ base_path_for_exported_license }}\
+         /uri_license_export_{{ idrac_ip }}.txt"
       register: uri_file
 
     - name: Set the file name
@@ -103,7 +110,8 @@
 
     - name: Get file stats for file exported using URI
       ansible.builtin.stat:
-        path: "{{ base_path_for_exported_license }}/uri_license_export_{{ idrac_ip }}.txt"
+        path: "{{ base_path_for_exported_license }}\
+         /uri_license_export_{{ idrac_ip }}.txt"
       register: uri_file_stats
 
     - name: Get file stats for file exported using module(with filename)
@@ -113,7 +121,8 @@
 
     - name: Get file stats for file exported using module(without filename)
       ansible.builtin.stat:
-        path: "{{ base_path_for_exported_license }}/{{ idrac_license_id }}_iDRAC_license.xml"
+        path: "{{ base_path_for_exported_license }}\
+         /{{ idrac_license_id }}_iDRAC_license.xml"
       register: module_without_file_stats
 
     - name: Compare file sizes
@@ -126,7 +135,8 @@
       ansible.builtin.assert:
         that:
           - uri_file_stats.stat.checksum == module_with_file_stats.stat.checksum
-          - uri_file_stats.stat.checksum == module_without_file_stats.stat.checksum
+          - uri_file_stats.stat.checksum == \
+           module_without_file_stats.stat.checksum
 
   always:
     - name: Perform the cleanup

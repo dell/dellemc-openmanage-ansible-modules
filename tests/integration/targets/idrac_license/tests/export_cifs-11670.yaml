@@ -133,7 +133,8 @@
       ansible.builtin.assert:
         that:
           - idrac_export_license_workgroup.changed
-          - idrac_export_license_workgroup.msg == "Successfully exported the license."
+          - idrac_export_license_workgroup.msg == "Successfully
+            exported the license."
           - "'The command was successful' in
             idrac_export_license.job_details.Message"
           - not diff_result.changed
