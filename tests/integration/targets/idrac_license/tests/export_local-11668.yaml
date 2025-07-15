@@ -135,8 +135,9 @@
       ansible.builtin.assert:
         that:
           - uri_file_stats.stat.checksum == module_with_file_stats.stat.checksum
-          - uri_file_stats.stat.checksum == \
-           module_without_file_stats.stat.checksum
+          - > 
+            uri_file_stats.stat.checksum ==
+            module_without_file_stats.stat.checksum
 
   always:
     - name: Perform the cleanup

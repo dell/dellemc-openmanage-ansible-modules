@@ -169,7 +169,8 @@
       ansible.builtin.assert:
         that:
           - uri_file_stats.stat.checksum == module_file_stats.stat.checksum
-          - uri_file_stats.stat.checksum == \
+          - >
+            uri_file_stats.stat.checksum ==
             module_file_stats_workgroup.stat.checksum
 
   always:

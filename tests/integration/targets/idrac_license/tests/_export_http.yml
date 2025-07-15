@@ -107,7 +107,7 @@
 
     - name: Get exported file from HTTP share
       ansible.builtin.uri:
-        url: "http://{{ http_share | ansible.utils.ipwrap }}
+        url: "http://{{ http_share | ansible.utils.ipwrap }}\
          {{ http_share_dir_path }}/{{ ServiceTag }}_{{ idrac_license_id }}.xml"
         force_basic_auth: true
         validate_certs: false
@@ -115,19 +115,19 @@
         use_netrc: false
         url_username: "{{ http_share_user | default(omit) }}"
         url_password: "{{ http_share_password | default(omit) }}"
-        dest: "{{ base_path_for_exported_license }}
+        dest: "{{ base_path_for_exported_license }}\
          /{{ ServiceTag }}_{{ idrac_license_id }}.xml"
       register: idrac_file
 
     - name: Get file stats for file exported using URI
       ansible.builtin.stat:
-        path: "{{ base_path_for_exported_license }}
+        path: "{{ base_path_for_exported_license }}\
          /{{ ServiceTag }}_{{ idrac_license_id }}.xml"
       register: uri_file_stats
 
     - name: Get file stats for file exported using module
       ansible.builtin.stat:
-        path: "{{ base_path_for_exported_license }}
+        path: "{{ base_path_for_exported_license }}\
          /{{ ServiceTag }}_{{ idrac_license_id }}.xml"
       register: module_file_stats
 
