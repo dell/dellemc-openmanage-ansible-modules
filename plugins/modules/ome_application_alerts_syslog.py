@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.12.4
 # Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -47,6 +47,7 @@ requirements:
   - "python >= 3.9.6"
 author:
   - Jagadeesh N V(@jagadeeshnv)
+  - Mangirish Kenkare(@MangirishK)
 notes:
   - Run this module from a system that has direct access to Dell OpenManage Enterprise or Dell OpenManage Enterprise Modular.
   - This module supports C(check_mode).
@@ -245,13 +246,13 @@ def main():
             # POST Call taking average 50-60 seconds so api_timeout=120
             module.exit_json(msg=SUCCESS_MSG, syslog_details=resp.json_data, changed=True)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (
             IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError,
             OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
