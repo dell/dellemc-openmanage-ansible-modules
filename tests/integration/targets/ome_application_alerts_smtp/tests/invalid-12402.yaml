@@ -12,7 +12,7 @@
     password is not defined
 
 - block:
-    - include_tasks: _pre_post_req.yml
+    - ansible.builtin.include_tasks: _pre_post_req.yml
 
     - name: Invalid destination address
       dellemc.openmanage.ome_application_alerts_smtp:

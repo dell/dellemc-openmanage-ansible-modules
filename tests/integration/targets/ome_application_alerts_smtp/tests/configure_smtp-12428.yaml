@@ -12,7 +12,7 @@
     password is not defined
 
 - block:
-    - include_tasks: _pre_post_req.yml
+    - ansible.builtin.include_tasks: _pre_post_req.yml
 
     - name: Update SMTP destination server configuration with authentication
         (Check mode - changes expected)
@@ -51,7 +51,7 @@
         headers: Accept=application/json
       register: smtp_uri
 
-    - include_tasks: _pre_post_req.yml
+    - ansible.builtin.include_tasks: _pre_post_req.yml
 
     - name: Update SMTP destination server configuration without authentication
         (Check mode - changes expected)
@@ -117,7 +117,7 @@
             without_auth_uri.json.value[0].UseSSL == true
 
   always:
-    - include_tasks: _pre_post_req.yml
+    - ansible.builtin.include_tasks: _pre_post_req.yml
 
   module_defaults:
     dellemc.openmanage.ome_application_alerts_smtp:
