@@ -691,7 +691,7 @@ class RunSupportAssist(SupportAssist):
             file_dnld = self.idrac.invoke_request(file_dict.headers.get(
                 "Location"), "GET",
                 headers={"Content-Type": "application/x-tar"},
-                api_timeout = 200)
+                api_timeout=200)
             if file_dnld.status_code == 200:
                 with open(file_name, "wb") as file:
                     file.write(file_dnld.body)
