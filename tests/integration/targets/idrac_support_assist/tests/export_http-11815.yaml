@@ -156,6 +156,10 @@
           - check_mode_result.changed
           - "check_mode_result.msg == 'Changes found to be applied.'"
 
+    - name: Wait for iDRAC to come up
+      ansible.builtin.include_tasks:
+        file: ../_wait_for_idrac_interface.yml
+
     - name: Normal Mode - Export SupportAssist Collection with job wait as
             false to http share using socks proxy
       dellemc.openmanage.idrac_support_assist:
