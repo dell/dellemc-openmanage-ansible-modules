@@ -174,12 +174,8 @@
         import: "{{ b_true }}"
         resource_id: invalid
         share_parameters:
-          username: "{{ https_share_username }}"
-          password: "{{ https_share_password }}"
           file_name: "{{ idrac_license_file }}"
-          ip_address: "{{ https_share_ip }}"
-          share_name: "{{ https_share_dir_path }}"
-          share_type: https
+          share_name: "{{ share_name_local }}"
       register: result
       ignore_errors: true
 
