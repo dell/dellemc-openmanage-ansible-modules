@@ -102,6 +102,10 @@
       ansible.builtin.include_tasks:
         file: ../_reset_config.yml
 
+    - name: Wait for iDRAC to come up
+      ansible.builtin.include_tasks:
+        file: ../_wait_for_idrac_interface.yml
+
     - name: Fetch the EULA status after accepting EULA terms
       ansible.builtin.include_tasks:
         file: ../_eula_helper.yml
