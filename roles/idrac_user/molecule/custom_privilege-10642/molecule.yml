@@ -5,6 +5,11 @@ provisioner:
     cleanup: ../resources/idrac_user/cleanup.yml
 scenario:
   test_sequence:
+    - destroy
+    - syntax
+    - create
     - cleanup
+    - prepare
     - converge
+    - cleanup
     - destroy
