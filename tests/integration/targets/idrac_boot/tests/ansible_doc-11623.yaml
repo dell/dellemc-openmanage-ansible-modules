@@ -23,4 +23,3 @@
   run_once: true
   when:
     - SKIP_DOC is not defined or not SKIP_DOC | bool
-
