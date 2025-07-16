@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.12.3
+# Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -40,7 +40,7 @@ class TestOmeFirmwareBaselineInfo(FakeAnsibleModule):
                                                              module_mock,
                                                              ome_connection_ome_firmware_baseline_info_mock):
         ome_response_mock.json_data = {"value": [{"baseline1": "data"}]}
-        result = self.execute_module(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result["changed"] is False
         assert 'baseline_info' in result
         assert result['msg'] == "Successfully fetched firmware baseline information."
@@ -50,7 +50,7 @@ class TestOmeFirmwareBaselineInfo(FakeAnsibleModule):
                                                              module_mock,
                                                              ome_connection_ome_firmware_baseline_info_mock):
         ome_response_mock.json_data = {"value": []}
-        result = self.execute_module(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert 'baseline_info' in result
         assert result['baseline_info'] == []
 
@@ -62,7 +62,7 @@ class TestOmeFirmwareBaselineInfo(FakeAnsibleModule):
         mocker.patch(
             MODULE_PATH + 'ome_firmware_baseline_info.get_specific_baseline',
             return_value={"Name": "baseline1", "data": "fake_data"})
-        result = self.execute_module(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result["changed"] is False
         assert 'baseline_info' in result
         assert result["baseline_info"] == {"Name": "baseline1", "data": "fake_data"}
@@ -76,7 +76,7 @@ class TestOmeFirmwareBaselineInfo(FakeAnsibleModule):
         mocker.patch(
             MODULE_PATH + 'ome_firmware_baseline_info.get_specific_baseline',
             return_value={"baseline1": "fake_data"})
-        result = self.execute_module(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result['baseline_info'] == []
         assert result['msg'] == "No baselines present."
 
@@ -108,7 +108,7 @@ class TestOmeFirmwareBaselineInfo(FakeAnsibleModule):
             assert result["unreachable"] is True
         elif exc_type not in [HTTPError, SSLValidationError]:
             ome_connection_ome_firmware_baseline_info_mock.invoke_request.side_effect = exc_type("exception message")
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             ome_connection_ome_firmware_baseline_info_mock.invoke_request.side_effect = exc_type('https://testhost.com',
@@ -117,7 +117,7 @@ class TestOmeFirmwareBaselineInfo(FakeAnsibleModule):
                                                                                                  {
                                                                                                      "accept-type": "application/json"},
                                                                                                  StringIO(json_str))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
             assert "error_info" in result
             assert result['msg'] == 'HTTP Error 400: http error message'
@@ -128,7 +128,7 @@ class TestOmeFirmwareBaselineInfo(FakeAnsibleModule):
                                                                                                  {
                                                                                                      "accept-type": "application/json"},
                                                                                                  StringIO(json_str))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
             assert "error_info" not in result
             assert result["msg"] == "404 Not Found.The requested resource is not available."
