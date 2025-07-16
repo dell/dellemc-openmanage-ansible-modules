@@ -87,6 +87,7 @@ options:
       - If the I(boot_source_override_target) is set to a value other than C(none) then the
         I(boot_source_override_enabled) is automatically set to C(once).
       - Changes to this options do not alter the BIOS persistent boot order configuration.
+      - This is required if I(boot_source_override_enabled) is C(once) or C(continuous) for iDRAC 17G and later.
       - This is mutually exclusive with I(boot_options).
     choices: [uefi_http, sd_card, uefi_target, utilities, bios_setup, hdd, cd, floppy, pxe, none]
   uefi_target_boot_source_override:
