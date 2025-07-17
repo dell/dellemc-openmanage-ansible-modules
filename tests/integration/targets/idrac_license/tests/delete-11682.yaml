@@ -34,7 +34,8 @@
         license_id: "{{ idrac_license_id }}"
         delete: true
       register: delete_license
-      when: (not import_license and export_license.job_details.JobState == "Completed") or import_license
+      when: (not import_license and
+        export_license.job_details.JobState == "Completed") or import_license
 
     - name: Verify - Delete License from iDRAC - Normal mode
       ansible.builtin.assert:
@@ -47,7 +48,8 @@
         license_id: "{{ idrac_license_id }}"
         delete: true
       register: idempotence_delete_license
-      when: (not import_license and export_license.job_details.JobState == "Completed") or import_license
+      when: (not import_license and
+        export_license.job_details.JobState == "Completed") or import_license
 
     - name: Delete License from iDRAC - Idempotency - Set the expected message
       ansible.builtin.set_fact:
