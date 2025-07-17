@@ -308,6 +308,25 @@ class TestOmeFirmwareBaseline(FakeAnsibleModule):
                                           "device_service_tags", "DeviceServiceTag")
         assert targets == params["out"]
 
+    @pytest.mark.parametrize("params", [{"inp": inp_param2, "out": out2}])
+    def test_get_dev_ids_fail(self, ome_connection_mock_for_firmware_baseline,
+                         ome_response_mock, params):
+        f_module = self.get_module_mock(params=params["inp"])
+        ome_connection_mock_for_firmware_baseline.get_all_items_with_pagination.return_value = {
+            "value":
+                [
+                    {
+                        "Id": 13,
+                        "Type": 1000,
+                        "DeviceServiceTag": "R940PT3"
+                    }
+                ]
+        }
+        with pytest.raises(Exception) as err:
+            self.module.get_dev_ids(f_module, ome_connection_mock_for_firmware_baseline,
+                                          "device_service_tags", "DeviceServiceTag")
+        assert err.value.args[0] == "Unable to complete the operation because the entered target DeviceServiceTag 'R840PT3' is invalid."
+    
     grp_param1 = {"device_group_names": ["group1", "group2"]}
     grp_out1 = [
         {
@@ -358,6 +377,24 @@ class TestOmeFirmwareBaseline(FakeAnsibleModule):
         }
         targets = self.module.get_group_ids(f_module, ome_connection_mock_for_firmware_baseline)
         assert targets == params["out"]
+        
+    @pytest.mark.parametrize("params", [{"inp": grp_param2, "out": grp_out2}])
+    def test_get_group_ids_fail(self, ome_connection_mock_for_firmware_baseline,
+                           ome_response_mock, params):
+        f_module = self.get_module_mock(params=params["inp"])
+        
+        ome_connection_mock_for_firmware_baseline.get_all_items_with_pagination.return_value = {
+            "value": [
+                {
+                    "Id": 23,
+                    "TypeId": 6000,
+                    "Name": "group2"
+                }
+            ]
+        }
+        with pytest.raises(Exception) as err:
+            self.module.get_group_ids(f_module, ome_connection_mock_for_firmware_baseline)
+        assert err.value.args[0] == "Unable to complete the operation because the entered target Group Name 'group1' is invalid."
 
     payload_param1 = {"catalog_name": "cat1",
                       "baseline_name": "baseline1",
