@@ -159,7 +159,7 @@ class TestOmeFirmwareBaseline(FakeAnsibleModule):
         f_module = self.get_module_mock(params=params["inp"])
         catrepo = self.module.get_catrepo_ids(f_module, params["inp"], ome_connection_mock_for_firmware_baseline)
         assert catrepo == params["out"]
-    
+
     @pytest.mark.parametrize("params", [{"inp": catrepo_param1, "out": catrepo_out1}])
     def test_get_catrepo_ids_fail(self, ome_connection_mock_for_firmware_baseline,
                                   ome_response_mock, params):
