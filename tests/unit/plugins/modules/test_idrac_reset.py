@@ -138,7 +138,7 @@ class TestValidation(FakeAnsibleModule):
         idrac_default_args.update({"reset_to_default": 'All'})
         idr_obj = self.module.Validation(
             idrac_connection_reset_mock, f_module, 11)
-        allowed_values, res = idr_obj.validate_reset_options(RESET_KEY)
+        res = idr_obj.validate_reset_options(RESET_KEY)[1]
         assert res is False
 
         # Scenario - when reset_to_default is not in allowable values
@@ -149,7 +149,7 @@ class TestValidation(FakeAnsibleModule):
         idrac_default_args.update({"reset_to_default": 'CustomDefaults'})
         idr_obj = self.module.Validation(
             idrac_connection_reset_mock, f_module, 11)
-        allowed_values, res = idr_obj.validate_reset_options(RESET_KEY)
+        res = idr_obj.validate_reset_options(RESET_KEY)[1]
         assert res is False
 
         # Scenario - when reset_to_default is CustomDefaults in 17G
@@ -160,7 +160,7 @@ class TestValidation(FakeAnsibleModule):
         idrac_default_args.update({"reset_to_default": 'CustomDefaults'})
         idr_obj = self.module.Validation(
             idrac_connection_reset_mock, f_module, 17)
-        allowed_values, res = idr_obj.validate_reset_options(RESET_KEY)
+        res = idr_obj.validate_reset_options(RESET_KEY)[1]
         assert res is True
 
     def test_validate_graceful_restart_option(self, idrac_default_args, idrac_connection_reset_mock, mocker):
@@ -330,26 +330,6 @@ class TestFactoryReset(FakeAnsibleModule):
     custom_default_content = "<SystemConfiguration Model=\"PowerEdge R7525\" ServiceTag=\"2V4TK93\">\n<Component FQDD=\"iDRAC.Embedded.1\">\n \
     <Attribute Name=\"IPMILan.1#Enable\">Disabled</Attribute>\n </Component>\n\n</SystemConfiguration>"
 
-    @pytest.mark.parametrize(
-        "err",
-        [
-            URLError("urlopen error"),
-            HTTPError(
-                'https://testhost.com',
-                500,
-                HTTP_ERROR_MSG,
-                {"accept-type": RETURN_TYPE},
-                StringIO(to_text(json.dumps({"data": "out"}))),
-            ),
-        ]
-    )
-    def test_encode_error(self, err):
-        result = self.module.FactoryReset._encode_error(err)
-        if result.get("data"):
-            assert result["data"] == "out"
-        else:
-            assert result["error"] == str(err)
-
     @pytest.fixture
     def idrac_reset_mock(self):
         idrac_obj = MagicMock()
@@ -397,7 +377,6 @@ class TestFactoryReset(FakeAnsibleModule):
         idrac_default_args.update({"reset_to_default": 'All'})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         reset_obj = self.module.FactoryReset(idrac_connection_reset_mock, f_module, allowed_choices=allowed_values)
-        reset_obj.status_code_after_wait = 401
         data = reset_obj.check_lcstatus()
         assert data is None
 
@@ -407,7 +386,6 @@ class TestFactoryReset(FakeAnsibleModule):
                                    "default_password": str(uuid.uuid4())})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         reset_obj = self.module.FactoryReset(idrac_connection_reset_mock, f_module, allowed_choices=allowed_values)
-        reset_obj.status_code_after_wait = 401
         mocker.patch(MODULE_PATH + SLEEP_KEY, side_effect=lambda *args, **kwargs: None)
         with pytest.raises(Exception) as exc:
             reset_obj.check_lcstatus()
@@ -420,10 +398,7 @@ class TestFactoryReset(FakeAnsibleModule):
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         reset_obj = self.module.FactoryReset(idrac_connection_reset_mock, f_module, allowed_choices=allowed_values)
 
-        def mock_get_dynamic_uri_error(*args, **kwargs):
-            raise HTTPError("GET", 401, "Unauthorized", None, None)
-
-        mocker.patch(MODULE_PATH + "get_dynamic_uri", side_effect=mock_get_dynamic_uri_error)
+        mocker.patch(MODULE_PATH + "wait_after_idrac_reset", return_value=(True, ""))
         mocker.patch(MODULE_PATH + SLEEP_KEY, side_effect=lambda *args, **kwargs: None)
         with pytest.raises(Exception) as exc:
             reset_obj.check_lcstatus()

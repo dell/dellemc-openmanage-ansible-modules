@@ -211,7 +211,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish i
 from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    remove_key, get_dynamic_uri, validate_and_get_first_resource_id_uri, idrac_redfish_job_tracking)
+    remove_key, get_dynamic_uri, validate_and_get_first_resource_id_uri, idrac_redfish_job_tracking, wait_after_idrac_reset)
 
 
 MANAGERS_URI = "/redfish/v1/Managers"
@@ -396,58 +396,22 @@ class FactoryReset():
             self.idrac.password = default_password
             return True
 
-    @staticmethod
-    def _encode_error(err: Exception) -> dict:
-        try:
-            return json.load(err)
-        except Exception:
-            return {"error": str(err)}
-
-    def check_service_availability(self, retry_count: int = 12, retry_interval: int = 30) -> dict:
-        """
-        Check if the iDRAC service is available after a reset.
-
-        After a reset, when the iDRAC IP is reachable again, often the internal services are still unresponsive.
-        This can lead to intermittent timeout, 4xx or 5xx errors which automatically resolve if given time.
-        So we should retry some basic GET operation, while ignoring errors for some time to check if the service is back up.
-        By default, we shall retry for 6 mins.
-
-        Args:
-            retry_count (int, optional): The number of times to retry the operation. Defaults to 12.
-            retry_interval (int, optional): The interval in seconds between retries. Defaults to 30.
-
-        Returns:
-            dict: The Manager Links object from the iDRAC if the service is back up.
-
-        Raises:
-            Module Exit JSON: If the service is not available after the specified number of retries.
-        """
-        err_last = None
-        while retry_count > 0:
-            retry_count -= 1
-            time.sleep(retry_interval)
-            try:
-                resp = get_dynamic_uri(self.idrac, self.uri, "Links")
-                return resp
-            except Exception as err:
-                err_last = err
-
-        self.module.exit_json(
-            msg=FAILED_TO_LOGIN_POST_RESET_MSG, failed=True,
-            changed=True, error_info=self._encode_error(err_last),
-        )
-
     def check_lcstatus(self, post_op=True):
         if self.reset_to_default in PASSWORD_CHANGE_OPTIONS and post_op and \
            not self.update_credentials_for_post_lc_statuc_check():
             return
 
-        # discover the Lifecycle Controller URL
         if post_op:
-            # if reset has just been done, check the service availability and get the link
-            manager_links_resp = self.check_service_availability()
-        else:
-            manager_links_resp = get_dynamic_uri(self.idrac, self.uri, "Links")
+            # if reset has just been done, check the service availability
+            svc_down = wait_after_idrac_reset(self.idrac, 6 * 60, 60)[0]
+            if svc_down:
+                self.module.exit_json(
+                    msg=FAILED_TO_LOGIN_POST_RESET_MSG,
+                    failed=True, changed=True,
+                )
+
+        # discover the Lifecycle Controller URL
+        manager_links_resp = get_dynamic_uri(self.idrac, self.uri, "Links")
 
         url = manager_links_resp.get(OEM, {}).get(MANUFACTURER, {}).get('DellLCService', {}).get(ODATA_ID, {})
         if not url:
