@@ -159,6 +159,25 @@ class TestOmeFirmwareBaseline(FakeAnsibleModule):
         f_module = self.get_module_mock(params=params["inp"])
         catrepo = self.module.get_catrepo_ids(f_module, params["inp"], ome_connection_mock_for_firmware_baseline)
         assert catrepo == params["out"]
+    @pytest.mark.parametrize("params", [{"inp": catrepo_param1, "out": catrepo_out1}])
+    def test_get_catrepo_ids_fail(self, ome_connection_mock_for_firmware_baseline,
+                                  ome_response_mock, params):
+        ome_connection_mock_for_firmware_baseline.get_all_items_with_pagination.return_value = {
+            "value": [
+                {
+                    "Id": 22,
+                    "Repository": {
+                        "Id": 12,
+                        "Name": "catalog1",
+                    },
+                    "Status": "Running"
+                }
+            ]
+        }
+        f_module = self.get_module_mock(params=params["inp"])
+        with pytest.raises(Exception) as exc:
+            self.module.get_catrepo_ids(f_module, params["inp"], ome_connection_mock_for_firmware_baseline)
+        assert exc.value.args[0] == "Unable to create the firmware baseline as the catalog is in Running status."
 
     @pytest.mark.parametrize("params", [{"mparams": {"state": "absent", "baseline_name": "my_baseline1"}, "res": [
         {"Id": 12, "Name": "my_baseline1"}], "json_data": {
@@ -310,7 +329,7 @@ class TestOmeFirmwareBaseline(FakeAnsibleModule):
 
     @pytest.mark.parametrize("params", [{"inp": inp_param2, "out": out2}])
     def test_get_dev_ids_fail(self, ome_connection_mock_for_firmware_baseline,
-                         ome_response_mock, params):
+                              ome_response_mock, params):
         f_module = self.get_module_mock(params=params["inp"])
         ome_connection_mock_for_firmware_baseline.get_all_items_with_pagination.return_value = {
             "value":
@@ -324,7 +343,7 @@ class TestOmeFirmwareBaseline(FakeAnsibleModule):
         }
         with pytest.raises(Exception) as err:
             self.module.get_dev_ids(f_module, ome_connection_mock_for_firmware_baseline,
-                                          "device_service_tags", "DeviceServiceTag")
+                                    "device_service_tags", "DeviceServiceTag")
         assert err.value.args[0] == "Unable to complete the operation because the entered target DeviceServiceTag 'R840PT3' is invalid."
     grp_param1 = {"device_group_names": ["group1", "group2"]}
     grp_out1 = [
@@ -379,7 +398,7 @@ class TestOmeFirmwareBaseline(FakeAnsibleModule):
 
     @pytest.mark.parametrize("params", [{"inp": grp_param2, "out": grp_out2}])
     def test_get_group_ids_fail(self, ome_connection_mock_for_firmware_baseline,
-                           ome_response_mock, params):
+                                ome_response_mock, params):
         f_module = self.get_module_mock(params=params["inp"])
         ome_connection_mock_for_firmware_baseline.get_all_items_with_pagination.return_value = {
             "value": [
