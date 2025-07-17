@@ -40,8 +40,8 @@
 
 - name: Find the newly imported license details
   ansible.builtin.set_fact:
-    idrac_imported_license_id: \
-     "{{ license_content_after_import[0].EntitlementID }}"
+    idrac_imported_license_id:
+      "{{ license_content_after_import[0].EntitlementID }}"
 
 - name: Set the license details
   ansible.builtin.set_fact:

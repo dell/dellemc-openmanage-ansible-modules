@@ -15,11 +15,26 @@
   ansible.builtin.include_tasks: _helper.yml
 
 - block:
+    - name: Export iDRAC License to http share
+      dellemc.openmanage.idrac_license:
+        license_id: "{{ idrac_license_id }}"
+        export: true
+        share_parameters:
+          file_name: "{{ idrac_license_file }}"
+          ip_address: "{{ http_share }}"
+          share_name: "{{ http_share_dir_path }}"
+          username: "{{ http_share_user | default(omit) }}"
+          password: "{{ http_share_password | default(omit) }}"
+          share_type: http
+      when: not import_license
+      register: export_license
+
     - name: Delete License from iDRAC - Normal mode
       dellemc.openmanage.idrac_license:
         license_id: "{{ idrac_license_id }}"
         delete: true
       register: delete_license
+      when: (not import_license and export_license.job_details.JobState == "Completed") or import_license
 
     - name: Verify - Delete License from iDRAC - Normal mode
       ansible.builtin.assert:
@@ -32,6 +47,7 @@
         license_id: "{{ idrac_license_id }}"
         delete: true
       register: idempotence_delete_license
+      when: (not import_license and export_license.job_details.JobState == "Completed") or import_license
 
     - name: Delete License from iDRAC - Idempotency - Set the expected message
       ansible.builtin.set_fact:
@@ -49,6 +65,7 @@
   always:
     - name: Post execution - Upload the deleted license
       ansible.builtin.include_tasks: _pre_req_import.yml
+      when: not import_license
 
   module_defaults:
     dellemc.openmanage.idrac_license:
