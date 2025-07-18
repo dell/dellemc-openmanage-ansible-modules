@@ -176,6 +176,7 @@
           proxy_type: socks
           proxy_server: "{{ socks4_proxy_server }}"
           proxy_port: "{{ socks4_proxy_port }}"
+        timeout: 120
       register: run_result
 
     - name: Verify - Normal Mode - Export SupportAssist Collection with job
