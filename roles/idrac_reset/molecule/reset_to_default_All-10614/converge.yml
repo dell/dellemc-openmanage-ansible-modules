@@ -4,6 +4,7 @@
   gather_facts: false
   vars:
     reset_operation: "All"
+    success_msg: "iDRAC reset operation completed successfully"
 
   tasks:
     - name: Setup Tasks
@@ -42,7 +43,7 @@
         - name: Asserting after iDRAC reset
           ansible.builtin.assert:
             that:
-              - idrac_reset_out.msg == "iDRAC reset operation completed successfully"
+              - idrac_reset_out.msg == success_msg
               - idrac_has_default_settings
 
       always:

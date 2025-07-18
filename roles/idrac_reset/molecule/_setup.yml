@@ -10,7 +10,8 @@
 
 - name: Setting redfish base URL
   ansible.builtin.set_fact:
-    base_url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/"
+    base_url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+      /redfish/v1/"
 
 - name: Constructing urls
   ansible.builtin.set_fact:
@@ -36,9 +37,9 @@
 - name: Extract firmware and generation details
   ansible.builtin.set_fact:
     fw_raw: "{{ managers_uri_result.json.FirmwareVersion }}"
-    less_than_17g: "{{ ( managers_uri_result.json.Model\
-      | regex_search('([0-9]+)G', '\\1')\
-      | first\
+    less_than_17g: "{{ ( managers_uri_result.json.Model \
+      | regex_search('([0-9]+)G', '\\1') \
+      | first \
       | int ) < 17 }}"
 
 - name: Set fact to check iDRAC version and custom_default supported
