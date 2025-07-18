@@ -1,0 +1,53 @@
+---
+- name: Install OpenSSL package (RHEL/CentOS/AlmaLinux/Rocky)
+  ansible.builtin.package:
+    name: openssl
+    state: present
+  check_mode: false
+  no_log: false
+
+- name: Generate private RSA key using OpenSSL (certified-compliant)
+  ansible.builtin.command: >
+    openssl genpkey -algorithm RSA
+    -out "{{ base_path_for_import_certificate }}cert.key"
+    -pkeyopt rsa_keygen_bits:2048
+  args:
+    creates: "{{ base_path_for_import_certificate }}cert.key"
+  no_log: false
+  check_mode: false
+
+- name: Generate self-signed certificate using OpenSSL
+  ansible.builtin.command:
+    cmd: >
+      openssl req -x509 -new -nodes
+      -key "{{ base_path_for_import_certificate }}cert.key"
+      -sha256 -days 365
+      -out "{{ base_path_for_import_certificate }}cert.pem"
+      -subj "/CN=localhost"
+  check_mode: false
+  no_log: false
+  changed_when: true
+
+- name: Clean up import of CA certificate
+  dellemc.openmanage.idrac_certificates:
+    command: import
+    certificate_type: "{{ certificate_type['CA'] }}"
+    certificate_path: "{{ base_path_for_import_certificate }}cert.pem"
+  register: result
+
+- ansible.builtin.include_tasks: _wait_for_idrac_readiness.yml
+
+- name: Clean up import of Client Trust certificate
+  dellemc.openmanage.idrac_certificates:
+    command: import
+    certificate_type: "{{ certificate_type['ClientTrustCertificate'] }}"
+    certificate_path: "{{ base_path_for_import_certificate }}cert.pem"
+  register: result
+
+- ansible.builtin.include_tasks: _wait_for_idrac_readiness.yml
+
+- name: Delete Directory
+  ansible.builtin.file:
+    path: "{{ base_path_for_import_certificate }}"
+    state: absent
+  register: deleted_directory

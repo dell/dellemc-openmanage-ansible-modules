@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.12.3
 # Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -29,7 +29,9 @@ options:
     type: str
 requirements:
     - "python >= 3.9.6"
-author: "Sajna Shetty(@Sajna-Shetty)"
+author:
+    - "Sajna Shetty(@Sajna-Shetty)"
+    - "Mangirish Kenkare(@MangirishK)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module supports C(check_mode).
@@ -140,14 +142,12 @@ def main():
             module.exit_json(msg="Successfully fetched firmware baseline information.", baseline_info=data)
     except HTTPError as err:
         if err.getcode() == 404:
-            module.fail_json(msg="404 Not Found.The requested resource is not available.")
-        module.fail_json(msg=str(err), error_info=json.load(err))
+            module.exit_json(msg="404 Not Found.The requested resource is not available.", failed=True)
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLError, TypeError, ConnectionError, OSError) as err:
-        module.fail_json(msg=str(err))
-    except Exception as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':

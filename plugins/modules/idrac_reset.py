@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.12.1
+# Version 9.12.3
 # Copyright (C) 2018-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -91,6 +91,7 @@ author:
   - "Anooja Vardhineni (@anooja-vardhineni)"
   - "Lovepreet Singh (@singh-lovepreet1)"
   - "Abhishek Sinha (@ABHISHEK-SINHA10)"
+  - "Rounak Adhikary (@rounak-adhikary)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
@@ -204,12 +205,13 @@ error_info:
 import os
 import json
 import time
+from typing import List, Tuple
 from urllib.error import HTTPError, URLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    get_idrac_firmware_version, remove_key, get_dynamic_uri, validate_and_get_first_resource_id_uri, idrac_redfish_job_tracking)
+    remove_key, get_dynamic_uri, validate_and_get_first_resource_id_uri, idrac_redfish_job_tracking, wait_after_idrac_reset)
 
 
 MANAGERS_URI = "/redfish/v1/Managers"
@@ -218,7 +220,7 @@ MANUFACTURER = "Dell"
 ACTIONS = "Actions"
 IDRAC_RESET_RETRIES = 50
 LC_STATUS_CHECK_SLEEP = 30
-IDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
+IDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{job_id}"
 RESET_TO_DEFAULT_ERROR = "{reset_to_default} is not supported. The supported values are {supported_values}. Enter the valid values and retry the operation."
 RESET_TO_DEFAULT_ERROR_MSG = "{reset_to_default} is not supported."
 CUSTOM_ERROR = "{reset_to_default} is not supported on this firmware version of iDRAC. The supported values are {supported_values}. \
@@ -229,6 +231,9 @@ IDRAC_RESET_RESET_TRIGGER_MSG = "iDRAC reset operation triggered successfully."
 IDRAC_RESET_RESTART_TRIGGER_MSG = "iDRAC restart operation triggered successfully."
 INVALID_DIRECTORY_MSG = "Provided directory path '{path}' is invalid."
 FAILED_RESET_MSG = "Failed to perform the reset operation."
+FAILED_TO_LOGIN_POST_RESET_MSG = "Login failed after the iDRAC reset. \
+Either the iDRAC is taking longer than expected time to come online \
+or the iDRAC credentials are invalid."
 RESET_UNTRACK = "iDRAC reset is in progress. Changes will apply once the iDRAC reset operation is successfully completed."
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value of `job_wait_timeout` parameter cannot be negative or zero. Enter the valid value and retry the operation."
 INVALID_FILE_MSG = "File extension is invalid. Supported extension for 'custom_default_file' is: .xml."
@@ -251,10 +256,11 @@ GRACEFUL_RESTART_KEY = "#Manager.Reset"
 
 
 class Validation():
-    def __init__(self, idrac, module):
+    def __init__(self, idrac, module, generation: int):
         self.idrac = idrac
         self.module = module
         self.base_uri = self.get_base_uri()
+        self.idrac_model_version = generation
 
     def get_base_uri(self):
         uri, error_msg = validate_and_get_first_resource_id_uri(
@@ -273,6 +279,8 @@ class Validation():
             reset_to_defaults_val = res.json_data["Actions"][key_list[0]][key_list[1]]
             reset_type_values = reset_to_defaults_val["ResetType@Redfish.AllowableValues"]
             allowed_values = reset_type_values
+            if self.idrac_model_version >= 13 and "CustomDefaults" not in allowed_values:
+                allowed_values.append("CustomDefaults")
             if reset_to_default not in reset_type_values:
                 is_valid = False
         else:
@@ -320,32 +328,39 @@ class Validation():
                 self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default=reset_to_default, supported_values=allowed_choices), skipped=True)
 
 
+def _get_server_version(idrac: iDRACRedfishAPI) -> Tuple[int, str]:
+    """
+    Function wrapping idrac.get_server_generation. Helps with mocked testing and linting.
+
+    Args:
+        idrac (iDRACRedfishAPI): iDRACRedfishAPI object.
+
+    Returns:
+        Tuple[int, str]: A tuple containing the server generation and firmware version.
+    """
+    t = idrac.get_server_generation
+    return t[0], t[1]
+
+
 class FactoryReset():
-    def __init__(self, idrac, module, allowed_choices):
+    def __init__(self, idrac: iDRACRedfishAPI, module: IdracAnsibleModule, allowed_choices: List[str]):
         self.idrac = idrac
         self.module = module
         self.allowed_choices = allowed_choices
         self.reset_to_default = self.module.params.get('reset_to_default')
         self.force_reset = self.module.params.get('force_reset')
         self.wait_for_idrac = self.module.params.get('wait_for_idrac')
-        self.validate_obj = Validation(self.idrac, self.module)
+        self.idrac_generation, self.idrac_firmware_version = \
+            _get_server_version(self.idrac)
+        self.validate_obj = Validation(self.idrac, self.module, self.idrac_generation)
         self.uri = self.validate_obj.base_uri
-        self.idrac_firmware_version = get_idrac_firmware_version(self.idrac)
 
     def execute(self):
         msg_res, job_res = None, None
         self.validate_obj.validate_job_timeout()
-        is_idrac9 = self.is_check_idrac_latest()
-        if not is_idrac9 and self.reset_to_default:
-            allowed_values, is_valid_option = self.validate_obj.validate_reset_options(RESET_KEY)
-            if self.module.check_mode and not is_valid_option:
-                self.module.exit_json(msg=CHANGES_NOT_FOUND)
-            if not is_valid_option:
-                self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR_MSG.format(reset_to_default=self.reset_to_default),
-                                      skipped=True)
         if self.module.check_mode:
-            self.check_mode_output(is_idrac9)
-        if is_idrac9 and self.reset_to_default and not self.force_reset:
+            self.check_mode_output()
+        if self.reset_to_default and not self.force_reset:
             self.check_lcstatus(post_op=False)
         reset_status_mapping = {key: self.reset_to_default_mapped for key in ['Default', 'All', 'ResetAllWithRootDefaults']}
         reset_status_mapping.update({
@@ -353,12 +368,12 @@ class FactoryReset():
             'None': self.graceful_restart
         })
         msg_res, job_res = reset_status_mapping[str(self.reset_to_default)]()
-        if is_idrac9 and self.wait_for_idrac and self.reset_to_default:
+        if self.wait_for_idrac and self.reset_to_default:
             self.check_lcstatus()
         return msg_res, job_res
 
-    def check_mode_output(self, is_idrac9):
-        if is_idrac9 and self.reset_to_default == 'CustomDefaults' and LooseVersion(self.idrac_firmware_version) < MINIMUM_SUPPORTED_FIRMWARE_VERSION:
+    def check_mode_output(self):
+        if not self.custom_defaults_supported() and self.reset_to_default == 'CustomDefaults':
             self.module.exit_json(msg=CHANGES_NOT_FOUND)
         if self.reset_to_default:
             allowed_values, is_valid_option = self.validate_obj.validate_reset_options(RESET_KEY)
@@ -373,10 +388,6 @@ class FactoryReset():
         else:
             self.module.exit_json(msg=CHANGES_NOT_FOUND)
 
-    def is_check_idrac_latest(self):
-        if LooseVersion(self.idrac_firmware_version) >= '3.0':
-            return True
-
     def update_credentials_for_post_lc_statuc_check(self):
         if (default_username := self.module.params.get("default_username")) and (
             default_password := self.module.params.get("default_password")
@@ -390,22 +401,42 @@ class FactoryReset():
            not self.update_credentials_for_post_lc_statuc_check():
             return
 
-        lc_status_dict = {}
-        lc_status_dict['LCStatus'] = ""
-        retry_count = 1
-        resp = get_dynamic_uri(self.idrac, self.uri, "Links")
-        url = resp.get(OEM, {}).get(MANUFACTURER, {}).get('DellLCService', {}).get(ODATA_ID, {})
-        if url:
-            action_resp = get_dynamic_uri(self.idrac, url)
-            lc_url = action_resp.get(ACTIONS, {}).get('#DellLCService.GetRemoteServicesAPIStatus', {}).get('target', {})
-        else:
+        if post_op:
+            # if reset has just been done, check the service availability
+            svc_down = wait_after_idrac_reset(self.idrac, 6 * 60, 60)[0]
+            if svc_down:
+                self.module.exit_json(
+                    msg=FAILED_TO_LOGIN_POST_RESET_MSG,
+                    failed=True, changed=True,
+                )
+
+        # discover the Lifecycle Controller URL
+        manager_links_resp = get_dynamic_uri(self.idrac, self.uri, "Links")
+
+        url = manager_links_resp.get(OEM, {}).get(MANUFACTURER, {}).get('DellLCService', {}).get(ODATA_ID, {})
+        if not url:
             self.module.exit_json(msg=UNSUPPORTED_LC_STATUS_MSG, failed=True)
+
+        action_resp = get_dynamic_uri(self.idrac, url)
+        lc_url = action_resp.get(ACTIONS, {}).get('#DellLCService.GetRemoteServicesAPIStatus', {}).get('target', {})
+
+        # check the Lifecycle Controller status
+        self._check_lc_status_with_url(lc_url)
+
+    def _check_lc_status_with_url(self, lc_url: str):
+        """
+        This function checks the Lifecycle Controller status by sending a POST request to the given lc_url.
+        The function will retry the request up to IDRAC_RESET_RETRIES times with a 10-second delay between retries.
+        If the Lifecycle Controller is not ready after IDRAC_RESET_RETRIES attempts, the module will exit with an error message.
+        The function takes one parameter: lc_url (str) - The URL of the Lifecycle Controller API.
+        """
+        lc_status : str = ""
+        retry_count = 1
         while retry_count < IDRAC_RESET_RETRIES:
             try:
-                lcstatus = self.idrac.invoke_request(lc_url, "POST", data="{}", dump=False)
-                lcstatus_data = lcstatus.json_data.get('LCStatus')
-                lc_status_dict['LCStatus'] = lcstatus_data
-                if lc_status_dict.get('LCStatus') == 'Ready':
+                lcstatus_resp = self.idrac.invoke_request(lc_url, "POST", data="{}", dump=False)
+                lc_status = lcstatus_resp.json_data.get('LCStatus')
+                if lc_status == 'Ready':
                     break
                 time.sleep(10)
                 retry_count = retry_count + 1
@@ -415,8 +446,8 @@ class FactoryReset():
                 if retry_count == IDRAC_RESET_RETRIES:
                     self.module.exit_json(msg=LC_STATUS_MSG.format(lc_status='unreachable', retries=IDRAC_RESET_RETRIES), unreachable=True)
 
-        if retry_count == IDRAC_RESET_RETRIES and lc_status_dict.get('LCStatus') != "Ready":
-            self.module.exit_json(msg=LC_STATUS_MSG.format(lc_status=lc_status_dict.get('LCStatus'), retries=retry_count), failed=True)
+        if retry_count == IDRAC_RESET_RETRIES and lc_status != "Ready":
+            self.module.exit_json(msg=LC_STATUS_MSG.format(lc_status=lc_status, retries=retry_count), failed=True)
 
     def create_output(self, status):
         result = {}
@@ -516,7 +547,7 @@ class FactoryReset():
 
     def reset_custom_defaults(self):
         self.allowed_choices, is_valid_option = self.validate_obj.validate_reset_options(RESET_KEY)
-        if LooseVersion(self.idrac_firmware_version) < MINIMUM_SUPPORTED_FIRMWARE_VERSION:
+        if not self.custom_defaults_supported():
             self.module.exit_json(msg=CUSTOM_ERROR.format(reset_to_default=self.reset_to_default,
                                                           supported_values=self.allowed_choices), skipped=True)
         custom_default_file = self.module.params.get('custom_defaults_file')
@@ -535,6 +566,14 @@ class FactoryReset():
             self.upload_cd_content(default_data)
         self.validate_obj.validate_custom_option(self.reset_to_default, self.allowed_choices)
         return self.reset_to_default_mapped()
+
+    def custom_defaults_supported(self) -> bool:
+        # iDRAC 9 has generation == 16
+        # CustomDefaults is supported from 7.00.00.00 in iDRAC 9 and above
+        return self.idrac_generation > 16 or (
+            self.idrac_generation == 16 and
+            LooseVersion(self.idrac_firmware_version) >= MINIMUM_SUPPORTED_FIRMWARE_VERSION
+        )
 
     def graceful_restart(self):
         url = None
