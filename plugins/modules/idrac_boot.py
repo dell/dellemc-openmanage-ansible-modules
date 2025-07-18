@@ -455,8 +455,8 @@ def configure_boot_settings(module, idrac, res_id):
             (not BS_OVERRIDE_ENABLED.get(override_enabled) == response.get("BootSourceOverrideEnabled")):
         payload["Boot"].update({"BootSourceOverrideEnabled": BS_OVERRIDE_ENABLED.get(override_enabled)})
     if override_target is not None and \
-            (not BS_OVERRIDE_TARGET.get(override_target) == response.get("BootSourceOverrideTarget") or \
-            override_enabled != "disabled") :
+            (not BS_OVERRIDE_TARGET.get(override_target) == response.get("BootSourceOverrideTarget")
+             or override_enabled != "disabled") :
         payload["Boot"].update({"BootSourceOverrideTarget": BS_OVERRIDE_TARGET.get(override_target)})
         uefi_override_target = module.params.get("uefi_target_boot_source_override")
         if override_target == "uefi_target" and not uefi_override_target == response.get("UefiTargetBootSourceOverride"):
