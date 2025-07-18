@@ -97,7 +97,7 @@ Parameters
 
     :literal:`uefi\_target` performs boot from the UEFI device path found in :emphasis:`uefi\_target\_boot\_source\_override`.
 
-    If the :emphasis:`boot\_source\_override\_target` is set to a value other than :literal:`none` then the :emphasis:`boot\_source\_override\_enabled` is automatically set to :literal:`once`.
+    If the :emphasis:`boot\_source\_override\_target` is set to a value other than :literal:`none` then the :emphasis:`boot\_source\_override\_enabled` is automatically set to :literal:`once` if :emphasis:`boot\_source\_override\_enabled` is not provided.
 
     Changes to this options do not alter the BIOS persistent boot order configuration.
 
