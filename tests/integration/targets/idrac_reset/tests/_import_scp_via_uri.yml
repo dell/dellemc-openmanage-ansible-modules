@@ -1,0 +1,49 @@
+---
+# _export_scp_via_uri.yml is supposed to be called as a prereq.
+# Only then can this playbook be called for cleanup.
+# The variables scp_oem and uri_scp_content are set in _export_scp_via_uri.yml
+- name: Trigger Import SCP job
+  ansible.builtin.uri:
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+      /redfish/v1/Managers/iDRAC.Embedded.1/Actions\
+      /Oem/{{ scp_oem }}.ImportSystemConfiguration"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: POST
+    body:
+      ShutdownType: 'Graceful'
+      EndHostPowerState: 'On'
+      ShareParameters:
+        Target: [ALL]
+      TimeToWait: 300
+      ImportBuffer: "{{ uri_scp_content.content }}"
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 202
+    headers: 'Accept=application/json'
+    force_basic_auth: true
+  register: all_uri_export
+
+- name: Track Import SCP Job
+  ansible.builtin.uri:
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+      /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs\
+      /{{ all_uri_export.location | split('/') | last }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    return_content: true
+    validate_certs: false
+    headers:
+      Accept: application/json
+    force_basic_auth: true
+  register: uri_scp_content
+  until: not uri_scp_content.json.JobState in ['Running', 'Pending']
+  retries: 15
+  delay: 30
+
+- name: Assert import SCP job was successful
+  ansible.builtin.assert:
+    fail_msg: "Import SCP job was not successful"
+    that:
+      - uri_scp_content.json.JobState == 'Completed'
