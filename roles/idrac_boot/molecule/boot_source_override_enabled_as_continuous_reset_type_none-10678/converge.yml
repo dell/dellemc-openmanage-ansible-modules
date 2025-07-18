@@ -40,6 +40,7 @@
         name: "idrac_boot"
       vars:
         boot_source_override_enabled: disabled
+        boot_source_override_target: hdd
       tags: molecule-idempotence-notest
 
     - name: Checking for LCStatus after running pre-requisite
@@ -51,6 +52,7 @@
         name: "idrac_boot"
       vars:
         boot_source_override_enabled: continuous
+        boot_source_override_target: pxe
         reset_type: none
 
     - name: Checking for LCStatus after performing operation
