@@ -101,6 +101,8 @@ Parameters
 
     Changes to this options do not alter the BIOS persistent boot order configuration.
 
+    This is required if :emphasis:`boot\_source\_override\_enabled` is :literal:`once` or :literal:`continuous` for iDRAC 17G and later.
+
     This is mutually exclusive with :emphasis:`boot\_options`.
 
 
