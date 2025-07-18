@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.12.3
 # Copyright (C) 2020-2025 Dell Inc. or its subsidiaries.  All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -58,6 +58,7 @@ requirements:
     - "python >= 3.9.6"
 author:
     - "Sajna Shetty(@Sajna-Shetty)"
+    - "Mangirish Kenkare(@MangirishK)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module supports C(check_mode).
@@ -205,7 +206,7 @@ def validate_time_zone(module, rest_obj):
         time_id_list = [time_dict["Id"] for time_dict in time_zone_val]
         if time_zone not in time_id_list:
             sorted_time_id_list = sorted(time_id_list, key=lambda time_id: [int(i) for i in time_id.split("_") if i.isdigit()])
-            module.fail_json(msg="Provide valid time zone.Choices are {0}".format(",".join(sorted_time_id_list)))
+            module.exit_json(msg="Provide valid time zone.Choices are {0}".format(",".join(sorted_time_id_list)), failed=True)
 
 
 def validate_input(module):
@@ -215,9 +216,10 @@ def validate_input(module):
     secondary_ntp_address1 = module.params.get("secondary_ntp_address1")
     secondary_ntp_address2 = module.params.get("secondary_ntp_address2")
     if enable_ntp is True and system_time is not None:
-        module.fail_json(msg="When enable NTP is true,the option system time is not accepted.")
+        module.exit_json(msg="When enable NTP is true,the option system time is not accepted.", failed=True)
     if enable_ntp is False and any([primary_ntp_address, secondary_ntp_address1, secondary_ntp_address2]):
-        module.fail_json(msg="When enable NTP is false,the option(s) primary_ntp_address, secondary_ntp_address1 and secondary_ntp_address2 is not accepted.")
+        module.exit_json(msg="When enable NTP is false,the option(s) primary_ntp_address, secondary_ntp_address1 and secondary_ntp_address2 is not accepted.",
+                         failed=True)
 
 
 def main():
@@ -247,16 +249,13 @@ def main():
             payload = get_payload(module)
             updated_payload = get_updated_payload(rest_obj, module, payload)
             resp = rest_obj.invoke_request("PUT", TIME_CONFIG, data=updated_payload, api_timeout=150)
-            module.exit_json(msg="Successfully configured network time.", time_configuration=resp.json_data,
-                                 changed=True)
+            module.exit_json(msg="Successfully configured network time.", time_configuration=resp.json_data, changed=True)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLError, TypeError, ConnectionError, SSLValidationError, OSError) as err:
-        module.fail_json(msg=str(err))
-    except Exception as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == "__main__":
