@@ -133,7 +133,7 @@
           - 'result.msg == invalid_network_expected_msg or
            invalid_network_expected_msg2'
 
-    - name: Import license with invalid share username
+    - name: Import license with invalid share username/path
       dellemc.openmanage.idrac_license:
         import: "{{ b_true }}"
         share_parameters:
@@ -151,14 +151,14 @@
         invalid_share_credentials_expected_msg: "Unable to perform the
          operation due to an unknown error in iDRAC."
 
-    - name: Verify error of Import license with invalid share username
+    - name: Verify error of Import license with invalid share username/path
       ansible.builtin.assert:
         that:
           - result.failed
           - not result.changed
           - 'result.msg == invalid_share_credentials_expected_msg'
 
-    - name: Import license with invalid share password
+    - name: Import license with invalid share password/path
       dellemc.openmanage.idrac_license:
         import: "{{ b_true }}"
         share_parameters:
@@ -171,7 +171,7 @@
       register: result
       ignore_errors: true
 
-    - name: Verify error of Import license with invalid share password
+    - name: Verify error of Import license with invalid share password/path
       ansible.builtin.assert:
         that:
           - result.failed
