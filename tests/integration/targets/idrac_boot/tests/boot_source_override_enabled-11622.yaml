@@ -46,7 +46,7 @@
        Changes expected
       dellemc.openmanage.idrac_boot:
         boot_source_override_enabled: once
-        boot_source_override_target: hdd
+        boot_source_override_target: pxe
       register: once_cm_mode
       check_mode: true
 
@@ -60,7 +60,7 @@
     - name: Configuring "boot_source_override_enabled" to "once" - Normal
       dellemc.openmanage.idrac_boot:
         boot_source_override_enabled: once
-        boot_source_override_target: hdd
+        boot_source_override_target: pxe
       register: once_normal_mode
 
     - name: Verify configuring "boot_source_override_enabled" to "once" -
@@ -71,7 +71,7 @@
           - once_normal_mode.msg == 'Successfully updated the boot settings.'
 
     - name: Waiting for idrac to reboot
-      ansible.builtin.pause: seconds=200
+      ansible.builtin.pause: seconds=300
 
     - name: Configuring "boot_source_override_enabled" to "disabled" -
        Check mode - No changes expected
