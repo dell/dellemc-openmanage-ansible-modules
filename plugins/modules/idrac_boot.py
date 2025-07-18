@@ -431,6 +431,38 @@ def configure_boot_settings(module, idrac, res_id):
     override_enabled = module.params.get("boot_source_override_enabled")
     override_target = module.params.get("boot_source_override_target")
     response = get_response_attributes(module, idrac, res_id)
+    payload["Boot"].update(configure_boot_order(module, boot_order, response))
+    gen = idrac.get_server_generation
+    generation = gen[0]
+    payload["Boot"].update(checking_all_conditions_for_boot_settings(module, override_mode, override_enabled, override_target, response))
+    if module.check_mode and payload["Boot"]:
+        module.exit_json(msg=CHANGES_MSG, changed=True)
+    elif (module.check_mode or not module.check_mode) and not payload["Boot"]:
+        module.exit_json(msg=NO_CHANGES_MSG)
+    else:
+        job_resp = apply_boot_settings(module, idrac, payload, res_id, generation)
+    return job_resp
+
+
+def checking_all_conditions_for_boot_settings(module, override_mode, override_enabled, override_target, response):
+    payload = {}
+    if override_mode is not None and \
+            (not BS_OVERRIDE_MODE.get(override_mode) == response.get("BootSourceOverrideMode")):
+        payload.update({"BootSourceOverrideMode": BS_OVERRIDE_MODE.get(override_mode)})
+    if override_enabled is not None and \
+            (not BS_OVERRIDE_ENABLED.get(override_enabled) == response.get("BootSourceOverrideEnabled")):
+        payload.update({"BootSourceOverrideEnabled": BS_OVERRIDE_ENABLED.get(override_enabled)})
+    if override_target is not None and \
+            (BS_OVERRIDE_TARGET.get(override_target) != response.get("BootSourceOverrideTarget")
+             or override_enabled != "disabled") :
+        payload.update({"BootSourceOverrideTarget": BS_OVERRIDE_TARGET.get(override_target)})
+        uefi_override_target = module.params.get("uefi_target_boot_source_override")
+        if override_target == "uefi_target" and not uefi_override_target == response.get("UefiTargetBootSourceOverride"):
+            payload.update({"UefiTargetBootSourceOverride": uefi_override_target})
+    return payload
+
+
+def configure_boot_order(module, boot_order, response):
     if boot_order is not None:
         exist_boot_order = response.get("BootOrder")
         invalid_boot_order = [bo for bo in boot_order if bo not in exist_boot_order]
@@ -445,29 +477,8 @@ def configure_boot_settings(module, idrac, res_id):
             module.fail_json(msg="Unable to complete the operation because all boot devices "
                                  "are required for this operation.")
         if not boot_order == exist_boot_order:
-            payload["Boot"].update({"BootOrder": boot_order})
-    gen = idrac.get_server_generation
-    generation = gen[0]
-    if override_mode is not None and \
-            (not BS_OVERRIDE_MODE.get(override_mode) == response.get("BootSourceOverrideMode")):
-        payload["Boot"].update({"BootSourceOverrideMode": BS_OVERRIDE_MODE.get(override_mode)})
-    if override_enabled is not None and \
-            (not BS_OVERRIDE_ENABLED.get(override_enabled) == response.get("BootSourceOverrideEnabled")):
-        payload["Boot"].update({"BootSourceOverrideEnabled": BS_OVERRIDE_ENABLED.get(override_enabled)})
-    if override_target is not None and \
-            (not BS_OVERRIDE_TARGET.get(override_target) == response.get("BootSourceOverrideTarget")
-             or override_enabled != "disabled") :
-        payload["Boot"].update({"BootSourceOverrideTarget": BS_OVERRIDE_TARGET.get(override_target)})
-        uefi_override_target = module.params.get("uefi_target_boot_source_override")
-        if override_target == "uefi_target" and not uefi_override_target == response.get("UefiTargetBootSourceOverride"):
-            payload["Boot"].update({"UefiTargetBootSourceOverride": uefi_override_target})
-    if module.check_mode and payload["Boot"]:
-        module.exit_json(msg=CHANGES_MSG, changed=True)
-    elif (module.check_mode or not module.check_mode) and not payload["Boot"]:
-        module.exit_json(msg=NO_CHANGES_MSG)
-    else:
-        job_resp = apply_boot_settings(module, idrac, payload, res_id, generation)
-    return job_resp
+            return {"BootOrder": boot_order}
+    return {}
 
 
 def configure_idrac_boot(module, idrac, res_id):
