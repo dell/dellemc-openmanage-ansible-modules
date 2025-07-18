@@ -447,17 +447,17 @@ def configure_boot_settings(module, idrac, res_id):
 def checking_all_conditions_for_boot_settings(module, override_mode, override_enabled, override_target, response):
     payload = {}
     if override_mode is not None and \
-            (not BS_OVERRIDE_MODE.get(override_mode) == response.get("BootSourceOverrideMode")):
+            (BS_OVERRIDE_MODE.get(override_mode) != response.get("BootSourceOverrideMode")):
         payload.update({"BootSourceOverrideMode": BS_OVERRIDE_MODE.get(override_mode)})
     if override_enabled is not None and \
-            (not BS_OVERRIDE_ENABLED.get(override_enabled) == response.get("BootSourceOverrideEnabled")):
+            (BS_OVERRIDE_ENABLED.get(override_enabled) != response.get("BootSourceOverrideEnabled")):
         payload.update({"BootSourceOverrideEnabled": BS_OVERRIDE_ENABLED.get(override_enabled)})
     if override_target is not None and \
             (BS_OVERRIDE_TARGET.get(override_target) != response.get("BootSourceOverrideTarget")
              or override_enabled != "disabled") :
         payload.update({"BootSourceOverrideTarget": BS_OVERRIDE_TARGET.get(override_target)})
         uefi_override_target = module.params.get("uefi_target_boot_source_override")
-        if override_target == "uefi_target" and not uefi_override_target == response.get("UefiTargetBootSourceOverride"):
+        if override_target == "uefi_target" and uefi_override_target != response.get("UefiTargetBootSourceOverride"):
             payload.update({"UefiTargetBootSourceOverride": uefi_override_target})
     return payload
 
