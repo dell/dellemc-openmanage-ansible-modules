@@ -100,7 +100,7 @@ options:
         type: str
       workgroup:
         description:
-          - Workgroup of the network share.
+          -(deprecated) Workgroup of the network share.
           - I(workgroup) is applicable only when I(share_type) is C(cifs).
         type: str
       username:
@@ -744,11 +744,11 @@ class ExportSupportAssist(SupportAssist):
             'share_parameters').get('share_type')
         share_type_methods = {
             "local": self.__export_support_assist_local,
-            "http": self.__export_support_assist_http,
-            "https": self.__export_support_assist_http,
-            "cifs": self.__export_support_assist_cifs,
+            "http": self.__export_support_assist_http_or_cifs,
+            "https": self.__export_support_assist_http_or_cifs,
+            "cifs": self.__export_support_assist_http_or_cifs,
             "nfs": self.__export_support_assist_nfs,
-            "ftp": self.__export_support_assist_http
+            "ftp": self.__export_support_assist_http_or_cifs
         }
         payload = share_type_methods[share_type]()
         if share_type == "local":
@@ -772,15 +772,8 @@ class ExportSupportAssist(SupportAssist):
         payload["ShareType"] = "Local"
         return payload
 
-    def __export_support_assist_http(self):
+    def __export_support_assist_http_or_cifs(self):
         payload = self.get_payload_details()
-        return payload
-
-    def __export_support_assist_cifs(self):
-        payload = self.get_payload_details()
-        if self.module.params.get('share_parameters').get('workgroup'):
-            payload["Workgroup"] = self.module.params.get(
-                'share_parameters').get('workgroup')
         return payload
 
     def __export_support_assist_nfs(self):

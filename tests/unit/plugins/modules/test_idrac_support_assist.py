@@ -1015,7 +1015,7 @@ class TestExportSupportAssist(FakeAnsibleModule):
             params=idrac_default_args, check_mode=False)
         export_support_assist_obj = self.module.ExportSupportAssist(
             idrac_connection_support_assist_mock, f_module)
-        result = export_support_assist_obj._ExportSupportAssist__export_support_assist_http()
+        result = export_support_assist_obj._ExportSupportAssist__export_support_assist_http_or_cifs()
         assert result == payload
 
     def test_export_support_assist_cifs(self, idrac_default_args, idrac_connection_support_assist_mock, mocker):
