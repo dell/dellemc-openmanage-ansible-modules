@@ -86,6 +86,35 @@
       ansible.builtin.pause:
         seconds: 30
 
+    - name: Get System Inevntory.
+      dellemc.openmanage.idrac_system_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+      register: result
+
+    - name: Get Server Generation
+      ansible.builtin.set_fact:
+        generation: "{{result.system_info.System[0].SystemGeneration
+          | regex_search('[0-9]+') | int}}"
+
+    - name: Job tracking iDRAC
+      ansible.builtin.uri:
+        url: "{{ run_api_result.location }}"
+        method: "GET"
+        status_code: 200, 202
+      register: result
+      until: result.json.JobState is defined and
+        result.json.JobState in ['Completed', 'Failed', 'CompletedWithErrors']
+      retries: "{{ retries_count | default(100) }}"
+      delay: "{{ polling_interval | default(30) }}"
+      delegate_to: localhost
+      when:
+        - job_track == true
+        - generation | int <17
+      no_log: true
+
     - name: Job tracking iDRAC
       ansible.builtin.uri:
         url: "{{ url_1 }}/redfish/v1/TaskService/Tasks/{{ job_id }}"
@@ -99,5 +128,7 @@
       retries: "{{ retries_count | default(100) }}"
       delay: "{{ polling_interval | default(30) }}"
       delegate_to: localhost
-      when: job_track == true
+      when:
+        - job_track == true
+        - generation | int >=17
       no_log: true
