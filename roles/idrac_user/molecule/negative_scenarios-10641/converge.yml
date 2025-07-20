@@ -156,8 +156,16 @@
       ignore_unreachable: true
       register: idrac_user_fail_case
 
+    - name: Get Server generation
+      ansible.builtin.include_tasks:
+        file: ../resources/idrac_user/_get_server_generation.yml
+
+    - name: set fact of minimum value of custom privilege based on server gen
+      ansible.builtin.set_fact:
+        mcp: "{{  0 if model | int < 17 else 1 }}"
+
     - name: Asserting for invalid value for "custom_priviledge"
       ansible.builtin.assert:
         that: >
-          idrac_user_out.msg == "custom_privilege value should be from 0 to
-          511."
+          idrac_user_out.msg == "custom_privilege value should be from {{ mcp }}
+          to 511."
