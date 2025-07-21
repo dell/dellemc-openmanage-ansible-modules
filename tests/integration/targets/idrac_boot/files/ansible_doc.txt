@@ -108,10 +108,19 @@
 - "                                \e[1;30m`none'\e[0m then the"
 - "                                \e[4mboot_source_override_enabled\e[0m"
 - '                                is automatically set to'
-- "                                \e[1;30m`once'\e[0m."
+- "                                \e[1;30m`once'\e[0m if"
+- "                                \e[4mboot_source_override_enabled\e[0m"
+- '                                is not provided.'
 - '                                Changes to this options do not alter'
 - '                                the BIOS persistent boot order'
 - '                                configuration.'
+- '                                This is required if'
+- "                                \e[4mboot_source_override_enabled\e[0m"
+- "                                is \e[1;30m`once'\e[0m or"
+- "                                \e[1;30m`continuous'\e[0m for iDRAC 17G"
+- '                                and later.'
+- '                                This is not idempotent for iDRAC 17G'
+- '                                and later.'
 - '                                This is mutually exclusive with'
 - "                                \e[4mboot_options\e[0m."
 - '        choices: [uefi_http, sd_card, uefi_target, utilities, bios_setup, hdd,
