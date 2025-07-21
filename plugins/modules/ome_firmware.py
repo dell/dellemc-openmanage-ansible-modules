@@ -679,7 +679,7 @@ def main():
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, OSError) as err:
         module.exit_json(msg=str(err))
-    module.exit_json(msg="Successfully submitted the firmware update job.", update_status=update_status, changed=True)
+    module.exit_json(msg="Successfully submitted the firmware update job.", update_status=update_status, failed=True)
 
 
 if __name__ == "__main__":
