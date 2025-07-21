@@ -160,12 +160,14 @@
       ansible.builtin.include_tasks:
         file: ../resources/idrac_user/_get_server_generation.yml
 
-    - name: set fact of minimum value of custom privilege based on server gen
+    - name: Set fact of minimum value of custom privilege based on server gen
       ansible.builtin.set_fact:
         mp: "{{  0 if model | int < 17 else 1 }}"
 
     - name: Asserting for invalid value for "custom_priviledge"
       ansible.builtin.assert:
         that: >
-          idrac_user_out.msg == "custom_privilege value must range from {{ mp }}
-          to 511."
+          'idrac_user_out.msg == custom_privilege_msg'
+      vars:
+        custom_privilege_msg: "custom_privilege value must range from {{ mp }}
+         to 511."
