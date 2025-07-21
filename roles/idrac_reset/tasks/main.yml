@@ -46,7 +46,7 @@
 
 - name: Get the manager firmware version
   ansible.builtin.uri:
-    url: "https://{{ hostname }}/redfish/v1/Managers/iDRAC.Embedded.1"
+    url: "https://{{ hostname }}{{ idrac_reset_firmware_api }}"
     <<: *idrac_opts
     method: GET
   register: idrac_reset_firmware_version
