@@ -11,6 +11,9 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
+- name: Get Server generation details
+  ansible.builtin.include_tasks: _get_server_generation.yml
+
 - block:
     - name: Pre-requisite - "boot_source_override_target" as "hdd"
       dellemc.openmanage.idrac_boot:
@@ -64,6 +67,7 @@
         boot_source_override_target: pxe
         reset_type: none
       register: pxe_idempotency_mode
+      when: generation | int < 17
 
     - name: Verify configuring "boot_source_override_target" as "pxe" -
        Idempotency
@@ -71,6 +75,7 @@
         that:
           - not pxe_idempotency_mode.changed
           - pxe_idempotency_mode.msg == 'No changes found to be applied.'
+      when: generation | int < 17
 
     - name: Configuring "boot_source_override_target" as "floppy" - Check mode
        - Changes expected
@@ -119,6 +124,7 @@
         boot_source_override_target: floppy
         reset_type: none
       register: floppy_idempotency_mode
+      when: generation | int < 17
 
     - name: Verify configuring "boot_source_override_target" as "floppy" -
        Idempotency
@@ -126,6 +132,7 @@
         that:
           - not floppy_idempotency_mode.changed
           - floppy_idempotency_mode.msg == 'No changes found to be applied.'
+      when: generation | int < 17
 
     - name: Configuring "boot_source_override_target" as "hdd" - Check mode -
        Changes expected
@@ -174,6 +181,7 @@
         boot_source_override_target: hdd
         reset_type: none
       register: hdd_idempotency_mode
+      when: generation | int < 17
 
     - name: Verify configuring "boot_source_override_target" as "hdd" -
        Idempotency
@@ -181,6 +189,7 @@
         that:
           - not hdd_idempotency_mode.changed
           - hdd_idempotency_mode.msg == 'No changes found to be applied.'
+      when: generation | int < 17
 
     - name: Configuring "boot_source_override_target" as "sd_card" - Check mode
        - Changes expected
@@ -230,6 +239,7 @@
         boot_source_override_target: sd_card
         reset_type: none
       register: sd_card_idempotency_mode
+      when: generation | int < 17
 
     - name: Verify configuring "boot_source_override_target" as "sd_card" -
        Idempotency
@@ -237,6 +247,7 @@
         that:
           - not sd_card_idempotency_mode.changed
           - sd_card_idempotency_mode.msg == 'No changes found to be applied.'
+      when: generation | int < 17
 
     - name: Configuring "boot_source_override_target" as "bios_setup" -
        Check mode - Changes expected
@@ -286,6 +297,7 @@
         boot_source_override_target: bios_setup
         reset_type: none
       register: bios_setup_idempotency_mode
+      when: generation | int < 17
 
     - name: Verify configuring "boot_source_override_target" as "bios_setup" -
        Idempotency
@@ -293,6 +305,7 @@
         that:
           - not bios_setup_idempotency_mode.changed
           - bios_setup_idempotency_mode.msg == 'No changes found to be applied.'
+      when: generation | int < 17
 
     - name: Configuring "boot_source_override_target" as "utilities" -
        Check mode - Changes expected
@@ -342,6 +355,7 @@
         boot_source_override_target: utilities
         reset_type: none
       register: utilities_idempotency_mode
+      when: generation | int < 17
 
     - name: Verify configuring "boot_source_override_target" as "utilities" -
        Idempotency
@@ -349,6 +363,7 @@
         that:
           - not utilities_idempotency_mode.changed
           - utilities_idempotency_mode.msg == 'No changes found to be applied.'
+      when: generation | int < 17
 
     - name: Configuring "boot_source_override_target" as "none" -
        Check mode - Changes expected
@@ -397,6 +412,7 @@
         boot_source_override_target: none
         reset_type: none
       register: none_idempotency_mode
+      when: generation | int < 17
 
     - name: Verify configuring "boot_source_override_target" as "none" -
        Idempotency
@@ -404,6 +420,7 @@
         that:
           - not none_idempotency_mode.changed
           - none_idempotency_mode.msg == 'No changes found to be applied.'
+      when: generation | int < 17
 
     - name: Configuring "boot_source_override_target" as "uefi_http" -
        Check mode - Changes expected
@@ -453,6 +470,7 @@
         boot_source_override_target: uefi_http
         reset_type: none
       register: uefi_http_idempotency_mode
+      when: generation | int < 17
 
     - name: Verify configuring "boot_source_override_target" as "uefi_http" -
        Idempotency
@@ -460,6 +478,7 @@
         that:
           - not uefi_http_idempotency_mode.changed
           - uefi_http_idempotency_mode.msg == 'No changes found to be applied.'
+      when: generation | int < 17
 
     - include_tasks: get_data_uri.yml
       vars:
@@ -525,6 +544,7 @@
         uefi_target_boot_source_override: "{{ uefi_device_path }}"
         reset_type: none
       register: uefi_target_idempotency_mode
+      when: generation | int < 17
 
     - name: Verify configuring "boot_source_override_target" as "uefi_target" -
         Idempotency
@@ -533,6 +553,7 @@
           - not uefi_target_idempotency_mode.changed
           - uefi_target_idempotency_mode.msg == 'No changes found to be
              applied.'
+      when: generation | int < 17
 
 
   module_defaults:
