@@ -434,7 +434,9 @@ def configure_boot_settings(module, idrac, res_id):
     payload["Boot"].update(configure_boot_order(module, boot_order, response))
     gen = idrac.get_server_generation
     generation = gen[0]
-    payload["Boot"].update(checking_all_conditions_for_boot_settings(module, override_mode, override_enabled, override_target, response))
+    payload["Boot"].update(checking_all_conditions_for_boot_settings(module, override_mode,
+                                                                     override_enabled, override_target,
+                                                                     response, generation))
     if module.check_mode and payload["Boot"]:
         module.exit_json(msg=CHANGES_MSG, changed=True)
     elif (module.check_mode or not module.check_mode) and not payload["Boot"]:
@@ -444,7 +446,7 @@ def configure_boot_settings(module, idrac, res_id):
     return job_resp
 
 
-def checking_all_conditions_for_boot_settings(module, override_mode, override_enabled, override_target, response):
+def checking_all_conditions_for_boot_settings(module, override_mode, override_enabled, override_target, response, gen):
     payload = {}
     if override_mode is not None and \
             (BS_OVERRIDE_MODE.get(override_mode) != response.get("BootSourceOverrideMode")):
@@ -454,7 +456,7 @@ def checking_all_conditions_for_boot_settings(module, override_mode, override_en
         payload.update({"BootSourceOverrideEnabled": BS_OVERRIDE_ENABLED.get(override_enabled)})
     if override_target is not None and \
             (BS_OVERRIDE_TARGET.get(override_target) != response.get("BootSourceOverrideTarget")
-             or override_enabled != "disabled") :
+             or (override_enabled != "disabled" and gen >= 17)):
         payload.update({"BootSourceOverrideTarget": BS_OVERRIDE_TARGET.get(override_target)})
         uefi_override_target = module.params.get("uefi_target_boot_source_override")
         if override_target == "uefi_target" and uefi_override_target != response.get("UefiTargetBootSourceOverride"):
