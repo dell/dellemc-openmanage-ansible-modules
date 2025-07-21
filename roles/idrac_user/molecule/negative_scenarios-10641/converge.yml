@@ -162,10 +162,10 @@
 
     - name: set fact of minimum value of custom privilege based on server gen
       ansible.builtin.set_fact:
-        mcp: "{{  0 if model | int < 17 else 1 }}"
+        mp: "{{  0 if model | int < 17 else 1 }}"
 
     - name: Asserting for invalid value for "custom_priviledge"
       ansible.builtin.assert:
         that: >
-          idrac_user_out.msg == "custom_privilege value should be from {{ mcp }}
+          idrac_user_out.msg == "custom_privilege value must range from {{ mp }}
           to 511."
