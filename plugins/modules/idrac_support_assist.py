@@ -744,11 +744,11 @@ class ExportSupportAssist(SupportAssist):
             'share_parameters').get('share_type')
         share_type_methods = {
             "local": self.__export_support_assist_local,
-            "http": self.__export_support_assist_http_or_cifs,
-            "https": self.__export_support_assist_http_or_cifs,
-            "cifs": self.__export_support_assist_http_or_cifs,
+            "http": self.__export_support_assist_remote_shares,
+            "https": self.__export_support_assist_remote_shares,
+            "cifs": self.__export_support_assist_remote_shares,
             "nfs": self.__export_support_assist_nfs,
-            "ftp": self.__export_support_assist_http_or_cifs
+            "ftp": self.__export_support_assist_remote_shares
         }
         payload = share_type_methods[share_type]()
         if share_type == "local":
@@ -772,7 +772,7 @@ class ExportSupportAssist(SupportAssist):
         payload["ShareType"] = "Local"
         return payload
 
-    def __export_support_assist_http_or_cifs(self):
+    def __export_support_assist_remote_shares(self):
         payload = self.get_payload_details()
         return payload
 
