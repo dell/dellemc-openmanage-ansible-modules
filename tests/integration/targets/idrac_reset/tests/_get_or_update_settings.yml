@@ -1,96 +1,111 @@
 ---
+- name: Update current settings to non-default
+  ansible.builtin.uri: &uri_input
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+      /redfish/v1/EventService"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    force_basic_auth: true
+    body: '{"DeliveryRetryIntervalSeconds": 10}'
+    validate_certs: false
+    method: PATCH
+    status_code: 200
+    headers: 'Accept=application/json'
+    body_format: json
+    return_content: true
+  when: operation is defined and operation == 'update_settings'
+
+- name: Checking current settings
+  ansible.builtin.uri:
+    <<: *uri_input
+    method: GET
+    body: "{{ body | default(omit) }}"
+  register: current_settings
+  when: "operation is defined and operation in ['fetch_settings',
+    'update_settings']"
+
+- name: Fetch the service tag details from the device
+  ansible.builtin.uri:
+    <<: *uri_input
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+      /redfish/v1/Systems/System.Embedded.1"
+    method: GET
+    body: "{{ body | default(omit) }}"
+    status_code: 200
+  register: serviceTag
+  when: "operation is defined and operation in ['fetch_settings',
+      'update_settings']"
+  no_log: true
+
+# Default value is 5 in iDRAC9 and range is 5 to 60.
+- name: set fact for redfish event settings retry interval
+  ansible.builtin.set_fact:
+    redfish_event_settings_retry_interval: "{{ current_settings.json.
+      DeliveryRetryIntervalSeconds }}"
+    iDRAC_has_default_settings: "{{ true if current_settings.json.
+      DeliveryRetryIntervalSeconds == 5 else false }}"
+    ServiceTag: "{{ serviceTag.json.SKU }}"
+    Model: "{{ serviceTag.json.Model }}"
+  when: "operation is defined and operation in ['fetch_settings',
+      'update_settings']"
+
 - block:
-    - name: Update current settings to non-default
-      ansible.builtin.uri: &uri_input
-        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
-        /redfish/v1/EventService"
-        user: "{{ idrac_user }}"
-        password: "{{ idrac_password }}"
-        force_basic_auth: true
-        body: '{"DeliveryRetryIntervalSeconds": 10}'
-        validate_certs: false
-        method: PATCH
-        status_code: 200
-        headers: 'Accept=application/json'
-        body_format: json
-        return_content: true
-      when: operation is defined and operation == 'update_settings'
-      no_log: true
-
-    - name: Checking current settings
-      ansible.builtin.uri:
-        <<: *uri_input
-        method: GET
-        body: "{{ body | default(omit) }}"
-      register: current_settings
-      when: "operation is defined and operation in ['fetch_settings',
-        'update_settings']"
-      no_log: true
-
-    - name: Fetch the service tag details from the device
-      ansible.builtin.uri:
-        <<: *uri_input
-        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
-        /redfish/v1/Systems/System.Embedded.1"
-        method: GET
-        body: "{{ body | default(omit) }}"
-        status_code: 200
-      register: serviceTag
-      when: "operation is defined and operation in ['fetch_settings',
-         'update_settings']"
-      no_log: true
-
-    # Default value is 5 in iDRAC9 and range is 5 to 60.
-    - name: set fact for redfish event settings retry interval
-      ansible.builtin.set_fact:
-        redfish_event_settings_retry_interval: "{{ current_settings.json.
-          DeliveryRetryIntervalSeconds }}"
-        iDRAC_has_default_settings: "{{ true if current_settings.json.
-          DeliveryRetryIntervalSeconds == 5 else false }}"
-        ServiceTag: "{{ serviceTag.json.SKU }}"
-        Model: "{{ serviceTag.json.Model }}"
-      when: "operation is defined and operation in ['fetch_settings',
-         'update_settings']"
-
+    # Get iDRAC model and firmware version for
+    # check_firmware_version operation
     - name: Get iDRAC firmware version
       ansible.builtin.uri:
-        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
-        /redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:\
+          {{idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1?\
+          $select=FirmwareVersion,Model"
         <<: *uri_input
         method: GET
         body: "{{ body | default(omit) }}"
       register: firmware_version
-      when: operation is defined and operation == 'check_firmware_version'
-      no_log: true
+
+    - name: Extract model from firmware_version
+      ansible.builtin.set_fact:
+        model_raw: "{{ firmware_version.json.Model }}"
+        fw_raw: "{{ firmware_version.json.FirmwareVersion }}"
+
+    - name: Search for the Hardware model number in the model string
+      ansible.builtin.set_fact:
+        model_search: "{{ model_raw | regex_search('([0-9]+)G', '\\1') }}"
+
+    - name: Extract the Hardware model number
+      ansible.builtin.set_fact:
+        hw_model: "{{ model_search | first }}"
+
+    - name: Check if less than 17G
+      ansible.builtin.set_fact:
+        less_than_17G: "{{ hw_model | int < 17 }}"
 
     - name: Set fact to check iDRAC version and custom_default supported
       ansible.builtin.set_fact:
-        it_is_iDRAC9: "{{ true if firmware_version.json.FirmwareVersion >=
-           '3.0' else false }}"
-        custom_default_supported: "{{ true if
-          firmware_version.json.FirmwareVersion >= '7.00.00' else false }}"
-      when: operation is defined and operation == 'check_firmware_version'
+        it_is_iDRAC9: "{{ less_than_17G and fw_raw >= '3.0' }}"
+        custom_default_supported: "{{ not less_than_17G or
+          fw_raw >= '7.00.00'}}"
+  when: operation is defined and operation == 'check_firmware_version'
 
-    - name: Fetch allowable values from iDRAC for reset
-      ansible.builtin.uri:
-        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
-        /redfish/v1/Managers/iDRAC.Embedded.1"
-        <<: *uri_input
-        method: GET
-        body: "{{ body | default(omit) }}"
-      register: allowable_values
-      when: operation is defined and operation == 'fetch_settings'
-      no_log: true
+- name: Fetch allowable values from iDRAC for reset
+  ansible.builtin.uri:
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+      /redfish/v1/Managers/iDRAC.Embedded.1"
+    <<: *uri_input
+    method: GET
+    body: "{{ body | default(omit) }}"
+  register: allowable_values
+  when: operation is defined and operation == 'fetch_settings'
+  no_log: true
 
-    - name: Set fact for Oem
-      ansible.builtin.set_fact:
-        oem: "{{ allowable_values.json.Actions.Oem }}"
-      when: operation is defined and operation == 'fetch_settings'
-      no_log: true
+- name: Set fact for Oem
+  ansible.builtin.set_fact:
+    oem: "{{ allowable_values.json.Actions.Oem }}"
+  when: operation is defined and operation == 'fetch_settings'
+  no_log: true
 
-    - name: Set fact for allowable_values
-      ansible.builtin.set_fact:
-        allowable_values: "{{ oem['#DellManager.ResetToDefaults']
-          ['ResetType@Redfish.AllowableValues']
-          if '#DellManager.ResetToDefaults' in oem else [] }}"
-      when: operation is defined and operation == 'fetch_settings'
+- name: Set fact for allowable_values
+  ansible.builtin.set_fact:
+    allowable_values: "{{ oem['#DellManager.ResetToDefaults']
+      ['ResetType@Redfish.AllowableValues']
+      if '#DellManager.ResetToDefaults' in oem else [] }}"
+  when: operation is defined and operation == 'fetch_settings'
