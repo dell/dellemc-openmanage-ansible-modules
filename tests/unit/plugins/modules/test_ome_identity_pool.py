@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Dell OpenManage Ansible Modules
-# Version 9.12.3
+# Version 9.12.4
 # Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -11,7 +11,9 @@ __metaclass__ = type
 
 import pytest
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_identity_pool
+from ansible_collections.dellemc.openmanage.plugins.modules.ome_identity_pool import mac_to_base64_conversion
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import AnsibleFailJSonException
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ssl import SSLError
@@ -956,6 +958,15 @@ class TestOMeIdentityPool(FakeAnsibleModule):
         base_64_val = self.module.mac_to_base64_conversion(mac_address, f_module)
         assert base_64_val == base_64_val_expected
 
+
+    def test_mac_to_base64_invalid_hex_raises_exit_json(self):
+        f_module = self.get_module_mock()
+        mac_input = "00:11:22:GG:44:55"  # Invalid hex character 'GG'
+        with pytest.raises(AnsibleFailJSonException) as exc_info:
+            mac_to_base64_conversion(mac_input, f_module)
+
+        assert "Encoding of MAC address" in str(exc_info.value)
+
     def test_pool_delete_case_01(self, ome_connection_mock_for_identity_pool, mocker):
         params = {"pool_name": "pool_name"}
         mocker.patch(
@@ -974,6 +985,24 @@ class TestOMeIdentityPool(FakeAnsibleModule):
         with pytest.raises(Exception) as exc:
             self.module.pool_delete(f_module, ome_connection_mock_for_identity_pool)
         assert exc.value.args[0] == "The identity pool '{0}' is not present in the system.".format(params["pool_name"])
+
+    def test_delete_identity_pool_check_mode(self, mocker, ome_connection_mock_for_identity_pool):
+        params = {"pool_name": "pool_name"}
+        f_module = self.get_module_mock(params=params)
+        f_module.check_mode = True
+        mocker.patch(
+            MODULE_PATH + 'ome_identity_pool.get_identity_pool_id_by_name', return_value=(1, {"value": "data"}))
+        with pytest.raises(AnsibleFailJSonException) as exc:
+            self.module.pool_delete(f_module, ome_connection_mock_for_identity_pool)
+        assert "Changes found to be applied." in str(exc.value)
+
+    def test_create_modify_identity_pool_check_mode(self, ome_connection_mock_for_identity_pool):
+        params = {"pool_name": "pool_name"}
+        f_module = self.get_module_mock(params=params)
+        f_module.check_mode = True
+        with pytest.raises(AnsibleFailJSonException) as exc:
+            self.module.pool_create_modify(f_module, ome_connection_mock_for_identity_pool)
+        assert "Changes found to be applied." in str(exc.value)
 
     def test_pool_delete_error_case_02(self, mocker, ome_connection_mock_for_identity_pool, ome_response_mock):
         msg = "exception message"
