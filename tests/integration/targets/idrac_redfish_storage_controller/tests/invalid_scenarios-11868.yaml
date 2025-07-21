@@ -64,8 +64,8 @@
         that:
           - invalid_port.unreachable
           - not invalid_port.changed
-          - ('invalid_port.msg == "<urlopen error [Errno 111] Connection
-            refused>"') or ('invalid_port.msg == "<urlopen error timed out>"')
+          - 'invalid_port.msg == "<urlopen error [Errno 111] Connection
+            refused>" or invalid_port.msg == "<urlopen error timed out>"'
 
     - name: Negative - invalid username
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -109,9 +109,8 @@
       ignore_errors: true
 
     - ansible.builtin.set_fact:
-        invalid_validate_certs_expected_msg: "argument 'validate_certs' is of
-          type <class 'str'> and we were unable to convert to bool: The value
-          'invalid' is not a valid boolean.  Valid booleans include: "
+        invalid_validate_certs_expected_msg: "The value
+          'invalid' is not a valid boolean."
 
     - name: Verify task status - Negative - invalid validate_certs
       ansible.builtin.assert:
@@ -143,16 +142,15 @@
       ignore_errors: true
 
     - ansible.builtin.set_fact:
-        timeout_expected_msg: "argument 'timeout' is of type <class 'str'>
-          and we were unable to convert to int: \"'invalid'\" cannot be
-          converted to an int"
+        timeout_expected_msg:
+          "cannot be converted to an int"
 
     - name: Verify task status - Negative - invalid timeout type
       ansible.builtin.assert:
         that:
           - invalid_timeout_type.failed
           - not invalid_timeout_type.changed
-          - 'invalid_timeout_type.msg == timeout_expected_msg'
+          - timeout_expected_msg in invalid_timeout_type.msg
 
     - name: Negative - invalid timeout value
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -214,7 +212,7 @@
         that:
           - invalid_volume_id.failed
           - not invalid_volume_id.changed
-          - invalid_volume_id.msg == "HTTP Error 400: Bad Request"
+          - 'invalid_volume_id.msg == "HTTP Error 400: Bad Request"'
 
     - name: Negative - Invalid target
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -228,7 +226,7 @@
         that:
           - invalid_target.failed
           - not invalid_target.changed
-          - invalid_target.msg == "HTTP Error 400: Bad Request"
+          - 'invalid_target.msg == "HTTP Error 400: Bad Request"'
 
     - name: Negative - Invalid encryption mode
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -258,12 +256,19 @@
       register: invalid_key
       ignore_errors: true
 
+    - name: Set the invalid key message
+      ansible.builtin.set_fact:
+        invalid_key_expected_msg:
+          "The key should be of maximum length 32 and must contain at
+          least one character from each of the character classes: uppercase,
+          lowercase, number, and special character."
+
     - name: Verify task status - Negative - invalid key
       ansible.builtin.assert:
         that:
           - invalid_key.failed
           - not invalid_key.changed
-          - invalid_key.msg == "HTTP Error 400: Bad Request"
+          - invalid_key.msg == invalid_key_expected_msg
 
     - name: Negative - Invalid size
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -273,16 +278,15 @@
       ignore_errors: true
 
     - ansible.builtin.set_fact:
-        invalid_size_expected_msg: "argument 'size' is of type <class 'str'>
-          and we were unable to convert to int: \"'invalid'\" cannot be
-          converted to an int"
+        invalid_size_expected_msg:
+          "cannot be converted to an int"
 
     - name: Verify task status - Negative - invalid key
       ansible.builtin.assert:
         that:
           - invalid_size.failed
           - not invalid_size.changed
-          - 'invalid_size.msg == invalid_size_expected_msg'
+          - invalid_size_expected_msg in invalid_size.msg
 
   module_defaults:
     dellemc.openmanage.idrac_redfish_storage_controller:

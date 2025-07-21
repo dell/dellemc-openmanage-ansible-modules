@@ -1,0 +1,127 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING
+# or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined
+
+- block:
+    - name: Include the helper task
+      ansible.builtin.include_tasks: _helper.yml
+
+    - name: Create Directory
+      ansible.builtin.file:
+        path: "{{ base_path_for_exported_license }}"
+        state: directory
+      register: created_directory
+
+    - name: Set the API
+      ansible.builtin.set_fact:
+        idracApi: "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell\
+         /DellLicenseManagementService/Actions\
+         /DellLicenseManagementService.ExportLicenseToNetworkShare"
+
+    - name: Set the NFS IP and directory path
+      ansible.builtin.set_fact:
+        nfs_share_ip: "{{ nfs_share_name.split(':')[0] }}"
+        nfs_share_dir_path: "{{ nfs_share_name.split(':')[1] }}"
+
+    - name: Create Export license for IDRAC component by uri.
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+         {{ idracApi }}"
+        method: POST
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+        body:
+          EntitlementID: "{{ idrac_license_id }}"
+          IPAddress: "{{ nfs_share_ip }}"
+          ShareType: "NFS"
+          ShareName: "{{ nfs_share_dir_path }}"
+        body_format: json
+        status_code: 202
+        headers: 'Accept=application/json'
+      register: uri_license_content
+
+    - name: URI - Verify license was exported successfully
+      ansible.builtin.assert:
+        that:
+          - not uri_license_content.failed
+          - "'OK' in uri_license_content.msg"
+
+    - name: Set the file name
+      ansible.builtin.set_fact:
+        export_file_name: "{{ idrac_license_id }}.xml"
+
+    - name: Export iDRAC License to NFS share
+      dellemc.openmanage.idrac_license:
+        license_id: "{{ idrac_license_id }}"
+        export: true
+        share_parameters:
+          file_name: "{{ export_file_name }}"
+          ip_address: "{{ nfs_share_ip }}"
+          share_name: "{{ nfs_share_dir_path }}"
+          share_type: nfs
+      register: idrac_export_license
+
+    - name: Get iDRAC job details
+      ansible.builtin.include_tasks: _job_track.yml
+      vars:
+        job_id: "{{ idrac_export_license.job_details.Id }}"
+
+    - name: Compare the job detail output between module and uri
+      ansible.utils.fact_diff:
+        before: "{{ idrac_job_details | ansible.utils.remove_keys(
+                target=['^@odata','MessageArgs@odata.count'],
+                matching_parameter='regex')}}"
+        after: "{{ idrac_export_license.job_details }}"
+      register: diff_result
+
+    - name: Module - Verify license was exported successfully
+      ansible.builtin.assert:
+        that:
+          - idrac_export_license.changed
+          - idrac_export_license.msg == "Successfully exported the license."
+          - "'The command was successful' in
+           idrac_export_license.job_details.Message"
+          - not diff_result.changed
+          - not diff_result.diff_lines
+
+    - name: Check that the exported file exists for NFS share- URI
+      ansible.builtin.stat:
+        path: "{{ nfs_share_mnt }}/{{ ServiceTag }}_{{ idrac_license_id }}.xml"
+      register: uri_file_stats
+
+    - name: Check that the exported file exists for NFS share- Module
+      ansible.builtin.stat:
+        path: "{{ nfs_share_mnt }}/{{ ServiceTag }}_{{ idrac_license_id }}.xml"
+      register: module_file_stats
+
+    - name: Compare file sizes
+      ansible.builtin.assert:
+        that:
+          - uri_file_stats.stat.size == module_file_stats.stat.size
+
+    - name: Compare file checksums
+      ansible.builtin.assert:
+        that:
+          - uri_file_stats.stat.checksum == module_file_stats.stat.checksum
+
+  always:
+    - name: Perform the cleanup
+      ansible.builtin.include_tasks: _cleanup.yml
+
+  module_defaults:
+    dellemc.openmanage.idrac_license:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      idrac_port: "{{ idrac_port }}"
+      validate_certs: "{{ validate_certs }}"

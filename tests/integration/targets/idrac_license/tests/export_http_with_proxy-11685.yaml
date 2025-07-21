@@ -1,0 +1,52 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING
+# or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user
+     and idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- name: Export License http share all cases with default proxy.
+  ansible.builtin.include_tasks: _export_http.yml
+  vars:
+    export_http_proxy_support: "default_proxy"
+    export_http_proxy_type: "{{ omit }}"
+    export_http_proxy_server: "{{ omit }}"
+    export_http_proxy_port: "{{ omit }}"
+    export_http_proxy_username: "{{ omit }}"
+    export_http_proxy_password: "{{ omit }}"
+
+- name: Waiting for idrac readiness
+  ansible.builtin.wait_for:
+    timeout: 10
+
+- name: Export License http share all cases with SOCKS proxy.
+  ansible.builtin.include_tasks: _export_http.yml
+  vars:
+    export_http_proxy_support: "parameters_proxy"
+    export_http_proxy_type: socks
+    export_http_proxy_server: "{{ socks4_proxy_server }}"
+    export_http_proxy_port: "{{ socks4_proxy_port }}"
+    export_http_proxy_username: "{{ omit }}"
+    export_http_proxy_password: "{{ omit }}"
+  when: "'{{ socks4_proxy_enabled }}' == 'true'"
+
+- name: Waiting for idrac readiness
+  ansible.builtin.wait_for:
+    timeout: 10
+
+- name: Export License http share all cases with HTTP proxy with credentials.
+  ansible.builtin.include_tasks: _export_http.yml
+  vars:
+    export_http_proxy_support: "parameters_proxy"
+    export_http_proxy_type: http
+    export_http_proxy_server: "{{ http_proxy_server }}"
+    export_http_proxy_port: "{{ http_proxy_port }}"
+    export_http_proxy_username: "{{ http_proxy_username | default(omit) }}"
+    export_http_proxy_password: "{{ http_proxy_password | default(omit) }}"
+  when: "'{{ http_proxy_enabled }}' == 'true'"
