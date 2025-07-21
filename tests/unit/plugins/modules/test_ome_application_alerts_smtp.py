@@ -424,15 +424,13 @@ class TestAppAlertsSMTP(FakeAnsibleModule):
         assert err.value.args[0] == NO_CHANGES
 
     @pytest.mark.parametrize("exc_type",
-                             [HTTPError, URLError])
+                             [HTTPError, URLError, OSError])
     def test_smtp_main_exception_case(self, mocker, exc_type, ome_connection_mock_for_smtp, ome_response_mock,
                                       ome_default_args):
         ome_default_args.update({"destination_address": "localhost", "port_number": 25, "use_ssl": True,
                                  "enable_authentication": True,
                                  "credentials": {"username": "username", "password": "password"}
                                  })
-        ome_response_mock.status_code = 400
-        ome_response_mock.success = False
         json_str = to_text(json.dumps({"info": "error_details"}))
         if exc_type == URLError:
             mocker.patch(MODULE_PATH + 'fetch_smtp_settings', side_effect=exc_type("url open error"))

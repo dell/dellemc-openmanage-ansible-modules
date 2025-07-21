@@ -247,7 +247,7 @@ def main():
     except (
             IOError, ValueError, TypeError, ConnectionError, AttributeError, IndexError, KeyError,
             OSError) as err:
-        exit_module(module, msg=str(err), error_info=json.load(err), failed=True)
+        exit_module(module, msg=str(err), error_info={"error": str(err)}, failed=True)
 
 
 if __name__ == '__main__':
