@@ -132,13 +132,14 @@
       ignore_errors: true
       register: invalid_custom_defaults_file
 
-    - name: Verify invalid custom_defaults_file for iDRAC9
+    - name: Verify invalid custom_defaults_file for firmware version
+       7.0.0 and above
       ansible.builtin.assert:
         that:
           - invalid_custom_defaults_file.failed
           - invalid_custom_defaults_file.msg == "Provided directory path
             'invalid' is invalid."
-      when: it_is_iDRAC9 and custom_default_supported
+      when: custom_default_supported
 
     - name: Verify invalid custom_defaults_file for iDRAC9 having firmware
              version less than 7.00
@@ -151,14 +152,6 @@
             the valid values and retry the operation."
       when: it_is_iDRAC9 and not custom_default_supported
 
-    - name: Verify invalid custom_defaults_file for iDRAC8
-      ansible.builtin.assert:
-        that:
-          - invalid_custom_defaults_file.skipped
-          - invalid_custom_defaults_file.msg == "CustomDefaults is not
-            supported."
-      when: not it_is_iDRAC9
-
     - name: Reset iDRAC (Negative - invalid custom_defaults_buffer)
       dellemc.openmanage.idrac_reset:
         reset_to_default: "CustomDefaults"
@@ -166,15 +159,16 @@
       ignore_errors: true
       register: invalid_custom_defaults_buffer
 
-    - name: Verify invalid custom_defaults_buffer for iDRAC9
+    - name: Verify invalid custom_defaults_buffer for firmware version
+       7.0.0 and above
       ansible.builtin.assert:
         that:
           - invalid_custom_defaults_buffer.failed
           - invalid_custom_defaults_buffer.msg == "HTTP Error 400: Bad Request"
-      when: it_is_iDRAC9 and custom_default_supported
+      when: custom_default_supported
 
     - name: Verify invalid custom_defaults_buffer for iDRAC9 having firmware
-             version less than 7.00
+             version less than 7.0.0
       ansible.builtin.assert:
         that:
           - invalid_custom_defaults_buffer.skipped
@@ -183,14 +177,6 @@
             are ['All', 'ResetAllWithRootDefaults', 'Default']. Enter the valid
             values and retry the operation."
       when: it_is_iDRAC9 and not custom_default_supported
-
-    - name: Verify invalid custom_defaults_buffer for iDRAC8
-      ansible.builtin.assert:
-        that:
-          - invalid_custom_defaults_buffer.skipped
-          - invalid_custom_defaults_buffer.msg == "CustomDefaults is not
-             supported."
-      when: not it_is_iDRAC9
 
     - name: Reset iDRAC (Negative - Checking whether custom_defaults_buffer
             is mutually exclusive with custom_defaults_file)
@@ -250,8 +236,8 @@
       ansible.builtin.assert:
         that:
           - only_default_incorrect_credentials.failed
-          - 'only_default_incorrect_credentials.msg == "HTTP Error
-            401: Unauthorized"'
+          - '"Login failed after the iDRAC reset." in
+            only_default_incorrect_credentials.msg'
 
   module_defaults:
     dellemc.openmanage.idrac_reset:
