@@ -29,7 +29,7 @@
 
     - name: Update SMTP desination server configuration with authentication
         (Normal mode)
-      ome_application_alerts_smtp:
+      dellemc.openmanage.ome_application_alerts_smtp:
         <<: *withauth
       register: results_with_auth
 
