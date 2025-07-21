@@ -958,7 +958,6 @@ class TestOMeIdentityPool(FakeAnsibleModule):
         base_64_val = self.module.mac_to_base64_conversion(mac_address, f_module)
         assert base_64_val == base_64_val_expected
 
-
     def test_mac_to_base64_invalid_hex_raises_exit_json(self):
         f_module = self.get_module_mock()
         mac_input = "00:11:22:GG:44:55"  # Invalid hex character 'GG'
