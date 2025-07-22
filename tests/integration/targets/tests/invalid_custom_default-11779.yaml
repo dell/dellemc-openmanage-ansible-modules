@@ -1,0 +1,124 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  fail:
+    msg: "Please define the following variables: idrac_ip, idrac_user and idrac_password."
+  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+
+- block:
+    - name: Get iDRAC firmware version
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        force_basic_auth: true
+        validate_certs: false
+        status_code: 200
+        headers: "Accept=application/json"
+        body_format: json
+        return_content: true
+        method: GET
+        body: {}
+      register: firmware_version
+      no_log: true
+
+    - name: Importing SCP custom_default with nfs share_name
+      dellemc.openmanage.idrac_server_config_profile:
+        job_wait: true
+        command: import_custom_defaults
+        share_name: "{{ nfs_share_name }}"
+        scp_file: "pre_req_import_custom_default.xml"
+      register: nfs
+      when: firmware_version.json.FirmwareVersion > "7.00.00.00"
+
+    - name: Assertion of scp custom_default with nfs share_name
+      ansible.builtin.assert:
+        that:
+          - nfs.skipped
+          - nfs.msg == "Unable to perform the import_custom_defaults operation
+            because an invalid Share name is entered. Only 'local' share name is
+            supported. Enter the valid Share name and retry the operation."
+      when: firmware_version.json.FirmwareVersion > "7.00.00.00"
+
+    - name: Import scp custom_default with file extension txt
+      dellemc.openmanage.idrac_server_config_profile:
+        job_wait: true
+        command: import_custom_defaults
+        share_name: "{{ role_path }}/files"
+        scp_file: "ansible_doc.txt"
+      register: txt
+      ignore_errors: true
+      when: firmware_version.json.FirmwareVersion > "7.00.00.00"
+
+    - name: Assertion of scp custom_default with file extension txt
+      ansible.builtin.assert:
+        that:
+          - txt.failed
+          - txt.msg == "An invalid XML content is provided. Provide custom
+            default content in a valid XML format."
+      when: firmware_version.json.FirmwareVersion > "7.00.00.00"
+
+    - name: Import scp with invalid xml buffer
+      dellemc.openmanage.idrac_server_config_profile:
+        job_wait: true
+        command: import_custom_defaults
+        import_buffer: "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'>
+          <Attribute Name='IPMILan.1#Enable'>Disabled</Component>
+          </SystemConfiguration>"
+      register: invalid_xml
+      ignore_errors: true
+      when: firmware_version.json.FirmwareVersion > "7.00.00.00"
+
+    - name: Assertion of scp with invalid xml buffer
+      ansible.builtin.assert:
+        that:
+          - invalid_xml.failed
+          - invalid_xml.msg == "An invalid XML content is provided. Provide
+            custom default content in a valid XML format."
+      when: firmware_version.json.FirmwareVersion > "7.00.00.00"
+
+    - name: Import scp custom default when iDRAC firmware version is less than '7.00.00.00'
+      dellemc.openmanage.idrac_server_config_profile:
+        job_wait: true
+        command: import_custom_defaults
+        share_name: "{{ role_path }}/files"
+        scp_file: "import_custom_default.xml"
+      register: import_cd
+      when: firmware_version.json.FirmwareVersion < "7.00.00.00"
+
+    - name: Assertion of scp custom default when iDRAC firmware version is less than '7.00.00.00'
+      ansible.builtin.assert:
+        that:
+          - import_cd.skipped
+          - import_cd.msg == "import_custom_defaults is not supported on this
+            firmware version of iDRAC. Enter the valid values and retry the
+            operation."
+      when: firmware_version.json.FirmwareVersion < "7.00.00.00"
+
+    - name: Export scp custom default when iDRAC firmware version is less than '7.00.00.00'
+      dellemc.openmanage.idrac_server_config_profile:
+        job_wait: true
+        command: export_custom_defaults
+        share_name: "{{ playbook_dir }}"
+      register: export
+      when: firmware_version.json.FirmwareVersion < "7.00.00.00"
+
+    - name: Assertion of scp custom default when iDRAC firmware version is less than '7.00.00.00'
+      ansible.builtin.assert:
+        that:
+          - export.skipped
+          - export.msg == "export_custom_defaults is not supported on this
+             firmware version of iDRAC. Enter the valid values and retry the
+             operation."
+      when: firmware_version.json.FirmwareVersion < "7.00.00.00"
+
+  module_defaults:
+    dellemc.openmanage.idrac_server_config_profile:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      idrac_port: "{{ idrac_port }}"
+      validate_certs: "{{ validate_certs }}"
