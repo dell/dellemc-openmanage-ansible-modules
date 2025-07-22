@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.12.3
 # Copyright (C) 2019-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -118,6 +118,7 @@ requirements:
 author:
     - "Sajna Shetty(@Sajna-Shetty)"
     - "Jagadeesh N V(@jagadeeshnv)"
+    - "Krunal Thakkar(@Krunal-Thakkar)"
 notes:
     - If I(repository_password) is provided, then the module always reports the changed status.
     - Run this module from a system that has direct access to Dell OpenManage Enterprise or OpenManage Enterprise Modular.
