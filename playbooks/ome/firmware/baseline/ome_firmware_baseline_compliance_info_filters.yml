@@ -18,7 +18,7 @@
       tags:
         - overall-compliance-report
 
-    - name: Firmware baseline compliance info based on FirmwareStatus - Non-Compliant
+    - name: Firmware baseline compliance info based on FirmwareStatus Non-Compliant
       ansible.builtin.set_fact:
         non_compliance_fact: "{{ item }}"
       when:
@@ -26,7 +26,8 @@
       with_items:
         - "{{ result.baseline_compliance_info }}"
       loop_control:
-        label: "{{ item.Name }} - {{ item.DeviceComplianceReports.0.FirmwareStatus }}"
+        label: "{{ item.Name }} - {{
+          item.DeviceComplianceReports.0.FirmwareStatus }}"
       delegate_to: localhost
       tags:
         - non-compliance-report
@@ -39,7 +40,8 @@
       with_items:
         - "{{ result.baseline_compliance_info }}"
       loop_control:
-        label: "{{ item.Name }} - {{ item.DeviceComplianceReports.0.DeviceId }}"
+        label: "{{ item.Name }} - {{
+          item.DeviceComplianceReports.0.DeviceId }}"
       delegate_to: localhost
       tags:
         - device-id-report
@@ -52,7 +54,8 @@
       with_items:
         - "{{ result.baseline_compliance_info }}"
       loop_control:
-        label: "{{ item.Name }} - {{ item.DeviceComplianceReports.0.ServiceTag }}"
+        label: "{{ item.Name }} - {{
+          item.DeviceComplianceReports.0.ServiceTag }}"
       delegate_to: localhost
       tags:
         - device-service-tag-report
