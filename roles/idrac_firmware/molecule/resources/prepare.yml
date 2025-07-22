@@ -1,7 +1,7 @@
 ---
 - name: Prepare system for Molecule tests
   hosts: all
-  become: true
+  gather_facts: false
   tasks:
     - name: "Pre-requisites"
       ansible.builtin.include_tasks:
