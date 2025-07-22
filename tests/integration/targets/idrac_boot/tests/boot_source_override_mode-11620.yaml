@@ -1,0 +1,163 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Get Server generation details
+  ansible.builtin.include_tasks: _get_server_generation.yml
+
+- block:
+    - name: setting boot mode to BIOS/Legacy
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_mode: legacy
+      register: legacy_mode
+
+    - name: Waiting for idrac readiness
+      dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+      register: result_lc
+      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 100
+      delay: 30
+
+    - ansible.builtin.pause: seconds=300
+      when: legacy_mode.changed
+
+    - name: Configuring "boot_source_override_mode" to Uefi - Check mode -
+       Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_mode: uefi
+      register: uefi_cm_mode
+      check_mode: true
+
+    - name: Verify configuring "boot_source_override_mode" to Uefi - check mode
+      ansible.builtin.assert:
+        that:
+          - uefi_cm_mode.changed
+          - uefi_cm_mode.msg == 'Changes found to be applied.'
+
+    - name: Configuring "boot_source_override_mode" to Uefi - Normal
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_mode: uefi
+      register: uefi_normal_mode
+
+    - name: Waiting for idrac readiness
+      dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+      register: result_lc
+      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 100
+      delay: 30
+
+    - ansible.builtin.pause: seconds=300
+      when: uefi_normal_mode.changed
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems\
+         /System.Embedded.1/"
+
+    - name: extracting data from get_data_uri
+      ansible.builtin.set_fact:
+        uefi_normal_data:
+          "{{ result_get_data.content | from_json | json_query('Boot') }}"
+
+    - name: Verify configuring "boot_source_override_mode" to Uefi - Normal mode
+      ansible.builtin.assert:
+        that:
+          - uefi_normal_data.BootSourceOverrideMode == 'UEFI'
+          - uefi_normal_mode.changed
+          - uefi_normal_mode.msg == 'Successfully updated the boot settings.'
+
+    - name: Configuring "boot_source_override_mode" to Uefi  - Idempotency
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_mode: uefi
+      register: uefi_idempotency_mode
+
+    - name: Verify configuring "boot_source_override_mode" to Uefi -
+       Idempotency mode
+      ansible.builtin.assert:
+        that:
+          - not uefi_idempotency_mode.changed
+          - uefi_idempotency_mode.msg == 'No changes found to be applied.'
+
+    - name: Configuring "boot_source_override_mode" to Legacy - Check mode -
+       Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_mode: legacy
+      register: legacy_cm_mode
+      check_mode: true
+
+    - name: Verify configuring "boot_source_override_mode" to Uefi - check mode
+      ansible.builtin.assert:
+        that:
+          - legacy_cm_mode.changed
+          - legacy_cm_mode.msg == 'Changes found to be applied.'
+
+    - name: Configuring "boot_source_override_mode" to Legacy - Normal
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_mode: legacy
+      register: legacy_normal_mode
+
+    - name: Waiting for idrac readiness
+      dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+      register: result_lc
+      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 100
+      delay: 30
+
+    - ansible.builtin.pause: seconds=300
+      when: legacy_normal_mode.changed
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1\
+          /Systems/System.Embedded.1/"
+
+    - name: extracting data from get_data_uri
+      ansible.builtin.set_fact:
+        legacy_normal_data:
+          "{{ result_get_data.content | from_json | json_query('Boot') }}"
+
+    - name: Verify configuring "boot_source_override_mode" to Legacy -
+       Normal mode
+      ansible.builtin.assert:
+        that:
+          - legacy_normal_data.BootSourceOverrideMode == 'Legacy'
+          - legacy_normal_mode.changed
+          - legacy_normal_mode.msg == 'Successfully updated the boot settings.'
+
+    - name: Configuring "boot_source_override_mode" to Legacy  - Idempotency
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_mode: legacy
+      register: legacy_idempotency_mode
+
+    - name: Verify configuring "boot_source_override_mode" to Legacy -
+       Idempotency mode
+      ansible.builtin.assert:
+        that:
+          - not legacy_idempotency_mode.changed
+          - legacy_idempotency_mode.msg == 'No changes found to be applied.'
+  when: generation | int < 17
+
+  module_defaults:
+    dellemc.openmanage.idrac_boot:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+    dellemc.openmanage.idrac_lifecycle_controller_status_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

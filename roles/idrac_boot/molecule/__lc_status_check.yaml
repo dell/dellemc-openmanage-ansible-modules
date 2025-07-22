@@ -2,8 +2,8 @@
 - name: Constructing url
   ansible.builtin.set_fact:
     url_1: "https://{{ hostname | ansible.utils.ipwrap }}:"
-    url_2: "{{ https_port }}/redfish/v1/Dell/Managers/"
-    url_3: "iDRAC.Embedded.1/DellLCService/Actions"
+    url_2: "{{ https_port }}/redfish/v1/Managers/"
+    url_3: "iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions"
     url_4: "/DellLCService.GetRemoteServicesAPIStatus"
 
 - name: Final url
