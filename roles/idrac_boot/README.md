@@ -142,7 +142,7 @@ dellemc.openmanage
     <td></td>
     <td>'legacy', 'uefi'</td>
     <td>str</td>
-    <td>- The BIOS boot mode (either Legacy or UEFI) to be used when I(boot_source_override_target) boot source is booted.<br>- C(legacy) The system boot in non-UEFI(Legacy) boot mode to the I(boot_source_override_target).<br>- C(uefi) The system boot in UEFI boot mode to the I(boot_source_override_target).<br>- This is mutually exclusive with I(boot_options).</td>
+    <td>- The BIOS boot mode (either Legacy or UEFI) to be used when I(boot_source_override_target) boot source is booted.<br>- C(legacy) The system boot in non-UEFI(Legacy) boot mode to the I(boot_source_override_target).<br>- C(uefi) The system boot in UEFI boot mode to the I(boot_source_override_target).<br>- This is read-only property for iDRAC 17G and later.<br>- This is mutually exclusive with I(boot_options).</td>
   </tr>
   <tr>
     <td>boot_source_override_enabled</td>
@@ -158,7 +158,7 @@ dellemc.openmanage
     <td></td>
     <td>'uefi_http', 'sd_card', 'uefi_target', 'utilities', 'bios_setup', 'hdd', 'cd', 'floppy', 'pxe', 'none'</td>
     <td>str</td>
-    <td>- The boot source override targets the device to use during the next boot instead of the normal boot device.<br>- C(pxe) performs PXE boot from the primary NIC.<br>- C(floppy), C(cd), C(hdd), and C(sd_card) performs boot from their devices respectively.<br>- C(bios_setup) performs boot into the native BIOS setup.<br>- C(uefi_http) performs boot from a URI over HTTP.<br>- C(utilities) performs boot from the local utilities.<br>- C(uefi_target) performs boot from the UEFI device path found in I(uefi_target_boot_source_override).<br>- C(none) if the I(boot_source_override_target) is set to a value other than C(none) then the I(boot_source_override_enabled) is automatically set to C(once).<br>- Changes to these options do not alter the BIOS persistent boot order configuration.<br>- This is mutually exclusive with I(boot_options).</td>
+    <td>- The boot source override targets the device to use during the next boot instead of the normal boot device.<br>- C(pxe) performs PXE boot from the primary NIC.<br>- C(floppy), C(cd), C(hdd), and C(sd_card) performs boot from their devices respectively.<br>- C(bios_setup) performs boot into the native BIOS setup.<br>- C(uefi_http) performs boot from a URI over HTTP.<br>- C(utilities) performs boot from the local utilities.<br>- C(uefi_target) performs boot from the UEFI device path found in I(uefi_target_boot_source_override).<br>- C(none) if the I(boot_source_override_target) is set to a value other than C(none) then the I(boot_source_override_enabled) is automatically set to C(once) if I(boot_source_override_enabled) is not provided.<br>- Changes to these options do not alter the BIOS persistent boot order configuration.<br>- This is required if I(boot_source_override_enabled) is C(once) or C(continuous) for iDRAC 17G and later.<br>- This is mutually exclusive with I(boot_options).</td>
   </tr>
   <tr>
     <td>uefi_target_boot_source_override</td>
