@@ -34,7 +34,7 @@
         method: GET
       register: result_data
       check_mode: false
-      no_log: true
+      no_log: false
 
     - name: Extracing DisplayName from output
       ansible.builtin.set_fact:

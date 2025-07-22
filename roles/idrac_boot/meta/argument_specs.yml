@@ -68,6 +68,7 @@ argument_specs:
             boot source is booted.
           - C(legacy) The system boot in non-UEFI(Legacy) boot mode to the I(boot_source_override_target).
           - C(uefi) The system boot in UEFI boot mode to the I(boot_source_override_target).
+          - This is read-only property for iDRAC 17G and later.
           - This is mutually exclusive with I(boot_options).
         type: str
         choices: [legacy, uefi]
@@ -96,6 +97,8 @@ argument_specs:
           - C(none) if the I(boot_source_override_target) is set to a value other than C(none) then the
             I(boot_source_override_enabled) is automatically set to C(once).
           - Changes to these options do not alter the BIOS persistent boot order configuration.
+          - This is required if I(boot_source_override_enabled) is C(once) or
+            C(continuous) for iDRAC 17G and later.
           - This is mutually exclusive with I(boot_options).
         type: str
         choices: [uefi_http, sd_card, uefi_target, utilities, bios_setup, hdd, cd, floppy, pxe, none]
