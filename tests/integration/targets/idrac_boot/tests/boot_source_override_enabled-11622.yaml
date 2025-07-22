@@ -1,0 +1,113 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+
+    - name: Configuring "boot_source_override_enabled" to "continuous" -
+       Check mode - Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_enabled: continuous
+        boot_source_override_target: pxe
+      register: continuous_cm_mode
+      check_mode: true
+
+    - name: Verify configuring "boot_source_override_enabled" to "continuous" -
+       check mode
+      ansible.builtin.assert:
+        that:
+          - continuous_cm_mode.changed
+          - continuous_cm_mode.msg == 'Changes found to be applied.'
+
+    - name: Configuring "boot_source_override_enabled" to "continuous" - Normal
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_enabled: continuous
+        boot_source_override_target: pxe
+      register: continuous_normal_mode
+
+    - name: Verify configuring "boot_source_override_enabled" to "continuous" -
+       Normal mode
+      ansible.builtin.assert:
+        that:
+          - continuous_normal_mode.changed
+          - continuous_normal_mode.msg == 'Successfully updated the boot
+            settings.'
+
+    - name: Configuring "boot_source_override_enabled" to "once" - Check mode -
+       Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_enabled: once
+        boot_source_override_target: pxe
+      register: once_cm_mode
+      check_mode: true
+
+    - name: Verify configuring "boot_source_override_enabled" to "once" -
+       check mode
+      ansible.builtin.assert:
+        that:
+          - once_cm_mode.changed
+          - once_cm_mode.msg == 'Changes found to be applied.'
+
+    - name: Configuring "boot_source_override_enabled" to "once" - Normal
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_enabled: once
+        boot_source_override_target: pxe
+      register: once_normal_mode
+
+    - name: Verify configuring "boot_source_override_enabled" to "once" -
+       Normal mode
+      ansible.builtin.assert:
+        that:
+          - once_normal_mode.changed
+          - once_normal_mode.msg == 'Successfully updated the boot settings.'
+
+    - name: Waiting for idrac to reboot
+      ansible.builtin.pause: seconds=300
+
+    - name: Configuring "boot_source_override_enabled" to "disabled" -
+       Check mode - No changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_enabled: disabled
+      register: disabled_cm_mode
+      check_mode: true
+
+    - name: Verify configuring "boot_source_override_enabled" to "disabled" -
+       check mode
+      ansible.builtin.assert:
+        that:
+          - not disabled_cm_mode.changed
+          - disabled_cm_mode.msg == 'No changes found to be applied.'
+
+    - name: Configuring "boot_source_override_enabled" to "disabled" - Normal
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_enabled: disabled
+      register: disabled_normal_mode
+
+    - name: Verify configuring "boot_source_override_enabled" to "disabled"
+       - Normal mode
+      ansible.builtin.assert:
+        that:
+          - not disabled_normal_mode.changed
+          - disabled_normal_mode.msg == 'No changes found to be applied.'
+
+  module_defaults:
+    dellemc.openmanage.idrac_boot:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+    dellemc.openmanage.idrac_lifecycle_controller_status_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

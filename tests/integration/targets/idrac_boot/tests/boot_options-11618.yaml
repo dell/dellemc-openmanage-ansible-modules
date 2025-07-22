@@ -1,0 +1,582 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Get Server generation details
+  ansible.builtin.include_tasks: _get_server_generation.yml
+
+- block:
+    - name: setting boot mode to BIOS/Legacy
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_mode: legacy
+      register: legacy_mode
+
+    - name: Waiting for idrac readiness
+      dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+      register: result_lc
+      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 100
+      delay: 30
+
+    - ansible.builtin.pause: seconds=300
+      when: legacy_mode.changed
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems\
+          /System.Embedded.1/BootOptions?$expand=*($levels=1)"
+
+    - ansible.builtin.set_fact:
+        fetched_data: "{{ boot_options_fetched_data }}"
+
+    - name: Checking boot options count < 2
+      fail:
+        msg: "Number of boot options should be at least 2 to check mix of
+         enable/disable in single playbook"
+      when: fetched_data | length < 2
+
+    - name: Disabling the boot options
+      dellemc.openmanage.idrac_boot:
+        boot_options:
+          - boot_option_reference: "{{ fetched_data[0].BootOptionReference }}"
+            enabled: false
+          - boot_option_reference: "{{ fetched_data[1].BootOptionReference }}"
+            enabled: false
+      register: disabled_legacy_boot_options
+
+    - name: Waiting for idrac readiness - Prerequisite
+      idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+      register: result_lc
+      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 100
+      delay: 30
+
+    - ansible.builtin.pause: seconds=300
+      when: disabled_legacy_boot_options.changed
+
+    - name: Enabling BIOS boot options using display name - Check mode
+       (Changes expected)
+      dellemc.openmanage.idrac_boot:
+        boot_options:
+          - display_name: "{{ fetched_data[0].DisplayName }}"
+            enabled: true
+          - display_name: "{{ fetched_data[1].DisplayName }}"
+            enabled: true
+      register: enabled_legacy_cm_mode
+      check_mode: true
+
+    - name: Verify status of tasks - check mode - enabling using display names
+      ansible.builtin.assert:
+        that:
+          - enabled_legacy_cm_mode.changed
+          - enabled_legacy_cm_mode.msg == 'Changes found to be applied.'
+
+    - name: Enabling BIOS boot options using display name - Normal
+      dellemc.openmanage.idrac_boot:
+        boot_options:
+          - display_name: "{{ fetched_data[0].DisplayName }}"
+            enabled: true
+          - display_name: "{{ fetched_data[1].DisplayName }}"
+            enabled: true
+      register: enabled_legacy_normal_mode
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems\
+          /System.Embedded.1/BootOptions?$expand=*($levels=1)"
+
+    - ansible.builtin.set_fact:
+        enabled_legacy_normal_fetched_data: "{{ boot_options_fetched_data }}"
+
+    - name: Verify status of tasks - Legacy - normal mode - enabling using
+       display names
+      ansible.builtin.assert:
+        that:
+          - enabled_legacy_normal_fetched_data[0].BootOptionEnabled == true
+          - enabled_legacy_normal_fetched_data[1].BootOptionEnabled == true
+          - enabled_legacy_normal_mode.changed
+          - enabled_legacy_normal_mode.msg  == 'Successfully updated the
+            boot settings.'
+
+    - name: Enabling BIOS boot options using display name - Idempotency
+      dellemc.openmanage.idrac_boot:
+        boot_options:
+          - display_name: "{{ fetched_data[0].DisplayName }}"
+            enabled: true
+          - display_name: "{{ fetched_data[1].DisplayName }}"
+            enabled: true
+      register: enabled_legacy_idempotency_mode
+
+    - name: Verify status of tasks - Idempotency mode - enabling using
+       display names
+      ansible.builtin.assert:
+        that:
+          - not enabled_legacy_idempotency_mode.changed
+          - enabled_legacy_idempotency_mode.msg == 'No changes found to be
+            applied.'
+
+    - name: Disabling BIOS boot options using Boot Option Reference
+       Check mode - Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_options:
+          - boot_option_reference: "{{ fetched_data[0].BootOptionReference }}"
+            enabled: false
+          - boot_option_reference: "{{ fetched_data[1].BootOptionReference }}"
+            enabled: false
+      register: disabled_bop_legacy_cm_mode
+      check_mode: true
+
+    - name: Verify status of tasks - check mode - disabling using Boot Option
+       Reference
+      ansible.builtin.assert:
+        that:
+          - disabled_bop_legacy_cm_mode.changed
+          - disabled_bop_legacy_cm_mode.msg == 'Changes found to be applied.'
+
+    - name: Waiting for idrac readiness before disabling boot options for legacy
+      idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+      register: result_lc
+      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 100
+      delay: 30
+
+    - ansible.builtin.pause: seconds=300
+      when: enabled_legacy_normal_mode.changed
+
+    - name: Disabling BIOS boot options using Boot Option Reference - Normal
+      dellemc.openmanage.idrac_boot:
+        boot_options:
+          - boot_option_reference: "{{ fetched_data[0].BootOptionReference }}"
+            enabled: false
+          - boot_option_reference: "{{ fetched_data[1].BootOptionReference }}"
+            enabled: false
+      register: disabled_bop_legacy_normal_mode
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems\
+          /System.Embedded.1/BootOptions?$expand=*($levels=1)"
+
+    - ansible.builtin.set_fact:
+        disabled_bop_legacy_normal_fetched_data:
+          "{{ boot_options_fetched_data }}"
+
+    - name: Verify status of tasks - legacy - normal mode - disabling using
+       display names
+      ansible.builtin.assert:
+        that:
+          - disabled_bop_legacy_normal_fetched_data[0].BootOptionEnabled
+            == false
+          - disabled_bop_legacy_normal_fetched_data[1].BootOptionEnabled
+            == false
+          - disabled_bop_legacy_normal_mode.changed
+          - disabled_bop_legacy_normal_mode.msg == 'Successfully updated the
+           boot settings.'
+
+    - name: Disabling BIOS boot options using Boot Option Reference -
+       Idempotency
+      dellemc.openmanage.idrac_boot:
+        boot_options:
+          - boot_option_reference: "{{ fetched_data[0].BootOptionReference }}"
+            enabled: false
+          - boot_option_reference: "{{ fetched_data[1].BootOptionReference }}"
+            enabled: false
+      register: disabled_legacy_idempotency_mode
+
+    - name: Verify status of tasks - Idempotency mode - disabling using Boot
+       Option Reference
+      ansible.builtin.assert:
+        that:
+          - not disabled_legacy_idempotency_mode.changed
+          - disabled_legacy_idempotency_mode.msg == 'No changes found to be
+             applied.'
+
+    - name: Enabling/Disabling BIOS boot options with mix - Check mode -
+       Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_options:
+          - display_name: "{{ fetched_data[0].DisplayName }}"
+            enabled: true
+          - boot_option_reference: "{{ fetched_data[1].BootOptionReference }}"
+            enabled: false
+      register: mix_legacy_cm_mode
+      check_mode: true
+
+    - name: Verify status of tasks - check mode - mix
+      ansible.builtin.assert:
+        that:
+          - mix_legacy_cm_mode.changed
+          - mix_legacy_cm_mode.msg == 'Changes found to be applied.'
+
+    - name: Waiting for idrac readiness before legacy enable/disable - Normal
+      idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+      register: result_lc
+      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 100
+      delay: 30
+
+    - ansible.builtin.pause: seconds=300
+      when: disabled_bop_legacy_normal_mode.changed
+
+    - name: Enabling/Disabling BIOS boot options with mix - Normal
+      dellemc.openmanage.idrac_boot:
+        boot_options:
+          - display_name: "{{ fetched_data[0].DisplayName }}"
+            enabled: true
+          - boot_option_reference: "{{ fetched_data[1].BootOptionReference }}"
+            enabled: false
+      register: mix_legacy_normal_mode
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems\
+          /System.Embedded.1/BootOptions?$expand=*($levels=1)"
+
+    - ansible.builtin.set_fact:
+        mix_legacy_normal_fetched_data: "{{ boot_options_fetched_data }}"
+
+    - name: Verify status of tasks - normal mode - enabling using display names
+      ansible.builtin.assert:
+        that:
+          - mix_legacy_normal_fetched_data[0].BootOptionEnabled == true
+          - mix_legacy_normal_fetched_data[1].BootOptionEnabled == false
+          - mix_legacy_normal_mode.changed
+          - mix_legacy_normal_mode.msg == 'Successfully updated the boot
+            settings.'
+
+    - name: Enabling/Disabling BIOS boot options with mix - Idempotency
+      dellemc.openmanage.idrac_boot:
+        boot_options:
+          - display_name: "{{ fetched_data[0].DisplayName }}"
+            enabled: true
+          - boot_option_reference: "{{ fetched_data[1].BootOptionReference }}"
+            enabled: false
+      register: mix_legacy_idempotency_mode
+
+    - name: Verify status of tasks - Idempotency mode - mix
+      ansible.builtin.assert:
+        that:
+          - not mix_legacy_idempotency_mode.changed
+          - mix_legacy_idempotency_mode.msg == 'No changes found to be applied.'
+
+    - name: Waiting for idrac readiness before booting to Uefi
+      idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+      register: result_lc
+      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 100
+      delay: 30
+
+    - ansible.builtin.pause: seconds=300
+      when: mix_legacy_normal_mode.changed
+
+  when: generation | int < 17
+
+  module_defaults:
+    dellemc.openmanage.idrac_boot:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+    dellemc.openmanage.idrac_lifecycle_controller_status_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+- block:
+    - name: Setting boot mode to UEFI
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_mode: uefi
+      register: uefi_mode
+
+    - name: Waiting for idrac readiness after uefi mode
+      idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+      register: result_lc
+      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 100
+      delay: 30
+
+    - ansible.builtin.pause: seconds=300
+      when: uefi_mode.changed
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems\
+          /System.Embedded.1/BootOptions?$expand=*($levels=1)"
+
+    - ansible.builtin.set_fact:
+        fetched_uefi_data: "{{ boot_options_fetched_data }}"
+
+    - name: Checking boot options count < 2
+      fail:
+        msg: "Number of boot options should be at least 2 to check mix of
+         enable/disable in single playbook"
+      when: fetched_uefi_data | length < 2
+
+    - name: Disabling the boot options for Uefi
+      dellemc.openmanage.idrac_boot:
+        boot_options:
+          - display_name: "{{ fetched_uefi_data[0].DisplayName }}"
+            enabled: false
+          - display_name: "{{ fetched_uefi_data[1].DisplayName }}"
+            enabled: false
+        timeout: 180
+      register: disabled_uefi_boot_options
+
+    - name: Waiting for idrac readiness after disabled uefi boot options -
+       Prerequisite
+      dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+      register: result_lc
+      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 100
+      delay: 30
+
+    - ansible.builtin.pause: seconds=300
+      when: disabled_uefi_boot_options.changed
+
+    - name: Enabling Uefi boot options using display name - Check mode -
+       Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_options:
+          - display_name: "{{ fetched_uefi_data[0].DisplayName }}"
+            enabled: true
+          - display_name: "{{ fetched_uefi_data[1].DisplayName }}"
+            enabled: true
+      register: enabled_uefi_cm_mode
+      check_mode: true
+
+    - name: Verify status of tasks - Uefi - check mode - enabling using
+       display names
+      ansible.builtin.assert:
+        that:
+          - enabled_uefi_cm_mode.changed
+          - enabled_uefi_cm_mode.msg == 'Changes found to be applied.'
+
+    - name: Enabling Uefi boot options using display name - Normal
+      dellemc.openmanage.idrac_boot:
+        boot_options:
+          - display_name: "{{ fetched_uefi_data[0].DisplayName }}"
+            enabled: true
+          - display_name: "{{ fetched_uefi_data[1].DisplayName }}"
+            enabled: true
+        timeout: 180
+      register: enabled_uefi_normal_mode
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems\
+          /System.Embedded.1/BootOptions?$expand=*($levels=1)"
+
+    - ansible.builtin.set_fact:
+        enabled_uefi_normal_fetched_data: "{{ boot_options_fetched_data }}"
+
+    - name: Verify status of tasks - Uefi - normal mode - enabling using
+       display names
+      ansible.builtin.assert:
+        that:
+          - enabled_uefi_normal_fetched_data[0].BootOptionEnabled == true
+          - enabled_uefi_normal_fetched_data[1].BootOptionEnabled == true
+          - enabled_uefi_normal_mode.changed
+          - enabled_uefi_normal_mode.msg == 'Successfully updated the boot
+            settings.'
+
+    - name: Enabling Uefi boot options using display name - Idempotency
+      dellemc.openmanage.idrac_boot:
+        boot_options:
+          - display_name: "{{ fetched_uefi_data[0].DisplayName }}"
+            enabled: true
+          - display_name: "{{ fetched_uefi_data[1].DisplayName }}"
+            enabled: true
+      register: enabled_uefi_idempotency_mode
+
+    - name: Verify status of tasks - Uefi - Idempotency mode - enabling using
+       display names
+      ansible.builtin.assert:
+        that:
+          - not enabled_uefi_idempotency_mode.changed
+          - enabled_uefi_idempotency_mode.msg == 'No changes found to be
+             applied.'
+
+    - name: Disabling Uefi boot options using Boot Option Reference -
+       Check mode - Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_options:
+          - boot_option_reference:
+              "{{ fetched_uefi_data[0].BootOptionReference }}"
+            enabled: false
+          - boot_option_reference:
+              "{{ fetched_uefi_data[1].BootOptionReference }}"
+            enabled: false
+      register: disabled_bop_uefi_cm_mode
+      check_mode: true
+
+    - name: Verify status of tasks - Uefi - check mode -
+       disabling using Boot Option Reference
+      ansible.builtin.assert:
+        that:
+          - disabled_bop_uefi_cm_mode.changed
+          - disabled_bop_uefi_cm_mode.msg == 'Changes found to be applied.'
+
+    - name: Waiting for idrac readiness before disabling boot options for uefi
+      idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+      register: result_lc
+      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 100
+      delay: 30
+
+    - ansible.builtin.pause: seconds=300
+      when: enabled_uefi_normal_mode.changed
+
+    - name: Disabling Uefi boot options using Boot Option Reference - Normal
+      dellemc.openmanage.idrac_boot:
+        boot_options:
+          - boot_option_reference:
+              "{{ fetched_uefi_data[0].BootOptionReference }}"
+            enabled: false
+          - boot_option_reference:
+              "{{ fetched_uefi_data[1].BootOptionReference }}"
+            enabled: false
+      register: disabled_bop_uefi_normal_mode
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems\
+          /System.Embedded.1/BootOptions?$expand=*($levels=1)"
+
+    - ansible.builtin.set_fact:
+        disabled_bop_uefi_normal_fetched_data: "{{ boot_options_fetched_data }}"
+
+    - name: Verify status of tasks - Uefi - normal mode - Boot Option Reference
+      ansible.builtin.assert:
+        that:
+          - disabled_bop_uefi_normal_fetched_data[0].BootOptionEnabled
+            == false
+          - disabled_bop_uefi_normal_fetched_data[1].BootOptionEnabled
+            == false
+          - disabled_bop_uefi_normal_mode.changed
+          - disabled_bop_uefi_normal_mode.msg == 'Successfully updated the
+            boot settings.'
+
+    - name: Disabling Uefi boot options using Boot Option Reference -
+       Idempotency
+      dellemc.openmanage.idrac_boot:
+        boot_options:
+          - boot_option_reference:
+              "{{ fetched_uefi_data[0].BootOptionReference }}"
+            enabled: false
+          - boot_option_reference:
+              "{{ fetched_uefi_data[1].BootOptionReference }}"
+            enabled: false
+      register: disabled_uefi_idempotency_mode
+
+    - name: Verify status of tasks - Uefi - Idempotency mode -
+       disabling using Boot Option Reference
+      ansible.builtin.assert:
+        that:
+          - not disabled_uefi_idempotency_mode.changed
+          - disabled_uefi_idempotency_mode.msg  == 'No changes found
+             to be applied.'
+
+    - name: Enabling/Disabling Uefi boot options with mix - Check mode -
+       Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_options:
+          - display_name: "{{ fetched_uefi_data[0].DisplayName }}"
+            enabled: true
+          - boot_option_reference:
+              "{{ fetched_uefi_data[1].BootOptionReference }}"
+            enabled: false
+      register: mix_uefi_cm_mode
+      check_mode: true
+
+    - name: Verify status of tasks - Uefi - check mode - mix
+      ansible.builtin.assert:
+        that:
+          - mix_uefi_cm_mode.changed
+          - mix_uefi_cm_mode.msg == 'Changes found to be applied.'
+
+    - name: Waiting for idrac readiness before Uefi enable/disable - Normal
+      idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+      register: result_lc
+      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 100
+      delay: 30
+
+    - ansible.builtin.pause: seconds=300
+      when: disabled_bop_uefi_normal_mode.changed
+
+    - name: Enabling/Disabling Uefi boot options with mix - Normal
+      dellemc.openmanage.idrac_boot:
+        boot_options:
+          - display_name: "{{ fetched_uefi_data[0].DisplayName }}"
+            enabled: true
+          - boot_option_reference:
+              "{{ fetched_uefi_data[1].BootOptionReference }}"
+            enabled: false
+      register: mix_uefi_normal_mode
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems\
+          /System.Embedded.1/BootOptions?$expand=*($levels=1)"
+
+    - ansible.builtin.set_fact:
+        mix_uefi_normal_fetched_data: "{{ boot_options_fetched_data }}"
+
+    - name: Verify status of tasks - Uefi - normal mode - mix
+      ansible.builtin.assert:
+        that:
+          - mix_uefi_normal_fetched_data[0].BootOptionEnabled == true
+          - mix_uefi_normal_fetched_data[1].BootOptionEnabled == false
+          - mix_uefi_normal_mode.changed
+          - mix_uefi_normal_mode.msg == 'Successfully updated the boot
+           settings.'
+
+    - name: Enabling/Disabling Uefi boot options with mix - Idempotency
+      dellemc.openmanage.idrac_boot:
+        boot_options:
+          - display_name: "{{ fetched_uefi_data[0].DisplayName }}"
+            enabled: true
+          - boot_option_reference:
+              "{{ fetched_uefi_data[1].BootOptionReference }}"
+            enabled: false
+      register: mix_uefi_idempotency_mode
+
+    - name: Verify status of tasks - Idempotency mode - mix
+      ansible.builtin.assert:
+        that:
+          - not mix_uefi_idempotency_mode.changed
+          - mix_uefi_idempotency_mode.msg == 'No changes found to be applied.'
+
+
+  module_defaults:
+    dellemc.openmanage.idrac_boot:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+    dellemc.openmanage.idrac_lifecycle_controller_status_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

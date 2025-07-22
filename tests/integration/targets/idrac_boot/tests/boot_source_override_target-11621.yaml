@@ -1,0 +1,564 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Get Server generation details
+  ansible.builtin.include_tasks: _get_server_generation.yml
+
+- block:
+    - name: Pre-requisite - "boot_source_override_target" as "hdd"
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: hdd
+        reset_type: none
+
+    - name: Configuring "boot_source_override_target" as "pxe" -
+       Check mode - Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: pxe
+        reset_type: none
+      register: pxe_cm_mode
+      check_mode: true
+
+    - name: Verify configuring "boot_source_override_target" as "pxe" -
+       check mode
+      ansible.builtin.assert:
+        that:
+          - pxe_cm_mode.changed
+          - pxe_cm_mode.msg == 'Changes found to be applied.'
+
+    - name: Configuring "boot_source_override_target" as "pxe" - Normal -
+       Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: pxe
+        reset_type: none
+      register: pxe_normal_mode
+
+    - include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems\
+         /System.Embedded.1/"
+
+    - name: extracting data from get_data_uri
+      set_fact:
+        pxe_normal: "{{ boot_data | json_query('Boot') }}"
+      vars:
+        boot_data: "{{ result_get_data.content | from_json }}"
+
+    - name: Verify configuring "boot_source_override_target" as "pxe" -
+       normal mode
+      ansible.builtin.assert:
+        that:
+          - pxe_normal.BootSourceOverrideTarget == 'Pxe'
+          - not pxe_normal_mode.changed
+          - pxe_normal_mode.msg == 'The boot settings operation is
+             triggered/submitted successfully.'
+
+    - name: Configuring "boot_source_override_target" as "pxe" - Idempotency
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: pxe
+        reset_type: none
+      register: pxe_idempotency_mode
+      when: generation | int < 17
+
+    - name: Verify configuring "boot_source_override_target" as "pxe" -
+       Idempotency
+      ansible.builtin.assert:
+        that:
+          - not pxe_idempotency_mode.changed
+          - pxe_idempotency_mode.msg == 'No changes found to be applied.'
+      when: generation | int < 17
+
+    - name: Configuring "boot_source_override_target" as "floppy" - Check mode
+       - Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: floppy
+        reset_type: none
+      register: floppy_cm_mode
+      check_mode: true
+
+    - name: Verify configuring "boot_source_override_target" as "floppy" -
+       check mode
+      ansible.builtin.assert:
+        that:
+          - floppy_cm_mode.changed
+          - floppy_cm_mode.msg == 'Changes found to be applied.'
+
+    - name: Configuring "boot_source_override_target" as "floppy" - Normal -
+       Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: floppy
+        reset_type: none
+      register: floppy_normal_mode
+
+    - include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems\
+         /System.Embedded.1/"
+
+    - name: extracting data from get_data_uri
+      set_fact:
+        floppy_normal: "{{ boot_data | json_query('Boot') }}"
+      vars:
+        boot_data: "{{ result_get_data.content | from_json }}"
+
+    - name: Verify configuring "boot_source_override_target" as "floppy" -
+       normal mode
+      ansible.builtin.assert:
+        that:
+          - floppy_normal.BootSourceOverrideTarget == 'Floppy'
+          - not floppy_normal_mode.changed
+          - floppy_normal_mode.msg == 'The boot settings operation is
+             triggered/submitted successfully.'
+
+    - name: Configuring "boot_source_override_target" as "floppy" - Idempotency
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: floppy
+        reset_type: none
+      register: floppy_idempotency_mode
+      when: generation | int < 17
+
+    - name: Verify configuring "boot_source_override_target" as "floppy" -
+       Idempotency
+      ansible.builtin.assert:
+        that:
+          - not floppy_idempotency_mode.changed
+          - floppy_idempotency_mode.msg == 'No changes found to be applied.'
+      when: generation | int < 17
+
+    - name: Configuring "boot_source_override_target" as "hdd" - Check mode -
+       Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: hdd
+        reset_type: none
+      register: hdd_cm_mode
+      check_mode: true
+
+    - name: Verify configuring "boot_source_override_target" as "hdd" -
+       check mode
+      ansible.builtin.assert:
+        that:
+          - hdd_cm_mode.changed
+          - hdd_cm_mode.msg == 'Changes found to be applied.'
+
+    - name: Configuring "boot_source_override_target" as "hdd" - Normal -
+       Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: hdd
+        reset_type: none
+      register: hdd_normal_mode
+
+    - include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems\
+         /System.Embedded.1/"
+
+    - name: extracting data from get_data_uri
+      set_fact:
+        hdd_normal: "{{ boot_data | json_query('Boot') }}"
+      vars:
+        boot_data: "{{ result_get_data.content | from_json }}"
+
+    - name: Verify configuring "boot_source_override_target" as "hdd" -
+       normal mode
+      ansible.builtin.assert:
+        that:
+          - hdd_normal.BootSourceOverrideTarget == 'Hdd'
+          - not hdd_normal_mode.changed
+          - hdd_normal_mode.msg == 'The boot settings operation is
+             triggered/submitted successfully.'
+
+    - name: Configuring "boot_source_override_target" as "hdd" - Idempotency
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: hdd
+        reset_type: none
+      register: hdd_idempotency_mode
+      when: generation | int < 17
+
+    - name: Verify configuring "boot_source_override_target" as "hdd" -
+       Idempotency
+      ansible.builtin.assert:
+        that:
+          - not hdd_idempotency_mode.changed
+          - hdd_idempotency_mode.msg == 'No changes found to be applied.'
+      when: generation | int < 17
+
+    - name: Configuring "boot_source_override_target" as "sd_card" - Check mode
+       - Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: sd_card
+        reset_type: none
+      register: sd_card_cm_mode
+      check_mode: true
+
+    - name: Verify configuring "boot_source_override_target" as "sd_card" -
+       check mode
+      ansible.builtin.assert:
+        that:
+          - sd_card_cm_mode.changed
+          - sd_card_cm_mode.msg == 'Changes found to be applied.'
+
+    - name: Configuring "boot_source_override_target" as "sd_card" - Normal -
+       Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: sd_card
+        reset_type: none
+      register: sd_card_normal_mode
+
+    - include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems\
+         /System.Embedded.1/"
+
+    - name: extracting data from get_data_uri
+      set_fact:
+        sd_card_normal: "{{ boot_data | json_query('Boot') }}"
+      vars:
+        boot_data: "{{ result_get_data.content | from_json }}"
+
+    - name: Verify configuring "boot_source_override_target" as "sd_card" -
+       normal mode
+      ansible.builtin.assert:
+        that:
+          - sd_card_normal.BootSourceOverrideTarget == 'SDCard'
+          - not sd_card_normal_mode.changed
+          - sd_card_normal_mode.msg == 'The boot settings operation is
+             triggered/submitted successfully.'
+
+    - name: Configuring "boot_source_override_target" as "sd_card" -
+       Idempotency
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: sd_card
+        reset_type: none
+      register: sd_card_idempotency_mode
+      when: generation | int < 17
+
+    - name: Verify configuring "boot_source_override_target" as "sd_card" -
+       Idempotency
+      ansible.builtin.assert:
+        that:
+          - not sd_card_idempotency_mode.changed
+          - sd_card_idempotency_mode.msg == 'No changes found to be applied.'
+      when: generation | int < 17
+
+    - name: Configuring "boot_source_override_target" as "bios_setup" -
+       Check mode - Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: bios_setup
+        reset_type: none
+      register: bios_setup_cm_mode
+      check_mode: true
+
+    - name: Verify configuring "boot_source_override_target" as "bios_setup" -
+       check mode
+      ansible.builtin.assert:
+        that:
+          - bios_setup_cm_mode.changed
+          - bios_setup_cm_mode.msg == 'Changes found to be applied.'
+
+    - name: Configuring "boot_source_override_target" as "bios_setup" - Normal
+       - Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: bios_setup
+        reset_type: none
+      register: bios_setup_normal_mode
+
+    - include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems\
+         /System.Embedded.1/"
+
+    - name: extracting data from get_data_uri
+      set_fact:
+        bios_setup_normal: "{{ boot_data | json_query('Boot') }}"
+      vars:
+        boot_data: "{{ result_get_data.content | from_json }}"
+
+    - name: Verify configuring "boot_source_override_target" as "bios_setup"
+       - normal mode
+      ansible.builtin.assert:
+        that:
+          - bios_setup_normal.BootSourceOverrideTarget == 'BiosSetup'
+          - not bios_setup_normal_mode.changed
+          - bios_setup_normal_mode.msg == 'The boot settings operation is
+             triggered/submitted successfully.'
+
+    - name: Configuring "boot_source_override_target" as "bios_setup" -
+       Idempotency
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: bios_setup
+        reset_type: none
+      register: bios_setup_idempotency_mode
+      when: generation | int < 17
+
+    - name: Verify configuring "boot_source_override_target" as "bios_setup" -
+       Idempotency
+      ansible.builtin.assert:
+        that:
+          - not bios_setup_idempotency_mode.changed
+          - bios_setup_idempotency_mode.msg == 'No changes found to be applied.'
+      when: generation | int < 17
+
+    - name: Configuring "boot_source_override_target" as "utilities" -
+       Check mode - Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: utilities
+        reset_type: none
+      register: utilities_cm_mode
+      check_mode: true
+
+    - name: Verify configuring "boot_source_override_target" as "utilities" -
+       check mode
+      ansible.builtin.assert:
+        that:
+          - utilities_cm_mode.changed
+          - utilities_cm_mode.msg == 'Changes found to be applied.'
+
+    - name: Configuring "boot_source_override_target" as "utilities" -
+       Normal - Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: utilities
+        reset_type: none
+      register: utilities_normal_mode
+
+    - include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems\
+         /System.Embedded.1/"
+
+    - name: extracting data from get_data_uri
+      set_fact:
+        utilities_normal: "{{ boot_data | json_query('Boot') }}"
+      vars:
+        boot_data: "{{ result_get_data.content | from_json }}"
+
+    - name: Verify configuring "boot_source_override_target" as "utilities"
+       - normal mode
+      ansible.builtin.assert:
+        that:
+          - utilities_normal.BootSourceOverrideTarget == 'Utilities'
+          - not utilities_normal_mode.changed
+          - utilities_normal_mode.msg == 'The boot settings operation is
+             triggered/submitted successfully.'
+
+    - name: Configuring "boot_source_override_target" as "utilities" -
+       Idempotency
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: utilities
+        reset_type: none
+      register: utilities_idempotency_mode
+      when: generation | int < 17
+
+    - name: Verify configuring "boot_source_override_target" as "utilities" -
+       Idempotency
+      ansible.builtin.assert:
+        that:
+          - not utilities_idempotency_mode.changed
+          - utilities_idempotency_mode.msg == 'No changes found to be applied.'
+      when: generation | int < 17
+
+    - name: Configuring "boot_source_override_target" as "none" -
+       Check mode - Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: none
+        reset_type: none
+      register: none_cm_mode
+      check_mode: true
+
+    - name: Verify configuring "boot_source_override_target" as "none" -
+       check mode
+      ansible.builtin.assert:
+        that:
+          - none_cm_mode.changed
+          - none_cm_mode.msg == 'Changes found to be applied.'
+
+    - name: Configuring "boot_source_override_target" as "none" - Normal -
+       Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: none
+        reset_type: none
+      register: none_normal_mode
+
+    - include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems\
+         /System.Embedded.1/"
+
+    - name: extracting data from get_data_uri
+      set_fact:
+        none_normal: "{{ boot_data | json_query('Boot') }}"
+      vars:
+        boot_data: "{{ result_get_data.content | from_json }}"
+
+    - name: Verify configuring "boot_source_override_target" as "none" -
+       normal mode
+      ansible.builtin.assert:
+        that:
+          - none_normal.BootSourceOverrideTarget == 'None'
+          - not none_normal_mode.changed
+          - none_normal_mode.msg == 'The boot settings operation is
+             triggered/submitted successfully.'
+
+    - name: Configuring "boot_source_override_target" as "none" - Idempotency
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: none
+        reset_type: none
+      register: none_idempotency_mode
+      when: generation | int < 17
+
+    - name: Verify configuring "boot_source_override_target" as "none" -
+       Idempotency
+      ansible.builtin.assert:
+        that:
+          - not none_idempotency_mode.changed
+          - none_idempotency_mode.msg == 'No changes found to be applied.'
+      when: generation | int < 17
+
+    - name: Configuring "boot_source_override_target" as "uefi_http" -
+       Check mode - Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: uefi_http
+        reset_type: none
+      register: uefi_http_cm_mode
+      check_mode: true
+
+    - name: Verify configuring "boot_source_override_target" as "uefi_http" -
+       check mode
+      ansible.builtin.assert:
+        that:
+          - uefi_http_cm_mode.changed
+          - uefi_http_cm_mode.msg  == 'Changes found to be applied.'
+
+    - name: Configuring "boot_source_override_target" as "uefi_http" - Normal
+       - Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: uefi_http
+        reset_type: none
+      register: uefi_http_normal_mode
+
+    - include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems\
+         /System.Embedded.1/"
+
+    - name: extracting data from get_data_uri
+      set_fact:
+        uefi_http_normal: "{{ boot_data | json_query('Boot') }}"
+      vars:
+        boot_data: "{{ result_get_data.content | from_json }}"
+
+    - name: Verify configuring "boot_source_override_target" as "uefi_http" -
+       normal mode
+      ansible.builtin.assert:
+        that:
+          - uefi_http_normal.BootSourceOverrideTarget == 'UefiHttp'
+          - not uefi_http_normal_mode.changed
+          - uefi_http_normal_mode.msg == 'The boot settings operation is
+             triggered/submitted successfully.'
+
+    - name: Configuring "boot_source_override_target" as "uefi_http" -
+       Idempotency
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: uefi_http
+        reset_type: none
+      register: uefi_http_idempotency_mode
+      when: generation | int < 17
+
+    - name: Verify configuring "boot_source_override_target" as "uefi_http" -
+       Idempotency
+      ansible.builtin.assert:
+        that:
+          - not uefi_http_idempotency_mode.changed
+          - uefi_http_idempotency_mode.msg == 'No changes found to be applied.'
+      when: generation | int < 17
+
+    - include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems\
+         /System.Embedded.1/BootOptions?$expand=*($levels=1)"
+
+    - name: extracting UefiDevicePath
+      set_fact:
+        uefi_device_path:
+          "{{ boot_data | json_query('Members[0].UefiDevicePath') }}"
+      vars:
+        boot_data: "{{ result_get_data.content | from_json }}"
+
+    - name: Configuring "boot_source_override_target" as "uefi_target" -
+       Check mode - Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: uefi_target
+        uefi_target_boot_source_override: "{{ uefi_device_path }}"
+        reset_type: none
+      register: uefi_target_cm_mode
+      check_mode: true
+
+    - name: Verify configuring "boot_source_override_target" as "uefi_target" -
+       check mode
+      ansible.builtin.assert:
+        that:
+          - uefi_target_cm_mode.changed
+          - uefi_target_cm_mode.msg == 'Changes found to be applied.'
+
+    - name: Configuring "boot_source_override_target" as "uefi_target" - Normal
+       - Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: uefi_target
+        uefi_target_boot_source_override: "{{ uefi_device_path }}"
+        reset_type: none
+        timeout: 120
+      register: uefi_target_normal_mode
+
+    - include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems\
+          /System.Embedded.1/"
+
+    - name: extracting data from get_data_uri
+      set_fact:
+        uefi_target_normal: "{{ boot_data | json_query('Boot') }}"
+      vars:
+        boot_data: "{{ result_get_data.content | from_json }}"
+
+    - name: Verify configuring "boot_source_override_target" as "uefi_target" -
+       normal mode
+      ansible.builtin.assert:
+        that:
+          - uefi_target_normal.BootSourceOverrideTarget == 'UefiTarget'
+          - not uefi_target_normal_mode.changed
+          - uefi_target_normal_mode.msg == 'The boot settings operation is
+            triggered/submitted successfully.'
+
+    - name: Configuring "boot_source_override_target" as "uefi_target" -
+        Idempotency
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_target: uefi_target
+        uefi_target_boot_source_override: "{{ uefi_device_path }}"
+        reset_type: none
+      register: uefi_target_idempotency_mode
+      when: generation | int < 17
+
+    - name: Verify configuring "boot_source_override_target" as "uefi_target" -
+        Idempotency
+      ansible.builtin.assert:
+        that:
+          - not uefi_target_idempotency_mode.changed
+          - uefi_target_idempotency_mode.msg == 'No changes found to be
+             applied.'
+      when: generation | int < 17
+
+
+  module_defaults:
+    dellemc.openmanage.idrac_boot:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
