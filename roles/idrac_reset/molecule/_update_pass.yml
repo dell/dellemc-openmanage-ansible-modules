@@ -1,0 +1,15 @@
+---
+- name: Set variable facts
+  ansible.builtin.set_fact:
+    default_password: "calvin"
+
+- name: Update existing iDRAC user username and password after reset
+  dellemc.openmanage.idrac_user:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ default_password }}"
+    user_name: "{{ idrac_user }}"
+    new_user_name: "{{ idrac_user }}"
+    user_password: "{{ idrac_password }}"
+  when:
+    - idrac_password != default_password

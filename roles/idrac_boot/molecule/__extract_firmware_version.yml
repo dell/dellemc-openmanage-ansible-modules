@@ -1,0 +1,14 @@
+---
+- name: Fetch firmware version
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}/redfish/v1/Managers/iDRAC.Embedded.1"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  check_mode: false
+  register: uri_data
