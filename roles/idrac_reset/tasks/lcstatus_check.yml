@@ -2,118 +2,51 @@
   ansible.builtin.set_fact:
     idrac_lc_status:
       LCStatus: ""
+    result_lc:
+      LCStatus: ""
 
-- name: Get lifecycle controller status
-  when: idrac_lc_status.LCStatus != 'Ready'
-  block:
-    - name: Increment the retry
-      ansible.builtin.set_fact:
-        retry_count: "{{ 1 if retry_count is undefined else retry_count | int + 1 }}"
+- name: Add a delay
+  ansible.builtin.pause:
+    seconds: "{{ idrac_reset_delay }}"
 
-    - name: Add a delay
-      ansible.builtin.pause:
-        seconds: "{{ idrac_reset_delay }}"
+- name: Get lifecycle controller status from iDRAC
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}/\
+      redfish/v1/Managers/iDRAC.Embedded.1/\
+      Oem/Dell/DellLCService/Actions/\
+      DellLCService.GetRemoteServicesAPIStatus"
+    user: "{{ username | default(lookup('env', 'IDRAC_USERNAME')) }}"
+    password: "{{ password |
+                default(lookup('env', 'IDRAC_PASSWORD')) }}"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    headers: "{{ idrac_reset_uri_headers }}"
+    body_format: "{{ idrac_reset_uri_body_format }}"
+    return_content: "{{ idrac_reset_uri_return_content }}"
+    force_basic_auth: "{{ idrac_reset_force_basic_auth }}"
+    timeout: "{{ https_timeout }}"
+    method: "POST"
+    body: "{}"
+    status_code: 200
+  delegate_to: "{{ idrac_reset_task_delegate }}"
+  register: result_lc
+  until:
+    - result_lc is defined
+    - result_lc.json is defined
+    - result_lc.json.LCStatus is defined
+    - result_lc.json.LCStatus == 'Ready'
+  retries: '{{ idrac_reset_retries }}'
+  delay: "{{ idrac_reset_delay }}"
 
-    - name: Get Server Model
-      ansible.builtin.uri:
-        url: "https://{{ lookup('env', 'IDRAC_IP') }}/redfish/v1/Managers\
-          /iDRAC.Embedded.1"
-        method: GET
-        user: "{{ lookup('env', 'IDRAC_USER') }}"
-        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
-        validate_certs: false
-        return_content: true
-        status_code: 200
-        force_basic_auth: true
-      register: idrac_model_response
-      no_log: true
-      ignore_errors: true
+- name: Parse lifecycle controller status response
+  ansible.builtin.set_fact:
+    idrac_lc_status:
+      LCStatus: "{{ result_lc.json.LCStatus }}"
+      RTStatus: "{{ result_lc.json.RTStatus }}"
+      ServerStatus: "{{ result_lc.json.ServerStatus }}"
+      Status: "{{ result_lc.json.Status }}"
 
-    - name: Set fact for model
-      ansible.builtin.set_fact:
-        model1: "{{ idrac_model_response.json.Model }}"
-
-    - name: Set the server generation fact
-      ansible.builtin.set_fact:
-        model: "{{ model1 | regex_search('([0-9]+)G', '\\1') | first | int }}"
-
-    - name: Check whether lifecycle controller status is ready or not for iDRAC9
-        and iDRAC10
-      when:
-        - (model|int) > 13 and idrac_reset_fwm_ver is version('3.0', '>=')
-      block:
-        - name: Get lifecycle controller status for iDRAC9
-          ansible.builtin.uri:
-            url: "https://{{ hostname }}:{{ https_port }}{{ idrac_reset_lifecycle_status_api }}"
-            user: "{{ username | default(lookup('env', 'IDRAC_USERNAME')) }}"
-            password: "{{ password |
-                       default(lookup('env', 'IDRAC_PASSWORD')) }}"
-            validate_certs: "{{ validate_certs }}"
-            ca_path: "{{ ca_path | default(omit) }}"
-            headers: "{{ idrac_reset_uri_headers }}"
-            body_format: "{{ idrac_reset_uri_body_format }}"
-            return_content: "{{ idrac_reset_uri_return_content }}"
-            force_basic_auth: "{{ idrac_reset_force_basic_auth }}"
-            timeout: "{{ https_timeout }}"
-            method: "POST"
-            body: "{}"
-            status_code: 200
-          delegate_to: "{{ idrac_reset_task_delegate }}"
-          register: result
-          ignore_errors: true
-
-        - name: Parse lifecycle controller status response
-          ansible.builtin.set_fact:
-            idrac_lc_status:
-              LCStatus: "{{ result.json.LCStatus }}"
-              RTStatus: "{{ result.json.RTStatus }}"
-              ServerStatus: "{{ result.json.ServerStatus }}"
-              Status: "{{ result.json.Status }}"
-
-    - name: Check whether lifecycle controller status is ready or not for iDRAC8
-      when:
-        - (model|int) <= 13 and idrac_reset_fwm_ver is version('3.0', '<')
-      block:
-        - name: Check whether lifecycle controller status is ready or not
-          ansible.builtin.uri:
-            url: "https://{{ hostname }}:{{ https_port }}/wsman"
-            validate_certs: "{{ validate_certs }}"
-            ca_path: "{{ ca_path | default(omit) }}"
-            method: POST
-            user: "{{ username | default(lookup('env', 'IDRAC_USERNAME')) }}"
-            password: "{{ password |
-                       default(lookup('env', 'IDRAC_PASSWORD')) }}"
-            headers: "{{ idrac_reset_uri_headers_xml }}"
-            body: "{{ lookup('ansible.builtin.template', 'idrac_lifecycle_controller_status.j2') }}"
-            status_code: 200
-            return_content: "{{ idrac_reset_uri_return_content }}"
-            force_basic_auth: "{{ idrac_reset_force_basic_auth }}"
-            timeout: "{{ https_timeout }}"
-          register: wsman_envelope_for_idrac_lc_status
-          delegate_to: "{{ idrac_reset_task_delegate }}"
-
-        - name: Parse lifecycle controller status response
-          ansible.builtin.set_fact:
-            idrac_lc_status: "{{ idrac_lc_status | default({}) | combine({item.key: idrac_reset_get_remote_services_api_status_code[item.key][item.value]}) }}"
-          with_dict:
-            LCStatus: "{{ wsman_envelope_for_idrac_lc_status.content | trim | regex_findall('(?<=<n1:LCStatus>).*(?=</n1:LCStatus>)') | first }}"
-          when: wsman_envelope_for_idrac_lc_status.content is search(".*<n1:ReturnValue>0</n1:ReturnValue>.*")
-
-        - name: Checking lifecycle controller status
-          ansible.builtin.fail:
-            msg: "Failed to get lifecycle controller status"
-          when: wsman_envelope_for_idrac_lc_status.content is search(".*<n1:ReturnValue>2</n1:ReturnValue>.*")
-  rescue:
-    - name: Maximum retries reached
-      ansible.builtin.fail:
-        msg: "LC status check is {{ idrac_lc_status.LCStatus }} after {{ retry_count }} number of retries, Exiting.."
-      when: (retry_count | int == idrac_reset_retries) and (idrac_lc_status.LCStatus != "Ready")
-
-    - name: Log the LC status
-      ansible.builtin.debug:
-        msg: "LC Status is Ready"
-      when: (retry_count | int <= idrac_reset_retries) and (idrac_lc_status.LCStatus == "Ready")
-
-    - name: Call LC Status Check
-      ansible.builtin.include_tasks: lcstatus_check.yml
-      when: (retry_count | int < idrac_reset_retries) or (idrac_lc_status.LCStatus != "Ready")
+- name: Log the LC status
+  ansible.builtin.debug:
+    msg: "LC Status is Ready"
+  when: idrac_lc_status.LCStatus == "Ready"

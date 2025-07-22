@@ -1,0 +1,63 @@
+---
+- name: Set variable facts
+  ansible.builtin.set_fact:
+    idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+    idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+    idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    idrac_port: "{{ lookup('env', 'IDRAC_PORT') }}"
+    validate_certs: false
+    default_password: "calvin"
+
+- name: Setting redfish base URL
+  ansible.builtin.set_fact:
+    base_url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+      /redfish/v1/"
+
+- name: Constructing urls
+  ansible.builtin.set_fact:
+    event_url: "{{ base_url }}EventService/"
+    systems_url: "{{ base_url }}Systems/System.Embedded.1/"
+    managers_url: "{{ base_url }}Managers/iDRAC.Embedded.1/"
+
+- name: Get iDRAC firmware version
+  ansible.builtin.uri: &uri_input
+    url: "{{ managers_url }}?$select=FirmwareVersion,Model,Actions"
+    method: GET
+    body: "{{ body | default(omit) }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    force_basic_auth: true
+    validate_certs: false
+    status_code: 200
+    headers: "Accept=application/json"
+    body_format: json
+    return_content: true
+  register: managers_uri_result
+
+- name: Extract firmware and generation details
+  ansible.builtin.set_fact:
+    fw_raw: "{{ managers_uri_result.json.FirmwareVersion }}"
+    less_than_17g: "{{ ( managers_uri_result.json.Model \
+      | regex_search('([0-9]+)G', '\\1') \
+      | first \
+      | int ) < 17 }}"
+
+- name: Set fact to check iDRAC version and custom_default supported
+  ansible.builtin.set_fact:
+    it_is_idrac9: "{{ less_than_17g and fw_raw >= '3.0' }}"
+    custom_default_supported: "{{ not less_than_17g or
+      fw_raw >= '7.00.00' }}"
+
+- name: Set fact for Oem
+  ansible.builtin.set_fact:
+    oem: "{{ managers_uri_result.json.Actions.Oem }}"
+
+- name: Set fact for allowable_values
+  ansible.builtin.set_fact:
+    allowable_values: >-
+      {{
+        oem['#DellManager.ResetToDefaults'][
+        'ResetType@Redfish.AllowableValues']
+        if '#DellManager.ResetToDefaults' in oem
+        else []
+      }}
