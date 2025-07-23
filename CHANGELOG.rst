@@ -4,13 +4,46 @@ Dell OpenManage Ansible Modules Release Notes
 
 .. contents:: Topics
 
+v9.12.3
+=======
+
+Release Summary
+---------------
+
+The ``idrac_boot``,``idrac_certificates`` ``idrac_reset``, ``idrac_support_assist``, ``idrac_user``, ``redfish_firmware`` modules and ``idrac_bios``, ``idrac_boot``, ``idrac_reset``, ``idrac_user`` roles are enhanced to support iDRAC10. Furthermore, the ``ome_firmware``, ``ome_firmware_baseline``, ``ome_firmware_catalog``, ``ome_firmware_compliance_baseline_info``, and ``ome_firmware_baseline_info`` modules now support OME 4.5.
+
+Major Changes
+-------------
+
+- idrac_boot - This module is enhanced to support iDRAC10.
+- idrac_certificates - This module is enhanced to support iDRAC10.
+- idrac_reset - This module is enhanced to support iDRAC10.
+- idrac_support_assist - This module is enhanced to support iDRAC10.
+- idrac_user - This module is enhanced to support iDRAC10.
+- redfish_firmware - This module is enhanced to support iDRAC10.
+- idrac_bios - This role is enhanced to support iDRAC10.
+- idrac_boot - This role is enhanced to support iDRAC10.
+- idrac_user - This role is enhanced to support iDRAC10.
+- ome_firmware - This module is enhanced to support OME 4.5.
+- ome_firmware_baseline - This module is enhanced to support OME 4.5.
+- ome_firmware_catalog - This module is enhanced to support OME 4.5.
+- ome_firmware_baseline_info - This module is enhanced to support OME 4.5.
+- ome_firmware_compliance_baseline_info - This module is enhanced to support OME 4.5.
+
+Known Issues
+------------
+
+- idrac_attributes - The module accepts both the string as well as integer value for the field "SNMP.1.AgentCommunity" for iDRAC10.
+- idrac_diagnostics - This module doesn't support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
+- ome_smart_fabric_uplink - The module supported by OpenManage Enterprise Modular, however it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, then the existing uplink is modified.
+
 v9.12.2
 =======
 
 Release Summary
 ---------------
 
-The ``idrac_bios``, ``idrac_diagnostics``, ``idrac_session``, ``idrac_firmware``, ``idrac_secure_boot``, ``idrac_system_erase``, ``idrac_network_attributes``, ``idrac_lifecycle_controller_logs``, ``redfish_power_state``, ``redfish_event_subscription`` modules and ``idrac_server_powerstate``, ``idrac_job_queue`` roles are enhanced to support iDRAC10
+The ``idrac_bios``, ``idrac_diagnostics``, ``idrac_session``, ``idrac_firmware``, ``idrac_secure_boot``, ``idrac_system_erase``, ``idrac_network_attributes``, ``idrac_lifecycle_controller_logs``, ``redfish_power_state``, ``redfish_event_subscription`` modules and ``idrac_server_powerstate``, ``idrac_job_queue`` roles are enhanced to support iDRAC10.
 
 Major Changes
 -------------
