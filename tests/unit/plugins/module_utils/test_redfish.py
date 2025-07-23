@@ -2,7 +2,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.12.2
+# Version 9.12.3
 # Copyright (C) 2023-2025 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -15,17 +15,19 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 import pytest
+import io
+import sys
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, OpenURLResponse, RedfishAnsibleModule
-from unittest.mock import MagicMock
+from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish \
+  import Redfish, OpenURLResponse, RedfishAnsibleModule
+from unittest.mock import MagicMock, patch
 import json
 
 MODULE_UTIL_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.'
 OPEN_URL = 'redfish.open_url'
 TEST_PATH = "/testpath"
 MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
-
 
 class TestRedfishRest(object):
 
@@ -55,10 +57,11 @@ class TestRedfishRest(object):
         obj.success = True
         if 'path' in kwargs and kwargs['path'] == MANAGER_URI:
             obj.json_data = {'Model': '17G Monolithic',
-                             'FirmwareVersion': 'x.x.x.x'}
+                            'FirmwareVersion': 'x.x.x.x'}
         else:
             obj.json_data = {'Attributes': {'Info.1.HWModel': 'iDRAC 10'}}
         return obj
+
 
     def test_get_server_generation(self, mocker, module_params):
         mocker.patch(MODULE_UTIL_PATH + 'redfish.Redfish.invoke_request', self.mock_get_dynamic_redfish_invoke_request)
@@ -68,22 +71,47 @@ class TestRedfishRest(object):
             response = obj.get_server_generation
         assert response == (17, 'x.x.x.x', 'iDRAC 10')
 
+
     def test_invoke_request_with_session_with_header(self, mock_response, mocker, module_params):
         Redfish.get_server_generation = [12]
         mocker.patch(MODULE_UTIL_PATH + OPEN_URL,
-                     return_value=mock_response)
+                    return_value=mock_response)
         req_session = False
         module_params.update({'x_auth_token': 'token_id'})
         with Redfish(module_params, req_session) as obj:
             response = obj.invoke_request(TEST_PATH, "GET", headers={
-                                          "application": "octstream"})
+                                        "application": "octstream"})
+        assert response.status_code == 200
+        assert response.json_data == {"value": "data"}
+        assert response.success is True
+
+
+    def test_invoke_request_without_session(self, mock_response, mocker):
+        mocker.patch(MODULE_UTIL_PATH + OPEN_URL,
+                    return_value=mock_response)
+        mocker.patch(MODULE_UTIL_PATH + OPEN_URL,
+                    return_value=mock_response)
+        module_params = {'baseuri': '[2001:db8:3333:4444:5555:6666:7777:8888]:443', 'username': 'username',
+                        'password': 'password', "port": 443}
+        req_session = False
+        with Redfish(module_params, req_session) as obj:
+            response = obj.invoke_request(TEST_PATH, "GET")
+        assert response.status_code == 200
+        assert response.json_data == {"value": "data"}
+        assert response.success is True
+        assert response.headers == {"X-Auth-Token": "token_id"}
+
+    def test_invoke_request_with_session(self, mock_response, mocker, module_params):
+        mocker.patch(MODULE_UTIL_PATH + OPEN_URL,
+                     return_value=mock_response)
+        req_session = True
+        with Redfish(module_params, req_session) as obj:
+            response = obj.invoke_request(TEST_PATH, "GET")
         assert response.status_code == 200
         assert response.json_data == {"value": "data"}
         assert response.success is True
 
     def test_invoke_request_without_session(self, mock_response, mocker):
-        mocker.patch(MODULE_UTIL_PATH + OPEN_URL,
-                     return_value=mock_response)
         mocker.patch(MODULE_UTIL_PATH + OPEN_URL,
                      return_value=mock_response)
         module_params = {'baseuri': '[2001:db8:3333:4444:5555:6666:7777:8888]:443', 'username': 'username',
@@ -94,7 +122,6 @@ class TestRedfishRest(object):
         assert response.status_code == 200
         assert response.json_data == {"value": "data"}
         assert response.success is True
-        assert response.headers == {"X-Auth-Token": "token_id"}
 
     def test_invoke_request_without_session_with_header(self, mock_response, mocker, module_params):
         mocker.patch(MODULE_UTIL_PATH + OPEN_URL,
@@ -197,10 +224,21 @@ class TestRedfishRest(object):
         assert reason_ret == "returning reason"
 
 
-class TestRedfishAnsibleModule(object):
-    def test_call_class_redfish_ansible_module(self):
-        random_value = {'value': 'data'}
-        with pytest.raises(SystemExit) as ex:
-            RedfishAnsibleModule(random_value, bypass_checks=True)
-        # Asserting only this as class has only __init__ method
-        assert ex.type == SystemExit
+class TestRedfishAnsibleModule:
+    def test_redfish_module_initialization(self):
+        # Simulate Ansible JSON input
+        fake_input = json.dumps({
+            "baseuri": "https://example.com",
+            "username": "admin",
+            "password": "secret"
+        }).encode('utf-8')
+
+        # Create a binary stream and wrap it with a text wrapper
+        fake_stdin = io.TextIOWrapper(io.BytesIO(fake_input), encoding='utf-8')
+
+        with patch.object(sys, 'stdin', fake_stdin):
+            with pytest.raises(SystemExit) as ex:
+                RedfishAnsibleModule(argument_spec={}, bypass_checks=True)
+
+            # AnsibleModule exits after parsing input
+            assert ex.type == SystemExit

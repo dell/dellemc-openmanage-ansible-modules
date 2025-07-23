@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 9.12.2
+# Version 9.12.3
 # Copyright (C) 2019-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -48,10 +48,14 @@ redfish_auth_params = {
     "timeout": {"type": "int", "default": 30},
 }
 
+SESSION_RESOURCE_COLLECTION = {
+    "SESSION": "/redfish/v1/SessionService/Sessions",
+    "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
+}
+
 HOST_UNRESOLVED_MSG = "Unable to resolve hostname or IP {0}."
 MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
 GET_IDRAC_MANAGER_ATTRIBUTES_9_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
-
 
 class OpenURLResponse(object):
     """Handles HTTPResponse"""
@@ -70,6 +74,10 @@ class OpenURLResponse(object):
             raise ValueError("Unable to parse json")
 
     @property
+    def status_code(self):
+        return self.resp.getcode()
+
+    @property
     def success(self):
         status = self.status_code
         return status >= 200 & status <= 299
@@ -77,10 +85,6 @@ class OpenURLResponse(object):
     @property
     def headers(self):
         return self.resp.headers
-
-    @property
-    def status_code(self):
-        return self.resp.getcode()
 
     @property
     def reason(self):
@@ -106,23 +110,20 @@ class Redfish(object):
         self.root_uri = '/redfish/v1/'
         self._headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
         self.hostname = config_ipv6(self.hostname)
-        if self.x_auth_token is not None:
-            self._headers["X-Auth-Token"] = self.x_auth_token
-        self.SESSION_RESOURCE_COLLECTION = {
-            "SESSION": "/redfish/v1/SessionService/Sessions",
-            "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
-        }
-        gen_details = self.get_server_generation
-        generation = gen_details[0]
-        if generation <= 13:
-            self.SESSION_RESOURCE_COLLECTION = {
-                "SESSION": "/redfish/v1/Sessions",
-                "SESSION_ID": "/redfish/v1/Sessions/{Id}",
-            }
 
     def _get_base_url(self):
         """builds base url"""
         return '{0}://{1}'.format(self.protocol, self.hostname)
+
+    def _build_url(self, path, query_param=None):
+        """builds complete url"""
+        url = path
+        base_uri = self._get_base_url()
+        if path:
+            url = base_uri + path
+        if query_param:
+            url += "?{0}".format(urlencode(query_param))
+        return url
 
     def _url_common_args_spec(self, method, api_timeout, headers=None):
         """Creates an argument common spec"""
@@ -144,23 +145,13 @@ class Redfish(object):
         }
         return url_kwargs
 
-    def _build_url(self, path, query_param=None):
-        """builds complete url"""
-        url = path
-        base_uri = self._get_base_url()
-        if path:
-            url = base_uri + path
-        if query_param:
-            url += "?{0}".format(urlencode(query_param))
-        return url
-
     def _args_without_session(self, path, method, api_timeout, headers=None):
         """Creates an argument spec in case of basic authentication"""
         req_header = self._headers
         if headers:
             req_header.update(headers)
         url_kwargs = self._url_common_args_spec(method, api_timeout, headers=headers)
-        if not (path == self.SESSION_RESOURCE_COLLECTION["SESSION"] and method == 'POST'):
+        if not (path == SESSION_RESOURCE_COLLECTION["SESSION"] and method == 'POST'):
             url_kwargs["url_username"] = self.username
             url_kwargs["url_password"] = self.password
             url_kwargs["force_basic_auth"] = True
@@ -207,7 +198,7 @@ class Redfish(object):
         if self.req_session and not self.x_auth_token:
             payload = {'UserName': self.username,
                        'Password': self.password}
-            path = self.SESSION_RESOURCE_COLLECTION["SESSION"]
+            path = SESSION_RESOURCE_COLLECTION["SESSION"]
             resp = self.invoke_request('POST', path, data=payload)
             if resp and resp.success:
                 self.session_id = resp.json_data.get("Id")
@@ -222,7 +213,7 @@ class Redfish(object):
     def __exit__(self, exc_type, exc_value, traceback):
         """Deletes a session id, which is in use for request for redfish session"""
         if self.session_id:
-            path = self.SESSION_RESOURCE_COLLECTION["SESSION_ID"].format(Id=self.session_id)
+            path = SESSION_RESOURCE_COLLECTION["SESSION_ID"].format(Id=self.session_id)
             self.invoke_request('DELETE', path)
         return False
 
@@ -245,6 +236,7 @@ class Redfish(object):
         except HTTPError:
             hw_model = "iDRAC 8"
         return generation, firmware_version, hw_model
+
 
     def strip_substr_dict(self, odata_dict, chkstr='@odata.'):
         cp = odata_dict.copy()
@@ -282,12 +274,12 @@ class RedfishAnsibleModule(AnsibleModule):
         if mutually_exclusive is None:
             mutually_exclusive = []
         mutually_exclusive.extend(auth_mutually_exclusive)
-        if required_one_of is None:
-            required_one_of = []
-        required_one_of.extend(auth_required_one_of)
         if required_together is None:
             required_together = []
         required_together.extend(auth_required_together)
+        if required_one_of is None:
+            required_one_of = []
+        required_one_of.extend(auth_required_one_of)
         if required_by is None:
             required_by = {}
 
