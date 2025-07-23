@@ -244,10 +244,7 @@ INVALID_PRIVACY_PROTOCOL_MSG = "Privacy protocol {protocol} is\
  {supported_privacy_protocol}."
 PRIVILEGE_KEY = "Users.{0}.Privilege"
 USERNAME_KEY = "Users.{0}.UserName"
-INVALID_USERNAME_FORMAT = "Username is not valid. It must be between\
-1-16 characters, cannot contain leading or trailing spaces, and \
-can only include alphanumeric characters, spaces and the following \
-special characters: + % ) > $ [ | ! & = * , . - { ] # ( ? ; < > _ } ^"
+INVALID_USERNAME_FORMAT = "{username} is not a valid username."
 
 
 def compare_payload(json_payload, idrac_attr):
@@ -416,7 +413,8 @@ def validate_username(module, username):
         len(username) > 16 or
         not re.fullmatch(pattern, username)
     ):
-        module.exit_json(msg=INVALID_USERNAME_FORMAT, failed=True)
+        module.exit_json(msg=INVALID_USERNAME_FORMAT.format(username=username),
+                         failed=True)
 
 
 def create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id, empty_slot_uri, user_attr, generation):
