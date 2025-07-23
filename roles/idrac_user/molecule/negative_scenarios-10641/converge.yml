@@ -119,7 +119,7 @@
     - name: Asserting for invalid username.
       ansible.builtin.assert:
         that:
-          - '"HTTP Error 400" in idrac_user_out.msg'
+          - '"12345@Dell is not a valid username." in idrac_user_out.msg'
 
     - name: Delete a idrac_user by giving invalid user_name
       ansible.builtin.import_role:
