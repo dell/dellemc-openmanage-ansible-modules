@@ -414,7 +414,7 @@ def validate_username(module, username):
             not re.fullmatch(pattern, username)
         ):
             module.exit_json(msg=INVALID_USERNAME_FORMAT.format(username=username),
-                            failed=True)
+                             failed=True)
 
 
 def create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id, empty_slot_uri, user_attr, generation):
