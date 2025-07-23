@@ -35,12 +35,12 @@
           - upload_result.changed
           - upload_result.msg == "Successfully uploaded application certificate."
 
+  always:
     - name: display multiple file contents
       ansible.builtin.debug: var=item
       with_file:
         - "/tmp/ome_application_certificate/certnew.p7b"
 
-  always:
     - name: Delete created directory
       ansible.builtin.file:
         path: "{{ ome_application_certificate_local_temp_path }}"
