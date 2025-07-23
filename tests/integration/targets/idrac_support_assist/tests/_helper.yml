@@ -51,17 +51,21 @@
       ansible.builtin.pause:
         seconds: 120
 
-    - name: Clear the Job Queue
+    - name: Clear the job queue
       ansible.builtin.uri:
         url: "{{ clear_job_queue_url }}"
-        validate_certs: false
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+        ca_path: "{{ ca_path | default(omit) }}"
         headers: "{{ idrac_job_queue_uri_headers }}"
         body_format: "json"
+        method: POST
+        body: '{ "JobID" : "JID_CLEARALL_FORCE"}'
         return_content: true
         force_basic_auth: true
-        method: "POST"
-        body: '{ "JobID" : "JID_CLEARALL_FORCE"}'
         status_code: 200
+      check_mode: false
       register: powerstate
       no_log: true
 
