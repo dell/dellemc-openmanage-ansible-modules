@@ -102,6 +102,7 @@ options:
         description:
           -(deprecated) Workgroup of the network share.
           - I(workgroup) is applicable only when I(share_type) is C(cifs).
+          - The argument is not supported by iDRAC9 and iDRAC10.
         type: str
       username:
         description:
