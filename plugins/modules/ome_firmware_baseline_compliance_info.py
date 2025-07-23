@@ -1,11 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
-#
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.12.3
 # Copyright (C) 2019-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
-
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
 
@@ -224,7 +221,6 @@ error_info:
 '''
 
 import json
-from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -260,7 +256,7 @@ def _get_device_id_from_service_tags(service_tags, rest_obj, module):
         else:
             module.exit_json(msg="Unable to fetch the device information.", baseline_compliance_info=[])
     except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
-        raise err
+        module.exit_json(msg=str(err), failed=True)
 
 
 def get_device_ids_from_group_ids(module, grou_id_list, rest_obj):
@@ -278,7 +274,7 @@ def get_device_ids_from_group_ids(module, grou_id_list, rest_obj):
                              baseline_compliance_info=[])
         return device_id_list
     except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
-        raise err
+        module.exit_json(msg=str(err), failed=True)
 
 
 def get_device_ids_from_group_names(module, rest_obj):
@@ -298,7 +294,7 @@ def get_device_ids_from_group_names(module, rest_obj):
                              baseline_compliance_info=[])
         return get_device_ids_from_group_ids(module, group_id_list, rest_obj)
     except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
-        raise err
+        module.exit_json(msg=str(err), failed=True)
 
 
 def get_identifiers(rest_obj, module):
@@ -330,10 +326,10 @@ def get_baseline_id_from_name(rest_obj, module):
             else:
                 module.exit_json(msg="No baseline exists in the system.", baseline_compliance_info=[])
         else:
-            module.fail_json(msg="baseline_name is a mandatory option.")
+            module.exit_json(msg="baseline_name is a mandatory option.", failed=True)
         return baseline_id
     except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
-        raise err
+        module.exit_json(msg=str(err), failed=True)
 
 
 def get_baselines_report_by_device_ids(rest_obj, module):
@@ -356,9 +352,9 @@ def get_baselines_report_by_device_ids(rest_obj, module):
             err_reason = err_list[0].get("Message", EXIT_MESSAGE)
             if MSG_ID in err_list[0].get('MessageId'):
                 module.exit_json(msg=err_reason)
-        raise err
+        module.exit_json(msg=str(err), failed=True)
     except (URLError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
-        raise err
+        module.exit_json(msg=str(err), failed=True)
 
 
 def get_baseline_compliance_reports(rest_obj, module):
@@ -369,7 +365,7 @@ def get_baseline_compliance_reports(rest_obj, module):
         resp_data = resp_val["value"]
         return resp_data
     except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
-        raise err
+        module.exit_json(msg=str(err), failed=True)
 
 
 def validate_inputs(module):
@@ -379,8 +375,8 @@ def validate_inputs(module):
     device_ids = module_params.get("device_ids")
     baseline_name = module_params.get("baseline_name")
     if all(not identifer for identifer in [device_ids, device_service_tags, device_group_names, baseline_name]):
-        module.fail_json(msg="one of the following is required: device_ids, device_service_tags, "
-                             "device_group_names, baseline_name to generate device based compliance report.")
+        module.exit_json(msg="one of the following is required: device_ids, device_service_tags, "
+                             "device_group_names, baseline_name to generate device based compliance report.", failed=True)
 
 
 def main():
@@ -410,9 +406,9 @@ def main():
         else:
             module.exit_json(msg="Unable to fetch the compliance baseline information.")
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
-    except (URLError, SSLValidationError, ConnectionError, TypeError, ValueError, SSLError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
+    except (URLError, SSLValidationError, ConnectionError, TypeError, ValueError, OSError) as err:
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
