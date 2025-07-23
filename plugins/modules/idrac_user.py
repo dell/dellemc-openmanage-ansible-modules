@@ -244,6 +244,10 @@ INVALID_PRIVACY_PROTOCOL_MSG = "Privacy protocol {protocol} is\
  {supported_privacy_protocol}."
 PRIVILEGE_KEY = "Users.{0}.Privilege"
 USERNAME_KEY = "Users.{0}.UserName"
+INVALID_USERNAME_FORMAT = "Username is not valid. It must be between\
+1-16 characters, cannot contain leading or trailing spaces, and \
+can only include alphanumeric characters, spaces and the following \
+special characters: + % ) > $ [ | ! & = * , . - { ] # ( ? ; < > _ } ^"
 
 
 def compare_payload(json_payload, idrac_attr):
@@ -400,6 +404,21 @@ def handle_update(module, idrac, generation, payload, value, xml_payload):
     return response
 
 
+def validate_username(module, username):
+    allowed_specials = r'+%)>$[|!&=*,.-{}#(?<;_}I^'
+    # Escape special characters safely
+    escaped_specials = re.escape(allowed_specials)
+    # Build a clean character class: a-z, A-Z, 0-9, space, and escaped specials
+    pattern = rf'^[a-zA-Z0-9 {escaped_specials}]+$'
+    if (
+        not username or
+        username != username.strip() or
+        len(username) > 16 or
+        not re.fullmatch(pattern, username)
+    ):
+        module.exit_json(msg=INVALID_USERNAME_FORMAT, failed=True)
+
+
 def create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id, empty_slot_uri, user_attr, generation):
     """
     This function create user account in case not exists else update it.
@@ -412,6 +431,8 @@ def create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id, em
     :return: json
     """
     msg, response = "Unable to retrieve the user details.", {}
+    validate_username(module, module.params.get("user_name"))
+    validate_username(module, module.params.get("new_user_name"))
     if (slot_id and slot_uri) is None and (empty_slot_id and empty_slot_uri) is not None:
         msg = "Successfully created user account."
         payload = get_payload(module, empty_slot_id, generation, action="create")
