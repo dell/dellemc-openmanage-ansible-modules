@@ -564,4 +564,4 @@ supported. The supported privacy protocols are ['AES-256']."
         with pytest.raises(Exception) as err:
             self.module.validate_username(f_module, username)
         assert err.value.args[0] == \
-        INVALID_USERNAME_FORMAT.format(username=username)
+            INVALID_USERNAME_FORMAT.format(username=username)

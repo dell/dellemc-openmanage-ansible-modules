@@ -402,19 +402,19 @@ def handle_update(module, idrac, generation, payload, value, xml_payload):
 
 
 def validate_username(module, username):
-    allowed_specials = r'+%)>$[|!&=*,.-{}#(?<;_}I^'
-    # Escape special characters safely
-    escaped_specials = re.escape(allowed_specials)
-    # Build a clean character class: a-z, A-Z, 0-9, space, and escaped specials
-    pattern = rf'^[a-zA-Z0-9 {escaped_specials}]+$'
-    if (
-        not username or
-        username != username.strip() or
-        len(username) > 16 or
-        not re.fullmatch(pattern, username)
-    ):
-        module.exit_json(msg=INVALID_USERNAME_FORMAT.format(username=username),
-                         failed=True)
+    if username is not None:
+        allowed_specials = r'+%)>$[|!&=*,.-{}#(?<;_}I^'
+        # Escape special characters safely
+        escaped_specials = re.escape(allowed_specials)
+        # Build a clean character class: a-z, A-Z, 0-9, space, and escaped specials
+        pattern = rf'^[a-zA-Z0-9 {escaped_specials}]+$'
+        if (
+            username != username.strip() or
+            len(username) > 16 or
+            not re.fullmatch(pattern, username)
+        ):
+            module.exit_json(msg=INVALID_USERNAME_FORMAT.format(username=username),
+                            failed=True)
 
 
 def create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id, empty_slot_uri, user_attr, generation):
