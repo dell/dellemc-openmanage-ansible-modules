@@ -2,7 +2,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.12.2
+# Version 9.12.3
 # Copyright (C) 2023-2025 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -17,7 +17,7 @@ __metaclass__ = type
 import pytest
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, OpenURLResponse, IdracAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, OpenURLResponse
 from unittest.mock import MagicMock
 import json
 import os
@@ -31,7 +31,6 @@ API_TASK = '/api/tasks'
 SLEEP_TIME = 'idrac_redfish.time.sleep'
 MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
 GET_IDRAC_MANAGER_ATTRIBUTES_9_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
-SESSION_FUNCTION = 'idrac_redfish.iDRACRedfishAPI._get_session_resource_collection'
 RESP = {
     "Model": "17G",
     "FirmwareVersion": "1.20.30"
@@ -68,27 +67,11 @@ class TestIdracRedfishRest(object):
         return module_parameters
 
     @pytest.fixture
-    def idrac_redfish_object(self, module_params, mocker):
-        resp = {
-            "SESSION": SESSION_10,
-            "SESSION_ID": SESSION_ID_10,
-        }
-        mocker.patch(MODULE_UTIL_PATH + SESSION_FUNCTION,
-                     return_value=resp)
+    def idrac_redfish_object(self, module_params):
         idrac_redfish_obj = iDRACRedfishAPI(module_params)
         return idrac_redfish_obj
 
-    @pytest.fixture
-    def arg_spec(self):
-        argument_specifications = {'resource_id': 'sample_resource'}
-        return argument_specifications
-
-    @pytest.fixture
-    def idrac_ansible_object(self, arg_spec):
-        idrac_ansible_obj = IdracAnsibleModule(arg_spec)
-        return idrac_ansible_obj
-
-    def test_invoke_request_with_session(self, mock_response, mocker, module_params, idrac_redfish_object):
+    def test_invoke_request_with_session(self, mock_response, mocker, module_params):
         mocker.patch(MODULE_UTIL_PATH + OPEN_URL,
                      return_value=mock_response)
         req_session = True
@@ -104,12 +87,6 @@ class TestIdracRedfishRest(object):
         module_params = {'idrac_ip': '2001:db8:3333:4444:5555:6666:7777:8888', 'idrac_user': 'username',
                          'idrac_password': 'password', "idrac_port": '443'}
         req_session = False
-        resp = {
-            "SESSION": SESSION_10,
-            "SESSION_ID": SESSION_ID_10,
-        }
-        mocker.patch(MODULE_UTIL_PATH + SESSION_FUNCTION,
-                     return_value=resp)
         with iDRACRedfishAPI(module_params, req_session) as obj:
             response = obj.invoke_request(TEST_PATH, "GET")
         assert response.status_code == 200
@@ -119,12 +96,6 @@ class TestIdracRedfishRest(object):
     def test_invoke_request_without_session_with_header(self, mock_response, mocker, module_params):
         mocker.patch(MODULE_UTIL_PATH + OPEN_URL,
                      return_value=mock_response)
-        resp = {
-            "SESSION": SESSION_10,
-            "SESSION_ID": SESSION_ID_10,
-        }
-        mocker.patch(MODULE_UTIL_PATH + SESSION_FUNCTION,
-                     return_value=resp)
         req_session = False
         with iDRACRedfishAPI(module_params, req_session) as obj:
             response = obj.invoke_request(TEST_PATH, "POST", headers={
@@ -162,6 +133,34 @@ class TestIdracRedfishRest(object):
         with pytest.raises(HTTPError):
             with iDRACRedfishAPI(module_params, req_session) as obj:
                 obj.invoke_request(TEST_PATH, "GET")
+
+    def test_get_idrac_local_account_attr(self, idrac_redfish_object):
+        idrac_attrs = {
+            "SystemConfiguration": {
+                "Components": [
+                    {
+                        "FQDD": "iDRAC.Embedded.1",
+                        "Attributes": [
+                            {
+                                "Name": "Users.1",
+                                "Value": 1
+                            },
+                            {
+                                "Name": "Users.2",
+                                "Value": 2
+                            },
+                            {
+                                "Name": "System1",
+                                "Value": "system_data"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+        result = idrac_redfish_object.get_idrac_local_account_attr(
+            idrac_attribues=idrac_attrs, fqdd="iDRAC.Embedded.1")
+        assert result == {'Users.1': 1, 'Users.2': 2}
 
     @pytest.mark.parametrize("query_params", [
         {"inp": {"$filter": "UserName eq 'admin'"},
@@ -235,34 +234,6 @@ class TestIdracRedfishRest(object):
         with pytest.raises(ValueError):
             with iDRACRedfishAPI(module_params, True) as obj:
                 obj.wait_for_job_complete(API_TASK, True)
-
-    def test_get_idrac_local_account_attr(self, idrac_redfish_object):
-        idrac_attrs = {
-            "SystemConfiguration": {
-                "Components": [
-                    {
-                        "FQDD": "iDRAC.Embedded.1",
-                        "Attributes": [
-                            {
-                                "Name": "Users.1",
-                                "Value": 1
-                            },
-                            {
-                                "Name": "Users.2",
-                                "Value": 2
-                            },
-                            {
-                                "Name": "System1",
-                                "Value": "system_data"
-                            }
-                        ]
-                    }
-                ]
-            }
-        }
-        result = idrac_redfish_object.get_idrac_local_account_attr(
-            idrac_attribues=idrac_attrs, fqdd="iDRAC.Embedded.1")
-        assert result == {'Users.1': 1, 'Users.2': 2}
 
     @pytest.mark.parametrize("inp_data", [
         {
