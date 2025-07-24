@@ -75,10 +75,6 @@ class OpenURLResponse(object):
             raise ValueError("Unable to parse json")
 
     @property
-    def status_code(self):
-        return self.resp.getcode()
-
-    @property
     def success(self):
         status = self.status_code
         return status >= 200 & status <= 299
@@ -86,6 +82,10 @@ class OpenURLResponse(object):
     @property
     def headers(self):
         return self.resp.headers
+
+    @property
+    def status_code(self):
+        return self.resp.getcode()
 
     @property
     def reason(self):
@@ -116,16 +116,6 @@ class Redfish(object):
         """builds base url"""
         return '{0}://{1}'.format(self.protocol, self.hostname)
 
-    def _build_url(self, path, query_param=None):
-        """builds complete url"""
-        url = path
-        base_uri = self._get_base_url()
-        if path:
-            url = base_uri + path
-        if query_param:
-            url += "?{0}".format(urlencode(query_param))
-        return url
-
     def _url_common_args_spec(self, method, api_timeout, headers=None):
         """Creates an argument common spec"""
         req_header = self._headers
@@ -145,6 +135,16 @@ class Redfish(object):
             "follow_redirects": 'all',
         }
         return url_kwargs
+
+    def _build_url(self, path, query_param=None):
+        """builds complete url"""
+        url = path
+        base_uri = self._get_base_url()
+        if path:
+            url = base_uri + path
+        if query_param:
+            url += "?{0}".format(urlencode(query_param))
+        return url
 
     def _args_without_session(self, path, method, api_timeout, headers=None):
         """Creates an argument spec in case of basic authentication"""
@@ -274,12 +274,12 @@ class RedfishAnsibleModule(AnsibleModule):
         if mutually_exclusive is None:
             mutually_exclusive = []
         mutually_exclusive.extend(auth_mutually_exclusive)
-        if required_together is None:
-            required_together = []
-        required_together.extend(auth_required_together)
         if required_one_of is None:
             required_one_of = []
         required_one_of.extend(auth_required_one_of)
+        if required_together is None:
+            required_together = []
+        required_together.extend(auth_required_together)
         if required_by is None:
             required_by = {}
 
