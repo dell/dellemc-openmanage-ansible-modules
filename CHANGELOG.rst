@@ -4,6 +4,23 @@ Dell OpenManage Ansible Modules Release Notes
 
 .. contents:: Topics
 
+v9.12.3
+=======
+
+Release Summary
+---------------
+
+The ``ome_firmware``, ``ome_firmware_catalog``, ``ome_firmware_baseline``, ``ome_firmware_baseline_info``, ``ome_firmware_baseline_compliance_info`` modules are enhanced to support OME version 4.5
+
+Major Changes
+-------------
+
+- ome_firmware - This module is enhanced to support OME version 4.5.
+- ome_firmware_catalog - This module is enhanced to support OME version 4.5.
+- ome_firmware_baseline - This module is enhanced to support OME version 4.5.
+- ome_firmware_baseline_info - This module is enhanced to support OME version 4.5.
+- ome_firmware_baseline_compliance_info - This module is enhanced to support OME version 4.5.
+
 v9.12.2
 =======
 
