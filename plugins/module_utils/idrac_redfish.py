@@ -61,6 +61,7 @@ IMPORT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.
 IMPORT_PREVIEW = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ImportSystemConfigurationPreview"
 GET_IDRAC_MANAGER_ATTRIBUTES_9_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
 
+
 class OpenURLResponse(object):
     """Handles HTTPResponse"""
 
@@ -225,7 +226,6 @@ class iDRACRedfishAPI(object):
             hw_model = "iDRAC 8"
 
         return generation, firmware_version, hw_model
-
 
     def wait_for_job_complete(self, task_uri, job_wait=False):
         """

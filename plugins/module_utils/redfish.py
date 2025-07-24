@@ -57,6 +57,7 @@ HOST_UNRESOLVED_MSG = "Unable to resolve hostname or IP {0}."
 MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
 GET_IDRAC_MANAGER_ATTRIBUTES_9_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
 
+
 class OpenURLResponse(object):
     """Handles HTTPResponse"""
 
@@ -236,7 +237,6 @@ class Redfish(object):
         except HTTPError:
             hw_model = "iDRAC 8"
         return generation, firmware_version, hw_model
-
 
     def strip_substr_dict(self, odata_dict, chkstr='@odata.'):
         cp = odata_dict.copy()

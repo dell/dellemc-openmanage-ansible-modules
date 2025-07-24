@@ -31,7 +31,6 @@ API_TASK = '/api/tasks'
 SLEEP_TIME = 'idrac_redfish.time.sleep'
 MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
 GET_IDRAC_MANAGER_ATTRIBUTES_9_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
-#SESSION_FUNCTION = 'idrac_redfish.iDRACRedfishAPI._get_session_resource_collection'
 RESP = {
     "Model": "17G",
     "FirmwareVersion": "1.20.30"
