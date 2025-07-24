@@ -2383,6 +2383,7 @@ releases:
         - redfish_firmware - This module is enhanced to support iDRAC10.
         - idrac_bios - This role is enhanced to support iDRAC10.
         - idrac_boot - This role is enhanced to support iDRAC10.
+        - idrac_reset - This role is enhanced to support iDRAC10.
         - idrac_user - This role is enhanced to support iDRAC10.
         - ome_firmware - This module is enhanced to support OME 4.5.
         - ome_firmware_baseline - This module is enhanced to support OME 4.5.

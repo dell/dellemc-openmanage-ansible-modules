@@ -53,7 +53,7 @@ You may obtain a copy of the License at
 | [redfish_storage_volume](modules/redfish_storage_volume.rst)                                         | ✓      | ✗      |
 
 ### iDRAC Roles
-| Module Name                                                                                          | iDRAC9 | iDRAC10 |
+| Role Name                                                                                          | iDRAC9 | iDRAC10 |
 | ---------------------------------------------------------------------------------------------------- | ------ | ------  |
 | [idrac_attributes](../roles/idrac_attributes/README.md)                                                     | ✓      | ✓      |
 | [idrac_bios](../roles/idrac_bios/README.md)                                                                 | ✓      | ✓     |
