@@ -2372,7 +2372,7 @@ releases:
        ``redfish_firmware`` modules and ``idrac_bios`, ``idrac_boot``,
        ``idrac_reset``, ``idrac_user`` roles are enhanced to support iDRAC10.
        Furthermore, the ``ome_firmware``, ``ome_firmware_baseline``,
-       ``ome_firmware_catalog``, ``ome_firmware_compliance_baseline_info``, and
+       ``ome_firmware_catalog``, ``ome_firmware_baseline_compliance_info``, and
        ``ome_firmware_baseline_info`` modules now support OME 4.5.'
       major_changes:
         - idrac_boot - This module is enhanced to support iDRAC10.
@@ -2390,7 +2390,7 @@ releases:
         - ome_firmware_catalog - This module is enhanced to support OME 4.5.
         - ome_firmware_baseline_info - This module is enhanced to support
           OME 4.5.
-        - ome_firmware_compliance_baseline_info - This module is enhanced to
+        - ome_firmware_baseline_compliance_info - This module is enhanced to
           support OME 4.5.
       known_issues:
         - idrac_diagnostics - This module doesn't support
