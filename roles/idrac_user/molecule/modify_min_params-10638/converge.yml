@@ -8,7 +8,7 @@
   tasks:
     - name: Modify iDRAC user with minimum requred parameters
       ansible.builtin.import_role:
-        name: idrac_user
+        name: dellemc.openmanage.idrac_user
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"

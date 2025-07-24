@@ -96,11 +96,19 @@
           - "run_result.job_details.JobState == 'Completed'"
           - "run_result.job_details.JobType == 'SAExportHealthData'"
 
+    - name: Wait for iDRAC to come up
+      ansible.builtin.include_tasks:
+        file: ../_wait_for_idrac_interface.yml
+
 - name: Perform export operation to http share using socks proxy
   block:
     - name: Pre-requisite - Reset IDRAC
       ansible.builtin.include_tasks:
         file: ../_reset_config.yml
+
+    - name: Wait for iDRAC to come up
+      ansible.builtin.include_tasks:
+        file: ../_wait_for_idrac_interface.yml
 
     - name: Fetch the EULA status after accepting EULA terms
       ansible.builtin.include_tasks:
@@ -152,6 +160,10 @@
           - check_mode_result.changed
           - "check_mode_result.msg == 'Changes found to be applied.'"
 
+    - name: Wait for iDRAC to come up
+      ansible.builtin.include_tasks:
+        file: ../_wait_for_idrac_interface.yml
+
     - name: Normal Mode - Export SupportAssist Collection with job wait as
             false to http share using socks proxy
       dellemc.openmanage.idrac_support_assist:
@@ -168,6 +180,7 @@
           proxy_type: socks
           proxy_server: "{{ socks4_proxy_server }}"
           proxy_port: "{{ socks4_proxy_port }}"
+        timeout: 120
       register: run_result
 
     - name: Verify - Normal Mode - Export SupportAssist Collection with job

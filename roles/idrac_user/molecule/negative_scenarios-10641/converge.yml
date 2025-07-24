@@ -8,7 +8,7 @@
   tasks:
     - name: Invalid hostname value
       ansible.builtin.import_role:
-        name: idrac_user
+        name: dellemc.openmanage.idrac_user
       vars:
         hostname: "invalid"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -28,7 +28,7 @@
 
     - name: Invalid username value
       ansible.builtin.import_role:
-        name: idrac_user
+        name: dellemc.openmanage.idrac_user
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "invalid"
@@ -47,7 +47,7 @@
 
     - name: Invalid password value
       ansible.builtin.import_role:
-        name: idrac_user
+        name: dellemc.openmanage.idrac_user
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -66,7 +66,7 @@
 
     - name: Invalid validate_certs value
       ansible.builtin.import_role:
-        name: idrac_user
+        name: dellemc.openmanage.idrac_user
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -85,7 +85,7 @@
 
     - name: Invalid ca_path value
       ansible.builtin.import_role:
-        name: idrac_user
+        name: dellemc.openmanage.idrac_user
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -104,7 +104,7 @@
 
     - name: Invalid username value.
       ansible.builtin.import_role:
-        name: idrac_user
+        name: dellemc.openmanage.idrac_user
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -119,11 +119,11 @@
     - name: Asserting for invalid username.
       ansible.builtin.assert:
         that:
-          - '"HTTP Error 400" in idrac_user_out.msg'
+          - '"12345@Dell is not a valid username." in idrac_user_out.msg'
 
     - name: Delete a idrac_user by giving invalid user_name
       ansible.builtin.import_role:
-        name: idrac_user
+        name: dellemc.openmanage.idrac_user
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -142,7 +142,7 @@
 
     - name: Invalid value for "custom_priviledge"
       ansible.builtin.import_role:
-        name: idrac_user
+        name: dellemc.openmanage.idrac_user
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -156,8 +156,18 @@
       ignore_unreachable: true
       register: idrac_user_fail_case
 
+    - name: Get Server generation
+      ansible.builtin.include_tasks:
+        file: ../resources/idrac_user/_get_server_generation.yml
+
+    - name: Set fact of minimum value of custom privilege based on server gen
+      ansible.builtin.set_fact:
+        mp: "{{  0 if model | int < 17 else 1 }}"
+
     - name: Asserting for invalid value for "custom_priviledge"
       ansible.builtin.assert:
         that: >
-          idrac_user_out.msg == "custom_privilege value should be from 0 to
-          511."
+          'idrac_user_out.msg == custom_privilege_msg'
+      vars:
+        custom_privilege_msg: "custom_privilege value must range from {{ mp }}
+         to 511."

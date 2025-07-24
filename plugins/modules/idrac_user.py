@@ -244,6 +244,7 @@ INVALID_PRIVACY_PROTOCOL_MSG = "Privacy protocol {protocol} is\
  {supported_privacy_protocol}."
 PRIVILEGE_KEY = "Users.{0}.Privilege"
 USERNAME_KEY = "Users.{0}.UserName"
+INVALID_USERNAME_FORMAT = "{username} is not a valid username."
 
 
 def compare_payload(json_payload, idrac_attr):
@@ -311,8 +312,11 @@ def get_payload(module, slot_id, generation, action=None):
     :param slot_id: slot id for user slot
     :return: json data with slot id
     """
-    if generation >= 17 and module.params['privilege'] == 'None':
-        module.exit_json(msg=INVALID_PRIVILAGE_MSG_NONE, failed=True)
+    if generation >= 17:
+        if module.params['privilege'] == 'None':
+            module.exit_json(msg=INVALID_PRIVILAGE_MSG_NONE, failed=True)
+        elif module.params['privilege'] is None:
+            module.params['privilege'] = 'ReadOnly'
     user_privilege = module.params["custom_privilege"] if "custom_privilege" in module.params and \
         module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"])
 
@@ -397,6 +401,22 @@ def handle_update(module, idrac, generation, payload, value, xml_payload):
     return response
 
 
+def validate_username(module, username):
+    if username is not None:
+        allowed_specials = r'+%)>$[|!&=*,.-{}#(?<;_}I^'
+        # Escape special characters safely
+        escaped_specials = re.escape(allowed_specials)
+        # Build a clean character class: a-z, A-Z, 0-9, space, and escaped specials
+        pattern = rf'^[a-zA-Z0-9 {escaped_specials}]+$'
+        if (
+            username != username.strip() or
+            len(username) > 16 or
+            not re.fullmatch(pattern, username)
+        ):
+            module.exit_json(msg=INVALID_USERNAME_FORMAT.format(username=username),
+                             failed=True)
+
+
 def create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id, empty_slot_uri, user_attr, generation):
     """
     This function create user account in case not exists else update it.
@@ -409,6 +429,8 @@ def create_or_modify_account(module, idrac, slot_uri, slot_id, empty_slot_id, em
     :return: json
     """
     msg, response = "Unable to retrieve the user details.", {}
+    validate_username(module, module.params.get("user_name"))
+    validate_username(module, module.params.get("new_user_name"))
     if (slot_id and slot_uri) is None and (empty_slot_id and empty_slot_uri) is not None:
         msg = "Successfully created user account."
         payload = get_payload(module, empty_slot_id, generation, action="create")
@@ -505,12 +527,13 @@ def validate_authentication_and_privacy_protocols(module,
 
 def validate_input(module, idrac, generation):
     if module.params["state"] == "present":
-        user_privilege = module.params["custom_privilege"] if "custom_privilege" in module.params and \
-            module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"], 0)
         if isinstance(generation, int) and generation >= 17:
             INVALID_PRIVILAGE_MIN = INVALID_PRIVILAGE_MIN_iDRAC10
         else:
             INVALID_PRIVILAGE_MIN = INVALID_PRIVILAGE_MIN_iDRAC9
+        user_privilege = module.params["custom_privilege"] if "custom_privilege" in module.params and \
+            module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"], INVALID_PRIVILAGE_MIN)
+
         if INVALID_PRIVILAGE_MIN > user_privilege or user_privilege > INVALID_PRIVILAGE_MAX:
             module.exit_json(msg=INVALID_PRIVILAGE_MSG.format(INVALID_PRIVILAGE_MIN),
                              failed=True)

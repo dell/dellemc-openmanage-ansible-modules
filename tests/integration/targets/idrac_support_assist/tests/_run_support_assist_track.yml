@@ -1,8 +1,8 @@
 ---
 - name: Constructing url
   ansible.builtin.set_fact:
-    url_1: "https://{{ idrac_ip | ansible.utils.ipwrap }}:"
-    url_2: "{{ idrac_port }}/redfish/v1/Managers/"
+    url_1: "https://{{ idrac_ip | ansible.utils.ipwrap }}"
+    url_2: ":{{ idrac_port }}/redfish/v1/Managers/"
     url_3: "iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions"
     url_4: "/DellLCService.SupportAssistCollection"
 
@@ -14,6 +14,19 @@
   vars:
     home_path: "{{ lookup('env','HOME') }}"
   block:
+
+    - name: Wait for iDRAC web interface to become reachable
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}/redfish/v1"
+        method: GET
+        timeout: 30
+        validate_certs: false
+      register: uri_result
+      until: uri_result is defined and uri_result.status is defined and
+        uri_result.status == 200
+      retries: 10
+      delay: 30
+
     - name: Run Support Assist via uri
       ansible.builtin.uri:
         url: "{{ run_url }}"
@@ -24,8 +37,67 @@
         status_code:
           - 200
           - 202
+        timeout: 120
       register: run_api_result
       delegate_to: localhost
+
+    - name: Set job id
+      ansible.builtin.set_fact:
+        job_id: "{{ run_api_result.location.split('/')[-1] }}"
+
+    - name: Wait for iDRAC web interface to become reachable
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}/redfish/v1"
+        method: GET
+        timeout: 30
+        validate_certs: false
+      register: uri_result
+      until: uri_result is defined and uri_result.status is defined and
+        uri_result.status == 200
+      retries: 10
+      delay: 30
+
+    - name: Getting LC status first time
+      dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_port: "{{ idrac_port }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+      register: result_lc
+
+    - name: Wait for LC to be ready
+      dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_port: "{{ idrac_port }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+      register: result_lc
+      until:
+        - result_lc is defined
+        - result_lc.lc_status_info is defined
+        - result_lc.lc_status_info.LCStatus is defined
+        - result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 200
+      delay: 30
+
+    - name: Waiting for 30 secs
+      ansible.builtin.pause:
+        seconds: 30
+
+    - name: Get System Inevntory.
+      dellemc.openmanage.idrac_system_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+      register: result
+
+    - name: Get Server Generation
+      ansible.builtin.set_fact:
+        generation: "{{result.system_info.System[0].SystemGeneration
+          | regex_search('[0-9]+') | int}}"
 
     - name: Job tracking iDRAC
       ansible.builtin.uri:
@@ -33,10 +105,30 @@
         method: "GET"
         status_code: 200, 202
       register: result
-      until: result.json.JobState is defined and result.json.JobState
-            in ['Completed', 'Failed', 'CompletedWithErrors']
+      until: result.json.JobState is defined and
+        result.json.JobState in ['Completed', 'Failed', 'CompletedWithErrors']
       retries: "{{ retries_count | default(100) }}"
       delay: "{{ polling_interval | default(30) }}"
       delegate_to: localhost
-      when: job_track == true
+      when:
+        - job_track == true
+        - generation | int <17
+      no_log: true
+
+    - name: Job tracking iDRAC
+      ansible.builtin.uri:
+        url: "{{ url_1 }}/redfish/v1/TaskService/Tasks/{{ job_id }}"
+        method: "GET"
+        status_code: 200, 202
+      register: result
+      until:
+        result.json.Oem.Dell.JobState is defined and
+        result.json.Oem.Dell.JobState
+        in ['Completed', 'Failed', 'CompletedWithErrors']
+      retries: "{{ retries_count | default(100) }}"
+      delay: "{{ polling_interval | default(30) }}"
+      delegate_to: localhost
+      when:
+        - job_track == true
+        - generation | int >=17
       no_log: true
