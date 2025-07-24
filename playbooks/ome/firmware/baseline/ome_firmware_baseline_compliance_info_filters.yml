@@ -18,7 +18,8 @@
       tags:
         - overall-compliance-report
 
-    - name: Firmware baseline compliance info based on FirmwareStatus Non-Compliant
+    - name: Firmware baseline compliance info based on
+       FirmwareStatus Non-Compliant
       ansible.builtin.set_fact:
         non_compliance_fact: "{{ item }}"
       when:
