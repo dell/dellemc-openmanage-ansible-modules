@@ -83,7 +83,8 @@
             timeout: 60
           tags: molecule-idempotence-notest
 
-        - name: TC-115427 - Validate boot_order with legacy mode with force_restart
+        - name: TC-115427 - Validate boot_order with legacy mode
+           with force_restart
           ansible.builtin.include_role:
             name: dellemc.openmanage.idrac_boot
           vars:
@@ -107,7 +108,8 @@
 
         - name: Asserting TC-115427 in normal mode
           ansible.builtin.assert:
-            that: idrac_boot_out.msg == "Successfully updated the boot settings."
+            that: idrac_boot_out.msg == "Successfully
+             updated the boot settings."
           when: not ansible_check_mode and idrac_boot_out.changed
 
         - name: Asserting TC-115427 in idempotence mode

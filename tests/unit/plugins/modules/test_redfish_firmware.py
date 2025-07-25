@@ -313,7 +313,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
             builtin_module_name = 'builtins'
         else:
             builtin_module_name = '__builtin__'
-        with patch("{0}.open".format(builtin_module_name), mock_open(read_data="data")) as mock_file:
+        with patch("{0}.open".format(builtin_module_name), mock_open(read_data="data")):
             redfish_firmware_connection_mock.get_server_generation = (generation, "firm_ver", "hw_model")
             result = self.module.firmware_update(redfish_firmware_connection_mock, f_module)
         assert result == redfish_response_mock

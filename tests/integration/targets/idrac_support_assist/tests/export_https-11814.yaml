@@ -98,11 +98,19 @@
           - "run_result.job_details.JobState == 'Completed'"
           - "run_result.job_details.JobType == 'SAExportHealthData'"
 
+    - name: Wait for iDRAC to come up
+      ansible.builtin.include_tasks:
+        file: ../_wait_for_idrac_interface.yml
+
 - name: Perform export operation to https share using default proxy
   block:
     - name: Pre-requisite - Reset IDRAC
       ansible.builtin.include_tasks:
         file: ../_reset_config.yml
+
+    - name: Wait for iDRAC to come up
+      ansible.builtin.include_tasks:
+        file: ../_wait_for_idrac_interface.yml
 
     - name: Fetch the EULA status after accepting EULA terms
       ansible.builtin.include_tasks:

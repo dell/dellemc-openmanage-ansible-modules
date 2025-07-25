@@ -4,7 +4,7 @@
   gather_facts: false
 
   tasks:
-    - name: Retrieves device based compliance report for specified device IDs..
+    - name: Retrieves device based compliance report for specified device IDs
       dellemc.openmanage.ome_firmware_baseline_compliance_info:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
@@ -16,7 +16,7 @@
       tags: device_ids
       delegate_to: localhost
 
-    - name: Retrieves device based compliance report for specified service Tags.
+    - name: Retrieves device based compliance report for specified service Tags
       dellemc.openmanage.ome_firmware_baseline_compliance_info:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
@@ -28,7 +28,7 @@
       tags: device_service_tags
       delegate_to: localhost
 
-    - name: Retrieves device based compliance report for specified group names.
+    - name: Retrieves device based compliance report for specified group names
       dellemc.openmanage.ome_firmware_baseline_compliance_info:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
@@ -40,7 +40,7 @@
       tags: device_group_names
       delegate_to: localhost
 
-    - name: Retrieves device compliance report for a specified baseline.
+    - name: Retrieves device compliance report for a specified baseline
       dellemc.openmanage.ome_firmware_baseline_compliance_info:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
