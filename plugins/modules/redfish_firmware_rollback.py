@@ -287,6 +287,7 @@ def _handle_unauthorized_error(module, redfish_obj, generation, wait):
     redfish_obj._headers.update({"X-Auth-Token": token})
     return redfish_obj, wait, True
 
+
 def _handle_connection_error(wait, interval, resetting):
     """Handle connection-related issues such as URLError or unknown exceptions."""
     time.sleep(interval)
@@ -294,6 +295,7 @@ def _handle_connection_error(wait, interval, resetting):
     if not resetting:
         resetting = True
     return wait, resetting
+
 
 def simple_update(redfish_obj, preview_uri, update_uri):
     job_ids = []

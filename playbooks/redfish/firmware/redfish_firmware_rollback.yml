@@ -19,12 +19,12 @@
 
         - name: Extract all 'Name' attributes from the response
           set_fact:
-            firmware_names: "{{ redfish_response.json.Members 
+            firmware_names: "{{ redfish_response.json.Members
               | map(attribute='Name') | list }}"
 
         - name: Find the firmware name that contains 'BIOS'
           set_fact:
-            bios_firmware_name: "{{ firmware_names 
+            bios_firmware_name: "{{ firmware_names
               | select('contains', 'BIOS') | first }}"
 
         - name: Rollback the BIOS component firmware
@@ -39,7 +39,7 @@
 
         - name: Find the firmware name that contains 'NIC'
           set_fact:
-            network_firmware_name: "{{ firmware_names 
+            network_firmware_name: "{{ firmware_names
               | select('contains', 'NIC') | first }}"
 
         - name: Rollback all NIC cards with a name starting from 'NIC' for 17G.
@@ -52,7 +52,8 @@
           delegate_to: localhost
           tags: rollback-match-17g
 
-        - name: Rollback all the component firmware except BIOS component for 17G.
+        - name: Rollback all the component firmware except 
+            BIOS component for 17G.
           dellemc.openmanage.redfish_firmware_rollback:
             baseuri: "{{ baseuri }}"
             username: "{{ username }}"
@@ -60,8 +61,8 @@
             ca_path: "/path/to/ca_cert.pem"
             name: "(?!{{ bios_firmware_name }}).*"
           delegate_to: localhost
-          tags: rollback-except-17g 
-    
+          tags: rollback-except-17g
+
     - name: Rollback a BIOS component firmware for 16G
       dellemc.openmanage.redfish_firmware_rollback:
         baseuri: "{{ baseuri }}"
@@ -72,7 +73,8 @@
       delegate_to: localhost
       tags: rollback-bios
 
-    - name: Rollback all NIC cards with a name starting from 'Broadcom Gigabit' for 16G.
+    - name: Rollback all NIC cards with a name starting from '
+        Broadcom Gigabit' for 16G.
       dellemc.openmanage.redfish_firmware_rollback:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
