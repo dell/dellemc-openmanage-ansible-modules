@@ -186,7 +186,8 @@
 
     - name: TC - 009 - Waiting for job completion after iDRAC came up
       ansible.builtin.uri:
-        url: "https://{{ lookup('env', 'IDRAC_IP') }}/redfish/v1/JobService/Jobs/{{ redfish_firmware_out.task.id }}"
+        url: "https://{{ lookup('env', 'IDRAC_IP') }}/redfish/v1/JobService\
+         /Jobs/{{ redfish_firmware_out.task.id }}"
         validate_certs: false
         method: "GET"
         user: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -200,7 +201,8 @@
           - 200
         return_content: true
       register: job_result
-      until: job_result.json.JobState == 'Completed' or job_result.json.JobState == 'Failed'
+      until: job_result.json.JobState == 'Completed' or
+       job_result.json.JobState == 'Failed'
       retries: 30
       delay: 10
-      when: redfish_firmware_out.changed # noqa: no-handler
+      when: redfish_firmware_out.changed
