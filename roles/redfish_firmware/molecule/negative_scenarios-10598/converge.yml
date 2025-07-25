@@ -205,4 +205,4 @@
        job_result.json.JobState == 'Failed'
       retries: 30
       delay: 10
-      when: redfish_firmware_out.changed
+      when: redfish_firmware_out.changed # noqa: no-handler
