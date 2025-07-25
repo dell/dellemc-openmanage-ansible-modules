@@ -3,9 +3,10 @@
   hosts: redfish_hosts
   gather_facts: false
   tasks:
-    - block:
-        - name: Rollback a BIOS component firmware for 17G
-          uri:
+    - name: Rollback firmware components for 17G
+      block:
+        - name: Get all firmware inventory
+          ansible.builtin.uri:
             url: "{{ 'https://' + baseuri + '/redfish/v1/UpdateService/' +
               'FirmwareInventory?$expand=*($levels=1)' }}"
             method: GET
@@ -18,12 +19,12 @@
           register: redfish_response
 
         - name: Extract all 'Name' attributes from the response
-          set_fact:
+          ansible.builtin.set_fact:
             firmware_names: "{{ redfish_response.json.Members
               | map(attribute='Name') | list }}"
 
         - name: Find the firmware name that contains 'BIOS'
-          set_fact:
+          ansible.builtin.set_fact:
             bios_firmware_name: "{{ firmware_names
               | select('contains', 'BIOS') | first }}"
 
@@ -38,7 +39,7 @@
           tags: rollback-bios-17g
 
         - name: Find the firmware name that contains 'NIC'
-          set_fact:
+          ansible.builtin.set_fact:
             network_firmware_name: "{{ firmware_names
               | select('contains', 'NIC') | first }}"
 
