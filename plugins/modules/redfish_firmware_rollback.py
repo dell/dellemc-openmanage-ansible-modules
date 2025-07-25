@@ -28,7 +28,7 @@ options:
   name:
     type: str
     required: true
-    description: 
+    description:
       - The name or regular expression of the component to match and is case-sensitive.
       - "The Name should be a supported rollback component. To view the list of rollback components for iDRAC9 and above,
       see, U(https://I(idrac_ip)/redfish/v1/UpdateService/FirmwareInventory?$expand=*($levels=1)'"
@@ -170,6 +170,7 @@ REBOOT_FAIL = "Failed to reboot the server."
 NEGATIVE_TIMEOUT_MESSAGE = "The parameter reboot_timeout value cannot be negative or zero."
 JOB_WAIT_MSG = "Task excited after waiting for {0} seconds. Check console for firmware rollback status."
 REBOOT_COMP = ["Integrated Dell Remote Access Controller", "BMC Firmware Inventory"]
+INITIAL_DELAY_17G = 240
 SESSION_RESOURCE_COLLECTION = {
     "SESSION": "/redfish/v1/SessionService/Sessions",
     "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
@@ -243,11 +244,8 @@ def require_session(idrac, module):
 
 
 def wait_for_redfish_idrac_reset(module, redfish_obj, wait_time_sec, generation, interval=30):
-    if generation >= 17:
-        interval_17G = 240
-        time.sleep(interval_17G)
-    else:
-        time.sleep(interval // 2)
+    _sleep_initial_delay(generation, interval)
+
     msg = RESET_UNTRACK
     wait = wait_time_sec
     track_failed = True
@@ -260,31 +258,42 @@ def wait_for_redfish_idrac_reset(module, redfish_obj, wait_time_sec, generation,
             break
         except HTTPError as err:
             if err.getcode() == 401:
-                if generation >= 17:
-                    time.sleep(interval_17G)
-                    wait -= interval_17G
-                new_redfish_obj = Redfish(module.params, req_session=True)
-                sid, token = require_session(new_redfish_obj, module)
-                redfish_obj.session_id = sid
-                redfish_obj._headers.update({"X-Auth-Token": token})
+                redfish_obj, wait, resetting = _handle_unauthorized_error(module, redfish_obj, generation, wait)
                 track_failed = False
-                if not resetting:
-                    resetting = True
-                break
-            time.sleep(interval)
-            wait -= interval
-            resetting = True
-        except URLError:
-            time.sleep(interval)
-            wait -= interval
-            if not resetting:
-                resetting = True
-        except Exception:
-            time.sleep(interval)
-            wait -= interval
-            resetting = True
+            else:
+                wait, resetting = _handle_connection_error(wait, interval, resetting)
+        except (URLError, Exception):
+            wait, resetting = _handle_connection_error(wait, interval, resetting)
+
     return track_failed, resetting, msg
 
+
+def _sleep_initial_delay(generation, interval):
+    """Sleep before starting the polling for reset."""
+    if generation >= 17:
+        time.sleep(INITIAL_DELAY_17G)
+    else:
+        time.sleep(interval // 2)
+
+
+def _handle_unauthorized_error(module, redfish_obj, generation, wait):
+    """Handle 401 Unauthorized errors during reset polling."""
+    if generation >= 17:
+        time.sleep(INITIAL_DELAY_17G)
+        wait -= INITIAL_DELAY_17G
+    new_redfish_obj = Redfish(module.params, req_session=True)
+    sid, token = require_session(new_redfish_obj, module)
+    redfish_obj.session_id = sid
+    redfish_obj._headers.update({"X-Auth-Token": token})
+    return redfish_obj, wait, True
+
+def _handle_connection_error(wait, interval, resetting):
+    """Handle connection-related issues such as URLError or unknown exceptions."""
+    time.sleep(interval)
+    wait -= interval
+    if not resetting:
+        resetting = True
+    return wait, resetting
 
 def simple_update(redfish_obj, preview_uri, update_uri):
     job_ids = []
@@ -324,7 +333,7 @@ def rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri):
     if reboot_uri:
         generation = redfish_obj.get_server_generation[0]
         job_ids = simple_update(redfish_obj, reboot_uri, update_uri)
-        track, resetting, js_job_msg = wait_for_redfish_idrac_reset(module, redfish_obj, 900, generation)
+        track, resetting, _ = wait_for_redfish_idrac_reset(module, redfish_obj, 900, generation)
         if not track and resetting:
             reboot_job_status, failed = get_job_status(redfish_obj, module, job_ids, job_wait=True)
             current_job_status.extend(reboot_job_status)

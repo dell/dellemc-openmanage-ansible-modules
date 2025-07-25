@@ -6,23 +6,26 @@
     - block:
         - name: Rollback a BIOS component firmware for 17G
           uri:
-            url: 'https://{{ baseuri }}/redfish/v1/UpdateService/FirmwareInventory?$expand=*($levels=1)'
+            url: "{{ 'https://' + baseuri + '/redfish/v1/UpdateService/' +
+              'FirmwareInventory?$expand=*($levels=1)' }}"
             method: GET
             ca_path: "/path/to/ca_cert.pem"
             url_username: "{{ username }}"
             url_password: "{{ password }}"
             headers:
               Content-Type: "application/json"
-            return_content: yes
+            return_content: true
           register: redfish_response
 
         - name: Extract all 'Name' attributes from the response
           set_fact:
-            firmware_names: "{{ redfish_response.json.Members | map(attribute='Name') | list }}"
+            firmware_names: "{{ redfish_response.json.Members 
+              | map(attribute='Name') | list }}"
 
         - name: Find the firmware name that contains 'BIOS'
           set_fact:
-            bios_firmware_name: "{{ firmware_names | select('contains', 'BIOS') | first }}"
+            bios_firmware_name: "{{ firmware_names 
+              | select('contains', 'BIOS') | first }}"
 
         - name: Rollback the BIOS component firmware
           dellemc.openmanage.redfish_firmware_rollback:
@@ -33,10 +36,11 @@
             name: "{{ bios_firmware_name }}"
           delegate_to: localhost
           tags: rollback-bios-17g
-        
+
         - name: Find the firmware name that contains 'NIC'
           set_fact:
-            network_firmware_name: "{{ firmware_names | select('contains', 'NIC') | first }}"
+            network_firmware_name: "{{ firmware_names 
+              | select('contains', 'NIC') | first }}"
 
         - name: Rollback all NIC cards with a name starting from 'NIC' for 17G.
           dellemc.openmanage.redfish_firmware_rollback:
