@@ -171,7 +171,7 @@
       until: job_result.json.JobState == 'Completed' or job_result.json.JobState == 'Failed'
       retries: 30
       delay: 10
-      when: redfish_firmware_out.changed # noqa: no-handler
+      when: redfish_firmware_out.changed  # noqa: no-handler
       ignore_errors: true
 
     - name: Wait for iDRAC to come up
@@ -189,6 +189,7 @@
         url: "https://{{ lookup('env', 'IDRAC_IP') }}/redfish/v1/JobService\
          /Jobs/{{ redfish_firmware_out.task.id }}"
         validate_certs: false
+        force_basic_auth: true
         method: "GET"
         user: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
@@ -205,4 +206,4 @@
        job_result.json.JobState == 'Failed'
       retries: 30
       delay: 10
-      when: redfish_firmware_out.changed # noqa: no-handler
+      when: redfish_firmware_out.changed  # noqa: no-handler
