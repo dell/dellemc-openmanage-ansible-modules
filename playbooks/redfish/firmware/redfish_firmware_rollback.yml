@@ -52,7 +52,7 @@
           delegate_to: localhost
           tags: rollback-match-17g
 
-        - name: Rollback all the component firmware except 
+        - name: Rollback all the component firmware except
             BIOS component for 17G.
           dellemc.openmanage.redfish_firmware_rollback:
             baseuri: "{{ baseuri }}"

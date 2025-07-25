@@ -126,7 +126,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
                      return_value=(job_resp_mock, ""))
         mocker.patch(MODULE_PATH + "redfish_firmware_rollback.simple_update", return_value=["JID_12345678"])
         mocker.patch(MODULE_PATH + "redfish_firmware_rollback.wait_for_redfish_idrac_reset",
-                     return_value=(False, True, ""))
+                     return_value=(False, True))
         mocker.patch(MODULE_PATH + "redfish_firmware_rollback.get_job_status",
                      return_value=([{"JobState": "Completed"}], 0))
         result = self.module.rollback_firmware(redfish_connection_mock, f_module, preview_uri, reboot_uri, update_uri)
