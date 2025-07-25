@@ -28,7 +28,10 @@ options:
   name:
     type: str
     required: true
-    description: The name or regular expression of the component to match and is case-sensitive.
+    description: 
+      - The name or regular expression of the component to match and is case-sensitive.
+      - "The Name should be a supported rollback component. To view the list of rollback components for iDRAC9 and above,
+      see, U(https://I(idrac_ip)/redfish/v1/UpdateService/FirmwareInventory?$expand=*($levels=1)'"
   reboot:
     description:
       - Reboot the server to apply the previous version of the firmware.
@@ -46,6 +49,7 @@ requirements:
   - "python >= 3.9.6"
 author:
   - "Felix Stephen (@felixs88)"
+  - "Sakshi Makkar (@Sakshi-dell)"
 notes:
   - Run this module from a system that has direct access to Redfish APIs.
   - For components that do not require a reboot, firmware rollback proceeds irrespective of
@@ -146,7 +150,7 @@ import time
 from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, RedfishAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import wait_for_redfish_reboot_job, \
-    wait_for_redfish_job_complete, strip_substr_dict, MANAGER_JOB_ID_URI, RESET_UNTRACK, MANAGERS_URI, RESET_SUCCESS
+    wait_for_redfish_job_complete, strip_substr_dict, MANAGER_JOB_ID_URI_10, RESET_UNTRACK, MANAGERS_URI, RESET_SUCCESS
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
@@ -165,7 +169,7 @@ ROLLBACK_FAILED = "Failed to complete the job for firmware rollback."
 REBOOT_FAIL = "Failed to reboot the server."
 NEGATIVE_TIMEOUT_MESSAGE = "The parameter reboot_timeout value cannot be negative or zero."
 JOB_WAIT_MSG = "Task excited after waiting for {0} seconds. Check console for firmware rollback status."
-REBOOT_COMP = ["Integrated Dell Remote Access Controller"]
+REBOOT_COMP = ["Integrated Dell Remote Access Controller", "BMC Firmware Inventory"]
 SESSION_RESOURCE_COLLECTION = {
     "SESSION": "/redfish/v1/SessionService/Sessions",
     "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
@@ -213,7 +217,7 @@ def get_job_status(redfish_obj, module, job_ids, job_wait=True):
     each_status, failed_count, js_job_msg = [], 0, ""
     wait_timeout = module.params["reboot_timeout"]
     for each in job_ids:
-        each_job_uri = MANAGER_JOB_ID_URI.format(each)
+        each_job_uri = MANAGER_JOB_ID_URI_10.format(each)
         job_resp, js_job_msg = wait_for_redfish_job_complete(redfish_obj, each_job_uri, job_wait=job_wait,
                                                              wait_timeout=wait_timeout)
         if job_resp and js_job_msg:
@@ -238,8 +242,12 @@ def require_session(idrac, module):
     return session_id, token
 
 
-def wait_for_redfish_idrac_reset(module, redfish_obj, wait_time_sec, interval=30):
-    time.sleep(interval // 2)
+def wait_for_redfish_idrac_reset(module, redfish_obj, wait_time_sec, generation, interval=30):
+    if generation >= 17:
+        interval_17G = 240
+        time.sleep(interval_17G)
+    else:
+        time.sleep(interval // 2)
     msg = RESET_UNTRACK
     wait = wait_time_sec
     track_failed = True
@@ -252,6 +260,9 @@ def wait_for_redfish_idrac_reset(module, redfish_obj, wait_time_sec, interval=30
             break
         except HTTPError as err:
             if err.getcode() == 401:
+                if generation >= 17:
+                    time.sleep(interval_17G)
+                    wait -= interval_17G
                 new_redfish_obj = Redfish(module.params, req_session=True)
                 sid, token = require_session(new_redfish_obj, module)
                 redfish_obj.session_id = sid
@@ -294,7 +305,7 @@ def rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri):
         job_resp_status, reset_status, reset_fail = wait_for_redfish_reboot_job(redfish_obj, SYSTEM_RESOURCE_ID,
                                                                                 payload=payload)
         if reset_status and job_resp_status:
-            job_uri = MANAGER_JOB_ID_URI.format(job_resp_status["Id"])
+            job_uri = MANAGER_JOB_ID_URI_10.format(job_resp_status["Id"])
             job_resp, job_msg = wait_for_redfish_job_complete(redfish_obj, job_uri)
             job_status = job_resp.json_data
             if job_status["JobState"] != "RebootCompleted":
@@ -311,8 +322,9 @@ def rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri):
         current_job_status, failed = get_job_status(redfish_obj, module, job_ids, job_wait=False)
         failed_cnt += failed
     if reboot_uri:
+        generation = redfish_obj.get_server_generation[0]
         job_ids = simple_update(redfish_obj, reboot_uri, update_uri)
-        track, resetting, js_job_msg = wait_for_redfish_idrac_reset(module, redfish_obj, 900)
+        track, resetting, js_job_msg = wait_for_redfish_idrac_reset(module, redfish_obj, 900, generation)
         if not track and resetting:
             reboot_job_status, failed = get_job_status(redfish_obj, module, job_ids, job_wait=True)
             current_job_status.extend(reboot_job_status)

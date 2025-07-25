@@ -41,8 +41,9 @@ class TestRedfishFirmware(FakeAnsibleModule):
     module = redfish_firmware_rollback
 
     @pytest.mark.parametrize("exc_type", [URLError, HTTPError, TypeError])
+    @pytest.mark.parametrize("generation", [16, 17])
     def test_wait_for_redfish_idrac_reset_http(self, exc_type, redfish_connection_mock, redfish_response_mock,
-                                               redfish_default_args, mocker):
+                                               redfish_default_args, mocker, generation):
         redfish_default_args.update({"name": "BIOS", "reboot": True, "reboot_timeout": 900})
         f_module = self.get_module_mock(params=redfish_default_args)
         mocker.patch(MODULE_PATH + 'redfish_firmware_rollback.time.sleep', return_value=None)
@@ -54,7 +55,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
                 HTTPS_ADDRESS, 401, HTTP_ERROR_MSG, {"accept-type": ACCESS_TYPE},
                 StringIO(json_str)
             )
-            result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 5)
+            result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 5, generation)
             assert result[0] is False
             assert result[1] is True
             assert result[2] == "iDRAC reset is in progress. Until the iDRAC is reset, the changes would not apply."
@@ -62,28 +63,29 @@ class TestRedfishFirmware(FakeAnsibleModule):
                 HTTPS_ADDRESS, 400, HTTP_ERROR_MSG, {"accept-type": ACCESS_TYPE},
                 StringIO(json_str)
             )
-            result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 5)
+            result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 5, generation)
             assert result[0] is True
             assert result[1] is True
             assert result[2] == "iDRAC reset is in progress. Until the iDRAC is reset, the changes would not apply."
         elif exc_type == URLError:
             redfish_connection_mock.invoke_request.side_effect = exc_type("exception message")
-            result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 5)
+            result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 5, generation)
             assert result[0] is True
             assert result[1] is True
             assert result[2] == "iDRAC reset is in progress. Until the iDRAC is reset, the changes would not apply."
         else:
             redfish_connection_mock.invoke_request.side_effect = exc_type("exception message")
-            result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 5)
+            result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 5, generation)
             assert result[0] is True
             assert result[1] is True
 
+    @pytest.mark.parametrize("generation", [16, 17])
     def test_wait_for_redfish_idrac_reset(self, redfish_connection_mock, redfish_response_mock,
-                                          redfish_default_args, mocker):
+                                          redfish_default_args, mocker, generation):
         redfish_default_args.update({"name": "BIOS", "reboot": True, "reboot_timeout": 900})
         f_module = self.get_module_mock(params=redfish_default_args)
         mocker.patch(MODULE_PATH + 'redfish_firmware_rollback.time.sleep', return_value=None)
-        result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 900)
+        result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 900, generation)
         assert result[0] is False
         assert result[1] is False
         assert result[2] == "iDRAC has been reset successfully."
