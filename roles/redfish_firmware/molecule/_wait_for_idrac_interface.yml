@@ -8,7 +8,7 @@
   register: uri_result
   until: uri_result is defined and uri_result.status is defined and
     uri_result.status == 200
-  retries: 10
+  retries: 20
   delay: 30
 
 - name: Getting LC status first time
