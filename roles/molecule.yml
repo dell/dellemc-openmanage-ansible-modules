@@ -23,7 +23,7 @@ provisioner:
       fact_caching_connection: /tmp/facts_cache
       fact_caching_timeout: 1800
   env:
-    RUNON: "centos"
+    RUNON: ${PLATFORM_NAME:-centos}
     idrac_powercycle_wait_seconds: 180
 verifier:
   name: ansible
