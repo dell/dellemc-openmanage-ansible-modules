@@ -5,7 +5,7 @@ dependency:
 driver:
   name: podman
 platforms:
-  - name: centos
+  - name: ${PLATFORM_NAME:-centos}
     image: quay.io/centos/centos:stream10
     pre_build_image: false
     volumes:
