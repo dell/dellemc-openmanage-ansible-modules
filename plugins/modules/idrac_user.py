@@ -336,7 +336,7 @@ def get_payload(module, slot_id, generation, action=None):
                         "Users.{0}.SolEnable": "Disabled", "Users.{0}.ProtocolEnable": "Disabled",
                         "Users.{0}.AuthenticationProtocol": "SHA", "Users.{0}.PrivacyProtocol": "AES"}
     if generation >= 17:
-        if module.params['privilege'] is not None:
+        if user_privilege is not None:
             slot_payload["Users.{0}.Role"] = get_role(slot_payload[PRIVILEGE_KEY])
         del slot_payload[PRIVILEGE_KEY]
     payload = dict([(k.format(slot_id), v) for k, v in slot_payload.items() if v is not None])
