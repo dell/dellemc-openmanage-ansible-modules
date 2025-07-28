@@ -312,11 +312,8 @@ def get_payload(module, slot_id, generation, action=None):
     :param slot_id: slot id for user slot
     :return: json data with slot id
     """
-    if generation >= 17:
-        if module.params['privilege'] == 'None':
-            module.exit_json(msg=INVALID_PRIVILAGE_MSG_NONE, failed=True)
-        elif module.params['privilege'] is None:
-            module.params['privilege'] = 'ReadOnly'
+    if generation >= 17 and module.params['privilege'] == 'None':
+        module.exit_json(msg=INVALID_PRIVILAGE_MSG_NONE, failed=True)
     user_privilege = module.params["custom_privilege"] if "custom_privilege" in module.params and \
         module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"])
 
@@ -339,7 +336,8 @@ def get_payload(module, slot_id, generation, action=None):
                         "Users.{0}.SolEnable": "Disabled", "Users.{0}.ProtocolEnable": "Disabled",
                         "Users.{0}.AuthenticationProtocol": "SHA", "Users.{0}.PrivacyProtocol": "AES"}
     if generation >= 17:
-        slot_payload["Users.{0}.Role"] = get_role(slot_payload[PRIVILEGE_KEY])
+        if module.params['privilege'] is not None:
+            slot_payload["Users.{0}.Role"] = get_role(slot_payload[PRIVILEGE_KEY])
         del slot_payload[PRIVILEGE_KEY]
     payload = dict([(k.format(slot_id), v) for k, v in slot_payload.items() if v is not None])
     return payload
