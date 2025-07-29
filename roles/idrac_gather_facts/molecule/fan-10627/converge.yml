@@ -24,7 +24,7 @@
       - -1
     idrac_gather_facts_uri_return_content: true
     diff_data: {}
-    exclude_keys: ["SpeedPercent"]
+    exclude_keys: ["SpeedPercent", "FanPWM"]
 
   tasks:
     - name: Gather Facts for the Fan component
