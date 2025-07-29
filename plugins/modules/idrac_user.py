@@ -228,11 +228,11 @@ MANAGERS_ATTRIBUTES_REGISTRY = "/redfish/v1/Registries/\
 ManagerAttributeRegistry/ManagerAttributeRegistry.v1_0_0.json"
 USER_ROLES = {"Administrator": 511, "Operator": 499, "ReadOnly": 1, "None": 0}
 ACCESS = {0: "Disabled", 1: "Enabled"}
-INVALID_PRIVILAGE_MSG = "custom_privilege value must range from {0} to 511."
-INVALID_PRIVILAGE_MSG_NONE = "None is not an applicable value for privilege in iDRAC 17G and later."
-INVALID_PRIVILAGE_MIN_iDRAC9 = 0
-INVALID_PRIVILAGE_MIN_iDRAC10 = 1
-INVALID_PRIVILAGE_MAX = 511
+INVALID_PRIVILEGE_MSG = "custom_privilege value must range from {0} to 511."
+INVALID_PRIVILEGE_MSG_NONE = "None is not an applicable value for privilege in iDRAC 17G and later."
+INVALID_PRIVILEGE_MIN_iDRAC9 = 0
+INVALID_PRIVILEGE_MIN_iDRAC10 = 1
+INVALID_PRIVILEGE_MAX = 511
 CHANGES_FOUND_MSG = "Changes found to commit!"
 ODATA_ID = "(.*?)@odata"
 UNSUPPORTED_APPLY_TIME = "Apply time {0} is not supported."
@@ -312,11 +312,8 @@ def get_payload(module, slot_id, generation, action=None):
     :param slot_id: slot id for user slot
     :return: json data with slot id
     """
-    if generation >= 17:
-        if module.params['privilege'] == 'None':
-            module.exit_json(msg=INVALID_PRIVILAGE_MSG_NONE, failed=True)
-        elif module.params['privilege'] is None:
-            module.params['privilege'] = 'ReadOnly'
+    if generation >= 17 and module.params['privilege'] == 'None':
+        module.exit_json(msg=INVALID_PRIVILEGE_MSG_NONE, failed=True)
     user_privilege = module.params["custom_privilege"] if "custom_privilege" in module.params and \
         module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"])
 
@@ -339,7 +336,8 @@ def get_payload(module, slot_id, generation, action=None):
                         "Users.{0}.SolEnable": "Disabled", "Users.{0}.ProtocolEnable": "Disabled",
                         "Users.{0}.AuthenticationProtocol": "SHA", "Users.{0}.PrivacyProtocol": "AES"}
     if generation >= 17:
-        slot_payload["Users.{0}.Role"] = get_role(slot_payload[PRIVILEGE_KEY])
+        if user_privilege is not None:
+            slot_payload["Users.{0}.Role"] = get_role(slot_payload[PRIVILEGE_KEY])
         del slot_payload[PRIVILEGE_KEY]
     payload = dict([(k.format(slot_id), v) for k, v in slot_payload.items() if v is not None])
     return payload
@@ -528,14 +526,14 @@ def validate_authentication_and_privacy_protocols(module,
 def validate_input(module, idrac, generation):
     if module.params["state"] == "present":
         if isinstance(generation, int) and generation >= 17:
-            INVALID_PRIVILAGE_MIN = INVALID_PRIVILAGE_MIN_iDRAC10
+            INVALID_PRIVILEGE_MIN = INVALID_PRIVILEGE_MIN_iDRAC10
         else:
-            INVALID_PRIVILAGE_MIN = INVALID_PRIVILAGE_MIN_iDRAC9
+            INVALID_PRIVILEGE_MIN = INVALID_PRIVILEGE_MIN_iDRAC9
         user_privilege = module.params["custom_privilege"] if "custom_privilege" in module.params and \
-            module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"], INVALID_PRIVILAGE_MIN)
+            module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"], INVALID_PRIVILEGE_MIN)
 
-        if INVALID_PRIVILAGE_MIN > user_privilege or user_privilege > INVALID_PRIVILAGE_MAX:
-            module.exit_json(msg=INVALID_PRIVILAGE_MSG.format(INVALID_PRIVILAGE_MIN),
+        if INVALID_PRIVILEGE_MIN > user_privilege or user_privilege > INVALID_PRIVILEGE_MAX:
+            module.exit_json(msg=INVALID_PRIVILEGE_MSG.format(INVALID_PRIVILEGE_MIN),
                              failed=True)
         authentication_protocol = module.params.get("authentication_protocol")
         privacy_protocol = module.params.get("privacy_protocol")
