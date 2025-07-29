@@ -60,7 +60,9 @@
           - result.failed
           - not result.changed
           - 'result.msg == "Unable to perform the operation due to an
-           unknown error in iDRAC."'
+            unknown error in iDRAC." or result.msg == "Unable to transfer a
+            file, {{ invalid_file_name }}, because the file is not available
+            at the remote host location."'
 
     - set_fact:
         cifs_share_ip: "{{ cifs_share_name.split(source_delimiter)[2]}}"
@@ -124,6 +126,8 @@
           because the operation is taking longer time than the set time limit."
         invalid_network_expected_msg2: "Unable to transfer a file, license.xml,
           because of some unknown reasons."
+        invalid_network_expected_msg3: "Unable to transfer a file, license.xml,
+          because the file is not available at the remote host location."
 
     - name: Verify error of Import license with invalid share ipaddress
       ansible.builtin.assert:
@@ -131,7 +135,8 @@
           - result.failed
           - not result.changed
           - 'result.msg == invalid_network_expected_msg or
-           invalid_network_expected_msg2'
+             result.msg == invalid_network_expected_msg2 or
+             invalid_network_expected_msg3'
 
     - name: Import license with invalid share username/path
       dellemc.openmanage.idrac_license:
