@@ -63,7 +63,7 @@
       ansible.builtin.assert:
         that:
           - invalid_ca_path.failed
-          - 'invalid_ca_path.msg == "HTTP Error 401: Unauthorized" or 
+          - 'invalid_ca_path.msg == "HTTP Error 401: Unauthorized" or
              invalid_ca_path.msg == "[Errno 2] No such file or directory"'
 
     - name: Negative - invalid resource id

@@ -114,16 +114,14 @@
   when:
     - uri_data.status == 200
 
+- name: Set the NIC result
+  ansible.builtin.set_fact:
+    res_nic: "{{ result.system_info.NIC }}"
+
 - name: Output conversion to list change none
   ansible.builtin.set_fact:
-    result_nic_updated_dict: "{{ result.system_info.NIC | regex_replace('null', '\"None\"') | from_yaml}}"
-
-- name: Output conversion to list debug 2
-  ansible.builtin.debug:
-    var: nic_updated_dict2
-  when:
-    - uri_data.status == 200
-
+    result_nic_updated_dict:
+      "{{ res_nic | regex_replace('null', '\"None\"') | from_yaml }}"
 
 - name: Set frequently updating attributes
   set_fact:

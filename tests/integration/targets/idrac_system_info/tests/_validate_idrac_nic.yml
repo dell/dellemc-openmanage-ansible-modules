@@ -46,9 +46,15 @@
     - uri_data.status == 200
     - uri_manager_data.status == 200
 
+- name: Get idrac NIC data
+  ansible.builtin.set_fact:
+    res_idrac_nic:
+      "{{ result.system_info.iDRACNIC }}"
+
 - name: Output conversion to list change none
   ansible.builtin.set_fact:
-    result_idrac_nic_updated_dict: "{{ result.system_info.iDRACNIC | regex_replace('null', '\"None\"') | from_yaml}}"
+    result_idrac_nic_updated_dict:
+      "{{ res_idrac_nic | regex_replace('null', '\"None\"') | from_yaml}}"
 
 - name: Comparing values inside list for memory
   ansible.builtin.include_tasks:
