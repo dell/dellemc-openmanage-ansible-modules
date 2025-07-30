@@ -144,7 +144,7 @@
     - name: Verify prerequisite is set
       ansible.builtin.assert:
         that:
-          - controller_name
+          - controller_name is defined
           - fetched_data.json.Oem.Dell.DellStorageController.
            CheckConsistencyMode == "Normal"
           - fetched_data.json.Oem.Dell.DellStorageController.
