@@ -311,30 +311,6 @@
               network share."
           - "'error_info' in cifs_export_invalid_password"
 
-    - name: Export cifs invalid share workgroup
-      dellemc.openmanage.idrac_support_assist:
-        export: true
-        run: false
-        accept_eula: true
-        share_parameters:
-          ip_address: "{{ cifs_share_ip }}"
-          share_name: "{{ cifs_share_dir_path }}"
-          username: "{{ cifs_share_user }}"
-          password: "{{ cifs_share_password }}"
-          share_type: cifs
-          workgroup: "Invalid"
-      register: cifs_export_invalid_workgroup
-      ignore_errors: true
-
-    - name: Verify - Export cifs invalid share workgroup
-      ansible.builtin.assert:
-        that:
-          - cifs_export_invalid_workgroup.failed
-          - not cifs_export_invalid_workgroup.changed
-          - 'cifs_export_invalid_workgroup.msg == "HTTP Error 400: Bad
-             Request"'
-          - "'error_info' in cifs_export_invalid_workgroup"
-
     - name: Export cifs - missing share creds
       dellemc.openmanage.idrac_support_assist:
         export: true

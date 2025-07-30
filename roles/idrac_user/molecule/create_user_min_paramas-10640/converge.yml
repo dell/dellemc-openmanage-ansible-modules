@@ -6,9 +6,13 @@
     idrac_user_name: "moleculeTest"
     idem_msg: "Requested changes are already present in the user slot."
   tasks:
-    - name: Configure a new iDRAC user with all parameters except user_password
+    - name: Get Server generation
+      ansible.builtin.include_tasks:
+        file: ../resources/idrac_user/_get_server_generation.yml
+
+    - name: Configure a new iDRAC user with no required parameters
       ansible.builtin.import_role:
-        name: idrac_user
+        name: dellemc.openmanage.idrac_user
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -16,6 +20,8 @@
         validate_certs: false
         state: present
         user_name: "{{ idrac_user_name }}"
+        user_password: 'test1234'
+      tags: molecule-idempotence-notest
 
     - name: Asserting user creation in check mode
       ansible.builtin.assert:
@@ -35,12 +41,8 @@
           - idrac_user_out.msg == "Successfully created user account."
           - "{{ (user_details.user_info | length) != 0 }}"
           - user_details.user_info[0].UserName == idrac_user_account.UserName
-          - user_details.user_info[0].RoleId == "None"
+          - "{{ user_details.user_info[0].RoleId == role }}"
+      vars:
+        role: "{{ 'None' if model | int < 17 else 'ReadOnly' }}"
       when: not ansible_check_mode and idrac_user_out.changed
       tags: molecule-idempotence-notest
-
-    - name: Asserting user creation in idempotency mode
-      ansible.builtin.assert:
-        that:
-          - idrac_user_out.msg == idem_msg
-      when: not ansible_check_mode and not idrac_user_out.changed

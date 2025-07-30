@@ -1,0 +1,245 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Get Server generation details
+  ansible.builtin.include_tasks: _get_server_generation.yml
+
+- block:
+    - name: setting boot mode to BIOS/Legacy
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_mode: legacy
+      register: legacy_mode
+
+    - name: Waiting idrac reset to complete before 2 - Normal
+      dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+      register: result_lc
+      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 100
+      delay: 30
+
+    - ansible.builtin.pause: seconds=30
+      when: legacy_mode.changed
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems\
+         /System.Embedded.1/"
+
+    - name: extracting data from get_data_uri
+      ansible.builtin.set_fact:
+        fetched_data: "{{ boot_data | json_query('Boot.BootOrder') }}"
+      vars:
+        boot_data: "{{ result_get_data.content | from_json }}"
+
+    - name: Checking boot options count < 2
+      ansible.builtin.fail:
+        msg: "Number of boot options should be at least 2 to check mix of
+         enable/disable in single playbook"
+      when:
+        - fetched_data | length < 2
+
+    - ansible.builtin.set_fact:
+        reverse_list: "{{ fetched_data | reverse }}"
+
+    - name: Configuring Bios Boot Order as below - Check mode - Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_order:
+          "{{ reverse_list | list}}"
+      register: bios_boot_order_cm_mode
+      check_mode: true
+
+    - name: Verify status of tasks - check mode - enabling using display names
+      ansible.builtin.assert:
+        that:
+          - bios_boot_order_cm_mode.changed
+          - bios_boot_order_cm_mode.msg == 'Changes found to be applied.'
+
+    - name: Configuring Bios Boot Order as below - Normal - Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_order:
+          "{{ reverse_list | list}}"
+      register: bios_boot_order_normal_mode
+
+    - name: Waiting idrac reset to complete after bios boot order  - Normal
+      dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+      register: result_lc
+      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 100
+      delay: 30
+
+    - ansible.builtin.pause: seconds=30
+      when: bios_boot_order_normal_mode.changed
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1\
+         /Systems/System.Embedded.1/"
+
+    - name: extracting data from get_data_uri after bios boot order normal
+      ansible.builtin.set_fact:
+        data_after_bios_boot_order_normal:
+          "{{ boot_data | json_query('Boot.BootOrder') }}"
+      vars:
+        boot_data: "{{ result_get_data.content | from_json }}"
+
+    - name: Verify status of tasks bios boot order - normal mode
+      ansible.builtin.assert:
+        that:
+          - data_after_bios_boot_order_normal ==  reverse_list
+          - bios_boot_order_normal_mode.changed
+          - bios_boot_order_normal_mode.msg == 'Successfully updated the
+            boot settings.'
+
+    - name: Configuring Bios Boot Order as below - Idempotency
+      dellemc.openmanage.idrac_boot:
+        boot_order:
+          "{{ reverse_list | list}}"
+      register: bios_boot_order_idempotency_mode
+
+    - name: Verify status of tasks Bios Boot Order - Idempotency
+      ansible.builtin.assert:
+        that:
+          - not bios_boot_order_idempotency_mode.changed
+          - bios_boot_order_idempotency_mode.msg == 'No changes found to
+            be applied.'
+  when: generation | int < 17
+
+  module_defaults:
+    dellemc.openmanage.idrac_boot:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+    dellemc.openmanage.idrac_lifecycle_controller_status_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+- block:
+    - name: Changing iDRAC Boot to UEFI
+      dellemc.openmanage.idrac_boot:
+        boot_source_override_mode: uefi
+      register: uefi_mode
+
+    - name: Waiting idrac reset to complete after bios boot order  - Normal
+      dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+      register: result_lc
+      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 100
+      delay: 30
+
+    - ansible.builtin.pause: seconds=30
+      when: uefi_mode.changed
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1\
+         /Systems/System.Embedded.1/"
+
+    - name: extracting data from get_data_uri
+      ansible.builtin.set_fact:
+        fetched_uefi_data: "{{ boot_data | json_query('Boot.BootOrder') }}"
+      vars:
+        boot_data: "{{ result_get_data.content | from_json }}"
+
+    - name: Checking boot options count < 2
+      ansible.builtin.fail:
+        msg: "Number of boot options should be at least 2 to check mix of
+         enable/disable in single playbook"
+      when: fetched_uefi_data | length  < 2
+
+    - ansible.builtin.set_fact:
+        reverse_list: "{{ fetched_uefi_data | reverse }}"
+
+    - name: Configuring Uefi Boot Order as below - Check mode -
+       Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_order:
+          "{{ reverse_list | list}}"
+      register: uefi_boot_order_cm_mode
+      check_mode: true
+
+    - name: Verify status of tasks - check mode - Uefi
+      ansible.builtin.assert:
+        that:
+          - uefi_boot_order_cm_mode.changed
+          - uefi_boot_order_cm_mode.msg == 'Changes found to be applied.'
+
+    - name: Configuring Uefi Boot Order as below - Normal - Changes expected
+      dellemc.openmanage.idrac_boot:
+        boot_order:
+          "{{ reverse_list | list}}"
+        timeout: 120
+      register: uefi_boot_order_normal_mode
+
+    - name: Waiting idrac reset to complete after Uefi boot order  - Normal
+      dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        idrac_ip: "{{ idrac_ip }}"
+      register: result_lc
+      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 100
+      delay: 30
+
+    - ansible.builtin.pause: seconds=30
+      when: uefi_boot_order_normal_mode.changed
+
+    - ansible.builtin.include_tasks: get_data_uri.yml
+      vars:
+        url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems\
+         /System.Embedded.1/"
+
+    - name: extracting data from get_data_uri after uefi boot order normal
+      ansible.builtin.set_fact:
+        data_after_uefi_boot_order_normal:
+          "{{ boot_data | json_query('Boot.BootOrder') }}"
+      vars:
+        boot_data: "{{ result_get_data.content | from_json }}"
+
+    - name: Verify status of tasks uefi boot order - normal mode
+      ansible.builtin.assert:
+        that:
+          - data_after_uefi_boot_order_normal ==  reverse_list
+          - uefi_boot_order_normal_mode.changed
+          - uefi_boot_order_normal_mode.msg == 'Successfully updated the
+             boot settings.'
+
+    - name: Configuring Uefi Boot Order as below - Idempotency
+      dellemc.openmanage.idrac_boot:
+        boot_order:
+          "{{ reverse_list | list}}"
+      register: uefi_boot_order_idempotency_mode
+
+    - name: Verify status of tasks Uefi Boot Order - Idempotency
+      ansible.builtin.assert:
+        that:
+          - not uefi_boot_order_idempotency_mode.changed
+          - uefi_boot_order_idempotency_mode.msg == 'No changes found to
+             be applied.'
+
+  module_defaults:
+    dellemc.openmanage.idrac_boot:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+    dellemc.openmanage.idrac_lifecycle_controller_status_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
