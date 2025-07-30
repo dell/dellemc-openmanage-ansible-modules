@@ -60,6 +60,7 @@ CREATE_USER_DICT = {"state": "present",
                     "privacy_protocol": "AES"}
 ATTRIBUTE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1/"
 ATTRIBUTE_URI_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1/"
+INVALID_USERNAME_FORMAT = "{username} is not a valid username."
 
 
 class TestIDRACUser(FakeAnsibleModule):
@@ -89,6 +90,14 @@ class TestIDRACUser(FakeAnsibleModule):
         assert resp["Users.1.UserName"] == idrac_default_args["new_user_name"]
         resp = self.module.get_payload(f_module, 1, 17, action="update")
         assert resp["Users.1.UserName"] == idrac_default_args["new_user_name"]
+        idrac_default_args['privilege'] = None
+        resp = self.module.get_payload(f_module, 1, 17, action="update")
+        assert resp["Users.1.UserName"] == idrac_default_args["new_user_name"]
+        idrac_default_args['privilege'] = "None"
+        with pytest.raises(Exception) as err:
+            self.module.get_payload(f_module, 1, 17, action="update")
+        assert err.value.args[0] == \
+            "None is not an applicable value for privilege in iDRAC 17G and later."
 
     def test_get_payload_2(self, idrac_connection_user_mock, idrac_default_args, mocker):
         idrac_default_args.update({"state": "present", "new_user_name": "new_user_name",
@@ -543,3 +552,16 @@ supported. The supported privacy protocols are ['AES-256']."
         payload = {}
         response = self.module.handle_update(module, idrac, generation, payload, "Users.1#UserName", "test_user")
         assert response == "response1"
+
+    @pytest.mark.parametrize("username", [
+        "testuserlengthmorethan16",
+        "test@123dell"
+    ])
+    def test_validate_username(self, username, idrac_default_args):
+        module = MagicMock()
+        module.check_mode = False
+        f_module = self.get_module_mock(params=idrac_default_args)
+        with pytest.raises(Exception) as err:
+            self.module.validate_username(f_module, username)
+        assert err.value.args[0] == \
+            INVALID_USERNAME_FORMAT.format(username=username)

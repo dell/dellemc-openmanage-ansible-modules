@@ -2364,3 +2364,43 @@ releases:
           created using the same name as an existing uplink, then the existing
           uplink is modified.
     release_date: '2025-06-26'
+
+  9.12.3:
+    changes:
+      release_summary: 'The ``idrac_boot``,``idrac_certificates``
+       ``idrac_reset``, ``idrac_support_assist``, ``idrac_user``,
+       ``redfish_firmware`` modules and ``idrac_bios`, ``idrac_boot``,
+       ``idrac_reset``, ``idrac_user`` roles are enhanced to support iDRAC10.
+       Furthermore, the ``ome_firmware``, ``ome_firmware_baseline``,
+       ``ome_firmware_catalog``, ``ome_firmware_baseline_compliance_info``, and
+       ``ome_firmware_baseline_info`` modules now support OME 4.5.'
+      major_changes:
+        - idrac_boot - This module is enhanced to support iDRAC10.
+        - idrac_certificates - This module is enhanced to support iDRAC10.
+        - idrac_reset - This module is enhanced to support iDRAC10.
+        - idrac_support_assist - This module is enhanced to support iDRAC10.
+        - idrac_user - This module is enhanced to support iDRAC10.
+        - redfish_firmware - This module is enhanced to support iDRAC10.
+        - idrac_bios - This role is enhanced to support iDRAC10.
+        - idrac_boot - This role is enhanced to support iDRAC10.
+        - idrac_reset - This role is enhanced to support iDRAC10.
+        - idrac_user - This role is enhanced to support iDRAC10.
+        - ome_firmware - This module is enhanced to support OME 4.5.
+        - ome_firmware_baseline - This module is enhanced to support OME 4.5.
+        - ome_firmware_catalog - This module is enhanced to support OME 4.5.
+        - ome_firmware_baseline_info - This module is enhanced to support
+          OME 4.5.
+        - ome_firmware_baseline_compliance_info - This module is enhanced to
+          support OME 4.5.
+      known_issues:
+        - idrac_diagnostics - This module doesn't support
+          export of diagnostics file to HTTP and HTTPS share via SOCKS
+          proxy.
+        - idrac_attributes - The module accepts both the string as well as
+          integer value for the field "SNMP.1.AgentCommunity" for iDRAC10.
+        - ome_smart_fabric_uplink - The module supported by
+          OpenManage Enterprise Modular, however it does not allow the
+          creation of multiple uplinks of the same name. If an uplink is
+          created using the same name as an existing uplink, then the existing
+          uplink is modified.
+    release_date: '2025-07-31'

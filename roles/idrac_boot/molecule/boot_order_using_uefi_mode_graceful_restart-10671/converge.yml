@@ -67,6 +67,7 @@
       vars:
         boot_order: "{{ reverse_boot_order | default(data) }}"
         reset_type: graceful_restart
+        https_timeout: 120
 
     - name: Checking for LCStatus after performing operation
       ansible.builtin.include_tasks:

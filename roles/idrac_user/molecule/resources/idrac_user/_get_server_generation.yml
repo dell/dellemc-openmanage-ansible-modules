@@ -1,0 +1,28 @@
+---
+- name: Get Server Model
+  ansible.builtin.uri:
+    url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1\
+      /Managers/iDRAC.Embedded.1"
+    method: GET
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    validate_certs: false
+    return_content: true
+    status_code: 200
+    force_basic_auth: true
+  register: idrac_model_response
+  no_log: true
+  check_mode: false
+  vars:
+    idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+    idrac_port: "{{ lookup('env', 'IDRAC_PORT') }}"
+    idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+    idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+
+- name: Set fact for model
+  ansible.builtin.set_fact:
+    model1: "{{ idrac_model_response.json.Model }}"
+
+- name: Set the server generation fact
+  ansible.builtin.set_fact:
+    model: "{{ model1 | regex_search('([0-9]+)G', '\\1') | first | int }}"
