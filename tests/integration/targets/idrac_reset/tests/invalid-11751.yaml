@@ -167,7 +167,8 @@
       ansible.builtin.assert:
         that:
           - invalid_custom_defaults_buffer.failed
-          - 'invalid_custom_defaults_buffer.msg == "HTTP Error 400: Bad Request"'
+          - 'invalid_custom_defaults_buffer.msg == "HTTP Error
+            400: Bad Request"'
       when: it_is_iDRAC9 and custom_default_supported
 
     - name: Verify invalid custom_defaults_buffer for iDRAC9 having firmware

@@ -61,7 +61,8 @@
           - not invalid_port.changed
           - 'invalid_port.msg == "<urlopen error [Errno 111] Connection
             refused>" or invalid_port.msg == "<urlopen error timed out>" or
-            invalid_port.msg == "<urlopen error [Errno -2] Name or service not known>"'
+            invalid_port.msg == "<urlopen error [Errno -2] Name
+            or service not known>"'
 
     - name: Negative - invalid username
       dellemc.openmanage.idrac_system_erase:

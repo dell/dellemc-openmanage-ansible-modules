@@ -41,9 +41,9 @@
         that:
           - not invalid_username.changed
           - invalid_username.failed
-          - "'Unable to complete the operation because an invalid username and/or
-            password is entered' in invalid_username.msg or 'HTTP Error 401'
-            in invalid_username.msg"
+          - "'Unable to complete the operation because an invalid username
+            and/or password is entered' in invalid_username.msg
+            or 'HTTP Error 401' in invalid_username.msg"
 
     - name: Negative - invalid password
       dellemc.openmanage.idrac_attributes:

@@ -167,7 +167,7 @@
         that:
           - invalid_timeout_type.failed
           - not invalid_timeout_type.changed
-          - invalid_timeout_type_expected_msg in invalid_timeout_type.msg 
+          - invalid_timeout_type_expected_msg in invalid_timeout_type.msg
 
     - name: Negative - invalid timeout value
       dellemc.openmanage.redfish_storage_volume:
