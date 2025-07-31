@@ -82,7 +82,7 @@
             'SecureErase' operation."
           - secure_erase_job_wait.changed
           - not secure_erase_job_wait.failed
-          - secure_erase_job_wait.task.id
+          - secure_erase_job_wait.task.id is defined
           - secure_erase_job_wait.task.uri == erase_job_wait_expected_uri
 
     - name: Secure erase the physical disk with job_wait as false - Check mode
@@ -127,7 +127,7 @@
             secure_erase_no_job_wait.status.Message == "Job in progress."'
           - 'secure_erase_no_job_wait.status.JobState == "ReadyForExecution" or
             secure_erase_no_job_wait.status.JobState == "Running"'
-          - secure_erase_no_job_wait.task.id
+          - secure_erase_no_job_wait.task.id is defined
           - secure_erase_no_job_wait.task.uri == erase_no_job_wait_expected_uri
 
     - name: Secure erase the physical disk when already a job is

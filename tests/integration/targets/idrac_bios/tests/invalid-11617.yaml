@@ -22,8 +22,8 @@
       ansible.builtin.assert:
         that:
           - no_required_param.failed
-          - no_required_param.msg == "one of the following is required:
-              boot_sources, attributes, clear_pending, reset_bios"
+          - 'no_required_param.msg == "one of the following is required:
+              boot_sources, attributes, clear_pending, reset_bios"'
 
     - name: Perform reset bios with invalid username
       dellemc.openmanage.idrac_bios:
@@ -46,9 +46,9 @@
 
     - name: Verify reset bios with invalid password
       ansible.builtin.assert:
-        that: |-
-          ("'HTTP Error 401' in invalid_pass.msg") or
-          ("'urlopen error timed out' in invalid_pass.msg")
+        that:
+          - "'HTTP Error 401' in invalid_pass.msg or
+            'urlopen error timed out' in invalid_pass.msg"
 
     - name: Perform bios with invalid clear_pending value
       dellemc.openmanage.idrac_bios:

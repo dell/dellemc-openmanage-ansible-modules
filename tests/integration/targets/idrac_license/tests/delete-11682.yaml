@@ -1,0 +1,78 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Prerequisite - Fetch license id
+  ansible.builtin.include_tasks: _helper.yml
+
+- block:
+    - name: Export iDRAC License to http share
+      dellemc.openmanage.idrac_license:
+        license_id: "{{ idrac_license_id }}"
+        export: true
+        share_parameters:
+          file_name: "{{ idrac_license_file }}"
+          ip_address: "{{ http_share }}"
+          share_name: "{{ http_share_dir_path }}"
+          username: "{{ http_share_user | default(omit) }}"
+          password: "{{ http_share_password | default(omit) }}"
+          share_type: http
+      when: not import_license
+      register: export_license
+
+    - name: Delete License from iDRAC - Normal mode
+      dellemc.openmanage.idrac_license:
+        license_id: "{{ idrac_license_id }}"
+        delete: true
+      register: delete_license
+      when: (not import_license and
+        export_license.job_details.JobState == "Completed") or import_license
+
+    - name: Verify - Delete License from iDRAC - Normal mode
+      ansible.builtin.assert:
+        that:
+          - delete_license.changed
+          - delete_license.msg == "Successfully deleted the license."
+
+    - name: Delete License from iDRAC - Idempotency
+      dellemc.openmanage.idrac_license:
+        license_id: "{{ idrac_license_id }}"
+        delete: true
+      register: idempotence_delete_license
+      when: (not import_license and
+        export_license.job_details.JobState == "Completed") or import_license
+
+    - name: Delete License from iDRAC - Idempotency - Set the expected message
+      ansible.builtin.set_fact:
+        idempotence_delete_license_expected_msg: "License with ID
+          '{{ idrac_license_id }}' does not exist on the iDRAC."
+
+    - name: Verify - Delete License from iDRAC - Idempotency
+      ansible.builtin.assert:
+        that:
+          - idempotence_delete_license.skipped
+          - not idempotence_delete_license.changed
+          - 'idempotence_delete_license.msg ==
+            idempotence_delete_license_expected_msg'
+
+  always:
+    - name: Post execution - Upload the deleted license
+      ansible.builtin.include_tasks: _pre_req_import.yml
+      when: not import_license
+
+  module_defaults:
+    dellemc.openmanage.idrac_license:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      idrac_port: "{{ idrac_port }}"
+      validate_certs: "{{ validate_certs }}"

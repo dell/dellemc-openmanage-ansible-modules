@@ -1,5 +1,5 @@
 # Test code for the Dell OpenManage modules
-# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -32,7 +32,7 @@
       ansible.builtin.assert:
         that:
           - invalid_job_id.failed
-          - invalid_job_id.msg == "Failed to delete the Job: 999."
+          - 'invalid_job_id.msg == "Failed to delete the Job: 999."'
           - '"Invalid Job ID" in invalid_job_id.status.Message'
           - 'invalid_unreachable.failed or invalid_unreachable.unreachable'
           - 'invalid_unreachable.msg == "Unable to communicate with iDRAC
