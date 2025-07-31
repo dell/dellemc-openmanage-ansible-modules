@@ -95,6 +95,7 @@ roles/idrac_import_server_config_profile/defaults/main.yml var-naming[no-role-pr
 
 roles/idrac_gather_facts/defaults/main.yml var-naming[no-role-prefix]
 roles/idrac_gather_facts/molecule/negative_scenarios-10636/converge.yml var-naming[no-role-prefix]
+roles/idrac_gather_facts/tasks/__capture_error.yml var-naming[no-role-prefix]
 
 roles/idrac_firmware/defaults/main.yml var-naming[no-role-prefix]
 roles/idrac_firmware/molecule/cifs_share-10554/converge.yml var-naming[no-role-prefix]
