@@ -14,7 +14,7 @@
 
 - name: Output conversion to list
   ansible.builtin.set_fact:
-    system_updated_dict: "{{ system_updated_dict.stdout | to_json | from_json}}"
+    system_updated_dict: "{{ system_updated_dict.stdout | from_yaml }}"
   when:
     - uri_data.status == 200
 

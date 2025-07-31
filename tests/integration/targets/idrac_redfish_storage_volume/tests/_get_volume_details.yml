@@ -45,7 +45,7 @@
 
     - name: Extract data from uri response
       ansible.builtin.set_fact:
-        uri_data: "{{ uri_res.content }}"
+        uri_data: "{{ uri_res.content | from_yaml }}"
 
   module_defaults:
     dellemc.openmanage.idrac_storage_volume:

@@ -98,9 +98,8 @@
 
     - name: Set fact for invalid_restart
       ansible.builtin.set_fact:
-        invalid_msg: "argument 'restart' is of type <class 'str'> and we were
-         unable to convert to bool: The value 'invalid' is not a valid
-         boolean.  Valid booleans include: "
+        invalid_msg: "The value 'invalid' is not a valid
+         boolean."
 
     - name: Verify task status - Negative - Invalid restart
       ansible.builtin.assert:
@@ -139,10 +138,8 @@
 
     - name: Set fact for invalid job_wait
       ansible.builtin.set_fact:
-        invalid_msg: "argument 'job_wait' is of type <class 'str'> and we were
-         unable to convert to bool: The value 'invalid' is not a valid
-         boolean.  Valid booleans include: "
-
+        invalid_msg: "The value 'invalid' is not a valid
+         boolean."
     - name: Verify task status - Negative -  Invalid job_wait
       ansible.builtin.assert:
         that:
@@ -162,9 +159,7 @@
 
     - name: Set fact for invalid job_wait
       ansible.builtin.set_fact:
-        invalid_msg: "argument 'job_wait_timeout' is
-           of type <class 'str'> and we were unable to convert to
-           int: "
+        invalid_msg: "unable to convert to int: "
 
     - name: Verify task status - Negative -  Invalid job_wait_timeout
       ansible.builtin.assert:
