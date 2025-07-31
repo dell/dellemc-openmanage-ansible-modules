@@ -247,13 +247,13 @@ def main():
                 for network_vlan in network_vlan_info:
                     network_vlan = clean_data(network_vlan)
                     network_vlan['Type'] = network_type_dict[network_vlan['Type']]
-                module.exit_json(msg=MODULE_SUCCESS_MESSAGE, network_vlan_info=network_vlan_info)
+                module.exit_json(msg=MODULE_SUCCESS_MESSAGE, network_vlan_info=network_vlan_info, failed=True)
             else:
                 module.exit_json(msg=MODULE_FAILURE_MESSAGE, failed=True)
     except HTTPError as err:
         if err.getcode() == 404:
             module.exit_json(msg=str(err), failed=True)
-        module.exit_json(msg=str(MODULE_FAILURE_MESSAGE), error_info=json.load(err))
+        module.exit_json(msg=str(MODULE_FAILURE_MESSAGE), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLError, TypeError, KeyError, ConnectionError, SSLValidationError, OSError) as err:
