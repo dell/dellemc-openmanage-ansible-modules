@@ -1,0 +1,58 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user
+     and idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- block:
+    # Pre-requisite - file should be present in local path
+    - ansible.builtin.include_tasks: _cleanup_import.yml
+
+    - name: Ensure directory exists
+      ansible.builtin.file:
+        path: "{{ share_name_local }}"
+        state: directory
+
+    - name: Download license file
+      ansible.builtin.get_url:
+        url: "http://{{ http_share|ansible.utils.ipwrap }}\
+         {{ http_share_dir_path }}/{{ idrac_license_file }}"
+        dest: "{{ share_name_local }}/{{ idrac_license_file }}"
+
+    # Begin the normal mode block here
+    - name: import license from local path normal_mode
+      register: result
+      dellemc.openmanage.idrac_license: &module_params
+        import: "{{ b_true }}"
+        share_parameters:
+          file_name: "{{ idrac_license_file }}"
+          share_name: "{{ share_name_local }}"
+
+    - name: import license from local path assert normal_mode
+      ansible.builtin.assert:
+        that:
+          - result.changed is true
+          - '"Successfully imported the license" in result.msg'
+
+    # Begin the idempotency mode block here
+    - name: import license from local path idempotency_mode
+      register: result
+      dellemc.openmanage.idrac_license:
+        <<: *module_params
+      ignore_errors: true
+
+    - name: import license from local path assert idempotency_mode
+      ansible.builtin.assert:
+        that:
+          - result.changed is false
+          - result.skipped
+
+  always:
+    - ansible.builtin.include_tasks: _cleanup_import.yml

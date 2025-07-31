@@ -1,0 +1,227 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user
+     and idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- block:
+    - name: Negative - unreachable host
+      dellemc.openmanage.idrac_license:
+        idrac_ip: 999.999.999.999
+        license_id: "{{ mock_license_id }}"
+        delete: true
+      register: invalid_unreachable
+      ignore_unreachable: true
+
+    - name: Verify task status - Negative - unreachable host
+      ansible.builtin.assert:
+        that:
+          - invalid_unreachable.unreachable
+          - not invalid_unreachable.changed
+          - '"Name or service not known>" in invalid_unreachable.msg'
+
+    - name: Negative - invalid username
+      dellemc.openmanage.idrac_license:
+        idrac_user: invalid
+        license_id: "{{ mock_license_id }}"
+        delete: true
+      register: invalid_username
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid username
+      ansible.builtin.assert:
+        that:
+          - invalid_username.failed
+          - not invalid_username.changed
+          - 'invalid_username.msg == "HTTP Error 401: Unauthorized" or
+           invalid_username.msg == "<urlopen error timed out>"'
+
+    - name: Negative - invalid password
+      dellemc.openmanage.idrac_license:
+        idrac_password: invalid
+        license_id: "{{ mock_license_id }}"
+        delete: true
+      register: invalid_password
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid password
+      ansible.builtin.assert:
+        that:
+          - invalid_password.failed
+          - not invalid_password.changed
+          - 'invalid_password.msg == "HTTP Error 401: Unauthorized" or
+           invalid_password.msg == "<urlopen error timed out>"'
+
+    - name: Negative - invalid port
+      dellemc.openmanage.idrac_license:
+        idrac_port: 65536
+        license_id: "{{ mock_license_id }}"
+        delete: true
+      register: invalid_port
+      ignore_unreachable: true
+
+    - name: Verify task status - Negative - invalid port
+      ansible.builtin.assert:
+        that:
+          - invalid_port.unreachable
+          - not invalid_port.changed
+          - '"Connection refused" in invalid_port.msg or
+           "timed out" in invalid_port.msg'
+
+    - name: Negative - invalid validate_certs
+      dellemc.openmanage.idrac_license:
+        validate_certs: invalid
+        license_id: "{{ mock_license_id }}"
+        delete: true
+      register: invalid_validate_certs
+      ignore_errors: true
+
+    - ansible.builtin.set_fact:
+        invalid_validate_certs_expected_msg: "we were unable to convert to bool:
+          The value 'invalid' is not a valid boolean."
+
+    - name: Verify task status - Negative - invalid validate_certs
+      ansible.builtin.assert:
+        that:
+          - invalid_validate_certs.failed
+          - not invalid_validate_certs.changed
+          - invalid_validate_certs_expected_msg in invalid_validate_certs.msg
+
+    - name: Negative - invalid ca_path path
+      dellemc.openmanage.idrac_license:
+        ca_path: /invalid/path
+        license_id: "{{ mock_license_id }}"
+        delete: true
+      register: invalid_ca_path
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid ca_path path
+      ansible.builtin.assert:
+        that:
+          - invalid_ca_path.failed
+          - not invalid_ca_path.changed
+          - 'invalid_ca_path.msg == "[Errno 2] No such file" or
+             invalid_ca_path.msg == "directory: b''/invalid/path''" or
+             invalid_ca_path.msg == "[Errno 2] No such file or directory"'
+
+    - name: Negative - invalid timeout type
+      dellemc.openmanage.idrac_license:
+        timeout: invalid
+        license_id: "{{ mock_license_id }}"
+        delete: true
+      register: invalid_timeout_type
+      ignore_errors: true
+
+    - name: Set fact for invalid timeout type msg
+      ansible.builtin.set_fact:
+        invalid_timeout_type_expected_msg:
+          "we were unable to convert to int:"
+
+    - name: Verify task status - Negative - invalid timeout type
+      ansible.builtin.assert:
+        that:
+          - invalid_timeout_type.failed
+          - not invalid_timeout_type.changed
+          - invalid_timeout_type_expected_msg in invalid_timeout_type.msg
+
+    - name: Negative - invalid timeout value
+      dellemc.openmanage.idrac_license:
+        timeout: -1
+        license_id: "{{ mock_license_id }}"
+        delete: true
+      register: invalid_timeout_value
+      ignore_errors: true
+
+    - name: Verify task status - Negative - invalid timeout value
+      ansible.builtin.assert:
+        that:
+          - invalid_timeout_value.failed
+          - not invalid_timeout_value.changed
+          - 'invalid_timeout_value.msg == "Timeout value out of range"'
+
+    - name: Import license with mutually exclusive parameters
+      dellemc.openmanage.idrac_license:
+        import: "{{ b_true }}"
+        export: "{{ b_true }}"
+        share_parameters:
+          username: "{{ https_share_username }}"
+          password: "{{ https_share_password }}"
+          file_name: "{{ idrac_license_file }}"
+          ip_address: "{{ https_share_ip }}"
+          share_name: "{{ https_share_dir_path }}"
+          share_type: https
+      register: result
+      ignore_errors: true
+
+    - name: Verify error of Import license with mutually exclusive parameters
+      ansible.builtin.assert:
+        that:
+          - result.failed
+          - not result.changed
+          - 'result.msg == "parameters are mutually
+           exclusive: import|export|delete"'
+
+    - name: Import license with invalid resource id
+      dellemc.openmanage.idrac_license:
+        import: "{{ b_true }}"
+        resource_id: invalid
+        share_parameters:
+          file_name: "{{ idrac_license_file }}"
+          share_name: "{{ share_name_local }}"
+      register: result
+      ignore_errors: true
+
+    - name: Verify error of Import license with invalid resource id
+      ansible.builtin.assert:
+        that:
+          - result.failed
+          - not result.changed
+          - '"parameter is invalid" in result.msg'
+
+    - name: Import license without import/export/delete
+      dellemc.openmanage.idrac_license:
+        share_parameters:
+          username: "{{ https_share_username }}"
+          password: "{{ https_share_password }}"
+          file_name: "{{ idrac_license_file }}"
+          ip_address: "{{ https_share_ip }}"
+          share_name: "{{ https_share_dir_path }}"
+          share_type: https
+      register: result
+      ignore_errors: true
+
+    - name: Verify error of Import license without import/export/delete
+      ansible.builtin.assert:
+        that:
+          - result.skipped
+          - not result.changed
+          - '"Task is skipped as none of import, export or delete
+           is specified." in result.msg'
+
+    - name: Export license when export is false
+      dellemc.openmanage.idrac_license:
+        export: false
+        share_parameters:
+          username: "{{ https_share_username }}"
+          password: "{{ https_share_password }}"
+          file_name: "{{ idrac_license_file }}"
+          ip_address: "{{ https_share_ip }}"
+          share_name: "{{ https_share_dir_path }}"
+          share_type: https
+      register: result
+      ignore_errors: true
+
+    - name: Verify error of license when export is false
+      ansible.builtin.assert:
+        that:
+          - result.skipped
+          - not result.changed
+          - '"Task is skipped as none of import, export or delete
+           is specified." in result.msg'

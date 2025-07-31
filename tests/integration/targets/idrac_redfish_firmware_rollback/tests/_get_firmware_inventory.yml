@@ -32,7 +32,7 @@
 
 - name: Extracting data from uri response
   ansible.builtin.set_fact:
-    uri_data: "{{ uri_res.content }}"
+    uri_data: "{{ uri_res.content | from_yaml }}"
 
 - ansible.builtin.set_fact:
     rollback_component_list:

@@ -1,0 +1,24 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING
+# or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user
+     and idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- name: Export License https share all cases without proxy
+   with ignore_certificate_warning.
+  ansible.builtin.include_tasks: _export_https.yml
+  vars:
+    export_https_proxy_support: "off"
+    export_https_proxy_type: "{{ omit }}"
+    export_https_proxy_server: "{{ omit }}"
+    export_https_proxy_port: "{{ omit }}"
+    export_https_proxy_username: "{{ omit }}"
+    export_https_proxy_password: "{{ omit }}"
+    export_https_ignore_certificate_warning: "on"

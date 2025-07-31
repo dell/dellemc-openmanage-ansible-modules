@@ -60,14 +60,14 @@
       ansible.builtin.assert:
         that:
           - invalid_1.failed
-          - invalid_1.msg == "No such file or directory"
+          - 'invalid_1.msg == "No such file or directory"'
           - invalid_2.failed
           - invalid_3.failed
           - invalid_4.failed
           - invalid_5.failed
           - invalid_unreachable.unreachable
-          - invalid_unreachable.msg: "<urlopen error [Errno -2] Name or
-             service not known>"
+          - 'invalid_unreachable.msg == "<urlopen error [Errno -2] Name or
+            service not known>"'
 
   module_defaults:
     dellemc.openmanage.idrac_lifecycle_controller_logs:

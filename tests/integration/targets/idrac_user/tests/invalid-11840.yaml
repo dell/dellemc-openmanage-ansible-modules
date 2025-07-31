@@ -15,7 +15,6 @@
     - name: Create a new iDRAC user without user_name (Negative)
       dellemc.openmanage.idrac_user:
         state: "present"
-        user_name: "1234@dell"
         validate_certs: false
       register: invalid_1
       ignore_errors: true
@@ -105,19 +104,19 @@
       ansible.builtin.assert:
         that:
           - invalid_1.failed
-          - invalid_1.msg == 'missing required arguments: user_name'
+          - 'invalid_1.msg == "missing required arguments: user_name"'
           - invalid_2.failed
-          - invalid_2.msg == 'value of state must be one of: present, absent,
-             got":" invalid'
+          - '"value of state must be one of: present, absent,
+            got" in invalid_2.msg'
           - invalid_3.failed
-          - invalid_3.msg == "value of privilege must be one of: Administrator,
-             ReadOnly, Operator, None, got':' invalid"
+          - '"value of privilege must be one of: Administrator,
+            ReadOnly, Operator, None, got" in invalid_3.msg'
           - invalid_4.failed
-          - invalid_4.msg == "value of ipmi_lan_privilege must be one of:
-              Administrator, Operator, User, No Access, got':' invalid"
+          - '"value of ipmi_lan_privilege must be one of:
+              Administrator, Operator, User, No Access, got" in invalid_4.msg'
           - invalid_5.failed
-          - invalid_5.msg == "value of ipmi_serial_privilege must be one of:
-              Administrator, Operator, User, No Access, got':' invalid"
+          - '"value of ipmi_serial_privilege must be one of:
+              Administrator, Operator, User, No Access, got" in invalid_5.msg'
           - invalid_6.failed
           - '"not a valid boolean" in invalid_6.msg'
           - invalid_7.failed
@@ -125,11 +124,11 @@
           - invalid_8.failed
           - '"not a valid boolean" in invalid_8.msg'
           - invalid_9.failed
-          - invalid_9.msg == "value of authentication_protocol must be one of:
-              SHA, MD5, None, got':' invalid"
+          - '"value of authentication_protocol must be one of:
+              SHA, MD5, None, SHA-384, SHA-512, got" in invalid_9.msg'
           - invalid_10.failed
-          - invalid_10.msg == "value of privacy_protocol must be one of:
-              AES, DES, None, got':' invalid"
+          - '"value of privacy_protocol must be one of:
+              AES, DES, None, AES-256, got" in invalid_10.msg'
           - invalid_unreachable.unreachable
 
   module_defaults:

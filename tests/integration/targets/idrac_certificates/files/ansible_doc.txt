@@ -196,7 +196,7 @@
 - 'REQUIREMENTS:  python >= 3.9.6'
 - ''
 - 'AUTHOR: Jagadeesh N V(@jagadeeshnv), Rajshekar P(@rajshekarp87), Kristian Lamb
-    V(@kristian_lamb), Trisha Datta(@trisha-dell)'
+    V(@kristian_lamb)'
 - ''
 - 'EXAMPLES:'
 - ''

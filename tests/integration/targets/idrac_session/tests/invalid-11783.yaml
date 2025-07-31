@@ -88,9 +88,8 @@
       ignore_errors: true
 
     - ansible.builtin.set_fact:
-        invalid_validate_certs_expected_msg: "argument 'validate_certs' is of
-         type <class 'str'> and we were unable to convert to bool: The value
-         'invalid' is not a valid boolean.  Valid booleans include: "
+        invalid_validate_certs_expected_msg: "The value
+         'invalid' is not a valid boolean."
 
     - name: Verify task status - Negative - Invalid validate_certs
       ansible.builtin.assert:
@@ -121,22 +120,14 @@
       ignore_errors: true
 
     - ansible.builtin.set_fact:
-        invalid_timeout_type_expected_msg: "argument ''timeout'' is of type
-         <class ''str''> and we were unable to convert to int: <class ''str''>
-         cannot be converted to an int"
-
-    - ansible.builtin.set_fact:
-        invalid_timeout_type_expected_msg2: "argument 'timeout' is of
-         type <class 'str'> and we were unable to convert to
-         int: \"'invalid'\" cannot be converted to an int"
+        invalid_timeout_type_expected_msg: "cannot be converted to an int"
 
     - name: Verify task status - Negative - Invalid timeout type
       ansible.builtin.assert:
         that:
           - invalid_timeout_type.failed
           - not invalid_timeout_type.changed
-          - invalid_timeout_type.msg == invalid_timeout_type_expected_msg or
-            invalid_timeout_type.msg == invalid_timeout_type_expected_msg2
+          - invalid_timeout_type_expected_msg in invalid_timeout_type.msg
 
     - name: Negative - Invalid timeout value
       dellemc.openmanage.idrac_session:
