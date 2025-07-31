@@ -1,5 +1,5 @@
 exclude_paths:
   - .github/
   - .ansible/
-# .ansible-lint
-var_naming_pattern: "^[a-z_][a-z0-9_]*$"
+skip_list:
+  - var-naming[no-role-prefix]
