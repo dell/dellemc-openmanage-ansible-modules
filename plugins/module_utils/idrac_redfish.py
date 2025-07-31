@@ -55,6 +55,9 @@ MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
 EXPORT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ExportSystemConfiguration"
 IMPORT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ImportSystemConfiguration"
 IMPORT_PREVIEW = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ImportSystemConfigurationPreview"
+EXPORT_URI_17 = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/OemManager.ExportSystemConfiguration"
+IMPORT_URI_17 = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/OemManager.ImportSystemConfiguration"
+IMPORT_PREVIEW_17 = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/OemManager.ImportSystemConfigurationPreview"
 GET_IDRAC_MANAGER_ATTRIBUTES_9_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
 
 
@@ -279,7 +282,7 @@ class iDRACRedfishAPI(object):
             time.sleep(30)
         return response
 
-    def export_scp(self, export_format=None, export_use=None, target=None,
+    def export_scp(self, generation, export_format=None, export_use=None, target=None,
                    job_wait=False, share=None, include_in_export="Default"):
         """
         This method exports system configuration details from the system.
@@ -290,7 +293,7 @@ class iDRACRedfishAPI(object):
         :return: exported data in requested format.
         """
         payload = {"ExportFormat": export_format, "ExportUse": export_use,
-                   "ShareParameters": {"Target": target}}
+                   "ShareParameters": {"Target": target.split(",")}}
         if share is None:
             share = {}
         if share.get("share_ip") is not None:
@@ -320,13 +323,16 @@ class iDRACRedfishAPI(object):
         if share.get("proxy_password") is not None:
             payload["ShareParameters"]["ProxyPassword"] = share["proxy_password"]
         payload["IncludeInExport"] = [include_in_export]
-        response = self.invoke_request(EXPORT_URI, "POST", data=payload)
+        if generation >= 17:
+           response = self.invoke_request(EXPORT_URI_17, "POST", data=payload)
+        else:
+            response = self.invoke_request(EXPORT_URI, "POST", data=payload)
         if response.status_code == 202 and job_wait:
             task_uri = response.headers["Location"]
             response = self.wait_for_job_complete(task_uri, job_wait=job_wait)
         return response
 
-    def import_scp_share(self, shutdown_type=None, host_powerstate=None, job_wait=True,
+    def import_scp_share(self, generation, shutdown_type=None, host_powerstate=None, job_wait=True,
                          target=None, import_buffer=None, share=None, time_to_wait=300):
         """
         This method imports system configuration using share.
@@ -339,7 +345,7 @@ class iDRACRedfishAPI(object):
         :return: json response
         """
         payload = {"ShutdownType": shutdown_type, "EndHostPowerState": host_powerstate,
-                   "ShareParameters": {"Target": target}, "TimeToWait": time_to_wait}
+                   "ShareParameters": {"Target": target.split(",")}, "TimeToWait": time_to_wait}
         if import_buffer is not None:
             payload["ImportBuffer"] = import_buffer
         if share is None:
@@ -370,11 +376,14 @@ class iDRACRedfishAPI(object):
             payload["ShareParameters"]["ProxyUserName"] = share["proxy_username"]
         if share.get("proxy_password") is not None:
             payload["ShareParameters"]["ProxyPassword"] = share["proxy_password"]
-        response = self.invoke_request(IMPORT_URI, "POST", data=payload)
+        if generation >= 17:
+            response = self.invoke_request(IMPORT_URI_17, "POST", data=payload)
+        else:
+            response = self.invoke_request(IMPORT_URI, "POST", data=payload)
         return response
 
-    def import_preview(self, import_buffer=None, target=None, share=None, job_wait=False):
-        payload = {"ShareParameters": {"Target": target}}
+    def import_preview(self, generation, import_buffer=None, target=None, share=None, job_wait=False):
+        payload = {"ShareParameters": {"Target": target.split(",")}}
         if import_buffer is not None:
             payload["ImportBuffer"] = import_buffer
         if share is None:
@@ -405,13 +414,16 @@ class iDRACRedfishAPI(object):
             payload["ShareParameters"]["ProxyUserName"] = share["proxy_username"]
         if share.get("proxy_password") is not None:
             payload["ShareParameters"]["ProxyPassword"] = share["proxy_password"]
-        response = self.invoke_request(IMPORT_PREVIEW, "POST", data=payload)
+        if generation >= 17:
+           response = self.invoke_request(IMPORT_PREVIEW_17, "POST", data=payload)
+        else:
+            response = self.invoke_request(IMPORT_PREVIEW, "POST", data=payload)
         if response.status_code == 202 and job_wait:
             task_uri = response.headers["Location"]
             response = self.wait_for_job_complete(task_uri, job_wait=job_wait)
         return response
 
-    def import_scp(self, import_buffer=None, target=None, job_wait=False, time_to_wait=300):
+    def import_scp(self, generation, import_buffer=None, target=None, job_wait=False, time_to_wait=300):
         """
         This method imports system configuration details to the system.
         :param import_buffer: import buffer payload content xml or json format
@@ -419,8 +431,11 @@ class iDRACRedfishAPI(object):
         :param job_wait: True or False decide whether to wait till the job completion.
         :return: json response
         """
-        payload = {"ImportBuffer": import_buffer, "ShareParameters": {"Target": target}, "TimeToWait": time_to_wait}
-        response = self.invoke_request(IMPORT_URI, "POST", data=payload)
+        payload = {"ImportBuffer": import_buffer, "ShareParameters": {"Target": target.split(",")}, "TimeToWait": time_to_wait}
+        if generation >= 17:
+            response = self.invoke_request(IMPORT_URI_17, "POST", data=payload)
+        else:
+            response = self.invoke_request(IMPORT_URI, "POST", data=payload)
         if response.status_code == 202 and job_wait:
             task_uri = response.headers["Location"]
             response = self.wait_for_job_complete(task_uri, job_wait=job_wait)

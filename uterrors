@@ -1,0 +1,11 @@
+============================= test session starts ==============================
+platform linux -- Python 3.8.10, pytest-8.3.5, pluggy-1.5.0
+rootdir: /root/collections/ansible_collections/dellemc/openmanage
+configfile: pytest.ini
+plugins: mock-3.14.1
+collected 43 items
+
+tests/unit/plugins/module_utils/test_idrac_redfish.py .................. [ 41%]
+.........................                                                [100%]
+
+============================== 43 passed in 0.71s ==============================

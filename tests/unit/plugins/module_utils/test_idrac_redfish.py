@@ -310,7 +310,7 @@ class TestIdracRedfishRest(object):
         mocker.patch(MODULE_UTIL_PATH + JOB_COMPLETE,
                      return_value={"Status": "Completed"})
         job_wait = share_inp is not None
-        resp = idrac_redfish_object.export_scp("xml", "export_use",
+        resp = idrac_redfish_object.export_scp(16,"xml", "export_use",
                                                "All", job_wait, share_inp)
         if job_wait:
             assert resp == {"Status": "Completed"}
@@ -333,7 +333,7 @@ class TestIdracRedfishRest(object):
         imp_buffer = "import_buffer"
         if share_inp is not None:
             imp_buffer = None
-        resp = idrac_redfish_object.import_scp_share(
+        resp = idrac_redfish_object.import_scp_share(16,
             "shutdown_type", "host_powerstate", True, "All", imp_buffer, share_inp)
         assert resp.json_data == {"Status": "Completed"}
 
@@ -357,7 +357,7 @@ class TestIdracRedfishRest(object):
         if share_inp is not None:
             imp_buffer = None
             job_wait = False
-        resp = idrac_redfish_object.import_preview(
+        resp = idrac_redfish_object.import_preview(17,
             imp_buffer, "All", share_inp, job_wait)
         if job_wait:
             assert resp == {"Status": "Completed"}
@@ -373,7 +373,7 @@ class TestIdracRedfishRest(object):
                      return_value=mock_response)
         mocker.patch(MODULE_UTIL_PATH + JOB_COMPLETE,
                      return_value=mock_response)
-        resp = idrac_redfish_object.import_scp("imp_buffer", "All", True)
+        resp = idrac_redfish_object.import_scp(17,"imp_buffer", "All", True)
         assert resp.json_data == {"Status": "Completed"}
 
     @pytest.mark.parametrize("status_code", [202, 200])

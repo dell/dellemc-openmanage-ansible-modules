@@ -1,0 +1,11 @@
+ansible-playbook [core 2.13.13]
+  config file = None
+  configured module search path = ['/root/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /usr/local/lib/python3.8/dist-packages/ansible
+  ansible collection location = /root/.ansible/collections:/usr/share/ansible/collections
+  executable location = /usr/local/bin/ansible-playbook
+  python version = 3.8.10 (default, Mar 18 2025, 20:04:55) [GCC 9.4.0]
+  jinja version = 3.1.6
+  libyaml = True
+No config file found; using defaults
+Parsed localhost, inventory source with host_list plugin
