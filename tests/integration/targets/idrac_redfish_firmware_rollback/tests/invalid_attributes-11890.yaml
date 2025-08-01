@@ -114,9 +114,8 @@
       ignore_errors: true
 
     - ansible.builtin.set_fact:
-        invalid_validate_certs_expected_msg: "argument 'validate_certs' is
-          of type <class 'str'> and we were unable to convert to bool: The
-          value 'invalid' is not a valid boolean.  Valid booleans include: "
+        invalid_validate_certs_expected_msg: "The
+          value 'invalid' is not a valid boolean."
 
     - name: Verify status of tasks
       ansible.builtin.assert:

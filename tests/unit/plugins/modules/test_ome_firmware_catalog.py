@@ -265,7 +265,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
             mocker.patch(MODULE_PATH + 'check_existing_catalog',
                          side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'msg' in result
 
@@ -784,7 +784,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         ome_response_mock.json_data = params.get("json_data")
         ome_default_args.update(params.get('mparams'))
         if params.get("fail_json", False):
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
         else:
             result = self._run_module(ome_default_args, check_mode=params.get("check_mode", False))
         assert result["msg"] == params['message']
@@ -826,7 +826,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
             mocker.patch(MODULE_PATH + 'validate_names',
                          side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'msg' in result
 

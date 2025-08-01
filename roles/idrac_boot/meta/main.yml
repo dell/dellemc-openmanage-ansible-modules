@@ -1,6 +1,8 @@
 galaxy_info:
   role_name: idrac_boot
-  author: "Felix Stephen"
+  author: |
+    "Felix Stephen
+    Abhishek Sinha"
   description: Role to configure the boot order settings
   company: Dell Technologies
 

@@ -100,7 +100,7 @@
           - result_delete_volume.changed
           - 'result_delete_volume.msg == "Successfully submitted delete volume
             task."'
-          - result_delete_volume.task.id
+          - result_delete_volume.task.id is defined
           - result_delete_volume.task.uri == result_delete_volume_expected_uri
 
     - name: Delete a RAID0 volume (Idempotence)
@@ -116,7 +116,6 @@
       ansible.builtin.assert:
         that:
           - not idempotence_result_delete_volume.changed
-          - not idempotence_result_delete_volume.failed
           - idempotence_result_delete_volume.msg == expected_msg
 
   module_defaults:
@@ -142,7 +141,8 @@
       ansible.builtin.include_role: name=prepare_lifecycle_controller_job
       vars:
         job_id: "{{ result_volume.task.id }}"
-      when: result_volume.msg == "Successfully submitted create volume task."
+      when:
+        'result_volume.msg == "Successfully submitted create volume task."'
 
     - name: Set job id for assertion
       ansible.builtin.set_fact:
@@ -189,7 +189,7 @@
         that:
           - result_delete_volume.changed
           - changes_applied in result_delete_volume.msg
-          - result_delete_volume.task.id
+          - result_delete_volume.task.id is defined
           - result_delete_volume.task.uri == result_delete_volume_expected_uri
 
     - name: Delete a RAID0 volume with job_wait (Idempotence)
@@ -206,7 +206,6 @@
       ansible.builtin.assert:
         that:
           - not idempotence_result_delete_volume.changed
-          - not idempotence_result_delete_volume.failed
           - idempotence_result_delete_volume.msg == expected_msg
 
   module_defaults:

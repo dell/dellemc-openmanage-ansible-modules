@@ -1,0 +1,61 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Fetch the license details from the device
+  ansible.builtin.include_tasks: _get_data_uri.yml
+  vars:
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+     /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLicenses"
+    uri_method: GET
+    status_code: 200
+
+- name: Extracting data from get_data_uri
+  ansible.builtin.set_fact:
+    license_content: "{{ result_get_data.content | from_json |
+     json_query('Members') }}"
+
+- name: Set whether import license will be performed
+  ansible.builtin.set_fact:
+    import_license: "{{ license_content | length == 0 }}"
+
+- name: Pre-requisite- Import license if not available license
+  when: import_license
+  ansible.builtin.include_tasks: _pre_req_import.yml
+
+- name: Fetch the license details from the device after performing the import
+  ansible.builtin.include_tasks: _get_data_uri.yml
+  vars:
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+     /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLicenses"
+    uri_method: GET
+    status_code: 200
+
+- name: Extracting data from get_data_uri after performing the import
+  ansible.builtin.set_fact:
+    license_content_after_import: "{{ result_get_data.content | from_json |
+     json_query('Members') }}"
+
+- name: Find the newly imported license details
+  ansible.builtin.set_fact:
+    idrac_imported_license_id:
+      "{{ license_content_after_import[0].EntitlementID }}"
+
+- name: Set the license details
+  ansible.builtin.set_fact:
+    idrac_license_id: "{{ idrac_imported_license_id if import_license else
+     license_content[0].EntitlementID }}"
+
+- name: Fetch the service tag details from the device
+  ansible.builtin.include_tasks: _get_data_uri.yml
+  vars:
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+     /redfish/v1/Systems/System.Embedded.1"
+    uri_method: GET
+    status_code: 200
+
+- name: Extract ServiceTag and DeviceID from fetched data
+  ansible.builtin.set_fact:
+    ServiceTag: "{{ result_get_data.json.SKU }}"

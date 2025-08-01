@@ -47,8 +47,8 @@
       ansible.builtin.assert:
         that:
           - create_virtual_disk.changed
-          - create_virtual_disk.msg == "Successfully submitted create volume
-            task."
+          - 'create_virtual_disk.msg == "Successfully submitted create volume
+            task."'
 
     - name: Track the job
       ansible.builtin.include_role: name=prepare_lifecycle_controller_job
@@ -71,15 +71,15 @@
       ansible.builtin.assert:
         that:
           - initialize_task.changed
-          - initialize_task.msg == "Successfully submitted initialize volume
-            task."
+          - 'initialize_task.msg == "Successfully submitted initialize volume
+            task."'
 
     - name: Track the job
       ansible.builtin.include_role: name=prepare_lifecycle_controller_job
       vars:
         job_id: "{{ initialize_task.task.id }}"
-      when: initialize_task.msg == "Successfully submitted initialize volume
-        task."
+      when: 'initialize_task.msg == "Successfully submitted initialize volume
+        task."'
 
     - name: Initialize the virtual disk.
       dellemc.openmanage.redfish_storage_volume:
@@ -92,15 +92,15 @@
       ansible.builtin.assert:
         that:
           - initialize_task_fast.changed
-          - initialize_task_fast.msg == "Successfully submitted initialize
-            volume task."
+          - 'initialize_task_fast.msg == "Successfully submitted initialize
+            volume task."'
 
     - name: Track the job
       ansible.builtin.include_role: name=prepare_lifecycle_controller_job
       vars:
         job_id: "{{ initialize_task_fast.task.id }}"
-      when: initialize_task_fast.msg == "Successfully submitted initialize
-        volume task."
+      when: 'initialize_task_fast.msg == "Successfully submitted initialize
+        volume task."'
 
   always:
     - name: Post clean up
@@ -130,15 +130,15 @@
       ansible.builtin.assert:
         that:
           - create_virtual_disk.changed
-          - create_virtual_disk.msg == "Successfully submitted create volume
-            task."
+          - 'create_virtual_disk.msg == "Successfully submitted create volume
+            task."'
 
     - name: Track the job
       ansible.builtin.include_role: name=prepare_lifecycle_controller_job
       vars:
         job_id: "{{ create_virtual_disk.task.id }}"
-      when: create_virtual_disk.msg == "Successfully submitted create volume
-        task."
+      when: 'create_virtual_disk.msg == "Successfully submitted create volume
+        task."'
 
     - name: Fetch volume details
       ansible.builtin.include_tasks: _get_volume_details.yml

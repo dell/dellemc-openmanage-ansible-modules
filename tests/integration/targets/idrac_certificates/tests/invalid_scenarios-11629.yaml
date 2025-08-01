@@ -97,7 +97,8 @@
               Unable to communicate with iDRAC idrac_ip. This may be due
               to one of the following: Incorrect username or password,
               unreachable iDRAC IP or a failure in TLS/SSL
-              handshake." or "HTTP Error 401: Unauthorized"'
+              handshake." or invalid_idrac_user.msg == "HTTP Error 401:
+              Unauthorized"'
 
     - name: Negative - invalid idrac password
       dellemc.openmanage.idrac_certificates:
@@ -116,7 +117,8 @@
             with iDRAC idrac_ip. This may be due to one of the
             following: Incorrect username or password, unreachable iDRAC
             IP or a failure in TLS/SSL
-            handshake." or "HTTP Error 401: Unauthorized"'
+            handshake." or invalid_idrac_pass.msg == "HTTP Error 401:
+            Unauthorized"'
 
     - name: invalid command
       dellemc.openmanage.idrac_certificates:
@@ -237,10 +239,7 @@
         that:
           - invalid_reset.failed
           - not invalid_reset.changed
-          - "'argument \\'reset\\' is of type <class \\'str\\'> and we
-            were unable to convert to bool: The value \\'invalid\\' is
-            not a valid boolean.  Valid booleans
-            include:' in invalid_reset.msg"
+          - "'we were unable to convert to bool' in invalid_reset.msg"
 
     - name: invalid wait value
       dellemc.openmanage.idrac_certificates:
@@ -253,9 +252,7 @@
 
     - name: Set fact
       ansible.builtin.set_fact:
-        invalid_wait_msg: "argument 'wait' is of
-         type <class 'str'> and we were unable to convert to
-         int:"
+        invalid_wait_msg: "we were unable to convert to int:"
 
     - name: Verify task status - Negative - invalid wait value
       ansible.builtin.assert:
