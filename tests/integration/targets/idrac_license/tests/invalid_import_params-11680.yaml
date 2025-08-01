@@ -87,7 +87,7 @@
         that:
           - result.failed
           - not result.changed
-          - 'result.msg == "Could not connect to network share" or
+          - 'result.msg == "Could not connect to network share." or
              result.msg == "Resource allocation failure"'
 
     - name: Import license with invalid share type
@@ -176,7 +176,7 @@
         that:
           - result.failed
           - not result.changed
-          - result.msg == invalid_share_credentials_expected_msg or
+          - result.msg == invalid_share_credentials_expected_msg
 
     - name: Import license with invalid certificate warning
       dellemc.openmanage.idrac_license:
