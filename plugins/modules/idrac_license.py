@@ -823,7 +823,7 @@ class ImportLicense(License):
             payload["Username"] = self.module.params.get('share_parameters').get('username')
         if self.module.params.get('share_parameters').get('password'):
             payload["Password"] = self.module.params.get('share_parameters').get('password')
-        
+
         payload["TransferProtocol"] = "HTTP" if self.module.params.get('share_parameters').get('share_type') == "http" else "HTTPS"
         payload["LicenseFileURI"] = (
             self.module.params.get('share_parameters').get('share_type') +
