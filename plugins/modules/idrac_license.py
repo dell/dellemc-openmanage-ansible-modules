@@ -164,6 +164,7 @@ notes:
     - This module supports IPv4 and IPv6 addresses.
     - This module does not support C(check_mode).
     - When I(share_type) is C(local) for I(import) and I(export) operations, job_details are not displayed.
+    - Due to API limitation, proxy parameters are ignored during the I(import) operation.
 """
 
 EXAMPLES = r"""
@@ -305,26 +306,6 @@ EXAMPLES = r"""
       share_name: "/path/to/share"
       username: "username"
       password: "password"
-
-- name: Import a license to iDRAC from HTTPS share via proxy
-  dellemc.openmanage.idrac_license:
-    idrac_ip: 198.162.0.1
-    idrac_user: "username"
-    idrac_password: "password"
-    ca_path: "/path/to/ca_cert.pem"
-    import: true
-    share_parameters:
-      file_name: "license_file_name.xml"
-      share_type: https
-      ip_address: "192.168.0.1"
-      share_name: "/path/to/share"
-      username: "username"
-      password: "password"
-      proxy_support: "parameters_proxy"
-      proxy_server: "192.168.0.2"
-      proxy_port: 808
-      proxy_username: "proxy_username"
-      proxy_password: "proxy_password"
 
 - name: Delete a License from iDRAC
   dellemc.openmanage.idrac_license:
@@ -838,12 +819,11 @@ class ImportLicense(License):
             object: The import status.
         """
         payload = {}
-        proxy_details = self.get_proxy_details()
         if self.module.params.get('share_parameters').get('username'):
             payload["Username"] = self.module.params.get('share_parameters').get('username')
         if self.module.params.get('share_parameters').get('password'):
             payload["Password"] = self.module.params.get('share_parameters').get('password')
-        payload.update(proxy_details)
+        
         payload["TransferProtocol"] = "HTTP" if self.module.params.get('share_parameters').get('share_type') == "http" else "HTTPS"
         payload["LicenseFileURI"] = (
             self.module.params.get('share_parameters').get('share_type') +
