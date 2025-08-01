@@ -1,0 +1,83 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: hostname, username and
+      password."
+  when: hostname is not defined or username is not defined or
+    password is not defined
+
+- block:
+    - ansible.builtin.include_tasks: _pre_post_req.yml
+
+    - name: Invalid destination address
+      dellemc.openmanage.ome_application_alerts_smtp:
+        destination_address:
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        port_number: 25
+        use_ssl: true
+        enable_authentication: true
+        credentials:
+          username: "{{ username }}"
+          password: "{{ password }}"
+      ignore_errors: true
+      register: invalid_destination_address
+
+    - name: Invalid port number
+      dellemc.openmanage.ome_application_alerts_smtp:
+        destination_address: localhost
+        port_number: 9
+        use_ssl: true
+        enable_authentication: true
+        credentials:
+          username: "{{ username }}"
+          password: "{{ password }}"
+      ignore_errors: true
+      register: invalid_port_number
+
+    - name: Missing destination
+      dellemc.openmanage.ome_application_alerts_smtp:
+        port_number: 10
+        use_ssl: true
+        enable_authentication: true
+        credentials:
+          username: "{{ username }}"
+          password: "{{ password }}"
+      ignore_errors: true
+      register: missing_destination
+
+    - name: Verify the status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_destination_address.failed
+          - not invalid_destination_address.changed
+          - invalid_destination_address.error_info.
+            error['@Message.ExtendedInfo'][0].Message == 'Unable to update the
+            SMTP settings because the Destination Address is invalid
+            or missing.'
+          - 'invalid_destination_address.msg == "HTTP Error 400: 400"'
+          - invalid_port_number.failed
+          - not invalid_port_number.changed
+          - invalid_port_number.error_info.
+            error['@Message.ExtendedInfo'][0].Message == 'Unable to update the
+            SMTP settings because the entered port number 9 is invalid.'
+          - 'invalid_port_number.msg == "HTTP Error 400: 400"'
+          - missing_destination.failed
+          - not missing_destination.changed
+          - "'missing required arguments: destination_address'
+            in missing_destination.msg"
+
+  module_defaults:
+    dellemc.openmanage.ome_application_alerts_smtp:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"

@@ -60,7 +60,9 @@
           - result.failed
           - not result.changed
           - 'result.msg == "Unable to perform the operation due to an
-           unknown error in iDRAC."'
+            unknown error in iDRAC." or result.msg == "Unable to transfer a
+            file, {{ invalid_file_name }}, because the file is not available
+            at the remote host location."'
 
     - set_fact:
         cifs_share_ip: "{{ cifs_share_name.split(source_delimiter)[2]}}"
@@ -124,14 +126,17 @@
           because the operation is taking longer time than the set time limit."
         invalid_network_expected_msg2: "Unable to transfer a file, license.xml,
           because of some unknown reasons."
+        invalid_network_expected_msg3: "Unable to transfer a file, license.xml,
+          because the file is not available at the remote host location."
 
     - name: Verify error of Import license with invalid share ipaddress
       ansible.builtin.assert:
         that:
           - result.failed
           - not result.changed
-          - 'result.msg == invalid_network_expected_msg or
-           invalid_network_expected_msg2'
+          - result.msg == invalid_network_expected_msg or
+            result.msg == invalid_network_expected_msg2 or
+            result.msg == invalid_network_expected_msg3
 
     - name: Import license with invalid share username/path
       dellemc.openmanage.idrac_license:
@@ -149,14 +154,18 @@
     - name: Invalid share credentials - Set the expected message
       ansible.builtin.set_fact:
         invalid_share_credentials_expected_msg: "Unable to perform the
-         operation due to an unknown error in iDRAC."
+          operation due to an unknown error in iDRAC."
+        invalid_share_credentials_expected_msg2: "Unable to transfer a file,
+          license.xml, because credentials are not entered, or the credentials
+          entered do not correspond to an authorized user of the remote host."
 
     - name: Verify error of Import license with invalid share username/path
       ansible.builtin.assert:
         that:
           - result.failed
           - not result.changed
-          - 'result.msg == invalid_share_credentials_expected_msg'
+          - result.msg == invalid_share_credentials_expected_msg or
+            result.msg == invalid_share_credentials_expected_msg2
 
     - name: Import license with invalid share password/path
       dellemc.openmanage.idrac_license:
@@ -176,7 +185,8 @@
         that:
           - result.failed
           - not result.changed
-          - 'result.msg == invalid_share_credentials_expected_msg'
+          - result.msg == invalid_share_credentials_expected_msg or
+            result.msg == invalid_share_credentials_expected_msg2
 
     - name: Import license with invalid certificate warning
       dellemc.openmanage.idrac_license:

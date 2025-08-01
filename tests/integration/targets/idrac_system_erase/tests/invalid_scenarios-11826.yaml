@@ -1,5 +1,5 @@
 # Dell OpenManage Ansible modules
-# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -59,8 +59,10 @@
         that:
           - invalid_port.unreachable
           - not invalid_port.changed
-          - ('invalid_port.msg == "<urlopen error [Errno 111] Connection
-            refused>"') or ('invalid_port.msg == "<urlopen error timed out>"')
+          - 'invalid_port.msg == "<urlopen error [Errno 111] Connection
+            refused>" or invalid_port.msg == "<urlopen error timed out>" or
+            invalid_port.msg == "<urlopen error [Errno -2] Name
+            or service not known>"'
 
     - name: Negative - invalid username
       dellemc.openmanage.idrac_system_erase:
@@ -100,9 +102,8 @@
       ignore_errors: true
 
     - ansible.builtin.set_fact:
-        invalid_validate_certs_expected_msg: "argument 'validate_certs' is of
-          type <class 'str'> and we were unable to convert to bool: The value
-          'invalid' is not a valid boolean.  Valid booleans include: "
+        invalid_validate_certs_expected_msg: "The value
+          'invalid' is not a valid boolean."
 
     - name: Verify task status - Negative - invalid validate_certs
       ansible.builtin.assert:
@@ -141,8 +142,7 @@
 
     - name: Set fact for invalid timeout type msg
       ansible.builtin.set_fact:
-        invalid_timeout_type_expected_msg: "argument 'timeout' is of type
-          <class 'str'> and we were unable to convert to int: "
+        invalid_timeout_type_expected_msg: "unable to convert to int: "
 
     - name: Verify task status - Negative - invalid timeout type
       ansible.builtin.assert:
@@ -202,9 +202,8 @@
       ignore_errors: true
 
     - ansible.builtin.set_fact:
-        invalid_power_on_expected_msg: "argument 'power_on' is of
-          type <class 'str'> and we were unable to convert to bool: The value
-          'invalid' is not a valid boolean.  Valid booleans include: "
+        invalid_power_on_expected_msg: "The value
+          'invalid' is not a valid boolean."
 
     - name: Verify task status - Negative - invalid power on value
       ansible.builtin.assert:

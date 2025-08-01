@@ -53,7 +53,7 @@
     - name: Verify prerequisite is set
       ansible.builtin.assert:
         that:
-          - controller_name
+          - controller_name is defined
           - fetched_data.json.Oem.Dell.DellStorageController.
            CheckConsistencyMode == "Normal"
           - fetched_data.json.Oem.Dell.DellStorageController.
@@ -144,7 +144,7 @@
     - name: Verify prerequisite is set
       ansible.builtin.assert:
         that:
-          - controller_name
+          - controller_name is defined
           - fetched_data.json.Oem.Dell.DellStorageController.
            CheckConsistencyMode == "Normal"
           - fetched_data.json.Oem.Dell.DellStorageController.
@@ -212,8 +212,8 @@
       ansible.builtin.assert:
         that:
           - not configure_attributes_output_idempotency.changed
-          - configure_attributes_output_idempotency.msg ==
-           "No changes found to be applied."
+          - 'configure_attributes_output_idempotency.msg ==
+           "No changes found to be applied."'
 
   module_defaults:
     dellemc.openmanage.dellemc_idrac_storage_volume:

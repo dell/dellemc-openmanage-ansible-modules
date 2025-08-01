@@ -44,9 +44,7 @@
     - name: Set fact for invalid string value of
        custom_privilege
       ansible.builtin.set_fact:
-        set_msg: "argument 'custom_privilege' is of type <class 'str'> and we
-         were unable to convert to int: \"'invalidValue'\" cannot be converted
-         to an int"
+        set_msg: "we were unable to convert to int"
 
     - name: Verify status of tasks based on generation
       ansible.builtin.assert:

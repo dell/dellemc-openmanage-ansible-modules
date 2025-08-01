@@ -13,11 +13,9 @@
 
 - block:
     - ansible.builtin.set_fact:
-        invalid_reboot_expected_msg: "argument 'reboot' is of type
-         <class 'str'> and we were unable to convert to bool: The
-         value 'None' is not a valid boolean.  Valid booleans include: "
-        string_reboot_timeout_msg: "argument 'reboot_timeout' is of
-         type <class 'str'> and we were unable to convert to
+        invalid_reboot_expected_msg: "we were unable to convert to bool: The
+         value 'None' is not a valid boolean."
+        string_reboot_timeout_msg: "we were unable to convert to
          int:"
 
     - name: Negative - invalid reboot

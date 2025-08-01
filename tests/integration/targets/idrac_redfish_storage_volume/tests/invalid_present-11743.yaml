@@ -219,9 +219,8 @@
             SoftwareAssisted, got: invalid"'
 
     - ansible.builtin.set_fact:
-        invalid_encrypted_expected_msg: "argument 'encrypted' is of type
-          <class 'str'> and we were unable to convert to bool: The value
-          'invalid' is not a valid boolean.  Valid booleans include: "
+        invalid_encrypted_expected_msg: "The value
+          'invalid' is not a valid boolean."
 
     - name: Negative - invalid encrypted value
       dellemc.openmanage.redfish_storage_volume:

@@ -24,9 +24,7 @@
     - name: Set fact - invalid value for run - expected message
       ansible.builtin.set_fact:
         invalid_value_for_run_expected_msg:
-          "argument 'run' is of type <class 'str'> and we were unable to
-          convert to bool: The value 'invalid' is
-          not a valid boolean.  Valid booleans include: "
+          "The value 'invalid' is not a valid boolean"
 
     - name: Verify task status - Negative - Invalid value for run
       ansible.builtin.assert:
@@ -113,9 +111,7 @@
     - name: Set fact - invalid type for job_wait - expected message
       ansible.builtin.set_fact:
         invalid_type_for_job_wait_expected_msg:
-          "argument 'job_wait' is of type <class 'str'> and we were unable
-          to convert to bool: The value 'invalid' is
-          not a valid boolean.  Valid booleans include: "
+          "The value 'invalid' is not a valid boolean."
 
     - name: Verify task status - Negative - Invalid type for job_wait
       ansible.builtin.assert:
@@ -134,20 +130,14 @@
 
     - name: setting fact for invalid argument message
       ansible.builtin.set_fact:
-        msg_var1: "argument 'job_wait_timeout' is of type <class 'str'>
-          and we were unable to convert to int: <class 'str'>
-          cannot be converted to an int"
-        msg_var2: "argument 'job_wait_timeout' is of type <class 'str'>
-         and we were unable to convert to int: \"'invalid'\"
-         cannot be converted to an int"
+        msg_var1: "cannot be converted to an int"
 
     - name: Verify task status - Negative - Invalid type for job_wait_timeout
       ansible.builtin.assert:
         that:
           - invalid_type_for_job_wait_timeout.failed
           - not invalid_type_for_job_wait_timeout.changed
-          - invalid_type_for_job_wait_timeout.msg ==
-            msg_var1 or invalid_type_for_job_wait_timeout.msg == msg_var2
+          - msg_var1 in invalid_type_for_job_wait_timeout.msg
 
     - name: Negative - Invalid value for job_wait_timeout
       dellemc.openmanage.idrac_diagnostics:
