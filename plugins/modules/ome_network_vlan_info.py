@@ -40,7 +40,7 @@ requirements:
     - "python >= 3.9.6"
 author: 
     - "Deepak Joshi(@deepakjoshishri)"
-    - "Meenakshi Dembi(@meenakshidembi691)"
+    
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module supports C(check_mode).
@@ -228,6 +228,7 @@ def main():
             network_vlan_uri = "{0}({1})".format(NETWORK_VLAN_BASE_URI, module.params.get("id")) if module.params.get(
                 "id") else "{0}?$top={1}".format(NETWORK_VLAN_BASE_URI, SAFE_MAX_LIMIT)
             resp = rest_obj.invoke_request('GET', network_vlan_uri)
+            # LOG.info("Network VLAN URI: %s", network_vlan_uri)
             if resp.status_code == 200:
                 network_vlan_info = resp.json_data.get('value') if isinstance(resp.json_data.get('value'), list) else [
                     resp.json_data]
@@ -247,7 +248,7 @@ def main():
                 for network_vlan in network_vlan_info:
                     network_vlan = clean_data(network_vlan)
                     network_vlan['Type'] = network_type_dict[network_vlan['Type']]
-                module.exit_json(msg=MODULE_SUCCESS_MESSAGE, network_vlan_info=network_vlan_info, failed=True)
+                module.exit_json(msg=MODULE_SUCCESS_MESSAGE, network_vlan_info=network_vlan_info, changed=False)
             else:
                 module.exit_json(msg=MODULE_FAILURE_MESSAGE, failed=True)
     except HTTPError as err:
