@@ -9,21 +9,9 @@
   when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
 
 - block:
-    - name: Get iDRAC firmware version
-      ansible.builtin.uri:
-        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
-        user: "{{ idrac_user }}"
-        password: "{{ idrac_password }}"
-        force_basic_auth: true
-        validate_certs: false
-        status_code: 200
-        headers: "Accept=application/json"
-        body_format: json
-        return_content: true
-        method: GET
-        body: {}
-      register: firmware_version
-      no_log: true
+    - name: Pre-requisite - Checking if iDRAC supports custom defaults
+      ansible.builtin.include_tasks:
+        file: ../_get_idrac_settings.yml
 
     - name: Importing SCP custom_default with nfs share_name
       dellemc.openmanage.idrac_server_config_profile:
@@ -32,7 +20,7 @@
         share_name: "{{ nfs_share_name }}"
         scp_file: "pre_req_import_custom_default.xml"
       register: nfs
-      when: firmware_version.json.FirmwareVersion > "7.00.00.00"
+      when: custom_default_supported
 
     - name: Assertion of scp custom_default with nfs share_name
       ansible.builtin.assert:
@@ -41,7 +29,7 @@
           - nfs.msg == "Unable to perform the import_custom_defaults operation
             because an invalid Share name is entered. Only 'local' share name is
             supported. Enter the valid Share name and retry the operation."
-      when: firmware_version.json.FirmwareVersion > "7.00.00.00"
+      when: custom_default_supported
 
     - name: Import scp custom_default with file extension txt
       dellemc.openmanage.idrac_server_config_profile:
@@ -51,15 +39,27 @@
         scp_file: "ansible_doc.txt"
       register: txt
       ignore_errors: true
-      when: firmware_version.json.FirmwareVersion > "7.00.00.00"
+      when: custom_default_supported
 
-    - name: Assertion of scp custom_default with file extension txt
+    - name: Assertion of scp custom_default with file extension txt for 16G
       ansible.builtin.assert:
         that:
           - txt.failed
           - txt.msg == "An invalid XML content is provided. Provide custom
             default content in a valid XML format."
-      when: firmware_version.json.FirmwareVersion > "7.00.00.00"
+      when: custom_default_supported and (hw_model | int < 17)
+
+    - name: Assertion of scp custom_default with file extension txt for
+        iDRAC version greater than 16G
+      ansible.builtin.assert:
+        that:
+          - txt.failed
+          - "'Unable to upload the server configuration profile
+            data because the file type used for the data file is
+            not in the JSON or XML format.' in
+            (txt.error_info.error['@Message.ExtendedInfo'] |
+            map(attribute='Message') | list)"
+      when: custom_default_supported and (hw_model | int >= 17)
 
     - name: Import scp with invalid xml buffer
       dellemc.openmanage.idrac_server_config_profile:
@@ -70,50 +70,62 @@
           </SystemConfiguration>"
       register: invalid_xml
       ignore_errors: true
-      when: firmware_version.json.FirmwareVersion > "7.00.00.00"
+      when: custom_default_supported
 
-    - name: Assertion of scp with invalid xml buffer
+    - name: Assertion of scp with invalid xml buffer for 16G
       ansible.builtin.assert:
         that:
           - invalid_xml.failed
           - invalid_xml.msg == "An invalid XML content is provided. Provide
             custom default content in a valid XML format."
-      when: firmware_version.json.FirmwareVersion > "7.00.00.00"
+      when: custom_default_supported and (hw_model | int < 17)
 
-    - name: Import scp custom default when iDRAC firmware version is less than '7.00.00.00'
+    - name: Assertion of scp custom_default with file extension txt for
+        iDRAC version greater than 16G
+      ansible.builtin.assert:
+        that:
+          - txt.failed
+          - "'Unable to upload the server configuration profile
+            data because the file type used for the data file is
+            not in the JSON or XML format.' in
+            (txt.error_info.error['@Message.ExtendedInfo'] |
+            map(attribute='Message') | list)"
+      when: custom_default_supported and (hw_model | int >= 17)
+
+    - name: Import scp custom default when iDRAC does not support custom defaults
       dellemc.openmanage.idrac_server_config_profile:
         job_wait: true
         command: import_custom_defaults
         share_name: "{{ role_path }}/files"
         scp_file: "import_custom_default.xml"
       register: import_cd
-      when: firmware_version.json.FirmwareVersion < "7.00.00.00"
+      when: not custom_default_supported
 
-    - name: Assertion of scp custom default when iDRAC firmware version is less than '7.00.00.00'
+    - name: Assertion of scp custom default when iDRAC does not support custom defaults
       ansible.builtin.assert:
         that:
           - import_cd.skipped
           - import_cd.msg == "import_custom_defaults is not supported on this
             firmware version of iDRAC. Enter the valid values and retry the
             operation."
-      when: firmware_version.json.FirmwareVersion < "7.00.00.00"
+      when: not custom_default_supported
 
-    - name: Export scp custom default when iDRAC firmware version is less than '7.00.00.00'
+    - name: Export scp custom default when iDRAC does not support custom defaults
       dellemc.openmanage.idrac_server_config_profile:
         job_wait: true
         command: export_custom_defaults
         share_name: "{{ playbook_dir }}"
       register: export
-      when: firmware_version.json.FirmwareVersion < "7.00.00.00"
+      when: not custom_default_supported
 
-    - name: Assertion of scp custom default when iDRAC firmware version is less than '7.00.00.00'
+    - name: Assertion of scp custom default when iDRAC does not support custom defaults
       ansible.builtin.assert:
         that:
           - export.skipped
           - export.msg == "export_custom_defaults is not supported on this
              firmware version of iDRAC. Enter the valid values and retry the
              operation."
-      when: firmware_version.json.FirmwareVersion < "7.00.00.00"
+      when: not custom_default_supported
 
   module_defaults:
     dellemc.openmanage.idrac_server_config_profile:
