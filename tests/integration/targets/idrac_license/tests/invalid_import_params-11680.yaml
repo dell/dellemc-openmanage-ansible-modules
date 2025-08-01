@@ -1,0 +1,398 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Import license without license file
+      dellemc.openmanage.idrac_license:
+        import: "{{ b_true }}"
+        share_parameters:
+          share_name: "{{ share_name_local }}"
+      register: result
+      ignore_errors: true
+
+    - name: Verify error of Import license without license file
+      ansible.builtin.assert:
+        that:
+          - result.failed
+          - not result.changed
+          - result.msg == "Missing required parameter 'file_name'."
+
+    - name: Import license without share parameters
+      dellemc.openmanage.idrac_license:
+        import: "{{ b_true }}"
+      register: result
+      ignore_errors: true
+
+    - name: Verify error of Import license without share parameters
+      ansible.builtin.assert:
+        that:
+          - result.failed
+          - not result.changed
+          - 'result.msg == "import is True but all of the following are
+            missing: share_parameters"'
+
+    - name: Import license with invalid license file
+      dellemc.openmanage.idrac_license:
+        import: "{{ b_true }}"
+        share_parameters:
+          username: "{{ http_share_user }}"
+          password: "{{ http_share_password }}"
+          ip_address: "{{ http_share }}"
+          share_name: "{{ http_share_dir_path }}"
+          share_type: http
+          file_name: "{{ invalid_file_name }}"
+      register: result
+      ignore_errors: true
+
+    - name: Verify error of Import license with invalid license file
+      ansible.builtin.assert:
+        that:
+          - result.failed
+          - not result.changed
+          - 'result.msg == "Unable to perform the operation due to an
+            unknown error in iDRAC." or result.msg == "Unable to transfer a
+            file, {{ invalid_file_name }}, because the file is not available
+            at the remote host location."'
+
+    - set_fact:
+        cifs_share_ip: "{{ cifs_share_name.split(source_delimiter)[2]}}"
+      vars:
+        source_delimiter: "\\"
+
+    - name: Import license with invalid share name
+      dellemc.openmanage.idrac_license:
+        import: "{{ b_true }}"
+        share_parameters:
+          username: "{{ cifs_share_user }}"
+          password: "{{ cifs_share_password }}"
+          file_name: "{{ idrac_license_file }}"
+          ip_address: "{{ cifs_share_ip }}"
+          share_type: cifs
+          share_name: "/invalid"
+      register: result
+      ignore_errors: true
+
+    - name: Verify error of Import license with invalid share name
+      ansible.builtin.assert:
+        that:
+          - result.failed
+          - not result.changed
+          - 'result.msg == "Could not connect to network share."'
+
+    - name: Import license with invalid share type
+      dellemc.openmanage.idrac_license:
+        import: "{{ b_true }}"
+        share_parameters:
+          file_name: "{{ idrac_license_file }}"
+          share_name: "{{ share_name_local }}"
+          share_type: invalid
+      register: result
+      ignore_errors: true
+
+    - name: Verify error of Import license with invalid share type
+      ansible.builtin.assert:
+        that:
+          - result.failed
+          - not result.changed
+          - 'result.msg == "value of share_type must be one of: local, nfs,
+            cifs, http, https, got: invalid found in share_parameters"'
+
+    - name: Import license with invalid share ipaddress
+      dellemc.openmanage.idrac_license:
+        import: "{{ b_true }}"
+        share_parameters:
+          username: "{{ https_share_username }}"
+          password: "{{ https_share_password }}"
+          file_name: "{{ idrac_license_file }}"
+          ip_address: "1.1.1.1"
+          share_name: "{{ https_share_dir_path }}"
+          share_type: http
+      register: result
+      ignore_errors: true
+
+    - name: Network Connection failure - Set the expected message
+      ansible.builtin.set_fact:
+        invalid_network_expected_msg: "Unable to transfer a file, license.xml,
+          because the operation is taking longer time than the set time limit."
+        invalid_network_expected_msg2: "Unable to transfer a file, license.xml,
+          because of some unknown reasons."
+        invalid_network_expected_msg3: "Unable to transfer a file, license.xml,
+          because the file is not available at the remote host location."
+
+    - name: Verify error of Import license with invalid share ipaddress
+      ansible.builtin.assert:
+        that:
+          - result.failed
+          - not result.changed
+          - result.msg == invalid_network_expected_msg or
+            result.msg == invalid_network_expected_msg2 or
+            result.msg == invalid_network_expected_msg3
+
+    - name: Import license with invalid share username/path
+      dellemc.openmanage.idrac_license:
+        import: "{{ b_true }}"
+        share_parameters:
+          username: "invalid"
+          password: "{{ http_share_password }}"
+          file_name: "{{ idrac_license_file }}"
+          ip_address: "{{ ftp_share_ip }}"
+          share_name: "{{ http_share_dir_path }}"
+          share_type: http
+      register: result
+      ignore_errors: true
+
+    - name: Invalid share credentials - Set the expected message
+      ansible.builtin.set_fact:
+        invalid_share_credentials_expected_msg: "Unable to perform the
+          operation due to an unknown error in iDRAC."
+        invalid_share_credentials_expected_msg2: "Unable to transfer a file,
+          license.xml, because credentials are not entered, or the credentials
+          entered do not correspond to an authorized user of the remote host."
+
+    - name: Verify error of Import license with invalid share username/path
+      ansible.builtin.assert:
+        that:
+          - result.failed
+          - not result.changed
+          - result.msg == invalid_share_credentials_expected_msg or
+            result.msg == invalid_share_credentials_expected_msg2
+
+    - name: Import license with invalid share password/path
+      dellemc.openmanage.idrac_license:
+        import: "{{ b_true }}"
+        share_parameters:
+          username: "{{ http_share_user }}"
+          password: "invalid"
+          file_name: "{{ idrac_license_file }}"
+          ip_address: "{{ ftp_share_ip }}"
+          share_name: "{{ http_share_dir_path }}"
+          share_type: http
+      register: result
+      ignore_errors: true
+
+    - name: Verify error of Import license with invalid share password/path
+      ansible.builtin.assert:
+        that:
+          - result.failed
+          - not result.changed
+          - result.msg == invalid_share_credentials_expected_msg or
+            result.msg == invalid_share_credentials_expected_msg2
+
+    - name: Import license with invalid proxy support
+      dellemc.openmanage.idrac_license:
+        import: "{{ b_true }}"
+        share_parameters:
+          username: "{{ http_share_user }}"
+          password: "{{ http_share_password }}"
+          file_name: "{{ idrac_license_file }}"
+          ip_address: "{{ http_share }}"
+          share_name: "{{ http_share_dir_path }}"
+          share_type: http
+          proxy_support: "invalid"
+      register: result
+      ignore_errors: true
+
+    - name: Verify error of Import license with invalid proxy support
+      ansible.builtin.assert:
+        that:
+          - result.failed
+          - not result.changed
+          - 'result.msg == "value of proxy_support must be one of: off,
+            default_proxy, parameters_proxy, got: invalid found in
+            share_parameters"'
+
+    - name: Import license with invalid proxy type
+      dellemc.openmanage.idrac_license:
+        import: "{{ b_true }}"
+        share_parameters:
+          username: "{{ http_share_user }}"
+          password: "{{ http_share_password }}"
+          file_name: "{{ idrac_license_file }}"
+          ip_address: "{{ http_share }}"
+          share_name: "{{ http_share_dir_path }}"
+          share_type: http
+          proxy_support: "{{ parameters_proxy }}"
+          proxy_type: "https"
+          proxy_server: "{{ socks4_proxy_server }}"
+          proxy_port: "{{ socks4_proxy_port }}"
+      register: result
+      ignore_errors: true
+
+    - name: Verify error of Import license with invalid proxy type
+      ansible.builtin.assert:
+        that:
+          - result.failed
+          - not result.changed
+          - 'result.msg == "value of proxy_type must be one of: http, socks,
+            got: https found in share_parameters"'
+
+    - name: Import license with invalid proxy server
+      dellemc.openmanage.idrac_license:
+        import: "{{ b_true }}"
+        share_parameters:
+          username: "{{ http_share_user }}"
+          password: "{{ http_share_password }}"
+          file_name: "{{ idrac_license_file }}"
+          ip_address: "{{ http_share }}"
+          share_name: "{{ http_share_dir_path }}"
+          share_type: http
+          proxy_support: "{{ parameters_proxy }}"
+          proxy_type: "{{ proxy_type_socks }}"
+          proxy_server: "1.1.1.1"
+          proxy_port: "{{ socks4_proxy_port }}"
+      register: result
+      ignore_errors: true
+
+    - name: Verify error of Import license with invalid proxy server
+      ansible.builtin.assert:
+        that:
+          - result.failed
+          - not result.changed
+          - 'result.msg == invalid_network_expected_msg'
+
+    - name: Import license with invalid proxy port
+      dellemc.openmanage.idrac_license:
+        import: "{{ b_true }}"
+        share_parameters:
+          username: "{{ http_share_user }}"
+          password: "{{ http_share_password }}"
+          file_name: "{{ idrac_license_file }}"
+          ip_address: "{{ http_share }}"
+          share_name: "{{ http_share_dir_path }}"
+          share_type: http
+          proxy_support: "{{ parameters_proxy }}"
+          proxy_type: "{{ proxy_type_socks }}"
+          proxy_server: "{{ socks4_proxy_server }}"
+          proxy_port: "9999"
+      register: result
+      ignore_errors: true
+
+    - name: Invalid proxy - Set the expected message
+      ansible.builtin.set_fact:
+        invalid_proxy_expected_msg: "Unable to transfer the file,
+          {{ idrac_license_file }}, because initial network connection to the
+          remote host server is not successfully started."
+
+    - name: Verify error of Import license with invalid proxy support
+      ansible.builtin.assert:
+        that:
+          - result.failed
+          - not result.changed
+          - 'result.msg == invalid_proxy_expected_msg'
+
+    - name: Import license with invalid proxy username
+      dellemc.openmanage.idrac_license:
+        import: "{{ b_true }}"
+        share_parameters:
+          username: "{{ http_share_user }}"
+          password: "{{ http_share_password }}"
+          file_name: "{{ idrac_license_file }}"
+          ip_address: "{{ http_share }}"
+          share_name: "{{ http_share_dir_path }}"
+          share_type: http
+          proxy_support: "{{ parameters_proxy }}"
+          proxy_type: "{{ proxy_type_http }}"
+          proxy_server: "{{ http_proxy_server }}"
+          proxy_port: "{{ http_proxy_port }}"
+          proxy_username: "invalid"
+          proxy_password: "{{ http_proxy_password }}"
+      register: result
+      ignore_errors: true
+
+    - name: Import license with invalid proxy credentials - Set the expected
+        message
+      ansible.builtin.set_fact:
+        invalid_proxy_credentials_expected_msg: "A network connection is
+          successfully started to the remote host, but the file, license.xml,
+          is unable to be transferred."
+
+    - name: Verify error of Import license with invalid proxy username
+      ansible.builtin.assert:
+        that:
+          - result.failed
+          - not result.changed
+          - 'result.msg == invalid_proxy_credentials_expected_msg'
+
+    - name: Import license with invalid proxy password
+      dellemc.openmanage.idrac_license:
+        import: "{{ b_true }}"
+        share_parameters:
+          username: "{{ http_share_user }}"
+          password: "{{ http_share_password }}"
+          file_name: "{{ idrac_license_file }}"
+          ip_address: "{{ http_share }}"
+          share_name: "{{ http_share_dir_path }}"
+          share_type: http
+          proxy_support: "{{ parameters_proxy }}"
+          proxy_type: "{{ proxy_type_http }}"
+          proxy_server: "{{ http_proxy_server }}"
+          proxy_port: "{{ http_proxy_port }}"
+          proxy_username: "{{ http_proxy_username }}"
+          proxy_password: "invalid"
+      register: result
+      ignore_errors: true
+
+    - name: Verify error of Import license with invalid proxy password
+      ansible.builtin.assert:
+        that:
+          - result.failed
+          - not result.changed
+          - 'result.msg == invalid_proxy_credentials_expected_msg'
+
+    - name: Import license with proxy_support and without proxy server
+      dellemc.openmanage.idrac_license:
+        import: "{{ b_true }}"
+        share_parameters:
+          username: "{{ http_share_user }}"
+          password: "{{ http_share_password }}"
+          file_name: "{{ idrac_license_file }}"
+          ip_address: "{{ http_share }}"
+          share_name: "{{ http_share_dir_path }}"
+          share_type: http
+          proxy_support: "{{ parameters_proxy }}"
+          proxy_type: "{{ proxy_type_http }}"
+          proxy_port: "{{ http_proxy_port }}"
+          proxy_username: "{{ http_proxy_username }}"
+          proxy_password: "{{ http_proxy_password }}"
+      register: result
+      ignore_errors: true
+
+    - name: Verify - Import license with proxy_support and without proxy server
+      ansible.builtin.assert:
+        that:
+          - result.failed
+          - not result.changed
+          - 'result.msg == "proxy_support is parameters_proxy but all of the
+            following are missing: proxy_server found in share_parameters"'
+
+    - name: Import license with invalid certificate warning
+      dellemc.openmanage.idrac_license:
+        import: "{{ b_true }}"
+        share_parameters:
+          username: "{{ https_share_username }}"
+          password: "{{ https_share_password }}"
+          file_name: "{{ idrac_license_file }}"
+          ip_address: "{{ https_share_ip }}"
+          share_name: "{{ https_share_dir_path }}"
+          share_type: https
+          ignore_certificate_warning: "invalid"
+      register: result
+      ignore_errors: true
+
+    - name: Verify error of Import license with invalid certificate warning
+      ansible.builtin.assert:
+        that:
+          - result.failed
+          - not result.changed
+          - 'result.msg == "value of ignore_certificate_warning must be one of:
+            off, on, got: invalid found in share_parameters"'

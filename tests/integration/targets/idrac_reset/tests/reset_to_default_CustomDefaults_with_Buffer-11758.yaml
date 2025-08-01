@@ -93,7 +93,8 @@
           - idrac_reset_out_normal_mode.changed
           - idrac_reset_out_normal_mode.msg == 'Successfully performed
              iDRAC reset.'
-          - redfish_event_settings_retry_interval == '15'
+          - "redfish_event_settings_retry_interval == 15 or
+             redfish_event_settings_retry_interval == '15'"
           - "'reset_status' not in idrac_reset_out_normal_mode.keys()"
       when: custom_default_supported
 

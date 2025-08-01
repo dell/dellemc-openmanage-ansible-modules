@@ -1,0 +1,69 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Set the NFS IP and directory path
+      ansible.builtin.set_fact:
+        nfs_share_ip: "{{ nfs_share_name.split(':')[0] }}"
+        nfs_share_path: "{{ nfs_share_name.split(':')[1] }}"
+
+    - name: Import license from nfs share - Normal mode
+      register: result
+      dellemc.openmanage.idrac_license: &module_params
+        import: "{{ b_true }}"
+        share_parameters:
+          file_name: "{{ idrac_license_file }}"
+          ip_address: "{{ nfs_share_ip }}"
+          share_name: "{{ nfs_share_path }}{{ license_path }}"
+          share_type: nfs
+
+    - name: Get iDRAC job details
+      ansible.builtin.include_tasks: _job_track.yml
+      vars:
+        job_id: "{{ result.job_details.Id }}"
+
+    - name: Verify - Import license from nfs share - Normal mode
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - 'result.msg == "Successfully imported the license."'
+          - 'result.job_details.Message == "The command was successful"'
+          - result.job_details.Id == idrac_job_details.Id
+          - result.job_details.Message == idrac_job_details.Message
+
+    # Begin the idempotency mode block here
+    - name: Import license from nfs share - Idempotency
+      register: idempotence_result
+      dellemc.openmanage.idrac_license:
+        <<: *module_params
+      ignore_errors: true
+
+    - name: Get iDRAC job details
+      ansible.builtin.include_tasks: _job_track.yml
+      vars:
+        job_id: "{{ idempotence_result.job_details.Id }}"
+
+    - name: Verify - Import license from nfs share - Idempotency
+      ansible.builtin.assert:
+        that:
+          - not idempotence_result.changed
+          - idempotence_result.skipped
+          - 'idempotence_result.msg == "The license is already imported."'
+          - 'idempotence_result.job_details.Message == "The license is already
+            imported."'
+          - idempotence_result.job_details.Id == idrac_job_details.Id
+          - idempotence_result.job_details.Message == idrac_job_details.Message
+
+  always:
+    - name: Post clean up - Delete the imported license
+      ansible.builtin.include_tasks: _cleanup_import.yml

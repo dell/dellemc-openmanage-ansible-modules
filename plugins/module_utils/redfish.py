@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 9.12.2
+# Version 9.12.3
 # Copyright (C) 2019-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -46,6 +46,11 @@ redfish_auth_params = {
     "validate_certs": {"type": "bool", "default": True},
     "ca_path": {"type": "path"},
     "timeout": {"type": "int", "default": 30},
+}
+
+SESSION_RESOURCE_COLLECTION = {
+    "SESSION": "/redfish/v1/SessionService/Sessions",
+    "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
 }
 
 HOST_UNRESOLVED_MSG = "Unable to resolve hostname or IP {0}."
@@ -106,19 +111,6 @@ class Redfish(object):
         self.root_uri = '/redfish/v1/'
         self._headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
         self.hostname = config_ipv6(self.hostname)
-        if self.x_auth_token is not None:
-            self._headers["X-Auth-Token"] = self.x_auth_token
-        self.SESSION_RESOURCE_COLLECTION = {
-            "SESSION": "/redfish/v1/SessionService/Sessions",
-            "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
-        }
-        gen_details = self.get_server_generation
-        generation = gen_details[0]
-        if generation <= 13:
-            self.SESSION_RESOURCE_COLLECTION = {
-                "SESSION": "/redfish/v1/Sessions",
-                "SESSION_ID": "/redfish/v1/Sessions/{Id}",
-            }
 
     def _get_base_url(self):
         """builds base url"""
@@ -160,7 +152,7 @@ class Redfish(object):
         if headers:
             req_header.update(headers)
         url_kwargs = self._url_common_args_spec(method, api_timeout, headers=headers)
-        if not (path == self.SESSION_RESOURCE_COLLECTION["SESSION"] and method == 'POST'):
+        if not (path == SESSION_RESOURCE_COLLECTION["SESSION"] and method == 'POST'):
             url_kwargs["url_username"] = self.username
             url_kwargs["url_password"] = self.password
             url_kwargs["force_basic_auth"] = True
@@ -207,7 +199,7 @@ class Redfish(object):
         if self.req_session and not self.x_auth_token:
             payload = {'UserName': self.username,
                        'Password': self.password}
-            path = self.SESSION_RESOURCE_COLLECTION["SESSION"]
+            path = SESSION_RESOURCE_COLLECTION["SESSION"]
             resp = self.invoke_request('POST', path, data=payload)
             if resp and resp.success:
                 self.session_id = resp.json_data.get("Id")
@@ -222,7 +214,7 @@ class Redfish(object):
     def __exit__(self, exc_type, exc_value, traceback):
         """Deletes a session id, which is in use for request for redfish session"""
         if self.session_id:
-            path = self.SESSION_RESOURCE_COLLECTION["SESSION_ID"].format(Id=self.session_id)
+            path = SESSION_RESOURCE_COLLECTION["SESSION_ID"].format(Id=self.session_id)
             self.invoke_request('DELETE', path)
         return False
 

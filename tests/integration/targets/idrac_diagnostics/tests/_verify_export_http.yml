@@ -197,7 +197,7 @@
         sshpass -p {{ http_share_password }}
         ssh administrator@{{ http_share }} "powershell -Command Remove-Item
         -Path 'E:\httpshare\test_http_diagnostics.txt'"
-      no_log: true
+      no_log: false
 
     - name: Get and set the dynamic file name
       ansible.builtin.set_fact:
@@ -209,4 +209,4 @@
         sshpass -p {{ http_share_password }}
         ssh administrator@{{ http_share }} "powershell -Command Remove-Item
         -Path 'E:\httpshare\{{ no_file_name }}'"
-      no_log: true
+      no_log: false

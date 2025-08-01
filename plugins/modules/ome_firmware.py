@@ -380,7 +380,7 @@ def job_payload_for_update(rest_obj, module, target_data, baseline=None):
     """Formulate the payload to initiate a firmware update job."""
     resp = rest_obj.get_job_type_id("Update_Task")
     if resp is None:
-        module.fail_json(msg="Unable to fetch the job type Id.")
+        module.exit_json(msg="Unable to fetch the job type Id.", failed=True)
     stage_dict = {"StageForNextReboot": 'true', "RebootNow": 'false'}
     schedule = module.params["schedule"]
     params = [{"Key": "operationName", "Value": "INSTALL_FIRMWARE"},
@@ -431,7 +431,7 @@ def get_applicable_components(rest_obj, dup_payload, module):
                 temp_map['TargetType']['Name'] = str(device['DeviceReport']['DeviceTypeName'])
                 target_data.append(temp_map)
     else:
-        module.fail_json(msg=APPLICABLE_DUP)
+        module.exit_json(msg=APPLICABLE_DUP, failed=True)
     return target_data
 
 
@@ -464,7 +464,7 @@ def upload_dup_file(rest_obj, module):
             upload_success = True
             token = str(response.json_data)
         else:
-            module.fail_json(msg="Unable to upload {0} to {1}".format(dup_file, module.params['hostname']))
+            module.exit_json(msg="Unable to upload {0} to {1}".format(dup_file, module.params['hostname']), failed=True)
     return upload_success, token
 
 
@@ -485,11 +485,11 @@ def get_device_ids(rest_obj, module, device_id_tags):
             else:
                 invalid_tags.append(tag)
         if invalid_tags:
-            module.fail_json(
+            module.exit_json(
                 msg="Unable to complete the operation because the entered target device service"
-                    " tag(s) or device id(s) '{0}' are invalid.".format(",".join(set(invalid_tags))))
+                    " tag(s) or device id(s) '{0}' are invalid.".format(",".join(set(invalid_tags))), failed=True)
     else:
-        module.fail_json(msg="Failed to fetch the device facts.")
+        module.exit_json(msg="Failed to fetch the device facts.", failed=True)
     return device_id, device_resp
 
 
@@ -500,9 +500,9 @@ def get_group_ids(rest_obj, module):
     if resp["report_list"]:
         grp_ids = [grp['Id'] for grp in resp["report_list"] for grpname in group_name if grp['Name'] == grpname]
         if len(set(group_name)) != len(set(grp_ids)):
-            module.fail_json(
+            module.exit_json(
                 msg="Unable to complete the operation because the entered target device group name(s)"
-                    " '{0}' are invalid.".format(",".join(set(group_name))))
+                    " '{0}' are invalid.".format(",".join(set(group_name))), failed=True)
     return grp_ids
 
 
@@ -517,12 +517,12 @@ def get_baseline_ids(rest_obj, module):
                 baseline_details["repo_id"] = bse["RepositoryId"]
                 baseline_details["catalog_id"] = bse["CatalogId"]
         if not baseline_details:
-            module.fail_json(
+            module.exit_json(
                 msg="Unable to complete the operation because the entered target baseline name"
-                    " '{0}' is invalid.".format(baseline))
+                    " '{0}' is invalid.".format(baseline), failed=True)
     else:
-        module.fail_json(msg="Unable to complete the operation because the entered "
-                             "target baseline name does not exist.")
+        module.exit_json(msg="Unable to complete the operation because the entered "
+                             "target baseline name does not exist.", failed=True)
     return baseline_details
 
 
@@ -575,7 +575,7 @@ def baseline_based_update(rest_obj, module, baseline, dev_comp_map):
                         data_dict["TargetType"] = {"Id": dvc['DeviceTypeId'], "Name": dvc["DeviceTypeName"]}
                         compliance_report_list.append(data_dict)
     else:
-        module.fail_json(msg=COMPLIANCE_READ_FAIL)
+        module.exit_json(msg=COMPLIANCE_READ_FAIL, changed=True)
     if not compliance_report_list:
         module.exit_json(msg=NO_CHANGES_MSG)
     if module.check_mode:
@@ -623,7 +623,7 @@ def validate_inputs(module):
     param = module.params
     if param.get("dup_file"):
         if not any([param.get("device_id"), param.get("device_service_tag"), param.get("device_group_names")]):
-            module.fail_json(msg=DUP_REQ_MSG)
+            module.exit_json(msg=DUP_REQ_MSG, failed=True)
 
 
 def main():
@@ -674,11 +674,11 @@ def main():
             job_payload = job_payload_for_update(rest_obj, module, target_data, baseline=baseline_details)
             update_status = spawn_update_job(rest_obj, job_payload)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
     module.exit_json(msg="Successfully submitted the firmware update job.", update_status=update_status, changed=True)
 
 

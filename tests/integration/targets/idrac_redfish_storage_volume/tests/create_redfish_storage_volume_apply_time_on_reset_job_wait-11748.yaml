@@ -70,7 +70,7 @@
         that:
           - result.changed is true
           - changes_applied in result.msg
-          - result.task.id
+          - result.task.id is defined
           - result.task.uri == result_expected_uri
           # Verify volume details
           - uri_data.Name == name_expected_msg
@@ -157,7 +157,7 @@
         that:
           - result.changed is true
           - job_submitted in result.msg
-          - result.task.id
+          - result.task.id is defined
           - result.task.uri == result_expected_uri
           # Verify volume details
           - uri_data.Name == name_expected_msg

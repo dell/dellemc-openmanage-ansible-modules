@@ -58,6 +58,7 @@ options:
         boot source is booted from.
       - C(legacy) The system boot in non-UEFI(Legacy) boot mode to the I(boot_source_override_target).
       - C(uefi) The system boot in UEFI boot mode to the I(boot_source_override_target).
+      - This is read-only property for iDRAC 17G and later.
       - This is mutually exclusive with I(boot_options).
     choices: [legacy, uefi]
   boot_source_override_enabled:
@@ -84,8 +85,10 @@ options:
       - C(utilities) performs boot from the local utilities.
       - C(uefi_target) performs boot from the UEFI device path found in I(uefi_target_boot_source_override).
       - If the I(boot_source_override_target) is set to a value other than C(none) then the
-        I(boot_source_override_enabled) is automatically set to C(once).
+        I(boot_source_override_enabled) is automatically set to C(once) if I(boot_source_override_enabled) is not provided.
       - Changes to this options do not alter the BIOS persistent boot order configuration.
+      - This is required if I(boot_source_override_enabled) is C(once) or C(continuous) for iDRAC 17G and later.
+      - This is not idempotent for iDRAC 17G and later.
       - This is mutually exclusive with I(boot_options).
     choices: [uefi_http, sd_card, uefi_target, utilities, bios_setup, hdd, cd, floppy, pxe, none]
   uefi_target_boot_source_override:
@@ -124,6 +127,7 @@ requirements:
     - "python >= 3.9.6"
 author:
     - "Felix Stephen (@felixs88)"
+    - "Abhishek Sinha (@ABHISHEK-SINHA10)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports C(check_mode).
@@ -272,10 +276,10 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (s
 
 SYSTEM_URI = "/redfish/v1/Systems"
 BOOT_OPTIONS_URI = "/redfish/v1/Systems/{0}/BootOptions?$expand=*($levels=1)"
-JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
-JOB_URI_ID = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{0}"
-BOOT_SEQ_URI = "/redfish/v1/Systems/{0}/BootSources"
-PATCH_BOOT_SEQ_URI = "/redfish/v1/Systems/{0}/BootSources/Settings"
+JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs?$expand=*($levels=1)"
+JOB_URI_ID = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{0}"
+BOOT_SEQ_URI = "/redfish/v1/Systems/{0}/Oem/Dell/DellBootSources"
+PATCH_BOOT_SEQ_URI = "/redfish/v1/Systems/{0}/Oem/Dell/DellBootSources/Settings"
 
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
@@ -327,7 +331,9 @@ def system_reset(module, idrac, res_id):
     reset_msg, track_failed, reset, reset_type, job_resp = "", False, True, module.params.get("reset_type"), {}
     if reset_type is not None and not reset_type == "none":
         data = {"ResetType": RESET_TYPE[reset_type]}
-        reset, track_failed, reset_msg, job_resp = idrac_system_reset(idrac, res_id, payload=data, job_wait=True)
+        job_wait_timeout = module.params.get("job_wait_timeout")
+        reset, track_failed, reset_msg, job_resp = idrac_system_reset(idrac, res_id, payload=data, job_wait=True,
+                                                                      wait_time_sec=job_wait_timeout)
         if RESET_TYPE["graceful_restart"] == "ForceRestart":
             reset = True
         if reset_type == "force_restart" and RESET_TYPE["graceful_restart"] == "GracefulRestart":
@@ -365,13 +371,9 @@ def configure_boot_options(module, idrac, res_id, payload):
     [each.update({"Enabled": payload.get(each["Name"])}
                  ) for each in boot_seq_data if payload.get(each["Name"]) is not None]
     seq_payload = {"Attributes": {seq_key: boot_seq_data}, "@Redfish.SettingsApplyTime": {"ApplyTime": "OnReset"}}
-    if seq_key == "UefiBootSeq":
-        for i in range(len(boot_seq_data)):
-            if payload.get(resp_data["BootOrder"][i]) is not None:
-                boot_seq_data[i].update({"Enabled": payload.get(resp_data["BootOrder"][i])})
-        seq_payload["Attributes"][seq_key] = boot_seq_data
+    seq_payload = _update_seq_payload(payload, resp_data, seq_key, boot_seq_data, seq_payload)
     resp = idrac.invoke_request(PATCH_BOOT_SEQ_URI.format(res_id), "PATCH", data=seq_payload)
-    if resp.status_code == 202:
+    if resp.status_code in [200, 202]:
         location = resp.headers["Location"]
         job_id = location.split("/")[-1]
         reset, track_failed, reset_msg, reset_job_resp = system_reset(module, idrac, res_id)
@@ -389,12 +391,23 @@ def configure_boot_options(module, idrac, res_id, payload):
     return job_data
 
 
-def apply_boot_settings(module, idrac, payload, res_id):
+def _update_seq_payload(payload, resp_data, seq_key, boot_seq_data, seq_payload):
+    if seq_key == "UefiBootSeq":
+        for i in range(len(boot_seq_data)):
+            if payload.get(resp_data["BootOrder"][i]) is not None:
+                boot_seq_data[i].update({"Enabled": payload.get(resp_data["BootOrder"][i])})
+        seq_payload["Attributes"][seq_key] = boot_seq_data
+    return seq_payload
+
+
+def apply_boot_settings(module, idrac, payload, res_id, generation):
     job_data, job_wait = {}, module.params["job_wait"]
     if module.params["reset_type"] == "none":
         job_wait = False
-    resp = idrac.invoke_request("{0}/{1}".format(SYSTEM_URI, res_id), "PATCH", data=payload)
-    if resp.status_code == 200:
+    system_uri = f"{SYSTEM_URI}/{res_id}"
+    BOOT_SETTINGS_URI_LOGIC = system_uri if generation < 17 else system_uri + "/Settings"
+    resp = idrac.invoke_request(BOOT_SETTINGS_URI_LOGIC, "PATCH", data=payload)
+    if resp.status_code in [200, 202]:
         reset, track_failed, reset_msg, reset_job_resp = system_reset(module, idrac, res_id)
         if reset_job_resp:
             job_data = reset_job_resp.json_data
@@ -419,6 +432,40 @@ def configure_boot_settings(module, idrac, res_id):
     override_enabled = module.params.get("boot_source_override_enabled")
     override_target = module.params.get("boot_source_override_target")
     response = get_response_attributes(module, idrac, res_id)
+    payload["Boot"].update(configure_boot_order(module, boot_order, response))
+    gen = idrac.get_server_generation
+    generation = gen[0]
+    payload["Boot"].update(checking_all_conditions_for_boot_settings(module, override_mode,
+                                                                     override_enabled, override_target,
+                                                                     response, generation))
+    if module.check_mode and payload["Boot"]:
+        module.exit_json(msg=CHANGES_MSG, changed=True)
+    elif (module.check_mode or not module.check_mode) and not payload["Boot"]:
+        module.exit_json(msg=NO_CHANGES_MSG)
+    else:
+        job_resp = apply_boot_settings(module, idrac, payload, res_id, generation)
+    return job_resp
+
+
+def checking_all_conditions_for_boot_settings(module, override_mode, override_enabled, override_target, response, gen):
+    payload = {}
+    if override_mode is not None and \
+            (BS_OVERRIDE_MODE.get(override_mode) != response.get("BootSourceOverrideMode")):
+        payload.update({"BootSourceOverrideMode": BS_OVERRIDE_MODE.get(override_mode)})
+    if override_enabled is not None and \
+            (BS_OVERRIDE_ENABLED.get(override_enabled) != response.get("BootSourceOverrideEnabled")):
+        payload.update({"BootSourceOverrideEnabled": BS_OVERRIDE_ENABLED.get(override_enabled)})
+    if override_target is not None and \
+            (BS_OVERRIDE_TARGET.get(override_target) != response.get("BootSourceOverrideTarget")
+             or (override_enabled != "disabled" and gen >= 17)):
+        payload.update({"BootSourceOverrideTarget": BS_OVERRIDE_TARGET.get(override_target)})
+        uefi_override_target = module.params.get("uefi_target_boot_source_override")
+        if override_target == "uefi_target" and uefi_override_target != response.get("UefiTargetBootSourceOverride"):
+            payload.update({"UefiTargetBootSourceOverride": uefi_override_target})
+    return payload
+
+
+def configure_boot_order(module, boot_order, response):
     if boot_order is not None:
         exist_boot_order = response.get("BootOrder")
         invalid_boot_order = [bo for bo in boot_order if bo not in exist_boot_order]
@@ -433,26 +480,8 @@ def configure_boot_settings(module, idrac, res_id):
             module.fail_json(msg="Unable to complete the operation because all boot devices "
                                  "are required for this operation.")
         if not boot_order == exist_boot_order:
-            payload["Boot"].update({"BootOrder": boot_order})
-    if override_mode is not None and \
-            (not BS_OVERRIDE_MODE.get(override_mode) == response.get("BootSourceOverrideMode")):
-        payload["Boot"].update({"BootSourceOverrideMode": BS_OVERRIDE_MODE.get(override_mode)})
-    if override_enabled is not None and \
-            (not BS_OVERRIDE_ENABLED.get(override_enabled) == response.get("BootSourceOverrideEnabled")):
-        payload["Boot"].update({"BootSourceOverrideEnabled": BS_OVERRIDE_ENABLED.get(override_enabled)})
-    if override_target is not None and \
-            (not BS_OVERRIDE_TARGET.get(override_target) == response.get("BootSourceOverrideTarget")):
-        payload["Boot"].update({"BootSourceOverrideTarget": BS_OVERRIDE_TARGET.get(override_target)})
-        uefi_override_target = module.params.get("uefi_target_boot_source_override")
-        if override_target == "uefi_target" and not uefi_override_target == response.get("UefiTargetBootSourceOverride"):
-            payload["Boot"].update({"UefiTargetBootSourceOverride": uefi_override_target})
-    if module.check_mode and payload["Boot"]:
-        module.exit_json(msg=CHANGES_MSG, changed=True)
-    elif (module.check_mode or not module.check_mode) and not payload["Boot"]:
-        module.exit_json(msg=NO_CHANGES_MSG)
-    else:
-        job_resp = apply_boot_settings(module, idrac, payload, res_id)
-    return job_resp
+            return {"BootOrder": boot_order}
+    return {}
 
 
 def configure_idrac_boot(module, idrac, res_id):

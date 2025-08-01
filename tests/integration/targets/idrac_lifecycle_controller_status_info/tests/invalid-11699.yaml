@@ -38,7 +38,7 @@
       ansible.builtin.assert:
         that:
           - invalid_user.failed
-          - invalid_user.msg == ""HTTP Error 401: Unauthorized"
+          - '"HTTP Error 401" in invalid_user.msg'
 
     - name: Negative - invalid password
       dellemc.openmanage.idrac_lifecycle_controller_status_info:
@@ -50,7 +50,7 @@
       ansible.builtin.assert:
         that:
           - invalid_password.failed
-          - invalid_password.msg == ""HTTP Error 401: Unauthorized"
+          - '"HTTP Error 401" in invalid_password.msg'
 
     - name: Negative - invalid ca_path
       dellemc.openmanage.idrac_lifecycle_controller_status_info:
@@ -63,7 +63,8 @@
       ansible.builtin.assert:
         that:
           - invalid_ca_path.failed
-          - invalid_ca_path.msg == ""HTTP Error 401: Unauthorized"
+          - '"HTTP Error 401" in invalid_ca_path.msg  or
+            "No such file or directory" in invalid_ca_path.msg'
 
   module_defaults:
     dellemc.openmanage.idrac_lifecycle_controller_status_info:

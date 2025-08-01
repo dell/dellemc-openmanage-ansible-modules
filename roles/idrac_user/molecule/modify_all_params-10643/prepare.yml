@@ -5,9 +5,19 @@
   vars:
     idrac_user_name: "moleculeTest"
   tasks:
+    - name: Get Server generation
+      ansible.builtin.include_tasks:
+        file: ../resources/idrac_user/_get_server_generation.yml
+
+    - name: Setting up protocol dynamically
+      ansible.builtin.set_fact:
+        ap: "{{ 'SHA' if model | int < 17 else 'SHA-512' }}"
+        pp: "{{ 'AES' if model | int < 17 else 'AES-256' }}"
+      no_log: true
+
     - name: Configure a new iDRAC user with all parameters
       ansible.builtin.import_role:
-        name: idrac_user
+        name: dellemc.openmanage.idrac_user
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -22,5 +32,5 @@
         enable: true
         sol_enable: true
         protocol_enable: true
-        authentication_protocol: SHA
-        privacy_protocol: AES
+        authentication_protocol: "{{ ap }}"
+        privacy_protocol: "{{ pp }}"

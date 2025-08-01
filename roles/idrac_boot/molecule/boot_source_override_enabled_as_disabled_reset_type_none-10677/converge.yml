@@ -7,7 +7,9 @@
     username: "{{ lookup('ansible.builtin.env', 'IDRAC_USER') }}"
     password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
     validate_certs: false
-    lc_uri: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Dell/Managers/iDRAC.Embedded.1/DellLCService/Actions/DellLCService.GetRemoteServicesAPIStatus"
+    lc_uri: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Dell/Managers\
+     /iDRAC.Embedded.1/DellLCService/Actions\
+     /DellLCService.GetRemoteServicesAPIStatus"
     retry_count: 60
     delay_count: 30
   tasks:
@@ -32,21 +34,27 @@
       ansible.builtin.include_tasks:
         file: ../__lc_status_check.yaml
 
-    - name: Pre-requisite - Making sure boot_source_override_enabled is continuous
+    - name: Pre-requisite - Making sure boot_source_override_enabled is
+       continuous
       check_mode: false
       ansible.builtin.import_role:
-        name: "idrac_boot"
+        name: dellemc.openmanage.idrac_boot
       vars:
         boot_source_override_enabled: continuous
+        boot_source_override_target: pxe
       tags: molecule-idempotence-notest
 
     - name: Checking for LCStatus after running pre-requisite
       ansible.builtin.include_tasks:
         file: ../__lc_status_check.yaml
 
+    - name: Waiting for idrac to reboot
+      ansible.builtin.pause:
+        seconds: 120
+
     - name: TC-115431 - Validate boot_source_override_enabled as disabled
       ansible.builtin.include_role:
-        name: "idrac_boot"
+        name: dellemc.openmanage.idrac_boot
       vars:
         boot_source_override_enabled: disabled
         reset_type: none

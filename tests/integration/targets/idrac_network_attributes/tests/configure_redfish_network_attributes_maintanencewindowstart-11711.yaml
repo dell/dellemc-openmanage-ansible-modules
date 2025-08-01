@@ -78,7 +78,7 @@
     - name: Verify task status - Configure network attributes - attributes set
       ansible.builtin.assert:
         that:
-          - fetched_attributes.json.Ethernet.VLAN.VLANEnable: "{{ vlan_en }}"
+          - fetched_attributes.json.Ethernet.VLAN.VLANEnable == vlan_en
 
     - ansible.builtin.include_tasks: _get_date_time.yml
 
