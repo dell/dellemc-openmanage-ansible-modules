@@ -66,6 +66,7 @@
 
     - set_fact:
         cifs_share_ip: "{{ cifs_share_name.split(source_delimiter)[2]}}"
+        nfs_share_ip: "{{ nfs_share_name.split(':')[0] }}"
       vars:
         source_delimiter: "\\"
 
