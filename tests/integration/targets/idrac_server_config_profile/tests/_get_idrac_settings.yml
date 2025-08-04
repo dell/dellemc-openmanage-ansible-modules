@@ -30,3 +30,7 @@
   ansible.builtin.set_fact:
     custom_default_supported: "{{ (hw_model | int >= 17) or
       fw_raw >= '7.00.00'}}"
+
+- name: Set variable facts
+  ansible.builtin.set_fact:
+    scp_oem: "{{'EID_674_Manager' if (hw_model | int < 17) else 'OemManager'}}"

@@ -18,10 +18,16 @@
     headers: 'Accept=application/json'
   register: idrac_fetched_data
 
+- name: Pre-requisite - Checking iDRAC version
+  ansible.builtin.include_tasks:
+    file: ../_get_idrac_settings.yml
+
 - block:
     - name: Create Export SCP job for ALL component by uri.
       ansible.builtin.uri:
-        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/OemManager.ExportSystemConfiguration
+        url: "https://{{idrac_ip}}:{{idrac_port}}\
+          /redfish/v1/Managers/iDRAC.Embedded.1\
+          /Actions/Oem/{{ scp_oem }}.ExportSystemConfiguration"
         method: POST
         body:
           ExportFormat: XML
