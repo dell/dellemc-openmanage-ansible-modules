@@ -131,7 +131,7 @@
           - oem_network_attributes.failed
           - not oem_network_attributes.changed
           - 'oem_network_attributes.msg == "HTTP Error 400: Bad Request"'
-          - oem_network_attributes.error_info
+          - oem_network_attributes.error_info is defined
 
     - name: Negative - Read only attribute for oem_network_attributes
         (Check mode)
@@ -172,7 +172,7 @@
           - not read_only_oem_network_attributes.changed
           - 'read_only_oem_network_attributes.msg == "HTTP Error 400: Bad
            Request"'
-          - read_only_oem_network_attributes.error_info
+          - read_only_oem_network_attributes.error_info is defined
 
     - name: Negative - Invalid attribute value for oem_network_attributes
         (Check mode)
@@ -209,7 +209,7 @@
           - not invalid_oem_network_attributes_value.changed
           - 'invalid_oem_network_attributes_value.msg == "HTTP Error 400: Bad
            Request"'
-          - invalid_oem_network_attributes_value.error_info
+          - invalid_oem_network_attributes_value.error_info is defined
 
     - name: Negative - invalid network_attributes (Check mode)
       dellemc.openmanage.idrac_network_attributes:
@@ -246,7 +246,7 @@
           - invalid_network_attributes.failed
           - not invalid_network_attributes.changed
           - 'invalid_network_attributes.msg == "HTTP Error 400: Bad Request"'
-          - invalid_network_attributes.error_info
+          - invalid_network_attributes.error_info is defined
 
     - name: Negative - Read only attribute for network_attributes (Check mode)
       dellemc.openmanage.idrac_network_attributes:
@@ -284,7 +284,7 @@
           - read_only_network_attributes.failed
           - not read_only_network_attributes.changed
           - 'read_only_network_attributes.msg == "HTTP Error 400: Bad Request"'
-          - read_only_network_attributes.error_info
+          - read_only_network_attributes.error_info is defined
 
     - name: Negative - Invalid attribute value for network_attributes
         (Check mode)
@@ -321,7 +321,7 @@
           - not invalid_network_attributes_value.changed
           - 'invalid_network_attributes_value.msg == "HTTP Error 400: Bad
            Request"'
-          - invalid_network_attributes_value.error_info
+          - invalid_network_attributes_value.error_info is defined
 
     - name: Prerequisite - Get iDRAC Date, Time and Offset
       ansible.builtin.include_tasks: _get_idrac_date_time_offset.yml

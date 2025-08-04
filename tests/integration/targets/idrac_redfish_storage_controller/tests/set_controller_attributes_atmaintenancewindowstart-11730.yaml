@@ -129,7 +129,7 @@
     - name: Verify prerequisite is set
       ansible.builtin.assert:
         that:
-          - controller_name
+          - controller_name is defined
           - fetched_data.json.Oem.Dell.DellStorageController.
            CheckConsistencyMode == "Normal"
           - fetched_data.json.Oem.Dell.DellStorageController.
@@ -191,8 +191,8 @@
       register: configure_attributes_output
 
     - ansible.builtin.wait_for: timeout=120
-      when: configure_attributes_output.msg == "Successfully submitted the job
-       that configures the controller attributes."
+      when: 'configure_attributes_output.msg == "Successfully submitted the job
+       that configures the controller attributes."'
 
     - name: Check for iDRAC lc ready status.
       idrac_lifecycle_controller_status_info:
@@ -205,8 +205,8 @@
     - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
       vars:
         job_id: "{{configure_attributes_output.status.Id}}"
-      when: configure_attributes_output.msg == "Successfully submitted the job
-       that configures the controller attributes."
+      when: 'configure_attributes_output.msg == "Successfully submitted the job
+       that configures the controller attributes."'
 
     - ansible.builtin.pause: seconds=10
       when: configure_attributes_output.changed

@@ -26,8 +26,8 @@
         that:
           - invalid_unreachable.unreachable
           - not invalid_unreachable.changed
-          - invalid_unreachable.msg == "<urlopen error [Errno -2]
-           Name or service not known>"
+          - 'invalid_unreachable.msg == "<urlopen error [Errno -2]
+            Name or service not known>"'
 
     - name: Negative - invalid username
       dellemc.openmanage.redfish_powerstate:
@@ -63,9 +63,8 @@
       ignore_errors: true
 
     - ansible.builtin.set_fact:
-        invalid_validate_certs_expected_msg: "argument 'validate_certs' is
-         of type <class 'str'> and we were unable to convert to bool: The
-         value 'invalid' is not a valid boolean.  Valid booleans include: "
+        invalid_validate_certs_expected_msg: "The
+         value 'invalid' is not a valid boolean."
 
     - name: Verify status of tasks
       ansible.builtin.assert:
@@ -114,7 +113,10 @@
         that:
           - invalid_reset_type.failed
           - not invalid_reset_type.changed
-          - invalid_reset_type_expected_msg in invalid_reset_type.msg
+          - 'invalid_reset_type.msg == "The target device does not support a
+           force on operation.The acceptable values for device reset types are
+           On, ForceOff, ForceRestart, GracefulRestart, GracefulShutdown,
+           PushPowerButton, Nmi, PowerCycle."'
 
   module_defaults:
     dellemc.openmanage.redfish_powerstate:

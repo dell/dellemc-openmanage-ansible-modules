@@ -5,7 +5,7 @@ dependency:
 driver:
   name: podman
 platforms:
-  - name: centos
+  - name: ${PLATFORM_NAME:-centos}
     image: quay.io/centos/centos:stream10
     pre_build_image: false
     volumes:
@@ -23,7 +23,7 @@ provisioner:
       fact_caching_connection: /tmp/facts_cache
       fact_caching_timeout: 1800
   env:
-    RUNON: "centos"
+    RUNON: ${PLATFORM_NAME:-centos}
     idrac_powercycle_wait_seconds: 180
 verifier:
   name: ansible

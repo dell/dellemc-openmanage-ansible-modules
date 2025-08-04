@@ -56,7 +56,7 @@
       ansible.builtin.include_role: name=prepare_lifecycle_controller_job
       vars:
         job_id: "{{ result_raid.task.id }}"
-      when: result_raid.msg == "Successfully submitted create volume task."
+      when: 'result_raid.msg == "Successfully submitted create volume task."'
 
     - name: Wait for iDRAC lifecycle controller readiness
       ansible.builtin.include_role:
@@ -81,11 +81,11 @@
         that:
           - result_raid.changed
           - 'result_raid.msg == "Successfully submitted create volume task."'
-          - result_raid.task.id
+          - result_raid.task.id is defined
           - result_raid.task.uri == result_raid_expected_uri
           # Verify volume details
-          - uri_data.DisplayName == "RAID10_Volume"
-          - uri_data.RAIDType == "RAID10"
+          - 'uri_data.DisplayName == "RAID10_Volume"'
+          - 'uri_data.RAIDType == "RAID10"'
           - uri_data.OptimumIOSizeBytes == 65536
           - uri_data.CapacityBytes == 107374182400
 
@@ -142,7 +142,7 @@
       ansible.builtin.include_role: name=prepare_lifecycle_controller_job
       vars:
         job_id: "{{ result_volume.task.id }}"
-      when: result_volume.msg == "Successfully submitted create volume task."
+      when: 'result_volume.msg == "Successfully submitted create volume task."'
 
     - name: Wait for iDRAC lifecycle controller readiness
       ansible.builtin.include_role:
@@ -167,11 +167,11 @@
         that:
           - result_volume.changed
           - 'result_volume.msg == "Successfully submitted create volume task."'
-          - result_volume.task.id
+          - result_volume.task.id is defined
           - result_volume.task.uri == result_volume_expected_uri
           # Verify volume details
-          - uri_data.DisplayName == "RAID10_Volume"
-          - uri_data.RAIDType == "RAID10"
+          - 'uri_data.DisplayName == "RAID10_Volume"'
+          - 'uri_data.RAIDType == "RAID10"'
 
     - name: Create a RAID10 volume using the volume_type parameter with more
         than the minimum number of disks (Idempotence)

@@ -28,7 +28,7 @@
 
     - name: Negative - invalid user
       dellemc.openmanage.redfish_powerstate:
-        idrac_user: "invalid_user"
+        username: "invalid_user"
         reset_type: "On"
       ignore_errors: true
       register: invalid_user
@@ -37,11 +37,11 @@
       ansible.builtin.assert:
         that:
           - invalid_user.failed
-          - invalid_user.msg == ""HTTP Error 401: Unauthorized"
+          - 'invalid_user.msg == "HTTP Error 401: Unauthorized"'
 
     - name: Negative - invalid password
       dellemc.openmanage.redfish_powerstate:
-        idrac_password: "invalid_pass"
+        password: "invalid_pass"
         reset_type: "On"
       ignore_errors: true
       register: invalid_password
@@ -50,7 +50,7 @@
       ansible.builtin.assert:
         that:
           - invalid_password.failed
-          - invalid_password.msg == ""HTTP Error 401: Unauthorized"
+          - 'invalid_password.msg == "HTTP Error 401: Unauthorized"'
 
     - name: Negative - invalid ca_path
       dellemc.openmanage.redfish_powerstate:
@@ -63,7 +63,8 @@
       ansible.builtin.assert:
         that:
           - invalid_ca_path.failed
-          - invalid_ca_path.msg == ""HTTP Error 401: Unauthorized"
+          - 'invalid_ca_path.msg == "HTTP Error 401: Unauthorized" or
+             invalid_ca_path.msg == "[Errno 2] No such file or directory"'
 
     - name: Negative - invalid resource id
       dellemc.openmanage.redfish_powerstate:

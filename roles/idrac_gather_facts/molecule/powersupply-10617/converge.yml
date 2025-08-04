@@ -24,7 +24,7 @@
       - -1
     idrac_gather_facts_uri_return_content: true
     diff_data: {}
-    exclude_keys: []
+    exclude_keys: ["LastUpdateTime"]
     power_supply_api: "/PowerSubsystem/PowerSupplies?$expand=*($levels=1)"
 
   tasks:
@@ -70,6 +70,13 @@
         fail_msg: "The response from the role does not match"
         success_msg: "The response from the role matches"
       when: api_response is defined and api_response | length == 0
+
+    - name: Removing dynamic values
+      ansible.builtin.set_fact:
+        power_supply: "{{ power_supply | ansible.utils.remove_keys(target=
+          exclude_keys) }}"
+        api_response: "{{ api_response | ansible.utils.remove_keys(target=
+          exclude_keys) }}"
 
     - name: Check whether output differs
       ansible.builtin.set_fact:

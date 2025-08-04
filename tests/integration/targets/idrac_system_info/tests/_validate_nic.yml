@@ -104,10 +104,24 @@
 
 - name: Output conversion to list
   ansible.builtin.set_fact:
-    nic_updated_dict: "{{ nic_updated_dict.stdout |
-      to_json | from_json }}"
+    nic_updated_dict: "{{ nic_updated_dict.stdout | from_yaml }}"
   when:
     - uri_data.status == 200
+
+- name: Output conversion to list debug
+  ansible.builtin.debug:
+    var: nic_updated_dict
+  when:
+    - uri_data.status == 200
+
+- name: Set the NIC result
+  ansible.builtin.set_fact:
+    res_nic: "{{ result.system_info.NIC }}"
+
+- name: Output conversion to list change none
+  ansible.builtin.set_fact:
+    result_nic_updated_dict:
+      "{{ res_nic | regex_replace('null', '\"None\"') | from_yaml }}"
 
 - name: Set frequently updating attributes
   set_fact:
@@ -132,7 +146,7 @@
   when: uri_data.status == 200
   loop: >-
     {{
-    result.system_info.NIC
+    result_nic_updated_dict
     | sort(attribute='FQDD')
     | zip(nic_updated_dict | sort(attribute='FQDD'))
     | list

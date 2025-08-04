@@ -293,27 +293,27 @@
             that:
               - result.changed
               - result.msg ==  "Successfully updated the firmware."
+
+        - name: Constructing url
+          ansible.builtin.set_fact:
+            url_1: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/"
+            url_2: "Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{ result.task.id }}"
+
+        - name: Final url
+          ansible.builtin.set_fact:
+            job_url: "{{ url_1 }}{{ url_2 }}"
+
+        - ansible.builtin.include_tasks: get_data.yml
+          vars:
+            url: "{{ job_url }}"
+
+        - name: Verify job completion status for component firmware update
+          ansible.builtin.assert:
+            that:
+              - uri_data.JobState == "Completed"
+              - 'uri_data.Name ==  "Firmware Update: BIOS"'
+              - uri_data.Message == "The specified job has completed successfully."
       when: generation | int >= 17
-
-    - name: Constructing url
-      ansible.builtin.set_fact:
-        url_1: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/"
-        url_2: "Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{ result.task.id }}"
-
-    - name: Final url
-      ansible.builtin.set_fact:
-        job_url: "{{ url_1 }}{{ url_2 }}"
-
-    - ansible.builtin.include_tasks: get_data.yml
-      vars:
-        url: "{{ job_url }}"
-
-    - name: Verify job completion status for component firmware update
-      ansible.builtin.assert:
-        that:
-          - uri_data.JobState == "Completed"
-          - 'uri_data.Name ==  "Firmware Update: BIOS"'
-          - uri_data.Message == "The specified job has completed successfully."
 
   when: generation | int >= 14
 
