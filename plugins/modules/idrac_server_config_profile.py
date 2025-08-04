@@ -739,20 +739,14 @@ def perform_check_mode(module, idrac, http_share=True):
     if module.check_mode:
         module.params["job_wait"] = True
         scp_resp = preview_scp_redfish(module, idrac, http_share, import_job_wait=True)
-        if generation >= 17:
-          if "SYS081" in scp_resp["@Message.ExtendedInfo"][0]["Message"] or "SYS082" in scp_resp["@Message.ExtendedInfo"][0]["Message"]:
+        if "@Message.ExtendedInfo" in scp_resp:
+            scp_resp = scp_resp["@Message.ExtendedInfo"][0] 
+        if "SYS081" in scp_resp["MessageId"] or "SYS082" in scp_resp["MessageId"]:
             module.exit_json(msg=CHANGES_FOUND, changed=True)
-          elif "SYS069" in scp_resp["@Message.ExtendedInfo"][0]["Message"]:
+        elif "SYS069" in scp_resp["MessageId"]:
             module.exit_json(msg=NO_CHANGES_FOUND)
-          else:
+        else:
             module.fail_json(msg=scp_resp)
-        else:  
-          if "SYS081" in scp_resp["MessageId"] or "SYS082" in scp_resp["MessageId"]:
-              module.exit_json(msg=CHANGES_FOUND, changed=True)
-          elif "SYS069" in scp_resp["MessageId"]:
-              module.exit_json(msg=NO_CHANGES_FOUND)
-          else:
-              module.fail_json(msg=scp_resp)
 
 
 def get_scp_share_details(module):
@@ -1108,20 +1102,14 @@ class ImportCommand():
                 changed = True
         else:
             scp_status = import_scp_redfish(self.module, self.idrac, self.http_share)
-            if generation >= 17:
-              if "No changes were applied" not in scp_status.get('@Message.ExtendedInfo')[0].get('Message', ""):
-                changed = True
-              elif "SYS043" in scp_status.get('@Message.ExtendedInfo')[0].get('MessageId', ""):
-                changed = True
-              elif "SYS069" in scp_status.get('@Message.ExtendedInfo')[0].get('MessageId', ""):
-                changed = False
-            else:     
-              if "No changes were applied" not in scp_status.get('Message', ""):
-                  changed = True
-              elif "SYS043" in scp_status.get("MessageId", ""):
-                  changed = True
-              elif "SYS069" in scp_status.get("MessageId", ""):
-                  changed = False
+            if "@Message.ExtendedInfo" in scp_status:
+              scp_status = scp_status["@Message.ExtendedInfo"][0]
+            if "No changes were applied" not in scp_status.get('Message', ""):
+              changed = True
+            elif "SYS043" in scp_status.get('MessageId', ""):
+              changed = True
+            elif "SYS069" in scp_status.get('MessageId', ""):
+              changed = False
         return scp_status, changed
 
 

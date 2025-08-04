@@ -12,7 +12,7 @@
   ansible.builtin.include_tasks: _import_scp_no_proxy.yml
   vars:
     scp_label: "NFS-IMPORT"
-    scp_file_prefix: "omam_nfs" 
+    scp_file_prefix: "omam_nfs"
     scp_work_path: "{{ nfs_mount }}"
     scp_share_name: "{{ nfs_share_name }}"
     scp_share_user: "{{ omit }}"

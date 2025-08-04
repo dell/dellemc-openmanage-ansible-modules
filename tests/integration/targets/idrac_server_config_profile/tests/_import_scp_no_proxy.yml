@@ -74,7 +74,7 @@
         body:
           RoleId: "4"
           AssignedPrivileges: ["Login"]
-        status_code: 201  
+        status_code: 201
         body_format: json
 
 

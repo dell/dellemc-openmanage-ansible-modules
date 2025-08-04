@@ -28,7 +28,10 @@
       dellemc.openmanage.idrac_server_config_profile: &idrac_server_config_profile_1
         command: import
         job_wait: true
-        import_buffer:  "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='SNMP.1#AgentCommunity'>public123</Attribute><Attribute Name='SNMP.1#DiscoveryPort'>163</Attribute></Component></SystemConfiguration>"
+        import_buffer: "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'>\
+          <Attribute Name='SNMP.1#AgentCommunity'>public123</Attribute>\
+          <Attribute Name='SNMP.1#DiscoveryPort'>163</Attribute>\
+          </Component></SystemConfiguration>"
       register: import_result_1
       check_mode: true
 
@@ -43,7 +46,7 @@
         <<: *idrac_server_config_profile_1
       register: import_result_2
 
-    - pause: seconds=120
+    - pause: seconds=10
       when: import_result_1.changed
 
     - include_tasks: get_data.yml
@@ -58,8 +61,6 @@
           - fetched_data.json.Attributes['SNMP.1.AgentCommunity'] == 'public123'
           - fetched_data.json.Attributes['SNMP.1.DiscoveryPort'] == 163
 
-    - pause: seconds=20
-
     - name: Import SCP in Sync mode with import_buffer of type XML format (Idempotency mode)
       dellemc.openmanage.idrac_server_config_profile:
         <<: *idrac_server_config_profile_1
@@ -70,178 +71,184 @@
         that:
           - not import_result_3.changed
           - import_result_3.msg == "Successfully imported the Server Configuration Profile."
-          - import_result_3.scp_status.@Message.ExtendedInfo.Message == "No changes were applied since the current component configuration matched the requested configuration."
+          - import_result_3.scp_status.Message == "No changes were applied since the current component configuration matched the requested configuration."
 
 #######################################################################################################################
 
-#     - name: Prerequisite - Set iDRAC attributes
-#       dellemc.openmanage.idrac_attributes:
-#         <<: *idrac_attributes_1
+    - name: Prerequisite - Set iDRAC attributes
+      dellemc.openmanage.idrac_attributes:
+        <<: *idrac_attributes_1
 
-#     - include_tasks: get_data.yml
-#       vars:
-#         url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1
+    - include_tasks: get_data.yml
+      vars:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1
 
-#     - name: Verify prerequisite is set
-#       ansible.builtin.assert:
-#         that:
-#           - fetched_data.json.Attributes['SNMP.1.AgentCommunity'] == 'public'
-#           - fetched_data.json.Attributes['SNMP.1.DiscoveryPort'] == 161
+    - name: Verify prerequisite is set
+      ansible.builtin.assert:
+        that:
+          - fetched_data.json.Attributes['SNMP.1.AgentCommunity'] == 'public'
+          - fetched_data.json.Attributes['SNMP.1.DiscoveryPort'] == 161
 
-#     - name: Import SCP in Sync mode with shutdown type "Forced" and end_host_power_state as "On" with import_buffer of type XML format(Normal mode)
-#       dellemc.openmanage.idrac_server_config_profile:
-#         command: import
-#         job_wait: true
-#         import_buffer: "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='SNMP.1#AgentCommunity'>public123</Attribute><Attribute Name='SNMP.1#DiscoveryPort'>163</Attribute></Component></SystemConfiguration>"
-#         end_host_power_state: "On"
-#         shutdown_type: Forced
-#       register: import_result_4
+    - name: Import SCP in Sync mode with shutdown type "Forced" and end_host_power_state as "On" with import_buffer of type XML format(Normal mode)
+      dellemc.openmanage.idrac_server_config_profile:
+        command: import
+        job_wait: true
+        import_buffer: "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'>\
+          <Attribute Name='SNMP.1#AgentCommunity'>public123</Attribute>\
+          <Attribute Name='SNMP.1#DiscoveryPort'>163</Attribute>\
+          </Component></SystemConfiguration>"
+        end_host_power_state: "On"
+        shutdown_type: Forced
+      register: import_result_4
 
-#     - pause: seconds=120
-#       when: import_result_4.changed
+    - pause: seconds=10
+      when: import_result_4.changed
 
-#     - include_tasks: get_data.yml
-#       vars:
-#         url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1
+    - include_tasks: get_data.yml
+      vars:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1
 
-#     - name: 'Verify task status -  Import SCP in Sync mode with shutdown type as "Forced" and
-#        end_host_power_state as "On" with import_buffer of type XML format(Normal mode)'
-#       ansible.builtin.assert:
-#         that:
-#           - import_result_4.changed
-#           - import_result_4.msg == "Successfully imported the Server Configuration Profile."
-#           - fetched_data.json.Attributes['SNMP.1.AgentCommunity'] == 'public123'
-#           - fetched_data.json.Attributes['SNMP.1.DiscoveryPort'] == 163
+    - name: Verify task status -  Import SCP in Sync mode with shutdown type as "Forced" and
+        end_host_power_state as "On" with import_buffer of type XML format(Normal mode)
+      ansible.builtin.assert:
+        that:
+          - import_result_4.changed
+          - import_result_4.msg == "Successfully imported the Server Configuration Profile."
+          - fetched_data.json.Attributes['SNMP.1.AgentCommunity'] == 'public123'
+          - fetched_data.json.Attributes['SNMP.1.DiscoveryPort'] == 163
 
-# ######################################################################################################################
+######################################################################################################################
 
-#     - name: Prerequisite - Set iDRAC attributes
-#       dellemc.openmanage.idrac_attributes:
-#         <<: *idrac_attributes_1
+    - name: Prerequisite - Set iDRAC attributes
+      dellemc.openmanage.idrac_attributes:
+        <<: *idrac_attributes_1
 
-#     - include_tasks: get_data.yml
-#       vars:
-#         url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1
+    - include_tasks: get_data.yml
+      vars:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1
 
-#     - name: Verify prerequisite is set
-#       ansible.builtin.assert:
-#         that:
-#           - fetched_data.json.Attributes['SNMP.1.AgentCommunity'] == 'public'
-#           - fetched_data.json.Attributes['SNMP.1.DiscoveryPort'] == 161
+    - name: Verify prerequisite is set
+      ansible.builtin.assert:
+        that:
+          - fetched_data.json.Attributes['SNMP.1.AgentCommunity'] == 'public'
+          - fetched_data.json.Attributes['SNMP.1.DiscoveryPort'] == 161
 
-#     - name: Import SCP in Sync mode with shutdown type "NoReboot" and end_host_power_state as "Off" with import_buffer of type XML format(Normal mode)
-#       dellemc.openmanage.idrac_server_config_profile:
-#         command: import
-#         job_wait: true
-#         import_buffer: "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='SNMP.1#AgentCommunity'>public123</Attribute><Attribute Name='SNMP.1#DiscoveryPort'>163</Attribute></Component></SystemConfiguration>"
-#         end_host_power_state: "Off"
-#         shutdown_type: NoReboot
-#       register: import_result_5
+    - name: Import SCP in Sync mode with shutdown type "NoReboot" and end_host_power_state as "Off" with import_buffer of type XML format(Normal mode)
+      dellemc.openmanage.idrac_server_config_profile:
+        command: import
+        job_wait: true
+        import_buffer: "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'>\
+          <Attribute Name='SNMP.1#AgentCommunity'>public123</Attribute>\
+          <Attribute Name='SNMP.1#DiscoveryPort'>163</Attribute>\
+          </Component></SystemConfiguration>"
+        end_host_power_state: "Off"
+        shutdown_type: NoReboot
+      register: import_result_5
 
-#     - ansible.builtin.pause: seconds=120
-#       when: import_result_5.changed
+    - ansible.builtin.pause: seconds=10
+      when: import_result_5.changed
 
-#     - include_tasks: get_data.yml
-#       vars:
-#         url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1
+    - include_tasks: get_data.yml
+      vars:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1
 
-#     - name: "Verify task status - Import SCP in Sync mode with shutdown type 'NoReboot' and end_host_power_state
-#         as 'Off' with import_buffer of type XML format(Normal mode)"
-#       ansible.builtin.assert:
-#         that:
-#           - import_result_5.changed
-#           - import_result_5.msg == "Successfully imported the Server Configuration Profile."
-#           - fetched_data.json.Attributes['SNMP.1.AgentCommunity'] == 'public123'
-#           - fetched_data.json.Attributes['SNMP.1.DiscoveryPort'] == 163
+    - name: Verify task status - Import SCP in Sync mode with shutdown type 'NoReboot' and end_host_power_state
+        as 'Off' with import_buffer of type XML format(Normal mode)
+      ansible.builtin.assert:
+        that:
+          - import_result_5.changed
+          - import_result_5.msg == "Successfully imported the Server Configuration Profile."
+          - fetched_data.json.Attributes['SNMP.1.AgentCommunity'] == 'public123'
+          - fetched_data.json.Attributes['SNMP.1.DiscoveryPort'] == 163
 
-# #######################################################################################################################
+#######################################################################################################################
 
-#     - name: Prerequisite - Set iDRAC attributes
-#       dellemc.openmanage.idrac_attributes:
-#         <<: *idrac_attributes_1
+    - name: Prerequisite - Set iDRAC attributes
+      dellemc.openmanage.idrac_attributes:
+        <<: *idrac_attributes_1
 
-#     - ansible.builtin.include_tasks: get_data.yml
-#       vars:
-#         url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1
+    - ansible.builtin.include_tasks: get_data.yml
+      vars:
+        url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1
 
-#     - name: Verify prerequisite is set
-#       ansible.builtin.assert:
-#         that:
-#           - fetched_data.json.Attributes['SNMP.1.AgentCommunity'] == 'public'
-#           - fetched_data.json.Attributes['SNMP.1.DiscoveryPort'] == 161
+    - name: Verify prerequisite is set
+      ansible.builtin.assert:
+        that:
+          - fetched_data.json.Attributes['SNMP.1.AgentCommunity'] == 'public'
+          - fetched_data.json.Attributes['SNMP.1.DiscoveryPort'] == 161
 
-#     - name: Import SCP in Sync mode with shutdown type "NoReboot" and end_host_power_state as "On" with import_buffer of type JSON format(Normal mode)
-#       dellemc.openmanage.idrac_server_config_profile:
-#         command: import
-#         job_wait: true
-#         import_buffer: "{\"SystemConfiguration\": {\"Components\": [{\"FQDD\": \"iDRAC.Embedded.1\",\"Attributes\": [{\"Name\":
-#          \"SNMP.1#AgentCommunity\",\"Value\": \"public123\"}, {\"Name\": \"SNMP.1#DiscoveryPort\",\"Value\": \"163\"}]}]}}"
-#         end_host_power_state: "On"
-#         shutdown_type: NoReboot
-#       register: import_result_6
+    - name: Import SCP in Sync mode with shutdown type "NoReboot" and end_host_power_state as "On" with import_buffer of type JSON format(Normal mode)
+      dellemc.openmanage.idrac_server_config_profile:
+        command: import
+        job_wait: true
+        import_buffer: "{\"SystemConfiguration\": {\"Components\": [{\"FQDD\": \"iDRAC.Embedded.1\",\"Attributes\": [{\"Name\":
+         \"SNMP.1#AgentCommunity\",\"Value\": \"public123\"}, {\"Name\": \"SNMP.1#DiscoveryPort\",\"Value\": \"163\"}]}]}}"
+        end_host_power_state: "On"
+        shutdown_type: NoReboot
+      register: import_result_6
 
-#     - ansible.builtin.pause: seconds=120
-#       when: import_result_6.changed
+    - ansible.builtin.pause: seconds=10
+      when: import_result_6.changed
 
-#     - include_tasks: get_data.yml
-#       vars:
-#         url: https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1
+    - include_tasks: get_data.yml
+      vars:
+        url: https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1
 
-#     - name: "Verify task status - Import SCP in Sync mode with shutdown type 'NoReboot' and
-#         end_host_power_state as 'On' with import_buffer of type JSON format(Normal mode)"
-#       ansible.builtin.assert:
-#         that:
-#           - import_result_6.changed
-#           - import_result_6.msg == "Successfully imported the Server Configuration Profile."
-#           - fetched_data.json.Attributes['SNMP.1.AgentCommunity'] == 'public123'
-#           - fetched_data.json.Attributes['SNMP.1.DiscoveryPort'] == 163
+    - name: Verify task status - Import SCP in Sync mode with shutdown type 'NoReboot' and
+        end_host_power_state as 'On' with import_buffer of type JSON format(Normal mode)
+      ansible.builtin.assert:
+        that:
+          - import_result_6.changed
+          - import_result_6.msg == "Successfully imported the Server Configuration Profile."
+          - fetched_data.json.Attributes['SNMP.1.AgentCommunity'] == 'public123'
+          - fetched_data.json.Attributes['SNMP.1.DiscoveryPort'] == 163
 
-# #####################################################################################################################
+#####################################################################################################################
 
-#     - name: Prerequisite - Set iDRAC attributes
-#       dellemc.openmanage.idrac_attributes:
-#         <<: *idrac_attributes_1
+    - name: Prerequisite - Set iDRAC attributes
+      dellemc.openmanage.idrac_attributes:
+        <<: *idrac_attributes_1
 
-#     - ansible.builtin.include_tasks: get_data.yml
-#       vars:
-#         url: https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1
+    - ansible.builtin.include_tasks: get_data.yml
+      vars:
+        url: https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1
 
-#     - name: Verify prerequisite is set
-#       ansible.builtin.assert:
-#         that:
-#           - fetched_data.json.Attributes['SNMP.1.AgentCommunity'] == 'public'
-#           - fetched_data.json.Attributes['SNMP.1.DiscoveryPort'] == 161
+    - name: Verify prerequisite is set
+      ansible.builtin.assert:
+        that:
+          - fetched_data.json.Attributes['SNMP.1.AgentCommunity'] == 'public'
+          - fetched_data.json.Attributes['SNMP.1.DiscoveryPort'] == 161
 
-#     - name: Import SCP in Async mode with shutdown type "NoReboot" and end_host_power_state as "On" with import_buffer of type JSON format(Normal mode)
-#       dellemc.openmanage.idrac_server_config_profile:
-#         command: import
-#         job_wait: false
-#         import_buffer: "{\"SystemConfiguration\": {\"Components\": [{\"FQDD\": \"iDRAC.Embedded.1\",\"Attributes\": [{\"Name\":
-#          \"SNMP.1#AgentCommunity\",\"Value\": \"public123\"}, {\"Name\": \"SNMP.1#DiscoveryPort\",\"Value\": \"163\"}]}]}}"
-#         end_host_power_state: "On"
-#         shutdown_type: NoReboot
-#       register: import_result_7
+    - name: Import SCP in Async mode with shutdown type "NoReboot" and end_host_power_state as "On" with import_buffer of type JSON format(Normal mode)
+      dellemc.openmanage.idrac_server_config_profile:
+        command: import
+        job_wait: false
+        import_buffer: "{\"SystemConfiguration\": {\"Components\": [{\"FQDD\": \"iDRAC.Embedded.1\",\"Attributes\": [{\"Name\":
+         \"SNMP.1#AgentCommunity\",\"Value\": \"public123\"}, {\"Name\": \"SNMP.1#DiscoveryPort\",\"Value\": \"163\"}]}]}}"
+        end_host_power_state: "On"
+        shutdown_type: NoReboot
+      register: import_result_7
 
-#     - include_role: name=prepare_lifecycle_controller_job
-#       vars:
-#         job_id: "{{ import_result_7.scp_status.Job.JobId }}"
-#       when: import_result_7.msg == "Successfully triggered the job to import the Server Configuration Profile."
+    - include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{ import_result_7.scp_status.Job.JobId }}"
+      when: import_result_7.msg == "Successfully triggered the job to import the Server Configuration Profile."
 
-#     - ansible.builtin.pause: seconds=120
-#       when: import_result_7.msg == "Successfully triggered the job to import the Server Configuration Profile."
+    - ansible.builtin.pause: seconds=10
+      when: import_result_7.msg == "Successfully triggered the job to import the Server Configuration Profile."
 
-#     - include_tasks: get_data.yml
-#       vars:
-#         url: https://{{ idrac_ip }}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1
+    - include_tasks: get_data.yml
+      vars:
+        url: https://{{ idrac_ip }}:{{idrac_port}}/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1
 
-#     - name: "Verify task status - Import SCP in Async mode with shutdown type 'NoReboot' and
-#         end_host_power_state as 'On' with import_buffer of type JSON format(Normal mode)"
-#       ansible.builtin.assert:
-#         that:
-#           - not import_result_7.changed
-#           - import_result_7.msg == "Successfully triggered the job to import the Server Configuration Profile."
-#           - fetched_data.json.Attributes['SNMP.1.AgentCommunity'] == 'public123'
-#           - fetched_data.json.Attributes['SNMP.1.DiscoveryPort'] == 163
+    - name: Verify task status - Import SCP in Async mode with shutdown type 'NoReboot' and
+        end_host_power_state as 'On' with import_buffer of type JSON format(Normal mode)
+      ansible.builtin.assert:
+        that:
+          - not import_result_7.changed
+          - import_result_7.msg == "Successfully triggered the job to import the Server Configuration Profile."
+          - fetched_data.json.Attributes['SNMP.1.AgentCommunity'] == 'public123'
+          - fetched_data.json.Attributes['SNMP.1.DiscoveryPort'] == 163
 
   module_defaults:
     dellemc.openmanage.idrac_attributes:
