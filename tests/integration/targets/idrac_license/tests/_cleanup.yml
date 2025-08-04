@@ -1,0 +1,14 @@
+---
+- name: Delete the directory
+  ansible.builtin.file:
+    path: "{{ base_path_for_exported_license }}"
+    state: absent
+
+- name: Delete the imported license
+  when: import_license == true
+  ansible.builtin.include_tasks: _get_data_uri.yml
+  vars:
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+     /redfish/v1/LicenseService/Licenses/{{ idrac_license_id }}"
+    uri_method: DELETE
+    status_code: 204

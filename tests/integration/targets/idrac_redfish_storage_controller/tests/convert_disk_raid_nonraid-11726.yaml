@@ -98,7 +98,7 @@
     - name: Verify status of tasks
       ansible.builtin.assert:
         that:
-          - is_vd_exist_first_check
+          - is_vd_exist_first_check is defined
 
     # Resetting the controller and converting disk to raid if in non raid mode
     - ansible.builtin.include_tasks: _helper.yml

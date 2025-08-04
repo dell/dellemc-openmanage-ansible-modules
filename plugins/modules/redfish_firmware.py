@@ -246,7 +246,7 @@ def wait_for_job_completion(module, job_uri, job_wait_timeout=900, interval=30):
             while track_counter <= job_wait_timeout:
                 try:
                     response = obj.invoke_request("GET", "{0}{1}".format(obj.root_uri, job_uri))
-                    if response.json_data.get("PercentComplete") == 100 and response.json_data.get("JobState") == "Completed":
+                    if response.json_data.get("PercentComplete") == 100:
                         if response.json_data.get("JobStatus") == "OK":
                             final_jobstatus = JOBSTATUS_SUCCESS
                             job_msg = SUCCESS_JOB_MSG
