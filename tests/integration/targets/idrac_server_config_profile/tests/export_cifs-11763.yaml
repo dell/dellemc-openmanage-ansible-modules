@@ -26,7 +26,7 @@
         body:
           ExportFormat: JSON
           ShareParameters:
-            Target: 
+            Target:
               - BIOS
         body_format: json
         status_code: 202
@@ -44,24 +44,21 @@
       retries: 5
       delay: 15
 
-    - name: edit TimeStamp from the GET data 
+    - name: edit TimeStamp from the GET data
       ansible.builtin.set_fact:
         updated_json_get_data: >-
-          {{ 
+          {{
             uri_scp_content.json | combine({ 'SystemConfiguration': uri_scp_content.json.SystemConfiguration | combine({ 'TimeStamp': 3})}) | to_nice_json
           }}
 
     - ansible.builtin.copy: content={{ updated_json_get_data }} dest=uri_scp_export_{{ idrac_ip }}.json
       register: uri_file
-    # - name: scp file content
-    #   ansible.builtin.set_fact:
-    #     uri_file_json: "{{ uri_scp_content.json | from_json }}"
 
     - include_role: name=prepare_idrac_lifecycle_controller_status
 
     - name: Export SCP to CIFS - iDRAC components.
       dellemc.openmanage.idrac_server_config_profile: &export
-        scp_components: 
+        scp_components:
           - IDRAC
         job_wait: true
         export_format: JSON
@@ -84,21 +81,17 @@
       ansible.builtin.set_fact:
         bios_file_json: "{{ lookup('ansible.builtin.file', \"{{ cifs_share_mnt }}/{{ bios.scp_status.file | win_basename }}\") }}"
 
-    - name: print bios_file_json
-      ansible.builtin.debug: msg="{{ bios_file_json }}"
-       
-
-#| ansible.builtin.combine({'TimeStamp':3}) | to_nice_json
-    - name: edit TimeStamp from the data 
+    - name: edit TimeStamp from the data
       ansible.builtin.set_fact:
-        updated_json: >-
-          {{ 
-            bios_file_json | to_json | from_json | combine({ 'SystemConfiguration': bios_file_json.SystemConfiguration | combine({ 'TimeStamp': 3})}) | to_nice_json
-          }}
+        updated_json: "{{\
+            bios_file_json | to_json | from_json |\
+            combine({ 'SystemConfiguration': bios_file_json.SystemConfiguration |\
+            combine({ 'TimeStamp': 3})}) | to_nice_json\
+          }}"
 
 
     - ansible.builtin.copy: content={{ updated_json }} dest={{ idrac_ip }}_formatted.json
-      register: bios_file_formatted  
+      register: bios_file_formatted
 
     - name: Verify the scp file
       ansible.builtin.include_tasks: _scp_file_verify.yml
@@ -140,18 +133,21 @@
 
     - include_role: name=prepare_idrac_lifecycle_controller_status
 
+    - debug:
+        msg: "The extra components are: {{ allowed_scp_components }}"
+
     - name: Export SCP to CIFS - Extra components.
       dellemc.openmanage.idrac_server_config_profile:
         <<: *export
         scp_components: "{{ allowed_scp_components }}"
       register: extra_scp
-      when: allowed_scp_components|length > 0
+      when: allowed_scp_components | length > 0
 
     - name: Verify the scp file
       ansible.builtin.include_tasks: _scp_file_verify.yml
       vars:
         local_scp_file: "{{ cifs_share_mnt }}/{{ extra_scp.scp_status.file | win_basename }}"
-      when: allowed_scp_components|length > 0      
+      when: allowed_scp_components | length > 0
 
     - name: Export SCP to CIFS - All components.
       dellemc.openmanage.idrac_server_config_profile:
@@ -183,7 +179,10 @@
   vars:
     idrac_datetime: "{{ idrac_fetched_data.json.DateTime }}"
     idrac_datetime_offset: "{{ idrac_fetched_data.json.DateTimeLocalOffset }}"
-    allowed_scp_components: '{{ idrac_fetched_data.json.Actions.Oem["#OemManager.ExportSystemConfiguration"]["ShareParameters"]["Target@Redfish.AllowableValues"] | default([]) | list | ansible.builtin.intersect(extra_scp_components) }}'
+    allowed_scp_components: "{{ idrac_fetched_data.json.Actions.Oem\
+      ['#OemManager.ExportSystemConfiguration']['ShareParameters']\
+      ['Target@Redfish.AllowableValues'] | default([]) | list |\
+      ansible.builtin.intersect(extra_scp_components) }}"
   module_defaults:
     dellemc.openmanage.idrac_server_config_profile:
       idrac_ip: "{{idrac_ip}}"
