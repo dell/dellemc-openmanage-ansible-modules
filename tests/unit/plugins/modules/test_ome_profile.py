@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
-
-#
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
-
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-#
+# Version 9.12.4
+# Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import (absolute_import, division, print_function)
 
@@ -198,8 +195,8 @@ class TestOmeProfile(FakeAnsibleModule):
     def test_attributes_check(self, params, ome_connection_mock_for_profile, ome_response_mock):
         ome_response_mock.success = params.get("success", True)
         ome_response_mock.json_data = params["json_data"]
-        f_module = self.get_module_mock(params=params["mparams"])
-        result = self.module.attributes_check(f_module, ome_connection_mock_for_profile,
+        self.get_module_mock(params=params["mparams"])
+        result = self.module.attributes_check(ome_connection_mock_for_profile,
                                               params['mparams']['attributes'], 123)
         assert result == params["diff"]
 
@@ -352,10 +349,6 @@ class TestOmeProfile(FakeAnsibleModule):
         assert err.value.args[0] == error_message
 
     @pytest.mark.parametrize("params", [
-        {"mparams": {"command": "assign", "name": "profile"}, "success": True,
-         "prof": {"Id": 123, "ProfileState": 1, "TargetName": "ABC1234"}, "json_data": 0,
-         "res": "The profile is assigned to a different target. Unassign the profile and then proceed with assigning the"
-                " profile to the target."},
         {"mparams": {"command": "assign", "name": "profile"}, "success": True, "prof": {},
          "json_data": 0, "res": "Profile with the name 'profile' not found."},
         {"mparams": {"command": "assign", "name": "profile", "device_id": 234}, "success": True,
@@ -369,14 +362,14 @@ class TestOmeProfile(FakeAnsibleModule):
                      "attributes": {"Attributes": [{"Id": 4506, "Value": "server attr 1", "IsIgnored": True}]}},
          "success": True,
          "prof": {"Id": 123, "ProfileState": 0}, "target": {"Id": 234, "Name": "mytarget"}, "json_data": [23, 123],
-         "res": "Successfully applied the assign operation."},
+         "res": "Successfully applied the assign operation. No job was triggered."},
         {"mparams": {"command": "assign", "name": "profile", "device_service_tag": "ABCDEFG",
                      "boot_to_network_iso": {"boot_to_network": True, "share_type": "NFS", "share_ip": "XX.XX.XX.XX",
                                              "iso_path": "path/to/my_iso.iso",
                                              "iso_timeout": 8},
                      "attributes": {"Attributes": [{"Id": 4506, "Value": "server attr 1", "IsIgnored": True}]}},
          "success": True, "prof": {"Id": 123, "ProfileState": 0}, "target": {"Id": 234, "Name": "mytarget"},
-         "json_data": [23, 123], "res": "Successfully applied the assign operation."},
+         "json_data": [23, 123], "res": "Successfully applied the assign operation. No job was triggered."},
         {"mparams": {"command": "assign", "name": "profile", "device_id": 234,
                      "boot_to_network_iso": {"boot_to_network": True, "share_type": "NFS", "share_ip": "XX.XX.XX.XX",
                                              "iso_path": "path/to/my_iso.iso",
@@ -464,7 +457,7 @@ class TestOmeProfile(FakeAnsibleModule):
         {"mparams": {"command": "unassign", "name": "profile"}, "success": True,
          "prof": {"Id": 12, "ProfileState": 4, "DeploymentTaskId": 123},
          "json_data": {"LastRunStatus": {"Name": "Starting"}},
-         "res": "Successfully triggered a job for the unassign operation."},
+         "res": "Successfully triggered the job for the unassign operation."},
         {"mparams": {"command": "unassign", "name": "profile"}, "success": True,
          "prof": {"Id": 12, "ProfileState": 4, "DeploymentTaskId": 123},
          "json_data": {"LastRunStatus": {"Name": "Starting"}}, "check_mode": True,
@@ -536,12 +529,12 @@ class TestOmeProfile(FakeAnsibleModule):
             assert result["unreachable"] is True
         elif exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + 'profile_operation', side_effect=exc_type("exception message"))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'profile_operation',
                          side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'msg' in result

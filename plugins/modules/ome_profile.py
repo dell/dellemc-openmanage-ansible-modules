@@ -519,7 +519,7 @@ def get_network_iso_payload(module):
 
 
 def recurse_subattr_list(subgroup, prefix, attr_detailed, attr_map, adv_list):
-    if not isinstance(subgroup, dict):
+    if not isinstance(subgroup, list):
         return
 
     for each_sub in subgroup:
@@ -586,7 +586,6 @@ def attributes_check(rest_obj, inp_attr, profile_id):
                     diff = diff + 1
         for rem in rem_attrs:
             payload_attr.remove(rem)
-
     except Exception:
         diff = 1
     return diff
@@ -645,14 +644,24 @@ def handle_post_assignment(module, rest_obj, action):
     Returns:
         dict: A dictionary containing a success message and a job ID if applicable.
     """
+
+    action_map = {
+        "AssignProfile": "assign",
+        "UnassignProfiles": "unassign",
+        "MigrateProfile": "migrate"
+    }
+
+    performed_action = action_map.get(action)
+
     if action in ["AssignProfile", "UnassignProfiles", "MigrateProfile"]:
-        res_dict = {'msg': f"Successfully applied the {action} operation.", 'changed': True}
+        res_dict = {'msg': f"Successfully applied the {performed_action} operation. No job was triggered.",
+                    'changed': True}
         try:
             res_prof = get_profile(rest_obj, module)
             time.sleep(5)
             if res_prof.get('DeploymentTaskId'):
                 res_dict['job_id'] = res_prof.get('DeploymentTaskId')
-                res_dict['msg'] = f"Successfully triggered the job for the {action} operation."
+                res_dict['msg'] = f"Successfully triggered the job for the {performed_action} operation."
         except HTTPError:
             res_dict['msg'] += " Failed to fetch job details."
     module.exit_json(**res_dict)
@@ -696,10 +705,12 @@ def _validate_profile_assignment(module, payload, prof, target=None):
     if prof['ProfileState'] in [1, 4]:
         target_id = target.get('Id') if prof.get('ProfileState') == 4 else payload.get('Identifier')
         if prof.get('TargetId') == target_id or prof.get('TargetName') == target_id:
-            module.exit_json(msg="The profile is assigned to the requried target {0}.".format(target_id))
+            module.exit_json(msg="The profile is assigned to the target {0}.".format(target_id))
         else:
-            module.exit_json(msg="The profile is assigned to a different target. Use the migrate command or \
-                                unassign the profile and then proceed with assigning the profile to the target.", failed=True)
+            module.exit_json(
+                msg="The profile is assigned to a different target. Use the migrate command or "
+                    "unassign the profile and then proceed with assigning the profile to the target.",
+                failed=True)
 
 
 def unassign_profile(module, rest_obj):
