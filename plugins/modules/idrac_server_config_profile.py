@@ -1109,12 +1109,20 @@ class ImportCommand():
         else:
             scp_status = import_scp_redfish(self.module, self.idrac, self.http_share)
             if generation >= 17:
-              if "No changes were applied" not in scp_status.get('@Message.ExtendedInfo')[0].get('Message', ""):
-                changed = True
-              elif "SYS043" in scp_status.get('@Message.ExtendedInfo')[0].get('MessageId', ""):
-                changed = True
-              elif "SYS069" in scp_status.get('@Message.ExtendedInfo')[0].get('MessageId', ""):
-                changed = False
+              if "@Message.ExtendedInfo" in scp_status:
+                if "No changes were applied" not in scp_status.get('@Message.ExtendedInfo')[0].get('Message', ""):
+                  changed = True
+                elif "SYS043" in scp_status.get('@Message.ExtendedInfo')[0].get('MessageId', ""):
+                  changed = True
+                elif "SYS069" in scp_status.get('@Message.ExtendedInfo')[0].get('MessageId', ""):
+                  changed = False
+              else:
+                if "No changes were applied" not in scp_status.get('Message', ""):
+                  changed = True
+                elif "SYS043" in scp_status.get("MessageId", ""):
+                  changed = True
+                elif "SYS069" in scp_status.get("MessageId", ""):
+                  changed = False 
             else:     
               if "No changes were applied" not in scp_status.get('Message', ""):
                   changed = True
