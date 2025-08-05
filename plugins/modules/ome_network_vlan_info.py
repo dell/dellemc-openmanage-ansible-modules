@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.12.3
+# Version 9.12.4
 # Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -40,7 +40,7 @@ requirements:
     - "python >= 3.9.6"
 author: 
     - "Deepak Joshi(@deepakjoshishri)"
-    
+    - "Meenakshi Dembi(@meenakshidembi691)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module supports C(check_mode).
@@ -228,7 +228,6 @@ def main():
             network_vlan_uri = "{0}({1})".format(NETWORK_VLAN_BASE_URI, module.params.get("id")) if module.params.get(
                 "id") else "{0}?$top={1}".format(NETWORK_VLAN_BASE_URI, SAFE_MAX_LIMIT)
             resp = rest_obj.invoke_request('GET', network_vlan_uri)
-            # LOG.info("Network VLAN URI: %s", network_vlan_uri)
             if resp.status_code == 200:
                 network_vlan_info = resp.json_data.get('value') if isinstance(resp.json_data.get('value'), list) else [
                     resp.json_data]
