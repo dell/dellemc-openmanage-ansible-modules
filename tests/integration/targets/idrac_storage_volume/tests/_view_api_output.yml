@@ -1,0 +1,121 @@
+---
+- name: Get all the storage data from the device
+  ansible.builtin.uri:
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/Systems/System.Embedded.1/Storage?$expand=*($levels=1)"
+    method: GET
+    status_code: 200
+    headers: 'Accept=application/json'
+  register: all_storage_data
+  no_log: true
+
+- name: Get Firmware Version
+  ansible.builtin.uri:
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
+    method: GET
+    status_code: 200
+    headers: 'Accept=application/json'
+  register: firm_version
+  no_log: true
+
+- name: Sort and Get the controller
+  ansible.builtin.set_fact:
+    storage_controller_dict: |
+      {% set new_controller_list = [] %}
+      {% for dict_item in all_storage_data.json.Members %}{% if dict_item['Oem']['Dell']['DellControllerBattery'] is defined %}{% set battery_info = [dict_item['Oem']['Dell']['DellControllerBattery']['Id']] %}{% else %}{% set battery_info = {} %}{% endif %}{{ new_controller_list.append({'Id': dict_item['Id'], 'Drives': (dict_item['Drives'] | ansible.builtin.rekey_on_member(odata)).keys() | list, 'Enclosures': (dict_item['Links']['Enclosures'] | ansible.builtin.rekey_on_member(odata)).keys() | list | select('contains', 'Enclosure'),'ControllerSensor': {dict_item['Id']:({'ControllerBattery': battery_info } if firm_version.json.FirmwareVersion > '3.00' and battery_info else {}) }, 'VDs':[dict_item['Volumes'][odata]]}) }}{% endfor %}
+      {{ new_controller_list | ansible.builtin.rekey_on_member('Id') }}
+  no_log: true
+
+- name: Enclosures
+  ansible.builtin.set_fact:
+    all_enclosures: "{{ storage_controller_dict.values() | map(attribute='Enclosures') | flatten | unique | list }}"
+  no_log: true
+
+- name: All virtual Disks
+  ansible.builtin.set_fact:
+    all_vds: "{{ storage_controller_dict.values() | map(attribute='VDs') | flatten | unique | list }}"
+  no_log: true
+
+- name: Get all the enclosures
+  ansible.builtin.uri:
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}{{ item }}"
+    method: GET
+    status_code: 200
+    headers: 'Accept=application/json'
+  loop: "{{ all_enclosures }}"
+  register: all_enclosure_data
+  no_log: true
+
+- name: Get all the VDS
+  ansible.builtin.uri:
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}{{ item }}"
+    method: GET
+    status_code: 200
+    headers: 'Accept=application/json'
+  loop: "{{ all_vds }}"
+  register: all_vd_data
+  no_log: true
+
+- name: get Vds with Drives
+  set_fact:
+    vd_list: |
+      {% set new_vd_list = [] %}
+      {% for dict_item in all_vd_data.results %}{% for vol in dict_item.json.Members %}{{ new_vd_list.append( vol[odata]  if vol | length > 0) }}{% endfor %}{% endfor %}
+      {{ new_vd_list }}
+  no_log: true
+
+- name: Get all the VDS with Drives Info
+  ansible.builtin.uri:
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}{{ item }}"
+    method: GET
+    status_code: 200
+    headers: 'Accept=application/json'
+  loop: "{{ vd_list }}"
+  register: all_vd_drives_data
+  no_log: true
+
+- name: get Vds with Drives
+  set_fact:
+    new_vd_drives_list: |
+      {% set new_vd_drives_list = {} %}
+      {% for dict_item in all_vd_drives_data.results %}{% set controller_id = ((dict_item['item'] | ansible.builtin.split('/') | list | last) | ansible.builtin.split(':') | list | last) %}{{ new_vd_drives_list.update({controller_id : {(dict_item['item'] | ansible.builtin.split('/') | list | last) : {'PhysicalDisk':((dict_item['json']['Links']['Drives'] | ansible.builtin.rekey_on_member(odata)).keys()  | list ) |  map('split', '/') | map('last')  }}  }) }}{% endfor %}
+      {{ new_vd_drives_list }}
+  no_log: true
+
+- name: get enclosure with Drives
+  set_fact:
+    enclosure_dict: |
+      {% set new_enclosure_list = [] %}
+      {% for dict_item in all_enclosure_data.results %}{{ new_enclosure_list.append({'key': dict_item['item'], 'value': (dict_item['json']['Links']['Drives'] | ansible.builtin.rekey_on_member(odata)).keys() | list  }) }}{% endfor %}
+      {{ new_enclosure_list | items2dict }}
+  no_log: true
+
+- name: Stitch the enclosure with Drives
+  set_fact:
+    storage_controller_dict: |
+      {% set new_controller_dict = {} %}
+      {% for dict_item in storage_controller_dict.values() %}{% set enc_dict = {} %}{% if dict_item.Enclosures | length > 0 %}{% for enc in dict_item.Enclosures %}{% set enc_id = enc | ansible.builtin.split('/') | last %}{{ enc_dict.update({enc_id: {'EnclosureSensor': {enc_id:{}},'PhysicalDisk':(enclosure_dict[enc] | map('split', '/') | map('last') | list)}}) }}{% endfor %}{{ dict_item.update({'Enclosure': enc_dict}) }}{% else %}{{ dict_item.update({'PhysicalDisk': (dict_item.Drives | map('split', '/') | map('last')) if dict_item.Drives | length > 0 else omit }) }}{% endif %}{% endfor %}
+      {{ storage_controller_dict | ansible.builtin.rekey_on_member('Id') }}
+  no_log: true
+
+- name: Stitch the VDs with Drives
+  set_fact:
+    storage_controller_dict: |
+      {% set new_controller_dict = {} %}
+      {% for dict_item in storage_controller_dict.values() %}{{ dict_item.update({'VirtualDisk': (new_vd_drives_list[dict_item.Id] | default(omit))}) }}{% endfor %}
+      {{ storage_controller_dict | ansible.builtin.rekey_on_member('Id') }}
+  no_log: true
+
+- name: Removing the enclosure with Drives
+  set_fact:
+    storage_controller_dict: |
+      {% set new_controller_dict = {} %}
+      {% for key,value in storage_controller_dict.items() %}
+        {{ new_controller_dict.update({key: value | ansible.utils.remove_keys(target=['Drives','Enclosures','Id','VDs'])}) }}
+      {% endfor %}
+      {{ new_controller_dict }}
+  no_log: true
+
+- name: Convert string to dictionary
+  set_fact:
+    api_final_output: "{{ storage_controller_dict | from_yaml }}"
+  no_log: true
