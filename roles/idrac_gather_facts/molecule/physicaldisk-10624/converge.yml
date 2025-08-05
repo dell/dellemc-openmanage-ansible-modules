@@ -91,7 +91,8 @@
     - name: Assert Physical Disk data
       ansible.builtin.assert:
         that:
-          - "((drives_count | string | length == 0) and (physical_disk | string | length == 0))"
+          - "((drives_count | string | length == 0) and
+            (physical_disk | string | length == 0))"
         fail_msg: "The response from the role does not match"
         success_msg: "The response from the role matches"
       when: drives_count | string | length == 0
