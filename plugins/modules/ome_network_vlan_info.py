@@ -38,7 +38,7 @@ options:
 
 requirements:
     - "python >= 3.9.6"
-author: 
+author:
     - "Deepak Joshi(@deepakjoshishri)"
     - "Meenakshi Dembi(@meenakshidembi691)"
 notes:
