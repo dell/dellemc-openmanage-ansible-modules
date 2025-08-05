@@ -85,7 +85,7 @@
     - name: Job tracking iDRAC
       ansible.builtin.uri:
         url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
-         /redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{{ multi_raid_result.storage_status.Id }}"
+         /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{ multi_raid_result.storage_status.Id }}"
         method: "GET"
         status_code: 200, 202
       register: result

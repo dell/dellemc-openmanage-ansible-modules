@@ -33,6 +33,10 @@
       ansible.builtin.set_fact:
         first_pds: "{{ (pd_mapping.keys() | list | sort)[:raid_data[first_raid]['min_pds']] }}"
 
+    - name: Wait for a Minute
+      ansible.builtin.pause:
+        seconds: 60
+
     - name: Create Single raid with DHS
       dellemc.openmanage.idrac_storage_volume:
         state: "create"
