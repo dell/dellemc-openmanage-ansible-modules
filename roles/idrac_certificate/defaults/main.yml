@@ -7,4 +7,4 @@ https_timeout: 30
 certificate_type: "HTTPS"
 command: generate_csr
 reset: true
-wait: 300
+wait: 600

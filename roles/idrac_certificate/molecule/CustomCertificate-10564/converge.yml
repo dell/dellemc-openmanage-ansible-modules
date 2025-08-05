@@ -23,9 +23,10 @@
         firmware_version_expected_export: "7.00.00.00"
 
     - name: Import CUSTOMCERTIFICATE without passphrase
-      when: idrac_certificate_firmware_version is defined and
-             "idrac_certificate_firmware_version >= firmware_version_expected"
-             and custom_cert_name
+      when: idrac_certificate_firmware_version is defined
+      # when: idrac_certificate_firmware_version is defined and
+      #        "idrac_certificate_firmware_version >= firmware_version_expected"
+      #        and custom_cert_name
       block:
         - name: Fetching Custom certificate from share
           ansible.builtin.include_tasks:
