@@ -538,3 +538,19 @@ class TestOmeProfile(FakeAnsibleModule):
             result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'msg' in result
+
+    @pytest.mark.parametrize("params", [{"mparams": {"filters": {"ProfileIds": [123]}},
+                                         "res": {"Id": 123, "ProfileName": "Test Profile"}}])
+    def test_ome_profile_get_with_profile_id(self, params, ome_connection_mock_for_profile):
+        f_module = self.get_module_mock(params=params["mparams"])
+        ome_connection_mock_for_profile.invoke_request.return_value.json_data = params["res"]
+        result = self.module.get_profile(ome_connection_mock_for_profile, f_module)
+        assert result == params["res"]
+
+    @pytest.mark.parametrize("params", [{"mparams": {"filters": {"Filters": "=contains(ProfileName,'Test Profile01')"}},
+                                         "res": {"value": [{"Id": 123, "ProfileName": "Test Profile01"}]}}])
+    def test_ome_profile_get_with_profile_name_in_filters(self, params, ome_connection_mock_for_profile):
+        f_module = self.get_module_mock(params=params["mparams"])
+        ome_connection_mock_for_profile.invoke_request.return_value.json_data = params["res"]
+        result = self.module.get_profile(ome_connection_mock_for_profile, f_module)
+        assert result == params["res"]["value"][0]
