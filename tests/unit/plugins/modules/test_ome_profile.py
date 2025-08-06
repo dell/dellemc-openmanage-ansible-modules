@@ -19,6 +19,7 @@ from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_profile
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
+from unittest.mock import MagicMock
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.ome_profile.'
 CHANGES_MSG = "Changes found to be applied."
@@ -199,6 +200,36 @@ class TestOmeProfile(FakeAnsibleModule):
         result = self.module.attributes_check(ome_connection_mock_for_profile,
                                               params['mparams']['attributes'], 123)
         assert result == params["diff"]
+
+    @pytest.mark.parametrize("inp_attr, attr_groups, attr_map, expected_diff", [
+        (
+            {"Attributes": [{"Id": 1, "Value": "val1", "IsIgnored": False}]},
+            [{"Attributes": [{"AttributeId": 1, "Value": "val1", "IsIgnored": False}]}],
+            {1: {"Value": "val1", "IsIgnored": False}},
+            0
+        ),
+        (
+            {"Attributes": [{"Id": 1, "Value": "val2", "IsIgnored": False}]},
+            [{"Attributes": [{"AttributeId": 1, "Value": "val1", "IsIgnored": False}]}],
+            {1: {"Value": "val1", "IsIgnored": False}},
+            1
+        ),
+        (
+            {"Attributes": [{"Id": 2, "Value": "val1", "IsIgnored": False}]},
+            [{"Attributes": [{"AttributeId": 1, "Value": "val1", "IsIgnored": False}]}],
+            {},
+            0  # Removed due to missing mapping
+        ),
+    ])
+    def test_attributes_check_diff(self, mocker, inp_attr, attr_groups, attr_map, expected_diff):
+        rest_obj = MagicMock()
+        rest_obj.invoke_request.return_value.json_data = {"AttributeGroups": attr_groups}
+
+        mocker.patch(MODULE_PATH + "normalize_display_names", return_value=inp_attr["Attributes"])
+        mocker.patch(MODULE_PATH + "get_subattr_all", return_value=({}, attr_map))
+
+        diff = self.module.attributes_check(rest_obj, inp_attr, profile_id=123)
+        assert diff == expected_diff
 
     @pytest.mark.parametrize("params", [{"mparams": {"command": 'create'}, "func": "create_profile"},
                                         {"mparams": {"command": 'modify'}, "func": "modify_profile"},
@@ -554,3 +585,13 @@ class TestOmeProfile(FakeAnsibleModule):
         ome_connection_mock_for_profile.invoke_request.return_value.json_data = params["res"]
         result = self.module.get_profile(ome_connection_mock_for_profile, f_module)
         assert result == params["res"]["value"][0]
+
+    def test_handle_post_assignment_http_error(self, mocker, ome_default_args, ome_connection_mock_for_profile, ome_response_mock):
+        ome_default_args.update({"template_name": "t1"})
+        ome_response_mock.status_code = 400
+
+        with mocker.patch(MODULE_PATH + 'get_profile', side_effect=HTTPError('https://testhost.com', 400, 'http error message', {}, None)), \
+                mocker.patch(MODULE_PATH + 'time.sleep', return_value=None):
+            self.module.handle_post_assignment(ome_connection_mock_for_profile, ome_response_mock, "AssignProfile")
+        result = self._run_module(ome_default_args)
+        assert result['failed'] is True
