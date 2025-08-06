@@ -595,3 +595,32 @@ class TestOmeProfile(FakeAnsibleModule):
         self.module.handle_post_assignment(ome_connection_mock_for_profile, ome_response_mock, "AssignProfile")
         result = self._run_module(ome_default_args)
         assert result['failed'] is True
+
+    @pytest.mark.parametrize("params",
+                             [{"mparams": {"device_id": 123}, "success": True,
+                               "json_data": {"data": "some_response"}}])
+    def test_get_target_details_not_found(self, params, ome_connection_mock_for_profile, mocker):
+        f_module = self.get_module_mock(params=params["mparams"])
+        ome_connection_mock_for_profile.invoke_request.return_value = params.get("json_data")
+        mocker.patch(MODULE_PATH + "match_profile", return_value=None)
+        result = self.module.get_target_details(f_module, ome_connection_mock_for_profile)
+        assert result == "Target with Id '123' not found."
+
+    @pytest.mark.parametrize("params", [{"mparams": {
+        "boot_to_network_iso": {
+            "boot_to_network": True,
+            "share_type": "CIFS",
+            "share_ip": "100.200.300",
+            "share_user": "shareuser",
+            "share_pwd": "sharepwd",
+            "workgroup": "workgroup",
+            "iso_path": "pathofiso",
+            "iso_timeout": 8
+        }
+    },
+    "res": "ISO path does not have extension '.iso'"}])
+    def test_get_network_iso_payload_without_iso(self, params):
+        f_module = self.get_module_mock(params=params["mparams"])
+        with pytest.raises(Exception) as err:
+            self.module.get_network_iso_payload(f_module)
+        assert err.value.args[0] == params["res"]
