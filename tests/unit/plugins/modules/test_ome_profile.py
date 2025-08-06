@@ -616,9 +616,8 @@ class TestOmeProfile(FakeAnsibleModule):
             "workgroup": "workgroup",
             "iso_path": "pathofiso",
             "iso_timeout": 8
-        }
-    },
-    "res": "ISO path does not have extension '.iso'"}])
+        }},
+        "res": "ISO path does not have extension '.iso'"}])
     def test_get_network_iso_payload_without_iso(self, params):
         f_module = self.get_module_mock(params=params["mparams"])
         with pytest.raises(Exception) as err:
