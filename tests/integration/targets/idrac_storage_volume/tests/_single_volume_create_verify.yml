@@ -27,7 +27,7 @@
     single_volume: "{{ volumes.json.Members | first }}"
     unique_pds: |
       {% set new_pd_list = [] %}
-      {% for dict_item in volumes.json.Members[0].Links.Drives %}{{ new_pd_list.append(dict_item['@odata.id'] | ansible.builtin.split('/') | last) }}{% endfor %}
+      {% for dict_item in volumes.json.Members[0].Links.Drives %}{% set _ = new_pd_list.append(dict_item['@odata.id'] | ansible.builtin.split('/') | last) %}{% endfor %}
       {{ new_pd_list }}
 
 - name: Verify the single volume
