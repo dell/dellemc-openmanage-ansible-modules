@@ -89,10 +89,9 @@
       rescue:
         - name: Assert reset bios with invalid password
           ansible.builtin.assert:
-            that: |-
-              ("'HTTP Error 401' in ansible_failed_result.msg")
-              or
-              ("'urlopen error timed out' in ansible_failed_result.msg")
+            that:
+              - '"HTTP Error 401" in ansible_failed_result.msg or
+                "urlopen error timed out" in ansible_failed_result.msg'
 
     - name: Block for reset type with invalid value
       block:

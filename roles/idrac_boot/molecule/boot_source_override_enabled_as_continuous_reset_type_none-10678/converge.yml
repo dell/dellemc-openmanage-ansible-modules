@@ -37,7 +37,7 @@
     - name: Pre-requisite - Making sure boot_source_override_enabled is disabled
       check_mode: false
       ansible.builtin.import_role:
-        name: "idrac_boot"
+        name: dellemc.openmanage.idrac_boot
       vars:
         boot_source_override_enabled: disabled
         boot_source_override_target: hdd
@@ -49,7 +49,7 @@
 
     - name: TC-115433 - Validate boot_source_override_enabled as continuous
       ansible.builtin.include_role:
-        name: "idrac_boot"
+        name: dellemc.openmanage.idrac_boot
       vars:
         boot_source_override_enabled: continuous
         boot_source_override_target: pxe

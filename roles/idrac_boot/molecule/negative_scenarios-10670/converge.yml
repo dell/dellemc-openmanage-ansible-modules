@@ -240,9 +240,9 @@
         - name: Verify - Check 2 - TC-115444 - mutual exclusivity between
            boot_options and boot_order
           ansible.builtin.assert:
-            that: >
-              "'parameters are mutually exclusive: boot_options|boot_order
-               found in boot_options' == idrac_boot_out.msg"
+            that:
+              - "'parameters are mutually exclusive: boot_options|boot_order'
+                 in idrac_boot_out.msg"
 
     - name: Check 3 - TC-115444 - Entering block
       block:
@@ -265,10 +265,9 @@
         - name: Verify - Check 3 - TC-115444 - mutual exclusivity between
            boot_options and boot_source_override_mode
           ansible.builtin.assert:
-            that: >
-              "'parameters are mutually exclusive:
-                boot_options|boot_source_override_mode found in boot_options'
-                == idrac_boot_out.msg"
+            that:
+              - "'parameters are mutually exclusive:
+                boot_options|boot_source_override_mode' in idrac_boot_out.msg"
 
     - name: Check 4 - TC-115444 - Entering block
       block:
@@ -291,10 +290,10 @@
         - name: Verify - Check 4 - TC-115444 - mutual exclusivity between
            boot_options and boot_source_override_enabled
           ansible.builtin.assert:
-            that: >
-              "'parameters are mutually exclusive:
-              boot_options|boot_source_override_enabled found in boot_options'
-              == idrac_boot_out.msg"
+            that:
+              - "'parameters are mutually exclusive:
+                boot_options|boot_source_override_enabled'
+                in idrac_boot_out.msg"
 
     - name: Check 5 - TC-115444 - Entering block
       block:
@@ -317,10 +316,10 @@
         - name: Verify - Check 5 - TC-115444 - mutual exclusivity between
            boot_options and boot_source_override_target
           ansible.builtin.assert:
-            that: >
-              "'parameters are mutually exclusive:
-              boot_options|boot_source_override_target found in boot_options'
-              == idrac_boot_out.msg"
+            that:
+              - "'parameters are mutually exclusive:
+                boot_options|boot_source_override_target'
+                in idrac_boot_out.msg"
 
     - name: Check 6 - TC-115444 - Entering block
       block:
@@ -344,7 +343,7 @@
         - name: Verify - Check 6 - TC-115444 - mutual exclusivity
            between boot_options and uefi_target_boot_source_override
           ansible.builtin.assert:
-            that: >
-              "'parameters are mutually exclusive:
-              boot_options|uefi_target_boot_source_override found in
-              boot_options' == idrac_boot_out.msg"
+            that:
+              - "'parameters are mutually exclusive:
+                boot_options|uefi_target_boot_source_override'
+                in idrac_boot_out.msg"
