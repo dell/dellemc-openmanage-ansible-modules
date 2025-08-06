@@ -513,7 +513,7 @@ def get_network_iso_payload(module):
             if str(boot_iso_dict.get("iso_path")).lower().endswith('.iso'):
                 iso_payload["IsoPath"] = boot_iso_dict.get("iso_path")
             else:
-                module.fail_json(msg="ISO path does not have extension '.iso'")
+                module.exit_json(msg="ISO path does not have extension '.iso'", failed=True)
             iso_payload["IsoTimeout"] = boot_iso_dict.get("iso_timeout")
     return iso_payload
 
@@ -612,7 +612,7 @@ def assign_profile(module, rest_obj):
         ad_opts_list = ['Attributes', 'Options', 'Schedule']
     else:
         if mparam.get('device_id'):
-            module.fail_json(msg=target)
+            module.exit_json(msg=target, failed=True)
         action = "AssignProfileForAutoDeploy"
         payload['Identifier'] = mparam.get('device_service_tag')
         _validate_profile_assignment(module=module, payload=payload, prof=prof)
@@ -816,7 +816,7 @@ def delete_profile(module, rest_obj):
         prof = get_profile(rest_obj, module)
         if prof:
             if prof['ProfileState'] > 0:
-                module.fail_json(msg="Profile has to be in an unassigned state for it to be deleted.")
+                module.exit_json(msg="Profile has to be in an unassigned state for it to be deleted.", failed=True)
             if module.check_mode:
                 module.exit_json(msg=CHANGES_MSG, changed=True)
             rest_obj.invoke_request('DELETE', PROFILE_VIEW + "({0})".format(prof['Id']))

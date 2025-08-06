@@ -590,8 +590,8 @@ class TestOmeProfile(FakeAnsibleModule):
         ome_default_args.update({"template_name": "t1"})
         ome_response_mock.status_code = 400
 
-        with mocker.patch(MODULE_PATH + 'get_profile', side_effect=HTTPError('https://testhost.com', 400, 'http error message', {}, None)), \
-                mocker.patch(MODULE_PATH + 'time.sleep', return_value=None):
-            self.module.handle_post_assignment(ome_connection_mock_for_profile, ome_response_mock, "AssignProfile")
+        mocker.patch(MODULE_PATH + 'get_profile', side_effect=HTTPError('https://testhost.com', 400, 'http error message', {}, None))
+        mocker.patch(MODULE_PATH + 'time.sleep', return_value=None)
+        self.module.handle_post_assignment(ome_connection_mock_for_profile, ome_response_mock, "AssignProfile")
         result = self._run_module(ome_default_args)
         assert result['failed'] is True
