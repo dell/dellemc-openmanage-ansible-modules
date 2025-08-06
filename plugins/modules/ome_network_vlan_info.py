@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.12.4
 # Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -38,7 +38,9 @@ options:
 
 requirements:
     - "python >= 3.9.6"
-author: "Deepak Joshi(@deepakjoshishri)"
+author:
+    - "Deepak Joshi(@deepakjoshishri)"
+    - "Meenakshi Dembi(@meenakshidembi691)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module supports C(check_mode).
@@ -237,7 +239,7 @@ def main():
                             network_vlan = [item]
                             break
                     if not network_vlan:
-                        module.fail_json(msg=NETWORK_VLAN_NAME_NOT_FOUND.format(network_vlan_name))
+                        module.exit_json(msg=NETWORK_VLAN_NAME_NOT_FOUND.format(network_vlan_name), failed=True)
                     network_vlan_info = network_vlan
                 # Get network type and Qos Type information
                 network_type_dict = get_network_type_and_qos_type_information(rest_obj)
@@ -245,17 +247,17 @@ def main():
                 for network_vlan in network_vlan_info:
                     network_vlan = clean_data(network_vlan)
                     network_vlan['Type'] = network_type_dict[network_vlan['Type']]
-                module.exit_json(msg=MODULE_SUCCESS_MESSAGE, network_vlan_info=network_vlan_info)
+                module.exit_json(msg=MODULE_SUCCESS_MESSAGE, network_vlan_info=network_vlan_info, changed=False)
             else:
-                module.fail_json(msg=MODULE_FAILURE_MESSAGE)
+                module.exit_json(msg=MODULE_FAILURE_MESSAGE, failed=True)
     except HTTPError as err:
         if err.getcode() == 404:
-            module.fail_json(msg=str(err))
-        module.fail_json(msg=str(MODULE_FAILURE_MESSAGE), error_info=json.load(err))
+            module.exit_json(msg=str(err), failed=True)
+        module.exit_json(msg=str(MODULE_FAILURE_MESSAGE), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLError, TypeError, KeyError, ConnectionError, SSLValidationError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
