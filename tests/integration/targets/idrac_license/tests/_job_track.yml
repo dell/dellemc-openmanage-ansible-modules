@@ -1,0 +1,19 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Get all jobs
+  ansible.builtin.include_tasks: _get_data_uri.yml
+  vars:
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+     /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/?$expand=*($levels=1)"
+    uri_method: "GET"
+    status_code: 200
+
+- name: Set job details
+  ansible.builtin.set_fact:
+    idrac_job_details: "{{ result_get_data.json.Members |
+     selectattr('Id', 'equalto', job_id) | first }}"
+  when: result_get_data.json.Members | length > 0

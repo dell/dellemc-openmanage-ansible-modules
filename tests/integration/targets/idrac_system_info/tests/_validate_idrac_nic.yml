@@ -41,11 +41,20 @@
 
 - name: Output conversion to list
   ansible.builtin.set_fact:
-    idrac_nic_updated_dict: "{{ idrac_nic_updated_dict.stdout | to_json |
-      from_json }}"
+    idrac_nic_updated_dict: "{{ idrac_nic_updated_dict.stdout | from_yaml }}"
   when:
     - uri_data.status == 200
     - uri_manager_data.status == 200
+
+- name: Get idrac NIC data
+  ansible.builtin.set_fact:
+    res_idrac_nic:
+      "{{ result.system_info.iDRACNIC }}"
+
+- name: Output conversion to list change none
+  ansible.builtin.set_fact:
+    result_idrac_nic_updated_dict:
+      "{{ res_idrac_nic | regex_replace('null', '\"None\"') | from_yaml}}"
 
 - name: Comparing values inside list for memory
   ansible.builtin.include_tasks:
@@ -56,4 +65,4 @@
   when:
     - uri_data.status == 200
     - uri_manager_data.status == 200
-  loop: "{{ result.system_info.iDRACNIC | zip(idrac_nic_updated_dict) }}"
+  loop: "{{ result_idrac_nic_updated_dict | zip(idrac_nic_updated_dict) }}"

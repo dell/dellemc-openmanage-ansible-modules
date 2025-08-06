@@ -41,9 +41,9 @@
         that:
           - not invalid_username.changed
           - invalid_username.failed
-          - ("'Unable to complete the operation because an invalid
-            username and/or password is entered' in invalid_username.msg")
-            or ("'HTTP Error 401' in invalid_username.msg")
+          - "'Unable to complete the operation because an invalid username
+            and/or password is entered' in invalid_username.msg
+            or 'HTTP Error 401' in invalid_username.msg"
 
     - name: Negative - invalid password
       dellemc.openmanage.idrac_attributes:
@@ -58,9 +58,9 @@
         that:
           - not invalid_password.changed
           - invalid_password.failed
-          - ("'Unable to complete the operation because an invalid
-            username and/or password is entered' in invalid_password.msg")
-            or ("'HTTP Error 401' in invalid_password.msg")
+          - "'Unable to complete the operation because an invalid
+            username and/or password is entered' in invalid_password.msg
+            or 'HTTP Error 401' in invalid_password.msg"
 
     - name: Perform update with invalid port
       dellemc.openmanage.idrac_attributes:
@@ -77,9 +77,9 @@
         that:
           - not invalid_port.changed
           - invalid_port.unreachable
-          - ('"Connection refused" in invalid_port.msg')
+          - "'Connection refused' in invalid_port.msg
             or
-            ('"urlopen error timed out" in invalid_port.msg')
+            'urlopen error timed out' in invalid_port.msg"
 
     - name: Perform update with invalid validate_certs
       dellemc.openmanage.idrac_attributes:
@@ -112,9 +112,9 @@
       ansible.builtin.assert:
         that:
           - not invalid_ca_path.changed
-          - ('"certificate verify failed" in invalid_ca_path.msg')
+          - '"certificate verify failed" in invalid_ca_path.msg
             or
-            ('"No such file or directory" in invalid_ca_path.msg')
+            "No such file or directory" in invalid_ca_path.msg'
 
     - name: Negative - invalid timeout type
       dellemc.openmanage.idrac_attributes:

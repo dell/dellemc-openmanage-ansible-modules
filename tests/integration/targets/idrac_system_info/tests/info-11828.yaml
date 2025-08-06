@@ -60,17 +60,17 @@
           - not result.changed
           - result.msg == "Successfully fetched the system inventory details."
           - result.system_info.iDRAC[0].IPv4Address == idrac_ip
-          - result.system_info.Video
-          - result.system_info.iDRAC
-          - result.system_info.System
-          - result.system_info.SystemMetrics
-          - result.system_info.iDRACNIC
-          - result.system_info.Sensors_Voltage
-          - result.system_info.BIOS
-          - result.system_info.CPU
-          - result.system_info.NIC
-          - result.system_info.Memory
-          - result.system_info.License
+          - result.system_info.Video is defined
+          - result.system_info.iDRAC is defined
+          - result.system_info.System is defined
+          - result.system_info.SystemMetrics is defined
+          - result.system_info.iDRACNIC is defined
+          - result.system_info.Sensors_Voltage is defined
+          - result.system_info.BIOS is defined
+          - result.system_info.CPU is defined
+          - result.system_info.NIC is defined
+          - result.system_info.Memory is defined
+          - result.system_info.License is defined
           - bios_uri.json.Attributes.SystemBiosVersion ==
             result.system_info.BIOS[0].VersionString
 

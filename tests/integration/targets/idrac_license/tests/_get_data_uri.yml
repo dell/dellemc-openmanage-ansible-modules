@@ -1,0 +1,21 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Get data using uri
+  ansible.builtin.uri:
+    url: "{{ url }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: "{{ uri_method }}"
+    body: "{{ body | default(omit) }}"
+    validate_certs: false
+    force_basic_auth: true
+    body_format: json
+    return_content: true
+    status_code: "{{ status_code }}"
+    headers: 'Accept=application/json'
+  ignore_errors: true
+  register: result_get_data

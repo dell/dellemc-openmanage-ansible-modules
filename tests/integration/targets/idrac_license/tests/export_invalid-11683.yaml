@@ -1,0 +1,442 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user
+     and idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- block:
+    - name: Fetch the license details from the device
+      ansible.builtin.include_tasks: _get_data_uri.yml
+      vars:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+         /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLicenses"
+        uri_method: GET
+        status_code: 200
+
+    - name: Fetch the license details
+      ansible.builtin.set_fact:
+        idrac_license_details: "{{ result_get_data.json.Members | last }}"
+      when: result_get_data.json.Members | length > 0
+
+    - name: Set license ID
+      ansible.builtin.set_fact:
+        idrac_license_id: "{{ idrac_license_details.EntitlementID }}"
+      when: idrac_license_details is defined
+
+    - name: Negative - Export a License from iDRAC with invalid value
+       for export parameter
+      dellemc.openmanage.idrac_license:
+        export: export
+        license_id: "valid_license_id"
+        share_parameters:
+          file_name: "openmanage_enterprise_advance_license.txt"
+          share_name: /invalid_share
+          share_type: local
+      register: invalid_export_value
+      ignore_errors: true
+
+    - name: Verify Negative (export)
+      ansible.builtin.assert:
+        that:
+          - invalid_export_value.failed
+          - not invalid_export_value.changed
+          - "'unable to convert to bool' in invalid_export_value.msg"
+
+    - name: Negative - Export a License from iDRAC with
+       share_parameters not provided
+      dellemc.openmanage.idrac_license:
+        export: true
+        license_id: "valid_license_id"
+      register: missing_share_parameters
+      ignore_errors: true
+
+    - name: Verify Negative (export)
+      ansible.builtin.assert:
+        that:
+          - missing_share_parameters.failed
+          - not missing_share_parameters.changed
+          - 'missing_share_parameters.msg == "export is True but all of the
+           following are missing: share_parameters"'
+
+    - name: Negative - Export a License from iDRAC  when license is available
+      when: idrac_license_id is defined
+      block:
+        - name: Negative - Export a License from iDRAC with invalid
+           share_name (share_type-Local)
+          dellemc.openmanage.idrac_license:
+            export: true
+            license_id: "{{ idrac_license_id }}"
+            share_parameters:
+              file_name: "openmanage_enterprise_advance_license"
+              share_name: /invalid_share
+              share_type: local
+          register: invalid_share_name
+          ignore_errors: true
+
+        - name: Verify Negative (export)
+          ansible.builtin.assert:
+            that:
+              - invalid_share_name.failed
+              - not invalid_share_name.changed
+              - invalid_share_name.msg == "Provided directory
+               path '/invalid_share' is not valid."
+
+        - name: Negative - Export a License from iDRAC with invalid share_type
+          dellemc.openmanage.idrac_license:
+            export: true
+            license_id: "{{ idrac_license_id }}"
+            share_parameters:
+              file_name: "openmanage_enterprise_advance_license"
+              share_name: /valid_share
+              share_type: invalid_type
+          register: invalid_share_type
+          ignore_errors: true
+
+        - name: Verify Negative (export)
+          ansible.builtin.assert:
+            that:
+              - invalid_share_type.failed
+              - not invalid_share_type.changed
+              - invalid_share_type.msg.startswith("value of
+               share_type must be one of:")
+
+        - name: Negative - Export a License from iDRAC with invalid ip_address
+          dellemc.openmanage.idrac_license:
+            export: true
+            license_id: "{{ idrac_license_id }}"
+            share_parameters:
+              file_name: "openmanage_enterprise_advance_license"
+              ip_address: "invalid_ip_address"
+              share_name: "/nfsshare"
+              share_type: nfs
+          register: invalid_ip_address
+          ignore_errors: true
+
+        - name: Verify Negative (export)
+          ansible.builtin.assert:
+            that:
+              - invalid_ip_address.failed
+              - not invalid_ip_address.changed
+              - invalid_ip_address.msg == "Could not connect to network share."
+
+        - name: Negative - Export a License from iDRAC with invalid
+           share username
+          dellemc.openmanage.idrac_license:
+            export: true
+            license_id: "{{ idrac_license_id }}"
+            share_parameters:
+              file_name: "xyz"
+              ip_address: "{{ http_share }}"
+              share_name: "{{ http_share_dir_path }}"
+              username: "invalid_user"
+              password: "{{ http_share_password | default(omit) }}"
+              share_type: http
+          register: invalid_share_user
+          ignore_errors: true
+
+        - name: Verify Negative (export)
+          ansible.builtin.assert:
+            that:
+              - invalid_share_user.failed
+              - not invalid_share_user.changed
+              - '"credentials are not entered, or the credentials entered do
+                not correspond to an authorized user of the remote host." in
+                invalid_share_user.msg'
+
+        - name: Negative - Export a License from iDRAC with invalid
+           share password
+          dellemc.openmanage.idrac_license:
+            export: true
+            license_id: "{{ idrac_license_id }}"
+            share_parameters:
+              file_name: "xyz"
+              ip_address: "{{ http_share }}"
+              share_name: "{{ http_share_dir_path }}"
+              username: "{{ http_share_user | default(omit) }}"
+              password: "invalid_http_share_password"
+              share_type: http
+          register: invalid_share_password
+          ignore_errors: true
+
+        - name: Verify Negative (export)
+          ansible.builtin.assert:
+            that:
+              - invalid_share_password.failed
+              - not invalid_share_password.changed
+              - '"credentials are not entered, or the credentials entered do
+                not correspond to an authorized user of the remote host." in
+                invalid_share_password.msg'
+
+        - name: Negative - Export a License from iDRAC with invalid
+           ignore_certificate_warning
+          dellemc.openmanage.idrac_license:
+            export: true
+            license_id: "{{ idrac_license_id }}"
+            share_parameters:
+              file_name: "openmanage_enterprise_advance_license"
+              ip_address: "{{ https_share_ip }}"
+              share_name: "{{ https_share_dir_path }}"
+              username: "{{ https_share_username | default(omit) }}"
+              password: "{{ https_share_password | default(omit) }}"
+              ignore_certificate_warning: "empty"
+              share_type: https
+          register: invalid_ignore_certificate_warning
+          ignore_errors: true
+
+        - name: Verify Negative (export)
+          ansible.builtin.assert:
+            that:
+              - invalid_ignore_certificate_warning.failed
+              - not invalid_ignore_certificate_warning.changed
+              - "'value of ignore_certificate_warning must be one
+               of: off, on, got: empty found in share_parameters' in
+               invalid_ignore_certificate_warning.msg"
+
+        - name: Negative - Export a License from iDRAC with invalid proxy
+           support value
+          dellemc.openmanage.idrac_license:
+            export: true
+            license_id: "{{ idrac_license_id }}"
+            share_parameters:
+              file_name: "openmanage_enterprise_advance_license"
+              ip_address: "{{ https_share_ip }}"
+              share_name: "{{ https_share_dir_path }}"
+              username: "{{ https_share_username | default(omit) }}"
+              password: "{{ https_share_password | default(omit) }}"
+              ignore_certificate_warning: "on"
+              share_type: https
+              proxy_support: "invalid_proxy_support"
+              proxy_server: "{{ http_proxy_server }}"
+              proxy_port: "{{ http_proxy_port | int }}"
+              proxy_username: "{{ http_proxy_username }}"
+              proxy_password: "{{ http_proxy_password }}"
+              proxy_type: "http"
+          register: invalid_proxy_support
+          ignore_errors: true
+
+        - name: Verify Negative (export)
+          ansible.builtin.assert:
+            that:
+              - invalid_proxy_support.failed
+              - not invalid_proxy_support.changed
+              - "'value of proxy_support must be one of: off, default_proxy,
+               parameters_proxy' in invalid_proxy_support.msg"
+
+        - name: Negative - Export a License from iDRAC with invalid
+           proxy type value
+          dellemc.openmanage.idrac_license:
+            export: true
+            license_id: "{{ idrac_license_id }}"
+            share_parameters:
+              file_name: "openmanage_enterprise_advance_license"
+              ip_address: "{{ https_share_ip }}"
+              share_name: "{{ https_share_dir_path }}"
+              username: "{{ https_share_username | default(omit) }}"
+              password: "{{ https_share_password | default(omit) }}"
+              ignore_certificate_warning: "on"
+              share_type: https
+              proxy_support: "parameters_proxy"
+              proxy_server: "{{ http_proxy_server }}"
+              proxy_port: "{{ http_proxy_port | int }}"
+              proxy_username: "{{ http_proxy_username }}"
+              proxy_password: "{{ http_proxy_password }}"
+              proxy_type: "invalid_proxy_type"
+          register: invalid_proxy_type
+          ignore_errors: true
+
+        - name: Verify Negative (export)
+          ansible.builtin.assert:
+            that:
+              - invalid_proxy_type.failed
+              - not invalid_proxy_type.changed
+              - "'value of proxy_type must be one of: http, socks' in
+               invalid_proxy_type.msg"
+
+        - name: Negative - Export a License from iDRAC with invalid
+           proxy server value
+          dellemc.openmanage.idrac_license:
+            export: true
+            license_id: "{{ idrac_license_id }}"
+            share_parameters:
+              file_name: "openmanage_enterprise_advance_license"
+              ip_address: "{{ https_share_ip }}"
+              share_name: "{{ https_share_dir_path }}"
+              username: "{{ https_share_username | default(omit) }}"
+              password: "{{ https_share_password | default(omit) }}"
+              ignore_certificate_warning: "on"
+              share_type: https
+              proxy_support: "parameters_proxy"
+              proxy_server: "invalid_proxy_server"
+              proxy_port: "{{ http_proxy_port | int }}"
+              proxy_username: "{{ http_proxy_username }}"
+              proxy_password: "{{ http_proxy_password }}"
+              proxy_type: "http"
+          register: invalid_proxy_server
+          ignore_errors: true
+
+        - name: Verify Negative (export)
+          ansible.builtin.assert:
+            that:
+              - invalid_proxy_server.failed
+              - not invalid_proxy_server.changed
+              - invalid_proxy_server.msg == "Unable to transfer a file,
+               openmanage_enterprise_advance_license, because of an
+               internal error."
+
+        - name: Negative - Export a License from iDRAC with invalid
+           proxy username value
+          dellemc.openmanage.idrac_license:
+            export: true
+            license_id: "{{ idrac_license_id }}"
+            share_parameters:
+              file_name: "openmanage_enterprise_advance_license"
+              ip_address: "{{ https_share_ip }}"
+              share_name: "{{ https_share_dir_path }}"
+              username: "{{ https_share_username | default(omit) }}"
+              password: "{{ https_share_password | default(omit) }}"
+              ignore_certificate_warning: "on"
+              share_type: https
+              proxy_support: "parameters_proxy"
+              proxy_server: "{{ http_proxy_server }}"
+              proxy_port: "{{ http_proxy_port | int }}"
+              proxy_username: "invalid_proxy_username"
+              proxy_password: "{{ http_proxy_password }}"
+              proxy_type: "http"
+          register: invalid_proxy_username
+          ignore_errors: true
+
+        - name: Verify Negative (export)
+          ansible.builtin.assert:
+            that:
+              - invalid_proxy_username.failed
+              - not invalid_proxy_username.changed
+              - invalid_proxy_username.msg == "Unable to transfer file,
+               openmanage_enterprise_advance_license,
+               because of some unknown reasons."
+
+        - name: Negative - Export a License from iDRAC with invalid
+           proxy password value
+          dellemc.openmanage.idrac_license:
+            export: true
+            license_id: "{{ idrac_license_id }}"
+            share_parameters:
+              file_name: "openmanage_enterprise_advance_license"
+              ip_address: "{{ https_share_ip }}"
+              share_name: "{{ https_share_dir_path }}"
+              username: "{{ https_share_username | default(omit) }}"
+              password: "{{ https_share_password | default(omit) }}"
+              ignore_certificate_warning: "on"
+              share_type: https
+              proxy_support: "parameters_proxy"
+              proxy_server: "{{ http_proxy_server }}"
+              proxy_port: "{{ http_proxy_port | int }}"
+              proxy_username: "{{ http_proxy_username }}"
+              proxy_password: "invalid_proxy_password"
+              proxy_type: "http"
+          register: invalid_proxy_password
+          ignore_errors: true
+
+        - name: Verify Negative (export)
+          ansible.builtin.assert:
+            that:
+              - invalid_proxy_password.failed
+              - not invalid_proxy_password.changed
+              - invalid_proxy_password.msg == "Unable to transfer file,
+               openmanage_enterprise_advance_license,
+               because of some unknown reasons."
+
+        - name: Negative - Export a License from iDRAC with invalid
+           proxy port value
+          dellemc.openmanage.idrac_license:
+            export: true
+            license_id: "{{ idrac_license_id }}"
+            share_parameters:
+              file_name: "openmanage_enterprise_advance_license"
+              ip_address: "{{ https_share_ip }}"
+              share_name: "{{ https_share_dir_path }}"
+              username: "{{ https_share_username | default(omit) }}"
+              password: "{{ https_share_password | default(omit) }}"
+              ignore_certificate_warning: "on"
+              share_type: https
+              proxy_support: "parameters_proxy"
+              proxy_server: "{{ http_proxy_server }}"
+              proxy_port: "{{ -1 | int }}"
+              proxy_username: "{{ http_proxy_username }}"
+              proxy_password: "{{ http_proxy_password }}"
+              proxy_type: "http"
+          register: invalid_proxy_port
+          ignore_errors: true
+
+        - name: Verify Negative (export)
+          ansible.builtin.assert:
+            that:
+              - invalid_proxy_port.failed
+              - not invalid_proxy_port.changed
+              - '"unsupported proxy port number value" in
+               invalid_proxy_port.msg'
+
+    - name: Negative - Export a License from iDRAC with missing license ID
+      dellemc.openmanage.idrac_license:
+        export: true
+        share_parameters:
+          file_name: "openmanage_enterprise_advance_license"
+          ip_address: "{{ https_share_ip }}"
+          share_name: "{{ https_share_dir_path }}"
+          username: "{{ https_share_username | default(omit) }}"
+          password: "{{ https_share_password | default(omit) }}"
+          ignore_certificate_warning: "on"
+          share_type: https
+          proxy_support: "parameters_proxy"
+          proxy_server: "{{ http_proxy_server }}"
+          proxy_port: "{{ http_proxy_port | int }}"
+          proxy_username: "{{ http_proxy_username }}"
+          proxy_password: "{{ http_proxy_password }}"
+          proxy_type: "http"
+      register: missing_license_id
+      ignore_errors: true
+
+    - name: Verify Negative (export)
+      ansible.builtin.assert:
+        that:
+          - missing_license_id.failed
+          - not missing_license_id.changed
+          - 'missing_license_id.msg == "export is True but all of the
+           following are missing: license_id"'
+
+    - name: Negative - Export a License from iDRAC with invalid license ID
+      dellemc.openmanage.idrac_license:
+        export: true
+        license_id: "invalid_license_id"
+        share_parameters:
+          file_name: "license"
+          ip_address: "{{ https_share_ip }}"
+          share_name: "{{ https_share_dir_path }}"
+          username: "{{ https_share_username | default(omit) }}"
+          password: "{{ https_share_password | default(omit) }}"
+          ignore_certificate_warning: "on"
+          share_type: https
+      register: invalid_license_id
+      ignore_errors: true
+
+    - name: Verify Negative (export)
+      ansible.builtin.assert:
+        that:
+          - invalid_license_id.skipped
+          - not invalid_license_id.changed
+          - invalid_license_id.msg == "License with ID 'invalid_license_id'
+           does not exist on the iDRAC."
+
+  module_defaults:
+    dellemc.openmanage.idrac_license:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      idrac_port: "{{ idrac_port }}"
+      validate_certs: "{{ validate_certs }}"
