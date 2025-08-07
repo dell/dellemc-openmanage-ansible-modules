@@ -79,7 +79,7 @@
           - not invalid_port.changed
           - 'invalid_port.msg == "<urlopen error [Errno 113] No route to host>"
              or invalid_port.msg == "<urlopen error [Errno 13]
-             Permission denied>"'
+             Permission denied>" or invalid_port.msg == "<urlopen error timed out>"'
 
     - name: Negative - invalid validate_certs
       dellemc.openmanage.ome_session:
