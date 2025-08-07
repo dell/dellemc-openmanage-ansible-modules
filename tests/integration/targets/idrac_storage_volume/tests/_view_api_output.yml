@@ -21,7 +21,7 @@
   ansible.builtin.set_fact:
     storage_controller_dict: |
       {% set new_controller_list = [] %}
-      {% for dict_item in all_storage_data.json.Members %}{% if dict_item['Oem']['Dell']['DellControllerBattery'] is defined %}{% set battery_info = [dict_item['Oem']['Dell']['DellControllerBattery']['Id']] %}{% else %}{% set battery_info = {} %}{% endif %}{{ new_controller_list.append({'Id': dict_item['Id'], 'Drives': (dict_item['Drives'] | ansible.builtin.rekey_on_member(odata)).keys() | list, 'Enclosures': (dict_item['Links']['Enclosures'] | ansible.builtin.rekey_on_member(odata)).keys() | list | select('contains', 'Enclosure'),'ControllerSensor': {dict_item['Id']:({'ControllerBattery': battery_info } if firm_version.json.FirmwareVersion > '3.00' and battery_info else {}) }, 'VDs':[dict_item['Volumes'][odata]]}) }}{% endfor %}
+      {% for dict_item in all_storage_data.json.Members %}{% if dict_item['Oem']['Dell']['DellControllerBattery'] is defined %}{% set battery_info = [dict_item['Oem']['Dell']['DellControllerBattery']['Id']] %}{% else %}{% set battery_info = {} %}{% endif %}{% set _ = new_controller_list.append({'Id': dict_item['Id'], 'Drives': (dict_item['Drives'] | ansible.builtin.rekey_on_member(odata)).keys() | list, 'Enclosures': (dict_item['Links']['Enclosures'] | ansible.builtin.rekey_on_member(odata)).keys() | list | select('contains', 'Enclosure'),'ControllerSensor': {dict_item['Id']:({'ControllerBattery': battery_info } if firm_version.json.FirmwareVersion > '3.00' and battery_info else {}) }, 'VDs':[dict_item['Volumes'][odata]]}) %}{% endfor %}
       {{ new_controller_list | ansible.builtin.rekey_on_member('Id') }}
   no_log: true
 
