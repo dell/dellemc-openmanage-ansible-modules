@@ -12,15 +12,11 @@
   when: local_scp_file.lower().endswith('.xml')
   no_log: false
 
-- ansible.builtin.debug:
-    msg: "{{ scp_dict.SystemConfiguration[scp_timestamp] }} and {{ idrac_datetime }}"
-
 - name: Verify time
   ansible.builtin.assert:
     that:
-      - ((scp_dict.SystemConfiguration[scp_timestamp] + " " + idrac_datetime_offset)  | ansible.builtin.to_datetime("%a %b %d %H:%M:%S %Y %z")) > (idrac_datetime  | ansible.builtin.to_datetime("%Y-%m-%dT%H:%M:%S%z"))
-
-# - name: Clean up local scp file
-#   ansible.builtin.file:
-#     path: "{{ local_scp_file }}"
-#     state: absent
+      - (((scp_dict.SystemConfiguration[scp_timestamp] +
+        " " + idrac_datetime_offset)  |
+        ansible.builtin.to_datetime("%a %b %d %H:%M:%S %Y %z")) > (
+        idrac_datetime  |
+        ansible.builtin.to_datetime("%Y-%m-%dT%H:%M:%S%z")))

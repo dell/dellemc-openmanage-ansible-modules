@@ -15,16 +15,18 @@
 
 - name: Extract model from firmware_version
   ansible.builtin.set_fact:
-    model_raw: "{{ firmware_version.json.Model }}"
+    # model_raw: "{{ firmware_version.json.Model }}"
     fw_raw: "{{ firmware_version.json.FirmwareVersion }}"
 
-- name: Search for the Hardware model number in the model string
-  ansible.builtin.set_fact:
-    model_search: "{{ model_raw | regex_search('([0-9]+)G', '\\1') }}"
+# - name: Search for the Hardware model number in the model string
+#   ansible.builtin.set_fact:
+#     model_search: "{{ model_raw | regex_search('([0-9]+)G', '\\1') }}"
 
 - name: Extract the Hardware model number
   ansible.builtin.set_fact:
-    hw_model: "{{ model_search | first }}"
+    hw_model: "{{ firmware_version.json.Model |\
+      regex_search('([0-9]+)G', '\\1') |\
+      first }}"
 
 - name: Check if custom_default is supported
   ansible.builtin.set_fact:

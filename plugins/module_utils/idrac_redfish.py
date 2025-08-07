@@ -37,7 +37,7 @@ from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationEr
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible.module_utils.common.parameters import env_fallback
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6, process_scp_target
 from ansible.module_utils.basic import AnsibleModule
 
 idrac_auth_params = {
@@ -282,7 +282,7 @@ class iDRACRedfishAPI(object):
             time.sleep(30)
         return response
 
-    def export_scp(self, generation, export_format=None, export_use=None, target=None,
+    def export_scp(self, export_format=None, export_use=None, target=None,
                    job_wait=False, share=None, include_in_export="Default"):
         """
         This method exports system configuration details from the system.
@@ -292,8 +292,10 @@ class iDRACRedfishAPI(object):
         :param job_wait: True or False decide whether to wait till the job completion.
         :return: exported data in requested format.
         """
+        gen_details = self.get_server_generation
+        generation = gen_details[0]
         payload = {"ExportFormat": export_format, "ExportUse": export_use,
-                   "ShareParameters": {"Target": target.split(",")}}
+                    "ShareParameters": {"Target": process_scp_target(target)}}
         if share is None:
             share = {}
         if share.get("share_ip") is not None:
@@ -332,7 +334,7 @@ class iDRACRedfishAPI(object):
             response = self.wait_for_job_complete(task_uri, job_wait=job_wait)
         return response
 
-    def import_scp_share(self, generation, shutdown_type=None, host_powerstate=None, job_wait=True,
+    def import_scp_share(self, shutdown_type=None, host_powerstate=None, job_wait=True,
                          target=None, import_buffer=None, share=None, time_to_wait=300):
         """
         This method imports system configuration using share.
@@ -344,8 +346,10 @@ class iDRACRedfishAPI(object):
         :param share: dictionary which has all the share details.
         :return: json response
         """
+        gen_details = self.get_server_generation
+        generation = gen_details[0]
         payload = {"ShutdownType": shutdown_type, "EndHostPowerState": host_powerstate,
-                   "ShareParameters": {"Target": target.split(",")}, "TimeToWait": time_to_wait}
+                   "ShareParameters": {"Target": process_scp_target(target)}, "TimeToWait": time_to_wait}
         if import_buffer is not None:
             payload["ImportBuffer"] = import_buffer
         if share is None:
@@ -382,8 +386,10 @@ class iDRACRedfishAPI(object):
             response = self.invoke_request(IMPORT_URI, "POST", data=payload)
         return response
 
-    def import_preview(self, generation, import_buffer=None, target=None, share=None, job_wait=False):
-        payload = {"ShareParameters": {"Target": target.split(",")}}
+    def import_preview(self, import_buffer=None, target=None, share=None, job_wait=False):
+        gen_details = self.get_server_generation
+        generation = gen_details[0]
+        payload = {"ShareParameters": {"Target": process_scp_target(target)}}
         if import_buffer is not None:
             payload["ImportBuffer"] = import_buffer
         if share is None:
@@ -423,7 +429,7 @@ class iDRACRedfishAPI(object):
             response = self.wait_for_job_complete(task_uri, job_wait=job_wait)
         return response
 
-    def import_scp(self, generation, import_buffer=None, target=None, job_wait=False, time_to_wait=300):
+    def import_scp(self, import_buffer=None, target=None, job_wait=False, time_to_wait=300):
         """
         This method imports system configuration details to the system.
         :param import_buffer: import buffer payload content xml or json format
@@ -431,7 +437,9 @@ class iDRACRedfishAPI(object):
         :param job_wait: True or False decide whether to wait till the job completion.
         :return: json response
         """
-        payload = {"ImportBuffer": import_buffer, "ShareParameters": {"Target": target.split(",")}, "TimeToWait": time_to_wait}
+        gen_details = self.get_server_generation
+        generation = gen_details[0]
+        payload = {"ImportBuffer": import_buffer, "ShareParameters": {"Target": process_scp_target(target)}, "TimeToWait": time_to_wait}
         if generation >= 17:
             response = self.invoke_request(IMPORT_URI_17, "POST", data=payload)
         else:

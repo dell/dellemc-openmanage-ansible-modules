@@ -1,12 +1,11 @@
-# Test code for the Dell OpenManage modules
-# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
-
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
-    msg: 'Please define the following variables: idrac_ip, idrac_user and idrac_password.'
-  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+    msg: 'Please define the following variables:
+      idrac_ip, idrac_user and idrac_password.'
+  when: idrac_ip is not defined or
+    idrac_user is not defined or
+    idrac_password is not defined
 
 - block:
     - name: Ensure invalid path in shares
@@ -33,7 +32,9 @@
         that:
           - invalid_nfs_file.failed
           - not invalid_nfs_file.changed
-          - invalid_nfs_file.status_msg.Message == "Unable to perform the import as the specified file does not exist on the remote share."
+          - invalid_nfs_file.status_msg.Message == "Unable to perform
+            the import as the specified file does not exist
+            on the remote share."
 
     - name: Negative - SCP file missing. (import)
       dellemc.openmanage.idrac_server_config_profile:
@@ -51,7 +52,9 @@
           - invalid_missing_scp_file.failed
           - not invalid_missing_scp_file.changed
           - 'invalid_missing_scp_file.msg ==  "HTTP Error 400: Bad Request"'
-          - "invalid_missing_scp_file.error_info.error['@Message.ExtendedInfo'][0].Message == 'The property FileName is a required property and must be included in the request.'"
+          - "invalid_missing_scp_file.error_info.error['@Message.ExtendedInfo']\
+            [0].Message == 'The property FileName is a required property and
+            must be included in the request.'"
 
     - name: Negative - invalid local path. (import)
       dellemc.openmanage.idrac_server_config_profile:

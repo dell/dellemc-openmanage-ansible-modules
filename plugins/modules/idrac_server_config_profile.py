@@ -713,7 +713,7 @@ def run_export_import_scp_http(idrac, module):
             "target": scp_target, "share": share, "job_wait": module.params["job_wait"],
             "host_powerstate": module.params["end_host_power_state"], "shutdown_type": module.params["shutdown_type"]
         }
-        scp_response = idrac.import_scp_share(generation, **idrac_import_scp_params)
+        scp_response = idrac.import_scp_share(**idrac_import_scp_params)
         scp_response = wait_for_job_tracking_redfish(module, idrac, scp_response)
     elif command == "export":
         scp_file_name_format = get_scp_file_format(module)
@@ -722,7 +722,7 @@ def run_export_import_scp_http(idrac, module):
         if share["share_type"] in ["HTTP", "HTTPS"]:
             proxy_share = get_proxy_share(module)
             share.update(proxy_share)
-        scp_response = idrac.export_scp(generation,export_format=module.params["export_format"],
+        scp_response = idrac.export_scp(export_format=module.params["export_format"],
                                         export_use=module.params["export_use"],
                                         target=scp_target,
                                         job_wait=False, share=share,  # Hardcoding it as false because job tracking is done in idrac_redfish.py as well.
@@ -782,7 +782,7 @@ def export_scp_redfish(module, idrac):
     share, scp_file_name_format = get_scp_share_details(module)
     scp_components = ",".join(module.params["scp_components"])
     include_in_export = IN_EXPORTS[module.params["include_in_export"]]
-    scp_response = idrac.export_scp(generation, export_format=module.params["export_format"],
+    scp_response = idrac.export_scp(export_format=module.params["export_format"],
                                     export_use=module.params["export_use"],
                                     target=scp_components, include_in_export=include_in_export,
                                     job_wait=False, share=share, )  # Assigning it as false because job tracking is done in idrac_redfish.py as well.
@@ -828,12 +828,12 @@ def preview_scp_redfish(module, idrac, http_share, import_job_wait=False):
             share, _scp_file_name_format = get_scp_share_details(module)
             share["file_name"] = module.params.get("scp_file")
         buffer_text = get_buffer_text(module, share)
-        scp_response = idrac.import_preview(generation, import_buffer=buffer_text, target=scp_targets,
+        scp_response = idrac.import_preview(import_buffer=buffer_text, target=scp_targets,
                                             share=share, job_wait=False)  # Assigning it as false because job tracking is done in idrac_redfish.py as well
         scp_response = wait_for_job_tracking_redfish(
             module, idrac, scp_response)
     else:
-        scp_response = idrac.import_preview(generation, import_buffer=import_buffer, target=scp_targets, job_wait=job_wait_option)
+        scp_response = idrac.import_preview(import_buffer=import_buffer, target=scp_targets, job_wait=job_wait_option)
     scp_response = response_format_change(scp_response, module.params, share.get("file_name"))
     exit_on_failure(module, scp_response, command)
     return scp_response
@@ -936,10 +936,10 @@ def import_scp_redfish(module, idrac, http_share):
             "import_buffer": buffer_text, "target": scp_targets, "share": share_dict, "job_wait": module.params["job_wait"],
             "host_powerstate": module.params["end_host_power_state"], "shutdown_type": module.params["shutdown_type"]
         }
-        scp_response = idrac.import_scp_share(generation, **idrac_import_scp_params)
+        scp_response = idrac.import_scp_share(**idrac_import_scp_params)
         scp_response = wait_for_job_tracking_redfish(module, idrac, scp_response)
     else:
-        scp_response = idrac.import_scp(generation, import_buffer=import_buffer, target=scp_targets, job_wait=module.params["job_wait"])
+        scp_response = idrac.import_scp(import_buffer=import_buffer, target=scp_targets, job_wait=module.params["job_wait"])
     scp_response = response_format_change(scp_response, module.params, share.get("file_name"))
     exit_on_failure(module, scp_response, command)
     return scp_response
@@ -948,7 +948,7 @@ def import_scp_redfish(module, idrac, http_share):
 def wait_for_job_tracking_redfish(module, idrac, scp_response):
     job_id = scp_response.headers["Location"].split("/")[-1]
     if module.params["job_wait"]:
-        if generation >= 17 :
+        if generation >= 17:
           job_failed, _msg, job_dict, _wait_time = idrac_redfish_job_tracking(
               idrac, JOB_URI.format(job_id=job_id))
           if job_failed or job_dict.get("MessageId", "") in ERROR_CODES:

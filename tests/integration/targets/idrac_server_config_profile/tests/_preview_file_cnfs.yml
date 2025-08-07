@@ -1,17 +1,18 @@
-# Test code for the Dell OpenManage modules
-# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
-
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
 - name: "{{ scp_label }} Get idrac data using uri"
   ansible.builtin.uri:
-    url: https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+      /redfish/v1/Managers/iDRAC.Embedded.1"
     method: GET
     body: {}
     body_format: json
     status_code: 200
     headers: 'Accept=application/json'
   register: idrac_fetched_data
-  no_log: true
+
+- name: Pre-requisite - Checking iDRAC version
+  ansible.builtin.include_tasks:
+    file: ../_get_idrac_settings.yml
 
 - block:
     - name: "{{ scp_label }} Export all components SCP."
@@ -20,7 +21,8 @@
         job_wait: true
         scp_components: ["{{ item[0] }}"]
         export_format: "{{ item[1].upper() }}"
-        scp_file: "{{ scp_file_prefix }}_{{ item[0] }}_{{ idrac_ip }}.{{ item[1] }}"
+        scp_file: "{{ scp_file_prefix }}_{{ item[0] }}_\
+          {{ idrac_ip }}.{{ item[1] }}"
       loop: "{{ all_comps | product(formats) | list }}"
       loop_control:
         label: "{{ [item[0], item[1]] }}"
@@ -29,7 +31,8 @@
       register: http_export_bundle
 
     - ansible.builtin.set_fact:
-        filt_exp_list: "{{ ((filt_exp_list|default([])) + [item.item]) | unique }}"
+        filt_exp_list: "{{ ((filt_exp_list|default([])) +
+          [item.item]) | unique }}"
         filt_exist_comps: "{{ (filt_exist_comps + [item.item[0]]) | unique }}"
       with_items: "{{ http_export_bundle.results }}"
       when: not item.failed
@@ -38,7 +41,8 @@
       dellemc.openmanage.idrac_server_config_profile:
         command: "preview"
         job_wait: true
-        scp_file: "{{ scp_file_prefix }}_{{ item[0] }}_{{ idrac_ip }}.{{ item[1] }}"
+        scp_file: "{{ scp_file_prefix }}_{{ item[0] }}_\
+          {{ idrac_ip }}.{{ item[1] }}"
       loop: "{{ filt_exp_list }}"
       loop_control:
         label: "{{ [item[0], item[1]] }}"
@@ -49,28 +53,36 @@
       ansible.builtin.assert:
         that:
           - item.failed == item.changed == false
-          - item.msg == "Successfully previewed the Server Configuration Profile."
-          - item.scp_status.Message == 
-              "No changes were applied since the current component configuration matched the requested configuration."
+          - item.msg == "Successfully previewed the
+            Server Configuration Profile."
+          - item.scp_status.Message ==
+            "No changes were applied since the current
+            component configuration matched the
+            requested configuration."
           - item.scp_status.MessageId == 'SYS069'
       loop: "{{ http_preview_bundle.results }}"
 
-    # Cause changes to iDRAC
-    # - name: "{{ scp_label }} Create a new iDRAC user"
-    #   dellemc.openmanage.idrac_user:
-    #     state: "present"
-    #     user_name: "omam_test_user"
-    #     user_password: "#DKMS_1234%"
+    - ansible.builtin.pause:
+        seconds: 30
 
-    - name: "Create a new user role"
+    - name: "{{ scp_label }} Create a new iDRAC user on 16G"
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_test_user"
+        user_password: "#DKMS_1234%"
+      when: hw_model | int < 17
+
+    - name: "{{ scp_label }} Create a new user role on 17G and above"
       ansible.builtin.uri:
-        url: https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/AccountService/Roles
+        url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}\
+          /redfish/v1/AccountService/Roles"
         method: POST
         body:
           RoleId: "4"
           AssignedPrivileges: ["Login"]
-        status_code: 201  
+        status_code: 201
         body_format: json
+      when: hw_model | int >= 17
 
     - name: "{{ scp_label }} Preview ALL from network share."
       dellemc.openmanage.idrac_server_config_profile:
@@ -84,11 +96,13 @@
         that:
           - all.changed == all.failed == false
           - all.scp_status.MessageId == 'SYS081'
-          - all.scp_status.Message == "Successfully previewed Server Configuration Profile import operation."
+          - all.scp_status.Message == "Successfully previewed
+            Server Configuration Profile import operation."
           - all.scp_status.JobType == "PreviewConfiguration"
           - all.scp_status.JobState == "Completed"
 
-    - ansible.builtin.include_role: name=prepare_idrac_lifecycle_controller_status
+    - ansible.builtin.include_role:
+        name: prepare_idrac_lifecycle_controller_status
 
     - ansible.builtin.set_fact:
         myvar: '{{ "omam_" + now().strftime("%H%M%S") }}'
@@ -115,32 +129,37 @@
         that:
           - idrac.changed == all.failed == false
           - idrac.scp_status.MessageId == 'SYS081'
-          - idrac.scp_status.Message == "Successfully previewed Server Configuration Profile import operation."
+          - idrac.scp_status.Message == "Successfully previewed
+            Server Configuration Profile import operation."
           - idrac.scp_status.JobType == "PreviewConfiguration"
           - idrac.scp_status.JobState == "Completed"
 
   always:
-    # - name: "{{ scp_label }} Delete iDRAC user"
-    #   dellemc.openmanage.idrac_user:
-    #     state: "absent"
-    #     user_name: "omam_test_user"
-    #   register: delete_user
+    - name: "{{ scp_label }} Delete iDRAC user on 16G"
+      dellemc.openmanage.idrac_user:
+        state: "absent"
+        user_name: "omam_test_user"
+      register: delete_user
+      when: hw_model | int < 17
 
-    - name: "Delete a new user role"
+    - name: "{{ scp_label }} Delete user role on 17G and above"
       ansible.builtin.uri:
-        url: https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/AccountService/Roles/4
+        url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}\
+          /redfish/v1/AccountService/Roles/4"
         method: DELETE
         status_code: 204
+      when: hw_model | int >= 17
 
-    # - name: "{{ scp_label }} Clean up the share"
-    #   ansible.builtin.file:
-    #     path: "{{ scp_work_path }}/{{ scp_file_prefix }}_{{ item[0] }}_{{ idrac_ip }}.{{ item[1] }}"
-    #     state: absent
-    #   loop: "{{ filt_exp_list | unique }}"
-    #   loop_control:
-    #     label: "{{ [item[0], item[1]] }}"
-    #     pause: 1
-    #   ignore_errors: true
+    - name: "{{ scp_label }} Clean up the share"
+      ansible.builtin.file:
+        path: "{{ scp_work_path }}/{{ scp_file_prefix }}_\
+          {{ item[0] }}_{{ idrac_ip }}.{{ item[1] }}"
+        state: absent
+      loop: "{{ filt_exp_list | unique }}"
+      loop_control:
+        label: "{{ [item[0], item[1]] }}"
+        pause: 1
+      ignore_errors: true
 
     - name: "{{ scp_label }} Reset the component variables"
       ansible.builtin.set_fact:

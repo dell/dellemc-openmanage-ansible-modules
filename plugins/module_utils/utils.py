@@ -111,6 +111,11 @@ def config_ipv6(hostname):
     return hostname
 
 
+def process_scp_target(target) -> list[str]:
+    if isinstance(target, str):
+        target = target.split(",")
+    return target
+
 def compress_ipv6(ipv6_long):
     groups = ipv6_long.split(':')
     temp = []

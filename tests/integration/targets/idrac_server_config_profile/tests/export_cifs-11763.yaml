@@ -1,16 +1,16 @@
-# Test code for the Dell OpenManage modules
-# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
-
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
-    msg: 'Please define the following variables: idrac_ip, idrac_user and idrac_password.'
-  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+    msg: 'Please define the following variables:
+      idrac_ip, idrac_user and idrac_password.'
+  when: idrac_ip is not defined or
+    idrac_user is not defined or
+    idrac_password is not defined
 
 - name: Get data using uri
   ansible.builtin.uri:
-    url: https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1
+    url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}\
+      /redfish/v1/Managers/iDRAC.Embedded.1"
     method: GET
     body: {}
     body_format: json
@@ -52,12 +52,16 @@
 
     - name: edit TimeStamp from the GET data
       ansible.builtin.set_fact:
-        updated_json_get_data: >-
-          {{
-            uri_scp_content.json | combine({ 'SystemConfiguration': uri_scp_content.json.SystemConfiguration | combine({ 'TimeStamp': 3})}) | to_nice_json
-          }}
+        updated_json_get_data: "{{\
+            uri_scp_content.json |\
+            combine({ 'SystemConfiguration':\
+            (uri_scp_content.json.SystemConfiguration |\
+            combine({ 'TimeStamp': 3}))}) | to_nice_json\
+          }}"
 
-    - ansible.builtin.copy: content={{ updated_json_get_data }} dest=uri_scp_export_{{ idrac_ip }}.json
+    - ansible.builtin.copy:
+        content: "{{ updated_json_get_data }}"
+        dest: "uri_scp_export_{{ idrac_ip }}.json"
       register: uri_file
 
     - include_role: name=prepare_idrac_lifecycle_controller_status
@@ -73,7 +77,8 @@
     - name: Verify the scp file
       ansible.builtin.include_tasks: _scp_file_verify.yml
       vars:
-        local_scp_file: "{{ cifs_share_mnt }}/{{ idrac.scp_status.file | win_basename }}"
+        local_scp_file: "{{ cifs_share_mnt }}/\
+          {{ idrac.scp_status.file | win_basename }}"
 
     - include_role: name=prepare_idrac_lifecycle_controller_status
 
@@ -83,26 +88,37 @@
         scp_components: ["BIOS"]
       register: bios
 
-    - name: Check if the BIOS scp file is exported to share with help of share mount.
+    - name: set bios file name
       ansible.builtin.set_fact:
-        bios_file_json: "{{ lookup('ansible.builtin.file', \"{{ cifs_share_mnt }}/{{ bios.scp_status.file | win_basename }}\") }}"
+        bios_file_json_name: "{{ cifs_share_mnt }}\
+          /{{ bios.scp_status.file | win_basename }}"
+
+    - name: Check if the BIOS scp file is exported to share
+        with help of share mount.
+      ansible.builtin.set_fact:
+        bios_file_json: "{{ lookup('ansible.builtin.file',
+          bios_file_json_name) }}"
 
     - name: edit TimeStamp from the data
       ansible.builtin.set_fact:
         updated_json: "{{\
             bios_file_json | to_json | from_json |\
-            combine({ 'SystemConfiguration': bios_file_json.SystemConfiguration |\
+            combine({ 'SystemConfiguration':\
+            bios_file_json.SystemConfiguration |\
             combine({ 'TimeStamp': 3})}) | to_nice_json\
           }}"
 
 
-    - ansible.builtin.copy: content={{ updated_json }} dest={{ idrac_ip }}_formatted.json
+    - ansible.builtin.copy:
+        content: "{{ updated_json }}"
+        dest: "{{ idrac_ip }}_formatted.json"
       register: bios_file_formatted
 
     - name: Verify the scp file
       ansible.builtin.include_tasks: _scp_file_verify.yml
       vars:
-        local_scp_file: "{{ cifs_share_mnt }}/{{ bios.scp_status.file | win_basename }}"
+        local_scp_file: "{{ cifs_share_mnt }}/\
+          {{ bios.scp_status.file | win_basename }}"
 
     - name: verify status of tasks.
       ansible.builtin.assert:
@@ -120,7 +136,8 @@
     - name: Verify the scp file
       ansible.builtin.include_tasks: _scp_file_verify.yml
       vars:
-        local_scp_file: "{{ cifs_share_mnt }}/{{ nic.scp_status.file | win_basename }}"
+        local_scp_file: "{{ cifs_share_mnt }}/\
+          {{ nic.scp_status.file | win_basename }}"
 
     - include_role: name=prepare_idrac_lifecycle_controller_status
 
@@ -134,7 +151,8 @@
     - name: Verify the scp file
       ansible.builtin.include_tasks: _scp_file_verify.yml
       vars:
-        local_scp_file: "{{ cifs_share_mnt }}/{{ raid.scp_status.file | win_basename }}"
+        local_scp_file: "{{ cifs_share_mnt }}/\
+          {{ raid.scp_status.file | win_basename }}"
       when: not raid.failed
 
     - include_role: name=prepare_idrac_lifecycle_controller_status
@@ -152,7 +170,8 @@
     - name: Verify the scp file
       ansible.builtin.include_tasks: _scp_file_verify.yml
       vars:
-        local_scp_file: "{{ cifs_share_mnt }}/{{ extra_scp.scp_status.file | win_basename }}"
+        local_scp_file: "{{ cifs_share_mnt }}/\
+          {{ extra_scp.scp_status.file | win_basename }}"
       when: allowed_scp_components | length > 0
 
     - name: Export SCP to CIFS - All components.
@@ -168,7 +187,8 @@
     - name: Verify the scp file
       ansible.builtin.include_tasks: _scp_file_verify.yml
       vars:
-        local_scp_file: "{{ cifs_share_mnt }}/{{ all.scp_status.file | win_basename }}"
+        local_scp_file: "{{ cifs_share_mnt }}/\
+          {{ all.scp_status.file | win_basename }}"
 
     - include_role: name=prepare_idrac_lifecycle_controller_status
 
@@ -179,8 +199,10 @@
           - not idrac.changed
           - not bios.changed
           - not nic.changed
-          - idrac.msg == bios.msg == nic.msg == "Successfully exported the Server Configuration Profile."
-          - all.msg == "Successfully triggered the job to export the Server Configuration Profile."
+          - idrac.msg == bios.msg == nic.msg == "Successfully exported
+            the Server Configuration Profile."
+          - all.msg == "Successfully triggered the job to export the
+            Server Configuration Profile."
 
   vars:
     idrac_datetime: "{{ idrac_fetched_data.json.DateTime }}"

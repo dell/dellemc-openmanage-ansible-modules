@@ -13,8 +13,8 @@
 
 - name: Get data using uri
   ansible.builtin.uri:
-    url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port
-     }}/redfish/v1/Managers/iDRAC.Embedded.1"
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port}}\
+      /redfish/v1/Managers/iDRAC.Embedded.1"
     method: GET
     body: {}
     body_format: json
@@ -72,14 +72,15 @@
 
     - name: Set destination path
       ansible.builtin.set_fact:
-        http_dest: "{{ playbook_dir }}/http_omam_exported_scp_{{ idrac_ip }}.xml"  
+        http_dest: "{{ playbook_dir }}/\
+          http_omam_exported_scp_{{ idrac_ip }}.xml"
 
     - name: Get exported file from HTTP share
       vars:
         curl_cmd: "curl --ntlm -u %s:%s -o %s %s"
         curl_http_url:
-          "http://{{ http_share|ansible.utils.ipwrap }}{{
-           http_share_dir_path }}/{{ idrac.scp_status.file | basename }}"
+          "http://{{ http_share | ansible.utils.ipwrap }}{{
+          http_share_dir_path }}/{{ idrac.scp_status.file | basename }}"
       register: idrac_file
       no_log: false
       changed_when: idrac_file.rc == 0
@@ -104,13 +105,14 @@
 
     - name: Set destination path
       ansible.builtin.set_fact:
-        http_dest: "{{ playbook_dir }}/http_omam_exported_scp_{{ idrac_ip }}.json"
-  
+        http_dest: "{{ playbook_dir }}/\
+          http_omam_exported_scp_{{ idrac_ip }}.json"
+
     - name: Get exported file from HTTP share
       vars:
         curl_cmd: "curl --ntlm -u %s:%s -o %s %s"
         curl_http_url:
-          "http://{{ http_share|ansible.utils.ipwrap }}{{
+          "http://{{ http_share | ansible.utils.ipwrap }}{{
           http_share_dir_path }}/{{ all.scp_status.file | basename }}"
       register: idrac_file
       no_log: false
@@ -131,19 +133,19 @@
       dellemc.openmanage.idrac_server_config_profile:
         <<: *export
         scp_components: "BIOS"
-        # scp_file: omam_test_scp_{{idrac_ip}}.xml
         export_format: XML
       register: bios
 
     - name: Set destination path
       ansible.builtin.set_fact:
-        http_dest: "{{ playbook_dir }}/http_omam_exported_scp_{{ idrac_ip }}.xml"
+        http_dest: "{{ playbook_dir }}/\
+          http_omam_exported_scp_{{ idrac_ip }}.xml"
 
     - name: Get exported file from HTTP share
       vars:
         curl_cmd: "curl --ntlm -u %s:%s -o %s %s"
         curl_http_url:
-          "http://{{ http_share|ansible.utils.ipwrap }}{{
+          "http://{{ http_share | ansible.utils.ipwrap }}{{
           http_share_dir_path }}/{{ bios.scp_status.file | basename }}"
       register: idrac_file
       no_log: false
@@ -170,13 +172,14 @@
 
     - name: Set destination path
       ansible.builtin.set_fact:
-        http_dest: "{{ playbook_dir }}/http_omam_exported_scp_{{ idrac_ip }}.json"
+        http_dest: "{{ playbook_dir }}/\
+          http_omam_exported_scp_{{ idrac_ip }}.json"
 
     - name: Get exported file from HTTP share
       vars:
         curl_cmd: "curl --ntlm -u %s:%s -o %s %s"
         curl_http_url:
-          "http://{{ http_share|ansible.utils.ipwrap }}{{
+          "http://{{ http_share | ansible.utils.ipwrap }}{{
           http_share_dir_path }}/{{ nic.scp_status.file | basename }}"
       register: idrac_file
       no_log: false
@@ -198,17 +201,18 @@
         scp_file: omam_test_scp_{{ idrac_ip }}.json
         export_format: JSON
       register: extra_scp
-      when: allowed_scp_components|length > 0
+      when: allowed_scp_components | length > 0
 
     - name: Set destination path
       ansible.builtin.set_fact:
-        http_dest: "{{ playbook_dir }}/http_omam_exported_scp_{{ idrac_ip }}.json"
+        http_dest: "{{ playbook_dir }}/\
+          http_omam_exported_scp_{{ idrac_ip }}.json"
 
     - name: Get exported file from HTTP share
       vars:
         curl_cmd: "curl --ntlm -u %s:%s -o %s %s"
         curl_http_url:
-          "http://{{ http_share|ansible.utils.ipwrap }}{{
+          "http://{{ http_share | ansible.utils.ipwrap }}{{
           http_share_dir_path }}/{{ extra_scp.scp_status.file | basename }}"
       register: idrac_file
       no_log: false
@@ -217,13 +221,13 @@
       ansible.builtin.command: >
         {{ curl_cmd | format(http_share_user, http_share_password,
         http_dest, curl_http_url) }}
-      when: allowed_scp_components|length > 0
+      when: allowed_scp_components | length > 0
 
     - name: Verify the scp file
       ansible.builtin.include_tasks: _scp_file_verify.yml
       vars:
         local_scp_file: "{{ http_dest }}"
-      when: allowed_scp_components|length > 0
+      when: allowed_scp_components | length > 0
 
     - include_role: name=prepare_idrac_lifecycle_controller_status
 
