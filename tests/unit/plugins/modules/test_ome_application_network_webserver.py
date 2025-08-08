@@ -18,6 +18,7 @@ import pytest
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from io import StringIO
+from ssl import SSLError
 from ansible.module_utils._text import to_text
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_application_network_webserver
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
@@ -111,7 +112,7 @@ class TestOmeAppNetwork(FakeAnsibleModule):
             self.module.get_updated_payload(ome_connection_mock_for_application_network_webserver, f_module)
 
     @pytest.mark.parametrize("exc_type",
-                             [IOError, ValueError, TypeError, ConnectionError, HTTPError, URLError])
+                             [IOError, ValueError, SSLError, TypeError, ConnectionError, HTTPError, URLError])
     def test_ome_application_network_webserver_main_error_cases(self, exc_type, mocker, ome_default_args,
                                                                 ome_connection_mock_for_application_network_webserver,
                                                                 ome_response_mock):
