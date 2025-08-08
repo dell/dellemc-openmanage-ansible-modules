@@ -27,7 +27,7 @@
       ansible.builtin.set_fact:
         api_output: |
           {% set new_controller_list = {} %}
-          {% for key,value in api_final_output.items() %}{% if key == storage_controller_id %}{{ new_controller_list.update({key: value}) }}{% endif %}{% endfor %}
+          {% for key,value in api_final_output.items() %}{% if key == storage_controller_id %}{% set _ = new_controller_list.update({key: value}) %}{% endif %}{% endfor %}
           {{ new_controller_list }}
       no_log: true
 

@@ -42,17 +42,17 @@
         odata: "@odata.id"
 
     - name: Keeping only VirtualDisk in the API Output
-      set_fact:
+      ansible.builtin.set_fact:
         api_tmp_output: |
           {% set new_controller_dict = {} %}
           {% for key,value in api_final_output.items() %}
-            {{ new_controller_dict.update({key: value | ansible.utils.remove_keys(target=['Enclosure','ControllerSensor'])}) }}
+          {% set _ = new_controller_dict.update({key: value | ansible.utils.remove_keys(target=['Enclosure','ControllerSensor'])}) %}
           {% endfor %}
           {{ new_controller_dict }}
       no_log: true
 
     - name: Convert api_tmp_output string to dictionary
-      set_fact:
+      ansible.builtin.set_fact:
         api_final_output: "{{ api_tmp_output | from_yaml }}"
       no_log: true
 
@@ -60,7 +60,7 @@
       ansible.builtin.set_fact:
         api_output: |
           {% set new_controller_list = {} %}
-          {% for key,value in api_final_output.items() %}{% if key == storage_controller_id %}{% if value['VirtualDisk'] is defined %}{{ new_controller_list.update({key: {'VirtualDisk': value['VirtualDisk']}}) }}{% else %}{{ new_controller_list.update({key: {}}) }}{% endif %}{% endif %}{% endfor %}
+          {% for key,value in api_final_output.items() %}{% if key == storage_controller_id %}{% if value['VirtualDisk'] is defined %}{% set _ = new_controller_list.update({key: {'VirtualDisk': value['VirtualDisk']}}) %}{% else %}{% set _ = new_controller_list.update({key: {}}) %}{% endif %}{% endif %}{% endfor %}
           {{ new_controller_list }}
       no_log: true
 

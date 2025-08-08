@@ -77,7 +77,7 @@
   set_fact:
     new_vd_drives_list: |
       {% set new_vd_drives_list = {} %}
-      {% for dict_item in all_vd_drives_data.results %}{% set controller_id = ((dict_item['item'] | ansible.builtin.split('/') | list | last) | ansible.builtin.split(':') | list | last) %}{{ new_vd_drives_list.update({controller_id : {(dict_item['item'] | ansible.builtin.split('/') | list | last) : {'PhysicalDisk':((dict_item['json']['Links']['Drives'] | ansible.builtin.rekey_on_member(odata)).keys()  | list ) |  map('split', '/') | map('last')  }}  }) }}{% endfor %}
+      {% for dict_item in all_vd_drives_data.results %}{% set controller_id = ((dict_item['item'] | ansible.builtin.split('/') | list | last) | ansible.builtin.split(':') | list | last) %}{% set _ = new_vd_drives_list.update({controller_id : {(dict_item['item'] | ansible.builtin.split('/') | list | last) : {'PhysicalDisk':((dict_item['json']['Links']['Drives'] | ansible.builtin.rekey_on_member(odata)).keys()  | list ) |  map('split', '/') | map('last')  }}  }) %}{% endfor %}
       {{ new_vd_drives_list }}
   no_log: true
 
@@ -93,7 +93,7 @@
   set_fact:
     storage_controller_dict: |
       {% set new_controller_dict = {} %}
-      {% for dict_item in storage_controller_dict.values() %}{% set enc_dict = {} %}{% if dict_item.Enclosures | length > 0 %}{% for enc in dict_item.Enclosures %}{% set enc_id = enc | ansible.builtin.split('/') | last %}{{ enc_dict.update({enc_id: {'EnclosureSensor': {enc_id:{}},'PhysicalDisk':(enclosure_dict[enc] | map('split', '/') | map('last') | list)}}) }}{% endfor %}{{ dict_item.update({'Enclosure': enc_dict}) }}{% else %}{{ dict_item.update({'PhysicalDisk': (dict_item.Drives | map('split', '/') | map('last')) if dict_item.Drives | length > 0 else omit }) }}{% endif %}{% endfor %}
+      {% for dict_item in storage_controller_dict.values() %}{% set enc_dict = {} %}{% if dict_item.Enclosures | length > 0 %}{% for enc in dict_item.Enclosures %}{% set enc_id = enc | ansible.builtin.split('/') | last %}{% set _ = enc_dict.update({enc_id: {'EnclosureSensor': {enc_id:{}},'PhysicalDisk':(enclosure_dict[enc] | map('split', '/') | map('last') | list)}}) %}{% endfor %}{% set _ = dict_item.update({'Enclosure': enc_dict}) %}{% else %}{% set _ = dict_item.update({'PhysicalDisk': (dict_item.Drives | map('split', '/') | map('last')) if dict_item.Drives | length > 0 else omit }) %}{% endif %}{% endfor %}
       {{ storage_controller_dict | ansible.builtin.rekey_on_member('Id') }}
   no_log: true
 
@@ -101,7 +101,7 @@
   set_fact:
     storage_controller_dict: |
       {% set new_controller_dict = {} %}
-      {% for dict_item in storage_controller_dict.values() %}{{ dict_item.update({'VirtualDisk': (new_vd_drives_list[dict_item.Id] | default(omit))}) }}{% endfor %}
+      {% for dict_item in storage_controller_dict.values() %}{% set _ = dict_item.update({'VirtualDisk': (new_vd_drives_list[dict_item.Id] | default(omit))}) %}{% endfor %}
       {{ storage_controller_dict | ansible.builtin.rekey_on_member('Id') }}
   no_log: true
 
@@ -110,7 +110,7 @@
     storage_controller_dict: |
       {% set new_controller_dict = {} %}
       {% for key,value in storage_controller_dict.items() %}
-        {{ new_controller_dict.update({key: value | ansible.utils.remove_keys(target=['Drives','Enclosures','Id','VDs'])}) }}
+        {% set _ = new_controller_dict.update({key: value | ansible.utils.remove_keys(target=['Drives','Enclosures','Id','VDs'])}) %}
       {% endfor %}
       {{ new_controller_dict }}
   no_log: true
