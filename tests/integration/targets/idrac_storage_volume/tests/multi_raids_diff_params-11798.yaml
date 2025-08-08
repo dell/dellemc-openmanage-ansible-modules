@@ -138,11 +138,11 @@
       ansible.builtin.set_fact:
         first_vol_pds: |
           {% set new_pd_list = [] %}
-          {% for dict_item in volumes_dict['test_volume_r'+first_raid].Links.Drives %}{{ new_pd_list.append(dict_item['@odata.id'] | ansible.builtin.split('/') | last) }}{% endfor %}
+          {% for dict_item in volumes_dict['test_volume_r'+first_raid].Links.Drives %}{% set _ = new_pd_list.append(dict_item['@odata.id'] | ansible.builtin.split('/') | last) %}{% endfor %}
           {{ new_pd_list }}
         second_vol_pds: |
           {% set new_pd_list = [] %}
-          {% for dict_item in volumes_dict['test_volume_r'+second_raid].Links.Drives %}{{ new_pd_list.append(dict_item['@odata.id'] | ansible.builtin.split('/') | last) }}{% endfor %}
+          {% for dict_item in volumes_dict['test_volume_r'+second_raid].Links.Drives %}{% set _ = new_pd_list.append(dict_item['@odata.id'] | ansible.builtin.split('/') | last) %}{% endfor %}
           {{ new_pd_list }}
 
     - name: Verify the DHS count

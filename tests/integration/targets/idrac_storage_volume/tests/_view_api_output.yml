@@ -59,7 +59,7 @@
   set_fact:
     vd_list: |
       {% set new_vd_list = [] %}
-      {% for dict_item in all_vd_data.results %}{% for vol in dict_item.json.Members %}{{ new_vd_list.append( vol[odata]  if vol | length > 0) }}{% endfor %}{% endfor %}
+      {% for dict_item in all_vd_data.results %}{% for vol in dict_item.json.Members %}{% set _ = new_vd_list.append( vol[odata]  if vol | length > 0) %}{% endfor %}{% endfor %}
       {{ new_vd_list }}
   no_log: true
 
@@ -85,7 +85,7 @@
   set_fact:
     enclosure_dict: |
       {% set new_enclosure_list = [] %}
-      {% for dict_item in all_enclosure_data.results %}{{ new_enclosure_list.append({'key': dict_item['item'], 'value': (dict_item['json']['Links']['Drives'] | ansible.builtin.rekey_on_member(odata)).keys() | list  }) }}{% endfor %}
+      {% for dict_item in all_enclosure_data.results %}{% set _ = new_enclosure_list.append({'key': dict_item['item'], 'value': (dict_item['json']['Links']['Drives'] | ansible.builtin.rekey_on_member(odata)).keys() | list  }) %}{% endfor %}
       {{ new_enclosure_list | items2dict }}
   no_log: true
 
