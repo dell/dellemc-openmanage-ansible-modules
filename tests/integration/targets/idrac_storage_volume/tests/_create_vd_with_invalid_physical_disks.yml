@@ -7,7 +7,7 @@
     volumes:
       - name: "test_volume_raid_{{ raid_type }}"
         drives:
-          location: "{{ location }}"
+          location: "{{ [location] }}"
         span_length: "{{ span_length }}"
         span_depth: "{{ span_depth }}"
   register: result

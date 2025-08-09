@@ -34,6 +34,10 @@
     - name: Reset raid
       ansible.builtin.include_tasks: _reset_config.yml
 
+    - name: Wait for a Minute
+      ansible.builtin.pause:
+        seconds: 60
+
     - name: Set the PDs
       ansible.builtin.set_fact:
         first_pds: "{{ (pd_mapping.keys() | list | sort)[:raid_data[first_raid]['min_pds']] }}"
