@@ -1,0 +1,128 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: hostname, username
+      and password."
+  when: hostname is not defined or username is not defined or
+    password is not defined
+
+- block:
+    - ansible.builtin.include_tasks: _pre_post_req.yml
+
+    - name: Update SMTP destination server configuration with authentication
+        (Check mode - changes expected)
+      dellemc.openmanage.ome_application_alerts_smtp: &withauth
+        destination_address: localhost
+        port_number: 25
+        use_ssl: true
+        enable_authentication: true
+        credentials:
+          username: "{{ username }}"
+          password: "{{ password }}"
+      register: cm_changes_with_auth
+      check_mode: true
+
+    - name: Update SMTP desination server configuration with authentication
+        (Normal mode)
+      dellemc.openmanage.ome_application_alerts_smtp:
+        <<: *withauth
+      register: results_with_auth
+
+    - name: Create variables for SMTP configuration uri
+      ansible.builtin.set_fact:
+        smtpconfig_var: api/AlertService/AlertDestinations/SMTPConfiguration
+
+    - name: Get SMTP destination server configuration from uri
+      ansible.builtin.uri: &uri
+        url: https://{{ hostname }}/{{ smtpconfig_var }}
+        user: "{{ username }}"
+        password: "{{ password }}"
+        method: GET
+        body: {}
+        validate_certs: false
+        body_format: json
+        return_content: true
+        status_code: 200
+        headers: Accept=application/json
+      register: smtp_uri
+
+    - ansible.builtin.include_tasks: _pre_post_req.yml
+
+    - name: Update SMTP destination server configuration without authentication
+        (Check mode - changes expected)
+      dellemc.openmanage.ome_application_alerts_smtp: &withoutauth
+        destination_address: localhost
+        port_number: 25
+        use_ssl: true
+        enable_authentication: false
+      register: cm_chages_without_auth
+      check_mode: true
+
+    - name: Update SMTP destination server configuration without authentication
+        (Normal mode)
+      dellemc.openmanage.ome_application_alerts_smtp:
+        <<: *withoutauth
+      register: results_without_auth
+
+    - name: Update STMP destination server configuration without authentication
+        (Check mode - no changes expected)
+      dellemc.openmanage.ome_application_alerts_smtp:
+        <<: *withoutauth
+      register: no_cm_changes_without_auth
+      check_mode: true
+
+    - name: Update STMP destination server configuration without authentication
+        (Idempotence mode)
+      dellemc.openmanage.ome_application_alerts_smtp:
+        <<: *withoutauth
+      register: idempotence_without_auth
+
+    - name: Get SMTP destination server configuration from uri
+      ansible.builtin.uri:
+        <<: *uri
+      register: without_auth_uri
+
+    - name: Verify the status of update SMTP destination server configuration
+      ansible.builtin.assert:
+        that:
+          - cm_changes_with_auth.changed
+          - results_with_auth.changed
+          - cm_changes_with_auth.msg == "Changes found to be applied."
+          - results_with_auth.msg == results_without_auth.msg == (
+            "Successfully updated the SMTP settings.")
+          - results_with_auth.smtp_details.DestinationAddress ==
+            smtp_uri.json.value[0].DestinationAddress == "localhost"
+          - results_with_auth.smtp_details.PortNumber ==
+            smtp_uri.json.value[0].PortNumber == 25
+          - results_with_auth.smtp_details.UseCredentials ==
+            smtp_uri.json.value[0].UseCredentials == true
+          - results_with_auth.smtp_details.UseSSL ==
+            smtp_uri.json.value[0].UseSSL == true
+          - cm_chages_without_auth.changed
+          - results_without_auth.changed
+          - not no_cm_changes_without_auth.changed
+          - not idempotence_without_auth.changed
+          - results_without_auth.smtp_details.DestinationAddress ==
+            without_auth_uri.json.value[0].DestinationAddress == "localhost"
+          - results_without_auth.smtp_details.PortNumber ==
+            without_auth_uri.json.value[0].PortNumber == 25
+          - results_without_auth.smtp_details.UseCredentials ==
+            without_auth_uri.json.value[0].UseCredentials == false
+          - results_without_auth.smtp_details.UseSSL ==
+            without_auth_uri.json.value[0].UseSSL == true
+
+  always:
+    - ansible.builtin.include_tasks: _pre_post_req.yml
+
+  module_defaults:
+    dellemc.openmanage.ome_application_alerts_smtp:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"
