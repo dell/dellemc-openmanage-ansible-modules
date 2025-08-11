@@ -97,17 +97,16 @@
         with help of share mount.
       ansible.builtin.set_fact:
         bios_file_json: "{{ lookup('ansible.builtin.file',
-          bios_file_json_name) }}"
+          bios_file_json_name) | from_json }}"
 
-    - name: edit TimeStamp from the data
+    - name: Edit TimeStamp from the data
       ansible.builtin.set_fact:
         updated_json: "{{\
-            bios_file_json | to_json | from_json |\
+            bios_file_json |\
             combine({ 'SystemConfiguration':\
             bios_file_json.SystemConfiguration |\
             combine({ 'TimeStamp': 3})}) | to_nice_json\
           }}"
-
 
     - ansible.builtin.copy:
         content: "{{ updated_json }}"
