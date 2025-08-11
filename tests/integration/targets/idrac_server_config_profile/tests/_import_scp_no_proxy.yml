@@ -1,7 +1,7 @@
 ---
 - name: "{{ scp_label }} Get idrac data using uri for SCP import."
   ansible.builtin.uri:
-    url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}\
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
       /redfish/v1/Managers/iDRAC.Embedded.1"
     method: GET
     body: {}
@@ -80,7 +80,7 @@
 
     - name: "{{ scp_label }} Create a new user role on 17G and above"
       ansible.builtin.uri:
-        url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}\
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
           /redfish/v1/AccountService/Roles"
         method: POST
         body:
@@ -220,20 +220,21 @@
             "Successfully imported the Server Configuration Profile."'
 
   always:
-    - name: "{{ scp_label }} Delete iDRAC user on 16G"
+    - name: "{{ scp_label }} Delete iDRAC user on 16G if left"
       dellemc.openmanage.idrac_user:
         state: "absent"
         user_name: "omam_test_user"
       register: delete_user
       when: hw_model | int < 17
 
-    - name: "{{ scp_label }} Delete user role on 17G and above"
+    - name: "{{ scp_label }} Delete user role on 17G and above if left"
       ansible.builtin.uri:
-        url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}\
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
           /redfish/v1/AccountService/Roles/4"
         method: DELETE
         status_code: 204
       when: hw_model | int >= 17
+      ignore_errors: true
 
     - name: "{{ scp_label }} Clean up the share"
       ansible.builtin.file:
