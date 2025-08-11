@@ -1,0 +1,154 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user
+     and idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- block:
+    - name: Include the helper task
+      ansible.builtin.include_tasks: _helper.yml
+
+    - name: Create Directory
+      ansible.builtin.file:
+        path: "{{ base_path_for_exported_license }}"
+        state: directory
+      register: created_directory
+
+    - name: Set the API
+      ansible.builtin.set_fact:
+        idracApi: "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell\
+         /DellLicenseManagementService/Actions\
+         /DellLicenseManagementService.ExportLicenseToNetworkShare"
+
+    - name: Create Export license for iDRAC component by uri.
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+         {{ idracApi }}"
+        method: POST
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+        body:
+          EntitlementID: "{{ idrac_license_id }}"
+          IPAddress: "{{ http_share }}"
+          ShareType: "HTTP"
+          ShareName: "{{ http_share_dir_path }}"
+          UserName: "{{ http_share_user | default(omit) }}"
+          Password: "{{ http_share_password | default(omit) }}"
+        body_format: json
+        status_code: 202
+        headers: 'Accept=application/json'
+      register: uri_license_content
+
+    - name: URI - Verify license was exported successfully
+      ansible.builtin.assert:
+        that:
+          - not uri_license_content.failed
+          - "'OK' in uri_license_content.msg"
+
+    - name: Set the file name
+      ansible.builtin.set_fact:
+        export_file_name: "{{ idrac_license_id }}"
+
+    - name: Export iDRAC License to http share
+      dellemc.openmanage.idrac_license:
+        license_id: "{{ idrac_license_id }}"
+        export: true
+        share_parameters:
+          file_name: "{{ export_file_name }}"
+          ip_address: "{{ http_share }}"
+          share_name: "{{ http_share_dir_path }}"
+          username: "{{ http_share_user | default(omit) }}"
+          password: "{{ http_share_password | default(omit) }}"
+          share_type: http
+          proxy_support: "{{ export_http_proxy_support }}"
+          proxy_server: "{{ export_http_proxy_server }}"
+          proxy_port: "{{ export_http_proxy_port }}"
+          proxy_username: "{{ export_http_proxy_username }}"
+          proxy_password: "{{ export_http_proxy_password }}"
+          proxy_type: "{{ export_http_proxy_type }}"
+      register: idrac_export_license
+
+    - name: Get iDRAC job details
+      ansible.builtin.include_tasks: _job_track.yml
+      vars:
+        job_id: "{{ idrac_export_license.job_details.Id }}"
+
+    - name: Compare the job detail output between module and uri
+      ansible.utils.fact_diff:
+        before: "{{ idrac_job_details | ansible.utils.remove_keys(
+                target=['^@odata','MessageArgs@odata.count'],
+                matching_parameter='regex')}}"
+        after: "{{ idrac_export_license.job_details }}"
+      register: diff_result
+
+    - name: Module - Verify license was exported successfully
+      ansible.builtin.assert:
+        that:
+          - idrac_export_license.changed
+          - idrac_export_license.msg == "Successfully exported the license."
+          - "'The command was successful' in
+            idrac_export_license.job_details.Message"
+          - not diff_result.changed
+          - not diff_result.diff_lines
+
+    - name: List of license files
+      ansible.builtin.set_fact:
+        license_files:
+          - "{{ ServiceTag }}_{{ idrac_license_id }}.xml"
+          - "{{ export_file_name }}_iDRAC_license.xml"
+
+    - name: Get exported file from HTTP share
+      ansible.builtin.uri:
+        url: "http://{{ http_share | ansible.utils.ipwrap }}\
+         {{ http_share_dir_path }}/{{ ServiceTag }}_{{ idrac_license_id }}.xml"
+        force_basic_auth: true
+        validate_certs: false
+        use_proxy: false
+        use_netrc: false
+        url_username: "{{ http_share_user | default(omit) }}"
+        url_password: "{{ http_share_password | default(omit) }}"
+        dest: "{{ base_path_for_exported_license }}\
+         /{{ ServiceTag }}_{{ idrac_license_id }}.xml"
+      register: idrac_file
+
+    - name: Get file stats for file exported using URI
+      ansible.builtin.stat:
+        path: "{{ base_path_for_exported_license }}\
+         /{{ ServiceTag }}_{{ idrac_license_id }}.xml"
+      register: uri_file_stats
+
+    - name: Get file stats for file exported using module
+      ansible.builtin.stat:
+        path: "{{ base_path_for_exported_license }}\
+         /{{ ServiceTag }}_{{ idrac_license_id }}.xml"
+      register: module_file_stats
+
+    - name: Compare file sizes
+      ansible.builtin.assert:
+        that:
+          - uri_file_stats.stat.size == module_file_stats.stat.size
+
+    - name: Compare file checksums
+      ansible.builtin.assert:
+        that:
+          - uri_file_stats.stat.checksum == module_file_stats.stat.checksum
+
+  always:
+    - name: Perform the cleanup
+      ansible.builtin.include_tasks: _cleanup.yml
+
+  module_defaults:
+    dellemc.openmanage.idrac_license:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      idrac_port: "{{ idrac_port }}"
+      validate_certs: "{{ validate_certs }}"

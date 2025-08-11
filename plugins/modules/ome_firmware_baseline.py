@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.12.3
 # Copyright (C) 2019-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -22,6 +22,7 @@ version_added: "2.0.0"
 author:
   - "Jagadeesh N V(@jagadeeshnv)"
   - "Kritika Bhateja (@Kritika-Bhateja-03)"
+  - "Sapana Gupta (@sapana05)"
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
 options:
@@ -363,7 +364,7 @@ def get_catrepo_ids(module, cat_name, rest_obj):
                 repo = catalog.get("Repository")
                 if repo.get("Name") == cat_name:
                     if catalog.get('Status') != 'Completed':
-                        module.fail_json(msg=CATALOG_STATUS_MESSAGE.format(status=catalog.get('Status')))
+                        module.exit_json(msg=CATALOG_STATUS_MESSAGE.format(status=catalog.get('Status')), failed=True)
                     return catalog.get("Id"), repo.get("Id")
     return None, None
 
@@ -387,8 +388,8 @@ def get_dev_ids(module, rest_obj, param, devkey):
                 target['Type'] = device_type
                 targets.append(target)
             else:
-                module.fail_json(msg="Unable to complete the operation because the entered target"
-                                     " {0} '{1}' is invalid.".format(devkey, st))
+                module.exit_json(msg="Unable to complete the operation because the entered target"
+                                     " {0} '{1}' is invalid.".format(devkey, st), failed=True)
     return targets
 
 
@@ -411,8 +412,8 @@ def get_group_ids(module, rest_obj):
                 target['Type'] = device_type
                 targets.append(target)
             else:
-                module.fail_json(msg="Unable to complete the operation because the entered target"
-                                     " Group Name '{0}' is invalid.".format(st))
+                module.exit_json(msg="Unable to complete the operation because the entered target"
+                                     " Group Name '{0}' is invalid.".format(st), failed=True)
     return targets
 
 
@@ -438,7 +439,7 @@ def exit_baseline(module, rest_obj, baseline, op):
         job_failed, job_message = rest_obj.job_tracking(
             baseline.get('TaskId'), job_wait_sec=module.params["job_wait_timeout"], sleep_time=JOB_POLL_INTERVAL)
         if job_failed is True:
-            module.fail_json(msg=job_message, baseline_status=bsln)
+            module.exit_json(msg=job_message, baseline_status=bsln, failed=True)
         msg = BASELINE_UPDATED.format(op=op)
     module.exit_json(msg=msg, baseline_status=bsln, changed=True)
 
@@ -447,10 +448,10 @@ def _get_baseline_payload(module, rest_obj):
     cat_name = module.params.get("catalog_name")
     cat_id, repo_id = get_catrepo_ids(module, cat_name, rest_obj)
     if cat_id is None or repo_id is None:
-        module.fail_json(msg="No Catalog with name {0} found".format(cat_name))
+        module.exit_json(msg="No Catalog with name {0} found".format(cat_name), failed=True)
     targets = get_target_list(module, rest_obj)
     if targets is None:
-        module.fail_json(msg=NO_TARGETS_MESSAGE)
+        module.exit_json(msg=NO_TARGETS_MESSAGE, failed=True)
     baseline_name = module.params.get("baseline_name")
     baseline_payload = {
         "Name": baseline_name,
@@ -470,9 +471,9 @@ def _get_baseline_payload(module, rest_obj):
 def create_baseline(module, rest_obj):
     myparams = module.params
     if not any([myparams.get("device_ids"), myparams.get("device_service_tags"), myparams.get("device_group_names")]):
-        module.fail_json(msg=NO_TARGETS_MESSAGE)
+        module.exit_json(msg=NO_TARGETS_MESSAGE, failed=True)
     if not myparams.get("catalog_name"):
-        module.fail_json(msg=NO_CATALOG_MESSAGE)
+        module.exit_json(msg=NO_CATALOG_MESSAGE, failed=True)
     payload = _get_baseline_payload(module, rest_obj)
     if module.check_mode:
         module.exit_json(msg=CHANGES_FOUND, changed=True)
@@ -503,21 +504,21 @@ def update_modify_payload(module, rest_obj, modify_payload, current_baseline):
             module.exit_json(msg=NO_CHANGES_MSG)
         payload['Id'] = current_baseline['Id']
     except (IndexError, TypeError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
     return payload
 
 
 def modify_baseline(module, rest_obj, baseline_list):
     d = baseline_list[0]
     if d["TaskStatusId"] == 2050:
-        module.fail_json(msg=BASELINE_JOB_RUNNING.format(name=d["Name"], id=d["Id"]), job_id=d['TaskId'])
+        module.exit_json(msg=BASELINE_JOB_RUNNING.format(name=d["Name"], id=d["Id"]), job_id=d['TaskId'], failed=True)
     mparam = module.params
     current_baseline = baseline_list[0]
     modify_payload = {}
     if mparam.get('catalog_name'):
         cat_id, repo_id = get_catrepo_ids(module, mparam.get('catalog_name'), rest_obj)
         if cat_id is None or repo_id is None:
-            module.fail_json(msg="No Catalog with name {0} found".format(mparam.get('catalog_name')))
+            module.exit_json(msg="No Catalog with name {0} found".format(mparam.get('catalog_name')), failed=True)
         modify_payload["CatalogId"] = cat_id
         modify_payload["RepositoryId"] = repo_id
     if mparam.get('new_baseline_name'):
@@ -541,7 +542,7 @@ def delete_baseline(module, rest_obj, baseline_list):
     delete_ids = []
     d = baseline_list[0]
     if d["TaskStatusId"] == 2050:
-        module.fail_json(msg=BASELINE_JOB_RUNNING.format(name=d["Name"], id=d["Id"]), job_id=d['TaskId'])
+        module.exit_json(msg=BASELINE_JOB_RUNNING.format(name=d["Name"], id=d["Id"]), job_id=d['TaskId'], failed=True)
     delete_ids.append(d["Id"])
     delete_payload = {"BaselineIds": delete_ids}
     if module.check_mode:
@@ -589,14 +590,14 @@ def main():
                     modify_baseline(module, rest_obj, baseline_list)
                 else:
                     if module.params.get('baseline_id'):
-                        module.fail_json(msg=INVALID_BASELINE_ID)
+                        module.exit_json(msg=INVALID_BASELINE_ID, failed=True)
                     create_baseline(module, rest_obj)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, TypeError, ConnectionError, SSLValidationError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':

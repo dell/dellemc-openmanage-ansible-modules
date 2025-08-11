@@ -70,7 +70,9 @@
         job_wait as false (Normal mode)"
       ansible.builtin.assert:
         that:
-          - uri_job_status.JobState == "Scheduled" or "Running"
+          - uri_job_status.JobState == "Scheduled" or
+            uri_job_status.JobState == "Running" or
+            uri_job_status.JobState == "New"
           - uri_job_status.JobType == "RemoteDiagnostics"
 
     - name: Track the job

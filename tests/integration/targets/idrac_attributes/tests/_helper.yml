@@ -102,7 +102,12 @@
 
     - name: "Read SCP file and store in variable"
       set_fact:
-        scp: "{{ lookup('file', './uri_scp_export_{{idrac_ip}}.json') }}"
+        scp1: "{{ lookup('file', './uri_scp_export_{{idrac_ip}}.json')
+               | from_yaml }}"
+
+    - name: "Convert the data to dictionary"
+      set_fact:
+        scp: "{{ scp1 | from_yaml }}"
 
     - name: Fetch components key from SCP
       set_fact:

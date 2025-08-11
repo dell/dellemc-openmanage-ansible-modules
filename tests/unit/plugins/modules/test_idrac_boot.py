@@ -23,6 +23,7 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from unittest.mock import MagicMock
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+MODULE_UTIL_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.utils.'
 
 
 @pytest.fixture
@@ -76,8 +77,10 @@ class TestConfigBios(FakeAnsibleModule):
         result = self.module.get_existing_boot_options(boot_connection_mock, "System.Embedded.1")
         assert result == resp_data
 
-    def test_system_reset(self, boot_connection_mock, redfish_response_mock, idrac_default_args, mocker):
-        mocker.patch(MODULE_PATH + 'idrac_boot.idrac_system_reset', return_value=(True, False, "Completed", {}))
+    @pytest.mark.parametrize("code", [200, 204])
+    def test_system_reset(self, boot_connection_mock, redfish_response_mock, idrac_default_args, mocker, code):
+        mocker.patch(MODULE_UTIL_PATH + 'time.sleep', return_value=None)
+        redfish_response_mock.status_code = code
         idrac_default_args.update({"boot_source_override_mode": "uefi", "reset_type": "force_restart"})
         f_module = self.get_module_mock(params=idrac_default_args)
         reset, track_failed, reset_msg, resp_data = self.module.system_reset(f_module, boot_connection_mock,
@@ -157,7 +160,7 @@ class TestConfigBios(FakeAnsibleModule):
             self.module.configure_boot_options(f_module, boot_connection_mock, "System.Embedded.1", {"Boot001": False})
         assert err.value.args[0] == "Completed Reset"
 
-        redfish_response_mock.status_code = 200
+        redfish_response_mock.status_code = 201
         redfish_response_mock.success = True
         mocker.patch(MODULE_PATH + 'idrac_boot.get_scheduled_job', return_value=(False, {}))
         job_data = self.module.configure_boot_options(f_module, boot_connection_mock, "System.Embedded.1", {"Boot001": False})
@@ -198,16 +201,17 @@ class TestConfigBios(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'idrac_boot.wait_for_idrac_job_completion',
                      return_value=({}, "This job is not complete after 900 seconds."))
         with pytest.raises(Exception) as err:
-            self.module.apply_boot_settings(f_module, boot_connection_mock, payload, "System.Embedded.1")
+            self.module.apply_boot_settings(f_module, boot_connection_mock, payload, "System.Embedded.1", 16)
         assert err.value.args[0] == "This job is not complete after 900 seconds."
 
         redfish_response_mock.status_code = 400
-        job_data = self.module.apply_boot_settings(f_module, boot_connection_mock, payload, "System.Embedded.1")
+        job_data = self.module.apply_boot_settings(f_module, boot_connection_mock, payload, "System.Embedded.1", 17)
         assert job_data == {}
 
     def test_apply_boot_settings_reset_type(self, boot_connection_mock, redfish_response_mock, idrac_default_args, mocker):
         idrac_default_args.update({"boot_source_override_mode": "uefi", "job_wait": True, "reset_type": "graceful_restart",
                                    "job_wait_timeout": 900})
+        boot_connection_mock.get_server_generation = (17, 'abc', 'iDRAC 10')
         f_module = self.get_module_mock(params=idrac_default_args)
         payload = {"Boot": {"BootSourceOverrideMode": "UEFI"}}
         redfish_response_mock.success = True
@@ -217,14 +221,14 @@ class TestConfigBios(FakeAnsibleModule):
         obj.json_data = {"JobState": "Reset Successful"}
         mocker.patch(MODULE_PATH + 'idrac_boot.system_reset', return_value=(False, False, "Completed", obj))
         mocker.patch(MODULE_PATH + 'idrac_boot.get_scheduled_job', return_value=(False, [{"Id": "JID_123456789"}]))
-        job_data = self.module.apply_boot_settings(f_module, boot_connection_mock, payload, "System.Embedded.1")
+        job_data = self.module.apply_boot_settings(f_module, boot_connection_mock, payload, "System.Embedded.1", 17)
         assert job_data == {"JobState": "Reset Successful"}
 
         mocker.patch(MODULE_PATH + 'idrac_boot.system_reset', return_value=(True, False, "Completed", {}))
         mocker.patch(MODULE_PATH + 'idrac_boot.get_scheduled_job', return_value=(True, [{"Id": "JID_123456789"}]))
         mocker.patch(MODULE_PATH + 'idrac_boot.wait_for_idrac_job_completion',
                      return_value=(obj, ""))
-        job_data = self.module.apply_boot_settings(f_module, boot_connection_mock, payload, "System.Embedded.1")
+        job_data = self.module.apply_boot_settings(f_module, boot_connection_mock, payload, "System.Embedded.1", 16)
         assert job_data == {"JobState": "Reset Successful"}
 
     def test_configure_boot_settings(self, boot_connection_mock, redfish_response_mock, idrac_default_args, mocker):
@@ -237,6 +241,7 @@ class TestConfigBios(FakeAnsibleModule):
                      "BootSourceOverrideMode": "Legacy", "BootSourceOverrideTarget": "UefiTarget",
                      "UefiTargetBootSourceOverride": "/0x31/0x33/0x01/0x01"}
         mocker.patch(MODULE_PATH + 'idrac_boot.get_response_attributes', return_value=resp_data)
+        boot_connection_mock.get_server_generation = (16, 'abc', 'iDRAC 9')
         with pytest.raises(Exception) as err:
             self.module.configure_boot_settings(f_module, boot_connection_mock, "System.Embedded.1")
         assert err.value.args[0] == "Invalid boot order reference provided."
@@ -267,6 +272,7 @@ class TestConfigBios(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'idrac_boot.get_response_attributes', return_value=resp_data)
         mocker.patch(MODULE_PATH + 'idrac_boot.apply_boot_settings', return_value={"JobStatus": "Completed"})
 
+        boot_connection_mock.get_server_generation = (16, 'abc', 'iDRAC 9')
         job_resp = self.module.configure_boot_settings(f_module, boot_connection_mock, "System.Embedded.1")
         assert job_resp["JobStatus"] == "Completed"
 

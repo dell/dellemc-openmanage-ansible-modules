@@ -1,0 +1,11 @@
+---
+base_path_for_exported_license: "/root/idrac_license/"
+b_true: true
+share_name_local: /root/tmp
+parameters_proxy: parameters_proxy
+proxy_type_http: http
+proxy_type_socks: socks
+mock_license_id: 123
+invalid_file_name: invalid.xml
+parameters_default_proxy: default_proxy
+license_path: "/idrac_license/"

@@ -1,16 +1,18 @@
 ---
-- name: Prepare URLs
-  ansible.builtin.set_fact:
-    url1: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
-    url2: "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{ job_id }}"
-
-- name: Get data using uri
+- name: Get Diagnostics Job data using uri
   ansible.builtin.uri:
-    url: "{{ url1 }}{{ url2 }}"
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+      /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{ job_id }}"
     method: GET
     body: {}
     status_code: 200
-  until: uri_res.status == 200
+  # When a job is newly created on 17G
+  # it may not have any details other than its ID.
+  # In that case we get null on those fields.
+  # Retrying a few times solves this.
+  until: uri_res.status == 200 and
+    uri_res.json.JobState and
+    uri_res.json.JobType
   retries: 12
   delay: 5
   register: uri_res

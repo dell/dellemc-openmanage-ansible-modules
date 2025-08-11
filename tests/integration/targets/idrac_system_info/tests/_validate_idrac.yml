@@ -73,8 +73,7 @@
 
 - name: Output conversion to list
   ansible.builtin.set_fact:
-    idrac_updated_dict: "{{ idrac_updated_dict.stdout |
-      to_json | from_json }}"
+    idrac_updated_dict: "{{ idrac_updated_dict.stdout | from_yaml }}"
   when:
     - system_details_data.status == 200
 

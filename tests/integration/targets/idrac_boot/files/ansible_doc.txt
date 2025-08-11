@@ -1,0 +1,362 @@
+- '  This module allows to configure the boot order settings.'
+- ''
+- "\e[1mOPTIONS\e[0m (red indicates it is required):"
+- ''
+- "   \e[0;33mboot_options\e[0m  Options to enable or disable the boot devices."
+- "                 This is mutually exclusive with \e[4mboot_order\e[0m,"
+- "                 \e[4mboot_source_override_mode\e[0m,"
+- "                 \e[4mboot_source_override_enabled\e[0m"
+- "                 \e[4mboot_source_override_target\e[0m, and"
+- "                 \e[4muefi_target_boot_source_override\e[0m."
+- '        default: null'
+- '        elements: dict'
+- '        type: list'
+- '        suboptions:'
+- ''
+- "           \e[0;33mboot_option_reference\e[0m          FQDD of the boot device."
+- '                                  This is mutually exclusive with'
+- "                                  \e[4mdisplay_name\e[0m."
+- '          default: null'
+- '          type: str'
+- ''
+- "           \e[0;33mdisplay_name\e[0m          Display name of the boot source device."
+- '                         This is mutually exclusive with'
+- "                         \e[4mboot_option_reference\e[0m."
+- '          default: null'
+- '          type: str'
+- ''
+- "           \e[0;31m\e[1menabled\e[0m\e[0m          Enable or disable the boot device."
+- '          type: bool'
+- ''
+- "   \e[0;33mboot_order\e[0m  This option allows to set the boot devices in the required
+    boot"
+- '               order sequences.'
+- "               This is mutually exclusive with \e[4mboot_options\e[0m."
+- '        default: null'
+- '        elements: str'
+- '        type: list'
+- ''
+- "   \e[0;33mboot_source_override_enabled\e[0m  The state of the Boot Source Override
+    feature."
+- "                                 \e[1;30m`disabled'\e[0m The system"
+- '                                 boots normally.'
+- "                                 \e[1;30m`once'\e[0m The system boots"
+- '                                 (one time) to the'
+- "                                 \e[4mboot_source_override_target\e[0m."
+- "                                 \e[1;30m`continuous'\e[0m The system"
+- '                                 boots to the target specified in the'
+- "                                 \e[4mboot_source_override_target\e[0m"
+- '                                 until this property is set to'
+- '                                 Disabled.'
+- "                                 The state is set to \e[1;30m`once'\e[0m"
+- '                                 for the one-time boot override and'
+- "                                 \e[1;30m`continuous'\e[0m for the"
+- '                                 remain-active-until—canceled'
+- '                                 override. If the state is set'
+- "                                 \e[1;30m`once'\e[0m or"
+- "                                 \e[1;30m`continuous'\e[0m, the value is"
+- "                                 reset to \e[1;30m`disabled'\e[0m after"
+- '                                 the'
+- "                                 \e[4mboot_source_override_target\e[0m"
+- '                                 actions have completed successfully.'
+- '                                 Changes to this options do not alter'
+- '                                 the BIOS persistent boot order'
+- '                                 configuration.'
+- '                                 This is mutually exclusive with'
+- "                                 \e[4mboot_options\e[0m."
+- '        choices: [continuous, disabled, once]'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mboot_source_override_mode\e[0m  The BIOS boot mode (either Legacy or
+    UEFI) to be used when"
+- "                              \e[4mboot_source_override_target\e[0m boot"
+- '                              source is booted from.'
+- "                              \e[1;30m`legacy'\e[0m The system boot in"
+- '                              non-UEFI(Legacy) boot mode to the'
+- "                              \e[4mboot_source_override_target\e[0m."
+- "                              \e[1;30m`uefi'\e[0m The system boot in"
+- '                              UEFI boot mode to the'
+- "                              \e[4mboot_source_override_target\e[0m."
+- '                              This is read-only property for iDRAC 17G'
+- '                              and later.'
+- '                              This is mutually exclusive with'
+- "                              \e[4mboot_options\e[0m."
+- '        choices: [legacy, uefi]'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mboot_source_override_target\e[0m  The boot source override target device
+    to use during the next boot"
+- '                                instead of the normal boot device.'
+- "                                \e[1;30m`pxe'\e[0m performs PXE boot"
+- '                                from the primary NIC.'
+- "                                \e[1;30m`floppy'\e[0m, \e[1;30m`cd'\e[0m,"
+- "                                \e[1;30m`hdd'\e[0m, \e[1;30m`sd_card'\e[0m"
+- '                                performs boot from their devices'
+- '                                respectively.'
+- "                                \e[1;30m`bios_setup'\e[0m performs boot"
+- '                                into the native BIOS setup.'
+- "                                \e[1;30m`utilities'\e[0m performs boot"
+- '                                from the local utilities.'
+- "                                \e[1;30m`uefi_target'\e[0m performs boot"
+- '                                from the UEFI device path found in'
+- "                                \e[4muefi_target_boot_source_override\e[0m."
+- '                                If the'
+- "                                \e[4mboot_source_override_target\e[0m is"
+- '                                set to a value other than'
+- "                                \e[1;30m`none'\e[0m then the"
+- "                                \e[4mboot_source_override_enabled\e[0m"
+- '                                is automatically set to'
+- "                                \e[1;30m`once'\e[0m if"
+- "                                \e[4mboot_source_override_enabled\e[0m"
+- '                                is not provided.'
+- '                                Changes to this options do not alter'
+- '                                the BIOS persistent boot order'
+- '                                configuration.'
+- '                                This is required if'
+- "                                \e[4mboot_source_override_enabled\e[0m"
+- "                                is \e[1;30m`once'\e[0m or"
+- "                                \e[1;30m`continuous'\e[0m for iDRAC 17G"
+- '                                and later.'
+- '                                This is not idempotent for iDRAC 17G'
+- '                                and later.'
+- '                                This is mutually exclusive with'
+- "                                \e[4mboot_options\e[0m."
+- '        choices: [uefi_http, sd_card, uefi_target, utilities, bios_setup, hdd,
+    cd, floppy, pxe, none]'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mca_path\e[0m  The Privacy Enhanced Mail (PEM) file that contains a CA
+    certificate"
+- '            to be used for the validation.'
+- '        default: null'
+- '        type: path'
+- ''
+- "   \e[0;31m\e[1midrac_ip\e[0m\e[0m  iDRAC IP Address."
+- '        type: str'
+- ''
+- "   \e[0;33midrac_password\e[0m  iDRAC user password."
+- '                   If the password is not provided, then the'
+- '                   environment variable `IDRAC_PASSWORD'' is used.'
+- '                   Example: export IDRAC_PASSWORD=password'
+- '        aliases: [idrac_pwd]'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33midrac_port\e[0m  iDRAC port."
+- '        default: 443'
+- '        type: int'
+- ''
+- "   \e[0;33midrac_user\e[0m  iDRAC username."
+- '               If the username is not provided, then the environment'
+- '               variable `IDRAC_USERNAME'' is used.'
+- '               Example: export IDRAC_USERNAME=username'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mjob_wait\e[0m  Provides the option to wait for job completion."
+- "             This is applicable when \e[4mreset_type\e[0m is"
+- "             \e[1;30m`force_reset'\e[0m or \e[1;30m`graceful_reset'\e[0m."
+- '        default: true'
+- '        type: bool'
+- ''
+- "   \e[0;33mjob_wait_timeout\e[0m  The maximum wait time of \e[4mjob_wait\e[0m in
+    seconds. The job is"
+- '                     tracked only for this duration.'
+- "                     This option is applicable when \e[4mjob_wait\e[0m"
+- "                     is \e[1;30m`true'\e[0m."
+- '        default: 900'
+- '        type: int'
+- ''
+- "   \e[0;33mreset_type\e[0m  \e[1;30m`none'\e[0m Host system is not rebooted and
+    \e[4mjob_wait\e[0m"
+- '               is not applicable.'
+- "               \e[1;30m`force_restart'\e[0m Forcefully reboot the Host"
+- '               system.'
+- "               \e[1;30m`graceful_restart'\e[0m Gracefully reboot the"
+- '               Host system.'
+- '        choices: [graceful_restart, force_restart, none]'
+- '        default: graceful_restart'
+- '        type: str'
+- ''
+- "   \e[0;33mresource_id\e[0m  Redfish ID of the resource."
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mtimeout\e[0m  The socket level timeout in seconds."
+- '        default: 30'
+- '        type: int'
+- ''
+- "   \e[0;33muefi_target_boot_source_override\e[0m  The UEFI device path of the device
+    from which to boot when"
+- "                                     \e[4mboot_source_override_target\e[0m"
+- "                                     is \e[1;30m`uefi_target'\e[0m."
+- "                                     \e[4mboot_source_override_enabled\e[0m"
+- '                                     cannot be set to c(continuous) if'
+- "                                     \e[4mboot_source_override_target\e[0m"
+- "                                     set to \e[1;30m`uefi_target'\e[0m"
+- '                                     because this settings is defined'
+- '                                     in UEFI as a one-time-boot'
+- '                                     setting.'
+- '                                     Changes to this options do not'
+- '                                     alter the BIOS persistent boot'
+- '                                     order configuration.'
+- '                                     This is required if'
+- "                                     \e[4mboot_source_override_target\e[0m"
+- "                                     is \e[1;30m`uefi_target'\e[0m."
+- '                                     This is mutually exclusive with'
+- "                                     \e[4mboot_options\e[0m."
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mvalidate_certs\e[0m  If \e[1;30m`false'\e[0m, the SSL certificates will
+    not be validated."
+- "                   Configure \e[1;30m`false'\e[0m only on personally"
+- '                   controlled sites where self-signed certificates are'
+- '                   used.'
+- "                   Prior to collection version \e[1;30m`5.0.0'\e[0m, the"
+- "                   \e[4mvalidate_certs\e[0m is \e[1;30m`false'\e[0m by"
+- '                   default.'
+- '        default: true'
+- '        type: bool'
+- ''
+- "   \e[0;33mx_auth_token\e[0m  Authentication token."
+- '                 If the x_auth_token is not provided, then the'
+- '                 environment variable `IDRAC_X_AUTH_TOKEN'' is used.'
+- '                 Example: export IDRAC_X_AUTH_TOKEN=x_auth_token'
+- '        default: null'
+- '        type: str'
+- ''
+- "\e[1mNOTES:\e[0m"
+- '      * Run this module from a system that has direct access to'
+- '        Dell iDRAC.'
+- "      * This module supports \e[1;30m`check_mode'\e[0m."
+- ''
+- "\e[1mREQUIREMENTS:\e[0m  python >= 3.9.6"
+- ''
+- ''
+- "\e[1mAUTHOR\e[0m: Felix Stephen (@felixs88), Abhishek Sinha (@ABHISHEK-SINHA10)"
+- ''
+- "\e[1mEXAMPLES:\e[0m"
+- '---'
+- '- name: Configure the system boot options settings.'
+- '  dellemc.openmanage.idrac_boot:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    boot_options:'
+- '      - display_name: Hard drive C'
+- '        enabled: true'
+- '      - boot_option_reference: NIC.PxeDevice.2-1'
+- '        enabled: true'
+- ''
+- '- name: Configure the boot order settings.'
+- '  dellemc.openmanage.idrac_boot:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    boot_order:'
+- '      - Boot0001'
+- '      - Boot0002'
+- '      - Boot0004'
+- '      - Boot0003'
+- ''
+- '- name: Configure the boot source override mode.'
+- '  dellemc.openmanage.idrac_boot:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    boot_source_override_mode: legacy'
+- '    boot_source_override_target: cd'
+- '    boot_source_override_enabled: once'
+- ''
+- '- name: Configure the UEFI target settings.'
+- '  dellemc.openmanage.idrac_boot:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    boot_source_override_mode: uefi'
+- '    boot_source_override_target: uefi_target'
+- '    uefi_target_boot_source_override: "VenHw(3A191845-5F86-4E78-8FCE-C4CFF59F9DAA)"'
+- ''
+- '- name: Configure the boot source override mode as pxe.'
+- '  dellemc.openmanage.idrac_boot:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    boot_source_override_mode: legacy'
+- '    boot_source_override_target: pxe'
+- '    boot_source_override_enabled: continuous'
+- ''
+- "\e[1mRETURN VALUES:\e[0m"
+- ''
+- "   \e[0;33mboot\e[0m    Configured boot settings details."
+- '        returned: success'
+- '        sample:'
+- '          BootOptions:'
+- '            Description: Collection of BootOptions'
+- '            Members:'
+- '            - BootOptionEnabled: false'
+- '              BootOptionReference: HardDisk.List.1-1'
+- '              Description: Current settings of the Legacy Boot option'
+- '              DisplayName: ''Hard drive C:'''
+- '              Id: HardDisk.List.1-1'
+- '              Name: Legacy Boot option'
+- '              UefiDevicePath: VenHw(D6C0639F-C705-4EB9-AA4F-5802D8823DE6)'
+- '            Name: Boot Options Collection'
+- '          BootOrder:'
+- '          - HardDisk.List.1-1'
+- '          BootSourceOverrideEnabled: Disabled'
+- '          BootSourceOverrideMode: Legacy'
+- '          BootSourceOverrideTarget: None'
+- '          UefiTargetBootSourceOverride: null'
+- '        type: dict'
+- ''
+- "   \e[0;33merror_info\e[0m  Details of the HTTP Error."
+- '        returned: on HTTP error'
+- '        sample:'
+- '          error:'
+- '            ''@Message.ExtendedInfo'':'
+- '            - Message: Unable to process the request because an error occurred.'
+- '              MessageArgs: []'
+- '              MessageId: GEN1234'
+- '              RelatedProperties: []'
+- '              Resolution: Retry the operation. If the issue persists, contact your
+    system'
+- '                administrator.'
+- '              Severity: Critical'
+- '            code: Base.1.0.GeneralError'
+- '            message: A general error has occurred. See ExtendedInfo for more information.'
+- '        type: dict'
+- ''
+- "   \e[0;33mjob\e[0m     Configured job details."
+- '        returned: success'
+- '        sample:'
+- '          ActualRunningStartTime: ''2019-06-19T00:57:24'''
+- '          ActualRunningStopTime: ''2019-06-19T01:00:27'''
+- '          CompletionTime: ''2019-06-19T01:00:27'''
+- '          Description: Job Instance'
+- '          EndTime: TIME_NA'
+- '          Id: JID_609237056489'
+- '          JobState: Completed'
+- '          JobType: BIOSConfiguration'
+- '          Message: Job completed successfully.'
+- '          MessageArgs: []'
+- '          MessageId: PR19'
+- '          Name: ''Configure: BIOS.Setup.1-1'''
+- '          PercentComplete: 100'
+- '          StartTime: ''2019-06-19T00:55:05'''
+- '          TargetSettingsURI: null'
+- '        type: dict'
+- ''
+- "   \e[0;33mmsg\e[0m     Successfully updated the boot settings."
+- '        returned: success'
+- '        sample: Successfully updated the boot settings.'
+- '        type: str'

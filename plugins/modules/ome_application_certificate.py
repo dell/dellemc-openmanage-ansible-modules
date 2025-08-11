@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.6.0
+# Version 9.12.4
 # Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -76,6 +76,7 @@ author:
   - "Jennifer John (@Jennifer-John)"
   - "Abhishek Sinha (@ABHISHEK-SINHA10)"
   - "Saksham Nautiyal (@Saksham-Nautiyal)"
+  - "Sapana Gupta (@sapana05)"
 '''
 
 EXAMPLES = r'''
@@ -204,7 +205,7 @@ def read_file_payload(module):
         with open(file_path, 'rb') as file:
             return file.read()
     else:
-        module.fail_json(msg="No such file or directory.")
+        module.exit_json(msg="No such file or directory.", failed=True)
 
 
 def get_resource_parameters(module):
@@ -231,22 +232,12 @@ def get_resource_parameters(module):
 
     command_details = command_map.get(command)
     if not command_details:
-        module.fail_json(msg=f"Unknown command: {command}")
+        module.exit_json(msg=f"Unknown command: {command}", failed=True)
 
     uri = command_details["uri"]
     payload = command_details["payload_func"](module)
 
     return method, uri, payload
-
-
-def read_file(module):
-    """Reads the file content for 'upload' and 'upload_cert_chain' commands."""
-    file_path = module.params["upload_file"]
-    if os.path.exists(file_path):
-        with open(file_path, 'rb') as file:
-            return file.read()
-    else:
-        module.fail_json(msg="No such file or directory.")
 
 
 def get_san(subject_alternative_names):
@@ -318,15 +309,13 @@ def main():
                 else:
                     module.exit_json(msg=CERT_UPLOAD, changed=True)
             else:
-                module.fail_json(msg="Request failed", error_info=resp.json_data)
+                module.exit_json(msg="Request failed", error_info=resp.json_data, failed=True)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, TypeError, ConnectionError, SSLValidationError, OSError) as err:
-        module.fail_json(msg=str(err))
-    except Exception as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':

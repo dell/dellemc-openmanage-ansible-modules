@@ -1,0 +1,123 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined
+
+- block:
+    - ansible.builtin.set_fact:
+        cifs_share_ip: "{{ cifs_share_name.split(source_delimiter)[2]}}"
+        cifs_share_name: "{{ cifs_share_name.split(source_delimiter)[3]}}"
+      vars:
+        source_delimiter: "\\"
+
+    - ansible.builtin.include_tasks: _cleanup_import.yml
+
+    - name: import license from cifs normal_mode
+      register: result
+      dellemc.openmanage.idrac_license: &module_params
+        import: "{{ b_true }}"
+        share_parameters:
+          username: "{{ cifs_share_user }}"
+          password: "{{ cifs_share_password }}"
+          file_name: "{{ idrac_license_file }}"
+          ip_address: "{{ cifs_share_ip }}"
+          share_name: "/{{ cifs_share_name }}"
+          share_type: cifs
+
+    - name: Get iDRAC job details
+      ansible.builtin.include_tasks: _job_track.yml
+      vars:
+        job_id: "{{ result.job_details.Id }}"
+
+    - name: import license from cifs assert normal_mode
+      ansible.builtin.assert:
+        that:
+          - result.changed is true
+          - '"Successfully imported the license" in result.msg'
+          - '"The command was successful" in result.job_details.Message'
+          - result.job_details.Id == idrac_job_details.Id
+          - result.job_details.Message == idrac_job_details.Message
+
+    # Begin the idempotency mode block here
+    - name: import license from cifs idempotency_mode
+      register: result
+      dellemc.openmanage.idrac_license:
+        <<: *module_params
+      ignore_errors: true
+
+    - name: Get iDRAC job details
+      ansible.builtin.include_tasks: _job_track.yml
+      vars:
+        job_id: "{{ result.job_details.Id }}"
+
+    - name: import license from cifs assert idempotency_mode
+      ansible.builtin.assert:
+        that:
+          - result.changed is false
+          - result.skipped
+          - '"The license is already imported" in result.job_details.Message'
+          - result.job_details.Id == idrac_job_details.Id
+          - result.job_details.Message == idrac_job_details.Message
+
+  always:
+    - ansible.builtin.include_tasks: _cleanup_import.yml
+
+- block:
+    - name: import license from cifs with workgroup normal_mode
+      register: result
+      dellemc.openmanage.idrac_license: &module_params1
+        import: "{{ b_true }}"
+        share_parameters:
+          username: "{{ cifs_share_domain_user }}"
+          password: "{{ cifs_share_domain_password }}"
+          file_name: "{{ idrac_license_file }}"
+          ip_address: "{{ cifs_share_ip }}"
+          share_name: "/{{ cifs_share_name }}"
+          share_type: cifs
+          workgroup: "{{ cifs_share_domain_name }}"
+
+    - name: Get iDRAC job details
+      ansible.builtin.include_tasks: _job_track.yml
+      vars:
+        job_id: "{{ result.job_details.Id }}"
+
+    - name: import license from cifs with workgroup assert normal_mode
+      ansible.builtin.assert:
+        that:
+          - result.changed is true
+          - '"Successfully imported the license" in result.msg'
+          - '"The command was successful" in result.job_details.Message'
+          - result.job_details.Id == idrac_job_details.Id
+          - result.job_details.Message == idrac_job_details.Message
+
+    # Begin the idempotency mode block here
+    - name: import license from cifs with workgroup idempotency_mode
+      register: result
+      dellemc.openmanage.idrac_license:
+        <<: *module_params1
+      ignore_errors: true
+
+    - name: Get iDRAC job details
+      ansible.builtin.include_tasks: _job_track.yml
+      vars:
+        job_id: "{{ result.job_details.Id }}"
+
+    - name: import license from cifs with workgroup assert idempotency_mode
+      ansible.builtin.assert:
+        that:
+          - result.changed is false
+          - result.skipped
+          - '"The license is already imported" in result.job_details.Message'
+          - result.job_details.Id == idrac_job_details.Id
+          - result.job_details.Message == idrac_job_details.Message
+
+  always:
+    - ansible.builtin.include_tasks: _cleanup_import.yml

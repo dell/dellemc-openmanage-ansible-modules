@@ -1,0 +1,65 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user
+     and idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined
+
+- block:
+    # Begin the normal mode block here
+    - name: import license from https share normal_mode
+      register: result
+      dellemc.openmanage.idrac_license: &module_params
+        import: "{{ b_true }}"
+        share_parameters:
+          username: "{{ https_share_username }}"
+          password: "{{ https_share_password }}"
+          file_name: "{{ idrac_license_file }}"
+          ip_address: "{{ https_share_ip }}"
+          share_name: "{{ https_share_dir_path }}"
+          share_type: https
+          ignore_certificate_warning: "on"
+
+    - name: Get iDRAC job details
+      ansible.builtin.include_tasks: _job_track.yml
+      vars:
+        job_id: "{{ result.job_details.Id }}"
+
+    - name: import license from https share assert normal_mode
+      ansible.builtin.assert:
+        that:
+          - result.changed is true
+          - '"Successfully imported the license" in result.msg'
+          - '"The command was successful" in result.job_details.Message'
+          - result.job_details.Id == idrac_job_details.Id
+          - result.job_details.Message == idrac_job_details.Message
+
+    # Begin the idempotency mode block here
+    - name: import license from https share idempotency_mode
+      register: result
+      dellemc.openmanage.idrac_license:
+        <<: *module_params
+      ignore_errors: true
+
+    - name: Get iDRAC job details
+      ansible.builtin.include_tasks: _job_track.yml
+      vars:
+        job_id: "{{ result.job_details.Id }}"
+
+    - name: import license from https share assert idempotency_mode
+      ansible.builtin.assert:
+        that:
+          - result.changed is false
+          - result.skipped
+          - '"The license is already imported" in result.job_details.Message'
+          - result.job_details.Id == idrac_job_details.Id
+          - result.job_details.Message == idrac_job_details.Message
+
+  always:
+    - ansible.builtin.include_tasks: _cleanup_import.yml
