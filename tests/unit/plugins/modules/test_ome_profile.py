@@ -584,7 +584,7 @@ class TestOmeProfile(FakeAnsibleModule):
         f_module = self.get_module_mock(params=params["mparams"])
         ome_connection_mock_for_profile.invoke_request.return_value.json_data = params["res"]
         result = self.module.get_profile(ome_connection_mock_for_profile, f_module)
-        assert result == params["res"]["value"][0]
+        assert result is None
 
     def test_handle_post_assignment_http_error(self, mocker, ome_default_args, ome_connection_mock_for_profile, ome_response_mock):
         ome_default_args.update({"template_name": "t1"})

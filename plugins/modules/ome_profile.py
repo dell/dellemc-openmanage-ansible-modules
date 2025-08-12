@@ -395,7 +395,6 @@ error_info:
 
 import json
 import time
-import re
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -450,12 +449,12 @@ def get_target_details(module, rest_obj):
     return "Target with {0} '{1}' not found.".format(srch, device_identifier)
 
 
-def match_profile(resp, search_key, identifier_value):
+def match_profile(resp, search_key, identifier_value=None):
     """get profile/target/device details based on profile name."""
     if resp.success and resp.json_data.get('value'):
         tlist = resp.json_data.get('value', [])
         for xtype in tlist:
-            if xtype.get(search_key) == identifier_value:
+            if (xtype.get(search_key) == identifier_value) or xtype.get('DeploymentTaskId'):
                 return xtype
 
 
@@ -476,12 +475,9 @@ def get_profile(rest_obj, module):
     # when Profilename in filters
     filter_string = query_filter.get('Filters') if query_filter is not None else None
     if filter_string and 'ProfileName' in filter_string:
-        match = re.search(r"=contains\(ProfileName,'([^']+)'\)", filter_string)
-        if match:
-            profile_name = match.group(1)
-            query_param = {FILTER_QUERY_PARAM: f"contains(ProfileName,'{profile_name}')"}
-            resp = rest_obj.invoke_request('GET', PROFILE_VIEW, query_param=query_param)
-            profile = match_profile(resp=resp, search_key=srch_key, identifier_value=profile_name)
+        query_param = {FILTER_QUERY_PARAM: filter_string[1:]}
+        resp = rest_obj.invoke_request('GET', PROFILE_VIEW, query_param=query_param)
+        profile = match_profile(resp=resp, search_key=srch_key)
 
     # when profile name is provided
     profile_name = module.params.get("name")
