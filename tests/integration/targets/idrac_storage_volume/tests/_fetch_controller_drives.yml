@@ -7,18 +7,42 @@
         headers: 'Accept=application/json'
       register: all_controllers
 
-    - name: Sort and Get the controller
+    - name: Build list of storage controllers
+      vars:
+        controller_list: []
       ansible.builtin.set_fact:
-        storage_controller_dict: |
-          {% set new_controller_list = [] %}
-          {% for dict_item in all_controllers.json.Members %}{% set _ = new_controller_list.append({'Id': dict_item['Id'],'Name': dict_item['Name'],'DrivesCount': dict_item['Drives@odata.count'],'SupportedRAIDTypesCount': (dict_item.StorageControllers[0] | default({'SupportedRAIDTypes@odata.count': 0}))['SupportedRAIDTypes@odata.count'], 'Drives': dict_item['Drives'], 'Volumes': dict_item['Volumes'],
-          'Raids': (dict_item.StorageControllers[0] | default({'SupportedRAIDTypes': []}))['SupportedRAIDTypes']}) %}{% endfor %}
-          {{ new_controller_list | sort(attribute='SupportedRAIDTypesCount,DrivesCount', reverse=True) | list | first }}
+        controller_list: "{{ controller_list + [ {
+          'Id': item['Id'],
+          'Name': item['Name'],
+          'DrivesCount': item['Drives@odata.count'],
+          'SupportedRAIDTypesCount': (
+            item.StorageControllers[0] | default({
+              'SupportedRAIDTypes@odata.count': 0
+            })
+          )['SupportedRAIDTypes@odata.count'],
+          'Drives': item['Drives'],
+          'Volumes': item['Volumes'],
+          'Raids': (
+            item.StorageControllers[0]
+            | default({'SupportedRAIDTypes': []})
+          )['SupportedRAIDTypes']
+        } ] }}"
+      loop: "{{ all_controllers.json.Members }}"
+
+    - name: Pick first sorted controller
+      ansible.builtin.set_fact:
+        storage_controller_dict: >-
+          {{ controller_list
+            | sort(
+                  attribute='SupportedRAIDTypesCount,DrivesCount',
+                  reverse=True)
+            | first }}
 
     - name: Fetching all volumes in specific controller
       ansible.builtin.uri:
         url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
-         {{ storage_controller_dict.Volumes['@odata.id'] }}?$expand=*($levels=1)"
+         {{ storage_controller_dict.Volumes['@odata.id'] }}\
+         ?$expand=*($levels=1)"
         status_code: 200
         headers: 'Accept=application/json'
       register: all_volume
@@ -45,7 +69,8 @@
 
     - name: Get the PDs for the controller
       ansible.builtin.uri:
-        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}{{ pd['@odata.id'] }}"
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+         {{ pd['@odata.id'] }}"
         status_code: 200
         headers: 'Accept=application/json'
       loop: "{{ storage_controller_dict.Drives }}"
@@ -58,7 +83,9 @@
       ansible.builtin.set_fact:
         storage_controller_id: "{{ storage_controller_dict.Id }}"
         storage_controller_name: "{{ storage_controller_dict.Name }}"
-        pd_mapping: "{{ pd_mapping | default({}) | combine({pd['json']['PhysicalLocation']['PartLocation']['LocationOrdinalValue']: pd['json']['Id'] }) }}"
+        pd_mapping: "{{ pd_mapping | default({}) | combine({pd['json']
+          ['PhysicalLocation']['PartLocation']
+          ['LocationOrdinalValue']: pd['json']['Id'] }) }}"
       loop: "{{ pd_results.results }}"
       loop_control:
         loop_var: pd

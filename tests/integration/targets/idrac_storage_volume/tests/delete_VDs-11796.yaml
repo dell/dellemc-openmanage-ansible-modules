@@ -57,7 +57,7 @@
           - "'storage_status' in delete_result"
           - "delete_result.storage_status.Message == 'Successfully imported and applied Server Configuration Profile.'"
           - "delete_result.storage_status.JobState == 'Completed'"
-    
+
     - name: Wait for a Minute
       ansible.builtin.pause:
         seconds: 60
@@ -177,12 +177,12 @@
           - "'storage_status' in delete_result"
           - "delete_result.storage_status.Message == 'Successfully imported and applied Server Configuration Profile.'"
           - "delete_result.storage_status.JobState == 'Completed'"
-    
+
     - name: Wait for a Minute
       ansible.builtin.pause:
         seconds: 60
       when: delete_result.changed
-      
+
 - name: Delete a single VD
   block:
     - name: Re-initialize the volume_id_list

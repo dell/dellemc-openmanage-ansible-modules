@@ -9,26 +9,51 @@
       register: controllers_info
       no_log: true
 
-    - name: Sort and Get the controller
+    - name: Build list of storage controllers
+      vars:
+        controller_list: []
       ansible.builtin.set_fact:
-        controller_dict: |
-          {% set new_controller_list = [] %}
-          {% for dict_item in controllers_info.json.Members %}{% set _ =  new_controller_list.append({'Id': dict_item['Id'], 'Name': dict_item['Name'],'DrivesCount': dict_item['Drives@odata.count'],'SupportedRAIDTypesCount': (dict_item.StorageControllers[0]['SupportedRAIDTypes@odata.count']  | default(0)), 'Drives': dict_item['Drives'], 'Raids': (dict_item.StorageControllers[0] | default({'SupportedRAIDTypes':[]}))['SupportedRAIDTypes']}) %}{% endfor %}
-          {{ new_controller_list | sort(attribute='SupportedRAIDTypesCount,DrivesCount', reverse=True) | list }}
+        controller_list: "{{ controller_list + [ {
+          'Id': item['Id'],
+          'Name': item['Name'],
+          'DrivesCount': item['Drives@odata.count'],
+          'SupportedRAIDTypesCount': (
+            item.StorageControllers[0] | default({
+              'SupportedRAIDTypes@odata.count': 0
+            })
+          )['SupportedRAIDTypes@odata.count'],
+          'Drives': item['Drives'],
+          'Raids': (
+            item.StorageControllers[0]
+            | default({'SupportedRAIDTypes': []})
+          )['SupportedRAIDTypes']
+        } ] }}"
+      loop: "{{ all_controllers.json.Members }}"
+      when: (controllers_info | length) > 0
+      no_log: true
+
+    - name: Pick first sorted controller
+      ansible.builtin.set_fact:
+        controller_dict: >-
+          {{ controller_list
+            | sort(
+                  attribute='SupportedRAIDTypesCount,DrivesCount',
+                  reverse=True)
+          }}
       when: (controllers_info | length) > 0
       no_log: true
 
     - name: Select the top controllers
       ansible.builtin.set_fact:
-        controller_dict_top: "{{ controller_dict[:2]  | selectattr('DrivesCount', '>', 3) | list  }}"
+        controller_dict_top: "{{ controller_dict[:2]
+          | selectattr('DrivesCount', '>', 3) | list  }}"
       when: (controller_dict | length) > 0 and controller_id_tc is not defined
-      no_log: true
 
     - name: Select the controller based on controller ID
       ansible.builtin.set_fact:
-        controller_dict_top: "{{ controller_dict | selectattr('Id', 'equalto', controller_id_tc) | list  }}"
+        controller_dict_top: "{{ controller_dict
+         | selectattr('Id', 'equalto', controller_id_tc) | list  }}"
       when: (controller_dict | length) > 0 and controller_id_tc is defined
-      no_log: true
 
     - name: Create dictionary min Drives
       ansible.builtin.set_fact:
@@ -69,7 +94,10 @@
 
     - name: Get first element based on condition
       ansible.builtin.set_fact:
-        selected_element: "{{ selected_element | combine({controller_info.Id: raid_data | dict2items | selectattr('value.minDrives', '<=', controller_info.DrivesCount) | first}) }}"
+        selected_element: "{{ selected_element
+         | combine({controller_info.Id: raid_data | dict2items
+         | selectattr('value.minDrives', '<=', controller_info.DrivesCount)
+         | first}) }}"
       loop: "{{ controller_dict_top }}"
       loop_control:
         loop_var: controller_info
@@ -81,9 +109,12 @@
         storage_controller_drives: "{{ controller_info.Drives }}"
         storage_controller_name: "{{ controller_info.Name }}"
         volume_name_prefix: "test_vol_"
-        raid_type: "{{ selected_element[controller_info.Id]['key'] if selected_element is defined else '' }}"
-        span_length: "{{ raid_data[selected_element[controller_info.Id]['key']]['spanLength']  }}"
-        span_depth: "{{ raid_data[selected_element[controller_info.Id]['key']]['spanDepth'] }}"
+        raid_type: "{{ selected_element[controller_info.Id]['key']
+         if selected_element is defined else '' }}"
+        span_length: "{{ raid_data[selected_element[controller_info.Id]
+         ['key']]['spanLength']  }}"
+        span_depth: "{{ raid_data[selected_element[controller_info.Id]
+         ['key']]['spanDepth'] }}"
       loop: "{{ controller_dict_top }}"
       loop_control:
         loop_var: controller_info
