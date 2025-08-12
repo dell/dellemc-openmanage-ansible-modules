@@ -19,7 +19,7 @@
       ansible.builtin.set_fact:
         location: "{{ (pd_mapping.keys() | list )[0] }}"
 
-    - name: 
+    - name:
       ansible.builtin.include_tasks: _create_vd_with_invalid_physical_disks.yml
       loop:
         - { raid_type: "1", depth: 1, length: 2 }

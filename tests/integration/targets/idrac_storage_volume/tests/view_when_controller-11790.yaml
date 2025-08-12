@@ -25,11 +25,16 @@
 
     - name: Only keep the controller and volumes in API Output
       ansible.builtin.set_fact:
-        api_output: |
+        api_output: "{{ tmp_dict | from_yaml }}"
+      vars:
+        tmp_dict: |
           {% set new_controller_list = {} %}
-          {% for key,value in api_final_output.items() %}{% if key == storage_controller_id %}{% set _ = new_controller_list.update({key: value}) %}{% endif %}{% endfor %}
+          {% for key, value in api_final_output.items() %}
+            {% if key == storage_controller_id %}
+              {% set _ = new_controller_list.update({key: value}) %}
+            {% endif %}
+          {% endfor %}
           {{ new_controller_list }}
-      no_log: true
 
     - name: Check mode - View Operation when only controller information is passed
       dellemc.openmanage.idrac_storage_volume:

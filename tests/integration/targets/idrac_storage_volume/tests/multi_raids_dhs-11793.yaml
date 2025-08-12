@@ -27,8 +27,12 @@
 
     - name: Prerequisite - fail if not enough disk is found to create a volume
       ansible.builtin.fail:
-        msg: "Physical disks are not sufficient to proceed with test case execution.
-         Needs a minimum {{ (raid_data[first_raid]['min_pds'] + raid_data[second_raid]['min_pds'] + first_dhs + second_dhs) }}, but found {{ pd_mapping | length }}"
+        msg: >-
+          Physical disks are not sufficient to proceed with test case execution.
+          Needs a minimum {{
+           raid_data[first_raid]['min_pds']
+           + raid_data[second_raid]['min_pds'] + first_dhs + second_dhs
+          }}, but found {{ pd_mapping | length }}"
       when: (pd_mapping | length) < (raid_data[first_raid]['min_pds'] + raid_data[second_raid]['min_pds'] + first_dhs + second_dhs)
 
     - name: Reset raid
@@ -37,7 +41,14 @@
     - name: Set the PDs
       ansible.builtin.set_fact:
         first_pds: "{{ (pd_mapping.keys() | list | sort)[:raid_data[first_raid]['min_pds']] }}"
-        second_pds: "{{ (pd_mapping.keys() | list | sort)[raid_data[first_raid]['min_pds']:raid_data[first_raid]['min_pds'] + raid_data[second_raid]['min_pds']] }}"
+        second_pds: >-
+          {{ 
+            (pd_mapping.keys() | list | sort
+            )[
+              raid_data[first_raid]['min_pds']
+              :raid_data[first_raid]['min_pds'] 
+              + raid_data[second_raid]['min_pds']]
+          }}
 
     - name: Check mode - Create multi raids
       dellemc.openmanage.idrac_storage_volume: &multi_raids_dhs
@@ -90,7 +101,7 @@
     - name: Get the volume
       ansible.builtin.uri:
         url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
-        /redfish/v1/Systems/System.Embedded.1/Storage/{{ storage_controller_id }}/Volumes?$expand=*($levels=1)"
+         /redfish/v1/Systems/System.Embedded.1/Storage/{{ storage_controller_id }}/Volumes?$expand=*($levels=1)"
         method: GET
         status_code: 200
       register: volumes
@@ -122,13 +133,20 @@
 
     - name: Verify the multi PDs and DHS
       ansible.builtin.set_fact:
-        first_vol_pds: |
+        first_vol_pds: "{{ tmp_first | from_yaml }}"
+        second_vol_pds: "{{ tmp_second | from_yaml }}"
+      vars:
+        tmp_first: |
           {% set new_pd_list = [] %}
-          {% for dict_item in volumes_dict['test_volume_r'+first_raid].Links.Drives %}{% set _ = new_pd_list.append(dict_item['@odata.id'] | ansible.builtin.split('/') | last) %}{% endfor %}
+          {% for dict_item in volumes_dict['test_volume_r' + first_raid].Links.Drives %}
+            {% set _ = new_pd_list.append(dict_item['@odata.id'].split('/')[-1]) %}
+          {% endfor %}
           {{ new_pd_list }}
-        second_vol_pds: |
+        tmp_second: |
           {% set new_pd_list = [] %}
-          {% for dict_item in volumes_dict['test_volume_r'+second_raid].Links.Drives %}{% set _ = new_pd_list.append(dict_item['@odata.id'] | ansible.builtin.split('/') | last) %}{% endfor %}
+          {% for dict_item in volumes_dict['test_volume_r' + second_raid].Links.Drives %}
+            {% set _ = new_pd_list.append(dict_item['@odata.id'].split('/')[-1]) %}
+          {% endfor %}
           {{ new_pd_list }}
 
     - name: Verify the DHS count
@@ -140,11 +158,20 @@
     - name: Get the DHS details
       ansible.builtin.uri:
         url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
-        /redfish/v1/Systems/System.Embedded.1/Storage/{{ storage_controller_id }}/Drives/{{ pd_item }}"
+         /redfish/v1/Systems/System.Embedded.1/Storage/{{ storage_controller_id }}/Drives/{{ pd_item }}"
         method: GET
         status_code: 200
       register: dhs_disks
-      loop: "{{ (first_vol_pds | difference(first_pds | unique | map('extract', pd_mapping)) | list) + (second_vol_pds | difference(second_pds | unique | map('extract', pd_mapping)) | list) }}"
+      loop: >-
+        {{
+          (
+            first_vol_pds | difference( first_pds | unique
+            | map('extract', pd_mapping)) | list
+          ) + (
+            second_vol_pds | difference( second_pds | unique
+            | map('extract', pd_mapping)) | list
+          )
+        }}
       loop_control:
         loop_var: pd_item
 
@@ -153,7 +180,12 @@
         that:
           - pd.json.HotspareType == "Dedicated"
           - pd.json.Links.Volumes | length == 1
-          - pd.json.Links.Volumes[0]['@odata.id'] in [volumes_dict['test_volume_r'+first_raid]['@odata.id'], volumes_dict['test_volume_r'+second_raid]['@odata.id']]
+          - >
+            pd.json.Links.Volumes[0]['@odata.id']
+            in [
+              volumes_dict['test_volume_r'+first_raid]['@odata.id'],
+              volumes_dict['test_volume_r'+second_raid]['@odata.id']
+            ]
           # - VD assertion
       loop: "{{ dhs_disks.results }}"
       loop_control:

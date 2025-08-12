@@ -133,7 +133,7 @@
     tmp_dict: |
       {% set new_enclosure_list = [] %}
       {% for dict_item in all_enclosure_data.results %}
-        {% set drives = dict_item['json']['Links']['Drives'] 
+        {% set drives = dict_item['json']['Links']['Drives']
                         | ansible.builtin.rekey_on_member('@odata.id') %}
         {% set _ = new_enclosure_list.append({
           'key': dict_item['item'],

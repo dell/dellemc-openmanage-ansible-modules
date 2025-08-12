@@ -32,7 +32,14 @@
     - name: Set the PDs
       ansible.builtin.set_fact:
         first_pds: "{{ (pd_mapping.keys() | list | sort)[:raid_data[first_raid]['min_pds']] }}"
-        second_pds: "{{ (pd_mapping.keys() | list | sort)[raid_data[first_raid]['min_pds']:raid_data[first_raid]['min_pds'] + raid_data[second_raid]['min_pds']] }}"
+        second_pds: >-
+          {{ 
+            (pd_mapping.keys() | list | sort
+            )[
+              raid_data[first_raid]['min_pds']
+              :raid_data[first_raid]['min_pds'] 
+              + raid_data[second_raid]['min_pds']]
+          }}
 
     - name: Check mode - Create multi raids
       dellemc.openmanage.idrac_storage_volume: &raid_init
