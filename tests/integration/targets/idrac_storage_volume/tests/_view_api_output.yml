@@ -43,7 +43,7 @@
         else { item.Id: {} }
       }}
     vds: >-
-      {{ item.Volumes[odata] }} 
+      {{ item.Volumes[odata] }}
     controller_data:
       Id: "{{ item.Id }}"
       Drives: "{{ drives }}"
@@ -84,10 +84,18 @@
 
 - name: get Vds with Drives
   set_fact:
-    vd_list: |
-      {% set new_vd_list = [] %}
-      {% for dict_item in all_vd_data.results %}{% for vol in dict_item.json.Members %}{% set _ = new_vd_list.append( vol[odata]  if vol | length > 0) %}{% endfor %}{% endfor %}
-      {{ new_vd_list }}
+    vd_list: "{{ new_vd_list | from_yaml }}"
+  vars:
+    new_vd_list: |
+      {% set tmp = [] %}
+      {% for dict_item in all_vd_data.results %}
+        {% for vol in dict_item.json.Members %}
+          {% if vol and '@odata.id' in vol %}
+            {% set _ = tmp.append(vol['@odata.id']) %}
+          {% endif %}
+        {% endfor %}
+      {% endfor %}
+      {{ tmp }}
 
 - name: Get all the VDS with Drives Info
   ansible.builtin.uri:
@@ -100,30 +108,79 @@
 
 - name: get Vds with Drives
   set_fact:
-    new_vd_drives_list: |
-      {% set new_vd_drives_list = {} %}
-      {% for dict_item in all_vd_drives_data.results %}{% set controller_id = ((dict_item['item'] | ansible.builtin.split('/') | list | last) | ansible.builtin.split(':') | list | last) %}{% set _ = new_vd_drives_list.update({controller_id : {(dict_item['item'] | ansible.builtin.split('/') | list | last) : {'PhysicalDisk':((dict_item['json']['Links']['Drives'] | ansible.builtin.rekey_on_member(odata)).keys()  | list ) |  map('split', '/') | map('last')  }}  }) %}{% endfor %}
-      {{ new_vd_drives_list }}
+    new_vd_drives_list: "{{ tmp_dict | from_yaml }}"
+  vars:
+    tmp_dict: |
+      {% set tmp = {} %}
+      {% for dict_item in all_vd_drives_data.results %}
+        {% set last_part = dict_item['item'].split('/')[-1] %}
+        {% set controller_id = last_part.split(':')[-1] %}
+        {% set drives = dict_item['json']['Links']['Drives']
+                        | ansible.builtin.rekey_on_member('@odata.id') %}
+        {% set disk_ids = drives.keys()
+                          | list
+                          | map('split', '/')
+                          | map('last')
+                          | list %}
+        {% set _ = tmp.update({ controller_id: { last_part: { 'PhysicalDisk': disk_ids } } }) %}
+      {% endfor %}
+      {{ tmp }}
 
 - name: get enclosure with Drives
   set_fact:
-    enclosure_dict: |
+    enclosure_dict: "{{ tmp_dict | from_yaml }}"
+  vars:
+    tmp_dict: |
       {% set new_enclosure_list = [] %}
-      {% for dict_item in all_enclosure_data.results %}{% set _ = new_enclosure_list.append({'key': dict_item['item'], 'value': (dict_item['json']['Links']['Drives'] | ansible.builtin.rekey_on_member(odata)).keys() | list  }) %}{% endfor %}
+      {% for dict_item in all_enclosure_data.results %}
+        {% set drives = dict_item['json']['Links']['Drives'] 
+                        | ansible.builtin.rekey_on_member('@odata.id') %}
+        {% set _ = new_enclosure_list.append({
+          'key': dict_item['item'],
+          'value': drives.keys() | list
+        }) %}
+      {% endfor %}
       {{ new_enclosure_list | items2dict }}
 
 - name: Stitch the enclosure with Drives
   set_fact:
-    storage_controller_dict: |
+    storage_controller_dict: "{{ tmp_dict | from_yaml }}"
+  vars:
+    tmp_dict: |
       {% set new_controller_dict = {} %}
-      {% for dict_item in storage_controller_dict.values() %}{% set enc_dict = {} %}{% if dict_item.Enclosures | length > 0 %}{% for enc in dict_item.Enclosures %}{% set enc_id = enc | ansible.builtin.split('/') | last %}{% set _ = enc_dict.update({enc_id: {'EnclosureSensor': {enc_id:{}},'PhysicalDisk':(enclosure_dict[enc] | map('split', '/') | map('last') | list)}}) %}{% endfor %}{% set _ = dict_item.update({'Enclosure': enc_dict}) %}{% else %}{% set _ = dict_item.update({'PhysicalDisk': (dict_item.Drives | map('split', '/') | map('last')) if dict_item.Drives | length > 0 else omit }) %}{% endif %}{% endfor %}
+      {% for dict_item in storage_controller_dict.values() %}
+        {% set enc_dict = {} %}
+        {% if dict_item.Enclosures | length > 0 %}
+          {% for enc in dict_item.Enclosures %}
+            {% set enc_id = enc.split('/')[-1] %}
+            {% set _ = enc_dict.update({
+              enc_id: {
+                'EnclosureSensor': {enc_id: {}},
+                'PhysicalDisk': enclosure_dict[enc] | map('split', '/') | map('last') | list
+              }
+            }) %}
+          {% endfor %}
+          {% set _ = dict_item.update({'Enclosure': enc_dict}) %}
+        {% else %}
+          {% if dict_item.Drives | length > 0 %}
+            {% set _ = dict_item.update({
+              'PhysicalDisk': dict_item.Drives | map('split', '/') | map('last') | list
+            }) %}
+          {% endif %}
+        {% endif %}
+      {% endfor %}
       {{ storage_controller_dict | ansible.builtin.rekey_on_member('Id') }}
 
 - name: Stitch the VDs with Drives
   set_fact:
-    storage_controller_dict: |
-      {% set new_controller_dict = {} %}
-      {% for dict_item in storage_controller_dict.values() %}{% set _ = dict_item.update({'VirtualDisk': (new_vd_drives_list[dict_item.Id] | default(omit))}) %}{% endfor %}
+    storage_controller_dict: "{{ tmp_dict | from_yaml }}"
+  vars:
+    tmp_dict: |
+      {% for dict_item in storage_controller_dict.values() %}
+        {% set _ = dict_item.update({
+          'VirtualDisk': new_vd_drives_list[dict_item.Id] | default(omit)
+        }) %}
+      {% endfor %}
       {{ storage_controller_dict | ansible.builtin.rekey_on_member('Id') }}
 
 - name: Remove specific keys from controller dict
