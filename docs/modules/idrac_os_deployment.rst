@@ -52,20 +52,28 @@ Parameters
     iDRAC IP Address.
 
 
-  idrac_user (True, str, None)
+  idrac_user (False, str, None)
     iDRAC username.
 
-    If the username is not provided, then the environment variable \ :envvar:`IDRAC\_USERNAME`\  is used.
+    If the username is not provided, then the environment variable :envvar:`IDRAC\_USERNAME` is used.
 
     Example: export IDRAC\_USERNAME=username
 
 
-  idrac_password (True, str, None)
+  idrac_password (False, str, None)
     iDRAC user password.
 
-    If the password is not provided, then the environment variable \ :envvar:`IDRAC\_PASSWORD`\  is used.
+    If the password is not provided, then the environment variable :envvar:`IDRAC\_PASSWORD` is used.
 
     Example: export IDRAC\_PASSWORD=password
+
+
+  x_auth_token (False, str, None)
+    Authentication token.
+
+    If the x\_auth\_token is not provided, then the environment variable :envvar:`IDRAC\_X\_AUTH\_TOKEN` is used.
+
+    Example: export IDRAC\_X\_AUTH\_TOKEN=x\_auth\_token
 
 
   idrac_port (optional, int, 443)
@@ -73,11 +81,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If \ :literal:`false`\ , the SSL certificates will not be validated.
+    If :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
+    Configure :literal:`false` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
+    Prior to collection version :literal:`5.0.0`\ , the :emphasis:`validate\_certs` is :literal:`false` by default.
 
 
   ca_path (optional, path, None)
@@ -96,8 +104,8 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell iDRAC.
-   - This module supports both IPv4 and IPv6 address for \ :emphasis:`idrac\_ip`\ .
-   - This module does not support \ :literal:`check\_mode`\ .
+   - This module supports both IPv4 and IPv6 address for :emphasis:`idrac\_ip`.
+   - This module does not support :literal:`check\_mode`.
 
 
 
@@ -147,4 +155,5 @@ Authors
 
 - Felix Stephen (@felixs88)
 - Jagadeesh N V (@jagadeeshnv)
+- Abhishek Sinha (@ABHISHEK-SINHA10)
 

@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.1.0
+# Version 9.12.4
 # Copyright (C) 2018-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -19,7 +19,7 @@ short_description: Boot to a network ISO image
 version_added: "2.1.0"
 description: Boot to a network ISO image.
 extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+  - dellemc.openmanage.idrac_x_auth_options
 options:
     share_name:
         required: true
@@ -48,6 +48,7 @@ requirements:
 author:
     - "Felix Stephen (@felixs88)"
     - "Jagadeesh N V (@jagadeeshnv)"
+    - "Abhishek Sinha (@ABHISHEK-SINHA10)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
@@ -93,52 +94,87 @@ boot_status:
 '''
 
 
-import os
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
-from ansible.module_utils.basic import AnsibleModule
-try:
-    from omsdk.sdkfile import FileOnShare
-    from omsdk.sdkcreds import UserCredentials
-except ImportError:
-    pass
+import json
+import time
+from ansible.module_utils.six.moves.urllib.parse import urlparse
+from urllib.error import HTTPError, URLError
+from datetime import datetime, timedelta
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import idrac_auth_params, \
+    iDRACRedfishAPI, IdracAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key, wait_for_idrac_job_completion
 
 
-def minutes_to_cim_format(module, dur_minutes):
-    try:
-        if dur_minutes < 0:
-            module.fail_json(msg="Invalid value for ExposeDuration.")
-        MIN_PER_HOUR = 60
-        MIN_PER_DAY = 1440
-        days = dur_minutes // MIN_PER_DAY
-        minutes = dur_minutes % MIN_PER_DAY
-        hours = minutes // MIN_PER_HOUR
-        minutes = minutes % MIN_PER_HOUR
-        if days > 0:
-            hours = 23
-        cim_format = "{:08d}{:02d}{:02d}00.000000:000"
-        cim_time = cim_format.format(days, hours, minutes)
-    except Exception:
-        module.fail_json(msg="Invalid value for ExposeDuration.")
-    return cim_time
+MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
+JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs"
+SINGLE_JOB_URI = JOB_URI + "/{jobId}"
+BootTONetworkISOURI = "/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellOSDeploymentService/Actions/DellOSDeploymentService.BootToNetworkISO"
+ODATA_ID = "(.*?)@odata"
+JOB_NOT_FOUND = "No matching job found following the BootToNetworkISO operation."
+INVALID_EXPOSEDURATION = "Invalid value for ExposeDuration."
 
 
-def run_boot_to_network_iso(idrac, module):
-    """Boot to a network ISO image"""
-    try:
-        share_name = module.params['share_name']
-        if share_name is None:
-            share_name = ''
-        share_obj = FileOnShare(remote="{0}{1}{2}".format(share_name, os.sep, module.params['iso_image']),
-                                isFolder=False, creds=UserCredentials(module.params['share_user'],
-                                                                      module.params['share_password'])
-                                )
-        cim_exp_duration = minutes_to_cim_format(module, module.params['expose_duration'])
-        boot_status = idrac.config_mgr.boot_to_network_iso(share_obj, "", expose_duration=cim_exp_duration)
-        if not boot_status.get("Status", False) == "Success":
-            module.fail_json(msg=boot_status)
-    except Exception as e:
-        module.fail_json(msg=str(e))
-    return boot_status
+def minutes_to_iso_format(module, idrac_time_str, dur_minutes):
+    if dur_minutes < 0:
+        module.exit_json(msg=INVALID_EXPOSEDURATION, failed=True)
+    idrac_time = datetime.fromisoformat(idrac_time_str)
+    new_time = idrac_time + timedelta(minutes=int(dur_minutes))
+    formatted_time = new_time.isoformat()
+    return formatted_time
+
+
+def get_current_time_from_iDRAC(idrac):
+    """Get current time from iDRAC"""
+    resp = idrac.invoke_request(MANAGER_URI, "GET")
+    date_time = resp.json_data.get("DateTime")
+    return date_time
+
+
+def construct_payload(module, idrac_time_str):
+    """Construct payload"""
+    shr_name = module.params.get('share_name')
+    ip_addr, share_name, share_type = '', '', ''
+    if shr_name.startswith('\\\\'):
+        cifs = shr_name.split('\\')
+        ip_addr = cifs[2]
+        share_name = '\\'.join(cifs[3:])
+        share_type = 'CIFS'
+    else:
+        nfs = urlparse("nfs://" + shr_name)
+        ip_addr = nfs.netloc.strip(':')
+        share_name = nfs.path.strip('/')
+        share_type = 'NFS'
+    payload = {
+        "ExposeDuration": minutes_to_iso_format(module, idrac_time_str,
+                                                module.params.get('expose_duration')),
+        "IPAddress": ip_addr,
+        "ShareName": share_name,
+        "ShareType": share_type,
+        "ImageName": module.params.get('iso_image'),
+        "Password": module.params.get('share_password'),
+        "UserName": module.params.get('share_user'),
+    }
+    return payload
+
+
+def getting_top_osd_job_and_tracking(idrac, module, idrac_time_str):
+    job_id = None
+    _out = {'msg': JOB_NOT_FOUND, 'failed': True}
+    queryParam = {"$expand": "*($levels=1)",
+                  "$filter": f"Name eq 'OSD: BootTONetworkISO' and StartTime gt '{idrac_time_str}'",
+                  "$top": 1}
+    time.sleep(10)
+    resp = idrac.invoke_request(JOB_URI, "GET",
+                                query_param=queryParam)
+    if member := resp.json_data.get("Members"):
+        job_id = member[0].get("Id")
+    if job_id:
+        job_uri = SINGLE_JOB_URI.format(jobId=job_id)
+        job_details, msg = wait_for_idrac_job_completion(idrac, job_uri, wait_timeout=1800)
+        if job_details:
+            return remove_key(job_details.json_data, regex_pattern=ODATA_ID)
+        _out = {'msg': msg}
+    module.exit_json(**_out)
 
 
 def main():
@@ -150,16 +186,27 @@ def main():
         "expose_duration": {"required": False, "type": 'int', "default": 1080}
     }
     specs.update(idrac_auth_params)
-    module = AnsibleModule(
+    module = IdracAnsibleModule(
         argument_spec=specs,
         supports_check_mode=False)
 
     try:
-        with iDRACConnection(module.params) as idrac:
-            boot_status = run_boot_to_network_iso(idrac, module)
-            module.exit_json(changed=True, boot_status=boot_status)
-    except (ImportError, ValueError, RuntimeError) as e:
-        module.fail_json(msg=str(e))
+        with iDRACRedfishAPI(module.params) as idrac:
+            idrac_time_str = get_current_time_from_iDRAC(idrac)
+            payload = construct_payload(module, idrac_time_str)
+            idrac.invoke_request(BootTONetworkISOURI, "POST", data=payload)
+            resp = getting_top_osd_job_and_tracking(idrac, module, idrac_time_str)
+            boot_status = {'Message': resp.get("Message"), 'Status': resp.get("JobState")}
+            if resp.get("JobState") == "Failed":
+                module.exit_json(msg=boot_status, failed=True)
+            module.exit_json(boot_status=boot_status, changed=True)
+    except HTTPError as err:
+        filter_err = remove_key(json.load(err), regex_pattern=ODATA_ID)
+        module.exit_json(msg=str(err), error_info=filter_err, failed=True)
+    except URLError as err:
+        module.exit_json(msg=str(err), unreachable=True)
+    except (SSLValidationError, ConnectionError, TypeError, ValueError, OSError) as err:
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
