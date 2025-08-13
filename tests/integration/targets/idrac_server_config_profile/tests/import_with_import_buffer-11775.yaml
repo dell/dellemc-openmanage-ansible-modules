@@ -198,7 +198,7 @@
           - fetched_data.json.Attributes['SNMP.1.AgentCommunity'] == 'public123'
           - fetched_data.json.Attributes['SNMP.1.DiscoveryPort'] == 163
 
-  ############################################################
+    ############################################################
 
     - pause: seconds=60
 

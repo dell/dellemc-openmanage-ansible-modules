@@ -173,7 +173,6 @@ class TestServerConfigProfile(FakeAnsibleModule):
         result = self._run_module(idrac_default_args, check_mode=params.get('check_mode', False))
         assert params['message'] in result['msg']
 
-
     @pytest.mark.parametrize("params", [
         {"message": CHANGES_FOUND,
          "json_data": {"Id": "JID_932024672685", "Message": SUCCESS_MSG.format("import"), "@Message.ExtendedInfo": [{"MessageId": "SYS081"}],
@@ -194,9 +193,9 @@ class TestServerConfigProfile(FakeAnsibleModule):
         {"message": SUCCESS_MSG.format("import"),
          "json_data": {"Id": "JID_932024672685", "Message": NO_CHANGES_FOUND, "@Message.ExtendedInfo": [{"MessageId": "SYS043"}],
                        "PercentComplete": 100, "file": "https://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
-         "mparams": {"command": "import", 
+         "mparams": {"command": "import",
                      "job_wait": True, "scp_components": "IDRAC",
-                     "import_buffer":"SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'> \
+                     "import_buffer": "SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'> \
                      <Value>Disabled</Value></Attribute></Component><Component FQDD='iDRAC.Embedded.1'>"}},
     ])
     @mock.patch(MODULE_PATH + "idrac_server_config_profile.exists", return_value=True)
@@ -216,21 +215,22 @@ class TestServerConfigProfile(FakeAnsibleModule):
         result = self._run_module(idrac_default_args, check_mode=params.get('check_mode', False))
         assert params['message'] in result['msg']
 
-
     @pytest.mark.parametrize("params", [
         {"message": SUCCESS_MSG.format("import"),
-         "json_data": {"Id": "JID_932024672685", "Message": "No changes were applied", "@Message.ExtendedInfo": [{"Message": "No changes were applied", "MessageId":"SYS069"}],
+         "json_data": {"Id": "JID_932024672685", "Message": "No changes were applied",
+                       "@Message.ExtendedInfo": [{"Message": "No changes were applied", "MessageId": "SYS069"}],
                        "PercentComplete": 100, "file": "https://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
-         "mparams": {"command": "import", 
+         "mparams": {"command": "import",
                      "job_wait": True, "scp_components": "IDRAC",
-                     "import_buffer":"SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'> \
+                     "import_buffer": "SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'> \
                      <Value>Disabled</Value></Attribute></Component><Component FQDD='iDRAC.Embedded.1'>"}},
         {"message": SUCCESS_MSG.format("import"),
-         "json_data": {"Id": "JID_932024672685", "Message": "No changes were applied", "@Message.ExtendedInfo": [{"Message": "No changes were applied", "MessageId":"SYS043"}],
+         "json_data": {"Id": "JID_932024672685", "Message": "No changes were applied",
+                       "@Message.ExtendedInfo": [{"Message": "No changes were applied", "MessageId": "SYS043"}],
                        "PercentComplete": 100, "file": "https://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
-         "mparams": {"command": "import", 
+         "mparams": {"command": "import",
                      "job_wait": True, "scp_components": "IDRAC",
-                     "import_buffer":"SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'> \
+                     "import_buffer": "SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'> \
                      <Value>Disabled</Value></Attribute></Component><Component FQDD='iDRAC.Embedded.1'>"}},
     ])
     @mock.patch(MODULE_PATH + "idrac_server_config_profile.exists", return_value=True)
@@ -240,7 +240,7 @@ class TestServerConfigProfile(FakeAnsibleModule):
         mocker.patch(OPEN_KEY, mocker.mock_open())
         mocker.patch(MODULE_PATH_COMP + "_get_server_version", return_value=17)
         mocker.patch(MODULE_PATH + 'idrac_server_config_profile.import_scp_redfish',
-                         return_value=params['json_data'])
+                     return_value=params['json_data'])
         result = self._run_module(idrac_default_args, check_mode=params.get('check_mode', False))
         assert params['message'] in result['msg']
 
@@ -374,7 +374,7 @@ class TestServerConfigProfile(FakeAnsibleModule):
         res = self.module.idrac_custom_option(idrac_scp_redfish_mock)
         assert res is None
 
-    @pytest.mark.parametrize("firmware_version, expected_result, generation",  [
+    @pytest.mark.parametrize("firmware_version, expected_result, generation", [
         ("7.00.00", True, 16),
         ("6.99.99", False, 16),
         ("5.99.99", False, 16),

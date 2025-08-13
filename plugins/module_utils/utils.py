@@ -111,19 +111,6 @@ def config_ipv6(hostname):
     return hostname
 
 
-def process_scp_target(target: str|list[str]) -> list[str]:
-    """
-    Process the SCP target.
-    In the older SCP APIs, the target was a comma-separated string.
-    In the newer SCP APIs, which were made mandatory since 17G,
-    the target is a list of strings.
-    This function takes the target in any format and converts them to the
-    required format.
-    """
-    if isinstance(target, str):
-        target = target.split(",")
-    return target
-
 def compress_ipv6(ipv6_long):
     groups = ipv6_long.split(':')
     temp = []
