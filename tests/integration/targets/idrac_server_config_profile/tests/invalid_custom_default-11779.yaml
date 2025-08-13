@@ -40,25 +40,13 @@
       ignore_errors: true
       when: custom_default_supported
 
-    - name: Assertion of scp custom_default with file extension txt for 16G
+    - name: Assertion of scp custom_default with file extension txt
       ansible.builtin.assert:
         that:
           - txt.failed
           - txt.msg == "An invalid XML content is provided. Provide custom
             default content in a valid XML format."
-      when: custom_default_supported and (hw_model | int < 17)
-
-    - name: Assertion of scp custom_default with file extension txt for
-        iDRAC version greater than 16G
-      ansible.builtin.assert:
-        that:
-          - txt.failed
-          - "'Unable to upload the server configuration profile
-            data because the file type used for the data file is
-            not in the JSON or XML format.' in
-            (txt.error_info.error['@Message.ExtendedInfo'] |
-            map(attribute='Message') | list)"
-      when: custom_default_supported and (hw_model | int >= 17)
+      when: custom_default_supported
 
     - name: Import scp with invalid xml buffer
       dellemc.openmanage.idrac_server_config_profile:
@@ -77,19 +65,7 @@
           - invalid_xml.failed
           - invalid_xml.msg == "An invalid XML content is provided. Provide
             custom default content in a valid XML format."
-      when: custom_default_supported and (hw_model | int < 17)
-
-    - name: Assertion of scp custom_default with file extension txt for
-        iDRAC version greater than 16G
-      ansible.builtin.assert:
-        that:
-          - txt.failed
-          - "'Unable to upload the server configuration profile
-            data because the file type used for the data file is
-            not in the JSON or XML format.' in
-            (txt.error_info.error['@Message.ExtendedInfo'] |
-            map(attribute='Message') | list)"
-      when: custom_default_supported and (hw_model | int >= 17)
+      when: custom_default_supported
 
     - name: Import scp custom default when
         iDRAC does not support custom defaults

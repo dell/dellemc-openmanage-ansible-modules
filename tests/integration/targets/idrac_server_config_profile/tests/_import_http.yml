@@ -221,13 +221,14 @@
       register: delete_user
       when: hw_model | int < 17
 
-    - name: "{{ scp_label }} Delete user role on 17G and above"
+    - name: "{{ scp_label }} Delete user role on 17G and above if left"
       ansible.builtin.uri:
         url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}\
           /redfish/v1/AccountService/Roles/4"
         method: DELETE
         status_code: 204
       when: hw_model | int >= 17
+      ignore_errors: true
 
     - name: "{{ scp_label }} Clean up the share"
       ansible.builtin.uri:
