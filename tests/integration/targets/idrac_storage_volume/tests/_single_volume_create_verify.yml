@@ -41,7 +41,9 @@
     that:
       - single_volume.Name == volume_dict.Name
       - single_volume.RAIDType == volume_dict.RAIDType
-      - single_volume.Oem.Dell.DellVirtualDisk.StripeSize == volume_dict.StripeSize
+      - >
+        single_volume.Oem.Dell.DellVirtualDisk.StripeSize ==
+        volume_dict.StripeSize
       - >
         single_volume.Oem.Dell.DellVirtualDisk.DiskCachePolicy ==
         volume_dict.DiskCachePolicy

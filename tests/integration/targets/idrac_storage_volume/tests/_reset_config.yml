@@ -17,7 +17,8 @@
 - include_role: name=prepare_lifecycle_controller_job
   vars:
     job_id: "{{reset_config_result.status.Id}}"
-  when: reset_config_result.msg == "Successfully performed the 'ResetConfig' operation."
+  when: reset_config_result.msg == "Successfully performed
+   the 'ResetConfig' operation."
 
 - block:
     - name: Ensure all PDs are converted to RAID and Ready
@@ -36,5 +37,6 @@
   rescue:
     - name: Fail if PDs are not in RAID state
       ansible.builtin.fail:
-        msg: "One or more PDs are already in RAID state. Please check the job status and try again."
+        msg: "One or more PDs are already in RAID state. Please check the
+         job status and try again."
       when: not already_raids

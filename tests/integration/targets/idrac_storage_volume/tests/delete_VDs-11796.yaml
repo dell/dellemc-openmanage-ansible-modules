@@ -1,17 +1,21 @@
 # Test code for the Dell OpenManage modules
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
-    msg: "Please define the following variables: idrac_ip, idrac_user and idrac_password."
-  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+    msg: "Please define the following variables: idrac_ip, idrac_user
+     and idrac_password."
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
 
 - name: Delete VDs belonging to controller having DHS
   block:
     - name: Fetch the best controller and  delete existing VDs
-      ansible.builtin.include_tasks: "{{ role_path }}/tests/_fetch_controller_drives.yml"
+      ansible.builtin.include_tasks: >-
+        "{{ role_path }}/tests/_fetch_controller_drives.yml"
 
     - name: Pre-requisite -> Create VDs
       ansible.builtin.include_tasks: _create_dhs_VD.yml
@@ -23,7 +27,8 @@
 
     - name: Create the dictionary
       ansible.builtin.set_fact:
-        volume_name_list: "{{ volume_name_list | default([])  + [{'name': volume_id }] }}"
+        volume_name_list: >-
+          {{ volume_name_list | default([])  + [{'name': volume_id }] }}
       loop: "{{ volume_id_list }}"
       loop_control:
         loop_var: volume_id
@@ -53,9 +58,11 @@
       ansible.builtin.assert:
         that:
           - delete_result.changed
-          - "delete_result.msg == 'Successfully completed the delete storage volume operation.'"
+          - delete_result.msg == (
+            'Successfully completed the delete storage volume operation.')
           - "'storage_status' in delete_result"
-          - "delete_result.storage_status.Message == 'Successfully imported and applied Server Configuration Profile.'"
+          - delete_result.storage_status.Message == (
+            'Successfully imported and applied Server Configuration Profile.')
           - "delete_result.storage_status.JobState == 'Completed'"
 
     - name: Wait for a Minute
@@ -83,7 +90,8 @@
 
     - name: Create the dictionary
       ansible.builtin.set_fact:
-        volume_name_list: "{{ volume_name_list | default([])  + [{'name': volume_id }] }}"
+        volume_name_list: >-
+          {{ volume_name_list | default([])  + [{'name': volume_id }] }}
       loop: "{{ volume_id_list }}"
       loop_control:
         loop_var: volume_id
@@ -96,7 +104,8 @@
       check_mode: true
       register: check_mode_result
 
-    - name: Verify - Check mode - Delete VDs belonging to two different controllers
+    - name: Verify - Check mode - Delete VDs belonging to two different
+       controllers
       ansible.builtin.assert:
         that:
           - check_mode_result.changed
@@ -109,13 +118,16 @@
         time_to_wait: 900
       register: delete_result
 
-    - name: Verify - Normal Mode -Delete VDs belonging to two different controllers
+    - name: Verify - Normal Mode -Delete VDs belonging to two different
+       controllers
       ansible.builtin.assert:
         that:
           - delete_result.changed
-          - "delete_result.msg == 'Successfully completed the delete storage volume operation.'"
+          - delete_result.msg == (
+            'Successfully completed the delete storage volume operation.')
           - "'storage_status' in delete_result"
-          - "delete_result.storage_status.Message == 'Successfully imported and applied Server Configuration Profile.'"
+          - delete_result.storage_status.Message == (
+            'Successfully imported and applied Server Configuration Profile.')
           - "delete_result.storage_status.JobState == 'Completed'"
 
     - name: Wait for a Minute
@@ -145,19 +157,22 @@
 
     - name: Create the dictionary
       ansible.builtin.set_fact:
-        volume_name_list: "{{ volume_name_list | default([])  + [{'name': volume_id }] }}"
+        volume_name_list: >-
+          {{ volume_name_list | default([])  + [{'name': volume_id }] }}
       loop: "{{ volume_id_list }}"
       loop_control:
         loop_var: volume_id
 
-    - name: Check mode - Delete VDs belonging to two different controllers with same names
+    - name: Check mode - Delete VDs belonging to two different
+       controllers with same names
       dellemc.openmanage.idrac_storage_volume:
         state: "delete"
         volumes: "{{ volume_name_list }}"
       check_mode: true
       register: check_mode_result
 
-    - name: Verify - Check mode - Delete VDs belonging to two different controllers with same names
+    - name: Verify - Check mode - Delete VDs belonging to two different
+       controllers with same names
       ansible.builtin.assert:
         that:
           - check_mode_result.changed
@@ -169,13 +184,16 @@
         volumes: "{{ volume_name_list }}"
       register: delete_result
 
-    - name: Verify - Normal Mode -Delete VDs belonging to two different controllers with same names
+    - name: Verify - Normal Mode - Delete VDs belonging to two different
+       controllers with same names
       ansible.builtin.assert:
         that:
           - delete_result.changed
-          - "delete_result.msg == 'Successfully completed the delete storage volume operation.'"
+          - delete_result.msg == (
+            'Successfully completed the delete storage volume operation.')
           - "'storage_status' in delete_result"
-          - "delete_result.storage_status.Message == 'Successfully imported and applied Server Configuration Profile.'"
+          - delete_result.storage_status.Message == (
+            'Successfully imported and applied Server Configuration Profile.')
           - "delete_result.storage_status.JobState == 'Completed'"
 
     - name: Wait for a Minute
@@ -201,7 +219,8 @@
 
     - name: Create the dictionary
       ansible.builtin.set_fact:
-        volume_name_list: "{{ volume_name_list | default([])  + [{'name': volume_id }] }}"
+        volume_name_list: >-
+          {{ volume_name_list | default([])  + [{'name': volume_id }] }}
       loop: "{{ volume_id_list }}"
       loop_control:
         loop_var: volume_id
@@ -229,9 +248,11 @@
       ansible.builtin.assert:
         that:
           - delete_result.changed
-          - "delete_result.msg == 'Successfully completed the delete storage volume operation.'"
+          - delete_result.msg == (
+            'Successfully completed the delete storage volume operation.')
           - "'storage_status' in delete_result"
-          - "delete_result.storage_status.Message == 'Successfully imported and applied Server Configuration Profile.'"
+          - delete_result.storage_status.Message == (
+            'Successfully imported and applied Server Configuration Profile.')
           - "delete_result.storage_status.JobState == 'Completed'"
 
     - name: Re-initialize the volume_id_list
@@ -248,7 +269,8 @@
 
     - name: Create the dictionary
       ansible.builtin.set_fact:
-        volume_name_list_new: "{{ volume_name_list_new | default([])  + [{'name': volume_id }] }}"
+        volume_name_list_new: >-
+          {{ volume_name_list_new | default([])  + [{'name': volume_id }] }}
       loop: "{{ volume_id_list }}"
       loop_control:
         loop_var: volume_id
@@ -259,4 +281,5 @@
         that:
           - volume_name_list_new | length == 1
           - volume_name_list[0].name != volume_name_list_new[0].name
-      when: volume_name_list_new is defined and volume_name_list_new | length > 0
+      when: >
+        volume_name_list_new is defined and volume_name_list_new | length > 0

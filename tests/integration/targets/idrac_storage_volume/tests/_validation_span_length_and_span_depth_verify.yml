@@ -11,8 +11,9 @@
 - name: Prerequisite - fail if not enough disks are found to create a volume
   ansible.builtin.fail:
     msg:
-      "Physical disks are not sufficient to proceed with test case execution.
-      Needs a minimum {{ (span_length * span_depth) }}, but found {{ pd_mapping | length }}"
+      "Physical disks are not sufficient to proceed with test case
+       execution. Needs a minimum {{ (span_length * span_depth) }},
+       but found {{ pd_mapping | length }}"
   when: (pd_mapping | length) < (span_length * span_depth)
 
 - name: Select the PDs

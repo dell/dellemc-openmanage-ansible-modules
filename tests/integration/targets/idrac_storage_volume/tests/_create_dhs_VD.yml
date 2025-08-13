@@ -1,12 +1,15 @@
 # Test code for the Dell OpenManage modules
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
-    msg: 'Please define the following variables: idrac_ip, idrac_user and idrac_password.'
-  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+    msg: 'Please define the following variables: idrac_ip,
+     idrac_user and idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
 
 - name: Multiple raid types with multiple volumes
   vars:
@@ -22,16 +25,23 @@
 
     - name: Prerequisite - fail if not enough disk is found to create a volume.
       ansible.builtin.fail:
-        msg: "Physical disks are not sufficient to proceed with test case execution.
-         Needs a minimum {{ (raid_data[first_raid]['min_pds'] + first_dhs) }}, but found {{ pd_mapping | length }}"
-      when: (pd_mapping | length) < (raid_data[first_raid]['min_pds'] + first_dhs)
+        msg: "Physical disks are not sufficient to proceed with test case
+         execution. Needs a minimum
+         {{ (raid_data[first_raid]['min_pds'] + first_dhs) }},
+         but found {{ pd_mapping | length }}"
+      when: > 
+        (pd_mapping | length) < (raid_data[first_raid]['min_pds'] + first_dhs)
 
     - name: Reset raid
       ansible.builtin.include_tasks: _reset_config.yml
 
     - name: Set the PDs
       ansible.builtin.set_fact:
-        first_pds: "{{ (pd_mapping.keys() | list | sort)[:raid_data[first_raid]['min_pds']] }}"
+        first_pds: >-
+          {{
+            (pd_mapping.keys() | list | sort)[
+            :raid_data[first_raid]['min_pds']]
+          }}
 
     - name: Wait for a Minute
       ansible.builtin.pause:
@@ -44,7 +54,8 @@
         span_depth: "{{ raid_data[first_raid]['depth'] | int }}"
         span_length: "{{ raid_data[first_raid]['length'] | int }}"
         number_dedicated_hot_spare: "{{ first_dhs }}"
-        stripe_size: "{{ stripe_size if 'BOSS' in storage_controller_id else omit }}"
+        stripe_size: "{{ stripe_size if 'BOSS' in storage_controller_id
+         else omit }}"
         volumes:
           - name: "{{ volume_name_prefix }}{{ first_raid }}"
             volume_type: "RAID {{ first_raid }}"

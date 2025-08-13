@@ -2,7 +2,8 @@
 - block:
     - name: Get the PDs for the controller
       ansible.builtin.uri:
-        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}{{ pd['@odata.id'] }}"
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+         {{ pd['@odata.id'] }}"
         status_code: 200
         headers: 'Accept=application/json'
       loop: "{{ storage_controller_drives }}"
@@ -18,7 +19,12 @@
     - name: Get the pd location id mapping
       ansible.builtin.set_fact:
         storage_controller_id: "{{ storage_controller_Id }}"
-        pd_mapping: "{{ pd_mapping | combine({pd['json']['PhysicalLocation']['PartLocation']['LocationOrdinalValue']: pd['json']['Id'] }) }}"
+        pd_mapping: >-
+         {{
+            pd_mapping | combine({
+              pd['json']['PhysicalLocation']['PartLocation'][
+              'LocationOrdinalValue']: pd['json']['Id'] })
+         }}
       loop: "{{ pd_results.results }}"
       loop_control:
         loop_var: pd
@@ -26,13 +32,18 @@
 
     - name: Prerequisite - fail if not enough disk is found to create a volume
       ansible.builtin.fail:
-        msg: 'Physical disks are not sufficient to proceed with test case execution.
-         Needs a minimum {{ (span_length | int * span_depth | int) }}'
+        msg: 'Physical disks are not sufficient to proceed with test case
+         execution. Needs a minimum {{ (span_length | int * span_depth
+         | int) }}'
       when: (pd_mapping | length) < (span_length | int * span_depth | int)
 
     - name: Select the PDs
       ansible.builtin.set_fact:
-        used_pds: "{{ (pd_mapping.keys() | list | shuffle)[:(span_length | int * span_depth | int)] }}"
+        used_pds: >-
+          {{
+             (pd_mapping.keys() | list | shuffle)[
+             :(span_length | int * span_depth | int)]
+          }}
 
     - name: Reset raid
       ansible.builtin.include_tasks: _reset_config.yml
@@ -50,7 +61,8 @@
     - name: Create Raid {{ raid_type }}
       dellemc.openmanage.idrac_storage_volume:
         state: "create"
-        stripe_size: "{{ stripe_size if 'BOSS' in storage_controller_Id else omit }}"
+        stripe_size: "{{ stripe_size if 'BOSS' in storage_controller_Id
+         else omit }}"
         controller_id: "{{ storage_controller_Id }}"
         volume_type: "{{ raid_type | regex_replace('(\\D)(\\d)', '\\1 \\2') }}"
         span_depth: "{{ span_depth | default(omit)}}"

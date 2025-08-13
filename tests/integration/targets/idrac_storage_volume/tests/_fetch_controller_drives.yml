@@ -1,7 +1,8 @@
+---
 - block:
     - name: Fetching all controllers from iDRAC
       ansible.builtin.uri:
-        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
          /redfish/v1/Systems/System.Embedded.1/Storage?$expand=*($levels=1)"
         status_code: 200
         headers: 'Accept=application/json'
@@ -40,7 +41,7 @@
 
     - name: Fetching all volumes in specific controller
       ansible.builtin.uri:
-        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
          {{ storage_controller_dict.Volumes['@odata.id'] }}\
          ?$expand=*($levels=1)"
         status_code: 200
@@ -69,7 +70,7 @@
 
     - name: Get the PDs for the controller
       ansible.builtin.uri:
-        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
          {{ pd['@odata.id'] }}"
         status_code: 200
         headers: 'Accept=application/json'

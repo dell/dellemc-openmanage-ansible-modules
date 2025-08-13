@@ -1,10 +1,13 @@
+---
 - block:
     - name: ansible-doc
-      ansible.builtin.command: ansible-doc dellemc.openmanage.idrac_storage_volume
+      ansible.builtin.command: ansible-doc
+       dellemc.openmanage.idrac_storage_volume
       register: ansible_doc_hash
 
     - name: Get ansible-doc output
-      local_action: copy content={{ansible_doc_hash.stdout_lines[2:] | to_nice_yaml }} dest={{ role_path }}/files/ansible_doc.txt
+      local_action: copy content={{ansible_doc_hash.stdout_lines[2:] |
+       to_nice_yaml }} dest={{ role_path }}/files/ansible_doc.txt
       register: ansible_doc
       check_mode: true
       diff: true

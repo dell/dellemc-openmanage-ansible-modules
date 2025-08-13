@@ -2,8 +2,9 @@
 - block:
     - name: Get the volume
       ansible.builtin.uri:
-        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
-        /redfish/v1/Systems/System.Embedded.1/Storage/{{ storage_controller_Id }}/Volumes?$expand=*($levels=1)"
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+         /redfish/v1/Systems/System.Embedded.1/Storage\
+         /{{ storage_controller_Id }}/Volumes?$expand=*($levels=1)"
         method: GET
         status_code: 200
       register: volumes
@@ -11,7 +12,8 @@
 
     - name: Fetch the created Volume ID
       ansible.builtin.set_fact:
-        volume_id_list: "{{ volume_id_list | default([]) + [volume.DisplayName] }}"
+        volume_id_list: >-
+          {{ volume_id_list | default([]) + [volume.DisplayName] }}
       loop: "{{ volumes.json.Members }}"
       loop_control:
         loop_var: volume

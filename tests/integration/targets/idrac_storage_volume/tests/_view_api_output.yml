@@ -54,19 +54,29 @@
 
 - name: Rekey controller list by Id
   ansible.builtin.set_fact:
-    storage_controller_dict: "{{ controller_list | ansible.builtin.rekey_on_member('Id') }}"
+    storage_controller_dict: >-
+      {{ controller_list | ansible.builtin.rekey_on_member('Id') }}
 
 - name: Enclosures
   ansible.builtin.set_fact:
-    all_enclosures: "{{ storage_controller_dict.values() | map(attribute='Enclosures') | flatten | unique | list }}"
+    all_enclosures: >-
+      {{
+        storage_controller_dict.values() | map(attribute='Enclosures')
+        | flatten | unique | list
+      }}
 
 - name: All virtual Disks
   ansible.builtin.set_fact:
-    all_vds: "{{ storage_controller_dict.values() | map(attribute='VDs') | flatten | unique | list }}"
+    all_vds: >-
+      {{
+        storage_controller_dict.values() | map(attribute='VDs')
+        | flatten | unique | list
+      }}
 
 - name: Get all the enclosures
   ansible.builtin.uri:
-    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}{{ item }}"
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+     {{ item }}"
     method: GET
     status_code: 200
     headers: 'Accept=application/json'
@@ -75,7 +85,8 @@
 
 - name: Get all the VDS
   ansible.builtin.uri:
-    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}{{ item }}"
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+     {{ item }}"
     method: GET
     status_code: 200
     headers: 'Accept=application/json'
@@ -99,7 +110,8 @@
 
 - name: Get all the VDS with Drives Info
   ansible.builtin.uri:
-    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}{{ item }}"
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+     {{ item }}"
     method: GET
     status_code: 200
     headers: 'Accept=application/json'
@@ -122,7 +134,9 @@
                           | map('split', '/')
                           | map('last')
                           | list %}
-        {% set _ = tmp.update({ controller_id: { last_part: { 'PhysicalDisk': disk_ids } } }) %}
+        {% set _ = tmp.update({
+          controller_id: { last_part: { 'PhysicalDisk': disk_ids } } })
+        %}
       {% endfor %}
       {{ tmp }}
 
@@ -156,7 +170,8 @@
             {% set _ = enc_dict.update({
               enc_id: {
                 'EnclosureSensor': {enc_id: {}},
-                'PhysicalDisk': enclosure_dict[enc] | map('split', '/') | map('last') | list
+                'PhysicalDisk': enclosure_dict[enc] | map('split', '/')
+                 | map('last') | list
               }
             }) %}
           {% endfor %}
@@ -164,7 +179,8 @@
         {% else %}
           {% if dict_item.Drives | length > 0 %}
             {% set _ = dict_item.update({
-              'PhysicalDisk': dict_item.Drives | map('split', '/') | map('last') | list
+              'PhysicalDisk': dict_item.Drives | map('split', '/')
+               | map('last') | list
             }) %}
           {% endif %}
         {% endif %}
