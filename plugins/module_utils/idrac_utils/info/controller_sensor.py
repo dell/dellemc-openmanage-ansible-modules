@@ -26,40 +26,26 @@
 #
 
 
-GET_IDRAC_SENSOR_FAN_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Thermal"
+GET_IDRAC_CONTROLLER_SENSOR_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Storage"
 NA = "Not Available"
 
 
-class IDRACSensorsFanInfo(object):
+class IDRACControllerSensorInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
 
-    def sensors_fan_mapped_data(self, resp):
-        health = resp.get("Status", {}).get("Health", {})
-        state = resp.get("Status", {}).get("State", {}) or "Not Available"
+    def controller_sensor_mapped_data(self, resp):
+        key = resp.get("@odata.id", "").rstrip("/").rsplit("/", 1)[-1]
         output = {
-            "CurrentReading": resp.get("Reading", NA),
-            "CurrentState": resp.get("CurrentState", NA),
-            "DeviceID": resp.get("MemberId", NA),
-            "FQDD": resp.get("FQDD", NA),
-            "HealthState": resp.get("HealthState", NA),
-            "Key": resp.get("Name", NA),
-            "Location": resp.get("Name", NA),
-            "Name": resp.get("FanName", NA),
-            "OtherSensorTypeDescription": resp.get("OtherSensorTypeDescription", NA),
-            "PrimaryStatus": "Healthy" if health == "OK" else health,
-            "SensorType": "Fan",
-            "State": state,
-            "SubType": resp.get("SubType", NA),
-            "Type": resp.get("Type", NA),
-            "coolingUnitIndexReference": resp.get("coolingUnitIndexReference", NA),
+            "FQDD": key,
+            "Key": key
         }
         return output
 
-    def get_sensors_fan_info(self):
+    def get_controller_sensor_info(self):
         output = []
-        resp = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_SENSOR_FAN_DETAILS_URI_10)
+        resp = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_CONTROLLER_SENSOR_DETAILS_URI_10)
         if resp.status_code == 200:
-            for member in resp.json_data.get("Fans", []):
-                output.append(self.sensors_fan_mapped_data(member))
+            for member in resp.json_data.get("Members", []):
+                output.append(self.controller_sensor_mapped_data(member))
         return output

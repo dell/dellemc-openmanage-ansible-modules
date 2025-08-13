@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 9.12.0
+# Version 9.12.4
 # Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -26,7 +26,7 @@
 #
 
 
-GET_IDRAC_SENSOR_TEMPERATURE_DETAILS_URI = "/redfish/v1/Chassis/System.Embedded.1/Oem/Dell/DellEnclosureTemperatureSensors"
+GET_IDRAC_SENSOR_TEMPERATURE_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Thermal"
 NA = "Not Available"
 
 
@@ -35,26 +35,27 @@ class IDRACSensorsTemperatureInfo(object):
         self.idrac = idrac
 
     def sensors_temperature_mapped_data(self, resp):
-        response = self.idrac.invoke_request(method='GET', uri=resp)
-        output = {}
-        if response.status_code == 200:
-            output["CurrentReading"] = NA
-            output["CurrentState"] = NA
-            output["DeviceID"] = NA
-            output["Key"] = NA
-            output["HealthState"] = NA
-            output["Location"] = NA
-            output["OtherSensorTypeDescription"] = NA
-            output["PrimaryStatus"] = NA
-            output["SensorType"] = NA
-            output["State"] = NA
-            output["Type"] = NA
+        health = resp.get("Status", {}).get("Health", {})
+        state = resp.get("Status", {}).get("State", {}) or "Not Available"
+        output = {
+            "CurrentReading": resp.get("ReadingCelsius", NA),
+            "CurrentState": resp.get("CurrentState", NA),
+            "DeviceID": resp.get("MemberId", NA),
+            "HealthState": resp.get("HealthState", NA),
+            "Key": resp.get("Name", NA),
+            "Location": resp.get("Name", NA),
+            "OtherSensorTypeDescription": resp.get("OtherSensorTypeDescription", NA),
+            "PrimaryStatus": "Healthy" if health == "OK" else health,
+            "SensorType": "Temperature",
+            "State": state,
+            "Type": resp.get("Type", NA),
+        }
         return output
 
-    def get_sensors_temperatures_info(self):
+    def get_sensors_temperature_info(self):
         output = []
-        resp = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_SENSOR_TEMPERATURE_DETAILS_URI)
+        resp = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_SENSOR_TEMPERATURE_DETAILS_URI_10)
         if resp.status_code == 200:
-            for each_member in resp.json_data.get("Members", []):
-                output.append(self.sensors_temperature_mapped_data(each_member))
+            for member in resp.json_data.get("Temperatures", []):
+                output.append(self.sensors_temperature_mapped_data(member))
         return output
