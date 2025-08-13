@@ -1,17 +1,21 @@
 # Test code for the Dell OpenManage modules
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING
+# or https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
-    msg: "Please define the following variables: idrac_ip, idrac_user and idrac_password."
-  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+    msg: "Please define the following variables: idrac_ip, idrac_user
+     and idrac_password."
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
 
 - name: View VD when both controller and volume information is passed
   block:
     - name: Fetch the best controller and  delete existing VDs
-      ansible.builtin.include_tasks: "{{ role_path }}/tests/_fetch_controller_drives.yml"
+      ansible.builtin.include_tasks: >-
+        "{{ role_path }}/tests/_fetch_controller_drives.yml"
 
     - name: Pre-requisite -> Create VDs
       ansible.builtin.include_tasks: _pre_req_delete_view.yml
@@ -46,7 +50,10 @@
         api_tmp_output: |
           {% set new_controller_dict = {} %}
           {% for key,value in api_final_output.items() %}
-          {% set _ = new_controller_dict.update({key: value | ansible.utils.remove_keys(target=['Enclosure','ControllerSensor'])}) %}
+          {% set _ = new_controller_dict.update({
+            key: value | ansible.utils.remove_keys(
+              target=['Enclosure','ControllerSensor']
+            )}) %}
           {% endfor %}
           {{ new_controller_dict }}
       no_log: true
@@ -65,7 +72,8 @@
           {% for key, value in api_final_output.items() %}
             {% if key == storage_controller_id %}
               {% if value['VirtualDisk'] is defined %}
-                {% set _ = new_controller_list.update({key: {'VirtualDisk': value['VirtualDisk']}}) %}
+                {% set _ = new_controller_list.update({
+                  key: {'VirtualDisk': value['VirtualDisk']}}) %}
               {% else %}
                 {% set _ = new_controller_list.update({key: {}}) %}
               {% endif %}
@@ -73,7 +81,8 @@
           {% endfor %}
           {{ new_controller_list }}
 
-    - name: Check mode - View Operation when both controller and volume information is passed
+    - name: Check mode - View Operation when both controller and volume
+       information is passed
       dellemc.openmanage.idrac_storage_volume:
         controller_id: "{{ storage_controller_id }}"
         volume_id: "{{ volume_id }}"
@@ -81,11 +90,13 @@
       check_mode: true
       register: check_mode_result
 
-    - name: Verify - Check mode - View Operation when both controller and volume information is passed
+    - name: Verify - Check mode - View Operation when both controller and
+        volume information is passed
       ansible.builtin.assert:
         that:
           - not check_mode_result.changed
-          - "check_mode_result.msg == 'Successfully completed the view storage volume operation.'"
+          - check_mode_result.msg == (
+              'Successfully completed the view storage volume operation.')
           - "'storage_status' in check_mode_result"
 
     - name: View Operation when both controller and volume information is passed
@@ -95,11 +106,13 @@
         state: "view"
       register: view_result
 
-    - name: Verify - Normal Mode - View Operation when both controller and volume information is passed
+    - name: Verify - Normal Mode - View Operation when both controller and
+       volume information is passed
       ansible.builtin.assert:
         that:
           - not view_result.changed
-          - "view_result.msg == 'Successfully completed the view storage volume operation.'"
+          - view_result.msg == ()
+              'Successfully completed the view storage volume operation.')
           - "'storage_status' in view_result"
 
     - name: Verify View Output with the API Output

@@ -1,12 +1,15 @@
 # Test code for the Dell OpenManage modules
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING
+# or https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
-    msg: "Please define the following variables: idrac_ip, idrac_user and idrac_password."
-  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+    msg: "Please define the following variables: idrac_ip, idrac_user
+     and idrac_password."
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
 
 - name: RAID 0 with single volume and default values
   vars:
@@ -15,7 +18,8 @@
     min_pds: 1
   block:
     - name: Fetch the best controller and  delete existing VDs
-      ansible.builtin.include_tasks: "{{ role_path }}/tests/_fetch_controller_drives.yml"
+      ansible.builtin.include_tasks: >-
+        "{{ role_path }}/tests/_fetch_controller_drives.yml"
 
     - name: Prerequisite - fail if RAID not supported for the controller
       ansible.builtin.fail:
@@ -25,8 +29,9 @@
     - name: Prerequisite - fail if not enough disk is found to create a volume
       ansible.builtin.fail:
         msg:
-          "Physical disks are not sufficient to proceed with test case execution.
-          Needs a minimum {{ min_pds }}, but found {{ pd_mapping | length }}"
+          "Physical disks are not sufficient to proceed with test case
+           execution. Needs a minimum {{ min_pds }}, but found
+           {{ pd_mapping | length }}"
       when: (pd_mapping | length) < min_pds
 
     - name: Select the PDs

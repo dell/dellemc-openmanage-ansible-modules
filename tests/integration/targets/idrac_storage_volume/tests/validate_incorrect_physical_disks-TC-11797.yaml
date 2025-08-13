@@ -13,21 +13,22 @@
 
 - block:
     - name: Fetch the best controller and  delete existing VDs
-      ansible.builtin.include_tasks: "{{ role_path }}/tests/_fetch_controller_drives.yml"
+      ansible.builtin.include_tasks: >-
+        "{{ role_path }}/tests/_fetch_controller_drives.yml"
 
     - name: Setting drives location
       ansible.builtin.set_fact:
         location: "{{ (pd_mapping.keys() | list )[0] }}"
 
-    - name:
+    - name: create vd with invalid phusical disks
       ansible.builtin.include_tasks: _create_vd_with_invalid_physical_disks.yml
       loop:
-        - { raid_type: "1", depth: 1, length: 2 }
-        - { raid_type: "5", depth: 1, length: 3 }
-        - { raid_type: "6", depth: 1, length: 4 }
-        - { raid_type: "10", depth: 2, length: 2 }
-        - { raid_type: "50", depth: 2, length: 3 }
-        - { raid_type: "60", depth: 2, length: 4 }
+        - {raid_type: "1", depth: 1, length: 2}
+        - {raid_type: "5", depth: 1, length: 3}
+        - {raid_type: "6", depth: 1, length: 4}
+        - {raid_type: "10", depth: 2, length: 2}
+        - {raid_type: "50", depth: 2, length: 3}
+        - {raid_type: "60", depth: 2, length: 4}
       loop_control:
         loop_var: raid_config
       vars:
