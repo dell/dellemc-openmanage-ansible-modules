@@ -270,6 +270,29 @@ class iDRACRedfishAPI(object):
             time.sleep(30)
         return response
 
+    def form_scp_share_param(self, share):
+        share_param = {}
+        # Mapping of API body keys to Ansible argument keys
+        scp_share_param_mappings = {
+            "IPAddress": "share_ip",
+            "ShareName": "share_name",
+            "ShareType": "share_type",
+            "FileName": "file_name",
+            "Username": "username",
+            "Password": "password",
+            "IgnoreCertificateWarning": "ignore_certificate_warning",
+            "ProxySupport": "proxy_support",
+            "ProxyType": "proxy_type",
+            "ProxyPort": "proxy_port",
+            "ProxyServer": "proxy_server",
+            "ProxyUserName": "proxy_username",
+            "ProxyPassword": "proxy_password",
+        }
+        for key, param in scp_share_param_mappings.items():
+            if share.get(param) is not None:
+                share_param[key] = share[param]
+        return share_param
+
     def export_scp(self, export_format=None, export_use=None, target=None,
                    job_wait=False, share=None, include_in_export="Default"):
         """
@@ -283,38 +306,15 @@ class iDRACRedfishAPI(object):
         gen_details = self.get_server_generation
         generation = gen_details[0]
         payload = {"ExportFormat": export_format, "ExportUse": export_use,
-                    "ShareParameters": {"Target": process_scp_target(target)}}
+                   "ShareParameters": {"Target": process_scp_target(target)}}
         if share is None:
             share = {}
-        if share.get("share_ip") is not None:
-            payload["ShareParameters"]["IPAddress"] = share["share_ip"]
-        if share.get("share_name") is not None and share.get("share_name"):
-            payload["ShareParameters"]["ShareName"] = share["share_name"]
-        if share.get("share_type") is not None:
-            payload["ShareParameters"]["ShareType"] = share["share_type"]
-        if share.get("file_name") is not None:
-            payload["ShareParameters"]["FileName"] = share["file_name"]
-        if share.get("username") is not None:
-            payload["ShareParameters"]["Username"] = share["username"]
-        if share.get("password") is not None:
-            payload["ShareParameters"]["Password"] = share["password"]
-        if share.get("ignore_certificate_warning") is not None:
-            payload["ShareParameters"]["IgnoreCertificateWarning"] = share["ignore_certificate_warning"]
-        if share.get("proxy_support") is not None:
-            payload["ShareParameters"]["ProxySupport"] = share["proxy_support"]
-        if share.get("proxy_type") is not None:
-            payload["ShareParameters"]["ProxyType"] = share["proxy_type"]
-        if share.get("proxy_port") is not None:
-            payload["ShareParameters"]["ProxyPort"] = share["proxy_port"]
-        if share.get("proxy_server") is not None:
-            payload["ShareParameters"]["ProxyServer"] = share["proxy_server"]
-        if share.get("proxy_username") is not None:
-            payload["ShareParameters"]["ProxyUserName"] = share["proxy_username"]
-        if share.get("proxy_password") is not None:
-            payload["ShareParameters"]["ProxyPassword"] = share["proxy_password"]
+        share_param_body = self.form_scp_share_param(share)
+        if len(share_param_body) > 0:
+            payload["ShareParameters"] = share_param_body
         payload["IncludeInExport"] = [include_in_export]
         if generation >= 17:
-           response = self.invoke_request(EXPORT_URI_17, "POST", data=payload)
+            response = self.invoke_request(EXPORT_URI_17, "POST", data=payload)
         else:
             response = self.invoke_request(EXPORT_URI, "POST", data=payload)
         if response.status_code == 202 and job_wait:
@@ -342,32 +342,9 @@ class iDRACRedfishAPI(object):
             payload["ImportBuffer"] = import_buffer
         if share is None:
             share = {}
-        if share.get("share_ip") is not None:
-            payload["ShareParameters"]["IPAddress"] = share["share_ip"]
-        if share.get("share_name") is not None and share.get("share_name"):
-            payload["ShareParameters"]["ShareName"] = share["share_name"]
-        if share.get("share_type") is not None:
-            payload["ShareParameters"]["ShareType"] = share["share_type"]
-        if share.get("file_name") is not None:
-            payload["ShareParameters"]["FileName"] = share["file_name"]
-        if share.get("username") is not None:
-            payload["ShareParameters"]["Username"] = share["username"]
-        if share.get("password") is not None:
-            payload["ShareParameters"]["Password"] = share["password"]
-        if share.get("ignore_certificate_warning") is not None:
-            payload["ShareParameters"]["IgnoreCertificateWarning"] = share["ignore_certificate_warning"]
-        if share.get("proxy_support") is not None:
-            payload["ShareParameters"]["ProxySupport"] = share["proxy_support"]
-        if share.get("proxy_type") is not None:
-            payload["ShareParameters"]["ProxyType"] = share["proxy_type"]
-        if share.get("proxy_port") is not None:
-            payload["ShareParameters"]["ProxyPort"] = share["proxy_port"]
-        if share.get("proxy_server") is not None:
-            payload["ShareParameters"]["ProxyServer"] = share["proxy_server"]
-        if share.get("proxy_username") is not None:
-            payload["ShareParameters"]["ProxyUserName"] = share["proxy_username"]
-        if share.get("proxy_password") is not None:
-            payload["ShareParameters"]["ProxyPassword"] = share["proxy_password"]
+        share_param_body = self.form_scp_share_param(share)
+        if len(share_param_body) > 0:
+            payload["ShareParameters"] = share_param_body
         if generation >= 17:
             response = self.invoke_request(IMPORT_URI_17, "POST", data=payload)
         else:
@@ -382,34 +359,11 @@ class iDRACRedfishAPI(object):
             payload["ImportBuffer"] = import_buffer
         if share is None:
             share = {}
-        if share.get("share_ip") is not None:
-            payload["ShareParameters"]["IPAddress"] = share["share_ip"]
-        if share.get("share_name") is not None and share.get("share_name"):
-            payload["ShareParameters"]["ShareName"] = share["share_name"]
-        if share.get("share_type") is not None:
-            payload["ShareParameters"]["ShareType"] = share["share_type"]
-        if share.get("file_name") is not None:
-            payload["ShareParameters"]["FileName"] = share["file_name"]
-        if share.get("username") is not None:
-            payload["ShareParameters"]["Username"] = share["username"]
-        if share.get("password") is not None:
-            payload["ShareParameters"]["Password"] = share["password"]
-        if share.get("ignore_certificate_warning") is not None:
-            payload["ShareParameters"]["IgnoreCertificateWarning"] = share["ignore_certificate_warning"]
-        if share.get("proxy_support") is not None:
-            payload["ShareParameters"]["ProxySupport"] = share["proxy_support"]
-        if share.get("proxy_type") is not None:
-            payload["ShareParameters"]["ProxyType"] = share["proxy_type"]
-        if share.get("proxy_port") is not None:
-            payload["ShareParameters"]["ProxyPort"] = share["proxy_port"]
-        if share.get("proxy_server") is not None:
-            payload["ShareParameters"]["ProxyServer"] = share["proxy_server"]
-        if share.get("proxy_username") is not None:
-            payload["ShareParameters"]["ProxyUserName"] = share["proxy_username"]
-        if share.get("proxy_password") is not None:
-            payload["ShareParameters"]["ProxyPassword"] = share["proxy_password"]
+        share_param_body = self.form_scp_share_param(share)
+        if len(share_param_body) > 0:
+            payload["ShareParameters"] = share_param_body
         if generation >= 17:
-           response = self.invoke_request(IMPORT_PREVIEW_17, "POST", data=payload)
+            response = self.invoke_request(IMPORT_PREVIEW_17, "POST", data=payload)
         else:
             response = self.invoke_request(IMPORT_PREVIEW, "POST", data=payload)
         if response.status_code == 202 and job_wait:

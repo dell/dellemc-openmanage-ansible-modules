@@ -88,7 +88,7 @@
             were applied since the current component configuration matched
             the requested configuration."
 
-############################################################################
+    ######################################################
 
     - ansible.builtin.pause: seconds=60
 
@@ -143,7 +143,7 @@
           - fetched_data.json.Attributes['SNMP.1.AgentCommunity'] == 'public123'
           - fetched_data.json.Attributes['SNMP.1.DiscoveryPort'] == 163
 
-##############################################################################
+    #############################################################
 
     - ansible.builtin.pause: seconds=60
 
@@ -198,7 +198,7 @@
           - fetched_data.json.Attributes['SNMP.1.AgentCommunity'] == 'public123'
           - fetched_data.json.Attributes['SNMP.1.DiscoveryPort'] == 163
 
-###############################################################################
+  ############################################################
 
     - pause: seconds=60
 
@@ -253,7 +253,7 @@
           - fetched_data.json.Attributes['SNMP.1.AgentCommunity'] == 'public123'
           - fetched_data.json.Attributes['SNMP.1.DiscoveryPort'] == 163
 
-#################################################################################
+    ###########################################################
 
     - pause: seconds=60
 

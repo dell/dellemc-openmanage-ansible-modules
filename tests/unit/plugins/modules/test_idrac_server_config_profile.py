@@ -176,7 +176,7 @@ class TestServerConfigProfile(FakeAnsibleModule):
 
     @pytest.mark.parametrize("params", [
         {"message": CHANGES_FOUND,
-         "json_data": {"Id": "JID_932024672685", "Message": SUCCESS_MSG.format("import"), "@Message.ExtendedInfo": [{"Message": "SYS081"}],
+         "json_data": {"Id": "JID_932024672685", "Message": SUCCESS_MSG.format("import"), "@Message.ExtendedInfo": [{"MessageId": "SYS081"}],
                        "PercentComplete": 100, "file": "https://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
          "check_mode": True,
          "mparams": {"share_name": "{SCP SHARE IP}:/nfsshare", "share_user": "sharename",
@@ -184,7 +184,7 @@ class TestServerConfigProfile(FakeAnsibleModule):
                      "scp_file": "scp_file1.xml", "end_host_power_state": "On",
                      "shutdown_type": "Graceful"}},
         {"message": NO_CHANGES_FOUND,
-         "json_data": {"Id": "JID_932024672685", "Message": SUCCESS_MSG.format("import"), "@Message.ExtendedInfo": [{"Message": "SYS069"}],
+         "json_data": {"Id": "JID_932024672685", "Message": SUCCESS_MSG.format("import"), "@Message.ExtendedInfo": [{"MessageId": "SYS069"}],
                        "PercentComplete": 100, "file": "https://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
          "check_mode": True,
          "mparams": {"share_name": "\\{SCP SHARE IP}\\share", "share_user": "sharename",
@@ -192,32 +192,12 @@ class TestServerConfigProfile(FakeAnsibleModule):
                      "scp_file": "scp_file1.xml", "end_host_power_state": "On",
                      "shutdown_type": "Graceful"}},
         {"message": SUCCESS_MSG.format("import"),
-         "json_data": {"Id": "JID_932024672685", "Message": NO_CHANGES_FOUND, "@Message.ExtendedInfo": [{"Message": "SYS043"}],
+         "json_data": {"Id": "JID_932024672685", "Message": NO_CHANGES_FOUND, "@Message.ExtendedInfo": [{"MessageId": "SYS043"}],
                        "PercentComplete": 100, "file": "https://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
          "mparams": {"command": "import", 
                      "job_wait": True, "scp_components": "IDRAC",
                      "import_buffer":"SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'> \
                      <Value>Disabled</Value></Attribute></Component><Component FQDD='iDRAC.Embedded.1'>"}},
-        # {"message": SUCCESS_MSG.format("import"),
-        #  "json_data": {"Id": "JID_932024672685", "Message": SUCCESS_MSG.format("import"), "MessageId": "SYS069",
-        #                "PercentComplete": 100, "file": "https://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
-        #  "mparams": {"share_name": "https://{SCP SHARE IP}/share", "share_user": "sharename",
-        #              "job_wait": True, "scp_components": "IDRAC",
-        #              "scp_file": "scp_file1.xml", "end_host_power_state": "On",
-        #              "shutdown_type": "Graceful"}},
-        # {"message": SUCCESS_MSG.format("import"),
-        #  "json_data": {"Id": "JID_932024672685", "Message": SUCCESS_MSG.format("import"), "MessageId": "SYS053",
-        #                "PercentComplete": 100, "file": "https://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
-        #  "mparams": {"share_name": "https://{SCP SHARE IP}/share", "share_user": "sharename",
-        #              "job_wait": True, "scp_components": "IDRAC",
-        #              "scp_file": "scp_file1.xml", "end_host_power_state": "On",
-        #              "shutdown_type": "Graceful"}},
-        # {"message": SUCCESS_MSG.format("import"),
-        #  "json_data": {"Id": "JID_932024672685", "Message": NO_CHANGES_FOUND, "MessageId": "SYS069",
-        #                "PercentComplete": 100, "file": "https://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
-        #  "mparams": {"command": "import", "job_wait": True, "scp_components": "IDRAC",
-        #              "import_buffer": "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'> \
-        #                                <Value>Disabled</Value></Attribute></Component><Component FQDD='iDRAC.Embedded.1'>"}},
     ])
     @mock.patch(MODULE_PATH + "idrac_server_config_profile.exists", return_value=True)
     def test_run_import_scp_gen(self, mock_exists, params, idrac_scp_redfish_mock, idrac_redfish_job_tracking_mock, idrac_default_args, mocker):

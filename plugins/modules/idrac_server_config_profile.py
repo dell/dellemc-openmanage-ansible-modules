@@ -611,7 +611,7 @@ DOMAIN_LIST = ["\\", "@"]
 ERROR_CODES = ["SYS041", "SYS044", "SYS045", "SYS046", "SYS047", "SYS048", "SYS050", "SYS051", "SYS062",
                "SYS063", "SYS064", "SYS065", "SYS067", "SYS068", "SYS070", "SYS071", "SYS072",
                "SYS073", "SYS075", "SYS076", "SYS077", "SYS078", "SYS079", "SYS080"]
-
+REDFISH_EXTENDED_INFO_KEY = "@Message.ExtendedInfo"
 
 def get_scp_file_format(module):
     scp_file = module.params['scp_file']
@@ -739,8 +739,8 @@ def perform_check_mode(module, idrac, http_share=True):
     if module.check_mode:
         module.params["job_wait"] = True
         scp_resp = preview_scp_redfish(module, idrac, http_share, import_job_wait=True)
-        if "@Message.ExtendedInfo" in scp_resp:
-            scp_resp = scp_resp["@Message.ExtendedInfo"][0] 
+        if REDFISH_EXTENDED_INFO_KEY in scp_resp:
+            scp_resp = scp_resp[REDFISH_EXTENDED_INFO_KEY][0] 
         if "SYS081" in scp_resp["MessageId"] or "SYS082" in scp_resp["MessageId"]:
             module.exit_json(msg=CHANGES_FOUND, changed=True)
         elif "SYS069" in scp_resp["MessageId"]:
@@ -1102,8 +1102,8 @@ class ImportCommand():
                 changed = True
         else:
             scp_status = import_scp_redfish(self.module, self.idrac, self.http_share)
-            if "@Message.ExtendedInfo" in scp_status:
-              scp_status = scp_status["@Message.ExtendedInfo"][0]
+            if REDFISH_EXTENDED_INFO_KEY in scp_status:
+              scp_status = scp_status[REDFISH_EXTENDED_INFO_KEY][0]
             if "No changes were applied" not in scp_status.get('Message', ""):
               changed = True
             elif "SYS043" in scp_status.get('MessageId', ""):

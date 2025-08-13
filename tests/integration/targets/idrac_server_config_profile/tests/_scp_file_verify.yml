@@ -1,3 +1,4 @@
+---
 - name: Get json dict
   ansible.builtin.set_fact:
     scp_dict: "{{ lookup('file', local_scp_file) | ansible.builtin.from_json }}"

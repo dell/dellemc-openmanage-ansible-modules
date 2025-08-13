@@ -76,8 +76,8 @@
           - preview_result_2.msg == "Successfully previewed the
             Server Configuration Profile."
 
-##########   Verify preview SCP in sync mode when ##########
-##########   local file of type JSON format ################
+    ##########   Verify preview SCP in sync mode when ####
+    ##########   local file of type JSON format ##########
     - name: Preview of SCP in Sync mode with local file of
         type JSON format (Normal mode)
       dellemc.openmanage.idrac_server_config_profile:

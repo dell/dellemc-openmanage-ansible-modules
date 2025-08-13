@@ -1,3 +1,4 @@
+---
 - name: IDRAC job wait for 180 seconds max.
   ansible.builtin.uri:
     url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:\

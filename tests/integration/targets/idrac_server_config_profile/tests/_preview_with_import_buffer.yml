@@ -56,8 +56,8 @@
         Server Configuration Profile."
 
 
-##########   Verify preview SCP in sync mode when ################
-##########   import_buffer of type JSON format    ################
+    ##########   Verify preview SCP in sync mode when ######
+    ##########   import_buffer of type JSON format    ######
 
     - name: Preview of SCP in Sync mode with import_buffer of
         type JSON format (Normal mode)
@@ -84,8 +84,8 @@
         Server Configuration Profile."
 
 
-##########   Verify preview SCP in async mode when ################
-##########   import_buffer of type JSON format     ################
+    ##########   Verify preview SCP in async mode when #####
+    ##########   import_buffer of type JSON format     #####
 
     - name: Preview of SCP in async mode with import_buffer of
         type JSON format (Normal mode)
@@ -114,8 +114,8 @@
             preview the Server Configuration Profile."
 
 
-##########   Verify preview SCP in async mode      ################
-##########   when import_buffer of type xml format ################
+    ##########   Verify preview SCP in async mode      ######
+    ##########   when import_buffer of type xml format ######
 
     - name: Preview of SCP in async mode with import_buffer of
         type XML format (Normal mode)

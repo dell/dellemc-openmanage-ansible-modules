@@ -31,7 +31,7 @@
     - name: Export SCP to a HTTPS share.
       dellemc.openmanage.idrac_server_config_profile: &export
         share_name: "https://{{ https_share_ip }}{{ https_share_dir_path }}"
-        share_user: "{{ https_share_username }}" # domain name to be added
+        share_user: "{{ https_share_username }}"
         share_password: "{{ https_share_password }}"
         job_wait: true
         scp_file: "{{ scp_file }}"
