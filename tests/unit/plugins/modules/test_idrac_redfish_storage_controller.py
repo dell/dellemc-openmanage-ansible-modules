@@ -41,9 +41,20 @@ def redfish_str_controller_conn(mocker, redfish_response_mock):
 class TestIdracRedfishStorageController(FakeAnsibleModule):
     module = idrac_redfish_storage_controller
 
+    def test_validate_operations(self, redfish_str_controller_conn, redfish_response_mock):
+        param = {"baseuri": "XX.XX.XX.XX", "username": "username", "password": "password",
+                  "command": "ReKey"}
+        redfish_str_controller_conn.get_server_generation.return_value = [17, "bh", "iDRAC10"]
+        f_module = self.get_module_mock(params=param)
+        redfish_response_mock.success = True
+        redfish_response_mock.status_code = 200
+        result = self.module.validate_operations(f_module, redfish_str_controller_conn)
+        assert result is None
+
+
     def test_check_id_exists(self, redfish_str_controller_conn, redfish_response_mock):
         param = {"baseuri": "XX.XX.XX.XX", "username": "username", "password": "password"}
-        uri = "/redfish/v1/Dell/Systems/{system_id}/Storage/DellController/{controller_id}"
+        uri = "/redfish/v1/Systems/{system_id}/Storage/{controller_id}"
         f_module = self.get_module_mock(params=param)
         redfish_response_mock.success = True
         redfish_response_mock.status_code = 200
@@ -172,7 +183,7 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         f_module = self.get_module_mock(params=param)
         mocker.patch(MODULE_PATH + "idrac_redfish_storage_controller.check_id_exists", return_value=None)
         redfish_str_controller_conn.json_data = {"Members": ["virtual_drive"]}
-        redfish_response_mock.headers = {"Location": "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX"}
+        redfish_response_mock.headers = {"Location": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/JID_XXXXXXXXXXXXX"}
         result = self.module.ctrl_reset_config(f_module, redfish_str_controller_conn)
         assert result[2] == "JID_XXXXXXXXXXXXX"
         f_module.check_mode = True
@@ -184,12 +195,80 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
             self.module.ctrl_reset_config(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "No changes found to be applied."
 
+    def test_enable_security(self, redfish_str_controller_conn, redfish_response_mock, mocker):
+        param = {"baseuri": "XX.XX.XX.XX", "username": "username", "password": "password",
+                 "controller_id": "RAID.Mezzanine.1C-1", "command": "EnableSecurity"}
+        f_module = self.get_module_mock(params=param)
+        mocker.patch(MODULE_PATH + "idrac_redfish_storage_controller.check_id_exists", return_value=None)
+        redfish_response_mock.json_data = {
+            "Oem": {
+                "Dell": {
+                    "DellController": {
+                        "EncryptionMode": "Disabled"
+                    }
+                }
+            }
+        }
+        redfish_response_mock.headers = {"Location": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/JID_XXXXXXXXXXXXX"}
+        result = self.module.enable_security(f_module, redfish_str_controller_conn)
+        assert result[2] == "JID_XXXXXXXXXXXXX"
+        f_module.check_mode = True
+        with pytest.raises(Exception) as ex:
+            self.module.enable_security(f_module, redfish_str_controller_conn)
+        assert ex.value.args[0] == "Changes found to be applied."
+        redfish_response_mock.json_data = {
+            "Oem": {
+                "Dell": {
+                    "DellController": {
+                        "EncryptionMode": "Enabled"
+                    }
+                }
+            }
+        }
+        with pytest.raises(Exception) as ex:
+            self.module.enable_security(f_module, redfish_str_controller_conn)
+        assert ex.value.args[0] == "No changes found to be applied."
+
+    def test_disable_security(self, redfish_str_controller_conn, redfish_response_mock, mocker):
+        param = {"baseuri": "XX.XX.XX.XX", "username": "username", "password": "password",
+                 "controller_id": "RAID.Mezzanine.1C-1", "command": "DisableSecurity"}
+        f_module = self.get_module_mock(params=param)
+        mocker.patch(MODULE_PATH + "idrac_redfish_storage_controller.check_id_exists", return_value=None)
+        redfish_response_mock.json_data = {
+            "Oem": {
+                "Dell": {
+                    "DellController": {
+                        "EncryptionMode": "Enabled"
+                    }
+                }
+            }
+        }
+        redfish_response_mock.headers = {"Location": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/JID_XXXXXXXXXXXXX"}
+        result = self.module.disable_security(f_module, redfish_str_controller_conn)
+        assert result[2] == "JID_XXXXXXXXXXXXX"
+        f_module.check_mode = True
+        with pytest.raises(Exception) as ex:
+            self.module.disable_security(f_module, redfish_str_controller_conn)
+        assert ex.value.args[0] == "Changes found to be applied."
+        redfish_response_mock.json_data = {
+            "Oem": {
+                "Dell": {
+                    "DellController": {
+                        "EncryptionMode": "Disabled"
+                    }
+                }
+            }
+        }
+        with pytest.raises(Exception) as ex:
+            self.module.disable_security(f_module, redfish_str_controller_conn)
+        assert ex.value.args[0] == "No changes found to be applied."
+
     def test_hot_spare_config(self, redfish_str_controller_conn, redfish_response_mock):
         param = {"baseuri": "XX.XX.XX.XX", "username": "username", "password": "password",
                  "command": "AssignSpare", "target": ["Disk.Bay.1:Enclosure.Internal.0-2:RAID.Integrated.1-1"]}
         f_module = self.get_module_mock(params=param)
         redfish_response_mock.json_data = {"HotspareType": "None"}
-        redfish_response_mock.headers = {"Location": "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX"}
+        redfish_response_mock.headers = {"Location": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/JID_XXXXXXXXXXXXX"}
         result = self.module.hot_spare_config(f_module, redfish_str_controller_conn)
         assert result[2] == "JID_XXXXXXXXXXXXX"
 
@@ -223,18 +302,45 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
                  "command": "SetControllerKey", "controller_id": RAID_INTEGRATED_1_1, "mode": "LKM"}
         mocker.patch(MODULE_PATH + "idrac_redfish_storage_controller.check_id_exists", return_value=None)
         f_module = self.get_module_mock(params=param)
-        redfish_response_mock.json_data = {"SecurityStatus": "EncryptionNotCapable", "KeyID": None}
+        redfish_response_mock.json_data = {
+            "Oem": {
+                "Dell": {
+                    "DellController": {
+                        "SecurityStatus": "EncryptionNotCapable",
+                        "KeyID": None
+                    }
+                }
+            }
+        }
         with pytest.raises(Exception) as ex:
             self.module.ctrl_key(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "The storage controller 'RAID.Integrated.1-1' does not support encryption."
 
         f_module.check_mode = True
-        redfish_response_mock.json_data = {"SecurityStatus": "EncryptionCapable", "KeyID": None}
+        redfish_response_mock.json_data = {
+            "Oem": {
+                "Dell": {
+                    "DellController": {
+                        "SecurityStatus": "EncryptionCapable",
+                        "KeyID": None
+                    }
+                }
+            }
+        }
         with pytest.raises(Exception) as ex:
             self.module.ctrl_key(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "Changes found to be applied."
 
-        redfish_response_mock.json_data = {"SecurityStatus": "EncryptionCapable", "KeyID": "Key@123"}
+        redfish_response_mock.json_data = {
+            "Oem": {
+                "Dell": {
+                    "DellController": {
+                        "SecurityStatus": "EncryptionCapable",
+                        "KeyID": "Key@123"
+                    }
+                }
+            }
+        }
         with pytest.raises(Exception) as ex:
             self.module.ctrl_key(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "No changes found to be applied."
@@ -247,27 +353,63 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         assert ex.value.args[0] == "Changes found to be applied."
 
         f_module.check_mode = False
-        redfish_response_mock.json_data = {"SecurityStatus": "EncryptionCapable", "KeyID": None}
-        redfish_response_mock.headers = {"Location": "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX"}
+        redfish_response_mock.json_data = {
+            "Oem": {
+                "Dell": {
+                    "DellController": {
+                        "SecurityStatus": "EncryptionCapable",
+                        "KeyID": None
+                    }
+                }
+            }
+        }
+        redfish_response_mock.headers = {"Location": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/JID_XXXXXXXXXXXXX"}
         result = self.module.ctrl_key(f_module, redfish_str_controller_conn)
         assert result[2] == "JID_XXXXXXXXXXXXX"
 
         param.update({"mode": "LKM_"})
         f_module.check_mode = False
-        redfish_response_mock.json_data = {"SecurityStatus": "EncryptionCapable", "KeyID": None}
-        redfish_response_mock.headers = {"Location": "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX"}
+        redfish_response_mock.json_data = {
+            "Oem": {
+                "Dell": {
+                    "DellController": {
+                        "SecurityStatus": "EncryptionCapable",
+                        "KeyID": None
+                    }
+                }
+            }
+        }
+        redfish_response_mock.headers = {"Location": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/JID_XXXXXXXXXXXXX"}
         result = self.module.ctrl_key(f_module, redfish_str_controller_conn)
         assert result[2] == "JID_XXXXXXXXXXXXX"
 
         param.update({"command": "RemoveControllerKey"})
-        redfish_response_mock.json_data = {"SecurityStatus": "EncryptionCapable", "KeyID": 'Key@123'}
+        redfish_response_mock.json_data = {
+            "Oem": {
+                "Dell": {
+                    "DellController": {
+                        "SecurityStatus": "EncryptionCapable",
+                        "KeyID": "Key@123"
+                    }
+                }
+            }
+        }
         f_module = self.get_module_mock(params=param)
         f_module.check_mode = True
         with pytest.raises(Exception) as ex:
             self.module.ctrl_key(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "Changes found to be applied."
 
-        redfish_response_mock.json_data = {"SecurityStatus": "EncryptionCapable", "KeyID": None}
+        redfish_response_mock.json_data = {
+            "Oem": {
+                "Dell": {
+                    "DellController": {
+                        "SecurityStatus": "EncryptionCapable",
+                        "KeyID": None
+                    }
+                }
+            }
+        }
         with pytest.raises(Exception) as ex:
             self.module.ctrl_key(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "No changes found to be applied."
@@ -279,14 +421,32 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
             self.module.ctrl_key(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "Changes found to be applied."
 
-        redfish_response_mock.json_data = {"SecurityStatus": "SecurityKeyAssigned", "KeyID": None}
+        redfish_response_mock.json_data = {
+            "Oem": {
+                "Dell": {
+                    "DellController": {
+                        "SecurityStatus": "SecurityKeyAssigned",
+                        "KeyID": None
+                    }
+                }
+            }
+        }
         with pytest.raises(Exception) as ex:
             self.module.ctrl_key(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "No changes found to be applied."
 
         f_module.check_mode = False
-        redfish_response_mock.json_data = {"SecurityStatus": "EncryptionCapable", "KeyID": None}
-        redfish_response_mock.headers = {"Location": "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX"}
+        redfish_response_mock.json_data = {
+            "Oem": {
+                "Dell": {
+                    "DellController": {
+                        "SecurityStatus": "EncryptionCapable",
+                        "KeyID": None
+                    }
+                }
+            }
+        }
+        redfish_response_mock.headers = {"Location": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/JID_XXXXXXXXXXXXX"}
         result = self.module.ctrl_key(f_module, redfish_str_controller_conn)
         assert result[2] == "JID_XXXXXXXXXXXXX"
 

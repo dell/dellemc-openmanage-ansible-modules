@@ -198,6 +198,7 @@ author:
   - "Husniya Hameed (@husniya_hameed)"
   - "Abhishek Sinha (@ABHISHEK-SINHA10)"
   - "Shivam Sharma (@ShivamSh3)"
+  - "Trisha Datta (@trisha-dell)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module is supported on iDRAC9.
@@ -493,7 +494,7 @@ task:
   returned: success
   sample: {
     "id": "JID_XXXXXXXXXXXXX",
-    "uri": "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX"
+    "uri": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/JID_XXXXXXXXXXXXX"
   }
 status:
   type: dict
@@ -556,7 +557,7 @@ SYSTEMS_URI = "/redfish/v1/Systems/"
 SYSTEM_ID = "System.Embedded.1"
 MANAGER_ID = "iDRAC.Embedded.1"
 RAID_ACTION_URI = "/redfish/v1/Systems/{system_id}/Oem/Dell/DellRaidService/Actions/DellRaidService.{action}"
-CONTROLLER_URI = "/redfish/v1/Dell/Systems/{system_id}/Storage/DellController/{controller_id}"
+CONTROLLER_URI = "/redfish/v1/Systems/{system_id}/Storage/{controller_id}"
 VOLUME_URI = "/redfish/v1/Systems/{system_id}/Storage/{controller_id}/Volumes"
 PD_URI = "/redfish/v1/Systems/System.Embedded.1/Storage/{controller_id}/Drives/{drive_id}"
 JOB_URI_OEM = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{job_id}"
@@ -599,6 +600,7 @@ INVALID_KEY = ("The key should be of maximum length 32 and must contain at least
                "character from each of the character classes: uppercase, lowercase, "
                "number, and special character.")
 INVALID_START_TIME = "The start time should be in the format YYYY-MM-DDThh:mm:ss<offset>"
+INVALID_COMMAND = "The command {0} is not applicable for {1}"
 
 
 def check_id_exists(module, redfish_obj, key, item_id, uri):
@@ -658,11 +660,11 @@ def ctrl_key(module, redfish_obj):
     ctrl_resp = redfish_obj.invoke_request("GET", CONTROLLER_URI.format(
         system_id=SYSTEM_ID, controller_id=controller_id))
 
-    security_status = ctrl_resp.json_data.get("SecurityStatus")
+    security_status = ctrl_resp.json_data.get("Oem", {}).get("Dell", {}).get("DellController", {}).get("SecurityStatus")
     if security_status == "EncryptionNotCapable":
         module.fail_json(msg=ENCRYPT_ERR_MSG.format(controller_id))
 
-    ctrl_key_id = ctrl_resp.json_data.get("KeyID")
+    ctrl_key_id = ctrl_resp.json_data.get("Oem", {}).get("Dell", {}).get("DellController", {}).get("KeyID")
 
     if command == "SetControllerKey":
         handle_set_controller_key(
@@ -702,6 +704,42 @@ def ctrl_reset_config(module, redfish_obj):
         job_id = job_uri.split("/")[-1]
     return resp, job_uri, job_id
 
+
+def enable_security(module, redfish_obj):
+    resp, job_uri, job_id = None, None, None
+    controller_id = module.params.get("controller_id")
+    check_id_exists(module, redfish_obj, "controller_id", controller_id, CONTROLLER_URI)
+    controller_resp = redfish_obj.invoke_request("GET", CONTROLLER_URI.format(system_id=SYSTEM_ID, controller_id=controller_id))
+    encryption_mode = controller_resp.json_data.get("Oem", {}).get("Dell", {}).get("DellController", {}).get("EncryptionMode")
+    if encryption_mode == "Enabled":
+        module.exit_json(msg=NO_CHANGES_FOUND)
+    elif module.check_mode and encryption_mode == "Disabled":
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
+    else:
+        resp = redfish_obj.invoke_request("POST", RAID_ACTION_URI.format(system_id=SYSTEM_ID,
+                                                                         action=module.params["command"]),
+                                          data={"TargetFQDD": controller_id})
+        job_uri = resp.headers.get("Location")
+        job_id = job_uri.split("/")[-1]
+    return resp, job_uri, job_id
+
+def disable_security(module, redfish_obj):
+    resp, job_uri, job_id = None, None, None
+    controller_id = module.params.get("controller_id")
+    check_id_exists(module, redfish_obj, "controller_id", controller_id, CONTROLLER_URI)
+    controller_resp = redfish_obj.invoke_request("GET", CONTROLLER_URI.format(system_id=SYSTEM_ID, controller_id=controller_id))
+    encryption_mode = controller_resp.json_data.get("Oem", {}).get("Dell", {}).get("DellController", {}).get("EncryptionMode")
+    if encryption_mode == "Disabled":
+        module.exit_json(msg=NO_CHANGES_FOUND)
+    elif module.check_mode and encryption_mode == "Enabled":
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
+    else:
+        resp = redfish_obj.invoke_request("POST", RAID_ACTION_URI.format(system_id=SYSTEM_ID,
+                                                                         action=module.params["command"]),
+                                          data={"ControllerFQDD": controller_id})
+        job_uri = resp.headers.get("Location")
+        job_id = job_uri.split("/")[-1]
+    return resp, job_uri, job_id
 
 def hot_spare_config(module, redfish_obj):
     target, command = module.params.get("target"), module.params["command"]
@@ -850,7 +888,7 @@ def lock_virtual_disk(module, redfish_obj):
             module.exit_json(msg=NO_CHANGES_FOUND)
         else:
             resp = redfish_obj.invoke_request("POST", RAID_ACTION_URI.format(system_id=SYSTEM_ID,
-                                                                             action="LockVirtualDisk"),
+                                                                             action="SecureVirtualDisk"),
                                               data={"TargetFQDD": volume[0]})
             job_uri = resp.headers.get("Location")
             job_id = job_uri.split("/")[-1]
@@ -1145,6 +1183,16 @@ def job_condition_check(module, redfish_obj, job_id, job_uri,
         module.exit_json(msg=job_submission_msg, task={"id": job_id, "uri": job_uri},
                          status=job_data)
 
+def validate_operations(module, redfish_obj):
+    gen = redfish_obj.get_server_generation
+    generation = gen[0]
+    command = module.params.get("command")
+    idrac9_invalid_commands = ["EnableSecurity", "DisableSecurity"]
+    idrac10_invalid_commands = ["SetControllerKey", "RemoveControllerKey",
+                                "ReKey", "EnableControllerEncryption"]
+    if (generation < 17 and command in idrac9_invalid_commands) or \
+            (generation >= 17 and command in idrac10_invalid_commands):
+        module.exit_json(msg=INVALID_COMMAND.format(command, gen[2]), changed=False)
 
 def validate_params(module):
     start_time = None
@@ -1174,7 +1222,8 @@ def main():
                     "choices": ["ResetConfig", "AssignSpare", "SetControllerKey", "RemoveControllerKey",
                                 "ReKey", "UnassignSpare", "EnableControllerEncryption", "BlinkTarget",
                                 "UnBlinkTarget", "ConvertToRAID", "ConvertToNonRAID", "ChangePDStateToOnline",
-                                "ChangePDStateToOffline", "LockVirtualDisk", "OnlineCapacityExpansion", "SecureErase"]},
+                                "ChangePDStateToOffline", "LockVirtualDisk", "OnlineCapacityExpansion", "SecureErase",
+                                "EnableSecurity", "DisableSecurity"]},
         "controller_id": {"required": False, "type": "str"},
         "volume_id": {"required": False, "type": "list", "elements": "str"},
         "target": {"required": False, "type": "list", "elements": "str", "aliases": ["drive_id"]},
@@ -1212,12 +1261,13 @@ def main():
             ["apply_time", "InMaintenanceWindowOnReset", ("maintenance_window",)]
         ],
         supports_check_mode=True)
-    validate_params(module)
-    if not bool(module.params["attributes"]):
-        validate_inputs(module)
     try:
         command = module.params["command"]
         with Redfish(module.params, req_session=True) as redfish_obj:
+            validate_operations(module, redfish_obj)
+            validate_params(module)
+            if not bool(module.params["attributes"]):
+                validate_inputs(module)
             command_function_mapping = {
                 "ResetConfig": ctrl_reset_config,
                 "SetControllerKey": ctrl_key,
@@ -1232,7 +1282,9 @@ def main():
                 "ChangePDStateToOffline": change_pd_status,
                 "LockVirtualDisk": lock_virtual_disk,
                 "OnlineCapacityExpansion": online_capacity_expansion,
-                "SecureErase": secure_erase
+                "SecureErase": secure_erase,
+                "EnableSecurity": enable_security,
+                "DisableSecurity": disable_security
             }
 
             if command in ["BlinkTarget", "UnBlinkTarget"]:

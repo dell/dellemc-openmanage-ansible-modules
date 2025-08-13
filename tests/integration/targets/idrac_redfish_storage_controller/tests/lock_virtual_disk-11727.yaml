@@ -8,7 +8,7 @@
   when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
 
 - block:
-    - include_tasks: get_data.yml
+    - include_tasks: _get_data.yml
       vars:
         url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/System.Embedded.1/Storage?$expand=*($levels=1)
 
@@ -25,7 +25,7 @@
         - item.Oem.Dell.DellController.EncryptionCapability != 'None'
 
     - name: Fetching drives data based on controller's id
-      include_tasks: get_data.yml
+      include_tasks: _get_data.yml
       vars:
         url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/System.Embedded.1/Storage/{{item}}?$expand=*($levels=1)
         capture_all: true
@@ -57,7 +57,7 @@
       when: create_vd.changed
 
     - name: Fetching volumes id based on controller and drive's fqqdn id
-      include_tasks: get_data.yml
+      include_tasks: _get_data.yml
       vars:
         url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/System.Embedded.1/Storage/{{item.key}}/Drives/{{item.value[0]}}?$expand=*($levels=1)
       loop: "{{ controller_drive_map_list | map('dict2items') | flatten  }}"
@@ -100,7 +100,7 @@
         replace: ""
 
     - name: Fetching volumes details based on controller and volumes' fqqdn id
-      include_tasks: get_data.yml
+      include_tasks: _get_data.yml
       vars:
         url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/System.Embedded.1/Storage/{{item.key}}/Volumes/{{volume_id}}
       loop: "{{ controller_drive_map_list | map('dict2items') | flatten  }}"
@@ -187,7 +187,7 @@
         replace: ""
 
     - name: Fetching volumes details based on controller and volumes' fqqdn id for job_wait_false
-      include_tasks: get_data.yml
+      include_tasks: _get_data.yml
       vars:
         url: https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems/System.Embedded.1/Storage/{{item.key}}/Volumes/{{volume_id}}
       loop: "{{ controller_drive_map_list | map('dict2items') | flatten  }}"

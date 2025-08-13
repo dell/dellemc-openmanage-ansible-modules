@@ -6,6 +6,11 @@
       register: result_pre_req
       when: run_trigger is not defined
 
+
+    - name: Debug variable type
+      debug:
+        msg: "{{ result_pre_req.storage_status.Message.Controller | type_debug }}"
+
     - ansible.builtin.set_fact:
         enclosers: "{{ item.value.Enclosure }}"
         controller_name: "{{ item.key }}"
@@ -97,7 +102,7 @@
     - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
       vars:
         job_id: "{{ result_offline_online.status.Id }}"
-      when: result_offline_online.changed and result_offline_online.msg ==
+      when: result_offline_online.msg ==
         "Successfully submitted the job that performs the
         'ChangePDStateToOffline' operation."
       ignore_errors: true
