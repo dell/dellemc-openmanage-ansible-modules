@@ -40,7 +40,7 @@
         volume_name_list: >-
           {{
             volume_name_list | default([])
-            + [{'name': 'invalid_volume_name' }] 
+            + [{'name': 'invalid_volume_name' }]
           }}
 
     - name: Invalid - Delete Operation when volumes parameter is not passed

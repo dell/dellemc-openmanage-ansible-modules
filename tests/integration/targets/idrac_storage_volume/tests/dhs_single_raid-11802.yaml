@@ -161,7 +161,7 @@
     - name: Verify the DHS count
       ansible.builtin.assert:
         that:
-          - > 
+          - >
             first_vol_pds
             | difference(first_pds | unique | map('extract', pd_mapping))
             | length == first_dhs
@@ -175,7 +175,7 @@
         status_code: 200
       register: dhs_disks
       loop: >-
-        {{ 
+        {{
           (
             first_vol_pds | difference(first_pds | unique
             | map('extract', pd_mapping)) | list

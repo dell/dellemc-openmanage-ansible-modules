@@ -152,7 +152,7 @@
             (
               volumes_dict['test_volume_r'+second_raid].Name
             ) == 'test_volume_r'+second_raid
-          - > 
+          - >
             (
               volumes_dict['test_volume_r'+first_raid].RAIDType
             ) == 'RAID'+first_raid
@@ -163,7 +163,7 @@
           - >
             (
               volumes_dict['test_volume_r'+first_raid].Oem.Dell.DellVirtualDisk.SpanDepth
-            ) == raid_data[first_raid]['depth'] 
+            ) == raid_data[first_raid]['depth']
           - >
             (
               volumes_dict['test_volume_r'+second_raid].Oem.Dell.DellVirtualDisk.SpanDepth
@@ -182,12 +182,12 @@
             (
               volumes_dict['test_volume_r'+first_raid]
               .Oem.Dell.DellVirtualDisk.RaidStatus
-            ) == 'Online' 
+            ) == 'Online'
           - >
-            ( 
+            (
               volumes_dict['test_volume_r'+second_raid]
               .Oem.Dell.DellVirtualDisk.RaidStatus
-            ) == 'Online' 
+            ) == 'Online'
 
     - name: Verify the multi PDs and DHS
       ansible.builtin.set_fact:
