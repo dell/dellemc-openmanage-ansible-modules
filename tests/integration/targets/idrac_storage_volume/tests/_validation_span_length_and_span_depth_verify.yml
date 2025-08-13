@@ -21,7 +21,7 @@
     used_pds: "{{ (pd_mapping.keys() | list )[:(span_length * span_depth)] }}"
 
 - name: Reset RAID
-  ansible.builtin.include_tasks: _reset_config.yml
+  ansible.builtin.include_tasks: "{{ role_path }}/tests/_reset_config.yml"
 
 - name: Create RAID {{ raid_type }}
   dellemc.openmanage.idrac_storage_volume:

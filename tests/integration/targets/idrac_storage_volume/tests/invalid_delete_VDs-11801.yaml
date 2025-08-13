@@ -1,17 +1,21 @@
 # Test code for the Dell OpenManage modules
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an iDRAC host, iDRAC username and iDRAC password
   ansible.builtin.fail:
-    msg: "Please define the following variables: idrac_ip, idrac_user and idrac_password."
-  when: idrac_ip is not defined or idrac_user is not defined or idrac_password is not defined
+    msg: "Please define the following variables: idrac_ip, idrac_user
+     and idrac_password."
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
 
 - name: Invalid Delete VD scenarios
   block:
     - name: Fetch the best controller and  delete existing VDs
-      ansible.builtin.include_tasks: "{{ role_path }}/tests/_fetch_controller_drives.yml"
+      ansible.builtin.include_tasks: >-
+        "{{ role_path }}/tests/_fetch_controller_drives.yml"
 
     - name: Pre-requisite -> Create VDs
       ansible.builtin.include_tasks: _create_dhs_VD.yml
@@ -23,14 +27,21 @@
 
     - name: Create the dictionary
       ansible.builtin.set_fact:
-        volume_name_list: "{{ volume_name_list | default([])  + [{'name': volume_id }] }}"
+        volume_name_list: >-
+          {{
+             volume_name_list | default([])  + [{'name': volume_id }]
+          }}
       loop: "{{ volume_id_list }}"
       loop_control:
         loop_var: volume_id
 
     - name: Create the dictionary
       ansible.builtin.set_fact:
-        volume_name_list: "{{ volume_name_list | default([])  + [{'name': 'invalid_volume_name' }] }}"
+        volume_name_list: >-
+          {{
+            volume_name_list | default([])
+            + [{'name': 'invalid_volume_name' }] 
+          }}
 
     - name: Invalid - Delete Operation when volumes parameter is not passed
       dellemc.openmanage.idrac_storage_volume:
@@ -38,14 +49,17 @@
       register: delete_result
       ignore_errors: true
 
-    - name: Verify - Normal Mode - Delete Operation when volumes parameter is not passed
+    - name: Verify - Normal Mode - Delete Operation when volumes
+       parameter is not passed
       ansible.builtin.assert:
         that:
           - not delete_result.changed
           - delete_result.failed
-          - "delete_result.msg == 'Virtual disk name is a required parameter for remove virtual disk operations.'"
+          - delete_result.msg == ('Virtual disk name is a required parameter
+           for remove virtual disk operations.')
 
-    - name: Invalid - Delete Operation when invalid time_to_wait is out of allowed higher range value
+    - name: Invalid - Delete Operation when invalid time_to_wait
+       is out of allowed higher range value
       dellemc.openmanage.idrac_storage_volume:
         state: "delete"
         volumes:
@@ -54,14 +68,17 @@
       register: delete_result
       ignore_errors: true
 
-    - name: Verify - Normal Mode - Delete Operation when invalid time_to_wait is out of allowed higher range value
+    - name: Verify - Normal Mode - Delete Operation when invalid time_to_wait
+       is out of allowed higher range value
       ansible.builtin.assert:
         that:
           - not delete_result.changed
           - delete_result.failed
-          - "delete_result.msg == 'Time to wait value is invalid. Minimum value is 300 and Maximum is 3600 seconds.'"
+          - delete_result.msg == ('Time to wait value is invalid. Minimum
+           value is 300 and Maximum is 3600 seconds.')
 
-    - name: Invalid - Delete Operation when invalid time_to_wait is out of allowed lower range value
+    - name: Invalid - Delete Operation when invalid time_to_wait
+       is out of allowed lower range value
       dellemc.openmanage.idrac_storage_volume:
         state: "delete"
         volumes:
@@ -70,14 +87,17 @@
       register: delete_result
       ignore_errors: true
 
-    - name: Verify - Normal Mode - Delete Operation when invalid time_to_wait is out of allowed lower range value
+    - name: Verify - Normal Mode - Delete Operation when invalid time_to_wait
+       is out of allowed lower range value
       ansible.builtin.assert:
         that:
           - not delete_result.changed
           - delete_result.failed
-          - "delete_result.msg == 'Time to wait value is invalid. Minimum value is 300 and Maximum is 3600 seconds.'"
+          - delete_result.msg == ('Time to wait value is invalid. Minimum
+           value is 300 and Maximum is 3600 seconds.')
 
-    - name: Invalid - Delete Operation when invalid time_to_wait is passed with negative or zero value
+    - name: Invalid - Delete Operation when invalid time_to_wait
+       is passed with negative or zero value
       dellemc.openmanage.idrac_storage_volume:
         state: "delete"
         volumes:
@@ -86,12 +106,14 @@
       register: delete_result
       ignore_errors: true
 
-    - name: Verify - Normal Mode - Delete Operation when invalid time_to_wait is passed with negative or zero value
+    - name: Verify - Normal Mode - Delete Operation when invalid time_to_wait
+       is passed with negative or zero value
       ansible.builtin.assert:
         that:
           - not delete_result.changed
           - delete_result.failed
-          - "delete_result.msg == 'Time to wait value is invalid. Minimum value is 300 and Maximum is 3600 seconds.'"
+          - delete_result.msg == ('Time to wait value is invalid. Minimum
+           value is 300 and Maximum is 3600 seconds.')
 
     - name: Invalid - Delete Operation when invalid volume information is passed
       dellemc.openmanage.idrac_storage_volume:
@@ -101,14 +123,16 @@
       register: delete_result
       ignore_errors: true
 
-    - name: Verify - Normal Mode - Delete Operation when invalid volume information is passed
+    - name: Verify - Normal Mode - Delete Operation when invalid
+       volume information is passed
       ansible.builtin.assert:
         that:
           - not delete_result.changed
           - delete_result.failed
           - "delete_result.msg == 'Unable to find the virtual disk.'"
 
-    - name: Invalid [Check Mode]- Delete Operation when valid and invalid volume information is passed
+    - name: Invalid [Check Mode]- Delete Operation when valid and invalid
+       volume information is passed
       dellemc.openmanage.idrac_storage_volume:
         state: "delete"
         volumes: "{{ volume_name_list }}"
@@ -116,24 +140,29 @@
       register: check_delete_result
       ignore_errors: true
 
-    - name: Verify [Check Mode] Delete Operation when valid and invalid volume information is passed
+    - name: Verify [Check Mode] Delete Operation when valid and invalid
+       volume information is passed
       ansible.builtin.assert:
         that:
           - check_delete_result.changed
           - "check_delete_result.msg == 'Changes found to commit!'"
 
-    - name: Invalid - Delete Operation when valid and invalid volume information is passed
+    - name: Invalid - Delete Operation when valid and invalid volume
+       information is passed
       dellemc.openmanage.idrac_storage_volume:
         state: "delete"
         volumes: "{{ volume_name_list }}"
       register: delete_result
       ignore_errors: true
 
-    - name: Verify - Normal Mode - Delete Operation when valid and invalid volume information is passed
+    - name: Verify - Normal Mode - Delete Operation when valid and invalid
+       volume information is passed
       ansible.builtin.assert:
         that:
           - delete_result.changed
-          - "delete_result.msg == 'Successfully completed the delete storage volume operation.'"
+          - delete_result.msg == (
+            'Successfully completed the delete storage volume operation.')
           - "'storage_status' in delete_result"
-          - "delete_result.storage_status.Message == 'Successfully imported and applied Server Configuration Profile.'"
+          - delete_result.storage_status.Message == (
+            'Successfully imported and applied Server Configuration Profile.')
           - "delete_result.storage_status.JobState == 'Completed'"

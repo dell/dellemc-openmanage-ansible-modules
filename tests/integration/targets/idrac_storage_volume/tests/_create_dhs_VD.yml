@@ -29,7 +29,7 @@
          execution. Needs a minimum
          {{ (raid_data[first_raid]['min_pds'] + first_dhs) }},
          but found {{ pd_mapping | length }}"
-      when: > 
+      when: >
         (pd_mapping | length) < (raid_data[first_raid]['min_pds'] + first_dhs)
 
     - name: Reset raid
