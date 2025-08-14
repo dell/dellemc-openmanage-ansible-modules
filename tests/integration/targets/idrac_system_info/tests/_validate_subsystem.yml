@@ -197,8 +197,7 @@
 
 - name: Output conversion to list
   ansible.builtin.set_fact:
-    subsystem_updated_dict: "{{ subsystem_updated_dict.stdout |
-      to_json | from_json }}"
+    subsystem_updated_dict: "{{ subsystem_updated_dict.stdout | from_yaml }}"
   when:
     - system_health_data.status == 200
 

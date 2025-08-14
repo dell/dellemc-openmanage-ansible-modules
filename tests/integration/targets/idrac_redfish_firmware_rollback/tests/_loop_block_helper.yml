@@ -9,14 +9,14 @@
      json_query(query) | first }}"
   vars:
     query: "[?starts_with(Id,'Previous')].Version"
-  when: idrac_fw_info
+  when: idrac_fw_info is defined
 
 - ansible.builtin.set_fact:
     installed_version: "{{ idrac_fw_info | to_json | from_json |
      json_query(query) | first }}"
   vars:
     query: "[?starts_with(Id,'Installed')].Version"
-  when: idrac_fw_info
+  when: idrac_fw_info is defined
 
 - ansible.builtin.set_fact:
     previous_versions: "{{ previous_versions + [previous_version] }}"

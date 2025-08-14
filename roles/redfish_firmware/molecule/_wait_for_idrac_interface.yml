@@ -1,0 +1,41 @@
+---
+- name: Wait for iDRAC web interface to become reachable
+  ansible.builtin.uri:
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}/redfish/v1"
+    method: GET
+    timeout: 30
+    validate_certs: false
+  register: uri_result
+  until: uri_result is defined and uri_result.status is defined and
+    uri_result.status == 200
+  retries: 20
+  delay: 30
+
+- name: Getting LC status first time
+  dellemc.openmanage.idrac_lifecycle_controller_status_info:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_port: "{{ idrac_port }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    validate_certs: "{{ validate_certs }}"
+  register: result_lc
+
+- name: Wait for LC to be ready
+  dellemc.openmanage.idrac_lifecycle_controller_status_info:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_port: "{{ idrac_port }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    validate_certs: "{{ validate_certs }}"
+  register: result_lc
+  until:
+    - result_lc is defined
+    - result_lc.lc_status_info is defined
+    - result_lc.lc_status_info.LCStatus is defined
+    - result_lc.lc_status_info.LCStatus == 'Ready'
+  retries: 200
+  delay: 30
+
+- name: Waiting for 30 secs
+  ansible.builtin.pause:
+    seconds: 30

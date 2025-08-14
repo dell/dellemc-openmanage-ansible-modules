@@ -155,7 +155,7 @@
     - name: TC - 009 - Waiting for job completion
       ansible.builtin.uri:
         url: "https://{{ lookup('env', 'IDRAC_IP') }}/redfish/v1/JobService/Jobs/{{ redfish_firmware_out.task.id }}"
-        validate_certs: false
+        validate_certs: "{{ lookup('env', 'VALIDATE_CERTS') }}"
         method: "GET"
         user: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
@@ -171,4 +171,39 @@
       until: job_result.json.JobState == 'Completed' or job_result.json.JobState == 'Failed'
       retries: 30
       delay: 10
-      when: redfish_firmware_out.changed # noqa: no-handler
+      when: redfish_firmware_out.changed  # noqa: no-handler
+      ignore_errors: true
+
+    - name: Wait for iDRAC to come up
+      ansible.builtin.include_tasks:
+        file: ../_wait_for_idrac_interface.yml
+      vars:
+        idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+        idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+        idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        idrac_port: "{{ lookup('env', 'IDRAC_PORT') }}"
+        validate_certs: false
+
+    - name: TC - 009 - Waiting for job completion after iDRAC came up
+      ansible.builtin.uri:
+        url: "https://{{ lookup('env', 'IDRAC_IP') }}/redfish/v1/JobService\
+         /Jobs/{{ redfish_firmware_out.task.id }}"
+        validate_certs: "{{ lookup('env', 'VALIDATE_CERTS') }}"
+        force_basic_auth: true
+        method: "GET"
+        user: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        headers:
+          Accept: "application/json"
+          Content-Type: "application/json"
+          OData-Version: "4.0"
+        body_format: "json"
+        status_code:
+          - 200
+        return_content: true
+      register: job_result
+      until: job_result.json.JobState == 'Completed' or
+       job_result.json.JobState == 'Failed'
+      retries: 30
+      delay: 10
+      when: redfish_firmware_out.changed  # noqa: no-handler
