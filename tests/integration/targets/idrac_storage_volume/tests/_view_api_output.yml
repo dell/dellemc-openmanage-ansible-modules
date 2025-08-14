@@ -26,11 +26,8 @@
     controller_list: "{{ controller_list + [controller_data] }}"
   vars:
     battery_info: >-
-      {% if item.Oem.Dell.DellControllerBattery is defined %}
-        [item.Oem.Dell.DellControllerBattery.Id]
-      {% else %}
-        []
-      {% endif %}
+      {{ [item.Oem.Dell.DellControllerBattery.Id]
+         if item.Oem.Dell.DellControllerBattery is defined else [] }}
     drives: >-
       {{ (item.Drives | ansible.builtin.rekey_on_member(odata)).keys() | list }}
     enclosures: >-
