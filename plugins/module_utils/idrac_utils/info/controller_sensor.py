@@ -26,7 +26,7 @@
 #
 
 
-GET_IDRAC_CONTROLLER_SENSOR_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Storage"
+GET_IDRAC_STORAGE_DETAILS_URI_10 = "/redfish/v1/Systems/System.Embedded.1/Storage"
 NA = "Not Available"
 
 
@@ -44,7 +44,7 @@ class IDRACControllerSensorInfo(object):
 
     def get_controller_sensor_info(self):
         output = []
-        resp = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_CONTROLLER_SENSOR_DETAILS_URI_10)
+        resp = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_STORAGE_DETAILS_URI_10)
         if resp.status_code == 200:
             for member in resp.json_data.get("Members", []):
                 output.append(self.controller_sensor_mapped_data(member))

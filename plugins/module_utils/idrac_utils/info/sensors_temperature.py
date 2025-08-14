@@ -26,7 +26,8 @@
 #
 
 
-GET_IDRAC_SENSOR_TEMPERATURE_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Thermal"
+GET_IDRAC_THERMAL_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Thermal"
+GET_IDRAC_SENSOR_TEMPERATURE_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Sensors/{temp_sensor_name}"
 NA = "Not Available"
 
 
@@ -34,14 +35,34 @@ class IDRACSensorsTemperatureInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
 
+    def fetch_temp_sensor_names(self):
+        """Fetches a list of all temperature sensor names from the IDRAC endpoint."""
+        resp = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_THERMAL_DETAILS_URI_10)
+        if resp.status_code != 200:
+            return []
+
+        return [
+            member.get("Name", "").replace(" ", "")
+            for member in resp.json_data.get("Temperatures", [])
+            if member.get("Name")
+        ]
+
+    def fetch_temp_sensor_details(self, temp_sensor_name):
+        """Fetches raw temperature sensor details for a given sensor name."""
+        sensor_uri = GET_IDRAC_SENSOR_TEMPERATURE_DETAILS_URI_10.format(temp_sensor_name=temp_sensor_name)
+        resp = self.idrac.invoke_request(method='GET', uri=sensor_uri)
+        return resp.json_data if resp.status_code == 200 else None
+
     def sensors_temperature_mapped_data(self, resp):
         health = resp.get("Status", {}).get("Health", {})
-        state = resp.get("Status", {}).get("State", {}) or "Not Available"
+        state = resp.get("Status", {}).get("State", {}) or NA
+        device_id = resp.get("Oem", {}).get("Dell", {}).get("DeviceID", {}) or NA
+        current_state = resp.get("Oem", {}).get("Dell", {}).get("CurrentState", {}) or NA
         output = {
-            "CurrentReading": resp.get("ReadingCelsius", NA),
-            "CurrentState": resp.get("CurrentState", NA),
-            "DeviceID": resp.get("MemberId", NA),
-            "HealthState": resp.get("HealthState", NA),
+            "CurrentReading": resp.get("Reading", NA),
+            "CurrentState": current_state,
+            "DeviceID": device_id,
+            "HealthState": health,
             "Key": resp.get("Name", NA),
             "Location": resp.get("Name", NA),
             "OtherSensorTypeDescription": resp.get("OtherSensorTypeDescription", NA),
@@ -54,8 +75,10 @@ class IDRACSensorsTemperatureInfo(object):
 
     def get_sensors_temperature_info(self):
         output = []
-        resp = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_SENSOR_TEMPERATURE_DETAILS_URI_10)
-        if resp.status_code == 200:
-            for member in resp.json_data.get("Temperatures", []):
-                output.append(self.sensors_temperature_mapped_data(member))
+
+        for temp_sensor_name in self.fetch_temp_sensor_names():
+            temp_resp = self.fetch_temp_sensor_details(temp_sensor_name)
+            if temp_resp:
+                output.append(self.sensors_temperature_mapped_data(temp_resp))
+
         return output
