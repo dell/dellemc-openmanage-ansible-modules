@@ -3,7 +3,7 @@
 #
 # Dell OpenManage Ansible Modules
 # Version 9.5.0
-# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2019-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -41,16 +41,13 @@ def redfish_str_controller_conn(mocker, redfish_response_mock):
 class TestIdracRedfishStorageController(FakeAnsibleModule):
     module = idrac_redfish_storage_controller
 
-    def test_validate_operations(self, redfish_str_controller_conn, redfish_response_mock):
+    def test_validate_operations(self, redfish_str_controller_conn, redfish_response_mock, mocker, redfish_default_args):
         param = {"baseuri": "XX.XX.XX.XX", "username": "username", "password": "password",
-                  "command": "ReKey"}
-        redfish_str_controller_conn.get_server_generation.return_value = [17, "bh", "iDRAC10"]
+                 "command": "SetControllerKey"}
         f_module = self.get_module_mock(params=param)
-        redfish_response_mock.success = True
-        redfish_response_mock.status_code = 200
-        result = self.module.validate_operations(f_module, redfish_str_controller_conn)
-        assert result is None
-
+        with pytest.raises(Exception) as ex:
+            self.module.validate_operations(f_module, (17, "1.20.50", "iDRAC10"))
+        assert ex.value.args[0] == "The command SetControllerKey is not applicable for iDRAC10"
 
     def test_check_id_exists(self, redfish_str_controller_conn, redfish_response_mock):
         param = {"baseuri": "XX.XX.XX.XX", "username": "username", "password": "password"}
@@ -1024,6 +1021,7 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + module + "get_dynamic_uri", side_effect=mock_get_dynamic_uri_request_1)
         mocker.patch(MODULE_PATH + module + "validate_and_get_first_resource_id_uri",
                      return_value=("/redfish/v1/Systems", None))
+        mocker.patch(MODULE_PATH + "idrac_redfish_storage_controller.get_server_generation", return_value=(16, "7.00.00", "iDRAC9"))
 
         # Scenario 1: When command is set to SecureErase but controller_id and target is not provided
         with pytest.raises(Exception) as ex:
@@ -1189,6 +1187,7 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
                     }}}
         redfish_default_args.update(param)
         mocker.patch(MODULE_PATH + 'idrac_redfish_storage_controller.check_id_exists', return_value=None)
+        mocker.patch(MODULE_PATH + "idrac_redfish_storage_controller.get_server_generation", return_value=(16, "7.00.00", "iDRAC9"))
         result = self._run_module(redfish_default_args)
         assert result['msg'] == "controller_id is required to perform this operation."
         param.update({"controller_id": RAID_INTEGRATED_1_1})
@@ -1222,6 +1221,7 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
                  "command": "ResetConfig", "controller_id": RAID_INTEGRATED_1_1}
         redfish_default_args.update(param)
         mocker.patch(MODULE_PATH + 'idrac_redfish_storage_controller.validate_inputs', return_value=None)
+        mocker.patch(MODULE_PATH + "idrac_redfish_storage_controller.get_server_generation", return_value=(16, "7.00.00", "iDRAC9"))
         redfish_response_mock.success = False
         redfish_response_mock.status_code = 400
         json_str = to_text(json.dumps({"data": "out"}))
@@ -1252,6 +1252,7 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'idrac_redfish_storage_controller.validate_inputs', return_value=None)
         mocker.patch(MODULE_PATH + 'idrac_redfish_storage_controller.ctrl_key',
                      return_value=("", "", "JID_XXXXXXXXXXXXX"))
+        mocker.patch(MODULE_PATH + "idrac_redfish_storage_controller.get_server_generation", return_value=(16, "7.00.00", "iDRAC9"))
         result = self._run_module(redfish_default_args)
         assert result["task"]["id"] == "JID_XXXXXXXXXXXXX"
         param.update({"command": "AssignSpare"})

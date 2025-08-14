@@ -58,9 +58,12 @@ options:
         the job will get scheduled and waits for no of seconds specfied in I(job_wait_time),
         to reduce the wait time either give I(job_wait_time) minimum or make I(job_wait)
         as false.
+      - C(EnableSecurity) - To enable security on a storage controller. Only Applicable for 17G and above.
+      - C(DisableSecurity) - To disable security on a storage controller. Only Applicable for 17G and above.
     choices: [ResetConfig, AssignSpare, SetControllerKey, RemoveControllerKey, ReKey, UnassignSpare,
       EnableControllerEncryption, BlinkTarget, UnBlinkTarget, ConvertToRAID, ConvertToNonRAID,
-      ChangePDStateToOnline, ChangePDStateToOffline, LockVirtualDisk, OnlineCapacityExpansion, SecureErase]
+      ChangePDStateToOnline, ChangePDStateToOffline, LockVirtualDisk, OnlineCapacityExpansion, SecureErase,
+      EnableSecurity, DisableSecurity]
     type: str
   target:
     description:
@@ -723,6 +726,7 @@ def enable_security(module, redfish_obj):
         job_id = job_uri.split("/")[-1]
     return resp, job_uri, job_id
 
+
 def disable_security(module, redfish_obj):
     resp, job_uri, job_id = None, None, None
     controller_id = module.params.get("controller_id")
@@ -740,6 +744,7 @@ def disable_security(module, redfish_obj):
         job_uri = resp.headers.get("Location")
         job_id = job_uri.split("/")[-1]
     return resp, job_uri, job_id
+
 
 def hot_spare_config(module, redfish_obj):
     target, command = module.params.get("target"), module.params["command"]
@@ -990,7 +995,7 @@ def validate_secure_erase(module, redfish_obj):
         module.exit_json(msg=PD_ERROR_MSG.format(drive_id), skipped=True)
     drive_detail = get_dynamic_uri(redfish_obj, drive_uri)
     firm_ver = get_idrac_firmware_version(redfish_obj)
-    if LooseVersion(firm_ver) >= '3.0':
+    if LooseVersion(firm_ver) >= '1.0':
         dell_oem = drive_detail.get("Oem", {}).get("Dell", {})
         try:
             dell_disk = dell_oem["DellPhysicalDisk"]
@@ -1183,16 +1188,17 @@ def job_condition_check(module, redfish_obj, job_id, job_uri,
         module.exit_json(msg=job_submission_msg, task={"id": job_id, "uri": job_uri},
                          status=job_data)
 
-def validate_operations(module, redfish_obj):
-    gen = redfish_obj.get_server_generation
-    generation = gen[0]
+
+def validate_operations(module, server_generation_op):
+    generation = server_generation_op[0]
     command = module.params.get("command")
     idrac9_invalid_commands = ["EnableSecurity", "DisableSecurity"]
     idrac10_invalid_commands = ["SetControllerKey", "RemoveControllerKey",
                                 "ReKey", "EnableControllerEncryption"]
     if (generation < 17 and command in idrac9_invalid_commands) or \
             (generation >= 17 and command in idrac10_invalid_commands):
-        module.exit_json(msg=INVALID_COMMAND.format(command, gen[2]), changed=False)
+        module.exit_json(msg=INVALID_COMMAND.format(command, server_generation_op[2]), changed=False)
+
 
 def validate_params(module):
     start_time = None
@@ -1213,6 +1219,19 @@ def validate_params(module):
         pattern_start_time = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:Z|[+-]\d{2}:\d{2})$'
         if not re.match(pattern_start_time, start_time):
             module.exit_json(failed=True, msg=INVALID_START_TIME)
+
+
+def get_server_generation(redfish_obj: Redfish):
+    """
+    Function wrapping redfish_obj.get_server_generation. Helps with mocked testing.
+
+    Args:
+        redfish_obj (Redfish): Redfish object.
+
+    Returns:
+        Tuple[int, str, str]: A tuple containing the server generation, firmware version, and hardware model.
+    """
+    return redfish_obj.get_server_generation
 
 
 def main():
@@ -1264,7 +1283,8 @@ def main():
     try:
         command = module.params["command"]
         with Redfish(module.params, req_session=True) as redfish_obj:
-            validate_operations(module, redfish_obj)
+            server_generation_op = get_server_generation(redfish_obj)
+            validate_operations(module, server_generation_op)
             validate_params(module)
             if not bool(module.params["attributes"]):
                 validate_inputs(module)
