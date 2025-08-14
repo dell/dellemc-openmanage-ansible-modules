@@ -306,14 +306,16 @@ class iDRACRedfishAPI(object):
             time.sleep(30)
         return response
 
-    def form_scp_share_param(self, share: dict) -> dict:
+    def form_scp_share_param(self, share: dict, target) -> dict:
         """
         A function to form the share param body for SCP import and export.
         share can also be None.
         """
         if share is None:
             share = {}
-        share_param = {}
+        share_param = {
+            "Target": process_scp_target(target)
+        }
         # Mapping of API body keys to Ansible argument keys
         scp_share_param_mappings = {
             "IPAddress": "share_ip",
@@ -348,10 +350,7 @@ class iDRACRedfishAPI(object):
         gen_details = self.get_server_generation
         generation = gen_details[0]
         payload = {"ExportFormat": export_format, "ExportUse": export_use,
-                   "ShareParameters": {"Target": process_scp_target(target)}}
-        share_param_body = self.form_scp_share_param(share)
-        if len(share_param_body) > 0:
-            payload["ShareParameters"] = share_param_body
+                   "ShareParameters": self.form_scp_share_param(share, target)}
         payload["IncludeInExport"] = [include_in_export]
         export_uri = _get_scp_export_uri(generation)
         response = self.invoke_request(export_uri, "POST", data=payload)
@@ -375,24 +374,19 @@ class iDRACRedfishAPI(object):
         gen_details = self.get_server_generation
         generation = gen_details[0]
         payload = {"ShutdownType": shutdown_type, "EndHostPowerState": host_powerstate,
-                   "ShareParameters": {"Target": process_scp_target(target)}, "TimeToWait": time_to_wait}
+                   "ShareParameters": self.form_scp_share_param(share, target),
+                   "TimeToWait": time_to_wait}
         if import_buffer is not None:
             payload["ImportBuffer"] = import_buffer
-        share_param_body = self.form_scp_share_param(share)
-        if len(share_param_body) > 0:
-            payload["ShareParameters"] = share_param_body
         import_uri = _get_scp_import_uri(generation)
         return self.invoke_request(import_uri, "POST", data=payload)
 
     def import_preview(self, import_buffer=None, target=None, share=None, job_wait=False):
         gen_details = self.get_server_generation
         generation = gen_details[0]
-        payload = {"ShareParameters": {"Target": process_scp_target(target)}}
+        payload = {"ShareParameters": self.form_scp_share_param(share, target)}
         if import_buffer is not None:
             payload["ImportBuffer"] = import_buffer
-        share_param_body = self.form_scp_share_param(share)
-        if len(share_param_body) > 0:
-            payload["ShareParameters"] = share_param_body
         import_preview_uri = _get_scp_import_preview_uri(generation)
         response = self.invoke_request(import_preview_uri, "POST", data=payload)
         if response.status_code == 202 and job_wait:
@@ -410,7 +404,11 @@ class iDRACRedfishAPI(object):
         """
         gen_details = self.get_server_generation
         generation = gen_details[0]
-        payload = {"ImportBuffer": import_buffer, "ShareParameters": {"Target": process_scp_target(target)}, "TimeToWait": time_to_wait}
+        payload = {
+            "ImportBuffer": import_buffer,
+            "ShareParameters": self.form_scp_share_param(None, target),
+            "TimeToWait": time_to_wait,
+        }
         import_uri = _get_scp_import_uri(generation)
         response = self.invoke_request(import_uri, "POST", data=payload)
         if response.status_code == 202 and job_wait:
@@ -426,7 +424,8 @@ class iDRACRedfishAPI(object):
         :param job_wait: True or False decide whether to wait till the job completion.
         :return: json response
         """
-        payload = {"ImportBuffer": import_buffer, "ShareParameters": {"Target": target}}
+        payload = {"ImportBuffer": import_buffer,
+                   "ShareParameters": self.form_scp_share_param(None, target)}
         response = self.invoke_request(IMPORT_PREVIEW, "POST", data=payload)
         if response.status_code == 202 and job_wait:
             task_uri = response.headers["Location"]
