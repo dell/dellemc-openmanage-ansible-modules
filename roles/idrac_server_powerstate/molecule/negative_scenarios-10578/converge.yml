@@ -5,7 +5,7 @@
   tasks:
     - name: Performing operation on the iDRAC device using default reset_type
       ansible.builtin.import_role:
-        name: idrac_server_powerstate
+        name: dellemc.openmanage.idrac_server_powerstate
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -24,7 +24,7 @@
 
     - name: Performing operation On the iDRAC with invalid resource_id
       ansible.builtin.import_role:
-        name: idrac_server_powerstate
+        name: dellemc.openmanage.idrac_server_powerstate
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -44,7 +44,7 @@
 
     - name: Performing operation 'On' with invalid hostname
       ansible.builtin.import_role:
-        name: idrac_server_powerstate
+        name: dellemc.openmanage.idrac_server_powerstate
       vars:
         hostname: "randomHostname"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -66,7 +66,7 @@
 
     - name: Performing operation 'On' with invalid username
       ansible.builtin.import_role:
-        name: idrac_server_powerstate
+        name: dellemc.openmanage.idrac_server_powerstate
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "WrongUsername123"
@@ -85,7 +85,7 @@
 
     - name: Performing operation 'On' with invalid password
       ansible.builtin.import_role:
-        name: idrac_server_powerstate
+        name: dellemc.openmanage.idrac_server_powerstate
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -99,14 +99,13 @@
 
     - name: Asserting after performing opeartion with invalid password
       ansible.builtin.assert:
-        that: |-
-          ('"HTTP Error 401" in idrac_server_powerstate_out.msg')
-          or
-          ('"urlopen error timed out" in idrac_server_powerstate_out.msg')
+        that:
+          - '"HTTP Error 401" in idrac_server_powerstate_out.msg or
+            "urlopen error timed out" in idrac_server_powerstate_out.msg'
 
     - name: Performing operation 'On' with invalid validate_certs
       ansible.builtin.import_role:
-        name: idrac_server_powerstate
+        name: dellemc.openmanage.idrac_server_powerstate
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -125,7 +124,7 @@
 
     - name: Performing operation 'ForceOn' on iDRAC server
       ansible.builtin.import_role:
-        name: idrac_server_powerstate
+        name: dellemc.openmanage.idrac_server_powerstate
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -145,7 +144,7 @@
     - name: Fetching all the resource_id using URI
       ansible.builtin.uri:
         url: "https://{{ lookup('env', 'IDRAC_IP') }}:{{ https_port }}
-        /redfish/v1/Systems/"
+         /redfish/v1/Systems/"
         user: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
@@ -166,7 +165,7 @@
     - name: Performing Operation 'On' without resource_id when iDRAC has
         secondary resource_id
       ansible.builtin.import_role:
-        name: idrac_server_powerstate
+        name: dellemc.openmanage.idrac_server_powerstate
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -174,19 +173,19 @@
         validate_certs: false
         resource_id: "{{ null | default(omit) }}"
         reset_type: "On"
-      when: number_of_resource_id > '1'
+      when: number_of_resource_id > 1
 
     - name: Asserting after performing opeartion without resource_id when
        iDRAC has secondary resource_id
       ansible.builtin.assert:
         that:
           - idrac_server_powerstate_out.msg == "Multiple devices exists in the
-           system, but option 'resource_id' is not specified."
-      when: number_of_resource_id > '1'
+            system, but option 'resource_id' is not specified."
+      when: number_of_resource_id > 1
 
     - name: Performing Operation 'On' with valid secondary resource_id
       ansible.builtin.import_role:
-        name: idrac_server_powerstate
+        name: dellemc.openmanage.idrac_server_powerstate
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -194,15 +193,15 @@
         validate_certs: false
         reset_type: 'On'
         resource_id: "{{ resource_id_list[1] }}"
-      when: number_of_resource_id > '1'
+      when: number_of_resource_id > 1
 
     - name: Asserting after performing opeartion with valid
        secondary resource_id
       ansible.builtin.assert:
-        that: |-
+        that:
           ( idrac_server_powerstate_out.msg == "Successfully performed the
            reset type operation 'On'." )
           or
           ( idrac_server_powerstate_out.msg == "The device is already
            powered on." )
-      when: number_of_resource_id > '1'
+      when: number_of_resource_id > 1

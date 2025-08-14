@@ -36,7 +36,11 @@ class IDRACFanInfo(object):
     def map_fan_data(self, fan):
         health = fan.get("Status", {}).get("Health", NA)
         fan_pwm = fan.get("Oem", {}).get("Dell", {}).get("FanPWM", 0)
-        current_reading = fan.get("SpeedPercent", {}).get("SpeedRPM", NA)
+        current_reading = (
+            fan["SpeedPercent"][0].get("SpeedRPM", NA)
+            if isinstance(fan.get("SpeedPercent"), list)
+            else fan.get("SpeedPercent", {}).get("SpeedRPM", NA)
+        )
         output = {
             "ActiveCooling": fan.get("HotPluggable", NA),
             "CurrentReading": current_reading,
