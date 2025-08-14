@@ -147,7 +147,7 @@
       register: result
       check_mode: true
       when:
-      - is_omsdk_required | bool
+        - is_omsdk_required | bool
 
     - name: Verify task status - Blink the Virtual Disk (Check mode -
        Changes expected)
@@ -163,7 +163,7 @@
         <<: *idrac_redfish_storage_controller_3
       register: result
       when:
-      - is_omsdk_required | bool
+        - is_omsdk_required | bool
 
     - name: Verify task status - Blink the Virtual Disk (Normal mode)
       ansible.builtin.assert:
@@ -171,7 +171,7 @@
           - result.changed
           - result.msg == "Successfully performed the 'BlinkTarget' operation."
       when:
-      - is_omsdk_required | bool
+        - is_omsdk_required | bool
 
     - name: Unblink the Virtual Disk (Check mode - Changes expected)
       idrac_redfish_storage_controller: &idrac_redfish_storage_controller_4
@@ -180,7 +180,7 @@
       register: result
       check_mode: true
       when:
-      - is_omsdk_required | bool
+        - is_omsdk_required | bool
 
     - name: Verify task status - Unblink the Virtual Disk (Check mode -
        Changes expected)
@@ -189,14 +189,14 @@
           - result.changed
           - result.msg == "Changes found to be applied."
       when:
-      - is_omsdk_required | bool
+        - is_omsdk_required | bool
 
     - name: Unblink the Virtual Disk (Normal mode)
       idrac_redfish_storage_controller:
         <<: *idrac_redfish_storage_controller_4
       register: result
       when:
-      - is_omsdk_required | bool
+        - is_omsdk_required | bool
 
     - name: Verify task status - Unblink the Virtual Disk (Normal mode)
       ansible.builtin.assert:
@@ -205,7 +205,7 @@
           - result.msg == "Successfully performed the 'UnBlinkTarget'
            operation."
       when:
-      - is_omsdk_required | bool
+        - is_omsdk_required | bool
 
     - name: Delete created virtual disk after testcase completion
       dellemc.openmanage.idrac_storage_volume:
