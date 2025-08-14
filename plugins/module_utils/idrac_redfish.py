@@ -306,10 +306,11 @@ class iDRACRedfishAPI(object):
             time.sleep(30)
         return response
 
-    def form_scp_share_param(self, share: dict, target) -> dict:
+    def form_scp_share_param(self, target, share=None):
         """
-        A function to form the share param body for SCP import and export.
-        share can also be None.
+        A function to form the share param body for SCP import and export
+        from the target and Ansible share input dict.
+        share is Optional.
         """
         if share is None:
             share = {}
@@ -350,7 +351,7 @@ class iDRACRedfishAPI(object):
         gen_details = self.get_server_generation
         generation = gen_details[0]
         payload = {"ExportFormat": export_format, "ExportUse": export_use,
-                   "ShareParameters": self.form_scp_share_param(share, target)}
+                   "ShareParameters": self.form_scp_share_param(target, share)}
         payload["IncludeInExport"] = [include_in_export]
         export_uri = _get_scp_export_uri(generation)
         response = self.invoke_request(export_uri, "POST", data=payload)
@@ -374,7 +375,7 @@ class iDRACRedfishAPI(object):
         gen_details = self.get_server_generation
         generation = gen_details[0]
         payload = {"ShutdownType": shutdown_type, "EndHostPowerState": host_powerstate,
-                   "ShareParameters": self.form_scp_share_param(share, target),
+                   "ShareParameters": self.form_scp_share_param(target, share),
                    "TimeToWait": time_to_wait}
         if import_buffer is not None:
             payload["ImportBuffer"] = import_buffer
@@ -384,7 +385,7 @@ class iDRACRedfishAPI(object):
     def import_preview(self, import_buffer=None, target=None, share=None, job_wait=False):
         gen_details = self.get_server_generation
         generation = gen_details[0]
-        payload = {"ShareParameters": self.form_scp_share_param(share, target)}
+        payload = {"ShareParameters": self.form_scp_share_param(target, share)}
         if import_buffer is not None:
             payload["ImportBuffer"] = import_buffer
         import_preview_uri = _get_scp_import_preview_uri(generation)
@@ -406,7 +407,7 @@ class iDRACRedfishAPI(object):
         generation = gen_details[0]
         payload = {
             "ImportBuffer": import_buffer,
-            "ShareParameters": self.form_scp_share_param(None, target),
+            "ShareParameters": self.form_scp_share_param(target),
             "TimeToWait": time_to_wait,
         }
         import_uri = _get_scp_import_uri(generation)
@@ -425,7 +426,7 @@ class iDRACRedfishAPI(object):
         :return: json response
         """
         payload = {"ImportBuffer": import_buffer,
-                   "ShareParameters": self.form_scp_share_param(None, target)}
+                   "ShareParameters": self.form_scp_share_param(target)}
         response = self.invoke_request(IMPORT_PREVIEW, "POST", data=payload)
         if response.status_code == 202 and job_wait:
             task_uri = response.headers["Location"]
