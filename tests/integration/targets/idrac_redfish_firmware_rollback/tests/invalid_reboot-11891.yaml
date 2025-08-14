@@ -11,6 +11,20 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
+- ansible.builtin.include_tasks: _get_server_generation.yml
+
+- name: Set Firmware Inventory name for iDRAC10
+  ansible.builtin.set_fact:
+    rollback_component_name_bios: "BIOS Firmware Inventory"
+    rollback_component_name_bios_invalid: "[BIOS Firmware Inventory/s"
+  when: generation | int >= 17
+  
+- name: Set Firmware Inventory name for iDRAC9
+  ansible.builtin.set_fact:
+      rollback_component_name_bios: "BIOS"
+      rollback_component_name_bios_invalid: "[BIOS/s"
+  when: generation | int < 17
+
 - block:
     - ansible.builtin.set_fact:
         invalid_reboot_expected_msg: "argument 'reboot' is of type
@@ -22,7 +36,7 @@
 
     - name: Negative - invalid reboot
       dellemc.openmanage.redfish_firmware_rollback:
-        name: BIOS
+        name: "{{ rollback_component_name_bios }}"
         reboot: None
       register: invalid_reboot
       ignore_errors: true
@@ -36,7 +50,7 @@
 
     - name: Negative - reboot_timeout as zero
       dellemc.openmanage.redfish_firmware_rollback:
-        name: BIOS
+        name: "{{ rollback_component_name_bios }}"
         reboot: true
         reboot_timeout: 0
       register: zero_reboot_timeout
@@ -50,7 +64,7 @@
 
     - name: Negative - reboot_timeout as negative value
       dellemc.openmanage.redfish_firmware_rollback:
-        name: BIOS
+        name: "{{ rollback_component_name_bios }}"
         reboot: true
         reboot_timeout: -100
       register: negative_reboot_timeout
@@ -64,7 +78,7 @@
 
     - name: Negative - reboot_timeout as string
       dellemc.openmanage.redfish_firmware_rollback:
-        name: BIOS
+        name: "{{ rollback_component_name_bios }}"
         reboot: true
         reboot_timeout: fifty
       register: string_reboot_timeout
@@ -79,7 +93,7 @@
 
     - name: Negative - invalid regular expression
       dellemc.openmanage.redfish_firmware_rollback:
-        name: "[BIOS/s"
+        name: "{{ rollback_component_name_bios_invalid }}"
         reboot: true
       register: invalid_regular_expression
 

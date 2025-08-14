@@ -18,16 +18,34 @@
 
 - ansible.builtin.include_tasks: _get_firmware_inventory.yml
 
+- ansible.builtin.include_tasks: _get_server_generation.yml
+
+- name: Set Firmware Inventory name for iDRAC10
+  ansible.builtin.set_fact:
+      rollback_component_name_bios: "BIOS Firmware Inventory"
+      rollback_component_name_idrac: "BMC Firmware Inventory"
+      rollback_component_name_bios_regex: "^BIOS.*Firmwa.*Inventory$"
+      rollback_component_name_idrac_regex: "^BMC.*Firmwa.*Inventory$"
+  when: generation | int >= 17
+  
+- name: Set Firmware Inventory name for iDRAC9
+  ansible.builtin.set_fact:
+      rollback_component_name_bios: "BIOS"
+      rollback_component_name_idrac: "Integrated Dell Remote Access Controller"
+      rollback_component_name_bios_regex: "^B.*S"
+      rollback_component_name_idrac_regex: "Integra.*Ac{2}es{2} Controller$"
+  when: generation | int < 17
+
 - ansible.builtin.include_tasks: _prereq_helper.yml
   vars:
     comp: "{{ item }}"
   when: "item not in rollback_component_list "
-  loop: ["Integrated Dell Remote Access Controller", "BIOS"]
+  loop: ["{{ rollback_component_name_bios }}", "{{ rollback_component_name_idrac }}"]
 
 - block:
     - ansible.builtin.include_tasks: _get_firmware_inventory.yml
       vars:
-        component: "BIOS"
+        component: "{{ rollback_component_name_bios}}"
 
     - ansible.builtin.set_fact:
         rollback_to_version: "{{ previous_version }}"
@@ -35,7 +53,7 @@
     - name: Rollback an BIOS component firmware with reboot as true
         (Check mode - changes expected)
       redfish_firmware_rollback: &redfish_firmware_rollback_1
-        name: "^B.*S"
+        name: "{{ rollback_component_name_bios_regex }}"
         reboot_timeout: 3600
         timeout: 300
       register: result
@@ -63,7 +81,7 @@
 
     - ansible.builtin.include_tasks: _get_firmware_inventory.yml
       vars:
-        component: "BIOS"
+        component: "{{ rollback_component_name_bios }}"
 
     - ansible.builtin.set_fact:
         module_job_status: "{{ result.job_status | ansible.utils.remove_keys(
@@ -83,7 +101,7 @@
 
     - ansible.builtin.include_tasks: _get_firmware_inventory.yml
       vars:
-        component: "Integrated Dell Remote Access Controller"
+        component: "{{ rollback_component_name_idrac }}"
 
     - ansible.builtin.set_fact:
         rollback_to_version: "{{ previous_version }}"
@@ -93,7 +111,7 @@
     - name: Rollback an idrac component firmware with reboot as true
         (Check mode - changes expected)
       redfish_firmware_rollback: &redfish_firmware_rollback_2
-        name: "Integra.*Ac{2}es{2} Controller$"
+        name: "{{ rollback_component_name_idrac_regex }}"
         reboot_timeout: 3600
         timeout: 300
       register: result
@@ -121,7 +139,7 @@
 
     - ansible.builtin.include_tasks: _get_firmware_inventory.yml
       vars:
-        component: "Integrated Dell Remote Access Controller"
+        component: "{{ rollback_component_name_idrac }}"
 
     - ansible.builtin.set_fact:
         module_job_status: "{{ result.job_status | ansible.utils.remove_keys(
