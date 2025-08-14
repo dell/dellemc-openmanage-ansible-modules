@@ -53,3 +53,5 @@ subsystem_license_uri: "{{ base_uri }}/\
 subsystem_sensor_voltage_uri: "{{ chassis_uri }}/\
   System.Embedded.1/Power#/Voltages"
 video_uri: "{{ base_uri }}/{{ redfish_uri }}Systems/System.Embedded.1/"
+controller_battery_uri: "{{ base_uri }}/{{ redfish_uri }}\
+  Chassis/System.Embedded.1/PowerSubsystem/Oem/Dell/DellControllerBattery/"
