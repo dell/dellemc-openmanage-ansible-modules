@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 6.1.0
-# Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.12.4
+# Copyright (C) 2022-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -148,30 +148,30 @@ class TestOMEDeviceGroup(FakeAnsibleModule):
 
     def test_ome_device_group_argument_exception_case1(self, ome_default_args):
         ome_default_args.update({"name": "Storage Services", "device_ids": [25011, 25012], "group_id": 1234})
-        result = self._run_module_with_fail_json(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result["msg"] == "parameters are mutually exclusive: name|group_id"
 
     def test_ome_device_group_argument_exception_case2(self, ome_default_args):
         ome_default_args.update(
             {"device_ids": [25011, 25012], "group_id": 1234, "device_service_tags": [Constants.service_tag1]})
-        result = self._run_module_with_fail_json(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result["msg"] == "parameters are mutually exclusive: device_ids|device_service_tags|ip_addresses"
 
     def test_ome_device_group_argument_exception_case3(self, ome_default_args):
         ome_default_args.update({"device_ids": [25011, 25012]})
-        result = self._run_module_with_fail_json(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result["msg"] == "one of the following is required: name, group_id"
 
     def test_ome_device_group_argument_exception_case4(self, ome_default_args):
         ome_default_args.update(
             {"group_id": 1234})
-        result = self._run_module_with_fail_json(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result["msg"] == "one of the following is required: device_ids, device_service_tags, ip_addresses"
 
     def test_ome_device_group_argument_exception_case5(self, ome_default_args):
         ome_default_args.update(
             {"device_ids": None, "group_id": 1234, "device_service_tags": None})
-        result = self._run_module_with_fail_json(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result["msg"] == "parameters are mutually exclusive: device_ids|device_service_tags|ip_addresses"
 
     @pytest.mark.parametrize("exc_type",
@@ -189,13 +189,13 @@ class TestOMEDeviceGroup(FakeAnsibleModule):
             assert result["unreachable"] is True
         elif exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + 'get_group_id', side_effect=exc_type("exception message"))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'get_group_id',
                          side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'msg' in result
 
