@@ -1,0 +1,27 @@
+---
+- name: Fetch firmware version
+  ansible.builtin.uri:
+    url: "https://{{ lookup('env', 'IDRAC_IP') | ansible.utils.ipwrap }}:443\
+      /redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory"
+    user: "{{ lookup('env', 'IDRAC_USER') }}"
+    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: uri_data
+  ignore_errors: true
+  check_mode: false
+
+- name: Set OMSDK is required
+  ansible.builtin.set_fact:
+    cacheable: true
+    is_omsdk_required: true
+
+- name: Set OMSDK is not required
+  ansible.builtin.set_fact:
+    cacheable: true
+    is_omsdk_required: false
+  when: uri_data.status == 200

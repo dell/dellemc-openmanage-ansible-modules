@@ -58,6 +58,7 @@ SESSION_RESOURCE_COLLECTION = {
 MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
 EXPORT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ExportSystemConfiguration"
 IMPORT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ImportSystemConfiguration"
+IMPORT10_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/OemManager.ImportSystemConfiguration"
 IMPORT_PREVIEW = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ImportSystemConfigurationPreview"
 GET_IDRAC_MANAGER_ATTRIBUTES_9_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
 
@@ -408,7 +409,11 @@ class iDRACRedfishAPI(object):
         :return: json response
         """
         payload = {"ImportBuffer": import_buffer, "ShareParameters": {"Target": target}, "TimeToWait": time_to_wait}
-        response = self.invoke_request(IMPORT_URI, "POST", data=payload)
+        gen_details = self.get_server_generation
+        if gen_details[0] <= 16:
+            response = self.invoke_request(IMPORT_URI, "POST", data=payload)
+        else:
+            response = self.invoke_request(IMPORT10_URI, "POST", data=payload)
         if response.status_code == 202 and job_wait:
             task_uri = response.headers["Location"]
             response = self.wait_for_job_complete(task_uri, job_wait=job_wait)
