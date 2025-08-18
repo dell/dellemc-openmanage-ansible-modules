@@ -120,7 +120,6 @@ class TestIDRACSensorAmperageInfo(TestUtils):
                 }
             }
         }
- 
         idrac_mock.invoke_request.return_value.json_data = response
         idrac_sensor_amperage_info = IDRACSensorAmperageInfo(idrac_mock)
         result = idrac_sensor_amperage_info.get_sensor_amperage_info()
