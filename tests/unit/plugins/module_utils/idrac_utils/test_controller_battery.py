@@ -5,7 +5,7 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.module_utils.idra
 class TestIDRACControllerBatteryInfo(TestUtils):
     def test_get_controller_battery_info(self, idrac_mock):
         response = {
-                "Members": [
+            "Members": [
                 {
                     "@odata.context": "/redfish/v1/$metadata#DellControllerBattery.DellControllerBattery",
                     "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/PowerSubsystem/Oem/Dell/DellControllerBattery/Energypack.Integrated.1:RAID.Slot.7-1",

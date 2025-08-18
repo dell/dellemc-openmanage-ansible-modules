@@ -116,12 +116,11 @@ class TestIDRACSensorAmperageInfo(TestUtils):
                             "LastDay",
                             "LastWeek"
                         ],
-                        "target": "/redfish/v1/Chassis/System.Embedded.1/Sensors/SystemBoardPwrConsumption/Actions/Oem/DellOemSensor.GetHistoricalSensorReadings"
                     }
                 }
             }
         }
-                
+        
         idrac_mock.invoke_request.return_value.json_data = response
         idrac_sensor_amperage_info = IDRACSensorAmperageInfo(idrac_mock)
         result = idrac_sensor_amperage_info.get_sensor_amperage_info()

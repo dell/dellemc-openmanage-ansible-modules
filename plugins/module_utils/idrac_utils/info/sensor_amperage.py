@@ -44,7 +44,7 @@ class IDRACSensorAmperageInfo(object):
             "OK": "Healthy",
             "Unknown": "Unknown"
         }
-        
+
         health_state = sensor.get("Status", {}).get("Health", NA)
         primary_status = health_state_map.get(health_state, NA)
         output = {

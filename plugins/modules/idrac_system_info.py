@@ -164,7 +164,7 @@ def main():
                 "Sensors_Fan": "",
                 "Sensors_Intrusion": "",
                 "Sensors_Voltage": "",
-                "Sensors_Amperage":"",
+                "Sensors_Amperage": "",
                 "NIC": "",
                 "Fan": "",
                 "System": "",
