@@ -43,6 +43,10 @@
     - name: Reset raid
       ansible.builtin.include_tasks: _reset_config.yml
 
+    - name: Wait for a Minute
+      ansible.builtin.pause:
+        seconds: 60
+
     - name: Check mode - Create Raid {{ raid_type }}
       dellemc.openmanage.idrac_storage_volume: &raid_fifty
         state: "create"
