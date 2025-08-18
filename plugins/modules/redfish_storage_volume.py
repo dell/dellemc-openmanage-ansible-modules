@@ -378,9 +378,8 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import 
 from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import MANAGER_JOB_ID_URI, wait_for_redfish_reboot_job, \
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_job_uri_id, wait_for_redfish_reboot_job, \
     strip_substr_dict, wait_for_job_completion
-
 
 VOLUME_INITIALIZE_URI = "{storage_base_uri}/Volumes/{volume_id}/Actions/Volume.Initialize"
 DRIVES_URI = "{storage_base_uri}/Drives/{driver_id}"
@@ -913,12 +912,11 @@ def validate_negative_job_time_out(module):
 
 
 def is_fw_ver_greater(session_obj):
-    firm_version = session_obj.invoke_request('GET', GET_IDRAC_FIRMWARE_VER_URI)
-    version = firm_version.json_data.get('FirmwareVersion', '')
-    if LooseVersion(version) <= '3.0':
-        return False
-    else:
+    server_hw_model = IDRACInfo(session_obj).get_idrac_hw_model()
+    if server_hw_model in ['iDRAC9', 'iDRAC10'] or LooseVersion(version) > '3.0':
         return True
+    else:
+        return False
 
 
 def main():
@@ -962,6 +960,8 @@ def main():
         validate_inputs(module)
         validate_negative_job_time_out(module)
         with Redfish(module.params, req_session=True) as session_obj:
+            global MANAGER_JOB_ID_URI
+            MANAGER_JOB_ID_URI = get_job_uri_id(session_obj)
             greater_version = is_fw_ver_greater(session_obj)
             fetch_storage_resource(module, session_obj)
             controller_id = module.params.get("controller_id")
