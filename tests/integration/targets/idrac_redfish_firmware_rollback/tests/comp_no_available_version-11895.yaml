@@ -22,12 +22,12 @@
 
 - name: Set Firmware Inventory name for iDRAC10
   ansible.builtin.set_fact:
-      rollback_component_name_cpld: "CPLD.Embedded Firmware Inventory"
+    rollback_component_name_cpld: "CPLD.Embedded Firmware Inventory"
   when: generation | int >= 17
-  
+
 - name: Set Firmware Inventory name for iDRAC9
   ansible.builtin.set_fact:
-      rollback_component_name_cpld: "System CPLD"
+    rollback_component_name_cpld: "System CPLD"
   when: generation | int < 17
 
 - name: Prerequisite - component with no available version

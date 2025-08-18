@@ -22,18 +22,18 @@
 
 - name: Set Firmware Inventory name for iDRAC10
   ansible.builtin.set_fact:
-      rollback_component_name_bios: "BIOS Firmware Inventory"
-      rollback_component_name_idrac: "BMC Firmware Inventory"
-      rollback_component_name_bios_regex: "^BIOS.*Firmwa.*Inventory$"
-      rollback_component_name_idrac_regex: "^BMC.*Firmwa.*Inventory$"
+    rollback_component_name_bios: "BIOS Firmware Inventory"
+    rollback_component_name_idrac: "BMC Firmware Inventory"
+    rollback_component_name_bios_regex: "^BIOS.*Firmwa.*Inventory$"
+    rollback_component_name_idrac_regex: "^BMC.*Firmwa.*Inventory$"
   when: generation | int >= 17
-  
+
 - name: Set Firmware Inventory name for iDRAC9
   ansible.builtin.set_fact:
-      rollback_component_name_bios: "BIOS"
-      rollback_component_name_idrac: "Integrated Dell Remote Access Controller"
-      rollback_component_name_bios_regex: "^B.*S"
-      rollback_component_name_idrac_regex: "Integra.*Ac{2}es{2} Controller$"
+    rollback_component_name_bios: "BIOS"
+    rollback_component_name_idrac: "Integrated Dell Remote Access Controller"
+    rollback_component_name_bios_regex: "^B.*S"
+    rollback_component_name_idrac_regex: "Integra.*Ac{2}es{2} Controller$"
   when: generation | int < 17
 
 - ansible.builtin.include_tasks: _prereq_helper.yml

@@ -19,12 +19,12 @@
     rollback_component_name_bios_case: "bios_firmware_inventory"
     rollback_component_name_bios_invalid: "BIOS Firmware Inventory-1234567"
   when: generation | int >= 17
-  
+
 - name: Set Firmware Inventory name for iDRAC9
   ansible.builtin.set_fact:
-      rollback_component_name_bios: "BIOS"
-      rollback_component_name_bios_case: "bios"
-      rollback_component_name_bios_invalid: "BIOS-1234567"
+    rollback_component_name_bios: "BIOS"
+    rollback_component_name_bios_case: "bios"
+    rollback_component_name_bios_invalid: "BIOS-1234567"
   when: generation | int < 17
 
 - block:

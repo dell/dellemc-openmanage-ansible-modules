@@ -22,12 +22,12 @@
 
 - name: Set Firmware Inventory name for iDRAC10
   ansible.builtin.set_fact:
-      rollback_component_name_idrac: "BMC Firmware Inventory"
+    rollback_component_name_idrac: "BMC Firmware Inventory"
   when: generation | int >= 17
-  
+
 - name: Set Firmware Inventory name for iDRAC9
   ansible.builtin.set_fact:
-      rollback_component_name_idrac: "Integrated Dell Remote Access Controller"
+    rollback_component_name_idrac: "Integrated Dell Remote Access Controller"
   when: generation | int < 17
 
 - ansible.builtin.include_tasks: _prereq_helper.yml
