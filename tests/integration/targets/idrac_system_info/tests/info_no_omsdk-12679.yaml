@@ -48,6 +48,9 @@
     - name: Get controller details - no omsdk required
       ansible.builtin.include_tasks: _validate_controller.yml
 
+    - name: Get Controller Sensor details - no omsdk required
+      ansible.builtin.include_tasks: _validate_controller_sensor.yml
+
     - name: Get nic details - no omsdk required
       ansible.builtin.include_tasks: _validate_nic.yml
 
