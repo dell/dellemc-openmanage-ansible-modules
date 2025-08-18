@@ -71,13 +71,13 @@
 
     - name: Asserting TC-115431 in normal mode
       ansible.builtin.assert:
-        that: >-
-          "The boot settings operation is triggered/submitted successfully." in
-           idrac_boot_out.msg
+        that:
+          - '"The boot settings operation is triggered/submitted successfully."
+            in idrac_boot_out.msg'
       when: not ansible_check_mode and idrac_boot_out.changed
 
     - name: Asserting TC-115431 in idempotence mode
       ansible.builtin.assert:
         that:
-          - idrac_boot_out.msg == "No changes found to be applied."
+          - 'idrac_boot_out.msg == "No changes found to be applied."'
       when: not ansible_check_mode and not idrac_boot_out.changed
