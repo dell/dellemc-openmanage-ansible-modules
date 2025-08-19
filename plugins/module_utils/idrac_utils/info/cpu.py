@@ -38,7 +38,7 @@ class IDRACCpuInfo(object):
         processor = member.get("Oem", {}).get("Dell", {}).get("DellProcessor", {})
         ccs = str(int(processor.get("CurrentClockSpeedMhz", 0)) / 1000) + " GHz"
         mcs = str(int(member.get("MaxSpeedMHz", 0)) / 1000) + " GHz"
-        chars = "64-bit Capable" if member.get("InstructionSet").lower() == "x86-64" else "Unknown"
+        chars = "64-bit Capable" if str(member.get("InstructionSet", "")).lower() == "x86-64" else "Unknown"
         data = {
             "CPUFamily": processor.get("CPUFamily", NA),
             "Characteristics": chars,

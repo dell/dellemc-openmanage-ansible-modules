@@ -59,6 +59,9 @@ MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
 EXPORT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ExportSystemConfiguration"
 IMPORT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ImportSystemConfiguration"
 IMPORT_PREVIEW = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ImportSystemConfigurationPreview"
+EXPORT_URI_17 = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/OemManager.ExportSystemConfiguration"
+IMPORT_URI_17 = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/OemManager.ImportSystemConfiguration"
+IMPORT_PREVIEW_17 = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/OemManager.ImportSystemConfigurationPreview"
 GET_IDRAC_MANAGER_ATTRIBUTES_9_10 = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
 
 
@@ -94,6 +97,42 @@ class OpenURLResponse(object):
     @property
     def reason(self):
         return self.resp.reason
+
+
+def _get_scp_export_uri(generation: int) -> str:
+    if generation >= 17:
+        return EXPORT_URI_17
+    else:
+        return EXPORT_URI
+
+
+def _get_scp_import_uri(generation: int) -> str:
+    if generation >= 17:
+        return IMPORT_URI_17
+    else:
+        return IMPORT_URI
+
+
+def _get_scp_import_preview_uri(generation: int) -> str:
+    if generation >= 17:
+        return IMPORT_PREVIEW_17
+    else:
+        return IMPORT_PREVIEW
+
+
+def process_scp_target(target) -> list[str]:
+    """
+    Process the SCP target.
+    In the older SCP APIs, the target was a comma-separated string.
+    In the newer SCP APIs, which were made mandatory since 17G,
+    the target is a list of strings.
+    This function takes the target in any format and converts them to the
+    required format.
+    target can be a string or a list of strings
+    """
+    if isinstance(target, str):
+        target = target.split(",")
+    return target
 
 
 class iDRACRedfishAPI(object):
@@ -267,6 +306,38 @@ class iDRACRedfishAPI(object):
             time.sleep(30)
         return response
 
+    def form_scp_share_param(self, target, share=None):
+        """
+        A function to form the share param body for SCP import and export
+        from the target and Ansible share input dict.
+        share is Optional.
+        """
+        if share is None:
+            share = {}
+        share_param = {
+            "Target": process_scp_target(target)
+        }
+        # Mapping of API body keys to Ansible argument keys
+        scp_share_param_mappings = {
+            "IPAddress": "share_ip",
+            "ShareName": "share_name",
+            "ShareType": "share_type",
+            "FileName": "file_name",
+            "Username": "username",
+            "Password": "password",
+            "IgnoreCertificateWarning": "ignore_certificate_warning",
+            "ProxySupport": "proxy_support",
+            "ProxyType": "proxy_type",
+            "ProxyPort": "proxy_port",
+            "ProxyServer": "proxy_server",
+            "ProxyUserName": "proxy_username",
+            "ProxyPassword": "proxy_password",
+        }
+        for key, param in scp_share_param_mappings.items():
+            if share.get(param) is not None:
+                share_param[key] = share[param]
+        return share_param
+
     def export_scp(self, export_format=None, export_use=None, target=None,
                    job_wait=False, share=None, include_in_export="Default"):
         """
@@ -277,38 +348,13 @@ class iDRACRedfishAPI(object):
         :param job_wait: True or False decide whether to wait till the job completion.
         :return: exported data in requested format.
         """
+        gen_details = self.get_server_generation
+        generation = gen_details[0]
         payload = {"ExportFormat": export_format, "ExportUse": export_use,
-                   "ShareParameters": {"Target": target}}
-        if share is None:
-            share = {}
-        if share.get("share_ip") is not None:
-            payload["ShareParameters"]["IPAddress"] = share["share_ip"]
-        if share.get("share_name") is not None and share.get("share_name"):
-            payload["ShareParameters"]["ShareName"] = share["share_name"]
-        if share.get("share_type") is not None:
-            payload["ShareParameters"]["ShareType"] = share["share_type"]
-        if share.get("file_name") is not None:
-            payload["ShareParameters"]["FileName"] = share["file_name"]
-        if share.get("username") is not None:
-            payload["ShareParameters"]["Username"] = share["username"]
-        if share.get("password") is not None:
-            payload["ShareParameters"]["Password"] = share["password"]
-        if share.get("ignore_certificate_warning") is not None:
-            payload["ShareParameters"]["IgnoreCertificateWarning"] = share["ignore_certificate_warning"]
-        if share.get("proxy_support") is not None:
-            payload["ShareParameters"]["ProxySupport"] = share["proxy_support"]
-        if share.get("proxy_type") is not None:
-            payload["ShareParameters"]["ProxyType"] = share["proxy_type"]
-        if share.get("proxy_port") is not None:
-            payload["ShareParameters"]["ProxyPort"] = share["proxy_port"]
-        if share.get("proxy_server") is not None:
-            payload["ShareParameters"]["ProxyServer"] = share["proxy_server"]
-        if share.get("proxy_username") is not None:
-            payload["ShareParameters"]["ProxyUserName"] = share["proxy_username"]
-        if share.get("proxy_password") is not None:
-            payload["ShareParameters"]["ProxyPassword"] = share["proxy_password"]
+                   "ShareParameters": self.form_scp_share_param(target, share)}
         payload["IncludeInExport"] = [include_in_export]
-        response = self.invoke_request(EXPORT_URI, "POST", data=payload)
+        export_uri = _get_scp_export_uri(generation)
+        response = self.invoke_request(export_uri, "POST", data=payload)
         if response.status_code == 202 and job_wait:
             task_uri = response.headers["Location"]
             response = self.wait_for_job_complete(task_uri, job_wait=job_wait)
@@ -326,74 +372,24 @@ class iDRACRedfishAPI(object):
         :param share: dictionary which has all the share details.
         :return: json response
         """
+        gen_details = self.get_server_generation
+        generation = gen_details[0]
         payload = {"ShutdownType": shutdown_type, "EndHostPowerState": host_powerstate,
-                   "ShareParameters": {"Target": target}, "TimeToWait": time_to_wait}
+                   "ShareParameters": self.form_scp_share_param(target, share),
+                   "TimeToWait": time_to_wait}
         if import_buffer is not None:
             payload["ImportBuffer"] = import_buffer
-        if share is None:
-            share = {}
-        if share.get("share_ip") is not None:
-            payload["ShareParameters"]["IPAddress"] = share["share_ip"]
-        if share.get("share_name") is not None and share.get("share_name"):
-            payload["ShareParameters"]["ShareName"] = share["share_name"]
-        if share.get("share_type") is not None:
-            payload["ShareParameters"]["ShareType"] = share["share_type"]
-        if share.get("file_name") is not None:
-            payload["ShareParameters"]["FileName"] = share["file_name"]
-        if share.get("username") is not None:
-            payload["ShareParameters"]["Username"] = share["username"]
-        if share.get("password") is not None:
-            payload["ShareParameters"]["Password"] = share["password"]
-        if share.get("ignore_certificate_warning") is not None:
-            payload["ShareParameters"]["IgnoreCertificateWarning"] = share["ignore_certificate_warning"]
-        if share.get("proxy_support") is not None:
-            payload["ShareParameters"]["ProxySupport"] = share["proxy_support"]
-        if share.get("proxy_type") is not None:
-            payload["ShareParameters"]["ProxyType"] = share["proxy_type"]
-        if share.get("proxy_port") is not None:
-            payload["ShareParameters"]["ProxyPort"] = share["proxy_port"]
-        if share.get("proxy_server") is not None:
-            payload["ShareParameters"]["ProxyServer"] = share["proxy_server"]
-        if share.get("proxy_username") is not None:
-            payload["ShareParameters"]["ProxyUserName"] = share["proxy_username"]
-        if share.get("proxy_password") is not None:
-            payload["ShareParameters"]["ProxyPassword"] = share["proxy_password"]
-        response = self.invoke_request(IMPORT_URI, "POST", data=payload)
-        return response
+        import_uri = _get_scp_import_uri(generation)
+        return self.invoke_request(import_uri, "POST", data=payload)
 
     def import_preview(self, import_buffer=None, target=None, share=None, job_wait=False):
-        payload = {"ShareParameters": {"Target": target}}
+        gen_details = self.get_server_generation
+        generation = gen_details[0]
+        payload = {"ShareParameters": self.form_scp_share_param(target, share)}
         if import_buffer is not None:
             payload["ImportBuffer"] = import_buffer
-        if share is None:
-            share = {}
-        if share.get("share_ip") is not None:
-            payload["ShareParameters"]["IPAddress"] = share["share_ip"]
-        if share.get("share_name") is not None and share.get("share_name"):
-            payload["ShareParameters"]["ShareName"] = share["share_name"]
-        if share.get("share_type") is not None:
-            payload["ShareParameters"]["ShareType"] = share["share_type"]
-        if share.get("file_name") is not None:
-            payload["ShareParameters"]["FileName"] = share["file_name"]
-        if share.get("username") is not None:
-            payload["ShareParameters"]["Username"] = share["username"]
-        if share.get("password") is not None:
-            payload["ShareParameters"]["Password"] = share["password"]
-        if share.get("ignore_certificate_warning") is not None:
-            payload["ShareParameters"]["IgnoreCertificateWarning"] = share["ignore_certificate_warning"]
-        if share.get("proxy_support") is not None:
-            payload["ShareParameters"]["ProxySupport"] = share["proxy_support"]
-        if share.get("proxy_type") is not None:
-            payload["ShareParameters"]["ProxyType"] = share["proxy_type"]
-        if share.get("proxy_port") is not None:
-            payload["ShareParameters"]["ProxyPort"] = share["proxy_port"]
-        if share.get("proxy_server") is not None:
-            payload["ShareParameters"]["ProxyServer"] = share["proxy_server"]
-        if share.get("proxy_username") is not None:
-            payload["ShareParameters"]["ProxyUserName"] = share["proxy_username"]
-        if share.get("proxy_password") is not None:
-            payload["ShareParameters"]["ProxyPassword"] = share["proxy_password"]
-        response = self.invoke_request(IMPORT_PREVIEW, "POST", data=payload)
+        import_preview_uri = _get_scp_import_preview_uri(generation)
+        response = self.invoke_request(import_preview_uri, "POST", data=payload)
         if response.status_code == 202 and job_wait:
             task_uri = response.headers["Location"]
             response = self.wait_for_job_complete(task_uri, job_wait=job_wait)
@@ -407,8 +403,15 @@ class iDRACRedfishAPI(object):
         :param job_wait: True or False decide whether to wait till the job completion.
         :return: json response
         """
-        payload = {"ImportBuffer": import_buffer, "ShareParameters": {"Target": target}, "TimeToWait": time_to_wait}
-        response = self.invoke_request(IMPORT_URI, "POST", data=payload)
+        gen_details = self.get_server_generation
+        generation = gen_details[0]
+        payload = {
+            "ImportBuffer": import_buffer,
+            "ShareParameters": self.form_scp_share_param(target),
+            "TimeToWait": time_to_wait,
+        }
+        import_uri = _get_scp_import_uri(generation)
+        response = self.invoke_request(import_uri, "POST", data=payload)
         if response.status_code == 202 and job_wait:
             task_uri = response.headers["Location"]
             response = self.wait_for_job_complete(task_uri, job_wait=job_wait)
@@ -422,7 +425,8 @@ class iDRACRedfishAPI(object):
         :param job_wait: True or False decide whether to wait till the job completion.
         :return: json response
         """
-        payload = {"ImportBuffer": import_buffer, "ShareParameters": {"Target": target}}
+        payload = {"ImportBuffer": import_buffer,
+                   "ShareParameters": self.form_scp_share_param(target)}
         response = self.invoke_request(IMPORT_PREVIEW, "POST", data=payload)
         if response.status_code == 202 and job_wait:
             task_uri = response.headers["Location"]

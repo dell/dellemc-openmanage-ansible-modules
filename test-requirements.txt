@@ -1,8 +1,11 @@
 omsdk
-pytest
+pytest==8.3.5
 pytest-xdist
 mock
 pytest-mock
 pytest-cov
 coverage
 netaddr>=0.7.19
+xmltodict
+molecule
+molecule-plugins[podman]

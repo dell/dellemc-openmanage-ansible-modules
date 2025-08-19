@@ -81,6 +81,12 @@
     - name: Get Video details and validate - no omsdk required
       ansible.builtin.include_tasks: _validate_video.yml
 
+    - name: Get Controller battery details and validate - no omsdk required
+      ansible.builtin.include_tasks: _validate_controller_battery.yml
+
+    - name: Get Sensor amperage details and validate - no omsdk required
+      ansible.builtin.include_tasks: _validate_sensor_amperage.yml
+
 
   when:
     - not is_omsdk_required | bool

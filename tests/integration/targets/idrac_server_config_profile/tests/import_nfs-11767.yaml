@@ -1,0 +1,18 @@
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables:
+      idrac_ip, idrac_user and idrac_password.'
+  when: idrac_ip is not defined or
+    idrac_user is not defined or
+    idrac_password is not defined
+
+- name: NFS import SCP all cases.
+  ansible.builtin.include_tasks: _import_scp_no_proxy.yml
+  vars:
+    scp_label: "NFS-IMPORT"
+    scp_file_prefix: "omam_nfs"
+    scp_work_path: "{{ nfs_mount }}"
+    scp_share_name: "{{ nfs_share_name }}"
+    scp_share_user: "{{ omit }}"
+    scp_share_password: "{{ omit }}"

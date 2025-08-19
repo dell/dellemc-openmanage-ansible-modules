@@ -3,7 +3,7 @@ venv:
 	rm -rf .venv
 	python3 -m venv .venv
 	. .venv/bin/activate && \
-	pip install ansible ansible-lint \
+	pip install ansible-core>=2.19 ansible-lint \
 	-r requirements.txt \
 	-r test-requirements.txt
 

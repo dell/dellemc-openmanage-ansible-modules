@@ -1,0 +1,15 @@
+{
+        "SystemConfiguration": {
+                "Components": [
+                        {
+                                "FQDD": "BIOS.Setup.1-1",
+                                "Attributes": [
+                                        {
+                                                "Name": "BootSeqRetry",
+                                                "Value": "Disabled"
+                                        }
+                                ]
+                        }
+                ]
+        }
+}
