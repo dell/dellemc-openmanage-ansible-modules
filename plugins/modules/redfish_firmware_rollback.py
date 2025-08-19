@@ -337,7 +337,7 @@ def rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri):
         job_ids = simple_update(redfish_obj, reboot_uri, update_uri)
         track, resetting = wait_for_redfish_idrac_reset(module, redfish_obj, 900, generation)
         if not track and resetting:
-            reboot_job_status, failed = get_job_status(redfish_obj, module, job_ids, job_wait=True)
+            reboot_job_status, failed, js_job_msg = get_job_status(redfish_obj, module, job_ids, job_wait=True)
             current_job_status.extend(reboot_job_status)
             failed_cnt += failed
     return current_job_status, failed_cnt, resetting
