@@ -207,7 +207,7 @@ def main():
                 system_info_dict["Sensors_Temperature"] = IDRACSensorsTemperatureInfo(idrac).get_sensors_temperature_info()
                 system_info_dict["ControllerSensor"] = IDRACControllerSensorInfo(idrac).get_controller_sensor_info()
                 system_info_dict["ControllerBattery"] = IDRACControllerBatteryInfo(idrac).get_controller_battery_info()
-                system_info_dict["Sensors_Temperature"] = []
+
             else:
                 with iDRACConnection(module.params) as idrac:
                     idrac.get_entityjson()
