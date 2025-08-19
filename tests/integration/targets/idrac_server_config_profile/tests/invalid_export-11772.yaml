@@ -1,0 +1,155 @@
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables:
+      idrac_ip, idrac_user and idrac_password.'
+  when: idrac_ip is not defined or
+    idrac_user is not defined or
+    idrac_password is not defined
+
+- block:
+    - name: Negative - no http credentials. (export)
+      dellemc.openmanage.idrac_server_config_profile:
+        share_name: "http://{{ http_share }}{{ http_share_dir_path }}"
+        job_wait: true
+      register: invalid_without_http_credentials
+      ignore_errors: true
+
+    - name: Verify Negative - no http credentials. (export)
+      ansible.builtin.assert:
+        that:
+          - invalid_without_http_credentials.failed
+          - not invalid_without_http_credentials.changed
+          - invalid_without_http_credentials.msg == "Failed to export scp."
+
+    - name: Negative - invalid export format. (export)
+      dellemc.openmanage.idrac_server_config_profile:
+        share_name: "{{ playbook_dir }}/invalid"
+        job_wait: true
+        export_format: INVALID
+      register: invalid_export_format
+      ignore_errors: true
+
+    - name: Verify Negative - invalid export format. (export)
+      ansible.builtin.assert:
+        that:
+          - invalid_export_format.failed
+          - not invalid_export_format.changed
+          - 'invalid_export_format.msg == "value of export_format
+            must be one of: JSON, XML, got: INVALID"'
+
+    - name: Negative - invalid SCP component. (export)
+      dellemc.openmanage.idrac_server_config_profile:
+        share_name: "{{ playbook_dir }}/invalid"
+        job_wait: true
+        scp_components: "INVALID"
+        export_format: JSON
+      register: invalid_scp_component
+      ignore_errors: true
+
+    - name: Verify Negative - invalid SCP component. (export)
+      ansible.builtin.assert:
+        that:
+          - invalid_scp_component.failed
+          - not invalid_scp_component.changed
+          - 'invalid_scp_component.msg == "value of scp_components must be
+            one or more of: ALL, IDRAC, BIOS, NIC, RAID, FC, InfiniBand,
+            SupportAssist, EventFilters, System, LifecycleController, AHCI,
+            PCIeSSD. Got no match for: INVALID"'
+
+    - name: Negative - invalid CIFS credentials. (export)
+      dellemc.openmanage.idrac_server_config_profile:
+        share_name: "{{ cifs_share_name }}"
+        share_user: "{{ cifs_share_user }}_invalid"
+        share_password: "{{ cifs_share_password }}_invalid"
+        scp_components: "IDRAC"
+        job_wait: true
+        export_format: JSON
+      register: invalid_cifs_credentials
+      ignore_errors: true
+
+    - name: Verify Negative - invalid CIFS credentials. (export)
+      ansible.builtin.assert:
+        that:
+          - invalid_cifs_credentials.failed
+          - not invalid_cifs_credentials.changed
+          - 'invalid_cifs_credentials.msg in
+            ["HTTP Error 409: Conflict", "Failed to export scp."]'
+
+    - include_role: name=prepare_idrac_lifecycle_controller_status
+
+    - name: Negative - invalid nfs path. (export)
+      dellemc.openmanage.idrac_server_config_profile:
+        share_name: "{{ nfs_share_name }}/invalid"
+        job_wait: true
+      register: invalid_nfs_path
+      ignore_errors: true
+
+    - name: Verify status of tasks.
+      ansible.builtin.assert:
+        that:
+          - invalid_nfs_path.failed
+          - not invalid_nfs_path.changed
+          - 'invalid_nfs_path.msg in
+            ["HTTP Error 409: Conflict", "Failed to export scp."]'
+
+    - name: Negative - invalid HTTPs path. (export)
+      dellemc.openmanage.idrac_server_config_profile:
+        share_name: "https://{{ http_share }}/omam/invalid"
+        share_user: "{{ http_share_user }}"
+        share_password: "{{ http_share_password }}"
+        job_wait: true
+        scp_file: omam_test_scp_{{ idrac_ip }}.xml
+        export_format: XML
+      register: invalid_https_path
+      ignore_errors: true
+
+    - name: Verify Negative - invalid HTTPs path. (export)
+      ansible.builtin.assert:
+        that:
+          - invalid_https_path.failed
+          - not invalid_https_path.changed
+          - 'invalid_https_path.msg in
+            ["HTTP Error 409: Conflict", "Failed to export scp."]'
+
+    - name: Negative - unreachable host.
+      dellemc.openmanage.idrac_server_config_profile:
+        share_name: "{{ playbook_dir }}"
+        job_wait: true
+        idrac_ip: "999.999.999.999"
+      register: invalid_unreachable
+      ignore_unreachable: true
+
+    - name: Verify status of tasks.
+      ansible.builtin.assert:
+        that:
+          - invalid_unreachable.unreachable
+          - not invalid_unreachable.changed
+          - 'invalid_unreachable.msg == "<urlopen error
+            Unable to communicate with iDRAC 999.999.999.999.
+            This may be due to one of the following: Incorrect
+            username or password, unreachable iDRAC IP
+            or a failure in TLS/SSL handshake.>" or
+            invalid_unreachable.msg == "<urlopen
+            error [Errno -2] Name or service not known>"'
+
+    - name: Invalid socks4 proxy - export SCP to a HTTP share. (ALL)
+      dellemc.openmanage.idrac_server_config_profile:
+        share_name: "http://{{ http_share }}{{ http_share_dir_path }}"
+        share_user: "{{ http_share_user }}"
+        share_password: "{{ http_share_password }}"
+        job_wait: true
+        export_format: JSON
+        proxy_support: true
+        proxy_server: "{{ idrac_ip }}"
+        proxy_port: "{{ socks4_proxy_port }}"
+        proxy_type: socks4
+      register: all
+      ignore_errors: true
+
+    - name: Verify status of tasks.
+      ansible.builtin.assert:
+        that:
+          - all.failed
+          - not all.changed
+          - 'all.msg in ["HTTP Error 409: Conflict", "Failed to export scp."]'

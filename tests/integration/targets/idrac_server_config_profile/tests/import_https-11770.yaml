@@ -1,0 +1,59 @@
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  fail:
+    msg: 'Please define the following variables:
+      idrac_ip, idrac_user and idrac_password.'
+  when: idrac_ip is not defined or
+    idrac_user is not defined or
+    idrac_password is not defined
+
+- name: Import SCP https share all cases without proxy.
+  ansible.builtin.include_tasks: _import_http.yml
+  vars:
+    scp_label: "httpS-IMPORT"
+    scp_file_prefix: "omam_https"
+    scp_share_name: "https://{{ https_share_ip }}{{ https_share_dir_path }}"
+    scp_share_user: "{{ https_share_username }}"
+    scp_share_password: "{{ https_share_password }}"
+    import_http_proxy_enabled: false
+    import_http_proxy_type: "{{ omit }}"
+    import_http_proxy_server: "{{ omit }}"
+    import_http_proxy_port: "{{ omit }}"
+    import_http_proxy_username: "{{ omit }}"
+    import_http_proxy_password: "{{ omit }}"
+
+- include_role: name=prepare_idrac_lifecycle_controller_status
+
+- name: Import SCP https share all cases with SOCKS4 proxy.
+  ansible.builtin.include_tasks: _import_http.yml
+  vars:
+    scp_label: "httpS-SOCKS4_IMPORT"
+    scp_file_prefix: "omam_https"
+    scp_share_name: "https://{{ https_share_ip }}{{ https_share_dir_path }}"
+    scp_share_user: "{{ https_share_username }}"
+    scp_share_password: "{{ https_share_password }}"
+    import_http_proxy_enabled: "{{ http_proxy_enabled }}"
+    import_http_proxy_type: http
+    import_http_proxy_server: "{{ http_proxy_server }}"
+    import_http_proxy_port: "{{ http_proxy_port }}"
+    import_http_proxy_username: "{{ http_proxy_username }}"
+    import_http_proxy_password: "{{ http_proxy_password }}"
+  when: socks4_proxy_enabled == true
+
+- include_role: name=prepare_idrac_lifecycle_controller_status
+
+- name: Import SCP https share all cases with HTTP proxy with credentials.
+  ansible.builtin.include_tasks: _import_http.yml
+  vars:
+    scp_label: "httpS-ProxyHTTP_IMPORT"
+    scp_file_prefix: "omam_https"
+    scp_share_name: "https://{{ https_share_ip }}{{ https_share_dir_path }}"
+    scp_share_user: "{{ https_share_username }}"
+    scp_share_password: "{{ https_share_password }}"
+    import_https_proxy_enabled: "{{ http_proxy_enabled }}"
+    import_https_proxy_type: http
+    import_https_proxy_server: "{{ http_proxy_server }}"
+    import_https_proxy_port: "{{ http_proxy_port }}"
+    import_https_proxy_username: "{{ http_proxy_username }}"
+    import_https_proxy_password: "{{ http_proxy_password }}"
+  when: http_proxy_enabled == true

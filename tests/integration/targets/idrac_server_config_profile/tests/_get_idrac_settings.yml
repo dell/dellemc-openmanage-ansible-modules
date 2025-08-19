@@ -1,0 +1,38 @@
+---
+- name: Get iDRAC firmware version
+  ansible.builtin.uri:
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:\
+      {{idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1?\
+      $select=FirmwareVersion,Model"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    force_basic_auth: true
+    validate_certs: false
+    status_code: 200
+    headers: 'Accept=application/json'
+    return_content: true
+  register: firmware_version
+
+- name: Extract model from firmware_version
+  ansible.builtin.set_fact:
+    # model_raw: "{{ firmware_version.json.Model }}"
+    fw_raw: "{{ firmware_version.json.FirmwareVersion }}"
+
+# - name: Search for the Hardware model number in the model string
+#   ansible.builtin.set_fact:
+#     model_search: "{{ model_raw | regex_search('([0-9]+)G', '\\1') }}"
+
+- name: Extract the Hardware model number
+  ansible.builtin.set_fact:
+    hw_model: "{{ firmware_version.json.Model |\
+      regex_search('([0-9]+)G', '\\1') |\
+      first }}"
+
+- name: Check if custom_default is supported
+  ansible.builtin.set_fact:
+    custom_default_supported: "{{ (hw_model | int >= 17) or
+      fw_raw >= '7.00.00'}}"
+
+- name: Set variable facts
+  ansible.builtin.set_fact:
+    scp_oem: "{{'EID_674_Manager' if (hw_model | int < 17) else 'OemManager'}}"

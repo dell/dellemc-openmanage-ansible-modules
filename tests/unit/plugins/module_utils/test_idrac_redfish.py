@@ -17,7 +17,8 @@ __metaclass__ = type
 import pytest
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, OpenURLResponse
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, OpenURLResponse, \
+    _get_scp_import_uri, _get_scp_import_preview_uri, _get_scp_export_uri, process_scp_target
 from unittest.mock import MagicMock
 import json
 import os
@@ -50,6 +51,23 @@ SESSION_10 = "/redfish/v1/SessionService/Sessions"
 
 
 class TestIdracRedfishRest(object):
+    @pytest.mark.parametrize("target", [
+        ["tg1", ["tg1"]],
+        ["tg1,tg2", ["tg1", "tg2"]],
+        [["tg1", "tg2"], ["tg1", "tg2"]],
+        [None, None]])
+    def test_process_scp_target(self, target):
+        out = process_scp_target(target[0])
+        assert out == target[1]
+
+    @pytest.mark.parametrize("generation", [[16, "EID"], [17, "OemManager"]])
+    def test_get_scp_uris(self, generation):
+        import_uri = _get_scp_import_uri(generation[0])
+        assert generation[1] in import_uri
+        export_uri = _get_scp_export_uri(generation[0])
+        assert generation[1] in export_uri
+        import_preview_uri = _get_scp_import_preview_uri(generation[0])
+        assert generation[1] in import_preview_uri
 
     @pytest.fixture
     def mock_response(self):
