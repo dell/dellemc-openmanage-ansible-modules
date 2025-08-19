@@ -124,6 +124,10 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.\
     idrac_utils.info.controller import IDRACControllerInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
     idrac_utils.info.physical_disk import IDRACPhysicalDiskInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.\
+    idrac_utils.info.controller_battery import IDRACControllerBatteryInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.\
+    idrac_utils.info.sensor_amperage import IDRACSensorAmperageInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.basic import AnsibleModule
 from urllib.error import URLError, HTTPError
@@ -154,11 +158,13 @@ def main():
                 "iDRACNIC": "",
                 "PCIDevice": "",
                 "PowerSupply": "",
+                "ControllerBattery": "",
                 "Sensors_Temperature": "",
                 "Sensors_Battery": "",
                 "Sensors_Fan": "",
                 "Sensors_Intrusion": "",
                 "Sensors_Voltage": "",
+                "Sensors_Amperage": "",
                 "NIC": "",
                 "Fan": "",
                 "System": "",
@@ -176,6 +182,7 @@ def main():
                 system_info_dict["Sensors_Battery"] = IDRACSensorsBatteryInfo(idrac).get_sensors_battery_info()
                 system_info_dict["Sensors_Intrusion"] = IDRACSensorsIntrusionInfo(idrac).get_sensors_intrusion_info()
                 system_info_dict["Sensors_Voltage"] = IDRACSensorsVoltageInfo(idrac).get_sensors_voltage_info()
+                system_info_dict["Sensors_Amperage"] = IDRACSensorAmperageInfo(idrac).get_sensor_amperage_info()
                 system_info_dict["Sensors_Fan"] = IDRACSensorsFanInfo(idrac).get_sensors_fan_info()
                 system_info_dict["Fan"] = IDRACFanInfo(idrac).get_fan_info()
                 system_info_dict["NIC"] = IDRACNICInfo(idrac).get_nic_info()
@@ -190,6 +197,7 @@ def main():
                 system_info_dict["PCIDevice"] = IDRACPCIDeviceInfo(idrac).get_pcidevice_info()
                 system_info_dict["Controller"] = IDRACControllerInfo(idrac).get_controller_system_info()
                 system_info_dict["PhysicalDisk"] = IDRACPhysicalDiskInfo(idrac).get_physical_disk_info()
+                system_info_dict["ControllerBattery"] = IDRACControllerBatteryInfo(idrac).get_controller_battery_info()
                 system_info_dict["Sensors_Temperature"] = []
             else:
                 with iDRACConnection(module.params) as idrac:
