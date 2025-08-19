@@ -150,7 +150,7 @@ import time
 from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, RedfishAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import wait_for_redfish_reboot_job, \
-    wait_for_redfish_job_complete, strip_substr_dict, MANAGER_JOB_ID_URI_10, RESET_UNTRACK, MANAGERS_URI, RESET_SUCCESS
+    wait_for_redfish_job_complete, strip_substr_dict, MANAGER_JOB_ID_URI_10, MANAGERS_URI
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
@@ -170,6 +170,7 @@ REBOOT_FAIL = "Failed to reboot the server."
 NEGATIVE_TIMEOUT_MESSAGE = "The parameter reboot_timeout value cannot be negative or zero."
 JOB_WAIT_MSG = "Task excited after waiting for {0} seconds. Check console for firmware rollback status."
 REBOOT_COMP = ["Integrated Dell Remote Access Controller", "BMC Firmware Inventory"]
+NETWORK_COMP = ["NIC.Slot Firmware Inventory"]
 INITIAL_DELAY_17G = 240
 SESSION_RESOURCE_COLLECTION = {
     "SESSION": "/redfish/v1/SessionService/Sessions",
@@ -197,7 +198,7 @@ def get_rollback_preview_target(redfish_obj, module):
         component_compile = re.compile(r"^{0}$".format(component_name))
     except Exception:
         module.exit_json(msg=NO_CHANGES_FOUND)
-    prev_uri, reboot_uri = {}, []
+    prev_uri, reboot_uri, network_uri = {}, [], []
     for each in previous_component:
         available_comp = each["Name"]
         available_name = re.match(component_compile, available_comp)
@@ -206,21 +207,24 @@ def get_rollback_preview_target(redfish_obj, module):
         if available_name.group() in REBOOT_COMP:
             reboot_uri.append(each["@odata.id"])
             continue
+        if available_name.group() in NETWORK_COMP:
+            network_uri.append(each["@odata.id"])
+            continue
         prev_uri[each["Version"]] = each["@odata.id"]
-    if module.check_mode and (prev_uri or reboot_uri):
+    if module.check_mode and (prev_uri or reboot_uri or network_uri):
         module.exit_json(msg=CHANGES_FOUND, changed=True)
-    elif not prev_uri and not reboot_uri:
+    elif not prev_uri and not reboot_uri and not network_uri:
         module.exit_json(msg=NO_CHANGES_FOUND)
-    return list(prev_uri.values()), reboot_uri, update_uri
+    return list(prev_uri.values()), reboot_uri, update_uri, network_uri
 
 
-def get_job_status(redfish_obj, module, job_ids, job_wait=True):
+def get_job_status(redfish_obj, module, job_ids, job_wait=True, check_completion=False):
     each_status, failed_count, js_job_msg = [], 0, ""
     wait_timeout = module.params["reboot_timeout"]
     for each in job_ids:
         each_job_uri = MANAGER_JOB_ID_URI_10.format(each)
         job_resp, js_job_msg = wait_for_redfish_job_complete(redfish_obj, each_job_uri, job_wait=job_wait,
-                                                             wait_timeout=wait_timeout)
+                                                             wait_timeout=wait_timeout, check_completion=check_completion)
         if job_resp and js_job_msg:
             module.exit_json(msg=JOB_WAIT_MSG.format(wait_timeout), job_status=[strip_substr_dict(job_resp.json_data)],
                              changed=True)
@@ -253,7 +257,6 @@ def wait_for_redfish_idrac_reset(module, redfish_obj, wait_time_sec, generation,
     while wait > 0 and track_failed:
         try:
             redfish_obj.invoke_request("GET", MANAGERS_URI, api_timeout=120)
-            msg = RESET_SUCCESS
             track_failed = False
             break
         except HTTPError as err:
@@ -265,7 +268,7 @@ def wait_for_redfish_idrac_reset(module, redfish_obj, wait_time_sec, generation,
         except (URLError, Exception):
             wait, resetting = _handle_connection_error(wait, interval, resetting)
 
-    return track_failed, resetting, msg
+    return track_failed, resetting
 
 
 def _sleep_initial_delay(generation, interval):
@@ -308,10 +311,31 @@ def simple_update(redfish_obj, preview_uri, update_uri):
     return job_ids
 
 
-def rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri):
+def rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri, network_uri):
     current_job_status, failed_cnt, resetting = [], 0, False
+    staged_network_update = False
+    # In case of network URI it can be staged or direct update so we have to consider that first
+    if network_uri:
+        network_job_id = simple_update(redfish_obj, network_uri, update_uri)
+        network_job_uri = MANAGER_JOB_ID_URI_10.format(network_job_id[0])
+        job_resp, job_msg = wait_for_redfish_job_complete(redfish_obj, network_job_uri, job_wait=False)
+        job_status = job_resp.json_data
+        if job_status["JobState"] == "Running":
+            # if job status is running, it is a direct update so we have to wait for it to complete 
+            # running else continue with rollback
+            current_job_status, failed = get_job_status(redfish_obj, module, network_job_id, job_wait=True)            
+            payload = {"ResetType": "ForceRestart"}
+            job_resp_status, reset_status, reset_fail = wait_for_redfish_reboot_job(redfish_obj, SYSTEM_RESOURCE_ID,
+                                                                                payload=payload)
+            # Once reboot is triggered, check for job status to change to Completed
+            current_job_status, failed = get_job_status(redfish_obj, module, network_job_id, job_wait=True, check_completion=True)
+            failed_cnt += failed
+        else:
+            staged_network_update = True
     job_ids = simple_update(redfish_obj, preview_uri, update_uri)
-    if module.params["reboot"] and preview_uri:
+    if staged_network_update:
+        job_ids.extend(network_job_id)
+    if job_ids and module.params["reboot"] and (preview_uri or network_uri):
         payload = {"ResetType": "ForceRestart"}
         job_resp_status, reset_status, reset_fail = wait_for_redfish_reboot_job(redfish_obj, SYSTEM_RESOURCE_ID,
                                                                                 payload=payload)
@@ -326,18 +350,19 @@ def rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri):
                     module.fail_json(msg=REBOOT_FAIL)
         elif not reset_status and reset_fail:
             module.fail_json(msg=reset_fail)
-
-        current_job_status, failed = get_job_status(redfish_obj, module, job_ids, job_wait=True)
+        preview_job_status, failed = get_job_status(redfish_obj, module, job_ids, job_wait=True)
+        current_job_status.extend(preview_job_status)
         failed_cnt += failed
     if not module.params["reboot"] and preview_uri:
-        current_job_status, failed = get_job_status(redfish_obj, module, job_ids, job_wait=False)
+        preview_job_status, failed = get_job_status(redfish_obj, module, job_ids, job_wait=False)
+        current_job_status.extend(preview_job_status)
         failed_cnt += failed
     if reboot_uri:
         generation = redfish_obj.get_server_generation[0]
         job_ids = simple_update(redfish_obj, reboot_uri, update_uri)
         track, resetting = wait_for_redfish_idrac_reset(module, redfish_obj, 900, generation)
         if not track and resetting:
-            reboot_job_status, failed, js_job_msg = get_job_status(redfish_obj, module, job_ids, job_wait=True)
+            reboot_job_status, failed = get_job_status(redfish_obj, module, job_ids, job_wait=True)
             current_job_status.extend(reboot_job_status)
             failed_cnt += failed
     return current_job_status, failed_cnt, resetting
@@ -355,8 +380,8 @@ def main():
         module.fail_json(msg=NEGATIVE_TIMEOUT_MESSAGE)
     try:
         with Redfish(module.params, req_session=True) as redfish_obj:
-            preview_uri, reboot_uri, update_uri = get_rollback_preview_target(redfish_obj, module)
-            job_status, failed_count, resetting = rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri)
+            preview_uri, reboot_uri, update_uri, network_uri = get_rollback_preview_target(redfish_obj, module)
+            job_status, failed_count, resetting = rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri, network_uri)
             if not job_status or (failed_count == len(job_status)):
                 module.exit_json(msg=ROLLBACK_FAILED, status=job_status, failed=True)
             if module.params["reboot"]:
