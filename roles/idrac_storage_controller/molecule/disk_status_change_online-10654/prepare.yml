@@ -42,3 +42,4 @@
         target_disk: "{{ physicaldisks[0] }}"
         change_disk_state: 1
         ignore_errors_val: true
+

@@ -16,7 +16,8 @@
         state: "view"
       register: result_pre_req
 
-    - ansible.builtin.set_fact:
+    - name: Set the controller name
+      ansible.builtin.set_fact:
         cacheable: true
         controller_name: "{{ result_pre_req.storage_status.Message.Controller.
          keys() | select('match', 'RAID.') | first }}"

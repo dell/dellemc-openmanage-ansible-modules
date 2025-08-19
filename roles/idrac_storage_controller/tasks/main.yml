@@ -49,7 +49,7 @@
     job_wait_timeout: "{{ job_wait_timeout }}"
   register: set_controller_key_out
   delegate_to: "{{ idrac_storage_controller_task_delegate }}"
-  when:  set_controller_key is defined and set_controller_key is true and key is defined and key_id is defined and mode is undefined
+  when: set_controller_key is defined and set_controller_key is true and key is defined and key_id is defined and mode is undefined
 
 - name: Storage remove controller key configuration.
   dellemc.openmanage.idrac_redfish_storage_controller:
