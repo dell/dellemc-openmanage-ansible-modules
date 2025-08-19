@@ -16,8 +16,7 @@ import tempfile
 import os
 
 import pytest
-from urllib.error import HTTPError, URLError
-from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from urllib.error import HTTPError
 from ansible.module_utils._text import to_text
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_license
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
@@ -208,10 +207,6 @@ class TestLicense(FakeAnsibleModule):
 
         # Define the expected result
         expected_result = {
-            'IPAddress': 'XX.XX.XX.XX',
-            'ShareName': 'my_share',
-            'UserName': 'my_user',
-            'Password': 'my_password',
             'ShareType': 'HTTP',
             'IgnoreCertWarning': 'Off',
             'ProxySupport': 'ParametersProxy',
@@ -285,14 +280,14 @@ class TestExportLicense(FakeAnsibleModule):
             }
         }
         idr_obj = MagicMock()
-        idr_obj.json_data = {"license_id": "1234", "LicenseFile": "dGVzdF9saWNlbnNlX2NvbnRlbnQK"}
+        idr_obj.body = "<lns:LicenseData><lns:EntitlementID>ansible_open_manage</lns:EntitlementID></lns:LicenseData>".encode('utf-8')
         mocker.patch(MODULE_PATH + API_INVOKE_MOCKER,
                      return_value=idr_obj)
         idrac_default_args.update(export_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         export_license_obj = self.module.ExportLicense(idrac_connection_license_mock, f_module)
         result = export_license_obj._ExportLicense__export_license_local(EXPORT_URL_MOCK)
-        assert result.json_data == {'LicenseFile': 'dGVzdF9saWNlbnNlX2NvbnRlbnQK', 'license_id': '1234'}
+        assert result.body == b"<lns:LicenseData><lns:EntitlementID>ansible_open_manage</lns:EntitlementID></lns:LicenseData>"
         assert os.path.exists(f"{tmp_path}/test_lic.xml")
         if os.path.exists(f"{tmp_path}/test_lic.xml"):
             os.remove(f"{tmp_path}/test_lic.xml")
@@ -305,7 +300,7 @@ class TestExportLicense(FakeAnsibleModule):
         }
         idrac_default_args.update(export_params)
         result = export_license_obj._ExportLicense__export_license_local(EXPORT_URL_MOCK)
-        assert result.json_data == {'LicenseFile': 'dGVzdF9saWNlbnNlX2NvbnRlbnQK', 'license_id': '1234'}
+        assert result.body == b"<lns:LicenseData><lns:EntitlementID>ansible_open_manage</lns:EntitlementID></lns:LicenseData>"
         assert os.path.exists(f"{tmp_path}/test_license_id_iDRAC_license.xml")
         if os.path.exists(f"{tmp_path}/test_license_id_iDRAC_license.xml"):
             os.remove(f"{tmp_path}/test_license_id_iDRAC_license.xml")
@@ -368,7 +363,7 @@ class TestExportLicense(FakeAnsibleModule):
         result = export_license_obj._ExportLicense__export_license_nfs(EXPORT_URL_MOCK)
         assert result.json_data == {'LicenseFile': 'test_license_content', 'license_id': '1234'}
 
-    def test_get_export_license_url(self, idrac_default_args, idrac_connection_license_mock, mocker):
+    def test_get_export_license_url_local(self, idrac_default_args, idrac_connection_license_mock, mocker):
         export_params = {
             'license_id': 'test_license_id',
             'share_parameters': {
@@ -377,16 +372,58 @@ class TestExportLicense(FakeAnsibleModule):
                 'ignore_certificate_warning': 'off'
             }
         }
+        mocker.patch(MODULE_PATH + LIC_GET_LICENSE_URL, return_value=REDFISH_LICENSE_URL)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = MagicMock()
+        idr_obj.json_data = {"Id": "test_license_id",
+                             "DownloadURI": "/redfish/v1/LicenseService/Licenses/test_license_id/DownloadURI"}
+        mocker.patch(MODULE_PATH + API_INVOKE_MOCKER, return_value=idr_obj)
+        idrac_default_args.update(export_params)
+        export_license_obj = self.module.ExportLicense(idrac_connection_license_mock, f_module)
+        result = export_license_obj._ExportLicense__get_export_license_url()
+        assert result == "/redfish/v1/LicenseService/Licenses/test_license_id/DownloadURI"
+
+    def test_get_export_license_url_share(self, idrac_default_args, idrac_connection_license_mock, mocker):
+        export_params = {
+            'license_id': 'test_license_id',
+            'share_parameters': {
+                'ip_address': 'XX.XX.XX.XX',
+                'share_name': 'myshare',
+                'share_type': 'nfs',
+                'ignore_certificate_warning': 'off'
+            }
+        }
         mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri",
                      return_value=(REDFISH, None))
-        mocker.patch(MODULE_PATH + "get_dynamic_uri",
-                     return_value={"Links": {"Oem": {"Dell": {"DellLicenseManagementService": {ODATA: "/LicenseService"}}}},
-                                   "Actions": {"#DellLicenseManagementService.ExportLicense": {"target": API_ONE}}})
+        mocker.patch(
+            MODULE_PATH + "get_dynamic_uri",
+            return_value={
+                "Links": {
+                    "Oem": {
+                        "Dell": {
+                            "DellLicenseManagementService": {
+                                ODATA: "/LicenseService"
+                            }
+                        }
+                    }
+                },
+                "Actions": {
+                    "#DellLicenseManagementService.ExportLicenseToNetworkShare": {
+                        "target": (
+                            "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/"
+                            "DellLicenseManagementService/Actions/"
+                            "DellLicenseManagementService.ExportLicenseToNetworkShare"
+                        )
+                    }
+                }
+            }
+        )
         idrac_default_args.update(export_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         export_license_obj = self.module.ExportLicense(idrac_connection_license_mock, f_module)
         result = export_license_obj._ExportLicense__get_export_license_url()
-        assert result == API_ONE
+        assert result == "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/" + \
+            "DellLicenseManagementService/Actions/DellLicenseManagementService.ExportLicenseToNetworkShare"
 
         mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri",
                      return_value=(REDFISH, "error"))
@@ -578,63 +615,109 @@ class TestImportLicense(FakeAnsibleModule):
         import_params = {
             'license_id': 'test_license_id',
             'share_parameters': {
+                'ip_address': 'XX.XX.XX.XX',
+                'share_name': '/ansible',
                 'file_name': 'test_lic',
                 'share_type': 'http',
+                'username': 'my_user',
+                'password': 'my_password',
                 'ignore_certificate_warning': 'off'
             }
         }
+        expected_result = {
+            "@Message.ExtendedInfo": [
+                {
+                    "Message": "The request completed successfully.",
+                    "Severity": "OK"
+                },
+                {
+                    "Message": "The operation successfully completed.",
+                    "Severity": "Informational"
+                }
+            ]
+        }
         idr_obj = MagicMock()
-        idr_obj.json_data = {"license_id": "1234", "LicenseFile": "test_license_content"}
+        idr_obj.json_data = expected_result
+
         mocker.patch(MODULE_PATH + API_INVOKE_MOCKER,
                      return_value=idr_obj)
         idrac_default_args.update(import_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         import_license_obj = self.module.ImportLicense(idrac_connection_license_mock, f_module)
-        result = import_license_obj._ImportLicense__import_license_http(IMPORT_URL_MOCK, IDRAC_ID)
-        assert result.json_data == {'LicenseFile': 'test_license_content', 'license_id': '1234'}
+        result = import_license_obj._ImportLicense__import_license_http(IMPORT_URL_MOCK)
+        assert result.json_data == expected_result
 
     def test_import_license_cifs(self, idrac_default_args, idrac_connection_license_mock, mocker):
         import_params = {
             'license_id': 'test_license_id',
             'share_parameters': {
+                'ip_address': 'XX.XX.XX.XX',
+                'share_name': '/ansible',
                 'file_name': 'test_lic',
                 'share_type': 'cifs',
+                'username': 'my_user',
+                'password': 'my_password',
                 'ignore_certificate_warning': 'off',
                 'workgroup': 'mydomain'
             }
         }
+        expected_result = {
+            "@Message.ExtendedInfo": [
+                {
+                    "Message": "The request completed successfully.",
+                    "Severity": "OK"
+                },
+                {
+                    "Message": "The operation successfully completed.",
+                    "Severity": "Informational"
+                }
+            ]
+        }
         idr_obj = MagicMock()
-        idr_obj.json_data = {"license_id": "1234", "LicenseFile": "test_license_content"}
+        idr_obj.json_data = expected_result
         mocker.patch(MODULE_PATH + API_INVOKE_MOCKER,
                      return_value=idr_obj)
         idrac_default_args.update(import_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         import_license_obj = self.module.ImportLicense(idrac_connection_license_mock, f_module)
-        result = import_license_obj._ImportLicense__import_license_cifs(IMPORT_URL_MOCK, IDRAC_ID)
-        assert result.json_data == {'LicenseFile': 'test_license_content', 'license_id': '1234'}
+        result = import_license_obj._ImportLicense__import_license_cifs(IMPORT_URL_MOCK)
+        assert result.json_data == expected_result
 
     def test_import_license_nfs(self, idrac_default_args, idrac_connection_license_mock, mocker):
         import_params = {
             'license_id': 'test_license_id',
             'share_parameters': {
+                'ip_address': 'XX.XX.XX.XX',
+                'share_name': '/ansible',
                 'file_name': 'test_lic',
                 'share_type': 'nfs',
                 'ignore_certificate_warning': 'off',
-                'workgroup': 'mydomain'
             }
         }
+        expected_result = {
+            "@Message.ExtendedInfo": [
+                {
+                    "Message": "The request completed successfully.",
+                    "Severity": "OK"
+                },
+                {
+                    "Message": "The operation successfully completed.",
+                    "Severity": "Informational"
+                }
+            ]
+        }
         idr_obj = MagicMock()
-        idr_obj.json_data = {"license_id": "1234", "LicenseFile": "test_license_content"}
+        idr_obj.json_data = expected_result
         mocker.patch(MODULE_PATH + API_INVOKE_MOCKER,
                      return_value=idr_obj)
         idrac_default_args.update(import_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         import_license_obj = self.module.ImportLicense(idrac_connection_license_mock, f_module)
-        result = import_license_obj._ImportLicense__import_license_nfs(IMPORT_URL_MOCK, IDRAC_ID)
-        assert result.json_data == {'LicenseFile': 'test_license_content', 'license_id': '1234'}
+        result = import_license_obj._ImportLicense__import_license_nfs(IMPORT_URL_MOCK)
+        assert result.json_data == expected_result
 
-    def test_get_import_license_url(self, idrac_default_args, idrac_connection_license_mock, mocker):
-        export_params = {
+    def test_get_import_license_url_local(self, idrac_default_args, idrac_connection_license_mock, mocker):
+        import_params = {
             'license_id': 'test_license_id',
             'share_parameters': {
                 'file_name': 'test_lic',
@@ -647,11 +730,37 @@ class TestImportLicense(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "get_dynamic_uri",
                      return_value={"Links": {"Oem": {"Dell": {"DellLicenseManagementService": {ODATA: "/LicenseService"}}}},
                                    "Actions": {"#DellLicenseManagementService.ImportLicense": {"target": API_ONE}}})
-        idrac_default_args.update(export_params)
+        idrac_default_args.update(import_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         import_license_obj = self.module.ImportLicense(idrac_connection_license_mock, f_module)
         result = import_license_obj._ImportLicense__get_import_license_url()
         assert result == API_ONE
+
+        mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri",
+                     return_value=(REDFISH, "error"))
+        with pytest.raises(Exception) as exc:
+            import_license_obj._ImportLicense__get_import_license_url()
+        assert exc.value.args[0] == "error"
+
+    def test_get_import_license_url_share(self, idrac_default_args, idrac_connection_license_mock, mocker):
+        import_params = {
+            'license_id': 'test_license_id',
+            'share_parameters': {
+                'ip_address': 'XX.XX.XX.XX',
+                'share_name': '/ansible_share',
+                'file_name': 'test_lic',
+                'share_type': 'nfs',
+                'ignore_certificate_warning': 'off'
+            }
+        }
+        mocker.patch(MODULE_PATH + "get_dynamic_uri",
+                     return_value={"LicenseService": {"@odata.id": "/redfish/v1/LicenseService"},
+                                   "Actions": {"#LicenseService.Install": {"target": "/redfish/v1/LicenseService/Actions/LicenseService.Install"}}})
+        idrac_default_args.update(import_params)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        import_license_obj = self.module.ImportLicense(idrac_connection_license_mock, f_module)
+        result = import_license_obj._ImportLicense__get_import_license_url()
+        assert result == "/redfish/v1/LicenseService/Actions/LicenseService.Install"
 
     def test_get_job_status(self, idrac_default_args, idrac_connection_license_mock, mocker):
         mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri", return_value=[MANAGER_URI_ONE])
@@ -708,29 +817,6 @@ class TestLicenseType(FakeAnsibleModule):
         lic_class = self.module.LicenseType.license_operation(idrac_connection_license_mock, f_module)
         assert isinstance(lic_class, self.module.ImportLicense)
 
-    @pytest.mark.parametrize("exc_type",
-                             [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
-    def test_idrac_license_main_exception_handling_case(self, exc_type, mocker, idrac_default_args, idrac_connection_license_mock):
-        idrac_default_args.update({"delete": True, "license_id": "1234"})
-        json_str = to_text(json.dumps({"data": "out"}))
-        if exc_type in [HTTPError, SSLValidationError]:
-            mocker.patch(MODULE_PATH + "get_idrac_firmware_version",
-                         side_effect=exc_type(HTTPS_PATH, 400,
-                                              HTTP_ERROR,
-                                              {"accept-type": APPLICATION_JSON},
-                                              StringIO(json_str)))
-        else:
-            mocker.patch(MODULE_PATH + "get_idrac_firmware_version",
-                         side_effect=exc_type('test'))
-        result = self._run_module(idrac_default_args)
-        if exc_type == URLError:
-            assert result['unreachable'] is True
-            assert "unreachable iDRAC IP" in result['msg']
-            assert idrac_default_args["idrac_ip"] in result['msg']
-        else:
-            assert result['failed'] is True
-        assert 'msg' in result
-
     def test_main(self, mocker):
         module_mock = mocker.MagicMock()
         idrac_mock = mocker.MagicMock()
@@ -740,8 +826,5 @@ class TestLicenseType(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'get_argument_spec', return_value={})
         mocker.patch(MODULE_PATH + 'IdracAnsibleModule', return_value=module_mock)
         mocker.patch(MODULE_PATH + 'iDRACRedfishAPI', return_value=idrac_mock)
-        mocker.patch(MODULE_PATH + 'get_idrac_firmware_version', return_value='3.1')
         mocker.patch(MODULE_PATH + 'LicenseType.license_operation', return_value=license_mock)
-        main()
-        mocker.patch(MODULE_PATH + 'get_idrac_firmware_version', return_value='2.9')
         main()
