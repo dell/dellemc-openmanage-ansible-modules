@@ -1,0 +1,285 @@
+---
+- name: "{{ scp_label }} Get idrac data using uri for SCP import."
+  ansible.builtin.uri:
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+      /redfish/v1/Managers/iDRAC.Embedded.1"
+    method: GET
+    body: {}
+    body_format: json
+    status_code: 200
+    headers: 'Accept=application/json'
+  register: idrac_fetched_data
+
+- name: Pre-requisite - Checking iDRAC version
+  ansible.builtin.include_tasks:
+    file: ../_get_idrac_settings.yml
+
+- block:
+    - name: "{{ scp_label }} Export all components SCP"
+      dellemc.openmanage.idrac_server_config_profile:
+        command: export
+        scp_components: ["{{ item[0] }}"]
+        export_format: "{{ item[1].upper() }}"
+        scp_file: "{{ scp_file_prefix }}_{{ item[0] }}_\
+          {{ idrac_ip }}.{{ item[1] }}"
+      loop: "{{ all_comps | product(formats) | list }}"
+      loop_control:
+        label: "{{ [item[0], item[1]] }}"
+        pause: 2
+      ignore_errors: true
+      register: scp_export_bundle
+
+    - ansible.builtin.set_fact:
+        filt_exp_list: "{{ ((filt_exp_list|default([])) +
+          [item.item]) | unique }}"
+        filt_exist_comps: "{{ (filt_exist_comps + [item.item[0]]) | unique }}"
+      with_items: "{{ scp_export_bundle.results }}"
+      when: not item.failed
+
+    - name: Wait
+      ansible.builtin.pause:
+        minutes: 2
+
+    - include_role: name=prepare_idrac_lifecycle_controller_status
+
+    - name: "{{ scp_label }} Import SCP ONE by ONE from."
+      dellemc.openmanage.idrac_server_config_profile:
+        command: import
+        job_wait: true
+        scp_components: ["{{ item[0] }}"]
+        scp_file: "{{ scp_file_prefix }}_{{ item[0] }}_\
+          {{ idrac_ip }}.{{ item[1] }}"
+      loop: "{{ filt_exp_list }}"
+      loop_control:
+        label: "{{ [item[0], item[1]] }}"
+        pause: 22
+      register: scp_import_bundle
+
+    - name: "{{ scp_label }} VERIFY IMPORTED SCP ONE by ONE from."
+      ansible.builtin.assert:
+        that:
+          - item.failed == false
+          - item.msg == "Successfully imported the
+            Server Configuration Profile."
+          - 'item.scp_status.Message in [
+            "No changes were applied since the current component
+            configuration matched the requested configuration.",
+            "No configuration changes requiring a system
+            restart need to be applied."]'
+      loop: "{{ scp_import_bundle.results }}"
+
+    - ansible.builtin.pause:
+        seconds: 30
+
+    - name: "{{ scp_label }} Create a new iDRAC user on 16G"
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_test_user"
+        user_password: "#DKMS_1234%"
+      when: hw_model | int < 17
+
+    - name: "{{ scp_label }} Create a new user role on 17G and above"
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+          /redfish/v1/AccountService/Roles"
+        method: POST
+        body:
+          RoleId: "4"
+          AssignedPrivileges: ["Login"]
+        status_code: 201
+        body_format: json
+      when: hw_model | int >= 17
+
+
+    - name: "{{ scp_label }} Import ALL."
+      dellemc.openmanage.idrac_server_config_profile: &import
+        command: import
+        scp_file: "{{ scp_file_prefix }}_ALL_{{idrac_ip}}.json"
+      register: all
+
+    - name: "{{ scp_label }} Verify Changed imports."
+      ansible.builtin.assert:
+        that:
+          - all.changed
+
+    - include_role: name=prepare_idrac_lifecycle_controller_status
+
+    - name: "{{ scp_label }} Import SCP from. (Idempotency)"
+      dellemc.openmanage.idrac_server_config_profile:
+        <<: *import
+      register: idempotence
+
+    - name: "{{ scp_label }} verify status of idempotence tasks."
+      ansible.builtin.assert:
+        that:
+          - idempotence.scp_status.Message == "No changes were
+            applied since the current component configuration matched
+            the requested configuration."
+          - idempotence.msg == "Successfully imported the
+            Server Configuration Profile."
+
+    - name: "{{ scp_label }} Import SCP from. (BIOS)"
+      dellemc.openmanage.idrac_server_config_profile:
+        command: import
+        scp_components: "BIOS"
+        end_host_power_state: "Off"
+        scp_file: "{{ scp_file_prefix }}_BIOS_{{ idrac_ip }}.json"
+      register: bios
+
+    - ansible.builtin.set_fact:
+        myvar: '{{ "omam_" + now().strftime("%H%M%S") }}'
+
+    - name: "{{ scp_label }} Cause changes in idrac attributes"
+      dellemc.openmanage.idrac_attributes:
+        idrac_ip: "{{idrac_ip}}"
+        idrac_user: "{{idrac_user}}"
+        idrac_password: "{{idrac_password}}"
+        validate_certs: "{{validate_certs}}"
+        idrac_attributes:
+          SNMP.1.AgentCommunity: "{{ myvar }}"
+      register: attr_changed
+
+    - name: "{{ scp_label }} Import SCP from. (iDRAC)"
+      dellemc.openmanage.idrac_server_config_profile:
+        command: import
+        scp_components: "IDRAC"
+        scp_file: "{{ scp_file_prefix }}_IDRAC_{{ idrac_ip }}.json"
+      register: idrac
+
+    - name: "{{ scp_label }} Verify Import. (iDRAC)"
+      ansible.builtin.assert:
+        that:
+          - idrac.changed
+          - idrac.msg == "Successfully imported the
+            Server Configuration Profile."
+
+    - name: "{{ scp_label }} Cause changes in system attributes(iDRAC9 only)"
+      dellemc.openmanage.idrac_attributes:
+        idrac_ip: "{{idrac_ip}}"
+        idrac_user: "{{idrac_user}}"
+        idrac_password: "{{idrac_password}}"
+        validate_certs: "{{validate_certs}}"
+        system_attributes:
+          CustomAsset.1.Label: "{{ myvar }}"
+          CustomAsset.1.Value: "{{ myvar }}"
+      register: attr_changed
+      when: "'System' in filt_exist_comps"
+
+    - name: "{{ scp_label }} Import SCP. (System)"
+      dellemc.openmanage.idrac_server_config_profile:
+        command: import
+        scp_components: "System"
+        scp_file: "{{ scp_file_prefix }}_System_{{ idrac_ip }}.json"
+      register: system
+      when: "'System' in filt_exist_comps"
+
+    - name: "{{ scp_label }} Verify Import SCP. (System)"
+      ansible.builtin.assert:
+        that:
+          - system.changed
+          - system.msg == "Successfully imported the
+            Server Configuration Profile."
+      when: "'System' in filt_exist_comps"
+
+    - name: "{{ scp_label }} Import SCP. (NIC)"
+      dellemc.openmanage.idrac_server_config_profile:
+        command: import
+        scp_components: "NIC"
+        scp_file: "{{ scp_file_prefix }}_NIC_{{ idrac_ip }}.json"
+      register: nic
+
+    - name: "{{ scp_label }} Import SCP. (RAID)"
+      dellemc.openmanage.idrac_server_config_profile:
+        command: import
+        scp_components: RAID
+        scp_file: "{{ scp_file_prefix }}_RAID_{{ idrac_ip }}.json"
+        job_wait: false
+      register: raid
+      ignore_errors: true
+      when: "'RAID' in filt_exist_comps"
+
+    - name: Verify the raid file
+      ansible.builtin.assert:
+        that:
+          - raid.msg == "Successfully triggered the job to import
+            the Server Configuration Profile."
+      when: "'RAID' in filt_exist_comps"
+
+    - name: "{{ scp_label }} Wait for the iDRAC job to complete"
+      ansible.builtin.include_tasks: _idrac_job_wait.yml
+      vars:
+        job_id: "{{ raid.scp_status.Job.JobId }}"
+      when: "'RAID' in filt_exist_comps"
+
+    - include_role: name=prepare_idrac_lifecycle_controller_status
+
+    - name: "{{ scp_label }} verify status of tasks."
+      ansible.builtin.assert:
+        that:
+          - 'all.msg == idrac.msg == nic.msg == bios.msg ==
+            "Successfully imported the Server Configuration Profile."'
+
+  always:
+    - name: "{{ scp_label }} Delete iDRAC user on 16G if left"
+      dellemc.openmanage.idrac_user:
+        state: "absent"
+        user_name: "omam_test_user"
+      register: delete_user
+      when: hw_model | int < 17
+
+    - name: "{{ scp_label }} Delete user role on 17G and above if left"
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+          /redfish/v1/AccountService/Roles/4"
+        method: DELETE
+        status_code: 204
+      when: hw_model | int >= 17
+      ignore_errors: true
+
+    - name: "{{ scp_label }} Clean up the share"
+      ansible.builtin.file:
+        path: "{{ scp_work_path }}/{{ scp_file_prefix }}_\
+          {{ item[0] }}_{{ idrac_ip }}.{{ item[1] }}"
+        state: absent
+      loop: "{{ filt_exp_list | unique }}"
+      loop_control:
+        label: "{{ [item[0], item[1]] }}"
+        pause: 1
+      ignore_errors: true
+
+    - name: "{{ scp_label }} Reset the component variables"
+      ansible.builtin.set_fact:
+        filt_exp_list: []
+        filt_exist_comps: []
+
+  vars:
+    all_comps: '{{ (idrac_fetched_data.json.Actions.Oem
+      ["#OemManager.ImportSystemConfiguration"]["ShareParameters"]
+      ["Target@Redfish.AllowableValues"]
+      | default(["ALL", "IDRAC", "BIOS", "NIC", "RAID"]) | list)
+      + (idrac_fetched_data.json.Actions.Oem
+      ["OemManager.v1_1_0#OemManager.ImportSystemConfiguration"]
+      ["ShareParameters"]
+      ["Target@Redfish.AllowableValues"]
+      | default(["ALL", "IDRAC", "BIOS", "NIC", "RAID"]) | list) | unique }}'
+    formats: ["json", "xml"]
+    filt_exp_list: []
+    filt_exist_comps: []
+  module_defaults:
+    dellemc.openmanage.idrac_server_config_profile:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      idrac_port: "{{ idrac_port }}"
+      validate_certs: "{{ validate_certs }}"
+      share_name: "{{ scp_share_name }}"
+      share_user: "{{ scp_share_user }}"
+      share_password: "{{ scp_share_password }}"
+      job_wait: true
+      proxy_support: false
+    dellemc.openmanage.idrac_user:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      idrac_port: "{{ idrac_port }}"
+      validate_certs: "{{ validate_certs }}"

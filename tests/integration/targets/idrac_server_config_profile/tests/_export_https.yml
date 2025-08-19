@@ -1,0 +1,246 @@
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: "Please define the following variables:\
+      idrac_ip, idrac_user and idrac_password."
+  when: idrac_ip is not defined or
+    idrac_user is not defined or
+    idrac_password is not defined
+
+- name: Get data using uri
+  ansible.builtin.uri:
+    url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}\
+      /redfish/v1/Managers/iDRAC.Embedded.1"
+    method: GET
+    body: {}
+    body_format: json
+    status_code: 200
+    headers: 'Accept=application/json'
+  register: idrac_fetched_data
+
+- block:
+    - name: Set filename
+      ansible.builtin.set_fact:
+        scp_file: "omam_test_scp_{{ idrac_ip }}_all.xml"
+
+    - name: Set destination path
+      ansible.builtin.set_fact:
+        https_dest: "{{ ansible_env.PWD }}/\
+          {{ scp_file }}"
+
+    - name: Export SCP to a HTTPS share.
+      dellemc.openmanage.idrac_server_config_profile: &export
+        share_name: "https://{{ https_share_ip }}{{ https_share_dir_path }}"
+        share_user: "{{ https_share_username }}"
+        share_password: "{{ https_share_password }}"
+        job_wait: true
+        scp_file: "{{ scp_file }}"
+        export_format: XML
+      register: export_https
+
+    - name: Get exported file from HTTPS share
+      vars:
+        curl_cmd: "curl --insecure -u %s:%s -o %s %s"
+        curl_https_url:
+          "https://{{ https_share_ip | ansible.utils.ipwrap }}\
+          {{ https_share_dir_path }}/\
+          {{ export_https.scp_status.file | basename }}"
+      register: idrac_file
+      no_log: false
+      changed_when: idrac_file.rc == 0
+      failed_when: idrac_file.rc != 0
+      ansible.builtin.command: >
+        {{ curl_cmd | format(https_share_username, https_share_password,
+        https_dest, https_share_ip) }}
+
+    - name: Checking if file exists
+      ansible.builtin.stat:
+        path: "{{ https_dest }}"
+      register: http_file
+
+    - include_role: name=prepare_idrac_lifecycle_controller_status
+
+    - name: Set filename
+      ansible.builtin.set_fact:
+        scp_file: "omam_test_scp_{{ idrac_ip }}_bios.xml"
+
+    - name: Set destination path
+      ansible.builtin.set_fact:
+        https_dest: "{{ ansible_env.PWD }}/{{ scp_file }}"
+
+    - name: Export SCP to a HTTP share. (BIOS)
+      dellemc.openmanage.idrac_server_config_profile:
+        <<: *export
+        scp_components: "BIOS"
+        export_format: XML
+        scp_file: "{{ scp_file }}"
+      register: bios
+
+    - name: Get exported file from HTTPS share
+      vars:
+        curl_cmd: "curl --insecure -u %s:%s -o %s %s"
+        https_dest: "{{ ansible_env.PWD }}/{{ scp_file }}"
+        curl_https_url:
+          "https://{{ https_share_ip | ansible.utils.ipwrap }}\
+          {{ https_share_dir_path }}/{{ bios.scp_status.file | basename }}"
+      register: idrac_file
+      no_log: false
+      changed_when: idrac_file.rc == 0
+      failed_when: idrac_file.rc != 0
+      ansible.builtin.command: >
+        {{ curl_cmd | format(https_share_username, https_share_password,
+        https_dest, https_share_ip) }}
+
+    - name: Checking if file exists
+      ansible.builtin.stat:
+        path: "{{ https_dest }}"
+      register: http_file
+
+    - include_role: name=prepare_idrac_lifecycle_controller_status
+
+    - name: Set filename
+      ansible.builtin.set_fact:
+        scp_file: "omam_test_scp_{{ idrac_ip }}_nic.json"
+
+    - name: Set destination path
+      ansible.builtin.set_fact:
+        https_dest: "{{ ansible_env.PWD }}/{{ scp_file }}"
+
+    - name: Export SCP to a HTTP share. (NIC)
+      dellemc.openmanage.idrac_server_config_profile:
+        <<: *export
+        scp_components: "NIC"
+        scp_file: "{{ scp_file }}"
+        export_format: JSON
+      register: nic
+
+    - name: Get exported file from HTTPS share
+      vars:
+        curl_cmd: "curl --insecure -u %s:%s -o %s %s"
+        https_dest: "{{ ansible_env.PWD }}/{{ scp_file }}"
+        curl_https_url:
+          "https://{{ https_share_ip | ansible.utils.ipwrap }}\
+          {{ https_share_dir_path }}/{{ nic.scp_status.file | basename }}"
+      register: idrac_file
+      no_log: false
+      changed_when: idrac_file.rc == 0
+      failed_when: idrac_file.rc != 0
+      ansible.builtin.command: >
+        {{ curl_cmd | format(https_share_username, https_share_password,
+        https_dest, https_share_ip) }}
+
+    - name: Checking if file exists
+      ansible.builtin.stat:
+        path: "{{ https_dest }}"
+      register: http_file
+
+    - include_role: name=prepare_idrac_lifecycle_controller_status
+
+    - name: Set filename
+      ansible.builtin.set_fact:
+        scp_file: "omam_test_scp_{{ idrac_ip }}_nic.json"
+
+    - name: Set destination path
+      ansible.builtin.set_fact:
+        https_dest: "{{ ansible_env.PWD }}/{{ scp_file }}"
+
+    - name: Export SCP to HTTP - Extra components.
+      dellemc.openmanage.idrac_server_config_profile:
+        <<: *export
+        scp_components: "{{ extra_scp_components }}"
+        scp_file: "{{ scp_file }}"
+        export_format: JSON
+      register: extra_scp
+      when: allowed_scp_components|length > 0
+
+    - name: Get exported file from HTTPS share
+      vars:
+        curl_cmd: "curl --insecure -u %s:%s -o %s %s"
+        https_dest: "{{ ansible_env.PWD }}/{{ scp_file }}"
+        curl_https_url:
+          "https://{{ https_share_ip | ansible.utils.ipwrap }}\
+          {{ https_share_dir_path }}/{{ extra_scp.scp_status.file | basename }}"
+      register: idrac_file
+      no_log: false
+      changed_when: idrac_file.rc == 0
+      failed_when: idrac_file.rc != 0
+      ansible.builtin.command: >
+        {{ curl_cmd | format(https_share_username, https_share_password,
+        https_dest, https_share_ip) }}
+
+    - name: Checking if file exists
+      ansible.builtin.stat:
+        path: "{{ https_dest }}"
+      register: http_file
+
+    - include_role: name=prepare_idrac_lifecycle_controller_status
+
+    - name: Set filename
+      ansible.builtin.set_fact:
+        scp_file: "omam_test_scp_{{ idrac_ip }}_raid_lifecycle_controller.xml"
+
+    - name: Set destination path
+      ansible.builtin.set_fact:
+        https_dest: "{{ ansible_env.PWD }}/{{ scp_file }}"
+
+    - name: Export SCP to a HTTP share. (RAID)
+      dellemc.openmanage.idrac_server_config_profile:
+        <<: *export
+        scp_components: ["RAID", "LifecycleController"]
+        job_wait: false
+        scp_file: "{{ scp_file }}"
+      register: raid
+
+    - name: Wait for the iDRAC job to complete
+      ansible.builtin.include_tasks: _idrac_job_wait.yml
+      vars:
+        job_id: "{{ raid.scp_status.Job.JobId }}"
+      when: not raid.failed
+
+    - name: Get exported file from HTTPS share
+      vars:
+        curl_cmd: "curl --insecure -u %s:%s -o %s %s"
+        https_dest: "{{ ansible_env.PWD }}/{{ scp_file }}"
+        curl_https_url:
+          "https://{{ https_share_ip | ansible.utils.ipwrap }}\
+          {{ https_share_dir_path }}/{{ raid.scp_status.file | basename }}"
+      register: idrac_file
+      no_log: false
+      changed_when: idrac_file.rc == 0
+      failed_when: idrac_file.rc != 0
+      ansible.builtin.command: >
+        {{ curl_cmd | format(https_share_username, https_share_password,
+        https_dest, https_share_ip) }}
+
+    - name: Checking if file exists
+      ansible.builtin.stat:
+        path: "{{ https_dest }}"
+      register: http_file
+
+    - include_role: name=prepare_idrac_lifecycle_controller_status
+
+  vars:
+    idrac_datetime: "{{ idrac_fetched_data.json.DateTime }}"
+    idrac_datetime_offset: "{{ idrac_fetched_data.json.DateTimeLocalOffset }}"
+    allowed_scp_components: "{{ idrac_fetched_data.json.Actions.Oem\
+      ['#OemManager.ExportSystemConfiguration']['ShareParameters']\
+      ['Target@Redfish.AllowableValues'] | default([]) | list |\
+      ansible.builtin.intersect(extra_scp_components) }}"
+  module_defaults:
+    dellemc.openmanage.idrac_server_config_profile:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      idrac_port: "{{ idrac_port }}"
+      validate_certs: "{{ validate_certs }}"
+      proxy_support: "{{ export_https_proxy_enabled }}"
+      proxy_server: "{{ export_https_proxy_server }}"
+      proxy_port: "{{ export_https_proxy_port }}"
+      proxy_username: "{{ export_https_proxy_username }}"
+      proxy_password: "{{ export_https_proxy_password }}"
+      proxy_type: "{{ export_https_proxy_type }}"
+    ansible.builtin.get_url:
+      url_username: "{{ https_share_username }}"
+      url_password: "{{ https_share_password }}"
+      force_basic_auth: true
+      validate_certs: false
