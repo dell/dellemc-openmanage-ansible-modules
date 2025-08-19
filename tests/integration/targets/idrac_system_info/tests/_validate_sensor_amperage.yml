@@ -27,21 +27,32 @@
 
 - name: Output conversion to list
   ansible.builtin.set_fact:
-    sensor_amperage_updated_dict: "{{ sensor_amperage_updated_dict.stdout | from_yaml }}"
+    sensor_amperage_updated_dict: >
+      {{
+        sensor_amperage_updated_dict.stdout
+        | from_yaml
+      }}
   when:
     - uri_data.status == 200
 
-- name: Comparing values inside list for Sensor Amperage
+- name: Compare Sensor Amperage values
   ansible.builtin.include_tasks:
     file: _compare_diff.yml
   vars:
     _before: "{{ item.0 | dict2items | items2dict }}"
     _after: "{{ item.1 | dict2items | items2dict }}"
   when: uri_data.status == 200
-  loop: >-
+  loop: >
     {{
-    result.system_info.Sensors_Amperage
-    | sort(attribute='DeviceID')
-    | zip(result.system_info.Sensors_Amperage | sort(attribute='DeviceID'))
-    | list
+      result.system_info.Sensors_Amperage
+      | sort(
+        attribute='DeviceID'
+      )
+      | zip(
+        result.system_info.Sensors_Amperage
+        | sort(
+          attribute='DeviceID'
+        )
+      )
+      | list
     }}
