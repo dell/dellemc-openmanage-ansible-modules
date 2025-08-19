@@ -1,0 +1,179 @@
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables:
+      idrac_ip, idrac_user and idrac_password.'
+  when: idrac_ip is not defined or
+    idrac_user is not defined or
+    idrac_password is not defined
+
+- block:
+    - name: Ensure invalid path in shares
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - "{{ nfs_share_mnt }}/invalid"
+        - "{{ playbook_dir }}/invalid"
+        - "{{ cifs_share_mnt }}/invalid"
+      ignore_errors: true
+
+    - name: Negative - invalid scp file name preview nfs. (preview)
+      dellemc.openmanage.idrac_server_config_profile:
+        command: "preview"
+        share_name: "{{ nfs_share_name }}"
+        scp_file: "invalid.xml"
+        job_wait: true
+      register: invalid_nfs_preview_file
+      ignore_errors: true
+
+    - name: Verify Negative - invalid scp file name preview nfs. (preview)
+      ansible.builtin.assert:
+        that:
+          - invalid_nfs_preview_file.failed
+          - invalid_nfs_preview_file.msg == "Failed to preview scp."
+          - not invalid_nfs_preview_file.changed
+          - 'invalid_nfs_preview_file.status_msg.Message == "Unable
+            to perform the preview as the specified file does not exist on the
+            remote share." or invalid_nfs_preview_file.status_msg.Message ==
+            "Unable to retrieve the Server Configuration Profile
+            from the network share for preview."'
+
+    - name: Wait for LC to be ready
+      dellemc.openmanage.idrac_lifecycle_controller_status_info: &params
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_port: "{{ idrac_port }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs }}"
+      register: result_lc
+      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 100
+      delay: 30
+
+    - name: Pause
+      ansible.builtin.pause:
+        seconds: 60
+
+    - name: Negative - invalid scp file name preview cifs. (preview)
+      dellemc.openmanage.idrac_server_config_profile:
+        command: "preview"
+        share_name: "{{ cifs_share_name }}\\invalid"
+        share_user: "{{ cifs_share_user }}"
+        share_password: "{{ cifs_share_password }}"
+        scp_file: "invalid_file_name.xml"
+        job_wait: true
+      register: invalid_cifs_preview_file
+      ignore_errors: true
+
+    - name: Verify Negative - invalid scp file name preview cifs. (preview)
+      ansible.builtin.assert:
+        that:
+          - invalid_cifs_preview_file.failed
+          - invalid_cifs_preview_file.msg == "Failed to preview scp."
+          - not invalid_cifs_preview_file.changed
+          - invalid_cifs_preview_file.status_msg.Message == "Unable to
+            retrieve the Server Configuration Profile from the network
+            share for preview."
+
+    - name: Wait for LC to be ready
+      dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        <<: *params
+      register: result_lc
+      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 100
+      delay: 30
+
+    - name: Pause
+      ansible.builtin.pause:
+        seconds: 60
+
+    - name: Negative - invalid scp file name preview http. (preview)
+      dellemc.openmanage.idrac_server_config_profile:
+        command: "preview"
+        share_name: "http://{{ http_share }}{{ http_share_dir_path }}"
+        scp_file: "invalid.xml"
+        job_wait: true
+      register: invalid_http_preview_file
+      ignore_errors: true
+
+    - name: Verify Negative - invalid scp file name preview http. (preview)
+      ansible.builtin.assert:
+        that:
+          - invalid_http_preview_file.failed
+          - invalid_http_preview_file.msg == "Failed to preview scp."
+          - not invalid_http_preview_file.changed
+          - invalid_http_preview_file.status_msg.Message == "Unable to
+            retrieve the Server Configuration Profile from the network
+            share for preview."
+
+    - name: Wait for LC to be ready
+      dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        <<: *params
+      register: result_lc
+      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 100
+      delay: 30
+
+    - name: Pause
+      ansible.builtin.pause:
+        seconds: 60
+
+    - name: Negative - invalid scp file name preview https. (preview)
+      dellemc.openmanage.idrac_server_config_profile:
+        command: "preview"
+        share_name: "https://{{ https_share_ip }}{{ https_share_dir_path }}"
+        scp_file: "invalid.xml"
+        job_wait: true
+      register: invalid_https_preview_file
+      ignore_errors: true
+
+    - name: Verify Negative - invalid scp file name preview https (preview)
+      ansible.builtin.assert:
+        that:
+          - invalid_https_preview_file.failed
+          - invalid_https_preview_file.msg == "Failed to preview scp."
+          - not invalid_https_preview_file.changed
+          - invalid_https_preview_file.status_msg.Message == "Unable to
+            retrieve the Server Configuration Profile from the
+            network share for preview."
+
+    - name: Wait for LC to be ready
+      dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        <<: *params
+      register: result_lc
+      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 100
+      delay: 30
+
+    - name: Pause
+      ansible.builtin.pause:
+        seconds: 60
+
+    - name: Negative - invalid local path preview. (preview)
+      dellemc.openmanage.idrac_server_config_profile:
+        command: "preview"
+        share_name: "{{ playbook_dir }}/invalid"
+        scp_file: "invalid.xml"
+        job_wait: true
+      register: invalid_local_path_preview
+      ignore_errors: true
+
+    - name: Verify Negative - invalid local path. (preview)
+      ansible.builtin.assert:
+        that:
+          - invalid_local_path_preview.failed
+          - not invalid_local_path_preview.changed
+          - invalid_local_path_preview.msg == "Invalid file path provided."
+
+    - name: Wait for LC to be ready
+      dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        <<: *params
+      register: result_lc
+      until: result_lc.lc_status_info.LCStatus == 'Ready'
+      retries: 100
+      delay: 30
+
+    - name: Pause
+      ansible.builtin.pause:
+        seconds: 60
