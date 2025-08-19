@@ -30,4 +30,3 @@ def map_controller_battery_data(battery):
 
 controller_battery_output = json.loads(controller_battery_api_output)
 output = [map_controller_battery_data(controller_battery) for controller_battery in controller_battery_output.get("Members", [])]
-print(output)

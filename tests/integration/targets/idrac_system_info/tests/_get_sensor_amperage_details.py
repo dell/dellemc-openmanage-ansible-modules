@@ -34,4 +34,3 @@ def map_sensor_amperage_data(sensor):
 
 sensor_amperage_output = json.loads(sensor_amperage_api_output)
 output = [map_sensor_amperage_data(sensor_amperage) for sensor_amperage in sensor_amperage_output.get("Members", [])]
-print(output)
