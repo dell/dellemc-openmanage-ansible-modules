@@ -237,6 +237,7 @@ Notes
    - This module does not support :literal:`check\_mode`.
    - When :emphasis:`share\_type` is :literal:`local` for :emphasis:`import` and :emphasis:`export` operations, job\_details are not displayed.
    - Due to API limitation, proxy parameters are ignored during the :emphasis:`import` operation.
+   - Due to API limitation, exporting the license to NFS share is not supported.
 
 
 
@@ -260,20 +261,6 @@ Examples
           share_type: "local"
           share_name: "/path/to/share"
           file_name: "license_file"
-
-    - name: Export a license from iDRAC to NFS share
-      dellemc.openmanage.idrac_license:
-        idrac_ip: "192.168.0.1"
-        idrac_user: "username"
-        idrac_password: "password"
-        ca_path: "/path/to/ca_cert.pem"
-        license_id: "LICENSE_123"
-        export: true
-        share_parameters:
-          share_type: "nfs"
-          share_name: "/path/to/share"
-          file_name: "license_file"
-          ip_address: "192.168.0.1"
 
     - name: Export a license from iDRAC to CIFS share
       dellemc.openmanage.idrac_license:
