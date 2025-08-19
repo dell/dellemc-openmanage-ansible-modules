@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.12.4
 # Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -214,7 +214,7 @@ def get_directory(module, rest_obj):
     value = user_dir_name if user_dir_name is not None else user_dir_id
     dir_id = None
     if user_dir_name is None and user_dir_id is None:
-        module.fail_json(msg="missing required arguments: directory_name or directory_id")
+        module.exit_json(msg="missing required arguments: directory_name or directory_id", failed=True)
     URI = GET_AD_ACC if module.params.get("directory_type") == "AD" else GET_LDAP_ACC
     directory_resp = rest_obj.invoke_request("GET", URI)
     for dire in directory_resp.json_data["value"]:
@@ -225,8 +225,8 @@ def get_directory(module, rest_obj):
             dir_id = dire["Id"]
             break
     else:
-        module.fail_json(msg="Unable to complete the operation because the entered "
-                             "directory {0} '{1}' does not exist.".format(key, value))
+        module.exit_json(msg="Unable to complete the operation because the entered "
+                             "directory {0} '{1}' does not exist.".format(key, value), failed=True)
     return dir_id
 
 
@@ -245,13 +245,13 @@ def search_directory(module, rest_obj, dir_id):
                 common_name = key["CommonName"]
                 break
         else:
-            module.fail_json(msg="Unable to complete the operation because the entered "
-                                 "group name '{0}' does not exist.".format(group_name))
+            module.exit_json(msg="Unable to complete the operation because the entered "
+                                 "group name '{0}' does not exist.".format(group_name), failed=True)
     except HTTPError as err:
         error = json.load(err)
         if error['error']['@Message.ExtendedInfo'][0]['MessageId'] in ["CGEN1004", "CSEC5022"]:
-            module.fail_json(msg="Unable to complete the operation because the entered "
-                                 "domain username or domain password are invalid.")
+            module.exit_json(msg="Unable to complete the operation because the entered "
+                                 "domain username or domain password are invalid.", failed=True)
     return obj_gui_id, common_name
 
 
@@ -284,14 +284,14 @@ def directory_user(module, rest_obj):
             domain_resp = rest_obj.invoke_request("PUT", update_uri, data=payload)
             local_msg, msg = 'update', 'updated'
     if domain_resp is None:
-        module.fail_json(msg="Unable to {0} the domain user group.".format(local_msg))
+        module.exit_json(msg="Unable to {0} the domain user group.".format(local_msg), failed=True)
     return domain_resp.json_data, msg
 
 
 def get_role(module, rest_obj):
     role_name, role_id = module.params.get("role"), None
     if role_name is None:
-        module.fail_json(msg="missing required arguments: role")
+        module.exit_json(msg="missing required arguments: role", failed=True)
     resp_role = rest_obj.invoke_request("GET", ROLE_URI)
     role_list = resp_role.json_data["value"]
     for role in role_list:
@@ -299,8 +299,8 @@ def get_role(module, rest_obj):
             role_id = int(role["Id"])
             break
     else:
-        module.fail_json(msg="Unable to complete the operation because the entered "
-                             "role name '{0}' does not exist.".format(role_name))
+        module.exit_json(msg="Unable to complete the operation because the entered "
+                             "role name '{0}' does not exist.".format(role_name), failed=True)
     return role_id
 
 
@@ -308,7 +308,7 @@ def get_directory_user(module, rest_obj):
     user_group_name, user = module.params.get("group_name"), None
     state = module.params["state"]
     if user_group_name is None:
-        module.fail_json(msg="missing required arguments: group_name")
+        module.exit_json(msg="missing required arguments: group_name", failed=True)
     user_resp = rest_obj.invoke_request('GET', ACCOUNT_URI)
     for usr in user_resp.json_data["value"]:
         if usr["UserName"].lower() == user_group_name.lower() and usr["UserTypeId"] == 2:
@@ -366,11 +366,11 @@ def main():
                 user = rest_obj.strip_substr_dict(user)
                 module.exit_json(msg=msg, changed=changed, domain_user_status=user)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
