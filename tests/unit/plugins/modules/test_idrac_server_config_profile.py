@@ -378,6 +378,7 @@ class TestServerConfigProfile(FakeAnsibleModule):
         ("7.00.00", True, 16),
         ("6.99.99", False, 16),
         ("5.99.99", False, 16),
+        ("7.00.00", True, 17),
     ])
     def test_is_check_idrac_latest(self, firmware_version, expected_result, generation):
         assert idrac_server_config_profile.is_check_idrac_latest(firmware_version, generation) == expected_result
