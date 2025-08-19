@@ -1,3 +1,4 @@
+---
 - name: Fetch thermal temperature list
   ansible.builtin.uri:
     url: "{{ thermal_uri }}"
@@ -59,7 +60,8 @@
 
 - name: Output conversion to list
   ansible.builtin.set_fact:
-    temp_sensor_updated_dict: "{{ temp_sensor_updated_dict.stdout | from_yaml }}"
+    temp_sensor_updated_dict: "{{ temp_sensor_updated_dict.stdout
+                              | from_yaml }}"
   when:
     - thermal_temp_data.status == 200
 

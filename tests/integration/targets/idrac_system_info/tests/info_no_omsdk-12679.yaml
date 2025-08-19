@@ -1,5 +1,5 @@
 # Test code for the Dell OpenManage modules
-# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -89,6 +89,9 @@
 
     - name: Get Sensors temperature details - no omsdk required
       ansible.builtin.include_tasks: _validate_sensors_temperature.yml
+
+    - name: Get System metrics details - no omsdk required
+      ansible.builtin.include_tasks: _validate_system_metrics.yml
 
   when:
     - not is_omsdk_required | bool

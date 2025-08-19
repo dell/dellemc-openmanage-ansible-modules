@@ -1,3 +1,4 @@
+---
 - name: Fetch thermal fan list
   ansible.builtin.uri:
     url: "{{ thermal_uri }}"
@@ -35,7 +36,8 @@
     fan_sensor_map: "{{ dict(
                         fan_sensor_results.results
                         | map(attribute='item.FanName')
-                        | zip(fan_sensor_results.results | map(attribute='json'))
+                        | zip(fan_sensor_results.results
+                        | map(attribute='json'))
                       ) }}"
 
 - name: Run fan helper script

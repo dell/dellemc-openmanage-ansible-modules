@@ -113,6 +113,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.inf
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.subsystem import IDRACSubsystemInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.sensors_temperature import IDRACSensorsTemperatureInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.controller_sensor import IDRACControllerSensorInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.system_metrics import IDRACSystemMetricsInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
     idrac_utils.info.license import IDRACLicenseInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
@@ -165,6 +166,7 @@ def main():
                 "NIC": "",
                 "Fan": "",
                 "System": "",
+                "SystemMetrics": "",
                 "Subsystem": "",
                 "Controller": "",
                 "ControllerSensor": "",
@@ -184,6 +186,7 @@ def main():
                 system_info_dict["Fan"] = IDRACFanInfo(idrac).get_fan_info()
                 system_info_dict["NIC"] = IDRACNICInfo(idrac).get_nic_info()
                 system_info_dict["System"] = IDRACSystemInfo(idrac).get_system_info()
+                system_info_dict["SystemMetrics"] = IDRACSystemMetricsInfo(idrac).get_system_metrics_info()
                 system_info_dict["Video"] = IDRACVideoInfo(idrac).get_idrac_video_details()
                 system_info_dict["Subsystem"] = IDRACSubsystemInfo(idrac).get_subsystem_info()
                 system_info_dict["License"] = IDRACLicenseInfo(idrac).get_license_info()

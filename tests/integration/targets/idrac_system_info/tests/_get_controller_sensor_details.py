@@ -8,7 +8,7 @@ NA = "Not Available"
 def get_controller_data(resp):
     output = {
         "FQDD": resp.get("@odata.id", "").rstrip("/").rsplit("/", 1)[-1],
-        "Key": resp.get("@odata.id", "").rstrip("/").rsplit("/", 1)[-1] 
+        "Key": resp.get("@odata.id", "").rstrip("/").rsplit("/", 1)[-1]
     }
     return output
 
