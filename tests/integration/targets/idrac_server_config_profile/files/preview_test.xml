@@ -1,0 +1,1 @@
+<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='SNMP.1#AgentCommunity'>public123</Attribute><Attribute Name='SNMP.1#DiscoveryPort'>163</Attribute></Component></SystemConfiguration>

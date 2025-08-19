@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
-
-#
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
-
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-#
+# Version 9.13.0
+# Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import (absolute_import, division, print_function)
 
@@ -22,6 +19,7 @@ from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_profile
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
+from unittest.mock import MagicMock
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.ome_profile.'
 CHANGES_MSG = "Changes found to be applied."
@@ -198,10 +196,40 @@ class TestOmeProfile(FakeAnsibleModule):
     def test_attributes_check(self, params, ome_connection_mock_for_profile, ome_response_mock):
         ome_response_mock.success = params.get("success", True)
         ome_response_mock.json_data = params["json_data"]
-        f_module = self.get_module_mock(params=params["mparams"])
-        result = self.module.attributes_check(f_module, ome_connection_mock_for_profile,
+        self.get_module_mock(params=params["mparams"])
+        result = self.module.attributes_check(ome_connection_mock_for_profile,
                                               params['mparams']['attributes'], 123)
         assert result == params["diff"]
+
+    @pytest.mark.parametrize("inp_attr, attr_groups, attr_map, expected_diff", [
+        (
+            {"Attributes": [{"Id": 1, "Value": "val1", "IsIgnored": False}]},
+            [{"Attributes": [{"AttributeId": 1, "Value": "val1", "IsIgnored": False}]}],
+            {1: {"Value": "val1", "IsIgnored": False}},
+            0
+        ),
+        (
+            {"Attributes": [{"Id": 1, "Value": "val2", "IsIgnored": False}]},
+            [{"Attributes": [{"AttributeId": 1, "Value": "val1", "IsIgnored": False}]}],
+            {1: {"Value": "val1", "IsIgnored": False}},
+            1
+        ),
+        (
+            {"Attributes": [{"Id": 2, "Value": "val1", "IsIgnored": False}]},
+            [{"Attributes": [{"AttributeId": 1, "Value": "val1", "IsIgnored": False}]}],
+            {},
+            0  # Removed due to missing mapping
+        ),
+    ])
+    def test_attributes_check_diff(self, mocker, inp_attr, attr_groups, attr_map, expected_diff):
+        rest_obj = MagicMock()
+        rest_obj.invoke_request.return_value.json_data = {"AttributeGroups": attr_groups}
+
+        mocker.patch(MODULE_PATH + "normalize_display_names", return_value=inp_attr["Attributes"])
+        mocker.patch(MODULE_PATH + "get_subattr_all", return_value=({}, attr_map))
+
+        diff = self.module.attributes_check(rest_obj, inp_attr, profile_id=123)
+        assert diff == expected_diff
 
     @pytest.mark.parametrize("params", [{"mparams": {"command": 'create'}, "func": "create_profile"},
                                         {"mparams": {"command": 'modify'}, "func": "modify_profile"},
@@ -352,10 +380,6 @@ class TestOmeProfile(FakeAnsibleModule):
         assert err.value.args[0] == error_message
 
     @pytest.mark.parametrize("params", [
-        {"mparams": {"command": "assign", "name": "profile"}, "success": True,
-         "prof": {"Id": 123, "ProfileState": 1, "TargetName": "ABC1234"}, "json_data": 0,
-         "res": "The profile is assigned to a different target. Unassign the profile and then proceed with assigning the"
-                " profile to the target."},
         {"mparams": {"command": "assign", "name": "profile"}, "success": True, "prof": {},
          "json_data": 0, "res": "Profile with the name 'profile' not found."},
         {"mparams": {"command": "assign", "name": "profile", "device_id": 234}, "success": True,
@@ -369,14 +393,14 @@ class TestOmeProfile(FakeAnsibleModule):
                      "attributes": {"Attributes": [{"Id": 4506, "Value": "server attr 1", "IsIgnored": True}]}},
          "success": True,
          "prof": {"Id": 123, "ProfileState": 0}, "target": {"Id": 234, "Name": "mytarget"}, "json_data": [23, 123],
-         "res": "Successfully applied the assign operation."},
+         "res": "Successfully applied the assign operation. No job was triggered."},
         {"mparams": {"command": "assign", "name": "profile", "device_service_tag": "ABCDEFG",
                      "boot_to_network_iso": {"boot_to_network": True, "share_type": "NFS", "share_ip": "XX.XX.XX.XX",
                                              "iso_path": "path/to/my_iso.iso",
                                              "iso_timeout": 8},
                      "attributes": {"Attributes": [{"Id": 4506, "Value": "server attr 1", "IsIgnored": True}]}},
          "success": True, "prof": {"Id": 123, "ProfileState": 0}, "target": {"Id": 234, "Name": "mytarget"},
-         "json_data": [23, 123], "res": "Successfully applied the assign operation."},
+         "json_data": [23, 123], "res": "Successfully applied the assign operation. No job was triggered."},
         {"mparams": {"command": "assign", "name": "profile", "device_id": 234,
                      "boot_to_network_iso": {"boot_to_network": True, "share_type": "NFS", "share_ip": "XX.XX.XX.XX",
                                              "iso_path": "path/to/my_iso.iso",
@@ -464,7 +488,7 @@ class TestOmeProfile(FakeAnsibleModule):
         {"mparams": {"command": "unassign", "name": "profile"}, "success": True,
          "prof": {"Id": 12, "ProfileState": 4, "DeploymentTaskId": 123},
          "json_data": {"LastRunStatus": {"Name": "Starting"}},
-         "res": "Successfully triggered a job for the unassign operation."},
+         "res": "Successfully triggered the job for the unassign operation."},
         {"mparams": {"command": "unassign", "name": "profile"}, "success": True,
          "prof": {"Id": 12, "ProfileState": 4, "DeploymentTaskId": 123},
          "json_data": {"LastRunStatus": {"Name": "Starting"}}, "check_mode": True,
@@ -536,12 +560,66 @@ class TestOmeProfile(FakeAnsibleModule):
             assert result["unreachable"] is True
         elif exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + 'profile_operation', side_effect=exc_type("exception message"))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'profile_operation',
                          side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'msg' in result
+
+    @pytest.mark.parametrize("params", [{"mparams": {"filters": {"ProfileIds": [123]}},
+                                         "res": {"Id": 123, "ProfileName": "Test Profile"}}])
+    def test_ome_profile_get_with_profile_id(self, params, ome_connection_mock_for_profile):
+        f_module = self.get_module_mock(params=params["mparams"])
+        ome_connection_mock_for_profile.invoke_request.return_value.json_data = params["res"]
+        result = self.module.get_profile(ome_connection_mock_for_profile, f_module)
+        assert result == params["res"]
+
+    @pytest.mark.parametrize("params", [{"mparams": {"filters": {"Filters": "=contains(ProfileName,'Test Profile01')"}},
+                                         "res": {"value": [{"Id": 123, "ProfileName": "Test Profile01"}]}}])
+    def test_ome_profile_get_with_profile_name_in_filters(self, params, ome_connection_mock_for_profile):
+        f_module = self.get_module_mock(params=params["mparams"])
+        ome_connection_mock_for_profile.invoke_request.return_value.json_data = params["res"]
+        result = self.module.get_profile(ome_connection_mock_for_profile, f_module)
+        assert result is None
+
+    def test_handle_post_assignment_http_error(self, mocker, ome_default_args, ome_connection_mock_for_profile, ome_response_mock):
+        ome_default_args.update({"template_name": "t1"})
+        ome_response_mock.status_code = 400
+
+        mocker.patch(MODULE_PATH + 'get_profile', side_effect=HTTPError('https://testhost.com', 400, 'http error message', {}, None))
+        mocker.patch(MODULE_PATH + 'time.sleep', return_value=None)
+        self.module.handle_post_assignment(ome_connection_mock_for_profile, ome_response_mock, "AssignProfile")
+        result = self._run_module(ome_default_args)
+        assert result['failed'] is True
+
+    @pytest.mark.parametrize("params",
+                             [{"mparams": {"device_id": 123}, "success": True,
+                               "json_data": {"data": "some_response"}}])
+    def test_get_target_details_not_found(self, params, ome_connection_mock_for_profile, mocker):
+        f_module = self.get_module_mock(params=params["mparams"])
+        ome_connection_mock_for_profile.invoke_request.return_value = params.get("json_data")
+        mocker.patch(MODULE_PATH + "match_profile", return_value=None)
+        result = self.module.get_target_details(f_module, ome_connection_mock_for_profile)
+        assert result == "Target with Id '123' not found."
+
+    @pytest.mark.parametrize("params", [{"mparams": {
+        "boot_to_network_iso": {
+            "boot_to_network": True,
+            "share_type": "CIFS",
+            "share_ip": "100.200.300",
+            "share_user": "shareuser",
+            "share_pwd": "sharepwd",
+            "workgroup": "workgroup",
+            "iso_path": "pathofiso",
+            "iso_timeout": 8
+        }},
+        "res": "ISO path does not have extension '.iso'"}])
+    def test_get_network_iso_payload_without_iso(self, params):
+        f_module = self.get_module_mock(params=params["mparams"])
+        with pytest.raises(Exception) as err:
+            self.module.get_network_iso_payload(f_module)
+        assert err.value.args[0] == params["res"]

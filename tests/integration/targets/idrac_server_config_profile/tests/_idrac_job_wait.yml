@@ -1,0 +1,15 @@
+---
+- name: IDRAC job wait for 180 seconds max.
+  ansible.builtin.uri:
+    url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:\
+      {{ idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1\
+      /Oem/Dell/Jobs/{{ job_id }}"
+    method: GET
+    status_code: 200
+    headers: 'Accept=application/json'
+  register: job_status
+  until: "job_status.json.JobState in ['Completed',
+    'Downloaded', 'CompletedWithErrors', 'RebootCompleted']"
+  failed_when: job_status.json.JobState in ["Failed", "RebootFailed", "Unknown"]
+  retries: "{{ retries | default(36) }}"
+  delay: "{{ delay | default(5) }}"

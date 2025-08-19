@@ -61,3 +61,5 @@ system_board_inlettemp_uri: "{{ base_uri }}/{{ redfish_uri }}\
   Chassis/System.Embedded.1/Sensors/SystemBoardInletTemp"
 power_headroom_uri: "{{ base_uri }}/{{ redfish_uri }}\
   Chassis/System.Embedded.1/Sensors/PowerHeadroom"
+controller_battery_uri: "{{ base_uri }}/{{ redfish_uri }}\
+  Chassis/System.Embedded.1/PowerSubsystem/Oem/Dell/DellControllerBattery/"
