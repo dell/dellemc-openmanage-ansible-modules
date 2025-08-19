@@ -1,0 +1,44 @@
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables:
+      idrac_ip, idrac_user and idrac_password.'
+  when: idrac_ip is not defined or
+    idrac_user is not defined or
+    idrac_password is not defined
+
+- name: Import SCP https share all cases without proxy.
+  ansible.builtin.include_tasks: _preview_with_import_buffer.yml
+  vars:
+    preview_proxy_enabled: false
+    preview_proxy_type: "{{ omit }}"
+    preview_proxy_server: "{{ omit }}"
+    preview_proxy_port: "{{ omit }}"
+    preview_proxy_username: "{{ omit }}"
+    preview_proxy_password: "{{ omit }}"
+
+- include_role: name=prepare_idrac_lifecycle_controller_status
+
+- name: Import SCP https share all cases with SOCKS4 proxy.
+  ansible.builtin.include_tasks: _preview_with_import_buffer.yml
+  vars:
+    preview_proxy_enabled: "{{ socks4_proxy_enabled }}"
+    preview_proxy_type: socks4
+    preview_proxy_server: "{{ socks4_proxy_server }}"
+    preview_proxy_port: "{{ socks4_proxy_port }}"
+    preview_proxy_username: "{{ omit }}"
+    preview_proxy_password: "{{ omit }}"
+  when: "{{ socks4_proxy_enabled }}"
+
+- include_role: name=prepare_idrac_lifecycle_controller_status
+
+- name: Import SCP https share all cases with HTTP proxy with credentials.
+  ansible.builtin.include_tasks: _preview_with_import_buffer.yml
+  vars:
+    preview_proxy_enabled: "{{ http_proxy_enabled }}"
+    preview_proxy_type: http
+    preview_proxy_server: "{{ http_proxy_server|ansible.utils.ipwrap }}"
+    preview_proxy_port: "{{ http_proxy_port }}"
+    preview_proxy_username: "{{ http_proxy_username }}"
+    preview_proxy_password: "{{ http_proxy_password }}"
+  when: "{{ http_proxy_enabled }}"

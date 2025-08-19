@@ -1,0 +1,7 @@
+---
+dependencies:
+  # - setup_webserver
+  - prepare_mount_shares
+  - prepare_idrac_lifecycle_controller_status
+  - prepare_lifecycle_contoller_job_queue
+  - prepare_lifecycle_controller_job
