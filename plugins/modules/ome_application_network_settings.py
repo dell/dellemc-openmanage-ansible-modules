@@ -249,7 +249,6 @@ error_info:
   }
 """
 
-import json
 from ssl import SSLError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
