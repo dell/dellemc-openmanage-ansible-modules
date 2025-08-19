@@ -370,13 +370,13 @@ def main():
                              session_inactivity_setting=resp.json_data, changed=True)
 
     except HTTPError as err:
-        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
+        module.exit_json(msg=str(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (
             IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError,
             OSError) as err:
-        module.exit_json(msg=str(err), error_info=err, failed=True)
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
