@@ -1,0 +1,195 @@
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  fail:
+    msg: "Please define the following variables:
+      idrac_ip, idrac_user and idrac_password."
+  when: idrac_ip is not defined or
+    idrac_user is not defined or
+    idrac_password is not defined
+
+- name: Get data using uri
+  ansible.builtin.uri:
+    url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}\
+      /redfish/v1/Managers/iDRAC.Embedded.1"
+    method: GET
+    body: {}
+    body_format: json
+    status_code: 200
+    headers: "Accept=application/json"
+  register: idrac_fetched_data
+
+- name: Pre-requisite - Checking iDRAC version
+  ansible.builtin.include_tasks:
+    file: ../_get_idrac_settings.yml
+
+- block:
+    - name: Create Export SCP job for NIC component by uri.
+      ansible.builtin.uri:
+        url: "https://{{idrac_ip}}:{{idrac_port}}\
+          /redfish/v1/Managers/iDRAC.Embedded.1/Actions\
+          /Oem/{{ scp_oem }}.ExportSystemConfiguration"
+        method: POST
+        body:
+          ExportFormat: XML
+          ShareParameters:
+            Target: ["NIC"]
+        body_format: json
+        status_code: 202
+        headers: "Accept=application/json"
+      register: nic_uri
+
+    - name: Get Exported SCP contents.
+      ansible.builtin.uri:
+        url: "{{ nic_uri.location }}"
+        headers:
+          Accept: application/json
+      register: uri_scp_content
+      until: not uri_scp_content.failed
+      retries: 5
+      delay: 15
+
+    - ansible.builtin.copy:
+        content: "{{ uri_scp_content.content | string }}"
+        dest: "uri_scp_export_{{ idrac_ip }}.json"
+      register: uri_file
+
+    - include_role: name=prepare_idrac_lifecycle_controller_status
+
+    - name: Export SCP to local path - NIC components.
+      dellemc.openmanage.idrac_server_config_profile: &export
+        share_name: "{{ playbook_dir }}"
+        scp_components: "NIC"
+        job_wait: true
+      register: nic
+
+    - name: Check if the scp file is exported.
+      ansible.builtin.stat:
+        path: "{{ playbook_dir }}/{{ nic.scp_status.file | basename }}"
+      register: nic_file
+
+    - name: verify status of tasks.
+      ansible.builtin.assert:
+        that:
+          - "{{ nic_file.stat.size == uri_file.size }}"
+
+    - name: Verify the scp file
+      ansible.builtin.include_tasks: _scp_file_verify.yml
+      vars:
+        local_scp_file: "{{ playbook_dir }}/\
+          {{ nic.scp_status.file | basename }}"
+
+    - include_role: name=prepare_idrac_lifecycle_controller_status
+
+    - name: Export SCP to local - Extra components.
+      dellemc.openmanage.idrac_server_config_profile:
+        <<: *export
+        scp_components: "{{ allowed_scp_components }}"
+      register: extra_scp
+      when: allowed_scp_components|length > 0
+
+    - name: Verify the scp file
+      ansible.builtin.include_tasks: _scp_file_verify.yml
+      vars:
+        local_scp_file: "{{ playbook_dir }}/\
+          {{ extra_scp.scp_status.file | basename }}"
+      when: allowed_scp_components|length > 0
+
+    - name: Export SCP to local path - iDRAC components.
+      dellemc.openmanage.idrac_server_config_profile:
+        <<: *export
+        scp_components: "IDRAC"
+        export_use: Clone
+      register: idrac
+
+    - name: Verify the scp file
+      ansible.builtin.include_tasks: _scp_file_verify.yml
+      vars:
+        local_scp_file: "{{ playbook_dir }}/\
+          {{ idrac.scp_status.file | basename }}"
+
+    - include_role: name=prepare_idrac_lifecycle_controller_status
+
+    - name: Export SCP to local path - BIOS components.
+      dellemc.openmanage.idrac_server_config_profile:
+        <<: *export
+        scp_components: "BIOS"
+        export_use: Replace
+        job_wait: false
+      register: bios
+
+    - name: Wait for the iDRAC job to complete
+      ansible.builtin.include_tasks: _idrac_job_wait.yml
+      vars:
+        job_id: "{{ bios.scp_status.Job.JobId }}"
+
+    - include_role: name=prepare_idrac_lifecycle_controller_status
+
+    - name: Track job and Get exported SCP contents for job_wait false.
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip }}:{{ idrac_port }}{{
+          bios.scp_status.Job.ResourceURI }}"
+        headers:
+          Accept: application/json
+      register: uri_scp_content
+      until: not uri_scp_content.failed
+      retries: 5
+      delay: 15
+
+    - include_role: name=prepare_idrac_lifecycle_controller_status
+
+    - name: Export SCP to local path - RAID components.
+      dellemc.openmanage.idrac_server_config_profile:
+        <<: *export
+        scp_components: "RAID"
+      register: raid
+      ignore_errors: true
+
+    - name: Verify the raid file
+      ansible.builtin.assert:
+        that:
+          - raid.msg == "Successfully exported the
+            Server Configuration Profile."
+      when: not raid.failed
+
+    - include_role: name=prepare_idrac_lifecycle_controller_status
+
+    - name: Export SCP to local path - All components.
+      dellemc.openmanage.idrac_server_config_profile:
+        share_name: "{{ playbook_dir }}"
+        job_wait: true
+      register: all
+
+    - name: Verify the scp file
+      ansible.builtin.include_tasks: _scp_file_verify.yml
+      vars:
+        local_scp_file: "{{ playbook_dir }}/\
+          {{ all.scp_status.file | basename }}"
+
+    - include_role: name=prepare_idrac_lifecycle_controller_status
+
+    - name: verify status of tasks.
+      ansible.builtin.assert:
+        that:
+          - not all.changed
+          - not idrac.changed
+          - not bios.changed
+          - not nic.changed
+          - all.msg == idrac.msg == nic.msg == "Successfully exported
+            the Server Configuration Profile."
+          - bios.msg == "Successfully triggered the job to export
+            the Server Configuration Profile."
+
+  vars:
+    idrac_datetime: "{{ idrac_fetched_data.json.DateTime }}"
+    idrac_datetime_offset: "{{ idrac_fetched_data.json.DateTimeLocalOffset }}"
+    allowed_scp_components: "{{ idrac_fetched_data.json.Actions.Oem\
+      ['#OemManager.ExportSystemConfiguration']['ShareParameters']\
+      ['Target@Redfish.AllowableValues'] | default([]) | list |\
+      ansible.builtin.intersect(extra_scp_components) }}"
+  module_defaults:
+    dellemc.openmanage.idrac_server_config_profile:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      idrac_port: "{{ idrac_port }}"
+      validate_certs: "{{ validate_certs }}"

@@ -1,0 +1,115 @@
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  fail:
+    msg: "Please define the following variables:
+      idrac_ip, idrac_user and idrac_password."
+  when: idrac_ip is not defined or
+    idrac_user is not defined or
+    idrac_password is not defined
+
+- block:
+    - name: Pre-requisite - Checking if iDRAC supports custom defaults
+      ansible.builtin.include_tasks:
+        file: ../_get_idrac_settings.yml
+
+    - name: Importing SCP custom_default with nfs share_name
+      dellemc.openmanage.idrac_server_config_profile:
+        job_wait: true
+        command: import_custom_defaults
+        share_name: "{{ nfs_share_name }}"
+        scp_file: "pre_req_import_custom_default.xml"
+      register: nfs
+      when: custom_default_supported
+
+    - name: Assertion of scp custom_default with nfs share_name
+      ansible.builtin.assert:
+        that:
+          - nfs.skipped
+          - nfs.msg == "Unable to perform the import_custom_defaults operation
+            because an invalid Share name is entered. Only 'local' share name is
+            supported. Enter the valid Share name and retry the operation."
+      when: custom_default_supported
+
+    - name: Import scp custom_default with file extension txt
+      dellemc.openmanage.idrac_server_config_profile:
+        job_wait: true
+        command: import_custom_defaults
+        share_name: "{{ role_path }}/files"
+        scp_file: "ansible_doc.txt"
+      register: txt
+      ignore_errors: true
+      when: custom_default_supported
+
+    - name: Assertion of scp custom_default with file extension txt
+      ansible.builtin.assert:
+        that:
+          - txt.failed
+          - txt.msg == "An invalid XML content is provided. Provide custom
+            default content in a valid XML format."
+      when: custom_default_supported
+
+    - name: Import scp with invalid xml buffer
+      dellemc.openmanage.idrac_server_config_profile:
+        job_wait: true
+        command: import_custom_defaults
+        import_buffer: "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'>
+          <Attribute Name='IPMILan.1#Enable'>Disabled</Component>
+          </SystemConfiguration>"
+      register: invalid_xml
+      ignore_errors: true
+      when: custom_default_supported
+
+    - name: Assertion of scp with invalid xml buffer for 16G
+      ansible.builtin.assert:
+        that:
+          - invalid_xml.failed
+          - invalid_xml.msg == "An invalid XML content is provided. Provide
+            custom default content in a valid XML format."
+      when: custom_default_supported
+
+    - name: Import scp custom default when
+        iDRAC does not support custom defaults
+      dellemc.openmanage.idrac_server_config_profile:
+        job_wait: true
+        command: import_custom_defaults
+        share_name: "{{ role_path }}/files"
+        scp_file: "import_custom_default.xml"
+      register: import_cd
+      when: not custom_default_supported
+
+    - name: Assertion of scp custom default when
+        iDRAC does not support custom defaults
+      ansible.builtin.assert:
+        that:
+          - import_cd.skipped
+          - import_cd.msg == "import_custom_defaults is not supported on this
+            firmware version of iDRAC. Enter the valid values and retry the
+            operation."
+      when: not custom_default_supported
+
+    - name: Export scp custom default when
+        iDRAC does not support custom defaults
+      dellemc.openmanage.idrac_server_config_profile:
+        job_wait: true
+        command: export_custom_defaults
+        share_name: "{{ playbook_dir }}"
+      register: export
+      when: not custom_default_supported
+
+    - name: Assertion of scp custom default when
+        iDRAC does not support custom defaults
+      ansible.builtin.assert:
+        that:
+          - export.skipped
+          - export.msg == "export_custom_defaults is not supported on this
+             firmware version of iDRAC. Enter the valid values and retry the
+             operation."
+      when: not custom_default_supported
+
+  module_defaults:
+    dellemc.openmanage.idrac_server_config_profile:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      idrac_port: "{{ idrac_port }}"
+      validate_certs: "{{ validate_certs }}"
