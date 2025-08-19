@@ -69,5 +69,5 @@
         when: not ansible_check_mode and storage_controller_rekey.status
               is defined
 
-      when:
-        - is_omsdk_required | bool
+          - name: Check if module is calling omsdk
+      ansible.builtin.include_tasks: ../_check_firmware_version_supported.yml
