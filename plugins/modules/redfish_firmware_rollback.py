@@ -250,7 +250,6 @@ def require_session(idrac, module):
 def wait_for_redfish_idrac_reset(module, redfish_obj, wait_time_sec, generation, interval=30):
     _sleep_initial_delay(generation, interval)
 
-    msg = RESET_UNTRACK
     wait = wait_time_sec
     track_failed = True
     resetting = False
@@ -321,9 +320,9 @@ def rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri, 
         job_resp, job_msg = wait_for_redfish_job_complete(redfish_obj, network_job_uri, job_wait=False)
         job_status = job_resp.json_data
         if job_status["JobState"] == "Running":
-            # if job status is running, it is a direct update so we have to wait for it to complete 
+            # if job status is running, it is a direct update so we have to wait for it to complete
             # running else continue with rollback
-            current_job_status, failed = get_job_status(redfish_obj, module, network_job_id, job_wait=True)            
+            current_job_status, failed = get_job_status(redfish_obj, module, network_job_id, job_wait=True)
             payload = {"ResetType": "ForceRestart"}
             job_resp_status, reset_status, reset_fail = wait_for_redfish_reboot_job(redfish_obj, SYSTEM_RESOURCE_ID,
                                                                                 payload=payload)
