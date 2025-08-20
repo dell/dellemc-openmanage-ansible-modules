@@ -1,0 +1,76 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING
+# or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: idrac_ip, idrac_user
+     and idrac_password."
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- name: Invalid View VD Scenarios
+  block:
+    - name: Fetch the best controller and  delete existing VDs
+      ansible.builtin.include_tasks: >-
+        "{{ role_path }}/tests/_fetch_controller_drives.yml"
+
+    - name: Invalid - View Operation when invalid controller
+       information is passed
+      dellemc.openmanage.idrac_storage_volume:
+        state: "view"
+        controller_id: "Invalid_controller_id"
+      register: view_result
+      ignore_errors: true
+
+    - name: Verify - Normal Mode - View Operation when invalid controller
+       information is passed
+      ansible.builtin.assert:
+        that:
+          - not view_result.changed
+          - view_result.failed
+          - "view_result.msg == 'Failed to fetch storage details.'"
+          - "'storage_status' in view_result"
+          - view_result.storage_status.Message == (
+            'Failed to find the controller Invalid_controller_id.')
+
+    - name: Invalid - View Operation when invalid volume information is passed
+      dellemc.openmanage.idrac_storage_volume:
+        state: "view"
+        controller_id: "{{ storage_controller_id }}"
+        volume_id: "Invalid_volume_id"
+      register: view_result
+      ignore_errors: true
+
+    - name: Verify - Normal Mode - View Operation when invalid volume
+       information is passed
+      ansible.builtin.assert:
+        that:
+          - not view_result.changed
+          - view_result.failed
+          - "view_result.msg == 'Failed to fetch storage details.'"
+          - "'storage_status' in view_result"
+          - >
+            'Failed to find the volume : Invalid_volume_id in controller'
+             in view_result.storage_status.Message
+
+    - name: Invalid - View Operation when controller information
+       is missing and volume information is passed
+      dellemc.openmanage.idrac_storage_volume:
+        state: "view"
+        volume_id: "{{ volume_id }}"
+      register: view_result
+      ignore_errors: true
+
+    - name: Verify - Normal Mode - View Operation when controller information
+       is missing and volume information is passed
+      ansible.builtin.assert:
+        that:
+          - not view_result.changed
+          - view_result.failed
+          - "view_result.msg == 'Failed to fetch storage details.'"
+          - "'storage_status' in view_result"
+          - view_result.storage_status.Message == (
+            'Controller identifier parameter is missing.')

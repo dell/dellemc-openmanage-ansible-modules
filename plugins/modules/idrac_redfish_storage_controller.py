@@ -198,6 +198,7 @@ author:
   - "Husniya Hameed (@husniya_hameed)"
   - "Abhishek Sinha (@ABHISHEK-SINHA10)"
   - "Shivam Sharma (@ShivamSh3)"
+  - "Trisha Datta (@trisha-dell)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module is supported on iDRAC9.
@@ -493,7 +494,7 @@ task:
   returned: success
   sample: {
     "id": "JID_XXXXXXXXXXXXX",
-    "uri": "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX"
+    "uri": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/JID_XXXXXXXXXXXXX"
   }
 status:
   type: dict
@@ -556,7 +557,7 @@ SYSTEMS_URI = "/redfish/v1/Systems/"
 SYSTEM_ID = "System.Embedded.1"
 MANAGER_ID = "iDRAC.Embedded.1"
 RAID_ACTION_URI = "/redfish/v1/Systems/{system_id}/Oem/Dell/DellRaidService/Actions/DellRaidService.{action}"
-CONTROLLER_URI = "/redfish/v1/Dell/Systems/{system_id}/Storage/DellController/{controller_id}"
+CONTROLLER_URI = "/redfish/v1/Systems/{system_id}/Storage/{controller_id}"
 VOLUME_URI = "/redfish/v1/Systems/{system_id}/Storage/{controller_id}/Volumes"
 PD_URI = "/redfish/v1/Systems/System.Embedded.1/Storage/{controller_id}/Drives/{drive_id}"
 JOB_URI_OEM = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{job_id}"
@@ -952,7 +953,7 @@ def validate_secure_erase(module, redfish_obj):
         module.exit_json(msg=PD_ERROR_MSG.format(drive_id), skipped=True)
     drive_detail = get_dynamic_uri(redfish_obj, drive_uri)
     firm_ver = get_idrac_firmware_version(redfish_obj)
-    if LooseVersion(firm_ver) >= '3.0':
+    if LooseVersion(firm_ver) >= '1.0':
         dell_oem = drive_detail.get("Oem", {}).get("Dell", {})
         try:
             dell_disk = dell_oem["DellPhysicalDisk"]

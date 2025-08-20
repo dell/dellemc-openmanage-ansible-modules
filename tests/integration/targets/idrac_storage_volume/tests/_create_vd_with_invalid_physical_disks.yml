@@ -1,0 +1,23 @@
+---
+- name: Validate incorrect number of physical disks are provided
+    for RAID {{ raid_type }}
+  dellemc.openmanage.idrac_storage_volume:
+    state: "create"
+    controller_id: "{{ storage_controller_id }}"
+    volume_type: "RAID {{ raid_type }}"
+    volumes:
+      - name: "test_volume_raid_{{ raid_type }}"
+        drives:
+          location: "{{ [location] }}"
+        span_length: "{{ span_length }}"
+        span_depth: "{{ span_depth }}"
+  register: result
+  ignore_errors: true
+
+- name: Verify task status - incorrect number of physical disks are provided
+   for RAID {{ raid_type }}
+  ansible.builtin.assert:
+    that:
+      - result.failed
+      - not result.changed
+      - 'result.msg == "The value for the `drives` parameter is invalid."'
