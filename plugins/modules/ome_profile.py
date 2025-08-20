@@ -1,13 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
-#
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 10.0.0
 # Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
-
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-#
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 
 from __future__ import (absolute_import, division, print_function)
@@ -163,7 +160,9 @@ options:
         type: dict
 requirements:
     - "python >= 3.9.6"
-author: "Jagadeesh N V (@jagadeeshnv)"
+author:
+    - "Jagadeesh N V (@jagadeeshnv)"
+    - "Bhavneet Sharma (@Bhavneet-Sharma)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module supports C(check_mode).
@@ -396,13 +395,14 @@ error_info:
 
 import json
 import time
-from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.common.dict_transformations import recursive_diff
 
+
 PROFILE_VIEW = "ProfileService/Profiles"
+GET_PORFILE_INST = "ProfileService/Profiles({profileId})"
 TEMPLATE_VIEW = "TemplateService/Templates"
 DEVICE_VIEW = "DeviceService/Devices"
 JOB_URI = "JobService/Jobs({job_id})"
@@ -412,52 +412,80 @@ PROFILE_NOT_FOUND = "Profile with the name '{name}' not found."
 CHANGES_MSG = "Changes found to be applied."
 NO_CHANGES_MSG = "No changes found to be applied."
 SEPRTR = ','
+FILTER_QUERY_PARAM = "$filter"
 
 
 def get_template_details(module, rest_obj):
-    id = module.params.get('template_id')
-    query_param = {"$filter": "Id eq {0}".format(id)}
+    template_identifier = module.params.get('template_id')
+    query_param = {FILTER_QUERY_PARAM: "Id eq {0}".format(template_identifier)}
     srch = 'Id'
-    if not id:
-        id = module.params.get('template_name')
-        query_param = {"$filter": "Name eq '{0}'".format(id)}
+    if not template_identifier:
+        template_identifier = module.params.get('template_name')
+        query_param = {FILTER_QUERY_PARAM: "Name eq '{0}'".format(template_identifier)}
         srch = 'Name'
     resp = rest_obj.invoke_request('GET', TEMPLATE_VIEW, query_param=query_param)
-    if resp.success and resp.json_data.get('value'):
-        tlist = resp.json_data.get('value', [])
-        for xtype in tlist:
-            if xtype.get(srch) == id:
-                return xtype
-    module.fail_json(msg="Template with {0} '{1}' not found.".format(srch, id))
+
+    template_details = match_profile(resp=resp, search_key=srch, identifier_value=template_identifier)
+
+    if template_details is not None:
+        return template_details
+
+    module.exit_json(msg="Template with {0} '{1}' not found.".format(srch, template_identifier),
+                     failed=True)
 
 
 def get_target_details(module, rest_obj):
-    id = module.params.get('device_id')
-    query_param = {"$filter": "Id eq {0}".format(id)}
+    device_identifier = module.params.get('device_id')
+    query_param = {FILTER_QUERY_PARAM: "Id eq {0}".format(device_identifier)}
     srch = 'Id'
-    if not id:
-        id = module.params.get('device_service_tag')
-        query_param = {"$filter": "Identifier eq '{0}'".format(id)}
+    if not device_identifier:
+        device_identifier = module.params.get('device_service_tag')
+        query_param = {FILTER_QUERY_PARAM: "Identifier eq '{0}'".format(device_identifier)}
         srch = 'Identifier'
     resp = rest_obj.invoke_request('GET', DEVICE_VIEW, query_param=query_param)
+    device_details = match_profile(resp=resp, search_key=srch, identifier_value=device_identifier)
+    if device_details is not None:
+        return device_details
+    return "Target with {0} '{1}' not found.".format(srch, device_identifier)
+
+
+def match_profile(resp, search_key, identifier_value=None):
+    """get profile/target/device details based on profile name."""
     if resp.success and resp.json_data.get('value'):
         tlist = resp.json_data.get('value', [])
         for xtype in tlist:
-            if xtype.get(srch) == id:
+            if (xtype.get(search_key) == identifier_value) or xtype.get('DeploymentTaskId'):
                 return xtype
-    return "Target with {0} '{1}' not found.".format(srch, id)
 
 
 def get_profile(rest_obj, module):
-    """Get profile id based on requested profile name."""
-    profile_name = module.params["name"]
+    """Get profile details based on profile ID or profile name from filters."""
+    query_filter = module.params.get("filters", {})
     profile = None
-    query_param = {"$filter": "ProfileName eq '{0}'".format(profile_name)}
-    profile_req = rest_obj.invoke_request("GET", PROFILE_VIEW, query_param=query_param)
-    for each in profile_req.json_data.get('value'):
-        if each['ProfileName'] == profile_name:
-            profile = each
-            break
+    srch_key = "ProfileName"
+
+    # when ProfileIds are in filters
+    profile_ids = query_filter.get("ProfileIds", []) if query_filter is not None else []
+    if profile_ids:
+        profile_id = profile_ids[0]
+        resp = rest_obj.invoke_request("GET", GET_PORFILE_INST.format(profileId=profile_id))
+        if resp.json_data:
+            profile = resp.json_data
+
+    # when Profilename in filters
+    filter_string = query_filter.get('Filters') if query_filter is not None else None
+    if filter_string and 'ProfileName' in filter_string:
+        query_param = {FILTER_QUERY_PARAM: filter_string[1:]}
+        resp = rest_obj.invoke_request('GET', PROFILE_VIEW, query_param=query_param)
+        profile = match_profile(resp=resp, search_key=srch_key)
+
+    # when profile name is provided
+    profile_name = module.params.get("name")
+    if profile_name:
+        query_param = {FILTER_QUERY_PARAM: "ProfileName eq '{0}'".format(profile_name)}
+        resp = rest_obj.invoke_request('GET', PROFILE_VIEW, query_param=query_param)
+        profile = match_profile(resp=resp, search_key=srch_key, identifier_value=profile_name)
+
     return profile
 
 
@@ -474,7 +502,6 @@ def get_network_iso_payload(module):
             sh_ip = boot_iso_dict.get("share_ip")
             share_detail["IpAddress"] = sh_ip
             share_detail["ShareName"] = sh_ip
-            # share_detail["ShareName"] = boot_iso_dict.get("share_name") if boot_iso_dict.get("share_name") else sh_ip
             share_detail["User"] = boot_iso_dict.get("share_user")
             share_detail["Password"] = boot_iso_dict.get("share_password")
             share_detail["WorkGroup"] = boot_iso_dict.get("workgroup")
@@ -482,48 +509,57 @@ def get_network_iso_payload(module):
             if str(boot_iso_dict.get("iso_path")).lower().endswith('.iso'):
                 iso_payload["IsoPath"] = boot_iso_dict.get("iso_path")
             else:
-                module.fail_json(msg="ISO path does not have extension '.iso'")
+                module.exit_json(msg="ISO path does not have extension '.iso'", failed=True)
             iso_payload["IsoTimeout"] = boot_iso_dict.get("iso_timeout")
     return iso_payload
 
 
 def recurse_subattr_list(subgroup, prefix, attr_detailed, attr_map, adv_list):
-    if isinstance(subgroup, list):
-        for each_sub in subgroup:
-            nprfx = "{0}{1}{2}".format(prefix, SEPRTR, each_sub.get("DisplayName"))
-            if each_sub.get("SubAttributeGroups"):
-                recurse_subattr_list(each_sub.get("SubAttributeGroups"), nprfx, attr_detailed, attr_map, adv_list)
-            else:
-                for attr in each_sub.get('Attributes'):
-                    attr['prefix'] = nprfx
-                    # case sensitive, remove whitespaces for optim
-                    constr = "{0}{1}{2}".format(nprfx, SEPRTR, attr['DisplayName'])
-                    if constr in adv_list:
-                        attr_detailed[constr] = attr['AttributeId']
-                    attr_map[attr['AttributeId']] = attr
+    if not isinstance(subgroup, list):
+        return
+
+    for each_sub in subgroup:
+        new_prefix = f"{prefix}{SEPRTR}{each_sub.get('DisplayName')}"
+        if each_sub.get("SubAttributeGroups"):
+            recurse_subattr_list(each_sub.get("SubAttributeGroups"),
+                                 new_prefix, attr_detailed,
+                                 attr_map, adv_list)
+        else:
+            for attr in each_sub.get('Attributes'):
+                attr['prefix'] = new_prefix
+                # case sensitive, remove whitespaces for optim
+                constr = "{0}{1}{2}".format(new_prefix, SEPRTR, attr['DisplayName'])
+                if constr in adv_list:
+                    attr_detailed[constr] = attr['AttributeId']
+                attr_map[attr['AttributeId']] = attr
 
 
 def get_subattr_all(attr_dtls, adv_list):
     attr_detailed = {}
     attr_map = {}
     for each in attr_dtls:
-        recurse_subattr_list(each.get('SubAttributeGroups'), each.get('DisplayName'), attr_detailed, attr_map, adv_list)
+        recurse_subattr_list(each.get('SubAttributeGroups'), each.get('DisplayName'),
+                             attr_detailed, attr_map, adv_list)
     return attr_detailed, attr_map
 
 
-def attributes_check(module, rest_obj, inp_attr, profile_id):
+def normalize_display_names(attributes):
+    normalized = []
+    for attr in attributes:
+        if attr.get("DisplayName"):
+            split_k = str(attr.get("DisplayName")).split(SEPRTR)
+            trimmed = map(str.strip, split_k)
+            n_k = SEPRTR.join(trimmed)
+            normalized.append(n_k)
+    return normalized
+
+
+def attributes_check(rest_obj, inp_attr, profile_id):
     diff = 0
     try:
         resp = rest_obj.invoke_request("GET", PROFILE_ATTRIBUTES.format(profile_id=profile_id))
         attr_dtls = resp.json_data
-        disp_adv_list = inp_attr.get("Attributes", {})
-        adv_list = []
-        for attr in disp_adv_list:
-            if attr.get("DisplayName"):
-                split_k = str(attr.get("DisplayName")).split(SEPRTR)
-                trimmed = map(str.strip, split_k)
-                n_k = SEPRTR.join(trimmed)
-                adv_list.append(n_k)
+        adv_list = normalize_display_names(attributes=inp_attr.get("Attributes", []))
         attr_detailed, attr_map = get_subattr_all(attr_dtls.get('AttributeGroups'), adv_list)
         payload_attr = inp_attr.get("Attributes", [])
         rem_attrs = []
@@ -532,13 +568,13 @@ def attributes_check(module, rest_obj, inp_attr, profile_id):
                 split_k = str(attr.get("DisplayName")).split(SEPRTR)
                 trimmed = map(str.strip, split_k)
                 n_k = SEPRTR.join(trimmed)
-                id = attr_detailed.get(n_k, "")
-                attr['Id'] = id
+                obj_id = attr_detailed.get(n_k, "")
+                attr['Id'] = obj_id
                 attr.pop("DisplayName", None)
             else:
-                id = attr.get('Id')
-            if id:
-                ex_val = attr_map.get(id, {})
+                obj_id = attr.get('Id')
+            if obj_id:
+                ex_val = attr_map.get(obj_id, {})
                 if not ex_val:
                     rem_attrs.append(attr)
                     continue
@@ -546,7 +582,6 @@ def attributes_check(module, rest_obj, inp_attr, profile_id):
                     diff = diff + 1
         for rem in rem_attrs:
             payload_attr.remove(rem)
-        # module.exit_json(attr_detailed=attr_detailed, inp_attr=disp_adv_list, payload_attr=payload_attr, adv_list=adv_list)
     except Exception:
         diff = 1
     return diff
@@ -555,43 +590,29 @@ def attributes_check(module, rest_obj, inp_attr, profile_id):
 def assign_profile(module, rest_obj):
     mparam = module.params
     payload = {}
-    if mparam.get('name'):
-        prof = get_profile(rest_obj, module)
-        if prof:
-            payload['Id'] = prof['Id']
-        else:
-            module.fail_json(msg=PROFILE_NOT_FOUND.format(name=mparam.get('name')))
+    prof = prepare_profile_payload(module, rest_obj, mparam, payload)
+
     target = get_target_details(module, rest_obj)
     if isinstance(target, dict):
         payload['TargetId'] = target['Id']
-        if prof['ProfileState'] == 4:
-            if prof['TargetId'] == target['Id']:
-                module.exit_json(msg="The profile is assigned to the target {0}.".format(target['Id']))
-            else:
-                module.fail_json(msg="The profile is assigned to a different target. Use the migrate command or "
-                                     "unassign the profile and then proceed with assigning the profile to the target.")
+        _validate_profile_assignment(module=module, payload=payload, prof=prof, target=target)
+
         action = "AssignProfile"
-        msg = "Successfully applied the assign operation."
         try:
             resp = rest_obj.invoke_request('POST', PROFILE_ACTION.format(action='GetInvalidTargetsForAssignProfile'),
                                            data={'Id': prof['Id']})
             if target['Id'] in list(resp.json_data):
-                module.fail_json(msg="The target device is invalid for the given profile.")
+                module.exit_json(msg="The target device is invalid for the given profile.", failed=True)
         except HTTPError:
             resp = None
         ad_opts_list = ['Attributes', 'Options', 'Schedule']
     else:
         if mparam.get('device_id'):
-            module.fail_json(msg=target)
+            module.exit_json(msg=target, failed=True)
         action = "AssignProfileForAutoDeploy"
-        msg = "Successfully applied the assign operation for auto-deployment."
         payload['Identifier'] = mparam.get('device_service_tag')
-        if prof['ProfileState'] == 1:
-            if prof['TargetName'] == payload['Identifier']:
-                module.exit_json(msg="The profile is assigned to the target {0}.".format(payload['Identifier']))
-            else:
-                module.fail_json(msg="The profile is assigned to a different target. "
-                                     "Unassign the profile and then proceed with assigning the profile to the target.")
+        _validate_profile_assignment(module=module, payload=payload, prof=prof)
+
         ad_opts_list = ['Attributes']
     boot_iso_dict = get_network_iso_payload(module)
     if boot_iso_dict:
@@ -599,22 +620,93 @@ def assign_profile(module, rest_obj):
     ad_opts = mparam.get("attributes")
     for opt in ad_opts_list:
         if ad_opts and ad_opts.get(opt):
-            attributes_check(module, rest_obj, ad_opts, prof['Id'])
+            attributes_check(rest_obj, ad_opts, prof['Id'])
             payload[opt] = ad_opts.get(opt)
     if module.check_mode:
         module.exit_json(msg=CHANGES_MSG, changed=True)
-    resp = rest_obj.invoke_request('POST', PROFILE_ACTION.format(action=action), data=payload)
-    res_dict = {'msg': msg, 'changed': True}
-    if action == 'AssignProfile':
+    rest_obj.invoke_request('POST', PROFILE_ACTION.format(action=action), data=payload)
+    handle_post_assignment(module=module, rest_obj=rest_obj, action=action)
+
+
+def handle_post_assignment(module, rest_obj, action):
+    """
+    Handle the post assignment of a profile based on the action type.
+
+    Parameters:
+        module (AnsibleModule): The Ansible module object.
+        rest_obj (REST Object): The REST object used for API calls.
+        action (str): The action type, e.g. 'AssignProfile'.
+
+    Returns:
+        dict: A dictionary containing a success message and a job ID if applicable.
+    """
+
+    action_map = {
+        "AssignProfile": "assign",
+        "UnassignProfiles": "unassign",
+        "MigrateProfile": "migrate"
+    }
+
+    performed_action = action_map.get(action)
+
+    if action in ["AssignProfile", "UnassignProfiles", "MigrateProfile"]:
+        res_dict = {'msg': f"Successfully applied the {performed_action} operation. No job was triggered.",
+                    'changed': True}
         try:
             res_prof = get_profile(rest_obj, module)
             time.sleep(5)
             if res_prof.get('DeploymentTaskId'):
                 res_dict['job_id'] = res_prof.get('DeploymentTaskId')
-                res_dict['msg'] = "Successfully triggered the job for the assign operation."
+                res_dict['msg'] = f"Successfully triggered the job for the {performed_action} operation."
         except HTTPError:
-            res_dict['msg'] = "Successfully applied the assign operation. Failed to fetch job details."
+            res_dict['msg'] += " Failed to fetch job details."
     module.exit_json(**res_dict)
+
+
+def prepare_profile_payload(module, rest_obj, mparam, payload):
+    """
+    Prepare the profile payload for a given profile name and module.
+
+    Parameters:
+        module (AnsibleModule): The Ansible module object.
+        rest_obj (REST Object): The REST object used for API calls.
+        mparam (dict): The module parameters.
+        payload (dict): The payload to be prepared.
+
+    Returns:
+        dict: The prepared profile payload.
+    """
+    profile_name = mparam.get('name')
+    if profile_name:
+        prof = get_profile(rest_obj, module)
+        if not prof:
+            module.exit_json(msg=PROFILE_NOT_FOUND.format(name=mparam.get('name')), failed=True)
+        payload['Id'] = prof['Id']
+    return prof
+
+
+def _validate_profile_assignment(module, payload, prof, target=None):
+    """
+    Validates if a profile is assigned to a target based on the profile state.
+
+    Parameters:
+        module (AnsibleModule): The Ansible module object.
+        payload (dict): The payload containing the profile assignment details.
+        prof (dict): The profile details.
+        target (dict): The target details. Defaults to None.
+
+    Returns:
+        None
+    """
+    if prof['ProfileState'] in [1, 4]:
+        target_id = target.get('Id') if prof.get('ProfileState') == 4 else payload.get('Identifier')
+        if prof.get('TargetId') == target_id or prof.get('TargetName') == target_id:
+            module.exit_json(msg="The profile is assigned to the target {0}.".format(target_id))
+        else:
+            module.exit_json(
+                msg="The profile is assigned to a different target. Use the migrate command or "
+                    "unassign the profile and then proceed with assigning the profile to the target.",
+                failed=True)
 
 
 def unassign_profile(module, rest_obj):
@@ -624,36 +716,27 @@ def unassign_profile(module, rest_obj):
         payload = {}
         prof = get_profile(rest_obj, module)
         if prof:
-            if prof['ProfileState'] == 0:
-                module.exit_json(msg="Profile is in an unassigned state.")
+            _validate_profile_deployed(module, prof)
             if prof['DeploymentTaskId']:
-                try:
-                    resp = rest_obj.invoke_request('GET', JOB_URI.format(job_id=prof['DeploymentTaskId']))
-                    job_dict = resp.json_data
-                    job_status = job_dict.get('LastRunStatus')
-                    if job_status.get('Name') == 'Running':
-                        module.fail_json(msg="Profile deployment task is in progress. Wait for the job to finish.")
-                except HTTPError:
-                    msg = "Unable to fetch job details. Applied the unassign operation"
+                resp = rest_obj.invoke_request('GET', JOB_URI.format(job_id=prof['DeploymentTaskId']))
+                job_dict = resp.json_data
+                job_status = job_dict.get('LastRunStatus')
+                if job_status.get('Name') == 'Running':
+                    module.exit_json(msg="Profile deployment task is in progress. Wait for the job to finish.", failed=True)
             payload['ProfileIds'] = [prof['Id']]
         else:
-            module.fail_json(msg=PROFILE_NOT_FOUND.format(name=mparam.get('name')))
+            module.exit_json(msg=PROFILE_NOT_FOUND.format(name=mparam.get('name')), failed=True)
     if mparam.get('filters'):
         payload = mparam.get('filters')
     if module.check_mode:
         module.exit_json(msg=CHANGES_MSG, changed=True)
-    msg = "Successfully applied the unassign operation. No job was triggered."
-    resp = rest_obj.invoke_request('POST', PROFILE_ACTION.format(action='UnassignProfiles'), data=payload)
-    res_dict = {'msg': msg, 'changed': True}
-    try:
-        res_prof = get_profile(rest_obj, module)
-        time.sleep(3)
-        if res_prof.get('DeploymentTaskId'):
-            res_dict['job_id'] = res_prof.get('DeploymentTaskId')
-            res_dict['msg'] = "Successfully triggered a job for the unassign operation."
-    except HTTPError:
-        res_dict['msg'] = "Successfully triggered a job for the unassign operation. Failed to fetch the job details."
-    module.exit_json(**res_dict)
+    rest_obj.invoke_request('POST', PROFILE_ACTION.format(action="UnassignProfiles"), data=payload)
+    handle_post_assignment(module=module, rest_obj=rest_obj, action="UnassignProfiles")
+
+
+def _validate_profile_deployed(module, prof):
+    if prof.get('ProfileState') == 0:
+        module.exit_json(msg="Profile is in an unassigned state.")
 
 
 def create_profile(module, rest_obj):
@@ -681,28 +764,20 @@ def modify_profile(module, rest_obj):
     payload = {}
     prof = get_profile(rest_obj, module)
     if not prof:
-        module.fail_json(msg=PROFILE_NOT_FOUND.format(name=mparam.get('name')))
+        module.exit_json(msg=PROFILE_NOT_FOUND.format(name=mparam.get('name')), failed=True)
     diff = 0
-    new_name = mparam.get('new_name')
-    payload['Name'] = new_name if new_name else prof['ProfileName']
-    if new_name and new_name != prof['ProfileName']:
-        diff += 1
-    desc = mparam.get('description')
-    if desc and desc != prof['ProfileDescription']:
-        payload['Description'] = desc
-        diff += 1
+    diff += _update_name(mparam, payload, prof)
+    diff += _update_description(mparam, payload, prof)
     boot_iso_dict = get_network_iso_payload(module)
     rdict = prof.get('NetworkBootToIso') if prof.get('NetworkBootToIso') else {}
     if boot_iso_dict:
         nest_diff = recursive_diff(boot_iso_dict, rdict)
-        if nest_diff:
-            # module.warn(json.dumps(nest_diff))
-            if nest_diff[0]:
-                diff += 1
+        if nest_diff and nest_diff[0]:
+            diff += 1
         payload["NetworkBootToIso"] = boot_iso_dict
     ad_opts = mparam.get("attributes")
     if ad_opts and ad_opts.get("Attributes"):
-        diff = diff + attributes_check(module, rest_obj, ad_opts, prof['Id'])
+        diff = diff + attributes_check(rest_obj, ad_opts, prof['Id'])
         if ad_opts.get("Attributes"):
             payload["Attributes"] = ad_opts.get("Attributes")
     payload['Id'] = prof['Id']
@@ -714,13 +789,30 @@ def modify_profile(module, rest_obj):
     module.exit_json(msg=NO_CHANGES_MSG)
 
 
+def _update_name(mparam, payload, prof):
+    new_name = mparam.get('new_name')
+    payload['Name'] = prof['ProfileName']
+    if new_name and new_name != prof['ProfileName']:
+        payload['Name'] = new_name
+        return 1
+    return 0
+
+
+def _update_description(mparam, payload, prof):
+    desc = mparam.get('description')
+    if desc and desc != prof['ProfileDescription']:
+        payload['Description'] = desc
+        return 1
+    return 0
+
+
 def delete_profile(module, rest_obj):
     mparam = module.params
     if mparam.get('name'):
         prof = get_profile(rest_obj, module)
         if prof:
             if prof['ProfileState'] > 0:
-                module.fail_json(msg="Profile has to be in an unassigned state for it to be deleted.")
+                module.exit_json(msg="Profile has to be in an unassigned state for it to be deleted.", failed=True)
             if module.check_mode:
                 module.exit_json(msg=CHANGES_MSG, changed=True)
             rest_obj.invoke_request('DELETE', PROFILE_VIEW + "({0})".format(prof['Id']))
@@ -741,7 +833,7 @@ def migrate_profile(module, rest_obj):
     payload['ForceMigrate'] = mparam.get('force')
     target = get_target_details(module, rest_obj)
     if not isinstance(target, dict):
-        module.fail_json(msg=target)
+        module.exit_json(msg=target, failed=True)
     payload['TargetId'] = target['Id']
     prof = get_profile(rest_obj, module)
     if prof:
@@ -751,29 +843,19 @@ def migrate_profile(module, rest_obj):
             resp = rest_obj.invoke_request('POST', PROFILE_ACTION.format(action='GetInvalidTargetsForAssignProfile'),
                                            data={'Id': prof['Id']})
             if target['Id'] in list(resp.json_data):
-                module.fail_json(msg="The target device is invalid for the given profile.")
+                module.exit_json(msg="The target device is invalid for the given profile.", failed=True)
         except HTTPError:
             resp = None
         if prof['ProfileState'] == 4:  # migrate applicable in deployed state only
             payload['ProfileId'] = prof['Id']
             if module.check_mode:
                 module.exit_json(msg=CHANGES_MSG, changed=True)
-            resp = rest_obj.invoke_request('POST', PROFILE_ACTION.format(action='MigrateProfile'), data=payload)
-            msg = "Successfully applied the migrate operation."
-            res_dict = {'msg': msg, 'changed': True}
-            try:
-                time.sleep(5)
-                res_prof = get_profile(rest_obj, module)
-                if res_prof.get('DeploymentTaskId'):
-                    res_dict['job_id'] = res_prof.get('DeploymentTaskId')
-                    res_dict['msg'] = "Successfully triggered the job for the migrate operation."
-            except HTTPError:
-                res_dict['msg'] = "Successfully applied the migrate operation. Failed to fetch job details."
-            module.exit_json(**res_dict)
+            rest_obj.invoke_request('POST', PROFILE_ACTION.format(action='MigrateProfile'), data=payload)
+            handle_post_assignment(module=module, rest_obj=rest_obj, action="MigrateProfile")
         else:
-            module.fail_json(msg="Profile needs to be in a deployed state for a migrate operation.")
+            module.exit_json(msg="Profile needs to be in a deployed state for a migrate operation.", failed=True)
     else:
-        module.fail_json(msg=PROFILE_NOT_FOUND.format(name=mparam.get('name')))
+        module.exit_json(msg=PROFILE_NOT_FOUND.format(name=mparam.get('name')), failed=True)
 
 
 def profile_operation(module, rest_obj):
@@ -851,11 +933,11 @@ def main():
         with RestOME(module.params, req_session=True) as rest_obj:
             profile_operation(module, rest_obj)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
-        module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), unreachable=True, failed=True)
+    except (IOError, ValueError, TypeError, ConnectionError, SSLValidationError, OSError) as err:
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':

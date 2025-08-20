@@ -502,8 +502,8 @@ class IDRACNetworkAttributes:
     def extract_error_msg(self, resp):
         error_info = {}
         if resp.body:
-            error = resp.json_data.get('error')
-            for each_dict_err in error.get("@Message.ExtendedInfo"):
+            error = resp.json_data.get('error', {})
+            for each_dict_err in error.get("@Message.ExtendedInfo", []):
                 key = each_dict_err.get('MessageArgs')[0]
                 msg = each_dict_err.get('Message')
                 if key not in error_info:

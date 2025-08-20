@@ -5,7 +5,7 @@
 
 - name: Performing export of server config profile
   ansible.builtin.import_role:
-    name: idrac_export_server_config_profile
+    name: dellemc.openmanage.idrac_export_server_config_profile
   vars:
     idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
     idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -17,7 +17,7 @@
 
 - name: Making changes when target is ['ALL'] or ['IDRAC']
   ansible.builtin.import_role:
-    name: idrac_attributes
+    name: dellemc.openmanage.idrac_attributes
   vars:
     hostname: "{{ lookup('env', 'IDRAC_IP') }}"
     username: "{{ lookup('env', 'IDRAC_USER') }}"

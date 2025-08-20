@@ -1,0 +1,73 @@
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables:
+      idrac_ip, idrac_user and idrac_password.'
+  when: idrac_ip is not defined or
+    idrac_user is not defined or
+    idrac_password is not defined
+
+- block:
+    - name: Ensure invalid path in shares
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - "{{ nfs_share_mnt }}/invalid"
+        - "{{ playbook_dir }}/invalid"
+        - "{{ cifs_share_mnt }}/invalid"
+      ignore_errors: true
+
+    - name: Negative - invalid scp file name nfs. (import)
+      dellemc.openmanage.idrac_server_config_profile:
+        command: "import"
+        share_name: "{{ nfs_share_name }}"
+        scp_file: "invalid"
+        job_wait: true
+      register: invalid_nfs_file
+      ignore_errors: true
+
+    - name: Verify Negative - invalid scp file name nfs. (import)
+      ansible.builtin.assert:
+        that:
+          - invalid_nfs_file.failed
+          - not invalid_nfs_file.changed
+          - invalid_nfs_file.status_msg.Message == "Unable to perform
+            the import as the specified file does not exist
+            on the remote share."
+
+    - name: Negative - SCP file missing. (import)
+      dellemc.openmanage.idrac_server_config_profile:
+        command: "import"
+        share_name: "{{ cifs_share_name }}"
+        share_user: "{{ cifs_share_user }}"
+        share_password: "{{ cifs_share_password }}"
+        job_wait: true
+      register: invalid_missing_scp_file
+      ignore_errors: true
+
+    - name: Verify Negative - SCP file missing. (import)
+      ansible.builtin.assert:
+        that:
+          - invalid_missing_scp_file.failed
+          - not invalid_missing_scp_file.changed
+          - 'invalid_missing_scp_file.msg ==  "HTTP Error 400: Bad Request"'
+          - "invalid_missing_scp_file.error_info.error['@Message.ExtendedInfo']\
+            [0].Message == 'The property FileName is a required property and
+            must be included in the request.'"
+
+    - name: Negative - invalid local path. (import)
+      dellemc.openmanage.idrac_server_config_profile:
+        command: "import"
+        share_name: "{{ playbook_dir }}/invalid"
+        scp_file: "invalid"
+        job_wait: true
+      register: invalid_local_path
+      ignore_errors: true
+
+    - name: Verify Negative - invalid local path. (import)
+      ansible.builtin.assert:
+        that:
+          - invalid_local_path.failed
+          - not invalid_local_path.changed
+          - invalid_local_path.msg == "Invalid file path provided."
