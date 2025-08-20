@@ -4,6 +4,7 @@ import sys
 NA = "Not Available"
 sensor_amperage_api_output = sys.argv[1]
 
+
 def map_sensor_amperage_data(sensor):
     health_state_map = {
         "Unknown": "Unknown",
@@ -14,7 +15,7 @@ def map_sensor_amperage_data(sensor):
         "NonRecoverableError": "Critical",
         "CriticalFailure": "Critical",
     }
-    
+
     health_state = sensor.get("Status", {}).get("Health", NA)
     primary_status = health_state_map.get(health_state, NA)
     output = {
@@ -31,6 +32,7 @@ def map_sensor_amperage_data(sensor):
         "CurrentReading": sensor.get("Reading", NA),
     }
     return output
+
 
 sensor_amperage_output = json.loads(sensor_amperage_api_output)
 output = [map_sensor_amperage_data(sensor_amperage) for sensor_amperage in sensor_amperage_output.get("Members", [])]

@@ -1,0 +1,64 @@
+---
+- name: Verify the single volume creation
+  ansible.builtin.assert:
+    that:
+      - storage_volume_result.changed
+      - storage_volume_result.msg == "Successfully completed the create
+        storage volume operation."
+      - "'storage_status' in storage_volume_result"
+      - storage_volume_result.storage_status.JobType == "ImportConfiguration"
+      - storage_volume_result.storage_status.JobState == "Completed"
+      - storage_volume_result.storage_status | dict2items
+        | selectattr('key', 'search', '@odata.') | list | length == 0
+
+- name: Get the volume
+  ansible.builtin.uri:
+    url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+     /redfish/v1/Systems/System.Embedded.1/Storage/{{ storage_controller_id }}\
+     /Volumes?$expand=*($levels=1)"
+    method: GET
+    status_code: 200
+  register: volumes
+
+- name: Assert only 1 volume created
+  ansible.builtin.assert:
+    that:
+      - volumes.json.Members | length == 1
+
+- name: Get the volume id
+  ansible.builtin.set_fact:
+    single_volume: "{{ volumes.json.Members | first }}"
+    unique_pds: |
+      {% set new_pd_list = [] %}
+      {% for dict_item in volumes.json.Members[0].Links.Drives %}
+      {% set _ = new_pd_list.append(dict_item['@odata.id']
+       | ansible.builtin.split('/') | last) %}
+      {% endfor %}
+      {{ new_pd_list }}
+
+- name: Verify the single volume
+  ansible.builtin.assert:
+    that:
+      - single_volume.Name == volume_dict.Name
+      - single_volume.RAIDType == volume_dict.RAIDType
+      - >
+        single_volume.Oem.Dell.DellVirtualDisk.StripeSize ==
+        volume_dict.StripeSize
+      - >
+        single_volume.Oem.Dell.DellVirtualDisk.DiskCachePolicy ==
+        volume_dict.DiskCachePolicy
+      - >
+        single_volume.Oem.Dell.DellVirtualDisk.WriteCachePolicy ==
+        volume_dict.WriteCachePolicy
+      - >
+        single_volume.Oem.Dell.DellVirtualDisk.ReadCachePolicy ==
+        volume_dict.ReadCachePolicy
+      - >
+        single_volume.Oem.Dell.DellVirtualDisk.SpanDepth ==
+        volume_dict.SpanDepth
+      - >
+        single_volume.Oem.Dell.DellVirtualDisk.SpanLength ==
+        volume_dict.SpanLength
+      - single_volume.Oem.Dell.DellVirtualDisk.RaidStatus == "Online"
+      - "{{ unique_pds | unique | symmetric_difference(used_pds | unique
+       | map('extract', pd_mapping)) | length == 0}}"

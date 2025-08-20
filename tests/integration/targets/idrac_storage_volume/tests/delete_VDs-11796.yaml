@@ -1,0 +1,285 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: idrac_ip, idrac_user
+     and idrac_password."
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- name: Delete VDs belonging to controller having DHS
+  block:
+    - name: Fetch the best controller and  delete existing VDs
+      ansible.builtin.include_tasks: >-
+        "{{ role_path }}/tests/_fetch_controller_drives.yml"
+
+    - name: Pre-requisite -> Create VDs
+      ansible.builtin.include_tasks: _create_dhs_VD.yml
+
+    - name: Fetch the newly created VDs ID
+      ansible.builtin.include_tasks: _fetch_volume_details.yml
+      vars:
+        storage_controller_Id: "{{ storage_controller_id }}"
+
+    - name: Create the dictionary
+      ansible.builtin.set_fact:
+        volume_name_list: >-
+          {{ volume_name_list | default([])  + [{'name': volume_id }] }}
+      loop: "{{ volume_id_list }}"
+      loop_control:
+        loop_var: volume_id
+
+    - name: Check Mode - Delete VD belonging to dhs
+      dellemc.openmanage.idrac_storage_volume:
+        state: "delete"
+        volumes: "{{ volume_name_list }}"
+        time_to_wait: 500
+      check_mode: true
+      register: check_mode_result
+
+    - name: Verify - Check Mode- Delete VDs belonging to dhs
+      ansible.builtin.assert:
+        that:
+          - check_mode_result.changed
+          - "check_mode_result.msg == 'Changes found to commit!'"
+
+    - name: Delete VDs belonging to dhs
+      dellemc.openmanage.idrac_storage_volume:
+        state: "delete"
+        volumes: "{{ volume_name_list }}"
+        time_to_wait: 500
+      register: delete_result
+
+    - name: Verify - Normal Mode -Delete VDs belonging to dhs
+      ansible.builtin.assert:
+        that:
+          - delete_result.changed
+          - delete_result.msg == (
+            'Successfully completed the delete storage volume operation.')
+          - "'storage_status' in delete_result"
+          - delete_result.storage_status.Message == (
+            'Successfully imported and applied Server Configuration Profile.')
+          - "delete_result.storage_status.JobState == 'Completed'"
+
+    - name: Wait for a Minute
+      ansible.builtin.pause:
+        seconds: 60
+      when: delete_result.changed
+
+- name: Delete VDs belonging to two different controllers with different names
+  block:
+    - name: Re-initialize the volume_id_list
+      ansible.builtin.set_fact:
+        volume_id_list: []
+        volume_name_list: []
+
+    - name: Pre-requisite -> Create VDs
+      ansible.builtin.include_tasks: _pre_req_delete_view.yml
+
+    - name: Fetch the newly created VDs ID
+      ansible.builtin.include_tasks: _fetch_volume_details.yml
+      vars:
+        storage_controller_Id: "{{ controller_info.Id }}"
+      loop: "{{ controller_dict_top }}"
+      loop_control:
+        loop_var: controller_info
+
+    - name: Create the dictionary
+      ansible.builtin.set_fact:
+        volume_name_list: >-
+          {{ volume_name_list | default([])  + [{'name': volume_id }] }}
+      loop: "{{ volume_id_list }}"
+      loop_control:
+        loop_var: volume_id
+
+    - name: Check mode - Delete VDs belonging to two different controllers
+      dellemc.openmanage.idrac_storage_volume:
+        state: "delete"
+        volumes: "{{ volume_name_list }}"
+        time_to_wait: 900
+      check_mode: true
+      register: check_mode_result
+
+    - name: Verify - Check mode - Delete VDs belonging to two different
+       controllers
+      ansible.builtin.assert:
+        that:
+          - check_mode_result.changed
+          - "check_mode_result.msg == 'Changes found to commit!'"
+
+    - name: Delete VDs belonging to two different controllers
+      dellemc.openmanage.idrac_storage_volume:
+        state: "delete"
+        volumes: "{{ volume_name_list }}"
+        time_to_wait: 900
+      register: delete_result
+
+    - name: Verify - Normal Mode -Delete VDs belonging to two different
+       controllers
+      ansible.builtin.assert:
+        that:
+          - delete_result.changed
+          - delete_result.msg == (
+            'Successfully completed the delete storage volume operation.')
+          - "'storage_status' in delete_result"
+          - delete_result.storage_status.Message == (
+            'Successfully imported and applied Server Configuration Profile.')
+          - "delete_result.storage_status.JobState == 'Completed'"
+
+    - name: Wait for a Minute
+      ansible.builtin.pause:
+        seconds: 60
+      when: delete_result.changed
+
+- name: Delete VDs belonging to two different controllers with same names
+  block:
+    - name: Re-initialize the volume_id_list
+      ansible.builtin.set_fact:
+        volume_id_list: []
+        volume_name_list: []
+
+    - name: Pre-requisite -> Create VDs
+      ansible.builtin.include_tasks: _pre_req_delete_view.yml
+      vars:
+        same_name_scenario: true
+
+    - name: Fetch the newly created VDs ID
+      ansible.builtin.include_tasks: _fetch_volume_details.yml
+      vars:
+        storage_controller_Id: "{{ controller_info.Id }}"
+      loop: "{{ controller_dict_top }}"
+      loop_control:
+        loop_var: controller_info
+
+    - name: Create the dictionary
+      ansible.builtin.set_fact:
+        volume_name_list: >-
+          {{ volume_name_list | default([])  + [{'name': volume_id }] }}
+      loop: "{{ volume_id_list }}"
+      loop_control:
+        loop_var: volume_id
+
+    - name: Check mode - Delete VDs belonging to two different
+       controllers with same names
+      dellemc.openmanage.idrac_storage_volume:
+        state: "delete"
+        volumes: "{{ volume_name_list }}"
+      check_mode: true
+      register: check_mode_result
+
+    - name: Verify - Check mode - Delete VDs belonging to two different
+       controllers with same names
+      ansible.builtin.assert:
+        that:
+          - check_mode_result.changed
+          - "check_mode_result.msg == 'Changes found to commit!'"
+
+    - name: Delete VDs belonging to two different controllers with same names
+      dellemc.openmanage.idrac_storage_volume:
+        state: "delete"
+        volumes: "{{ volume_name_list }}"
+      register: delete_result
+
+    - name: Verify - Normal Mode - Delete VDs belonging to two different
+       controllers with same names
+      ansible.builtin.assert:
+        that:
+          - delete_result.changed
+          - delete_result.msg == (
+            'Successfully completed the delete storage volume operation.')
+          - "'storage_status' in delete_result"
+          - delete_result.storage_status.Message == (
+            'Successfully imported and applied Server Configuration Profile.')
+          - "delete_result.storage_status.JobState == 'Completed'"
+
+    - name: Wait for a Minute
+      ansible.builtin.pause:
+        seconds: 60
+      when: delete_result.changed
+
+- name: Delete a single VD
+  block:
+    - name: Re-initialize the volume_id_list
+      ansible.builtin.set_fact:
+        volume_id_list: []
+        volume_name_list: []
+
+    - name: Pre-requisite -> Create VDs
+      ansible.builtin.include_tasks: _pre_req_delete_view.yml
+
+    - name: Fetch the newly created VDs ID
+      ansible.builtin.include_tasks: _fetch_volume_details.yml
+      vars:
+        storage_controller_Id: "{{ controller_dict_top[0].Id }}"
+      when: controller_dict_top | length > 0
+
+    - name: Create the dictionary
+      ansible.builtin.set_fact:
+        volume_name_list: >-
+          {{ volume_name_list | default([])  + [{'name': volume_id }] }}
+      loop: "{{ volume_id_list }}"
+      loop_control:
+        loop_var: volume_id
+
+    - name: Check mode - Delete a single VD
+      dellemc.openmanage.idrac_storage_volume:
+        state: "delete"
+        volumes: "{{ volume_name_list }}"
+      check_mode: true
+      register: check_mode_result
+
+    - name: Verify - Delete a single VD
+      ansible.builtin.assert:
+        that:
+          - check_mode_result.changed
+          - "check_mode_result.msg == 'Changes found to commit!'"
+
+    - name: Delete a single VD
+      dellemc.openmanage.idrac_storage_volume:
+        state: "delete"
+        volumes: "{{ volume_name_list }}"
+      register: delete_result
+
+    - name: Verify - Normal Mode -Delete a single VD
+      ansible.builtin.assert:
+        that:
+          - delete_result.changed
+          - delete_result.msg == (
+            'Successfully completed the delete storage volume operation.')
+          - "'storage_status' in delete_result"
+          - delete_result.storage_status.Message == (
+            'Successfully imported and applied Server Configuration Profile.')
+          - "delete_result.storage_status.JobState == 'Completed'"
+
+    - name: Re-initialize the volume_id_list
+      ansible.builtin.set_fact:
+        volume_id_list: []
+
+    - name: Fetch the second VD details that was created
+      ansible.builtin.include_tasks: _fetch_volume_details.yml
+      vars:
+        storage_controller_Id: "{{ controller_info.Id }}"
+      loop: "{{ controller_dict_top }}"
+      loop_control:
+        loop_var: controller_info
+
+    - name: Create the dictionary
+      ansible.builtin.set_fact:
+        volume_name_list_new: >-
+          {{ volume_name_list_new | default([])  + [{'name': volume_id }] }}
+      loop: "{{ volume_id_list }}"
+      loop_control:
+        loop_var: volume_id
+      when: volume_id_list | length > 0
+
+    - name: Assert the second VD was not deleted
+      ansible.builtin.assert:
+        that:
+          - volume_name_list_new | length == 1
+          - volume_name_list[0].name != volume_name_list_new[0].name
+      when: >
+        volume_name_list_new is defined and volume_name_list_new | length > 0
