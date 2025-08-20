@@ -141,6 +141,7 @@ author:
   - "Felix Stephen (@felixs88)"
   - "Kritika Bhateja (@Kritika-Bhateja-03)"
   - "Abhishek Sinha(@ABHISHEK-SINHA10)"
+  - "Akash Shendge(@shenda1)"
 notes:
     - Run this module from a system that has direct access to Integrated Dell Remote Access Controller.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).

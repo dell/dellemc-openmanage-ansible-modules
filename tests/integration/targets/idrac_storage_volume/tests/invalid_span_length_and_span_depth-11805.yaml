@@ -1,0 +1,49 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING
+# or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username, and iDRAC password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: idrac_ip, idrac_user, and
+     idrac_password."
+  when: idrac_ip is not defined or idrac_user is not defined
+   or idrac_password is not defined
+
+- name: Define RAID configurations
+  ansible.builtin.set_fact:
+    raid_configs:
+      - {raid_type: "1"}
+      - {raid_type: "5"}
+      - {raid_type: "6"}
+      - {raid_type: "10"}
+      - {raid_type: "50"}
+
+- name: Fetch the best controller and delete existing VDs
+  ansible.builtin.include_tasks: >-
+    "{{ role_path }}/tests/_fetch_controller_drives.yml"
+
+- name: Run RAID creation tests with invalid span_length
+  vars:
+    span_length: -1
+    span_depth: 2
+    error_msg: >-
+      The value for the `span_length` parameter cannot be negative or zero.
+  loop: "{{ raid_configs }}"
+  loop_control:
+    loop_var: raid_test
+  ansible.builtin.include_tasks: >-
+    "{{ role_path }}/tests/_validation_span_length_and_span_depth_verify.yml"
+
+- name: Run RAID creation tests with invalid span_depth
+  vars:
+    span_length: 2
+    span_depth: -1
+    error_msg: >-
+      The value for the `span_depth` parameter cannot be negative or zero.
+  loop: "{{ raid_configs }}"
+  loop_control:
+    loop_var: raid_test
+  ansible.builtin.include_tasks: >-
+   "{{ role_path }}/tests/_validation_span_length_and_span_depth_verify.yml"
