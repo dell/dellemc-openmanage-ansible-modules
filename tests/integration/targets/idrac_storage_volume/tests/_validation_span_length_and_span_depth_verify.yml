@@ -1,0 +1,44 @@
+---
+- name: Extract RAID type from loop
+  ansible.builtin.set_fact:
+    raid_type: "{{ raid_test.raid_type }}"
+
+- name: Prerequisite - fail if RAID not supported for the controller
+  ansible.builtin.fail:
+    msg: "RAID {{ raid_type }} not supported for this controller"
+  when: "'RAID{{ raid_type }}' not in storage_controller_dict.Raids"
+
+- name: Prerequisite - fail if not enough disks are found to create a volume
+  ansible.builtin.fail:
+    msg:
+      "Physical disks are not sufficient to proceed with test case
+       execution. Needs a minimum {{ (span_length * span_depth) }},
+       but found {{ pd_mapping | length }}"
+  when: (pd_mapping | length) < (span_length * span_depth)
+
+- name: Select the PDs
+  ansible.builtin.set_fact:
+    used_pds: "{{ (pd_mapping.keys() | list )[:(span_length * span_depth)] }}"
+
+- name: Reset RAID
+  ansible.builtin.include_tasks: "{{ role_path }}/tests/_reset_config.yml"
+
+- name: Create RAID {{ raid_type }}
+  dellemc.openmanage.idrac_storage_volume:
+    state: "create"
+    controller_id: "{{ storage_controller_id }}"
+    volume_type: "RAID {{ raid_type }}"
+    span_depth: "{{ span_depth }}"
+    span_length: "{{ span_length }}"
+    volumes:
+      - name: "test_volume_r{{ raid_type }}"
+        drives:
+          location: "{{ used_pds }}"
+  register: result
+  ignore_errors: true
+
+- name: Verify Create RAID {{ raid_type }}
+  ansible.builtin.assert:
+    that:
+      - not result.changed
+      - "result.msg == error_msg"

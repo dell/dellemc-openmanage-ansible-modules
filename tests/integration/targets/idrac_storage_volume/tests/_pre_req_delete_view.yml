@@ -1,0 +1,121 @@
+---
+- block:
+    - name: Fetching all controllers from iDRAC
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+         /redfish/v1/Systems/System.Embedded.1/Storage?$expand=*($levels=1)"
+        status_code: 200
+        headers: 'Accept=application/json'
+      register: controllers_info
+      no_log: true
+
+    - name: Build list of storage controllers
+      vars:
+        controller_list: []
+      ansible.builtin.set_fact:
+        controller_list: "{{ controller_list + [ {
+          'Id': item['Id'],
+          'Name': item['Name'],
+          'DrivesCount': item['Drives@odata.count'],
+          'SupportedRAIDTypesCount': (
+            item.StorageControllers[0] | default({
+              'SupportedRAIDTypes@odata.count': 0
+            })
+          )['SupportedRAIDTypes@odata.count'],
+          'Drives': item['Drives'],
+          'Raids': (
+            item.StorageControllers[0]
+            | default({'SupportedRAIDTypes': []})
+          )['SupportedRAIDTypes']
+        } ] }}"
+      loop: "{{ all_controllers.json.Members }}"
+      when: (controllers_info | length) > 0
+      no_log: true
+
+    - name: Pick first sorted controller
+      ansible.builtin.set_fact:
+        controller_dict: >-
+          {{ controller_list
+            | sort(
+                  attribute='SupportedRAIDTypesCount,DrivesCount',
+                  reverse=True)
+          }}
+      when: (controllers_info | length) > 0
+      no_log: true
+
+    - name: Select the top controllers
+      ansible.builtin.set_fact:
+        controller_dict_top: "{{ controller_dict[:2]
+          | selectattr('DrivesCount', '>', 3) | list  }}"
+      when: (controller_dict | length) > 0 and controller_id_tc is not defined
+
+    - name: Select the controller based on controller ID
+      ansible.builtin.set_fact:
+        controller_dict_top: "{{ controller_dict
+         | selectattr('Id', 'equalto', controller_id_tc) | list  }}"
+      when: (controller_dict | length) > 0 and controller_id_tc is defined
+
+    - name: Create dictionary min Drives
+      ansible.builtin.set_fact:
+        raid_data:
+          RAID60:
+            spanLength: 4
+            spanDepth: 2
+            minDrives: 8
+          RAID50:
+            spanLength: 3
+            spanDepth: 2
+            minDrives: 6
+          RAID10:
+            spanLength: 2
+            spanDepth: 2
+            minDrives: 4
+          RAID6:
+            spanLength: 4
+            spanDepth: 1
+            minDrives: 4
+          RAID5:
+            spanLength: 3
+            spanDepth: 1
+            minDrives: 3
+          RAID1:
+            spanLength: 2
+            spanDepth: 1
+            minDrives: 2
+          RAID0:
+            spanLength: 1
+            spanDepth: 1
+            minDrives: 1
+      no_log: true
+
+    - name: Create empty dictionary
+      ansible.builtin.set_fact:
+        selected_element: {}
+
+    - name: Get first element based on condition
+      ansible.builtin.set_fact:
+        selected_element: "{{ selected_element
+         | combine({controller_info.Id: raid_data | dict2items
+         | selectattr('value.minDrives', '<=', controller_info.DrivesCount)
+         | first}) }}"
+      loop: "{{ controller_dict_top }}"
+      loop_control:
+        loop_var: controller_info
+
+    - name: Include the volume creation task
+      ansible.builtin.include_tasks: _create_raids.yml
+      vars:
+        storage_controller_Id: "{{ controller_info.Id }}"
+        storage_controller_drives: "{{ controller_info.Drives }}"
+        storage_controller_name: "{{ controller_info.Name }}"
+        volume_name_prefix: "test_vol_"
+        raid_type: "{{ selected_element[controller_info.Id]['key']
+         if selected_element is defined else '' }}"
+        span_length: "{{ raid_data[selected_element[controller_info.Id]
+         ['key']]['spanLength']  }}"
+        span_depth: "{{ raid_data[selected_element[controller_info.Id]
+         ['key']]['spanDepth'] }}"
+      loop: "{{ controller_dict_top }}"
+      loop_control:
+        loop_var: controller_info
+      when: (controller_dict_top | length) > 0
