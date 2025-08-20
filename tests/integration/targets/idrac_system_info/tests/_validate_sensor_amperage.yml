@@ -1,0 +1,58 @@
+---
+- name: Fetch Sensor Amperage details
+  ansible.builtin.uri:
+    url: "{{ sensor_amperage_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: uri_data
+
+- name: Structuring Sensor Amperage details
+  ansible.builtin.command:
+    cmd: >
+      python _get_sensor_amperage_details.py
+      '{{ uri_data.json | to_json }}'
+    chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  environment:
+    PYTHONPATH: "{{ lookup('env', 'ANSIBLE_COLLECTIONS_PATH') }}"
+  register: sensor_amperage_updated_dict
+  no_log: true
+  when:
+    - uri_data.status == 200
+
+- name: Output conversion to list
+  ansible.builtin.set_fact:
+    sensor_amperage_updated_dict: >
+      {{
+        sensor_amperage_updated_dict.stdout
+        | from_yaml
+      }}
+  when:
+    - uri_data.status == 200
+
+- name: Compare Sensor Amperage values
+  ansible.builtin.include_tasks:
+    file: _compare_diff.yml
+  vars:
+    _before: "{{ item.0 | dict2items | items2dict }}"
+    _after: "{{ item.1 | dict2items | items2dict }}"
+  when: uri_data.status == 200
+  loop: >
+    {{
+      result.system_info.Sensors_Amperage
+      | sort(
+        attribute='DeviceID'
+      )
+      | zip(
+        result.system_info.Sensors_Amperage
+        | sort(
+          attribute='DeviceID'
+        )
+      )
+      | list
+    }}
