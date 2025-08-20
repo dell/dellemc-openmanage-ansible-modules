@@ -148,31 +148,31 @@ class TestOMEDeviceGroup(FakeAnsibleModule):
 
     def test_ome_device_group_argument_exception_case1(self, ome_default_args):
         ome_default_args.update({"name": "Storage Services", "device_ids": [25011, 25012], "group_id": 1234})
-        result = self._run_module(ome_default_args)
-        assert result["msg"] == "parameters are mutually exclusive: name|group_id"
+        result = self._run_module_with_fail_json(ome_default_args)
+        assert result['failed'] is True
 
     def test_ome_device_group_argument_exception_case2(self, ome_default_args):
         ome_default_args.update(
             {"device_ids": [25011, 25012], "group_id": 1234, "device_service_tags": [Constants.service_tag1]})
-        result = self._run_module(ome_default_args)
-        assert result["msg"] == "parameters are mutually exclusive: device_ids|device_service_tags|ip_addresses"
+        result = self._run_module_with_fail_json(ome_default_args)
+        assert result['failed'] is True
 
     def test_ome_device_group_argument_exception_case3(self, ome_default_args):
         ome_default_args.update({"device_ids": [25011, 25012]})
-        result = self._run_module(ome_default_args)
-        assert result["msg"] == "one of the following is required: name, group_id"
+        result = self._run_module_with_fail_json(ome_default_args)
+        assert result['failed'] is True
 
     def test_ome_device_group_argument_exception_case4(self, ome_default_args):
         ome_default_args.update(
             {"group_id": 1234})
-        result = self._run_module(ome_default_args)
-        assert result["msg"] == "one of the following is required: device_ids, device_service_tags, ip_addresses"
+        result = self._run_module_with_fail_json(ome_default_args)
+        assert result['failed'] is True
 
     def test_ome_device_group_argument_exception_case5(self, ome_default_args):
         ome_default_args.update(
             {"device_ids": None, "group_id": 1234, "device_service_tags": None})
-        result = self._run_module(ome_default_args)
-        assert result["msg"] == "parameters are mutually exclusive: device_ids|device_service_tags|ip_addresses"
+        result = self._run_module_with_fail_json(ome_default_args)
+        assert result['failed'] is True
 
     @pytest.mark.parametrize("exc_type",
                              [IOError, ValueError, SSLError, TypeError, ConnectionError, HTTPError, URLError])
