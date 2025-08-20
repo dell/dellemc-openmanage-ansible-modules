@@ -577,6 +577,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import id
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.parse import urlparse
+from typing import Tuple
 
 
 REDFISH_SCP_BASE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
@@ -610,6 +611,7 @@ DOMAIN_LIST = ["\\", "@"]
 ERROR_CODES = ["SYS041", "SYS044", "SYS045", "SYS046", "SYS047", "SYS048", "SYS050", "SYS051", "SYS062",
                "SYS063", "SYS064", "SYS065", "SYS067", "SYS068", "SYS070", "SYS071", "SYS072",
                "SYS073", "SYS075", "SYS076", "SYS077", "SYS078", "SYS079", "SYS080"]
+REDFISH_EXTENDED_INFO_KEY = "@Message.ExtendedInfo"
 
 
 def get_scp_file_format(module):
@@ -738,6 +740,8 @@ def perform_check_mode(module, idrac, http_share=True):
     if module.check_mode:
         module.params["job_wait"] = True
         scp_resp = preview_scp_redfish(module, idrac, http_share, import_job_wait=True)
+        if REDFISH_EXTENDED_INFO_KEY in scp_resp:
+            scp_resp = scp_resp[REDFISH_EXTENDED_INFO_KEY][0]
         if "SYS081" in scp_resp["MessageId"] or "SYS082" in scp_resp["MessageId"]:
             module.exit_json(msg=CHANGES_FOUND, changed=True)
         elif "SYS069" in scp_resp["MessageId"]:
@@ -945,11 +949,18 @@ def import_scp_redfish(module, idrac, http_share):
 def wait_for_job_tracking_redfish(module, idrac, scp_response):
     job_id = scp_response.headers["Location"].split("/")[-1]
     if module.params["job_wait"]:
-        job_failed, _msg, job_dict, _wait_time = idrac_redfish_job_tracking(
-            idrac, iDRAC_JOB_URI.format(job_id=job_id))
-        if job_failed or job_dict.get("MessageId", "") in ERROR_CODES:
-            module.exit_json(failed=True, status_msg=job_dict, job_id=job_id, msg=FAIL_MSG.format(module.params["command"]))
-        scp_response = job_dict
+        if generation >= 17:
+            job_failed, _msg, job_dict, _wait_time = idrac_redfish_job_tracking(
+                idrac, JOB_URI.format(job_id=job_id))
+            if job_failed or job_dict.get("MessageId", "") in ERROR_CODES:
+                module.exit_json(failed=True, status_msg=job_dict, job_id=job_id, msg=FAIL_MSG.format(module.params["command"]))
+            scp_response = job_dict
+        else:
+            job_failed, _msg, job_dict, _wait_time = idrac_redfish_job_tracking(
+                idrac, iDRAC_JOB_URI.format(job_id=job_id))
+            if job_failed or job_dict.get("MessageId", "") in ERROR_CODES:
+                module.exit_json(failed=True, status_msg=job_dict, job_id=job_id, msg=FAIL_MSG.format(module.params["command"]))
+            scp_response = job_dict
     return scp_response
 
 
@@ -1001,16 +1012,20 @@ def validate_scp_components(module, idrac):
     }
     for each in oem:
         if each.endswith(operation_dict.get(command.lower())):
-            allowable = oem.get(each).get('ShareParameters').get('Target@Redfish.AllowableValues')
+            allowable = ["ALL", "BIOS", "IDRAC", "NIC", "RAID", "FC", "InfiniBand", "SupportAssist",
+                         "EventFilters", "System", "LifecycleController", "AHCI", "PCIeSSD"]
             invalid_comp = list(set(scp_components) - set(allowable))
             if invalid_comp:
                 msg = TARGET_INVALID_MSG.format(command=command, invalid_targets=invalid_comp, valid_targets=allowable)
                 module.exit_json(msg=msg, failed=True)
 
 
-def is_check_idrac_latest(firmware_version):
-    if LooseVersion(firmware_version) >= MINIMUM_SUPPORTED_FIRMWARE_VERSION:
+def is_check_idrac_latest(firmware_version, generation):
+    if generation >= 17:
         return True
+    else:
+        if LooseVersion(firmware_version) >= MINIMUM_SUPPORTED_FIRMWARE_VERSION:
+            return True
     return False
 
 
@@ -1065,7 +1080,7 @@ class ImportCustomDefaultCommand():
     def execute(self):
         changed = True
         command = self.module.params["command"]
-        if not is_check_idrac_latest(self.idrac_firmware_version):
+        if not is_check_idrac_latest(self.idrac_firmware_version, generation):
             self.module.exit_json(msg=CUSTOM_ERROR.format(command=command),
                                   skipped=True)
         validate_customdefault_input(self.module, command)
@@ -1089,11 +1104,13 @@ class ImportCommand():
                 changed = True
         else:
             scp_status = import_scp_redfish(self.module, self.idrac, self.http_share)
+            if REDFISH_EXTENDED_INFO_KEY in scp_status:
+                scp_status = scp_status[REDFISH_EXTENDED_INFO_KEY][0]
             if "No changes were applied" not in scp_status.get('Message', ""):
                 changed = True
-            elif "SYS043" in scp_status.get("MessageId", ""):
+            elif "SYS043" in scp_status.get('MessageId', ""):
                 changed = True
-            elif "SYS069" in scp_status.get("MessageId", ""):
+            elif "SYS069" in scp_status.get('MessageId', ""):
                 changed = False
         return scp_status, changed
 
@@ -1106,7 +1123,7 @@ class ExportCustomDefaultCommand():
 
     def execute(self):
         command = self.module.params["command"]
-        if not is_check_idrac_latest(self.idrac_firmware_version):
+        if not is_check_idrac_latest(self.idrac_firmware_version, generation):
             self.module.exit_json(msg=CUSTOM_ERROR.format(command=command),
                                   skipped=True)
         validate_customdefault_input(self.module, command)
@@ -1139,6 +1156,20 @@ class PreviewCommand():
         return scp_status, False
 
 
+def _get_server_version(idrac: iDRACRedfishAPI) -> Tuple[int]:
+    """
+    Function wrapping idrac.get_server_generation. Helps with mocked testing and linting.
+
+    Args:
+        idrac (iDRACRedfishAPI): iDRACRedfishAPI object.
+
+    Returns:
+        Tuple[int, str]: A tuple containing the server generation and firmware version.
+    """
+    t = idrac.get_server_generation
+    return t[0]
+
+
 def main():
     specs = get_argument_spec()
 
@@ -1160,6 +1191,9 @@ def main():
         if module.params.get("share_name") is not None:
             http_share = module.params["share_name"].lower().startswith(('http://', 'https://'))
         with iDRACRedfishAPI(module.params) as idrac:
+            gen_details = _get_server_version(idrac)
+            global generation
+            generation = gen_details
             if command in ["import", "export", "preview"]:
                 validate_scp_components(module, idrac)
             command_map = {

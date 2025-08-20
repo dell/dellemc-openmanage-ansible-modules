@@ -1,0 +1,135 @@
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables:
+      idrac_ip, idrac_user and idrac_password.'
+  when: idrac_ip is not defined or
+    idrac_user is not defined or
+    idrac_password is not defined
+
+- block:
+    - name: Local preview SCP all cases.
+      ansible.builtin.include_tasks: _preview_file_cnfs.yml
+      vars:
+        scp_label: "Local-preview"
+        scp_file_prefix: "omam_local"
+        scp_work_path: "{{ role_path }}/files"
+        scp_share_name: "{{ role_path }}/files"
+        scp_share_user: "{{ omit }}"
+        scp_share_password: "{{ omit }}"
+
+    - name: CIFS preview SCP all cases.
+      ansible.builtin.include_tasks: _preview_file_cnfs.yml
+      vars:
+        scp_label: "CIFS-Preview"
+        scp_file_prefix: "omam_cifs"
+        scp_work_path: "{{ cifs_mount }}"
+        scp_share_name: "{{ cifs_share_name }}"
+        scp_share_user: "{{ cifs_share_user }}"
+        scp_share_password: "{{ cifs_share_password }}"
+
+    - name: NFS preview SCP all cases.
+      ansible.builtin.include_tasks: _preview_file_cnfs.yml
+      vars:
+        scp_label: "NFS-preview"
+        scp_file_prefix: "omam_nfs"
+        scp_work_path: "{{ nfs_mount }}"
+        scp_share_name: "{{ nfs_share_name }}"
+        scp_share_user: "{{ omit }}"
+        scp_share_password: "{{ omit }}"
+
+    - name: Preview of SCP in Sync mode local file
+        of type XML format (Check mode)
+      dellemc.openmanage.idrac_server_config_profile: &scpc1
+        command: preview
+        job_wait: true
+        share_name: "{{ role_path }}/files"
+        scp_file: "preview_test.xml"
+      register: preview_result_1
+      check_mode: true
+
+    - name: Verify task status - review of SCP in
+        Sync mode local file of type XML format
+      ansible.builtin.assert:
+        that:
+          - not preview_result_1.changed
+          - preview_result_1.msg == "Successfully previewed the
+            Server Configuration Profile."
+
+    - include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{preview_result_1.scp_status.Id}}"
+      when: preview_result_1.msg == "Successfully previewed the
+        Server Configuration Profile."
+
+    - name: Preview of SCP in Sync mode with import_buffer
+        of type XML format (Normal mode)
+      dellemc.openmanage.idrac_server_config_profile:
+        <<: *scpc1
+      register: preview_result_2
+
+    - name: Verify task status - preview of SCP in Sync mode with
+        import_buffer of type XML format (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - not preview_result_2.changed
+          - preview_result_2.msg == "Successfully previewed the
+            Server Configuration Profile."
+
+    ##########   Verify preview SCP in sync mode when ####
+    ##########   local file of type JSON format ##########
+    - name: Preview of SCP in Sync mode with local file of
+        type JSON format (Normal mode)
+      dellemc.openmanage.idrac_server_config_profile:
+        command: preview
+        job_wait: true
+        share_name: "{{ role_path }}/files"
+        scp_file: "preview_test.json"
+      register: preview_result_3
+
+    - name: Verify task status - Preview of SCP in Sync mode with
+        local file of  of type JSON format (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - not preview_result_3.changed
+          - preview_result_3.msg == "Successfully previewed the
+            Server Configuration Profile."
+
+    - name: Preview SCP http share all cases without proxy.
+      ansible.builtin.include_tasks: _preview_file_http.yml
+      vars:
+        scp_label: "HTTP-PREVIEW"
+        scp_file_prefix: "omam_http"
+        scp_share_name: "http://{{ http_share }}{{ http_share_dir_path }}"
+        scp_share_user: "{{ http_share_user }}"
+        scp_share_password: "{{ http_share_password }}"
+        import_http_proxy_enabled: false
+        import_http_proxy_type: "{{ omit }}"
+        import_http_proxy_server: "{{ omit }}"
+        import_http_proxy_port: "{{ omit }}"
+        import_http_proxy_username: "{{ omit }}"
+        import_http_proxy_password: "{{ omit }}"
+
+    - name: Preview SCP https share all cases without proxy.
+      ansible.builtin.include_tasks: _preview_file_http.yml
+      vars:
+        scp_label: "httpS-Preview"
+        scp_file_prefix: "omam_https"
+        scp_share_name: "https://{{ http_share }}{{ http_share_dir_path }}"
+        scp_share_user: "{{ http_share_user }}"
+        scp_share_password: "{{ http_share_password }}"
+        import_http_proxy_enabled: false
+        import_http_proxy_type: "{{ omit }}"
+        import_http_proxy_server: "{{ omit }}"
+        import_http_proxy_port: "{{ omit }}"
+        import_http_proxy_username: "{{ omit }}"
+        import_http_proxy_password: "{{ omit }}"
+
+  module_defaults:
+    dellemc.openmanage.idrac_server_config_profile:
+      idrac_ip: "{{idrac_ip}}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      idrac_port: "{{ idrac_port }}"
+      validate_certs: "{{ validate_certs }}"
+      proxy_support: false
