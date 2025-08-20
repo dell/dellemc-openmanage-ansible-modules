@@ -526,8 +526,8 @@ class TestStorageVolume(FakeAnsibleModule):
                                                  "WriteCachePolicy": "WriteThrough"}}}}
         f_module = self.get_module_mock(params=param)
         payload = self.module.volume_payload(f_module, greater_version)
-        assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/" \
-                                                    "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
+        assert payload["Links"]["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/" \
+            "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
         assert payload["RAIDType"] == "RAID0"
         assert payload["Name"] == "VD1"
         assert payload["BlockSizeBytes"] == 512
@@ -571,8 +571,8 @@ class TestStorageVolume(FakeAnsibleModule):
                                                  "WriteCachePolicy": "WriteThrough"}}}}
         f_module = self.get_module_mock(params=param)
         payload = self.module.volume_payload(f_module, greater_version)
-        assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/" \
-                                                    "Storage/Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
+        assert payload["Links"]["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/" \
+            "Storage/Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
         assert payload["RAIDType"] == "RAID0"
         assert payload["Name"] == "VD1"
         assert payload["BlockSizeBytes"] == 512
@@ -602,8 +602,8 @@ class TestStorageVolume(FakeAnsibleModule):
                                                  "WriteCachePolicy": "WriteThrough"}}}}
         f_module = self.get_module_mock(params=param)
         payload = self.module.volume_payload(f_module, greater_version)
-        assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/" \
-                                                    "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
+        assert payload["Links"]["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/" \
+            "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
         assert payload["RAIDType"] == "RAID0"
         assert payload["Name"] == "VD1"
         assert payload["BlockSizeBytes"] == 512
@@ -636,8 +636,8 @@ class TestStorageVolume(FakeAnsibleModule):
                                                  "WriteCachePolicy": "WriteThrough"}}}}
         f_module = self.get_module_mock(params=param)
         payload = self.module.volume_payload(f_module, greater_version)
-        assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/" \
-                                                    "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
+        assert payload["Links"]["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/" \
+            "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
         assert payload["RAIDType"] == "RAID6"
         assert payload["Name"] == "VD1"
         assert payload["BlockSizeBytes"] == 512
@@ -674,8 +674,8 @@ class TestStorageVolume(FakeAnsibleModule):
                                                  "WriteCachePolicy": "WriteThrough"}}}}
         f_module = self.get_module_mock(params=param)
         payload = self.module.volume_payload(f_module, greater_version)
-        assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/" \
-                                                    "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
+        assert payload["Links"]["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/" \
+            "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
         assert payload["RAIDType"] == "RAID60"
         assert payload["Name"] == "VD1"
         assert payload["BlockSizeBytes"] == 512
