@@ -60,6 +60,8 @@ options:
         as false.
       - C(EnableSecurity) - To enable security on a storage controller. Only Applicable for 17G and above.
       - C(DisableSecurity) - To disable security on a storage controller. Only Applicable for 17G and above.
+      - C(SetControllerKey), C(RemoveControllerKey), C(ReKey) and C(EnableControllerEncryption) are only supported for 16G and below.
+      - Blinking of virtual disk is not supported for 17G and above.
     choices: [ResetConfig, AssignSpare, SetControllerKey, RemoveControllerKey, ReKey, UnassignSpare,
       EnableControllerEncryption, BlinkTarget, UnBlinkTarget, ConvertToRAID, ConvertToNonRAID,
       ChangePDStateToOnline, ChangePDStateToOffline, LockVirtualDisk, OnlineCapacityExpansion, SecureErase,
@@ -143,6 +145,7 @@ options:
       - I(apply_time) and I(maintenance_window) is applicable for I(attributes).
       - I(attributes) is mutually exclusive with I(command).
       - Use U(https://I(idrac_ip)/redfish/v1/Schemas/DellOemStorageController.json) to view the attributes.
+      - Refer U(https://dl.dell.com/content/manual64794104-idrac10-user-s-guide.pdf?language=en-us) to view supported parameters for iDRAC 10
   apply_time:
     type: str
     description:
@@ -155,6 +158,7 @@ options:
       in I(maintenance_window)."
       - "C(InMaintenanceWindowOnReset) Allows to apply after a manual reset but within the maintenance window as
       specified in I(maintenance_window)."
+      - Only C(Immediate) and C(OnReset) are supported for 17G.
     choices: [Immediate, OnReset, AtMaintenanceWindowStart, InMaintenanceWindowOnReset]
     default: Immediate
   maintenance_window:
@@ -204,10 +208,11 @@ author:
   - "Trisha Datta (@trisha-dell)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
-    - This module is supported on iDRAC9.
+    - This module is supported on iDRAC9 and iDRAC 10.
     - This module supports IPv4 and IPv6 addresses.
     - This module always reports as changes found when I(command) is C(ReKey), C(BlinkTarget), and C(UnBlinkTarget).
     - This module supports C(check_mode).
+
 '''
 
 EXAMPLES = r'''
