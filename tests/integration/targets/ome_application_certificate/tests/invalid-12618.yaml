@@ -27,7 +27,7 @@
       ansible.builtin.assert:
         that:
           - invalid_email.failed
-          - invalid_email.msg == "HTTP Error 400: 400"
+          - "invalid_email.msg == 'HTTP Error 400: 400'"
 
     - name: Negative - invalid country
       dellemc.openmanage.ome_application_certificate:
@@ -45,7 +45,7 @@
       ansible.builtin.assert:
         that:
           - invalid_country.failed
-          - invalid_country.msg == "HTTP Error 400: 400"
+          - "invalid_country.msg == 'HTTP Error 400: 400'"
 
     - name: Negative - invalid command
       dellemc.openmanage.ome_application_certificate:
@@ -72,7 +72,7 @@
       ansible.builtin.assert:
         that:
           - invalid_path.failed
-          - invalid_path.msg == "No such file or directory."
+          - "invalid_path.msg == 'No such file or directory.'"
 
     - name: Negative - unreachable host
       dellemc.openmanage.ome_application_certificate:
@@ -114,8 +114,8 @@
         that:
           - invalid_user.failed
           - not invalid_user.changed
-          - 'invalid_user.msg == "HTTP Error 401: 401" or
-           "HTTP Error 400: 400"'
+          - "invalid_user.msg == 'HTTP Error 401: 401' or
+            invalid_user.msg == 'HTTP Error 400: 400'"
 
     - name: Negative - Invalid password
       dellemc.openmanage.ome_application_certificate:
@@ -178,7 +178,7 @@
       ansible.builtin.assert:
         that:
           - upload_result.failed
-          - upload_result.msg == "No such file or directory."
+          - "upload_result.msg == 'No such file or directory.'"
 
   module_defaults:
     dellemc.openmanage.ome_application_certificate:
