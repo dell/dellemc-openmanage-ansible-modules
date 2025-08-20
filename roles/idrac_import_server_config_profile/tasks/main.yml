@@ -21,7 +21,7 @@
     proxy_username: "{{ share_parameters.proxy_username | default(omit) }}"
     proxy_password: "{{ share_parameters.proxy_password | default(omit) }}"
     ignore_certificate_warning: "{{ share_parameters.ignore_certificate_warning | default(omit) }}"
-    import_buffer: "{{ import_buffer | default(omit) | string }}"
+    import_buffer: "{{ import_buffer | string | default(omit) }}"
     target: "{{ target }}"
     shutdown_type: "{{ shutdown_type }}"
     end_host_power_state: "{{ end_host_power_state }}"

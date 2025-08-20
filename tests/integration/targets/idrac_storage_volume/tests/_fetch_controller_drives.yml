@@ -1,0 +1,93 @@
+---
+- block:
+    - name: Fetching all controllers from iDRAC
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+         /redfish/v1/Systems/System.Embedded.1/Storage?$expand=*($levels=1)"
+        status_code: 200
+        headers: 'Accept=application/json'
+      register: all_controllers
+
+    - name: Build list of storage controllers
+      vars:
+        controller_list: []
+      ansible.builtin.set_fact:
+        controller_list: "{{ controller_list + [ {
+          'Id': item['Id'],
+          'Name': item['Name'],
+          'DrivesCount': item['Drives@odata.count'],
+          'SupportedRAIDTypesCount': (
+            item.StorageControllers[0] | default({
+              'SupportedRAIDTypes@odata.count': 0
+            })
+          )['SupportedRAIDTypes@odata.count'],
+          'Drives': item['Drives'],
+          'Volumes': item['Volumes'],
+          'Raids': (
+            item.StorageControllers[0]
+            | default({'SupportedRAIDTypes': []})
+          )['SupportedRAIDTypes']
+        } ] }}"
+      loop: "{{ all_controllers.json.Members }}"
+
+    - name: Pick first sorted controller
+      ansible.builtin.set_fact:
+        storage_controller_dict: >-
+          {{ controller_list
+            | sort(
+                  attribute='SupportedRAIDTypesCount,DrivesCount',
+                  reverse=True)
+            | first }}
+
+    - name: Fetching all volumes in specific controller
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+         {{ storage_controller_dict.Volumes['@odata.id'] }}\
+         ?$expand=*($levels=1)"
+        status_code: 200
+        headers: 'Accept=application/json'
+      register: all_volume
+
+    - name: Extracting VDs name
+      ansible.builtin.set_fact:
+        vd_names: "{{ vd_names | default([]) + [{'name': item.Name }] }}"
+      loop: "{{ all_volume.json.Members }}"
+
+    - name: Delete all the volumes
+      dellemc.openmanage.idrac_storage_volume:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        idrac_port: "{{ idrac_port }}"
+        validate_certs: "{{ validate_certs }}"
+        controller_id: "{{ storage_controller_dict.Id }}"
+        state: "delete"
+        volumes: "{{ vd_names }}"
+      register: delete_volume
+      when:
+        - vd_names is defined
+        - delete_vdd is undefined
+
+    - name: Get the PDs for the controller
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+         {{ pd['@odata.id'] }}"
+        status_code: 200
+        headers: 'Accept=application/json'
+      loop: "{{ storage_controller_dict.Drives }}"
+      loop_control:
+        loop_var: pd
+      register: pd_results
+      no_log: true
+
+    - name: Get the pd location id mapping
+      ansible.builtin.set_fact:
+        storage_controller_id: "{{ storage_controller_dict.Id }}"
+        storage_controller_name: "{{ storage_controller_dict.Name }}"
+        pd_mapping: "{{ pd_mapping | default({}) | combine({pd['json']
+          ['PhysicalLocation']['PartLocation']
+          ['LocationOrdinalValue']: pd['json']['Id'] }) }}"
+      loop: "{{ pd_results.results }}"
+      loop_control:
+        loop_var: pd
+      no_log: true
