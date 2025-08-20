@@ -509,7 +509,6 @@ class TestStorageVolume(FakeAnsibleModule):
         param = {
             "drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"],
             "capacity_bytes": 299439751168,
-            "block_size_bytes": 512,
             "encryption_types": "NativeDriveEncryption",
             "encrypted": True,
             "raid_type": "RAID0",
@@ -530,7 +529,6 @@ class TestStorageVolume(FakeAnsibleModule):
             "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
         assert payload["RAIDType"] == "RAID0"
         assert payload["Name"] == "VD1"
-        assert payload["BlockSizeBytes"] == 512
         assert payload["CapacityBytes"] == 299439751168
         assert payload["OptimumIOSizeBytes"] == 65536
         assert payload["Encrypted"] is True
@@ -547,7 +545,6 @@ class TestStorageVolume(FakeAnsibleModule):
         payload = self.module.volume_payload(f_module, greater_version)
         assert payload["RAIDType"] == "RAID0"
         assert payload["Name"] == "VD1"
-        assert payload["BlockSizeBytes"] == 512
         assert payload["OptimumIOSizeBytes"] == 65536
 
     def test_volume_payload_case_03(self, storage_volume_base_uri, greater_version):
@@ -555,7 +552,6 @@ class TestStorageVolume(FakeAnsibleModule):
         param = {
             "drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"],
             "capacity_bytes": 299439751168,
-            "block_size_bytes": 512,
             "encryption_types": "NativeDriveEncryption",
             "encrypted": False,
             "raid_type": "RAID0",
@@ -575,7 +571,6 @@ class TestStorageVolume(FakeAnsibleModule):
             "Storage/Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
         assert payload["RAIDType"] == "RAID0"
         assert payload["Name"] == "VD1"
-        assert payload["BlockSizeBytes"] == 512
         assert payload["CapacityBytes"] == 299439751168
         assert payload["OptimumIOSizeBytes"] == 65536
         assert payload["Encrypted"] is False
@@ -586,7 +581,6 @@ class TestStorageVolume(FakeAnsibleModule):
         param = {
             "drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"],
             "capacity_bytes": 299439751168,
-            "block_size_bytes": 512,
             "encryption_types": "NativeDriveEncryption",
             "encrypted": True,
             "volume_type": "NonRedundant",
@@ -606,7 +600,6 @@ class TestStorageVolume(FakeAnsibleModule):
             "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
         assert payload["RAIDType"] == "RAID0"
         assert payload["Name"] == "VD1"
-        assert payload["BlockSizeBytes"] == 512
         assert payload["CapacityBytes"] == 299439751168
         assert payload["OptimumIOSizeBytes"] == 65536
         assert payload["Encrypted"] is True
@@ -620,7 +613,6 @@ class TestStorageVolume(FakeAnsibleModule):
                        "Disk.Bay.0:Enclosure.Internal.0-2:RAID.Mezzanine.1C-1",
                        "Disk.Bay.0:Enclosure.Internal.0-3:RAID.Mezzanine.1C-1"],
             "capacity_bytes": 299439751168,
-            "block_size_bytes": 512,
             "encryption_types": "NativeDriveEncryption",
             "encrypted": True,
             "raid_type": "RAID6",
@@ -640,7 +632,6 @@ class TestStorageVolume(FakeAnsibleModule):
             "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
         assert payload["RAIDType"] == "RAID6"
         assert payload["Name"] == "VD1"
-        assert payload["BlockSizeBytes"] == 512
         assert payload["CapacityBytes"] == 299439751168
         assert payload["OptimumIOSizeBytes"] == 65536
         assert payload["Encrypted"] is True
@@ -658,7 +649,6 @@ class TestStorageVolume(FakeAnsibleModule):
                        "Disk.Bay.0:Enclosure.Internal.0-6:RAID.Mezzanine.1C-1",
                        "Disk.Bay.0:Enclosure.Internal.0-7:RAID.Mezzanine.1C-1"],
             "capacity_bytes": 299439751168,
-            "block_size_bytes": 512,
             "encryption_types": "NativeDriveEncryption",
             "encrypted": True,
             "raid_type": "RAID60",
@@ -678,7 +668,6 @@ class TestStorageVolume(FakeAnsibleModule):
             "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
         assert payload["RAIDType"] == "RAID60"
         assert payload["Name"] == "VD1"
-        assert payload["BlockSizeBytes"] == 512
         assert payload["CapacityBytes"] == 299439751168
         assert payload["OptimumIOSizeBytes"] == 65536
         assert payload["Encrypted"] is True
@@ -764,7 +753,7 @@ class TestStorageVolume(FakeAnsibleModule):
     def test_check_mode_validation(self, redfish_connection_mock_for_storage_volume,
                                    redfish_response_mock, storage_volume_base_uri, greater_version):
         param = {"drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Integrated.1-1"],
-                 "capacity_bytes": 214748364800, "block_size_bytes": 512, "encryption_types": "NativeDriveEncryption",
+                 "capacity_bytes": 214748364800, "encryption_types": "NativeDriveEncryption",
                  "encrypted": False, "raid_type": "RAID0", "optimum_io_size_bytes": 65536}
         f_module = self.get_module_mock(params=param)
         f_module.check_mode = True
@@ -785,7 +774,7 @@ class TestStorageVolume(FakeAnsibleModule):
             "Members@odata.count": 1, "Id": "Disk.Virtual.0:RAID.Integrated.1-1",
             "Members": [{"@odata.id": "/redfish/v1/Systems/System.Embedded.1/Storage/"
                                       "RAID.Integrated.1-1/Volumes/Disk.Virtual.0:RAID.Integrated.1-1"}],
-            "Name": "VD0", "BlockSizeBytes": 512, "CapacityBytes": 214748364800, "Encrypted": False,
+            "Name": "VD0", "CapacityBytes": 214748364800, "Encrypted": False,
             "EncryptionTypes": ["NativeDriveEncryption"], "OptimumIOSizeBytes": 65536, "RAIDType": "RAID0",
             "Links": {"Drives": [{"@odata.id": "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Integrated.1-1"}]}}
         param.update({"name": "VD0"})
