@@ -66,7 +66,7 @@
       when:
         - not is_omsdk_required | bool
 
-    - name: Verify task status - iDRAC 9 
+    - name: Verify task status - iDRAC 9
       ansible.builtin.assert:
         that:
           - not result_enable_security_idrac9.changed
