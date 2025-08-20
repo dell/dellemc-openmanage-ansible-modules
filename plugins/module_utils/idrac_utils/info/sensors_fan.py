@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 9.12.0
+# Version 10.0.0
 # Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -26,7 +26,8 @@
 #
 
 
-GET_IDRAC_SENSOR_FAN_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Oem/Dell/DellEnclosureFanSensors"
+GET_IDRAC_THERMAL_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Thermal"
+GET_IDRAC_FAN_SENSOR_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Sensors/{fan_name}"
 NA = "Not Available"
 
 
@@ -34,32 +35,55 @@ class IDRACSensorsFanInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
 
-    def sensors_fan_mapped_data(self, resp):
-        response = self.idrac.invoke_request(method='GET', uri=resp)
-        if response.status_code == 200:
-            output = {
-                "CurrentReading": NA,
-                "CurrentState": NA,
-                "DeviceID": NA,
-                "FQDD": NA,
-                "HealthState": NA,
-                "Key": NA,
-                "Location": NA,
-                "Name": NA,
-                "OtherSensorTypeDescription": NA,
-                "PrimaryStatus": NA,
-                "SensorType": NA,
-                "State": NA,
-                "SubType": NA,
-                "Type": NA,
-                "coolingUnitIndexReference": NA
-            }
-            return output
+    def fetch_fan_sensor_names(self):
+        """Fetches a list of all fan names from the IDRAC endpoint."""
+        resp = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_THERMAL_DETAILS_URI_10)
+        if resp.status_code != 200:
+            return []
+
+        return [
+            member.get("FanName")
+            for member in resp.json_data.get("Fans", [])
+            if member.get("FanName")
+        ]
+
+    def fetch_fan_sensor_details(self, fan_name):
+        """Fetches raw fan sensor details for a given fan name."""
+        sensor_uri = GET_IDRAC_FAN_SENSOR_DETAILS_URI_10.format(fan_name=fan_name)
+        resp = self.idrac.invoke_request(method='GET', uri=sensor_uri)
+        return resp.json_data if resp.status_code == 200 else None
+
+    def map_fan_sensor_data(self, resp):
+        """Maps the fan sensor response into the expected output format."""
+        health = resp.get("Status", {}).get("Health", {})
+        state = resp.get("Status", {}).get("State", {}) or NA
+        device_id = resp.get("Oem", {}).get("Dell", {}).get("DeviceID", {}) or NA
+        current_state = resp.get("Oem", {}).get("Dell", {}).get("CurrentState", {}) or NA
+
+        return {
+            "CurrentReading": resp.get("Reading", NA),
+            "CurrentState": current_state,
+            "DeviceID": device_id,
+            "FQDD": resp.get("FQDD", NA),
+            "HealthState": health,
+            "Key": resp.get("Name", NA),
+            "Location": resp.get("Name", NA),
+            "Name": resp.get("FanName", NA),
+            "OtherSensorTypeDescription": resp.get("OtherSensorTypeDescription", NA),
+            "PrimaryStatus": "Healthy" if health == "OK" else health,
+            "SensorType": "Fan",
+            "State": state,
+            "SubType": resp.get("SubType", NA),
+            "Type": resp.get("Type", NA),
+            "coolingUnitIndexReference": resp.get("coolingUnitIndexReference", NA),
+        }
 
     def get_sensors_fan_info(self):
-        output = []
-        resp = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_SENSOR_FAN_DETAILS_URI_10)
-        if resp.status_code == 200:
-            for each_member in resp.json_data.get("Members", []):
-                output.append(self.sensors_fan_mapped_data(each_member))
-        return output
+        fan_info_list = []
+
+        for fan_name in self.fetch_fan_sensor_names():
+            fan_resp = self.fetch_fan_sensor_details(fan_name)
+            if fan_resp:
+                fan_info_list.append(self.map_fan_sensor_data(fan_resp))
+
+        return fan_info_list
