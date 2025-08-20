@@ -33,7 +33,7 @@
       ansible.builtin.assert:
         that:
           - upload_result.changed
-          - upload_result.msg == "Successfully uploaded application certificate."
+          - "upload_result.msg == 'Successfully uploaded application certificate.'"
 
   always:
     - name: Delete created directory
