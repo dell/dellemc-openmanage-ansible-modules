@@ -25,8 +25,8 @@
         - name: Waiting for iDRAC to be in ready state
           ansible.builtin.include_tasks:
             file: ../__lc_status.yaml
-          when: disable_security_out.msg == "Successfully submitted the job that
-                performs the 'DisableSecurity' operation."
+          when: disable_security_out.msg == "Successfully submitted the
+                job that performs the 'DisableSecurity' operation."
 
         - name: Verifying disable security on controller in check mode
           ansible.builtin.assert:
@@ -38,18 +38,22 @@
         - name: Verifying disable security on controller in normal mode
           ansible.builtin.assert:
             that:
-              - disable_security_out.msg == "Successfully submitted the job that
-                performs the 'DisableSecurity' operation."
-          when: not ansible_check_mode and disable_security_out.status is defined
+              - disable_security_out.msg == "Successfully submitted the
+                job that performs the 'DisableSecurity' operation."
+          when:
+            not ansible_check_mode and disable_security_out.status is defined
 
         - name: Wait for 120 seconds
           ansible.builtin.pause:
             seconds: 120
-          when: not ansible_check_mode and disable_security_out.status is defined
+          when:
+            not ansible_check_mode and disable_security_out.status is defined
 
         - name: Verifying disable security on controller in idempotence mode
           ansible.builtin.assert:
             that:
               - disable_security_out.msg == "No changes found to be applied."
               - not disable_security_out.changed
-          when: not ansible_check_mode and disable_security_out.status is not defined
+          when:
+            - not ansible_check_mode
+            - disable_security_out.status is not defined

@@ -36,6 +36,7 @@
 
     - name: Check for iDRAC lc ready status.
       dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        validate_certs: false
       register: result
       until: result.lc_status_info.LCReady and result.lc_status_info.
        LCStatus == "Ready"

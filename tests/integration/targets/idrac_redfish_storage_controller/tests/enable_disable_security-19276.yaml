@@ -69,8 +69,8 @@
         that:
           - not enable_result.changed
           - not enable_result.failed
-          - enable_result.msg == "Successfully submitted the job that performs the
-            'EnableSecurity' operation."
+          - enable_result.msg == "Successfully submitted the job that
+            performs the 'EnableSecurity' operation."
 
     - name: Enable security on controller - Idempotence
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -132,8 +132,8 @@
         that:
           - not disable_result.changed
           - not disable_result.failed
-          - disable_result.msg == "Successfully submitted the job that performs the
-            'DisableSecurity' operation."
+          - disable_result.msg == "Successfully submitted the job
+            that performs the 'DisableSecurity' operation."
 
     - name: Disable security on controller - Idempotence
       dellemc.openmanage.idrac_redfish_storage_controller:

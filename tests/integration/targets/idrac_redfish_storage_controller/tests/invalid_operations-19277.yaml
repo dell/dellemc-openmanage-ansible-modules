@@ -66,13 +66,15 @@
       when:
         - not is_omsdk_required | bool
 
-    - name: Verify task status - iDRAC 9
+    - name: Verify task status - iDRAC 9 
       ansible.builtin.assert:
         that:
           - not result_enable_security_idrac9.changed
-          - result_enable_security_idrac9.msg == "The command EnableSecurity is not applicable for iDRAC 9"
+          - result_enable_security_idrac9.msg == "The command
+            EnableSecurity is not applicable for iDRAC 9"
           - not result_disable_security_idrac9.changed
-          - result_disable_security_idrac9.msg == "The command DisableSecurity is not applicable for iDRAC 9"
+          - result_disable_security_idrac9.msg == "The command
+            DisableSecurity is not applicable for iDRAC 9"
       when:
         - is_omsdk_required | bool
 
@@ -80,11 +82,14 @@
       ansible.builtin.assert:
         that:
           - not result_enable_encryption_idrac10.changed
-          - result_enable_encryption_idrac10.msg == "The command EnableControllerEncryption is not applicable for iDRAC 10"
+          - result_enable_encryption_idrac10.msg == "The command
+            EnableControllerEncryption is not applicable for iDRAC 10"
           - not result_set_controller_key_idrac10.changed
-          - result_set_controller_key_idrac10.msg == "The command SetControllerKey is not applicable for iDRAC 10"
+          - result_set_controller_key_idrac10.msg == "The command
+            SetControllerKey is not applicable for iDRAC 10"
           - not result_remove_controller_key_idrac10.changed
-          - result_remove_controller_key_idrac10.msg == "The command RemoveControllerKey is not applicable for iDRAC 10"
+          - result_remove_controller_key_idrac10.msg == "The command
+            RemoveControllerKey is not applicable for iDRAC 10"
       when:
         - not is_omsdk_required | bool
 

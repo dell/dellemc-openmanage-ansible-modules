@@ -22,7 +22,8 @@
 
     - ansible.builtin.set_fact:
         controller_name: "{{ item.key }}"
-      loop: "{{ result_pre_req.storage_status.Message.Controller | dict2items }}"
+      loop:
+        "{{ result_pre_req.storage_status.Message.Controller | dict2items }}"
       when: "'Enclosure' in item.value"
       ignore_errors: true
 
