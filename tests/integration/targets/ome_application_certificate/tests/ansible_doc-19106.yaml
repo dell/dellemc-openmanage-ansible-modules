@@ -6,7 +6,8 @@
 ---
 - block:
     - name: ansible-doc
-      ansible.builtin.command: ansible-doc dellemc.openmanage.ome_application_certificate
+      ansible.builtin.command: ansible-doc
+        dellemc.openmanage.ome_application_certificate
       register: ansible_doc_hash
 
     - name: Get ansible-doc output
