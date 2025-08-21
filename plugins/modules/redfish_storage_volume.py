@@ -384,7 +384,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import MA
 VOLUME_INITIALIZE_URI = "{storage_base_uri}/Volumes/{volume_id}/Actions/Volume.Initialize"
 DRIVES_URI = "{storage_base_uri}/Drives/{driver_id}"
 CONTROLLER_URI = "{storage_base_uri}/{controller_id}"
-SETTING_VOLUME_ID_URI = "{storage_base_uri}/Volumes/{volume_id}/Settings"
+SETTING_VOLUME_ID_URI = "{storage_base_uri}/{controller_id}/Volumes/{volume_id}/Settings"
 CONTROLLER_VOLUME_URI = "{storage_base_uri}/{controller_id}/Volumes"
 VOLUME_ID_URI = "{storage_base_uri}/Volumes/{volume_id}"
 APPLY_TIME_INFO_API = CONTROLLER_URI + "/Volumes"
@@ -601,7 +601,8 @@ def _volume_id_check_mode(module, session_obj, greater_version, volume_id, name,
                           encryption_types, encrypted, volume_type, raid_type, drives):
     resp = session_obj.invoke_request("GET", SETTING_VOLUME_ID_URI.format(
         storage_base_uri=storage_collection_map["storage_base_uri"],
-        volume_id=volume_id))
+        volume_id=volume_id,
+        controller_id=volume_id.split(":")[1]))
     resp_data = resp.json_data
     exist_value = _get_payload_for_version(greater_version, resp_data)
     exit_value_filter = dict(
@@ -741,7 +742,8 @@ def perform_volume_create_modify(module, session_obj, greater_version):
         resp = check_volume_id_exists(module, session_obj, volume_id)
         if resp.success:
             uri = SETTING_VOLUME_ID_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"],
-                                               volume_id=volume_id)
+                                               volume_id=volume_id,
+                                               controller_id=volume_id.split(":")[1])
             method = "PATCH"
             action = "modify"
     payload = volume_payload(module, greater_version)

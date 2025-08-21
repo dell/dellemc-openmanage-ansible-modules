@@ -279,7 +279,7 @@ class TestStorageVolume(FakeAnsibleModule):
     def test_perform_volume_create_modify_success_case_02(self, mocker, storage_volume_base_uri,
                                                           redfish_connection_mock_for_storage_volume,
                                                           redfish_response_mock, greater_version):
-        f_module = self.get_module_mock(params={"volume_id": "volume_id"})
+        f_module = self.get_module_mock(params={"volume_id": "volume_id:controller_id"})
         message = {"msg": "Successfully submitted modify volume task.", "task_uri": "JobService/Jobs",
                    "task_id": "JID_123"}
         redfish_response_mock.success = True
@@ -309,7 +309,7 @@ class TestStorageVolume(FakeAnsibleModule):
     def test_perform_volume_create_modify_failure_case_01(self, mocker, storage_volume_base_uri,
                                                           redfish_connection_mock_for_storage_volume,
                                                           redfish_response_mock, greater_version):
-        f_module = self.get_module_mock(params={"volume_id": "volume_id"})
+        f_module = self.get_module_mock(params={"volume_id": "volume_id:controller_id"})
         message = {"msg": "Successfully submitted modify volume task.", "task_uri": "JobService/Jobs",
                    "task_id": "JID_123"}
         redfish_response_mock.success = True
