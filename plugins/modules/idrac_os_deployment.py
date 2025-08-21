@@ -151,9 +151,13 @@ def construct_payload(module, idrac_time_str):
         "ShareName": share_name,
         "ShareType": share_type,
         "ImageName": module.params.get('iso_image'),
-        "Password": module.params.get('share_password'),
-        "UserName": module.params.get('share_user'),
     }
+
+    if module.params.get('share_user'):
+        payload["UserName"] = module.params['share_user']
+    if module.params.get('share_password'):
+        payload["Password"] = module.params['share_password']
+
     return payload
 
 
