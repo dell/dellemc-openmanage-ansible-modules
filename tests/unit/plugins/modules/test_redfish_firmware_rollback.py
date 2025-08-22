@@ -182,7 +182,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
 
     def test_get_rollback_preview_target(self, redfish_connection_mock, redfish_response_mock, redfish_default_args):
         redfish_default_args.update({"username": "user", "password": "pwd", "baseuri": "XX.XX.XX.XX",
-                                     "name": "BIOS", "reboot_timeout": 3600})
+                                     "name": "NETWORK", "reboot_timeout": 3600})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.json_data = {"Actions": {"#UpdateService.SimpleUpdate": {}}}
         with pytest.raises(Exception) as ex:
@@ -208,7 +208,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
             {"@odata.id": "uri/1", "Id": "Previous.1", "Name": "QLogic.1", "Version": "1.2"},
             {"@odata.id": "uri/2", "Id": "Previous.2", "Name": "QLogic.2", "Version": "1.2"},
             {"@odata.id": "uri/3", "Id": "Previous.3", "Name": "QLogic.3", "Version": "1.2"},
-            {"@odata.id": "uri/4", "Id": "Previous.4", "Name": "BIOS", "Version": "1.2"}
+            {"@odata.id": "uri/4", "Id": "Previous.4", "Name": "NETWORK", "Version": "1.2"}
         ]
         with pytest.raises(Exception) as ex:
             self.module.get_rollback_preview_target(redfish_connection_mock, f_module)
