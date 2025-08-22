@@ -1,0 +1,44 @@
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables:
+      idrac_ip, idrac_user and idrac_password.'
+  when: idrac_ip is not defined or
+    idrac_user is not defined or
+    idrac_password is not defined
+
+- name: Export SCP https share all cases without proxy.
+  ansible.builtin.include_tasks: _export_https.yml
+  vars:
+    export_https_proxy_enabled: false
+    export_https_proxy_type: "{{ omit }}"
+    export_https_proxy_server: "{{ omit }}"
+    export_https_proxy_port: "{{ omit }}"
+    export_https_proxy_username: "{{ omit }}"
+    export_https_proxy_password: "{{ omit }}"
+
+- include_role: name=prepare_idrac_lifecycle_controller_status
+
+- name: Export SCP https share all cases with SOCKS4 proxy.
+  ansible.builtin.include_tasks: _export_https.yml
+  vars:
+    export_https_proxy_enabled: "{{ socks4_proxy_enabled }}"
+    export_https_proxy_type: socks4
+    export_https_proxy_server: "{{ socks4_proxy_server }}"
+    export_https_proxy_port: "{{ socks4_proxy_port }}"
+    export_https_proxy_username: "{{ omit }}"
+    export_https_proxy_password: "{{ omit }}"
+  when: socks4_proxy_enabled == true
+
+- include_role: name=prepare_idrac_lifecycle_controller_status
+
+- name: Export SCP https share all cases with HTTP proxy with credentials.
+  ansible.builtin.include_tasks: _export_https.yml
+  vars:
+    export_https_proxy_enabled: "{{ http_proxy_enabled }}"
+    export_https_proxy_type: http
+    export_https_proxy_server: "{{ http_proxy_server }}"
+    export_https_proxy_port: "{{ http_proxy_port }}"
+    export_https_proxy_username: "{{ http_proxy_username }}"
+    export_https_proxy_password: "{{ http_proxy_password }}"
+  when: http_proxy_enabled == true
