@@ -34,7 +34,7 @@
 
 - name: Set Firmware Inventory name for iDRAC9
   ansible.builtin.set_fact:
-   network_components_rollback: "{{ rollback_component_list |
+    network_components_rollback: "{{ rollback_component_list |
       intersect(network_components) }}"
   when: generation | int < 17
 
@@ -92,7 +92,7 @@
             timeout: 300
           register: result
           check_mode: true
-        
+
         - name: Verify task status - Rollback an network component firmware
             with reboot as true (Check mode - changes expected)
           ansible.builtin.assert:

@@ -29,16 +29,16 @@
 
 - name: Set Firmware Inventory name for iDRAC10
   ansible.builtin.set_fact:
-      rollback_component_name_bios: "BIOS Firmware Inventory"
-      rollback_component_name_idrac: "BMC Firmware Inventory"
-      rollback_component_name_bios_regex: "(?!BIOS Firmware Inventory).*"
+    rollback_component_name_bios: "BIOS Firmware Inventory"
+    rollback_component_name_idrac: "BMC Firmware Inventory"
+    rollback_component_name_bios_regex: "(?!BIOS Firmware Inventory).*"
   when: generation | int >= 17
-  
+
 - name: Set Firmware Inventory name for iDRAC9
   ansible.builtin.set_fact:
-      rollback_component_name_bios: "BIOS"
-      rollback_component_name_idrac: "Integrated Dell Remote Access Controller"
-      rollback_component_name_bios_regex: "(?!BIOS).*"
+    rollback_component_name_bios: "BIOS"
+    rollback_component_name_idrac: "Integrated Dell Remote Access Controller"
+    rollback_component_name_bios_regex: "(?!BIOS).*"
   when: generation | int < 17
 
 - ansible.builtin.set_fact:
@@ -212,7 +212,7 @@
           - result.msg == "Successfully scheduled the job for firmware
             rollback."
           - installed_version == idrac_rollback_to_version
-          - job_status_dict[{{ rollback_component_name_bios }}] == 'Scheduled'
+          - job_status_dict[rollback_component_name_bios] == 'Scheduled'
 
   module_defaults:
     dellemc.openmanage.redfish_firmware_rollback:
