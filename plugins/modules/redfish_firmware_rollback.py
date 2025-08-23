@@ -185,6 +185,7 @@ def get_rollback_preview_target(redfish_obj, module):
 
     if not update_service or 'target' not in update_service:
         module.fail_json(msg=NOT_SUPPORTED)
+
     update_uri = update_service.get('target')
     inventory_uri = action_resp.json_data.get('FirmwareInventory').get('@odata.id')
     inventory_uri_resp = redfish_obj.invoke_request("GET", "{0}{1}".format(inventory_uri, "?$expand=*($levels=1)"),
@@ -192,17 +193,20 @@ def get_rollback_preview_target(redfish_obj, module):
     previous_component = list(filter(lambda d: d["Id"].startswith("Previous"), inventory_uri_resp.json_data["Members"]))
     if not previous_component:
         module.fail_json(msg=NO_COMPONENTS)
+
     component_name = module.params["name"]
     try:
         component_compile = re.compile(r"^{0}$".format(component_name))
     except Exception:
         module.exit_json(msg=NO_CHANGES_FOUND)
+
     prev_uri, reboot_uri, bios_uri = {}, [], []
     for each in previous_component:
         available_comp = each["Name"]
         available_name = re.match(component_compile, available_comp)
         if not available_name:
             continue
+
         matched_name = available_name.group()
         uri = each["@odata.id"]
 
@@ -213,10 +217,12 @@ def get_rollback_preview_target(redfish_obj, module):
         else:
             prev_uri[each["Version"]] = uri
 
-    if module.check_mode and (prev_uri or reboot_uri or bios_uri):
-        module.exit_json(msg=CHANGES_FOUND, changed=True)
-    elif not prev_uri and not reboot_uri and not bios_uri:
+    if prev_uri or reboot_uri or bios_uri:
+        if module.check_mode:
+            module.exit_json(msg=CHANGES_FOUND, changed=True)
+    else:
         module.exit_json(msg=NO_CHANGES_FOUND)
+
     return list(prev_uri.values()), reboot_uri, update_uri, bios_uri
 
 

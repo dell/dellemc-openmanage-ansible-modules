@@ -48,9 +48,11 @@
 
 - name: Fail if rollback version not available for iDRAC9 (generation < 17)
   block:
-    - name: Prerequisite - Check if rollback version available for network components
+    - name: Prerequisite - Check if rollback version available for
+       network components
       ansible.builtin.fail:
-        msg: "Prerequisite not met. Rollback version not available for network components"
+        msg: "Prerequisite not met. Rollback version not
+          available for network components"
       when: network_components_rollback | length < 1
   when: generation | int < 17
 
@@ -135,7 +137,8 @@
           ansible.builtin.assert:
             that:
               - result.changed
-              - result.msg == "Successfully completed the job for firmware rollback."
+              - result.msg ==
+                 "Successfully completed the job for firmware rollback."
               - installed_versions | sort == rollback_to_version_list | sort
       when: generation | int < 17
 
@@ -188,18 +191,20 @@
             components_list: "{{ rollback_components }}"
 
         - ansible.builtin.set_fact:
-            module_job_status: "{{ result.job_status | ansible.utils.remove_keys(
+            module_job_status: "{{ result.job_status
+              | ansible.utils.remove_keys(
               target=['ActualRunningStopTime', 'ActualRunningStartTime'],
               matching_parameter='regex') }}"
 
         - ansible.builtin.include_tasks: _assert_job_status.yml
 
-        - name: Verify task status - Rollback an network component firmware 
+        - name: Verify task status - Rollback an network component firmware
             with reboot as true (Normal mode)
           ansible.builtin.assert:
             that:
               - result.changed
-              - result.msg == "Successfully completed the job for firmware rollback."
+              - result.msg ==
+                 "Successfully completed the job for firmware rollback."
               - installed_versions | sort == rollback_to_version_list | sort
       when: generation | int >= 17
 
