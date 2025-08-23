@@ -505,7 +505,6 @@ def wait_for_redfish_job_complete(redfish_obj, job_uri, job_wait=True, wait_time
     return job_resp, job_msg
 
 
-
 def get_dynamic_uri(idrac_obj, base_uri, search_label=''):
     args = getfullargspec(idrac_obj.invoke_request)[0]
     data = {'uri': base_uri} if 'uri' in args else {'path': base_uri}

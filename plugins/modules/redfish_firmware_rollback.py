@@ -178,6 +178,25 @@ SESSION_RESOURCE_COLLECTION = {
 }
 
 
+def categorize_components(previous_components, component_compile):
+    prev_uri, reboot_uri, bios_uri = {}, [], []
+    for comp in previous_components:
+        available_name = comp["Name"]
+        if not re.match(component_compile, available_name):
+            continue
+
+        uri = comp["@odata.id"]
+
+        if available_name in REBOOT_COMP:
+            reboot_uri.append(uri)
+        elif available_name in BIOS_COMP:
+            bios_uri.append(uri)
+        else:
+            prev_uri[comp["Version"]] = uri
+
+    return prev_uri, reboot_uri, bios_uri
+
+
 def get_rollback_preview_target(redfish_obj, module):
     action_resp = redfish_obj.invoke_request("GET", "{0}{1}".format(redfish_obj.root_uri, UPDATE_SERVICE))
     action_attr = action_resp.json_data["Actions"]
@@ -200,22 +219,7 @@ def get_rollback_preview_target(redfish_obj, module):
     except Exception:
         module.exit_json(msg=NO_CHANGES_FOUND)
 
-    prev_uri, reboot_uri, bios_uri = {}, [], []
-    for each in previous_component:
-        available_comp = each["Name"]
-        available_name = re.match(component_compile, available_comp)
-        if not available_name:
-            continue
-
-        matched_name = available_name.group()
-        uri = each["@odata.id"]
-
-        if matched_name in REBOOT_COMP:
-            reboot_uri.append(uri)
-        elif matched_name in BIOS_COMP:
-            bios_uri.append(uri)
-        else:
-            prev_uri[each["Version"]] = uri
+    prev_uri, reboot_uri, bios_uri = categorize_components(previous_component, component_compile)
 
     if prev_uri or reboot_uri or bios_uri:
         if module.check_mode:
