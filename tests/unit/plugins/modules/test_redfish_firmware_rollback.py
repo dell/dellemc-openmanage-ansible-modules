@@ -71,7 +71,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
             assert result[0] is True
             assert result[1] is True
         else:
-            redfish_connection_mock.invoke_request.side_effect = exc_type("exception message")
+            redfish_connection_mock.invoke_request.side_effect = exc_type("generic exception message")
             result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 5, generation)
             assert result[0] is True
             assert result[1] is True

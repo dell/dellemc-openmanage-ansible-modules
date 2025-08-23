@@ -45,13 +45,17 @@
     network_components_rollback: "{{ rollback_component_list |
       intersect(network_components) }}"
 
-- name: Prerequisite - Check if rollback version available for network components.
+- name: Prerequisite - Check if rollback version available
+   for network components.
   ansible.builtin.fail:
-    msg: "Prerequisite not met. Rollback version not available for network components"
+    msg: "Prerequisite not met. Rollback version not available for
+      network components"
   when: >
-    (generation | int >= 17 and ('NIC.Slot Firmware Inventory' not in rollback_component_list))
+    (generation | int >= 17 and
+    ('NIC.Slot Firmware Inventory' not in rollback_component_list))
     or
-    (generation | int < 17 and (network_components_rollback | length < 1))
+    (generation | int < 17 and
+    (network_components_rollback | length < 1))
 
 - name: Prerequisite - Check if rollback version available for idrac.
   ansible.builtin.fail:

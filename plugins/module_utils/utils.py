@@ -484,7 +484,7 @@ def wait_for_redfish_job_complete(redfish_obj, job_uri, job_wait=True, wait_time
             job_resp = redfish_obj.invoke_request("GET", job_uri, api_timeout=120)
             job_state = job_resp.json_data.get("JobState")
             percent_complete = job_resp.json_data.get("PercentComplete")
-            if percent_complete == 100 and (not check_completion or job_state == "Completed" or job_state == "Failed"):
+            if percent_complete == 100 and (not check_completion or job_state in ("Completed", "Failed")):
                 time.sleep(10)
                 return job_resp, ""
             if job_state == "RebootFailed":

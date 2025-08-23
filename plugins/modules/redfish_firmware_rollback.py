@@ -181,12 +181,11 @@ SESSION_RESOURCE_COLLECTION = {
 def get_rollback_preview_target(redfish_obj, module):
     action_resp = redfish_obj.invoke_request("GET", "{0}{1}".format(redfish_obj.root_uri, UPDATE_SERVICE))
     action_attr = action_resp.json_data["Actions"]
-    update_uri = None
-    if "#UpdateService.SimpleUpdate" in action_attr:
-        update_service = action_attr.get("#UpdateService.SimpleUpdate")
-        if 'target' not in update_service:
-            module.fail_json(msg=NOT_SUPPORTED)
-        update_uri = update_service.get('target')
+    update_service = action_attr.get("#UpdateService.SimpleUpdate")
+
+    if not update_service or 'target' not in update_service:
+        module.fail_json(msg=NOT_SUPPORTED)
+    update_uri = update_service.get('target')
     inventory_uri = action_resp.json_data.get('FirmwareInventory').get('@odata.id')
     inventory_uri_resp = redfish_obj.invoke_request("GET", "{0}{1}".format(inventory_uri, "?$expand=*($levels=1)"),
                                                     api_timeout=120)
@@ -204,13 +203,16 @@ def get_rollback_preview_target(redfish_obj, module):
         available_name = re.match(component_compile, available_comp)
         if not available_name:
             continue
-        if available_name.group() in REBOOT_COMP:
-            reboot_uri.append(each["@odata.id"])
-            continue
-        if available_name.group() in BIOS_COMP:
-            bios_uri.append(each["@odata.id"])
-            continue
-        prev_uri[each["Version"]] = each["@odata.id"]
+        matched_name = available_name.group()
+        uri = each["@odata.id"]
+
+        if matched_name in REBOOT_COMP:
+            reboot_uri.append(uri)
+        elif matched_name in BIOS_COMP:
+            bios_uri.append(uri)
+        else:
+            prev_uri[each["Version"]] = uri
+
     if module.check_mode and (prev_uri or reboot_uri or bios_uri):
         module.exit_json(msg=CHANGES_FOUND, changed=True)
     elif not prev_uri and not reboot_uri and not bios_uri:
@@ -310,49 +312,65 @@ def simple_update(redfish_obj, preview_uri, update_uri):
     return job_ids
 
 
+def handle_reboot_job(redfish_obj, module):
+    payload = {"ResetType": "ForceRestart"}
+    job_resp_status, reset_status, reset_fail = wait_for_redfish_reboot_job(
+        redfish_obj, SYSTEM_RESOURCE_ID, payload=payload
+    )
+
+    if not reset_status and reset_fail:
+        module.fail_json(msg=reset_fail)
+
+    if reset_status and job_resp_status:
+        job_uri = MANAGER_JOB_ID_URI_10.format(job_resp_status["Id"])
+        job_resp, job_msg = wait_for_redfish_job_complete(redfish_obj, job_uri)
+        job_state = job_resp.json_data.get("JobState")
+
+        if job_state != "RebootCompleted":
+            module.fail_json(
+                msg=JOB_WAIT_MSG.format(module.params["reboot_timeout"]) if job_msg else REBOOT_FAIL
+            )
+
+
 def rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri, bios_uri):
     current_job_status, failed_cnt, resetting = [], 0, False
     direct_updates = []
     job_ids = simple_update(redfish_obj, preview_uri, update_uri)
+
     for job_id in job_ids:
         job_uri = MANAGER_JOB_ID_URI_10.format(job_id)
-        job_resp, job_msg = wait_for_redfish_job_complete(redfish_obj, job_uri, job_wait=False)
-        job_status = job_resp.json_data
-        if job_status["JobState"] == "Running" or job_status["JobState"] == "Scheduling":
+        job_resp, _ = wait_for_redfish_job_complete(redfish_obj, job_uri, job_wait=False)
+        job_state = job_resp.json_data.get("JobState")
+        if job_state in {"Running", "Scheduling"}:
             direct_updates.append(job_id)
+
     if direct_updates:
-        current_job_status, failed = get_job_status(redfish_obj, module, direct_updates, job_wait=True)
+        status, failed = get_job_status(redfish_obj, module, direct_updates, job_wait=True)
+        current_job_status.extend(status)
+        failed_cnt += failed
+
     if bios_uri:
-        bios_job_id = simple_update(redfish_obj, bios_uri, update_uri)
-        job_ids.extend(bios_job_id)
-    if job_ids and module.params["reboot"]:
-        payload = {"ResetType": "ForceRestart"}
-        job_resp_status, reset_status, reset_fail = wait_for_redfish_reboot_job(redfish_obj, SYSTEM_RESOURCE_ID,
-                                                                                payload=payload)
-        if reset_status and job_resp_status:
-            job_uri = MANAGER_JOB_ID_URI_10.format(job_resp_status["Id"])
-            job_resp, job_msg = wait_for_redfish_job_complete(redfish_obj, job_uri)
-            job_status = job_resp.json_data
-            if job_status["JobState"] != "RebootCompleted":
-                if job_msg:
-                    module.fail_json(msg=JOB_WAIT_MSG.format(module.params["reboot_timeout"]))
-                else:
-                    module.fail_json(msg=REBOOT_FAIL)
-        elif not reset_status and reset_fail:
-            module.fail_json(msg=reset_fail)
-        current_job_status, failed = get_job_status(redfish_obj, module, job_ids, job_wait=True, check_completion=True)
+        bios_job_ids = simple_update(redfish_obj, bios_uri, update_uri)
+        job_ids.extend(bios_job_ids)
+
+    if job_ids:
+        if module.params["reboot"]:
+            handle_reboot_job(redfish_obj, module)
+            status, failed = get_job_status(redfish_obj, module, job_ids, job_wait=True, check_completion=True)
+        else:
+            status, failed = get_job_status(redfish_obj, module, job_ids, job_wait=False)
+        current_job_status.extend(status)
         failed_cnt += failed
-    if not module.params["reboot"] and job_ids:
-        current_job_status, failed = get_job_status(redfish_obj, module, job_ids, job_wait=False)
-        failed_cnt += failed
+
     if reboot_uri:
         generation = redfish_obj.get_server_generation[0]
-        job_ids = simple_update(redfish_obj, reboot_uri, update_uri)
+        reboot_job_ids = simple_update(redfish_obj, reboot_uri, update_uri)
         track, resetting = wait_for_redfish_idrac_reset(module, redfish_obj, 900, generation)
         if not track and resetting:
-            reboot_job_status, failed = get_job_status(redfish_obj, module, job_ids, job_wait=True)
-            current_job_status.extend(reboot_job_status)
+            status, failed = get_job_status(redfish_obj, module, reboot_job_ids, job_wait=True)
+            current_job_status.extend(status)
             failed_cnt += failed
+
     return current_job_status, failed_cnt, resetting
 
 

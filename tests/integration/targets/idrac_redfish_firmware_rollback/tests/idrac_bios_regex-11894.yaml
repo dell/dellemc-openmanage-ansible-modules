@@ -40,7 +40,8 @@
   vars:
     comp: "{{ item }}"
   when: "item not in rollback_component_list "
-  loop: ["{{ rollback_component_name_bios }}", "{{ rollback_component_name_idrac }}"]
+  loop: ["{{ rollback_component_name_bios }}", 
+    "{{ rollback_component_name_idrac }}"]
 
 - block:
     - ansible.builtin.include_tasks: _get_firmware_inventory.yml
