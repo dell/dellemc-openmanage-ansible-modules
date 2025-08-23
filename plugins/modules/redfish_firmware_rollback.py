@@ -349,7 +349,7 @@ def rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri, 
 
     for job_id in job_ids:
         job_uri = MANAGER_JOB_ID_URI_10.format(job_id)
-        job_resp, _ = wait_for_redfish_job_complete(redfish_obj, job_uri, job_wait=False)
+        job_resp, _job_msg = wait_for_redfish_job_complete(redfish_obj, job_uri, job_wait=False)
         job_state = job_resp.json_data.get("JobState")
         if job_state in {"Running", "Scheduling"}:
             direct_updates.append(job_id)
