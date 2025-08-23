@@ -1,0 +1,86 @@
+---
+- name: Fetch thermal temperature list
+  ansible.builtin.uri:
+    url: "{{ thermal_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    return_content: true
+    status_code: 200
+  register: thermal_temp_data
+
+- name: Initialize temperature sensor map
+  ansible.builtin.set_fact:
+    temp_sensor_map: {}
+
+- name: Fetch each temperature sensor's data
+  ansible.builtin.uri:
+    url: "{{ base_uri }}/{{ redfish_uri }}/Chassis/System.Embedded.1\
+      /Sensors/{{ item.Name | regex_replace(' ', '') }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    return_content: true
+    status_code: 200
+  loop: "{{ thermal_temp_data.json.Temperatures }}"
+  loop_control:
+    label: "{{ item.Name }}"
+  register: temp_sensor_results
+
+- name: Build temp_sensor_map fact
+  ansible.builtin.set_fact:
+    temp_sensor_map: "{{ dict(
+                        temp_sensor_results.results
+                        | map(attribute='item.Name')
+                        | map('regex_replace', ' ', '')
+                        | zip(
+                            temp_sensor_results.results
+                            | map(attribute='json')
+                          )
+                      ) }}"
+
+
+- name: Run temperature helper script
+  ansible.builtin.command:
+    cmd: >
+      python _get_sensors_temperature_details.py
+      '{{ thermal_temp_data.json | to_json }}'
+      '{{ temp_sensor_map | to_json }}'
+    chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  environment:
+    PYTHONPATH: "{{ lookup('env', 'ANSIBLE_COLLECTIONS_PATH') }}"
+  register: temp_sensor_updated_dict
+  no_log: true
+  when:
+    - thermal_temp_data.status == 200
+
+- name: Output conversion to list
+  ansible.builtin.set_fact:
+    temp_sensor_updated_dict: "{{ temp_sensor_updated_dict.stdout
+                              | from_yaml }}"
+  when:
+    - thermal_temp_data.status == 200
+
+- name: Remove current reading from temperature data before compare
+  ansible.builtin.set_fact:
+    temp_details_before: "{{ result.system_info.Sensors_Temperature
+                          | map('combine', {'CurrentReading': omit}) | list }}"
+    temp_details_after: "{{ temp_sensor_updated_dict
+                          | map('combine', {'CurrentReading': omit}) | list }}"
+  when:
+    - thermal_temp_data.status == 200
+
+- name: Comparing values inside list for sensors_temperature
+   (ignoring CurrentReading)
+  ansible.builtin.include_tasks:
+    file: _compare_diff.yml
+  vars:
+    _before: "{{ item.0 }}"
+    _after: "{{ item.1 }}"
+  loop: "{{ temp_details_before | zip(temp_details_after) }}"
+  when:
+    - thermal_temp_data.status == 200

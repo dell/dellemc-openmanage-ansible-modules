@@ -15,7 +15,7 @@
         proxy_port: 444
         enable_authentication: true
         proxy_username: "root"
-        proxy_password: "proxy_password"
+        proxy_password: "{{ proxy_password }}"
       tags: setting1
       delegate_to: localhost
 

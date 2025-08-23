@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-
-#
 # Dell OpenManage Ansible Modules
-# Version 7.2.0
-# Copyright (C) 2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 10.0.0
+# Copyright (C) 2023-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-#
 
 from __future__ import (absolute_import, division, print_function)
 
@@ -14,8 +12,6 @@ __metaclass__ = type
 
 import json
 from io import StringIO
-from ssl import SSLError
-
 import pytest
 from ansible.module_utils._text import to_text
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
@@ -25,7 +21,6 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common im
 
 SUCCESS_MSG = "Successfully retrieved the profile information."
 NO_PROFILES_MSG = "No profiles were found."
-
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.ome_profile_info.'
 
 
@@ -1255,7 +1250,7 @@ class TestOmeProfileInfo(FakeAnsibleModule):
         assert result['msg'] == params['message']
 
     @pytest.mark.parametrize("exc_type",
-                             [IOError, ValueError, SSLError, TypeError, ConnectionError, HTTPError, URLError])
+                             [IOError, ValueError, TypeError, ConnectionError, HTTPError, URLError])
     def test_ome_profile_info_main_exception_failure_case(self, exc_type, mocker, ome_default_args,
                                                           ome_connection_mock_for_profile_info, ome_response_mock):
         ome_default_args.update({"template_id": 1234})
@@ -1268,12 +1263,29 @@ class TestOmeProfileInfo(FakeAnsibleModule):
             assert result["unreachable"] is True
         elif exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + 'get_template_details', side_effect=exc_type("exception message"))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'get_template_details',
                          side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'msg' in result
+
+    def test_get_profile_with_exception(self, ome_connection_mock_for_profile_info,):
+        query = {'Name': "prof1"}
+        url_prm = None
+        ome_connection_mock_for_profile_info.get_all_items_with_pagination.side_effect = Exception("exception")
+        result = self.module.get_profile_query(ome_connection_mock_for_profile_info, query, url_prm)
+        assert result == []
+
+    @pytest.mark.parametrize("params", [{"mparams": {}}])
+    def test_fetch_profile_list_exception(self, params, ome_connection_mock_for_profile_info, ome_default_args):
+        query = None
+        url_prm = None
+        f_module = self.get_module_mock(params=params["mparams"])
+        ome_connection_mock_for_profile_info.get_all_items_with_pagination.return_value = {"value": []}
+        with pytest.raises(Exception) as exc_info:
+            self.module.fetch_profile_list(f_module, ome_connection_mock_for_profile_info, query, url_prm)
+        assert str(exc_info.value) == "Successfully retrieved the profile information."

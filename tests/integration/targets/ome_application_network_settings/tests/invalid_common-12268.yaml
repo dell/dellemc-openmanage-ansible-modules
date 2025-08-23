@@ -68,7 +68,7 @@
           - invalid_user.failed
           - not invalid_user.changed
           - 'invalid_user.msg == "HTTP Error 400: 400" or
-            "HTTP Error 401: 401"'
+            invalid_user.msg == "HTTP Error 401: 401"'
 
     - name: Negative - Invalid password
       dellemc.openmanage.ome_application_network_settings:
@@ -88,7 +88,7 @@
           - invalid_password.failed
           - not invalid_password.changed
           - 'invalid_password.msg == "HTTP Error 400: 400" or
-            "HTTP Error 401: 401"'
+            invalid_password.msg == "HTTP Error 401: 401"'
 
     - name: Negative - Invalid ca_path
       dellemc.openmanage.ome_application_network_settings:
@@ -107,8 +107,9 @@
         that:
           - invalid_ca_path.failed
           - not invalid_ca_path.changed
-          # - 'invalid_ca_path.msg == "[Errno 2] No such file or
-          #   directory: b''invalid''"'
+          - 'invalid_ca_path.msg == "[Errno 2] No such file or
+            directory: b''invalid''" or
+            invalid_ca_path.msg == "[Errno 2] No such file or directory"'
 
     - name: Negative - Invalid option
       dellemc.openmanage.ome_application_network_settings:
@@ -148,9 +149,8 @@
 
     - name: Set fact for invalid validate_certs Message
       ansible.builtin.set_fact:
-        invalid_msg: "argument 'validate_certs' is of type
-            <class 'int'> and we were unable to convert to bool: The value
-            '1234' is not a valid boolean.  Valid booleans include: "
+        invalid_msg: "we were unable to convert to bool: The value
+         '1234' is not a valid boolean."
 
     - name: Verify task status - Negative - Invalid validate_certs
       ansible.builtin.assert:

@@ -15,7 +15,7 @@ def map_controller_battery_data(battery):
         "Degraded/Warning": "Warning",
         "CriticalFailure": "Critical",
     }
-    
+
     health_state = battery.get("PrimaryStatus", NA)
     primary_status = health_state_map.get(health_state, NA)
     output = {
@@ -27,6 +27,7 @@ def map_controller_battery_data(battery):
         "DeviceDescription": battery.get("Name", NA),
     }
     return output
+
 
 controller_battery_output = json.loads(controller_battery_api_output)
 output = [map_controller_battery_data(controller_battery) for controller_battery in controller_battery_output.get("Members", [])]

@@ -1,0 +1,34 @@
+---
+volume_id: "Disk.Virtual.0:BOSS.Integrated.1-1"
+stripe_size: 131072
+same_name_scenario: false
+raid_settling_time: 30
+raid_data:
+  "0":
+    depth: 1
+    length: 1
+    min_pds: 1
+  "1":
+    depth: 1
+    length: 2
+    min_pds: 2
+  "5":
+    depth: 1
+    length: 3
+    min_pds: 3
+  "6":
+    depth: 1
+    length: 4
+    min_pds: 4
+  "10":
+    depth: 2
+    length: 2
+    min_pds: 4
+  "50":
+    depth: 2
+    length: 3
+    min_pds: 6
+  "60":
+    depth: 2
+    length: 4
+    min_pds: 8

@@ -26,10 +26,8 @@
 
     - name: Set fact for invalid universal_timeout Message
       ansible.builtin.set_fact:
-        invalid_msg: "argument 'universal_timeout' is of type
-         <class 'str'> found in 'session_inactivity_timeout'. and we were
-         unable to convert to float: <class 'str'> cannot be converted to
-         a float"
+        invalid_msg: "we were unable to convert to float: <class 'str'>
+         cannot be converted to a float"
 
     - name: Verify task status - Negative - Invalid universal_timeout
       ansible.builtin.assert:
@@ -52,10 +50,8 @@
 
     - name: Set fact for invalid api_timeout Message
       ansible.builtin.set_fact:
-        invalid_msg: "argument 'api_timeout' is of type
-         <class 'str'> found in 'session_inactivity_timeout'. and we were
-         unable to convert to float: <class 'str'> cannot be converted to
-         a float"
+        invalid_msg: "we were unable to convert to float: <class 'str'>
+         cannot be converted to a float"
 
     - name: Verify task status - Negative - Invalid api_timeout
       ansible.builtin.assert:
@@ -78,10 +74,8 @@
 
     - name: Set fact for invalid gui_timeout Message
       ansible.builtin.set_fact:
-        invalid_msg: "argument 'gui_timeout' is of type
-         <class 'str'> found in 'session_inactivity_timeout'. and we were
-         unable to convert to float: <class 'str'> cannot be converted to
-         a float"
+        invalid_msg: "we were unable to convert to float: <class 'str'>
+         cannot be converted to a float"
 
     - name: Verify task status - Negative - Invalid gui_timeout
       ansible.builtin.assert:
@@ -105,23 +99,14 @@
 
     - name: Set fact for invalid api_sessions Message
       ansible.builtin.set_fact:
-        invalid_msg: "argument 'api_sessions' is of type
-            <class 'str'> found in 'session_inactivity_timeout'. and we were
-            unable to convert to int: <class 'str'> cannot be converted to an
-            int"
+        invalid_msg: "we were unable to convert to int"
 
     - name: Verify task status - Negative - Invalid api_sessions
       ansible.builtin.assert:
         that:
           - invalid_api_sessions.failed
           - not invalid_api_sessions.changed
-          - 'invalid_api_sessions.msg == "argument ''api_sessions'' is of type
-            <class ''str''> found in ''session_inactivity_timeout''. and we were
-            unable to convert to int: <class ''str''> cannot be converted to an
-            int" or invalid_api_sessions.msg == "argument ''api_sessions'' is
-            of type <class ''str''> found in ''session_inactivity_timeout''.
-            and we were unable to convert to int: \"''invalid''\" cannot be
-            converted to an int"'
+          - invalid_msg in invalid_api_sessions.msg
 
     - name: Negative - Invalid gui_sessions
       dellemc.openmanage.ome_application_network_settings:
@@ -138,23 +123,14 @@
 
     - name: Set fact for invalid gui_sessions Message
       ansible.builtin.set_fact:
-        invalid_msg: "argument 'gui_sessions' is of type
-            <class 'str'> found in 'session_inactivity_timeout'. and we were
-            unable to convert to int: <class 'str'> cannot be converted to an
-            int"
+        invalid_msg: "we were unable to convert to int"
 
     - name: Verify task status - Negative - Invalid gui_sessions
       ansible.builtin.assert:
         that:
           - invalid_gui_sessions.failed
           - not invalid_gui_sessions.changed
-          - 'invalid_gui_sessions.msg == "argument ''gui_sessions'' is of type
-            <class ''str''> found in ''session_inactivity_timeout''. and we were
-            unable to convert to int: <class ''str''> cannot be converted to an
-            int" or invalid_gui_sessions.msg == "argument ''gui_sessions'' is
-            of type <class ''str''> found in ''session_inactivity_timeout''.
-            and we were unable to convert to int: \"''invalid''\" cannot be
-            converted to an int"'
+          - invalid_msg in invalid_gui_sessions.msg
 
     - name: Negative - Invalid universal and api timeout combination
       dellemc.openmanage.ome_application_network_settings:
