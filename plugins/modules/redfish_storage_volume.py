@@ -386,7 +386,7 @@ DRIVES_URI = "{storage_base_uri}/Drives/{driver_id}"
 CONTROLLER_URI = "{storage_base_uri}/{controller_id}"
 SETTING_VOLUME_ID_URI = "{storage_base_uri}/{controller_id}/Volumes/{volume_id}/Settings"
 CONTROLLER_VOLUME_URI = "{storage_base_uri}/{controller_id}/Volumes"
-VOLUME_ID_URI = "{storage_base_uri}/Volumes/{volume_id}"
+VOLUME_ID_URI = "{storage_base_uri}/{controller_id}/Volumes/{volume_id}"
 APPLY_TIME_INFO_API = CONTROLLER_URI + "/Volumes"
 REBOOT_API = "Actions/ComputerSystem.Reset"
 storage_collection_map = {}
@@ -541,7 +541,10 @@ def check_volume_id_exists(module, session_obj, volume_id):
     """
     validation to check if volume id is valid in case of modify, delete, initialize operation
     """
-    uri = VOLUME_ID_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"], volume_id=volume_id)
+    uri = VOLUME_ID_URI.format(
+        storage_base_uri=storage_collection_map["storage_base_uri"],
+        volume_id=volume_id,
+        controller_id=volume_id.split(":")[1])
     err_message = "Specified Volume Id {0} does not exist in the System.".format(volume_id)
     resp = check_specified_identifier_exists_in_the_system(module, session_obj, uri, err_message)
     return resp
@@ -761,7 +764,10 @@ def perform_volume_deletion(module, session_obj):
     if volume_id:
         resp = check_volume_id_exists(module, session_obj, volume_id)
         if hasattr(resp, "success") and resp.success and not module.check_mode:
-            uri = VOLUME_ID_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"], volume_id=volume_id)
+            uri = VOLUME_ID_URI.format(
+                storage_base_uri=storage_collection_map["storage_base_uri"],
+                volume_id=volume_id,
+                controller_id=volume_id.split(":")[1])
             method = "DELETE"
             return perform_storage_volume_action(method, uri, session_obj, "delete")
         elif hasattr(resp, "success") and resp.success and module.check_mode:
@@ -873,6 +879,22 @@ def perform_reboot(module, session_obj):
             job_data = strip_substr_dict(resp.json_data)
             module.exit_json(msg=msg, job_status=job_data)
 
+def perform_reboot_all(module: RedfishAnsibleModule, session_obj: Redfish, gte9: bool):
+    if gte9:
+        reboot_gte_idrac10(module, session_obj, module.params.get("force_reboot"))
+    else:
+        perform_reboot(module, session_obj)
+
+def reboot_gte_idrac10(module: RedfishAnsibleModule, session_obj: Redfish, force_reboot: bool):
+    SYSTEM_RESET_URI = "/redfish/v1/Systems/System.Embedded.1/Actions/ComputerSystem.Reset"
+    payload = {"ResetType": "ForceRestart" if force_reboot else "GracefulRestart"}
+    resp = session_obj.invoke_request('POST', SYSTEM_RESET_URI, data=payload, api_timeout=120)
+    if resp.status_code != 204:
+      module.exit_json(msg=REBOOT_FAIL +
+                       " Virtual Disk creation task has been created and will run when the server is rebooted again.",
+                       changed=True,
+                       failed=True)
+
 
 def check_job_tracking_required(module, session_obj, reboot_required, controller_id, greater_version):
     job_wait = module.params.get("job_wait")
@@ -915,10 +937,11 @@ def is_fw_ver_greater(session_obj):
     firmware_details = session_obj.get_server_generation
     server_hw_model = firmware_details[2]
     version = firmware_details[1]
+    hw_model_gt_9 = server_hw_model != "iDRAC 9"
     if server_hw_model in ['iDRAC 9', 'iDRAC 10'] and LooseVersion(version) >= '1.0':
-        return True
+        return True, hw_model_gt_9
     else:
-        return False
+        return False, hw_model_gt_9
 
 
 def main():
@@ -962,7 +985,7 @@ def main():
         validate_inputs(module)
         validate_negative_job_time_out(module)
         with Redfish(module.params, req_session=True) as session_obj:
-            greater_version = is_fw_ver_greater(session_obj)
+            gte9, greater_version = is_fw_ver_greater(session_obj)
             fetch_storage_resource(module, session_obj)
             controller_id = module.params.get("controller_id")
             volume_id = module.params.get("volume_id")
@@ -979,7 +1002,7 @@ def main():
                 resp = check_specified_identifier_exists_in_the_system(module, session_obj, uri, CONTROLLER_NOT_EXIST_ERROR.format(controller_id=controller_id))
                 reboot_required = check_apply_time_supported_and_reboot_required(module, session_obj, controller_id, greater_version)
             if reboot_required:
-                perform_reboot(module, session_obj)
+                perform_reboot_all(module, session_obj, gte9)
             if status_message.get("task_id"):
                 job_tracking_required = check_job_tracking_required(module, session_obj, reboot_required, controller_id, greater_version)
                 job_id = status_message.get("task_id")
