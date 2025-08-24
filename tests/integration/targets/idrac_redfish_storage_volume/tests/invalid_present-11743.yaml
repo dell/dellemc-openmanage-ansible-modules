@@ -12,6 +12,41 @@
    is not defined'
 
 - block:
+    # Get iDRAC model version
+    # check if 17G or not
+    - name: Get iDRAC firmware version
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:\
+          {{idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1?\
+          $select=Model"
+        method: GET
+        user: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        force_basic_auth: true
+        validate_certs: false
+        status_code: 200
+        headers: 'Accept=application/json'
+        body_format: json
+        return_content: true
+      register: firmware_version
+
+    - name: Extract model from firmware_version
+      ansible.builtin.set_fact:
+        model_raw: "{{ firmware_version.json.Model }}"
+
+    - name: Search for the Hardware model number in the model string
+      ansible.builtin.set_fact:
+        model_search: "{{ model_raw | regex_search('([0-9]+)G', '\\1') }}"
+
+    - name: Extract the Hardware model number
+      ansible.builtin.set_fact:
+        hw_model: "{{ model_search | first }}"
+
+    - name: Check if less than 17G
+      ansible.builtin.set_fact:
+        less_than_17G: "{{ hw_model | int < 17 }}"
+
+- block:
     - ansible.builtin.set_fact:
         raid_type: "RAID0"
 
@@ -155,6 +190,7 @@
         block_size_bytes: 65535
         drives: "{{ physical_disks[-1] }}"
       register: invalid_block_size_bytes
+      when: less_than_17G
       ignore_errors: true
 
     - name: Verify task status - Negative - invalid block_size_bytes
@@ -163,6 +199,7 @@
           - invalid_block_size_bytes.failed
           - not invalid_block_size_bytes.changed
           - 'invalid_block_size_bytes.msg == "HTTP Error 400: Bad Request"'
+      when: less_than_17G
 
     - name: Negative - invalid capacity_bytes
       dellemc.openmanage.redfish_storage_volume:

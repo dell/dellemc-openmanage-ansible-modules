@@ -381,7 +381,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import MA
     strip_substr_dict, wait_for_job_completion
 
 
-VOLUME_INITIALIZE_URI = "{storage_base_uri}/Volumes/{volume_id}/Actions/Volume.Initialize"
+VOLUME_INITIALIZE_URI = "{storage_base_uri}/{controller_id}/Volumes/{volume_id}/Actions/Volume.Initialize"
 DRIVES_URI = "{storage_base_uri}/Drives/{driver_id}"
 CONTROLLER_URI = "{storage_base_uri}/{controller_id}"
 SETTING_VOLUME_ID_URI = "{storage_base_uri}/{controller_id}/Volumes/{volume_id}/Settings"
@@ -797,7 +797,8 @@ def perform_volume_initialization(module, session_obj):
         else:
             method = "POST"
             uri = VOLUME_INITIALIZE_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"],
-                                               volume_id=specified_volume_id)
+                                               volume_id=specified_volume_id,
+                                               controller_id=specified_volume_id.split(":")[1])
             payload = {"InitializeType": module.params["initialize_type"]}
             return perform_storage_volume_action(method, uri, session_obj, "initialize", payload)
     else:
@@ -879,21 +880,24 @@ def perform_reboot(module, session_obj):
             job_data = strip_substr_dict(resp.json_data)
             module.exit_json(msg=msg, job_status=job_data)
 
+
 def perform_reboot_all(module: RedfishAnsibleModule, session_obj: Redfish, gte9: bool):
     if gte9:
         reboot_gte_idrac10(module, session_obj, module.params.get("force_reboot"))
     else:
         perform_reboot(module, session_obj)
 
+
 def reboot_gte_idrac10(module: RedfishAnsibleModule, session_obj: Redfish, force_reboot: bool):
     SYSTEM_RESET_URI = "/redfish/v1/Systems/System.Embedded.1/Actions/ComputerSystem.Reset"
     payload = {"ResetType": "ForceRestart" if force_reboot else "GracefulRestart"}
     resp = session_obj.invoke_request('POST', SYSTEM_RESET_URI, data=payload, api_timeout=120)
     if resp.status_code != 204:
-      module.exit_json(msg=REBOOT_FAIL +
-                       " Virtual Disk creation task has been created and will run when the server is rebooted again.",
-                       changed=True,
-                       failed=True)
+        module.exit_json(msg=REBOOT_FAIL +
+                         " Virtual Disk creation task has been created and will run" +
+                         " when the server is rebooted again.",
+                         changed=True,
+                         failed=True)
 
 
 def check_job_tracking_required(module, session_obj, reboot_required, controller_id, greater_version):

@@ -187,7 +187,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                                            storage_volume_base_uri):
         message = {"msg": "Successfully submitted initialize volume task.", "task_uri": "JobService/Jobs",
                    "task_id": "JID_789"}
-        f_module = self.get_module_mock(params={"initialize_type": "Fast", "volume_id": "volume_id"})
+        f_module = self.get_module_mock(params={"initialize_type": "Fast", "volume_id": "volume_id:controller_id"})
         obj1 = mocker.patch(MODULE_PATH + 'redfish_storage_volume.check_initialization_progress', return_value=[])
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.perform_storage_volume_action', return_value=message)
         message = self.module.perform_volume_initialization(f_module, redfish_connection_mock_for_storage_volume)

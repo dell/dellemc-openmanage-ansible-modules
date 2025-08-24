@@ -124,6 +124,11 @@
       password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"
 
+- name: Check disk count and retry if insufficient
+  ansible.builtin.include_tasks: _prereq_verify_disks_availability.yml
+  vars:
+    required_disk_length: 1
+
 - block:
     # Below block for delete volume task with job_wait as true
     - name: Create a RAID0 volume
