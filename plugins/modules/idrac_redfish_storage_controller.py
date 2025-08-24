@@ -145,7 +145,7 @@ options:
       - I(apply_time) and I(maintenance_window) is applicable for I(attributes).
       - I(attributes) is mutually exclusive with I(command).
       - Use U(https://I(idrac_ip)/redfish/v1/Schemas/DellOemStorageController.json) to view the attributes.
-      - Refer U(https://dl.dell.com/content/manual64794104-idrac10-user-s-guide.pdf?language=en-us) to view supported parameters for iDRAC 10
+      - C(BackgroundInitializationRatePercent) and C(ReconstructRatePercent) are supported parameters for iDRAC 10.
   apply_time:
     type: str
     description:

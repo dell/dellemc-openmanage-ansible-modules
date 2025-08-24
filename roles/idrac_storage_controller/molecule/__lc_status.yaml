@@ -25,3 +25,7 @@
   check_mode: false
   retries: 120
   delay: 30
+
+- name: Wait for 120 seconds
+  ansible.builtin.pause:
+    seconds: 60

@@ -42,7 +42,7 @@
         - item.1.EncryptionStatus  != 'Locked'
 
     - name: Creating volume using controller and drive fqqdn id
-      redfish_storage_volume:
+      dellemc.openmanage.redfish_storage_volume:
         state: "present"
         controller_id: "{{ item.key }}"
         volume_type: "NonRedundant"
@@ -72,8 +72,17 @@
     - set_fact:
         volume_id: "{{ fetched_data.json.Links.Volumes[0].Id }}"
 
+    - name: Enable security on controller
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "EnableSecurity"
+        job_wait: true
+        controller_id: "{{ item.key }}"
+      loop: "{{ controller_drive_map_list | map('dict2items') | flatten  }}"
+      loop_control:
+        index_var: index
+
     - name: Applying encryption(LockVirtualDisk) of virual disk(Volume) - Check Mode
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         command: LockVirtualDisk
         volume_id: "{{ volume_id }}"
         job_wait: true
@@ -87,7 +96,7 @@
           - lock_disk_check_mode.msg == 'Changes found to be applied.'
 
     - name: Applying encryption(LockVirtualDisk) of virual disk(Volume) - Normal Mode
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         command: LockVirtualDisk
         volume_id: "{{ volume_id }}"
         job_wait: true
@@ -116,12 +125,12 @@
       assert:
         that:
           - lock_disk_normal_mode.changed
-          - "'{{ msg }}' == 'Successfully performed the LockVirtualDisk operation.'"
-          - "'{{ encryption_status }}' == 'True'"
-          - "'{{ lock_status }}' == 'Locked'"
+          - msg == "Successfully performed the LockVirtualDisk operation."
+          - encryption_status == true
+          - lock_status == "Locked"
 
     - name: Applying encryption(LockVirtualDisk) of virual disk(Volume) - Idempotency Mode
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         command: LockVirtualDisk
         volume_id: "{{ volume_id }}"
         job_wait: true
@@ -134,7 +143,7 @@
           - lock_disk_idempotency_mode.msg == 'No changes found to be applied.'
 
     - name: Deleting volume
-      redfish_storage_volume:
+      dellemc.openmanage.redfish_storage_volume:
         state: "absent"
         volume_id: "{{ volume_id }}"
       register: delete_vd
@@ -143,7 +152,7 @@
       when: delete_vd.changed
 
     - name: Creating volume using controller and drive fqqdn id for job_wait_false
-      redfish_storage_volume:
+      dellemc.openmanage.redfish_storage_volume:
         state: "present"
         controller_id: "{{ item.key }}"
         volume_type: "NonRedundant"
@@ -158,7 +167,7 @@
       when: create_vd.changed
 
     - name: Applying encryption(LockVirtualDisk) of virual disk(Volume) job_wait_false - Check Mode
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         command: LockVirtualDisk
         volume_id: "{{ volume_id }}"
         job_wait: false
@@ -172,7 +181,7 @@
           - checked_mode_jobwait_false.msg == 'Changes found to be applied.'
 
     - name: Applying encryption(LockVirtualDisk) of virual disk(Volume) job_wait_false - Normal Mode
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         command: LockVirtualDisk
         volume_id: "{{ volume_id }}"
         job_wait: false
@@ -203,12 +212,12 @@
       assert:
         that:
           - not normal_mode_jobwait_false.changed
-          - "'{{ msg_2 }}' == 'Successfully submitted the job that performs the LockVirtualDisk operation.'"
-          - "'{{ encryption_status_2 }}' == 'True'"
-          - "'{{ lock_status_2 }}' == 'Locked'"
+          - msg_2 == "Successfully submitted the job that performs the LockVirtualDisk operation."
+          - encryption_status_2 == true
+          - lock_status_2  == "Locked"
 
     - name: Applying encryption(LockVirtualDisk) of virual disk(Volume) job_wait_false - Idempotency Mode
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         command: LockVirtualDisk
         volume_id: "{{ volume_id }}"
         job_wait: false
@@ -221,7 +230,7 @@
           - idempotency_mode_jobwait_false.msg == 'No changes found to be applied.'
 
     - name: Deleting volume after completing the testcase
-      redfish_storage_volume:
+      dellemc.openmanage.redfish_storage_volume:
         state: "absent"
         volume_id: "{{ volume_id }}"
       register: delete_vd
