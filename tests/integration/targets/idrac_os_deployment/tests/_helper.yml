@@ -1,3 +1,4 @@
+---
 - name: Check OS attach status
   ansible.builtin.uri: &OS_attach_status
     url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems\
@@ -6,7 +7,7 @@
     user: "{{idrac_user}}"
     password: "{{idrac_password}}"
     method: POST
-    body: { }
+    body: {}
     validate_certs: false
     body_format: json
     return_content: true
@@ -21,6 +22,24 @@
       - pre_dettach.json.ISOAttachStatus == "Attached"
   when: trigger is not defined
 
+- name: Detach ISO explicitly
+  ansible.builtin.uri:
+    url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems\
+      /System.Embedded.1/Oem/Dell/DellOSDeploymentService/Actions\
+      /DellOSDeploymentService.DetachISOImage"
+    user: "{{idrac_user}}"
+    password: "{{idrac_password}}"
+    method: POST
+    body: {}
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+    headers:
+      Accept: application/json
+  when: trigger is defined
+  register: detach_resp
+
 - name: checking OS attach status_trigger based
   ansible.builtin.uri:
     <<: *OS_attach_status
@@ -31,4 +50,12 @@
   ansible.builtin.assert:
     that:
       - post_dettach.json.ISOAttachStatus == "NotAttached"
+  when: trigger is defined
+
+- name: Gracefully restart the iDRAC
+  dellemc.openmanage.idrac_reset:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    validate_certs: "{{ validate_certs }}"
   when: trigger is defined

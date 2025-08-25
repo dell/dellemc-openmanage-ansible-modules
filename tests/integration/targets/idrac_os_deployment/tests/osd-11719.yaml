@@ -1,5 +1,5 @@
 # Dell OpenManage Ansible modules
-# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -13,23 +13,23 @@
 
 - block:
     - name: Boot to Network ISO with nfs share
-      idrac_os_deployment:
+      dellemc.openmanage.idrac_os_deployment:
         share_name: "{{ nfs_share_name }}/{{ iso_location }}"
         expose_duration: 5
         iso_image: "{{ iso_image }}"
       register: result_nfs
 
-    - include_tasks: _helper.yml
+    - ansible.builtin.include_tasks: _helper.yml
 
-    - wait_for: timeout=300
+    - ansible.builtin.wait_for: timeout=300
 
-    - include_tasks: _helper.yml
+    - ansible.builtin.include_tasks: _helper.yml
       vars:
         trigger: 1
 
     - name: Wait for LC Status
       ansible.builtin.include_role:
-       name=prepare_idrac_lifecycle_controller_status
+        name=prepare_idrac_lifecycle_controller_status
 
     - name: Boot to Network ISO with cifs share
       dellemc.openmanage.idrac_os_deployment:
@@ -43,7 +43,7 @@
     - name: Call helper file
       ansible.builtin.include_tasks: _helper.yml
 
-    - wait_for: timeout=400
+    - ansible.builtin.wait_for: timeout=400
 
     - name: Call helper file
       ansible.builtin.include_tasks: _helper.yml
@@ -55,10 +55,10 @@
         that:
           - result_nfs.changed
           - result_nfs.boot_status.Message == "The command was successful."
-          - result_nfs.boot_status.Status == "Success"
+          - result_nfs.boot_status.Status == "Completed"
           - result_cifs.changed
           - result_cifs.boot_status.Message == "The command was successful."
-          - result_cifs.boot_status.Status == "Success"
+          - result_cifs.boot_status.Status == "Completed"
 
   module_defaults:
     dellemc.openmanage.idrac_os_deployment:

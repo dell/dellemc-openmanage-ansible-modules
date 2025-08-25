@@ -1,5 +1,5 @@
 # Dell OpenManage Ansible modules
-# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -20,7 +20,7 @@
       ignore_errors: true
       register: result_iso_invalid
 
-    - wait_for: timeout=10
+    - ansible.builtin.wait_for: timeout=10
 
     - name: Boot to Network ISO with nfs share (nfs_share_invalid)
       dellemc.openmanage.idrac_os_deployment:
@@ -30,7 +30,7 @@
       ignore_errors: true
       register: result_nfs_invalid
 
-    - wait_for: timeout=10
+    - ansible.builtin.wait_for: timeout=10
 
     - name: Boot to Network ISO with cifs share (cifs_share_invalid)
       dellemc.openmanage.idrac_os_deployment:
@@ -67,7 +67,8 @@
           - result_iso_invalid.failed
           - not result_iso_invalid.changed
           - result_iso_invalid.msg.Status == "Failed"
-          - result_iso_invalid.msg.Message == "Unable to locate the ISO image on the network share point."
+          - result_iso_invalid.msg.Message == "Unable to locate the ISO image
+             on the network share point."
           - result_nfs_invalid.failed
           - not result_nfs_invalid.changed
           - result_nfs_invalid.msg.Status == "Failed"
