@@ -74,8 +74,7 @@
     - name: Construct expected URI for assertion
       ansible.builtin.set_fact:
         result_raid_expected_uri: >-
-          {{ "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/" +
-          result_raid.task.id }}
+          {{ job_uri + result_raid.task.id }}
 
     - name: Verify task status - Create a RAID50 volume using the raid_type
         parameter with the minimum number of disks (Normal mode)
@@ -163,8 +162,7 @@
     - name: Construct expected URI for assertion
       ansible.builtin.set_fact:
         result_volume_expected_uri: >-
-          {{ "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/" +
-          result_volume.task.id }}
+          {{ job_uri + result_volume.task.id }}
 
     - name: Verify task status - Create a RAID50 volume using the volume_type
         parameter with more than the minimum number of disks (Normal mode)
