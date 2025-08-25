@@ -356,8 +356,6 @@ def rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri, 
 
     if direct_updates:
         status, failed = get_job_status(redfish_obj, module, direct_updates, job_wait=True)
-        current_job_status.extend(status)
-        failed_cnt += failed
 
     if bios_uri:
         bios_job_ids = simple_update(redfish_obj, bios_uri, update_uri)
