@@ -1,13 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
-#
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 10.0.0
 # Copyright (C) 2023-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
-
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-#
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 
 from __future__ import (absolute_import, division, print_function)
@@ -248,7 +245,6 @@ error_info:
 '''
 
 import json
-from ssl import SSLError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
@@ -260,25 +256,26 @@ TEMPLATE_VIEW = "TemplateService/Templates"
 SUCCESS_MSG = "Successfully retrieved the profile information."
 NO_PROFILES_MSG = "Profiles with {0} {1} not found."
 SEPRTR = ','
+QUERY_FILTER_PARAM = "$filter"
 
 
 def get_template_details(module, rest_obj):
-    id = module.params.get('template_id')
-    query_param = {"$filter": "Id eq {0}".format(id)}
+    templt_id = module.params.get('template_id')
+    query_param = {QUERY_FILTER_PARAM: "Id eq {0}".format(templt_id)}
     srch = 'Id'
     t_id = 'template_id'
-    if not id:
-        id = module.params.get('template_name')
-        query_param = {"$filter": "Name eq '{0}'".format(id)}
+    if not templt_id:
+        templt_id = module.params.get('template_name')
+        query_param = {QUERY_FILTER_PARAM: "Name eq '{0}'".format(templt_id)}
         srch = 'Name'
         t_id = 'template_name'
     resp = rest_obj.invoke_request('GET', TEMPLATE_VIEW, query_param=query_param)
     if resp.success and resp.json_data.get('value'):
         tlist = resp.json_data.get('value', [])
         for xtype in tlist:
-            if xtype.get(srch) == id:
-                return xtype, id, t_id
-    module.exit_json(failed=True, msg="Template with {0} '{1}' not found.".format(srch.lower(), id))
+            if xtype.get(srch) == templt_id:
+                return xtype, templt_id, t_id
+    module.exit_json(failed=True, msg="Template with {0} '{1}' not found.".format(srch.lower(), templt_id))
 
 
 def get_profile_query(rest_obj, query, url_prm):
@@ -316,7 +313,7 @@ def recurse_subattr_list(subgroup, prefix, attr_detailed, attr_map):
                 for attr in each_sub.get('Attributes'):
                     nd = construct_tree_str(nprfx, attr_detailed)
                     nd[attr['DisplayName']] = attr['AttributeId']
-                    vlist = dict((xf, attr.get(xf)) for xf in rq_attr)
+                    vlist = {xf: attr.get(xf) for xf in rq_attr}
                     attr_map[attr['AttributeId']] = vlist
 
 
@@ -338,6 +335,49 @@ def get_attribute_detail_tree(rest_obj, prof_id):
     return attr_detailed, attr_map
 
 
+def prepare_query_objects(module, rest_obj):
+    query = {}
+    url_prm = None
+    name = value = None
+    op_params = module.params
+    if op_params.get("template_id") or op_params.get("template_name"):
+        tmplt, value, name = get_template_details(module, rest_obj)
+        query[QUERY_FILTER_PARAM] = "TemplateName eq '{0}'".format(tmplt.get('Name'))
+    elif op_params.get("profile_id"):
+        value = op_params.get("profile_id")
+        url_prm = f"({value})"
+        name = "profile_id"
+    elif op_params.get("profile_name"):
+        value = op_params.get("profile_name")
+        query[QUERY_FILTER_PARAM] = f"ProfileName eq '{value}'"
+        name = "profile_name"
+    elif op_params.get("system_query_options"):
+        name = "provided"
+        value = "system_query_options"
+        for k, v in op_params.get("system_query_options").items():
+            query[f"${k}"] = v
+    return query, url_prm, name, value
+
+
+def fetch_profile_list(module, rest_obj, query, url_prm):
+    if query or url_prm:
+        prof_list = get_profile_query(rest_obj, query, url_prm)
+        if module.params.get("profile_name"):
+            xprofs = []
+            pname = module.params.get("profile_name")
+            for xp in prof_list:
+                if xp.get("ProfileName") == pname:
+                    xprofs.append(xp)
+                    break
+            prof_list = xprofs
+    else:
+        resp = rest_obj.get_all_items_with_pagination(PROFILE_VIEW)
+        prof_list = resp.get("value", [])
+        if not prof_list:
+            module.exit_json(msg=SUCCESS_MSG, profile_info=prof_list)
+    return prof_list
+
+
 def main():
     argument_spec = {
         "profile_id": {"type": 'int'},
@@ -352,40 +392,8 @@ def main():
                               supports_check_mode=True)
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
-            query = {}
-            url_prm = None
-            prof_list = []
-            if module.params.get("template_id") or module.params.get("template_name"):
-                tmplt, value, name = get_template_details(module, rest_obj)
-                query["$filter"] = "TemplateName eq '{0}'".format(tmplt.get('Name'))
-            elif module.params.get("profile_id"):
-                url_prm = "({0})".format(module.params.get("profile_id"))
-                name = "profile_id"
-                value = module.params.get("profile_id")
-            elif module.params.get("profile_name"):
-                query["$filter"] = "ProfileName eq '{0}'".format(module.params.get("profile_name"))
-                name = "profile_name"
-                value = module.params.get("profile_name")
-            elif module.params.get("system_query_options"):
-                name = "provided"
-                value = "system_query_options"
-                for k, v in module.params.get("system_query_options").items():
-                    query["${0}".format(k)] = v
-            if query or url_prm:
-                prof_list = get_profile_query(rest_obj, query, url_prm)
-                if module.params.get("profile_name"):
-                    xprofs = []
-                    pname = module.params.get("profile_name")
-                    for xp in prof_list:
-                        if xp.get("ProfileName") == pname:
-                            xprofs.append(xp)
-                            break
-                    prof_list = xprofs
-            else:
-                resp = rest_obj.get_all_items_with_pagination(PROFILE_VIEW)
-                prof_list = resp.get("value")
-                if not bool(prof_list):
-                    module.exit_json(msg=SUCCESS_MSG, profile_info=prof_list)
+            query, url_prm, name, value = prepare_query_objects(module, rest_obj)
+            prof_list = fetch_profile_list(module, rest_obj, query, url_prm)
             for xp in prof_list:
                 attr_tree, attr_map = get_attribute_detail_tree(rest_obj, xp["Id"])
                 xp["AttributeIdMap"] = attr_map
@@ -396,12 +404,12 @@ def main():
         else:
             module.exit_json(msg=NO_PROFILES_MSG.format(name, value), failed=True)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError,
+    except (IOError, ValueError, TypeError, ConnectionError,
             AttributeError, IndexError, KeyError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':

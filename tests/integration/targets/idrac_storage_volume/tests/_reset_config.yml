@@ -1,0 +1,42 @@
+---
+- name: Clear the raid config
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    baseuri: "{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
+    username: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    validate_certs: false
+    controller_id: "{{ storage_controller_id }}"
+    command: "ResetConfig"
+    apply_time: "Immediate"
+    job_wait: true
+  register: reset_config_result
+  retries: 2
+  delay: 5
+  until: reset_config_result.failed is false
+
+- include_role: name=prepare_lifecycle_controller_job
+  vars:
+    job_id: "{{reset_config_result.status.Id}}"
+  when: reset_config_result.msg == "Successfully performed
+   the 'ResetConfig' operation."
+
+- block:
+    - name: Ensure all PDs are converted to RAID and Ready
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
+        username: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        validate_certs: false
+        controller_id: "{{ storage_controller_id }}"
+        command: "ConvertToRAID"
+        apply_time: "Immediate"
+        job_wait: true
+        target: "{{ pd_mapping.values() | list }}"
+      register: raid_output
+      when: not 'BOSS' in storage_controller_name
+  rescue:
+    - name: Fail if PDs are not in RAID state
+      ansible.builtin.fail:
+        msg: "One or more PDs are already in RAID state. Please check the
+         job status and try again."
+      when: not already_raids
