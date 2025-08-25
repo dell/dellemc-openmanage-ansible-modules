@@ -67,7 +67,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                                          redfish_connection_mock_for_storage_volume, param,
                                                          storage_volume_base_uri):
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.validate_inputs')
-        mocker.patch(MODULE_PATH + 'redfish_storage_volume.is_fw_ver_greater', return_value=(False, True))
+        mocker.patch(MODULE_PATH + 'redfish_storage_volume.is_fw_ver_greater', return_value=(True, False))
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.fetch_storage_resource')
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.configure_raid_operation',
                      return_value={"msg": "Successfully submitted volume task.",

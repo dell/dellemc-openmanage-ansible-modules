@@ -876,8 +876,8 @@ def perform_reboot(module, session_obj):
             module.exit_json(msg=msg, job_status=job_data)
 
 
-def perform_reboot_all(module: RedfishAnsibleModule, session_obj: Redfish, gte9: bool):
-    if gte9:
+def perform_reboot_all(module: RedfishAnsibleModule, session_obj: Redfish, gt9: bool):
+    if gt9:
         reboot_gte_idrac10(module, session_obj, module.params.get("force_reboot"))
     else:
         perform_reboot(module, session_obj)
@@ -936,7 +936,7 @@ def is_fw_ver_greater(session_obj):
     firmware_details = session_obj.get_server_generation
     server_hw_model = firmware_details[2]
     version = firmware_details[1]
-    hw_model_gt_9 = server_hw_model != "iDRAC 9"
+    hw_model_gt_9: bool = server_hw_model != "iDRAC 9"
     if server_hw_model in ['iDRAC 9', 'iDRAC 10'] and LooseVersion(version) >= '1.0':
         return True, hw_model_gt_9
     else:
@@ -984,7 +984,7 @@ def main():
         validate_inputs(module)
         validate_negative_job_time_out(module)
         with Redfish(module.params, req_session=True) as session_obj:
-            gte9, greater_version = is_fw_ver_greater(session_obj)
+            greater_version, gt9 = is_fw_ver_greater(session_obj)
             fetch_storage_resource(module, session_obj)
             controller_id = module.params.get("controller_id")
             volume_id = module.params.get("volume_id")
@@ -1001,7 +1001,7 @@ def main():
                 resp = check_specified_identifier_exists_in_the_system(module, session_obj, uri, CONTROLLER_NOT_EXIST_ERROR.format(controller_id=controller_id))
                 reboot_required = check_apply_time_supported_and_reboot_required(module, session_obj, controller_id, greater_version)
             if reboot_required:
-                perform_reboot_all(module, session_obj, gte9)
+                perform_reboot_all(module, session_obj, gt9)
             if status_message.get("task_id"):
                 job_tracking_required = check_job_tracking_required(module, session_obj, reboot_required, controller_id, greater_version)
                 job_id = status_message.get("task_id")
