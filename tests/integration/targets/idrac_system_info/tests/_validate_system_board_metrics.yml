@@ -100,7 +100,7 @@
 - name: Sort sytem board metrics uri details
   ansible.builtin.set_fact:
     system_board_metrics_uri_details: >-
-      {{ system_board_metrics_uri_details.stdout 
+      {{ system_board_metrics_uri_details.stdout
         | from_json
         | list
         | sort(attribute='Key') }}
@@ -111,7 +111,7 @@
       {{ result.system_info.SystemBoardMetrics
         | list
         | sort(attribute='Key') }}
-    
+
 - name: Comparing values inside list for system board metrics
   ansible.builtin.include_tasks:
     file: _compare_diff.yml
