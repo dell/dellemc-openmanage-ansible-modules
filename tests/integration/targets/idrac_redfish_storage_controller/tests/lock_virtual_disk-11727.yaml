@@ -39,7 +39,7 @@
       loop: "{{ loop_data | subelements('json.Drives')}}"
       when:
         - item.1.EncryptionAbility == 'SelfEncryptingDrive'
-        - item.1.EncryptionStatus  != 'Locked'
+        - item.1.EncryptionStatus  == 'Unencrypted'
 
     - name: Creating volume using controller and drive fqqdn id
       dellemc.openmanage.redfish_storage_volume:
@@ -150,6 +150,16 @@
 
     - pause: seconds=90
       when: delete_vd.changed
+
+    - name: Secure erase the physical disk with job_wait as true - Check mode
+      dellemc.openmanage.idrac_redfish_storage_controller: &secure_erase
+        command: "SecureErase"
+        target: "{{ item.value }}"
+        job_wait: true
+        controller_id: "{{ item.key }}"
+      loop: "{{ controller_drive_map_list | map('dict2items') | flatten  }}"
+      loop_control:
+        index_var: index
 
     - name: Creating volume using controller and drive fqqdn id for job_wait_false
       dellemc.openmanage.redfish_storage_volume:

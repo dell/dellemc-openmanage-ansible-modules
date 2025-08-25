@@ -82,7 +82,7 @@ options:
     elements: str
   block_size_bytes:
     description:
-      - Block size in bytes.Only applicable when I(state) is C(present).
+      - (deprecated) Block size in bytes.Only applicable when I(state) is C(present).
     type: int
   capacity_bytes:
     description:
@@ -96,7 +96,7 @@ options:
     type: int
   encryption_types:
     description:
-      - The following encryption types can be selected.
+      - (deprecated) The following encryption types can be selected.
       - C(ControllerAssisted) The volume is encrypted by the storage controller entity.
       - C(NativeDriveEncryption) The volume utilizes the native drive encryption capabilities
        of the drive hardware.
@@ -207,10 +207,8 @@ EXAMPLES = r'''
     drives:
       - Disk.Bay.5:Enclosure.Internal.0-1:RAID.Slot.1-1
       - Disk.Bay.6:Enclosure.Internal.0-1:RAID.Slot.1-1
-    block_size_bytes: 512
     capacity_bytes: 299439751168
     optimum_io_size_bytes: 65536
-    encryption_types: NativeDriveEncryption
     encrypted: true
 
 - name: Create a volume with minimum options
@@ -274,7 +272,6 @@ EXAMPLES = r'''
     ca_path: "/path/to/ca_cert.pem"
     state: "present"
     volume_id: "Disk.Virtual.5:RAID.Slot.1-1"
-    encryption_types: "ControllerAssisted"
     encrypted: true
 
 - name: Delete an existing volume
@@ -378,16 +375,16 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import 
 from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import MANAGER_JOB_ID_URI, wait_for_redfish_reboot_job, \
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import MANAGER_JOB_ID_URI_10, wait_for_redfish_reboot_job, \
     strip_substr_dict, wait_for_job_completion
 
 
-VOLUME_INITIALIZE_URI = "{storage_base_uri}/Volumes/{volume_id}/Actions/Volume.Initialize"
+VOLUME_INITIALIZE_URI = "{storage_base_uri}/{controller_id}/Volumes/{volume_id}/Actions/Volume.Initialize"
 DRIVES_URI = "{storage_base_uri}/Drives/{driver_id}"
 CONTROLLER_URI = "{storage_base_uri}/{controller_id}"
-SETTING_VOLUME_ID_URI = "{storage_base_uri}/Volumes/{volume_id}/Settings"
+SETTING_VOLUME_ID_URI = "{storage_base_uri}/{controller_id}/Volumes/{volume_id}/Settings"
 CONTROLLER_VOLUME_URI = "{storage_base_uri}/{controller_id}/Volumes"
-VOLUME_ID_URI = "{storage_base_uri}/Volumes/{volume_id}"
+VOLUME_ID_URI = "{storage_base_uri}/{controller_id}/Volumes/{volume_id}"
 APPLY_TIME_INFO_API = CONTROLLER_URI + "/Volumes"
 REBOOT_API = "Actions/ComputerSystem.Reset"
 storage_collection_map = {}
@@ -445,7 +442,6 @@ def volume_payload(module, greater_version):
     physical_disks = []
     oem = params.get("oem")
     encrypted = params.get("encrypted")
-    encryption_types = params.get("encryption_types")
     volume_type = params.get("volume_type")
     raid_type = params.get("raid_type")
     apply_time = params.get("apply_time")
@@ -457,18 +453,15 @@ def volume_payload(module, greater_version):
                            driver_id=drive_id)} for drive_id in drives]
     raid_mapper = {
         "Name": params.get("name"),
-        "BlockSizeBytes": params.get("block_size_bytes"),
         "CapacityBytes": capacity_bytes,
         "OptimumIOSizeBytes": params.get("optimum_io_size_bytes"),
-        "Drives": physical_disks
+        "Links": {"Drives": physical_disks}
     }
     raid_payload = dict([(k, v) for k, v in raid_mapper.items() if v])
     if oem:
         raid_payload.update(params.get("oem"))
     if encrypted is not None:
         raid_payload.update({"Encrypted": encrypted})
-    if encryption_types:
-        raid_payload.update({"EncryptionTypes": [encryption_types]})
     if volume_type and greater_version:
         raid_payload.update({"RAIDType": volume_type_map.get(volume_type)})
     if raid_type and greater_version:
@@ -543,7 +536,10 @@ def check_volume_id_exists(module, session_obj, volume_id):
     """
     validation to check if volume id is valid in case of modify, delete, initialize operation
     """
-    uri = VOLUME_ID_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"], volume_id=volume_id)
+    uri = VOLUME_ID_URI.format(
+        storage_base_uri=storage_collection_map["storage_base_uri"],
+        volume_id=volume_id,
+        controller_id=volume_id.split(":")[1])
     err_message = "Specified Volume Id {0} does not exist in the System.".format(volume_id)
     resp = check_specified_identifier_exists_in_the_system(module, session_obj, uri, err_message)
     return resp
@@ -580,10 +576,8 @@ def perform_storage_volume_action(method, uri, session_obj, action, payload=None
 def check_mode_validation(module, session_obj, action, uri, greater_version):
     volume_id = module.params.get('volume_id')
     name = module.params.get("name")
-    block_size_bytes = module.params.get("block_size_bytes")
     capacity_bytes = module.params.get("capacity_bytes")
     optimum_io_size_bytes = module.params.get("optimum_io_size_bytes")
-    encryption_types = module.params.get("encryption_types")
     encrypted = module.params.get("encrypted")
     volume_type = module.params.get("volume_type")
     raid_type = module.params.get("raid_type")
@@ -594,23 +588,25 @@ def check_mode_validation(module, session_obj, action, uri, greater_version):
         volume_id = _create_name(module, session_obj, uri, name, volume_id)
     if volume_id is not None:
         _volume_id_check_mode(module, session_obj, greater_version, volume_id,
-                              name, block_size_bytes, capacity_bytes, optimum_io_size_bytes,
-                              encryption_types, encrypted, volume_type, raid_type, drives)
+                              name, capacity_bytes, optimum_io_size_bytes,
+                              encrypted, volume_type, raid_type, drives)
     return None
 
 
 def _volume_id_check_mode(module, session_obj, greater_version, volume_id, name,
-                          block_size_bytes, capacity_bytes, optimum_io_size_bytes,
-                          encryption_types, encrypted, volume_type, raid_type, drives):
+                          capacity_bytes, optimum_io_size_bytes,
+                          encrypted, volume_type, raid_type, drives):
     resp = session_obj.invoke_request("GET", SETTING_VOLUME_ID_URI.format(
         storage_base_uri=storage_collection_map["storage_base_uri"],
-        volume_id=volume_id))
+        volume_id=volume_id,
+        controller_id=volume_id.split(":")[1]))
     resp_data = resp.json_data
     exist_value = _get_payload_for_version(greater_version, resp_data)
     exit_value_filter = dict(
         [(k, v) for k, v in exist_value.items() if v is not None])
     cp_exist_value = copy.deepcopy(exit_value_filter)
-    req_value = get_request_value(greater_version, name, block_size_bytes, optimum_io_size_bytes, encryption_types, encrypted, volume_type, raid_type)
+    req_value = get_request_value(greater_version, name, optimum_io_size_bytes,
+                                  encrypted, volume_type, raid_type)
     if capacity_bytes is not None:
         req_value["CapacityBytes"] = int(capacity_bytes)
     req_value_filter = dict([(k, v)
@@ -631,26 +627,26 @@ def _volume_id_check_mode(module, session_obj, greater_version, volume_id, name,
         module.exit_json(msg=NO_CHANGES_FOUND)
 
 
-def get_request_value(greater_version, name, block_size_bytes, optimum_io_size_bytes, encryption_types, encrypted, volume_type, raid_type):
+def get_request_value(greater_version, name, optimum_io_size_bytes, encrypted, volume_type, raid_type):
     if greater_version:
-        req_value = {"Name": name, "BlockSizeBytes": block_size_bytes,
+        req_value = {"Name": name,
                      "Encrypted": encrypted, "OptimumIOSizeBytes": optimum_io_size_bytes,
-                     "RAIDType": raid_type, "EncryptionTypes": encryption_types}
+                     "RAIDType": raid_type}
     else:
-        req_value = {"Name": name, "BlockSizeBytes": block_size_bytes,
+        req_value = {"Name": name,
                      "Encrypted": encrypted, "OptimumIOSizeBytes": optimum_io_size_bytes,
-                     "VolumeType": volume_type, "EncryptionTypes": encryption_types}
+                     "VolumeType": volume_type}
     return req_value
 
 
 def _get_payload_for_version(greater_version, resp_data):
     if greater_version:
-        exist_value = {"Name": resp_data["Name"], "BlockSizeBytes": resp_data["BlockSizeBytes"],
+        exist_value = {"Name": resp_data["Name"],
                        "CapacityBytes": resp_data["CapacityBytes"], "Encrypted": resp_data["Encrypted"],
                        "EncryptionTypes": resp_data["EncryptionTypes"][0],
                        "OptimumIOSizeBytes": resp_data["OptimumIOSizeBytes"], "RAIDType": resp_data["RAIDType"]}
     else:
-        exist_value = {"Name": resp_data["Name"], "BlockSizeBytes": resp_data["BlockSizeBytes"],
+        exist_value = {"Name": resp_data["Name"],
                        "CapacityBytes": resp_data["CapacityBytes"], "Encrypted": resp_data["Encrypted"],
                        "EncryptionTypes": resp_data["EncryptionTypes"][0],
                        "OptimumIOSizeBytes": resp_data["OptimumIOSizeBytes"], "VolumeType": resp_data["VolumeType"]}
@@ -744,7 +740,8 @@ def perform_volume_create_modify(module, session_obj, greater_version):
         resp = check_volume_id_exists(module, session_obj, volume_id)
         if resp.success:
             uri = SETTING_VOLUME_ID_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"],
-                                               volume_id=volume_id)
+                                               volume_id=volume_id,
+                                               controller_id=volume_id.split(":")[1])
             method = "PATCH"
             action = "modify"
     payload = volume_payload(module, greater_version)
@@ -762,7 +759,10 @@ def perform_volume_deletion(module, session_obj):
     if volume_id:
         resp = check_volume_id_exists(module, session_obj, volume_id)
         if hasattr(resp, "success") and resp.success and not module.check_mode:
-            uri = VOLUME_ID_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"], volume_id=volume_id)
+            uri = VOLUME_ID_URI.format(
+                storage_base_uri=storage_collection_map["storage_base_uri"],
+                volume_id=volume_id,
+                controller_id=volume_id.split(":")[1])
             method = "DELETE"
             return perform_storage_volume_action(method, uri, session_obj, "delete")
         elif hasattr(resp, "success") and resp.success and module.check_mode:
@@ -792,7 +792,8 @@ def perform_volume_initialization(module, session_obj):
         else:
             method = "POST"
             uri = VOLUME_INITIALIZE_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"],
-                                               volume_id=specified_volume_id)
+                                               volume_id=specified_volume_id,
+                                               controller_id=specified_volume_id.split(":")[1])
             payload = {"InitializeType": module.params["initialize_type"]}
             return perform_storage_volume_action(method, uri, session_obj, "initialize", payload)
     else:
@@ -846,7 +847,7 @@ def perform_force_reboot(module, session_obj):
     payload = {"ResetType": "ForceRestart"}
     job_resp_status, reset_status, reset_fail = wait_for_redfish_reboot_job(session_obj, SYSTEM_ID, payload=payload)
     if reset_status and job_resp_status:
-        job_uri = MANAGER_JOB_ID_URI.format(job_resp_status["Id"])
+        job_uri = MANAGER_JOB_ID_URI_10.format(job_resp_status["Id"])
         resp, msg = wait_for_job_completion(session_obj, job_uri, wait_timeout=module.params.get("job_wait_timeout"))
         if resp:
             job_data = strip_substr_dict(resp.json_data)
@@ -863,7 +864,7 @@ def perform_reboot(module, session_obj):
     force_reboot = module.params.get("force_reboot")
     job_resp_status, reset_status, reset_fail = wait_for_redfish_reboot_job(session_obj, SYSTEM_ID, payload=payload)
     if reset_status and job_resp_status:
-        job_uri = MANAGER_JOB_ID_URI.format(job_resp_status["Id"])
+        job_uri = MANAGER_JOB_ID_URI_10.format(job_resp_status["Id"])
         resp, msg = wait_for_job_completion(session_obj, job_uri, wait_timeout=module.params.get("job_wait_timeout"))
         if resp:
             job_data = strip_substr_dict(resp.json_data)
@@ -873,6 +874,25 @@ def perform_reboot(module, session_obj):
             resp = session_obj.invoke_request("GET", job_uri)
             job_data = strip_substr_dict(resp.json_data)
             module.exit_json(msg=msg, job_status=job_data)
+
+
+def perform_reboot_all(module: RedfishAnsibleModule, session_obj: Redfish, gt9: bool):
+    if gt9:
+        reboot_gte_idrac10(module, session_obj, module.params.get("force_reboot"))
+    else:
+        perform_reboot(module, session_obj)
+
+
+def reboot_gte_idrac10(module: RedfishAnsibleModule, session_obj: Redfish, force_reboot: bool):
+    SYSTEM_RESET_URI = "/redfish/v1/Systems/System.Embedded.1/Actions/ComputerSystem.Reset"
+    payload = {"ResetType": "ForceRestart" if force_reboot else "GracefulRestart"}
+    resp = session_obj.invoke_request('POST', SYSTEM_RESET_URI, data=payload, api_timeout=120)
+    if resp.status_code != 204:
+        module.exit_json(msg=REBOOT_FAIL +
+                         " Virtual Disk creation task has been created and will run" +
+                         " when the server is rebooted again.",
+                         changed=True,
+                         failed=True)
 
 
 def check_job_tracking_required(module, session_obj, reboot_required, controller_id, greater_version):
@@ -913,12 +933,14 @@ def validate_negative_job_time_out(module):
 
 
 def is_fw_ver_greater(session_obj):
-    firm_version = session_obj.invoke_request('GET', GET_IDRAC_FIRMWARE_VER_URI)
-    version = firm_version.json_data.get('FirmwareVersion', '')
-    if LooseVersion(version) <= '3.0':
-        return False
+    firmware_details = session_obj.get_server_generation
+    server_hw_model = firmware_details[2]
+    version = firmware_details[1]
+    hw_model_gt_9: bool = server_hw_model != "iDRAC 9"
+    if server_hw_model in ['iDRAC 9', 'iDRAC 10'] and LooseVersion(version) >= '1.0':
+        return True, hw_model_gt_9
     else:
-        return True
+        return False, hw_model_gt_9
 
 
 def main():
@@ -962,7 +984,7 @@ def main():
         validate_inputs(module)
         validate_negative_job_time_out(module)
         with Redfish(module.params, req_session=True) as session_obj:
-            greater_version = is_fw_ver_greater(session_obj)
+            greater_version, gt9 = is_fw_ver_greater(session_obj)
             fetch_storage_resource(module, session_obj)
             controller_id = module.params.get("controller_id")
             volume_id = module.params.get("volume_id")
@@ -979,11 +1001,11 @@ def main():
                 resp = check_specified_identifier_exists_in_the_system(module, session_obj, uri, CONTROLLER_NOT_EXIST_ERROR.format(controller_id=controller_id))
                 reboot_required = check_apply_time_supported_and_reboot_required(module, session_obj, controller_id, greater_version)
             if reboot_required:
-                perform_reboot(module, session_obj)
+                perform_reboot_all(module, session_obj, gt9)
             if status_message.get("task_id"):
                 job_tracking_required = check_job_tracking_required(module, session_obj, reboot_required, controller_id, greater_version)
                 job_id = status_message.get("task_id")
-                job_url = MANAGER_JOB_ID_URI.format(job_id)
+                job_url = MANAGER_JOB_ID_URI_10.format(job_id)
                 if job_tracking_required and job_id:
                     track_job(module, session_obj, job_id, job_url)
                 else:
