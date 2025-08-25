@@ -122,7 +122,7 @@ def minutes_to_iso_format(module, idrac_time_str, dur_minutes):
     return formatted_time
 
 
-def get_current_time_from_iDRAC(idrac):
+def get_current_time_from_idrac(idrac):
     """Get current time from iDRAC"""
     resp = idrac.invoke_request(MANAGER_URI, "GET")
     date_time = resp.json_data.get("DateTime")
@@ -211,7 +211,7 @@ def main():
 
     try:
         with iDRACRedfishAPI(module.params) as idrac:
-            idrac_time_str = get_current_time_from_iDRAC(idrac)
+            idrac_time_str = get_current_time_from_idrac(idrac)
             payload = construct_payload(module, idrac_time_str)
             idrac.invoke_request(BootTONetworkISOURI, "POST", data=payload)
             resp = getting_top_osd_job_and_tracking(idrac, module,

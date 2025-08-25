@@ -61,7 +61,7 @@ class TestiDRACOSDeployment(FakeAnsibleModule):
         obj = MagicMock()
         obj.json_data = {"DateTime": "2022-09-14T05:59:35-05:00"}
         idrac_osd_connection_mock.invoke_request.return_value = obj
-        resp = self.module.get_current_time_from_iDRAC(
+        resp = self.module.get_current_time_from_idrac(
             idrac_osd_connection_mock)
         assert resp == "2022-09-14T05:59:35-05:00"
 
@@ -131,11 +131,11 @@ class TestiDRACOSDeployment(FakeAnsibleModule):
                 idrac_osd_connection_mock, f_module, "2025-04-07T12:20:12")
         assert excinfo.value.args[0] == "No matching job found following the BootToNetworkISO operation."
 
-    def test_filter_job_from_members(self, idrac_osd_connection_mock):        
+    def test_filter_job_from_members(self, idrac_osd_connection_mock):
         job_name = 'OSD: BootTONetworkISO'
         members = [
-                {"@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_001"}
-            ]
+            {"@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_001"}
+        ]
         job_detail = MagicMock()
         job_detail.json_data = {
             "JobState": "Passed",
@@ -150,11 +150,9 @@ class TestiDRACOSDeployment(FakeAnsibleModule):
         assert result["Name"] == job_name
         assert result["ActualRunningStartTime"] == "2025-04-07T12:15:12"
 
-
-
     def test_idrac_os_deployment_main(self, idrac_default_args, idrac_osd_connection_mock, idrac_osd_mock, mocker):
         idrac_default_args.update({"iso_image": "/path/to/image.iso", "share_name": "192.168.10.1:/nfsfileshare"})
-        mocker.patch(MODULE_PATH + 'idrac_os_deployment.get_current_time_from_iDRAC', return_value="2025-04-07T12:20:12")
+        mocker.patch(MODULE_PATH + 'idrac_os_deployment.get_current_time_from_idrac', return_value="2025-04-07T12:20:12")
         mocker.patch(MODULE_PATH + 'idrac_os_deployment.construct_payload', return_value={})
         idrac_osd_connection_mock.invoke_request.return_value = None
 
@@ -176,13 +174,13 @@ class TestiDRACOSDeployment(FakeAnsibleModule):
                                                               idrac_osd_connection_mock, idrac_osd_mock):
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type in [HTTPError, SSLValidationError]:
-            mocker.patch(MODULE_PATH + "idrac_os_deployment.get_current_time_from_iDRAC",
+            mocker.patch(MODULE_PATH + "idrac_os_deployment.get_current_time_from_idrac",
                          side_effect=exc_type('https://testhost.com', 400,
                                               'http error message',
                                               {"accept-type": "application/json"},
                                               StringIO(json_str)))
         else:
-            mocker.patch(MODULE_PATH + "idrac_os_deployment.get_current_time_from_iDRAC",
+            mocker.patch(MODULE_PATH + "idrac_os_deployment.get_current_time_from_idrac",
                          side_effect=exc_type('test'))
         idrac_default_args.update(
             {"iso_image": "/path/to/image.iso", "share_name": "192.168.10.1:/nfsfileshare"})
