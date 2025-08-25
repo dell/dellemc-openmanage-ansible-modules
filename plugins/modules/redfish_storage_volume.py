@@ -82,7 +82,7 @@ options:
     elements: str
   block_size_bytes:
     description:
-      -(deprecated) Block size in bytes.Only applicable when I(state) is C(present).
+      - (deprecated) Block size in bytes.Only applicable when I(state) is C(present).
     type: int
   capacity_bytes:
     description:
@@ -96,7 +96,7 @@ options:
     type: int
   encryption_types:
     description:
-      - The following encryption types can be selected.
+      - (deprecated) The following encryption types can be selected.
       - C(ControllerAssisted) The volume is encrypted by the storage controller entity.
       - C(NativeDriveEncryption) The volume utilizes the native drive encryption capabilities
        of the drive hardware.
@@ -209,7 +209,6 @@ EXAMPLES = r'''
       - Disk.Bay.6:Enclosure.Internal.0-1:RAID.Slot.1-1
     capacity_bytes: 299439751168
     optimum_io_size_bytes: 65536
-    encryption_types: NativeDriveEncryption
     encrypted: true
 
 - name: Create a volume with minimum options
@@ -273,7 +272,6 @@ EXAMPLES = r'''
     ca_path: "/path/to/ca_cert.pem"
     state: "present"
     volume_id: "Disk.Virtual.5:RAID.Slot.1-1"
-    encryption_types: "ControllerAssisted"
     encrypted: true
 
 - name: Delete an existing volume
@@ -444,7 +442,6 @@ def volume_payload(module, greater_version):
     physical_disks = []
     oem = params.get("oem")
     encrypted = params.get("encrypted")
-    encryption_types = params.get("encryption_types")
     volume_type = params.get("volume_type")
     raid_type = params.get("raid_type")
     apply_time = params.get("apply_time")
@@ -465,8 +462,6 @@ def volume_payload(module, greater_version):
         raid_payload.update(params.get("oem"))
     if encrypted is not None:
         raid_payload.update({"Encrypted": encrypted})
-    if encryption_types:
-        raid_payload.update({"EncryptionTypes": [encryption_types]})
     if volume_type and greater_version:
         raid_payload.update({"RAIDType": volume_type_map.get(volume_type)})
     if raid_type and greater_version:
@@ -583,7 +578,6 @@ def check_mode_validation(module, session_obj, action, uri, greater_version):
     name = module.params.get("name")
     capacity_bytes = module.params.get("capacity_bytes")
     optimum_io_size_bytes = module.params.get("optimum_io_size_bytes")
-    encryption_types = module.params.get("encryption_types")
     encrypted = module.params.get("encrypted")
     volume_type = module.params.get("volume_type")
     raid_type = module.params.get("raid_type")
@@ -595,13 +589,13 @@ def check_mode_validation(module, session_obj, action, uri, greater_version):
     if volume_id is not None:
         _volume_id_check_mode(module, session_obj, greater_version, volume_id,
                               name, capacity_bytes, optimum_io_size_bytes,
-                              encryption_types, encrypted, volume_type, raid_type, drives)
+                              encrypted, volume_type, raid_type, drives)
     return None
 
 
 def _volume_id_check_mode(module, session_obj, greater_version, volume_id, name,
                           capacity_bytes, optimum_io_size_bytes,
-                          encryption_types, encrypted, volume_type, raid_type, drives):
+                          encrypted, volume_type, raid_type, drives):
     resp = session_obj.invoke_request("GET", SETTING_VOLUME_ID_URI.format(
         storage_base_uri=storage_collection_map["storage_base_uri"],
         volume_id=volume_id,
@@ -611,7 +605,8 @@ def _volume_id_check_mode(module, session_obj, greater_version, volume_id, name,
     exit_value_filter = dict(
         [(k, v) for k, v in exist_value.items() if v is not None])
     cp_exist_value = copy.deepcopy(exit_value_filter)
-    req_value = get_request_value(greater_version, name, optimum_io_size_bytes, encryption_types, encrypted, volume_type, raid_type)
+    req_value = get_request_value(greater_version, name, optimum_io_size_bytes,
+                                  encrypted, volume_type, raid_type)
     if capacity_bytes is not None:
         req_value["CapacityBytes"] = int(capacity_bytes)
     req_value_filter = dict([(k, v)
@@ -632,15 +627,15 @@ def _volume_id_check_mode(module, session_obj, greater_version, volume_id, name,
         module.exit_json(msg=NO_CHANGES_FOUND)
 
 
-def get_request_value(greater_version, name, optimum_io_size_bytes, encryption_types, encrypted, volume_type, raid_type):
+def get_request_value(greater_version, name, optimum_io_size_bytes, encrypted, volume_type, raid_type):
     if greater_version:
         req_value = {"Name": name,
                      "Encrypted": encrypted, "OptimumIOSizeBytes": optimum_io_size_bytes,
-                     "RAIDType": raid_type, "EncryptionTypes": encryption_types}
+                     "RAIDType": raid_type}
     else:
         req_value = {"Name": name,
                      "Encrypted": encrypted, "OptimumIOSizeBytes": optimum_io_size_bytes,
-                     "VolumeType": volume_type, "EncryptionTypes": encryption_types}
+                     "VolumeType": volume_type}
     return req_value
 
 

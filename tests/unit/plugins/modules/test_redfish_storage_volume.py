@@ -509,7 +509,6 @@ class TestStorageVolume(FakeAnsibleModule):
         param = {
             "drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"],
             "capacity_bytes": 299439751168,
-            "encryption_types": "NativeDriveEncryption",
             "encrypted": True,
             "raid_type": "RAID0",
             "name": "VD1",
@@ -532,7 +531,6 @@ class TestStorageVolume(FakeAnsibleModule):
         assert payload["CapacityBytes"] == 299439751168
         assert payload["OptimumIOSizeBytes"] == 65536
         assert payload["Encrypted"] is True
-        assert payload["EncryptionTypes"] == ["NativeDriveEncryption"]
         assert payload["Dell"]["DellVirtualDisk"]["ReadCachePolicy"] == "NoReadAhead"
         assert payload["@Redfish.OperationApplyTime"] == "Immediate"
 
@@ -552,7 +550,6 @@ class TestStorageVolume(FakeAnsibleModule):
         param = {
             "drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"],
             "capacity_bytes": 299439751168,
-            "encryption_types": "NativeDriveEncryption",
             "encrypted": False,
             "raid_type": "RAID0",
             "name": "VD1",
@@ -574,14 +571,12 @@ class TestStorageVolume(FakeAnsibleModule):
         assert payload["CapacityBytes"] == 299439751168
         assert payload["OptimumIOSizeBytes"] == 65536
         assert payload["Encrypted"] is False
-        assert payload["EncryptionTypes"] == ["NativeDriveEncryption"]
         assert payload["Dell"]["DellVirtualDisk"]["ReadCachePolicy"] == "NoReadAhead"
 
     def test_volume_payload_case_04(self, storage_volume_base_uri, greater_version):
         param = {
             "drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"],
             "capacity_bytes": 299439751168,
-            "encryption_types": "NativeDriveEncryption",
             "encrypted": True,
             "volume_type": "NonRedundant",
             "name": "VD1",
@@ -603,7 +598,6 @@ class TestStorageVolume(FakeAnsibleModule):
         assert payload["CapacityBytes"] == 299439751168
         assert payload["OptimumIOSizeBytes"] == 65536
         assert payload["Encrypted"] is True
-        assert payload["EncryptionTypes"] == ["NativeDriveEncryption"]
         assert payload["Dell"]["DellVirtualDisk"]["ReadCachePolicy"] == "NoReadAhead"
 
     def test_volume_payload_case_05(self, storage_volume_base_uri, greater_version):
@@ -613,7 +607,6 @@ class TestStorageVolume(FakeAnsibleModule):
                        "Disk.Bay.0:Enclosure.Internal.0-2:RAID.Mezzanine.1C-1",
                        "Disk.Bay.0:Enclosure.Internal.0-3:RAID.Mezzanine.1C-1"],
             "capacity_bytes": 299439751168,
-            "encryption_types": "NativeDriveEncryption",
             "encrypted": True,
             "raid_type": "RAID6",
             "name": "VD1",
@@ -635,7 +628,6 @@ class TestStorageVolume(FakeAnsibleModule):
         assert payload["CapacityBytes"] == 299439751168
         assert payload["OptimumIOSizeBytes"] == 65536
         assert payload["Encrypted"] is True
-        assert payload["EncryptionTypes"] == ["NativeDriveEncryption"]
         assert payload["Dell"]["DellVirtualDisk"]["ReadCachePolicy"] == "NoReadAhead"
 
     def test_volume_payload_case_06(self, storage_volume_base_uri, greater_version):
@@ -649,7 +641,6 @@ class TestStorageVolume(FakeAnsibleModule):
                        "Disk.Bay.0:Enclosure.Internal.0-6:RAID.Mezzanine.1C-1",
                        "Disk.Bay.0:Enclosure.Internal.0-7:RAID.Mezzanine.1C-1"],
             "capacity_bytes": 299439751168,
-            "encryption_types": "NativeDriveEncryption",
             "encrypted": True,
             "raid_type": "RAID60",
             "name": "VD1",
@@ -671,7 +662,6 @@ class TestStorageVolume(FakeAnsibleModule):
         assert payload["CapacityBytes"] == 299439751168
         assert payload["OptimumIOSizeBytes"] == 65536
         assert payload["Encrypted"] is True
-        assert payload["EncryptionTypes"] == ["NativeDriveEncryption"]
         assert payload["Dell"]["DellVirtualDisk"]["ReadCachePolicy"] == "NoReadAhead"
 
     def test_fetch_storage_resource_success_case_01(self, redfish_connection_mock_for_storage_volume,
