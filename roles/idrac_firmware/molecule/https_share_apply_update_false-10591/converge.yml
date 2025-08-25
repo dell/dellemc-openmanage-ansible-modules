@@ -35,7 +35,7 @@
         validate_certs: false
         command: "import"
         certificate_type: "CLIENT_TRUST_CERTIFICATE"
-        certificate_path: "/home/kritika/cert.cer"
+        certificate_path: "{{ lookup('env', 'https_share_cert_path') }}"
       delegate_to: localhost
 
     - name: Update firmware from repository on HTTPS Share with ignore_cert_warning as false
