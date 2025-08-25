@@ -3,6 +3,11 @@
   hosts: all
   gather_facts: false
   tasks:
+    - name: Install OMSDK using pip
+      ansible.builtin.command: pip3 install omsdk
+      register: omsdk_install
+      changed_when: "'Successfully installed' in omsdk_install.stdout"
+
     - name: Install Netaddr using pip
       ansible.builtin.command: pip install netaddr
       register: netaddr_install

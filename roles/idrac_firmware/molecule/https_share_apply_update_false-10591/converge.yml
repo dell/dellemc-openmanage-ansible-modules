@@ -99,6 +99,10 @@
             firmware update packages."
       when: not ansible_check_mode
 
+    - name: Wait for iDRAC to become unreachable
+      ansible.builtin.pause:
+        seconds: 300
+
     - name: "Waiting for idrac to be reachable (second wait)"
       ansible.builtin.include_tasks:
         file: "../resources/_wait_for_port_to_open.yaml"
