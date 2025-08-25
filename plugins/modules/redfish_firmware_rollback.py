@@ -170,7 +170,8 @@ REBOOT_FAIL = "Failed to reboot the server."
 NEGATIVE_TIMEOUT_MESSAGE = "The parameter reboot_timeout value cannot be negative or zero."
 JOB_WAIT_MSG = "Task excited after waiting for {0} seconds. Check console for firmware rollback status."
 REBOOT_COMP = ["Integrated Dell Remote Access Controller", "BMC Firmware Inventory"]
-BIOS_COMP = ["BIOS", "BIOS Firmware Inventory", "RAID.Backplane.Firmware Firmware Inventory"]
+BIOS_COMP = ["BIOS", "BIOS Firmware Inventory"]
+BACKPLANE_COMP = ["RAID.Backplane.Firmware Firmware Inventory"]
 INITIAL_DELAY_17G = 240
 SESSION_RESOURCE_COLLECTION = {
     "SESSION": "/redfish/v1/SessionService/Sessions",
@@ -179,7 +180,7 @@ SESSION_RESOURCE_COLLECTION = {
 
 
 def categorize_components(previous_components, component_compile):
-    prev_uri, reboot_uri, bios_uri = {}, [], []
+    prev_uri, reboot_uri, bios_uri, backplane_uri = {}, [], [], []
     for comp in previous_components:
         available_name = comp["Name"]
         if not re.match(component_compile, available_name):
@@ -191,10 +192,12 @@ def categorize_components(previous_components, component_compile):
             reboot_uri.append(uri)
         elif available_name in BIOS_COMP:
             bios_uri.append(uri)
+        elif available_name in BACKPLANE_COMP:
+            backplane_uri.append(uri)
         else:
             prev_uri[comp["Version"]] = uri
 
-    return prev_uri, reboot_uri, bios_uri
+    return prev_uri, reboot_uri, bios_uri, backplane_uri
 
 
 def get_rollback_preview_target(redfish_obj, module):
@@ -219,7 +222,7 @@ def get_rollback_preview_target(redfish_obj, module):
     except Exception:
         module.exit_json(msg=NO_CHANGES_FOUND)
 
-    prev_uri, reboot_uri, bios_uri = categorize_components(previous_component, component_compile)
+    prev_uri, reboot_uri, bios_uri, backplane_uri = categorize_components(previous_component, component_compile)
 
     if prev_uri or reboot_uri or bios_uri:
         if module.check_mode:
@@ -227,7 +230,7 @@ def get_rollback_preview_target(redfish_obj, module):
     else:
         module.exit_json(msg=NO_CHANGES_FOUND)
 
-    return list(prev_uri.values()), reboot_uri, update_uri, bios_uri
+    return list(prev_uri.values()), reboot_uri, update_uri, bios_uri, backplane_uri
 
 
 def get_job_status(redfish_obj, module, job_ids, job_wait=True, check_completion=False):
@@ -342,7 +345,7 @@ def handle_reboot_job(redfish_obj, module):
             )
 
 
-def rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri, bios_uri):
+def rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri, bios_uri, backplane_uri):
     current_job_status, failed_cnt, resetting = [], 0, False
     direct_updates = []
     job_ids = simple_update(redfish_obj, preview_uri, update_uri)
@@ -356,6 +359,13 @@ def rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri, 
 
     if direct_updates:
         _status, _failed = get_job_status(redfish_obj, module, direct_updates, job_wait=True)
+
+    # handle backplane uri separately since they interfere with other updates in iDRAC 10 (generation >= 17G)
+    if backplane_uri:
+        backplane_job_id = simple_update(redfish_obj, backplane_uri, update_uri)
+        status, failed = get_job_status(redfish_obj, module, backplane_job_id, job_wait=True, check_completion=True)
+        current_job_status.extend(status)
+        failed_cnt+=failed
 
     if bios_uri:
         bios_job_ids = simple_update(redfish_obj, bios_uri, update_uri)
@@ -396,8 +406,8 @@ def main():
         module.fail_json(msg=NEGATIVE_TIMEOUT_MESSAGE)
     try:
         with Redfish(module.params, req_session=True) as redfish_obj:
-            preview_uri, reboot_uri, update_uri, bios_uri = get_rollback_preview_target(redfish_obj, module)
-            job_status, failed_count, resetting = rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri, bios_uri)
+            preview_uri, reboot_uri, update_uri, bios_uri, backplane_uri = get_rollback_preview_target(redfish_obj, module)
+            job_status, failed_count, resetting = rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri, bios_uri, backplane_uri)
             if not job_status or (failed_count == len(job_status)):
                 module.exit_json(msg=ROLLBACK_FAILED, status=job_status, failed=True)
             if module.params["reboot"]:
