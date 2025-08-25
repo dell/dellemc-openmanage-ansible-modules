@@ -141,7 +141,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
     def test_main(self, redfish_connection_mock, redfish_response_mock, redfish_default_args, mocker):
         redfish_default_args.update({"reboot": True, "name": "BIOS"})
         mocker.patch(MODULE_PATH + "redfish_firmware_rollback.get_rollback_preview_target",
-                     return_value=(["Previous/URI/1"], [], "/redfish/SimpleUpdate", []))
+                     return_value=(["Previous/URI/1"], [], "/redfish/SimpleUpdate", [], []))
         job_status = {"ActualRunningStartTime": "2023-08-07T05:09:08", "ActualRunningStopTime": "2023-08-07T05:12:41",
                       "CompletionTime": "2023-08-07T05:12:41", "Description": "Job Instance", "EndTime": "TIME_NA",
                       "Id": "JID_914026562845", "JobState": "Completed", "JobType": "FirmwareUpdate",

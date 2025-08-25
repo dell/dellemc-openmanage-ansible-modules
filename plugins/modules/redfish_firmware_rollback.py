@@ -345,7 +345,7 @@ def handle_reboot_job(redfish_obj, module):
             )
 
 
-def rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri, bios_uri, backplane_uri):
+def rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri, bios_uri, backplane_uri=[]):
     current_job_status, failed_cnt, resetting = [], 0, False
     direct_updates = []
     job_ids = simple_update(redfish_obj, preview_uri, update_uri)
@@ -365,7 +365,7 @@ def rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri, 
         backplane_job_id = simple_update(redfish_obj, backplane_uri, update_uri)
         status, failed = get_job_status(redfish_obj, module, backplane_job_id, job_wait=True, check_completion=True)
         current_job_status.extend(status)
-        failed_cnt+=failed
+        failed_cnt += failed
 
     if bios_uri:
         bios_job_ids = simple_update(redfish_obj, bios_uri, update_uri)
