@@ -218,15 +218,18 @@
         encryption_status_2: "{{ fetched_data.json.Encrypted }}"
         lock_status_2: "{{ fetched_data.json.Oem.Dell.DellVirtualDisk.LockStatus }}"
 
-    - name: Verify applying encryption(LockVirtualDisk) of virual disk(Volume) job_wait_false - Normal mode
+    - name: Verify applying encryption(LockVirtualDisk) of
+            virual disk(Volume) job_wait_false - Normal mode
       assert:
         that:
           - not normal_mode_jobwait_false.changed
-          - msg_2 == "Successfully submitted the job that performs the LockVirtualDisk operation."
+          - msg_2 == "Successfully submitted the job that performs the
+            LockVirtualDisk operation."
           - encryption_status_2 == true
           - lock_status_2  == "Locked"
 
-    - name: Applying encryption(LockVirtualDisk) of virual disk(Volume) job_wait_false - Idempotency Mode
+    - name: Applying encryption(LockVirtualDisk) of virual disk(Volume)
+            job_wait_false - Idempotency Mode
       dellemc.openmanage.idrac_redfish_storage_controller:
         command: LockVirtualDisk
         volume_id: "{{ volume_id }}"

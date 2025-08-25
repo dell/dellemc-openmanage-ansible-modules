@@ -42,7 +42,7 @@
       loop: "{{ fetched_output.json.Members }}"
 
     - name: Pre-requisite - Change Storage controller attributes
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         controller_id: "{{ controller_name }}"
         attributes:
           BackgroundInitializationRatePercent: 30
@@ -54,13 +54,14 @@
       when: prereq_result_set_attrs.changed
 
     - name: Perform graceful restart of the device
-      redfish_powerstate:
+      dellemc.openmanage.redfish_powerstate:
         reset_type: ForceRestart
 
     - ansible.builtin.wait_for: timeout=60
 
     - name: Check for iDRAC lc ready status.
-      idrac_lifecycle_controller_status_info:
+      dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        validate_certs: false
       register: result
       until: result.lc_status_info.LCReady and result.lc_status_info.LCStatus
        == "Ready"
@@ -131,7 +132,8 @@
     - ansible.builtin.wait_for: timeout=60
 
     - name: Check for iDRAC lc ready status.
-      idrac_lifecycle_controller_status_info:
+      dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        validate_certs: false
       register: result
       until: result.lc_status_info.LCReady and result.lc_status_info.LCStatus
        == "Ready"
