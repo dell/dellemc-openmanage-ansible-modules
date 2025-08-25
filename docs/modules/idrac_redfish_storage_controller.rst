@@ -62,6 +62,14 @@ Parameters
 
     \ :literal:`SecureErase`\  - To delete all the data on the physical disk securely. This option is available for Self-Encrypting Drives (SED), Instant Scramble Erase (ISE) drives, and PCIe SSD devices (drives and cards). The drives must be in a ready state. \ :emphasis:`controller\_id`\  and \ :emphasis:`target`\  are required for this operation, \ :emphasis:`target`\  must be a single physical disk ID. If a secure erase needs a reboot, the job will get scheduled and waits for no of seconds specfied in \ :emphasis:`job\_wait\_time`\ , to reduce the wait time either give \ :emphasis:`job\_wait\_time`\  minimum or make \ :emphasis:`job\_wait`\  as false.
 
+    \ :literal:`EnableSecurity`\  - To enable security on a storage controller. Only Applicable for 17G and above.
+
+    \ :literal:`DisableSecurity`\  - To disable security on a storage controller. Only Applicable for 17G and above.
+
+    \ :literal:`SetControllerKey`\ , \ :literal:`RemoveControllerKey`\ , \ :literal:`ReKey`\  and \ :literal:`EnableControllerEncryption`\  are only supported for 16G and below.
+
+    Blinking of virtual disk is not supported for 17G and above.
+
 
   target (optional, list, None)
     Fully Qualified Device Descriptor (FQDD) of the target physical drive.
@@ -150,6 +158,8 @@ Parameters
 
     Use \ https://I(idrac_ip\ /redfish/v1/Schemas/DellOemStorageController.json) to view the attributes.
 
+    \ :literal:`BackgroundInitializationRatePercent`\  and \ :literal:`ReconstructRatePercent`\  are supported parameters for iDRAC 10.
+
 
   apply_time (optional, str, Immediate)
     Apply time of the \ :emphasis:`attributes`\ .
@@ -163,6 +173,8 @@ Parameters
     \ :literal:`AtMaintenanceWindowStart`\  Allows the user to apply at the start of a maintenance window as specified in \ :emphasis:`maintenance\_window`\ .
 
     \ :literal:`InMaintenanceWindowOnReset`\  Allows to apply after a manual reset but within the maintenance window as specified in \ :emphasis:`maintenance\_window`\ .
+
+    Only \ :literal:`Immediate`\  and \ :literal:`OnReset`\  are supported for 17G.
 
 
   maintenance_window (optional, dict, None)
@@ -250,7 +262,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell iDRAC.
-   - This module is supported on iDRAC9.
+   - This module is supported on iDRAC9 and iDRAC 10.
    - This module supports IPv4 and IPv6 addresses.
    - This module always reports as changes found when \ :emphasis:`command`\  is \ :literal:`ReKey`\ , \ :literal:`BlinkTarget`\ , and \ :literal:`UnBlinkTarget`\ .
    - This module supports \ :literal:`check\_mode`\ .
@@ -545,7 +557,7 @@ msg (always, str, Successfully submitted the job that performs the AssignSpare o
   Overall status of the storage controller configuration operation.
 
 
-task (success, dict, {'id': 'JID_XXXXXXXXXXXXX', 'uri': '/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX'})
+task (success, dict, {'id': 'JID_XXXXXXXXXXXXX', 'uri': '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/JID_XXXXXXXXXXXXX'})
   ID and URI resource of the job created.
 
 
@@ -574,4 +586,6 @@ Authors
 - Felix Stephen (@felixs88)
 - Husniya Hameed (@husniya_hameed)
 - Abhishek Sinha (@ABHISHEK-SINHA10)
+- Shivam Sharma (@ShivamSh3)
+- Trisha Datta (@trisha-dell)
 

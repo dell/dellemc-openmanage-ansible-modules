@@ -1,0 +1,180 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Check if module is calling omsdk
+  ansible.builtin.include_tasks: _check_firmware_version_supported.yml
+
+- block:
+    - name: Prerequisite - Fetch Storage details
+      dellemc.openmanage.idrac_storage_volume:
+        state: "view"
+      register: result_pre_req
+
+    - ansible.builtin.set_fact:
+        controller_name: "{{ result_pre_req.storage_status.Message.Controller.
+         keys() | select('match', 'RAID.') | first }}"
+
+    - name: Prerequisite - Disable security on controller
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "DisableSecurity"
+        controller_id: "{{ controller_name }}"
+      register: pre_check
+
+    - name: Wait for the iDRAC lifecycle controller readiness
+      ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{pre_check.status.Id}}"
+      when: pre_check.msg == "Successfully submitted the job that performs
+        the 'DisableSecurity' operation."
+
+    - name: Enable security on controller - Check mode
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "EnableSecurity"
+        controller_id: "{{ controller_name }}"
+      register: cm_enable_result
+      check_mode: true
+
+    - name: Enable security on controller - Check mode - Verify task status
+      ansible.builtin.assert:
+        that:
+          - cm_enable_result.changed
+          - not cm_enable_result.failed
+          - cm_enable_result.msg == "Changes found to be applied."
+
+    - name: Enable security on controller - Normal mode
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "EnableSecurity"
+        controller_id: "{{ controller_name }}"
+      register: enable_result
+
+    - name: Wait for the iDRAC lifecycle controller readiness
+      ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{enable_result.status.Id}}"
+      when: enable_result.msg == "Successfully submitted the job that performs
+        the 'EnableSecurity' operation."
+
+    - name: Enable security on controller - Normal mode - Verify task status
+      ansible.builtin.assert:
+        that:
+          - not enable_result.changed
+          - not enable_result.failed
+          - enable_result.msg == "Successfully submitted the job that
+            performs the 'EnableSecurity' operation."
+
+    - name: Enable security on controller - Idempotence
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "EnableSecurity"
+        controller_id: "{{ controller_name }}"
+      register: enable_idempotence
+
+    - name: Enable security on controller - Idempotence - Verify task status
+      ansible.builtin.assert:
+        that:
+          - not enable_idempotence.changed
+          - not enable_idempotence.failed
+          - enable_idempotence.msg == "No changes found to be applied."
+
+    - name: Enable security on controller - Check mode - (No Change expected)
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "EnableSecurity"
+        controller_id: "{{ controller_name }}"
+      register: no_enable_cm_result
+      check_mode: true
+
+    - name: Enable security on controller - Check mode - (No Change expected)
+            - Verify task status
+      ansible.builtin.assert:
+        that:
+          - not no_enable_cm_result.changed
+          - not no_enable_cm_result.failed
+          - no_enable_cm_result.msg == "No changes found to be applied."
+
+    - name: Disable security on controller - Check mode
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "DisableSecurity"
+        controller_id: "{{ controller_name }}"
+      register: cm_disable_result
+      check_mode: true
+
+    - name: Disable security on controller - Check mode - Verify task status
+      ansible.builtin.assert:
+        that:
+          - cm_disable_result.changed
+          - not cm_disable_result.failed
+          - cm_disable_result.msg == "Changes found to be applied."
+
+    - name: Disable security on controller - Normal mode
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "DisableSecurity"
+        controller_id: "{{ controller_name }}"
+      register: disable_result
+
+    - name: Wait for the iDRAC lifecycle controller readiness
+      ansible.builtin.include_role: name=prepare_lifecycle_controller_job
+      vars:
+        job_id: "{{disable_result.status.Id}}"
+      when: disable_result.msg == "Successfully submitted the job that performs
+        the 'DisableSecurity' operation."
+
+    - name: Disable security on controller - Normal mode - Verify task status
+      ansible.builtin.assert:
+        that:
+          - not disable_result.changed
+          - not disable_result.failed
+          - disable_result.msg == "Successfully submitted the job
+            that performs the 'DisableSecurity' operation."
+
+    - name: Disable security on controller - Idempotence
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "DisableSecurity"
+        controller_id: "{{ controller_name }}"
+      register: disable_idempotence
+
+    - name: Disable security on controller - Idempotence - Verify task status
+      ansible.builtin.assert:
+        that:
+          - not disable_idempotence.changed
+          - not disable_idempotence.failed
+          - disable_idempotence.msg == "No changes found to be applied."
+
+    - name: Disable security on controller - Check mode - (No Change expected)
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "DisableSecurity"
+        controller_id: "{{ controller_name }}"
+      register: no_disable_cm_result
+      check_mode: true
+
+    - name: Disable security on controller - Check mode - (No Change expected)
+            - Verify task status
+      ansible.builtin.assert:
+        that:
+          - not no_disable_cm_result.changed
+          - not no_disable_cm_result.failed
+          - no_disable_cm_result.msg == "No changes found to be applied."
+
+  module_defaults:
+    dellemc.openmanage.idrac_storage_volume:
+      idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+    dellemc.openmanage.idrac_redfish_storage_controller:
+      baseuri: "{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+  when:
+    - not is_omsdk_required | bool

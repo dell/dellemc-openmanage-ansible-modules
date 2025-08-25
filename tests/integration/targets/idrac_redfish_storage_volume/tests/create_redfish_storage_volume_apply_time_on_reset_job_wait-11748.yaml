@@ -56,8 +56,7 @@
     - name: Construct expected URI for assertion
       ansible.builtin.set_fact:
         result_expected_uri: >-
-          {{ "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/" +
-          result.task.id }}
+          {{ job_uri + result.task.id }}
 
     - name: Set expected message for assertion
       ansible.builtin.set_fact:
@@ -143,8 +142,7 @@
     - name: Construct expected URI for assertion
       ansible.builtin.set_fact:
         result_expected_uri: >-
-          {{ "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/" +
-          result.task.id }}
+          {{ job_uri + result.task.id }}
 
     - name: Set expected message for assertion
       ansible.builtin.set_fact:

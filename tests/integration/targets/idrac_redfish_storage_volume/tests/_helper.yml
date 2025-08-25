@@ -1,6 +1,6 @@
 ---
 - block:
-    - name: Fetching data from iDRAC
+    - name: Fetching Storage Controller data from iDRAC
       ansible.builtin.uri: &uri_params
         url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}
           /redfish/v1/Systems/System.Embedded.1/Storage?$expand=*($levels=1)"
@@ -32,6 +32,12 @@
           item.StorageControllers[0].SupportedRAIDTypes
       loop: "{{ fetched_output.json.Members }}"
 
+    - name: Fail if no controller found
+      ansible.builtin.fail:
+        msg: "No controller found with name
+          {{ search_in_name }} and raid_type {{ raid_type }}"
+      when: controller_name | length == 0
+
     - name: Build url
       ansible.builtin.set_fact:
         url_part1:
@@ -54,7 +60,7 @@
       when: item.MediaType == 'HDD' and
         item.Oem.Dell.DellPhysicalDisk.RaidStatus =='Ready'
 
-    - name: Getting HDD drives in the controller
+    - name: Getting SSD drives in the controller
       ansible.builtin.set_fact:
         ssd_disks: "{{ ssd_disks + [item.Id] }}"
       loop: "{{ controller_details.json.Drives }}"
