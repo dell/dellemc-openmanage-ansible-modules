@@ -158,7 +158,7 @@ Parameters
 
     Use \ https://I(idrac_ip\ /redfish/v1/Schemas/DellOemStorageController.json) to view the attributes.
 
-    Refer \ https://dl.dell.com/content/manual64794104-idrac10-user-s-guide.pdf?language=en-us\  to view supported parameters for iDRAC 10
+    \ :literal:`BackgroundInitializationRatePercent`\  and \ :literal:`ReconstructRatePercent`\  are supported parameters for iDRAC 10.
 
 
   apply_time (optional, str, Immediate)
