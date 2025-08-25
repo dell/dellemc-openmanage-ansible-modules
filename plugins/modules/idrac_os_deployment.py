@@ -46,7 +46,6 @@ options:
         type: int
         default: 1080
 requirements:
-    - "omsdk >= 1.2.488"
     - "python >= 3.9.6"
 author:
     - "Felix Stephen (@felixs88)"
@@ -57,7 +56,7 @@ notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
     - This module does not support C(check_mode).
-    - Detaching of ISO image have known issue. Use this uri
+    - Automatically detaching ISO image is currently not operational. Instead, use this uri
       I(/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellOSDeploymentService/Actions/DellOSDeploymentService.DetachISOImage)
       to expliclty detach ISO image after OS deployment.
 '''
