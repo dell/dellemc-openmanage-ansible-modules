@@ -377,8 +377,6 @@ def rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri, 
             status, failed = get_job_status(redfish_obj, module, job_ids, job_wait=True, check_completion=True)
         else:
             status, failed = get_job_status(redfish_obj, module, job_ids, job_wait=False)
-            # Due to bug in backplane, we need to add sleep so it does not hinder reboot_uri job
-            time.sleep(60)
         current_job_status.extend(status)
         failed_cnt += failed
 
