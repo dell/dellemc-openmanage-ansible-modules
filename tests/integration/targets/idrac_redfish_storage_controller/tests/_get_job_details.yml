@@ -2,7 +2,7 @@
 - name: Set job uri
   ansible.builtin.set_fact:
     url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
-     /redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{{ job_id }}"
+     /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{ job_id }}"
 
 - name: Get data using uri
   ansible.builtin.uri:

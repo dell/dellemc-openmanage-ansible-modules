@@ -1,0 +1,667 @@
+- '  Export the Server Configuration Profile (SCP) from the iDRAC or'
+- '  import from a network share (CIFS, NFS, HTTP, HTTPS) or a local'
+- '  path.'
+- ''
+- "\e[1mOPTIONS\e[0m (red indicates it is required):"
+- ''
+- "   \e[0;33mca_path\e[0m  The Privacy Enhanced Mail (PEM) file that contains a CA
+    certificate"
+- '            to be used for the validation.'
+- '        default: null'
+- '        type: path'
+- ''
+- "   \e[0;33mcommand\e[0m  If \e[1;30m`import'\e[0m, the module performs SCP import
+    operation."
+- "            If \e[1;30m`export'\e[0m, the module performs SCP export"
+- '            operation.'
+- "            If \e[1;30m`preview'\e[0m, the module performs SCP preview"
+- '            operation.'
+- "            \e[1;30m`import_custom_defaults'\e[0m allows you to import"
+- '            custom default iDRAC settings.'
+- "            \e[1;30m`export_custom_defaults'\e[0m allows you to export"
+- '            custom default iDRAC settings.'
+- "            \e[1;30m`import_custom_defaults'\e[0m and"
+- "            \e[1;30m`export_custom_defaults'\e[0m is supported only on"
+- '            iDRAC9 with firmware 7.00.00.00 and above.'
+- '        choices: [import, export, preview, import_custom_defaults, export_custom_defaults]'
+- '        default: export'
+- '        type: str'
+- ''
+- "   \e[0;33mend_host_power_state\e[0m  This option is applicable for \e[1;30m`import'\e[0m
+    command."
+- "                         If \e[1;30m`On'\e[0m, End host power state is"
+- '                         on.'
+- "                         If \e[1;30m`Off'\e[0m, End host power state is"
+- '                         off.'
+- '        choices: [''On'', ''Off'']'
+- '        default: ''On'''
+- '        type: str'
+- ''
+- "   \e[0;33mexport_format\e[0m  Specify the output file format. This option is applicable
+    for"
+- "                  \e[1;30m`export'\e[0m or"
+- "                  \e[1;30m`export_custom_defaults'\e[0m command."
+- '                  The default export file format is always XML when'
+- "                  the  \e[4mcommand\e[0m is"
+- "                  \e[1;30m`export_custom_defaults'\e[0m."
+- '        choices: [JSON, XML]'
+- '        default: XML'
+- '        type: str'
+- ''
+- "   \e[0;33mexport_use\e[0m  Specify the type of Server Configuration Profile (SCP)
+    to be"
+- '               exported.'
+- "               This option is applicable when \e[4mcommand\e[0m is"
+- "               \e[1;30m`export'\e[0m."
+- "               \e[1;30m`Default'\e[0m Creates a non-destructive snapshot"
+- '               of the configuration.'
+- "               \e[1;30m`Replace'\e[0m Replaces a server with another or"
+- '               restores the servers settings to a known baseline.'
+- "               \e[1;30m`Clone'\e[0m Clones settings from one server to"
+- '               another server with the identical hardware setup. All'
+- '               settings except I/O identity are updated (e.g. will'
+- '               reset RAID). The settings in this export will be'
+- '               destructive when uploaded to another system.'
+- '        choices: [Default, Clone, Replace]'
+- '        default: Default'
+- '        type: str'
+- ''
+- "   \e[0;31m\e[1midrac_ip\e[0m\e[0m  iDRAC IP Address."
+- '        type: str'
+- ''
+- "   \e[0;33midrac_password\e[0m  iDRAC user password."
+- '                   If the password is not provided, then the'
+- '                   environment variable `IDRAC_PASSWORD'' is used.'
+- '                   Example: export IDRAC_PASSWORD=password'
+- '        aliases: [idrac_pwd]'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33midrac_port\e[0m  iDRAC port."
+- '        default: 443'
+- '        type: int'
+- ''
+- "   \e[0;33midrac_user\e[0m  iDRAC username."
+- '               If the username is not provided, then the environment'
+- '               variable `IDRAC_USERNAME'' is used.'
+- '               Example: export IDRAC_USERNAME=username'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mignore_certificate_warning\e[0m  If \e[1;30m`ignore'\e[0m, it ignores
+    the certificate warnings."
+- "                               If \e[1;30m`showerror'\e[0m, it shows the"
+- '                               certificate warnings.'
+- "                               \e[4mignore_certificate_warning\e[0m is"
+- "                               considered only when \e[4mshare_name\e[0m"
+- '                               is of type HTTPS and is supported only'
+- '                               on iDRAC9.'
+- '        choices: [ignore, showerror]'
+- '        default: ignore'
+- '        type: str'
+- ''
+- "   \e[0;33mimport_buffer\e[0m  Used to import the buffer input of xml or json into
+    the iDRAC."
+- "                  When the  \e[4mcommand\e[0m is"
+- "                  \e[1;30m`import_custom_defaults'\e[0m, only XML file"
+- '                  format is supported.'
+- "                  This option is applicable when \e[4mcommand\e[0m is"
+- "                  \e[1;30m`import'\e[0m or \e[1;30m`preview'\e[0m or"
+- "                  \e[1;30m`import_custom_defaults'\e[0m."
+- "                  \e[4mimport_buffer\e[0m is mutually exclusive with"
+- "                  \e[4mshare_name\e[0m."
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33minclude_in_export\e[0m  This option is applicable when \e[4mcommand\e[0m
+    is"
+- "                      \e[1;30m`export'\e[0m."
+- "                      If \e[1;30m`default'\e[0m, it exports the default"
+- '                      Server Configuration Profile.'
+- "                      If \e[1;30m`readonly'\e[0m, it exports the SCP"
+- '                      with readonly attributes.'
+- "                      If \e[1;30m`passwordhashvalues'\e[0m, it exports"
+- '                      the SCP with password hash values.'
+- "                      If \e[1;30m`customtelemetry'\e[0m, exports the SCP"
+- '                      with custom telemetry attributes supported only'
+- '                      in the iDRAC9.'
+- '        choices: [default, readonly, passwordhashvalues, customtelemetry]'
+- '        default: default'
+- '        type: str'
+- ''
+- "   \e[0;31m\e[1mjob_wait\e[0m\e[0m  Whether to wait for job completion or not."
+- '        type: bool'
+- ''
+- "   \e[0;33mproxy_password\e[0m  Proxy password to authenticate."
+- "                   \e[4mproxy_password\e[0m is considered only when"
+- "                   \e[4mshare_name\e[0m is of type HTTP or HTTPS and is"
+- '                   supported only on iDRAC9.'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mproxy_port\e[0m  Proxy port to authenticate."
+- "               \e[4mproxy_port\e[0m is required when \e[4mshare_name\e[0m"
+- "               is of type HTTPS or HTTP and \e[4mproxy_support\e[0m is"
+- "               \e[1;30m`true'\e[0m."
+- "               \e[4mproxy_port\e[0m is considered only when"
+- "               \e[4mshare_name\e[0m is of type HTTP or HTTPS and is"
+- '               supported only on iDRAC9.'
+- '        default: ''80'''
+- '        type: str'
+- ''
+- "   \e[0;33mproxy_server\e[0m  \e[4mproxy_server\e[0m is required when \e[4mshare_name\e[0m
+    is of type"
+- "                 HTTPS or HTTP and \e[4mproxy_support\e[0m is"
+- "                 \e[1;30m`true'\e[0m."
+- "                 \e[4mproxy_server\e[0m is considered only when"
+- "                 \e[4mshare_name\e[0m is of type HTTP or HTTPS and is"
+- '                 supported only on iDRAC9.'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mproxy_support\e[0m  Proxy to be enabled or disabled."
+- "                  \e[4mproxy_support\e[0m is considered only when"
+- "                  \e[4mshare_name\e[0m is of type HTTP or HTTPS and is"
+- '                  supported only on iDRAC9.'
+- '        default: false'
+- '        type: bool'
+- ''
+- "   \e[0;33mproxy_type\e[0m  \e[1;30m`http'\e[0m to select HTTP type proxy."
+- "               \e[1;30m`socks4'\e[0m to select SOCKS4 type proxy."
+- "               \e[4mproxy_type\e[0m is considered only when"
+- "               \e[4mshare_name\e[0m is of type HTTP or HTTPS and is"
+- '               supported only on iDRAC9.'
+- '        choices: [http, socks4]'
+- '        default: http'
+- '        type: str'
+- ''
+- "   \e[0;33mproxy_username\e[0m  Proxy username to authenticate."
+- "                   \e[4mproxy_username\e[0m is considered only when"
+- "                   \e[4mshare_name\e[0m is of type HTTP or HTTPS and is"
+- '                   supported only on iDRAC9.'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mscp_components\e[0m  If \e[1;30m`ALL'\e[0m, this option exports or imports
+    all components"
+- '                   configurations from the SCP file.'
+- "                   If \e[1;30m`IDRAC'\e[0m, this option exports or"
+- '                   imports iDRAC configuration from the SCP file.'
+- "                   If \e[1;30m`BIOS'\e[0m, this option exports or"
+- '                   imports BIOS configuration from the SCP file.'
+- "                   If \e[1;30m`NIC'\e[0m, this option exports or imports"
+- '                   NIC configuration from the SCP file.'
+- "                   If \e[1;30m`RAID'\e[0m, this option exports or"
+- '                   imports RAID configuration from the SCP file.'
+- "                   If \e[1;30m`FC'\e[0m, this option exports or imports"
+- '                   FiberChannel configurations from the SCP file.'
+- "                   If \e[1;30m`InfiniBand'\e[0m, this option exports or"
+- '                   imports InfiniBand configuration from the SCP file.'
+- "                   If \e[1;30m`SupportAssist'\e[0m, this option exports"
+- '                   or imports SupportAssist configuration from the SCP'
+- '                   file.'
+- "                   If \e[1;30m`EventFilters'\e[0m, this option exports"
+- '                   or imports EventFilters configuration from the SCP'
+- '                   file.'
+- "                   If \e[1;30m`System'\e[0m, this option exports or"
+- '                   imports System configuration from the SCP file.'
+- "                   If \e[1;30m`LifecycleController'\e[0m, this option"
+- '                   exports or imports SupportAssist configuration from'
+- '                   the SCP file.'
+- "                   If \e[1;30m`AHCI'\e[0m, this option exports or"
+- '                   imports EventFilters configuration from the SCP'
+- '                   file.'
+- "                   If \e[1;30m`PCIeSSD'\e[0m, this option exports or"
+- '                   imports PCIeSSD configuration from the SCP file.'
+- "                   When \e[4mcommand\e[0m is \e[1;30m`export'\e[0m or"
+- "                   \e[1;30m`import'\e[0m \e[4mtarget\e[0m with multiple"
+- '                   components is supported only on iDRAC9 with'
+- '                   firmware 6.10.00.00 and above.'
+- '        aliases: [target]'
+- '        choices: [ALL, IDRAC, BIOS, NIC, RAID, FC, InfiniBand, SupportAssist, EventFilters,
+    System,'
+- '          LifecycleController, AHCI, PCIeSSD]'
+- '        default: ALL'
+- '        elements: str'
+- '        type: list'
+- ''
+- "   \e[0;33mscp_file\e[0m  Name of the server configuration profile (SCP) file."
+- "             Only XML file format is supported when \e[4mcommand\e[0m is"
+- "             \e[1;30m`import'\e[0m or"
+- "             \e[1;30m`import_custom_defaults'\e[0m or"
+- "             \e[1;30m`export_custom_defaults'\e[0m."
+- '             The default format <idrac_ip>_YYmmdd_HHMMSS_scp is used'
+- "             if this option is not specified for \e[1;30m`export'\e[0m"
+- "             or \e[1;30m`export_custom_defaults'\e[0m."
+- "             \e[4mexport_format\e[0m is used if the valid extension file"
+- "             is not provided for \e[1;30m`export'\e[0m."
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mshare_name\e[0m  Network share or local path."
+- '               CIFS, NFS, HTTP, and HTTPS network share types are'
+- '               supported.'
+- "               \e[4mshare_name\e[0m is mutually exclusive with"
+- "               \e[4mimport_buffer\e[0m."
+- "               Only \"local\" is supported when the \e[4mcommand\e[0m is"
+- "               \e[1;30m`import_custom_defaults'\e[0m or"
+- "               \e[1;30m`export_custom_defaults'\e[0m."
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mshare_password\e[0m  Network share user password. This option is mandatory
+    for CIFS"
+- '                   Network Share.'
+- '        aliases: [share_pwd]'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mshare_user\e[0m  Network share user in the format 'user@domain' or 'domain\\\\user'
+    if"
+- '               user is part of a domain else ''user''. This option is'
+- '               mandatory for CIFS Network Share.'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mshutdown_type\e[0m  This option is applicable for \e[1;30m`import'\e[0m
+    command."
+- "                  If \e[1;30m`Graceful'\e[0m, the job gracefully shuts"
+- '                  down the operating system and turns off the server.'
+- "                  If \e[1;30m`Forced'\e[0m, it forcefully shuts down the"
+- '                  server.'
+- "                  If \e[1;30m`NoReboot'\e[0m, the job that applies the"
+- '                  SCP will pause until you manually reboot the server.'
+- '        choices: [Graceful, Forced, NoReboot]'
+- '        default: Graceful'
+- '        type: str'
+- ''
+- "   \e[0;33mtimeout\e[0m  The socket level timeout in seconds."
+- '        default: 30'
+- '        type: int'
+- ''
+- "   \e[0;33mvalidate_certs\e[0m  If \e[1;30m`false'\e[0m, the SSL certificates will
+    not be validated."
+- "                   Configure \e[1;30m`false'\e[0m only on personally"
+- '                   controlled sites where self-signed certificates are'
+- '                   used.'
+- "                   Prior to collection version \e[1;30m`5.0.0'\e[0m, the"
+- "                   \e[4mvalidate_certs\e[0m is \e[1;30m`false'\e[0m by"
+- '                   default.'
+- '        default: true'
+- '        type: bool'
+- ''
+- "   \e[0;33mx_auth_token\e[0m  Authentication token."
+- '                 If the x_auth_token is not provided, then the'
+- '                 environment variable `IDRAC_X_AUTH_TOKEN'' is used.'
+- '                 Example: export IDRAC_X_AUTH_TOKEN=x_auth_token'
+- '        default: null'
+- '        type: str'
+- ''
+- "\e[1mNOTES:\e[0m"
+- '      * This module requires ''Administrator'' privilege for'
+- "        \e[4midrac_user\e[0m."
+- '      * Run this module from a system that has direct access to'
+- '        Dell iDRAC.'
+- "      * This module supports \e[1;30m`check_mode'\e[0m."
+- '      * To import Server Configuration Profile (SCP) on the'
+- '        iDRAC8-based servers, the servers must have iDRAC'
+- '        Enterprise license or later.'
+- "      * For \e[1;30m`import'\e[0m operation,"
+- "        \e[1;30m`check_mode'\e[0m is supported only when"
+- "        \e[4mtarget\e[0m is \e[1;30m`ALL'\e[0m."
+- '      * This module supports IPv4 and IPv6 addresses.'
+- ''
+- "\e[1mREQUIREMENTS:\e[0m  python >= 3.9.14"
+- ''
+- ''
+- "\e[1mAUTHOR\e[0m: Jagadeesh N V(@jagadeeshnv), Felix Stephen (@felixs88), Jennifer
+    John (@Jennifer-John), Shivam Sharma (@ShivamSh3), Lovepreet Singh (@singh-lovepreet1)"
+- ''
+- "\e[1mEXAMPLES:\e[0m"
+- '---'
+- '- name: Export SCP with IDRAC components in JSON format to a local path'
+- '  dellemc.openmanage.idrac_server_config_profile:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    share_name: "/scp_folder"'
+- '    scp_components:'
+- '      - IDRAC'
+- '    scp_file: example_file'
+- '    export_format: JSON'
+- '    export_use: Clone'
+- '    job_wait: true'
+- ''
+- '- name: Import SCP with IDRAC components in JSON format from a local path'
+- '  dellemc.openmanage.idrac_server_config_profile:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    share_name: "/scp_folder"'
+- '    command: import'
+- '    scp_components:'
+- '      - IDRAC'
+- '    scp_file: example_file.json'
+- '    shutdown_type: Graceful'
+- '    end_host_power_state: "On"'
+- '    job_wait: false'
+- ''
+- '- name: Export SCP with BIOS components in XML format to a NFS share path with
+    auto-generated file name'
+- '  dellemc.openmanage.idrac_server_config_profile:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    share_name: "192.168.0.2:/share"'
+- '    scp_components:'
+- '      - BIOS'
+- '    export_format: XML'
+- '    export_use: Default'
+- '    job_wait: true'
+- ''
+- '- name: Import SCP with BIOS components in XML format from a NFS share path'
+- '  dellemc.openmanage.idrac_server_config_profile:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    share_name: "192.168.0.2:/share"'
+- '    command: import'
+- '    scp_components:'
+- '      - BIOS'
+- '    scp_file: 192.168.0.1_20210618_162856.xml'
+- '    shutdown_type: NoReboot'
+- '    end_host_power_state: "Off"'
+- '    job_wait: false'
+- ''
+- '- name: Export SCP with RAID components in XML format to a CIFS share path with
+    share user domain name'
+- '  dellemc.openmanage.idrac_server_config_profile:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    share_name: "\\\\192.168.0.2\\share"'
+- '    share_user: share_username@domain'
+- '    share_password: share_password'
+- '    scp_file: example_file.xml'
+- '    scp_components:'
+- '      - RAID'
+- '    export_format: XML'
+- '    export_use: Default'
+- '    job_wait: true'
+- ''
+- '- name: Import SCP with RAID components in XML format from a CIFS share path'
+- '  dellemc.openmanage.idrac_server_config_profile:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    share_name: "\\\\192.168.0.2\\share"'
+- '    share_user: share_username'
+- '    share_password: share_password'
+- '    command: import'
+- '    scp_components:'
+- '      - RAID'
+- '    scp_file: example_file.xml'
+- '    shutdown_type: Forced'
+- '    end_host_power_state: "On"'
+- '    job_wait: true'
+- ''
+- '- name: Export SCP with ALL components in JSON format to a HTTP share path'
+- '  dellemc.openmanage.idrac_server_config_profile:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    share_name: "http://192.168.0.3/share"'
+- '    share_user: share_username'
+- '    share_password: share_password'
+- '    scp_file: example_file.json'
+- '    scp_components:'
+- '      - ALL'
+- '    export_format: JSON'
+- '    job_wait: false'
+- ''
+- '- name: Import SCP with ALL components in JSON format from a HTTP share path'
+- '  dellemc.openmanage.idrac_server_config_profile:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    command: import'
+- '    share_name: "http://192.168.0.3/share"'
+- '    share_user: share_username'
+- '    share_password: share_password'
+- '    scp_file: example_file.json'
+- '    shutdown_type: Graceful'
+- '    end_host_power_state: "On"'
+- '    job_wait: true'
+- ''
+- '- name: Export SCP with ALL components in XML format to a HTTPS share path without
+    SCP file name'
+- '  dellemc.openmanage.idrac_server_config_profile:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    share_name: "https://192.168.0.4/share"'
+- '    share_user: share_username'
+- '    share_password: share_password'
+- '    scp_components:'
+- '      - ALL'
+- '    export_format: XML'
+- '    export_use: Replace'
+- '    job_wait: true'
+- ''
+- '- name: Import SCP with ALL components in XML format from a HTTPS share path'
+- '  dellemc.openmanage.idrac_server_config_profile:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    command: import'
+- '    share_name: "https://192.168.0.4/share"'
+- '    share_user: share_username'
+- '    share_password: share_password'
+- '    scp_file: 192.168.0.1_20160618_164647.xml'
+- '    shutdown_type: Graceful'
+- '    end_host_power_state: "On"'
+- '    job_wait: false'
+- ''
+- '- name: Preview SCP with IDRAC components in XML format from a CIFS share path'
+- '  dellemc.openmanage.idrac_server_config_profile:'
+- '    idrac_ip: "{{ idrac_ip }}"'
+- '    idrac_user: "{{ idrac_user }}"'
+- '    idrac_password: "{{ idrac_password }}"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    share_name: "\\\\192.168.0.2\\share"'
+- '    share_user: share_username'
+- '    share_password: share_password'
+- '    command: preview'
+- '    scp_components:'
+- '      - ALL'
+- '    scp_file: example_file.xml'
+- '    job_wait: true'
+- ''
+- '- name: Preview SCP with IDRAC components in JSON format from a NFS share path'
+- '  dellemc.openmanage.idrac_server_config_profile:'
+- '    idrac_ip: "{{ idrac_ip }}"'
+- '    idrac_user: "{{ idrac_user }}"'
+- '    idrac_password: "{{ idrac_password }}"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    share_name: "192.168.0.2:/share"'
+- '    command: preview'
+- '    scp_components:'
+- '      - IDRAC'
+- '    scp_file: example_file.xml'
+- '    job_wait: true'
+- ''
+- '- name: Preview SCP with IDRAC components in XML format from a HTTP share path'
+- '  dellemc.openmanage.idrac_server_config_profile:'
+- '    idrac_ip: "{{ idrac_ip }}"'
+- '    idrac_user: "{{ idrac_user }}"'
+- '    idrac_password: "{{ idrac_password }}"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    share_name: "http://192.168.0.1/http-share"'
+- '    share_user: share_username'
+- '    share_password: share_password'
+- '    command: preview'
+- '    scp_components:'
+- '      - ALL'
+- '    scp_file: example_file.xml'
+- '    job_wait: true'
+- ''
+- '- name: Preview SCP with IDRAC components in XML format from a local path'
+- '  dellemc.openmanage.idrac_server_config_profile:'
+- '    idrac_ip: "{{ idrac_ip }}"'
+- '    idrac_user: "{{ idrac_user }}"'
+- '    idrac_password: "{{ idrac_password }}"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    share_name: "/scp_folder"'
+- '    command: preview'
+- '    scp_components:'
+- '      - IDRAC'
+- '    scp_file: example_file.json'
+- '    job_wait: false'
+- ''
+- '- name: Import SCP with IDRAC components in XML format from the XML content.'
+- '  dellemc.openmanage.idrac_server_config_profile:'
+- '    idrac_ip: "{{ idrac_ip }}"'
+- '    idrac_user: "{{ idrac_user }}"'
+- '    idrac_password: "{{ idrac_password }}"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    command: import'
+- '    scp_components:'
+- '      - IDRAC'
+- '    job_wait: true'
+- '    import_buffer: "<SystemConfiguration><Component FQDD=''iDRAC.Embedded.1''><Attribute
+    Name=''IPMILan.1#Enable''>'
+- '      Disabled</Attribute></Component></SystemConfiguration>"'
+- ''
+- '- name: Export SCP with ALL components in XML format using HTTP proxy.'
+- '  dellemc.openmanage.idrac_server_config_profile:'
+- '    idrac_ip: "{{ idrac_ip }}"'
+- '    idrac_user: "{{ idrac_user }}"'
+- '    idrac_password: "{{ idrac_password }}"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    scp_components:'
+- '      - ALL'
+- '    share_name: "http://192.168.0.1/http-share"'
+- '    proxy_support: true'
+- '    proxy_server: 192.168.0.5'
+- '    proxy_port: 8080'
+- '    proxy_username: proxy_username'
+- '    proxy_password: proxy_password'
+- '    proxy_type: http'
+- '    include_in_export: passwordhashvalues'
+- '    job_wait: true'
+- ''
+- '- name: Import SCP with IDRAC and BIOS components in XML format using SOCKS4 proxy'
+- '  dellemc.openmanage.idrac_server_config_profile:'
+- '    idrac_ip: "{{ idrac_ip }}"'
+- '    idrac_user: "{{ idrac_user }}"'
+- '    idrac_password: "{{ idrac_password }}"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    command: import'
+- '    scp_components:'
+- '      - IDRAC'
+- '      - BIOS'
+- '    share_name: "https://192.168.0.1/http-share"'
+- '    proxy_support: true'
+- '    proxy_server: 192.168.0.6'
+- '    proxy_port: 8080'
+- '    proxy_type: socks4'
+- '    scp_file: filename.xml'
+- '    job_wait: true'
+- ''
+- '- name: Import SCP with IDRAC components in JSON format from the JSON content.'
+- '  dellemc.openmanage.idrac_server_config_profile:'
+- '    idrac_ip: "{{ idrac_ip }}"'
+- '    idrac_user: "{{ idrac_user }}"'
+- '    idrac_password: "{{ idrac_password }}"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    command: import'
+- '    scp_components:'
+- '      - IDRAC'
+- '    job_wait: true'
+- '    import_buffer: "{\"SystemConfiguration\": {\"Components\": [{\"FQDD\": \"iDRAC.Embedded.1\",\"Attributes\":'
+- '      [{\"Name\": \"SNMP.1#AgentCommunity\",\"Value\": \"public1\"}]}]}}"'
+- ''
+- '- name: Export custom default'
+- '  dellemc.openmanage.idrac_server_config_profile:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    job_wait: true'
+- '    share_name: "/scp_folder"'
+- '    command: export_custom_defaults'
+- '    scp_file: example_file'
+- ''
+- '- name: Import custom default'
+- '  dellemc.openmanage.idrac_server_config_profile:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    job_wait: true'
+- '    share_name: "/scp_folder"'
+- '    command: import_custom_defaults'
+- '    scp_file: example_file.xml'
+- ''
+- '- name: Import custom default using buffer'
+- '  dellemc.openmanage.idrac_server_config_profile:'
+- '    idrac_ip: "192.168.0.1"'
+- '    idrac_user: "user_name"'
+- '    idrac_password: "user_password"'
+- '    ca_path: "/path/to/ca_cert.pem"'
+- '    job_wait: true'
+- '    command: import_custom_defaults'
+- '    import_buffer: "<SystemConfiguration><Component FQDD=''iDRAC.Embedded.1''><Attribute
+    Name=''IPMILan.1#Enable''>Disabled</Attribute>'
+- '                  </Component></SystemConfiguration>"'
+- ''
+- "\e[1mRETURN VALUES:\e[0m"
+- ''
+- "   \e[0;33merror_info\e[0m  Details of the HTTP Error."
+- '        returned: on HTTP error'
+- '        sample:'
+- '          error:'
+- '            ''@Message.ExtendedInfo'':'
+- '            - Message: Unable to process the request because an error occurred.'
+- '              MessageArgs: []'
+- '              MessageId: GEN1234'
+- '              RelatedProperties: []'
+- '              Resolution: Retry the operation. If the issue persists, contact your
+    system'
+- '                administrator.'
+- '              Severity: Critical'
+- '            code: Base.1.0.GeneralError'
+- '            message: A general error has occurred. See ExtendedInfo for more information.'
+- '        type: dict'
+- ''
+- "   \e[0;33mmsg\e[0m     Status of the import or export SCP job."
+- '        returned: always'
+- '        sample: Successfully imported the Server Configuration Profile'
+- '        type: str'
+- ''
+- "   \e[0;33mscp_status\e[0m  SCP operation job and progress details from the iDRAC."
+- '        returned: success'
+- '        sample:'
+- '          Id: JID_XXXXXXXXX'
+- '          JobState: Completed'
+- '          JobType: ImportConfiguration'
+- '          Message: Successfully imported and applied Server Configuration Profile.'
+- '          MessageArgs: []'
+- '          MessageId: XXX123'
+- '          Name: Import Configuration'
+- '          PercentComplete: 100'
+- '          StartTime: TIME_NOW'
+- '          Status: Success'
+- '          TargetSettingsURI: null'
+- '          retval: true'
+- '        type: dict'

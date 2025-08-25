@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.12.4
+# Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -143,7 +143,7 @@ class TestOmeNetworkVlanInfo(FakeAnsibleModule):
     def test_network_vlan_info_failure_case(self, ome_default_args, ome_connection_network_vlan_info_mock,
                                             ome_response_mock):
         ome_response_mock.status_code = 500
-        result = self._run_module_with_fail_json(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result['msg'] == "Failed to retrieve the network VLAN information."
 
     def test_network_vlan_info_name_failure_case(self, ome_default_args, ome_connection_network_vlan_info_mock,
@@ -152,7 +152,7 @@ class TestOmeNetworkVlanInfo(FakeAnsibleModule):
         ome_response_mock.success = True
         ome_response_mock.json_data = response
         ome_response_mock.status_code = 200
-        result = self._run_module_with_fail_json(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result['failed'] is True
         assert 'network_vlan_info' not in result
         assert result['msg'] == "Provided network VLAN with name - 'non-existing vlan' does not exist."
@@ -173,26 +173,26 @@ class TestOmeNetworkVlanInfo(FakeAnsibleModule):
             ome_connection_network_vlan_info_mock.invoke_request.side_effect = exc_type(
                 HTTP_ADDRESS, 400, '<400 bad request>', {"accept-type": ACCESS_TYPE},
                 StringIO(json_str))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
             assert 'msg' in result
             assert 'error_info' in result
 
             ome_connection_network_vlan_info_mock.invoke_request.side_effect = exc_type(
                 HTTP_ADDRESS, 404, '<404 not found>', {"accept-type": ACCESS_TYPE}, StringIO(json_str))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
             assert 'msg' in result
         elif exc_type != SSLValidationError:
             mocker.patch(MODULE_PATH + 'ome_network_vlan_info.get_network_type_and_qos_type_information',
                          side_effect=exc_type('test'))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
             assert 'msg' in result
         else:
             mocker.patch(MODULE_PATH + 'ome_network_vlan_info.get_network_type_and_qos_type_information',
                          side_effect=exc_type(HTTP_ADDRESS, 404, 'http error message',
                                               {"accept-type": ACCESS_TYPE}, StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
             assert 'msg' in result

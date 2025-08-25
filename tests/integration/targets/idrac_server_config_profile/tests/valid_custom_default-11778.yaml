@@ -1,0 +1,157 @@
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: "Please define the following variables:
+      idrac_ip, idrac_user and idrac_password."
+  when: idrac_ip is not defined or
+    idrac_user is not defined or
+    idrac_password is not defined
+
+- block:
+    - name: Pre-requisites - importing another value for custom default
+      dellemc.openmanage.idrac_server_config_profile:
+        &import_custom_default_scp_file
+        job_wait: true
+        command: import_custom_defaults
+        share_name: "{{ role_path }}/files"
+        scp_file: "pre_req_import_custom_default.xml"
+
+    - name: Import SCP to local path with file - check mode
+      dellemc.openmanage.idrac_server_config_profile:
+        <<: *import_custom_default_scp_file
+        scp_file: "import_custom_default.xml"
+      register: import_file_cm
+      check_mode: true
+
+    - name: Verify status of import custom default tasks with file - check mode
+      ansible.builtin.assert:
+        that:
+          - import_file_cm.changed
+          - import_file_cm.msg == "Changes found to be applied."
+
+    - name: Import SCP to local path with file - normal mode
+      dellemc.openmanage.idrac_server_config_profile:
+        <<: *import_custom_default_scp_file
+        scp_file: "import_custom_default.xml"
+      register: import_file_normal
+
+    - name: Verify status of import custom default tasks with file - normal mode
+      ansible.builtin.assert:
+        that:
+          - import_file_normal.changed
+          - import_file_normal.msg == "Successfully imported the
+            custom defaults Server Configuration Profile."
+
+    - name: Import SCP to local path with file - idempotency mode
+      dellemc.openmanage.idrac_server_config_profile:
+        <<: *import_custom_default_scp_file
+        scp_file: "import_custom_default.xml"
+      register: import_file_idemp
+
+    - name: Verify status of import custom default tasks with
+        file - idempotency mode
+      ansible.builtin.assert:
+        that:
+          - not import_file_idemp.changed
+          - import_file_idemp.msg == "No changes found to be applied."
+
+    - name: Export CustomDefaults SCP to local path
+      dellemc.openmanage.idrac_server_config_profile:
+        share_name: "{{ playbook_dir }}"
+        job_wait: true
+        command: export_custom_defaults
+      register: export_exist
+
+    - name: Verify status of export custom default tasks.
+      ansible.builtin.assert:
+        that:
+          - not export_exist.changed
+          - export_exist.msg == "Successfully exported the
+            custom defaults Server Configuration Profile."
+
+    - name: Compare the two file
+      ansible.utils.fact_diff:
+        before: "{{  lookup('ansible.builtin.file',
+          '{{ role_path }}/files/import_custom_default.xml') }}"
+        after: "{{ lookup('ansible.builtin.file',
+          export_exist.scp_status.file) }}"
+      register: diff_result
+
+    - name: Verify task status - Compare exported file and existing file
+      ansible.builtin.assert:
+        that:
+          - not diff_result.changed
+          - not diff_result.diff_lines
+
+    - name: Import the custom_default using buffer, earlied imported using file
+      dellemc.openmanage.idrac_server_config_profile:
+        job_wait: true
+        command: import_custom_defaults
+        import_buffer: "{{ lookup('ansible.builtin.file',
+          export_exist.scp_status.file) }}"
+      register: import_already_exist
+
+    - name: Verify status of import custom default tasks using buffer,
+        earlied imported using file
+      ansible.builtin.assert:
+        that:
+          - not import_already_exist.changed
+          - import_already_exist.msg == "No changes found to be applied."
+
+    - name: Import the custom_default using buffer - check mode
+      dellemc.openmanage.idrac_server_config_profile:
+        &import_custom_default_scp_buffer
+        job_wait: true
+        command: import_custom_defaults
+        import_buffer: "{{ lookup('ansible.builtin.file',
+          '{{ role_path }}/files/pre_req_import_custom_default.xml') }}"
+      register: import_buffer_cm
+      check_mode: true
+
+    - name: Verify status of import custom default tasks using
+        buffer - check mode
+      ansible.builtin.assert:
+        that:
+          - import_buffer_cm.changed
+          - import_buffer_cm.msg == "Changes found to be applied."
+
+    - name: Import the custom_default using buffer - normal mode
+      dellemc.openmanage.idrac_server_config_profile:
+        <<: *import_custom_default_scp_buffer
+      register: import_buffer_normal
+
+    - name: Verify status of import custom default tasks using
+        buffer - normal mode
+      ansible.builtin.assert:
+        that:
+          - import_buffer_normal.changed
+          - import_buffer_normal.msg == "Successfully imported the
+            custom defaults Server Configuration Profile."
+
+    - name: Import the custom_default using buffer - idempotency mode
+      dellemc.openmanage.idrac_server_config_profile:
+        <<: *import_custom_default_scp_buffer
+      register: import_buffer_idemp
+
+    - name: Verify status of import custom default tasks using
+        buffer - idempotency mode
+      ansible.builtin.assert:
+        that:
+          - not import_buffer_idemp.changed
+          - import_buffer_idemp.msg == "No changes found to be applied."
+
+  always:
+    - name: Delete the export scp_file
+      ansible.builtin.file:
+        path: "{{ export_exist.scp_status.file }}"
+        state: absent
+      when: export_exist is defined
+      no_log: true
+
+  module_defaults:
+    dellemc.openmanage.idrac_server_config_profile:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      idrac_port: "{{ idrac_port }}"
+      validate_certs: "{{ validate_certs }}"

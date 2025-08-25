@@ -100,8 +100,9 @@ options:
         type: str
       workgroup:
         description:
-          - Workgroup of the network share.
+          -(deprecated) Workgroup of the network share.
           - I(workgroup) is applicable only when I(share_type) is C(cifs).
+          - The argument is not supported by iDRAC9 and iDRAC10.
         type: str
       username:
         description:
@@ -320,6 +321,7 @@ error_info:
 import json
 import os
 from datetime import datetime
+import time
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -683,9 +685,14 @@ class RunSupportAssist(SupportAssist):
             hostname = hostname.replace(":", ".")
             sa_file_name = f"{hostname}_{now.strftime(TIME_FORMAT)}.zip"
             file_name = (os.path.join(file_path, sa_file_name))
-            file_dict = self.idrac.invoke_request(job_tracking_uri, "GET")
+            time.sleep(10)
+            file_dict = self.idrac.invoke_request(job_tracking_uri, "GET",
+                                                  api_timeout=200)
+            time.sleep(10)
             file_dnld = self.idrac.invoke_request(file_dict.headers.get(
-                "Location"), "GET", headers={"Content-Type": "application/x-tar"})
+                "Location"), "GET",
+                headers={"Content-Type": "application/x-tar"},
+                api_timeout=200)
             if file_dnld.status_code == 200:
                 with open(file_name, "wb") as file:
                     file.write(file_dnld.body)
@@ -738,11 +745,11 @@ class ExportSupportAssist(SupportAssist):
             'share_parameters').get('share_type')
         share_type_methods = {
             "local": self.__export_support_assist_local,
-            "http": self.__export_support_assist_http,
-            "https": self.__export_support_assist_http,
-            "cifs": self.__export_support_assist_cifs,
+            "http": self.__export_support_assist_remote_shares,
+            "https": self.__export_support_assist_remote_shares,
+            "cifs": self.__export_support_assist_remote_shares,
             "nfs": self.__export_support_assist_nfs,
-            "ftp": self.__export_support_assist_http
+            "ftp": self.__export_support_assist_remote_shares
         }
         payload = share_type_methods[share_type]()
         if share_type == "local":
@@ -766,15 +773,8 @@ class ExportSupportAssist(SupportAssist):
         payload["ShareType"] = "Local"
         return payload
 
-    def __export_support_assist_http(self):
+    def __export_support_assist_remote_shares(self):
         payload = self.get_payload_details()
-        return payload
-
-    def __export_support_assist_cifs(self):
-        payload = self.get_payload_details()
-        if self.module.params.get('share_parameters').get('workgroup'):
-            payload["Workgroup"] = self.module.params.get(
-                'share_parameters').get('workgroup')
         return payload
 
     def __export_support_assist_nfs(self):

@@ -1,0 +1,161 @@
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables:
+      idrac_ip, idrac_user and idrac_password.'
+  when: idrac_ip is not defined or
+    idrac_user is not defined or
+    idrac_password is not defined
+
+- block:
+    - name: Preview of SCP in Sync mode with import_buffer of
+        type XML format (Check mode - Changes not expected)
+      dellemc.openmanage.idrac_server_config_profile: &scpc1
+        command: preview
+        job_wait: true
+        import_buffer: "<SystemConfiguration>\
+          <Component FQDD='iDRAC.Embedded.1'>\
+          <Attribute Name='SNMP.1#AgentCommunity'>public123</Attribute>\
+          <Attribute Name='SNMP.1#DiscoveryPort'>163</Attribute>\
+          </Component></SystemConfiguration>"
+      register: preview_result_1
+      check_mode: true
+
+    - ansible.builtin.pause: seconds=60
+
+    - name: Verify task status - preview of SCP in Sync mode with import_buffer
+        of type XML format (Check mode - Changes not expected)
+      ansible.builtin.assert:
+        that:
+          - not preview_result_1.changed
+          - preview_result_1.msg == "Successfully previewed the
+            Server Configuration Profile."
+
+    - include_role: name=prepare_lifecycle_controller_job
+      when: preview_result_1.msg == "Successfully previewed the
+        Server Configuration Profile."
+
+    - name: Preview of SCP in Sync mode with import_buffer of
+        type XML format (Normal mode)
+      dellemc.openmanage.idrac_server_config_profile:
+        <<: *scpc1
+      register: preview_result_2
+
+    - ansible.builtin.pause: seconds=60
+
+    - name: Verify task status - preview of SCP in Sync mode with
+        import_buffer of type XML format (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - not preview_result_2.changed
+          - preview_result_2.msg == "Successfully previewed the
+            Server Configuration Profile."
+
+    - include_role: name=prepare_lifecycle_controller_job
+      when: preview_result_2.msg == "Successfully previewed the
+        Server Configuration Profile."
+
+
+    ##########   Verify preview SCP in sync mode when ######
+    ##########   import_buffer of type JSON format    ######
+
+    - name: Preview of SCP in Sync mode with import_buffer of
+        type JSON format (Normal mode)
+      dellemc.openmanage.idrac_server_config_profile:
+        command: preview
+        job_wait: true
+        import_buffer: "{\"SystemConfiguration\": {\"Components\": [{\"FQDD\":
+          \"BIOS.Setup.1-1\", \"Attributes\": [{\"Name\":
+          \"BootSeqRetry\",\"Value\": \"Enabled\"}]}]}}"
+      register: preview_result_3
+
+    - ansible.builtin.pause: seconds=60
+
+    - name: Verify task status - preview of SCP in Sync mode with
+        import_buffer of type JSON format (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - not preview_result_3.changed
+          - preview_result_3.msg == "Successfully previewed the
+            Server Configuration Profile."
+
+    - include_role: name=prepare_lifecycle_controller_job
+      when: preview_result_3.msg == "Successfully previewed the
+        Server Configuration Profile."
+
+
+    ##########   Verify preview SCP in async mode when #####
+    ##########   import_buffer of type JSON format     #####
+
+    - name: Preview of SCP in async mode with import_buffer of
+        type JSON format (Normal mode)
+      dellemc.openmanage.idrac_server_config_profile:
+        command: preview
+        job_wait: false
+        import_buffer: "{\"SystemConfiguration\": {\"Components\":
+          [{\"FQDD\": \"BIOS.Setup.1-1\", \"Attributes\":
+          [{\"Name\": \"BootSeqRetry\",\"Value\": \"Enabled\"}]}]}}"
+      register: preview_result_4
+
+    - ansible.builtin.pause: seconds=60
+      when: preview_result_4.msg == "Successfully triggered the job
+        to preview the Server Configuration Profile."
+
+    - include_role: name=prepare_lifecycle_controller_job
+      when: preview_result_4.msg == "Successfully triggered the job
+        to preview the Server Configuration Profile."
+
+    - name: Verify task status - preview of SCP in async mode with
+        import_buffer of type JSON format (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - not preview_result_4.changed
+          - preview_result_4.msg == "Successfully triggered the job to
+            preview the Server Configuration Profile."
+
+
+    ##########   Verify preview SCP in async mode      ######
+    ##########   when import_buffer of type xml format ######
+
+    - name: Preview of SCP in async mode with import_buffer of
+        type XML format (Normal mode)
+      dellemc.openmanage.idrac_server_config_profile:
+        command: preview
+        job_wait: false
+        import_buffer: "<SystemConfiguration>\
+          <Component FQDD='iDRAC.Embedded.1'>\
+          <Attribute Name='SNMP.1#AgentCommunity'>public123</Attribute>\
+          <Attribute Name='SNMP.1#DiscoveryPort'>163</Attribute>\
+          </Component></SystemConfiguration>"
+      register: preview_result_5
+
+    - ansible.builtin.pause: seconds=30
+      when: preview_result_5.msg == "Successfully triggered the job to preview
+        the Server Configuration Profile."
+
+    - include_role: name=prepare_lifecycle_controller_job
+      when: preview_result_5.msg == "Successfully triggered the job to preview
+        the Server Configuration Profile."
+
+
+    - name: Verify task status - preview of SCP in async mode with
+        import_buffer of type XML format (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - not preview_result_5.changed
+          - preview_result_5.msg ==  "Successfully triggered the job to preview
+            the Server Configuration Profile."
+
+  module_defaults:
+    dellemc.openmanage.idrac_server_config_profile:
+      idrac_ip: "{{idrac_ip}}"
+      idrac_user: "{{idrac_user}}"
+      idrac_password: "{{idrac_password}}"
+      idrac_port: "{{ idrac_port }}"
+      validate_certs: "{{validate_certs}}"
+      proxy_support: "{{ preview_proxy_enabled }}"
+      proxy_server: "{{ preview_proxy_server }}"
+      proxy_port: "{{ preview_proxy_port }}"
+      proxy_username: "{{ preview_proxy_username }}"
+      proxy_password: "{{ preview_proxy_password }}"
+      proxy_type: "{{ preview_proxy_type }}"

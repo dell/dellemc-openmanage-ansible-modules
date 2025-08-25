@@ -141,6 +141,7 @@ author:
   - "Felix Stephen (@felixs88)"
   - "Kritika Bhateja (@Kritika-Bhateja-03)"
   - "Abhishek Sinha(@ABHISHEK-SINHA10)"
+  - "Akash Shendge(@shenda1)"
 notes:
     - Run this module from a system that has direct access to Integrated Dell Remote Access Controller.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
@@ -294,7 +295,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
 
 
 SYSTEMS_URI = "/redfish/v1/Systems"
-iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
+iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{job_id}"
 CONTROLLER_NOT_EXIST_ERROR = "Specified Controller {controller_id} does not exist in the System."
 CONTROLLER_NOT_DEFINED = "Controller ID is required."
 SUCCESSFUL_OPERATION_MSG = "Successfully completed the {operation} storage volume operation."
@@ -753,7 +754,7 @@ class StorageCreate(StorageValidation):
         parent_payload = """<SystemConfiguration>{0}</SystemConfiguration>"""
         payload = self.constuct_payload(name_id_mapping)
         parent_payload = parent_payload.format(payload)
-        resp = self.idrac.import_scp(import_buffer=parent_payload, target="RAID", job_wait=False, time_to_wait=self.module.params.get('time_to_wait'))
+        resp = self.idrac.import_scp(import_buffer=parent_payload, target=["RAID"], job_wait=False, time_to_wait=self.module.params.get('time_to_wait'))
         job_dict = self.wait_for_job_completion(resp)
         return job_dict
 
@@ -816,7 +817,7 @@ class StorageDelete(StorageValidation):
         self.validate_volume_exists_in_server(set(volume_name_input_list))
         cntrl_id_vd_id_mapping = self.get_vd_id_based_on_controller_id_vd_name(set(volume_name_input_list))
         payload = self.construct_payload_for_delete(cntrl_id_vd_id_mapping)
-        resp = self.idrac.import_scp(import_buffer=payload, target="RAID", job_wait=False, time_to_wait=self.module.params.get('time_to_wait'))
+        resp = self.idrac.import_scp(import_buffer=payload, target=["RAID"], job_wait=False, time_to_wait=self.module.params.get('time_to_wait'))
         job_dict = self.wait_for_job_completion(resp)
         return job_dict
 

@@ -232,4 +232,5 @@ Authors
 
 - Felix Stephen (@felixs88)
 - Abhishek Sinha (@Abhishek-Dell)
+- Krunal Thakkar (@Krunal-Thakkar)
 

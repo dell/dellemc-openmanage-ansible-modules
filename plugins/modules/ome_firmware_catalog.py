@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.12.3
 # Copyright (C) 2019-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -118,6 +118,7 @@ requirements:
 author:
     - "Sajna Shetty(@Sajna-Shetty)"
     - "Jagadeesh N V(@jagadeeshnv)"
+    - "Krunal Thakkar(@Krunal-Thakkar)"
 notes:
     - If I(repository_password) is provided, then the module always reports the changed status.
     - Run this module from a system that has direct access to Dell OpenManage Enterprise or OpenManage Enterprise Modular.
@@ -405,7 +406,7 @@ def exit_catalog(module, rest_obj, catalog_resp, operation, msg):
             catalog_resp.get('TaskId'), job_wait_sec=module.params["job_wait_timeout"], sleep_time=JOB_POLL_INTERVAL)
         catalog = get_updated_catalog_info(module, rest_obj, catalog_resp)
         if job_failed is True:
-            module.fail_json(msg=job_message, catalog_status=catalog)
+            module.exit_json(msg=job_message, catalog_status=catalog, failed=True)
         catalog_resp = catalog
         msg = CATALOG_UPDATED.format(operation=operation)
     time.sleep(SETTLING_TIME)
@@ -447,9 +448,9 @@ def validate_dell_online(all_catalog, module):
     catalog_name = module.params["catalog_name"][0]
     for name, repo_type in all_catalog.items():
         if repo_type == "DELL_ONLINE" and name != catalog_name:
-            module.fail_json(
+            module.exit_json(
                 msg=DELL_ONLINE_EXISTS.format(
-                    catalog_name=name))
+                    catalog_name=name), failed=True)
 
 
 def create_catalog(module, rest_obj):
@@ -513,13 +514,13 @@ def modify_catalog(module, rest_obj, catalog_list, all_catalog):
     new_catalog_name = params.get("new_catalog_name")
     if new_catalog_name:
         if new_catalog_name != name and new_catalog_name in all_catalog:
-            module.fail_json(msg=CATALOG_EXISTS.format(new_name=new_catalog_name))
+            module.exit_json(msg=CATALOG_EXISTS.format(new_name=new_catalog_name), failed=True)
         modify_payload["Repository"]["Name"] = new_catalog_name
     catalog_payload = get_current_catalog_settings(catalog_list[0])
     if modify_payload.get("Repository") and \
             modify_payload.get("Repository").get("RepositoryType") and \
             modify_payload.get("Repository").get("RepositoryType") != catalog_payload["Repository"]["RepositoryType"]:
-        module.fail_json(msg="Repository type cannot be changed to another repository type.")
+        module.exit_json(msg="Repository type cannot be changed to another repository type.", failed=True)
     new_catalog_current_setting = catalog_payload.copy()
     repo_id = new_catalog_current_setting["Repository"]["Id"]
     del new_catalog_current_setting["Repository"]["Id"]
@@ -561,10 +562,10 @@ def validate_delete_operation(rest_obj, module, catalog_list, delete_ids):
             resp = rest_obj.invoke_request("GET", JOB_URI.format(TaskId=catalog['TaskId']))
             job_data = resp.json_data
             if job_data['LastRunStatus']['Id'] == 2050:
-                module.fail_json(msg=CATALOG_JOB_RUNNING.format(name=catalog["Name"], id=catalog["Id"]),
-                                 job_id=catalog['TaskId'])
+                module.exit_json(msg=CATALOG_JOB_RUNNING.format(name=catalog["Name"], id=catalog["Id"]),
+                                 job_id=catalog['TaskId'], failed=True)
     if associated_baselines:
-        module.fail_json(msg=CATALOG_BASELINE_ATTACHED, associated_baselines=associated_baselines)
+        module.exit_json(msg=CATALOG_BASELINE_ATTACHED, associated_baselines=associated_baselines, failed=True)
     if module.check_mode and len(catalog_list) > 0:
         module.exit_json(msg=CHECK_MODE_CHANGE_FOUND_MSG, changed=True, catalog_id=delete_ids)
     if len(catalog_list) == 0:
@@ -586,7 +587,7 @@ def validate_names(state, module):
     catalog_name = module.params.get("catalog_name", [])
     catalog_id = module.params.get("catalog_id", [])
     if state != "absent" and ((catalog_name and len(catalog_name) > 1) or (catalog_id and len(catalog_id) > 1)):
-        module.fail_json(msg=NAMES_ERROR)
+        module.exit_json(msg=NAMES_ERROR, failed=True)
 
 
 def perform_present_action(module, rest_obj, requested_catalog_list, all_catalog):
@@ -594,7 +595,7 @@ def perform_present_action(module, rest_obj, requested_catalog_list, all_catalog
         modify_catalog(module, rest_obj, requested_catalog_list, all_catalog)
     else:
         if module.params.get('catalog_id'):
-            module.fail_json(msg=INVALID_CATALOG_ID)
+            module.exit_json(msg=INVALID_CATALOG_ID, failed=True)
         repository_type = module.params.get("repository_type")
         if repository_type and repository_type == "DELL_ONLINE":
             validate_dell_online(all_catalog, module)
@@ -645,7 +646,7 @@ def main():
             else:
                 perform_present_action(module, rest_obj, requested_catalog_list, all_catalog)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:

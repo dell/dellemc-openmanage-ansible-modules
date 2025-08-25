@@ -1,13 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
-#
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 9.12.4
 # Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
-
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-#
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 
 from __future__ import (absolute_import, division, print_function)
@@ -65,6 +62,7 @@ notes:
   - This module support C(check_mode).
 author:
   - Sachin Apagundi(@sachin-apa)
+  - Bhavneet Sharma (@Bhavneet-Sharma)
 '''
 
 EXAMPLES = """
@@ -138,7 +136,6 @@ error_info:
 """
 
 import json
-from ssl import SSLError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
@@ -201,22 +198,15 @@ def password_no_log(attributes):
         attributes['password'] = "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER"
 
 
-def fail_module(module, **failmsg):
-    password_no_log(module.params.get("credentials"))
-    module.fail_json(**failmsg)
-
-
 def exit_module(module, **existmsg):
     password_no_log(module.params.get("credentials"))
     module.exit_json(**existmsg)
 
 
 def process_check_mode(module, diff):
-    if not diff and not module.check_mode:
+    if not diff:
         exit_module(module, msg=NO_CHANGES)
-    elif not diff and module.check_mode:
-        exit_module(module, msg=NO_CHANGES)
-    elif diff and module.check_mode:
+    elif module.check_mode:
         exit_module(module, msg=CHANGES_FOUND, changed=True)
 
 
@@ -251,13 +241,13 @@ def main():
                         smtp_details=resp.json_data, changed=True)
 
     except HTTPError as err:
-        fail_module(module, msg=str(err), error_info=json.load(err))
+        exit_module(module, msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         exit_module(module, msg=str(err), unreachable=True)
     except (
-            IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError,
+            IOError, ValueError, TypeError, ConnectionError, AttributeError, IndexError, KeyError,
             OSError) as err:
-        fail_module(module, msg=str(err), error_info=json.load(err))
+        exit_module(module, msg=str(err), error_info={"error": str(err)}, failed=True)
 
 
 if __name__ == '__main__':

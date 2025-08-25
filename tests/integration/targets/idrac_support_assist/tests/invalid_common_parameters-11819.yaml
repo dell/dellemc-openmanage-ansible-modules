@@ -66,8 +66,10 @@
         that:
           - invalid_port.unreachable
           - not invalid_port.changed
-          - ('invalid_port.msg == "<urlopen error [Errno 111] Connection
-            refused>"') or ('invalid_port.msg == "<urlopen error timed out>"')
+          - 'invalid_port.msg == "<urlopen error [Errno 111] Connection
+            refused>" or invalid_port.msg == "<urlopen error timed out>" or
+            invalid_port.msg == "<urlopen error [Errno -2]
+            Name or service not known>"'
 
     - name: Negative - invalid username
       dellemc.openmanage.idrac_support_assist:
@@ -115,9 +117,8 @@
       ignore_errors: true
 
     - ansible.builtin.set_fact:
-        invalid_validate_certs_expected_msg: "argument 'validate_certs' is of
-          type <class 'str'> and we were unable to convert to bool: The value
-          'invalid' is not a valid boolean.  Valid booleans include: "
+        invalid_validate_certs_expected_msg: "The value
+          'invalid' is not a valid boolean"
 
     - name: Verify task status - Negative - invalid validate_certs
       ansible.builtin.assert:
@@ -156,8 +157,7 @@
 
     - name: Set fact for invalid timeout type msg
       ansible.builtin.set_fact:
-        invalid_timeout_type_expected_msg: "argument 'timeout' is of type
-          <class 'str'> and we were unable to convert to int: "
+        invalid_timeout_type_expected_msg: "we were unable to convert to int:"
 
     - name: Verify task status - Negative - invalid timeout type
       ansible.builtin.assert:

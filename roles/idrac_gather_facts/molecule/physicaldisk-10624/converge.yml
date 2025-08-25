@@ -62,10 +62,14 @@
       register: idrac_gather_facts_disk_result
       when: storage_ids_list is defined
 
+    - name: Assert the response from the API
+      ansible.builtin.debug:
+        var: idrac_gather_facts_disk_result
+
     - name: Count the number of drives in drives_result.results
       ansible.builtin.set_fact:
         drives_count: "{{ idrac_gather_facts_disk_result.results |
-          map(attribute='json.drives') | list | length }}"
+          map(attribute='json.Drives') | list | length }}"
       when: idrac_gather_facts_disk_result.results is defined
 
     - name: Set Physical Disk facts
@@ -87,20 +91,21 @@
     - name: Assert Physical Disk data
       ansible.builtin.assert:
         that:
-          - "((drives_count | length == 0) and (physical_disk | length == 0))"
+          - "((drives_count | string | length == 0) and
+            (physical_disk | string | length == 0))"
         fail_msg: "The response from the role does not match"
         success_msg: "The response from the role matches"
-      when: drives_count | length == 0
+      when: drives_count | string | length == 0
 
     - name: Check whether output differs
       ansible.builtin.set_fact:
         result_diff: "{{ physical_disk | symmetric_difference(api_response) }}"
-      when: drives_count | length > 0
+      when: drives_count | string | length > 0
 
     - name: Assert the differences in List
       ansible.builtin.assert:
         fail_msg: "The response from the role does not match"
         success_msg: "The response from the role matches"
         that:
-          - "{{ (result_diff | length) == 0 }}"
-      when: drives_count | length > 0
+          - result_diff | length == 0
+      when: drives_count | string | length > 0

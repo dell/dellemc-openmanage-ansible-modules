@@ -16,7 +16,7 @@
         enable_authentication: true
         credentials:
           username: "username"
-          password: "password"
+          password: "**"
       delegate_to: localhost
       tags:
         - smtp_auth

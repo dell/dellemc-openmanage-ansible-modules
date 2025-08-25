@@ -10,7 +10,7 @@
           'Physical disks are not sufficient to proceed with test
            case execution. Needs a minimum {{ required_disk_length }},
            but found {{ physical_disks | length }}'
-      when: physical_disks | length < {{ required_disk_length }}
+      when: physical_disks | length < required_disk_length
 
   rescue:
     - name: Rerun restart and helper tasks
@@ -24,4 +24,4 @@
         - name: Check disk count again
           ansible.builtin.fail:
             msg: 'Retry failed - Still not enough physical disks to proceed.'
-          when: physical_disks | length < {{ required_disk_length }}
+          when: physical_disks | length < required_disk_length

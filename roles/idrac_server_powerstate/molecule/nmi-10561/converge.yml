@@ -7,7 +7,7 @@
   tasks:
     - name: Pre-requisite - Server is Power On
       ansible.builtin.import_role:
-        name: idrac_server_powerstate
+        name: dellemc.openmanage.idrac_server_powerstate
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -27,7 +27,7 @@
 
     - name: Performing Nmi on the iDRAC device
       ansible.builtin.import_role:
-        name: idrac_server_powerstate
+        name: dellemc.openmanage.idrac_server_powerstate
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"

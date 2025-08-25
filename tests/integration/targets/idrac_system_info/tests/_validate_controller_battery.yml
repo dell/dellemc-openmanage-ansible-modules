@@ -1,0 +1,48 @@
+---
+- name: Fetch Controller Battery details
+  ansible.builtin.uri:
+    url: "{{ controller_battery_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: uri_data
+
+- name: Structuring Controller Battery details
+  ansible.builtin.command:
+    cmd: >
+      python _get_controller_battery_details.py
+      '{{ uri_data.json | to_json }}'
+    chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  environment:
+    PYTHONPATH: "{{ lookup('env', 'ANSIBLE_COLLECTIONS_PATH') }}"
+  register: controller_battery_updated_dict
+  no_log: true
+  when:
+    - uri_data.status == 200
+
+- name: Output conversion to list
+  ansible.builtin.include_tasks:
+    file: _compare_diff.yml
+  vars:
+    _before: "{{ item.0 | dict2items | items2dict }}"
+    _after: "{{ item.1 | dict2items | items2dict }}"
+  when: uri_data.status == 200
+  loop: >
+    {{
+      result.system_info.ControllerBattery
+      | sort(
+        attribute='DeviceDescription'
+      )
+      | zip(
+        result.system_info.ControllerBattery
+        | sort(
+          attribute='DeviceDescription'
+        )
+      )
+      | list
+    }}

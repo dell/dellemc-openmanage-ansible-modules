@@ -43,6 +43,11 @@
         file: ../_reset_config.yml
       when: curr_eula_status_id is defined and 'SRV074' in curr_eula_status_id
 
+    - name: Wait for iDRAC to come up
+      ansible.builtin.include_tasks:
+        file: ../_wait_for_idrac_interface.yml
+      when: curr_eula_status_id is defined and 'SRV074' in curr_eula_status_id
+
     - name: Pre-requisite - Fetching EULA status after resetting IDRAC
       ansible.builtin.include_tasks:
         file: ../_eula_helper.yml
@@ -127,6 +132,11 @@
     - name: Pre-requisite - Reset the IDRAC
       ansible.builtin.include_tasks:
         file: ../_reset_config.yml
+      when: curr_eula_status_id is defined and 'SRV074' in curr_eula_status_id
+
+    - name: Wait for iDRAC to come up
+      ansible.builtin.include_tasks:
+        file: ../_wait_for_idrac_interface.yml
       when: curr_eula_status_id is defined and 'SRV074' in curr_eula_status_id
 
     - name: Pre-requisite - Fetching EULA status after resetting IDRAC

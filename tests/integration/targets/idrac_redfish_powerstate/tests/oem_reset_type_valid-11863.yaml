@@ -23,12 +23,9 @@
         expected_state: "Off"
 
     - name: Fetch the iDRAC firmware version
-      ansible.builtin.import_tasks: _fetch_uri.yml
+      ansible.builtin.include_tasks: _fetch_uri.yml
       vars:
         uri: "/redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
-      until: idrac_output.json.PowerState == "On"
-      retries: 10
-      delay: 30
 
     - name: Set fact for firmware version
       ansible.builtin.set_fact:
@@ -64,12 +61,9 @@
       when: powered_off.changed
 
     - name: Fetching power state of iDRAC
-      ansible.builtin.import_tasks: _fetch_uri.yml
+      ansible.builtin.include_tasks: _fetch_uri.yml
       vars:
         uri: "/redfish/v1/Chassis/System.Embedded.1?$select=PowerState"
-      until: idrac_output.json.PowerState == "Off"
-      retries: 10
-      delay: 30
 
     - name: Verify status of tasks - Normal Mode
       ansible.builtin.assert:
@@ -112,12 +106,9 @@
       when: powered_on.changed
 
     - name: Fetching power state of iDRAC
-      ansible.builtin.import_tasks: _fetch_uri.yml
+      ansible.builtin.include_tasks: _fetch_uri.yml
       vars:
         uri: "/redfish/v1/Chassis/System.Embedded.1?$select=PowerState"
-      until: idrac_output.json.PowerState == "On"
-      retries: 10
-      delay: 30
 
     - name: Verify status of tasks
       ansible.builtin.assert:

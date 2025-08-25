@@ -1,0 +1,60 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING
+# or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: idrac_ip, idrac_user
+     and idrac_password."
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- name: View VD when no controller information is passed
+  block:
+    - name: Fetch the best controller and  delete existing VDs
+      ansible.builtin.include_tasks: >-
+        "{{ role_path }}/tests/_fetch_controller_drives.yml"
+
+    - name: Fetch Controller Details
+      ansible.builtin.include_tasks: _pre_req_delete_view.yml
+
+    - name: Fetch API Output
+      ansible.builtin.include_tasks: _view_api_output.yml
+      vars:
+        odata: "@odata.id"
+
+    - name: Check mode - View Operation when no controller information is passed
+      dellemc.openmanage.idrac_storage_volume:
+        state: "view"
+      check_mode: true
+      register: check_mode_result
+
+    - name: Verify - Check mode - View Operation whne no controller
+       information is passed
+      ansible.builtin.assert:
+        that:
+          - not check_mode_result.changed
+          - check_mode_result.msg == (
+              'Successfully completed the view storage volume operation.')
+          - "'storage_status' in check_mode_result"
+
+    - name: View Operation when no controller information is passed
+      dellemc.openmanage.idrac_storage_volume:
+        state: "view"
+      register: view_result
+
+    - name: Verify - Normal Mode - View Operation when no controller
+       information is passed
+      ansible.builtin.assert:
+        that:
+          - not view_result.changed
+          - view_result.msg == (
+              'Successfully completed the view storage volume operation.')
+          - "'storage_status' in view_result"
+
+    - name: Verify View Output with the API Output
+      ansible.builtin.assert:
+        that:
+          - view_result.storage_status.Message.Controller == api_final_output

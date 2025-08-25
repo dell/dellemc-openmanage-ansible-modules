@@ -1,0 +1,7 @@
+---
+- name: pre_post-req - Update SMTP destination server configuration
+  dellemc.openmanage.ome_application_alerts_smtp:
+    destination_address: test
+    port_number: 10
+    use_ssl: false
+    enable_authentication: false

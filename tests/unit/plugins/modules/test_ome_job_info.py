@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.12.4
+# Copyright (C) 2019-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -92,7 +92,7 @@ class TestOmeJobInfo(FakeAnsibleModule):
     def test_job_info_failure_case(self, ome_default_args, ome_connection_job_info_mock,
                                    ome_response_mock):
         ome_response_mock.status_code = 500
-        result = self._run_module_with_fail_json(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result['msg'] == "Failed to fetch the job info"
 
     @pytest.mark.parametrize("exc_type", [URLError, HTTPError, SSLValidationError, ConnectionError,
@@ -112,7 +112,7 @@ class TestOmeJobInfo(FakeAnsibleModule):
                 side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str)))
         if exc_type != URLError:
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             result = self._run_module(ome_default_args)
