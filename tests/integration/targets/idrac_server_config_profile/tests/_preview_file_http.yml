@@ -1,0 +1,195 @@
+---
+- name: "{{ scp_label }} Get idrac data using uri"
+  ansible.builtin.uri:
+    url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}\
+      /redfish/v1/Managers/iDRAC.Embedded.1"
+    method: GET
+    body: {}
+    body_format: json
+    status_code: 200
+    headers: 'Accept=application/json'
+  register: idrac_fetched_data
+  no_log: true
+
+- name: Pre-requisite - Checking iDRAC version
+  ansible.builtin.include_tasks:
+    file: ../_get_idrac_settings.yml
+
+- block:
+    - name: "{{ scp_label }} Export all components SCP."
+      dellemc.openmanage.idrac_server_config_profile:
+        command: export
+        job_wait: true
+        scp_components: ["{{ item[0] }}"]
+        export_format: "{{ item[1].upper() }}"
+        scp_file: "{{ scp_file_prefix }}_{{ item[0] }}_\
+          {{ idrac_ip }}.{{ item[1] }}"
+      loop: "{{ all_comps | product(formats) | list }}"
+      loop_control:
+        label: "{{ [item[0], item[1]] }}"
+        pause: 2
+      ignore_errors: true
+      register: http_export_bundle
+
+    - ansible.builtin.set_fact:
+        filt_exp_list: "{{ ((filt_exp_list|default([])) +
+          [item.item]) | unique }}"
+        filt_exist_comps: "{{ (filt_exist_comps + [item.item[0]]) | unique }}"
+      with_items: "{{ http_export_bundle.results }}"
+      when: not item.failed
+
+    - name: "{{ scp_label }} Preview SCP ONE by ONE."
+      dellemc.openmanage.idrac_server_config_profile:
+        command: "preview"
+        job_wait: true
+        scp_file: "{{ scp_file_prefix }}_{{ item[0] }}_\
+          {{ idrac_ip }}.{{ item[1] }}"
+      loop: "{{ filt_exp_list }}"
+      loop_control:
+        label: "{{ [item[0], item[1]] }}"
+        pause: 1
+      register: http_preview_bundle
+
+    - name: "{{ scp_label }} VERIFY previewed SCP ONE by ONE."
+      ansible.builtin.assert:
+        that:
+          - item.failed == item.changed == false
+          - item.msg == "Successfully previewed the
+            Server Configuration Profile."
+          - 'item.scp_status.Message ==
+            "No changes were applied since the current component
+            configuration matched the requested configuration."'
+          - item.scp_status.MessageId == 'SYS069'
+      loop: "{{ http_preview_bundle.results }}"
+
+    - ansible.builtin.pause:
+        seconds: 30
+
+    - name: "{{ scp_label }} Create a new iDRAC user on 16G"
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_test_user"
+        user_password: "#DKMS_1234%"
+      when: hw_model | int < 17
+
+    - name: "{{ scp_label }} Create a new user role on 17G and above"
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}\
+          /redfish/v1/AccountService/Roles"
+        method: POST
+        body:
+          RoleId: "4"
+          AssignedPrivileges: ["Login"]
+        status_code: 201
+        body_format: json
+      when: hw_model | int >= 17
+
+    - name: "{{ scp_label }} Preview ALL from HTTP share."
+      dellemc.openmanage.idrac_server_config_profile:
+        command: "preview"
+        scp_file: "{{ scp_file_prefix }}_ALL_{{idrac_ip}}.json"
+        job_wait: true
+      register: all
+
+    - name: "{{ scp_label }} Verify preview."
+      ansible.builtin.assert:
+        that:
+          - all.changed == all.failed == false
+          - all.scp_status.MessageId == 'SYS081'
+          - all.scp_status.Message == "Successfully previewed
+            Server Configuration Profile import operation."
+          - all.scp_status.JobType == "PreviewConfiguration"
+          - all.scp_status.JobState == "Completed"
+
+    - ansible.builtin.include_role:
+        name: prepare_idrac_lifecycle_controller_status
+
+    - ansible.builtin.set_fact:
+        myvar: '{{ "omam_" + now().strftime("%H%M%S") }}'
+
+    - name: "{{ scp_label }} Cause changes in idrac attributes"
+      dellemc.openmanage.idrac_attributes:
+        idrac_ip: "{{idrac_ip}}"
+        idrac_user: "{{idrac_user}}"
+        idrac_password: "{{idrac_password}}"
+        validate_certs: "{{validate_certs}}"
+        idrac_attributes:
+          SNMP.1.AgentCommunity: "{{ myvar }}"
+      register: attr_changed
+
+    - name: "{{ scp_label }} preview SCP (iDRAC)"
+      dellemc.openmanage.idrac_server_config_profile:
+        command: preview
+        job_wait: true
+        scp_file: "{{ scp_file_prefix }}_IDRAC_{{ idrac_ip }}.json"
+      register: idrac
+
+    - name: "{{ scp_label }} Verify Preview (iDRAC)"
+      ansible.builtin.assert:
+        that:
+          - idrac.changed == all.failed == false
+          - idrac.scp_status.MessageId == 'SYS081'
+          - idrac.scp_status.Message == "Successfully previewed
+            Server Configuration Profile import operation."
+          - idrac.scp_status.JobType == "PreviewConfiguration"
+          - idrac.scp_status.JobState == "Completed"
+
+  always:
+    - name: "{{ scp_label }} Delete iDRAC user on 16G"
+      dellemc.openmanage.idrac_user:
+        state: "absent"
+        user_name: "omam_test_user"
+      register: delete_user
+      when: hw_model | int < 17
+
+    - name: "{{ scp_label }} Delete user role on 17G and above"
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}\
+          /redfish/v1/AccountService/Roles/4"
+        method: DELETE
+        status_code: 204
+      when: hw_model | int >= 17
+
+    - name: "{{ scp_label }} Clean up the share"
+      ansible.builtin.uri:
+        url: "{{ scp_share_name }}/{{ scp_file_prefix }}_\
+          {{ item[0] }}_{{ idrac_ip }}.{{ item[1] }}"
+        user: "{{ scp_share_user }}"
+        password: "{{ scp_share_password }}"
+        force_basic_auth: true
+        validate_certs: false
+        method: DELETE
+        headers: 'Accept=application/json'
+      loop: "{{ filt_exp_list | unique }}"
+      loop_control:
+        label: "{{ [item[0], item[1]] }}"
+        pause: 1
+      register: http_preview_bundle
+      ignore_errors: true
+
+    - name: "{{ scp_label }} Reset the component variables"
+      ansible.builtin.set_fact:
+        filt_exp_list: []
+        filt_exist_comps: []
+
+  vars:
+    all_comps: ["ALL", "IDRAC"]
+    formats: ["json", "xml"]
+    filt_exp_list: []
+    filt_exist_comps: []
+  module_defaults:
+    dellemc.openmanage.idrac_server_config_profile:
+      idrac_ip: "{{idrac_ip}}"
+      idrac_user: "{{idrac_user}}"
+      idrac_password: "{{idrac_password}}"
+      idrac_port: "{{ idrac_port }}"
+      validate_certs: "{{validate_certs}}"
+      share_name: "{{ scp_share_name }}"
+      share_user: "{{ scp_share_user | default(omit) }}"
+      share_password: "{{ scp_share_password | default(omit) }}"
+      proxy_support: "{{ import_http_proxy_enabled }}"
+      proxy_server: "{{ import_http_proxy_server }}"
+      proxy_port: "{{ import_http_proxy_port }}"
+      proxy_username: "{{ import_http_proxy_username }}"
+      proxy_password: "{{ import_http_proxy_password }}"
+      proxy_type: "{{ import_http_proxy_type }}"

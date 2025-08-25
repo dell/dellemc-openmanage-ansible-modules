@@ -1,0 +1,37 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Fetch the best controller and  delete existing VDs
+      ansible.builtin.include_tasks: >-
+        "{{ role_path }}/tests/_fetch_controller_drives.yml"
+
+    - name: Setting drives location
+      ansible.builtin.set_fact:
+        location: "{{ (pd_mapping.keys() | list )[0] }}"
+
+    - name: create vd with invalid phusical disks
+      ansible.builtin.include_tasks: _create_vd_with_invalid_physical_disks.yml
+      loop:
+        - {raid_type: "1", depth: 1, length: 2}
+        - {raid_type: "5", depth: 1, length: 3}
+        - {raid_type: "6", depth: 1, length: 4}
+        - {raid_type: "10", depth: 2, length: 2}
+        - {raid_type: "50", depth: 2, length: 3}
+        - {raid_type: "60", depth: 2, length: 4}
+      loop_control:
+        loop_var: raid_config
+      vars:
+        raid_type: "{{ raid_config.raid_type }}"
+        span_depth: "{{ raid_config.depth }}"
+        span_length: "{{ raid_config.length }}"

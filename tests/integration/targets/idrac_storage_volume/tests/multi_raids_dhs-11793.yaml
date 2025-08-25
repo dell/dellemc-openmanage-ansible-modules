@@ -1,0 +1,261 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING
+# or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user
+     and idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- name: Multiple raid types with multiple volumes
+  vars:
+    volume_name_prefix: "test_volume_r"
+    first_raid: "5"
+    second_raid: "6"
+    first_dhs: 1
+    second_dhs: 1
+  block:
+    - name: Fetch the best controller and  delete existing VDs
+      ansible.builtin.include_tasks: >-
+        "{{ role_path }}/tests/_fetch_controller_drives.yml"
+
+    - name: Prerequisite - fail if RAID not supported for the controller
+      ansible.builtin.fail:
+        msg: "RAID {{ item }} not supported for this controller"
+      when: "'RAID{{ item }}' not in storage_controller_dict.Raids"
+      loop: "{{ [first_raid, second_raid] }}"
+
+    - name: Prerequisite - fail if not enough disk is found to create a volume
+      ansible.builtin.fail:
+        msg: >-
+          Physical disks are not sufficient to proceed with test case execution.
+          Needs a minimum {{
+           raid_data[first_raid]['min_pds']
+           + raid_data[second_raid]['min_pds'] + first_dhs + second_dhs
+          }}, but found {{ pd_mapping | length }}"
+      when: >
+        (
+          pd_mapping | length
+        ) < (
+          raid_data[first_raid]['min_pds'] + raid_data[second_raid]['min_pds']
+          + first_dhs + second_dhs
+        )
+
+    - name: Reset raid
+      ansible.builtin.include_tasks: _reset_config.yml
+
+    - name: Set the PDs
+      ansible.builtin.set_fact:
+        first_pds: >-
+          {{
+             (pd_mapping.keys() | list | sort
+             )[:raid_data[first_raid]['min_pds']]
+          }}
+        second_pds: >-
+          {{
+            (pd_mapping.keys() | list | sort
+            )[
+              raid_data[first_raid]['min_pds']
+              :raid_data[first_raid]['min_pds']
+              + raid_data[second_raid]['min_pds']]
+          }}
+
+    - name: Check mode - Create multi raids
+      dellemc.openmanage.idrac_storage_volume: &multi_raids_dhs
+        state: "create"
+        controller_id: "{{ storage_controller_id }}"
+        volumes:
+          - name: "{{ volume_name_prefix }}{{ first_raid }}"
+            volume_type: "RAID {{ first_raid }}"
+            drives:
+              location: "{{ first_pds }}"
+            span_depth: "{{ raid_data[first_raid]['depth'] | int }}"
+            span_length: "{{ raid_data[first_raid]['length'] | int }}"
+            number_dedicated_hot_spare: "{{ first_dhs }}"
+          - name: "{{ volume_name_prefix }}{{ second_raid }}"
+            volume_type: "RAID {{ second_raid }}"
+            drives:
+              id: "{{ second_pds | map('extract', pd_mapping) | list }}"
+            span_depth: "{{ raid_data[second_raid]['depth'] }}"
+            span_length: "{{ raid_data[second_raid]['length'] }}"
+            number_dedicated_hot_spare: "{{ second_dhs }}"
+      check_mode: true
+      register: check_mode_result
+
+    - name: Verify - Check mode - Create multi raids
+      ansible.builtin.assert:
+        that:
+          - check_mode_result.changed
+          - "check_mode_result.msg == 'Changes found to commit!'"
+
+    - name: Create Raid multi raids
+      dellemc.openmanage.idrac_storage_volume:
+        <<: *multi_raids_dhs
+      register: multi_raid_result
+
+    - name: Verify the multi raid creation
+      ansible.builtin.assert:
+        that:
+          - multi_raid_result.changed
+          - multi_raid_result.msg == (
+            "Successfully completed the create storage volume operation.")
+          - "'storage_status' in multi_raid_result"
+          - multi_raid_result.storage_status.JobType == "ImportConfiguration"
+          - multi_raid_result.storage_status.JobState == "Completed"
+          - >
+            (
+              multi_raid_result.storage_status | dict2items
+              | selectattr('key', 'search', '@odata.') | list | length
+            ) == 0
+
+    - name: Wait for {{ raid_settling_time }} seconds
+      ansible.builtin.pause:
+        seconds: "{{ raid_settling_time }}"
+      when: multi_raid_result.changed
+
+    - name: Get the volume
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+         /redfish/v1/Systems/System.Embedded.1/Storage\
+         /{{ storage_controller_id }}/Volumes?$expand=*($levels=1)"
+        method: GET
+        status_code: 200
+      register: volumes
+
+    - name: Assert only 2 volumes created
+      ansible.builtin.assert:
+        that:
+          - volumes.json.Members | length == 2
+
+    - name: Get the volumes to dict
+      ansible.builtin.set_fact:
+        volumes_dict: "{{ volumes.json.Members | rekey_on_member('Name') }}"
+
+    - name: Verify the volumes
+      ansible.builtin.assert:
+        that:
+          - "{{ volumes_dict.keys() | length == 2 }}"
+          - >
+            volumes_dict.keys() | list
+            | symmetric_difference([
+              'test_volume_r'+first_raid, 'test_volume_r'+second_raid
+            ]) | length == 0
+          - >
+            (
+              volumes_dict['test_volume_r'+first_raid].Name
+            ) == 'test_volume_r'+first_raid
+          - >
+            (
+              volumes_dict['test_volume_r'+second_raid].Name
+            ) == 'test_volume_r'+second_raid
+          - >
+            (
+              volumes_dict['test_volume_r'+first_raid].RAIDType
+            ) == 'RAID'+first_raid
+          - >
+            (
+              volumes_dict['test_volume_r'+second_raid].RAIDType
+            ) == 'RAID'+second_raid
+          - >
+            (
+              volumes_dict['test_volume_r'+first_raid].Oem.Dell.DellVirtualDisk.SpanDepth
+            ) == raid_data[first_raid]['depth']
+          - >
+            (
+              volumes_dict['test_volume_r'+second_raid].Oem.Dell.DellVirtualDisk.SpanDepth
+            ) == raid_data[second_raid]['depth']
+          - >
+            (
+              volumes_dict['test_volume_r'+first_raid]
+              .Oem.Dell.DellVirtualDisk.SpanLength
+            ) == raid_data[first_raid]['length']
+          - >
+            (
+              volumes_dict['test_volume_r'+second_raid]
+              .Oem.Dell.DellVirtualDisk.SpanLength
+            ) == raid_data[second_raid]['length']
+          - >
+            (
+              volumes_dict['test_volume_r'+first_raid]
+              .Oem.Dell.DellVirtualDisk.RaidStatus
+            ) == 'Online'
+          - >
+            (
+              volumes_dict['test_volume_r'+second_raid]
+              .Oem.Dell.DellVirtualDisk.RaidStatus
+            ) == 'Online'
+
+    - name: Verify the multi PDs and DHS
+      ansible.builtin.set_fact:
+        first_vol_pds: "{{ tmp_first | from_yaml }}"
+        second_vol_pds: "{{ tmp_second | from_yaml }}"
+      vars:
+        tmp_first: |
+          {% set new_pd_list = [] %}
+          {% for dict_item in
+           volumes_dict['test_volume_r' + first_raid].Links.Drives %}
+            {% set _ = new_pd_list.append(
+              dict_item['@odata.id'].split('/')[-1]) %}
+          {% endfor %}
+          {{ new_pd_list }}
+        tmp_second: |
+          {% set new_pd_list = [] %}
+          {% for dict_item in
+           volumes_dict['test_volume_r' + second_raid].Links.Drives %}
+            {% set _ = new_pd_list.append(
+              dict_item['@odata.id'].split('/')[-1]) %}
+          {% endfor %}
+          {{ new_pd_list }}
+
+    - name: Verify the DHS count
+      ansible.builtin.assert:
+        that:
+          - >
+            first_vol_pds
+            | difference(first_pds | unique | map('extract', pd_mapping))
+            | length == first_dhs
+          - >
+            second_vol_pds
+            | difference(second_pds | unique | map('extract', pd_mapping))
+            | length == second_dhs
+
+    - name: Get the DHS details
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}\
+         /redfish/v1/Systems/System.Embedded.1/Storage\
+         /{{ storage_controller_id }}/Drives/{{ pd_item }}"
+        method: GET
+        status_code: 200
+      register: dhs_disks
+      loop: >-
+        {{
+          (
+            first_vol_pds | difference( first_pds | unique
+            | map('extract', pd_mapping)) | list
+          ) + (
+            second_vol_pds | difference( second_pds | unique
+            | map('extract', pd_mapping)) | list
+          )
+        }}
+      loop_control:
+        loop_var: pd_item
+
+    - name: Verify the PD HotspareType
+      ansible.builtin.assert:
+        that:
+          - pd.json.HotspareType == "Dedicated"
+          - pd.json.Links.Volumes | length == 1
+          - >
+            pd.json.Links.Volumes[0]['@odata.id']
+            in [
+              volumes_dict['test_volume_r'+first_raid]['@odata.id'],
+              volumes_dict['test_volume_r'+second_raid]['@odata.id']
+            ]
+          # - VD assertion
+      loop: "{{ dhs_disks.results }}"
+      loop_control:
+        loop_var: pd

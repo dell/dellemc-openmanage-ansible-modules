@@ -1,0 +1,92 @@
+---
+- block:
+    - name: Get the PDs for the controller
+      ansible.builtin.uri:
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}
+         {{ pd['@odata.id'] }}"
+        status_code: 200
+        headers: 'Accept=application/json'
+      loop: "{{ storage_controller_drives }}"
+      loop_control:
+        loop_var: pd
+      register: pd_results
+      no_log: true
+
+    - name: Initialize the pd mapping
+      ansible.builtin.set_fact:
+        pd_mapping: {}
+
+    - name: Get the pd location id mapping
+      ansible.builtin.set_fact:
+        storage_controller_id: "{{ storage_controller_Id }}"
+        pd_mapping: >-
+         {{
+            pd_mapping | combine({
+              pd['json']['PhysicalLocation']['PartLocation'][
+              'LocationOrdinalValue']: pd['json']['Id'] })
+         }}
+      loop: "{{ pd_results.results }}"
+      loop_control:
+        loop_var: pd
+      no_log: true
+
+    - name: Prerequisite - fail if not enough disk is found to create a volume
+      ansible.builtin.fail:
+        msg: 'Physical disks are not sufficient to proceed with test case
+         execution. Needs a minimum {{ (span_length | int * span_depth
+         | int) }}'
+      when: (pd_mapping | length) < (span_length | int * span_depth | int)
+
+    - name: Select the PDs
+      ansible.builtin.set_fact:
+        used_pds: >-
+          {{
+             (pd_mapping.keys() | list | shuffle)[
+             :(span_length | int * span_depth | int)]
+          }}
+
+    - name: Reset raid
+      ansible.builtin.include_tasks: _reset_config.yml
+
+    - name: Set the volume_name when not same name scenario
+      ansible.builtin.set_fact:
+        volume_name: "{{ volume_name_prefix }}{{ raid_type }}"
+      when: not same_name_scenario
+
+    - name: Set the volume_name when same name scenario
+      ansible.builtin.set_fact:
+        volume_name: "{{ volume_name_prefix }}raid"
+      when: same_name_scenario
+
+    - name: Create Raid {{ raid_type }}
+      dellemc.openmanage.idrac_storage_volume:
+        state: "create"
+        stripe_size: "{{ stripe_size if 'BOSS' in storage_controller_Id
+         else omit }}"
+        controller_id: "{{ storage_controller_Id }}"
+        volume_type: "{{ raid_type | regex_replace('(\\D)(\\d)', '\\1 \\2') }}"
+        span_depth: "{{ span_depth | default(omit)}}"
+        span_length: "{{ span_length | default(omit) }}"
+        volumes:
+          - name: "{{ volume_name }}"
+            drives:
+              location: "{{ used_pds }}"
+      register: result
+
+    - name: Wait for a Minute
+      ansible.builtin.pause:
+        seconds: 60
+      when: result.changed
+
+  rescue:
+    - name: Failed to create RAID as a pre-requisite
+      ansible.builtin.fail:
+        msg: 'Failed to create RAID as a pre-requisite'
+
+  module_defaults:
+    dellemc.openmanage.idrac_storage_volume:
+      validate_certs: "{{ validate_certs }}"
+      idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
+      idrac_port: "{{ idrac_port }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"

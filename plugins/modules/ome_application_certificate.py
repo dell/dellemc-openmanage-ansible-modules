@@ -311,7 +311,9 @@ def main():
             else:
                 module.exit_json(msg="Request failed", error_info=resp.json_data, failed=True)
     except HTTPError as err:
-        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
+        if 400 == err.code:
+            module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
+        module.exit_json(msg=str(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, TypeError, ConnectionError, SSLValidationError, OSError) as err:

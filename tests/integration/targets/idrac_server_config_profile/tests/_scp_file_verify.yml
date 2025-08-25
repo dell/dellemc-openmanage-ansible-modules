@@ -1,0 +1,23 @@
+---
+- name: Get json dict
+  ansible.builtin.set_fact:
+    scp_dict: "{{ lookup('file', local_scp_file) | ansible.builtin.from_json }}"
+    scp_timestamp: "TimeStamp"
+  when: local_scp_file.lower().endswith('.json')
+  no_log: true
+
+- name: Get json from xml
+  ansible.builtin.set_fact:
+    scp_dict: "{{ lookup('file', local_scp_file) | ansible.utils.from_xml }}"
+    scp_timestamp: "@TimeStamp"
+  when: local_scp_file.lower().endswith('.xml')
+  no_log: false
+
+- name: Verify time
+  ansible.builtin.assert:
+    that:
+      - (((scp_dict.SystemConfiguration[scp_timestamp] +
+        " " + idrac_datetime_offset)  |
+        ansible.builtin.to_datetime("%a %b %d %H:%M:%S %Y %z")) > (
+        idrac_datetime  |
+        ansible.builtin.to_datetime("%Y-%m-%dT%H:%M:%S%z")))
