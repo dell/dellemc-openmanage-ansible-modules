@@ -170,7 +170,7 @@ REBOOT_FAIL = "Failed to reboot the server."
 NEGATIVE_TIMEOUT_MESSAGE = "The parameter reboot_timeout value cannot be negative or zero."
 JOB_WAIT_MSG = "Task excited after waiting for {0} seconds. Check console for firmware rollback status."
 REBOOT_COMP = ["Integrated Dell Remote Access Controller", "BMC Firmware Inventory"]
-BIOS_COMP = ["BIOS", "BIOS Firmware Inventory"]
+BIOS_COMP = ["BIOS", "BIOS Firmware Inventory", "RAID.Backplane.Firmware Firmware Inventory"]
 INITIAL_DELAY_17G = 240
 SESSION_RESOURCE_COLLECTION = {
     "SESSION": "/redfish/v1/SessionService/Sessions",
@@ -355,7 +355,7 @@ def rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri, 
             direct_updates.append(job_id)
 
     if direct_updates:
-        status, failed = get_job_status(redfish_obj, module, direct_updates, job_wait=True)
+        _status, _failed = get_job_status(redfish_obj, module, direct_updates, job_wait=True)
 
     if bios_uri:
         bios_job_ids = simple_update(redfish_obj, bios_uri, update_uri)
