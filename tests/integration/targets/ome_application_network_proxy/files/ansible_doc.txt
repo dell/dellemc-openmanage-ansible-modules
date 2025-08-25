@@ -151,7 +151,7 @@
 - ''
 - 'REQUIREMENTS:  python >= 3.9.6'
 - ''
-- 'AUTHOR: Sajna Shetty(@Sajna-Shetty), Rajshekar P(@rajshekarp87)'
+- 'AUTHOR: Sajna Shetty(@Sajna-Shetty), Rajshekar P(@rajshekarp87), Sapana Gupta(@sapana05)'
 - ''
 - 'EXAMPLES:'
 - ''

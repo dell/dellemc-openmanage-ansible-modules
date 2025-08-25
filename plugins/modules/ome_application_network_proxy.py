@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.5.0
+# Version 10.0.0
 # Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -84,6 +84,7 @@ requirements:
 author:
     - "Sajna Shetty(@Sajna-Shetty)"
     - "Rajshekar P(@rajshekarp87)"
+    - "Sapana Gupta(@sapana05)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module supports C(check_mode).
@@ -303,7 +304,7 @@ def get_updated_payload(rest_obj, module, payload):
     """
     current_setting = {}
     if not any(payload):
-        module.fail_json(msg=NO_PROXY_CONFIGURATION)
+        module.exit_json(msg=NO_PROXY_CONFIGURATION, failed=True)
     else:
         params = module.params
         if params.get("update_password"):

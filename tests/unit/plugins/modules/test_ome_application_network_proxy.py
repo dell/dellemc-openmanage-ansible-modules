@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.5.0
-# Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 10.0.0
+# Copyright (C) 2019-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -78,33 +78,21 @@ class TestOmeTemplate(FakeAnsibleModule):
     sub_param3 = {"param": {"enable_proxy": True},
                   "msg": 'enable_proxy is True but all of the following are missing: ip_address, proxy_port'}
     sub_param4 = {"param": {}, "msg": 'missing required arguments: enable_proxy'}
-
-    @pytest.mark.parametrize("param", [sub_param1, sub_param2, sub_param3, sub_param4])
-    def test_ome_application_network_proxy_main_failure_case_01(self, mocker, ome_default_args, param,
-                                                                ome_connection_mock_for_application_network_proxy,
-                                                                ome_response_mock):
-        sub_param = param["param"]
-        msg = param["msg"]
-        ome_default_args.update(sub_param)
-        result = self._run_module_with_fail_json(ome_default_args)
-        assert result["msg"] == msg
-        assert "proxy_configuration" not in result
-        assert result["failed"] is True
-
-    sub_param1 = {
+    sub_param5 = {
         "param": {"enable_proxy": True, "proxy_port": 443, "ip_address": "255.0.0.0", "enable_authentication": True,
                   "proxy_username": "255.0.0.0"},
         "msg": 'enable_authentication is True but all of the following are missing: proxy_password'}
-    sub_param2 = {
+    sub_param6 = {
         "param": {"enable_proxy": True, "proxy_port": 443, "ip_address": "255.0.0.0", "enable_authentication": True,
                   "proxy_password": 443},
         "msg": 'enable_authentication is True but all of the following are missing: proxy_username'}
-    sub_param3 = {
+    sub_param7 = {
         "param": {"enable_proxy": True, "proxy_port": 443, "ip_address": "255.0.0.0", "enable_authentication": True},
         "msg": 'enable_authentication is True but all of the following are missing: proxy_username, proxy_password'}
 
-    @pytest.mark.parametrize("param", [sub_param1, sub_param2, sub_param3])
-    def test_ome_application_network_proxy_main_failure_case_02(self, mocker, ome_default_args, param,
+    @pytest.mark.parametrize("param",
+                             [sub_param1, sub_param2, sub_param3, sub_param4, sub_param5, sub_param6, sub_param7])
+    def test_ome_application_network_proxy_main_failure_case_01(self, mocker, ome_default_args, param,
                                                                 ome_connection_mock_for_application_network_proxy,
                                                                 ome_response_mock):
         sub_param = param["param"]
@@ -243,7 +231,7 @@ class TestOmeTemplate(FakeAnsibleModule):
         error_message = NO_CHANGE_IN_CONFIGURATION
         mocker.patch(MODULE_PATH + "ome_application_network_proxy.validate_check_mode_for_network_proxy",
                      return_value=None)
-        with pytest.raises(Exception, match=error_message) as err:
+        with pytest.raises(Exception, match=error_message):
             self.module.get_updated_payload(ome_connection_mock_for_application_network_proxy, f_module, payload)
 
     def test_get_updated_payload_when_same_setting_failure_case2(self, mocker, ome_default_args,
@@ -262,7 +250,7 @@ class TestOmeTemplate(FakeAnsibleModule):
         error_message = NO_CHANGE_IN_CONFIGURATION
         mocker.patch(MODULE_PATH + "ome_application_network_proxy.validate_check_mode_for_network_proxy",
                      return_value=None)
-        with pytest.raises(Exception, match=error_message) as err:
+        with pytest.raises(Exception, match=error_message):
             self.module.get_updated_payload(ome_connection_mock_for_application_network_proxy, f_module, payload)
 
     def test_get_updated_payload_when_no_diff_failure_case(self, mocker, ome_default_args,
@@ -279,7 +267,7 @@ class TestOmeTemplate(FakeAnsibleModule):
         error_message = NO_PROXY_CONFIGURATION
         mocker.patch(MODULE_PATH + "ome_application_network_proxy.validate_check_mode_for_network_proxy",
                      return_value=None)
-        with pytest.raises(Exception, match=error_message) as err:
+        with pytest.raises(Exception, match=error_message):
             self.module.get_updated_payload(ome_connection_mock_for_application_network_proxy, f_module, payload)
 
     def test_validate_check_mode_for_network_proxy_case01(self):
