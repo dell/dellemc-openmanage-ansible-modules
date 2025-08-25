@@ -6,7 +6,7 @@
   tasks:
     - name: To check the behaviour of invalid hostname.
       ansible.builtin.import_role:
-        name: redfish_storage_volume
+        name: dellemc.openmanage.redfish_storage_volume
       vars:
         hostname: "192.168.1.1"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -33,7 +33,7 @@
 
     - name: To check the behaviour of invalid credentials.
       ansible.builtin.import_role:
-        name: redfish_storage_volume
+        name: dellemc.openmanage.redfish_storage_volume
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -58,7 +58,7 @@
 
     - name: To check the behaviour of invalid state.
       ansible.builtin.import_role:
-        name: redfish_storage_volume
+        name: dellemc.openmanage.redfish_storage_volume
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -85,7 +85,7 @@
 
     - name: To check the behaviour of invalid certificate path.
       ansible.builtin.import_role:
-        name: redfish_storage_volume
+        name: dellemc.openmanage.redfish_storage_volume
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -113,7 +113,7 @@
 
     - name: To check the behaviour of invalid raid type.
       ansible.builtin.import_role:
-        name: redfish_storage_volume
+        name: dellemc.openmanage.redfish_storage_volume
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -140,7 +140,7 @@
 
     - name: To check the behaviour of invalid controller_id.
       ansible.builtin.import_role:
-        name: redfish_storage_volume
+        name: dellemc.openmanage.redfish_storage_volume
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
