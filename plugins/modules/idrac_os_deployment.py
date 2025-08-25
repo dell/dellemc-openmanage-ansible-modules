@@ -23,11 +23,15 @@ options:
         description: CIFS or NFS Network share.
         type: str
     share_user:
-        description: Network share user in the format 'user@domain' or 'domain\\user' if user is
-            part of a domain else 'user'. This option is mandatory for CIFS Network Share.
+        description:
+          - Network share user in the format 'user@domain' or 'domain\\user'
+            if user is part of a domain else 'user'. This option is mandatory
+            for CIFS Network Share.
         type: str
     share_password:
-        description: Network share user password. This option is mandatory for CIFS Network Share.
+        description:
+          - Network share user password. This option is mandatory for CIFS
+            Network Share.
         type: str
         aliases: ['share_pwd']
     iso_image:
@@ -35,8 +39,10 @@ options:
         description: Network ISO name.
         type: str
     expose_duration:
-        description: It is the time taken in minutes for the ISO image file to be exposed as a local CD-ROM device to
-            the host server. When the time expires, the ISO image gets automatically detached.
+        description:
+          - It is the time taken in minutes for the ISO image file to be exposed
+            as a local CD-ROM device to the host server. When the time expires,
+            the ISO image gets automatically detached.
         type: int
         default: 1080
 requirements:
@@ -51,6 +57,9 @@ notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
     - This module does not support C(check_mode).
+    - Detaching of ISO image have known issue. Use this uri
+      I(/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellOSDeploymentService/Actions/DellOSDeploymentService.DetachISOImage)
+      to expliclty detach ISO image after OS deployment.
 '''
 
 EXAMPLES = r'''
@@ -200,7 +209,9 @@ def main():
     specs = {
         "share_name": {"required": True, "type": 'str'},
         "share_user": {"required": False, "type": 'str'},
-        "share_password": {"required": False, "type": 'str', "aliases": ['share_pwd'], "no_log": True},
+        "share_password": {
+            "required": False, "type": 'str', "aliases": ['share_pwd'],
+            "no_log": True},
         "iso_image": {"required": True, "type": 'str'},
         "expose_duration": {"required": False, "type": 'int', "default": 1080}
     }
