@@ -1,13 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
-#
 # Dell OpenManage Ansible Modules
-# Version 9.12.4
+# Version 10.0.0
 # Copyright (C) 2018-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
-
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-#
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
@@ -49,6 +46,7 @@ author:
     - "Felix Stephen (@felixs88)"
     - "Jagadeesh N V (@jagadeeshnv)"
     - "Abhishek Sinha (@ABHISHEK-SINHA10)"
+    - "Bhavneet Sharma (@Bhavneet-Sharma)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
@@ -102,8 +100,8 @@ from datetime import datetime, timedelta
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import idrac_auth_params, \
     iDRACRedfishAPI, IdracAnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key, wait_for_idrac_job_completion
-
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import \
+    remove_key, wait_for_idrac_job_completion
 
 MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
 JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs"
@@ -115,6 +113,7 @@ INVALID_EXPOSEDURATION = "Invalid value for ExposeDuration."
 
 
 def minutes_to_iso_format(module, idrac_time_str, dur_minutes):
+    """Convert minutes to iso format"""
     if dur_minutes < 0:
         module.exit_json(msg=INVALID_EXPOSEDURATION, failed=True)
     idrac_time = datetime.fromisoformat(idrac_time_str)
@@ -145,8 +144,8 @@ def construct_payload(module, idrac_time_str):
         share_name = nfs.path.strip('/')
         share_type = 'NFS'
     payload = {
-        "ExposeDuration": minutes_to_iso_format(module, idrac_time_str,
-                                                module.params.get('expose_duration')),
+        "ExposeDuration": minutes_to_iso_format(
+            module, idrac_time_str, module.params.get('expose_duration')),
         "IPAddress": ip_addr,
         "ShareName": share_name,
         "ShareType": share_type,
@@ -161,20 +160,36 @@ def construct_payload(module, idrac_time_str):
     return payload
 
 
+def filter_job_from_members(idrac, members, idrac_time):
+    job_type = 'OSD: BootTONetworkISO'
+    jid_list = []
+    for membr in members:
+        split_job_oid = membr.get("@odata.id").split("/")
+        jid_list.append(split_job_oid[-1])
+    for jid in jid_list:
+        job_uri = SINGLE_JOB_URI.format(jobId=jid)
+        resp = idrac.invoke_request(job_uri, "GET")
+        job = resp.json_data
+        art_time = job.get('ActualRunningStartTime')
+        if job.get("Name") == job_type and art_time > idrac_time:
+            return job
+    return None
+
+
 def getting_top_osd_job_and_tracking(idrac, module, idrac_time_str):
     job_id = None
     _out = {'msg': JOB_NOT_FOUND, 'failed': True}
-    queryParam = {"$expand": "*($levels=1)",
-                  "$filter": f"Name eq 'OSD: BootTONetworkISO' and StartTime gt '{idrac_time_str}'",
-                  "$top": 1}
-    time.sleep(10)
-    resp = idrac.invoke_request(JOB_URI, "GET",
-                                query_param=queryParam)
-    if member := resp.json_data.get("Members"):
-        job_id = member[0].get("Id")
+    time.sleep(20)
+
+    resp = idrac.invoke_request(JOB_URI, "GET")
+    filtered_job = filter_job_from_members(
+        idrac, resp.json_data.get("Members", []), idrac_time_str)
+    if filtered_job:
+        job_id = filtered_job.get("Id")
     if job_id:
         job_uri = SINGLE_JOB_URI.format(jobId=job_id)
-        job_details, msg = wait_for_idrac_job_completion(idrac, job_uri, wait_timeout=1800)
+        job_details, msg = wait_for_idrac_job_completion(
+            idrac, job_uri, wait_timeout=1800)
         if job_details:
             return remove_key(job_details.json_data, regex_pattern=ODATA_ID)
         _out = {'msg': msg}
@@ -199,8 +214,10 @@ def main():
             idrac_time_str = get_current_time_from_iDRAC(idrac)
             payload = construct_payload(module, idrac_time_str)
             idrac.invoke_request(BootTONetworkISOURI, "POST", data=payload)
-            resp = getting_top_osd_job_and_tracking(idrac, module, idrac_time_str)
-            boot_status = {'Message': resp.get("Message"), 'Status': resp.get("JobState")}
+            resp = getting_top_osd_job_and_tracking(idrac, module,
+                                                    idrac_time_str)
+            boot_status = {'Message': resp.get("Message"),
+                           'Status': resp.get("JobState")}
             if resp.get("JobState") == "Failed":
                 module.exit_json(msg=boot_status, failed=True)
             module.exit_json(boot_status=boot_status, changed=True)
