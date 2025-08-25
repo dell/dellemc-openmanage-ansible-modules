@@ -8,7 +8,6 @@
     state: "view"
   register: idrac_storage_controller_res
   when: run_trigger is not defined
-  # no_log: true
 
 - name: Set the Storage status
   ansible.builtin.set_fact:
@@ -19,9 +18,8 @@
     cacheable: true
     enclosers: "{{ item.value.Enclosure }}"
     controller_name: "{{ item.key }}"
-  loop: "{{ lookup('dict', storage_status.Controller) }}"
+  loop: "{{ storage_status.Controller | dict2items }}"
   when: not post_op and 'Enclosure' in item.value
-  no_log: true
 
 - name: Fetch the physical disks available in the controller
   ansible.builtin.set_fact:

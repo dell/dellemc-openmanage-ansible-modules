@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.11.0
+# Version 10.0.0
 # Copyright (C) 2019-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -58,9 +58,14 @@ options:
         the job will get scheduled and waits for no of seconds specfied in I(job_wait_time),
         to reduce the wait time either give I(job_wait_time) minimum or make I(job_wait)
         as false.
+      - C(EnableSecurity) - To enable security on a storage controller. Only Applicable for 17G and above.
+      - C(DisableSecurity) - To disable security on a storage controller. Only Applicable for 17G and above.
+      - C(SetControllerKey), C(RemoveControllerKey), C(ReKey) and C(EnableControllerEncryption) are only supported for 16G and below.
+      - Blinking of virtual disk is not supported for 17G and above.
     choices: [ResetConfig, AssignSpare, SetControllerKey, RemoveControllerKey, ReKey, UnassignSpare,
       EnableControllerEncryption, BlinkTarget, UnBlinkTarget, ConvertToRAID, ConvertToNonRAID,
-      ChangePDStateToOnline, ChangePDStateToOffline, LockVirtualDisk, OnlineCapacityExpansion, SecureErase]
+      ChangePDStateToOnline, ChangePDStateToOffline, LockVirtualDisk, OnlineCapacityExpansion, SecureErase,
+      EnableSecurity, DisableSecurity]
     type: str
   target:
     description:
@@ -140,6 +145,7 @@ options:
       - I(apply_time) and I(maintenance_window) is applicable for I(attributes).
       - I(attributes) is mutually exclusive with I(command).
       - Use U(https://I(idrac_ip)/redfish/v1/Schemas/DellOemStorageController.json) to view the attributes.
+      - C(BackgroundInitializationRatePercent) and C(ReconstructRatePercent) are supported parameters for iDRAC 10.
   apply_time:
     type: str
     description:
@@ -152,6 +158,7 @@ options:
       in I(maintenance_window)."
       - "C(InMaintenanceWindowOnReset) Allows to apply after a manual reset but within the maintenance window as
       specified in I(maintenance_window)."
+      - Only C(Immediate) and C(OnReset) are supported for 17G.
     choices: [Immediate, OnReset, AtMaintenanceWindowStart, InMaintenanceWindowOnReset]
     default: Immediate
   maintenance_window:
@@ -201,10 +208,11 @@ author:
   - "Trisha Datta (@trisha-dell)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
-    - This module is supported on iDRAC9.
+    - This module is supported on iDRAC9 and iDRAC 10.
     - This module supports IPv4 and IPv6 addresses.
     - This module always reports as changes found when I(command) is C(ReKey), C(BlinkTarget), and C(UnBlinkTarget).
     - This module supports C(check_mode).
+
 '''
 
 EXAMPLES = r'''
@@ -600,6 +608,7 @@ INVALID_KEY = ("The key should be of maximum length 32 and must contain at least
                "character from each of the character classes: uppercase, lowercase, "
                "number, and special character.")
 INVALID_START_TIME = "The start time should be in the format YYYY-MM-DDThh:mm:ss<offset>"
+INVALID_COMMAND = "The command {0} is not applicable for {1}"
 
 
 def check_id_exists(module, redfish_obj, key, item_id, uri):
@@ -659,11 +668,11 @@ def ctrl_key(module, redfish_obj):
     ctrl_resp = redfish_obj.invoke_request("GET", CONTROLLER_URI.format(
         system_id=SYSTEM_ID, controller_id=controller_id))
 
-    security_status = ctrl_resp.json_data.get("SecurityStatus")
+    security_status = ctrl_resp.json_data.get("Oem", {}).get("Dell", {}).get("DellController", {}).get("SecurityStatus")
     if security_status == "EncryptionNotCapable":
         module.fail_json(msg=ENCRYPT_ERR_MSG.format(controller_id))
 
-    ctrl_key_id = ctrl_resp.json_data.get("KeyID")
+    ctrl_key_id = ctrl_resp.json_data.get("Oem", {}).get("Dell", {}).get("DellController", {}).get("KeyID")
 
     if command == "SetControllerKey":
         handle_set_controller_key(
@@ -699,6 +708,44 @@ def ctrl_reset_config(module, redfish_obj):
         resp = redfish_obj.invoke_request("POST", RAID_ACTION_URI.format(system_id=SYSTEM_ID,
                                                                          action=module.params["command"]),
                                           data={"TargetFQDD": controller_id})
+        job_uri = resp.headers.get("Location")
+        job_id = job_uri.split("/")[-1]
+    return resp, job_uri, job_id
+
+
+def enable_security(module, redfish_obj):
+    resp, job_uri, job_id = None, None, None
+    controller_id = module.params.get("controller_id")
+    check_id_exists(module, redfish_obj, "controller_id", controller_id, CONTROLLER_URI)
+    controller_resp = redfish_obj.invoke_request("GET", CONTROLLER_URI.format(system_id=SYSTEM_ID, controller_id=controller_id))
+    encryption_mode = controller_resp.json_data.get("Oem", {}).get("Dell", {}).get("DellController", {}).get("EncryptionMode")
+    if encryption_mode == "Enabled":
+        module.exit_json(msg=NO_CHANGES_FOUND)
+    elif module.check_mode and encryption_mode == "Disabled":
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
+    else:
+        resp = redfish_obj.invoke_request("POST", RAID_ACTION_URI.format(system_id=SYSTEM_ID,
+                                                                         action=module.params["command"]),
+                                          data={"TargetFQDD": controller_id})
+        job_uri = resp.headers.get("Location")
+        job_id = job_uri.split("/")[-1]
+    return resp, job_uri, job_id
+
+
+def disable_security(module, redfish_obj):
+    resp, job_uri, job_id = None, None, None
+    controller_id = module.params.get("controller_id")
+    check_id_exists(module, redfish_obj, "controller_id", controller_id, CONTROLLER_URI)
+    controller_resp = redfish_obj.invoke_request("GET", CONTROLLER_URI.format(system_id=SYSTEM_ID, controller_id=controller_id))
+    encryption_mode = controller_resp.json_data.get("Oem", {}).get("Dell", {}).get("DellController", {}).get("EncryptionMode")
+    if encryption_mode == "Disabled":
+        module.exit_json(msg=NO_CHANGES_FOUND)
+    elif module.check_mode and encryption_mode == "Enabled":
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
+    else:
+        resp = redfish_obj.invoke_request("POST", RAID_ACTION_URI.format(system_id=SYSTEM_ID,
+                                                                         action=module.params["command"]),
+                                          data={"ControllerFQDD": controller_id})
         job_uri = resp.headers.get("Location")
         job_id = job_uri.split("/")[-1]
     return resp, job_uri, job_id
@@ -851,7 +898,7 @@ def lock_virtual_disk(module, redfish_obj):
             module.exit_json(msg=NO_CHANGES_FOUND)
         else:
             resp = redfish_obj.invoke_request("POST", RAID_ACTION_URI.format(system_id=SYSTEM_ID,
-                                                                             action="LockVirtualDisk"),
+                                                                             action="SecureVirtualDisk"),
                                               data={"TargetFQDD": volume[0]})
             job_uri = resp.headers.get("Location")
             job_id = job_uri.split("/")[-1]
@@ -1147,6 +1194,17 @@ def job_condition_check(module, redfish_obj, job_id, job_uri,
                          status=job_data)
 
 
+def validate_operations(module, server_generation_op):
+    generation = server_generation_op[0]
+    command = module.params.get("command")
+    idrac9_invalid_commands = ["EnableSecurity", "DisableSecurity"]
+    idrac10_invalid_commands = ["SetControllerKey", "RemoveControllerKey",
+                                "ReKey", "EnableControllerEncryption"]
+    if (generation < 17 and command in idrac9_invalid_commands) or \
+            (generation >= 17 and command in idrac10_invalid_commands):
+        module.exit_json(msg=INVALID_COMMAND.format(command, server_generation_op[2]), changed=False)
+
+
 def validate_params(module):
     start_time = None
     key_id = module.params.get("key_id")
@@ -1168,6 +1226,19 @@ def validate_params(module):
             module.exit_json(failed=True, msg=INVALID_START_TIME)
 
 
+def get_server_generation(redfish_obj: Redfish):
+    """
+    Function wrapping redfish_obj.get_server_generation. Helps with mocked testing.
+
+    Args:
+        redfish_obj (Redfish): Redfish object.
+
+    Returns:
+        Tuple[int, str, str]: A tuple containing the server generation, firmware version, and hardware model.
+    """
+    return redfish_obj.get_server_generation
+
+
 def main():
     specs = {
         "attributes": {"type": 'dict'},
@@ -1175,7 +1246,8 @@ def main():
                     "choices": ["ResetConfig", "AssignSpare", "SetControllerKey", "RemoveControllerKey",
                                 "ReKey", "UnassignSpare", "EnableControllerEncryption", "BlinkTarget",
                                 "UnBlinkTarget", "ConvertToRAID", "ConvertToNonRAID", "ChangePDStateToOnline",
-                                "ChangePDStateToOffline", "LockVirtualDisk", "OnlineCapacityExpansion", "SecureErase"]},
+                                "ChangePDStateToOffline", "LockVirtualDisk", "OnlineCapacityExpansion", "SecureErase",
+                                "EnableSecurity", "DisableSecurity"]},
         "controller_id": {"required": False, "type": "str"},
         "volume_id": {"required": False, "type": "list", "elements": "str"},
         "target": {"required": False, "type": "list", "elements": "str", "aliases": ["drive_id"]},
@@ -1213,12 +1285,14 @@ def main():
             ["apply_time", "InMaintenanceWindowOnReset", ("maintenance_window",)]
         ],
         supports_check_mode=True)
-    validate_params(module)
-    if not bool(module.params["attributes"]):
-        validate_inputs(module)
     try:
         command = module.params["command"]
         with Redfish(module.params, req_session=True) as redfish_obj:
+            server_generation_op = get_server_generation(redfish_obj)
+            validate_operations(module, server_generation_op)
+            validate_params(module)
+            if not bool(module.params["attributes"]):
+                validate_inputs(module)
             command_function_mapping = {
                 "ResetConfig": ctrl_reset_config,
                 "SetControllerKey": ctrl_key,
@@ -1233,7 +1307,9 @@ def main():
                 "ChangePDStateToOffline": change_pd_status,
                 "LockVirtualDisk": lock_virtual_disk,
                 "OnlineCapacityExpansion": online_capacity_expansion,
-                "SecureErase": secure_erase
+                "SecureErase": secure_erase,
+                "EnableSecurity": enable_security,
+                "DisableSecurity": disable_security
             }
 
             if command in ["BlinkTarget", "UnBlinkTarget"]:

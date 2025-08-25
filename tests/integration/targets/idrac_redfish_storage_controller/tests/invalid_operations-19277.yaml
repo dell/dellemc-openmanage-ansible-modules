@@ -1,0 +1,107 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Check if module is calling omsdk
+  ansible.builtin.include_tasks: _check_firmware_version_supported.yml
+
+- block:
+    - name: Prerequisite - Fetch Storage details
+      dellemc.openmanage.idrac_storage_volume:
+        state: "view"
+      register: result_pre_req
+
+    - ansible.builtin.set_fact:
+        controller_name: "{{ result_pre_req.storage_status.Message.Controller.
+         keys() | select('match', 'RAID.') | first }}"
+
+    - name: Enable security on controller on iDRAC 9
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "EnableSecurity"
+        controller_id: "{{ controller_name }}"
+      register: result_enable_security_idrac9
+      when:
+        - is_omsdk_required | bool
+
+    - name: Disable security on controller on iDRAC 9
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "DisableSecurity"
+        controller_id: "{{ controller_name }}"
+      register: result_disable_security_idrac9
+      when:
+        - is_omsdk_required | bool
+
+    - name: Enable encryption on controller on iDRAC 10
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "EnableControllerEncryption"
+        controller_id: "{{ controller_name }}"
+      register: result_enable_encryption_idrac10
+      when:
+        - not is_omsdk_required | bool
+
+    - name: Set controller key on controller on iDRAC 10
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "SetControllerKey"
+        controller_id: "{{ controller_name }}"
+        key: "your_Key@123"
+        key_id: "your_Keyid@123"
+      register: result_set_controller_key_idrac10
+      when:
+        - not is_omsdk_required | bool
+
+    - name: Remove controller key on controller on iDRAC 10
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        command: "RemoveControllerKey"
+        controller_id: "{{ controller_name }}"
+      register: result_remove_controller_key_idrac10
+      when:
+        - not is_omsdk_required | bool
+
+    - name: Verify task status - iDRAC 9
+      ansible.builtin.assert:
+        that:
+          - not result_enable_security_idrac9.changed
+          - result_enable_security_idrac9.msg == "The command
+            EnableSecurity is not applicable for iDRAC 9"
+          - not result_disable_security_idrac9.changed
+          - result_disable_security_idrac9.msg == "The command
+            DisableSecurity is not applicable for iDRAC 9"
+      when:
+        - is_omsdk_required | bool
+
+    - name: Verify task status - iDRAC 10
+      ansible.builtin.assert:
+        that:
+          - not result_enable_encryption_idrac10.changed
+          - result_enable_encryption_idrac10.msg == "The command
+            EnableControllerEncryption is not applicable for iDRAC 10"
+          - not result_set_controller_key_idrac10.changed
+          - result_set_controller_key_idrac10.msg == "The command
+            SetControllerKey is not applicable for iDRAC 10"
+          - not result_remove_controller_key_idrac10.changed
+          - result_remove_controller_key_idrac10.msg == "The command
+            RemoveControllerKey is not applicable for iDRAC 10"
+      when:
+        - not is_omsdk_required | bool
+
+  module_defaults:
+    dellemc.openmanage.idrac_storage_volume:
+      idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
+
+    dellemc.openmanage.idrac_redfish_storage_controller:
+      baseuri: "{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}"
+      username: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

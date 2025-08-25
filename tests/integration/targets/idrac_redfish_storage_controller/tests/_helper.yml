@@ -97,7 +97,7 @@
     - ansible.builtin.include_role: name=prepare_lifecycle_controller_job
       vars:
         job_id: "{{ result_offline_online.status.Id }}"
-      when: result_offline_online.changed and result_offline_online.msg ==
+      when: result_offline_online.msg ==
         "Successfully submitted the job that performs the
         'ChangePDStateToOffline' operation."
       ignore_errors: true
