@@ -1,0 +1,33 @@
+---
+- name: Converge file to update attributes with apply time as Immediate
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Making sure Server is powered on and clear all job
+      ansible.builtin.include_tasks:
+        file: ../helper/common/power_on_idrac_and_clear_all_job.yaml
+
+    - name: Prerequisite - Fetch Storage details
+      dellemc.openmanage.idrac_storage_volume:
+        idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+        idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+        idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        state: "view"
+      register: result_pre_req
+
+    - name: Set the controller name
+      ansible.builtin.set_fact:
+        cacheable: true
+        controller_name: "{{ result_pre_req.storage_status.Message.Controller.
+         keys() | select('match', 'RAID.') | first }}"
+
+    - name: Enable security
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        controller_id: "{{ controller_name }}"
+        job_wait: true
+        command: "EnableSecurity"

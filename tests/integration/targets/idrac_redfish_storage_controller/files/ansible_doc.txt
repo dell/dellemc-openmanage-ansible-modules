@@ -648,5 +648,5 @@
 - '        returned: success'
 - '        sample:'
 - '          id: JID_XXXXXXXXXXXXX'
-- '          uri: /redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX'
+- '          uri: /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/JID_XXXXXXXXXXXXX'
 - '        type: dict'

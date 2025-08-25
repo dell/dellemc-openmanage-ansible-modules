@@ -11,9 +11,12 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
+- name: Check if module is calling omsdk
+  ansible.builtin.include_tasks: _check_firmware_version_supported.yml
+
 - block:
     - name: Prerequisite - Fetch Storage details
-      dellemc_idrac_storage_volume:
+      dellemc.openmanage.idrac_storage_volume:
         state: "view"
       register: result_pre_req
 
@@ -22,7 +25,7 @@
          keys() | select('match', 'RAID.') | first }}"
 
     - name: Prerequisite - Reset any encryption configurations
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         controller_id: "{{ controller_name }}"
         command: "RemoveControllerKey"
       register: prereq_result_set_attrs
@@ -32,7 +35,8 @@
        that performs the 'RemoveControllerKey' operation."
 
     - name: Check for iDRAC lc ready status.
-      idrac_lifecycle_controller_status_info:
+      dellemc.openmanage.idrac_lifecycle_controller_status_info:
+        validate_certs: false
       register: result
       until: result.lc_status_info.LCReady and result.lc_status_info.
        LCStatus == "Ready"
@@ -147,7 +151,7 @@
            to be applied."
 
   module_defaults:
-    dellemc.openmanage.dellemc_idrac_storage_volume:
+    dellemc.openmanage.idrac_storage_volume:
       idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
@@ -170,3 +174,6 @@
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"
+
+  when:
+    - is_omsdk_required | bool
