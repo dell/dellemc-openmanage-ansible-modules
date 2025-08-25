@@ -108,6 +108,9 @@ class TestiDRACOSDeployment(FakeAnsibleModule):
                      'time.sleep', return_value=None)
         mocker.patch(MODULE_PATH + 'idrac_os_deployment.wait_for_idrac_job_completion',
                      return_value=(job_detail, ""))
+        mocker.patch(
+            MODULE_PATH + 'idrac_os_deployment.filter_job_from_members',
+            return_value=job_detail)
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
 
@@ -120,9 +123,34 @@ class TestiDRACOSDeployment(FakeAnsibleModule):
         no_job = MagicMock()
         no_job.json_data = {"Members": []}
         idrac_osd_connection_mock.invoke_request.return_value = no_job
-        with pytest.raises(AnsibleFailJSonException, match=JOB_NOT_FOUND):
+        mocker.patch(
+            MODULE_PATH + 'idrac_os_deployment.filter_job_from_members',
+            return_value={})
+        with pytest.raises(AnsibleFailJSonException, match=JOB_NOT_FOUND) as excinfo:
             self.module.getting_top_osd_job_and_tracking(
                 idrac_osd_connection_mock, f_module, "2025-04-07T12:20:12")
+        assert excinfo.value.args[0] == "No matching job found following the BootToNetworkISO operation."
+
+    def test_filter_job_from_members(self, idrac_osd_connection_mock):        
+        job_name = 'OSD: BootTONetworkISO'
+        members = [
+                {"@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_001"}
+            ]
+        job_detail = MagicMock()
+        job_detail.json_data = {
+            "JobState": "Passed",
+            "ActualRunningStartTime": "2025-04-07T12:15:12",
+            "Id": "JID_001",
+            "Name": job_name
+        }
+        idrac_osd_connection_mock.invoke_request.return_value = job_detail
+
+        result = self.module.filter_job_from_members(idrac_osd_connection_mock, members, "2025-04-07T12:14:12")
+
+        assert result["Name"] == job_name
+        assert result["ActualRunningStartTime"] == "2025-04-07T12:15:12"
+
+
 
     def test_idrac_os_deployment_main(self, idrac_default_args, idrac_osd_connection_mock, idrac_osd_mock, mocker):
         idrac_default_args.update({"iso_image": "/path/to/image.iso", "share_name": "192.168.10.1:/nfsfileshare"})
