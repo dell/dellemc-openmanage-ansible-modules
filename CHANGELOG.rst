@@ -41,7 +41,7 @@ Known Issues
 ------------
 
 - idrac_attributes - The module accepts both the string as well as integer value for the field "SNMP.1.AgentCommunity" for iDRAC10.
-- idrac_diagnostics - This module doesn't support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
+- idrac_diagnostics - This module does not support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
 - idrac_license - The module will fail to export license to NFS Share.
 - idrac_license - The module will give different error messages for iDRAC9 and iDRAC10 when user imports license with invalid share name.
 - idrac_license - Due to API limitation, proxy parameters are ignored during the import operation.
@@ -84,7 +84,7 @@ Known Issues
 ------------
 
 - idrac_attributes - The module accepts both the string as well as integer value for the field "SNMP.1.AgentCommunity" for iDRAC10.
-- idrac_diagnostics - This module doesn't support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
+- idrac_diagnostics - This module does not support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
 - ome_smart_fabric_uplink - The module supported by OpenManage Enterprise Modular, however it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, then the existing uplink is modified.
 
 v9.12.2
