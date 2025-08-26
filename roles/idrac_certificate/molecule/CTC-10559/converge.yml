@@ -13,8 +13,7 @@
       ansible.builtin.include_tasks:
         file: ../__get_helper.yml
       vars:
-        idrac_cert_name:
-          - "{{ ctc_cert_name }}"
+        idrac_cert_name: "{{ ctc_cert_name }}"
 
     - name: Import CTC certificate
       ansible.builtin.import_role:
