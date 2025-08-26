@@ -1,0 +1,35 @@
+---
+- name: Check OS attach status
+  ansible.builtin.uri: &OS_attach_status
+    url: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems\
+      /System.Embedded.1/Oem/Dell/DellOSDeploymentService/Actions\
+      /DellOSDeploymentService.GetAttachStatus"
+    user: "{{idrac_user}}"
+    password: "{{idrac_password}}"
+    method: POST
+    body: {}
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+    headers: 'Accept=application/json'
+  register: pre_dettach
+  when: trigger is not defined
+
+- name: verify status of tasks (expected attached).
+  ansible.builtin.assert:
+    that:
+      - pre_dettach.json.ISOAttachStatus == "Attached"
+  when: trigger is not defined
+
+- name: checking OS attach status_trigger based
+  ansible.builtin.uri:
+    <<: *OS_attach_status
+  register: post_dettach
+  when: trigger is defined
+
+- name: verify status of tasks (expected dettached).
+  ansible.builtin.assert:
+    that:
+      - post_dettach.json.ISOAttachStatus == "NotAttached"
+  when: trigger is defined
