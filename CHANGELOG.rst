@@ -31,6 +31,12 @@ Major Changes
 - redfish_firmware - This role is enhanced to support iDRAC10.
 - redfish_storage_volume - This role is enhanced to support iDRAC10.
 
+Bugfixes
+--------
+
+- idrac_system_info - (Issue 967) - idrac_system_info fails oniDRAC10 with GPU. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/967)
+- idrac_server_config_profile - (Issue 959) Can't export SCP (Server configuration profile) on iDRAC 10. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/959)
+
 Known Issues
 ------------
 

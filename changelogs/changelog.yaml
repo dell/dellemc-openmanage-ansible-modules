@@ -2440,6 +2440,13 @@ releases:
         - idrac_storage_controller - This role is enhanced to support iDRAC10.
         - redfish_firmware - This role is enhanced to support iDRAC10.
         - redfish_storage_volume - This role is enhanced to support iDRAC10.
+      bugfixes:
+        - idrac_system_info - (Issue 967) - idrac_system_info fails on
+           iDRAC10 with GPU.
+         (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/967)
+        - idrac_server_config_profile - (Issue 959) Can't export SCP
+           (Server configuration profile) on iDRAC 10.
+         (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/959)
       known_issues:
         - idrac_diagnostics - This module does not support
           export of diagnostics file to HTTP and HTTPS share via SOCKS
