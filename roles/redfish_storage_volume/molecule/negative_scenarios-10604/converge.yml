@@ -28,7 +28,7 @@
     - name: Asserting after performing operation.
       ansible.builtin.assert:
         that: 
-          - redfish_storage_volume_out.msg  == "<urlopen error [Errno 113] No route to host>"
+          - redfish_storage_volume_out.msg == "<urlopen error [Errno 113] No route to host>"
 
     - name: To check the behaviour of invalid credentials.
       ansible.builtin.import_role:
