@@ -38,7 +38,8 @@ Known Issues
 - idrac_diagnostics - This module doesn't support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
 - idrac_license - The module will fail to export license to NFS Share.
 - idrac_license - The module will give different error messages for iDRAC9 and iDRAC10 when user imports license with invalid share name.
-- idrac_license - Due to API limitation, proxy parameters are ignored during the import operation. 
+- idrac_license - Due to API limitation, proxy parameters are ignored during the import operation.
+- idrac_os_deployment - The module continues to return a 200 response and marks the job as completed, even when an outdated date is supplied in the Expose duration.
 - idrac_redfish_storage_controller - PatrolReadRatePercent attribute cannot be set in iDRAC10.
 - idrac_server_config_profile - When attempting to revert iDRAC settings using a previously exported SCP file, the import operation will complete with errors if a new user was created after the export (Instead of restoring the system to its previous state, including the removal of newly added users).
 - idrac_system_info - The module will show empty video list despite having Embedded VIDEO controller.
