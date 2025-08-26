@@ -114,15 +114,7 @@ class TestIDRACSystemBoardMetricsInfo(TestUtils):
         headroom_resp = {"LowestReading": 969}
 
         # Patch invoke_request sequential responses
-        idrac_mock.invoke_request.side_effect = [
-            type("Resp", (), {"status_code": 200, "json_data": cpu_usage_resp}),
-            type("Resp", (), {"status_code": 200, "json_data": io_usage_resp}),
-            type("Resp", (), {"status_code": 200, "json_data": mem_usage_resp}),
-            type("Resp", (), {"status_code": 200, "json_data": sys_usage_resp}),
-            type("Resp", (), {"status_code": 200, "json_data": power_resp}),
-            type("Resp", (), {"status_code": 200, "json_data": amperage_resp}),
-            type("Resp", (), {"status_code": 200, "json_data": headroom_resp}),
-        ]
+        idrac_mock.invoke_request.side_effect = self._get_sequential_responses(cpu_usage_resp, io_usage_resp, mem_usage_resp, sys_usage_resp, power_resp, amperage_resp, headroom_resp)
 
         system_board_metrics_info = IDRACSystemBoardMetricsInfo(idrac_mock)
         result = system_board_metrics_info.get_system_board_metrics_info()
@@ -275,15 +267,7 @@ class TestIDRACSystemBoardMetricsInfo(TestUtils):
         headroom_resp = {}
 
         # Patch invoke_request sequential responses
-        idrac_mock.invoke_request.side_effect = [
-            type("Resp", (), {"status_code": 200, "json_data": cpu_usage_resp}),
-            type("Resp", (), {"status_code": 200, "json_data": io_usage_resp}),
-            type("Resp", (), {"status_code": 200, "json_data": mem_usage_resp}),
-            type("Resp", (), {"status_code": 200, "json_data": sys_usage_resp}),
-            type("Resp", (), {"status_code": 200, "json_data": power_resp}),
-            type("Resp", (), {"status_code": 200, "json_data": amperage_resp}),
-            type("Resp", (), {"status_code": 200, "json_data": headroom_resp}),
-        ]
+        idrac_mock.invoke_request.side_effect = self._get_sequential_responses(cpu_usage_resp, io_usage_resp, mem_usage_resp, sys_usage_resp, power_resp, amperage_resp, headroom_resp)
 
         system_board_metrics_info = IDRACSystemBoardMetricsInfo(idrac_mock)
         result = system_board_metrics_info.get_system_board_metrics_info()
@@ -415,3 +399,15 @@ class TestIDRACSystemBoardMetricsInfo(TestUtils):
         }]
 
         assert result == expected
+    
+    
+    def _get_sequential_responses(self, cpu_usage_resp, io_usage_resp, mem_usage_resp, sys_usage_resp, power_resp, amperage_resp, headroom_resp):
+        return [
+            type("Resp", (), {"status_code": 200, "json_data": cpu_usage_resp}),
+            type("Resp", (), {"status_code": 200, "json_data": io_usage_resp}),
+            type("Resp", (), {"status_code": 200, "json_data": mem_usage_resp}),
+            type("Resp", (), {"status_code": 200, "json_data": sys_usage_resp}),
+            type("Resp", (), {"status_code": 200, "json_data": power_resp}),
+            type("Resp", (), {"status_code": 200, "json_data": amperage_resp}),
+            type("Resp", (), {"status_code": 200, "json_data": headroom_resp}),
+        ]
