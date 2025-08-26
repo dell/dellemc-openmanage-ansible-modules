@@ -2441,7 +2441,7 @@ releases:
         - redfish_firmware - This role is enhanced to support iDRAC10.
         - redfish_storage_volume - This role is enhanced to support iDRAC10.
       known_issues:
-        - idrac_diagnostics - This module doesn't support
+        - idrac_diagnostics - This module does not support
           export of diagnostics file to HTTP and HTTPS share via SOCKS
           proxy.
         - idrac_attributes - The module accepts both the string as well as
@@ -2452,7 +2452,10 @@ releases:
           iDRAC9 and iDRAC10 when user imports license with invalid share
           name.
         - idrac_license - Due to API limitation, proxy parameters are ignored
-          during the import operation. 
+          during the import operation.
+        - idrac_os_deployment - The module continues to return a 200 response
+          and marks the job as completed, even when an outdated date is supplied
+          in the Expose duration.
         - idrac_redfish_storage_controller - PatrolReadRatePercent attribute
           cannot be set in iDRAC10.
         - idrac_server_config_profile - When attempting to revert iDRAC settings
@@ -2462,7 +2465,7 @@ releases:
           the removal of newly added users).
         - idrac_system_info - The module will show empty video list despite
           having Embedded VIDEO controller.
-        - Redfish_storage_volume - Encryption type and block_io_size bytes
+        - redfish_storage_volume - Encryption type and block_io_size bytes
           will be read only property in iDRAC 9 and iDRAC 10 and hence the
           module ignores these parameters.
         - ome_smart_fabric_uplink - The module supported by
