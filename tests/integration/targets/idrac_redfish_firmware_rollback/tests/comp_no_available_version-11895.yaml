@@ -18,24 +18,36 @@
 
 - ansible.builtin.include_tasks: _get_firmware_inventory.yml
 
+- ansible.builtin.include_tasks: _get_server_generation.yml
+
+- name: Set Firmware Inventory name for iDRAC10
+  ansible.builtin.set_fact:
+    rollback_component_name_cpld: "CPLD.Embedded Firmware Inventory"
+  when: generation | int >= 17
+
+- name: Set Firmware Inventory name for iDRAC9
+  ansible.builtin.set_fact:
+    rollback_component_name_cpld: "System CPLD"
+  when: generation | int < 17
+
 - name: Prerequisite - component with no available version
   ansible.builtin.fail:
     msg: "Prerequisite not met. Rollback version available for component
-     'System CPLD'."
-  when: "'System CPLD' in rollback_component_list"
+     {{ rollback_component_name_cpld }}."
+  when: "rollback_component_name_cpld in rollback_component_list"
 
 - block:
     - name: Validate firmware rollback for component that doesn't have
        available version (Check mode - No changes expected)
       dellemc.openmanage.redfish_firmware_rollback:
-        name: "System CPLD"
+        name: "{{ rollback_component_name_cpld }}"
       register: result_cm
       check_mode: true
 
     - name: Validate firmware rollback for component that doesn't have
        available version (Normal mode - No changes expected)
       dellemc.openmanage.redfish_firmware_rollback:
-        name: "System CPLD"
+        name: "{{ rollback_component_name_cpld }}"
       register: result
       check_mode: true
 

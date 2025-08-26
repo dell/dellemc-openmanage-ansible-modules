@@ -82,7 +82,7 @@
             'SecureErase' operation."
           - erase_state_out.changed
           - not erase_state_out.failed
-          - erase_state_out.task.id
+          - erase_state_out.task.id is defined
           - erase_state_out.task.uri == erase_job_wait_expected_uri
       when: not ansible_check_mode and
             erase_state_out.status is defined

@@ -1,7 +1,7 @@
 ---
 - name: Prepare system for Molecule tests
   hosts: all
-  become: true
+  gather_facts: false
   tasks:
     - name: Install OMSDK using pip
       ansible.builtin.command: pip3 install omsdk
