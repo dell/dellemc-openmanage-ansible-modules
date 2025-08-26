@@ -194,4 +194,3 @@
     - name: Deleting the directory
       ansible.builtin.include_tasks:
         file: ../__delete_directory.yml
-
