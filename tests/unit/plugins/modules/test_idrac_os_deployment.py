@@ -46,16 +46,14 @@ class TestiDRACOSDeployment(FakeAnsibleModule):
     def test_minutes_to_iso_format_positive_scenario(self, idrac_default_args):
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
-        time_str = "2025-08-05T05:03:34-05:00"
-        resp = self.module.minutes_to_iso_format(f_module, time_str, 10)
-        assert resp == "2025-08-05T05:13:34-05:00"
+        resp = self.module.minutes_to_iso_format(f_module, 10)
+        assert resp == "0000-00-00T00:10:00-00:00"
 
     def test_minutes_to_iso_format_negative_scenario(self, idrac_default_args):
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
-        time_str = "2025-08-05T05:03:34-05:00"
         with pytest.raises(AnsibleFailJSonException, match=INVALID_EXPOSEDURATION):
-            self.module.minutes_to_iso_format(f_module, time_str, -10)
+            self.module.minutes_to_iso_format(f_module, -10)
 
     def test_get_current_time_from_iDRAC(self, idrac_osd_connection_mock):
         obj = MagicMock()
@@ -76,8 +74,8 @@ class TestiDRACOSDeployment(FakeAnsibleModule):
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
         resp = self.module.construct_payload(
-            f_module, "2025-09-14T05:59:35-05:00")
-        assert resp == {'ExposeDuration': '2025-09-14T06:04:35-05:00', 'IPAddress': '192.168.0.1', 'ShareName': 'sharename',
+            f_module)
+        assert resp == {'ExposeDuration': '0000-00-00T00:05:00-00:00', 'IPAddress': '192.168.0.1', 'ShareName': 'sharename',
                         'ShareType': 'CIFS', 'ImageName': '/path/to/image.iso', 'Password': 'password', 'UserName': 'username'}
 
         # Scenario 2: For NFS
@@ -85,8 +83,8 @@ class TestiDRACOSDeployment(FakeAnsibleModule):
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
         resp = self.module.construct_payload(
-            f_module, "2025-09-14T05:59:35-05:00")
-        assert resp == {'ExposeDuration': '2025-09-14T06:04:35-05:00', 'IPAddress': '192.168.0.0', 'ShareName': 'nfsfileshare',
+            f_module)
+        assert resp == {'ExposeDuration': '0000-00-00T00:05:00-00:00', 'IPAddress': '192.168.0.0', 'ShareName': 'nfsfileshare',
                         'ShareType': 'NFS', 'ImageName': '/path/to/image.iso', 'Password': 'password', 'UserName': 'username'}
 
     def test_getting_top_osd_job_and_tracking(self, idrac_default_args, idrac_osd_connection_mock,
@@ -139,7 +137,7 @@ class TestiDRACOSDeployment(FakeAnsibleModule):
         job_detail = MagicMock()
         job_detail.json_data = {
             "JobState": "Passed",
-            "ActualRunningStartTime": "2025-04-07T12:15:12",
+            "StartTime": "2025-04-07T12:15:12",
             "Id": "JID_001",
             "Name": job_name
         }
@@ -148,7 +146,7 @@ class TestiDRACOSDeployment(FakeAnsibleModule):
         result = self.module.filter_job_from_members(idrac_osd_connection_mock, members, "2025-04-07T12:14:12")
 
         assert result["Name"] == job_name
-        assert result["ActualRunningStartTime"] == "2025-04-07T12:15:12"
+        assert result["StartTime"] == "2025-04-07T12:15:12"
 
     def test_idrac_os_deployment_main(self, idrac_default_args, idrac_osd_connection_mock, idrac_osd_mock, mocker):
         idrac_default_args.update({"iso_image": "/path/to/image.iso", "share_name": "192.168.10.1:/nfsfileshare"})

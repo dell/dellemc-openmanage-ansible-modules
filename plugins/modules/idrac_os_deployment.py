@@ -56,9 +56,6 @@ notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
     - This module does not support C(check_mode).
-    - Automatically detaching ISO image is currently not operational. Instead, use this uri
-      I(/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellOSDeploymentService/Actions/DellOSDeploymentService.DetachISOImage)
-      to expliclty detach ISO image after OS deployment.
 '''
 
 EXAMPLES = r'''
@@ -104,7 +101,6 @@ import json
 import time
 from ansible.module_utils.six.moves.urllib.parse import urlparse
 from urllib.error import HTTPError, URLError
-from datetime import datetime, timedelta
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import idrac_auth_params, \
     iDRACRedfishAPI, IdracAnsibleModule
@@ -120,13 +116,21 @@ JOB_NOT_FOUND = "No matching job found following the BootToNetworkISO operation.
 INVALID_EXPOSEDURATION = "Invalid value for ExposeDuration."
 
 
-def minutes_to_iso_format(module, idrac_time_str, dur_minutes):
+def minutes_to_iso_format(module, dur_minutes):
     """Convert minutes to iso format"""
     if dur_minutes < 0:
         module.exit_json(msg=INVALID_EXPOSEDURATION, failed=True)
-    idrac_time = datetime.fromisoformat(idrac_time_str)
-    new_time = idrac_time + timedelta(minutes=int(dur_minutes))
-    formatted_time = new_time.isoformat()
+    sample_time_str = '0000-00-00T00:00:00-00:00'
+    time_part = sample_time_str.split('T')[1].split('-')[0]
+    h, m, s = map(int, time_part.split(':'))
+    # Add minutes
+    m += dur_minutes
+    h += m // 60
+    m = m % 60
+    h = h % 24
+
+    new_time = f"{h:02}:{m:02}:{s:02}"
+    formatted_time = sample_time_str.replace(time_part, new_time)
     return formatted_time
 
 
@@ -137,7 +141,7 @@ def get_current_time_from_idrac(idrac):
     return date_time
 
 
-def construct_payload(module, idrac_time_str):
+def construct_payload(module):
     """Construct payload"""
     shr_name = module.params.get('share_name')
     ip_addr, share_name, share_type = '', '', ''
@@ -153,7 +157,7 @@ def construct_payload(module, idrac_time_str):
         share_type = 'NFS'
     payload = {
         "ExposeDuration": minutes_to_iso_format(
-            module, idrac_time_str, module.params.get('expose_duration')),
+            module, module.params.get('expose_duration')),
         "IPAddress": ip_addr,
         "ShareName": share_name,
         "ShareType": share_type,
@@ -164,7 +168,6 @@ def construct_payload(module, idrac_time_str):
         payload["UserName"] = module.params['share_user']
     if module.params.get('share_password'):
         payload["Password"] = module.params['share_password']
-
     return payload
 
 
@@ -174,11 +177,12 @@ def filter_job_from_members(idrac, members, idrac_time):
     for membr in members:
         split_job_oid = membr.get("@odata.id").split("/")
         jid_list.append(split_job_oid[-1])
+
     for jid in jid_list:
         job_uri = SINGLE_JOB_URI.format(jobId=jid)
         resp = idrac.invoke_request(job_uri, "GET")
         job = resp.json_data
-        art_time = job.get('ActualRunningStartTime')
+        art_time = job.get('StartTime')
         if job.get("Name") == job_type and art_time > idrac_time:
             return job
     return None
@@ -222,7 +226,7 @@ def main():
     try:
         with iDRACRedfishAPI(module.params) as idrac:
             idrac_time_str = get_current_time_from_idrac(idrac)
-            payload = construct_payload(module, idrac_time_str)
+            payload = construct_payload(module)
             idrac.invoke_request(BootTONetworkISOURI, "POST", data=payload)
             resp = getting_top_osd_job_and_tracking(idrac, module,
                                                     idrac_time_str)
