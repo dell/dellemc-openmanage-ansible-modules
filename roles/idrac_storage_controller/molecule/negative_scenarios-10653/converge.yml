@@ -3,6 +3,9 @@
   hosts: all
   gather_facts: false
   tasks:
+    - name: Check if module is calling omsdk
+      ansible.builtin.include_tasks: ../_check_firmware_version_supported.yml
+
     - name: Pre-req - Fetch volumes
       ansible.builtin.include_tasks: ../__fetch_volumes.yml
       vars:
@@ -27,10 +30,10 @@
               reset_type with invalid hostname"
       ansible.builtin.assert:
         that:
-          - "'<urlopen error Unable to communicate with iDRAC randomHostname.
-              in reset_config_out.msg' or
-            '<urlopen error [Errno -2] Name or service not known> in
-              reset_config_out.msg'"
+          - '"<urlopen error Unable to communicate with iDRAC randomHostname."
+              in reset_config_out.msg or
+              "<urlopen error [Errno -2] Name or service not known>" in
+              reset_config_out.msg'
 
     - name: Performing operation on the iDRAC device using default
             reset_type with invalid username
@@ -51,7 +54,7 @@
               reset_type with invalid username"
       ansible.builtin.assert:
         that:
-          - "'HTTP Error 401 in reset_config_out.msg'"
+          - '"HTTP Error 401" in reset_config_out.msg'
 
     - name: Performing operation on the iDRAC device using default
             reset_type with invalid password
@@ -72,7 +75,7 @@
               reset_type with invalid password"
       ansible.builtin.assert:
         that:
-          - "'HTTP Error 401 in reset_config_out.msg'"
+          - '"HTTP Error 401" in reset_config_out.msg'
 
     - name: Performing operation on the iDRAC device using default
             reset_type without controller ID
@@ -182,6 +185,8 @@
 
     - name: Playbook to set controller attributes with Job wait by providing
             a key_id with length greater than 32
+      when:
+        - is_omsdk_required | bool
       ansible.builtin.import_role:
         name: idrac_storage_controller
       vars:
@@ -198,6 +203,8 @@
 
     - name: Verifying set controller attributes with Job wait by providing
             a key_id with length greater than 32
+      when:
+        - is_omsdk_required | bool
       ansible.builtin.assert:
         that:
           - "set_controller_key_out.msg == 'The keyid should be of maximum
@@ -207,6 +214,8 @@
 
     - name: Playbook to set controller attributes with Job wait by providing
             a key_id with space
+      when:
+        - is_omsdk_required | bool
       ansible.builtin.import_role:
         name: idrac_storage_controller
       vars:
@@ -223,6 +232,8 @@
 
     - name: Verifying set controller attributes with Job wait by providing
             a key_id with space
+      when:
+        - is_omsdk_required | bool
       ansible.builtin.assert:
         that:
           - "set_controller_key_out.msg == 'The keyid should be of maximum
@@ -232,6 +243,8 @@
 
     - name: Playbook to set controller attributes with Job wait by providing
             a key with length greater than 32
+      when:
+        - is_omsdk_required | bool
       ansible.builtin.import_role:
         name: idrac_storage_controller
       vars:
@@ -248,6 +261,8 @@
 
     - name: Verifying set controller attributes with Job wait by providing
             a key with length greater than 32
+      when:
+        - is_omsdk_required | bool
       ansible.builtin.assert:
         that:
           - "set_controller_key_out.msg == 'The key should be of maximum length
@@ -258,6 +273,8 @@
 
     - name: Playbook to remove controller key configuration with invalid value
             for job_wait
+      when:
+        - is_omsdk_required | bool
       ansible.builtin.import_role:
         name: idrac_storage_controller
       vars:
@@ -273,6 +290,8 @@
 
     - name: Verifying set controller attributes with Job wait and key_id
             is missing
+      when:
+        - is_omsdk_required | bool
       ansible.builtin.assert:
         that:
           - "'we were unable to convert to bool: The value
@@ -282,6 +301,8 @@
 
     - name: Playbook to set controller attributes with Job wait when key
             is missing
+      when:
+        - is_omsdk_required | bool
       ansible.builtin.import_role:
         name: idrac_storage_controller
       vars:
@@ -297,6 +318,8 @@
 
     - name: Verifying set controller attributes with Job wait when key
             is missing
+      when:
+        - is_omsdk_required | bool
       ansible.builtin.assert:
         that:
           - "'All of the following: key, key_id and old_key are required for
@@ -305,6 +328,8 @@
 
     - name: Playbook to set controller attributes with Job wait when
             key_id is missing
+      when:
+        - is_omsdk_required | bool
       ansible.builtin.import_role:
         name: idrac_storage_controller
       vars:
@@ -322,6 +347,8 @@
 
     - name: Verifying set controller attributes with Job wait when
             key_id is missing
+      when:
+        - is_omsdk_required | bool
       ansible.builtin.assert:
         that:
           - "'All of the following: key, key_id and ******** are required for
@@ -330,6 +357,8 @@
 
     - name: Playbook to set controller attributes with Job wait when
             old_key is missing
+      when:
+        - is_omsdk_required | bool
       ansible.builtin.import_role:
         name: idrac_storage_controller
       vars:
@@ -347,6 +376,8 @@
 
     - name: Verifying set controller attributes with Job wait when
             key_id is missing.
+      when:
+        - is_omsdk_required | bool
       ansible.builtin.assert:
         that:
           - "'All of the following: key, key_id and old_key are required for
@@ -355,6 +386,8 @@
 
     - name: Playbook to set controller attributes with Job wait and invalid
             value for mode
+      when:
+        - is_omsdk_required | bool
       ansible.builtin.import_role:
         name: idrac_storage_controller
       vars:
@@ -373,6 +406,8 @@
 
     - name: Verifying set controller attributes with Job wait and invalid
             value for mode
+      when:
+        - is_omsdk_required | bool
       ansible.builtin.assert:
         that:
           - "storage_controller_rekey.msg == 'value of mode must be one
@@ -382,6 +417,8 @@
     - name: Playbook to set controller attributes with Job wait when
             "apply_time=AtMaintenanceWindowStart"  by providing a invalid
             attribute
+      when:
+        - is_omsdk_required | bool
       ansible.builtin.import_role:
         name: idrac_storage_controller
       vars:
@@ -403,6 +440,8 @@
 
     - name: Verifying disk status change to online in Normal
        mode (invalid attribute)
+      when:
+        - is_omsdk_required | bool
       ansible.builtin.assert:
         that:
           - "attributes_config_out.msg == 'The following attributes

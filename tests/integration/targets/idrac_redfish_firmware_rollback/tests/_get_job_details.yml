@@ -1,12 +1,12 @@
 ---
 - ansible.builtin.set_fact:
     url: "https://{{idrac_ip}}:{{idrac_port}}
-     /redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{{job_id}}"
+     /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{job_id}}"
   when: is_ipv4
 
 - ansible.builtin.set_fact:
     url: "https://[{{idrac_ip}}]:{{idrac_port}}
-     /redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{{job_id}}"
+     /redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{{job_id}}"
   when: is_ipv6
 
 - name: Get data using uri

@@ -1,0 +1,59 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check if module is calling omsdk
+      ansible.builtin.include_tasks: ../_check_firmware_version_supported.yml
+
+    - name: Execute in iDRAC10
+      when:
+        - not is_omsdk_required | bool
+      block:
+        - name: Disable security on controller
+          ansible.builtin.import_role:
+            name: idrac_storage_controller
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            job_wait: false
+            disable_security: true
+            controller_id: "{{ controller_name }}"
+
+        - name: Waiting for iDRAC to be in ready state
+          ansible.builtin.include_tasks:
+            file: ../__lc_status.yaml
+          when: disable_security_out.msg == "Successfully submitted the
+                job that performs the 'DisableSecurity' operation."
+
+        - name: Verifying disable security on controller in check mode
+          ansible.builtin.assert:
+            that:
+              - disable_security_out.msg == "Changes found to be applied."
+              - disable_security_out.changed
+          when: ansible_check_mode
+
+        - name: Verifying disable security on controller in normal mode
+          ansible.builtin.assert:
+            that:
+              - disable_security_out.msg == "Successfully submitted the
+                job that performs the 'DisableSecurity' operation."
+          when:
+            not ansible_check_mode and disable_security_out.status is defined
+
+        - name: Wait for 120 seconds
+          ansible.builtin.pause:
+            seconds: 120
+          when:
+            not ansible_check_mode and disable_security_out.status is defined
+
+        - name: Verifying disable security on controller in idempotence mode
+          ansible.builtin.assert:
+            that:
+              - disable_security_out.msg == "No changes found to be applied."
+              - not disable_security_out.changed
+          when:
+            - not ansible_check_mode
+            - disable_security_out.status is not defined
