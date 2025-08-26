@@ -1,7 +1,7 @@
 ---
 - name: Downgrade firmware from repository on a CIFS Share - prereq
   ansible.builtin.import_role:
-    name: "idrac_firmware"
+    name: dellemc.openmanage.idrac_firmware
   vars:
     hostname: "{{ lookup('env', 'IDRAC_IP') }}"
     username: "{{ lookup('env', 'IDRAC_USER') }}"

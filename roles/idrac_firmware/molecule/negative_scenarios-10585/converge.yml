@@ -106,13 +106,13 @@
 
     - name: Update firmware from repository on HTTPS Share with invalid share_user
       ansible.builtin.import_role:
-        name: "idrac_firmware"
+        name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
-        share_name: "{{ lookup('env', 'httpsshare') }}"
+        share_name: "{{ lookup('env', 'cifsshare') }}"
         share_user: "invalidUser"
         share_password: "{{ lookup('env', 'sharepassword') }}"
         reboot: true
@@ -125,17 +125,17 @@
     - name: "Verifying update firmware from repository on a HTTPS Share with invalid share_user"
       ansible.builtin.assert:
         that:
-          - "'The specified user credentials necessary for downloading an update package were not correct.' in idrac_firmware_out.msg"
+          - "'Mount of remote share failed.' in idrac_firmware_out.msg"
 
     - name: Update firmware from repository on HTTPS Share with invalid share_password
       ansible.builtin.import_role:
-        name: "idrac_firmware"
+        name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
-        share_name: "{{ lookup('env', 'httpsshare') }}"
+        share_name: "{{ lookup('env', 'cifsshare') }}"
         share_user: "{{ lookup('env', 'shareuser') }}"
         share_password: "invalidPassword"
         reboot: true
@@ -148,11 +148,11 @@
     - name: "Verifying update firmware from repository on a HTTPS Share with invalid share_password"
       ansible.builtin.assert:
         that:
-          - "'The specified user credentials necessary for downloading an update package were not correct.' in idrac_firmware_out.msg"
+          - "'Mount of remote share failed.' in idrac_firmware_out.msg"
 
     - name: Update firmware from repository on a HTTPS via parameter proxy Share with invalid proxy_uname
       ansible.builtin.import_role:
-        name: "idrac_firmware"
+        name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -177,12 +177,11 @@
     - name: "Verifying update firmware from repository on a HTTPS via parameter proxy share with invalid proxy_uname"
       ansible.builtin.assert:
         that:
-          - "'Unable to transfer file' in idrac_firmware_out.msg"
-          - "'because of some unknown reasons.' in idrac_firmware_out.msg"
+          - "'Unable to download Update Package.' in idrac_firmware_out.msg"
 
     - name: Update firmware from repository on a HTTPS via parameter proxy Share with invalid proxy_passwd
       ansible.builtin.import_role:
-        name: "idrac_firmware"
+        name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -207,5 +206,4 @@
     - name: "Verifying update firmware from repository on a HTTPS via parameter proxy share with invalid proxy_passwd"
       ansible.builtin.assert:
         that:
-          - "'Unable to transfer file' in idrac_firmware_out.msg"
-          - "'because of some unknown reasons.' in idrac_firmware_out.msg"
+          - "'Unable to download Update Package.' in idrac_firmware_out.msg"
