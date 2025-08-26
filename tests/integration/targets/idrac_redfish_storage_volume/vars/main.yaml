@@ -20,3 +20,4 @@ changes_applied: The job is successfully completed
 apply_time_onreset: OnReset
 reboot_server: false
 apply_time_notsupported: "Apply time Immediate is not supported."
+job_uri: "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/"

@@ -11,6 +11,9 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
+- name: Check if module is calling omsdk
+  ansible.builtin.include_tasks: _check_firmware_version_supported.yml
+
 - block:
     - name: Negative - unsupported argument
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -178,12 +181,14 @@
         that:
           - invalid_command_value.failed
           - not invalid_command_value.changed
-          - 'invalid_command_value.msg == "value of command must be one of:
-           ResetConfig, AssignSpare, SetControllerKey, RemoveControllerKey,
-           ReKey, UnassignSpare, EnableControllerEncryption, BlinkTarget,
-           UnBlinkTarget, ConvertToRAID, ConvertToNonRAID,
-           ChangePDStateToOnline, ChangePDStateToOffline, LockVirtualDisk,
-           OnlineCapacityExpansion, SecureErase, got: invalid"'
+          - 'invalid_command_value.msg == "value of command must be one
+            of: ResetConfig, AssignSpare, SetControllerKey,
+            RemoveControllerKey, ReKey, UnassignSpare,
+            EnableControllerEncryption, BlinkTarget, UnBlinkTarget,
+            ConvertToRAID, ConvertToNonRAID, ChangePDStateToOnline,
+            ChangePDStateToOffline, LockVirtualDisk,
+            OnlineCapacityExpansion, SecureErase, EnableSecurity,
+            DisableSecurity, got: invalid"'
 
     - name: Negative - Invalid controller id
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -247,6 +252,7 @@
             LKM, SEKM, got: ********"'
 
     - name: Negative - Invalid key
+      when: is_omsdk_required | bool
       dellemc.openmanage.idrac_redfish_storage_controller:
         command: SetControllerKey
         mode: LKM
@@ -257,6 +263,7 @@
       ignore_errors: true
 
     - name: Set the invalid key message
+      when: is_omsdk_required | bool
       ansible.builtin.set_fact:
         invalid_key_expected_msg:
           "The key should be of maximum length 32 and must contain at
@@ -264,6 +271,7 @@
           lowercase, number, and special character."
 
     - name: Verify task status - Negative - invalid key
+      when: is_omsdk_required | bool
       ansible.builtin.assert:
         that:
           - invalid_key.failed
