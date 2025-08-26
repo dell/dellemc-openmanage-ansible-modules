@@ -1,165 +1,190 @@
 # -*- coding: utf-8 -*-
-
-#
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 10.0.0
+# Copyright (C) 2018-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-#
-
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-import pytest
-from ansible_collections.dellemc.openmanage.plugins.modules import idrac_os_deployment
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
-from unittest.mock import MagicMock
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.utils import set_module_args
-from pytest import importorskip
+import json
+from io import StringIO
 
-importorskip("omsdk.sdkfile")
-importorskip("omsdk.sdkcreds")
+import pytest
+from ansible.module_utils._text import to_text
+from urllib.error import HTTPError, URLError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.modules import \
+    idrac_os_deployment
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import \
+    FakeAnsibleModule, AnsibleFailJSonException
+from unittest.mock import MagicMock
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+MODULE_UTIL_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.utils.'
+JOB_NOT_FOUND = "No matching job found following the BootToNetworkISO operation."
+INVALID_EXPOSEDURATION = "Invalid value for ExposeDuration."
 
-MODULE_UTIL_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.'
 
-
-class TestOsDeployment(FakeAnsibleModule):
+class TestiDRACOSDeployment(FakeAnsibleModule):
     module = idrac_os_deployment
 
     @pytest.fixture
-    def idrac_connection_mock(self, mocker, idrac_mock):
-        idrac_connection_class_mock = mocker.patch(
-            MODULE_PATH + 'idrac_os_deployment.iDRACConnection')
-        # idrac_connection_class_mock.return_value = idrac_mock
-        idrac_connection_class_mock.return_value.__enter__.return_value = idrac_mock
-        return idrac_connection_class_mock
+    def idrac_osd_mock(self):
+        idrac_obj = MagicMock()
+        return idrac_obj
 
     @pytest.fixture
-    def idrac_mock(self, mocker):
-        sdkinfra_obj = mocker.patch(MODULE_UTIL_PATH + 'dellemc_idrac.sdkinfra')
+    def idrac_osd_connection_mock(self, mocker, idrac_osd_mock):
+        idrac_conn_mock = mocker.patch(MODULE_PATH + 'idrac_os_deployment.iDRACRedfishAPI',
+                                       return_value=idrac_osd_mock)
+        idrac_conn_mock.return_value.__enter__.return_value = idrac_osd_mock
+        return idrac_conn_mock
+
+    def test_minutes_to_iso_format_positive_scenario(self, idrac_default_args):
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        resp = self.module.minutes_to_iso_format(f_module, 10)
+        assert resp == "0000-00-00T00:10:00-00:00"
+
+    def test_minutes_to_iso_format_negative_scenario(self, idrac_default_args):
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        with pytest.raises(AnsibleFailJSonException, match=INVALID_EXPOSEDURATION):
+            self.module.minutes_to_iso_format(f_module, -10)
+
+    def test_get_current_time_from_iDRAC(self, idrac_osd_connection_mock):
         obj = MagicMock()
-        sdkinfra_obj.get_driver.return_value = obj
-        return sdkinfra_obj
+        obj.json_data = {"DateTime": "2022-09-14T05:59:35-05:00"}
+        idrac_osd_connection_mock.invoke_request.return_value = obj
+        resp = self.module.get_current_time_from_idrac(
+            idrac_osd_connection_mock)
+        assert resp == "2022-09-14T05:59:35-05:00"
 
-    @pytest.fixture
-    def omsdk_mock(self, mocker):
-        mocker.patch(MODULE_UTIL_PATH + 'dellemc_idrac.UserCredentials')
-        mocker.patch(MODULE_UTIL_PATH + 'dellemc_idrac.ProtoPreference')
+    def test_construct_payload(self, idrac_default_args):
+        _params = {'expose_duration': 5,
+                   'iso_image': '/path/to/image.iso',
+                   'share_password': 'password',
+                   'share_user': 'username'}
+        # Scenario 1: For CIFS
+        idrac_default_args.update(_params)
+        idrac_default_args.update({'share_name': '\\\\192.168.0.1\\sharename'})
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        resp = self.module.construct_payload(
+            f_module)
+        assert resp == {'ExposeDuration': '0000-00-00T00:05:00-00:00', 'IPAddress': '192.168.0.1', 'ShareName': 'sharename',
+                        'ShareType': 'CIFS', 'ImageName': '/path/to/image.iso', 'Password': 'password', 'UserName': 'username'}
 
-    @pytest.fixture
-    def fileonshare_mock(self, mocker):
-        share_mock = mocker.patch(MODULE_PATH + 'idrac_os_deployment.FileOnShare',
-                                  return_value=MagicMock())
-        return share_mock
+        # Scenario 2: For NFS
+        idrac_default_args.update({'share_name': "192.168.0.0:/nfsfileshare"})
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        resp = self.module.construct_payload(
+            f_module)
+        assert resp == {'ExposeDuration': '0000-00-00T00:05:00-00:00', 'IPAddress': '192.168.0.0', 'ShareName': 'nfsfileshare',
+                        'ShareType': 'NFS', 'ImageName': '/path/to/image.iso', 'Password': 'password', 'UserName': 'username'}
 
-    @pytest.fixture
-    def minutes_to_cim_format_mock(self, mocker):
-        validate_device_inputs_mock = mocker.patch(
-            MODULE_PATH + 'idrac_os_deployment.minutes_to_cim_format')
-        validate_device_inputs_mock.return_value = "time"
+    def test_getting_top_osd_job_and_tracking(self, idrac_default_args, idrac_osd_connection_mock,
+                                              idrac_osd_mock, mocker):
+        job_detail = MagicMock()
+        job_detail.json_data = {
+            "JobState": "Passed",
+            "StartTime": "2025-04-07T12:15:12",
+            "Id": "JID_440458720416"
+        }
+        obj = MagicMock()
+        obj.json_data = {
+            "Members": [
+                job_detail
+            ]
+        }
+        idrac_osd_connection_mock.invoke_request.return_value = obj
+        mocker.patch(MODULE_PATH + 'idrac_os_deployment.' +
+                     'time.sleep', return_value=None)
+        mocker.patch(MODULE_PATH + 'idrac_os_deployment.wait_for_idrac_job_completion',
+                     return_value=(job_detail, ""))
+        mocker.patch(
+            MODULE_PATH + 'idrac_os_deployment.filter_job_from_members',
+            return_value=job_detail)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
 
-    @pytest.mark.parametrize("expose_duration_val", ["abc", None, "", 1.5, {"abc": 1}, [110, 210, 300], [120]])
-    def test_main_failure_case_01(self, expose_duration_val, idrac_default_args, module_mock):
-        """when invalid value for expose_durationis given """
-        idrac_default_args.update({"iso_image": "iso_image"})
-        idrac_default_args.update({"expose_duration": expose_duration_val})
-        result = self._run_module_with_fail_json(idrac_default_args)
+        # Scenario 1: Searching job before Start time
+        resp = self.module.getting_top_osd_job_and_tracking(
+            idrac_osd_connection_mock, f_module, "2025-04-07T12:10:12")
+        assert resp == job_detail.json_data
 
-    def test_main_failure_case_02(self, module_mock, idrac_default_args):
-        """when required arg iso_image is not passed"""
-        idrac_default_args.update({"iso_image": "iso_image"})
-        result = self._run_module_with_fail_json(idrac_default_args)
+        # Scenario 2: Searching job after Start time so no job will be found
+        no_job = MagicMock()
+        no_job.json_data = {"Members": []}
+        idrac_osd_connection_mock.invoke_request.return_value = no_job
+        mocker.patch(
+            MODULE_PATH + 'idrac_os_deployment.filter_job_from_members',
+            return_value={})
+        with pytest.raises(AnsibleFailJSonException, match=JOB_NOT_FOUND) as excinfo:
+            self.module.getting_top_osd_job_and_tracking(
+                idrac_osd_connection_mock, f_module, "2025-04-07T12:20:12")
+        assert excinfo.value.args[0] == "No matching job found following the BootToNetworkISO operation."
 
-    def test_main_failure_case_03(self, module_mock, idrac_default_args):
-        """when invalid ansible option is given"""
-        idrac_default_args.update({"iso_image": "iso_image", "invalid_key": "val"})
-        result = self._run_module_with_fail_json(idrac_default_args)
+    def test_filter_job_from_members(self, idrac_osd_connection_mock):
+        job_name = 'OSD: BootTONetworkISO'
+        members = [
+            {"@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_001"}
+        ]
+        job_detail = MagicMock()
+        job_detail.json_data = {
+            "JobState": "Passed",
+            "StartTime": "2025-04-07T12:15:12",
+            "Id": "JID_001",
+            "Name": job_name
+        }
+        idrac_osd_connection_mock.invoke_request.return_value = job_detail
 
-    def test_main_run_boot_to_network_iso_success_case01(self, idrac_connection_mock, idrac_mock, module_mock,
-                                                         fileonshare_mock, omsdk_mock, minutes_to_cim_format_mock):
-        idrac_connection_mock.return_value.__enter__.return_value = idrac_mock
-        idrac_mock.config_mgr.boot_to_network_iso.return_value = {"Status": "Success"}
-        params = {"idrac_ip": "idrac_ip", "idrac_user": "idrac_user", "idrac_password": "idrac_password",
-                  "ca_path": "/path/to/ca_cert.pem",
-                  "share_name": "dummy_share_name", "share_password": "dummy_share_password",
-                  "iso_image": "dummy_iso_image", "expose_duration": "100"
-                  }
-        set_module_args(params)
-        result = self._run_module(params)
-        assert result == {'changed': True, 'boot_status': {'Status': 'Success'}}
+        result = self.module.filter_job_from_members(idrac_osd_connection_mock, members, "2025-04-07T12:14:12")
 
-    def test_main_run_boot_to_network_iso_success_case02(self, idrac_connection_mock, idrac_mock, module_mock,
-                                                         fileonshare_mock, omsdk_mock, minutes_to_cim_format_mock):
-        """share_name None case"""
-        idrac_connection_mock.return_value.__enter__.return_value = idrac_mock
-        idrac_mock.config_mgr.boot_to_network_iso.return_value = {"Status": "Success"}
-        params = {"idrac_ip": "idrac_ip", "idrac_user": "idrac_user", "idrac_password": "idrac_password",
-                  "ca_path": "/path/to/ca_cert.pem",
-                  "share_name": "", "share_password": "dummy_share_password",
-                  "iso_image": "dummy_iso_image", "expose_duration": "100"
-                  }
-        set_module_args(params)
-        result = self._run_module(params)
-        assert result == {'changed': True, 'boot_status': {'Status': 'Success'}}
+        assert result["Name"] == job_name
+        assert result["StartTime"] == "2025-04-07T12:15:12"
 
-    def test_main_run_boot_to_network_iso_fleonshare_failure_case(self, idrac_connection_mock, idrac_mock, module_mock,
-                                                                  fileonshare_mock, omsdk_mock,
-                                                                  minutes_to_cim_format_mock):
-        idrac_connection_mock.return_value.__enter__.return_value = idrac_mock
-        fileonshare_mock.side_effect = RuntimeError("Error in Runtime")
-        params = {"idrac_ip": "idrac_ip", "idrac_user": "idrac_user", "idrac_password": "idrac_password",
-                  "ca_path": "/path/to/ca_cert.pem",
-                  "share_name": "invalid_share_name", "share_password": "dummy_share_password",
-                  "iso_image": "dummy_iso_image", "expose_duration": "100"
-                  }
-        set_module_args(params)
-        result = self._run_module_with_fail_json(params)
-        assert result == {'failed': True, 'msg': 'Error in Runtime'}
+    def test_idrac_os_deployment_main(self, idrac_default_args, idrac_osd_connection_mock, idrac_osd_mock, mocker):
+        idrac_default_args.update({"iso_image": "/path/to/image.iso", "share_name": "192.168.10.1:/nfsfileshare"})
+        mocker.patch(MODULE_PATH + 'idrac_os_deployment.get_current_time_from_idrac', return_value="2025-04-07T12:20:12")
+        mocker.patch(MODULE_PATH + 'idrac_os_deployment.construct_payload', return_value={})
+        idrac_osd_connection_mock.invoke_request.return_value = None
 
-    def test_main_run_boot_to_network_iso_failure_case(self, idrac_connection_mock, idrac_mock, module_mock,
-                                                       fileonshare_mock, omsdk_mock, minutes_to_cim_format_mock):
-        idrac_mock.config_mgr.boot_to_network_iso.return_value = {"Status": "Failure"}
-        params = {"idrac_ip": "idrac_ip", "idrac_user": "idrac_user", "idrac_password": "idrac_password",
-                  "ca_path": "/path/to/ca_cert.pem",
-                  "share_name": "dummy_share_name", "share_password": "dummy_share_password",
-                  "iso_image": "dummy_iso_image", "expose_duration": "100"
-                  }
-        set_module_args(params)
-        result = self._run_module_with_fail_json(params)
-        assert result['failed'] is True
+        # Scenario 1: Job failed
+        job_detail = {'JobState': 'Failed', 'Message': "IP Address format is invalid."}
+        mocker.patch(MODULE_PATH + 'idrac_os_deployment.getting_top_osd_job_and_tracking', return_value=job_detail)
+        resp = self._run_module(idrac_default_args)
+        assert resp['failed'] is True
 
-    def test_minutes_to_cim_format_success_case_01(self, module_mock):
-        result = self.module.minutes_to_cim_format(module_mock, 180)
-        assert result == '00000000030000.000000:000'
+        # Scenario 2: Job passed
+        job_detail = {'JobState': 'Passed', 'Message': "The command was successful."}
+        mocker.patch(MODULE_PATH + 'idrac_os_deployment.getting_top_osd_job_and_tracking', return_value=job_detail)
+        resp = self._run_module(idrac_default_args)
+        assert resp['changed'] is True
 
-    def test_minutes_to_cim_format_success_case_02(self, module_mock):
-        result = self.module.minutes_to_cim_format(module_mock, 0)
-        assert result == '00000000000000.000000:000'
-
-    def test_minutes_to_cim_format_success_case_03(self, module_mock):
-        """when day>0 condition"""
-        result = self.module.minutes_to_cim_format(module_mock, 2880)
-        assert result == '00000002230000.000000:000'
-
-    def test_minutes_to_cim_format_failure_case(self):
-        fmodule = self.get_module_mock()
-        with pytest.raises(Exception) as exc:
-            set_module_args({})
-            self.module.minutes_to_cim_format(fmodule, -1)
-        assert exc.value.args[0] == "Invalid value for ExposeDuration."
-
-    @pytest.mark.parametrize("exc_type", [ImportError, ValueError, RuntimeError])
-    def test_main_idrac_os_deployment_exception_handling_case(self, exc_type, mocker, idrac_connection_mock,
-                                                              idrac_default_args, idrac_mock, fileonshare_mock,
-                                                              omsdk_mock):
-        idrac_default_args.update({"iso_image": "iso_image", "share_name": "share_name"})
-        idrac_default_args.update({"expose_duration": 10})
-        mocker.patch(MODULE_PATH + 'idrac_os_deployment.run_boot_to_network_iso',
-                     side_effect=exc_type('test'))
-        result = self._run_module_with_fail_json(idrac_default_args)
+    @pytest.mark.parametrize("exc_type",
+                             [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
+    def test_idrac_os_deployment_main_exception_handling_case(self, exc_type, mocker, idrac_default_args,
+                                                              idrac_osd_connection_mock, idrac_osd_mock):
+        json_str = to_text(json.dumps({"data": "out"}))
+        if exc_type in [HTTPError, SSLValidationError]:
+            mocker.patch(MODULE_PATH + "idrac_os_deployment.get_current_time_from_idrac",
+                         side_effect=exc_type('https://testhost.com', 400,
+                                              'http error message',
+                                              {"accept-type": "application/json"},
+                                              StringIO(json_str)))
+        else:
+            mocker.patch(MODULE_PATH + "idrac_os_deployment.get_current_time_from_idrac",
+                         side_effect=exc_type('test'))
+        idrac_default_args.update(
+            {"iso_image": "/path/to/image.iso", "share_name": "192.168.10.1:/nfsfileshare"})
+        result = self._run_module(idrac_default_args)
+        if exc_type == URLError:
+            assert result['unreachable'] is True
+        else:
+            assert result['failed'] is True
         assert 'msg' in result
-        assert result['failed'] is True

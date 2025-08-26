@@ -41,8 +41,9 @@ class TestRedfishFirmware(FakeAnsibleModule):
     module = redfish_firmware_rollback
 
     @pytest.mark.parametrize("exc_type", [URLError, HTTPError, TypeError])
+    @pytest.mark.parametrize("generation", [16, 17])
     def test_wait_for_redfish_idrac_reset_http(self, exc_type, redfish_connection_mock, redfish_response_mock,
-                                               redfish_default_args, mocker):
+                                               redfish_default_args, mocker, generation):
         redfish_default_args.update({"name": "BIOS", "reboot": True, "reboot_timeout": 900})
         f_module = self.get_module_mock(params=redfish_default_args)
         mocker.patch(MODULE_PATH + 'redfish_firmware_rollback.time.sleep', return_value=None)
@@ -54,39 +55,36 @@ class TestRedfishFirmware(FakeAnsibleModule):
                 HTTPS_ADDRESS, 401, HTTP_ERROR_MSG, {"accept-type": ACCESS_TYPE},
                 StringIO(json_str)
             )
-            result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 5)
+            result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 5, generation)
             assert result[0] is False
             assert result[1] is True
-            assert result[2] == "iDRAC reset is in progress. Until the iDRAC is reset, the changes would not apply."
             redfish_connection_mock.invoke_request.side_effect = exc_type(
                 HTTPS_ADDRESS, 400, HTTP_ERROR_MSG, {"accept-type": ACCESS_TYPE},
                 StringIO(json_str)
             )
-            result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 5)
+            result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 5, generation)
             assert result[0] is True
             assert result[1] is True
-            assert result[2] == "iDRAC reset is in progress. Until the iDRAC is reset, the changes would not apply."
         elif exc_type == URLError:
             redfish_connection_mock.invoke_request.side_effect = exc_type("exception message")
-            result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 5)
+            result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 5, generation)
             assert result[0] is True
             assert result[1] is True
-            assert result[2] == "iDRAC reset is in progress. Until the iDRAC is reset, the changes would not apply."
         else:
-            redfish_connection_mock.invoke_request.side_effect = exc_type("exception message")
-            result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 5)
+            redfish_connection_mock.invoke_request.side_effect = exc_type("generic exception message")
+            result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 5, generation)
             assert result[0] is True
             assert result[1] is True
 
+    @pytest.mark.parametrize("generation", [16, 17])
     def test_wait_for_redfish_idrac_reset(self, redfish_connection_mock, redfish_response_mock,
-                                          redfish_default_args, mocker):
+                                          redfish_default_args, mocker, generation):
         redfish_default_args.update({"name": "BIOS", "reboot": True, "reboot_timeout": 900})
         f_module = self.get_module_mock(params=redfish_default_args)
         mocker.patch(MODULE_PATH + 'redfish_firmware_rollback.time.sleep', return_value=None)
-        result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 900)
+        result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 900, generation)
         assert result[0] is False
         assert result[1] is False
-        assert result[2] == "iDRAC has been reset successfully."
 
     def test_rollback_firmware(self, redfish_connection_mock, redfish_response_mock, redfish_default_args, mocker):
         redfish_default_args.update({"name": "BIOS", "reboot": True, "reboot_timeout": 900})
@@ -100,20 +98,21 @@ class TestRedfishFirmware(FakeAnsibleModule):
         f_module = self.get_module_mock(params=redfish_default_args)
         preview_uri = ["/redfish/v1/Previous1.1"]
         reboot_uri = ["/redfish/v1/Previous.life_cycle.1.1"]
+        network_uri = ["/redfish/v1/Previous.NetworkProtocol1.1"]
         update_uri = "/redfish/v1/SimpleUpdate"
         with pytest.raises(Exception) as ex:
-            self.module.rollback_firmware(redfish_connection_mock, f_module, preview_uri, reboot_uri, update_uri)
+            self.module.rollback_firmware(redfish_connection_mock, f_module, preview_uri, reboot_uri, update_uri, network_uri, [])
         assert ex.value.args[0] == "Failed to reboot the server."
         mocker.patch(MODULE_PATH + "redfish_firmware_rollback.wait_for_redfish_job_complete",
                      return_value=(job_resp_mock, "Failed message."))
         with pytest.raises(Exception) as ex:
-            self.module.rollback_firmware(redfish_connection_mock, f_module, preview_uri, reboot_uri, update_uri)
+            self.module.rollback_firmware(redfish_connection_mock, f_module, preview_uri, reboot_uri, update_uri, network_uri, [])
         assert ex.value.args[0] == "Task excited after waiting for 900 seconds. " \
                                    "Check console for firmware rollback status."
         mocker.patch(MODULE_PATH + "redfish_firmware_rollback.wait_for_redfish_reboot_job",
                      return_value=({}, False, "Reset operation is failed."))
         with pytest.raises(Exception) as ex:
-            self.module.rollback_firmware(redfish_connection_mock, f_module, preview_uri, reboot_uri, update_uri)
+            self.module.rollback_firmware(redfish_connection_mock, f_module, preview_uri, reboot_uri, update_uri, network_uri, [])
         assert ex.value.args[0] == "Reset operation is failed."
         mocker.patch(MODULE_PATH + "redfish_firmware_rollback.get_job_status",
                      return_value=({"JobState": "Completed"}, False))
@@ -124,10 +123,10 @@ class TestRedfishFirmware(FakeAnsibleModule):
                      return_value=(job_resp_mock, ""))
         mocker.patch(MODULE_PATH + "redfish_firmware_rollback.simple_update", return_value=["JID_12345678"])
         mocker.patch(MODULE_PATH + "redfish_firmware_rollback.wait_for_redfish_idrac_reset",
-                     return_value=(False, True, ""))
+                     return_value=(False, True))
         mocker.patch(MODULE_PATH + "redfish_firmware_rollback.get_job_status",
                      return_value=([{"JobState": "Completed"}], 0))
-        result = self.module.rollback_firmware(redfish_connection_mock, f_module, preview_uri, reboot_uri, update_uri)
+        result = self.module.rollback_firmware(redfish_connection_mock, f_module, preview_uri, reboot_uri, update_uri, network_uri, [])
         assert result[0] == [{'JobState': 'Completed'}, {'JobState': 'Completed'}]
         assert result[1] == 0
 
@@ -135,14 +134,14 @@ class TestRedfishFirmware(FakeAnsibleModule):
         f_module = self.get_module_mock(params=redfish_default_args)
         mocker.patch(MODULE_PATH + "redfish_firmware_rollback.get_job_status",
                      return_value=([{"JobState": "Scheduled"}], 0))
-        result = self.module.rollback_firmware(redfish_connection_mock, f_module, preview_uri, [], update_uri)
+        result = self.module.rollback_firmware(redfish_connection_mock, f_module, preview_uri, [], update_uri, [], [])
         assert result[0] == [{"JobState": "Scheduled"}]
         assert result[1] == 0
 
     def test_main(self, redfish_connection_mock, redfish_response_mock, redfish_default_args, mocker):
         redfish_default_args.update({"reboot": True, "name": "BIOS"})
         mocker.patch(MODULE_PATH + "redfish_firmware_rollback.get_rollback_preview_target",
-                     return_value=(["Previous/URI/1"], [], "/redfish/SimpleUpdate"))
+                     return_value=(["Previous/URI/1"], [], "/redfish/SimpleUpdate", [], []))
         job_status = {"ActualRunningStartTime": "2023-08-07T05:09:08", "ActualRunningStopTime": "2023-08-07T05:12:41",
                       "CompletionTime": "2023-08-07T05:12:41", "Description": "Job Instance", "EndTime": "TIME_NA",
                       "Id": "JID_914026562845", "JobState": "Completed", "JobType": "FirmwareUpdate",
@@ -183,7 +182,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
 
     def test_get_rollback_preview_target(self, redfish_connection_mock, redfish_response_mock, redfish_default_args):
         redfish_default_args.update({"username": "user", "password": "pwd", "baseuri": "XX.XX.XX.XX",
-                                     "name": "BIOS", "reboot_timeout": 3600})
+                                     "name": "NETWORK", "reboot_timeout": 3600})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.json_data = {"Actions": {"#UpdateService.SimpleUpdate": {}}}
         with pytest.raises(Exception) as ex:
@@ -209,7 +208,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
             {"@odata.id": "uri/1", "Id": "Previous.1", "Name": "QLogic.1", "Version": "1.2"},
             {"@odata.id": "uri/2", "Id": "Previous.2", "Name": "QLogic.2", "Version": "1.2"},
             {"@odata.id": "uri/3", "Id": "Previous.3", "Name": "QLogic.3", "Version": "1.2"},
-            {"@odata.id": "uri/4", "Id": "Previous.4", "Name": "BIOS", "Version": "1.2"}
+            {"@odata.id": "uri/4", "Id": "Previous.4", "Name": "NETWORK", "Version": "1.2"}
         ]
         with pytest.raises(Exception) as ex:
             self.module.get_rollback_preview_target(redfish_connection_mock, f_module)

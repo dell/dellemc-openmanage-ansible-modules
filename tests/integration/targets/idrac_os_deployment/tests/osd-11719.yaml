@@ -1,0 +1,68 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- block:
+    - name: Boot to Network ISO with nfs share
+      dellemc.openmanage.idrac_os_deployment:
+        share_name: "{{ nfs_share_name }}/{{ iso_location }}"
+        expose_duration: 6
+        iso_image: "{{ iso_image }}"
+      register: result_nfs
+
+    - ansible.builtin.include_tasks: _helper.yml
+
+    - ansible.builtin.wait_for: timeout=420
+
+    - ansible.builtin.include_tasks: _helper.yml
+      vars:
+        trigger: 1
+
+    - name: Wait for LC Status
+      ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
+
+    - name: Boot to Network ISO with cifs share
+      dellemc.openmanage.idrac_os_deployment:
+        share_name: "{{ cifs_share_name }}\\{{ iso_location }}"
+        share_user: "{{ cifs_share_user }}"
+        share_password: "{{ cifs_share_password }}"
+        iso_image: "{{ iso_image }}"
+        expose_duration: 6
+      register: result_cifs
+
+    - name: Call helper file
+      ansible.builtin.include_tasks: _helper.yml
+
+    - ansible.builtin.wait_for: timeout=420
+
+    - name: Call helper file
+      ansible.builtin.include_tasks: _helper.yml
+      vars:
+        trigger: 1
+
+    - name: verify status of tasks.
+      ansible.builtin.assert:
+        that:
+          - result_nfs.changed
+          - result_nfs.boot_status.Message == "The command was successful."
+          - result_nfs.boot_status.Status == "Completed"
+          - result_cifs.changed
+          - result_cifs.boot_status.Message == "The command was successful."
+          - result_cifs.boot_status.Status == "Completed"
+
+  module_defaults:
+    dellemc.openmanage.idrac_os_deployment:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

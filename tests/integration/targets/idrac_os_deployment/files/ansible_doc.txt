@@ -1,0 +1,124 @@
+- '  Boot to a network ISO image.'
+- ''
+- "\e[1mOPTIONS\e[0m (red indicates it is required):"
+- ''
+- "   \e[0;33mca_path\e[0m  The Privacy Enhanced Mail (PEM) file that contains a CA"
+- '            certificate to be used for the validation.'
+- '        default: null'
+- '        type: path'
+- ''
+- "   \e[0;33mexpose_duration\e[0m  It is the time taken in minutes for the ISO image"
+- '                    file to be exposed as a local CD-ROM device to the'
+- '                    host server. When the time expires, the ISO image'
+- '                    gets automatically detached.'
+- '        default: 1080'
+- '        type: int'
+- ''
+- "   \e[0;31m\e[1midrac_ip\e[0m\e[0m  iDRAC IP Address."
+- '        type: str'
+- ''
+- "   \e[0;33midrac_password\e[0m  iDRAC user password."
+- '                   If the password is not provided, then the'
+- '                   environment variable `IDRAC_PASSWORD'' is used.'
+- '                   Example: export IDRAC_PASSWORD=password'
+- '        aliases: [idrac_pwd]'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33midrac_port\e[0m  iDRAC port."
+- '        default: 443'
+- '        type: int'
+- ''
+- "   \e[0;33midrac_user\e[0m  iDRAC username."
+- '               If the username is not provided, then the environment'
+- '               variable `IDRAC_USERNAME'' is used.'
+- '               Example: export IDRAC_USERNAME=username'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;31m\e[1miso_image\e[0m\e[0m  Network ISO name."
+- '        type: str'
+- ''
+- "   \e[0;31m\e[1mshare_name\e[0m\e[0m  CIFS or NFS Network share."
+- '        type: str'
+- ''
+- "   \e[0;33mshare_password\e[0m  Network share user password. This option is"
+- '                   mandatory for CIFS Network Share.'
+- '        aliases: [share_pwd]'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mshare_user\e[0m  Network share user in the format 'user@domain' or"
+- '               ''domain\\user'' if user is part of a domain else ''user''.'
+- '               This option is mandatory for CIFS Network Share.'
+- '        default: null'
+- '        type: str'
+- ''
+- "   \e[0;33mtimeout\e[0m  The socket level timeout in seconds."
+- '        default: 30'
+- '        type: int'
+- ''
+- "   \e[0;33mvalidate_certs\e[0m  If \e[1;30m`false'\e[0m, the SSL certificates will"
+- '                   not be validated.'
+- "                   Configure \e[1;30m`false'\e[0m only on personally"
+- '                   controlled sites where self-signed certificates are'
+- '                   used.'
+- "                   Prior to collection version \e[1;30m`5.0.0'\e[0m, the"
+- "                   \e[4mvalidate_certs\e[0m is \e[1;30m`false'\e[0m by"
+- '                   default.'
+- '        default: true'
+- '        type: bool'
+- ''
+- "   \e[0;33mx_auth_token\e[0m  Authentication token."
+- '                 If the x_auth_token is not provided, then the'
+- '                 environment variable `IDRAC_X_AUTH_TOKEN'' is used.'
+- '                 Example: export IDRAC_X_AUTH_TOKEN=x_auth_token'
+- '        default: null'
+- '        type: str'
+- ''
+- "\e[1mNOTES:\e[0m"
+- '      * Run this module from a system that has direct access to'
+- '        Dell iDRAC.'
+- '      * This module supports both IPv4 and IPv6 address for'
+- "        \e[4midrac_ip\e[0m."
+- "      * This module does not support \e[1;30m`check_mode'\e[0m."
+- ''
+- "\e[1mREQUIREMENTS:\e[0m  omsdk >= 1.2.488, python >= 3.9.6"
+- ''
+- ''
+- "\e[1mAUTHOR\e[0m: Felix Stephen (@felixs88), Jagadeesh N V (@jagadeeshnv), Abhishek
+    Sinha (@ABHISHEK-SINHA10)"
+- ''
+- "\e[1mEXAMPLES:\e[0m"
+- '---'
+- '- name: Boot to Network ISO'
+- '  dellemc.openmanage.idrac_os_deployment:'
+- '      idrac_ip: "192.168.0.1"'
+- '      idrac_user: "user_name"'
+- '      idrac_password: "user_password"'
+- '      ca_path: "/path/to/ca_cert.pem"'
+- '      share_name: "192.168.0.0:/nfsfileshare"'
+- '      iso_image: "unattended_os_image.iso"'
+- '      expose_duration: 180'
+- ''
+- "\e[1mRETURN VALUES:\e[0m"
+- ''
+- "   \e[0;33mboot_status\e[0m  Details of the boot to network ISO image operation."
+- '        returned: always'
+- '        sample:'
+- '          DeleteOnCompletion: ''false'''
+- '          InstanceID: DCIM_OSDConcreteJob:1'
+- '          JobName: BootToNetworkISO'
+- '          JobStatus: Success'
+- '          Message: The command was successful.'
+- '          MessageID: OSD1'
+- '          Name: BootToNetworkISO'
+- '          Status: Success'
+- '          file: 192.168.0.0:/nfsfileshare/unattended_os_image.iso'
+- '          retval: true'
+- '        type: dict'
+- ''
+- "   \e[0;33mmsg\e[0m     Over all device information status."
+- '        returned: on error'
+- '        sample: Failed to boot to network iso'
+- '        type: str'
