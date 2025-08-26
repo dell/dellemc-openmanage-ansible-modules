@@ -36,6 +36,7 @@ GET_POWERHEADROOM_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Sensors/PowerH
 
 NA = "Not Available"
 
+
 class IDRACSystemBoardMetricsInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
@@ -153,7 +154,7 @@ class IDRACSystemBoardMetricsInfo(object):
         peak_power = self.get_peak_power_details()
         peak_amperage = self.get_peak_amperage_details()
         peak_headroom = self.get_peak_headroom_details()
-        
+
         output = [{
             "Key": "SystemBoardMetrics",
 
@@ -204,7 +205,7 @@ class IDRACSystemBoardMetricsInfo(object):
             "PeakPower": peak_power,
             "PeakAmperage": peak_amperage,
             "PeakHeadroom": peak_headroom,
-            
+
             "SystemBoardMetrics": NA
         }]
 

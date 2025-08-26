@@ -16,6 +16,7 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.module_utils.idra
 
 NA = "Not Available"
 
+
 class TestIDRACSystemBoardMetricsInfo(TestUtils):
 
     def test_get_system_metrics_info_success(self, idrac_mock):
@@ -113,7 +114,15 @@ class TestIDRACSystemBoardMetricsInfo(TestUtils):
         headroom_resp = {"LowestReading": 969}
 
         # Patch invoke_request sequential responses
-        idrac_mock.invoke_request.side_effect = self._get_sequential_responses(cpu_usage_resp, io_usage_resp, mem_usage_resp, sys_usage_resp, power_resp, amperage_resp, headroom_resp)
+        idrac_mock.invoke_request.side_effect = self._get_sequential_responses(
+            cpu_usage_resp,
+            io_usage_resp,
+            mem_usage_resp,
+            sys_usage_resp,
+            power_resp,
+            amperage_resp,
+            headroom_resp
+        )
 
         system_board_metrics_info = IDRACSystemBoardMetricsInfo(idrac_mock)
         result = system_board_metrics_info.get_system_board_metrics_info()
@@ -168,7 +177,7 @@ class TestIDRACSystemBoardMetricsInfo(TestUtils):
             "PeakPower": 531,
             "PeakAmperage": 4.265625,
             "PeakHeadroom": 969,
-            
+
             "SystemBoardMetrics": NA
         }]
 
@@ -265,7 +274,15 @@ class TestIDRACSystemBoardMetricsInfo(TestUtils):
         headroom_resp = {}
 
         # Patch invoke_request sequential responses
-        idrac_mock.invoke_request.side_effect = self._get_sequential_responses(cpu_usage_resp, io_usage_resp, mem_usage_resp, sys_usage_resp, power_resp, amperage_resp, headroom_resp)
+        idrac_mock.invoke_request.side_effect = self._get_sequential_responses(
+            cpu_usage_resp,
+            io_usage_resp,
+            mem_usage_resp,
+            sys_usage_resp,
+            power_resp,
+            amperage_resp,
+            headroom_resp
+        )
 
         system_board_metrics_info = IDRACSystemBoardMetricsInfo(idrac_mock)
         result = system_board_metrics_info.get_system_board_metrics_info()
@@ -320,7 +337,7 @@ class TestIDRACSystemBoardMetricsInfo(TestUtils):
             "PeakPower": NA,
             "PeakAmperage": NA,
             "PeakHeadroom": NA,
-            
+
             "SystemBoardMetrics": NA
         }]
 
@@ -391,12 +408,12 @@ class TestIDRACSystemBoardMetricsInfo(TestUtils):
             "PeakPower": {},
             "PeakAmperage": {},
             "PeakHeadroom": {},
-            
+
             "SystemBoardMetrics": NA
         }]
 
         assert result == expected
-    
+
     def _get_sequential_responses(self, cpu_usage_resp, io_usage_resp, mem_usage_resp, sys_usage_resp, power_resp, amperage_resp, headroom_resp):
         return [
             type("Resp", (), {"status_code": 200, "json_data": cpu_usage_resp}),
