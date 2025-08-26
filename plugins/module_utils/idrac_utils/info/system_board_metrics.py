@@ -146,10 +146,30 @@ class IDRACSystemBoardMetricsInfo(object):
     def get_system_board_metrics_info(self):
         output = []
 
-        cpu_usage_avg_hour, cpu_usage_avg_day, cpu_usage_avg_week, cpu_usage_max_hour, cpu_usage_max_day, cpu_usage_max_week, cpu_usage_min_hour, cpu_usage_min_day, cpu_usage_min_week, cpu_usage_peak = self.get_cpu_usage_details()
-        io_usage_avg_hour, io_usage_avg_day, io_usage_avg_week, io_usage_max_hour, io_usage_max_day, io_usage_max_week, io_usage_min_hour, io_usage_min_day, io_usage_min_week, io_usage_peak = self.get_io_usage_details()
-        mem_usage_avg_hour, mem_usage_avg_day, mem_usage_avg_week, mem_usage_max_hour, mem_usage_max_day, mem_usage_max_week, mem_usage_min_hour, mem_usage_min_day, mem_usage_min_week, mem_usage_peak = self.get_mem_usage_details()
-        sys_usage_avg_hour, sys_usage_avg_day, sys_usage_avg_week, sys_usage_max_hour, sys_usage_max_day, sys_usage_max_week, sys_usage_min_hour, sys_usage_min_day, sys_usage_min_week, sys_usage_peak = self.get_sys_usage_details()
+        (
+            cpu_usage_avg_hour, cpu_usage_avg_day, cpu_usage_avg_week,
+            cpu_usage_max_hour, cpu_usage_max_day, cpu_usage_max_week,
+            cpu_usage_min_hour, cpu_usage_min_day, cpu_usage_min_week,
+            cpu_usage_peak
+        ) = self.get_cpu_usage_details()
+        (
+            io_usage_avg_hour, io_usage_avg_day, io_usage_avg_week,
+            io_usage_max_hour, io_usage_max_day, io_usage_max_week,
+            io_usage_min_hour, io_usage_min_day, io_usage_min_week,
+            io_usage_peak
+        ) = self.get_io_usage_details()
+        (
+            mem_usage_avg_hour, mem_usage_avg_day, mem_usage_avg_week,
+            mem_usage_max_hour, mem_usage_max_day, mem_usage_max_week,
+            mem_usage_min_hour, mem_usage_min_day, mem_usage_min_week,
+            mem_usage_peak
+        ) = self.get_mem_usage_details()
+        (
+            sys_usage_avg_hour, sys_usage_avg_day, sys_usage_avg_week,
+            sys_usage_max_hour, sys_usage_max_day, sys_usage_max_week,
+            sys_usage_min_hour, sys_usage_min_day, sys_usage_min_week,
+            sys_usage_peak
+        ) = self.get_sys_usage_details()
 
         peak_power = self.get_peak_power_details()
         peak_amperage = self.get_peak_amperage_details()
