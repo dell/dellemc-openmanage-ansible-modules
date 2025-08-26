@@ -15,13 +15,13 @@
     - name: Boot to Network ISO with nfs share
       dellemc.openmanage.idrac_os_deployment:
         share_name: "{{ nfs_share_name }}/{{ iso_location }}"
-        expose_duration: 5
+        expose_duration: 6
         iso_image: "{{ iso_image }}"
       register: result_nfs
 
     - ansible.builtin.include_tasks: _helper.yml
 
-    - ansible.builtin.wait_for: timeout=300
+    - ansible.builtin.wait_for: timeout=420
 
     - ansible.builtin.include_tasks: _helper.yml
       vars:
