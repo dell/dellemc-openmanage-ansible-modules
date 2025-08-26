@@ -118,4 +118,6 @@
   vars:
     _before: "{{ item.0 }}"
     _after: "{{ item.1 }}"
-  loop: "{{ system_board_metrics_module_details | zip(system_board_metrics_uri_details) }}"
+  loop: >-
+    {{ system_board_metrics_module_details
+      | zip(system_board_metrics_uri_details) }}
