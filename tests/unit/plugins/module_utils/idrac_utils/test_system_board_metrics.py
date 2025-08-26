@@ -16,7 +16,6 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.module_utils.idra
 
 NA = "Not Available"
 
-
 class TestIDRACSystemBoardMetricsInfo(TestUtils):
 
     def test_get_system_metrics_info_success(self, idrac_mock):
@@ -175,7 +174,6 @@ class TestIDRACSystemBoardMetricsInfo(TestUtils):
 
         assert result == expected
 
-
     def test_get_system_metrics_info_missing_fields(self, idrac_mock):
         # Mock responses with missing fields
         cpu_usage_resp = {
@@ -327,7 +325,6 @@ class TestIDRACSystemBoardMetricsInfo(TestUtils):
         }]
 
         assert result == expected
-    
 
     def test_get_system_metrics_info_non_200_responses(self, idrac_mock):
         # Force non-200 to check fallbacks
@@ -399,7 +396,6 @@ class TestIDRACSystemBoardMetricsInfo(TestUtils):
         }]
 
         assert result == expected
-    
     
     def _get_sequential_responses(self, cpu_usage_resp, io_usage_resp, mem_usage_resp, sys_usage_resp, power_resp, amperage_resp, headroom_resp):
         return [

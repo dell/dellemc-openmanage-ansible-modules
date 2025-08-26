@@ -25,8 +25,6 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-
-
 GET_SYSTEMBOARD_CPUUSAGE_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Sensors/SystemBoardCPUUsage"
 GET_SYSTEMBOARD_IOUSAGE_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Sensors/SystemBoardIOUsage"
 GET_SYSTEMBOARD_MEMUSAGE_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Sensors/SystemBoardMEMUsage"
@@ -38,11 +36,10 @@ GET_POWERHEADROOM_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Sensors/PowerH
 
 NA = "Not Available"
 
-
 class IDRACSystemBoardMetricsInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
-    
+
     def get_cpu_usage_details(self):
         response = self.idrac.invoke_request(method='GET', uri=GET_SYSTEMBOARD_CPUUSAGE_URI_10)
         if response.status_code == 200:
@@ -63,7 +60,7 @@ class IDRACSystemBoardMetricsInfo(object):
                 cpu_usage_peak
             )
         return {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
-    
+
     def get_io_usage_details(self):
         response = self.idrac.invoke_request(method='GET', uri=GET_SYSTEMBOARD_IOUSAGE_URI_10)
         if response.status_code == 200:
@@ -132,7 +129,7 @@ class IDRACSystemBoardMetricsInfo(object):
         if response.status_code == 200:
             return response.json_data.get("PeakReading", NA)
         return {}
-    
+
     def get_peak_amperage_details(self):
         response = self.idrac.invoke_request(method='GET', uri=GET_SYSTEMBOARD_CURRENTCONSUMPTION_URI_10)
         if response.status_code == 200:
