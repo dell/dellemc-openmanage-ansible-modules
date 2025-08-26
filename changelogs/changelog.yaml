@@ -2353,7 +2353,7 @@ releases:
         - idrac_server_powerstate - This role is enhanced to support iDRAC10.
         - idrac_job_queue - This role is enhanced to support iDRAC10.
       known_issues:
-        - idrac_diagnostics - This module doesn't support
+        - idrac_diagnostics - This module does not support
           export of diagnostics file to HTTP and HTTPS share via SOCKS
           proxy.
         - idrac_attributes - The module accepts both the string as well as
