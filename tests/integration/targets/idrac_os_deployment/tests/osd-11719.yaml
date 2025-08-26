@@ -37,13 +37,13 @@
         share_user: "{{ cifs_share_user }}"
         share_password: "{{ cifs_share_password }}"
         iso_image: "{{ iso_image }}"
-        expose_duration: 5
+        expose_duration: 6
       register: result_cifs
 
     - name: Call helper file
       ansible.builtin.include_tasks: _helper.yml
 
-    - ansible.builtin.wait_for: timeout=400
+    - ansible.builtin.wait_for: timeout=420
 
     - name: Call helper file
       ansible.builtin.include_tasks: _helper.yml
