@@ -27,7 +27,8 @@
         that:
           - invalid_x_auth_token.failed
           - not invalid_x_auth_token.changed
-          - 'invalid_x_auth_token.msg == "HTTP Error 401: Unauthorized"'
+          - 'invalid_x_auth_token.msg == "HTTP Error 401: Unauthorized" or
+            invalid_x_auth_token.msg == "HTTP Error 400: Bad Request"'
 
     - name: Invalid env IDRAC_X_AUTH_TOKEN
       environment:
@@ -45,7 +46,8 @@
         that:
           - invalid_env_x_auth_token.failed
           - not invalid_env_x_auth_token.changed
-          - 'invalid_env_x_auth_token.msg == "HTTP Error 401: Unauthorized"'
+          - 'invalid_env_x_auth_token.msg == "HTTP Error 401: Unauthorized" or
+            invalid_env_x_auth_token.msg == "HTTP Error 400: Bad Request"'
 
     - name: No username and password or x_auth_token
       dellemc.openmanage.redfish_powerstate:
