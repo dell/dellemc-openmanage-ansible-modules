@@ -27,7 +27,7 @@
 
     - name: Define error message
       set_fact:
-      error_message: "<urlopen error [Errno 113] No route to host>"
+        error_message: "<urlopen error [Errno 113] No route to host>"
 
     - name: Asserting after performing operation.
       ansible.builtin.assert:

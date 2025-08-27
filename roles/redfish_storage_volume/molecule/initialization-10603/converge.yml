@@ -36,7 +36,7 @@
 
     - name: Define error message
       set_fact:
-      error_message: "Specified Volume Id inv:inv does not exist in the System."
+        error_message: "Specified Volume Id inv:inv does not exist in the System."
 
     - name: Asserting operation for initialization of type Fast.
       ansible.builtin.assert:
