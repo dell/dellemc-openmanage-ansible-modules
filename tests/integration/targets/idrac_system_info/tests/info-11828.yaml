@@ -63,6 +63,7 @@
           - result.system_info.Video is defined
           - result.system_info.iDRAC is defined
           - result.system_info.System is defined
+          - result.system_info.SystemBoardMetrics is defined
           - result.system_info.SystemMetrics is defined
           - result.system_info.iDRACNIC is defined
           - result.system_info.Sensors_Voltage is defined
