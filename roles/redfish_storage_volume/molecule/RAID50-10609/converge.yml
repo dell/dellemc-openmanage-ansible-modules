@@ -70,5 +70,5 @@
     - name: Collecting failure
       ansible.builtin.debug:
         var: redfish_storage_volume_failure
-      when: redfish_storage_volume_failure
+      when: redfish_storage_volume_failure != {}
       failed_when: true
