@@ -23,7 +23,8 @@
           ansible.builtin.include_tasks:
             file: ../__get_helper.yml
           vars:
-            idrac_cert_name: "{{ custom_cert_name }}"
+            idrac_cert_name:
+              - "{{ custom_cert_name }}"
 
         - name: Import a custom certificate
           ansible.builtin.import_role:
@@ -74,14 +75,14 @@
     - name: Export CUSTOMCERTIFICATE
       when:
         - idrac_certificate_firmware_version is defined
-        - "idrac_certificate_firmware_version >=
-           firmware_version_expected_export"
+
       block:
         - name: Fetching Custom certificate from share
           ansible.builtin.include_tasks:
             file: ../__get_helper.yml
           vars:
-            idrac_cert_name: "{{ custom_cert_name }}"
+            idrac_cert_name:
+              - "{{ custom_cert_name }}"
 
         - name: Export a custom certificate
           ansible.builtin.import_role:
@@ -128,14 +129,14 @@
             file: ../__delete_directory.yml
 
     - name: Import CUSTOMCERTIFICATE with passphrase
-      when: idrac_certificate_firmware_version is defined and
-             "idrac_certificate_firmware_version >= firmware_version_expected"
+      when: idrac_certificate_firmware_version is defined
              and cust_crt_name_pass is defined
       block:
         - name: Fetching Custom certificate from share
           ansible.builtin.include_tasks: ../__get_helper.yml
           vars:
-            idrac_cert_name: "{{ cust_crt_name_pass }}"
+            idrac_cert_name:
+              - "{{ cust_crt_name_pass }}"
 
         - name: Import a custom certificate with passphrase
           ansible.builtin.import_role:
