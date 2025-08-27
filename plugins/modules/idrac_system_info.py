@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.12.0
+# Version 10.0.0
 # Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -31,6 +31,7 @@ author:
   - "Kritika Bhateja (@Kritika-Bhateja-03)"
   - "Abhishek Sinha (@ABHISHEK-SINHA10)"
   - "Saksham Nautiyal (@Saksham-Nautiyal)"
+  - "Mangirish Kenkare(@MangirishK)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
@@ -114,6 +115,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.inf
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.sensors_temperature import IDRACSensorsTemperatureInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.controller_sensor import IDRACControllerSensorInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.system_metrics import IDRACSystemMetricsInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.system_board_metrics import IDRACSystemBoardMetricsInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
     idrac_utils.info.license import IDRACLicenseInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
@@ -172,6 +174,7 @@ def main():
                 "NIC": "",
                 "Fan": "",
                 "System": "",
+                "SystemBoardMetrics": "",
                 "SystemMetrics": "",
                 "Subsystem": "",
                 "Controller": "",
@@ -193,6 +196,7 @@ def main():
                 system_info_dict["Fan"] = IDRACFanInfo(idrac).get_fan_info()
                 system_info_dict["NIC"] = IDRACNICInfo(idrac).get_nic_info()
                 system_info_dict["System"] = IDRACSystemInfo(idrac).get_system_info()
+                system_info_dict["SystemBoardMetrics"] = IDRACSystemBoardMetricsInfo(idrac).get_system_board_metrics_info()
                 system_info_dict["SystemMetrics"] = IDRACSystemMetricsInfo(idrac).get_system_metrics_info()
                 system_info_dict["Video"] = IDRACVideoInfo(idrac).get_idrac_video_details()
                 system_info_dict["Subsystem"] = IDRACSubsystemInfo(idrac).get_subsystem_info()

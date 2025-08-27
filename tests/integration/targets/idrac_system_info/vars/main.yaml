@@ -63,3 +63,15 @@ power_headroom_uri: "{{ base_uri }}/{{ redfish_uri }}\
   Chassis/System.Embedded.1/Sensors/PowerHeadroom"
 controller_battery_uri: "{{ base_uri }}/{{ redfish_uri }}\
   Chassis/System.Embedded.1/PowerSubsystem/Oem/Dell/DellControllerBattery/"
+system_board_cpu_usage_uri: "{{ base_uri }}/{{ redfish_uri }}\
+  Chassis/System.Embedded.1/Sensors/SystemBoardCPUUsage"
+system_board_io_usage_uri: "{{ base_uri }}/{{ redfish_uri }}\
+  Chassis/System.Embedded.1/Sensors/SystemBoardIOUsage"
+system_board_mem_usage_uri: "{{ base_uri }}/{{ redfish_uri }}\
+  Chassis/System.Embedded.1/Sensors/SystemBoardMEMUsage"
+system_board_sys_usage_uri: "{{ base_uri }}/{{ redfish_uri }}\
+  Chassis/System.Embedded.1/Sensors/SystemBoardSYSUsage"
+system_board_power_consumption_uri: "{{ base_uri }}/{{ redfish_uri }}\
+  Chassis/System.Embedded.1/Sensors/SystemBoardPwrConsumption"
+system_board_current_consumption_uri: "{{ base_uri }}/{{ redfish_uri }}\
+  Chassis/System.Embedded.1/Sensors/SystemBoardCurrentConsumption"

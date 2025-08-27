@@ -1,0 +1,123 @@
+---
+- name: Fetch system board cpu usage details
+  ansible.builtin.uri:
+    url: "{{ system_board_cpu_usage_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    return_content: true
+    status_code: 200
+  register: cpu_usage_uri_details
+
+- name: Fetch system board io usage details
+  ansible.builtin.uri:
+    url: "{{ system_board_io_usage_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    return_content: true
+    status_code: 200
+  register: io_usage_uri_details
+
+- name: Fetch system board mem usage details
+  ansible.builtin.uri:
+    url: "{{ system_board_mem_usage_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    return_content: true
+    status_code: 200
+  register: mem_usage_uri_details
+
+- name: Fetch system board sys usage details
+  ansible.builtin.uri:
+    url: "{{ system_board_sys_usage_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    return_content: true
+    status_code: 200
+  register: sys_usage_uri_details
+
+- name: Fetch system board power consumption details
+  ansible.builtin.uri:
+    url: "{{ system_board_power_consumption_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    return_content: true
+    status_code: 200
+  register: power_consumption_uri_details
+
+- name: Fetch system board current consumption details
+  ansible.builtin.uri:
+    url: "{{ system_board_current_consumption_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    return_content: true
+    status_code: 200
+  register: current_consumption_uri_details
+
+- name: Fetch system board power headroom details
+  ansible.builtin.uri:
+    url: "{{ power_headroom_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    return_content: true
+    status_code: 200
+  register: power_headroom_uri_details
+
+- name: Structuring system board metrics uri details
+  ansible.builtin.command:
+    cmd: >
+      python _get_system_board_metrics_details.py
+      '{{ cpu_usage_uri_details.json | to_json }}'
+      '{{ io_usage_uri_details.json | to_json }}'
+      '{{ mem_usage_uri_details.json | to_json }}'
+      '{{ sys_usage_uri_details.json | to_json }}'
+      '{{ power_consumption_uri_details.json | to_json }}'
+      '{{ current_consumption_uri_details.json | to_json }}'
+      '{{ power_headroom_uri_details.json | to_json }}'
+    chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  register: system_board_metrics_uri_details
+
+- name: Sort sytem board metrics uri details
+  ansible.builtin.set_fact:
+    system_board_metrics_uri_details: >-
+      {{ system_board_metrics_uri_details.stdout
+        | from_json
+        | list
+        | sort(attribute='Key') }}
+
+- name: Sort SystemBoardMetrics module details
+  ansible.builtin.set_fact:
+    system_board_metrics_module_details: >-
+      {{ result.system_info.SystemBoardMetrics
+        | list
+        | sort(attribute='Key') }}
+
+- name: Comparing values inside list for system board metrics
+  ansible.builtin.include_tasks:
+    file: _compare_diff.yml
+  vars:
+    _before: "{{ item.0 }}"
+    _after: "{{ item.1 }}"
+  loop: >-
+    {{ system_board_metrics_module_details
+      | zip(system_board_metrics_uri_details) }}
