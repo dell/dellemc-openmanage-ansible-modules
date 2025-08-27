@@ -29,14 +29,18 @@
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         command: initialize
-        volume_id: "invalid_volume_id:invalid_controller_id"
+        volume_id: "inv:inv"
         initialize_type: "Fast"
       ignore_errors: true
       register: redfish_storage_volume_result
 
+    - name: Define error message
+      set_fact:
+      error_message: "Specified Volume Id inv:inv does not exist in the System."
+
     - name: Asserting operation for initialization of type Fast.
       ansible.builtin.assert:
-        that: redfish_storage_volume_out.msg == "Specified Volume Id invalid_volume_id:invalid_controller_id does not exist in the System."
+        that: redfish_storage_volume_out.msg == error_message
 
     - name: Running for Initialization type scenarios
       block:

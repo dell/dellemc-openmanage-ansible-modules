@@ -25,10 +25,14 @@
       register: redfish_storage_volume_result
       ignore_unreachable: true
 
+    - name: Define error message
+      set_fact:
+      error_message: "<urlopen error [Errno 113] No route to host>"
+
     - name: Asserting after performing operation.
       ansible.builtin.assert:
         that:
-          - redfish_storage_volume_out.msg == "<urlopen error [Errno 113] No route to host>" or
+          - redfish_storage_volume_out.msg == error_message or
             redfish_storage_volume_out.msg == "<urlopen error timed out>"
 
     - name: To check the behaviour of invalid credentials.
