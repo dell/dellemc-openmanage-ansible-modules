@@ -32,7 +32,7 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
 
 ## Requirements
   * [Ansible Core >= 2.19.0 and 2.18.8](https://github.com/ansible/ansible)
-  * Python >= 3.9.6
+  * Python >= 3.11.0
   * To run the iDRAC modules, install OpenManage Python Software Development Kit (OMSDK) 
   using either ```pip install omsdk --upgrade``` or ```pip install -r requirements.txt```. 
   OMSDK can also be installed from [Dell OpenManage Python SDK](https://github.com/dell/omsdk)
