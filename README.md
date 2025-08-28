@@ -2,8 +2,8 @@
 
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.1%20adopted-ff69b4.svg)](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/CODE_OF_CONDUCT.md)
 [![License](https://img.shields.io/github/license/dell/dellemc-openmanage-ansible-modules)](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/LICENSE)
-[![Python version](https://img.shields.io/badge/python-3.9.6+-blue.svg)](https://www.python.org/downloads/)
-[![Ansible version](https://img.shields.io/badge/ansible-2.15.6+-blue.svg)](https://pypi.org/project/ansible/)
+[![Python version](https://img.shields.io/badge/python-3.11.12+-blue.svg)](https://www.python.org/downloads/)
+[![Ansible version](https://img.shields.io/badge/ansible_core-2.18.6+-blue.svg)](https://pypi.org/project/ansible/)
 [![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/dell/dellemc-openmanage-ansible-modules?include_prereleases&label=latest&style=flat-square)](https://github.com/dell/dellemc-openmanage-ansible-modules/releases)
 [![codecov](https://codecov.io/gh/dell/dellemc-openmanage-ansible-modules/branch/collections/graph/badge.svg)](https://app.codecov.io/gh/dell/dellemc-openmanage-ansible-modules)
 
