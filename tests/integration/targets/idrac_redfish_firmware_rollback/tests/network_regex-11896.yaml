@@ -126,7 +126,8 @@
             components_list: "{{ rollback_components }}"
 
         - ansible.builtin.set_fact:
-            module_job_status: "{{ result.job_status | ansible.utils.remove_keys(
+            module_job_status: "{{ result.job_status
+              | ansible.utils.remove_keys(
               target=['ActualRunningStopTime', 'ActualRunningStartTime'],
               matching_parameter='regex') }}"
 

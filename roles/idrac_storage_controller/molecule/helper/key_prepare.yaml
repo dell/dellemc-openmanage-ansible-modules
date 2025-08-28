@@ -98,8 +98,8 @@
         - name: Constructing url
           ansible.builtin.set_fact:
             cacheable: true
-            url_1: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ https_port }}
-              /redfish/v1/"
+            url_1: "https://{{ idrac_ip | ansible.utils.ipwrap }}:\
+              {{ https_port }}/redfish/v1/"
             url_2: "Systems/System.Embedded.1/Storage/{{ controller_name }}/"
             url_3: "Controllers/{{ controller_name }}"
 
