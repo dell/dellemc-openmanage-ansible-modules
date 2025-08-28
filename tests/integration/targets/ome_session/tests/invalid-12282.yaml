@@ -22,7 +22,7 @@
       ansible.builtin.assert:
         that:
           - invalid_1.failed
-          - "'value of state must be one of: present, 
+          - "'value of state must be one of: present,
             absent, got: invalid' in invalid_1.msg"
 
     - name: Negative - unreachable host
@@ -80,7 +80,7 @@
           - not invalid_port.changed
           - 'invalid_port.msg == "<urlopen error [Errno 113] No route to host>"
              or invalid_port.msg == "<urlopen error [Errno 13]
-             Permission denied>" 
+             Permission denied>"
              or invalid_port.msg == "<urlopen error timed out>"'
 
     - name: Negative - invalid validate_certs
