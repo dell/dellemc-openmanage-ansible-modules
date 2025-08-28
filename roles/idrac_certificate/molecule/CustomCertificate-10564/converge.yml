@@ -17,15 +17,7 @@
         idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
         idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
 
-    - name: Set expected firmware version
-      ansible.builtin.set_fact:
-        firmware_version_expected: "6.10.80.00"
-        firmware_version_expected_export: "7.00.00.00"
-
     - name: Import CUSTOMCERTIFICATE without passphrase
-      when: idrac_certificate_firmware_version is defined and
-             "idrac_certificate_firmware_version >= firmware_version_expected"
-             and custom_cert_name
       block:
         - name: Fetching Custom certificate from share
           ansible.builtin.include_tasks:
@@ -83,8 +75,7 @@
     - name: Export CUSTOMCERTIFICATE
       when:
         - idrac_certificate_firmware_version is defined
-        - "idrac_certificate_firmware_version >=
-           firmware_version_expected_export"
+
       block:
         - name: Fetching Custom certificate from share
           ansible.builtin.include_tasks:
@@ -138,13 +129,11 @@
             file: ../__delete_directory.yml
 
     - name: Import CUSTOMCERTIFICATE with passphrase
-      when: idrac_certificate_firmware_version is defined and
-             "idrac_certificate_firmware_version >= firmware_version_expected"
-             and cust_crt_name_pass
+      when: idrac_certificate_firmware_version is defined
+             and cust_crt_name_pass is defined
       block:
         - name: Fetching Custom certificate from share
-          ansible.builtin.include_tasks:
-            file: ../__get_helper.yml
+          ansible.builtin.include_tasks: ../__get_helper.yml
           vars:
             idrac_cert_name:
               - "{{ cust_crt_name_pass }}"
@@ -190,13 +179,13 @@
                            {'msg': ansible_failed_result.msg,
                            'failed_task_name': ansible_failed_task.name}}) }}"
 
+        - name: Collecting failure
+          ansible.builtin.debug:
+            var: custom_certificate_failure
+          when: custom_certificate_failure is defined
+          failed_when: true
+
       always:
         - name: Deleting the directory
           ansible.builtin.include_tasks:
             file: ../__delete_directory.yml
-
-    - name: Collecting failure
-      ansible.builtin.debug:
-        var: custom_certificate_failure
-      when: custom_certificate_failure
-      failed_when: true

@@ -90,6 +90,9 @@
     - name: Get Sensors temperature details - no omsdk required
       ansible.builtin.include_tasks: _validate_sensors_temperature.yml
 
+    - name: Get System board metrics details - no omsdk required
+      ansible.builtin.include_tasks: _validate_system_board_metrics.yml
+
     - name: Get System metrics details - no omsdk required
       ansible.builtin.include_tasks: _validate_system_metrics.yml
 
