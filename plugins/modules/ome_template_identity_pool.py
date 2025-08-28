@@ -175,7 +175,7 @@ def main():
             if template["IdentityPoolId"] == identity_id:
                 module.exit_json(changed=True, msg=NO_CHANGES_FOUND)
             if module.check_mode:
-                module.exit_json(changed=False, msg=CHANGES_FOUND)
+                module.exit_json(changed=True, msg=CHANGES_FOUND)
             resp = rest_obj.invoke_request("POST", CONFIG_URI, data=payload)
             if resp.status_code == 200:
                 module.exit_json(msg=message, changed=True)
