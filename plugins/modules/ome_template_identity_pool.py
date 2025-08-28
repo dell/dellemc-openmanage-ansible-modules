@@ -134,7 +134,7 @@ def get_template_id(rest_obj, module):
             break
     else:
         module.exit_json(msg="Unable to complete the operation because the requested template"
-                             " with name '{0}' is not present.".format(template_name), changed=False)
+                             " with name '{0}' is not present.".format(template_name), failed=True)
     return template
 
 
@@ -148,7 +148,7 @@ def get_identity_id(rest_obj, module):
             break
     else:
         module.exit_json(msg="Unable to complete the operation because the requested identity"
-                             " pool with name '{0}' is not present.".format(identity_name), changed=False)
+                             " pool with name '{0}' is not present.".format(identity_name), failed=True)
     return identity_id
 
 
@@ -173,12 +173,12 @@ def main():
             nic_bonding_tech = get_template_vlan_info(rest_obj, template_id)
             payload = {"TemplateId": template_id, "IdentityPoolId": identity_id, "BondingTechnology": nic_bonding_tech}
             if template["IdentityPoolId"] == identity_id:
-                module.exit_json(changed=False, msg=NO_CHANGES_FOUND)
+                module.exit_json(changed=True, msg=NO_CHANGES_FOUND)
             if module.check_mode:
                 module.exit_json(changed=False, msg=CHANGES_FOUND)
             resp = rest_obj.invoke_request("POST", CONFIG_URI, data=payload)
             if resp.status_code == 200:
-                module.exit_json(msg=message, changed=False)
+                module.exit_json(msg=message, changed=True)
     except HTTPError as err:
         module.exit_json(msg=str(err), failed=True)
     except URLError as err:
