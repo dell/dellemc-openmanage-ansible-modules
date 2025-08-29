@@ -5,7 +5,7 @@
   tasks:
     - name: Update firmware from repository on HTTPS Share with apply_update as false
       ansible.builtin.import_role:
-        name: "idrac_firmware"
+        name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -35,12 +35,12 @@
         validate_certs: false
         command: "import"
         certificate_type: "CLIENT_TRUST_CERTIFICATE"
-        certificate_path: "/home/kritika/cert.cer"
+        certificate_path: "{{ lookup('env', 'https_share_cert_path') }}"
       delegate_to: localhost
 
     - name: Update firmware from repository on HTTPS Share with ignore_cert_warning as false
       ansible.builtin.import_role:
-        name: "idrac_firmware"
+        name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -77,7 +77,7 @@
 
     - name: Update firmware from repository on HTTPS Share with reboot as false
       ansible.builtin.import_role:
-        name: "idrac_firmware"
+        name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -98,6 +98,10 @@
           - idrac_firmware_out.msg == "Successfully staged the applicable
             firmware update packages."
       when: not ansible_check_mode
+
+    - name: Wait for iDRAC to become unreachable
+      ansible.builtin.pause:
+        seconds: 300
 
     - name: "Waiting for idrac to be reachable (second wait)"
       ansible.builtin.include_tasks:
@@ -120,7 +124,7 @@
 
     - name: Update firmware from repository on HTTPS Share with job_wait as false
       ansible.builtin.import_role:
-        name: "idrac_firmware"
+        name: dellemc.openmanage.idrac_firmware
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"

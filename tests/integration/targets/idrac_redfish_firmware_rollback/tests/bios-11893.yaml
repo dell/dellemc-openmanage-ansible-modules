@@ -21,15 +21,27 @@
 
 - ansible.builtin.include_tasks: _get_firmware_inventory.yml
 
+- ansible.builtin.include_tasks: _get_server_generation.yml
+
+- name: Set Firmware Inventory name for iDRAC10
+  ansible.builtin.set_fact:
+    rollback_component_name_bios: "BIOS Firmware Inventory"
+  when: generation | int >= 17
+
+- name: Set Firmware Inventory name for iDRAC9
+  ansible.builtin.set_fact:
+    rollback_component_name_bios: "BIOS"
+  when: generation | int < 17
+
 - ansible.builtin.include_tasks: _prereq_helper.yml
   vars:
-    comp: "BIOS"
-  when: '"BIOS" not in rollback_component_list'
+    comp: "{{ rollback_component_name_bios }}"
+  when: 'rollback_component_name_bios not in rollback_component_list'
 
 - block:
     - ansible.builtin.include_tasks: _get_firmware_inventory.yml
       vars:
-        component: "BIOS"
+        component: "{{ rollback_component_name_bios }}"
 
     - ansible.builtin.set_fact:
         rollback_to_version: "{{ previous_version }}"
@@ -37,7 +49,7 @@
     - name: Rollback an BIOS component firmware with reboot as false
         (Check mode - changes expected)
       redfish_firmware_rollback: &redfish_firmware_rollback_1
-        name: BIOS
+        name: "{{ rollback_component_name_bios }}"
         reboot: false
         timeout: 300
       register: result
@@ -101,7 +113,7 @@
 
     - ansible.builtin.include_tasks: _get_firmware_inventory.yml
       vars:
-        component: "BIOS"
+        component: "{{ rollback_component_name_bios }}"
 
     - name: Verify firmware version of BIOS component post rollback with
         reboot as false (Normal mode)
@@ -179,7 +191,7 @@
 
     - ansible.builtin.include_tasks: _get_firmware_inventory.yml
       vars:
-        component: "BIOS"
+        component: "{{ rollback_component_name_bios }}"
 
     - name: Verify firmware version of BIOS component post rollback with
         reboot as false (Idempotence mode - changes expected)
@@ -193,7 +205,7 @@
     - name: Rollback an BIOS component firmware with reboot as true and
         non-default reboot_timeout (Check mode - changes expected)
       redfish_firmware_rollback: &redfish_firmware_rollback_2
-        name: BIOS
+        name: "{{ rollback_component_name_bios }}"
         reboot: true
         reboot_timeout: 3600
         timeout: 300
@@ -225,7 +237,7 @@
 
     - ansible.builtin.include_tasks: _get_firmware_inventory.yml
       vars:
-        component: "BIOS"
+        component: "{{ rollback_component_name_bios }}"
 
     - ansible.builtin.set_fact:
         module_job_status: "{{ result.job_status | ansible.utils.remove_keys(

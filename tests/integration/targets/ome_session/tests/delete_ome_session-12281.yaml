@@ -85,8 +85,8 @@
           - create_session_output.changed
           - create_session_output.msg == 'The session has been
              created successfully.'
-          - create_session_output.x_auth_token
-          - create_session_output.session_data
+          - create_session_output.x_auth_token | length > 0
+          - create_session_output.session_data | length > 0
 
     - name: Set auth token and session id
       ansible.builtin.set_fact:

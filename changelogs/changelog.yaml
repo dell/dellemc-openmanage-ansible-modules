@@ -2353,7 +2353,7 @@ releases:
         - idrac_server_powerstate - This role is enhanced to support iDRAC10.
         - idrac_job_queue - This role is enhanced to support iDRAC10.
       known_issues:
-        - idrac_diagnostics - This module doesn't support
+        - idrac_diagnostics - This module does not support
           export of diagnostics file to HTTP and HTTPS share via SOCKS
           proxy.
         - idrac_attributes - The module accepts both the string as well as
@@ -2408,3 +2408,76 @@ releases:
           created using the same name as an existing uplink, then the existing
           uplink is modified.
     release_date: '2025-07-31'
+
+  10.0.0:
+    changes:
+      release_summary: 'The ``idrac_license``, ``idrac_os_deployment``,
+       ``idrac_redfish_storage_controller``, ``idrac_server_config_profile``,
+       ``idrac_storage_volume``, ``redfish_firmware_rollback``,
+       ``redfish_storage_volume`` modules and ``idrac_certificate``,
+       ``idrac_export_server_config_profile``, ``idrac_firmware``,
+       ``idrac_import_server_config_profile``, ``idrac_os_deployment``,
+       ``idrac_storage_controller``, ``redfish_firmware``,
+       ``redfish_storage_volume`` roles are enhanced to support iDRAC10.'
+      major_changes:
+        - idrac_license - This module is enhanced to support iDRAC10.
+        - idrac_os_deployment - This module is enhanced to support iDRAC10.
+        - idrac_redfish_storage_controller - This module is enhanced to support
+           iDRAC10.
+        - idrac_server_config_profile - This module is enhanced to support
+           iDRAC10.
+        - idrac_storage_volume - This module is enhanced to support iDRAC10.
+        - redfish_firmware_rollback - This module is enhanced to support
+           iDRAC10.
+        - redfish_storage_volume - This module is enhanced to support iDRAC10.
+        - idrac_certificate - This role is enhanced to support iDRAC10.
+        - idrac_export_server_config_profile - This role is enhanced to support
+           iDRAC10.
+        - idrac_firmware - This role is enhanced to support iDRAC10.
+        - idrac_import_server_config_profile - This role is enhanced to support
+           iDRAC10.
+        - idrac_os_deployment - This role is enhanced to support iDRAC10.
+        - idrac_storage_controller - This role is enhanced to support iDRAC10.
+        - redfish_firmware - This role is enhanced to support iDRAC10.
+        - redfish_storage_volume - This role is enhanced to support iDRAC10.
+      bugfixes:
+        - idrac_system_info - (Issue 967) - idrac_system_info fails on
+           iDRAC10 with GPU.
+         (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/967)
+        - idrac_server_config_profile - (Issue 959) Can't export SCP
+           (Server configuration profile) on iDRAC 10.
+         (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/959)
+      known_issues:
+        - idrac_diagnostics - This module does not support
+          export of diagnostics file to HTTP and HTTPS share via SOCKS
+          proxy.
+        - idrac_attributes - The module accepts both the string as well as
+          integer value for the field "SNMP.1.AgentCommunity" for iDRAC10.
+        - idrac_license - The module will fail to export license to NFS
+          Share.
+        - idrac_license - The module will give different error messages for
+          iDRAC9 and iDRAC10 when user imports license with invalid share
+          name.
+        - idrac_license - Due to API limitation, proxy parameters are ignored
+          during the import operation.
+        - idrac_os_deployment - The module continues to return a 200 response
+          and marks the job as completed, even when an outdated date is supplied
+          in the Expose duration.
+        - idrac_redfish_storage_controller - PatrolReadRatePercent attribute
+          cannot be set in iDRAC10.
+        - idrac_server_config_profile - When attempting to revert iDRAC settings
+          using a previously exported SCP file, the import operation will
+          complete with errors if a new user was created after the export
+          (Instead of restoring the system to its previous state, including
+          the removal of newly added users).
+        - idrac_system_info - The module will show empty video list despite
+          having Embedded VIDEO controller.
+        - redfish_storage_volume - Encryption type and block_io_size bytes
+          will be read only property in iDRAC 9 and iDRAC 10 and hence the
+          module ignores these parameters.
+        - ome_smart_fabric_uplink - The module supported by
+          OpenManage Enterprise Modular, however it does not allow the
+          creation of multiple uplinks of the same name. If an uplink is
+          created using the same name as an existing uplink, then the existing
+          uplink is modified.
+      release_date: '2025-08-29'
