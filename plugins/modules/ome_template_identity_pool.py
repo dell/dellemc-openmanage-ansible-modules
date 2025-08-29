@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 10.0.0
 # Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -35,7 +35,9 @@ options:
     type: str
 requirements:
     - "python >= 3.9.6"
-author: "Felix Stephen (@felixs88)"
+author:
+    - "Felix Stephen (@felixs88)"
+    - "Meenakshi Dembi(@meenakshidembi691)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module supports C(check_mode).
@@ -90,7 +92,6 @@ error_info:
   }
 '''
 
-import json
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -132,8 +133,8 @@ def get_template_id(rest_obj, module):
             template = each
             break
     else:
-        module.fail_json(msg="Unable to complete the operation because the requested template"
-                             " with name '{0}' is not present.".format(template_name))
+        module.exit_json(msg="Unable to complete the operation because the requested template"
+                             " with name '{0}' is not present.".format(template_name), failed=True)
     return template
 
 
@@ -146,8 +147,8 @@ def get_identity_id(rest_obj, module):
             identity_id = each['Id']
             break
     else:
-        module.fail_json(msg="Unable to complete the operation because the requested identity"
-                             " pool with name '{0}' is not present.".format(identity_name))
+        module.exit_json(msg="Unable to complete the operation because the requested identity"
+                             " pool with name '{0}' is not present.".format(identity_name), failed=True)
     return identity_id
 
 
@@ -172,20 +173,20 @@ def main():
             nic_bonding_tech = get_template_vlan_info(rest_obj, template_id)
             payload = {"TemplateId": template_id, "IdentityPoolId": identity_id, "BondingTechnology": nic_bonding_tech}
             if template["IdentityPoolId"] == identity_id:
-                module.exit_json(changed=False, msg=NO_CHANGES_FOUND)
+                module.exit_json(changed=True, msg=NO_CHANGES_FOUND)
             if module.check_mode:
                 module.exit_json(changed=True, msg=CHANGES_FOUND)
             resp = rest_obj.invoke_request("POST", CONFIG_URI, data=payload)
             if resp.status_code == 200:
                 module.exit_json(msg=message, changed=True)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (ValueError, TypeError, ConnectionError, SSLError, SSLValidationError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
     except Exception as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == "__main__":

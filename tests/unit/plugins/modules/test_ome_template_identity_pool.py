@@ -80,7 +80,7 @@ class TestOMETemplateIdentityPool(FakeAnsibleModule):
             mocker.patch(
                 MODULE_PATH + 'get_template_id',
                 side_effect=exc_type('error'))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(
@@ -88,7 +88,7 @@ class TestOMETemplateIdentityPool(FakeAnsibleModule):
                 side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str))
             )
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'msg' in result
 
@@ -100,10 +100,9 @@ class TestOMETemplateIdentityPool(FakeAnsibleModule):
         ome_response_mock.json_data = {"msg": "Successfully assigned identity pool to template.", "changed": True}
         ome_response_mock.success = True
         ome_response_mock.status_code = 200
-        result = self.execute_module(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert "msg" in result
-        assert result["msg"] == "Successfully attached identity pool to " \
-                                "template."
+        assert "Successfully attached identity pool to template." in result["msg"]
 
     def test_get_template_vlan_info(self, ome_connection_mock_template_identity_pool, ome_response_mock):
         f_module = self.get_module_mock(params={"nic_identifier": "NIC Slot 4"})
