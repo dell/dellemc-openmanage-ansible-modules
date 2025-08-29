@@ -2,8 +2,8 @@
 
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.1%20adopted-ff69b4.svg)](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/CODE_OF_CONDUCT.md)
 [![License](https://img.shields.io/github/license/dell/dellemc-openmanage-ansible-modules)](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/LICENSE)
-[![Python version](https://img.shields.io/badge/python-3.9.6+-blue.svg)](https://www.python.org/downloads/)
-[![Ansible version](https://img.shields.io/badge/ansible-2.15.6+-blue.svg)](https://pypi.org/project/ansible/)
+[![Python version](https://img.shields.io/badge/python-3.11.12+-blue.svg)](https://www.python.org/downloads/)
+[![Ansible version](https://img.shields.io/badge/ansible_core-2.18.6+-blue.svg)](https://pypi.org/project/ansible/)
 [![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/dell/dellemc-openmanage-ansible-modules?include_prereleases&label=latest&style=flat-square)](https://github.com/dell/dellemc-openmanage-ansible-modules/releases)
 [![codecov](https://codecov.io/gh/dell/dellemc-openmanage-ansible-modules/branch/collections/graph/badge.svg)](https://app.codecov.io/gh/dell/dellemc-openmanage-ansible-modules)
 
@@ -31,8 +31,8 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
   * Dell OpenManage Enterprise Modular versions 2.10.10 and above.
 
 ## Requirements
-  * [Ansible Core >= 2.18.7 and 2.17.13](https://github.com/ansible/ansible)
-  * Python >= 3.9.6
+  * [Ansible Core >= 2.19.0 and 2.18.8](https://github.com/ansible/ansible)
+  * Python >= 3.11.0
   * To run the iDRAC modules, install OpenManage Python Software Development Kit (OMSDK) 
   using either ```pip install omsdk --upgrade``` or ```pip install -r requirements.txt```. 
   OMSDK can also be installed from [Dell OpenManage Python SDK](https://github.com/dell/omsdk)
