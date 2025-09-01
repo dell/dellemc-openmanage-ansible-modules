@@ -79,7 +79,7 @@
       register: first_idempotency_mode
 
     - name: Verifying configuring "Login Lockout Policy" - Idempotency
-      assert:
+      ansible.builtin.assert:
         that:
           - not first_idempotency_mode.changed
           - first_idempotency_mode.msg == 'No changes found to be applied.'
