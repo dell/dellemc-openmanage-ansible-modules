@@ -1,5 +1,5 @@
 # Dell OpenManage Ansible modules
-# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -22,7 +22,8 @@
       ansible.builtin.assert:
         that:
           - invalid_1.failed
-          - "'value of state must be one of: present, absent, got: invalid' in invalid_1.msg"
+          - "'value of state must be one of: present,
+            absent, got: invalid' in invalid_1.msg"
 
     - name: Negative - unreachable host
       dellemc.openmanage.ome_session:
@@ -79,7 +80,8 @@
           - not invalid_port.changed
           - 'invalid_port.msg == "<urlopen error [Errno 113] No route to host>"
              or invalid_port.msg == "<urlopen error [Errno 13]
-             Permission denied>" or invalid_port.msg == "<urlopen error timed out>"'
+             Permission denied>"
+             or invalid_port.msg == "<urlopen error timed out>"'
 
     - name: Negative - invalid validate_certs
       dellemc.openmanage.ome_session:
@@ -92,8 +94,9 @@
         that:
           - invalid_validate_certs.failed
           - not invalid_validate_certs.changed
-          - '"argument ''validate_certs'' is of type str and we were unable to convert to bool: The value ''invalid''
-              is not a valid boolean. Valid booleans include:" in invalid_validate_certs.msg'
+          - '"argument ''validate_certs'' is of type str and we were unable
+            to convert to bool: The value ''invalid'' is not a valid
+            boolean. Valid booleans include:" in invalid_validate_certs.msg'
 
     - name: Negative - invalid ca_path path
       dellemc.openmanage.ome_session:

@@ -11,9 +11,12 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
+- name: Check if module is calling omsdk
+  ansible.builtin.include_tasks: _check_firmware_version_supported.yml
+
 - block:
     - name: Prerequisite - Fetch Storage details
-      dellemc_idrac_storage_volume:
+      dellemc.openmanage.idrac_storage_volume:
         state: "view"
       register: result_pre_req
 
@@ -216,7 +219,7 @@
            "No changes found to be applied."'
 
   module_defaults:
-    dellemc.openmanage.dellemc_idrac_storage_volume:
+    dellemc.openmanage.idrac_storage_volume:
       idrac_ip: "{{ idrac_ip | ansible.utils.ipwrap }}"
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
@@ -227,3 +230,6 @@
       username: "{{ idrac_user }}"
       password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"
+
+  when:
+    - is_omsdk_required | bool

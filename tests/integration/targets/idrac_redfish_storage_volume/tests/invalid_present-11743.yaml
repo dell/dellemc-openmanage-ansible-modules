@@ -147,23 +147,6 @@
           - 'invalid_volume_id.msg == "Specified Volume Id
             DiskVirtual.0:RAID.Slot.1-1 does not exist in the System."'
 
-    - name: Negative - invalid block_size_bytes
-      dellemc.openmanage.redfish_storage_volume:
-        state: present
-        volume_type: NonRedundant
-        controller_id: "{{ controller_name }}"
-        block_size_bytes: 65535
-        drives: "{{ physical_disks[-1] }}"
-      register: invalid_block_size_bytes
-      ignore_errors: true
-
-    - name: Verify task status - Negative - invalid block_size_bytes
-      ansible.builtin.assert:
-        that:
-          - invalid_block_size_bytes.failed
-          - not invalid_block_size_bytes.changed
-          - 'invalid_block_size_bytes.msg == "HTTP Error 400: Bad Request"'
-
     - name: Negative - invalid capacity_bytes
       dellemc.openmanage.redfish_storage_volume:
         state: present

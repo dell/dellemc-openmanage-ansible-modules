@@ -16,13 +16,7 @@
         idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
         idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
 
-    - name: Set expected firmware version
-      ansible.builtin.set_fact:
-        firmware_version_expected: "6.00.02.00"
-
-    - name: Import Https certificate using ssl_key
-      when: idrac_certificate_firmware_version is defined and
-             "idrac_certificate_firmware_version >= firmware_version_expected"
+    - name: Import HTTPS certificate using ssl_key
       block:
         - name: Set fact
           ansible.builtin.set_fact:
@@ -93,13 +87,13 @@
                      {'msg': ansible_failed_result.msg,
                      'failed_task_name': ansible_failed_task.name}}) }}"
 
+        - name: Collecting failure
+          ansible.builtin.debug:
+            var: https_cert_ssl_failure
+          when: https_cert_ssl_failure is defined
+          failed_when: true
+
       always:
         - name: Deleting the directory
           ansible.builtin.include_tasks:
             file: ../__delete_directory.yml
-
-    - name: Collecting failure
-      ansible.builtin.debug:
-        var: https_cert_ssl_failure
-      when: https_cert_ssl_failure
-      failed_when: true

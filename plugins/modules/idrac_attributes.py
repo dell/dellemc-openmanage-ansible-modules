@@ -554,11 +554,11 @@ def main():
             update_idrac_attributes(idrac, module, uri_dict, idrac_response_attr, system_response_attr, lc_response_attr)
             module.exit_json(msg=SUCCESS_MSG, changed=True)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, TypeError, ConnectionError, AttributeError, IndexError, KeyError) as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
 
 
 if __name__ == '__main__':
