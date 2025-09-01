@@ -114,7 +114,7 @@
       register: second_normal_mode
 
     - ansible.builtin.include_tasks: _get_data_uri.yml
-    - set_fact:
+    - ansible.builtin.set_fact:
         second_data: "{{ mapped_data }}"
 
     - name: Verifying configuring "Login Lockout Policy" - Normal
