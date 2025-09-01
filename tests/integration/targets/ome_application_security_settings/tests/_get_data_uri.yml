@@ -16,7 +16,7 @@
   register: result
 
 - name: Extracting data
-  set_fact:
+  ansible.builtin.set_fact:
     mapped_data: "{{ result.json.SystemConfiguration.\
       Components[0].Attributes | ansible.builtin.items2dict(\
       key_name = 'Name', value_name = 'Value') }}"
