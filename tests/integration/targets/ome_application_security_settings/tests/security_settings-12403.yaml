@@ -113,7 +113,7 @@
           lockout_penalty_time: 900
       register: second_normal_mode
 
-    - include_tasks: _get_data_uri.yml
+    - ansible.builtin.include_tasks: _get_data_uri.yml
     - set_fact:
         second_data: "{{ mapped_data }}"
 
