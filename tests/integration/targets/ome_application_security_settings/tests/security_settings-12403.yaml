@@ -97,7 +97,7 @@
       check_mode: true
 
     - name: Verifying configuring "Login Lockout Policy" - Check mode
-      assert:
+      ansible.builtin.assert:
         that:
           - second_cm_mode.changed
           - second_cm_mode.msg == 'Changes found to be applied.'
