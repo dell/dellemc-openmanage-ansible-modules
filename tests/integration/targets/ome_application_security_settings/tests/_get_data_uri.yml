@@ -20,9 +20,3 @@
     mapped_data: "{{ result.json.SystemConfiguration.\
       Components[0].Attributes | ansible.builtin.items2dict(\
       key_name = 'Name', value_name = 'Value') }}"
-
-# - name: Mapping name and value
-#   set_fact:
-#     mapped_data: "{{ mapped_data | default({}) |
-#       combine({ item.Name : item.Value }) }}"
-#   loop: "{{ attribute_data }}"
