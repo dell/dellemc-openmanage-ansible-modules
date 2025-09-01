@@ -1,0 +1,28 @@
+---
+- name: Pre-req - Get data using uri
+  uri:
+    url: "https://{{hostname}}:{{port}}\
+      /api/ApplicationService/Actions\
+      /ApplicationService.GetConfiguration"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    method: POST
+    body: {}
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+    headers: 'Accept=application/json'
+  register: result
+
+- name: Extracting data
+  set_fact:
+    mapped_data: "{{ result.json.SystemConfiguration.\
+      Components[0].Attributes | ansible.builtin.items2dict(\
+      key_name = 'Name', value_name = 'Value') }}"
+
+# - name: Mapping name and value
+#   set_fact:
+#     mapped_data: "{{ mapped_data | default({}) |
+#       combine({ item.Name : item.Value }) }}"
+#   loop: "{{ attribute_data }}"
