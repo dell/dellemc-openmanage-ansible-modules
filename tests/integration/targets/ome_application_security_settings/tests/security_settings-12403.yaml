@@ -118,7 +118,7 @@
         second_data: "{{ mapped_data }}"
 
     - name: Verifying configuring "Login Lockout Policy" - Normal
-      assert:
+      ansible.builtin.assert:
         that:
           - second_normal_mode.changed
           - second_normal_mode.msg ==
