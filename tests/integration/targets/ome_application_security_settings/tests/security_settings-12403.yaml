@@ -144,7 +144,7 @@
       register: second_idempotency_mode
 
     - name: Verifying configuring "Login Lockout Policy" - Idempotency
-      assert:
+      ansible.builtin.assert:
         that:
           - not second_idempotency_mode.changed
           - second_idempotency_mode.msg == 'No changes found to be applied.'
