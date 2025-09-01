@@ -52,7 +52,7 @@
           lockout_penalty_time: 901
       register: first_normal_mode
 
-    - include_tasks: get_data_uri.yml
+    - include_tasks: _get_data_uri.yml
     - set_fact:
         first_data: "{{ mapped_data }}"
 
@@ -113,7 +113,7 @@
           lockout_penalty_time: 900
       register: second_normal_mode
 
-    - include_tasks: get_data_uri.yml
+    - include_tasks: _get_data_uri.yml
     - set_fact:
         second_data: "{{ mapped_data }}"
 
