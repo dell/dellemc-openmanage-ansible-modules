@@ -1,6 +1,6 @@
 ---
 - name: Pre-req - Get data using uri
-  uri:
+  ansible.builtin.uri:
     url: "https://{{hostname}}:{{port}}\
       /api/ApplicationService/Actions\
       /ApplicationService.GetConfiguration"
