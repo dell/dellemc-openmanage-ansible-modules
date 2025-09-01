@@ -53,7 +53,7 @@
       register: first_normal_mode
 
     - include_tasks: _get_data_uri.yml
-    - set_fact:
+    - ansible.builtin.set_fact:
         first_data: "{{ mapped_data }}"
 
     - name: Verifying configuring "Login Lockout Policy" - Normal
