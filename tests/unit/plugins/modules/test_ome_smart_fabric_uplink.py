@@ -3,7 +3,7 @@
 #
 # Dell OpenManage Ansible Modules
 # Version 7.0.0
-# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -356,7 +356,7 @@ class TestOmeSmartFabricUplink(FakeAnsibleModule):
         ome_response_mock.json_data = params.get("json_data")
         ome_default_args.update(params.get('mparams'))
         if params.get("fail_json", False):
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
         else:
             result = self._run_module(ome_default_args, check_mode=params.get("check_mode", False))
         assert result["msg"] == params['message']
@@ -374,13 +374,13 @@ class TestOmeSmartFabricUplink(FakeAnsibleModule):
             assert result["unreachable"] is True
         elif exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + 'get_item_id', side_effect=exc_type("exception message"))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'get_item_id',
                          side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'uplink_id' not in result
         assert 'msg' in result

@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 10.1.0
 # Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -323,7 +323,8 @@ def validate_ioms(module, rest_obj, uplinks):
             prim_ports = list(str(port).strip() for port in module.params.get(iom + "_switch_ports"))
             id, ioms = get_item_id(rest_obj, prim_st, IOM_DEVICES, key="DeviceServiceTag")
             if not id:
-                module.fail_json(msg="Device with service tag {0} does not exist.".format(prim_st))
+                module.exit_json(msg="Device with service tag {0} does not exist.".format(prim_st),
+                                 failed=True)
             resp = rest_obj.invoke_request("GET", PORT_INFO.format(device_id=id))
             port_info_data = resp.json_data.get("InventoryInfo", [])
             port_info_list = []
@@ -343,10 +344,12 @@ def validate_ioms(module, rest_obj, uplinks):
                 if st_port in used_ports:
                     occupied_ports.append(st_port)
             if non_exist_ports:
-                module.fail_json(msg="{0} Port Numbers {1} does not exist for IOM {2}."
-                                 .format(iom, (",".join(set(non_exist_ports))), prim_st))
+                module.exit_json(msg="{0} Port Numbers {1} does not exist for IOM {2}."
+                                 .format(iom, (",".join(set(non_exist_ports))), prim_st),
+                                 failed=True)
     if occupied_ports:
-        module.fail_json(msg="Ports {0} are already occupied.".format(",".join(set(occupied_ports))))
+        module.exit_json(msg="Ports {0} are already occupied.".format(",".join(set(occupied_ports))),
+                         failed=True)
     return payload_ports
 
 
@@ -368,7 +371,8 @@ def validate_networks(module, rest_obj, fabric_id, media_id):
         else:
             invalids.append(ntw)
     if invalids:
-        module.fail_json(msg="Networks with names {0} are not applicable or valid.".format(",".join(set(invalids))))
+        module.exit_json(msg="Networks with names {0} are not applicable or valid.".format(",".join(set(invalids))),
+                         failed=True)
     return vlan_payload
 
 
@@ -385,7 +389,8 @@ def validate_native_vlan(module, rest_obj, fabric_id, media_id):
             vlan_id = vlan["VlanMaximum"]  # considering tagged vlans take the 'Id'
             break
     if not vlan_id:
-        module.fail_json(msg="Native VLAN name {0} is not applicable or valid.".format(vlan_name))
+        module.exit_json(msg="Native VLAN name {0} is not applicable or valid.".format(vlan_name),
+                         failed=True)
     return vlan_id
 
 
@@ -394,16 +399,18 @@ def create_uplink(module, rest_obj, fabric_id, uplinks):
     mandatory_parmas = ["name", "uplink_type", "tagged_networks"]
     for prm in mandatory_parmas:
         if not mparams.get(prm):
-            module.fail_json(msg="Mandatory parameter {0} not provided for uplink creation.".format(prm))
+            module.exit_json(msg="Mandatory parameter {0} not provided for uplink creation.".format(prm),
+                             failed=True)
     media_id, mtypes = get_item_id(rest_obj, mparams["uplink_type"], MEDIA_TYPES)
     if not media_id:
-        module.fail_json(msg="Uplink Type {0} does not exist.".format(mparams["uplink_type"]))
+        module.exit_json(msg="Uplink Type {0} does not exist.".format(mparams["uplink_type"]),
+                         failed=True)
     if mparams.get("primary_switch_service_tag") or mparams.get("secondary_switch_service_tag"):
         if mparams.get("primary_switch_service_tag") == mparams.get("secondary_switch_service_tag"):
-            module.fail_json(msg=SAME_SERVICE_TAG_MSG)
+            module.exit_json(msg=SAME_SERVICE_TAG_MSG, failed=True)
         payload_port_list = validate_ioms(module, rest_obj, uplinks)
     else:
-        module.fail_json(msg="Provide port details.")
+        module.exit_json(msg="Provide port details.", failed=True)
     tagged_networks = validate_networks(module, rest_obj, fabric_id, media_id)
     create_payload = {
         "Name": mparams["name"],
@@ -455,11 +462,11 @@ def modify_uplink(module, rest_obj, fabric_id, uplink, uplinks):
         modify_data["UfdEnable"] = mparams.get("ufd_enable")
     if mparams.get("uplink_type"):
         if mparams.get("uplink_type") != uplink.get("MediaType"):
-            module.fail_json(msg="Uplink Type cannot be modified.")
+            module.exit_json(msg="Uplink Type cannot be modified.", failed=True)
         modify_data["MediaType"] = mparams["uplink_type"]
     if mparams.get("primary_switch_service_tag") or mparams.get("secondary_switch_service_tag"):
         if mparams.get("primary_switch_service_tag") == mparams.get("secondary_switch_service_tag"):
-            module.fail_json(msg=SAME_SERVICE_TAG_MSG)
+            module.exit_json(msg=SAME_SERVICE_TAG_MSG, failed=True)
         payload_port_list = validate_ioms(module, rest_obj, uplinks)
         modify_data["Ports"] = sorted(list(set(payload_port_list)))
     media_id, mtypes = get_item_id(rest_obj, uplink.get("MediaType"), MEDIA_TYPES)
@@ -517,7 +524,8 @@ def main():
         with RestOME(module.params, req_session=True) as rest_obj:
             fabric_id, fabrics = get_item_id(rest_obj, module.params["fabric_name"], FABRIC_URI)
             if not fabric_id:
-                module.fail_json(msg="Fabric with name {0} does not exist.".format(module.params["fabric_name"]))
+                module.exit_json(msg="Fabric with name {0} does not exist.".format(module.params["fabric_name"]),
+                                 failed=True)
             uplink, uplinks = get_item_and_list(rest_obj, module.params["name"],
                                                 UPLINKS_URI.format(fabric_id=fabric_id) + '?$expand=Ports,Networks')
             if module.params["state"] == "present":
@@ -530,13 +538,13 @@ def main():
                     delete_uplink(module, rest_obj, fabric_id, uplink['Id'])
                 if module.check_mode:
                     module.exit_json(msg=NO_CHANGES_MSG)
-                module.exit_json(msg="Uplink {0} does not exist.".format(module.params["name"]))
+                module.exit_json(msg="Uplink {0} does not exist.".format(module.params["name"]), failed=True)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
-        module.exit_json(msg=str(err), unreachable=True)
+        module.exit_json(msg=str(err), unreachable=True, failed=True)
     except (IOError, ValueError, TypeError, ConnectionError, SSLValidationError, SSLError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == "__main__":
