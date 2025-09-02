@@ -62,6 +62,14 @@ class TestOmeTemplateNetworkVlan(FakeAnsibleModule):
         d = kv["dct"]
         k = self.module.get_key(val, d)
         assert k == kv["res"]
+    
+    def test_get_template_details_not_found_by_id(self, ome_connection_mock_for_template_network_vlan, ome_response_mock):
+        ome_response_mock.success = True
+        ome_response_mock.json_data = {"value": []}  # Return an empty list to simulate a not found scenario
+        f_module = self.get_module_mock(params={"template_id": 12345})
+        with pytest.raises(Exception) as exc:
+            self.module.get_template_details(f_module, ome_connection_mock_for_template_network_vlan)
+        assert exc.value.args[0] == "Template with Id '12345' not found."
 
     def test_get_vlan_name_id_map(
             self, ome_connection_mock_for_template_network_vlan, ome_response_mock):
@@ -165,6 +173,21 @@ class TestOmeTemplateNetworkVlan(FakeAnsibleModule):
             self.module.get_vlan_payload(f_module, ome_connection_mock_for_template_network_vlan, params['untag_dict'],
                                          params['tagged_dict'])
         assert exc.value.args[0] == params["message"]
+
+    def test_get_template_vlan_info_nic_not_found(self, mocker, ome_connection_mock_for_template_network_vlan, ome_response_mock):
+        f_module = self.get_module_mock(params={"template_id": 12, "nic_identifier": "NIC Slot 5"})
+        ome_response_mock.success = True
+        ome_response_mock.json_data = {
+            "AttributeGroups": [{"GroupNameId": 1001, "DisplayName": "NICModel", "SubAttributeGroups": [
+                {"GroupNameId": 1, "DisplayName": "NIC Slot 1", "SubAttributeGroups": [{"GroupNameId": 1}]},
+                {"GroupNameId": 2, "DisplayName": "NIC Slot 2", "SubAttributeGroups": [{"GroupNameId": 2}]}
+            ]}]
+        }
+        mocker.patch(MODULE_PATH + 'get_template_details',
+                    return_value={"Name": "vlan_name", "Id": 12, "IdentityPoolId": 23})
+        with pytest.raises(Exception) as exc:
+            self.module.get_template_vlan_info(f_module, ome_connection_mock_for_template_network_vlan, 12)
+        assert exc.value.args[0] == "NIC with name 'NIC Slot 5' not found for template with id 12"
 
     def test_validate_vlans(
             self, mocker, ome_connection_mock_for_template_network_vlan):
