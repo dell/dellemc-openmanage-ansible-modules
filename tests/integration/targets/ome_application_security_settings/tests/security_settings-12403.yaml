@@ -1,0 +1,158 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2022-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING
+# or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: hostname, username
+         and password.'
+  when: hostname is not defined or username is not defined or password
+         is not defined
+
+- block:
+    - name: Pre-requisite- Configuring security with below details
+      dellemc.openmanage.ome_application_security_settings:
+        restrict_allowed_ip_range:
+          enable_ip_range: false
+        login_lockout_policy:
+          by_user_name: false
+          by_ip_address: false
+          lockout_fail_count: 3
+          lockout_fail_window: 30
+          lockout_penalty_time: 900
+
+    - name: "Configuring \"Login Lockout Policy\" as below value
+        - Check mode - Changes expected"
+      dellemc.openmanage.ome_application_security_settings:
+        login_lockout_policy:
+          by_user_name: true
+          by_ip_address: true
+          lockout_fail_count: 4
+          lockout_fail_window: 31
+          lockout_penalty_time: 901
+      register: first_cm_mode
+      check_mode: true
+
+    - name: Verifying configuring "Login Lockout Policy" - Check mode
+      ansible.builtin.assert:
+        that:
+          - first_cm_mode.changed
+          - first_cm_mode.msg == 'Changes found to be applied.'
+
+    - name: "Configuring \"Login Lockout Policy\" as below value
+        - Normal - Changes expected"
+      dellemc.openmanage.ome_application_security_settings:
+        login_lockout_policy:
+          by_user_name: true
+          by_ip_address: true
+          lockout_fail_count: 4
+          lockout_fail_window: 31
+          lockout_penalty_time: 901
+      register: first_normal_mode
+
+    - include_tasks: _get_data_uri.yml
+    - ansible.builtin.set_fact:
+        first_data: "{{ mapped_data }}"
+
+    - name: Verifying configuring "Login Lockout Policy" - Normal
+      ansible.builtin.assert:
+        that:
+          - first_normal_mode.changed
+          - first_normal_mode.msg ==
+            'Successfully applied the security settings.'
+          - first_data['LoginSecurity.1#LockoutByIPEnable']
+          - first_data['LoginSecurity.1#LockoutByUsernameEnable']
+          - first_data['LoginSecurity.1#LockoutFailCount'] == 4
+          - first_data['LoginSecurity.1#LockoutFailCountTime'] == 31
+          - first_data['LoginSecurity.1#LockoutPenaltyTime'] == 901
+
+    - name: Configuring "Login Lockout Policy" as below value - Idempotency
+      dellemc.openmanage.ome_application_security_settings:
+        login_lockout_policy:
+          by_user_name: true
+          by_ip_address: true
+          lockout_fail_count: 4
+          lockout_fail_window: 31
+          lockout_penalty_time: 901
+      register: first_idempotency_mode
+
+    - name: Verifying configuring "Login Lockout Policy" - Idempotency
+      ansible.builtin.assert:
+        that:
+          - not first_idempotency_mode.changed
+          - first_idempotency_mode.msg == 'No changes found to be applied.'
+
+    - name: "Configuring \"Login Lockout Policy\" as below value
+        - Check mode - Changes expected"
+      dellemc.openmanage.ome_application_security_settings:
+        login_lockout_policy:
+          by_user_name: false
+          by_ip_address: false
+          lockout_fail_count: 3
+          lockout_fail_window: 30
+          lockout_penalty_time: 900
+      register: second_cm_mode
+      check_mode: true
+
+    - name: Verifying configuring "Login Lockout Policy" - Check mode
+      ansible.builtin.assert:
+        that:
+          - second_cm_mode.changed
+          - second_cm_mode.msg == 'Changes found to be applied.'
+
+    - name: "Configuring \"Login Lockout Policy\" as below value
+        - Normal - Changes expected"
+      dellemc.openmanage.ome_application_security_settings:
+        login_lockout_policy:
+          by_user_name: false
+          by_ip_address: false
+          lockout_fail_count: 3
+          lockout_fail_window: 30
+          lockout_penalty_time: 900
+      register: second_normal_mode
+
+    - ansible.builtin.include_tasks: _get_data_uri.yml
+    - ansible.builtin.set_fact:
+        second_data: "{{ mapped_data }}"
+
+    - name: Verifying configuring "Login Lockout Policy" - Normal
+      ansible.builtin.assert:
+        that:
+          - second_normal_mode.changed
+          - second_normal_mode.msg ==
+            'Successfully applied the security settings.'
+          - second_data['LoginSecurity.1#LockoutByIPEnable']
+            == false
+          - second_data['LoginSecurity.1#LockoutByUsernameEnable']
+            == false
+          - second_data['LoginSecurity.1#LockoutFailCount'] == 3
+          - second_data['LoginSecurity.1#LockoutFailCountTime']
+            == 30
+          - second_data['LoginSecurity.1#LockoutPenaltyTime']
+            == 900
+
+    - name: Configuring "Login Lockout Policy" as below value - Idempotency
+      dellemc.openmanage.ome_application_security_settings:
+        login_lockout_policy:
+          by_user_name: false
+          by_ip_address: false
+          lockout_fail_count: 3
+          lockout_fail_window: 30
+          lockout_penalty_time: 900
+      register: second_idempotency_mode
+
+    - name: Verifying configuring "Login Lockout Policy" - Idempotency
+      ansible.builtin.assert:
+        that:
+          - not second_idempotency_mode.changed
+          - second_idempotency_mode.msg == 'No changes found to be applied.'
+
+  module_defaults:
+    dellemc.openmanage.ome_application_security_settings:
+      validate_certs: "{{validate_certs}}"
+      hostname: "{{hostname}}"
+      username: "{{username}}"
+      password: "{{password}}"
+      port: "{{port}}"

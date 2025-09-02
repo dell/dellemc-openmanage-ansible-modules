@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 10.0.0
 # Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -76,6 +76,7 @@ author:
   - "Felix Stephen (@felixs88)"
   - "Sajna Shetty(@Sajna-Shetty)"
   - "Abhishek Sinha (@Abhishek-Dell)"
+  - "Sapana Gupta (@sapana05)"
 notes:
   - Run this module from a system that has direct access to Dell OpenManage Enterprise.
   - This module supports C(check_mode).
@@ -302,15 +303,15 @@ IP_NOT_EXISTS = "The IP addresses provided do not exist in OpenManage Enterprise
 
 def validate_group(group_resp, module, identifier, identifier_val):
     if not group_resp:
-        module.fail_json(msg="Unable to complete the operation because the entered "
+        module.exit_json(msg="Unable to complete the operation because the entered "
                              "target group {identifier} '{val}' is invalid.".format(identifier=identifier,
-                                                                                    val=identifier_val))
+                                                                                    val=identifier_val), failed=True)
     system_groups = group_resp["TypeId"]
     membership_id = group_resp["MembershipTypeId"]
     if system_groups != 3000 or (system_groups == 3000 and membership_id == 24):
         msg = ADD_STATIC_GROUP_MESSAGE if module.params.get("state", "present") == "present" else \
             REMOVE_STATIC_GROUP_MESSAGE
-        module.fail_json(msg=msg)
+        module.exit_json(msg=msg, failed=True)
 
 
 def get_group_id(rest_obj, module):
@@ -378,7 +379,7 @@ def get_device_id_from_ip(ip_addresses, device_list, module):
                 if ome_ip in ip_formats:
                     device_id_list_map.update({device_id: str(ome_ip)})
     if len(device_id_list_map) == 0:
-        module.fail_json(msg=IP_NOT_EXISTS)
+        module.exit_json(msg=IP_NOT_EXISTS, failed=True)
     return device_id_list_map
 
 
@@ -404,8 +405,8 @@ def get_device_id(rest_obj, module):
                 invalid.append(str(each))
         if invalid:
             value = "id" if key == "Id" else "service tag"
-            module.fail_json(msg="Unable to complete the operation because the entered "
-                                 "target device {0}(s) '{1}' are invalid.".format(value, ",".join(set(invalid))))
+            module.exit_json(msg="Unable to complete the operation because the entered "
+                                 "target device {0}(s) '{1}' are invalid.".format(value, ",".join(set(invalid))), failed=True)
         if each_tag_to_id:
             each_device_list = each_tag_to_id
     else:
@@ -496,7 +497,7 @@ def main():
 
     try:
         if module.params.get("ip_addresses") and not HAS_NETADDR:
-            module.fail_json(msg=NETADDR_ERROR)
+            module.exit_json(msg=NETADDR_ERROR, failed=True)
         with RestOME(module.params, req_session=True) as rest_obj:
             group_id = get_group_id(rest_obj, module)
             device_id, key = get_device_id(rest_obj, module)
@@ -512,12 +513,12 @@ def main():
                 remove_member_from_group(module, rest_obj, group_id, device_id, current_device_list)
                 module.exit_json(msg="Successfully removed member(s) from the device group.", changed=True)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError,
             IndexError, KeyError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
