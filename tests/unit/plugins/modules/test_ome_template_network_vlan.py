@@ -62,7 +62,7 @@ class TestOmeTemplateNetworkVlan(FakeAnsibleModule):
         d = kv["dct"]
         k = self.module.get_key(val, d)
         assert k == kv["res"]
-    
+
     def test_get_template_details_not_found_by_id(self, ome_connection_mock_for_template_network_vlan, ome_response_mock):
         ome_response_mock.success = True
         ome_response_mock.json_data = {"value": []}  # Return an empty list to simulate a not found scenario
