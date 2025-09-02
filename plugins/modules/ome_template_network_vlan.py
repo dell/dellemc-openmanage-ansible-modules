@@ -226,7 +226,7 @@ def get_template_details(module, rest_obj):
         for xtype in tlist:
             if xtype.get(srch) == id:
                 return xtype
-    module.fail_json(msg="Template with {0} '{1}' not found.".format(srch, id))
+    module.exit_json(msg="Template with {0} '{1}' not found.".format(srch, id), failed=True)
 
 
 def get_vlan_name_id_map(rest_obj):
@@ -281,7 +281,7 @@ def get_template_vlan_info(module, rest_obj, template_id):
                                 if attribute.get(KEY_ATTR_NAME).lower() == "nic bonding enabled":
                                     port_nic_bond_map[port_number] = attribute['Value']
         if not nic_found:
-            module.fail_json(msg="NIC with name '{0}' not found for template with id {1}".format(nic_id, template_id))
+            module.exit_json(msg="NIC with name '{0}' not found for template with id {1}".format(nic_id, template_id), failed=True)
     return port_id_map, port_untagged_map, port_tagged_map, port_nic_bond_map, nic_bonding_tech
 
 
@@ -324,9 +324,9 @@ def get_vlan_payload(module, rest_obj, untag_dict, tagged_dict):
         if mdict:
             vlan_attributes.append(mdict)
     if untag_dict:
-        module.fail_json(msg="Invalid port(s) {0} found for untagged VLAN".format(untag_dict.keys()))
+        module.exit_json(msg="Invalid port(s) {0} found for untagged VLAN".format(untag_dict.keys()), failed=True)
     if tagged_dict:
-        module.fail_json(msg="Invalid port(s) {0} found for tagged VLAN".format(tagged_dict.keys()))
+        module.exit_json(msg="Invalid port(s) {0} found for tagged VLAN".format(tagged_dict.keys()), failed=True)
     if module.check_mode:
         module.exit_json(changed=True, msg=CHANGES_FOUND)
     payload["VlanAttributes"] = vlan_attributes
@@ -351,23 +351,23 @@ def validate_vlans(module, rest_obj):
             p = utg["port"]
             if utg.get("untagged_network_id") is not None:
                 if p in untag_dict:
-                    module.fail_json(msg="port {0} is repeated for "
-                                         "untagged_network_id".format(p))
+                    module.exit_json(msg="port {0} is repeated for "
+                                         "untagged_network_id".format(p), failed=True)
                 vlan = utg.get("untagged_network_id")
                 if vlan not in vlan_name_id_map.values():
-                    module.fail_json(msg="untagged_network_id: {0} is not a "
+                    module.exit_json(msg="untagged_network_id: {0} is not a "
                                          "valid vlan id for port {1}".
-                                     format(vlan, p))
+                                     format(vlan, p), failed=True)
                 untag_dict[p] = vlan
             if utg.get("untagged_network_name"):
                 vlan = utg.get("untagged_network_name")
                 if vlan in vlan_name_id_map:
                     if p in untag_dict:
-                        module.fail_json(msg="port {0} is repeated for "
-                                             "untagged_network_name".format(p))
+                        module.exit_json(msg="port {0} is repeated for "
+                                             "untagged_network_name".format(p), failed=True)
                     untag_dict[p] = vlan_name_id_map.get(vlan)
                 else:
-                    module.fail_json(msg="{0} is not a valid vlan name for port {1}".format(vlan, p))
+                    module.exit_json(msg="{0} is not a valid vlan name for port {1}".format(vlan, p), failed=True)
     vlan_name_id_map.pop("0")
     tagged_dict = {}
     if tagged_list:
@@ -381,8 +381,8 @@ def validate_vlans(module, rest_obj):
                     empty_list = True
                 for vl in tgnids:
                     if vl not in vlan_name_id_map.values():
-                        module.fail_json(msg="{0} is not a valid vlan id "
-                                             "port {1}".format(vl, p))
+                        module.exit_json(msg="{0} is not a valid vlan id "
+                                             "port {1}".format(vl, p), failed=True)
                     tg_list.append(vl)
             tgnames = tg.get("tagged_network_names")
             if isinstance(tgnames, list):
@@ -390,17 +390,17 @@ def validate_vlans(module, rest_obj):
                     empty_list = True
                 for vln in tgnames:
                     if vln not in vlan_name_id_map:
-                        module.fail_json(msg="{0} is not a valid vlan name "
-                                             "port {1}".format(vln, p))
+                        module.exit_json(msg="{0} is not a valid vlan name "
+                                             "port {1}".format(vln, p), failed=True)
                     tg_list.append(vlan_name_id_map.get(vln))
             if not tg_list and not empty_list:
-                module.fail_json(msg="No tagged_networks provided or valid tagged_networks not found for port {0}"
-                                 .format(p))
+                module.exit_json(msg="No tagged_networks provided or valid tagged_networks not found for port {0}"
+                                 .format(p), failed=True)
             tagged_dict[p] = list(set(tg_list))  # Will not report duplicates
     for k, v in untag_dict.items():
         if v in tagged_dict.get(k, []):
-            module.fail_json(msg="vlan {0}('{1}') cannot be in both tagged and untagged list for port {2}".
-                             format(v, get_key(v, vlan_name_id_map), k))
+            module.exit_json(msg="vlan {0}('{1}') cannot be in both tagged and untagged list for port {2}".
+                             format(v, get_key(v, vlan_name_id_map), k), failed=True)
     return untag_dict, tagged_dict
 
 
@@ -436,11 +436,11 @@ def main():
             if resp.success:
                 module.exit_json(msg=SUCCESS_MSG, changed=True)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLError, TypeError, ConnectionError, SSLValidationError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == "__main__":
