@@ -335,12 +335,39 @@ class TestOmeTemplateVlanInfo(FakeAnsibleModule):
             assert result["unreachable"] is True
         elif exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + 'get_template_details', side_effect=exc_type("exception message"))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'get_template_details',
                          side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'msg' in result
+
+    @pytest.mark.parametrize("params", [
+        {"nic_model": [{
+            "GroupNameId": 1006,
+            "DisplayName": "NicBondingTechnology",
+            "SubAttributeGroups": [],
+            "Attributes": [
+                {
+                    "DisplayName": "Nic Bonding Technology",
+                    "Value": "LACP",
+                }]}]}])
+    def test_get_nic_info(self, params):
+        result = self.module.get_nic_info(params['nic_model'])
+        assert result['NicBondingTechnology'] == "LACP"
+
+    @pytest.mark.parametrize("attribute, expected", [
+        # Case: CustomId is 0 → should return None
+        ({"DisplayName": "VLAN Untagged", "Value": "100", "CustomId": 0}, None),
+
+        # Case: NIC Bonding Enabled → should return key and value
+        ({"DisplayName": "NIC Bonding Enabled", "Value": "True", "CustomId": 1}, ("nic bonding enabled", "True")),
+
+        # Case: Unknown key → should return None
+        ({"DisplayName": "Unknown", "Value": "xyz", "CustomId": 1}, None),
+    ])
+    def test_get_vlan_info(self, attribute, expected):
+        assert self.module.get_vlan_info(attribute) == expected
