@@ -233,7 +233,7 @@ def validate_lead_msm_version(each_domain, module, fabric_design=None):
     role_type = each_domain["DomainRoleTypeValue"].upper()
     if fabric_design and fabric_design == "2xMX9116n_Fabric_Switching_Engines_in_different_chassis" and \
             role_type != "LEAD":
-        module.fail_json(msg=LEAD_CHASSIS_ERROR_MSG.format(fabric_design))
+        module.exit_json(msg=LEAD_CHASSIS_ERROR_MSG.format(fabric_design), failed=True)
     msm_version = each_domain["Version"]
     return msm_version
 
@@ -282,7 +282,7 @@ def get_msm_device_details(rest_obj, module):
             service_tag = each_domain["Identifier"]
             break
     else:
-        module.fail_json(msg=SYSTEM_NOT_SUPPORTED_ERROR_MSG)
+        module.exit_json(msg=SYSTEM_NOT_SUPPORTED_ERROR_MSG, failed=True)
     return service_tag, msm_version
 
 
@@ -361,18 +361,20 @@ def validate_switches_overlap(current_dict, modify_dict, module):
     modify_secondary_switch = modify_dict.get("PhysicalNode2")
     current_primary_switch = current_dict.get("PhysicalNode1")
     if modify_primary_switch and current_primary_switch != modify_primary_switch:
-        module.fail_json(msg="The modify operation does not support primary_switch_service_tag update.")
+        module.exit_json(msg="The modify operation does not support primary_switch_service_tag update.",
+                         failed=True)
     if modify_secondary_switch and current_secondary_switch != modify_secondary_switch:
-        module.fail_json(msg="The modify operation does not support secondary_switch_service_tag update.")
+        module.exit_json(msg="The modify operation does not support secondary_switch_service_tag update.",
+                         failed=True)
     flag = all([modify_primary_switch, modify_secondary_switch, current_primary_switch,
                 current_secondary_switch]) and (modify_primary_switch == current_secondary_switch and
                                                 modify_secondary_switch == current_primary_switch)
     if not flag and modify_primary_switch is not None and current_secondary_switch is not None and \
             modify_primary_switch == current_secondary_switch:
-        module.fail_json(PRIMARY_SWITCH_OVERLAP_MSG)
+        module.exit_json(PRIMARY_SWITCH_OVERLAP_MSG, failed=True)
     if not flag and modify_secondary_switch is not None and current_primary_switch is not None and \
             modify_secondary_switch == current_primary_switch:
-        module.fail_json(SECONDARY_SWITCH_OVERLAP_MSG)
+        module.exit_json(SECONDARY_SWITCH_OVERLAP_MSG, failed=True)
 
 
 def fabric_design_map_payload_creation(design_map_modify_payload, design_map_current_payload, module):
@@ -525,14 +527,16 @@ def validate_device_type(device_type_name, identifier, device_details, module):
     }
     design_mode = module.params.get("fabric_design")
     if device_type_name != device_map[identifier]:
-        module.fail_json(
-            msg=DEVICE_SERVICE_TAG_TYPE_ERROR_MSG.format(identifier, device_map[identifier]))
+        module.exit_json(
+            msg=DEVICE_SERVICE_TAG_TYPE_ERROR_MSG.format(identifier, device_map[identifier]),
+            failed=True)
     if device_type_name != "CHASSIS" and design_mode:
         design_model = design_mode.split("_")[0].split('2x')[-1]
         identifier_model = device_details["Model"]
         if design_model not in identifier_model:
-            module.fail_json(
-                msg=DESIGN_MODEL_ERROR_MSG.format(identifier, design_model))
+            module.exit_json(
+                msg=DESIGN_MODEL_ERROR_MSG.format(identifier, design_model),
+                failed=True)
 
 
 def validate_service_tag(device_service_tag, identifier, device_type_map, rest_obj, module):
@@ -550,7 +554,8 @@ def validate_service_tag(device_service_tag, identifier, device_type_map, rest_o
         device_id_details = rest_obj.get_device_id_from_service_tag(device_service_tag)
         device_details = device_id_details["value"]
         if device_id_details["Id"] is None:
-            module.fail_json(msg=DEVICE_SERVICE_TAG_NOT_FOUND_ERROR_MSG.format(device_service_tag))
+            module.exit_json(msg=DEVICE_SERVICE_TAG_NOT_FOUND_ERROR_MSG.format(device_service_tag),
+                             failed=True)
         identifier_device_type = device_details["Type"]
         validate_device_type(device_type_map[identifier_device_type], identifier, device_details, module)
 
@@ -580,7 +585,7 @@ def required_field_check_for_create(fabric_id, module):
     params = module.params
     if not fabric_id and not all([params.get("fabric_design"), params.get("primary_switch_service_tag"),
                                   params.get("secondary_switch_service_tag")]):
-        module.fail_json(msg=REQUIRED_FIELD)
+        module.exit_json(msg=REQUIRED_FIELD, failed=True)
 
 
 def process_output(name, fabric_resp, msg, fabric_id, rest_obj, module):
@@ -610,7 +615,7 @@ def validate_modify(module, current_payload):
     """Fabric modification does not support fabric design type modification"""
     if module.params.get("fabric_design") and current_payload["FabricDesign"]["Name"] and \
             (module.params.get("fabric_design") != current_payload["FabricDesign"]["Name"]):
-        module.fail_json(msg="The modify operation does not support fabric_design update.")
+        module.exit_json(msg="The modify operation does not support fabric_design update.", failed=True)
 
 
 def create_modify_fabric(name, all_fabric, rest_obj, module):
@@ -722,12 +727,13 @@ def main():
             fabric_actions(rest_obj, module)
     except HTTPError as err:
         if err.code == 501:
-            module.fail_json(msg=SYSTEM_NOT_SUPPORTED_ERROR_MSG, error_info=json.load(err))
-        module.fail_json(msg=str(err), error_info=json.load(err))
+            module.exit_json(msg=SYSTEM_NOT_SUPPORTED_ERROR_MSG, error_info=json.load(err),
+                             failed=True)
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == "__main__":

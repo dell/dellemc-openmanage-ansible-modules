@@ -159,14 +159,14 @@ class TestOmeSmartFabric(FakeAnsibleModule):
         elif exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + 'ome_smart_fabric.fabric_actions',
                          side_effect=exc_type("exception message"))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             for status_code, msg in {501: SYSTEM_NOT_SUPPORTED_ERROR_MSG, 400: 'http error message'}.items():
                 mocker.patch(MODULE_PATH + 'ome_smart_fabric.fabric_actions',
                              side_effect=exc_type('https://testhost.com', status_code, msg,
                                                   {"accept-type": "application/json"}, StringIO(json_str)))
-                result = self._run_module_with_fail_json(ome_default_args)
+                result = self._run_module(ome_default_args)
                 assert result['failed'] is True
                 assert msg in result['msg']
         assert 'msg' in result
