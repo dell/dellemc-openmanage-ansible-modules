@@ -184,7 +184,7 @@ class TestOmeTemplateNetworkVlan(FakeAnsibleModule):
             ]}]
         }
         mocker.patch(MODULE_PATH + 'get_template_details',
-                    return_value={"Name": "vlan_name", "Id": 12, "IdentityPoolId": 23})
+                     return_value={"Name": "vlan_name", "Id": 12, "IdentityPoolId": 23})
         with pytest.raises(Exception) as exc:
             self.module.get_template_vlan_info(f_module, ome_connection_mock_for_template_network_vlan, 12)
         assert exc.value.args[0] == "NIC with name 'NIC Slot 5' not found for template with id 12"
