@@ -336,7 +336,7 @@ def fetch_device_details(module, rest_obj):
             device_id = resp_data[0]["Id"]
         else:
             module.exit_json(msg=DEVICE_FAIL_MSG.format(rename_key, value),
-            failed=True)
+                             failed=True)
     try:
         loc_resp = rest_obj.invoke_request("GET", NETWORK_SERVICE_API.format(device_id))
     except HTTPError as err:
