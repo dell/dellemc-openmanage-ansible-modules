@@ -75,8 +75,9 @@ class TestOMEMDeviceNetworkService(FakeAnsibleModule):
         assert value == 25011
 
     def test_main_validation(self, ome_conn_mock_network, ome_default_args, ome_response_mock, mocker):
-        resp = self._run_module(ome_default_args)
-        assert resp['msg'] == "one of the following is required: snmp_settings, " \
+        with pytest.raises(Exception) as ex:
+            self._run_module(ome_default_args)
+        assert ex.value.args[0]['msg'] == "one of the following is required: snmp_settings, " \
                               "ssh_settings, remote_racadm_settings"
         mocker.patch(MODULE_PATH + "check_domain_service", return_value=None)
         mocker.patch(MODULE_PATH + "fetch_device_details", return_value=ome_response_mock)
