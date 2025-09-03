@@ -1,0 +1,28 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- block:
+    - name: Get the device service tag of a server present under idrac group in inventory.
+      dellemc.openmanage.ome_device_info:
+      register: all_devices
+
+    - ansible.builtin.set_fact:
+        device_info: "{{all_devices | json_query(query)}}"
+      vars:
+        query: 'device_info.value[?DeviceManagement[?NetworkAddress == `{{ hostname }}`]]'
+
+    - name: Get device service tag and device id of the host
+      ansible.builtin.set_fact:
+        device_service_tag: "{{device_info[0].DeviceServiceTag}}"
+        device_id: "{{device_info[0].Id}}"
+
+  module_defaults:
+    dellemc.openmanage.ome_device_info:
+      validate_certs: "{{validate_certs}}"
+      hostname: "{{hostname}}"
+      username: "{{username}}"
+      password: "{{password}}"
+      port: "{{port}}"

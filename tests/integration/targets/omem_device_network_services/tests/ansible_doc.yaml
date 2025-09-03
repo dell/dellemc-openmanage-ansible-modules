@@ -3,13 +3,15 @@
 
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
+---
 - block:
     - name: ansible-doc
       ansible.builtin.command:
         ansible-doc dellemc.openmanage.ome_device_network_services
       register: ansible_doc_hash
 
-    - local_action: copy content={{ansible_doc_hash.stdout_lines[2:] | to_nice_yaml }} dest={{ role_path }}/files/ansible_doc.txt
+    - local_action: copy content={{ansible_doc_hash.stdout_lines[2:] |
+        to_nice_yaml }} dest={{ role_path }}/files/ansible_doc.txt
       register: ansible_doc
       check_mode: true
       diff: true
