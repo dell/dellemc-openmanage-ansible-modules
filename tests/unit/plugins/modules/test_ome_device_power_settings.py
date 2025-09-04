@@ -216,7 +216,6 @@ class TestOMEMDevicePower(FakeAnsibleModule):
         result = self._run_module(ome_default_args)
         assert result['msg'] == params['message']
 
-
     @pytest.mark.parametrize("params", [
         {"json_data": {"value": [
             {'Id': 1234, 'PublicAddress': "xxx.xxx.x.x",
@@ -225,8 +224,9 @@ class TestOMEMDevicePower(FakeAnsibleModule):
             'message': CONFIG_FAIL_MSG,
             'mparams': {"hostname": "xxx.xxx.x.x", "device_id": 123}}
     ])
-    def test_ome_devices_power_settings_failure_invalid(self, params, ome_conn_mock_power, ome_response_mock,
-                                                ome_default_args, module_mock, mocker):
+    def test_ome_devices_power_settings_failure_invalid(
+            self, params, ome_conn_mock_power, ome_response_mock,
+            ome_default_args, module_mock, mocker):
         ome_response_mock.success = params.get("success", True)
         ome_response_mock.json_data = params['json_data']
         mocks = ["check_domain_service", 'get_chassis_device']
