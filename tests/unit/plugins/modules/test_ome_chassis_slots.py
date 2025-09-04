@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 10.1.0
+# Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -93,7 +93,7 @@ class TestOmeChassisSlots(FakeAnsibleModule):
         ome_connection_mock_for_chassis_slots.get_all_items_with_pagination.return_value = params[
             'json_data']
         ome_default_args.update(params['mparams'])
-        result = self._run_module_with_fail_json(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result['msg'] == params['message'].format(
             ';'.join(set(params.get("invalid_list"))))
 
@@ -286,12 +286,12 @@ class TestOmeChassisSlots(FakeAnsibleModule):
             mocker.patch(
                 MODULE_PATH + 'get_device_slot_config',
                 side_effect=exc_type("exception message"))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'get_device_slot_config',
                          side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'msg' in result
