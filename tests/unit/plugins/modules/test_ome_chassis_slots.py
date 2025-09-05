@@ -23,6 +23,8 @@ from ansible_collections.dellemc.openmanage.plugins.modules import ome_chassis_s
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 
 DEVICE_REPEATED = "Duplicate device entry found for devices with identifiers {0}."
+CHASSIS_REPEATED = "Duplicate chassis entry found for chassis with service tags {0}."
+CHASSIS_TAG_INVALID = "Provided chassis {0} is invalid."
 INVALID_SLOT_DEVICE = "Unable to rename one or more slots because either the specified device is invalid or slots " \
                       "cannot be configured. The devices for which the slots cannot be renamed are: {0}."
 JOBS_TRIG_FAIL = "Unable to initiate the slot name rename jobs."
@@ -85,7 +87,37 @@ class TestOmeChassisSlots(FakeAnsibleModule):
                       {"Id": 10054, "Type": 1000, "Identifier": "ABCD1234",
                        "SlotConfiguration": {"DeviceType": "1000", "ChassisId": "10053", "SlotNumber": "1",
                                              "SlotName": "my_840c", "SlotType": "2000"}}]}, 'message': DEVICE_REPEATED,
-        "success": True}, ])
+        "success": True},
+        {
+        'mparams': {"device_options": []},
+        "invalid_list": set(["ABCD1234"]), "json_data": {
+            "value": [{"Id": 10053, "Identifier": "2H5DNX2", "SlotConfiguration": {"ChassisName": None}},
+                      {"Id": 10052, "Type": 1000, "Identifier": "PQRS1234",
+                       "SlotConfiguration": {"DeviceType": "1000", "ChassisId": "10053", "SlotNumber": "1",
+                                             "SlotName": "my_840c", "SlotType": "2000"}},
+                      {"Id": 10054, "Type": 1000, "Identifier": "ABCD1234",
+                       "SlotConfiguration": {"DeviceType": "1000", "ChassisId": "10053", "SlotNumber": "1",
+                                             "SlotName": "my_840c", "SlotType": "2000"}}]}, 'message': NO_CHANGES_MSG,
+        "success": True},
+        {
+         'mparams': {"device_options": [
+                                       {"slot_name": "s2",
+                                        "device_service_tag": "PQRS1234"}, ]},
+        "invalid_list": set(["PQRS1234"]), "json_data": {
+            "value": [{"Id": 10053, "Identifier": "2H5DNX2"},
+                      {"Id": 10052, "Type": 1000, "Identifier": "PQRS1234"},
+                      {"Id": 10054, "Type": 1000, "Identifier": "ABCD1234"}]}, 'message': INVALID_SLOT_DEVICE,
+        "success": True},
+        {
+         'mparams': {"device_options": [
+                                       {"slot_name": "s2",
+                                        "device_id": 10054}, ]},
+        "invalid_list": set(["10054"]), "json_data": {
+            "value": [{"Id": 10053, "Identifier": "2H5DNX2"},
+                      {"Id": 10052, "Type": 1000, "Identifier": "PQRS1234"},
+                      {"Id": 10054, "Type": 1000, "Identifier": "ABCD1234"}]}, 'message': INVALID_SLOT_DEVICE,
+        "success": True},
+        ])
     def test_get_device_slot_config_errors(self, params, ome_connection_mock_for_chassis_slots, ome_response_mock,
                                            ome_default_args, module_mock):
         ome_response_mock.success = params.get("success", True)
@@ -295,3 +327,66 @@ class TestOmeChassisSlots(FakeAnsibleModule):
             result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'msg' in result
+
+    @pytest.mark.parametrize("params", [
+        {'mparams': {"slot_options": [
+                                        {
+                                            "chassis_service_tag": "ABC1234",
+                                            "slots": [
+                                                {"slot_name": "t1", "slot_number": 1},
+                                                {"slot_name": "s1", "slot_number": 5}
+                                            ]
+                                        },
+                                        {
+                                            "chassis_service_tag": "ABC1234",
+                                            "slots": [
+                                                {"slot_name": "t2", "slot_number": 2},
+                                                {"slot_name": "s2", "slot_number": 6}
+                                            ]
+                                        },
+                                    ]
+                                },
+         "invalid_list": set(["ABC1234"]),
+         "json_data":
+         {"value": [{"Id": 10053, "Identifier": "2H5DNX2",
+                     "SlotConfiguration": {"ChassisName": None}},
+                    {"Id": 10054, "Type": 1000, "Identifier": "ABCD1234",
+                     "SlotConfiguration": {"DeviceType": "1000", "ChassisId": "10053", "SlotNumber": "1",
+                                           "SlotName": "my_840c", "SlotType": "2000"}}]}, 'message': CHASSIS_REPEATED,
+         "success": True},
+         {'mparams': {"slot_options": [
+                                        {
+                                            "chassis_service_tag": "ABC1234",
+                                            "slots": [
+                                                {"slot_name": "t1", "slot_number": 1},
+                                                {"slot_name": "s1", "slot_number": 5}
+                                            ]
+                                        },
+                                        {
+                                            "chassis_service_tag": "ABC1235",
+                                            "slots": [
+                                                {"slot_name": "t2", "slot_number": 2},
+                                                {"slot_name": "s2", "slot_number": 6}
+                                            ]
+                                        },
+                                    ]
+                                },
+         "invalid_list": set(["ABC1234"]),
+         "json_data":
+         {"value": [{"Id": 10053, "Identifier": "2H5DNX2",
+                     "SlotConfiguration": {"ChassisName": None}},
+                    {"Id": 10054, "Type": 1000, "Identifier": "ABCD1234",
+                     "SlotConfiguration": {"DeviceType": "1000", "ChassisId": "10053", "SlotNumber": "1",
+                                           "SlotName": "my_840c", "SlotType": "2000"}}]}, 'message': CHASSIS_TAG_INVALID,
+         "success": True},
+         ])
+    def test_get_slot_config_errors(self, params, ome_connection_mock_for_chassis_slots, ome_response_mock,
+                                        ome_default_args, module_mock):
+        ome_response_mock.success = params.get("success", True)
+        ome_response_mock.json_data = params['json_data']
+        ome_connection_mock_for_chassis_slots.get_all_items_with_pagination.return_value = params[
+            'json_data']
+        ome_default_args.update(params['mparams'])
+        result = self._run_module(ome_default_args)
+        assert result['msg'] == params['message'].format(
+            ';'.join(set(params.get("invalid_list"))))
