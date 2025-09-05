@@ -35,7 +35,7 @@ options:
         type: str
 requirements:
     - "python >= 3.9.6"
-author: 
+author:
   - "Sajna Shetty(@Sajna-Shetty)"
   - "Meenakshi Dembi (@meenakshidembi691)"
 notes:

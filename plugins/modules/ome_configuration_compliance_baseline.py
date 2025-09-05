@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 10.0.1
+# Version 10.1.0
 # Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -356,7 +356,6 @@ error_info:
   }
 '''
 
-import json
 import time
 import re
 import datetime
@@ -782,8 +781,8 @@ def validate_remediate_idempotency(module, rest_obj):
             module.exit_json(msg=CHECK_MODE_NO_CHANGES_MSG)
         invalid_values = list(set(device_id_list) - set(compliance_report_map.keys()))
         if invalid_values:
-            module.fail_json(
-                INVALID_COMPLIANCE_IDENTIFIER.format("device_ids", ",".join(map(str, invalid_values)), name))
+            module.exit_json(
+                INVALID_COMPLIANCE_IDENTIFIER.format("device_ids", ",".join(map(str, invalid_values)), name), failed=True)
         report_devices = list(set(device_id_list) & set(compliance_report_map.keys()))
         noncomplaint_devices = [device for device in report_devices if compliance_report_map[device] == "NONCOMPLIANT"
                                 or compliance_report_map[device] == 2]
@@ -794,8 +793,8 @@ def validate_remediate_idempotency(module, rest_obj):
             module.exit_json(msg=CHECK_MODE_NO_CHANGES_MSG)
         invalid_values = list(set(device_service_tags_list) - set(compliance_report_map.keys()))
         if invalid_values:
-            module.fail_json(
-                INVALID_COMPLIANCE_IDENTIFIER.format("device_service_tags", ",".join(map(str, invalid_values)), name))
+            module.exit_json(
+                INVALID_COMPLIANCE_IDENTIFIER.format("device_service_tags", ",".join(map(str, invalid_values)), name), failed=True)
         report_devices = list(set(device_service_tags_list) & set(compliance_report_map.keys()))
         service_tag_id_map = dict(
             [(item["ServiceTag"], item["Id"]) for item in compliance_reports["value"]])

@@ -713,7 +713,7 @@ class TestOmeTemplate(FakeAnsibleModule):
          "job_tracking": (True, "msg", {'LastRunStatus': {"Name": "Complete"}}, True),
             'message': "Failed to deploy template.",
             'mparams': {"command": "deploy", "template_id": 123, "device_id": 1234}
-        },
+         },
         {"json_data": {"value": [
             {'Id': 123, 'TargetId': 123, 'ProfileState': 1,
                 'DeviceId': 1234, "Type": 1000},
