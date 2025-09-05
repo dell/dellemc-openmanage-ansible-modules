@@ -20,7 +20,7 @@ from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils._text import to_text
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_chassis_slots
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, AnsibleFailJSonException
 
 DEVICE_REPEATED = "Duplicate device entry found for devices with identifiers {0}."
 CHASSIS_REPEATED = "Duplicate chassis entry found for chassis with service tags {0}."
@@ -34,6 +34,8 @@ SUCCESS_REFRESH_MSG = "The rename slot job(s) completed successfully. " \
 FAILED_MSG = "Failed to rename {0} of {1} slot names."
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_FOUND = "Changes found to be applied."
+INVALID_SLOT_NUMBERS = "Unable to rename one or more slots because the slot number(s) are invalid: {0}."
+SLOT_NUM_DUP = "Slot numbers are repeated for chassis {0}."
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.ome_chassis_slots.'
 MODULE_UTIL_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.ome.'
@@ -424,3 +426,74 @@ class TestOmeChassisSlots(FakeAnsibleModule):
         result = self._run_module(ome_default_args)
         assert result['msg'] == params['message'].format(
             ';'.join(set(params.get("invalid_list"))))
+
+    @pytest.mark.parametrize("params", [{"slot_options": {"chassis_service_tag": "ABC1234",
+                                                          "slots": [{"slot_name": "t1", "slot_number": 1},
+                                                                    {"slot_name": "s1", "slot_number": 5},
+                                                                    {"slot_name": "s2", "slot_number": 6}]},
+                                         "chass_id": 1234, "chassi": {'value': [{"Identifier": "ABC1234", "Id": 1234}]},
+                                         "bladeslots": {'value': [{"SlotNumber": "1", "SlotName": "blade-slot1",
+                                                                   "Id": 234}]},
+                                         "invalid_list": {"6"},
+                                         "message": INVALID_SLOT_NUMBERS,
+                                         "storageslots": {'value': [{"ChassisServiceTag": "ABC1234",
+                                                                     "SlotConfiguration": {
+                                                                         "SlotId": "123", "SlotNumber": "5",
+                                                                         "SlotName": "stor-slot1"}}]},
+                                         "slot_dict_diff": {'ABC1234_5': {'SlotNumber': '5', 'SlotName': 'stor-slot1',
+                                                                          'ChassisId': 1234, 'SlotId': "123",
+                                                                          'ChassisServiceTag': 'ABC1234',
+                                                                          'new_name': 's1'},
+                                                            'ABC1234_1': {'SlotNumber': '1', 'SlotName': 'blade-slot1',
+                                                                          'ChassisId': 1234, 'SlotId': "234",
+                                                                          "Id": 234,
+                                                                          'ChassisServiceTag': 'ABC1234',
+                                                                          'new_name': 't1'}}}])
+    def test_invalid_slot_numbers(self, params, ome_connection_mock_for_chassis_slots, ome_response_mock, mocker):
+        mocker.patch(
+            MODULE_PATH + 'get_device_type',
+            return_value=params.get('storageslots'))
+        ome_response_mock.json_data = params["bladeslots"]
+        ch_slots = params['slot_options']
+        f_module = self.get_module_mock()
+        with pytest.raises(AnsibleFailJSonException) as exc_info:
+            self.module.get_slot_data(f_module, ome_connection_mock_for_chassis_slots, ch_slots, params['chass_id'])
+
+        # Validate the error message
+        expected_msg = INVALID_SLOT_NUMBERS.format(';'.join(params['invalid_list']))
+        assert str(exc_info.value) == expected_msg
+
+    @pytest.mark.parametrize("params", [{"slot_options": {"chassis_service_tag": "ABC1234",
+                                                        "slots": [{"slot_name": "t1", "slot_number": 1},
+                                                                {"slot_name": "s1", "slot_number": 5},
+                                                                {"slot_name": "s1", "slot_number": 5}]},
+                                        "chass_id": 1234, "chassi": {'value': [{"Identifier": "ABC1234", "Id": 1234}]},
+                                        "bladeslots": {'value': [{"SlotNumber": "1", "SlotName": "blade-slot1",
+                                                                "Id": 234}]},
+                                        "invalid_list": "ABC1234",
+                                        "storageslots": {'value': [{"ChassisServiceTag": "ABC1234",
+                                                                    "SlotConfiguration": {
+                                                                        "SlotId": "123", "SlotNumber": "5",
+                                                                        "SlotName": "stor-slot1"}}]},
+                                        "slot_dict_diff": {'ABC1234_5': {'SlotNumber': '5', 'SlotName': 'stor-slot1',
+                                                                        'ChassisId': 1234, 'SlotId': "123",
+                                                                        'ChassisServiceTag': 'ABC1234',
+                                                                        'new_name': 's1'},
+                                                        'ABC1234_1': {'SlotNumber': '1', 'SlotName': 'blade-slot1',
+                                                                        'ChassisId': 1234, 'SlotId': "234",
+                                                                        "Id": 234,
+                                                                        'ChassisServiceTag': 'ABC1234',
+                                                                        'new_name': 't1'}}}])
+    def test_duplicate_slot_numbers(self, params, ome_connection_mock_for_chassis_slots, ome_response_mock, mocker):
+        mocker.patch(
+            MODULE_PATH + 'get_device_type',
+            return_value=params.get('storageslots'))
+        ome_response_mock.json_data = params["bladeslots"]
+        ch_slots = params['slot_options']
+        f_module = self.get_module_mock()
+        with pytest.raises(AnsibleFailJSonException) as exc_info:
+            self.module.get_slot_data(f_module, ome_connection_mock_for_chassis_slots, ch_slots, params['chass_id'])
+
+        # Validate the error message
+        expected_msg = SLOT_NUM_DUP.format(params['invalid_list'])
+        assert str(exc_info.value) == expected_msg
