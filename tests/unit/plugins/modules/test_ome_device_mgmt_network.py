@@ -440,8 +440,8 @@ class TestOmeDeviceMgmtNetwork(FakeAnsibleModule):
         assert exc.value.args[0] == \
             "Invalid IP address provided for the dns1"
 
-    @pytest.mark.parametrize("params", [{"mparams": {"device_id": 9999}, "res":
-        {"Device with device_id '9999' not found."}}])
+    @pytest.mark.parametrize(
+        "params", [{"mparams": {"device_id": 9999}, "res": {"Device with device_id '9999' not found."}}])
     def test_get_device_details_failure(
             self, params, ome_connection_mock_for_device_network):
         msg = "exception message"
