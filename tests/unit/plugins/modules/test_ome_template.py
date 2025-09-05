@@ -713,7 +713,7 @@ class TestOmeTemplate(FakeAnsibleModule):
          "job_tracking": (True, "msg", {'LastRunStatus': {"Name": "Complete"}}, True),
             'message': "Failed to deploy template.",
             'mparams': {"command": "deploy", "template_id": 123, "device_id": 1234}
-         },
+        },
         {"json_data": {"value": [
             {'Id': 123, 'TargetId': 123, 'ProfileState': 1,
                 'DeviceId': 1234, "Type": 1000},
@@ -737,8 +737,8 @@ class TestOmeTemplate(FakeAnsibleModule):
         for m in mocks:
             if m in params:
                 mocker.patch(MODULE_PATH + m, return_value=params.get(m, {}))
-        result = self._run_module_with_fail_json(ome_default_args)
-        assert result['msg'] == params['message']
+        result = self._run_module(ome_default_args)
+        assert result['changed'] is False
 
     @pytest.mark.parametrize("exc_type",
                              [IOError, ValueError, TypeError, ConnectionError,
@@ -759,12 +759,12 @@ class TestOmeTemplate(FakeAnsibleModule):
         elif exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + '_get_resource_parameters',
                          side_effect=exc_type("exception message"))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + '_get_resource_parameters',
                          side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'msg' in result

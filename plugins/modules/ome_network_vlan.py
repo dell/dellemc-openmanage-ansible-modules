@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 10.0.1
 # Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -232,20 +232,20 @@ def check_overlapping_vlan_range(payload, vlans):
 def create_vlan(module, rest_obj, vlans):
     payload = format_payload(module.params)
     if not all(payload.values()):
-        module.fail_json(msg="The vlan_minimum, vlan_maximum and type values are required for creating a VLAN.")
+        module.exit_json(msg="The vlan_minimum, vlan_maximum and type values are required for creating a VLAN.", changed=False)
     if payload["VlanMinimum"] > payload["VlanMaximum"]:
-        module.fail_json(msg=VLAN_VALUE_MSG)
+        module.exit_json(msg=VLAN_VALUE_MSG, changed=False)
     overlap = check_overlapping_vlan_range(payload, vlans)
     if overlap:
-        module.fail_json(msg=VLAN_RANGE_OVERLAP.format(vlan_name=overlap["Name"], vlan_min=overlap["VlanMinimum"],
-                                                       vlan_max=overlap["VlanMaximum"]))
+        module.exit_json(msg=VLAN_RANGE_OVERLAP.format(vlan_name=overlap["Name"], vlan_min=overlap["VlanMinimum"],
+                                                       vlan_max=overlap["VlanMaximum"]), changed=False)
     if module.check_mode:
         module.exit_json(changed=True, msg=CHECK_MODE_MSG)
     if module.params.get("description"):
         payload["Description"] = module.params.get("description")
     payload["Type"], types = get_item_id(rest_obj, module.params["type"], VLAN_TYPES)
     if not payload["Type"]:
-        module.fail_json(msg="Network type '{0}' not found.".format(module.params["type"]))
+        module.exit_json(msg="Network type '{0}' not found.".format(module.params["type"]), changed=False)
     resp = rest_obj.invoke_request("POST", VLAN_CONFIG, data=payload)
     module.exit_json(msg="Successfully created the VLAN.", vlan_status=resp.json_data, changed=True)
 
@@ -263,7 +263,7 @@ def modify_vlan(module, rest_obj, vlan_id, vlans):
     if module.params.get("type"):
         payload["Type"], types = get_item_id(rest_obj, module.params["type"], VLAN_TYPES)
         if not payload["Type"]:
-            module.fail_json(msg="Network type '{0}' not found.".format(module.params["type"]))
+            module.exit_json(msg="Network type '{0}' not found.".format(module.params["type"]), changed=False)
     if module.params.get("new_name"):
         payload["Name"] = module.params["new_name"]
     current_setting = {}
@@ -281,11 +281,11 @@ def modify_vlan(module, rest_obj, vlan_id, vlans):
         else:
             payload[config] = current_setting.get(config)
     if payload["VlanMinimum"] > payload["VlanMaximum"]:
-        module.fail_json(msg=VLAN_VALUE_MSG)
+        module.exit_json(msg=VLAN_VALUE_MSG, changed=False)
     overlap = check_overlapping_vlan_range(payload, vlans)
     if overlap:
-        module.fail_json(msg=VLAN_RANGE_OVERLAP.format(vlan_name=overlap["Name"], vlan_min=overlap["VlanMinimum"],
-                                                       vlan_max=overlap["VlanMaximum"]))
+        module.exit_json(msg=VLAN_RANGE_OVERLAP.format(vlan_name=overlap["Name"], vlan_min=overlap["VlanMinimum"],
+                                                       vlan_max=overlap["VlanMaximum"]), changed=False)
     if diff == 0:  # Idempotency
         if module.check_mode:
             module.exit_json(msg="No changes found to be applied to the VLAN configuration.")
@@ -337,11 +337,11 @@ def main():
                     module.exit_json(msg="No changes found to be applied to the VLAN configuration.")
                 module.exit_json(msg="VLAN {0} does not exist.".format(module.params["name"]))
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, TypeError, ConnectionError, SSLValidationError, SSLError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == "__main__":

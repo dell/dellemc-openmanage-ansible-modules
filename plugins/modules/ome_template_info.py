@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 10.0.1
 # Copyright (C) 2019-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -35,7 +35,9 @@ options:
         type: str
 requirements:
     - "python >= 3.9.6"
-author: "Sajna Shetty(@Sajna-Shetty)"
+author: 
+  - "Sajna Shetty(@Sajna-Shetty)"
+  - "Meenakshi Dembi (@meenakshidembi691)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module supports C(check_mode).
@@ -156,11 +158,11 @@ def main():
         if resp.status_code == 200:
             module.exit_json(template_info={module.params["hostname"]: template_facts})
         else:
-            module.fail_json(msg="Failed to fetch the template facts")
+            module.exit_json(msg="Failed to fetch the template facts", changed=False)
     except HTTPError as err:
-        module.fail_json(msg=json.load(err))
+        module.exit_json(msg=json.load(err), failed=True)
     except (URLError, SSLValidationError, ConnectionError, TypeError, ValueError, OSError, SSLError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
