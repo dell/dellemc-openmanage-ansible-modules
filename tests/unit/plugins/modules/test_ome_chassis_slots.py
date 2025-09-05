@@ -51,6 +51,12 @@ def ome_connection_mock_for_chassis_slots(mocker, ome_response_mock):
 
 class TestOmeChassisSlots(FakeAnsibleModule):
     module = ome_chassis_slots
+    def _run_config_error_test(self, params, ome_response_mock, ome_connection_mock, ome_default_args):
+        ome_response_mock.success = params.get("success", True)
+        ome_response_mock.json_data = params["json_data"]
+        ome_connection_mock.get_all_items_with_pagination.return_value = params["json_data"]
+        ome_default_args.update(params["mparams"])
+        return self._run_module(ome_default_args)
 
     @pytest.mark.parametrize("params", [{'mparams': {"device_options": [
         {"slot_name": "t1",
@@ -113,16 +119,10 @@ class TestOmeChassisSlots(FakeAnsibleModule):
                       {"Id": 10052, "Type": 1000, "Identifier": "PQRS1234"},
                       {"Id": 10054, "Type": 1000, "Identifier": "ABCD1234"}]}, 'message': INVALID_SLOT_DEVICE,
         "success": True}])
-    def test_get_device_slot_config_errors(self, params, ome_connection_mock_for_chassis_slots, ome_response_mock,
-                                           ome_default_args, module_mock):
-        ome_response_mock.success = params.get("success", True)
-        ome_response_mock.json_data = params['json_data']
-        ome_connection_mock_for_chassis_slots.get_all_items_with_pagination.return_value = params[
-            'json_data']
-        ome_default_args.update(params['mparams'])
-        result = self._run_module(ome_default_args)
-        assert result['msg'] == params['message'].format(
-            ';'.join(set(params.get("invalid_list"))))
+    def test_get_device_slot_config_errors(self, params, ome_connection_mock_for_chassis_slots, ome_response_mock, ome_default_args, module_mock):
+        result = self._run_config_error_test(params, ome_response_mock, ome_connection_mock_for_chassis_slots, ome_default_args)
+        expected_msg = params["message"].format(';'.join(set(params.get("invalid_list"))))
+        assert result["msg"] == expected_msg
 
     @pytest.mark.parametrize("params", [{"json_data": {'Name': 'j1', 'Id': 24}, "slot_data": {
         "ABC1234": {"ChassisId": "123", "SlotNumber": "1", "SlotType": "2000"}}, "failed_jobs": {}}])
@@ -416,16 +416,10 @@ class TestOmeChassisSlots(FakeAnsibleModule):
             },
         ]
     )
-    def test_get_slot_config_errors(self, params, ome_connection_mock_for_chassis_slots, ome_response_mock,
-                                    ome_default_args, module_mock):
-        ome_response_mock.success = params.get("success", True)
-        ome_response_mock.json_data = params['json_data']
-        ome_connection_mock_for_chassis_slots.get_all_items_with_pagination.return_value = params[
-            'json_data']
-        ome_default_args.update(params['mparams'])
-        result = self._run_module(ome_default_args)
-        assert result['msg'] == params['message'].format(
-            ';'.join(set(params.get("invalid_list"))))
+    def test_get_slot_config_errors(self, params, ome_connection_mock_for_chassis_slots, ome_response_mock, ome_default_args, module_mock):
+        result = self._run_config_error_test(params, ome_response_mock, ome_connection_mock_for_chassis_slots, ome_default_args)
+        expected_msg = params["message"].format(';'.join(set(params.get("invalid_list"))))
+        assert result["msg"] == expected_msg
 
     @pytest.mark.parametrize("params", [{"slot_options": {"chassis_service_tag": "ABC1234",
                                                           "slots": [{"slot_name": "t1", "slot_number": 1},
