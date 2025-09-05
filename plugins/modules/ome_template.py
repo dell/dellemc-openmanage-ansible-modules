@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 10.0.1
 # Copyright (C) 2019-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -138,6 +138,7 @@ author:
     - "Jagadeesh N V (@jagadeeshnv)"
     - "Husniya Hameed (@husniya_hameed)"
     - "Kritika Bhateja (@Kritika-Bhateja)"
+    - "Meenakshi Dembi (@meenakshidembi691)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module supports C(check_mode).
@@ -606,7 +607,7 @@ def get_group(rest_obj, module, group_name):
     for grp in group_req.json_data.get('value'):
         if grp['Name'] == group_name:
             return grp
-    module.fail_json(msg="Group name '{0}' is invalid. Please provide a valid group name.".format(group_name))
+    module.exit_json(msg="Group name '{0}' is invalid. Please provide a valid group name.".format(group_name), changed=False)
 
 
 def get_group_details(rest_obj, module):
@@ -952,7 +953,7 @@ def password_no_log(attributes):
 
 def fail_module(module, **failmsg):
     password_no_log(module.params.get("attributes"))
-    module.fail_json(**failmsg)
+    module.exit_json(**failmsg)
 
 
 def exit_module(rest_obj, module, response, time_out=False):
@@ -1065,16 +1066,16 @@ def main():
                             exit_module(rest_obj, module, resp, True)
                         else:
                             message = MSG_DICT.get('fail').format(command=module.params["command"])
-                            module.fail_json(msg=message)
+                            module.exit_json(msg=message, changed=False)
             if resp.success:
                 exit_module(rest_obj, module, resp)
     except HTTPError as err:
-        fail_module(module, msg=str(err), error_info=json.load(err))
+        module.exit_json(module, msg=str(err), failed=True)
     except URLError as err:
         password_no_log(module.params.get("attributes"))
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, SSLError, SSLValidationError, ConnectionError, TypeError, ValueError, KeyError, OSError) as err:
-        fail_module(module, msg=str(err))
+        module.exit_json(module, msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
