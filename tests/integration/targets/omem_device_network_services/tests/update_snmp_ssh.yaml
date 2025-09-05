@@ -1,0 +1,115 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  fail:
+    msg: 'Please define the following variables: hostname, username and password.'
+  when: hostname is not defined or username is not defined or password is not defined
+
+- block:
+    - ansible.builtin.include_tasks: _helper.yml
+
+    - ansible.builtin.include_tasks: _pre_post_req.yml
+
+    - name: Update SNMP & SSH configuration using device id. (Check mode - changes expected)
+      dellemc.openmanage.ome_device_network_services: &deviceid
+        device_id: "{{device_id}}"
+        snmp_settings:
+          enabled: true
+          port_number: 164
+          community_name: public
+        ssh_settings:
+          enabled: true
+          max_sessions: 3
+          max_auth_retries: 4
+          idle_timeout: 31
+          port_number: 24
+        remote_racadm_settings:
+          enabled: true
+      register: cm_device_id
+      check_mode: true
+
+    - name: Update SNMP & SSH configuration using device id. (Normal mode)
+      dellemc.openmanage.ome_device_network_services:
+        <<: *deviceid
+      register: device_id_result
+
+    - name: Update SNMP & SSH configuration using device id. (Check mode - no changes expected)
+      dellemc.openmanage.ome_device_network_services:
+        <<: *deviceid
+      register: no_cm_device_id
+      check_mode: true
+
+    - name: Update SNMP & SSH configuration using device id. (Idempotence mode)
+      dellemc.openmanage.ome_device_network_services:
+        <<: *deviceid
+      register: device_id_idempotence
+
+    - ansible.builtin.include_tasks: _pre_post_req.yml
+
+    - name: Update SNMP & SSH configuration using device service tag. (Check mode - changes expected)
+      dellemc.openmanage.ome_device_network_services: &deviceservicetag
+        device_service_tag: "{{device_service_tag}}"
+        snmp_settings:
+          enabled: true
+          port_number: 164
+          community_name: public
+        ssh_settings:
+          enabled: true
+          max_sessions: 3
+          max_auth_retries: 4
+          idle_timeout: 31
+          port_number: 24
+        remote_racadm_settings:
+          enabled: true
+      register: cm_device_tag
+      check_mode: true
+
+    - name: Update SNMP & SSH configuration using device service tag. (Normal mode)
+      dellemc.openmanage.ome_device_network_services:
+        <<: *deviceservicetag
+      register: device_tag_result
+
+    - name: Update SNMP & SSH configuration using device service tag. (Check mode - no changes expected)
+      dellemc.openmanage.ome_device_network_services:
+        <<: *deviceservicetag
+      register: no_cm_device_tag
+      check_mode: true
+
+    - name: Update SNMP & SSH configuration using device service tag. (Idempotence mode)
+      dellemc.openmanage.ome_device_network_services:
+        <<: *deviceservicetag
+      register: device_tag_idempotence
+
+    - name: Verify the status of device location update
+      ansible.builtin.assert:
+        that:
+          - cm_device_id.changed
+          - cm_device_id.msg == "Changes found to be applied."
+          - device_id_result.changed
+          - device_id_result.msg ==
+            "Successfully updated the network services settings."
+          - not no_cm_device_id.changed
+          - no_cm_device_id.msg == "No changes found to be applied."
+          - not device_id_idempotence.changed
+          - device_id_idempotence.msg == "No changes found to be applied."
+          - cm_device_tag.changed
+          - cm_device_tag.msg == "Changes found to be applied."
+          - device_tag_result.changed
+          - device_tag_result.msg ==
+            "Successfully updated the network services settings."
+          - not no_cm_device_tag.changed
+          - no_cm_device_tag.msg == "No changes found to be applied."
+          - not device_tag_idempotence.changed
+          - device_tag_idempotence.msg == "No changes found to be applied."
+
+  module_defaults:
+    dellemc.openmanage.ome_device_network_services:
+      validate_certs: "{{validate_certs}}"
+      hostname: "{{hostname}}"
+      username: "{{username}}"
+      password: "{{password}}"
+      port: "{{port}}"

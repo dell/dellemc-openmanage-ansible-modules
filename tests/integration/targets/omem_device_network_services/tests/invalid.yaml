@@ -1,0 +1,162 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  fail:
+    msg: 'Please define the following variables: hostname, username and password.'
+  when: hostname is not defined or username is not defined or password is not defined
+
+- block:
+    - ansible.builtin.include_tasks: _helper.yml
+
+    - ansible.builtin.include_tasks: _pre_post_req.yml
+
+    - name: Invalid port number
+      dellemc.openmanage.ome_device_network_services:
+        snmp_settings:
+          enabled: true
+          port_number: 65536
+          community_name: public
+        ssh_settings:
+          enabled: true
+          max_sessions: 3
+          max_auth_retries: 4
+          idle_timeout: 31
+          port_number: 24
+        remote_racadm_settings:
+          enabled: true
+      ignore_errors: true
+      register: invalid_port
+
+    - name: Invalid community name
+      dellemc.openmanage.ome_device_network_services:
+        snmp_settings:
+          enabled: true
+          port_number: 164
+          community_name: publicpublicpublicpublicpublicpublic
+        ssh_settings:
+          enabled: true
+          max_sessions: 3
+          max_auth_retries: 4
+          idle_timeout: 31
+          port_number: 24
+        remote_racadm_settings:
+          enabled: true
+      ignore_errors: true
+      register: invalid_community
+
+    - name: Invalid maxsessions
+      dellemc.openmanage.ome_device_network_services:
+        snmp_settings:
+          enabled: true
+          port_number: 165
+          community_name: public
+        ssh_settings:
+          enabled: true
+          max_sessions: 5
+          max_auth_retries: 4
+          idle_timeout: 31
+          port_number: 24
+        remote_racadm_settings:
+          enabled: true
+      ignore_errors: true
+      register: invalid_maxsessions
+
+    - name: Invalid maxauth
+      dellemc.openmanage.ome_device_network_services:
+        snmp_settings:
+          enabled: true
+          port_number: 165
+          community_name: public
+        ssh_settings:
+          enabled: true
+          max_sessions: 3
+          max_auth_retries: 10
+          idle_timeout: 31
+          port_number: 24
+        remote_racadm_settings:
+          enabled: true
+      ignore_errors: true
+      register: invalid_maxauth
+
+    - name: Invalid idletimeout
+      dellemc.openmanage.ome_device_network_services:
+        snmp_settings:
+          enabled: true
+          port_number: 165
+          community_name: public
+        ssh_settings:
+          enabled: true
+          max_sessions: 3
+          max_auth_retries: 4
+          idle_timeout: 181
+          port_number: 24
+        remote_racadm_settings:
+          enabled: true
+      ignore_errors: true
+      register: invalid_idletimeout
+
+    - name: Invalid device id
+      dellemc.openmanage.ome_device_network_services:
+        device_id: 12345
+        remote_racadm_settings:
+          enabled: true
+      ignore_errors: true
+      register: invalid_device_id
+
+    - name: Invalid service tag
+      dellemc.openmanage.ome_device_network_services:
+        device_service_tag: "invalid"
+        remote_racadm_settings:
+          enabled: true
+      ignore_errors: true
+      register: invalid_service_tag
+
+    - name: Verify the status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_port.failed
+          - not invalid_port.changed
+          - 'invalid_port.msg == "HTTP Error 400: 400"'
+          - invalid_port.error_info.error["@Message.ExtendedInfo"][0].Message ==
+             "Unable to complete the operation because the value provided for SNMP PortNumber is invalid."
+          - invalid_community.failed
+          - not invalid_community.changed
+          - 'invalid_community.msg == "HTTP Error 400: 400"'
+          - invalid_community.error_info.error["@Message.ExtendedInfo"][0].Message ==
+            "Unable to complete the operation because the value provided for CommunityName is invalid."
+          - invalid_maxsessions.failed
+          - not invalid_maxsessions.changed
+          - 'invalid_maxsessions.msg == "HTTP Error 400: 400"'
+          - invalid_maxsessions.error_info.error["@Message.ExtendedInfo"][0].Message ==
+            "Unable to complete the operation because the value provided for MaxSessions is invalid."
+          - invalid_maxauth.failed
+          - not invalid_maxauth.changed
+          - 'invalid_maxauth.msg == "HTTP Error 400: 400"'
+          - invalid_maxauth.error_info.error["@Message.ExtendedInfo"][0].Message ==
+            "Unable to complete the operation because the value provided for MaxAuthRetries is invalid."
+          - invalid_idletimeout.failed
+          - not invalid_idletimeout.changed
+          - 'invalid_idletimeout.msg == "HTTP Error 400: 400"'
+          - invalid_idletimeout.error_info.error["@Message.ExtendedInfo"][0].Message ==
+            "Unable to complete the operation because the value provided for IdleTimeout is invalid."
+          - invalid_device_id.failed
+          - not invalid_device_id.changed
+          - invalid_device_id.msg ==
+            "Unable to complete the operation because the entered target device id '12345' is invalid."
+          - invalid_service_tag.failed
+          - not invalid_service_tag.changed
+          - invalid_service_tag.msg ==
+            "Unable to complete the operation because the entered target device service tag 'invalid' is invalid."
+
+
+  module_defaults:
+    dellemc.openmanage.ome_device_network_services:
+      validate_certs: "{{validate_certs}}"
+      hostname: "{{hostname}}"
+      username: "{{username}}"
+      password: "{{password}}"
+      port: "{{port}}"

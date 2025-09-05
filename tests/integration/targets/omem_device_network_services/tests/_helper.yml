@@ -5,14 +5,23 @@
 # https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - block:
-    - name: Get the device service tag of a server present under idrac group in inventory.
+    - name: Get the device service tag of a server
+        present under idrac group in inventory.
       dellemc.openmanage.ome_device_info:
+        params: {}
       register: all_devices
+
+    - set_fact:
+        device_info: "{{ all_devices | json_query(query) }}"
+      vars:
+        query: 'device_info.value[?DeviceManagement[?NetworkAddress==
+          `{{ hostname }}`]]'
 
     - ansible.builtin.set_fact:
         device_info: "{{all_devices | json_query(query)}}"
       vars:
-        query: 'device_info.value[?DeviceManagement[?NetworkAddress == `{{ hostname }}`]]'
+        query:
+          'device_info.value[?DeviceManagement[?NetworkAddress == `{{ hostname }}`]]'
 
     - name: Get device service tag and device id of the host
       ansible.builtin.set_fact:
