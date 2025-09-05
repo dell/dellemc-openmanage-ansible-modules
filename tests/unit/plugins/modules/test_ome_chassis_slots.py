@@ -493,25 +493,6 @@ class TestOmeChassisSlots(FakeAnsibleModule):
                         }
                     ]
                 },
-                "slot_dict_diff": {
-                    "ABC1234_5": {
-                        "SlotNumber": "5",
-                        "SlotName": "stor-slot1",
-                        "ChassisId": 1234,
-                        "SlotId": "123",
-                        "ChassisServiceTag": "ABC1234",
-                        "new_name": "s1",
-                    },
-                    "ABC1234_1": {
-                        "SlotNumber": "1",
-                        "SlotName": "blade-slot1",
-                        "ChassisId": 1234,
-                        "SlotId": "234",
-                        "Id": 234,
-                        "ChassisServiceTag": "ABC1234",
-                        "new_name": "t1",
-                    },
-                },
             }
         ]
     )
