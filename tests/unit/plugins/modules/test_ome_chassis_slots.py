@@ -51,6 +51,7 @@ def ome_connection_mock_for_chassis_slots(mocker, ome_response_mock):
 
 class TestOmeChassisSlots(FakeAnsibleModule):
     module = ome_chassis_slots
+
     def _run_config_error_test(self, params, ome_response_mock, ome_connection_mock, ome_default_args):
         ome_response_mock.success = params.get("success", True)
         ome_response_mock.json_data = params["json_data"]
@@ -204,7 +205,6 @@ class TestOmeChassisSlots(FakeAnsibleModule):
     def test_ome_chassis_slots_success_case(self, params, ome_connection_mock_for_chassis_slots, ome_response_mock,
                                             ome_default_args, mocker):
         ome_response_mock.success = params.get("success", True)
-        # ome_response_mock.json_data = params['json_data']
         ome_connection_mock_for_chassis_slots.get_all_items_with_pagination.return_value = params[
             'json_data']
         ome_connection_mock_for_chassis_slots.job_tracking.return_value = (
