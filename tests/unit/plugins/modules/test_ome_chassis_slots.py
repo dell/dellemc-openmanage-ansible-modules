@@ -98,11 +98,8 @@ class TestOmeChassisSlots(FakeAnsibleModule):
                       {"Id": 10054, "Type": 1000, "Identifier": "ABCD1234",
                        "SlotConfiguration": {"DeviceType": "1000", "ChassisId": "10053", "SlotNumber": "1",
                                              "SlotName": "my_840c", "SlotType": "2000"}}]}, 'message': NO_CHANGES_MSG,
-        "success": True},
-        {
-         'mparams': {"device_options": [
-                                       {"slot_name": "s2",
-                                        "device_service_tag": "PQRS1234"}, ]},
+        "success": True}, {
+        'mparams': {"device_options": [{"slot_name": "s2", "device_service_tag": "PQRS1234"}]},
         "invalid_list": set(["PQRS1234"]), "json_data": {
             "value": [{"Id": 10053, "Identifier": "2H5DNX2"},
                       {"Id": 10052, "Type": 1000, "Identifier": "PQRS1234"},
