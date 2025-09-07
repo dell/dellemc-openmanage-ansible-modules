@@ -430,23 +430,14 @@ class TestOmeChassisSlots(FakeAnsibleModule):
                                                                     {"slot_name": "s1", "slot_number": 5},
                                                                     {"slot_name": "s2", "slot_number": 6}]},
                                          "chass_id": 1234, "chassi": {'value': [{"Identifier": "ABC1234", "Id": 1234}]},
-                                         "bladeslots": {'value': [{"SlotNumber": "1", "SlotName": "blade-slot1",
-                                                                   "Id": 234}]},
+                                         "bladeslots": {'value': [{"SlotNumber": "1", "SlotName": "blade-slot1", "Id": 234}]},
                                          "invalid_list": {"6"},
                                          "message": INVALID_SLOT_NUMBERS,
                                          "storageslots": {'value': [{"ChassisServiceTag": "ABC1234",
                                                                      "SlotConfiguration": {
                                                                          "SlotId": "123", "SlotNumber": "5",
                                                                          "SlotName": "stor-slot1"}}]},
-                                         "slot_dict_diff": {'ABC1234_5': {'SlotNumber': '5', 'SlotName': 'stor-slot1',
-                                                                          'ChassisId': 1234, 'SlotId': "123",
-                                                                          'ChassisServiceTag': 'ABC1234',
-                                                                          'new_name': 's1'},
-                                                            'ABC1234_1': {'SlotNumber': '1', 'SlotName': 'blade-slot1',
-                                                                          'ChassisId': 1234, 'SlotId': "234",
-                                                                          "Id": 234,
-                                                                          'ChassisServiceTag': 'ABC1234',
-                                                                          'new_name': 't1'}}}])
+                                         }])
     def test_invalid_slot_numbers(self, params, ome_connection_mock_for_chassis_slots, ome_response_mock, mocker):
         mocker.patch(
             MODULE_PATH + 'get_device_type',
@@ -474,12 +465,8 @@ class TestOmeChassisSlots(FakeAnsibleModule):
                     ],
                 },
                 "chass_id": 1234,
-                "chassi": {
-                    "value": [{"Identifier": "ABC1234", "Id": 1234}]
-                },
-                "bladeslots": {
-                    "value": [{"SlotNumber": "1", "SlotName": "blade-slot1", "Id": 234}]
-                },
+                "chassi": {"value": [{"Identifier": "ABC1234", "Id": 1234}]},
+                "bladeslots": {"value": [{"SlotNumber": "1", "SlotName": "blade-slot1", "Id": 234}]},
                 "invalid_list": "ABC1234",
                 "storageslots": {
                     "value": [
