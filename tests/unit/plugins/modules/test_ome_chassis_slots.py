@@ -110,13 +110,15 @@ class TestOmeChassisSlots(FakeAnsibleModule):
         "success": True},
         {
         "mparams": {"slot_options": [{"chassis_service_tag": "ABC1234",
-                        "slots": [{"slot_name": "t1", "slot_number": 1}, {"slot_name": "s1", "slot_number": 5}]},
-                                  {"chassis_service_tag": "ABC1234", "slots": [{"slot_name": "t2", "slot_number": 2}, {"slot_name": "s2", "slot_number": 6}]}]},
+                                      "slots": [{"slot_name": "t1", "slot_number": 1}, {"slot_name": "s1", "slot_number": 5}]},
+                                     {"chassis_service_tag": "ABC1234",
+                                      "slots": [{"slot_name": "t2", "slot_number": 2}, {"slot_name": "s2", "slot_number": 6}]}]},
         "invalid_list": {"ABC1234"},
         "json_data": {
             "value": [
                     {"Id": 10053, "Identifier": "2H5DNX2", "SlotConfiguration": {"ChassisName": None}},
-                    {"Id": 10054, "Type": 1000, "Identifier": "ABCD1234", "SlotConfiguration": {"DeviceType": "1000", "ChassisId": "10053", "SlotNumber": "1", "SlotName": "my_840c", "SlotType": "2000"}}]},
+                    {"Id": 10054, "Type": 1000, "Identifier": "ABCD1234",
+                     "SlotConfiguration": {"DeviceType": "1000", "ChassisId": "10053", "SlotNumber": "1", "SlotName": "my_840c", "SlotType": "2000"}}]},
         "message": CHASSIS_REPEATED,
         "success": True},
         {
@@ -136,7 +138,7 @@ class TestOmeChassisSlots(FakeAnsibleModule):
                         {"slot_name": "s2", "slot_number": 6},
                     ],
                 },
-                ]},
+            ]},
         "invalid_list": {"ABC1234"},
         "json_data": {
             "value": [
