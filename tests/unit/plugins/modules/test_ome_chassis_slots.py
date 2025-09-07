@@ -195,7 +195,8 @@ class TestOmeChassisSlots(FakeAnsibleModule):
             },
             "message": CHASSIS_TAG_INVALID,
             "success": True,
-        }])
+        }
+    ])
     def test_get_device_slot_config_errors(self, params, ome_connection_mock_for_chassis_slots, ome_response_mock, ome_default_args, module_mock):
         # Test device slot config error
         result = self._run_config_error_test(params, ome_response_mock, ome_connection_mock_for_chassis_slots, ome_default_args)
