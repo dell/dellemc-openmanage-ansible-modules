@@ -108,93 +108,93 @@ class TestOmeChassisSlots(FakeAnsibleModule):
                        "SlotConfiguration": {"DeviceType": "1000", "ChassisId": "10053", "SlotNumber": "1",
                                              "SlotName": "my_840c", "SlotType": "2000"}}]}, 'message': NO_CHANGES_MSG,
         "success": True}, {
-                "mparams": {
-                    "slot_options": [
-                        {
-                            "chassis_service_tag": "ABC1234",
-                            "slots": [
-                                {"slot_name": "t1", "slot_number": 1},
-                                {"slot_name": "s1", "slot_number": 5},
-                            ],
-                        },
-                        {
-                            "chassis_service_tag": "ABC1234",
-                            "slots": [
-                                {"slot_name": "t2", "slot_number": 2},
-                                {"slot_name": "s2", "slot_number": 6},
-                            ],
-                        },
-                    ]
+        "mparams": {
+            "slot_options": [
+                {
+                    "chassis_service_tag": "ABC1234",
+                    "slots": [
+                        {"slot_name": "t1", "slot_number": 1},
+                        {"slot_name": "s1", "slot_number": 5},
+                    ],
                 },
-                "invalid_list": {"ABC1234"},
-                "json_data": {
-                    "value": [
-                        {
-                            "Id": 10053,
-                            "Identifier": "2H5DNX2",
-                            "SlotConfiguration": {"ChassisName": None},
-                        },
-                        {
-                            "Id": 10054,
-                            "Type": 1000,
-                            "Identifier": "ABCD1234",
-                            "SlotConfiguration": {
-                                "DeviceType": "1000",
-                                "ChassisId": "10053",
-                                "SlotNumber": "1",
-                                "SlotName": "my_840c",
-                                "SlotType": "2000",
-                            },
-                        },
-                    ]
+                {
+                    "chassis_service_tag": "ABC1234",
+                    "slots": [
+                        {"slot_name": "t2", "slot_number": 2},
+                        {"slot_name": "s2", "slot_number": 6},
+                    ],
                 },
-                "message": CHASSIS_REPEATED,
-                "success": True,
-            },
-            {
-                "mparams": {
-                    "slot_options": [
-                        {
-                            "chassis_service_tag": "ABC1234",
-                            "slots": [
-                                {"slot_name": "t1", "slot_number": 1},
-                                {"slot_name": "s1", "slot_number": 5},
-                            ],
-                        },
-                        {
-                            "chassis_service_tag": "ABC1235",
-                            "slots": [
-                                {"slot_name": "t2", "slot_number": 2},
-                                {"slot_name": "s2", "slot_number": 6},
-                            ],
-                        },
-                    ]
+            ]
+        },
+        "invalid_list": {"ABC1234"},
+        "json_data": {
+            "value": [
+                {
+                    "Id": 10053,
+                    "Identifier": "2H5DNX2",
+                    "SlotConfiguration": {"ChassisName": None},
                 },
-                "invalid_list": {"ABC1234"},
-                "json_data": {
-                    "value": [
-                        {
-                            "Id": 10053,
-                            "Identifier": "2H5DNX2",
-                            "SlotConfiguration": {"ChassisName": None},
-                        },
-                        {
-                            "Id": 10054,
-                            "Type": 1000,
-                            "Identifier": "ABCD1234",
-                            "SlotConfiguration": {
-                                "DeviceType": "1000",
-                                "ChassisId": "10053",
-                                "SlotNumber": "1",
-                                "SlotName": "my_840c",
-                                "SlotType": "2000",
-                            },
-                        },
-                    ]
+                {
+                    "Id": 10054,
+                    "Type": 1000,
+                    "Identifier": "ABCD1234",
+                    "SlotConfiguration": {
+                        "DeviceType": "1000",
+                        "ChassisId": "10053",
+                        "SlotNumber": "1",
+                        "SlotName": "my_840c",
+                        "SlotType": "2000",
+                    },
                 },
-                "message": CHASSIS_TAG_INVALID,
-                "success": True,
-            },])
+            ]
+        },
+        "message": CHASSIS_REPEATED,
+        "success": True,
+        },
+        {
+        "mparams": {
+            "slot_options": [
+                {
+                    "chassis_service_tag": "ABC1234",
+                    "slots": [
+                        {"slot_name": "t1", "slot_number": 1},
+                        {"slot_name": "s1", "slot_number": 5},
+                    ],
+                },
+                {
+                    "chassis_service_tag": "ABC1235",
+                    "slots": [
+                        {"slot_name": "t2", "slot_number": 2},
+                        {"slot_name": "s2", "slot_number": 6},
+                    ],
+                },
+            ]
+        },
+        "invalid_list": {"ABC1234"},
+        "json_data": {
+            "value": [
+                {
+                    "Id": 10053,
+                    "Identifier": "2H5DNX2",
+                    "SlotConfiguration": {"ChassisName": None},
+                },
+                {
+                    "Id": 10054,
+                    "Type": 1000,
+                    "Identifier": "ABCD1234",
+                    "SlotConfiguration": {
+                        "DeviceType": "1000",
+                        "ChassisId": "10053",
+                        "SlotNumber": "1",
+                        "SlotName": "my_840c",
+                        "SlotType": "2000",
+                    },
+                },
+            ]
+        },
+        "message": CHASSIS_TAG_INVALID,
+        "success": True,
+        }])
     def test_get_device_slot_config_errors(self, params, ome_connection_mock_for_chassis_slots, ome_response_mock, ome_default_args, module_mock):
         # Test device slot config error
         result = self._run_config_error_test(params, ome_response_mock, ome_connection_mock_for_chassis_slots, ome_default_args)
@@ -399,46 +399,73 @@ class TestOmeChassisSlots(FakeAnsibleModule):
             assert result['failed'] is True
         assert 'msg' in result
 
-    @pytest.mark.parametrize("params", [{"slot_options": {"chassis_service_tag": "ABC1234",
-                                                          "slots": [{"slot_name": "t1", "slot_number": 1},
-                                                                    {"slot_name": "s1", "slot_number": 5},
-                                                                    {"slot_name": "s2", "slot_number": 6}]},
-                                         "chass_id": 1234, "chassi": {'value': [{"Identifier": "ABC1234", "Id": 1234}]},
-                                         "bladeslots": {'value': [{"SlotNumber": "1", "SlotName": "blade-slot1", "Id": 234}]},
-                                         "invalid_list": {"6"},
-                                         "message": INVALID_SLOT_NUMBERS,
-                                         "storageslots": {'value': [{"ChassisServiceTag": "ABC1234",
-                                                                     "SlotConfiguration": {
-                                                                         "SlotId": "123", "SlotNumber": "5",
-                                                                         "SlotName": "stor-slot1"}}]},
-                                         },
-                                         {
-                                            "slot_options": {
-                                                "chassis_service_tag": "ABC1234",
-                                                "slots": [
-                                                    {"slot_name": "t1", "slot_number": 1},
-                                                    {"slot_name": "s1", "slot_number": 5},
-                                                    {"slot_name": "s1", "slot_number": 5},
-                                                ],
-                                            },
-                                            "chass_id": 1234,
-                                            "chassi": {"value": [{"Identifier": "ABC1234", "Id": 1234}]},
-                                            "bladeslots": {"value": [{"SlotNumber": "1", "SlotName": "blade-slot1", "Id": 234}]},
-                                            "invalid_list": {"ABC1234"},
-                                            "message": SLOT_NUM_DUP,
-                                            "storageslots": {
-                                                "value": [
-                                                    {
-                                                        "ChassisServiceTag": "ABC1234",
-                                                        "SlotConfiguration": {
-                                                            "SlotId": "123",
-                                                            "SlotNumber": "5",
-                                                            "SlotName": "stor-slot1",
-                                                        },
-                                                    }
-                                                ]
-                                            },
-                                         }])
+    @pytest.mark.parametrize(
+        "params",
+        [
+            {
+                "slot_options": {
+                    "chassis_service_tag": "ABC1234",
+                    "slots": [
+                        {"slot_name": "t1", "slot_number": 1},
+                        {"slot_name": "s1", "slot_number": 5},
+                        {"slot_name": "s2", "slot_number": 6},
+                    ],
+                },
+                "chass_id": 1234,
+                "chassi": {
+                    "value": [{"Identifier": "ABC1234", "Id": 1234}]
+                },
+                "bladeslots": {
+                    "value": [{"SlotNumber": "1", "SlotName": "blade-slot1", "Id": 234}]
+                },
+                "invalid_list": {"6"},
+                "message": INVALID_SLOT_NUMBERS,
+                "storageslots": {
+                    "value": [
+                        {
+                            "ChassisServiceTag": "ABC1234",
+                            "SlotConfiguration": {
+                                "SlotId": "123",
+                                "SlotNumber": "5",
+                                "SlotName": "stor-slot1",
+                            },
+                        }
+                    ]
+                },
+            },
+            {
+                "slot_options": {
+                    "chassis_service_tag": "ABC1234",
+                    "slots": [
+                        {"slot_name": "t1", "slot_number": 1},
+                        {"slot_name": "s1", "slot_number": 5},
+                        {"slot_name": "s1", "slot_number": 5},
+                    ],
+                },
+                "chass_id": 1234,
+                "chassi": {
+                    "value": [{"Identifier": "ABC1234", "Id": 1234}]
+                },
+                "bladeslots": {
+                    "value": [{"SlotNumber": "1", "SlotName": "blade-slot1", "Id": 234}]
+                },
+                "invalid_list": {"ABC1234"},
+                "message": SLOT_NUM_DUP,
+                "storageslots": {
+                    "value": [
+                        {
+                            "ChassisServiceTag": "ABC1234",
+                            "SlotConfiguration": {
+                                "SlotId": "123",
+                                "SlotNumber": "5",
+                                "SlotName": "stor-slot1",
+                            },
+                        }
+                    ]
+                },
+            },
+        ]
+    )
     def test_invalid_slot_numbers(self, params, ome_connection_mock_for_chassis_slots, ome_response_mock, mocker):
         mocker.patch(
             MODULE_PATH + 'get_device_type',
