@@ -115,10 +115,9 @@ class TestOmeChassisSlots(FakeAnsibleModule):
                                       "slots": [{"slot_name": "t2", "slot_number": 2}, {"slot_name": "s2", "slot_number": 6}]}]},
         "invalid_list": {"ABC1234"},
         "json_data": {
-            "value": [
-                    {"Id": 10053, "Identifier": "2H5DNX2", "SlotConfiguration": {"ChassisName": None}},
-                    {"Id": 10054, "Type": 1000, "Identifier": "ABCD1234",
-                     "SlotConfiguration": {"DeviceType": "1000", "ChassisId": "10053", "SlotNumber": "1", "SlotName": "my_840c", "SlotType": "2000"}}]},
+            "value": [{"Id": 10053, "Identifier": "2H5DNX2", "SlotConfiguration": {"ChassisName": None}},
+                      {"Id": 10054, "Type": 1000, "Identifier": "ABCD1234",
+                       "SlotConfiguration": {"DeviceType": "1000", "ChassisId": "10053", "SlotNumber": "1", "SlotName": "my_840c", "SlotType": "2000"}}]},
         "message": CHASSIS_REPEATED,
         "success": True},
         {
@@ -162,8 +161,7 @@ class TestOmeChassisSlots(FakeAnsibleModule):
             ]
         },
         "message": CHASSIS_TAG_INVALID,
-        "success": True,
-        }
+        "success": True}
     ])
     def test_get_device_slot_config_errors(self, params, ome_connection_mock_for_chassis_slots, ome_response_mock, ome_default_args, module_mock):
         # Test device slot config error
