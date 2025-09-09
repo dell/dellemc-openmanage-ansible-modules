@@ -1,6 +1,5 @@
 # Dell OpenManage Ansible modules
-# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
-
+# Copyright (C) 2024-20225 Dell Inc. or its subsidiaries. All Rights Reserved.
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
@@ -12,7 +11,8 @@
     hostname is not defined or ome_username is not defined or ome_password
     is not defined
 
-- block:
+- name: Block to start the all vcenter info scenarios
+  block:
     - name: Retrieve all vcenter info (Check mode)
       dellemc.openmanage.omevv_vcenter_info: &retrieve_info
         hostname: "{{ hostname }}"
