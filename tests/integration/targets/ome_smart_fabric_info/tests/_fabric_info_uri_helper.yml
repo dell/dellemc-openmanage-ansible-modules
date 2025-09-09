@@ -1,0 +1,42 @@
+- block:
+    - include_tasks: get_data.yml
+      vars:
+        url: "{{ query_url }}"
+
+    - set_fact:
+        uri_fabric_fetched_data:  "{{ json_data }}"
+        uri_fabric_res:  "{{ json_data[0] }}"
+        fabric_id: "{{ json_data[0].Id }}"
+        fabric_name: "{{ json_data[0].Name }}"
+        null_var: null
+
+    - set_fact:
+        expand_fabric_keys_1: "{{ expand_fabric_keys_1|default([]) + [item.value.split('/')[-1]] }}"
+      loop: "{{ lookup('dict', uri_fabric_res)}}"
+      when: "'@odata.navigationLink' in item.key"
+
+    - set_fact:
+        matches: "{{ lookup('ansible.utils.to_paths', uri_fabric_res) | dict2items | selectattr('key', 'search', '@odata.id') }}"
+
+    - set_fact:
+        expand_fabric_keys_2: "{{ expand_fabric_keys_2 |default([]) + [item.value.split('/')[-1]] | reject('search', fabric_id) | list }}"
+      loop: "{{matches}}"
+
+    - set_fact:
+        expand_fabric_keys: "{{expand_fabric_keys_1 | reject('search', 'ValidationErrors') | list + expand_fabric_keys_2 }}"
+
+    - set_fact:
+        uri_fabric_res:  "{{ uri_fabric_res | ansible.utils.remove_keys(target=['@odata.type', '@odata.id', '@odata.context', '@odata.count', '@odata.navigationLink'], matching_parameter='ends_with') }}"
+
+    - set_fact:
+        uri_fabric_res: '{{  uri_fabric_res | dict2items|rejectattr("value", "in", [{}, null_var])|list|items2dict }}'
+
+    - include_tasks: get_data.yml
+      vars:
+        url: https://{{hostname}}:{{port}}/api/NetworkService/Fabrics('{{fabric_id}}')/{{item}}
+        component: "{{ item }}"
+      loop: "{{ expand_fabric_keys }}"
+      when: item!= 'Multicast'
+
+    - set_fact:
+        uri_fabric_res: '{{  uri_fabric_res | combine(loop_data) }}'

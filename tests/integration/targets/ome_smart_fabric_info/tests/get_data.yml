@@ -1,0 +1,44 @@
+- name: Get data using uri
+  ansible.builtin.uri:
+    url: "{{ url }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    method: GET
+    body: {}
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+    headers: 'Accept=application/json'
+  register: fetched_data
+
+- ansible.builtin.set_fact:
+    json_data: "{{ fetched_data.json.value if 'value' in
+      fetched_data.json.keys() else [fetched_data.json]}}"
+
+- ansible.builtin.set_fact:
+    x_data:  "{{ json_data | ansible.utils.remove_keys(target=['@odata.type',
+     '@odata.id', '@odata.context', '@odata.count', '@odata.navigationLink'],
+      matching_parameter='ends_with') }}"
+
+- ansible.builtin.set_fact:
+    f_data: |
+      {% set f_data = [] %}
+      {% for dict_item in x_data %}
+      {% set d = {} %}
+      {% for key, value in dict_item.items() %}
+      {% if value %}
+      {% set x = d.__setitem__(key, value) %}
+      {% endif %}
+      {% endfor %}
+      {% set tmp = f_data.append(d) %}
+      {% endfor %}
+      {{ f_data }}
+
+- name: Ensure loop_data exists
+  ansible.builtin.set_fact:
+    loop_data: "{{ loop_data | default({}) }}"
+
+- ansible.builtin.set_fact:
+    loop_data: "{{ loop_data | default({}) | combine({component : f_data})}}"
+  when: component is defined and f_data

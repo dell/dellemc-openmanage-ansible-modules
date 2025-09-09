@@ -1,0 +1,90 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2023-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: hostname, username
+         and password.'
+  when: hostname is not defined or username is not defined or password
+         is not defined
+
+- block:
+    - ansible.builtin.include_tasks: _fabric_info_uri_helper.yml
+      vars:
+        query_url: https://{{ hostname }}:{{ port }}/api/NetworkService/Fabrics
+
+    - ansible.builtin.include_tasks: _create_fabric_helper.yml
+      when: uri_fabric_fetched_data | length < 1
+
+    - name: Retrieval of fabric information using invalid "fabric_name"
+       (Check mode - Negative)
+      dellemc.openmanage.ome_smart_fabric_info:
+        fabric_name: "invalid_name"
+      register: result
+      check_mode: true
+      ignore_errors: true
+
+    - name: Verify task status - Retrieval of fabric information using invalid
+       "fabric_name" (Check mode - Negative)
+      ansible.builtin.assert:
+        that:
+          - not result.changed
+          - result.msg == "Unable to retrieve smart fabric information with
+             fabric name invalid_name."
+
+    - name: Retrieval of fabric information using invalid "fabric_name"
+       (Normal mode - Negative)
+      dellemc.openmanage.ome_smart_fabric_info:
+        fabric_name: "invalid_name"
+      register: result
+      ignore_errors: true
+
+    - name: Verify task status - Retrieval of fabric information using invalid
+       "fabric_name" (Normal mode - Negative)
+      ansible.builtin.assert:
+        that:
+          - not result.changed
+          - result.msg == "Unable to retrieve smart fabric information with
+             fabric name invalid_name."
+
+    - name: Retrieval of fabric information using invalid "fabric_id"
+       (Check mode - Negative)
+      dellemc.openmanage.ome_smart_fabric_info:
+        fabric_id: "99999999"
+      register: result
+      check_mode: true
+      ignore_errors: true
+
+    - name: Verify task status - Retrieval of fabric information using invalid
+       "fabric_id" (Check mode - Negative)
+      ansible.builtin.assert:
+        that:
+          - not result.changed
+          - result.msg == "Unable to retrieve smart fabric information with
+             fabric ID 99999999."
+
+    - name: Retrieval of fabric information using invalid "fabric_id"
+       (Normal mode - Negative)
+      dellemc.openmanage.ome_smart_fabric_info:
+        fabric_id: "99999999"
+      register: result
+      ignore_errors: true
+
+    - name: Verify task status - Retrieval of fabric information using invalid
+       "fabric_id" (Normal mode - Negative)
+      ansible.builtin.assert:
+        that:
+          - not result.changed
+          - result.msg == "Unable to retrieve smart fabric information with
+             fabric ID 99999999."
+
+  module_defaults:
+    dellemc.openmanage.ome_smart_fabric_info:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"
+      validate_certs: "{{ validate_certs }}"
