@@ -6,15 +6,18 @@
 ---
 - name: Test that we have an OME host, OME username and OME password
   fail:
-    msg: 'Please define the following variables: hostname, username and password.'
-  when: hostname is not defined or username is not defined or password is not defined
+    msg: 'Please define the following variables: hostname,
+      username and password.'
+  when: hostname is not defined or username is not defined or
+    password is not defined
 
 - block:
     - ansible.builtin.include_tasks: _helper.yml
 
     - ansible.builtin.include_tasks: _pre_post_req.yml
 
-    - name: Update SNMP & SSH configuration using device id. (Check mode - changes expected)
+    - name: Update SNMP & SSH configuration using
+        device id. (Check mode - changes expected)
       dellemc.openmanage.ome_device_network_services: &deviceid
         device_id: "{{device_id}}"
         snmp_settings:
@@ -37,20 +40,23 @@
         <<: *deviceid
       register: device_id_result
 
-    - name: Update SNMP & SSH configuration using device id. (Check mode - no changes expected)
+    - name: Update SNMP & SSH configuration using
+        device id. (Check mode - no changes expected)
       dellemc.openmanage.ome_device_network_services:
         <<: *deviceid
       register: no_cm_device_id
       check_mode: true
 
-    - name: Update SNMP & SSH configuration using device id. (Idempotence mode)
+    - name: Update SNMP & SSH configuration using
+        device id. (Idempotence mode)
       dellemc.openmanage.ome_device_network_services:
         <<: *deviceid
       register: device_id_idempotence
 
     - ansible.builtin.include_tasks: _pre_post_req.yml
 
-    - name: Update SNMP & SSH configuration using device service tag. (Check mode - changes expected)
+    - name: Update SNMP & SSH configuration using device
+        service tag. (Check mode - changes expected)
       dellemc.openmanage.ome_device_network_services: &deviceservicetag
         device_service_tag: "{{device_service_tag}}"
         snmp_settings:
@@ -68,18 +74,21 @@
       register: cm_device_tag
       check_mode: true
 
-    - name: Update SNMP & SSH configuration using device service tag. (Normal mode)
+    - name: Update SNMP & SSH configuration using device
+        service tag. (Normal mode)
       dellemc.openmanage.ome_device_network_services:
         <<: *deviceservicetag
       register: device_tag_result
 
-    - name: Update SNMP & SSH configuration using device service tag. (Check mode - no changes expected)
+    - name: Update SNMP & SSH configuration using device
+        service tag. (Check mode - no changes expected)
       dellemc.openmanage.ome_device_network_services:
         <<: *deviceservicetag
       register: no_cm_device_tag
       check_mode: true
 
-    - name: Update SNMP & SSH configuration using device service tag. (Idempotence mode)
+    - name: Update SNMP & SSH configuration using device service
+        tag. (Idempotence mode)
       dellemc.openmanage.ome_device_network_services:
         <<: *deviceservicetag
       register: device_tag_idempotence

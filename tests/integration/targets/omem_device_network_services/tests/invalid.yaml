@@ -6,8 +6,10 @@
 ---
 - name: Test that we have an OME host, OME username and OME password
   fail:
-    msg: 'Please define the following variables: hostname, username and password.'
-  when: hostname is not defined or username is not defined or password is not defined
+    msg: 'Please define the following variables: hostname,
+      username and password.'
+  when: hostname is not defined or username is not defined or
+    password is not defined
 
 - block:
     - ansible.builtin.include_tasks: _helper.yml
@@ -122,35 +124,42 @@
           - not invalid_port.changed
           - 'invalid_port.msg == "HTTP Error 400: 400"'
           - invalid_port.error_info.error["@Message.ExtendedInfo"][0].Message ==
-             "Unable to complete the operation because the value provided for SNMP PortNumber is invalid."
+             "Unable to complete the operation because the value provided
+             for SNMP PortNumber is invalid."
           - invalid_community.failed
           - not invalid_community.changed
           - 'invalid_community.msg == "HTTP Error 400: 400"'
           - invalid_community.error_info.error["@Message.ExtendedInfo"][0].Message ==
-            "Unable to complete the operation because the value provided for CommunityName is invalid."
+            "Unable to complete the operation because the value provided for
+            CommunityName is invalid."
           - invalid_maxsessions.failed
           - not invalid_maxsessions.changed
           - 'invalid_maxsessions.msg == "HTTP Error 400: 400"'
           - invalid_maxsessions.error_info.error["@Message.ExtendedInfo"][0].Message ==
-            "Unable to complete the operation because the value provided for MaxSessions is invalid."
+            "Unable to complete the operation because the value provided
+            for MaxSessions is invalid."
           - invalid_maxauth.failed
           - not invalid_maxauth.changed
           - 'invalid_maxauth.msg == "HTTP Error 400: 400"'
           - invalid_maxauth.error_info.error["@Message.ExtendedInfo"][0].Message ==
-            "Unable to complete the operation because the value provided for MaxAuthRetries is invalid."
+            "Unable to complete the operation because the value provided
+            for MaxAuthRetries is invalid."
           - invalid_idletimeout.failed
           - not invalid_idletimeout.changed
           - 'invalid_idletimeout.msg == "HTTP Error 400: 400"'
           - invalid_idletimeout.error_info.error["@Message.ExtendedInfo"][0].Message ==
-            "Unable to complete the operation because the value provided for IdleTimeout is invalid."
+            "Unable to complete the operation because the value provided for
+            IdleTimeout is invalid."
           - invalid_device_id.failed
           - not invalid_device_id.changed
           - invalid_device_id.msg ==
-            "Unable to complete the operation because the entered target device id '12345' is invalid."
+            "Unable to complete the operation because the entered target
+            device id '12345' is invalid."
           - invalid_service_tag.failed
           - not invalid_service_tag.changed
           - invalid_service_tag.msg ==
-            "Unable to complete the operation because the entered target device service tag 'invalid' is invalid."
+            "Unable to complete the operation because the entered target device
+            service tag 'invalid' is invalid."
 
 
   module_defaults:
