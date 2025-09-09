@@ -1,0 +1,89 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2023-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: hostname, username
+         and password.'
+  when: hostname is not defined or username is not defined or password
+         is not defined
+
+- block:
+    - ansible.builtin.include_tasks: _fabric_info_uri_helper.yml
+      vars:
+        query_url: https://{{hostname}}:{{port}}/api/NetworkService/Fabrics
+
+    - ansible.builtin.set_fact:
+        uri_total_smart_fabrics: "{{ uri_fabric_fetched_data | length }}"
+
+    - ansible.builtin.include_tasks: _create_fabric_helper.yml
+      when: uri_fabric_fetched_data | length < 1
+
+    - name: Retrieval of all fabric information (Check mode)
+      dellemc.openmanage.ome_smart_fabric_info:
+      register: result
+      check_mode: true
+
+    - ansible.builtin.set_fact:
+        task_total_smart_fabrics: "{{ result.smart_fabric_info | length }}"
+
+    - name: Verify task status - Retrieval of all fabric information (Check mode)
+      ansible.builtin.assert:
+        that:
+          - not result.changed
+          - result.msg == "Successfully retrieved the smart fabric information."
+          - uri_total_smart_fabrics == task_total_smart_fabrics
+
+    - name: Remove Description key from API response
+      ansible.builtin.set_fact:
+        uri_fabric_res: "{{ uri_fabric_res | dict2items | rejectattr('key', 'equalto', 'Description') | items2dict }}"
+
+    - name: Compare smart fabric info from task and uri
+      ansible.utils.fact_diff:
+        before: "{{ uri_fabric_res }}"
+        after: "{{ result.smart_fabric_info[0] }}"
+      register: diff_result
+
+    - name: Verify task status - Compare smart fabric info from task and uri
+      ansible.builtin.assert:
+        that:
+          - not diff_result.changed
+          - not diff_result.diff_lines
+
+    - name: Retrieval of all fabric information (Normal mode)
+      dellemc.openmanage.ome_smart_fabric_info:
+      register: result
+
+    - ansible.builtin.set_fact:
+        task_total_smart_fabrics: "{{ result.smart_fabric_info | length }}"
+
+    - name: Verify task status - Retrieval of all fabric information (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - not result.changed
+          - result.msg == "Successfully retrieved the smart fabric information."
+          - uri_total_smart_fabrics == task_total_smart_fabrics
+
+    - name: Compare smart fabric info from task and uri
+      ansible.utils.fact_diff:
+        before: "{{ uri_fabric_res }}"
+        after: "{{ result.smart_fabric_info[0] }}"
+      register: diff_result
+
+    - name: Verify task status - Compare smart fabric info from task and uri
+      ansible.builtin.assert:
+        that:
+          - not diff_result.changed
+          - not diff_result.diff_lines
+
+
+  module_defaults:
+    dellemc.openmanage.ome_smart_fabric_info:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"
+      validate_certs: "{{ validate_certs }}"
