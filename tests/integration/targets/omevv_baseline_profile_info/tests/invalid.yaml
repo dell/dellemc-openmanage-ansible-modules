@@ -1,5 +1,5 @@
-# Dell OpenManage Ansible modules
-# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -74,7 +74,8 @@
           - invalid_ca_path.failed
           - not invalid_ca_path.changed
           - 'invalid_ca_path.msg == "[Errno 2] No such file or
-            directory: b''invalid''"'
+            directory: b''invalid''" or invalid_ca_path.msg ==
+            "[Errno 2] No such file or directory"'
 
     - name: Negative - Invalid validate_certs
       dellemc.openmanage.omevv_baseline_profile_info:
