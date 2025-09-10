@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 10.0.1
 # Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -266,10 +266,10 @@ error_info:
 
 import json
 import re
-from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
+
 LOG_SELECTOR = {"OS_LOGS": 1, "RAID_LOGS": 2, "DEBUG_LOGS": 3}
 JOB_URI = "JobService/Jobs"
 GROUP_URI = "GroupService/Groups"
@@ -294,13 +294,13 @@ def group_validation(module, rest_obj):
                 if device["Type"] == 1000:
                     group_device.append(device["Id"])
         else:
-            module.fail_json(msg="There are no device(s) present in this group.")
+            module.exit_json(msg="There are no device(s) present in this group.", failed=True)
     else:
-        module.fail_json(msg="Unable to complete the operation because the entered target "
-                             "device group name '{0}' is invalid.".format(group_name))
+        module.exit_json(msg="Unable to complete the operation because the entered target "
+                             "device group name '{0}' is invalid.".format(group_name), failed=True)
     if not group_device:
-        module.fail_json(msg="The requested group '{0}' does not contain devices that "
-                             "support export log.".format(group_name))
+        module.exit_json(msg="The requested group '{0}' does not contain devices that "
+                             "support export log.".format(group_name), failed=True)
     return group_device
 
 
@@ -320,11 +320,13 @@ def device_validation(module, rest_obj):
         else:
             invalid_lst.append(str(each))
     if invalid_lst:
-        module.fail_json(msg="Unable to complete the operation because the entered "
-                             "target device {0}(s) '{1}' are invalid.".format(value, ",".join(set(invalid_lst))))
+        module.exit_json(msg="Unable to complete the operation because the entered "
+                             "target device {0}(s) '{1}' are invalid.".format(value, ",".join(set(invalid_lst))),
+                         failed=True)
     if not device_lst and other_types:
-        module.fail_json(msg="The requested device {0}(s) '{1}' are "
-                             "not applicable for export log.".format(value, ",".join(set(other_types))))
+        module.exit_json(msg="The requested device {0}(s) '{1}' are "
+                             "not applicable for export log.".format(value, ",".join(set(other_types))),
+                         failed=True)
     return device_lst
 
 
@@ -353,7 +355,8 @@ def extract_log_operation(module, rest_obj, device_lst=None):
                 target_params.append({"Id": dev["Id"], "Data": "",
                                       "TargetType": {"Id": dev["Type"], "Name": "CHASSIS"}})
         else:
-            module.fail_json(msg="There is no device(s) available to export application log.")
+            module.exit_json(msg="There is no device(s) available to export application log.",
+                             failed=True)
     else:
         for device in device_lst:
             target_params.append({"Id": device, "Data": "",
@@ -387,8 +390,8 @@ def check_domain_service(module, rest_obj):
     except HTTPError as err:
         err_message = json.load(err)
         if err_message["error"]["@Message.ExtendedInfo"][0]["MessageId"] == "CGEN1006":
-            module.fail_json(msg="Export log operation is not supported on the specified system.")
-    return
+            module.exit_json(msg="Export log operation is not supported on the specified system.",
+                             failed=True)
 
 
 def find_failed_jobs(resp, rest_obj):
@@ -453,7 +456,8 @@ def main():
             # checking any existing running job
             job_allowed, job_lst = rest_obj.check_existing_job_state("DebugLogs_Task")
             if not job_allowed:
-                module.fail_json(msg="An export log job is already running. Wait for the job to finish.")
+                module.exit_json(msg="An export log job is already running. Wait for the job to finish.",
+                                 failed=True)
 
             # test network connection
             if module.params["test_connection"]:
@@ -463,11 +467,12 @@ def main():
                                                              module.params["share_user"],
                                                              module.params["share_password"],
                                                              module.params["share_domain"])
-                job_failed, job_message = rest_obj.job_tracking(conn_resp.json_data["Id"], job_wait_sec=5,
+                job_failed, job_message = rest_obj.job_tracking(conn_resp.json_data["Id"], job_wait_sec=10,
                                                                 sleep_time=5)
                 if job_failed:
-                    module.fail_json(msg="Unable to access the share. Ensure that the share address, share name, "
-                                         "share domain, and share credentials provided are correct.")
+                    module.exit_json(msg="Unable to access the share. Ensure that the share address, share name, "
+                                         "share domain, and share credentials provided are correct.",
+                                     failed=True)
 
             # validation for device id/tag/group
             valid_device = []
@@ -492,25 +497,26 @@ def main():
                                                                 sleep_time=5)
                 message = "Export log job completed successfully."
                 if job_message == "The job is not complete after {0} seconds.".format(seconds):
-                    module.fail_json(
+                    module.exit_json(
                         msg="The export job is not complete because it has exceeded the configured timeout period.",
-                        job_status=response.json_data
+                        job_status=response.json_data,
+                        failed=True
                     )
                 if job_failed:
                     message, failed_job = find_failed_jobs(response.json_data, rest_obj)
                     if failed_job:
-                        module.fail_json(msg=message, job_status=response.json_data)
+                        module.exit_json(msg=message, job_status=response.json_data, failed=True)
                 response = rest_obj.invoke_request("GET", "{0}({1})".format(JOB_URI, response.json_data["Id"]))
             resp = response.json_data
             if resp:
                 resp = rest_obj.strip_substr_dict(resp)
             module.exit_json(msg=message, job_status=resp, changed=True)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
-        module.fail_json(msg=str(err))
+    except (IOError, ValueError, TypeError, ConnectionError, SSLValidationError, OSError) as err:
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':

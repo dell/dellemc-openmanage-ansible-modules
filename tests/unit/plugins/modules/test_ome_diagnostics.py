@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 10.0.1
+# Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -159,13 +159,13 @@ class TestOMEDiagnostics(FakeAnsibleModule):
         assert result["msg"] == "Export log job completed successfully."
 
         ome_conn_mock_diagnostics.check_existing_job_state.return_value = (False, [25011])
-        result = self._run_module_with_fail_json(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result["msg"] == "An export log job is already running. Wait for the job to finish."
 
         ome_default_args.update({"test_connection": True, "job_wait": False})
         ome_conn_mock_diagnostics.check_existing_job_state.return_value = (True, [25011])
         ome_conn_mock_diagnostics.job_tracking.return_value = (True, "")
-        result = self._run_module_with_fail_json(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result["msg"] == "Unable to access the share. Ensure that the share address, share name, " \
                                 "share domain, and share credentials provided are correct."
 
@@ -186,13 +186,13 @@ class TestOMEDiagnostics(FakeAnsibleModule):
         assert result["msg"] == "Export log job completed successfully."
 
         ome_conn_mock_diagnostics.check_existing_job_state.return_value = (False, [25011])
-        result = self._run_module_with_fail_json(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result["msg"] == "An export log job is already running. Wait for the job to finish."
 
         ome_default_args.update({"test_connection": True, "job_wait": False})
         ome_conn_mock_diagnostics.check_existing_job_state.return_value = (True, [25011])
         ome_conn_mock_diagnostics.job_tracking.return_value = (True, "")
-        result = self._run_module_with_fail_json(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result["msg"] == "Unable to access the share. Ensure that the share address, share name, " \
                                 "share domain, and share credentials provided are correct."
 
@@ -211,13 +211,13 @@ class TestOMEDiagnostics(FakeAnsibleModule):
         assert result["msg"] == "Export log job completed successfully."
 
         ome_conn_mock_diagnostics.check_existing_job_state.return_value = (False, [25011])
-        result = self._run_module_with_fail_json(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result["msg"] == "An export log job is already running. Wait for the job to finish."
 
         ome_default_args.update({"test_connection": True, "job_wait": False})
         ome_conn_mock_diagnostics.check_existing_job_state.return_value = (True, [25011])
         ome_conn_mock_diagnostics.job_tracking.return_value = (True, "")
-        result = self._run_module_with_fail_json(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result["msg"] == "Unable to access the share. Ensure that the share address, share name, " \
                                 "share domain, and share credentials provided are correct."
 
@@ -238,13 +238,13 @@ class TestOMEDiagnostics(FakeAnsibleModule):
         assert result["msg"] == "Export log job completed successfully."
 
         ome_conn_mock_diagnostics.check_existing_job_state.return_value = (False, [25011])
-        result = self._run_module_with_fail_json(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result["msg"] == "An export log job is already running. Wait for the job to finish."
 
         ome_default_args.update({"test_connection": True, "job_wait": False})
         ome_conn_mock_diagnostics.check_existing_job_state.return_value = (True, [25011])
         ome_conn_mock_diagnostics.job_tracking.return_value = (True, "")
-        result = self._run_module_with_fail_json(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result["msg"] == "Unable to access the share. Ensure that the share address, share name, " \
                                 "share domain, and share credentials provided are correct."
 
