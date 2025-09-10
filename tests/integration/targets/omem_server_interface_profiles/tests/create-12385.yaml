@@ -1,12 +1,15 @@
 # Test code for the Dell OpenManage modules
 # Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an OME host, OME username and OME password
   ansible.builtin.fail:
-    msg: 'Please define the following variables: hostname, username and password.'
-  when: hostname is not defined or username is not defined or password is not defined
+    msg: 'Please define the following variables: hostname, username and
+     password.'
+  when: hostname is not defined or username is not defined or
+   password is not defined
 
 - name: Verify creation of server interface profile
   vars:
@@ -136,12 +139,15 @@
 
     - name: Get the Server profiles for the specific service tag
       ansible.builtin.set_fact:
-        omem_server_profile: "{{ latest_sprofiles.server_profiles | selectattr('Id', 'equalto', omem_svtag) | first }}"
+        omem_server_profile: "{{ latest_sprofiles.server_profiles
+         | selectattr('Id', 'equalto', omem_svtag) | first }}"
 
     - name: Get nic and vlans for the specific service tag
       ansible.builtin.set_fact:
         svip_dict: "{{ svip_dict | default({})
-         | combine({item.Id: (item | combine({'Networks': ( item.Networks | map(attribute='Name') )}))}) }}"
+         | combine({item.Id: (item
+         | combine({'Networks': ( item.Networks
+         | map(attribute='Name') )}))}) }}"
       loop: "{{ omem_server_profile.ServerInterfaceProfile }}"
 
     - name: Verify sips
@@ -152,7 +158,8 @@
           - omem_server_profile.Id == omem_svtag
           - omem_server_profile.BondingTechnology == 'LACP'
           - nic_id in svip_dict
-          - svip_dict[nic_id]['Networks'] | difference(tagged_network_list) | length == 0
+          - svip_dict[nic_id]['Networks'] | difference(tagged_network_list)
+            | length == 0
           - svip_dict[nic_id]['NativeVLAN'] == nativevlan
 
   module_defaults:

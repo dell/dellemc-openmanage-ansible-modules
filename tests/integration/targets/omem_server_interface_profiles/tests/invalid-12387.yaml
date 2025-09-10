@@ -1,12 +1,15 @@
 # Test code for the Dell OpenManage modules
 # Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an OME host, OME username and OME password
   ansible.builtin.fail:
-    msg: 'Please define the following variables: hostname, username and password.'
-  when: hostname is not defined or username is not defined or password is not defined
+    msg: 'Please define the following variables: hostname, username
+     and password.'
+  when: hostname is not defined or username is not defined or
+   password is not defined
 
 - block:
     - name: Invalid device Id
@@ -45,11 +48,15 @@
       ansible.builtin.assert:
         that:
           - invalid_device_id.failed
-          - invalid_device_id.msg == "Unable to complete the operation because the entered target device ids '99999' are invalid."
+          - invalid_device_id.msg == "Unable to complete the operation because
+           the entered target device ids '99999' are invalid."
           - invalid_device_svc_tag.failed
-          - invalid_device_svc_tag.msg == "Unable to complete the operation because the entered target device service tag(s) 'invalid' are invalid."
+          - invalid_device_svc_tag.msg == "Unable to complete the operation
+           because the entered target device service tag(s) 'invalid' are
+           invalid."
           - without_nic_params.failed
-          - 'without_nic_params.msg == "one of the following is required: nic_teaming, nic_configuration"'
+          - 'without_nic_params.msg == "one of the following is
+           required: nic_teaming, nic_configuration"'
           - invalid_unreachable.unreachable
 
   module_defaults:
