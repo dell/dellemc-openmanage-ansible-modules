@@ -11,7 +11,7 @@
         hostname: "{{hostname}}"
       register: all_devices
 
-    - set_fact:
+    - ansible.builtin.set_fact:
         device_info: "{{ all_devices | json_query(query) }}"
       vars:
         query: 'device_info.value[?DeviceManagement[?NetworkAddress==

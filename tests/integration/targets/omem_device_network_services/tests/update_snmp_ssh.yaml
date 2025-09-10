@@ -5,7 +5,7 @@
 # https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an OME host, OME username and OME password
-  fail:
+  ansible.builtin.fail:
     msg: 'Please define the following variables: hostname,
       username and password.'
   when: hostname is not defined or username is not defined or
