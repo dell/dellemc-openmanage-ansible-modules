@@ -685,7 +685,7 @@ class TestOmeSIPs(FakeAnsibleModule):
             mocker.patch(
                 MODULE_PATH + 'get_valid_service_tags',
                 side_effect=exc_type("exception message"))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'get_valid_service_tags',
@@ -694,6 +694,6 @@ class TestOmeSIPs(FakeAnsibleModule):
                                               'http error message',
                                               {"accept-type": "application/json"},
                                               StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'msg' in result
