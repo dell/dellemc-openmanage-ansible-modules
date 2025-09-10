@@ -53,7 +53,7 @@
           - invalid_unreachable.unreachable
 
   module_defaults:
-    dellemc.openmanage.ome_server_interface_profiles: 
+    dellemc.openmanage.ome_server_interface_profiles:
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"

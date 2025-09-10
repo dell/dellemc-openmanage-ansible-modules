@@ -55,14 +55,14 @@
         username: "{{username}}"
         password: "{{password}}"
         port: "{{port}}"
-        validate_certs: "{{validate_certs}}"       
+        validate_certs: "{{validate_certs}}"
         state: present
         name: "vlan_{{ item }}"
         description: "VLAN desc {{ item }}"
         type: "General Purpose (Silver)"
         vlan_minimum: "{{ item }}"
         vlan_maximum: "{{ item }}"
-      loop: [11,12,13]
+      loop: [11, 12, 13]
 
     - name: Clear Server Interface Profiles
       dellemc.openmanage.ome_server_interface_profiles:
@@ -156,7 +156,7 @@
           - svip_dict[nic_id]['NativeVLAN'] == nativevlan
 
   module_defaults:
-    dellemc.openmanage.ome_server_interface_profiles: 
+    dellemc.openmanage.ome_server_interface_profiles:
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"

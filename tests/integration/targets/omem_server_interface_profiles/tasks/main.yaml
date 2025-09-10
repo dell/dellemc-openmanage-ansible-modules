@@ -2,11 +2,11 @@
 - name: Server interface profile main task block
   module_defaults:
     dellemc.openmanage.ome_server_interface_profiles:
-      hostname: "{{hostname}}"
-      username: "{{username}}"
-      password: "{{password}}"
-      port: "{{port}}"
-      validate_certs: "{{validate_certs}}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"
+      validate_certs: "{{ validate_certs }}"
 
   block:
     - name: Collect all test cases
