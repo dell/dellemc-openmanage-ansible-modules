@@ -286,7 +286,7 @@ def modify_vlan(module, rest_obj, vlan_id, vlans):
     overlap = check_overlapping_vlan_range(payload, vlans)
     if overlap:
         module.exit_json(msg=VLAN_RANGE_OVERLAP.format(vlan_name=overlap["Name"], vlan_min=overlap["VlanMinimum"],
-                                                       vlan_max=overlap["VlanMaximum"]), changed=False)
+                                                       vlan_max=overlap["VlanMaximum"]), failed=True)
     if diff == 0:  # Idempotency
         if module.check_mode:
             module.exit_json(msg="No changes found to be applied to the VLAN configuration.")

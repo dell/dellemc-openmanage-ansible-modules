@@ -466,7 +466,7 @@ def get_group_ids(module, rest_obj):
         validate_identifiers(available_device_tags, device_group_names_list, tags_identifier, module)
         final_target_list = get_identifiers(available_ids_tag_map, device_group_names_list)
     else:
-        module.exit_json(msg=INVALID_DEVICES.format(identifier="Group"), changed=False)
+        module.exit_json(msg=INVALID_DEVICES.format(identifier="Group"), failed=True)
     return final_target_list
 
 

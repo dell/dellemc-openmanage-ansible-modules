@@ -571,7 +571,6 @@ class TestOmeConfigCompBaseline(FakeAnsibleModule):
     def test_compliance_create_argument_exception_case1(self, ome_default_args):
         ome_default_args.update({"template_name": "t1"})
         result = self._run_module_with_fail_json(ome_default_args)
-        print("result: ", result)
         assert result["msg"] == "missing required arguments: names"
 
     def test_compliance_create_argument_exception_case2(self, ome_default_args):

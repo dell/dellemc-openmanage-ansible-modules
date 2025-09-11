@@ -952,7 +952,7 @@ def password_no_log(attributes):
 
 def fail_module(module, **failmsg):
     password_no_log(module.params.get("attributes"))
-    module.exit_json(**failmsg)
+    module.exit_json(**failmsg, failed=True)
 
 
 def exit_module(rest_obj, module, response, time_out=False):
