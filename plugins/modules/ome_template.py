@@ -606,7 +606,7 @@ def get_group(rest_obj, module, group_name):
     for grp in group_req.json_data.get('value'):
         if grp['Name'] == group_name:
             return grp
-    module.exit_json(msg="Group name '{0}' is invalid. Please provide a valid group name.".format(group_name), changed=False)
+    module.exit_json(msg="Group name '{0}' is invalid. Please provide a valid group name.".format(group_name), failed=True)
 
 
 def get_group_details(rest_obj, module):
@@ -1065,7 +1065,7 @@ def main():
                             exit_module(rest_obj, module, resp, True)
                         else:
                             message = MSG_DICT.get('fail').format(command=module.params["command"])
-                            module.exit_json(msg=message, changed=False)
+                            module.exit_json(msg=message, failed=True)
             if resp.success:
                 exit_module(rest_obj, module, resp)
     except HTTPError as err:

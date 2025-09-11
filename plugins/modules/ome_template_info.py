@@ -158,7 +158,7 @@ def main():
         if resp.status_code == 200:
             module.exit_json(template_info={module.params["hostname"]: template_facts})
         else:
-            module.exit_json(msg="Failed to fetch the template facts", changed=False)
+            module.exit_json(msg="Failed to fetch the template facts", failed=True)
     except HTTPError as err:
         module.exit_json(msg=json.load(err), failed=True)
     except (URLError, SSLValidationError, ConnectionError, TypeError, ValueError, OSError, SSLError) as err:
