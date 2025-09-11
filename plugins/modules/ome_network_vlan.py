@@ -233,7 +233,7 @@ def create_vlan(module, rest_obj, vlans):
     payload = format_payload(module.params)
     if not all(payload.values()):
         module.exit_json(msg="The vlan_minimum, vlan_maximum and type values are required for "
-                        "creating a VLAN.", failed=True)
+                         "creating a VLAN.", failed=True)
     if payload["VlanMinimum"] > payload["VlanMaximum"]:
         module.exit_json(msg=VLAN_VALUE_MSG, failed=True)
     overlap = check_overlapping_vlan_range(payload, vlans)
