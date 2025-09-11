@@ -13,6 +13,12 @@
     vcenter_password is not defined
 
 - block:
+    - name: Including helper file for creating baseline profile
+      ansible.builtin.include_tasks: ../_helper.yml
+
+    - name: Including helper file for creating firmware repo profile
+      ansible.builtin.include_tasks: ../_pre_req_create.yml
+
     - name: Retrieve all firmware repository profile information.
        (Check mode)
       dellemc.openmanage.omevv_baseline_profile_info: &retrieve_info

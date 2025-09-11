@@ -40,8 +40,8 @@
         that:
           - invalid_user.failed
           - not invalid_user.changed
-          - 'invalid_user.msg == "HTTP Error 401: 401" or
-           "HTTP Error 400: 400"'
+          - invalid_user.msg == "HTTP Error 401: 401" or
+            invalid_user.msg == "HTTP Error 400: 400"
 
     - name: Negative - Invalid vcenter_password
       dellemc.openmanage.omevv_baseline_profile_info:
