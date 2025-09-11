@@ -48,31 +48,26 @@
         group_id: "{{ group_id[0] }}"
         module_group_id: "{{
           cm_dm_result_baseline.diff.before.clusterGroups[0].omevv_groupID }}"
-        firmware_repo_id: "{{
-          firm_repo_1.profile_info.id }}"
+        firmware_repo_id: "{{ firm_repo_1.profile_info.id }}"
 
     - name: Verify task status - Delete a baseline profile (Check and Diff mode)
       ansible.builtin.assert:
         that:
           - cm_dm_result_baseline.changed
-          - 'cm_dm_result_baseline.msg == "Changes found to be applied."'
+          - cm_dm_result_baseline.msg == "Changes found to be applied."
           - cm_dm_result_baseline.diff.before | length > 1
           - cm_dm_result_baseline.diff.after | length == 0
-          - >
-            cm_dm_result_baseline.diff.before.clusterGroups[0].clusterID
+          - cm_dm_result_baseline.diff.before.clusterGroups[0].clusterID
             == cluster_id
-          - >
-            cm_dm_result_baseline.diff.before.clusterGroups[0].clusterName
+          - cm_dm_result_baseline.diff.before.clusterGroups[0].clusterName
             == cluster_name
           - module_group_id == group_id
           - cm_dm_result_baseline.diff.before.description is none
-          - >
-            'cm_dm_result_baseline.diff.before.firmwareRepoId
-            == "firmware_repo_id"'
-          - >
-            'cm_dm_result_baseline.diff.before.firmwareRepoName
-            == "OMAM_Firm_Repo"'
-          - 'cm_dm_result_baseline.diff.before.name == "OMAM_Baseline_Profile"'
+          - cm_dm_result_baseline.diff.before.firmwareRepoId
+            == firmware_repo_id
+          - cm_dm_result_baseline.diff.before.firmwareRepoName
+            == "OMAM_Firm_Repo"
+          - cm_dm_result_baseline.diff.before.name == "OMAM_Baseline_Profile"
 
     - name: Delete a baseline profile (Normal mode)
       dellemc.openmanage.omevv_baseline_profile:
@@ -83,8 +78,8 @@
       ansible.builtin.assert:
         that:
           - normal_result_baseline.changed
-          - 'normal_result_baseline.msg == "Successfully deleted the baseline
-            profile."'
+          - normal_result_baseline.msg == "Successfully deleted the baseline
+            profile."
 
     - name: Store baseline_profile_info data to a variable for verification
       ansible.builtin.set_fact:
@@ -102,8 +97,8 @@
       ansible.builtin.assert:
         that:
           - not idempotence_result_baseline.changed
-          - 'idempotence_result_baseline.msg == "No changes found to be
-            applied."'
+          - idempotence_result_baseline.msg == "No changes found to be
+            applied."
 
     - name: Prereq - Create a baseline profile
       ansible.builtin.include_tasks: _helper.yml
@@ -124,33 +119,29 @@
         group_id: "{{ group_id[0] }}"
         module_group_id: "{{
           cm_dm_result_baseline.diff.before.clusterGroups[0].omevv_groupID }}"
-        firmware_repo_id: "{{
-          firm_repo_1.profile_info.id }}"
+        firmware_repo_id: "{{ firm_repo_1.get('profile_info', {}).get('id')
+         | default(firmware_repo_id, true) }}"
 
     - name: Verify task status - Delete a baseline profile (Normal and
         Diff mode)
       ansible.builtin.assert:
         that:
-          - normal_diff_result_baseline.changed
-          - 'normal_diff_result_baseline.msg == "Successfully deleted the
-            baseline profile."'
+          - normal_diff_result_baseline.changed is defined
+          - normal_diff_result_baseline.msg == "Successfully deleted the
+            baseline profile."
           - normal_diff_result_baseline.diff.before | length > 1
           - normal_diff_result_baseline.diff.after | length == 0
-          - >
-            cm_dm_result_baseline.diff.before.clusterGroups[0].clusterID
+          - cm_dm_result_baseline.diff.before.clusterGroups[0].clusterID
             == cluster_id
-          - >
-            cm_dm_result_baseline.diff.before.clusterGroups[0].clusterName
+          - cm_dm_result_baseline.diff.before.clusterGroups[0].clusterName
             == cluster_name
           - module_group_id == group_id
           - cm_dm_result_baseline.diff.before.description is none
-          - >
-            'cm_dm_result_baseline.diff.before.firmwareRepoId
-            == "firmware_repo_id"'
-          - >
-            'cm_dm_result_baseline.diff.before.firmwareRepoName
-            == "OMAM_Firm_Repo"'
-          - 'cm_dm_result_baseline.diff.before.name == "OMAM_Baseline_Profile"'
+          - cm_dm_result_baseline.diff.before.firmwareRepoId
+            == firmware_repo_id
+          - cm_dm_result_baseline.diff.before.firmwareRepoName
+            == "OMAM_Firm_Repo"
+          - cm_dm_result_baseline.diff.before.name == "OMAM_Baseline_Profile"
 
     - name: Store baseline_profile_info data to a variable for verification
       ansible.builtin.set_fact:

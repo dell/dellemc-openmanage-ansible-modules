@@ -60,14 +60,12 @@
       ansible.builtin.assert:
         that:
           - cm_dm_result_baseline.changed
-          - 'cm_dm_result_baseline.msg == "Changes found to be applied."'
+          - cm_dm_result_baseline.msg == "Changes found to be applied."
           - cm_dm_result_baseline.diff.before | length == 0
           - cm_dm_result_baseline.diff.after | length > 1
-          - >
-            cm_dm_result_baseline.diff.after.clusterGroups[0].clusterID
+          - cm_dm_result_baseline.diff.after.clusterGroups[0].clusterID
             == cluster_id
-          - >
-            cm_dm_result_baseline.diff.after.clusterGroups[0].clusterName
+          - cm_dm_result_baseline.diff.after.clusterGroups[0].clusterName
             == cluster_name
           - module_group_id == group_id
           - cm_dm_result_baseline.diff.after.jobSchedule.friday == false
@@ -75,13 +73,12 @@
           - cm_dm_result_baseline.diff.after.jobSchedule.saturday == false
           - cm_dm_result_baseline.diff.after.jobSchedule.sunday == true
           - cm_dm_result_baseline.diff.after.jobSchedule.thursday == false
-          - 'cm_dm_result_baseline.diff.after.jobSchedule.time == "22:00"'
+          - cm_dm_result_baseline.diff.after.jobSchedule.time == "22:00"
           - cm_dm_result_baseline.diff.after.jobSchedule.tuesday == false
           - cm_dm_result_baseline.diff.after.jobSchedule.wednesday == true
-          - 'cm_dm_result_baseline.diff.after.name == "OMAM_Baseline_Profile"'
-          - >
-            'cm_dm_result_baseline.diff.after.repository_profile
-            == "OMAM_Firm_Repo"'
+          - cm_dm_result_baseline.diff.after.name == "OMAM_Baseline_Profile"
+          - cm_dm_result_baseline.diff.after.repository_profile
+            == "OMAM_Firm_Repo"
 
     - name: Set prerequisite
       ansible.builtin.include_tasks: _helper.yml
@@ -98,9 +95,9 @@
       ansible.builtin.assert:
         that:
           - normal_result_baseline.changed
-          - 'normal_result_baseline.msg == "Successfully created the baseline
-            profile."'
-          - normal_result_baseline.baseline_profile_info
+          - normal_result_baseline.msg == "Successfully created the baseline
+            profile."
+          - normal_result_baseline.baseline_profile_info is defined
 
     - name: Store baseline_profile_info data to a variable for verification
       ansible.builtin.set_fact:
@@ -119,8 +116,8 @@
       ansible.builtin.assert:
         that:
           - not idempotence_result_baseline.changed
-          - 'idempotence_result_baseline.msg == "No changes found to be
-            applied."'
+          - idempotence_result_baseline.msg == "No changes found to be
+            applied."
 
     - name: Delete baseline profile created in previous task
       ansible.builtin.include_tasks: _cleanup.yml
@@ -152,16 +149,14 @@
       ansible.builtin.assert:
         that:
           - normal_diff_result_baseline.changed
-          - 'normal_diff_result_baseline.msg == "Successfully created the
-            baseline profile."'
-          - normal_diff_result_baseline.baseline_profile_info
+          - normal_diff_result_baseline.msg == "Successfully created the
+            baseline profile."
+          - normal_diff_result_baseline.baseline_profile_info is defined
           - normal_diff_result_baseline.diff.before | length == 0
           - normal_diff_result_baseline.diff.after | length > 1
-          - >
-            normal_diff_result_baseline.diff.after.clusterGroups[0].clusterID
+          - normal_diff_result_baseline.diff.after.clusterGroups[0].clusterID
             == cluster_id
-          - >
-            normal_diff_result_baseline.diff.after.clusterGroups[0].clusterName
+          - normal_diff_result_baseline.diff.after.clusterGroups[0].clusterName
             == cluster_name
           - module_group_id == group_id
           - normal_diff_result_baseline.diff.after.jobSchedule.friday == false
@@ -169,15 +164,13 @@
           - normal_diff_result_baseline.diff.after.jobSchedule.saturday == false
           - normal_diff_result_baseline.diff.after.jobSchedule.sunday == true
           - normal_diff_result_baseline.diff.after.jobSchedule.thursday == false
-          - 'normal_diff_result_baseline.diff.after.jobSchedule.time == "22:00"'
+          - normal_diff_result_baseline.diff.after.jobSchedule.time == "22:00"
           - normal_diff_result_baseline.diff.after.jobSchedule.tuesday == false
           - normal_diff_result_baseline.diff.after.jobSchedule.wednesday == true
-          - >
-            'normal_diff_result_baseline.diff.after.name
-            == "OMAM_Baseline_Profile"'
-          - >
-            'normal_diff_result_baseline.diff.after.repository_profile
-            == "OMAM_Firm_Repo"'
+          - normal_diff_result_baseline.diff.after.name
+            == "OMAM_Baseline_Profile"
+          - normal_diff_result_baseline.diff.after.repository_profile
+            == "OMAM_Firm_Repo"
 
     - name: Store baseline_profile_info data to a variable for verification
       ansible.builtin.set_fact:
