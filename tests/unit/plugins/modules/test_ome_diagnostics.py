@@ -182,7 +182,7 @@ class TestOMEDiagnostics(FakeAnsibleModule):
                                 "share domain, and share credentials provided are correct."
 
 
-    def test_main_success_case02(self, ome_conn_mock_diagnostics, ome_response_mock, ome_default_args, mocker):
+    def test_main_succes_case02(self, ome_conn_mock_diagnostics, ome_response_mock, ome_default_args, mocker):
         ome_default_args.update({"log_type": "supportassist_collection", "share_address": "XX.XX.XX.XX",
                                  "share_type": "CIFS", "share_name": "iso", "share_user": "username",
                                  "share_password": "password", "share_domain": "domain",
@@ -194,13 +194,14 @@ class TestOMEDiagnostics(FakeAnsibleModule):
         ome_conn_mock_diagnostics.check_existing_job_state.return_value = (True, [25011])
         mocker.patch(MODULE_PATH + "extract_log_operation")
         ome_response_mock.json_data = {"value": {"Id": 25011}}
-        ome_conn_mock_diagnostics.job_tracking.return_value = (False, "")
-        result = self._run_module(ome_default_args)
-        assert result["msg"] == "Export log job completed successfully."
 
         ome_conn_mock_diagnostics.check_existing_job_state.return_value = (False, [25011])
         result = self._run_module(ome_default_args)
         assert result["msg"] == "An export log job is already running. Wait for the job to finish."
+        
+        ome_conn_mock_diagnostics.job_tracking.return_value = (False, "")
+        result = self._run_module(ome_default_args)
+        assert result["msg"] == "Export log job completed successfully."
 
         ome_default_args.update({"test_connection": True, "job_wait": False})
         ome_conn_mock_diagnostics.check_existing_job_state.return_value = (True, [25011])
