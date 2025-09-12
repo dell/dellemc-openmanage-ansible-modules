@@ -142,64 +142,24 @@ class TestOMEDiagnostics(FakeAnsibleModule):
         result = self.module.extract_log_operation(f_module, ome_conn_mock_diagnostics)
         assert result["Id"] == 16011
 
-    def test_main_succes_case(self, ome_conn_mock_diagnostics, ome_response_mock, ome_default_args, mocker):
-        ome_default_args.update({"log_type": "support_assist_collection", "share_address": "XX.XX.XX.XX",
+
+    @pytest.mark.parametrize("params", [
+        {"log_type": "support_assist_collection", "share_address": "XX.XX.XX.XX",
                                  "share_type": "NFS", "share_name": "iso", "share_user": "username",
                                  "share_password": "password", "share_domain": "domain",
                                  "mask_sensitive_info": "true", "log_selectors": ["OS_LOGS"],
-                                 "test_connection": False, "job_wait": True, "device_ids": [25011]})
-        mocker.patch(MODULE_PATH + "check_domain_service", return_value=None)
-        mocker.patch(MODULE_PATH + "device_validation", return_value=[25011])
-        mocker.patch(MODULE_PATH + "find_failed_jobs", return_value=("", False))
-        ome_conn_mock_diagnostics.check_existing_job_state.return_value = (True, [25011])
-        mocker.patch(MODULE_PATH + "extract_log_operation")
-        ome_response_mock.json_data = {"value": {"Id": 25011}}
-        ome_conn_mock_diagnostics.job_tracking.return_value = (False, "")
-        result = self._run_module(ome_default_args)
-        assert result["msg"] == "Export log job completed successfully."
-
-        ome_conn_mock_diagnostics.check_existing_job_state.return_value = (False, [25011])
-        result = self._run_module(ome_default_args)
-        assert result["msg"] == "An export log job is already running. Wait for the job to finish."
-
-        ome_default_args.update({"test_connection": True, "job_wait": False})
-        ome_conn_mock_diagnostics.check_existing_job_state.return_value = (True, [25011])
-        ome_conn_mock_diagnostics.job_tracking.return_value = (True, "")
-        result = self._run_module(ome_default_args)
-        assert result["msg"] == "Unable to access the share. Ensure that the share address, share name, " \
-                                "share domain, and share credentials provided are correct."
-
-    def test_main_succes_case02(self, ome_conn_mock_diagnostics, ome_response_mock, ome_default_args, mocker):
-        ome_default_args.update({"log_type": "supportassist_collection", "share_address": "XX.XX.XX.XX",
+                                 "test_connection": False, "job_wait": True, "device_ids": [25011]},
+        {"log_type": "supportassist_collection", "share_address": "XX.XX.XX.XX",
                                  "share_type": "CIFS", "share_name": "iso", "share_user": "username",
                                  "share_password": "password", "share_domain": "domain",
                                  "mask_sensitive_info": "true", "log_selectors": ["OS_LOGS"],
-                                 "test_connection": False, "job_wait": True, "device_ids": [25011]})
-        mocker.patch(MODULE_PATH + "check_domain_service", return_value=None)
-        mocker.patch(MODULE_PATH + "device_validation", return_value=[25011])
-        mocker.patch(MODULE_PATH + "find_failed_jobs", return_value=("", False))
-        ome_conn_mock_diagnostics.check_existing_job_state.return_value = (True, [25011])
-        mocker.patch(MODULE_PATH + "extract_log_operation")
-        ome_response_mock.json_data = {"value": {"Id": 25011}}
-        ome_conn_mock_diagnostics.job_tracking.return_value = (False, "")
-        result = self._run_module(ome_default_args)
-        assert result["msg"] == "Export log job completed successfully."
-
-        ome_conn_mock_diagnostics.check_existing_job_state.return_value = (False, [25011])
-        result = self._run_module(ome_default_args)
-        assert result["msg"] == "An export log job is already running. Wait for the job to finish."
-
-        ome_default_args.update({"test_connection": True, "job_wait": False})
-        ome_conn_mock_diagnostics.check_existing_job_state.return_value = (True, [25011])
-        ome_conn_mock_diagnostics.job_tracking.return_value = (True, "")
-        result = self._run_module(ome_default_args)
-        assert result["msg"] == "Unable to access the share. Ensure that the share address, share name, " \
-                                "share domain, and share credentials provided are correct."
-
-    def test_main_succes_case03(self, ome_conn_mock_diagnostics, ome_response_mock, ome_default_args, mocker):
-        ome_default_args.update({"log_type": "application", "share_address": "XX.XX.XX.XX",
+                                 "test_connection": False, "job_wait": True, "device_ids": [25011]},
+        {"log_type": "application", "share_address": "XX.XX.XX.XX",
                                  "share_type": "NFS", "share_name": "iso", "mask_sensitive_info": "true",
-                                 "test_connection": True, "job_wait": True, "device_ids": [25011]})
+                                 "test_connection": True, "job_wait": True, "device_ids": [25011]},
+    ])
+    def test_main_success_case(self, params, ome_conn_mock_diagnostics, ome_response_mock, ome_default_args, mocker):
+        ome_default_args.update(params)
         mocker.patch(MODULE_PATH + "check_domain_service", return_value=None)
         mocker.patch(MODULE_PATH + "device_validation", return_value=[25011])
         mocker.patch(MODULE_PATH + "find_failed_jobs", return_value=("", False))
@@ -221,7 +181,8 @@ class TestOMEDiagnostics(FakeAnsibleModule):
         assert result["msg"] == "Unable to access the share. Ensure that the share address, share name, " \
                                 "share domain, and share credentials provided are correct."
 
-    def test_main_succes_case04(self, ome_conn_mock_diagnostics, ome_response_mock, ome_default_args, mocker):
+
+    def test_main_success_case02(self, ome_conn_mock_diagnostics, ome_response_mock, ome_default_args, mocker):
         ome_default_args.update({"log_type": "supportassist_collection", "share_address": "XX.XX.XX.XX",
                                  "share_type": "CIFS", "share_name": "iso", "share_user": "username",
                                  "share_password": "password", "share_domain": "domain",
