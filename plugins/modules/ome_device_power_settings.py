@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 10.1.0
 # Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -193,7 +193,7 @@ def check_domain_service(module, rest_obj):
     except HTTPError as err:
         err_message = json.load(err)
         if err_message["error"]["@Message.ExtendedInfo"][0]["MessageId"] == "CGEN1006":
-            module.fail_json(msg=DOMAIN_FAIL_MSG)
+            module.exit_json(msg=DOMAIN_FAIL_MSG, failed=True)
     return
 
 
@@ -221,7 +221,7 @@ def get_chassis_device(module, rest_obj):
             key, value = ("Id", data["DeviceId"])
             break
     else:
-        module.fail_json(msg=FETCH_FAIL_MSG)
+        module.exit_json(msg=FETCH_FAIL_MSG, failed=True)
     return key, value
 
 
@@ -233,7 +233,7 @@ def check_mode_validation(module, loc_data):
     cloned_data = copy.deepcopy(power_data)
     if module.params.get("power_configuration") is not None:
         if module.params["power_configuration"]["enable_power_cap"] is None:
-            module.fail_json(msg="missing parameter: enable_power_cap")
+            module.exit_json(msg="missing parameter: enable_power_cap", failed=True)
         enable_power_cap = module.params["power_configuration"]["enable_power_cap"]
         power_cap = module.params["power_configuration"].get("power_cap")
         if enable_power_cap is True:
@@ -244,7 +244,7 @@ def check_mode_validation(module, loc_data):
         cloned_data.update({"RedundancyPolicy": module.params["redundancy_configuration"]["redundancy_policy"]})
     if module.params.get("hot_spare_configuration") is not None:
         if module.params["hot_spare_configuration"]["enable_hot_spare"] is None:
-            module.fail_json(msg="missing parameter: enable_hot_spare")
+            module.exit_json(msg="missing parameter: enable_hot_spare", failed=True)
         enable_hot_spare = module.params["hot_spare_configuration"]["enable_hot_spare"]
         primary_grid = module.params["hot_spare_configuration"].get("primary_grid")
         if enable_hot_spare is True:
@@ -274,22 +274,22 @@ def fetch_device_details(module, rest_obj):
         resp_data = resp.json_data.get("value")
         rename_key = "id" if key == "Id" else "service tag"
         if not resp_data:
-            module.fail_json(msg=DEVICE_FAIL_MSG.format(rename_key, value))
+            module.exit_json(msg=DEVICE_FAIL_MSG.format(rename_key, value), failed=True)
         if key == "DeviceServiceTag" and resp_data[0]["DeviceServiceTag"] == tag:
             device_id = resp_data[0]["Id"]
         elif key == "Id" and resp_data[0]["Id"] == device_id:
             device_id = resp_data[0]["Id"]
         else:
-            module.fail_json(msg=DEVICE_FAIL_MSG.format(rename_key, value))
+            module.exit_json(msg=DEVICE_FAIL_MSG.format(rename_key, value), failed=True)
     try:
         loc_resp = rest_obj.invoke_request("GET", POWER_API.format(device_id))
     except HTTPError as err:
         if err.code == 404:
-            module.fail_json(msg=POWER_FAIL_MSG)
+            module.exit_json(msg=POWER_FAIL_MSG, failed=True)
         err_message = json.load(err)
         error_msg = err_message.get('error', {}).get('@Message.ExtendedInfo')
         if error_msg and error_msg[0].get("MessageId") == "CGEN1004":
-            module.fail_json(msg=POWER_FAIL_MSG)
+            module.exit_json(msg=POWER_FAIL_MSG, failed=True)
     else:
         payload = check_mode_validation(module, loc_resp.json_data)
         final_resp = rest_obj.invoke_request("PUT", POWER_API.format(device_id), data=payload)
@@ -323,17 +323,17 @@ def main():
     try:
         if not any([module.params.get("power_configuration"), module.params.get("redundancy_configuration"),
                     module.params.get("hot_spare_configuration")]):
-            module.fail_json(msg=CONFIG_FAIL_MSG)
+            module.exit_json(msg=CONFIG_FAIL_MSG, failed=True)
         with RestOME(module.params, req_session=True) as rest_obj:
             check_domain_service(module, rest_obj)
             resp = fetch_device_details(module, rest_obj)
             module.exit_json(msg=SUCCESS_MSG, power_details=resp.json_data, changed=True)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':

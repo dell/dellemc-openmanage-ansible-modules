@@ -12,39 +12,41 @@
     hostname is not defined or ome_username is not defined or ome_password
     is not defined
 
-- block:
-    - name: Retrieve all vcenter info (Check mode)
+- name: Block to start vcenter info scenarios
+  block:
+    - name: Retrieve particular vcenter info (Check mode)
       dellemc.openmanage.omevv_vcenter_info: &retrieve_info
         hostname: "{{ hostname }}"
         username: "{{ ome_username }}"
         password: "{{ ome_password }}"
+        vcenter_hostname: "{{ vcenter_hostname }}"
       register: cm_changes
       check_mode: true
 
-    - name: Verify task status - Retrieve all vcenter info (Check mode)
+    - name: Verify task status - Retrieve particular vcenter info (Check mode)
       ansible.builtin.assert:
         that:
           - not cm_changes.changed
           - cm_changes.msg == 'Successfully retrieved the vCenter
            information.'
 
-    - name: Retrieve all vcenter info (Normal Mode)
+    - name: Retrieve particular vcenter info (Normal Mode)
       dellemc.openmanage.omevv_vcenter_info:
         <<: *retrieve_info
       register: info_result
 
-    - name: Verify task status - Retrieve all vcenter info (Normal Mode)
+    - name: Verify task status - Retrieve particular vcenter info (Normal Mode)
       ansible.builtin.assert:
         that:
-          - not info_result.changed
           - not info_result.failed
+          - not info_result.changed
           - info_result.msg == "Successfully retrieved the vCenter
            information."
 
     - name: Get Vcenter details by uri.
       ansible.builtin.uri:
-        url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
-         }}/omevv/GatewayService/v1/Consoles
+        url: "https://{{ hostname | ansible.utils.ipwrap }}:{{ port }}/omevv/\
+          GatewayService/v1/Consoles"
         user: "{{ ome_username }}"
         password: "{{ ome_password }}"
         validate_certs: false
@@ -52,10 +54,15 @@
         status_code: 200
       register: uri_resp
 
+    - name: Convert response json list to dict
+      ansible.builtin.set_fact:
+        uri_resp_dict: "{{ uri_resp.json | selectattr(
+          'consoleAddress', 'equalto', vcenter_hostname) }}"
+
     - name: Verify - Get Vcenter details by uri.
       ansible.builtin.assert:
         that:
-          - info_result.vcenter_info == uri_resp.json
+          - info_result.vcenter_info == uri_resp_dict[0]
 
   module_defaults:
     dellemc.openmanage.omevv_vcenter_info:
