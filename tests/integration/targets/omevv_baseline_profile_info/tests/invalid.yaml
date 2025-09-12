@@ -52,6 +52,16 @@
             invalid_user.msg == "HTTP Error 400: 400" or
             invalid_user.msg == "HTTP Error 500: 500"'
 
+    - name: Retrieve specific baseline profile information
+       using profile name. (Check mode)
+      dellemc.openmanage.omevv_baseline_profile_info:
+        hostname: "{{ hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_uuid: "{{ uuid }}"
+        name: "AnsibleTest"
+      register: cm_changes
+
     - name: Negative - Invalid vcenter_password
       dellemc.openmanage.omevv_baseline_profile_info:
         hostname: "{{ hostname }}"
@@ -67,7 +77,7 @@
         that:
           - invalid_vcenter_password.failed
           - not invalid_vcenter_password.changed
-          - 'invalid_vcenter_password.msg == "HTTP Error 401: 401" or 
+          - 'invalid_vcenter_password.msg == "HTTP Error 401: 401" or
             invalid_vcenter_password.msg == "HTTP Error 400: 400" or
             invalid_vcenter_password.msg == "HTTP Error 500: 500"'
 
@@ -99,7 +109,7 @@
       ignore_errors: true
 
     - ansible.builtin.set_fact:
-        invalid_validate_certs_expected_msg: "argument 'validate_certs' is of 
+        invalid_validate_certs_expected_msg: "argument 'validate_certs' is of
           type str and we were unable to convert to bool: The value 'invalid' is
           not a valid boolean. Valid booleans include: "
 
