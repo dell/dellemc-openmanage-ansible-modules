@@ -199,11 +199,11 @@
           - svip_dict[nic_id]['NativeVLAN'] == nativevlan
 
   always:
-  - name: Post execution - Delete the profile and template
-    ansible.builtin.include_tasks: _cleanup.yml
-    vars:
-      device_service_tag: "{{ omem_svtag }}"
-      profile_name: "{{ profile_info.profile_info[0].ProfileName }}"
+    - name: Post execution - Delete the profile and template
+      ansible.builtin.include_tasks: _cleanup.yml
+      vars:
+        device_service_tag: "{{ omem_svtag }}"
+        profile_name: "{{ profile_info.profile_info[0].ProfileName }}"
 
   module_defaults:
     dellemc.openmanage.ome_server_interface_profiles:
