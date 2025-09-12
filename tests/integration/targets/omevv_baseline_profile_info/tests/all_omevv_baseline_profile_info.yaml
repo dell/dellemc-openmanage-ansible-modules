@@ -67,6 +67,18 @@
       ansible.builtin.assert:
         that:
           - info_result.profile_info == uri_resp.json
+  always:
+    - name: Cleanup
+      dellemc.openmanage.omevv_baseline_profile:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        validate_certs: false
+        name: "AnsibleTest"
+        state: absent
+      ignore_errors: true
+      no_log: false
 
   module_defaults:
     dellemc.openmanage.omevv_baseline_profile_info:

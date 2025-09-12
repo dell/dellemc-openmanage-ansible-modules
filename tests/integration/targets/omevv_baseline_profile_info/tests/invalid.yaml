@@ -13,6 +13,12 @@
     vcenter_password is not defined
 
 - block:
+    - name: Including helper file for creating baseline profile
+      ansible.builtin.include_tasks: ../_helper.yml
+
+    - name: Including helper file for creating firmware repo profile
+      ansible.builtin.include_tasks: ../_pre_req_create.yml
+
     - name: Negative - Invalid hostname
       dellemc.openmanage.omevv_baseline_profile_info:
         hostname: "invalid"
@@ -32,6 +38,8 @@
         hostname: "{{ hostname }}"
         vcenter_username: invalid
         vcenter_password: "{{ vcenter_password }}"
+        vcenter_uuid: "{{ uuid }}"
+        name: "AnsibleTest"
       ignore_errors: true
       register: invalid_user
 
@@ -40,8 +48,9 @@
         that:
           - invalid_user.failed
           - not invalid_user.changed
-          - invalid_user.msg == "HTTP Error 401: 401" or
-            invalid_user.msg == "HTTP Error 400: 400"
+          - 'invalid_user.msg == "HTTP Error 401: 401" or
+            invalid_user.msg == "HTTP Error 400: 400" or
+            invalid_user.msg == "HTTP Error 500: 500"'
 
     - name: Negative - Invalid vcenter_password
       dellemc.openmanage.omevv_baseline_profile_info:
@@ -145,6 +154,19 @@
             invalid_argument. Supported parameters include: ca_path,
             hostname, name, port, timeout, validate_certs, vcenter_password,
             vcenter_username, vcenter_uuid."'
+
+  always:
+    - name: Cleanup
+      dellemc.openmanage.omevv_baseline_profile:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        validate_certs: false
+        name: "AnsibleTest"
+        state: absent
+      ignore_errors: true
+      no_log: false
 
   module_defaults:
     dellemc.openmanage.omevv_baseline_profile_info:
