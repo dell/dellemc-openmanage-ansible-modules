@@ -1,0 +1,68 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: hostname, username
+     and password.'
+  when: hostname is not defined or username is not defined or
+   password is not defined
+
+- block:
+    - name: Invalid device Id
+      dellemc.openmanage.ome_server_interface_profiles:
+        device_id:
+          - 99999
+        nic_teaming: LACP
+      ignore_errors: true
+      register: invalid_device_id
+
+    - name: Invalid device service tag
+      dellemc.openmanage.ome_server_interface_profiles:
+        device_service_tag:
+          - "invalid"
+        nic_teaming: LACP
+      ignore_errors: true
+      register: invalid_device_svc_tag
+
+    - name: without nic_teaming/nic_configuration
+      dellemc.openmanage.ome_server_interface_profiles:
+        device_service_tag:
+          - "invalid"
+      ignore_errors: true
+      register: without_nic_params
+
+    - name: Unreachable host
+      dellemc.openmanage.ome_server_interface_profiles:
+        hostname: "999.999.999.999"
+        device_service_tag:
+          - "invalid"
+        nic_teaming: LACP
+      ignore_unreachable: true
+      register: invalid_unreachable
+
+    - name: Verify the status of tasks
+      ansible.builtin.assert:
+        that:
+          - invalid_device_id.failed
+          - invalid_device_id.msg == "Unable to complete the operation because
+           the entered target device ids '99999' are invalid."
+          - invalid_device_svc_tag.failed
+          - invalid_device_svc_tag.msg == "Unable to complete the operation
+           because the entered target device service tag(s) 'invalid' are
+           invalid."
+          - without_nic_params.failed
+          - 'without_nic_params.msg == "one of the following is
+           required: nic_teaming, nic_configuration"'
+          - invalid_unreachable.unreachable
+
+  module_defaults:
+    dellemc.openmanage.ome_server_interface_profiles:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"
+      validate_certs: "{{ validate_certs }}"

@@ -1,0 +1,242 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: hostname, username and
+     password.'
+  when: hostname is not defined or username is not defined or
+   password is not defined
+
+- name: Verify creation of server interface profile
+  vars:
+    nativevlan: 11
+    tagged_network_list: ["vlan_12", "vlan_13"]
+  block:
+    - name: Get Servers
+      dellemc.openmanage.ome_device_info:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        port: "{{port}}"
+        validate_certs: "{{validate_certs}}"
+        fact_subset: "basic_inventory"
+        system_query_options:
+          filter: "Type eq 1000"
+      register: servers
+
+    - name: Fail if no servers
+      ansible.builtin.fail:
+        msg: "No servers found."
+      when: (servers.device_info.value | length) == 0
+
+    - name: Pick one server
+      ansible.builtin.set_fact:
+        omem_svtag: "{{ servers.device_info.value[0].DeviceServiceTag }}"
+
+    - name: Create a template from a reference device
+      dellemc.openmanage.ome_template:
+        device_service_tag: "{{ omem_svtag }}"
+        attributes:
+          Name: "omam_test_template"
+          Description: "OMAM Template Description"
+      register: create_template
+
+    - name: Create profile
+      dellemc.openmanage.ome_profile:
+        description: "description"
+        template_id: "{{ create_template.return_id }}"
+        name_prefix: "omam_test_profile"
+      register: create_profile
+
+    - name: Retrieve profile using the id
+      dellemc.openmanage.ome_profile_info:
+        profile_id: "{{ create_profile.profile_ids[0] }}"
+      register: profile_info
+
+    - name: Assign a profile to target
+      dellemc.openmanage.ome_profile:
+        command: "assign"
+        name: "{{ profile_info.profile_info[0].ProfileName }}"
+        device_service_tag: "{{ omem_svtag }}"
+      register: assign_profile
+
+    - name: Track job details for the profile using a job id
+      dellemc.openmanage.ome_job_info:
+        job_id: "{{ assign_profile.job_id }}"
+      register: job_result
+      until: job_result.job_info.LastRunStatus.Name == 'Completed'
+        or job_result.job_info.LastRunStatus.Name == 'Failed'
+      retries: 20
+      delay: 30
+
+    - name: Get server interface assigned profiles to mentioned service tag
+      dellemc.openmanage.ome_server_interface_profile_info:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        port: "{{port}}"
+        validate_certs: "{{validate_certs}}"
+        device_service_tag:
+          - "{{ omem_svtag }}"
+      register: sips
+
+    - name: Pick one nic
+      ansible.builtin.set_fact:
+        nic_id: "{{ sips.server_profiles[0].ServerInterfaceProfile[0].Id }}"
+
+    - name: Create vlans
+      dellemc.openmanage.ome_network_vlan:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        port: "{{port}}"
+        validate_certs: "{{validate_certs}}"
+        state: present
+        name: "vlan_{{ item }}"
+        description: "VLAN desc {{ item }}"
+        type: "General Purpose (Silver)"
+        vlan_minimum: "{{ item }}"
+        vlan_maximum: "{{ item }}"
+      loop: [11, 12, 13]
+
+    - name: Clear Server Interface Profiles
+      dellemc.openmanage.ome_server_interface_profiles:
+        device_service_tag:
+          - "{{ omem_svtag }}"
+        nic_teaming: NoTeaming
+        nic_configuration:
+          - nic_identifier: "{{ nic_id }}"
+            team: false
+            untagged_network: 0
+            tagged_networks:
+              state: absent
+              names: "{{ tagged_network_list }}"
+
+    - name: Check mode - change nic teaming
+      dellemc.openmanage.ome_server_interface_profiles:
+        device_service_tag:
+          - "{{ omem_svtag }}"
+        nic_teaming: LACP
+      check_mode: true
+      register: check_nic_teaming
+
+    - name: Verify Check mode - change nic teaming
+      ansible.builtin.assert:
+        that:
+          - check_nic_teaming.changed
+          - check_nic_teaming.msg == 'Changes found to be applied.'
+
+    - name: Check mode - Create Server Interface Profiles
+      dellemc.openmanage.ome_server_interface_profiles:
+        device_service_tag:
+          - "{{ omem_svtag }}"
+        nic_configuration:
+          - nic_identifier: "{{ nic_id }}"
+            team: false
+            untagged_network: "{{ nativevlan }}"
+            tagged_networks:
+              names: "{{ tagged_network_list }}"
+      check_mode: true
+      register: check_create_sprofiles
+
+    - name: Verify Check mode - Create Server Interface Profiles
+      ansible.builtin.assert:
+        that:
+          - check_create_sprofiles.changed
+          - check_create_sprofiles.msg == 'Changes found to be applied.'
+
+    - name: Create Server Interface Profiles
+      dellemc.openmanage.ome_server_interface_profiles:
+        device_service_tag:
+          - "{{ omem_svtag }}"
+        nic_teaming: LACP
+        nic_configuration:
+          - nic_identifier: "{{ nic_id }}"
+            team: false
+            untagged_network: "{{ nativevlan }}"
+            tagged_networks:
+              names: "{{ tagged_network_list }}"
+      register: mod_sprofiles
+
+    - name: Verify Server Interface Profiles
+      dellemc.openmanage.ome_server_interface_profile_info:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        port: "{{port}}"
+        validate_certs: "{{validate_certs}}"
+        device_service_tag:
+          - "{{ omem_svtag }}"
+      register: latest_sprofiles
+
+    - name: Get the Server profiles for the specific service tag
+      ansible.builtin.set_fact:
+        omem_server_profile: "{{ latest_sprofiles.server_profiles
+         | selectattr('Id', 'equalto', omem_svtag) | first }}"
+
+    - name: Get nic and vlans for the specific service tag
+      ansible.builtin.set_fact:
+        svip_dict: "{{ svip_dict | default({})
+         | combine({item.Id: (item
+         | combine({'Networks': ( item.Networks
+         | map(attribute='Name') )}))}) }}"
+      loop: "{{ omem_server_profile.ServerInterfaceProfile }}"
+
+    - name: Verify sips
+      ansible.builtin.assert:
+        that:
+          - mod_sprofiles.changed
+          - "'job_id' in mod_sprofiles"
+          - omem_server_profile.Id == omem_svtag
+          - omem_server_profile.BondingTechnology == 'LACP'
+          - nic_id in svip_dict
+          - svip_dict[nic_id]['Networks'] | difference(tagged_network_list)
+            | length == 0
+          - svip_dict[nic_id]['NativeVLAN'] == nativevlan
+
+  always:
+    - name: Post execution - Delete the profile and template
+      ansible.builtin.include_tasks: _cleanup.yml
+      vars:
+        device_service_tag: "{{ omem_svtag }}"
+        profile_name: "{{ profile_info.profile_info[0].ProfileName }}"
+
+  module_defaults:
+    dellemc.openmanage.ome_server_interface_profiles:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"
+      validate_certs: "{{ validate_certs }}"
+
+    dellemc.openmanage.ome_template:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"
+
+    dellemc.openmanage.ome_profile:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"
+
+    dellemc.openmanage.ome_profile_info:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"
+
+    dellemc.openmanage.ome_job_info:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"
