@@ -57,6 +57,8 @@
         hostname: "{{ hostname }}"
         vcenter_username: "{{ vcenter_username }}"
         vcenter_password: invalid
+        vcenter_uuid: "{{ uuid }}"
+        name: "AnsibleTest"
       ignore_errors: true
       register: invalid_vcenter_password
 
@@ -65,8 +67,9 @@
         that:
           - invalid_vcenter_password.failed
           - not invalid_vcenter_password.changed
-          - 'invalid_vcenter_password.msg == "HTTP Error 401: 401" or
-           "HTTP Error 400: 400"'
+          - 'invalid_vcenter_password.msg == "HTTP Error 401: 401" or 
+            invalid_vcenter_password.msg == "HTTP Error 400: 400" or
+            invalid_vcenter_password.msg == "HTTP Error 500: 500"'
 
     - name: Negative - Invalid ca_path
       dellemc.openmanage.omevv_baseline_profile_info:
