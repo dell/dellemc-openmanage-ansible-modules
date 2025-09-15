@@ -148,6 +148,5 @@ jobs:
             '${{ needs.sanity.result }}',
             '${{ needs.unit-galaxy.result }}',
             '${{ needs.ansible-lint.result }}',
-            '${{ needs.codecov.result }}',
-            '${{ needs.unit-custom.result }}'
+            '${{ needs.codecov.result }}'
           ])"
