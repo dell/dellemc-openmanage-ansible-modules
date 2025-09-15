@@ -108,12 +108,14 @@
       register: invalid_validate_certs
       ignore_errors: true
 
-    - ansible.builtin.set_fact:
+    - name: Setting message for invalid validate_certs
+      ansible.builtin.set_fact:
         invalid_validate_certs_expected_msg: "argument 'validate_certs' is of
           type str and we were unable to convert to bool: The value 'invalid' is
           not a valid boolean. Valid booleans include: "
 
-    - ansible.builtin.set_fact:
+    - name: Setting another message for invalid validate_certs
+      ansible.builtin.set_fact:
         invalid_validate_certs_expected_msg_second: "argument 'validate_certs'
           is of type <class 'str'> and we were unable to convert to bool: The
           value 'invalid' is not a valid boolean.  Valid booleans include: "
