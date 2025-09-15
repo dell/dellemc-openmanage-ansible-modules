@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.4.0
+# Version 10.0.1
 # Copyright (C) 2019-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -1072,15 +1072,16 @@ def export_custom_defaults(module, idrac):
 
 
 class ImportCustomDefaultCommand():
-    def __init__(self, idrac, module):
+    def __init__(self, idrac, module, generation):
         self.idrac = idrac
         self.module = module
         self.idrac_firmware_version = get_idrac_firmware_version(self.idrac)
+        self.generation = generation
 
     def execute(self):
         changed = True
         command = self.module.params["command"]
-        if not is_check_idrac_latest(self.idrac_firmware_version, generation):
+        if not is_check_idrac_latest(self.idrac_firmware_version, self.generation):
             self.module.exit_json(msg=CUSTOM_ERROR.format(command=command),
                                   skipped=True)
         validate_customdefault_input(self.module, command)
@@ -1116,14 +1117,15 @@ class ImportCommand():
 
 
 class ExportCustomDefaultCommand():
-    def __init__(self, idrac, module):
+    def __init__(self, idrac, module, generation):
         self.idrac = idrac
         self.module = module
         self.idrac_firmware_version = get_idrac_firmware_version(self.idrac)
+        self.generation = generation
 
     def execute(self):
         command = self.module.params["command"]
-        if not is_check_idrac_latest(self.idrac_firmware_version, generation):
+        if not is_check_idrac_latest(self.idrac_firmware_version, self.generation):
             self.module.exit_json(msg=CUSTOM_ERROR.format(command=command),
                                   skipped=True)
         validate_customdefault_input(self.module, command)
@@ -1207,7 +1209,7 @@ def main():
             if http_share_req:
                 command_obj = command_obj_class(idrac, http_share, module)
             else:
-                command_obj = command_obj_class(idrac, module)
+                command_obj = command_obj_class(idrac, module, generation)
             scp_status, changed = command_obj.execute()
 
         if module.params.get('job_wait'):
