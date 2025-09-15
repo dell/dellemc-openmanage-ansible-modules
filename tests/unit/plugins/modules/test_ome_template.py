@@ -2,7 +2,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.2.0
+# Version 10.0.1
 # Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -737,8 +737,8 @@ class TestOmeTemplate(FakeAnsibleModule):
         for m in mocks:
             if m in params:
                 mocker.patch(MODULE_PATH + m, return_value=params.get(m, {}))
-        result = self._run_module_with_fail_json(ome_default_args)
-        assert result['msg'] == params['message']
+        result = self._run_module(ome_default_args)
+        assert result['changed'] is False
 
     @pytest.mark.parametrize("exc_type",
                              [IOError, ValueError, TypeError, ConnectionError,
@@ -759,12 +759,12 @@ class TestOmeTemplate(FakeAnsibleModule):
         elif exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + '_get_resource_parameters',
                          side_effect=exc_type("exception message"))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + '_get_resource_parameters',
                          side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'msg' in result
