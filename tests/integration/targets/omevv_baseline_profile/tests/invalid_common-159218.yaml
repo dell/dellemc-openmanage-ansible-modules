@@ -186,7 +186,6 @@
             and we were unable to convert to int: \\\"'invalid'\\\" cannot
             be converted to an int\""
 
-
     - name: Negative - invalid timeout value
       dellemc.openmanage.omevv_baseline_profile:
         timeout: 0
@@ -221,6 +220,10 @@
           - 'invalid_uuid.error_info.errorCode == "12027"'
           - 'invalid_uuid.error_info.message == "vCenter with UUID invalid is
             not registered."'
+
+    - name: Wait after invalid tests to avoid client blockage
+      ansible.builtin.pause:
+        seconds: 500
 
   module_defaults:
     dellemc.openmanage.omevv_baseline_profile:
