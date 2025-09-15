@@ -10,9 +10,7 @@
 # Other trademarks may be trademarks of their respective owners.
 
 
-import pytest
 from datetime import datetime
-from logging.handlers import RotatingFileHandler
 from ansible_collections.dellemc.openmanage.plugins.module_utils.logging_handler import CustomRotatingFileHandler
 import tempfile
 import os
@@ -27,4 +25,3 @@ def test_rotation_filename_format():
 
         expected_date = datetime.now().strftime("%Y%m%d")
         assert rotated_name.startswith(f"test_{expected_date}.log.1")
-
