@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ansible-version: [stable-2.18]
+        ansible-version: [stable-2.19]
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -62,7 +62,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ansible-version: [stable-2.18]
+        ansible-version: [stable-2.19]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -89,6 +89,32 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
 
+unit:
+    name: Unit Tests (Ⓐ${{ matrix.ansible }} with ${{ matrix.python }} python)
+    needs: [build]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.12']
+        ansible:
+          - stable-2.18
+          - stable-2.19
+          - devel
+        exclude:
+          - ansible: devel
+            python: '3.11'
+
+    steps:
+      - name: Perform unit testing with ansible-test
+        uses: ansible-community/ansible-test-gh-action@release/v1.16
+        with:
+          testing-type: units
+          coverage: ${{ (matrix.python == '3.12' && matrix.ansible == 'stable-2.19') && 'always' ||  'never' }}
+          ansible-core-version: ${{ matrix.ansible }}
+          origin-python-version: ${{ matrix.python }}
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   all_green:
     if: ${{ always() }}
     needs:

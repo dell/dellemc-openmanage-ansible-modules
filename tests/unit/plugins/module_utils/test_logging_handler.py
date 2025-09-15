@@ -15,6 +15,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.logging_handler
 import tempfile
 import os
 
+
 def test_rotation_filename_format():
     with tempfile.TemporaryDirectory() as tmpdir:
         log_path = os.path.join(tmpdir, "test.log")
