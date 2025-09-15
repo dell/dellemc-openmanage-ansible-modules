@@ -23,12 +23,6 @@
   retries: 1
   delay: 0
 
-- name: Print the group ID
-  ansible.builtin.debug:
-    msg:
-      var1: "{{ cluster_name }}"
-      var2: "{{ group_id }}"
-
 - name: Find hosts details
   ansible.builtin.uri:
     url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port}}
@@ -41,7 +35,7 @@
     host: "{{ item.hostName }}"
     servicetag: "{{ item.serviceTag }}"
   loop: "{{ host_details.json }}"
-  when: item.omevvpGroupId == group_id
+  when: (item.omevvpGroupId | int) == (group_id | int)
   register: host_result
   until: host_result is defined
   retries: 1
