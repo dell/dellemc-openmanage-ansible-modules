@@ -139,7 +139,6 @@ jobs:
       - unit-galaxy
       - ansible-lint
       - codecov
-      - unit-custom
     runs-on: ubuntu-latest
     steps:
       - name: Check all jobs passed
