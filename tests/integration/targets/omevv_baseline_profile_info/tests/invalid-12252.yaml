@@ -1,5 +1,5 @@
-# Dell OpenManage Ansible modules
-# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -13,6 +13,12 @@
     vcenter_password is not defined
 
 - block:
+    - name: Including helper file for creating baseline profile
+      ansible.builtin.include_tasks: ../_helper.yml
+
+    - name: Including helper file for creating firmware repo profile
+      ansible.builtin.include_tasks: ../_pre_req_create.yml
+
     - name: Negative - Invalid hostname
       dellemc.openmanage.omevv_baseline_profile_info:
         hostname: "invalid"
@@ -32,6 +38,8 @@
         hostname: "{{ hostname }}"
         vcenter_username: invalid
         vcenter_password: "{{ vcenter_password }}"
+        vcenter_uuid: "{{ uuid }}"
+        name: "AnsibleTest"
       ignore_errors: true
       register: invalid_user
 
@@ -41,13 +49,26 @@
           - invalid_user.failed
           - not invalid_user.changed
           - 'invalid_user.msg == "HTTP Error 401: 401" or
-           "HTTP Error 400: 400"'
+            invalid_user.msg == "HTTP Error 400: 400" or
+            invalid_user.msg == "HTTP Error 500: 500"'
+
+    - name: Retrieve specific baseline profile information
+       using profile name. (Check mode)
+      dellemc.openmanage.omevv_baseline_profile_info:
+        hostname: "{{ hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_uuid: "{{ uuid }}"
+        name: "AnsibleTest"
+      register: cm_changes
 
     - name: Negative - Invalid vcenter_password
       dellemc.openmanage.omevv_baseline_profile_info:
         hostname: "{{ hostname }}"
         vcenter_username: "{{ vcenter_username }}"
         vcenter_password: invalid
+        vcenter_uuid: "{{ uuid }}"
+        name: "AnsibleTest"
       ignore_errors: true
       register: invalid_vcenter_password
 
@@ -57,7 +78,8 @@
           - invalid_vcenter_password.failed
           - not invalid_vcenter_password.changed
           - 'invalid_vcenter_password.msg == "HTTP Error 401: 401" or
-           "HTTP Error 400: 400"'
+            invalid_vcenter_password.msg == "HTTP Error 400: 400" or
+            invalid_vcenter_password.msg == "HTTP Error 500: 500"'
 
     - name: Negative - Invalid ca_path
       dellemc.openmanage.omevv_baseline_profile_info:
@@ -74,7 +96,8 @@
           - invalid_ca_path.failed
           - not invalid_ca_path.changed
           - 'invalid_ca_path.msg == "[Errno 2] No such file or
-            directory: b''invalid''"'
+            directory: b''invalid''" or invalid_ca_path.msg ==
+            "[Errno 2] No such file or directory"'
 
     - name: Negative - Invalid validate_certs
       dellemc.openmanage.omevv_baseline_profile_info:
@@ -85,17 +108,26 @@
       register: invalid_validate_certs
       ignore_errors: true
 
-    - ansible.builtin.set_fact:
+    - name: Setting message for invalid validate_certs
+      ansible.builtin.set_fact:
         invalid_validate_certs_expected_msg: "argument 'validate_certs' is of
-          type <class 'str'> and we were unable to convert to bool: The value
-          'invalid' is not a valid boolean.  Valid booleans include: "
+          type str and we were unable to convert to bool: The value 'invalid' is
+          not a valid boolean. Valid booleans include: "
+
+    - name: Setting another message for invalid validate_certs
+      ansible.builtin.set_fact:
+        invalid_validate_certs_expected_msg_second: "argument 'validate_certs'
+          is of type <class 'str'> and we were unable to convert to bool: The
+          value 'invalid' is not a valid boolean.  Valid booleans include: "
 
     - name: Verify task status - Negative - Invalid validate_certs
       ansible.builtin.assert:
         that:
           - invalid_validate_certs.failed
           - not invalid_validate_certs.changed
-          - invalid_validate_certs_expected_msg in invalid_validate_certs.msg
+          - invalid_validate_certs_expected_msg in invalid_validate_certs.msg or
+            invalid_validate_certs_expected_msg_second in
+            invalid_validate_certs.msg
 
     - name: Negative - Invalid vcenter_uuid
       dellemc.openmanage.omevv_baseline_profile_info:
@@ -144,6 +176,19 @@
             invalid_argument. Supported parameters include: ca_path,
             hostname, name, port, timeout, validate_certs, vcenter_password,
             vcenter_username, vcenter_uuid."'
+
+  always:
+    - name: Cleanup
+      dellemc.openmanage.omevv_baseline_profile:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        validate_certs: false
+        name: "AnsibleTest"
+        state: absent
+      ignore_errors: true
+      no_log: false
 
   module_defaults:
     dellemc.openmanage.omevv_baseline_profile_info:
