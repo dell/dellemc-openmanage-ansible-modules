@@ -1,5 +1,5 @@
-# Dell OpenManage Ansible modules
-# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -13,6 +13,12 @@
     vcenter_password is not defined
 
 - block:
+    - name: Including helper file for creating baseline profile
+      ansible.builtin.include_tasks: ../_helper.yml
+
+    - name: Including helper file for creating firmware repo profile
+      ansible.builtin.include_tasks: ../_pre_req_create.yml
+
     - name: Retrieve all firmware repository profile information.
        (Check mode)
       dellemc.openmanage.omevv_baseline_profile_info: &retrieve_info
@@ -61,6 +67,18 @@
       ansible.builtin.assert:
         that:
           - info_result.profile_info == uri_resp.json
+  always:
+    - name: Cleanup
+      dellemc.openmanage.omevv_baseline_profile:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        validate_certs: false
+        name: "AnsibleTest"
+        state: absent
+      ignore_errors: true
+      no_log: false
 
   module_defaults:
     dellemc.openmanage.omevv_baseline_profile_info:
