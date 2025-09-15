@@ -99,20 +99,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ['3.11', '3.12']
+        python: ['3.12']
         ansible:
-          - stable-2.18
-          - stable-2.19
           - devel
-        exclude:
-          - ansible: devel
-            python: '3.11'
     steps:
       - name: Perform unit testing with ansible-test
         uses: ansible-community/ansible-test-gh-action@release/v1.16
         with:
           testing-type: units
-          coverage: ${{ (matrix.python == '3.12' && matrix.ansible == 'stable-2.19') && 'always' || 'never' }}
+          coverage: ${{ (matrix.python == '3.12' && matrix.ansible == 'devel') && 'always' || 'never' }}
           ansible-core-version: ${{ matrix.ansible }}
           origin-python-version: ${{ matrix.python }}
         env:
