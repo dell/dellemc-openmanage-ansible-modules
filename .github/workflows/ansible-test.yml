@@ -100,18 +100,18 @@ jobs:
       fail-fast: false
       matrix:
         python: ['3.12']
-        ansible:
-          - devel
+        ansible: ['devel']
     steps:
       - name: Perform unit testing with ansible-test
         uses: ansible-community/ansible-test-gh-action@release/v1.16
         with:
           testing-type: units
-          coverage: ${{ (matrix.python == '3.12' && matrix.ansible == 'devel') && 'always' || 'never' }}
+          coverage: always
           ansible-core-version: ${{ matrix.ansible }}
           origin-python-version: ${{ matrix.python }}
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
 
   all_green:
     if: ${{ always() }}
