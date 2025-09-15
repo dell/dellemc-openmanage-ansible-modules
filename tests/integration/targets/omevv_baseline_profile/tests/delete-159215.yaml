@@ -32,7 +32,7 @@
       ansible.builtin.assert:
         that:
           - cm_result_baseline.changed
-          - 'cm_result_baseline.msg == "Changes found to be applied."'
+          - cm_result_baseline.msg == "Changes found to be applied."
 
     - name: Delete a baseline profile (Check and Diff mode)
       dellemc.openmanage.omevv_baseline_profile:
