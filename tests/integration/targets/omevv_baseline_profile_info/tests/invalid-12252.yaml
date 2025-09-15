@@ -113,12 +113,19 @@
           type str and we were unable to convert to bool: The value 'invalid' is
           not a valid boolean. Valid booleans include: "
 
+    - ansible.builtin.set_fact:
+        invalid_validate_certs_expected_msg_second: "argument 'validate_certs'
+          is of type <class 'str'> and we were unable to convert to bool: The
+          value 'invalid' is not a valid boolean.  Valid booleans include: "
+
     - name: Verify task status - Negative - Invalid validate_certs
       ansible.builtin.assert:
         that:
           - invalid_validate_certs.failed
           - not invalid_validate_certs.changed
-          - invalid_validate_certs_expected_msg in invalid_validate_certs.msg
+          - invalid_validate_certs_expected_msg in invalid_validate_certs.msg or
+            invalid_validate_certs_expected_msg_second in
+            invalid_validate_certs.msg
 
     - name: Negative - Invalid vcenter_uuid
       dellemc.openmanage.omevv_baseline_profile_info:
