@@ -35,7 +35,6 @@ jobs:
 
       - name: Build a collection tarball
         run: ansible-galaxy collection build --output-path .cache/collection-tarballs
-
       - name: Store migrated collection artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -53,7 +52,6 @@ jobs:
   unit-galaxy:
     needs: [build]
     uses: ansible/ansible-content-actions/.github/workflows/unit.yaml@main
-
   codecov:
     name: Codecov
     runs-on: ubuntu-latest
@@ -74,9 +72,9 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: 3.12
-
       - name: Install ansible (${{ matrix.ansible-version }})
         run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
+
       - name: Install test dependencies
         run: pip install -r test-requirements.txt
 
@@ -92,8 +90,8 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
 
-  unit:
-    name: Unit Tests (Ⓐ${{ matrix.ansible }} with ${{ matrix.python }} python)
+  unit-custom:
+    name: Unit Tests (devel with Python 3.12)
     needs: [build]
     runs-on: ubuntu-latest
     strategy:
@@ -102,7 +100,6 @@ jobs:
         include:
           - python: '3.12'
             ansible: 'devel'
-
     steps:
       - name: Perform unit testing with ansible-test
         uses: ansible-community/ansible-test-gh-action@release/v1.16
@@ -114,7 +111,6 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-
   all_green:
     if: ${{ always() }}
     needs:
@@ -122,6 +118,7 @@ jobs:
       - unit-galaxy
       - ansible-lint
       - codecov
+      - unit-custom
     runs-on: ubuntu-latest
     steps:
       - name: Check all jobs passed
@@ -130,5 +127,6 @@ jobs:
             '${{ needs.sanity.result }}',
             '${{ needs.unit-galaxy.result }}',
             '${{ needs.ansible-lint.result }}',
-            '${{ needs.codecov.result }}'
+            '${{ needs.codecov.result }}',
+            '${{ needs.unit-custom.result }}'
           ])"
