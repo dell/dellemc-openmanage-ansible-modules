@@ -1,0 +1,41 @@
+---
+- name: Unassign a profile from target
+  dellemc.openmanage.ome_profile:
+    hostname: "{{ hostname }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    port: "{{ port }}"
+    validate_certs: "{{ validate_certs }}"
+    command: "unassign"
+    name: "{{ profile_name }}"
+    device_service_tag: "{{ device_service_tag }}"
+  register: unassign_profile
+
+- name: Track job details for the profile using a job id
+  dellemc.openmanage.ome_job_info:
+    job_id: "{{ unassign_profile.job_id }}"
+  register: job_result
+  until: job_result.job_info.LastRunStatus.Name == 'Completed'
+    or job_result.job_info.LastRunStatus.Name == 'Failed'
+  retries: 20
+  delay: 30
+
+- name: Delete a profile using profile name
+  dellemc.openmanage.ome_profile:
+    hostname: "{{ hostname }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    port: "{{ port }}"
+    validate_certs: "{{ validate_certs }}"
+    command: "delete"
+    name: "{{ profile_name }}"
+
+- name: Delete template
+  dellemc.openmanage.ome_template:
+    hostname: "{{ hostname }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    port: "{{ port }}"
+    validate_certs: "{{ validate_certs }}"
+    command: "delete"
+    template_name: "omam_test_template"
