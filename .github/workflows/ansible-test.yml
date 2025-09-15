@@ -99,8 +99,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ['3.12']
-        ansible: ['devel']
+        include:
+          - python: '3.12'
+            ansible: 'devel'
+
     steps:
       - name: Perform unit testing with ansible-test
         uses: ansible-community/ansible-test-gh-action@release/v1.16
