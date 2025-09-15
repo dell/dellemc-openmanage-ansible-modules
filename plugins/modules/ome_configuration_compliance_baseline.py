@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.4.0
+# Version 10.0.1
 # Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -130,6 +130,7 @@ author:
     - "Sajna Shetty(@Sajna-Shetty)"
     - "Abhishek Sinha(@Abhishek-Dell)"
     - "Shivam Sharma(@ShivamSh3)"
+    - "Meenakshi Dembi(@meenakshidembi691)"
 notes:
     - This module supports C(check_mode).
     - Ensure that the devices have the required licenses to perform the baseline compliance operations.
@@ -355,7 +356,6 @@ error_info:
   }
 '''
 
-import json
 import time
 import re
 import datetime
@@ -411,7 +411,7 @@ def validate_identifiers(available_values, requested_values, identifier_types, m
     """
     val = set(requested_values) - set(available_values)
     if val:
-        module.fail_json(msg=INVALID_IDENTIFIER.format(identifier=identifier_types, invalid_val=",".join(map(str, val))))
+        module.exit_json(msg=INVALID_IDENTIFIER.format(identifier=identifier_types, invalid_val=",".join(map(str, val))), failed=True)
 
 
 def get_identifiers(available_identifiers_map, requested_values):
@@ -445,9 +445,9 @@ def get_template_details(module, rest_obj):
             if each_template.get(identifier) == template_identifier:
                 return each_template
     if identifier == "Id":
-        module.fail_json(msg=TEMPLATE_ID_ERROR_MSG.format(template_id=template_identifier))
+        module.exit_json(msg=TEMPLATE_ID_ERROR_MSG.format(template_id=template_identifier), failed=True)
     else:
-        module.fail_json(msg=TEMPLATE_NAME_ERROR_MSG.format(template_name=template_identifier))
+        module.exit_json(msg=TEMPLATE_NAME_ERROR_MSG.format(template_name=template_identifier), failed=True)
 
 
 def get_group_ids(module, rest_obj):
@@ -466,7 +466,7 @@ def get_group_ids(module, rest_obj):
         validate_identifiers(available_device_tags, device_group_names_list, tags_identifier, module)
         final_target_list = get_identifiers(available_ids_tag_map, device_group_names_list)
     else:
-        module.fail_json(msg=INVALID_DEVICES.format(identifier="Group"))
+        module.exit_json(msg=INVALID_DEVICES.format(identifier="Group"), failed=True)
     return final_target_list
 
 
@@ -511,7 +511,7 @@ def get_device_ids(module, rest_obj):
             identifier = "device_service_tags"
             final_target_list = id_list
     else:
-        module.fail_json(msg=INVALID_DEVICES.format(identifier="Device"))
+        module.exit_json(msg=INVALID_DEVICES.format(identifier="Device"), failed=True)
     if final_target_list:
         device_capability_map = get_device_capabilities(values, identifier)
     return final_target_list, device_capability_map
@@ -531,8 +531,8 @@ def validate_capability(module, device_capability_map):
     capable_devices = set(device_id_list) & set(device_capability_map.get("capable", []))
     if len(capable_devices) == 0 or capable_devices and len(capable_devices) != len(device_id_list):
         non_capable_devices = list(set(device_id_list) - capable_devices)
-        module.fail_json(msg=NO_CAPABLE_DEVICES.format(identifier_types),
-                         incompatible_devices=non_capable_devices)
+        module.exit_json(msg=NO_CAPABLE_DEVICES.format(identifier_types),
+                         incompatible_devices=non_capable_devices, failed=True)
 
 
 def create_payload(module, rest_obj):
@@ -641,7 +641,7 @@ def create_baseline(module, rest_obj):
                                                     sleep_time=5)
         baseline_updated_info = get_baseline_compliance_info(rest_obj, compliance_id)
         if job_failed is True:
-            module.fail_json(msg=message, compliance_status=baseline_updated_info, changed=False)
+            module.exit_json(msg=message, compliance_status=baseline_updated_info, failed=True)
         else:
             if "successfully" in message:
                 module.exit_json(msg=CREATE_MSG, compliance_status=baseline_updated_info, changed=True)
@@ -657,7 +657,7 @@ def validate_names(command, module):
     """
     names = module.params["names"]
     if command != "delete" and len(names) > 1:
-        module.fail_json(msg=NAMES_ERROR)
+        module.exit_json(msg=NAMES_ERROR, failed=True)
 
 
 def delete_idempotency_check(module, rest_obj):
@@ -723,7 +723,7 @@ def modify_baseline(module, rest_obj):
     name = module.params["names"][0]
     baseline_info = get_baseline_compliance_info(rest_obj, name, attribute="Name")
     if not any(baseline_info):
-        module.fail_json(msg=BASELINE_CHECK_MODE_NOCHANGE_MSG.format(name=name))
+        module.exit_json(msg=BASELINE_CHECK_MODE_NOCHANGE_MSG.format(name=name), failed=True)
     current_payload = create_payload(module, rest_obj)
     current_payload["Id"] = baseline_info["Id"]
     if module.params.get("new_name"):
@@ -731,7 +731,7 @@ def modify_baseline(module, rest_obj):
         if name != new_name:
             baseline_info_new = get_baseline_compliance_info(rest_obj, new_name, attribute="Name")
             if any(baseline_info_new):
-                module.fail_json(msg=BASELINE_CHECK_MODE_CHANGE_MSG.format(name=new_name))
+                module.exit_json(msg=BASELINE_CHECK_MODE_CHANGE_MSG.format(name=new_name), failed=True)
         current_payload["Name"] = new_name
     required_attributes = ["Id", "Name", "Description", "TemplateId", "BaselineTargets"]
     existing_payload = dict([(key, val) for key, val in baseline_info.items() if key in required_attributes and val])
@@ -750,7 +750,7 @@ def modify_baseline(module, rest_obj):
                                                     job_wait_sec=module.params["job_wait_timeout"], sleep_time=5)
         baseline_updated_info = get_baseline_compliance_info(rest_obj, compliance_id)
         if job_failed is True:
-            module.fail_json(msg=message, compliance_status=baseline_updated_info, changed=False)
+            module.exit_json(msg=message, compliance_status=baseline_updated_info, failed=True)
         else:
             if "successfully" in message:
                 module.exit_json(msg=MODIFY_MSG, compliance_status=baseline_updated_info, changed=True)
@@ -770,7 +770,7 @@ def validate_remediate_idempotency(module, rest_obj):
     name = module.params["names"][0]
     baseline_info = get_baseline_compliance_info(rest_obj, name, attribute="Name")
     if not any(baseline_info):
-        module.fail_json(msg=BASELINE_CHECK_MODE_NOCHANGE_MSG.format(name=name))
+        module.exit_json(msg=BASELINE_CHECK_MODE_NOCHANGE_MSG.format(name=name), failed=True)
     valid_id_list, device_capability_map = get_device_ids(module, rest_obj)
     compliance_reports = rest_obj.get_all_items_with_pagination(CONFIG_COMPLIANCE_URI.format(baseline_info["Id"]))
     device_id_list = module.params.get("device_ids")
@@ -781,8 +781,8 @@ def validate_remediate_idempotency(module, rest_obj):
             module.exit_json(msg=CHECK_MODE_NO_CHANGES_MSG)
         invalid_values = list(set(device_id_list) - set(compliance_report_map.keys()))
         if invalid_values:
-            module.fail_json(
-                INVALID_COMPLIANCE_IDENTIFIER.format("device_ids", ",".join(map(str, invalid_values)), name))
+            module.exit_json(
+                INVALID_COMPLIANCE_IDENTIFIER.format("device_ids", ",".join(map(str, invalid_values)), name), failed=True)
         report_devices = list(set(device_id_list) & set(compliance_report_map.keys()))
         noncomplaint_devices = [device for device in report_devices if compliance_report_map[device] == "NONCOMPLIANT"
                                 or compliance_report_map[device] == 2]
@@ -793,8 +793,8 @@ def validate_remediate_idempotency(module, rest_obj):
             module.exit_json(msg=CHECK_MODE_NO_CHANGES_MSG)
         invalid_values = list(set(device_service_tags_list) - set(compliance_report_map.keys()))
         if invalid_values:
-            module.fail_json(
-                INVALID_COMPLIANCE_IDENTIFIER.format("device_service_tags", ",".join(map(str, invalid_values)), name))
+            module.exit_json(
+                INVALID_COMPLIANCE_IDENTIFIER.format("device_service_tags", ",".join(map(str, invalid_values)), name), failed=True)
         report_devices = list(set(device_service_tags_list) & set(compliance_report_map.keys()))
         service_tag_id_map = dict(
             [(item["ServiceTag"], item["Id"]) for item in compliance_reports["value"]])
@@ -901,7 +901,7 @@ def validate_job_time(command, module):
     if command != "delete" and job_wait:
         job_wait_timeout = module.params["job_wait_timeout"]
         if job_wait_timeout <= 0:
-            module.fail_json(msg=INVALID_TIME.format(job_wait_timeout))
+            module.exit_json(msg=INVALID_TIME.format(job_wait_timeout), failed=True)
 
 
 def compliance_operation(module, rest_obj):
@@ -958,11 +958,11 @@ def main():
         with RestOME(module.params, req_session=True) as rest_obj:
             compliance_operation(module, rest_obj)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
