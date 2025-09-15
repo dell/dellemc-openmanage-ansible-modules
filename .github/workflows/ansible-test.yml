@@ -42,28 +42,28 @@ jobs:
           name: collection
           path: .cache/collection-tarballs
 
-  unit-custom:
-    name: Unit Tests (devel with Python 3.12)
-    needs: [build]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.12
+  # unit-custom:
+  #   name: Unit Tests (devel with Python 3.12)
+  #   needs: [build]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v4
+  #       with:
+  #         python-version: 3.12
 
-      - name: Install Ansible (devel)
-        run: pip install https://github.com/ansible/ansible/archive/devel.tar.gz --disable-pip-version-check
+  #     - name: Install Ansible (devel)
+  #       run: pip install https://github.com/ansible/ansible/archive/devel.tar.gz --disable-pip-version-check
 
-      - name: Perform unit testing with ansible-test
-        uses: ansible-community/ansible-test-gh-action@release/v1.16
-        with:
-          testing-type: units
-          coverage: always
-          ansible-core-version: devel
-          origin-python-version: 3.12
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  #     - name: Perform unit testing with ansible-test
+  #       uses: ansible-community/ansible-test-gh-action@release/v1.16
+  #       with:
+  #         testing-type: units
+  #         coverage: always
+  #         ansible-core-version: devel
+  #         origin-python-version: 3.12
+  #       env:
+  #         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   ansible-lint:
     needs: [build]
@@ -115,6 +115,22 @@ jobs:
           files: ./coverage.xml
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
+
+  run-python:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Set up Python
+          uses: actions/setup-python@v4
+          with:
+            python-version: 3.12
+
+        - name: Install Ansible (devel)
+          run: pip install https://github.com/ansible/ansible/archive/devel.tar.gz --disable-pip-version-check
+
+        - name: Run Python code
+          run: |
+            ansible-test units --python 3.12 --docker -v
+
 
   all_green:
     if: ${{ always() }}
