@@ -118,9 +118,6 @@ jobs:
 
   run-python:
       runs-on: ubuntu-latest
-      defaults:
-        run:
-          working-directory: ansible_collections/dellemc/openmanage
       needs: [build]
       steps:
         - name: Set up Python
