@@ -60,8 +60,8 @@ jobs:
 
       - name: Prepare collection directory
         run: |
-          mkdir -p ~/.ansible/collections/ansible_collections/dellemc/openmanage
-          cp -r . ~/.ansible/collections/ansible_collections/dellemc/openmanage
+          mkdir -p $HOME/.ansible/collections/ansible_collections/dellemc/openmanage
+          cp -r . $HOME/.ansible/collections/ansible_collections/dellemc/openmanage
       - name: Run unit tests with ansible-test
         working-directory: ~/.ansible/collections/ansible_collections/dellemc/openmanage
         run: |
