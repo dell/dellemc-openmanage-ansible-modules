@@ -91,6 +91,7 @@ requirements:
   - "python >= 3.9.6"
 author:
   - "Shivam Sharma(@ShivamSh3)"
+  - "Meenakshi Dembi(@meenakshidembi691)"
 attributes:
     check_mode:
         description: Runs task to validate without performing action on the target machine.
@@ -155,9 +156,9 @@ error_info:
       "message": "Repository profile with name Test already exists."
     }
 '''
-import re
 import json
 import time
+import re
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv import RestOMEVV, OMEVVAnsibleModule
@@ -346,7 +347,6 @@ class ModifyFirmwareRepositoryProfile(FirmwareRepositoryProfile):
         if api_response["protocolType"] in ("HTTP", "HTTPS"):
             api_response["sharePath"] = re.sub(r'(?<!:)//+', '/', api_response["sharePath"])
             module_response["sharePath"] = re.sub(r'(?<!:)//+', '/', module_response["sharePath"])
-
         for key in module_response.keys():
             if key not in api_response or api_response[key] != module_response[key]:
                 diff[key] = module_response[key]
@@ -361,6 +361,7 @@ class ModifyFirmwareRepositoryProfile(FirmwareRepositoryProfile):
         return trimmed_resp
 
     def rec_diff(self, api_response, payload):
+        self.diff_dict = {'before': {}, 'after': {}}
         trim = self.trim_api_response(api_response, payload)
         if payload.get("shareCredential") is not None:
             del payload["shareCredential"]
