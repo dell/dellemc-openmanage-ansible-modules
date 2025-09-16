@@ -25,10 +25,10 @@ jobs:
         ansible-version: [stable-2.18]
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
           python-version: 3.12
 
@@ -52,29 +52,6 @@ jobs:
   unit-galaxy:
     needs: [build]
     uses: ansible/ansible-content-actions/.github/workflows/unit.yaml@main
-  ansible-test:
-    runs-on: ubuntu-latest
-    needs: [build]
-    strategy:
-      fail-fast: false
-      matrix:
-        ansible-version: [stable-2.19]
-        python-version: [3.13]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.13
-      - name: Install ansible (${{ matrix.ansible-version }})
-        run: |
-          pip install --upgrade pip
-          pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
-
-      - name: Install test dependencies
-        run: pip install -r test-requirements.txt
-      - name: Run ansible-test units in Docker
-        run: |
-          ansible-test units --python "${{ matrix.python-version }}" --docker default --color yes
   codecov:
     name: Codecov
     runs-on: ubuntu-latest
