@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.10.0
+# Version 10.0.1
 # Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -362,6 +362,7 @@ class ModifyFirmwareRepositoryProfile(FirmwareRepositoryProfile):
         output = recursive_diff(trim, payload)
         self.diff_dict['before'].update(output[0])
         self.diff_dict['after'].update(output[1])
+        return self.diff_dict
 
     def modify_firmware_repository_profile(self, api_response, module_response):
         protocol_type = api_response["protocolType"]
