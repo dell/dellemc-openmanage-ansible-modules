@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 10.0.1
 # Copyright (C) 2022-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -179,7 +179,7 @@ def check_domain_service(module, rest_obj):
     except HTTPError as err:
         err_message = json.load(err)
         if err_message["error"]["@Message.ExtendedInfo"][0]["MessageId"] == "CGEN1006":
-            module.fail_json(msg=DOMAIN_FAIL_MSG)
+            module.exit_json(msg=DOMAIN_FAIL_MSG, failed=True)
     return
 
 
@@ -200,7 +200,7 @@ def get_sip_info(module, rest_obj):
                 invalid.append(each)
     if invalid:
         err_value = "id" if key == "Id" else "service tag"
-        module.fail_json(msg=INVALID_DEVICE.format(err_value, ",".join(map(str, set(invalid)))))
+        module.exit_json(msg=INVALID_DEVICE.format(err_value, ",".join(map(str, set(invalid)))), failed=True)
 
     invalid_fabric_tag, sip_info = [], []
     for pro_id in valid_service_tag:
@@ -227,7 +227,7 @@ def get_sip_info(module, rest_obj):
             sip_info.append(profile_dict)
 
     if invalid_fabric_tag:
-        module.fail_json(msg=PROFILE_ERR_MSG.format(", ".join(set(map(str, invalid_fabric_tag)))))
+        module.exit_json(msg=PROFILE_ERR_MSG.format(", ".join(set(map(str, invalid_fabric_tag)))), failed=True)
     return sip_info
 
 
@@ -241,19 +241,19 @@ def main():
                               required_one_of=[["device_id", "device_service_tag"]],
                               supports_check_mode=True)
     if not any([module.params.get("device_id"), module.params.get("device_service_tag")]):
-        module.fail_json(msg=CONFIG_FAIL_MSG)
+        module.exit_json(msg=CONFIG_FAIL_MSG, failed=True)
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
             check_domain_service(module, rest_obj)
             sip_info = get_sip_info(module, rest_obj)
             module.exit_json(msg=SUCCESS_MSG, server_profiles=sip_info)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLError, TypeError, ConnectionError,
             AttributeError, IndexError, KeyError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
