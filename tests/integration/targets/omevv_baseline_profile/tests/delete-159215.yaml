@@ -50,6 +50,12 @@
           cm_dm_result_baseline.diff.before.clusterGroups[0].omevv_groupID }}"
         firmware_repo_id: "{{ firm_repo_1.profile_info.id }}"
 
+    - name: Show firmwareRepoId values
+      debug:
+        msg:
+          - "Expected: [{{ firmware_repo_id }}]"
+          - "Actual: [{{ cm_dm_result_baseline.diff.before.firmwareRepoId }}]"
+
     - name: Verify task status - Delete a baseline profile (Check and Diff mode)
       ansible.builtin.assert:
         that:
@@ -63,8 +69,8 @@
             == cluster_name
           - module_group_id == group_id
           - cm_dm_result_baseline.diff.before.description is none
-          - cm_dm_result_baseline.diff.before.firmwareRepoId
-            == firmware_repo_id
+          - (cm_dm_result_baseline.diff.before.firmwareRepoId | string)
+            == (firmware_repo_id | string)
           - cm_dm_result_baseline.diff.before.firmwareRepoName
             == "OMAM_Firm_Repo"
           - cm_dm_result_baseline.diff.before.name == "OMAM_Baseline_Profile"
@@ -137,8 +143,8 @@
             == cluster_name
           - module_group_id == group_id
           - cm_dm_result_baseline.diff.before.description is none
-          - cm_dm_result_baseline.diff.before.firmwareRepoId
-            == firmware_repo_id
+          - (cm_dm_result_baseline.diff.before.firmwareRepoId | string)
+            == (firmware_repo_id | string)
           - cm_dm_result_baseline.diff.before.firmwareRepoName
             == "OMAM_Firm_Repo"
           - cm_dm_result_baseline.diff.before.name == "OMAM_Baseline_Profile"

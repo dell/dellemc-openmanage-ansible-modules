@@ -103,8 +103,8 @@
           - cluster_name_2 in after_cluster_names
           - cluster_id_to_group_id[cluster_id_1] | string == group_id_1 | string
           - cluster_id_to_group_id[cluster_id_2] | string == group_id_2 | string
-          - cm_dm_result_baseline.diff.after.firmwareRepoId
-            == firmware_repo_id_2
+          - cm_dm_result_baseline.diff.after.firmwareRepoId | string
+            == firmware_repo_id_2 | string
           - cm_dm_result_baseline.diff.after.firmwareRepoName
             == "OMAM_Modify_Firm_Repo"
           - cm_dm_result_baseline.diff.after.jobSchedule.friday == false
@@ -120,8 +120,8 @@
             == cluster_id_1
           - cm_dm_result_baseline.diff.before.clusterGroups[0].clusterName
             == cluster_name_1
-          - cm_dm_result_baseline.diff.before.firmwareRepoId
-            == firmware_repo_id_1
+          - cm_dm_result_baseline.diff.before.firmwareRepoId | string
+            == firmware_repo_id_1 | string
           - cm_dm_result_baseline.diff.before.firmwareRepoName
             == "OMAM_Firm_Repo"
           - cm_dm_result_baseline.diff.before.jobSchedule.friday == true
