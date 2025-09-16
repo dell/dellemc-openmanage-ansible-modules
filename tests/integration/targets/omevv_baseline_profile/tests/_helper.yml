@@ -51,8 +51,8 @@
       ansible.builtin.assert:
         that:
           - firm_repo_1.changed is true
-          - 'firm_repo_1.msg == "Successfully created the OMEVV firmware
-            repository profile."'
+          - firm_repo_1.msg == "Successfully created the OMEVV firmware
+            repository profile."
           - firm_repo_1.profile_info.status == "Success"
       when: repository_profile_1_trigger is defined
 
@@ -71,8 +71,8 @@
       ansible.builtin.assert:
         that:
           - firm_repo_2.changed is true
-          - 'firm_repo_2.msg == "Successfully created the OMEVV firmware
-            repository profile."'
+          - firm_repo_2.msg == "Successfully created the OMEVV firmware
+            repository profile."
           - firm_repo_2.profile_info.status == "Success"
       when: repository_profile_2_trigger is defined
 
@@ -93,7 +93,7 @@
         that:
           - result_baseline.changed is true
           - result_baseline.msg == "Successfully created the baseline profile."
-          - result_baseline.baseline_profile_info
+          - result_baseline.baseline_profile_info is defined
       when: baseline_trigger is defined
 
   module_defaults:

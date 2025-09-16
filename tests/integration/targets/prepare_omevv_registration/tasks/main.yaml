@@ -21,7 +21,7 @@
       Accept: "*/*"
       Content-Type: "application/json"
   block:
-    - name: Checking if vcenter plugin is regesterd in OME
+    - name: Checking if vcenter plugin is registered in OME
       ansible.builtin.uri:
         url: "{{ get_consoles_uri }}"
         method: GET
@@ -54,7 +54,8 @@
         method: GET
       register: console_details
 
-    - name: Set fact of uuid
+    - name: Set uuid of the vCenter with given hostname
       ansible.builtin.set_fact:
-        uuid: "{{ console_details.json[0].uuid }}"
-      when: vcenter_hostname == console_details.json[0].consoleAddress
+        uuid: "{{ console_details.json | \
+          selectattr('consoleAddress', 'equalto', vcenter_hostname) | \
+          map(attribute='uuid') | first }}"

@@ -1,5 +1,5 @@
 # Dell OpenManage Ansible modules
-# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -9,12 +9,12 @@
     msg: "Please define the following variables: hostname, vcenter_username
       and vcenter_password."
   when:
-    hostname is not defined or ome_username is not defined or ome_password
-    is not defined
+    hostname is not defined or vcenter_username is not defined or
+    vcenter_password is not defined
 
 - block:
     - name: Negative - Invalid hostname
-      dellemc.openmanage.omevv_firmware_repository_profile_info:
+      dellemc.openmanage.omevv_firmware_compliance_info:
         hostname: "invalid"
       ignore_unreachable: true
       register: invalid_hostname
@@ -28,7 +28,7 @@
             Name or service not known>"
 
     - name: Negative - Invalid vcenter_username
-      dellemc.openmanage.omevv_firmware_repository_profile_info:
+      dellemc.openmanage.omevv_firmware_compliance_info:
         hostname: "{{ hostname }}"
         vcenter_username: invalid
         vcenter_password: "{{ vcenter_password }}"
@@ -40,11 +40,12 @@
         that:
           - invalid_user.failed
           - not invalid_user.changed
-          - 'invalid_user.msg == "HTTP Error 401: 401" or
-           "HTTP Error 400: 400"'
+          - "{{ invalid_user.msg == 'HTTP Error 401: 401' or
+           invalid_user.msg == 'HTTP Error 400: 400' or
+           invalid_user.msg == 'HTTP Error 403: 403' }}"
 
     - name: Negative - Invalid vcenter_password
-      dellemc.openmanage.omevv_firmware_repository_profile_info:
+      dellemc.openmanage.omevv_firmware_compliance_info:
         hostname: "{{ hostname }}"
         vcenter_username: "{{ vcenter_username }}"
         vcenter_password: invalid
@@ -56,11 +57,12 @@
         that:
           - invalid_vcenter_password.failed
           - not invalid_vcenter_password.changed
-          - 'invalid_vcenter_password.msg == "HTTP Error 401: 401" or
-           "HTTP Error 400: 400"'
+          - "{{ invalid_vcenter_password.msg == 'HTTP Error 401: 401' or
+           invalid_vcenter_password.msg == 'HTTP Error 400: 400' or
+           invalid_vcenter_password.msg == 'HTTP Error 403: 403' }}"
 
     - name: Negative - Invalid ca_path
-      dellemc.openmanage.omevv_firmware_repository_profile_info:
+      dellemc.openmanage.omevv_firmware_compliance_info:
         hostname: "{{ hostname }}"
         vcenter_username: "{{ vcenter_username }}"
         vcenter_password: "{{ vcenter_password }}"
@@ -73,11 +75,10 @@
         that:
           - invalid_ca_path.failed
           - not invalid_ca_path.changed
-          - 'invalid_ca_path.msg == "[Errno 2] No such file or
-            directory: b''invalid''"'
+          - invalid_ca_path.msg == "[Errno 2] No such file or directory"
 
     - name: Negative - Invalid validate_certs
-      dellemc.openmanage.omevv_firmware_repository_profile_info:
+      dellemc.openmanage.omevv_firmware_compliance_info:
         hostname: "{{ hostname }}"
         vcenter_username: "{{ vcenter_username }}"
         vcenter_password: "{{ vcenter_password }}"
@@ -86,9 +87,8 @@
       ignore_errors: true
 
     - ansible.builtin.set_fact:
-        invalid_validate_certs_expected_msg: "argument 'validate_certs' is of
-          type <class 'str'> and we were unable to convert to bool: The value
-          'invalid' is not a valid boolean.  Valid booleans include: "
+        invalid_validate_certs_expected_msg: "we were unable to convert
+          to bool: The value 'invalid' is not a valid boolean."
 
     - name: Verify task status - Negative - Invalid validate_certs
       ansible.builtin.assert:
@@ -98,7 +98,7 @@
           - invalid_validate_certs_expected_msg in invalid_validate_certs.msg
 
     - name: Negative - Invalid vcenter_uuid
-      dellemc.openmanage.omevv_firmware_repository_profile_info:
+      dellemc.openmanage.omevv_firmware_compliance_info:
         hostname: "{{ hostname }}"
         vcenter_username: "{{ vcenter_username }}"
         vcenter_password: "{{ vcenter_password }}"
@@ -109,27 +109,11 @@
     - name: Verify task status- Negative - Invalid vcenter_hostname
       ansible.builtin.assert:
         that:
-          - invalid_vcenter_uuid.skipped
-          - 'invalid_vcenter_uuid.msg == "vCenter with UUID invalid is
-           not registered."'
-
-    - name: Negative - Invalid profile name
-      dellemc.openmanage.omevv_firmware_repository_profile_info:
-        hostname: "{{ hostname }}"
-        vcenter_username: "{{ vcenter_username }}"
-        vcenter_password: "{{ vcenter_password }}"
-        name: "invalid"
-      ignore_errors: true
-      register: invalid_vcenter_name
-
-    - name: Verify task status- Negative - Invalid profile name
-      ansible.builtin.assert:
-        that:
-          - invalid_vcenter_name.failed
-          - 'invalid_vcenter_name.msg == "HTTP Error 403: 403"'
+          - invalid_vcenter_uuid.failed
+          - 'invalid_vcenter_uuid.msg == "HTTP Error 400: 400"'
 
     - name: Negative - Invalid argument
-      dellemc.openmanage.omevv_firmware_repository_profile_info:
+      dellemc.openmanage.omevv_firmware_compliance_info:
         invalid_argument: unsupported
       register: invalid_argument
       ignore_errors: true
@@ -140,13 +124,73 @@
           - invalid_argument.failed
           - not invalid_argument.changed
           - 'invalid_argument.msg == "Unsupported parameters for
-           (dellemc.openmanage.omevv_firmware_repository_profile_info)
+           (dellemc.openmanage.omevv_firmware_compliance_info)
             module: invalid_argument. Supported parameters include: ca_path,
-             hostname, name, port, timeout, validate_certs, vcenter_password,
-              vcenter_username, vcenter_uuid."'
+             clusters, hostname, port, timeout, validate_certs,
+             vcenter_password, vcenter_username, vcenter_uuid."'
+
+    - name: Negative - Invalid cluster name
+      dellemc.openmanage.omevv_firmware_compliance_info:
+        hostname: "{{ hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_uuid: "{{ uuid }}"
+        clusters:
+          - cluster_name: "invalid"
+      ignore_errors: true
+      register: invalid_cluster_name
+
+    - name: Verify task status- Negative - Invalid cluster name
+      ansible.builtin.assert:
+        that:
+          - invalid_cluster_name.skipped
+          - 'invalid_cluster_name.msg == "Unable to complete the operation
+           because none of clusters and hosts are valid."'
+
+    - ansible.builtin.include_tasks: _hosts_helper.yml
+
+    - name: Negative - Invalid service tag
+      dellemc.openmanage.omevv_firmware_compliance_info:
+        hostname: "{{ hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_uuid: "{{ uuid }}"
+        clusters:
+          - cluster_name: "{{ cluster_name }}"
+            servicetags:
+              - "invalid"
+      ignore_errors: true
+      register: invalid_service_tag
+
+    - name: Verify task status- Negative - Invalid service tag
+      ansible.builtin.assert:
+        that:
+          - invalid_service_tag.skipped
+          - 'invalid_service_tag.msg == "Unable to complete the operation
+           because none of clusters and hosts are valid."'
+
+    - name: Negative - Invalid host
+      dellemc.openmanage.omevv_firmware_compliance_info:
+        hostname: "{{ hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_uuid: "{{ uuid }}"
+        clusters:
+          - cluster_name: "{{ cluster_name }}"
+            hosts:
+              - "invalid"
+      ignore_errors: true
+      register: invalid_host
+
+    - name: Verify task status- Negative - Invalid host
+      ansible.builtin.assert:
+        that:
+          - invalid_host.skipped
+          - 'invalid_host.msg == "Unable to complete the operation
+           because none of clusters and hosts are valid."'
 
   module_defaults:
-    dellemc.openmanage.omevv_firmware_repository_profile_info:
+    dellemc.openmanage.omevv_firmware_compliance_info:
       validate_certs: "{{ validate_certs }}"
       hostname: "{{ hostname }}"
       vcenter_username: "{{ vcenter_username }}"
