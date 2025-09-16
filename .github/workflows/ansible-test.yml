@@ -42,6 +42,30 @@ jobs:
           name: collection
           path: .cache/collection-tarballs
 
+  unit-test-ansible:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install ansible-core docker
+
+      - name: Prepare collection directory
+        run: |
+          mkdir -p ~/.ansible/collections/ansible_collections/dellemc/openmanage
+          cp -r . ~/.ansible/collections/ansible_collections/dellemc/openmanage
+      - name: Run unit tests with ansible-test
+        working-directory: ~/.ansible/collections/ansible_collections/dellemc/openmanage
+        run: |
+          ansible-test units --python 3.12 --docker -v
   # unit-custom:
   #   name: Unit Tests (devel with Python 3.12)
   #   needs: [build]
@@ -150,37 +174,3 @@ jobs:
             '${{ needs.ansible-lint.result }}',
             '${{ needs.codecov.result }}'
           ])"
-
-name: Ansible Collection Unit Tests
-
-on:
-  push:
-    branches: [ collections ]
-  pull_request:
-    branches: [ collections ]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
-
-      - name: Install dependencies
-        run: |
-          pip install ansible-core docker
-
-      - name: Prepare collection directory
-        run: |
-          mkdir -p ~/.ansible/collections/ansible_collections/dellemc/openmanage
-          cp -r . ~/.ansible/collections/ansible_collections/dellemc/openmanage
-      - name: Run unit tests with ansible-test
-        working-directory: ~/.ansible/collections/ansible_collections/dellemc/openmanage
-        run: |
-          ansible-test units --python 3.12 --docker -v
