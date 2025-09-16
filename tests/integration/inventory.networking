@@ -6,7 +6,7 @@ iDRAC idrac_ip=xx.xx.xx.xx idrac_user=user idrac_password=password idrac_port=44
 OME hostname=xx.xx.xx.xx username=username password=password port=443 validate_certs=false
 
 [omevv]
-OMEVV hostname=xx.xx.xx.xx vcenter_username=username vcenter_password=password port=443 validate_certs=false
+OMEVV hostname=xx.xx.xx.xx username=username password=password vcenter_username=username vcenter_password=password port=443 validate_certs=false
 
 [omevv:vars]
 # Credentials

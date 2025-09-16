@@ -1,8 +1,8 @@
 ---
 - name: Get group details
   ansible.builtin.uri: &uri_params
-    url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
-      }}/omevv/GatewayService/v1/Consoles/{{ uuid }}/Groups
+    url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port}}
+     /omevv/GatewayService/v1/Consoles/{{ uuid }}/Groups
     user: "{{ vcenter_username }}"
     password: "{{ vcenter_password }}"
     validate_certs: false
@@ -25,8 +25,8 @@
 
 - name: Find hosts details
   ansible.builtin.uri:
-    url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
-      }}/omevv/GatewayService/v1/Consoles/{{ uuid }}/ManagedHosts
+    url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port}}
+     /omevv/GatewayService/v1/Consoles/{{ uuid }}/ManagedHosts
     <<: *uri_params
   register: host_details
 
@@ -35,7 +35,7 @@
     host: "{{ item.hostName }}"
     servicetag: "{{ item.serviceTag }}"
   loop: "{{ host_details.json }}"
-  when: item.omevvpGroupId|string == group_id
+  when: (item.omevvpGroupId | int) == (group_id | int)
   register: host_result
   until: host_result is defined
   retries: 1
