@@ -155,6 +155,7 @@ error_info:
       "message": "Repository profile with name Test already exists."
     }
 '''
+import re
 import json
 import time
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -342,6 +343,10 @@ class ModifyFirmwareRepositoryProfile(FirmwareRepositoryProfile):
             api_response["sharePath"] = api_response["sharePath"] + '/' + api_response["fileName"]
         if module_response["sharePath"] is None:
             module_response["sharePath"] = api_response["sharePath"]
+        if api_response["protocolType"] in ("HTTP", "HTTPS"):
+            api_response["sharePath"] = re.sub(r'(?<!:)//+', '/', api_response["sharePath"])
+            module_response["sharePath"] = re.sub(r'(?<!:)//+', '/', module_response["sharePath"])
+
         for key in module_response.keys():
             if key not in api_response or api_response[key] != module_response[key]:
                 diff[key] = module_response[key]
