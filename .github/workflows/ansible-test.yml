@@ -42,30 +42,30 @@ jobs:
           name: collection
           path: .cache/collection-tarballs
 
-  unit-test-ansible:
-    runs-on: ubuntu-latest
+  # unit-test-ansible:
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v4
+  #       with:
+  #         python-version: '3.12'
 
-      - name: Install dependencies
-        run: |
-          pip install ansible-core docker
+  #     - name: Install dependencies
+  #       run: |
+  #         pip install ansible-core docker
 
-      - name: Prepare collection directory
-        run: |
-          mkdir -p $HOME/.ansible/collections/ansible_collections/dellemc/openmanage
-          cp -r . $HOME/.ansible/collections/ansible_collections/dellemc/openmanage
-      - name: Run unit tests with ansible-test
-        working-directory: $HOME/.ansible/collections/ansible_collections/dellemc/openmanage
-        run: |
-          ansible-test units --python 3.12 --docker -v
+  #     - name: Prepare collection directory
+  #       run: |
+  #         mkdir -p $HOME/.ansible/collections/ansible_collections/dellemc/openmanage
+  #         cp -r . $HOME/.ansible/collections/ansible_collections/dellemc/openmanage
+  #     - name: Run unit tests with ansible-test
+  #       working-directory: $HOME/.ansible/collections/ansible_collections/dellemc/openmanage
+  #       run: |
+  #         ansible-test units --python 3.12 --docker -v
   # unit-custom:
   #   name: Unit Tests (devel with Python 3.12)
   #   needs: [build]
@@ -88,6 +88,29 @@ jobs:
   #         origin-python-version: 3.12
   #       env:
   #         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  ansible-test:
+    runs-on: ubuntu-latest
+    needs: [build]
+    strategy:
+      fail-fast: false
+      matrix:
+        ansible-version: [stable-2.19]
+        python-version: [3.13]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.13
+      - name: Install ansible (${{ matrix.ansible-version }})
+        run: |
+          pip install --upgrade pip
+          pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
+
+      - name: Install test dependencies
+        run: pip install -r test-requirements.txt
+      - name: Run ansible-test units in Docker
+        run: |
+          ansible-test units --python "${{ matrix.python-version }}" --docker default --color yes
 
   ansible-lint:
     needs: [build]
