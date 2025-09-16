@@ -116,21 +116,21 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
 
-  run-python:
-      runs-on: ubuntu-latest
-      needs: [build]
-      steps:
-        - name: Set up Python
-          uses: actions/setup-python@v4
-          with:
-            python-version: 3.12
+  # run-python:
+  #     runs-on: ubuntu-latest
+  #     needs: [build]
+  #     steps:
+  #       - name: Set up Python
+  #         uses: actions/setup-python@v4
+  #         with:
+  #           python-version: 3.12
 
-        - name: Install Ansible (devel)
-          run: pip install https://github.com/ansible/ansible/archive/devel.tar.gz --disable-pip-version-check
+  #       - name: Install Ansible (devel)
+  #         run: pip install https://github.com/ansible/ansible/archive/devel.tar.gz --disable-pip-version-check
 
-        - name: Run Python code
-          run: |
-            ansible-test units --python 3.12 --docker -v
+  #       - name: Run Python code
+  #         run: |
+  #           ansible-test units --python 3.12 --docker -v
 
 
   all_green:
@@ -150,3 +150,37 @@ jobs:
             '${{ needs.ansible-lint.result }}',
             '${{ needs.codecov.result }}'
           ])"
+
+name: Ansible Collection Unit Tests
+
+on:
+  push:
+    branches: [ collections ]
+  pull_request:
+    branches: [ collections ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install ansible-core docker
+
+      - name: Prepare collection directory
+        run: |
+          mkdir -p ~/.ansible/collections/ansible_collections/dellemc/openmanage
+          cp -r . ~/.ansible/collections/ansible_collections/dellemc/openmanage
+      - name: Run unit tests with ansible-test
+        working-directory: ~/.ansible/collections/ansible_collections/dellemc/openmanage
+        run: |
+          ansible-test units --python 3.12 --docker -v
