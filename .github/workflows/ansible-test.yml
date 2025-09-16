@@ -63,7 +63,7 @@ jobs:
           mkdir -p $HOME/.ansible/collections/ansible_collections/dellemc/openmanage
           cp -r . $HOME/.ansible/collections/ansible_collections/dellemc/openmanage
       - name: Run unit tests with ansible-test
-        working-directory: ~/.ansible/collections/ansible_collections/dellemc/openmanage
+        working-directory: $HOME/.ansible/collections/ansible_collections/dellemc/openmanage
         run: |
           ansible-test units --python 3.12 --docker -v
   # unit-custom:
