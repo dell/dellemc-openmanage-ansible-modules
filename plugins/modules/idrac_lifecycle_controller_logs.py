@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Module
-# Version 9.12.2
+# Version 10.0.1
 # Copyright (C) 2018-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -144,7 +144,6 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (get_logger)
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
     idrac_lifecycle_controller_logs_utils import IDRACLifecycleControllerLogs
 try:
@@ -152,7 +151,6 @@ try:
     from omsdk.sdkcreds import UserCredentials
 except ImportError:
     pass
-LOG = get_logger(module_name='idrac_lifecycle_controller_logs')
 EXPORT_LC_LOGS = '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions/DellLCService.ExportLCLog'
 SUCCESS_MSG = "Successfully exported the lifecycle controller logs."
 SCHEDULE_MSG = "The export lifecycle controller log job is submitted successfully."
