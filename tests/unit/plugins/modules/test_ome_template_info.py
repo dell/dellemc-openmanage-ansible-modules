@@ -2,7 +2,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
+# Version 10.0.1
 # Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -75,7 +75,7 @@ class TestOmeTemplateInfo(FakeAnsibleModule):
     def test_get_template_info_failure_case(self, ome_default_args, ome_connection_template_info_mock,
                                             ome_response_mock):
         ome_response_mock.status_code = 500
-        result = self._run_module_with_fail_json(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result['msg'] == 'Failed to fetch the template facts'
 
     @pytest.mark.parametrize("exc_type",
@@ -92,7 +92,7 @@ class TestOmeTemplateInfo(FakeAnsibleModule):
                                                                                     'http error message',
                                                                                     {"accept-type": "application/json"},
                                                                                     StringIO(json_str))
-        result = self._run_module_with_fail_json(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert 'template_info' not in result
         assert 'msg' in result
         assert result['failed'] is True

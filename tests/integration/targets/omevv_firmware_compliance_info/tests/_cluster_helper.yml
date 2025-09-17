@@ -1,8 +1,8 @@
 ---
 - name: Get all clusters by uri.
   ansible.builtin.uri: &uri_param
-    url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
-      }}/omevv/GatewayService/v1/Consoles/{{ uuid }}/Clusters
+    url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port}}
+     /omevv/GatewayService/v1/Consoles/{{ uuid }}/Clusters
     user: "{{ vcenter_username }}"
     password: "{{ vcenter_password }}"
     validate_certs: false
@@ -29,9 +29,8 @@
 
 - name: Get list of groupIDs for given cluster IDs.
   ansible.builtin.uri:
-    url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
-      }}/omevv/GatewayService/v1/Consoles/{{ uuid
-      }}/Groups/getGroupsForClusters
+    url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port }}
+     /omevv/GatewayService/v1/Consoles/{{ uuid }}/Groups/getGroupsForClusters
     method: POST
     body: "{{ payload | to_json }}"
     body_format: json
@@ -44,9 +43,9 @@
 
 - name: Get cluster drift info.
   ansible.builtin.uri:
-    url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port
-      }}/omevv/GatewayService/v1/Consoles/{{ uuid
-      }}/Groups/{{ item }}/FirmwareDriftReport
+    url: "https://{{ hostname | ansible.utils.ipwrap }}:{{ port }}
+     /omevv/GatewayService/v1/Consoles/{{ uuid }}/Groups\
+     /{{ item }}/FirmwareDriftReport"
     <<: *uri_param
   loop: "{{ group_ids }}"
   register: cluster_drift_info

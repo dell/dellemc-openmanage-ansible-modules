@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 10.0.1
 # Copyright (C) 2022-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -100,7 +100,9 @@ options:
     default: 120
 requirements:
     - "python >= 3.9.6"
-author: "Jagadeesh N V (@jagadeeshnv)"
+author:
+  - "Jagadeesh N V (@jagadeeshnv)"
+  - Akash Shendge (@shenda1)
 notes:
     - This module supports C(check_mode).
     - Run this module from a system that has direct access to Dell OpenManage Enterprise Modular.
@@ -413,11 +415,11 @@ def main():
             jobid = resp.json_data.get("JobId")
             handle_job(module, rest_obj, jobid)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
