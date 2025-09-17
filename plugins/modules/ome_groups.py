@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 10.0.1
 # Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -19,7 +19,8 @@ short_description: Manages static device groups on OpenManage Enterprise
 description: This module allows to create, modify, and delete static device groups on OpenManage Enterprise.
 version_added: "3.5.0"
 author:
-  - Jagadeesh N V(@jagadeeshnv)
+  - "Jagadeesh N V(@jagadeeshnv)"
+  - "Mangirish Kenkare(@MangirishK)"
 extends_documentation_fragment:
   - dellemc.openmanage.oment_auth_options
 options:
@@ -272,16 +273,16 @@ def get_parent_id(rest_obj, module, parent, static_root):
     parent_id = module.params.get("parent_group_id")
     if parent_id:  # Checking id first as name has a default value
         if not parent:
-            module.fail_json(msg=NONEXIST_PARENT_ID)
+            module.exit_json(msg=NONEXIST_PARENT_ID, failed=True)
         if parent['Name'] != STATIC_ROOT:
             if not is_valid_static_group(parent):
-                module.fail_json(msg=INVALID_PARENT)
+                module.exit_json(msg=INVALID_PARENT, failed=True)
         return parent['Id']
     else:
         if parent:
             if parent['Name'] != STATIC_ROOT:
                 if not is_valid_static_group(parent):
-                    module.fail_json(msg=INVALID_PARENT)
+                    module.exit_json(msg=INVALID_PARENT, failed=True)
             return parent['Id']
         else:
             if module.check_mode:
@@ -334,7 +335,7 @@ def create_group(rest_obj, module, parent, static_root):
     mparams = module.params
     payload['Name'] = mparams.get('name')[0]
     if mparams.get('parent_group_name').lower() == payload['Name'].lower():
-        module.fail_json(msg=GROUP_PARENT_SAME)
+        module.exit_json(msg=GROUP_PARENT_SAME, failed=True)
     parent_id = get_parent_id(rest_obj, module, parent, static_root)
     payload['ParentId'] = parent_id
     if mparams.get('description'):
@@ -346,7 +347,7 @@ def create_group(rest_obj, module, parent, static_root):
 
 def modify_group(rest_obj, module, valid_group_dict, parent, static_root):
     if not is_valid_static_group(valid_group_dict):
-        module.fail_json(msg=INVALID_GROUPS_MODIFY)
+        module.exit_json(msg=INVALID_GROUPS_MODIFY, failed=True)
     grp = valid_group_dict
     diff = 0
     payload = dict([(k, grp.get(k)) for k in ["Name", "Description", "MembershipTypeId", "ParentId", "Id"]])
@@ -355,7 +356,7 @@ def modify_group(rest_obj, module, valid_group_dict, parent, static_root):
         if new_name != payload['Name']:
             dup_grp = get_ome_group_by_name(rest_obj, new_name)
             if dup_grp:
-                module.fail_json(msg=GROUP_NAME_EXISTS.format(gname=new_name))
+                module.exit_json(msg=GROUP_NAME_EXISTS.format(gname=new_name), failed=True)
             payload['Name'] = new_name
             diff += 1
     desc = module.params.get('description')
@@ -365,7 +366,7 @@ def modify_group(rest_obj, module, valid_group_dict, parent, static_root):
             diff += 1
     parent_id = get_parent_id(rest_obj, module, parent, static_root)
     if parent_id == payload['Id']:
-        module.fail_json(msg=GROUP_PARENT_SAME)
+        module.exit_json(msg=GROUP_PARENT_SAME, failed=True)
     if parent_id != payload['ParentId']:
         payload['ParentId'] = parent_id
         diff += 1
@@ -388,7 +389,7 @@ def delete_groups(rest_obj, module, group_set, group_dict):
             else:
                 invalids.append(g)
     if invalids:
-        module.fail_json(msg=INVALID_GROUPS_DELETE, invalid_groups=invalids)
+        module.exit_json(msg=INVALID_GROUPS_DELETE, invalid_groups=invalids, failed=True)
     if module.check_mode:
         module.exit_json(changed=True, msg=CHANGES_FOUND, group_ids=deletables)
     rest_obj.invoke_request("POST", OP_URI.format(op='Delete'), data={"GroupIds": deletables})
@@ -426,7 +427,7 @@ def main():
             group_arg = 'Id'
             group_set = set(str(v).lower() for v in module.params.get('group_id'))
         if len(group_set) != 1 and module.params['state'] == 'present':
-            module.fail_json(msg=MULTIPLE_GROUPS_MSG)
+            module.exit_json(msg=MULTIPLE_GROUPS_MSG, failed=True)
         with RestOME(module.params, req_session=True) as rest_obj:
             valid_group_dict, parent, static_root = get_valid_groups(module, rest_obj, group_arg, group_set)
             if module.params["state"] == "absent":
@@ -437,14 +438,14 @@ def main():
                 if valid_group_dict:
                     modify_group(rest_obj, module, valid_group_dict, parent, static_root)
                 elif group_arg == 'Id':
-                    module.fail_json(msg=NONEXIST_GROUP_ID)
+                    module.exit_json(msg=NONEXIST_GROUP_ID, failed=True)
                 create_group(rest_obj, module, parent, static_root)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
