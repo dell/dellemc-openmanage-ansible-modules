@@ -129,25 +129,29 @@
           - invalid_community.failed
           - not invalid_community.changed
           - 'invalid_community.msg == "HTTP Error 400: 400"'
-          - invalid_community.error_info.error["@Message.ExtendedInfo"][0].Message ==
+          - invalid_community.error_info.error
+            ["@Message.ExtendedInfo"][0].Message ==
             "Unable to complete the operation because the value provided for
             CommunityName is invalid."
           - invalid_maxsessions.failed
           - not invalid_maxsessions.changed
           - 'invalid_maxsessions.msg == "HTTP Error 400: 400"'
-          - invalid_maxsessions.error_info.error["@Message.ExtendedInfo"][0].Message ==
+          - invalid_maxsessions.error_info.error
+            ["@Message.ExtendedInfo"][0].Message ==
             "Unable to complete the operation because the value provided
             for MaxSessions is invalid."
           - invalid_maxauth.failed
           - not invalid_maxauth.changed
           - 'invalid_maxauth.msg == "HTTP Error 400: 400"'
-          - invalid_maxauth.error_info.error["@Message.ExtendedInfo"][0].Message ==
+          - invalid_maxauth.error_info.error
+            ["@Message.ExtendedInfo"][0].Message ==
             "Unable to complete the operation because the value provided
             for MaxAuthRetries is invalid."
           - invalid_idletimeout.failed
           - not invalid_idletimeout.changed
           - 'invalid_idletimeout.msg == "HTTP Error 400: 400"'
-          - invalid_idletimeout.error_info.error["@Message.ExtendedInfo"][0].Message ==
+          - invalid_idletimeout.error_info.error
+            ["@Message.ExtendedInfo"][0].Message ==
             "Unable to complete the operation because the value provided for
             IdleTimeout is invalid."
           - invalid_device_id.failed
