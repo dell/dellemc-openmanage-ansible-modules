@@ -562,6 +562,7 @@ class DeleteFirmwareRepositoryProfile(FirmwareRepositoryProfile):
         diff_dict["sharePath"] = payload["sharePath"]
         diff_dict["protocolType"] = payload["protocolType"]
         self.diff_dict['before'].update(diff_dict)
+        self.diff_dict["after"].update(diff_dict)
         return self.diff_dict
 
     def delete_firmware_repository_profile(self, api_response):
