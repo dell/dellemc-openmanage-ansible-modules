@@ -94,9 +94,11 @@
         that:
           - invalid_validate_certs.failed
           - not invalid_validate_certs.changed
-          - '"argument ''validate_certs'' is of type str and we were unable
-            to convert to bool: The value ''invalid'' is not a valid
-            boolean. Valid booleans include:" in invalid_validate_certs.msg'
+          - '"argument ''validate_certs'' is of type str and we were unable to convert to bool: The value 
+            ''invalid'' is not a valid boolean. Valid booleans include:" in invalid_validate_certs.msg or
+            "argument ''validate_certs'' is of 
+            type <class ''str''> and we were unable to convert to bool: The value 
+            ''invalid'' is not a valid boolean.  Valid booleans include:" in invalid_validate_certs.msg'
 
     - name: Negative - invalid ca_path path
       dellemc.openmanage.ome_session:
@@ -122,9 +124,11 @@
         that:
           - invalid_timeout_type.failed
           - not invalid_timeout_type.changed
-          - '"argument ''timeout'' is of type
-             str and we were unable to convert to
-             int: " in invalid_timeout_type.msg'
+          - '"argument ''timeout'' is of type <class ''str''> and 
+            we were unable to convert to
+            int: " in invalid_timeout_type.msg or
+            "argument ''timeout'' is of type
+            str and we were unable to convert to int: " in invalid_timeout_type.msg'
 
     - name: Negative - invalid timeout value
       dellemc.openmanage.ome_session:
