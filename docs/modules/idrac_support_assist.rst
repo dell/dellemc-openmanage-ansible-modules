@@ -291,7 +291,7 @@ Examples
         ca_path: "path/to/ca_file"
         data_collector: ["hardware_data"]
         share_parameters:
-          share_type: "HTTPS"
+          share_type: "https"
           ignore_certificate_warning: "on"
           share_name: "/share_path/support_assist_collections"
           ip_address: "192.168.0.2"
@@ -320,7 +320,7 @@ Examples
           share_name: "/cifsshare/support_assist_collections/"
           ip_address: "192.168.0.4"
 
-    - name: Export the last SupportAssist Collection to HTTPS share via proxy
+    - name: Export the last SupportAssist Collection to https share via proxy
       dellemc.openmanage.idrac_support_assist:
         hostname: "192.168.0.1"
         username: "username"
@@ -328,7 +328,7 @@ Examples
         ca_path: "path/to/ca_file"
         run: false
         share_parameters:
-          share_type: "HTTPS"
+          share_type: "https"
           share_name: "/share_path/support_assist_collections"
           ignore_certificate_warning: "on"
           ip_address: "192.168.0.2"
