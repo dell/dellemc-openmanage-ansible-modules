@@ -11,17 +11,17 @@
 - block:
 
     - name: Retrieve alert policies message ID information via module (CheckMode).
-      ome_alert_policies_message_id_info:
+      dellemc.openmanage.ome_alert_policies_message_id_info:
       check_mode: true
       register: message_id_info_module_check
     
     - name: Retrieve alert policies message ID information via module.
-      ome_alert_policies_message_id_info:
+      dellemc.openmanage.ome_alert_policies_message_id_info:
       register: message_id_info_module
 
     - name: Check whether hostname IP is IPv4 or IPv6.
       set_fact:
-        ip_version: "{{ hostname | ipaddr('version') }}"
+        ip_version: "{{ hostname | ansible.utils.ipaddr('version') }}"
     
     - name: Set API URL to fetch alert policy message ID information.
       set_fact:

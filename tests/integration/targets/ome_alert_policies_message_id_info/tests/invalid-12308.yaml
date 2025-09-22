@@ -58,7 +58,7 @@
       register: invalid_timeout_output
 
     - name: Verify the status of tasks
-      assert:
+      ansible.builtin.assert:
         that:
           - invalid_hostname_output.unreachable
           - not invalid_hostname_output.changed
