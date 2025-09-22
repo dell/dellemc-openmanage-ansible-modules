@@ -35,7 +35,7 @@ class IDRACChassisSensors(object):
         self.idrac = idrac
         sensor_resp = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_SENSORS_URI)
         self.sensors = {member["@odata.id"] for member in sensor_resp.json_data.get("Members", [])}
-    
+
     def get_sensor(self, sensor: str):
         if sensor not in self.sensors:
             return _chassis_response(404)
