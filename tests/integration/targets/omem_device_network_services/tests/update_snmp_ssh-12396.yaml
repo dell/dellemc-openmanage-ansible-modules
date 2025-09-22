@@ -11,7 +11,8 @@
   when: hostname is not defined or username is not defined or
     password is not defined
 
-- block:
+- name: Block to start the update configuration scenarios
+  block:
     - ansible.builtin.include_tasks: _helper.yml
 
     - ansible.builtin.include_tasks: _pre_post_req.yml

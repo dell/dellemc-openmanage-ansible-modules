@@ -11,7 +11,8 @@
   when: hostname is not defined or username is not defined or
     password is not defined
 
-- block:
+- name: Block to start invalid scenarios
+  block:
     - ansible.builtin.include_tasks: _helper.yml
 
     - ansible.builtin.include_tasks: _pre_post_req.yml
@@ -168,8 +169,8 @@
 
   module_defaults:
     dellemc.openmanage.ome_device_network_services:
-      validate_certs: "{{validate_certs}}"
-      hostname: "{{hostname}}"
-      username: "{{username}}"
-      password: "{{password}}"
-      port: "{{port}}"
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"

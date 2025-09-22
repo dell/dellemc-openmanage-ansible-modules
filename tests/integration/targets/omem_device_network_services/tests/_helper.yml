@@ -4,7 +4,8 @@
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
-- block:
+- name: Block to start the helper pre req scenarios
+  block:
     - name: Get the device service tag of a server
         present under idrac group in inventory.
       dellemc.openmanage.ome_device_info:
