@@ -28,7 +28,7 @@
   - name: Set fact for alert policy name details from module.
     set_fact:
       policy_info_module: "{{ result_one.policies[0] }}"
-      policy_info_module_cm : "{{ result_one_cm.policies[0] }}"
+      policy_info_module_cm: "{{ result_one_cm.policies[0] }}"
 
   - name: Settings default value for alert policy details from URI
     set_fact:
@@ -57,7 +57,7 @@
       validate_certs: false
       status_code: 200
       force_basic_auth: true
-    register: result_uri     
+    register: result_uri
 
   - name: Remove odata from result_uri.
     set_fact:
@@ -66,13 +66,13 @@
 
   - name: Compare the output of policy_info from URI and module
     ansible.utils.fact_diff:
-      before: "{{ policy_info_uri }}" 
+      before: "{{ policy_info_uri }}"
       after: "{{ policy_info_module }}"
     register: diff_result
 
   - name: Compare the output of policy_info from URI and module(CheckMode)
     ansible.utils.fact_diff:
-      before: "{{ policy_info_uri }}" 
+      before: "{{ policy_info_uri }}"
       after: "{{ policy_info_module_cm }}"
     register: diff_result_cm
 
