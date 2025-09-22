@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.10.0
+# Version 10.0.1
 # Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -91,6 +91,7 @@ requirements:
   - "python >= 3.9.6"
 author:
   - "Shivam Sharma(@ShivamSh3)"
+  - "Meenakshi Dembi(@meenakshidembi691)"
 attributes:
     check_mode:
         description: Runs task to validate without performing action on the target machine.
@@ -157,6 +158,7 @@ error_info:
 '''
 import json
 import time
+import re
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.omevv import RestOMEVV, OMEVVAnsibleModule
@@ -342,6 +344,9 @@ class ModifyFirmwareRepositoryProfile(FirmwareRepositoryProfile):
             api_response["sharePath"] = api_response["sharePath"] + '/' + api_response["fileName"]
         if module_response["sharePath"] is None:
             module_response["sharePath"] = api_response["sharePath"]
+        if api_response["protocolType"] in ("HTTP", "HTTPS"):
+            api_response["sharePath"] = re.sub(r'(?<!:)//+', '/', api_response["sharePath"])
+            module_response["sharePath"] = re.sub(r'(?<!:)//+', '/', module_response["sharePath"])
         for key in module_response.keys():
             if key not in api_response or api_response[key] != module_response[key]:
                 diff[key] = module_response[key]
@@ -356,12 +361,14 @@ class ModifyFirmwareRepositoryProfile(FirmwareRepositoryProfile):
         return trimmed_resp
 
     def rec_diff(self, api_response, payload):
+        self.diff_dict = {'before': {}, 'after': {}}
         trim = self.trim_api_response(api_response, payload)
         if payload.get("shareCredential") is not None:
             del payload["shareCredential"]
         output = recursive_diff(trim, payload)
         self.diff_dict['before'].update(output[0])
         self.diff_dict['after'].update(output[1])
+        return self.diff_dict
 
     def modify_firmware_repository_profile(self, api_response, module_response):
         protocol_type = api_response["protocolType"]

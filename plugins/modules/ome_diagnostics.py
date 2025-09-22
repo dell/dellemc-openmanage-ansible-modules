@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 10.0.1
 # Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -266,10 +266,10 @@ error_info:
 
 import json
 import re
-from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
+
 LOG_SELECTOR = {"OS_LOGS": 1, "RAID_LOGS": 2, "DEBUG_LOGS": 3}
 JOB_URI = "JobService/Jobs"
 GROUP_URI = "GroupService/Groups"
@@ -278,11 +278,12 @@ DEVICE_URI = "DeviceService/Devices"
 DOMAIN_URI = "ManagementDomainService/Domains"
 EXE_HISTORY_URI = "JobService/Jobs({0})/ExecutionHistories"
 CHANGES_FOUND = "Changes found to be applied."
+FILTER_URL = "$filter"
 
 
 def group_validation(module, rest_obj):
     group_name, group_device = module.params.get('device_group_name'), []
-    query_param = {"$filter": "Name eq '{0}'".format(group_name)}
+    query_param = {FILTER_URL: "Name eq '{0}'".format(group_name)}
     group_resp = rest_obj.invoke_request("GET", GROUP_URI, query_param=query_param)
     group = group_resp.json_data["value"]
     if group:
@@ -294,13 +295,13 @@ def group_validation(module, rest_obj):
                 if device["Type"] == 1000:
                     group_device.append(device["Id"])
         else:
-            module.fail_json(msg="There are no device(s) present in this group.")
+            module.exit_json(msg="There are no device(s) present in this group.", failed=True)
     else:
-        module.fail_json(msg="Unable to complete the operation because the entered target "
-                             "device group name '{0}' is invalid.".format(group_name))
+        module.exit_json(msg="Unable to complete the operation because the entered target "
+                             "device group name '{0}' is invalid.".format(group_name), failed=True)
     if not group_device:
-        module.fail_json(msg="The requested group '{0}' does not contain devices that "
-                             "support export log.".format(group_name))
+        module.exit_json(msg="The requested group '{0}' does not contain devices that "
+                             "support export log.".format(group_name), failed=True)
     return group_device
 
 
@@ -315,70 +316,114 @@ def device_validation(module, rest_obj):
         device = list(filter(lambda d: d[key] in [each], all_device["report_list"]))
         if device and device[0]["Type"] == 1000:
             device_lst.append(device[0]["Id"])
-        elif device and not device[0]["Type"] == 1000:
+        elif device and device[0]["Type"] != 1000:
             other_types.append(str(each))
         else:
             invalid_lst.append(str(each))
     if invalid_lst:
-        module.fail_json(msg="Unable to complete the operation because the entered "
-                             "target device {0}(s) '{1}' are invalid.".format(value, ",".join(set(invalid_lst))))
+        module.exit_json(msg="Unable to complete the operation because the entered "
+                             "target device {0}(s) '{1}' are invalid.".format(value, ",".join(set(invalid_lst))),
+                         failed=True)
     if not device_lst and other_types:
-        module.fail_json(msg="The requested device {0}(s) '{1}' are "
-                             "not applicable for export log.".format(value, ",".join(set(other_types))))
+        module.exit_json(msg="The requested device {0}(s) '{1}' are "
+                             "not applicable for export log.".format(value, ",".join(set(other_types))),
+                         failed=True)
     return device_lst
 
 
 def extract_log_operation(module, rest_obj, device_lst=None):
-    payload_params, target_params = [], []
     log_type = module.params["log_type"]
+
     if log_type == "application":
-        lead_only = module.params["lead_chassis_only"]
-        resp_data = None
-        if lead_only:
-            domain_details = rest_obj.get_all_items_with_pagination(DOMAIN_URI)
-            key = "Id"
-            ch_device_id = None
-            for each_domain in domain_details["value"]:
-                if each_domain["DomainRoleTypeValue"] in ["LEAD", "STANDALONE"]:
-                    ch_device_id = each_domain["DeviceId"]
-            if ch_device_id:
-                resp = rest_obj.invoke_request("GET", DEVICE_URI,
-                                               query_param={"$filter": "{0} eq {1}".format(key, ch_device_id)})
-                resp_data = resp.json_data["value"]
-        else:
-            resp = rest_obj.invoke_request("GET", DEVICE_URI, query_param={"$filter": "Type eq 2000"})
-            resp_data = resp.json_data["value"]
-        if resp_data:
-            for dev in resp_data:
-                target_params.append({"Id": dev["Id"], "Data": "",
-                                      "TargetType": {"Id": dev["Type"], "Name": "CHASSIS"}})
-        else:
-            module.fail_json(msg="There is no device(s) available to export application log.")
+        target_params = get_application_targets(module, rest_obj)
     else:
-        for device in device_lst:
-            target_params.append({"Id": device, "Data": "",
-                                  "TargetType": {"Id": 1000, "Name": "DEVICE"}})
-    payload_params.append({"Key": "shareAddress", "Value": module.params["share_address"]})
-    payload_params.append({"Key": "shareType", "Value": module.params["share_type"]})
-    payload_params.append({"Key": "OPERATION_NAME", "Value": "EXTRACT_LOGS"})
-    if module.params.get("share_name") is not None:
-        payload_params.append({"Key": "shareName", "Value": module.params["share_name"]})
-    if module.params.get("share_user") is not None:
-        payload_params.append({"Key": "userName", "Value": module.params["share_user"]})
-    if module.params.get("share_password") is not None:
-        payload_params.append({"Key": "password", "Value": module.params["share_password"]})
-    if module.params.get("share_domain") is not None:
-        payload_params.append({"Key": "domainName", "Value": module.params["share_domain"]})
-    if module.params.get("mask_sensitive_info") is not None and log_type == "application":
-        payload_params.append({"Key": "maskSensitiveInfo", "Value": str(module.params["mask_sensitive_info"]).upper()})
-    if module.params.get("log_selectors") is not None and (log_type == "support_assist_collection" or log_type == "supportassist_collection"):
-        log_lst = [LOG_SELECTOR[i] for i in module.params["log_selectors"]]
-        log_lst.sort()
-        log_selector = ",".join(map(str, log_lst))
-        payload_params.append({"Key": "logSelector", "Value": "0,{0}".format(log_selector)})
-    response = rest_obj.job_submission("Export Log", "Export device log", target_params,
-                                       payload_params, {"Id": 18, "Name": "DebugLogs_Task"})
+        target_params = get_device_targets(device_lst)
+
+    payload_params = build_payload(module, log_type)
+
+    response = rest_obj.job_submission(
+        "Export Log",
+        "Export device log",
+        target_params,
+        payload_params,
+        {"Id": 18, "Name": "DebugLogs_Task"}
+    )
     return response
+
+
+def get_application_targets(module, rest_obj):
+    lead_only = module.params["lead_chassis_only"]
+    resp_data = get_application_devices(rest_obj, lead_only)
+
+    if not resp_data:
+        module.exit_json(msg="There is no device(s) available to export application log.", failed=True)
+
+    return [
+        {
+            "Id": dev["Id"],
+            "Data": "",
+            "TargetType": {"Id": dev["Type"], "Name": "CHASSIS"}
+        }
+        for dev in resp_data
+    ]
+
+
+def get_application_devices(rest_obj, lead_only):
+    if lead_only:
+        domain_details = rest_obj.get_all_items_with_pagination(DOMAIN_URI)
+        for domain in domain_details["value"]:
+            if domain["DomainRoleTypeValue"] in ["LEAD", "STANDALONE"]:
+                ch_device_id = domain["DeviceId"]
+                resp = rest_obj.invoke_request("GET", DEVICE_URI, query_param={FILTER_URL: f"Id eq {ch_device_id}"})
+                return resp.json_data.get("value", [])
+    else:
+        resp = rest_obj.invoke_request("GET", DEVICE_URI, query_param={FILTER_URL: "Type eq 2000"})
+        return resp.json_data.get("value", [])
+    return []
+
+
+def get_device_targets(device_lst):
+    return [
+        {
+            "Id": device,
+            "Data": "",
+            "TargetType": {"Id": 1000, "Name": "DEVICE"}
+        }
+        for device in device_lst
+    ]
+
+
+def build_payload(module, log_type):
+    params = module.params
+    payload = [
+        {"Key": "shareAddress", "Value": params["share_address"]},
+        {"Key": "shareType", "Value": params["share_type"]},
+        {"Key": "OPERATION_NAME", "Value": "EXTRACT_LOGS"}
+    ]
+
+    optional_keys = {
+        "share_name": "shareName",
+        "share_user": "userName",
+        "share_password": "password",
+        "share_domain": "domainName"
+    }
+
+    for param_key, payload_key in optional_keys.items():
+        if params.get(param_key) is not None:
+            payload.append({"Key": payload_key, "Value": params[param_key]})
+
+    if params.get("mask_sensitive_info") is not None and log_type == "application":
+        payload.append({
+            "Key": "maskSensitiveInfo",
+            "Value": str(params["mask_sensitive_info"]).upper()
+        })
+
+    if params.get("log_selectors") and log_type in ["support_assist_collection", "supportassist_collection"]:
+        log_lst = sorted([LOG_SELECTOR[i] for i in params["log_selectors"]])
+        log_selector = ",".join(map(str, log_lst))
+        payload.append({"Key": "logSelector", "Value": f"0,{log_selector}"})
+
+    return payload
 
 
 def check_domain_service(module, rest_obj):
@@ -387,8 +432,8 @@ def check_domain_service(module, rest_obj):
     except HTTPError as err:
         err_message = json.load(err)
         if err_message["error"]["@Message.ExtendedInfo"][0]["MessageId"] == "CGEN1006":
-            module.fail_json(msg="Export log operation is not supported on the specified system.")
-    return
+            module.exit_json(msg="Export log operation is not supported on the specified system.",
+                             failed=True)
 
 
 def find_failed_jobs(resp, rest_obj):
@@ -410,7 +455,37 @@ def find_failed_jobs(resp, rest_obj):
 
 
 def main():
-    specs = {
+    specs = get_argument_spec()
+
+    module = OmeAnsibleModule(
+        argument_spec=specs,
+        required_if=get_required_if_conditions(),
+        mutually_exclusive=[('device_ids', 'device_service_tags', 'device_group_name')],
+        supports_check_mode=True
+    )
+
+    try:
+        with RestOME(module.params, req_session=True) as rest_obj:
+            if not validate_preconditions(module, rest_obj):
+                return
+
+            valid_device = get_valid_devices(module, rest_obj)
+
+            if module.check_mode:
+                module.exit_json(msg=CHANGES_FOUND, changed=True)
+
+            handle_log_job(module, rest_obj, valid_device)
+
+    except HTTPError as err:
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
+    except URLError as err:
+        module.exit_json(msg=str(err), unreachable=True)
+    except (IOError, ValueError, TypeError, ConnectionError, SSLValidationError, OSError) as err:
+        module.exit_json(msg=str(err), failed=True)
+
+
+def get_argument_spec():
+    return {
         "device_ids": {"required": False, "type": "list", "elements": "int"},
         "device_service_tags": {"required": False, "type": "list", "elements": "str"},
         "device_group_name": {"required": False, "type": "str"},
@@ -431,86 +506,92 @@ def main():
         "lead_chassis_only": {"required": False, "type": "bool", "default": False},
     }
 
-    module = OmeAnsibleModule(
-        argument_spec=specs,
-        required_if=[
-            ['log_type', 'application', ['mask_sensitive_info']],
-            ['log_type', 'support_assist_collection',
-             ['device_ids', 'device_service_tags', 'device_group_name'], True],
-            ['log_type', 'supportassist_collection',
-             ['device_ids', 'device_service_tags', 'device_group_name'], True],
-            ['share_type', 'CIFS', ['share_user', 'share_password']]
-        ],
-        mutually_exclusive=[('device_ids', 'device_service_tags', 'device_group_name')],
-        supports_check_mode=True
+
+def get_required_if_conditions():
+    return [
+        ['log_type', 'application', ['mask_sensitive_info']],
+        ['log_type', 'support_assist_collection',
+         ['device_ids', 'device_service_tags', 'device_group_name'], True],
+        ['log_type', 'supportassist_collection',
+         ['device_ids', 'device_service_tags', 'device_group_name'], True],
+        ['share_type', 'CIFS', ['share_user', 'share_password']]
+    ]
+
+
+def validate_preconditions(module, rest_obj):
+    if module.params["log_type"] == "application":
+        check_domain_service(module, rest_obj)
+
+    job_state_details = rest_obj.check_existing_job_state("DebugLogs_Task")
+    if not job_state_details[0]:
+        module.exit_json(msg="An export log job is already running. Wait for the job to finish.", failed=True)
+        return False
+
+    if module.params["test_connection"]:
+        return test_network_connection(module, rest_obj)
+
+    return True
+
+
+def test_network_connection(module, rest_obj):
+    conn_resp = rest_obj.test_network_connection(
+        module.params["share_address"],
+        module.params["share_name"],
+        module.params["share_type"],
+        module.params["share_user"],
+        module.params["share_password"],
+        module.params["share_domain"]
     )
-    try:
-        with RestOME(module.params, req_session=True) as rest_obj:
-            # checking the domain service
-            if module.params["log_type"] == "application":
-                check_domain_service(module, rest_obj)
+    job_details = rest_obj.job_tracking(conn_resp.json_data["Id"], job_wait_sec=10, sleep_time=5)
+    if job_details[0]:
+        module.exit_json(
+            msg="Unable to access the share. Ensure that the share address, share name, "
+                "share domain, and share credentials provided are correct.",
+            failed=True
+        )
+        return False
+    return True
 
-            # checking any existing running job
-            job_allowed, job_lst = rest_obj.check_existing_job_state("DebugLogs_Task")
-            if not job_allowed:
-                module.fail_json(msg="An export log job is already running. Wait for the job to finish.")
 
-            # test network connection
-            if module.params["test_connection"]:
-                conn_resp = rest_obj.test_network_connection(module.params["share_address"],
-                                                             module.params["share_name"],
-                                                             module.params["share_type"],
-                                                             module.params["share_user"],
-                                                             module.params["share_password"],
-                                                             module.params["share_domain"])
-                job_failed, job_message = rest_obj.job_tracking(conn_resp.json_data["Id"], job_wait_sec=5,
-                                                                sleep_time=5)
-                if job_failed:
-                    module.fail_json(msg="Unable to access the share. Ensure that the share address, share name, "
-                                         "share domain, and share credentials provided are correct.")
+def get_valid_devices(module, rest_obj):
+    group_name = module.params.get("device_group_name")
 
-            # validation for device id/tag/group
-            valid_device = []
-            if (module.params["log_type"] == "support_assist_collection" or module.params["log_type"] == "supportassist_collection") and \
-                    module.params.get("device_group_name") is not None:
-                valid_device = group_validation(module, rest_obj)
-            elif (module.params["log_type"] == "support_assist_collection" or module.params["log_type"] == "supportassist_collection") and \
-                    module.params.get("device_group_name") is None:
-                valid_device = device_validation(module, rest_obj)
+    if module.params.get("log_type") in ["support_assist_collection", "supportassist_collection"]:
+        if group_name:
+            return group_validation(module, rest_obj)
+        else:
+            return device_validation(module, rest_obj)
+    return []
 
-            # exit if running in check mode
-            if module.check_mode:
-                module.exit_json(msg=CHANGES_FOUND, changed=True)
 
-            # extract log job operation
-            response = extract_log_operation(module, rest_obj, device_lst=valid_device)
-            message = "Export log job submitted successfully."
-            if module.params["job_wait"]:
-                seconds = module.params["job_wait_timeout"] * 60
-                job_failed, job_message = rest_obj.job_tracking(response.json_data["Id"],
-                                                                job_wait_sec=seconds,
-                                                                sleep_time=5)
-                message = "Export log job completed successfully."
-                if job_message == "The job is not complete after {0} seconds.".format(seconds):
-                    module.fail_json(
-                        msg="The export job is not complete because it has exceeded the configured timeout period.",
-                        job_status=response.json_data
-                    )
-                if job_failed:
-                    message, failed_job = find_failed_jobs(response.json_data, rest_obj)
-                    if failed_job:
-                        module.fail_json(msg=message, job_status=response.json_data)
-                response = rest_obj.invoke_request("GET", "{0}({1})".format(JOB_URI, response.json_data["Id"]))
-            resp = response.json_data
-            if resp:
-                resp = rest_obj.strip_substr_dict(resp)
-            module.exit_json(msg=message, job_status=resp, changed=True)
-    except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
-    except URLError as err:
-        module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
-        module.fail_json(msg=str(err))
+def handle_log_job(module, rest_obj, device_lst):
+    response = extract_log_operation(module, rest_obj, device_lst=device_lst)
+    message = "Export log job submitted successfully."
+
+    if module.params["job_wait"]:
+        seconds = module.params["job_wait_timeout"] * 60
+        job_failed, job_message = rest_obj.job_tracking(response.json_data["Id"], job_wait_sec=seconds, sleep_time=5)
+        message = "Export log job completed successfully."
+
+        if job_message == f"The job is not complete after {seconds} seconds.":
+            module.exit_json(
+                msg="The export job is not complete because it has exceeded the configured timeout period.",
+                job_status=response.json_data,
+                failed=True
+            )
+
+        if job_failed:
+            message, failed_job = find_failed_jobs(response.json_data, rest_obj)
+            if failed_job:
+                module.exit_json(msg=message, job_status=response.json_data, failed=True)
+
+        response = rest_obj.invoke_request("GET", f"{JOB_URI}({response.json_data['Id']})")
+
+    resp = response.json_data
+    if resp:
+        resp = rest_obj.strip_substr_dict(resp)
+
+    module.exit_json(msg=message, job_status=resp, changed=True)
 
 
 if __name__ == '__main__':

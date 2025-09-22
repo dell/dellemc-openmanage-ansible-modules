@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.10.0
-# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 10.0.1
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -584,7 +584,7 @@ class TestModifyFirmwareRepositoryProfile(FakeAnsibleModule):
         obj = self.module.ModifyFirmwareRepositoryProfile(
             omevv_connection_firmware_repository_profile, f_module)
         result = obj.rec_diff(api_response, payload)
-        assert result is None
+        assert result.get('after') == payload
 
     def test_modify_firmware_repository_profile(self, mocker, omevv_default_args, omevv_connection_firmware_repository_profile):
         obj = MagicMock()
