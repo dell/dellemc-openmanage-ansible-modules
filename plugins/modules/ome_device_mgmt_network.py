@@ -1,13 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
-#
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 10.0.1
 # Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
-
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-#
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import (absolute_import, division, print_function)
 
@@ -16,11 +13,15 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: ome_device_mgmt_network
-short_description: Configure network settings of devices on OpenManage Enterprise Modular
-description: This module allows to configure network settings on Chassis, Servers, and I/O Modules on OpenManage Enterprise Modular.
+short_description: Configure network settings of devices on OpenManage
+                   Enterprise Modular
+description:
+- This module allows to configure network settings on Chassis, Servers,
+  and I/O Modules on OpenManage Enterprise Modular.
 version_added: 4.2.0
 author:
   - Jagadeesh N V(@jagadeeshnv)
+  - Bhavneet Sharma (@Bhavneet-Sharma)
 extends_documentation_fragment:
   - dellemc.openmanage.omem_auth_options
 options:
@@ -36,7 +37,8 @@ options:
     type: int
   enable_nic:
     description:
-      - Enable or disable Network Interface Card (NIC) configuration of the device.
+      - Enable or disable Network Interface Card (NIC) configuration of
+        the device.
       - This option is not applicable to I/O Module.
     type: bool
     default: true
@@ -49,8 +51,9 @@ options:
   ipv4_configuration:
     description:
       - IPv4 network configuration.
-      - "C(WARNING) Ensure that you have an alternate interface to access OpenManage Enterprise Modular because these
-      options can change the current IPv4 address for I(hostname)."
+      - "C(WARNING) Ensure that you have an alternate interface to access
+        OpenManage Enterprise Modular because these options can change the
+        current IPv4 address for I(hostname)."
     type: dict
     suboptions:
       enable_ipv4:
@@ -60,48 +63,56 @@ options:
         required: true
       enable_dhcp:
         description:
-          - "Enable or disable the automatic request to obtain an IPv4 address from the IPv4 Dynamic Host Configuration
-          Protocol (DHCP) server."
-          - "C(NOTE) If this option is C(true), the values provided for I(static_ip_address), I(static_subnet_mask),
-          and I(static_gateway) are not applied for these fields. However, the module may report changes."
+          - "Enable or disable the automatic request to obtain an IPv4 address
+            from the IPv4 Dynamic Host Configuration Protocol (DHCP) server."
+          - "C(NOTE) If this option is C(true), the values provided for
+            I(static_ip_address), I(static_subnet_mask), and I(static_gateway)
+            are not applied for these fields. However, the module may report
+            changes."
         type: bool
       static_ip_address:
         description:
-          - Static IPv4 address
+          - Static IPv4 address.
           - This option is applicable when I(enable_dhcp) is false.
         type: str
       static_subnet_mask:
         description:
-          - Static IPv4 subnet mask address
+          - Static IPv4 subnet mask address.
           - This option is applicable when I(enable_dhcp) is false.
         type: str
       static_gateway:
         description:
-          - Static IPv4 gateway address
+          - Static IPv4 gateway address.
           - This option is applicable when I(enable_dhcp) is false.
         type: str
       use_dhcp_to_obtain_dns_server_address:
         description:
-          - This option allows to automatically request and obtain IPv4 address for the DNS Server from the DHCP server.
+          - This option allows to automatically request and obtain IPv4 address
+            for the DNS Server from the DHCP server.
           - This option is applicable when I(enable_dhcp) is true.
-          - "C(NOTE) If this option is C(true), the values provided for I(static_preferred_dns_server) and
-          I(static_alternate_dns_server) are not applied for these fields. However, the module may report changes."
+          - "C(NOTE) If this option is C(true), the values provided for
+            I(static_preferred_dns_server) and I(static_alternate_dns_server)
+            are not applied for these fields. However, the module may report
+            changes."
         type: bool
       static_preferred_dns_server:
         description:
-          - Static IPv4 DNS preferred server
-          - This option is applicable when I(use_dhcp_for_dns_server_names) is false.
+          - Static IPv4 DNS preferred server.
+          - This option is applicable when I(use_dhcp_for_dns_server_names) is
+            false.
         type: str
       static_alternate_dns_server:
         description:
-          - Static IPv4 DNS alternate server
-          - This option is applicable when I(use_dhcp_for_dns_server_names) is false.
+          - Static IPv4 DNS alternate server.
+          - This option is applicable when I(use_dhcp_for_dns_server_names) is
+            false.
         type: str
   ipv6_configuration:
     description:
       - IPv6 network configuration.
-      - "C(WARNING) Ensure that you have an alternate interface to access OpenManage Enterprise Modular because these options can
-      change the current IPv6 address for I(hostname)."
+      - "C(WARNING) Ensure that you have an alternate interface to access
+        OpenManage Enterprise Modular because these options can change the
+        current IPv6 address for I(hostname)."
     type: dict
     suboptions:
       enable_ipv6:
@@ -110,44 +121,55 @@ options:
         required: true
       enable_auto_configuration:
         description:
-          - "Enable or disable the automatic request to obtain an IPv6 address from the IPv6 DHCP server or router
-          advertisements(RA)"
-          - "If I(enable_auto_configuration) is C(true), OpenManage Enterprise Modular retrieves IP configuration
-          (IPv6 address, prefix, and gateway address) from a DHCPv6 server on the existing network."
-          - "C(NOTE) If this option is C(true), the values provided for I(static_ip_address), I(static_prefix_length),
-          and I(static_gateway) are not applied for these fields. However, the module may report changes."
+          - "Enable or disable the automatic request to obtain an IPv6 address
+            from the IPv6 DHCP server or router advertisements(RA)."
+          - "If I(enable_auto_configuration) is C(true), OpenManage Enterprise
+            Modular retrieves IP configuration (IPv6 address, prefix, and
+            gateway address) from a DHCPv6 server on the existing network."
+          - "C(NOTE) If this option is C(true), the values provided for
+            I(static_ip_address), I(static_prefix_length), and
+            I(static_gateway) are not applied for these fields. However, the
+            module may report changes."
         type: bool
       static_ip_address:
         description:
-          - Static IPv6 address
-          - This option is applicable when I(enable_auto_configuration) is false.
+          - Static IPv6 address.
+          - This option is applicable when I(enable_auto_configuration) is
+            false.
         type: str
       static_prefix_length:
         description:
-          - Static IPv6 prefix length
-          - This option is applicable when I(enable_auto_configuration) is false.
+          - Static IPv6 prefix length.
+          - This option is applicable when I(enable_auto_configuration) is
+            false.
         type: int
       static_gateway:
         description:
-          - Static IPv6 gateway address
-          - This option is applicable when I(enable_auto_configuration) is false.
+          - Static IPv6 gateway address.
+          - This option is applicable when I(enable_auto_configuration) is
+            false.
         type: str
       use_dhcpv6_to_obtain_dns_server_address:
         description:
-          - This option allows to automatically request and obtain a IPv6 address for the DNS server from the DHCP server.
-          - This option is applicable when I(enable_auto_configuration) is true
-          - "C(NOTE) If this option is C(true), the values provided for I(static_preferred_dns_server) and I(static_alternate_dns_server)
-          are not applied for these fields. However, the module may report changes."
+          - This option allows to automatically request and obtain a IPv6
+            address for the DNS server from the DHCP server.
+          - This option is applicable when I(enable_auto_configuration) is true.
+          - "C(NOTE) If this option is C(true), the values provided for
+            I(static_preferred_dns_server) and I(static_alternate_dns_server)
+            are not applied for these fields. However, the module may report
+            changes."
         type: bool
       static_preferred_dns_server:
         description:
-          - Static IPv6 DNS preferred server
-          - This option is applicable when I(use_dhcp_for_dns_server_names) is false.
+          - Static IPv6 DNS preferred server.
+          - This option is applicable when I(use_dhcp_for_dns_server_names) is
+            false.
         type: str
       static_alternate_dns_server:
         description:
-          - Static IPv6 DNS alternate server
-          - This option is applicable when I(use_dhcp_for_dns_server_names) is false.
+          - Static IPv6 DNS alternate server.
+          - This option is applicable when I(use_dhcp_for_dns_server_names) is
+            false.
         type: str
   management_vlan:
     description:
@@ -157,9 +179,11 @@ options:
       enable_vlan:
         description:
           - Enable or disable VLAN for management.
-          - The VLAN configuration cannot be updated if the I(register_with_dns) field under I(dns_configuration) is true.
-          - "C(WARNING) Ensure that the network cable is connected to the correct port after the VLAN configuration
-          is changed. If not, the VLAN configuration changes may not be applied."
+          - The VLAN configuration cannot be updated if the I(register_with_dns)
+            field under I(dns_configuration) is true.
+          - "C(WARNING) Ensure that the network cable is connected to the
+            correct port after the VLAN configuration is changed. If not, the
+            VLAN configuration changes may not be applied."
         required: true
         type: bool
       vlan_id:
@@ -175,27 +199,30 @@ options:
       register_with_dns:
         description:
           - Register/Unregister I(dns_name) on the DNS Server.
-          - C(WARNING) This option cannot be updated if VLAN configuration changes.
+          - C(WARNING) This option cannot be updated if VLAN configuration
+            changes.
         type: bool
       use_dhcp_for_dns_domain_name:
         description: Get the I(dns_domain_name) using a DHCP server.
         type: bool
       dns_name:
         description:
-          - DNS name for I(hostname)
+          - DNS name for I(hostname).
           - This is applicable when I(register_with_dns) is true.
         type: str
       dns_domain_name:
         description:
-          - Static DNS domain name
+          - Static DNS domain name.
           - This is applicable when I(use_dhcp_for_dns_domain_name) is false.
         type: str
       auto_negotiation:
         description:
           - Enables or disables the auto negation of the network speed.
-          - "C(NOTE): Setting I(auto_negotiation) to false and choosing a network port speed may result in the chassis
-          loosing link to the top of rack network switch, or to the neighboring chassis in case of MCM mode. It is
-          recommended that the I(auto_negotiation) is set to C(true) for most use cases."
+          - "C(NOTE): Setting I(auto_negotiation) to false and choosing a
+            network port speed may result in the chassis loosing link to the top
+            of rack network switch, or to the neighboring chassis in case of MCM
+            mode. It is recommended that the I(auto_negotiation) is set to
+            C(true) for most use cases."
           - This is applicable when I(use_dhcp_for_dns_domain_name) is false.
           - This is applicable only for Chassis.
         type: bool
@@ -231,7 +258,8 @@ options:
 requirements:
   - "python >= 3.9.6"
 notes:
-  - Run this module from a system that has direct access to Dell OpenManage Enterprise Modular.
+  - Run this module from a system that has direct access to Dell OpenManage
+    Enterprise Modular.
   - This module supports C(check_mode).
 """
 
@@ -347,19 +375,23 @@ error_info:
   sample: {
     "error": {
         "code": "Base.1.0.GeneralError",
-        "message": "A general error has occurred. See ExtendedInfo for more information.",
+        "message": "A general error has occurred. See ExtendedInfo for more
+                   information.",
         "@Message.ExtendedInfo": [
             {
                 "MessageId": "CGEN1004",
                 "RelatedProperties": [],
-                "Message": "Unable to complete the request because IPV4 Settings Capability is not Supported does not
+                "Message": "Unable to complete the request because IPV4 Settings
+                           Capability is not Supported does not
                 exist or is not applicable for the resource URI.",
                 "MessageArgs": [
                     "IPV4 Settings Capability is not Supported"
                 ],
                 "Severity": "Critical",
-                "Resolution": "Check the request resource URI. Refer to the OpenManage Enterprise-Modular User's Guide
-                for more information about resource URI and its properties."
+                "Resolution": "Check the request resource URI. Refer to the
+                              OpenManage Enterprise-Modular User's Guide for
+                              more information about resource URI and its
+                              properties."
             }
         ]
     }
@@ -369,10 +401,10 @@ error_info:
 import json
 import socket
 import copy
-from ssl import SSLError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
+    RestOME, OmeAnsibleModule)
 from ansible.module_utils.common.dict_transformations import recursive_diff
 
 DEVICE_URI = "DeviceService/Devices"
@@ -415,47 +447,50 @@ def validate_ipaddress(module, ip_type, config, var_list, ip_func):
         for ipname in var_list:
             val = ipv_input.get(ipname)
             if val and not ip_func(val):
-                module.fail_json(msg=INVALID_IP.format(ip_type, ipname))
-    return
+                module.exit_json(msg=INVALID_IP.format(ip_type, ipname),
+                                 failed=True)
 
 
 def validate_input(module):
-    ip_addr = ["static_ip_address", "static_gateway", "static_preferred_dns_server", "static_alternate_dns_server"]
-    validate_ipaddress(module, "IPv6", "ipv6_configuration", ip_addr, validate_ip_v6_address)
+    ip_addr = ["static_ip_address", "static_gateway",
+               "static_preferred_dns_server", "static_alternate_dns_server"]
+    validate_ipaddress(module, "IPv6", "ipv6_configuration", ip_addr,
+                       validate_ip_v6_address)
     ip_addr.append("static_subnet_mask")
-    validate_ipaddress(module, "IPv4", "ipv4_configuration", ip_addr, validate_ip_address)
+    validate_ipaddress(module, "IPv4", "ipv4_configuration", ip_addr,
+                       validate_ip_address)
     ipv6 = module.params.get("ipv6_configuration")
     dns_settings = module.params.get("dns_server_settings")
     if dns_settings:
         for k, v in dns_settings.items():
             if v is not None:
                 if not validate_ip_address(v) and not validate_ip_v6_address(v):
-                    module.fail_json(msg=INVALID_IP.format("IP", k))
+                    module.exit_json(msg=INVALID_IP.format("IP", k),
+                                     failed=True)
     # int to str
     if ipv6 and ipv6.get("static_prefix_length"):
         ipv6["static_prefix_length"] = str(ipv6["static_prefix_length"])
     vlan = module.params.get("management_vlan")
     if vlan and vlan.get("vlan_id"):
         vlan["vlan_id"] = str(vlan["vlan_id"])
-    return
 
 
 def get_device_details(module, rest_obj):
-    id = module.params.get('device_id')
+    device_id = module.params.get('device_id')
     srch = 'Id'
-    query_param = {"$filter": "{0} eq {1}".format(srch, id)}
-    if not id:
-        id = module.params.get('device_service_tag')
+    query_param = {"$filter": "{0} eq {1}".format(srch, device_id)}
+    if not device_id:
+        device_id = module.params.get('device_service_tag')
         srch = 'Identifier'
-        query_param = {"$filter": "{0} eq '{1}'".format(srch, id)}
+        query_param = {"$filter": "{0} eq '{1}'".format(srch, device_id)}
     resp = rest_obj.invoke_request('GET', DEVICE_URI, query_param=query_param)
     if resp.success and resp.json_data.get('value'):
         tlist = resp.json_data.get('value', [])
         for xtype in tlist:
-            if xtype.get(srch) == id:
+            if xtype.get(srch) == device_id:
                 dvc = xtype
                 return dvc
-    module.fail_json(msg=DEVICE_NOT_FOUND.format(srch, id))
+    module.exit_json(msg=DEVICE_NOT_FOUND.format(srch, device_id), failed=True)
 
 
 def transform_diff(params, translator, sub_payload, bool_trans=None):
@@ -474,44 +509,52 @@ def transform_diff(params, translator, sub_payload, bool_trans=None):
     return df
 
 
+def validate_dependency_ipv4(ipv4):
+    remove_list = []
+    dhcp = ["static_preferred_dns_server", "static_alternate_dns_server"]
+    static = ["static_ip_address", "static_gateway", "static_subnet_mask"]
+    bools = ["enable_dhcp", "use_dhcp_to_obtain_dns_server_address"]
+    if ipv4.get("use_dhcp_to_obtain_dns_server_address") is True:
+        remove_list.extend(dhcp)
+    if ipv4.get("enable_dhcp") is True:
+        remove_list.extend(static)
+    if ipv4.get("enable_ipv4") is False:
+        remove_list.extend(dhcp)
+        remove_list.extend(static)
+        remove_list.extend(bools)
+    for item in remove_list:
+        ipv4.pop(item, None)
+
+
+def validate_dependency_ipv6(ipv6):
+    removev6_list = []
+    dhcp = ["static_preferred_dns_server", "static_alternate_dns_server"]
+    static = ["static_ip_address", "static_gateway", "static_prefix_length"]
+    bools = ["enable_auto_configuration",
+             "use_dhcpv6_to_obtain_dns_server_address"]
+    if ipv6.get("use_dhcpv6_to_obtain_dns_server_address") is True:
+        removev6_list.extend(dhcp)
+    if ipv6.get("enable_auto_configuration") is True:
+        removev6_list.extend(static)
+    if ipv6.get("enable_ipv6") is False:
+        removev6_list.extend(dhcp)
+        removev6_list.extend(static)
+        removev6_list.extend(bools)
+    for itemv6 in removev6_list:
+        ipv6.pop(itemv6, None)
+
+
 def validate_dependency(mparams):
     params = copy.deepcopy(mparams)
     ipv4 = params.get('ipv4_configuration')
     if ipv4:
-        rm_list = []
-        dhcp = ["static_preferred_dns_server", "static_alternate_dns_server"]
-        static = ["static_ip_address", "static_gateway", "static_subnet_mask"]
-        bools = ["enable_dhcp", "use_dhcp_to_obtain_dns_server_address"]
-        if ipv4.get("use_dhcp_to_obtain_dns_server_address") is True:
-            rm_list.extend(dhcp)
-        if ipv4.get("enable_dhcp") is True:
-            rm_list.extend(static)
-        if ipv4.get("enable_ipv4") is False:
-            rm_list.extend(dhcp)
-            rm_list.extend(static)
-            rm_list.extend(bools)
-        for prm in rm_list:
-            ipv4.pop(prm, None)
+        validate_dependency_ipv4(ipv4)
     ipv6 = params.get('ipv6_configuration')
     if ipv6:
-        rm_list = []
-        dhcp = ["static_preferred_dns_server", "static_alternate_dns_server"]
-        static = ["static_ip_address", "static_gateway", "static_prefix_length"]
-        bools = ["enable_auto_configuration", "use_dhcpv6_to_obtain_dns_server_address"]
-        if ipv6.get("use_dhcpv6_to_obtain_dns_server_address") is True:
-            rm_list.extend(dhcp)
-        if ipv6.get("enable_auto_configuration") is True:
-            rm_list.extend(static)
-        if ipv6.get("enable_ipv6") is False:
-            rm_list.extend(dhcp)
-            rm_list.extend(static)
-            rm_list.extend(bools)
-        for prm in rm_list:
-            ipv6.pop(prm, None)
+        validate_dependency_ipv6(ipv6)
     vlan = params.get('management_vlan')
-    if vlan:
-        if vlan.get('enable_vlan') is False:
-            vlan.pop('vlan_id', None)
+    if vlan and vlan.get('enable_vlan') is False:
+        vlan.pop('vlan_id', None)
     dns = params.get('dns_configuration')
     if dns:
         if dns.get('auto_negotiation') is True:
@@ -558,13 +601,16 @@ def update_chassis_payload(module, payload):
     delay = mparams.get('delay')
     if enable_nic:
         if mparams.get('ipv4_configuration'):
-            df = transform_diff(mparams.get('ipv4_configuration'), ipv4, payload.get('Ipv4Settings'))
+            df = transform_diff(mparams.get('ipv4_configuration'), ipv4,
+                                payload.get('Ipv4Settings'))
             diff.update(df)
         if mparams.get('ipv6_configuration'):
-            df = transform_diff(mparams.get('ipv6_configuration'), ipv6, payload.get('Ipv6Settings'))
+            df = transform_diff(mparams.get('ipv6_configuration'), ipv6,
+                                payload.get('Ipv6Settings'))
             diff.update(df)
         if mparams.get('dns_configuration'):
-            df = transform_diff(mparams.get('dns_configuration'), dns, payload.get('GeneralSettings'))
+            df = transform_diff(mparams.get('dns_configuration'), dns,
+                                payload.get('GeneralSettings'))
             diff.update(df)
         if mparams.get('management_vlan'):
             df = transform_diff(mparams.get('management_vlan'), vlan, payload)
@@ -606,13 +652,16 @@ def update_server_payload(module, payload):
     bool_trans = {True: 'Enabled', False: 'Disabled'}
     if enable_nic:
         if mparams.get('ipv4_configuration'):
-            df = transform_diff(mparams.get('ipv4_configuration'), ipv4, payload, bool_trans)
+            df = transform_diff(mparams.get('ipv4_configuration'), ipv4,
+                                payload, bool_trans)
             diff.update(df)
         if mparams.get('ipv6_configuration'):
-            df = transform_diff(mparams.get('ipv6_configuration'), ipv6, payload, bool_trans)
+            df = transform_diff(mparams.get('ipv6_configuration'), ipv6,
+                                payload, bool_trans)
             diff.update(df)
         if mparams.get('management_vlan'):
-            df = transform_diff(mparams.get('management_vlan'), vlan, payload, bool_trans)
+            df = transform_diff(mparams.get('management_vlan'), vlan,
+                                payload, bool_trans)
             diff.update(df)
     enable_nic = bool_trans.get(enable_nic)
     if payload.get('enableNIC') != enable_nic:
@@ -643,27 +692,31 @@ def update_iom_payload(module, payload):
     diff = {}
     mparams = validate_dependency(module.params)
     if mparams.get('ipv4_configuration'):
-        df = transform_diff(mparams.get('ipv4_configuration'), ipv4, payload.get('IomIPv4Settings'))
+        df = transform_diff(mparams.get('ipv4_configuration'), ipv4,
+                            payload.get('IomIPv4Settings'))
         diff.update(df)
     if mparams.get('ipv6_configuration'):
-        df = transform_diff(mparams.get('ipv6_configuration'), ipv6, payload.get('IomIPv6Settings'))
+        df = transform_diff(mparams.get('ipv6_configuration'), ipv6,
+                            payload.get('IomIPv6Settings'))
         diff.update(df)
     if mparams.get('management_vlan'):
         df = transform_diff(mparams.get('management_vlan'), vlan, payload)
         diff.update(df)
     if mparams.get('dns_server_settings'):
-        df = transform_diff(mparams.get('dns_server_settings'), dns, payload.get('IomDNSSettings'))
+        df = transform_diff(mparams.get('dns_server_settings'), dns,
+                            payload.get('IomDNSSettings'))
         dns_iom = payload.get('IomDNSSettings')
         if dns_iom.get("SecondaryDNS") and not dns_iom.get("PrimaryDNS"):
-            module.fail_json(msg=DNS_SETT_ERR1)
+            module.exit_json(msg=DNS_SETT_ERR1, failed=True)
         if dns_iom.get("TertiaryDNS") and (not dns_iom.get("PrimaryDNS") or not dns_iom.get("SecondaryDNS")):
-            module.fail_json(msg=DNS_SETT_ERR2)
+            module.exit_json(msg=DNS_SETT_ERR2, failed=True)
         diff.update(df)
     return diff
 
 
 def get_network_payload(module, rest_obj, dvc):
-    resp = rest_obj.invoke_request('GET', NETWORK_SETTINGS.format(dvc.get('Id')))
+    resp = rest_obj.invoke_request('GET',
+                                   NETWORK_SETTINGS.format(dvc.get('Id')))
     got_payload = resp.json_data
     payload = rest_obj.strip_substr_dict(got_payload)
     update_dict = {
@@ -702,7 +755,8 @@ def main():
                    "dns_name": {"type": 'str'},
                    "dns_domain_name": {"type": 'str'},
                    "auto_negotiation": {"type": 'bool'},
-                   "network_speed": {"type": 'str', "choices": ['10_MB', '100_MB']}}
+                   "network_speed": {"type": 'str',
+                                     "choices": ['10_MB', '100_MB']}}
     management_vlan = {"enable_vlan": {"required": True, "type": 'bool'},
                        "vlan_id": {"type": 'int'}}
     dns_server_settings = {"preferred_dns_server": {"type": 'str'},
@@ -717,18 +771,23 @@ def main():
             {"type": "dict", "options": ipv4_options,
              "required_if": [
                  ['enable_ipv4', True, ('enable_dhcp',), True],
-                 ['enable_dhcp', False, ('static_ip_address', 'static_subnet_mask', "static_gateway"), False],
+                 ['enable_dhcp', False,
+                  ('static_ip_address', 'static_subnet_mask', "static_gateway"),
+                  False],
                  ['use_dhcp_to_obtain_dns_server_address', False,
-                  ('static_preferred_dns_server', 'static_alternate_dns_server'), True]]
+                  ('static_preferred_dns_server',
+                   'static_alternate_dns_server'), True]]
              },
         "ipv6_configuration":
             {"type": "dict", "options": ipv6_options,
              "required_if": [
                  ['enable_ipv6', True, ('enable_auto_configuration',), True],
                  ['enable_auto_configuration', False,
-                  ('static_ip_address', 'static_prefix_length', "static_gateway"), False],
+                  ('static_ip_address', 'static_prefix_length',
+                   "static_gateway"), False],
                  ['use_dhcpv6_to_obtain_dns_server_address', False,
-                  ('static_preferred_dns_server', 'static_alternate_dns_server'), True]]
+                  ('static_preferred_dns_server',
+                   'static_alternate_dns_server'), True]]
              },
         "dns_configuration":
             {"type": "dict", "options": dns_options,
@@ -744,7 +803,9 @@ def main():
              },
         "dns_server_settings":
             {"type": "dict", "options": dns_server_settings,
-             "required_one_of": [("preferred_dns_server", "alternate_dns_server1", "alternate_dns_server2")]
+             "required_one_of": [("preferred_dns_server",
+                                  "alternate_dns_server1",
+                                  "alternate_dns_server2")]
              }
     }
 
@@ -760,17 +821,22 @@ def main():
             dvc = get_device_details(module, rest_obj)
             if dvc.get('Type') in [SERVER, CHASSIS, IO_MODULE]:
                 nw_setting = get_network_payload(module, rest_obj, dvc)
-                resp = rest_obj.invoke_request('PUT', NETWORK_SETTINGS.format(dvc.get('Id')),
-                                               data=nw_setting, api_timeout=API_TIMEOUT)
-                module.exit_json(msg=SUCCESS_MSG, network_details=resp.json_data, changed=True)
+                resp = rest_obj.invoke_request(
+                    'PUT', NETWORK_SETTINGS.format(dvc.get('Id')),
+                    data=nw_setting, api_timeout=API_TIMEOUT)
+                module.exit_json(msg=SUCCESS_MSG,
+                                 network_details=resp.json_data, changed=True)
             else:
-                module.fail_json(msg=NON_CONFIG_NETWORK.format(dvc.get('Model')))
+                module.exit_json(
+                    msg=NON_CONFIG_NETWORK.format(dvc.get('Model')),
+                    failed=True)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError, OSError) as err:
-        module.fail_json(msg=str(err))
+    except (IOError, ValueError, TypeError, ConnectionError, AttributeError,
+            IndexError, KeyError, OSError) as err:
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':

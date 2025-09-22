@@ -12,7 +12,11 @@ power_headroom_uri_details = sys.argv[7]
 
 NA = "Not Available"
 
-def get_system_board_metrics_info_api(cpu_usage_uri_details, io_usage_uri_details, mem_usage_uri_details, sys_usage_uri_details, power_consumption_uri_details, current_consumption_uri_details, power_headroom_uri_details):
+
+def get_system_board_metrics_info_api(
+        cpu_usage_uri_details, io_usage_uri_details, mem_usage_uri_details,
+        sys_usage_uri_details, power_consumption_uri_details,
+        current_consumption_uri_details, power_headroom_uri_details):
     # Parse JSON
     cpu_usage_data = json.loads(cpu_usage_uri_details)
     io_usage_data = json.loads(io_usage_uri_details)
@@ -121,9 +125,9 @@ def get_system_board_metrics_info_api(cpu_usage_uri_details, io_usage_uri_detail
         "IOUsageMin1D": io_usage_min_day,
         "IOUsageMin1W": io_usage_min_week,
         "SYSPeakIOUsage": io_usage_peak,
-        
         "SystemBoardMetrics": NA
     }]
+
 
 def main():
     try:

@@ -68,19 +68,19 @@ Parameters
 
 
     static_ip_address (optional, str, None)
-      Static IPv4 address
+      Static IPv4 address.
 
       This option is applicable when \ :emphasis:`enable\_dhcp`\  is false.
 
 
     static_subnet_mask (optional, str, None)
-      Static IPv4 subnet mask address
+      Static IPv4 subnet mask address.
 
       This option is applicable when \ :emphasis:`enable\_dhcp`\  is false.
 
 
     static_gateway (optional, str, None)
-      Static IPv4 gateway address
+      Static IPv4 gateway address.
 
       This option is applicable when \ :emphasis:`enable\_dhcp`\  is false.
 
@@ -94,13 +94,13 @@ Parameters
 
 
     static_preferred_dns_server (optional, str, None)
-      Static IPv4 DNS preferred server
+      Static IPv4 DNS preferred server.
 
       This option is applicable when \ :emphasis:`use\_dhcp\_for\_dns\_server\_names`\  is false.
 
 
     static_alternate_dns_server (optional, str, None)
-      Static IPv4 DNS alternate server
+      Static IPv4 DNS alternate server.
 
       This option is applicable when \ :emphasis:`use\_dhcp\_for\_dns\_server\_names`\  is false.
 
@@ -117,7 +117,7 @@ Parameters
 
 
     enable_auto_configuration (optional, bool, None)
-      Enable or disable the automatic request to obtain an IPv6 address from the IPv6 DHCP server or router advertisements(RA)
+      Enable or disable the automatic request to obtain an IPv6 address from the IPv6 DHCP server or router advertisements(RA).
 
       If \ :emphasis:`enable\_auto\_configuration`\  is \ :literal:`true`\ , OpenManage Enterprise Modular retrieves IP configuration (IPv6 address, prefix, and gateway address) from a DHCPv6 server on the existing network.
 
@@ -125,19 +125,19 @@ Parameters
 
 
     static_ip_address (optional, str, None)
-      Static IPv6 address
+      Static IPv6 address.
 
       This option is applicable when \ :emphasis:`enable\_auto\_configuration`\  is false.
 
 
     static_prefix_length (optional, int, None)
-      Static IPv6 prefix length
+      Static IPv6 prefix length.
 
       This option is applicable when \ :emphasis:`enable\_auto\_configuration`\  is false.
 
 
     static_gateway (optional, str, None)
-      Static IPv6 gateway address
+      Static IPv6 gateway address.
 
       This option is applicable when \ :emphasis:`enable\_auto\_configuration`\  is false.
 
@@ -145,19 +145,19 @@ Parameters
     use_dhcpv6_to_obtain_dns_server_address (optional, bool, None)
       This option allows to automatically request and obtain a IPv6 address for the DNS server from the DHCP server.
 
-      This option is applicable when \ :emphasis:`enable\_auto\_configuration`\  is true
+      This option is applicable when \ :emphasis:`enable\_auto\_configuration`\  is true.
 
       \ :literal:`NOTE`\  If this option is \ :literal:`true`\ , the values provided for \ :emphasis:`static\_preferred\_dns\_server`\  and \ :emphasis:`static\_alternate\_dns\_server`\  are not applied for these fields. However, the module may report changes.
 
 
     static_preferred_dns_server (optional, str, None)
-      Static IPv6 DNS preferred server
+      Static IPv6 DNS preferred server.
 
       This option is applicable when \ :emphasis:`use\_dhcp\_for\_dns\_server\_names`\  is false.
 
 
     static_alternate_dns_server (optional, str, None)
-      Static IPv6 DNS alternate server
+      Static IPv6 DNS alternate server.
 
       This option is applicable when \ :emphasis:`use\_dhcp\_for\_dns\_server\_names`\  is false.
 
@@ -199,13 +199,13 @@ Parameters
 
 
     dns_name (optional, str, None)
-      DNS name for \ :emphasis:`hostname`\ 
+      DNS name for \ :emphasis:`hostname`\ .
 
       This is applicable when \ :emphasis:`register\_with\_dns`\  is true.
 
 
     dns_domain_name (optional, str, None)
-      Static DNS domain name
+      Static DNS domain name.
 
       This is applicable when \ :emphasis:`use\_dhcp\_for\_dns\_domain\_name`\  is false.
 
@@ -442,4 +442,5 @@ Authors
 ~~~~~~~
 
 - Jagadeesh N V(@jagadeeshnv)
+- Bhavneet Sharma (@Bhavneet-Sharma)
 

@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 10.0.1
 # Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -21,6 +21,7 @@ service tag or using chassis service tag and slot number."
 version_added: "3.6.0"
 author:
   - Jagadeesh N V(@jagadeeshnv)
+  - Akash Shendge(@shenda1)
 extends_documentation_fragment:
   - dellemc.openmanage.omem_auth_options
 options:
@@ -297,7 +298,7 @@ def get_device_slot_config(module, rest_obj):
             dvc_list.append(st)
     duplicate = [x for i, x in enumerate(dvc_list) if i != dvc_list.index(x)]
     if duplicate:
-        module.fail_json(msg=DEVICE_REPEATED.format((';'.join(set(duplicate)))))
+        module.exit_json(msg=DEVICE_REPEATED.format((';'.join(set(duplicate)))), failed=True)
     resp = rest_obj.get_all_items_with_pagination(DEVICE_URI)
     devices = resp.get('value')
     all_dvcs = {}
@@ -331,11 +332,11 @@ def get_device_slot_config(module, rest_obj):
     idf_list = list(ident_map.values())
     duplicate = [x for i, x in enumerate(idf_list) if i != idf_list.index(x)]
     if duplicate:
-        module.fail_json(msg=DEVICE_REPEATED.format((';'.join(set(duplicate)))))
+        module.exit_json(msg=DEVICE_REPEATED.format((';'.join(set(duplicate)))), failed=True)
     invalid_slots.update(set(ids.keys()) - set(ident_map.keys()))
     invalid_slots.update(set(tags.keys()) - set(ident_map.keys()))
     if invalid_slots:
-        module.fail_json(msg=INVALID_SLOT_DEVICE.format(';'.join(invalid_slots)))
+        module.exit_json(msg=INVALID_SLOT_DEVICE.format(';'.join(invalid_slots)), failed=True)
     slot_dict_diff = {}
     id_diff = recursive_diff(ids, name_map)
     if id_diff and id_diff[0]:
@@ -461,8 +462,8 @@ def exit_slot_config(module, rest_obj, failed_jobs, invalid_jobs, slot_data):
         s = len(slot_data)
         slot_info = get_formatted_slotlist(slot_data)
         failed_jobs_list = get_formatted_slotlist(failed_jobs)
-        module.fail_json(msg=FAILED_MSG.format(f, s + f),
-                         slot_info=slot_info, rename_failed_slots=failed_jobs_list)
+        module.exit_json(msg=FAILED_MSG.format(f, s + f),
+                         slot_info=slot_info, rename_failed_slots=failed_jobs_list, failed=True)
     if slot_data:
         job_failed_list = []
         try:
@@ -518,9 +519,9 @@ def get_slot_data(module, rest_obj, ch_slots, chass_id):
     input_dict = dict([(str(slot['slot_number']), slot['slot_name']) for slot in inp_slots])
     invalid_slot_number = set(input_dict.keys()) - set(existing_dict.keys())
     if invalid_slot_number:
-        module.fail_json(msg=INVALID_SLOT_NUMBERS.format(';'.join(invalid_slot_number)))
+        module.exit_json(msg=INVALID_SLOT_NUMBERS.format(';'.join(invalid_slot_number)), failed=True)
     if len(input_dict) < len(inp_slots):
-        module.fail_json(msg=SLOT_NUM_DUP.format(chsvc_tag))
+        module.exit_json(msg=SLOT_NUM_DUP.format(chsvc_tag), failed=True)
     slot_dict_diff = {}
     slot_diff = recursive_diff(input_dict, existing_dict)
     if slot_diff and slot_diff[0]:
@@ -540,11 +541,11 @@ def slot_number_config(module, rest_obj):
     input_chassi_list = list(chx.get('chassis_service_tag') for chx in chslots)
     duplicate = [x for i, x in enumerate(input_chassi_list) if i != input_chassi_list.index(x)]
     if duplicate:
-        module.fail_json(msg=CHASSIS_REPEATED.format((';'.join(set(duplicate)))))
+        module.exit_json(msg=CHASSIS_REPEATED.format((';'.join(set(duplicate)))), failed=True)
     for chx in chslots:
         chsvc_tag = chx.get('chassis_service_tag')
         if chsvc_tag not in chassi_dict.keys():
-            module.fail_json(msg=CHASSIS_TAG_INVALID.format(chsvc_tag))
+            module.exit_json(msg=CHASSIS_TAG_INVALID.format(chsvc_tag), failed=True)
         slot_dict = get_slot_data(module, rest_obj, chx, chassi_dict[chsvc_tag])
         slot_data.update(slot_dict)
     if not slot_data:
@@ -596,14 +597,14 @@ def main():
             if slot_data:
                 failed_jobs = get_job_states(module, rest_obj, slot_data)
             else:
-                module.fail_json(msg=JOBS_TRIG_FAIL, rename_failed_slots=list(invalid_jobs.values()))
+                module.exit_json(msg=JOBS_TRIG_FAIL, rename_failed_slots=list(invalid_jobs.values()), failed=True)
             exit_slot_config(module, rest_obj, failed_jobs, invalid_jobs, slot_data)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':

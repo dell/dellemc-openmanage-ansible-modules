@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
-
-#
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
-
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-#
+# Version 10.0.1
+# Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import (absolute_import, division, print_function)
 
@@ -181,7 +178,7 @@ class TestOmeDeviceMgmtNetwork(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'get_device_details', return_value=dvc)
         mocker.patch(MODULE_PATH + 'get_network_payload', return_value={})
         ome_default_args.update(params['module_args'])
-        result = self._run_module_with_fail_json(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result['msg'] == params['msg'].format(dvc.get('Model'))
 
     @pytest.mark.parametrize("params", [
@@ -397,12 +394,58 @@ class TestOmeDeviceMgmtNetwork(FakeAnsibleModule):
             assert result["unreachable"] is True
         elif exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + 'validate_input', side_effect=exc_type("exception message"))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'validate_input',
                          side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'msg' in result
+
+    def test_validate_ip_address(self):
+        result = self.module.validate_ip_address("XX.XX.XX.XX.1")
+        assert result is False
+        result = self.module.validate_ip_v6_address("::-1")
+        assert result is False
+
+    @pytest.mark.parametrize("input", [
+        {"params": {"ipv4_configuration": {"static_gateway": "test"}},
+         "ip_type": "IPv4",
+         "var_list": ["static_gateway"]},
+    ])
+    def test_validate_ipaddress_invalid(self, input):
+        f_module = self.get_module_mock(params=input['params'])
+
+        def ip_func(ip):
+            return False
+        with pytest.raises(Exception) as exc:
+            self.module.validate_ipaddress(
+                f_module, input["ip_type"], "ipv4_configuration",
+                input["var_list"], ip_func)
+        assert exc.value.args[0] == \
+            "Invalid IPv4 address provided for the static_gateway"
+
+    @pytest.mark.parametrize("params", [{"input": {
+        "ipv6_configuration": {},
+        "ipv4_configuration": {},
+        "dns_server_settings": {
+            "dns1": "invalid_ip"},
+        "management_vlan": {}}}])
+    def test_validate_input_invalid_dns(self, params):
+        f_module = self.get_module_mock(params=params["input"])
+        with pytest.raises(Exception) as exc:
+            self.module.validate_input(f_module)
+        assert exc.value.args[0] == \
+            "Invalid IP address provided for the dns1"
+
+    @pytest.mark.parametrize(
+        "params", [{"mparams": {"device_id": 9999}, "res": {"Device with device_id '9999' not found."}}])
+    def test_get_device_details_failure(
+            self, params, ome_connection_mock_for_device_network):
+        msg = "exception message"
+        f_module = self.get_module_mock(params=params["mparams"])
+        ome_connection_mock_for_device_network.invoke_request.side_effect = Exception(msg)
+        with pytest.raises(Exception, match=msg):
+            self.module.get_device_details(f_module, ome_connection_mock_for_device_network)

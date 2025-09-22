@@ -2,7 +2,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.2.0
+# Version 10.0.1
 # Copyright (C) 2021-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -235,7 +235,7 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
                     "accept-type": "application/json"},
                 StringIO(json_str))
         ome_default_args.update(params['mparams'])
-        result = self._run_module_with_fail_json(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result['msg'] == params['message']
 
     @pytest.mark.parametrize("exc_type",
@@ -256,12 +256,12 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
         elif exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + 'check_domain_service',
                          side_effect=exc_type("exception message"))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'check_domain_service',
                          side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'msg' in result
