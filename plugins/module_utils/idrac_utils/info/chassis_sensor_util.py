@@ -26,9 +26,11 @@
 
 GET_IDRAC_SENSORS_URI = "/redfish/v1/Chassis/System.Embedded.1/Sensors"
 
+
 class _chassis_response(object):
     def __init__(self, status_code: int):
         self.status_code = status_code
+
 
 class IDRACChassisSensors(object):
     def __init__(self, idrac):

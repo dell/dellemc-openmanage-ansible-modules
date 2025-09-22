@@ -375,6 +375,7 @@ class TestIDRACSystemBoardMetricsInfo(TestUtils):
             type("Resp", (), {"status_code": 200, "json_data": amperage_resp}),
             type("Resp", (), {"status_code": 200, "json_data": headroom_resp}),
         ]
+
     def _get_chassis_resp(self, idrac_mock, all_members=True):
         chassis_resp = {
             "Members": [

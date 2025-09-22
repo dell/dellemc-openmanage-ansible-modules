@@ -31,6 +31,7 @@ GET_IDRAC_SENSOR_PWR_CONSUMPTION_URI = "/redfish/v1/Chassis/System.Embedded.1/Se
 
 NA = "Not Available"
 
+
 class IDRACSensorAmperageInfo(object):
     def __init__(self, idrac, chassis_sensors: IDRACChassisSensors):
         self.idrac = idrac
