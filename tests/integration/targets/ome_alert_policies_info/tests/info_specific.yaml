@@ -80,7 +80,7 @@
     assert:
       that:
         - result_one.msg == result_one_cm.msg
-        - result_one.msg == ("Successfully retrieved %s OME alert policy information." % result_all.policies[0].Name)      
+        - result_one.msg == ("Successfully retrieved %s OME alert policy information." % result_all.policies[0].Name)     
         - not result_one.changed
         - not result_one_cm.changed
         - policy_info_module | length == policy_info_module_cm | length == policy_info_uri | length
