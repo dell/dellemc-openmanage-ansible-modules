@@ -12,6 +12,7 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.system_board_metrics import IDRACSystemBoardMetricsInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.chassis_sensor_util import IDRACChassisSensors
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.module_utils.idrac_utils.test_idrac_utils import TestUtils
 
 NA = "Not Available"
@@ -20,6 +21,7 @@ NA = "Not Available"
 class TestIDRACSystemBoardMetricsInfo(TestUtils):
 
     def test_get_system_metrics_info_success(self, idrac_mock):
+        sensors = self._get_chassis_resp(idrac_mock)
         # Mock responses
         cpu_usage_resp = {
             "Oem": {
@@ -124,7 +126,7 @@ class TestIDRACSystemBoardMetricsInfo(TestUtils):
             headroom_resp
         )
 
-        system_board_metrics_info = IDRACSystemBoardMetricsInfo(idrac_mock)
+        system_board_metrics_info = IDRACSystemBoardMetricsInfo(idrac_mock, sensors)
         result = system_board_metrics_info.get_system_board_metrics_info()
 
         expected = [{
@@ -184,6 +186,7 @@ class TestIDRACSystemBoardMetricsInfo(TestUtils):
         assert result == expected
 
     def test_get_system_metrics_info_missing_fields(self, idrac_mock):
+        sensors = self._get_chassis_resp(idrac_mock)
         # Mock responses with missing fields
         cpu_usage_resp = {
             "Oem": {
@@ -284,7 +287,7 @@ class TestIDRACSystemBoardMetricsInfo(TestUtils):
             headroom_resp
         )
 
-        system_board_metrics_info = IDRACSystemBoardMetricsInfo(idrac_mock)
+        system_board_metrics_info = IDRACSystemBoardMetricsInfo(idrac_mock, sensors)
         result = system_board_metrics_info.get_system_board_metrics_info()
 
         expected = [{
@@ -344,6 +347,7 @@ class TestIDRACSystemBoardMetricsInfo(TestUtils):
         assert result == expected
 
     def test_get_system_metrics_info_non_200_responses(self, idrac_mock):
+        sensors = self._get_chassis_resp(idrac_mock, False)
         # Force non-200 to check fallbacks
         idrac_mock.invoke_request.side_effect = [
             type("Resp", (), {"status_code": 503, "json_data": {}}),
@@ -355,59 +359,59 @@ class TestIDRACSystemBoardMetricsInfo(TestUtils):
             type("Resp", (), {"status_code": 503, "json_data": {}}),
         ]
 
-        system_board_metrics_info = IDRACSystemBoardMetricsInfo(idrac_mock)
+        system_board_metrics_info = IDRACSystemBoardMetricsInfo(idrac_mock, sensors)
         result = system_board_metrics_info.get_system_board_metrics_info()
 
         expected = [{
             "Key": "SystemBoardMetrics",
 
-            "CPUUsageAvg1H": {},
-            "CPUUsageAvg1D": {},
-            "CPUUsageAvg1W": {},
-            "CPUUsageMax1H": {},
-            "CPUUsageMax1D": {},
-            "CPUUsageMax1W": {},
-            "CPUUsageMin1H": {},
-            "CPUUsageMin1D": {},
-            "CPUUsageMin1W": {},
-            "SYSPeakCPUUsage": {},
+            "CPUUsageAvg1H": NA,
+            "CPUUsageAvg1D": NA,
+            "CPUUsageAvg1W": NA,
+            "CPUUsageMax1H": NA,
+            "CPUUsageMax1D": NA,
+            "CPUUsageMax1W": NA,
+            "CPUUsageMin1H": NA,
+            "CPUUsageMin1D": NA,
+            "CPUUsageMin1W": NA,
+            "SYSPeakCPUUsage": NA,
 
-            "IOUsageAvg1H": {},
-            "IOUsageAvg1D": {},
-            "IOUsageAvg1W": {},
-            "IOUsageMax1H": {},
-            "IOUsageMax1D": {},
-            "IOUsageMax1W": {},
-            "IOUsageMin1H": {},
-            "IOUsageMin1D": {},
-            "IOUsageMin1W": {},
-            "SYSPeakIOUsage": {},
+            "IOUsageAvg1H": NA,
+            "IOUsageAvg1D": NA,
+            "IOUsageAvg1W": NA,
+            "IOUsageMax1H": NA,
+            "IOUsageMax1D": NA,
+            "IOUsageMax1W": NA,
+            "IOUsageMin1H": NA,
+            "IOUsageMin1D": NA,
+            "IOUsageMin1W": NA,
+            "SYSPeakIOUsage": NA,
 
-            "MemoryUsageAvg1H": {},
-            "MemoryUsageAvg1D": {},
-            "MemoryUsageAvg1W": {},
-            "MemoryUsageMax1H": {},
-            "MemoryUsageMax1D": {},
-            "MemoryUsageMax1W": {},
-            "MemoryUsageMin1H": {},
-            "MemoryUsageMin1D": {},
-            "MemoryUsageMin1W": {},
-            "SYSPeakMemoryUsage": {},
+            "MemoryUsageAvg1H": NA,
+            "MemoryUsageAvg1D": NA,
+            "MemoryUsageAvg1W": NA,
+            "MemoryUsageMax1H": NA,
+            "MemoryUsageMax1D": NA,
+            "MemoryUsageMax1W": NA,
+            "MemoryUsageMin1H": NA,
+            "MemoryUsageMin1D": NA,
+            "MemoryUsageMin1W": NA,
+            "SYSPeakMemoryUsage": NA,
 
-            "SYSUsageAvg1H": {},
-            "SYSUsageAvg1D": {},
-            "SYSUsageAvg1W": {},
-            "SYSUsageMax1H": {},
-            "SYSUsageMax1D": {},
-            "SYSUsageMax1W": {},
-            "SYSUsageMin1H": {},
-            "SYSUsageMin1D": {},
-            "SYSUsageMin1W": {},
-            "SYSPeakSYSUsage": {},
+            "SYSUsageAvg1H": NA,
+            "SYSUsageAvg1D": NA,
+            "SYSUsageAvg1W": NA,
+            "SYSUsageMax1H": NA,
+            "SYSUsageMax1D": NA,
+            "SYSUsageMax1W": NA,
+            "SYSUsageMin1H": NA,
+            "SYSUsageMin1D": NA,
+            "SYSUsageMin1W": NA,
+            "SYSPeakSYSUsage": NA,
 
-            "PeakPower": {},
-            "PeakAmperage": {},
-            "PeakHeadroom": {},
+            "PeakPower": NA,
+            "PeakAmperage": NA,
+            "PeakHeadroom": NA,
 
             "SystemBoardMetrics": NA
         }]
@@ -424,3 +428,18 @@ class TestIDRACSystemBoardMetricsInfo(TestUtils):
             type("Resp", (), {"status_code": 200, "json_data": amperage_resp}),
             type("Resp", (), {"status_code": 200, "json_data": headroom_resp}),
         ]
+    def _get_chassis_resp(self, idrac_mock, all_members=True):
+        chassis_resp = {
+            "Members": [
+                {"@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/SystemBoardIOUsage"},
+                {"@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/SystemBoardMEMUsage"},
+                {"@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/SystemBoardSYSUsage"},
+                {"@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/SystemBoardPwrConsumption"},
+                {"@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/SystemBoardCurrentConsumption"},
+                {"@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/PowerHeadroom"},
+            ]
+        }
+        if all_members:
+            chassis_resp["Members"].append({"@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/SystemBoardCPUUsage"})
+        idrac_mock.invoke_request.return_value.json_data = chassis_resp
+        return IDRACChassisSensors(idrac_mock)
