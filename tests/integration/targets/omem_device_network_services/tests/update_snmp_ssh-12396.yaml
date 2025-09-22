@@ -20,7 +20,7 @@
     - name: Update SNMP & SSH configuration using
         device id. (Check mode - changes expected)
       dellemc.openmanage.ome_device_network_services: &deviceid
-        device_id: "{{device_id}}"
+        device_id: "{{ device_id }}"
         snmp_settings:
           enabled: true
           port_number: 164
@@ -59,7 +59,7 @@
     - name: Update SNMP & SSH configuration using device
         service tag. (Check mode - changes expected)
       dellemc.openmanage.ome_device_network_services: &deviceservicetag
-        device_service_tag: "{{device_service_tag}}"
+        device_service_tag: "{{ device_service_tag }}"
         snmp_settings:
           enabled: true
           port_number: 164
@@ -118,8 +118,8 @@
 
   module_defaults:
     dellemc.openmanage.ome_device_network_services:
-      validate_certs: "{{validate_certs}}"
-      hostname: "{{hostname}}"
-      username: "{{username}}"
-      password: "{{password}}"
-      port: "{{port}}"
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"

@@ -9,7 +9,7 @@
     - name: Get the device service tag of a server
         present under idrac group in inventory.
       dellemc.openmanage.ome_device_info:
-        hostname: "{{hostname}}"
+        hostname: "{{ hostname }}"
       register: all_devices
 
     - ansible.builtin.set_fact:
@@ -19,7 +19,7 @@
           `{{ hostname }}`]]'
 
     - ansible.builtin.set_fact:
-        device_info: "{{all_devices | json_query(query)}}"
+        device_info: "{{ all_devices | json_query(query) }}"
       vars:
         query:
           'device_info.value[?DeviceManagement[?NetworkAddress ==
@@ -27,13 +27,13 @@
 
     - name: Get device service tag and device id of the host
       ansible.builtin.set_fact:
-        device_service_tag: "{{device_info[0].DeviceServiceTag}}"
-        device_id: "{{device_info[0].Id}}"
+        device_service_tag: "{{ device_info[0].DeviceServiceTag }}"
+        device_id: "{{ device_info[0].Id }}"
 
   module_defaults:
     dellemc.openmanage.ome_device_info:
-      validate_certs: "{{validate_certs}}"
-      hostname: "{{hostname}}"
-      username: "{{username}}"
-      password: "{{password}}"
-      port: "{{port}}"
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"
