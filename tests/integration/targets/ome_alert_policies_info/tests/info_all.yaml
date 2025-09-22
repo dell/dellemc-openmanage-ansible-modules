@@ -46,7 +46,7 @@
       validate_certs: false
       status_code: 200
       force_basic_auth: true
-    register: result_uri     
+    register: result_uri
 
   - name: Remove odata from result_uri.
     set_fact:
@@ -55,13 +55,13 @@
 
   - name: Compare the output of policy_info from URI and module
     ansible.utils.fact_diff:
-      before: "{{ policy_info_uri['value'] }}" 
+      before: "{{ policy_info_uri['value'] }}"
       after: "{{ policy_info_module['policies'] }}"
     register: diff_result
 
   - name: Compare the output of policy_info from URI and module(CheckMode)
     ansible.utils.fact_diff:
-      before: "{{ policy_info_uri['value'] }}" 
+      before: "{{ policy_info_uri['value'] }}"
       after: "{{ policy_info_module_cm['policies'] }}"
     register: diff_result_cm
 
