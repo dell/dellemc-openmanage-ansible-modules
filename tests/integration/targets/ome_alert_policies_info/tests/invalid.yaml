@@ -1,12 +1,15 @@
 # Test code for the Dell OpenManage modules
 # Copyright (C) 2023-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an OME host, OME username and OME password
   fail:
-    msg: 'Please define the following variables: hostname, username and password.'
-  when: hostname is not defined or username is not defined or password is not defined
+    msg: 'Please define the following variables:
+      hostname, username and password.'
+  when: hostname is not defined or username
+    is not defined or password is not defined
 
 - block:
     - name: Get policies info (Negative - invalid hostname).
@@ -73,34 +76,42 @@
         that:
           - invalid_hostname.unreachable
           - not invalid_hostname.changed
-          - invalid_hostname.msg == "<urlopen error [Errno -2] Name or service not known>"
+          - invalid_hostname.msg == "<urlopen error
+            [Errno -2] Name or service not known>"
           - invalid_username.failed
           - not invalid_username.changed
           - invalid_password.failed
           - not invalid_password.changed
-          - 'invalid_username.msg == invalid_password.msg == "HTTP Error 401: 401" or "HTTP Error 400: 400"'
+          - 'invalid_username.msg == invalid_password.msg == "HTTP
+            Error 401: 401" or "HTTP Error 400: 400"'
           - invalid_ca_path.failed
           - not invalid_ca_path.changed
           - "'[Errno 2] No such file or directory' in invalid_ca_path.msg"
           - invalid_parameter.failed
           - not invalid_parameter.changed
-          - >
-            "'Unsupported parameters for (dellemc.openmanage.ome_alert_policies_info) module: policy_id.
-            Supported parameters include: ca_path, hostname, password, policy_name, port, timeout, username, validate_certs'
-            in invalid_parameter.msg"
+          - "'Unsupported parameters for
+            (dellemc.openmanage.ome_alert_policies_info)
+            module: policy_id. Supported parameters include: ca_path, hostname,
+            password, policy_name, port, timeout, username,
+            validate_certs' in invalid_parameter.msg"
           - invalid_port.unreachable
           - not invalid_port.changed
-          - "'<urlopen error [Errno 113] No route to host>' == invalid_port.msg or '<urlopen error [Errno 13] Permission denied>' == invalid_port.msg"
+          - "'<urlopen error [Errno 113] No route
+            to host>' == invalid_port.msg or '<urlopen error [Errno 13]
+            Permission denied>' == invalid_port.msg"
           - invalid_certs.failed
           - not invalid_certs.changed
-          - invalid_certs.msg is search("argument 'validate_certs'.*not a valid boolean")
+          - invalid_certs.msg is search("argument
+            'validate_certs'.*not a valid boolean")
           - invalid_timeout.failed
           - not invalid_timeout.changed
           - "'Timeout value out of range' == invalid_timeout.msg"
           - not empty_policy_name.changed
-          - empty_policy_name.msg == "The OME alert policy name  provided does not exist or empty."
+          - empty_policy_name.msg == "The OME alert policy
+            name  provided does not exist or empty."
           - not invalid_policy_name.changed
-          - invalid_policy_name.msg == "The OME alert policy name invalidPolicyName provided does not exist or empty."
+          - invalid_policy_name.msg == "The OME alert
+            policy name invalidPolicyName provided does not exist or empty."
 
   module_defaults:
     dellemc.openmanage.ome_alert_policies_info:

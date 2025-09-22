@@ -1,12 +1,15 @@
 # Test code for the Dell OpenManage modules
 # Copyright (C) 2023-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an OME host, OME username and OME password
   fail:
-    msg: 'Please define the following variables: hostname, username and password.'
-  when: hostname is not defined or username is not defined or password is not defined
+    msg: 'Please define the following variables: hostname,
+      username and password.'
+  when: hostname is not defined or username is not
+    defined or password is not defined
 
 - block:
 
@@ -50,7 +53,9 @@
 
     - name: Remove odata from result_uri.
       set_fact:
-        policy_info_uri: "{{ result_uri.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', '@odata.count']) }}"
+        policy_info_uri: "{{ result_uri.json |
+          ansible.utils.remove_keys(target=['@odata.context',
+          '@odata.id', '@odata.type', '@odata.count']) }}"
       when: result_uri.status == 200
 
     - name: Compare the output of policy_info from URI and module
@@ -68,10 +73,13 @@
     - name: Verify status of tasks.
       assert:
         that:
-          - policy_info_module.msg == policy_info_module_cm.msg == "Successfully retrieved all the OME alert policies information."
+          - policy_info_module.msg == policy_info_module_cm.msg ==
+            "Successfully retrieved all the OME alert policies information."
           - not policy_info_module.changed
           - not policy_info_module_cm.changed
-          - policy_info_module['policies'] | length == policy_info_module_cm['policies'] | length == policy_info_uri['value'] | length
+          - policy_info_module['policies'] |
+            length == policy_info_module_cm['policies'] |
+            length == policy_info_uri['value'] | length
           - not diff_result.changed
           - not diff_result.diff_lines
           - not diff_result_cm.changed
