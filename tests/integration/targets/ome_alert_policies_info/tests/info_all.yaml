@@ -10,72 +10,72 @@
 
 - block:
 
-  - name: Get all alert policy info details.
-    ome_alert_policies_info:
-    register: policy_info_module
+    - name: Get all alert policy info details.
+      ome_alert_policies_info:
+      register: policy_info_module
 
-  - name: Get all alert policy info details (CheckMode).
-    ome_alert_policies_info:
-    check_mode: true
-    register: policy_info_module_cm
+    - name: Get all alert policy info details (CheckMode).
+      ome_alert_policies_info:
+      check_mode: true
+      register: policy_info_module_cm
 
-  - name: Settings default value for alert policy info details from URI
-    set_fact:
-      policy_info_uri: []
+    - name: Settings default value for alert policy info details from URI
+      set_fact:
+        policy_info_uri: []
 
-  - name: Check whether hostname IP is IPv4 or IPv6.
-    set_fact:
-      is_ipv4: "{{ hostname is ansible.utils.ipv4 }}"
-      is_ipv6: "{{ hostname is ansible.utils.ipv6 }}"
+    - name: Check whether hostname IP is IPv4 or IPv6.
+      set_fact:
+        is_ipv4: "{{ hostname is ansible.utils.ipv4 }}"
+        is_ipv6: "{{ hostname is ansible.utils.ipv6 }}"
 
-  - name: Set API URL to fetch policy information.
-    set_fact:
-      url: https://{{hostname}}/api/AlertService/AlertPolicies
-    when: is_ipv4
+    - name: Set API URL to fetch policy information.
+      set_fact:
+        url: https://{{hostname}}/api/AlertService/AlertPolicies
+      when: is_ipv4
 
-  - name: Set API URL to fetch policy information.
-    set_fact:
-      url: https://[{{hostname}}]/api/AlertService/AlertPolicies
-    when: is_ipv6
+    - name: Set API URL to fetch policy information.
+      set_fact:
+        url: https://[{{hostname}}]/api/AlertService/AlertPolicies
+      when: is_ipv6
 
-  - name: Retrieve alert policies information via URI.
-    uri:
-      url: "{{url}}"
-      user: "{{username}}"
-      password: "{{password}}"
-      validate_certs: false
-      status_code: 200
-      force_basic_auth: true
-    register: result_uri
+    - name: Retrieve alert policies information via URI.
+      uri:
+        url: "{{url}}"
+        user: "{{username}}"
+        password: "{{password}}"
+        validate_certs: false
+        status_code: 200
+        force_basic_auth: true
+      register: result_uri
 
-  - name: Remove odata from result_uri.
-    set_fact:
-      policy_info_uri: "{{ result_uri.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', '@odata.count']) }}"
-    when: result_uri.status == 200
+    - name: Remove odata from result_uri.
+      set_fact:
+        policy_info_uri: "{{ result_uri.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', '@odata.count']) }}"
+      when: result_uri.status == 200
 
-  - name: Compare the output of policy_info from URI and module
-    ansible.utils.fact_diff:
-      before: "{{ policy_info_uri['value'] }}"
-      after: "{{ policy_info_module['policies'] }}"
-    register: diff_result
+    - name: Compare the output of policy_info from URI and module
+      ansible.utils.fact_diff:
+        before: "{{ policy_info_uri['value'] }}"
+        after: "{{ policy_info_module['policies'] }}"
+      register: diff_result
 
-  - name: Compare the output of policy_info from URI and module(CheckMode)
-    ansible.utils.fact_diff:
-      before: "{{ policy_info_uri['value'] }}"
-      after: "{{ policy_info_module_cm['policies'] }}"
-    register: diff_result_cm
+    - name: Compare the output of policy_info from URI and module(CheckMode)
+      ansible.utils.fact_diff:
+        before: "{{ policy_info_uri['value'] }}"
+        after: "{{ policy_info_module_cm['policies'] }}"
+      register: diff_result_cm
 
-  - name: Verify status of tasks.
-    assert:
-      that:
-        - policy_info_module.msg == policy_info_module_cm.msg == "Successfully retrieved all the OME alert policies information."
-        - not policy_info_module.changed
-        - not policy_info_module_cm.changed
-        - policy_info_module['policies'] | length == policy_info_module_cm['policies'] | length == policy_info_uri['value'] | length
-        - not diff_result.changed
-        - not diff_result.diff_lines
-        - not diff_result_cm.changed
-        - not diff_result_cm.diff_lines
+    - name: Verify status of tasks.
+      assert:
+        that:
+          - policy_info_module.msg == policy_info_module_cm.msg == "Successfully retrieved all the OME alert policies information."
+          - not policy_info_module.changed
+          - not policy_info_module_cm.changed
+          - policy_info_module['policies'] | length == policy_info_module_cm['policies'] | length == policy_info_uri['value'] | length
+          - not diff_result.changed
+          - not diff_result.diff_lines
+          - not diff_result_cm.changed
+          - not diff_result_cm.diff_lines
 
   module_defaults:
     dellemc.openmanage.ome_alert_policies_info:
