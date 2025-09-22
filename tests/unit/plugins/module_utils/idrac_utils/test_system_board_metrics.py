@@ -19,6 +19,61 @@ NA = "Not Available"
 
 
 class TestIDRACSystemBoardMetricsInfo(TestUtils):
+    all_na = [
+        {
+            "Key": "SystemBoardMetrics",
+
+            "CPUUsageAvg1H": NA,
+            "CPUUsageAvg1D": NA,
+            "CPUUsageAvg1W": NA,
+            "CPUUsageMax1H": NA,
+            "CPUUsageMax1D": NA,
+            "CPUUsageMax1W": NA,
+            "CPUUsageMin1H": NA,
+            "CPUUsageMin1D": NA,
+            "CPUUsageMin1W": NA,
+            "SYSPeakCPUUsage": NA,
+
+            "IOUsageAvg1H": NA,
+            "IOUsageAvg1D": NA,
+            "IOUsageAvg1W": NA,
+            "IOUsageMax1H": NA,
+            "IOUsageMax1D": NA,
+            "IOUsageMax1W": NA,
+            "IOUsageMin1H": NA,
+            "IOUsageMin1D": NA,
+            "IOUsageMin1W": NA,
+            "SYSPeakIOUsage": NA,
+
+            "MemoryUsageAvg1H": NA,
+            "MemoryUsageAvg1D": NA,
+            "MemoryUsageAvg1W": NA,
+            "MemoryUsageMax1H": NA,
+            "MemoryUsageMax1D": NA,
+            "MemoryUsageMax1W": NA,
+            "MemoryUsageMin1H": NA,
+            "MemoryUsageMin1D": NA,
+            "MemoryUsageMin1W": NA,
+            "SYSPeakMemoryUsage": NA,
+
+            "SYSUsageAvg1H": NA,
+            "SYSUsageAvg1D": NA,
+            "SYSUsageAvg1W": NA,
+            "SYSUsageMax1H": NA,
+            "SYSUsageMax1D": NA,
+            "SYSUsageMax1W": NA,
+            "SYSUsageMin1H": NA,
+            "SYSUsageMin1D": NA,
+            "SYSUsageMin1W": NA,
+            "SYSPeakSYSUsage": NA,
+
+            "PeakPower": NA,
+            "PeakAmperage": NA,
+            "PeakHeadroom": NA,
+
+            "SystemBoardMetrics": NA
+        }
+    ]
 
     def test_get_system_metrics_info_success(self, idrac_mock):
         sensors = self._get_chassis_resp(idrac_mock)
@@ -290,61 +345,7 @@ class TestIDRACSystemBoardMetricsInfo(TestUtils):
         system_board_metrics_info = IDRACSystemBoardMetricsInfo(idrac_mock, sensors)
         result = system_board_metrics_info.get_system_board_metrics_info()
 
-        expected = [{
-            "Key": "SystemBoardMetrics",
-
-            "CPUUsageAvg1H": NA,
-            "CPUUsageAvg1D": NA,
-            "CPUUsageAvg1W": NA,
-            "CPUUsageMax1H": NA,
-            "CPUUsageMax1D": NA,
-            "CPUUsageMax1W": NA,
-            "CPUUsageMin1H": NA,
-            "CPUUsageMin1D": NA,
-            "CPUUsageMin1W": NA,
-            "SYSPeakCPUUsage": NA,
-
-            "IOUsageAvg1H": NA,
-            "IOUsageAvg1D": NA,
-            "IOUsageAvg1W": NA,
-            "IOUsageMax1H": NA,
-            "IOUsageMax1D": NA,
-            "IOUsageMax1W": NA,
-            "IOUsageMin1H": NA,
-            "IOUsageMin1D": NA,
-            "IOUsageMin1W": NA,
-            "SYSPeakIOUsage": NA,
-
-            "MemoryUsageAvg1H": NA,
-            "MemoryUsageAvg1D": NA,
-            "MemoryUsageAvg1W": NA,
-            "MemoryUsageMax1H": NA,
-            "MemoryUsageMax1D": NA,
-            "MemoryUsageMax1W": NA,
-            "MemoryUsageMin1H": NA,
-            "MemoryUsageMin1D": NA,
-            "MemoryUsageMin1W": NA,
-            "SYSPeakMemoryUsage": NA,
-
-            "SYSUsageAvg1H": NA,
-            "SYSUsageAvg1D": NA,
-            "SYSUsageAvg1W": NA,
-            "SYSUsageMax1H": NA,
-            "SYSUsageMax1D": NA,
-            "SYSUsageMax1W": NA,
-            "SYSUsageMin1H": NA,
-            "SYSUsageMin1D": NA,
-            "SYSUsageMin1W": NA,
-            "SYSPeakSYSUsage": NA,
-
-            "PeakPower": NA,
-            "PeakAmperage": NA,
-            "PeakHeadroom": NA,
-
-            "SystemBoardMetrics": NA
-        }]
-
-        assert result == expected
+        assert result == self.all_na
 
     def test_get_system_metrics_info_non_200_responses(self, idrac_mock):
         sensors = self._get_chassis_resp(idrac_mock, False)
@@ -362,61 +363,7 @@ class TestIDRACSystemBoardMetricsInfo(TestUtils):
         system_board_metrics_info = IDRACSystemBoardMetricsInfo(idrac_mock, sensors)
         result = system_board_metrics_info.get_system_board_metrics_info()
 
-        expected = [{
-            "Key": "SystemBoardMetrics",
-
-            "CPUUsageAvg1H": NA,
-            "CPUUsageAvg1D": NA,
-            "CPUUsageAvg1W": NA,
-            "CPUUsageMax1H": NA,
-            "CPUUsageMax1D": NA,
-            "CPUUsageMax1W": NA,
-            "CPUUsageMin1H": NA,
-            "CPUUsageMin1D": NA,
-            "CPUUsageMin1W": NA,
-            "SYSPeakCPUUsage": NA,
-
-            "IOUsageAvg1H": NA,
-            "IOUsageAvg1D": NA,
-            "IOUsageAvg1W": NA,
-            "IOUsageMax1H": NA,
-            "IOUsageMax1D": NA,
-            "IOUsageMax1W": NA,
-            "IOUsageMin1H": NA,
-            "IOUsageMin1D": NA,
-            "IOUsageMin1W": NA,
-            "SYSPeakIOUsage": NA,
-
-            "MemoryUsageAvg1H": NA,
-            "MemoryUsageAvg1D": NA,
-            "MemoryUsageAvg1W": NA,
-            "MemoryUsageMax1H": NA,
-            "MemoryUsageMax1D": NA,
-            "MemoryUsageMax1W": NA,
-            "MemoryUsageMin1H": NA,
-            "MemoryUsageMin1D": NA,
-            "MemoryUsageMin1W": NA,
-            "SYSPeakMemoryUsage": NA,
-
-            "SYSUsageAvg1H": NA,
-            "SYSUsageAvg1D": NA,
-            "SYSUsageAvg1W": NA,
-            "SYSUsageMax1H": NA,
-            "SYSUsageMax1D": NA,
-            "SYSUsageMax1W": NA,
-            "SYSUsageMin1H": NA,
-            "SYSUsageMin1D": NA,
-            "SYSUsageMin1W": NA,
-            "SYSPeakSYSUsage": NA,
-
-            "PeakPower": NA,
-            "PeakAmperage": NA,
-            "PeakHeadroom": NA,
-
-            "SystemBoardMetrics": NA
-        }]
-
-        assert result == expected
+        assert result == self.all_na
 
     def _get_sequential_responses(self, cpu_usage_resp, io_usage_resp, mem_usage_resp, sys_usage_resp, power_resp, amperage_resp, headroom_resp):
         return [
