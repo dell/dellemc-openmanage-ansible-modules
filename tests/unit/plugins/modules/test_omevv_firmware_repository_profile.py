@@ -925,7 +925,11 @@ class TestDeleteFirmwareRepositoryProfile(FakeAnsibleModule):
         obj = self.module.DeleteFirmwareRepositoryProfile(
             omevv_connection_firmware_repository_profile, f_module)
         result = obj.diff_mode_check(payload)
-        assert result is None
+        expected_result = {
+            'after': {'description': 'Test6', 'profileName': 'test', 'profileType': 'Firmware', 'protocolType': 'HTTPS', 'sharePath': SHARE_PATH},
+            'before': {'description': 'Test6', 'profileName': 'test', 'profileType': 'Firmware', 'protocolType': 'HTTPS', 'sharePath': SHARE_PATH}
+        }
+        assert result == expected_result
 
     def test_delete_firmware_repository_profile(self, mocker, omevv_default_args, omevv_connection_firmware_repository_profile):
         obj = MagicMock()
