@@ -80,7 +80,7 @@
 - '      * This module supports IPv4 and IPv6 addresses.'
 - ''
 - ''
-- 'REQUIREMENTS:  python >= 3.9.6'
+- 'REQUIREMENTS:  python >= 3.11'
 - ''
 - 'AUTHOR: Shivam Sharma (@ShivamSh3)'
 - ''
