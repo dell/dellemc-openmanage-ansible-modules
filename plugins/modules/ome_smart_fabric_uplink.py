@@ -538,7 +538,7 @@ def main():
                     delete_uplink(module, rest_obj, fabric_id, uplink['Id'])
                 if module.check_mode:
                     module.exit_json(msg=NO_CHANGES_MSG)
-                module.exit_json(msg="Uplink {0} does not exist.".format(module.params["name"]), failed=True)
+                module.exit_json(msg="Uplink {0} does not exist.".format(module.params["name"]))
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
