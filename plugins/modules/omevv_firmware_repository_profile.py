@@ -562,6 +562,8 @@ class DeleteFirmwareRepositoryProfile(FirmwareRepositoryProfile):
         diff_dict["sharePath"] = payload["sharePath"]
         diff_dict["protocolType"] = payload["protocolType"]
         self.diff_dict['before'].update(diff_dict)
+        self.diff_dict["after"].update(diff_dict)
+        return self.diff_dict
 
     def delete_firmware_repository_profile(self, api_response):
         self.diff_mode_check(api_response)
@@ -572,7 +574,7 @@ class DeleteFirmwareRepositoryProfile(FirmwareRepositoryProfile):
             if self.module._diff and self.module.params.get('resync'):
                 self.module.exit_json(msg=SUCCESS_DELETION_RESYNC_MSG, diff=self.diff_dict, changed=True)
             if self.module._diff:
-                self.module.exit_json(msg=SUCCESS_DELETION_MSG, changed=True)
+                self.module.exit_json(msg=SUCCESS_DELETION_MSG, diff=self.diff_dict, changed=True)
             self.module.exit_json(msg=SUCCESS_DELETION_MSG, changed=True)
         else:
             self.module.exit_json(msg=FAILED_DELETION_MSG, failed=True)
