@@ -14,16 +14,16 @@
 - block:
 
     - name: Get all alert policy info details.
-      ome_alert_policies_info:
+      dellemc.openmanage.ome_alert_policies_info:
       register: result_all
 
     - name: Get alert policy info details by policy_name.
-      ome_alert_policies_info:
+      dellemc.openmanage.ome_alert_policies_info:
         policy_name: "{{ result_all.policies[0].Name }}"
       register: result_one
 
     - name: Get alert policy info details by policy_name(CheckMode).
-      ome_alert_policies_info:
+      dellemc.openmanage.ome_alert_policies_info:
         policy_name: "{{ result_all.policies[0].Name }}"
       check_mode: true
       register: result_one_cm

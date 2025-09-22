@@ -14,11 +14,11 @@
 - block:
 
     - name: Get all alert policy info details.
-      ome_alert_policies_info:
+      dellemc.openmanage.ome_alert_policies_info:
       register: policy_info_module
 
     - name: Get all alert policy info details (CheckMode).
-      ome_alert_policies_info:
+      dellemc.openmanage.ome_alert_policies_info:
       check_mode: true
       register: policy_info_module_cm
 
