@@ -1,5 +1,5 @@
 # Dell OpenManage Ansible modules
-# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -42,7 +42,7 @@
       ansible.builtin.assert:
         that:
           - cm_result_baseline.changed
-          - 'cm_result_baseline.msg == "Changes found to be applied."'
+          - cm_result_baseline.msg == "Changes found to be applied."
 
     - name: Modify a baseline profile (Check and Diff mode)
       dellemc.openmanage.omevv_baseline_profile:
@@ -53,10 +53,21 @@
 
     - name: Store cluster details for verification
       ansible.builtin.set_fact:
-        cluster_name_1: "{{ cluster_name[0] }}"
-        cluster_name_2: "{{ cluster_name[1] }}"
+        diff_after: "{{ cm_dm_result_baseline.diff.after }}"
         cluster_id_1: "{{ cluster_id[0] }}"
         cluster_id_2: "{{ cluster_id[1] }}"
+        cluster_name_1: "{{ cluster_name[0] }}"
+        cluster_name_2: "{{ cluster_name[1] }}"
+        after_cluster_ids: "{{
+                                cm_dm_result_baseline.diff.after.clusterGroups
+                                | map(attribute='clusterID')
+                                | list
+                            }}"
+        after_cluster_names: "{{
+                                cm_dm_result_baseline.diff.after.clusterGroups
+                                | map(attribute='clusterName')
+                                | list
+                            }}"
         group_id_1: "{{ group_id[0] }}"
         group_id_2: "{{ group_id[1] }}"
         module_group_id_1: "{{
@@ -68,64 +79,60 @@
         firmware_repo_id_2: "{{
           firm_repo_2.profile_info.id }}"
 
+    - name: Create clusterID to omevv_groupID map
+      set_fact:
+        cluster_id_to_group_id:
+          "{{
+            dict(
+              diff_after.clusterGroups
+              | map(attribute='clusterID')
+              | zip(diff_after.clusterGroups | map(attribute='omevv_groupID'))
+            )
+          }}"
+
     - name: Verify task status - Modify a baseline profile (Check and Diff mode)
       ansible.builtin.assert:
         that:
           - cm_dm_result_baseline.changed
-          - 'cm_dm_result_baseline.msg == "Changes found to be applied."'
+          - cm_dm_result_baseline.msg == "Changes found to be applied."
           - cm_dm_result_baseline.diff.before | length > 1
           - cm_dm_result_baseline.diff.after | length > 1
-          - >
-            cm_dm_result_baseline.diff.after.clusterGroups[0].clusterID
-            == cluster_id_1
-          - >
-            cm_dm_result_baseline.diff.after.clusterGroups[1].clusterID
-            == cluster_id_2
-          - >
-            cm_dm_result_baseline.diff.after.clusterGroups[0].clusterName
-            == cluster_name_1
-          - >
-            cm_dm_result_baseline.diff.after.clusterGroups[1].clusterName
-            == cluster_name_2
-          - module_group_id_1 == group_id_1
-          - module_group_id_2 == group_id_2
-          - >
-            'cm_dm_result_baseline.diff.after.firmwareRepoId
-            == "firmware_repo_id_2"'
-          - >
-            'cm_dm_result_baseline.diff.after.repository_profile
-            == "OMAM_Modify_Firm_Repo"'
+          - cluster_id_1 in after_cluster_ids
+          - cluster_id_2 in after_cluster_ids
+          - cluster_name_1 in after_cluster_names
+          - cluster_name_2 in after_cluster_names
+          - cluster_id_to_group_id[cluster_id_1] | string == group_id_1 | string
+          - cluster_id_to_group_id[cluster_id_2] | string == group_id_2 | string
+          - cm_dm_result_baseline.diff.after.firmwareRepoId | string
+            == firmware_repo_id_2 | string
+          - cm_dm_result_baseline.diff.after.firmwareRepoName
+            == "OMAM_Modify_Firm_Repo"
           - cm_dm_result_baseline.diff.after.jobSchedule.friday == false
           - cm_dm_result_baseline.diff.after.jobSchedule.monday == false
           - cm_dm_result_baseline.diff.after.jobSchedule.saturday == true
           - cm_dm_result_baseline.diff.after.jobSchedule.sunday == true
           - cm_dm_result_baseline.diff.after.jobSchedule.thursday == false
-          - 'cm_dm_result_baseline.diff.after.jobSchedule.time == "00:00"'
+          - cm_dm_result_baseline.diff.after.jobSchedule.time == "00:00"
           - cm_dm_result_baseline.diff.after.jobSchedule.tuesday == false
           - cm_dm_result_baseline.diff.after.jobSchedule.wednesday == true
-          - 'cm_dm_result_baseline.diff.after.name == "OMAM_Baseline_Profile"'
-          - >
-            cm_dm_result_baseline.diff.before.clusterGroups[0].clusterID
+          - cm_dm_result_baseline.diff.after.name == "OMAM_Baseline_Profile"
+          - cm_dm_result_baseline.diff.before.clusterGroups[0].clusterID
             == cluster_id_1
-          - >
-            cm_dm_result_baseline.diff.before.clusterGroups[0].clusterName
+          - cm_dm_result_baseline.diff.before.clusterGroups[0].clusterName
             == cluster_name_1
-          - module_group_id_1 == group_id_1
-          - >
-            'cm_dm_result_baseline.diff.before.firmwareRepoId
-            == "firmware_repo_id_1"'
-          - >
-            'cm_dm_result_baseline.diff.before.repository_profile
-            == "OMAM_Firm_Repo"'
+          - cm_dm_result_baseline.diff.before.firmwareRepoId | string
+            == firmware_repo_id_1 | string
+          - cm_dm_result_baseline.diff.before.firmwareRepoName
+            == "OMAM_Firm_Repo"
           - cm_dm_result_baseline.diff.before.jobSchedule.friday == true
           - cm_dm_result_baseline.diff.before.jobSchedule.monday == true
           - cm_dm_result_baseline.diff.before.jobSchedule.saturday == true
           - cm_dm_result_baseline.diff.before.jobSchedule.sunday == true
           - cm_dm_result_baseline.diff.before.jobSchedule.thursday == true
-          - 'cm_dm_result_baseline.diff.before.jobSchedule.time == "12:00"'
+          - cm_dm_result_baseline.diff.before.jobSchedule.time == "12:00"
           - cm_dm_result_baseline.diff.before.jobSchedule.tuesday == true
           - cm_dm_result_baseline.diff.before.jobSchedule.wednesday == true
-          - 'cm_dm_result_baseline.diff.before.name == "OMAM_Baseline_Profile"'
+          - cm_dm_result_baseline.diff.before.name == "OMAM_Baseline_Profile"
 
     - name: Set prerequisite
       ansible.builtin.include_tasks: _helper.yml
@@ -141,9 +148,9 @@
       ansible.builtin.assert:
         that:
           - normal_result_baseline.changed
-          - 'normal_result_baseline.msg == "Successfully modified the baseline
-            profile."'
-          - normal_result_baseline.baseline_profile_info
+          - normal_result_baseline.msg == "Successfully modified the baseline
+            profile."
+          - normal_result_baseline.baseline_profile_info is defined
 
     - name: Store baseline_profile_info data to a variable for verification
       ansible.builtin.set_fact:
@@ -161,8 +168,8 @@
       ansible.builtin.assert:
         that:
           - not idempotence_result_baseline.changed
-          - 'idempotence_result_baseline.msg == "No changes found to be
-            applied."'
+          - idempotence_result_baseline.msg == "No changes found to be
+            applied."
 
   always:
     - name: Post clean up

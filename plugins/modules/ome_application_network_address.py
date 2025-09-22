@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 10.0.1
 # Copyright (C) 2020-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -185,6 +185,7 @@ requirements:
     - "python >= 3.9.6"
 author:
     - "Jagadeesh N V(@jagadeeshnv)"
+    - "Sapana Gupta(@sapana05)"
 '''
 
 EXAMPLES = r'''
@@ -592,7 +593,7 @@ def get_network_config_data(rest_obj, module):
                 if adp.get("PrimaryInterface"):
                     pri_adp = adp
         if interface and int_adp is None:
-            module.fail_json(msg="The 'interface_name' value provided {0} is invalid".format(interface))
+            module.exit_json(msg="The 'interface_name' value provided {0} is invalid".format(interface), failed=True)
         elif int_adp:
             return int_adp, "POST", POST_IP_CONFIG
         else:
@@ -641,7 +642,7 @@ def validate_ipaddress(module, ip_type, config, var_list, ip_func):
         for ipname in var_list:
             val = ipv_input.get(ipname)
             if val and not ip_func(val):
-                module.fail_json(msg="Invalid {0} address provided for the {1}".format(ip_type, ipname))
+                module.exit_json(msg="Invalid {0} address provided for the {1}".format(ip_type, ipname), failed=True)
 
 
 def validate_input(module):
@@ -651,7 +652,7 @@ def validate_input(module):
     validate_ipaddress(module, "IPv4", "ipv4_configuration", ip_addr, validate_ip_address)
     delay = module.params.get("reboot_delay")
     if delay and delay < 0:
-        module.fail_json(msg="Invalid value provided for 'reboot_delay'")
+        module.exit_json(msg="Invalid value provided for 'reboot_delay'", failed=True)
 
 
 def main():
@@ -737,13 +738,11 @@ def main():
             module.exit_json(msg="Successfully triggered task to update network address configuration.",
                              network_configuration=resp.json_data, changed=True)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLError, TypeError, ConnectionError, SSLValidationError, OSError) as err:
-        module.fail_json(msg=str(err))
-    except Exception as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == "__main__":

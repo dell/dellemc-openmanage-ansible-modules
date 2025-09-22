@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.3.0
+# Version 10.0.1
 # Copyright (C) 2022-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -562,7 +562,7 @@ def process_check_mode(module, diff):
 def _validate_params(module):
     error_message = _validate_health_check_interval(module)
     if error_message:
-        module.fail_json(msg=error_message)
+        module.exit_json(msg=error_message, failed=True)
 
 
 def _validate_health_check_interval(module):

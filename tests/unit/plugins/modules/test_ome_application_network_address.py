@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 10.0.1
+# Copyright (C) 2019-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -109,7 +109,7 @@ class TestOmeAppNetwork(FakeAnsibleModule):
                      return_value=(addr_param["out"], "PUT", IP_CONFIG))
         ome_response_mock.json_data = addr_param["out"]
         ome_response_mock.success = True
-        mresult = self.execute_module(ome_default_args)
+        mresult = self._run_module(ome_default_args)
         assert mresult['changed'] is True
         assert "msg" in mresult
         assert "network_configuration" in mresult and mresult["network_configuration"] == addr_param["out"]
@@ -138,7 +138,7 @@ class TestOmeAppNetwork(FakeAnsibleModule):
                      return_value=(addr_param["out"], "POST", POST_IP_CONFIG))
         ome_response_mock.json_data = addr_param["out"]
         ome_response_mock.success = True
-        mresult = self.execute_module(ome_default_args)
+        mresult = self._run_module(ome_default_args)
         assert mresult['changed'] is True
         assert "msg" in mresult
         assert "network_configuration" in mresult and mresult["network_configuration"] == addr_param["out"]
@@ -347,7 +347,7 @@ class TestOmeAppNetwork(FakeAnsibleModule):
         elif exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + 'ome_application_network_address.validate_input',
                          side_effect=exc_type("exception message"))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'ome_application_network_address.validate_input',
@@ -355,7 +355,7 @@ class TestOmeAppNetwork(FakeAnsibleModule):
                                               'http error message',
                                               {"accept-type": "application/json"},
                                               StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'network_configuration' not in result
         assert 'msg' in result
