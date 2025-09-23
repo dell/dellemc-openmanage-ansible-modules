@@ -69,7 +69,8 @@
           - >
             '<urlopen error [Errno -2] Name or service not known>' ==
             invalid_hostname_output.msg or
-            '<urlopen error Unable to resolve hostname or IP invalidHostname.>' ==
+            '<urlopen error Unable to resolve hostname or
+            IP invalidHostname.>' ==
             invalid_hostname_output.msg
           - invalid_port_output.unreachable
           - not invalid_port_output.changed
@@ -97,8 +98,10 @@
           - not invalid_parameter_output.changed
           - >
             invalid_parameter_output.msg == "Unsupported parameters for
-            (dellemc.openmanage.ome_alert_policies_message_id_info) module: policy_id.
-            Supported parameters include: ca_path, hostname, password, port, timeout,
+            (dellemc.openmanage.ome_alert_policies_message_id_info)
+            module: policy_id.
+            Supported parameters include: ca_path,
+            hostname, password, port, timeout,
             username, validate_certs, x_auth_token."
           - invalid_certs_output.failed
           - not invalid_certs_output.changed

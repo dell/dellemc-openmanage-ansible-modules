@@ -58,8 +58,12 @@
           {{
             message_id_info_all_uri_with_odata.json
             | ansible.utils.remove_keys(
-                target=['@odata.type', '@odata.id', '@odata.context', '@odata.count'],
-                matching_parameter='ends_with'
+                target=[
+                  '@odata.type',
+                  '@odata.id',
+                  '@odata.context',
+                  '@odata.count'
+                ]
               )
           }}
 
