@@ -26,12 +26,12 @@
     - name: Set API URL to fetch alert policy message ID information.
       set_fact:
         url: https://{{hostname}}/api/AlertService/AlertMessageDefinitions?$top=9999
-      when: ip_version == 4
+      when: (ip_version | int) == 4
 
     - name: Set API URL to fetch alert policy message ID information.
       set_fact:
         url:  https://[{{hostname}}]/api/AlertService/AlertMessageDefinitions?$top=9999
-      when: ip_version == 6
+      when: (ip_version | int) == 6
 
     - name: Retrieve alert policies message ID information via URI.
       uri:
@@ -55,7 +55,7 @@
       register: diff_result
 
     - name: Verify status of tasks.
-      assert:
+      ansible.builtin.assert:
         that:
           - message_id_info_module.msg == "Successfully retrieved alert policies message ids information."
           - not message_id_info_module.changed
