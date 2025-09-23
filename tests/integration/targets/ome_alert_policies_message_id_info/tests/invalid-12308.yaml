@@ -1,5 +1,5 @@
 # Test code for the Dell OpenManage modules
-# Copyright (C) 2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2023-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
@@ -80,10 +80,7 @@
           - 'invalid_parameter_output.msg == "Unsupported parameters for (dellemc.openmanage.ome_alert_policies_message_id_info) module: policy_id. Supported parameters include: ca_path, hostname, password, port, timeout, username, validate_certs, x_auth_token."'
           - invalid_certs_output.failed
           - not invalid_certs_output.changed
-          - >
-            "'argument validate_certs is of type str and we were unable to convert to bool: The value 'Falsee' is not a valid boolean. Valid booleans include:' in invalid_certs_output.msg
-            or
-            'argument validate_certs is of type str and could not be converted to bool' in invalid_certs_output.msg"
+          - invalid_certs_output.msg is search("argument 'validate_certs'.*not a valid boolean")
           - invalid_timeout_output.failed
           - not invalid_timeout_output.changed
           - "'Timeout value out of range' == invalid_timeout_output.msg"
