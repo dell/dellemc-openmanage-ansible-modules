@@ -2,7 +2,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.12.3
+# Version 10.0.1
 # Copyright (C) 2023-2025 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -15,13 +15,11 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 import pytest
-import io
-import sys
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish \
-    import Redfish, OpenURLResponse, RedfishAnsibleModule
-from unittest.mock import MagicMock, patch
+    import Redfish, OpenURLResponse
+from unittest.mock import MagicMock
 import json
 
 MODULE_UTIL_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.'
@@ -220,23 +218,3 @@ class TestRedfishRest(object):
         ourl = OpenURLResponse(obj)
         reason_ret = ourl.reason
         assert reason_ret == "returning reason"
-
-
-class TestRedfishAnsibleModule:
-    def test_redfish_module_initialization(self):
-        # Simulate Ansible JSON input
-        fake_input = json.dumps({
-            "baseuri": "https://example.com",
-            "username": "admin",
-            "password": "secret"
-        }).encode('utf-8')
-
-        # Create a binary stream and wrap it with a text wrapper
-        fake_stdin = io.TextIOWrapper(io.BytesIO(fake_input), encoding='utf-8')
-
-        with patch.object(sys, 'stdin', fake_stdin):
-            with pytest.raises(SystemExit) as ex:
-                RedfishAnsibleModule(argument_spec={}, bypass_checks=True)
-
-            # AnsibleModule exits after parsing input
-            assert ex.type == SystemExit
