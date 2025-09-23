@@ -1,12 +1,14 @@
 # Test code for the Dell OpenManage modules
 # Copyright (C) 2023-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an OME host, OME username and OME password
   fail:
     msg: 'Please define the following variables: hostname, username and password.'
-  when: hostname is not defined or username is not defined or password is not defined
+  when: >
+    hostname is not defined or username is not defined or password is not defined
 
 - block:
     - name: Get message id info (Negative - invalid hostname).
@@ -62,34 +64,52 @@
         that:
           - invalid_hostname_output.unreachable
           - not invalid_hostname_output.changed
-          - "'<urlopen error [Errno -2] Name or service not known>' == invalid_hostname_output.msg or '<urlopen error Unable to resolve hostname or IP invalidHostname.>' == invalid_hostname_output.msg"
+          - >
+            '<urlopen error [Errno -2] Name or service not known>' ==
+            invalid_hostname_output.msg or
+            '<urlopen error Unable to resolve hostname or IP invalidHostname.>' ==
+            invalid_hostname_output.msg
           - invalid_port_output.unreachable
           - not invalid_port_output.changed
-          - "'<urlopen error [Errno 113] No route to host>' == invalid_port_output.msg or '<urlopen error [Errno 13] Permission denied>' == invalid_port_output.msg"
+          - >
+            '<urlopen error [Errno 113] No route to host>' ==
+            invalid_port_output.msg or
+            '<urlopen error [Errno 13] Permission denied>' ==
+            invalid_port_output.msg
           - invalid_username_output.failed
           - not invalid_username_output.changed
-          - "'HTTP Error 401: 401' == invalid_username_output.msg or 'HTTP Error 400: 400' == invalid_username_output.msg"
+          - >
+            'HTTP Error 401: 401' == invalid_username_output.msg or
+            'HTTP Error 400: 400' == invalid_username_output.msg
           - invalid_password_output.failed
           - not invalid_password_output.changed
-          - "'HTTP Error 401: 401' == invalid_password_output.msg or 'HTTP Error 400: 400' == invalid_password_output.msg"
+          - >
+            'HTTP Error 401: 401' == invalid_password_output.msg or
+            'HTTP Error 400: 400' == invalid_password_output.msg
           - invalid_ca_path_output.failed
           - not invalid_ca_path_output.changed
-          - "'[Errno 2] No such file or directory' == invalid_ca_path_output.msg"
+          - '[Errno 2] No such file or directory' == invalid_ca_path_output.msg
           - invalid_parameter_output.failed
           - not invalid_parameter_output.changed
-          - 'invalid_parameter_output.msg == "Unsupported parameters for (dellemc.openmanage.ome_alert_policies_message_id_info) module: policy_id. Supported parameters include: ca_path, hostname, password, port, timeout, username, validate_certs, x_auth_token."'
+          - >
+            invalid_parameter_output.msg == "Unsupported parameters for
+            (dellemc.openmanage.ome_alert_policies_message_id_info) module: policy_id.
+            Supported parameters include: ca_path, hostname, password, port, timeout,
+            username, validate_certs, x_auth_token."
           - invalid_certs_output.failed
           - not invalid_certs_output.changed
-          - invalid_certs_output.msg is search("argument 'validate_certs'.*not a valid boolean")
+          - >
+            invalid_certs_output.msg is search(
+            "argument 'validate_certs'.*not a valid boolean"
+            )
           - invalid_timeout_output.failed
           - not invalid_timeout_output.changed
           - "'Timeout value out of range' == invalid_timeout_output.msg"
-          
 
   module_defaults:
     dellemc.openmanage.ome_alert_policies_message_id_info:
-      validate_certs: "{{validate_certs}}"
-      hostname: "{{hostname}}"
-      username: "{{username}}"
-      password: "{{password}}"
-      port: "{{port}}"
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"
