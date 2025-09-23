@@ -11,6 +11,7 @@
   when: hostname is not defined or username is
     not defined or password is not defined
 
+- name: Test the specific alert policy info details
 - block:
 
     - name: Get all alert policy info details.
@@ -44,19 +45,19 @@
 
     - name: Set API URL to fetch policy information.
       ansible.builtin.set_fact:
-        url: https://{{hostname}}/api/AlertService/AlertPolicies
+        url: https://{{ hostname }}/api/AlertService/AlertPolicies
       when: is_ipv4
 
     - name: Set API URL to fetch policy information.
       ansible.builtin.set_fact:
-        url: https://[{{hostname}}]/api/AlertService/AlertPolicies
+        url: https://[{{ hostname }}]/api/AlertService/AlertPolicies
       when: is_ipv6
 
     - name: Retrieve alert policies information via URI.
       ansible.builtin.uri:
-        url: "{{url}}"
-        user: "{{username}}"
-        password: "{{password}}"
+        url: "{{ url }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
         validate_certs: false
         status_code: 200
         force_basic_auth: true
@@ -98,8 +99,8 @@
 
   module_defaults:
     dellemc.openmanage.ome_alert_policies_info:
-      validate_certs: "{{validate_certs}}"
-      hostname: "{{hostname}}"
-      username: "{{username}}"
-      password: "{{password}}"
-      port: "{{port}}"
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"
