@@ -12,7 +12,7 @@
     is not defined or password is not defined
 
 - name: Test the invalid OME host, OME username and OME password etc.
-- block:
+  block:
     - name: Get policies info (Negative - invalid hostname).
       dellemc.openmanage.ome_alert_policies_info:
         hostname: invalidHostname

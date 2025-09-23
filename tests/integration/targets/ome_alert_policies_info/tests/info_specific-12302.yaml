@@ -12,7 +12,7 @@
     not defined or password is not defined
 
 - name: Test the specific alert policy info details
-- block:
+  block:
 
     - name: Get all alert policy info details.
       dellemc.openmanage.ome_alert_policies_info: {}
