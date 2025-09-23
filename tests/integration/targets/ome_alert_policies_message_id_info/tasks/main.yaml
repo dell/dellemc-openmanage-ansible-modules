@@ -2,7 +2,7 @@
 # Copyright (C) 2023-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+
-#(see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Collect all test cases
   find:
@@ -25,4 +25,3 @@
   with_items: "{{ test_items }}"
   loop_control:
     loop_var: test_case_to_run
-

@@ -2,7 +2,7 @@
 # Copyright (C) 2023-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+
-#(see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an OME host, OME username and OME password
   fail:
@@ -58,7 +58,12 @@
           {{
             message_id_info_all_uri_with_odata.json
             | ansible.utils.remove_keys(
-                target=['@odata.type', '@odata.id', '@odata.context', '@odata.count'],
+                target=[
+                  '@odata.type',
+                  '@odata.id',
+                  '@odata.context',
+                  '@odata.count'
+                ],
                 matching_parameter='ends_with'
               )
           }}
