@@ -21,7 +21,7 @@
       Accept: "*/*"
       Content-Type: "application/json"
   block:
-    - name: Checking if vcenter plugin is regesterd in OME
+    - name: Checking if vcenter plugin is registered in OME
       ansible.builtin.uri:
         url: "{{ get_consoles_uri }}"
         method: GET

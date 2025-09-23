@@ -2,7 +2,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 9.12.3
+# Version 10.0.1
 # Copyright (C) 2023-2025 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -355,6 +355,7 @@ class TestIdracRedfishRest(object):
 
     @pytest.mark.parametrize("status_code", [202, 200])
     def test_import_scp(self, mocker, mock_response, status_code, idrac_redfish_object):
+        iDRACRedfishAPI.get_server_generation = (17, '1.20.30', 'iDRAC 10')
         mock_response.json_data = {"Status": "Completed"}
         mock_response.status_code = status_code
         mock_response.headers = {"Location": "/tasks/1"}

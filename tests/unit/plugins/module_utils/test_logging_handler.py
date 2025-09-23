@@ -2,29 +2,27 @@
 
 
 # Dell OpenManage Ansible Modules
-# Version 9.12.2
+# Version 10.0.1
 # Copyright (C) 2025 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
 # Other trademarks may be trademarks of their respective owners.
 
-import pytest
+
 from datetime import datetime
-from unittest.mock import patch
 from ansible_collections.dellemc.openmanage.plugins.module_utils.logging_handler import CustomRotatingFileHandler
+import tempfile
+import os
 
 
-@pytest.fixture
-def mock_datetime():
-    with patch('ansible_collections.dellemc.openmanage.plugins.module_utils.logging_handler.datetime') as mock_dt:
-        mock_dt.now.return_value = datetime(2025, 6, 6)
-        yield mock_dt
+def test_rotation_filename_format():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        log_path = os.path.join(tmpdir, "test.log")
+        handler = CustomRotatingFileHandler(log_path, maxBytes=1000, backupCount=1)
+        default_name = "test.log.1"
 
+        rotated_name = handler.rotation_filename(default_name)
 
-def test_rotation_filename(mock_datetime):
-    handler = CustomRotatingFileHandler('test.log', maxBytes=1000, backupCount=3)
-    default_name = 'test.log.1'
-    expected_name = 'test_20250606.log.1'
-    actual_name = handler.rotation_filename(default_name)
-    assert actual_name == expected_name
+        expected_date = datetime.now().strftime("%Y%m%d")
+        assert rotated_name.startswith(f"test_{expected_date}.log.1")
