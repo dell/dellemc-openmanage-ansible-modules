@@ -925,7 +925,7 @@ class TestDeleteFirmwareRepositoryProfile(FakeAnsibleModule):
         obj = self.module.DeleteFirmwareRepositoryProfile(
             omevv_connection_firmware_repository_profile, f_module)
         result = obj.diff_mode_check(payload)
-        assert result is None
+        assert result.get('before') == payload
 
     def test_delete_firmware_repository_profile(self, mocker, omevv_default_args, omevv_connection_firmware_repository_profile):
         obj = MagicMock()
