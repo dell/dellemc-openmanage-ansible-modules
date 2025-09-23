@@ -271,7 +271,7 @@ Examples
         data_collector: ["debug_logs", "hardware_data", "os_app_data", "storage_logs"]
         share_parameters:
           share_type: "local"
-          share_path: "/opt/local/support_assist_collections/"
+          share_name: "/opt/local/support_assist_collections/"
 
     - name: Run the SupportAssist Collection with with custom data_to_collect with filter_data
       dellemc.openmanage.idrac_support_assist:
