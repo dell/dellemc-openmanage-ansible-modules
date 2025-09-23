@@ -5,7 +5,7 @@
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an OME host, OME username and OME password
-  fail:
+  ansible.builtin.fail:
     msg: 'Please define the following variables:
       hostname, username and password.'
   when: hostname is not defined or username is
@@ -29,31 +29,31 @@
       register: result_one_cm
 
     - name: Set fact for alert policy name details from module.
-      set_fact:
+      ansible.builtin.set_fact:
         policy_info_module: "{{ result_one.policies[0] }}"
         policy_info_module_cm: "{{ result_one_cm.policies[0] }}"
 
     - name: Settings default value for alert policy details from URI
-      set_fact:
+      ansible.builtin.set_fact:
         policy_info_uri: []
 
     - name: Check whether hostname IP is IPv4 or IPv6.
-      set_fact:
+      ansible.builtin.set_fact:
         is_ipv4: "{{ hostname is ansible.utils.ipv4 }}"
         is_ipv6: "{{ hostname is ansible.utils.ipv6 }}"
 
     - name: Set API URL to fetch policy information.
-      set_fact:
+      ansible.builtin.set_fact:
         url: https://{{hostname}}/api/AlertService/AlertPolicies
       when: is_ipv4
 
     - name: Set API URL to fetch policy information.
-      set_fact:
+      ansible.builtin.set_fact:
         url: https://[{{hostname}}]/api/AlertService/AlertPolicies
       when: is_ipv6
 
     - name: Retrieve alert policies information via URI.
-      uri:
+      ansible.builtin.uri:
         url: "{{url}}"
         user: "{{username}}"
         password: "{{password}}"
@@ -63,7 +63,7 @@
       register: result_uri
 
     - name: Remove odata from result_uri.
-      set_fact:
+      ansible.builtin.set_fact:
         policy_info_uri: "{{ result_uri.json.value[0] |
           ansible.utils.remove_keys(target=['@odata.context',
           '@odata.id', '@odata.type', '@odata.count']) }}"
@@ -82,7 +82,7 @@
       register: diff_result_cm
 
     - name: Verify status of tasks.
-      assert:
+      ansible.builtin.assert:
         that:
           - result_one.msg == result_one_cm.msg
           - result_one.msg == ("Successfully retrieved %s OME
