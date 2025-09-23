@@ -55,6 +55,8 @@ subsystem_sensor_voltage_uri: "{{ chassis_uri }}/\
 video_uri: "{{ base_uri }}/{{ redfish_uri }}Systems/System.Embedded.1/"
 thermal_uri: "{{ base_uri }}/{{ redfish_uri }}\
   Chassis/System.Embedded.1/Thermal"
+chassis_sensors_uri: "{{ base_uri }}/{{ redfish_uri }}\
+  Chassis/System.Embedded.1/Sensors"
 system_board_pwrconsumption_uri: "{{ base_uri }}/{{ redfish_uri }}\
   Chassis/System.Embedded.1/Sensors/SystemBoardPwrConsumption"
 system_board_inlettemp_uri: "{{ base_uri }}/{{ redfish_uri }}\

@@ -25,6 +25,8 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+from .chassis_sensor_util import IDRACChassisSensors
+
 GET_SYSTEMBOARD_CPUUSAGE_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Sensors/SystemBoardCPUUsage"
 GET_SYSTEMBOARD_IOUSAGE_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Sensors/SystemBoardIOUsage"
 GET_SYSTEMBOARD_MEMUSAGE_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Sensors/SystemBoardMEMUsage"
@@ -38,11 +40,12 @@ NA = "Not Available"
 
 
 class IDRACSystemBoardMetricsInfo(object):
-    def __init__(self, idrac):
+    def __init__(self, idrac, chassis_sensors: IDRACChassisSensors):
         self.idrac = idrac
+        self.chassis_sensors = chassis_sensors
 
     def get_cpu_usage_details(self):
-        response = self.idrac.invoke_request(method='GET', uri=GET_SYSTEMBOARD_CPUUSAGE_URI_10)
+        response = self.chassis_sensors.get_sensor(GET_SYSTEMBOARD_CPUUSAGE_URI_10)
         if response.status_code == 200:
             cpu_usage_avg_hour = response.json_data.get("Oem", {}).get("Dell", {}).get("AverageReadings", {}).get("LastHour", {}).get("Reading", NA)
             cpu_usage_avg_day = response.json_data.get("Oem", {}).get("Dell", {}).get("AverageReadings", {}).get("LastDay", {}).get("Reading", NA)
@@ -60,10 +63,10 @@ class IDRACSystemBoardMetricsInfo(object):
                 cpu_usage_min_hour, cpu_usage_min_day, cpu_usage_min_week,
                 cpu_usage_peak
             )
-        return {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+        return NA, NA, NA, NA, NA, NA, NA, NA, NA, NA
 
     def get_io_usage_details(self):
-        response = self.idrac.invoke_request(method='GET', uri=GET_SYSTEMBOARD_IOUSAGE_URI_10)
+        response = self.chassis_sensors.get_sensor(GET_SYSTEMBOARD_IOUSAGE_URI_10)
         if response.status_code == 200:
             io_usage_avg_hour = response.json_data.get("Oem", {}).get("Dell", {}).get("AverageReadings", {}).get("LastHour", {}).get("Reading", NA)
             io_usage_avg_day = response.json_data.get("Oem", {}).get("Dell", {}).get("AverageReadings", {}).get("LastDay", {}).get("Reading", NA)
@@ -81,10 +84,10 @@ class IDRACSystemBoardMetricsInfo(object):
                 io_usage_min_hour, io_usage_min_day, io_usage_min_week,
                 io_usage_peak
             )
-        return {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+        return NA, NA, NA, NA, NA, NA, NA, NA, NA, NA
 
     def get_mem_usage_details(self):
-        response = self.idrac.invoke_request(method='GET', uri=GET_SYSTEMBOARD_MEMUSAGE_URI_10)
+        response = self.chassis_sensors.get_sensor(GET_SYSTEMBOARD_MEMUSAGE_URI_10)
         if response.status_code == 200:
             mem_usage_avg_hour = response.json_data.get("Oem", {}).get("Dell", {}).get("AverageReadings", {}).get("LastHour", {}).get("Reading", NA)
             mem_usage_avg_day = response.json_data.get("Oem", {}).get("Dell", {}).get("AverageReadings", {}).get("LastDay", {}).get("Reading", NA)
@@ -102,10 +105,10 @@ class IDRACSystemBoardMetricsInfo(object):
                 mem_usage_min_hour, mem_usage_min_day, mem_usage_min_week,
                 mem_usage_peak
             )
-        return {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+        return NA, NA, NA, NA, NA, NA, NA, NA, NA, NA
 
     def get_sys_usage_details(self):
-        response = self.idrac.invoke_request(method='GET', uri=GET_SYSTEMBOARD_SYSUSAGE_URI_10)
+        response = self.chassis_sensors.get_sensor(GET_SYSTEMBOARD_SYSUSAGE_URI_10)
         if response.status_code == 200:
             sys_usage_avg_hour = response.json_data.get("Oem", {}).get("Dell", {}).get("AverageReadings", {}).get("LastHour", {}).get("Reading", NA)
             sys_usage_avg_day = response.json_data.get("Oem", {}).get("Dell", {}).get("AverageReadings", {}).get("LastDay", {}).get("Reading", NA)
@@ -123,25 +126,25 @@ class IDRACSystemBoardMetricsInfo(object):
                 sys_usage_min_hour, sys_usage_min_day, sys_usage_min_week,
                 sys_usage_peak
             )
-        return {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
+        return NA, NA, NA, NA, NA, NA, NA, NA, NA, NA
 
     def get_peak_power_details(self):
-        response = self.idrac.invoke_request(method='GET', uri=GET_SYSTEMBOARD_PWRCONSUMPTION_URI_10)
+        response = self.chassis_sensors.get_sensor(GET_SYSTEMBOARD_PWRCONSUMPTION_URI_10)
         if response.status_code == 200:
             return response.json_data.get("PeakReading", NA)
-        return {}
+        return NA
 
     def get_peak_amperage_details(self):
-        response = self.idrac.invoke_request(method='GET', uri=GET_SYSTEMBOARD_CURRENTCONSUMPTION_URI_10)
+        response = self.chassis_sensors.get_sensor(GET_SYSTEMBOARD_CURRENTCONSUMPTION_URI_10)
         if response.status_code == 200:
             return response.json_data.get("PeakReading", NA)
-        return {}
+        return NA
 
     def get_peak_headroom_details(self):
-        response = self.idrac.invoke_request(method='GET', uri=GET_POWERHEADROOM_URI_10)
+        response = self.chassis_sensors.get_sensor(GET_POWERHEADROOM_URI_10)
         if response.status_code == 200:
             return response.json_data.get("LowestReading", NA)
-        return {}
+        return NA
 
     def get_system_board_metrics_info(self):
         output = []
