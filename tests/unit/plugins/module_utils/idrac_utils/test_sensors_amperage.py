@@ -1,9 +1,18 @@
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.sensor_amperage import IDRACSensorAmperageInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.chassis_sensor_util import IDRACChassisSensors
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.module_utils.idrac_utils.test_idrac_utils import TestUtils
 
 
 class TestIDRACSensorAmperageInfo(TestUtils):
     def test_get_sensor_amperage_info(self, idrac_mock):
+        response = {
+            "Members": [
+                {"@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/PS1Current1"},
+                {"@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/SystemBoardPwrConsumption"}
+            ]
+        }
+        idrac_mock.invoke_request.return_value.json_data = response
+        sensors = IDRACChassisSensors(idrac_mock)
         response = {
             "LifetimeReading": 704.729,
             "Status": {
@@ -121,7 +130,7 @@ class TestIDRACSensorAmperageInfo(TestUtils):
             }
         }
         idrac_mock.invoke_request.return_value.json_data = response
-        idrac_sensor_amperage_info = IDRACSensorAmperageInfo(idrac_mock)
+        idrac_sensor_amperage_info = IDRACSensorAmperageInfo(idrac_mock, sensors)
         result = idrac_sensor_amperage_info.get_sensor_amperage_info()
         expected_result = [
             {
