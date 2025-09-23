@@ -134,6 +134,8 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.\
     idrac_utils.info.controller_battery import IDRACControllerBatteryInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
     idrac_utils.info.sensor_amperage import IDRACSensorAmperageInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.\
+    idrac_utils.info.chassis_sensor_util import IDRACChassisSensors
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.basic import AnsibleModule
 from urllib.error import URLError, HTTPError
@@ -184,6 +186,7 @@ def main():
                 "iDRAC": ""
             }
             if not firmware_obj.is_omsdk_required():
+                chassis_sensors = IDRACChassisSensors(idrac)
                 system_info_dict["BIOS"] = IDRACBiosInfo(idrac).get_bios_system_info()
                 system_info_dict["CPU"] = IDRACCpuInfo(idrac).get_cpu_system_info()
                 system_info_dict["Enclosure"] = IDRACEnclosureInfo(idrac).get_enclosure_system_info()
@@ -191,12 +194,12 @@ def main():
                 system_info_dict["Sensors_Battery"] = IDRACSensorsBatteryInfo(idrac).get_sensors_battery_info()
                 system_info_dict["Sensors_Intrusion"] = IDRACSensorsIntrusionInfo(idrac).get_sensors_intrusion_info()
                 system_info_dict["Sensors_Voltage"] = IDRACSensorsVoltageInfo(idrac).get_sensors_voltage_info()
-                system_info_dict["Sensors_Amperage"] = IDRACSensorAmperageInfo(idrac).get_sensor_amperage_info()
+                system_info_dict["Sensors_Amperage"] = IDRACSensorAmperageInfo(idrac, chassis_sensors).get_sensor_amperage_info()
                 system_info_dict["Sensors_Fan"] = IDRACSensorsFanInfo(idrac).get_sensors_fan_info()
                 system_info_dict["Fan"] = IDRACFanInfo(idrac).get_fan_info()
                 system_info_dict["NIC"] = IDRACNICInfo(idrac).get_nic_info()
                 system_info_dict["System"] = IDRACSystemInfo(idrac).get_system_info()
-                system_info_dict["SystemBoardMetrics"] = IDRACSystemBoardMetricsInfo(idrac).get_system_board_metrics_info()
+                system_info_dict["SystemBoardMetrics"] = IDRACSystemBoardMetricsInfo(idrac, chassis_sensors).get_system_board_metrics_info()
                 system_info_dict["SystemMetrics"] = IDRACSystemMetricsInfo(idrac).get_system_metrics_info()
                 system_info_dict["Video"] = IDRACVideoInfo(idrac).get_idrac_video_details()
                 system_info_dict["Subsystem"] = IDRACSubsystemInfo(idrac).get_subsystem_info()

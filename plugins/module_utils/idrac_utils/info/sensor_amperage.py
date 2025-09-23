@@ -24,6 +24,8 @@
 # LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from .chassis_sensor_util import IDRACChassisSensors
+
 GET_IDRAC_SENSOR_PS1CURRENT1_URI = "/redfish/v1/Chassis/System.Embedded.1/Sensors/PS1Current1"
 GET_IDRAC_SENSOR_PWR_CONSUMPTION_URI = "/redfish/v1/Chassis/System.Embedded.1/Sensors/SystemBoardPwrConsumption"
 
@@ -31,8 +33,9 @@ NA = "Not Available"
 
 
 class IDRACSensorAmperageInfo(object):
-    def __init__(self, idrac):
+    def __init__(self, idrac, chassis_sensors: IDRACChassisSensors):
         self.idrac = idrac
+        self.chassis_sensors = chassis_sensors
 
     def map_sensor_amperage_data(self, sensor):
         health_state_map = {
@@ -65,8 +68,8 @@ class IDRACSensorAmperageInfo(object):
     def get_sensor_amperage_info(self):
         """Fetches sensor amperage data from iDRAC and maps it."""
         output = []
-        current_resp = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_SENSOR_PS1CURRENT1_URI)
-        power_resp = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_SENSOR_PWR_CONSUMPTION_URI)
+        current_resp = self.chassis_sensors.get_sensor(GET_IDRAC_SENSOR_PS1CURRENT1_URI)
+        power_resp = self.chassis_sensors.get_sensor(GET_IDRAC_SENSOR_PWR_CONSUMPTION_URI)
 
         if current_resp.status_code == 200 and power_resp.status_code == 200:
             for sensor in [current_resp.json_data, power_resp.json_data]:
