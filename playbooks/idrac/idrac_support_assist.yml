@@ -16,7 +16,7 @@
                          "storage_logs"]
         share_parameters:
           share_type: "local"
-          share_name: "/opt/local/support_assist_collections/"          
+          share_name: "/opt/local/support_assist_collections/"
       delegate_to: localhost
 
     - name: Run the SupportAssist Collection with with custom
