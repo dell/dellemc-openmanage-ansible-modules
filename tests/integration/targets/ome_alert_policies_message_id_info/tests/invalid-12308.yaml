@@ -47,7 +47,7 @@
 
     - name: Get message id info (Negative - invalid validate_certs).
       dellemc.openmanage.ome_alert_policies_message_id_info:
-        validate_certs: Falsee
+        validate_certs: "Falsee"
       ignore_errors: true
       register: invalid_certs_output
 
@@ -80,13 +80,13 @@
           - 'invalid_parameter_output.msg == "Unsupported parameters for (dellemc.openmanage.ome_alert_policies_message_id_info) module: policy_id. Supported parameters include: ca_path, hostname, password, port, timeout, username, validate_certs, x_auth_token."'
           - invalid_certs_output.failed
           - not invalid_certs_output.changed
-          - invalid_certs_output.msg is defined and
+          - >
             (
-              "'argument \\'validate_certs\\' is of type str and we were unable to convert to bool" in invalid_certs_output.msg
-              or
-              "'validate_certs' is of type str and we were unable to convert to bool" in invalid_certs_output.msg
-              or
-              "'validate_certs' is of type str and could not be converted to bool" in invalid_certs_output.msg
+              "'argument \\'validate_certs\\' is of type str and we were unable to convert to bool: The value \\'Falsee\\' is not a valid boolean. Valid booleans include:' in invalid_certs_output.msg
+            )
+            or
+            (
+              "'argument \\'validate_certs\\' is of type str and could not be converted to bool' in invalid_certs_output.msg
             )
           - invalid_timeout_output.failed
           - not invalid_timeout_output.changed
