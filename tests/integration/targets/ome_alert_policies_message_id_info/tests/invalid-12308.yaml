@@ -81,13 +81,9 @@
           - invalid_certs_output.failed
           - not invalid_certs_output.changed
           - >
-            (
-              "'argument \\'validate_certs\\' is of type str and we were unable to convert to bool: The value \\'Falsee\\' is not a valid boolean. Valid booleans include:' in invalid_certs_output.msg
-            )
+            "'argument validate_certs is of type str and we were unable to convert to bool: The value 'Falsee' is not a valid boolean. Valid booleans include:' in invalid_certs_output.msg
             or
-            (
-              "'argument \\'validate_certs\\' is of type str and could not be converted to bool' in invalid_certs_output.msg
-            )
+            'argument validate_certs is of type str and could not be converted to bool' in invalid_certs_output.msg"
           - invalid_timeout_output.failed
           - not invalid_timeout_output.changed
           - "'Timeout value out of range' == invalid_timeout_output.msg"
