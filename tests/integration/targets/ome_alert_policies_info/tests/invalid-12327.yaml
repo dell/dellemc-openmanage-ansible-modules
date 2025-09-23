@@ -11,6 +11,7 @@
   when: hostname is not defined or username
     is not defined or password is not defined
 
+- name: Test the invalid OME host, OME username and OME password etc.
 - block:
     - name: Get policies info (Negative - invalid hostname).
       dellemc.openmanage.ome_alert_policies_info:
@@ -115,8 +116,8 @@
 
   module_defaults:
     dellemc.openmanage.ome_alert_policies_info:
-      validate_certs: "{{validate_certs}}"
-      hostname: "{{hostname}}"
-      username: "{{username}}"
-      password: "{{password}}"
-      port: "{{port}}"
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"
