@@ -1,4 +1,23 @@
 ---
+- name: Fetch chassis sensors
+  ansible.builtin.uri:
+    url: "{{ chassis_sensors_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    return_content: true
+    status_code: 200
+  register: chassis_sensors_resp
+
+- name: Extract sensors
+  ansible.builtin.set_fact:
+    chassis_sensors: "{{ (chassis_sensors_resp.json.Members
+      | ansible.builtin.rekey_on_member(\"@odata.id\")).keys()
+      | map('regex_replace', '^(.*)$', base_uri + '\\1')
+      | list }}"
+
 - name: Fetch Sensor Amperage details
   ansible.builtin.uri:
     url: "{{ sensor_amperage_uri }}"
@@ -11,6 +30,7 @@
     return_content: true
     status_code: 200
   register: uri_data
+  when: sensor_amperage_uri in chassis_sensors
 
 - name: Structuring Sensor Amperage details
   ansible.builtin.command:
