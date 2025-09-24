@@ -917,13 +917,13 @@ def get_argument_spec():
                 "username": {
                     "type": 'str',
                     "aliases": ['share_username'],
-                    "required_if": [['share_type', 'cifs']]
+                    'required_if': [('share_type', 'cifs', True)]
                 },
                 "password": {
                     "type": 'str',
                     "no_log": True,
                     "aliases": ['share_password'],
-                    "required_if": [['share_type', 'cifs']]
+                    'required_if': [('share_type', 'cifs', True)]
                 },
                 "proxy_port": {"type": 'int', "default": 80},
                 "proxy_server": {"type": 'str'},
