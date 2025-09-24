@@ -109,11 +109,16 @@ options:
           - Username of the network share.
           - I(username) is required when I(share_type) is C(cifs).
         type: str
+        required: true
+        aliases: ['share_username']
       password:
         description:
           - Password of the network share.
           - I(password) is required when I(share_type) is C(cifs).
         type: str
+        required: true
+        no_log: true
+        aliases: ['share_password']
       ignore_certificate_warning:
         description:
           - Ignores the certificate warning when connecting to the network share and is only applicable when I(share_type) is C(https).
@@ -883,51 +888,51 @@ def main():
             module.exit_json(msg=message_details.get('Message'), skipped=True)
         module.exit_json(msg=str(err), error_info=filter_err, failed=True)
     except URLError as err:
-        module.exit_json(msg=str(err), unreachable=True)
+    module.exit_json(msg=str(err), unreachable=True)
     except (OSError, ValueError, SSLValidationError, ConnectionError, TypeError) as e:
-        module.exit_json(msg=str(e), failed=True)
+    module.exit_json(msg=str(e), failed=True)
 
 
 def get_argument_spec():
-        """
-        A function to generate the argument specification for the IdracAnsibleModule.
-        It returns a dictionary containing the argument specification for the module.
+    """
+    A function to generate the argument specification for the IdracAnsibleModule.
+    It returns a dictionary containing the argument specification for the module.
 
-        The argument specification is a dictionary that contains the following keys:
-        - run: a boolean that defaults to True
-        - export: a boolean that defaults to True
-        - accept_eula: a boolean
-        - filter_data: a boolean that defaults to False
-        - data_collector: a list of strings with choices including hardware_data, storage_logs, os_app_data, debug_logs, telemetry_reports, gpu_logs
-        - job_wait: a boolean that defaults to True
-        - job_wait_timeout: an integer that defaults to 3600
-        - share_parameters: a dictionary with options including
-            - share_type: a string with default 'local' and choices ['local', 'nfs', 'cifs', 'http', 'https', 'ftp']
-            - proxy_type: a string with default 'http' and choices ['http', 'socks']
-            - username:
-                description: User name for accessing the share
-                required: true
-                type: str
-                aliases: ['share_username']
-            - password: a string, also accessible via alias 'share_password', required when share_type is 'cifs', will not be logged
-                description: Password for accessing the share.
-                required: true
-                type: str
-                no_log: true
-                aliases: ['share_password']
-            - proxy_port: an integer with default 80
-            - proxy_server: a string
-            - proxy_username: a string
-            - proxy_password: a string, will not be logged
-            - workgroup: a string
-            - proxy_support: a string with default 'off' and choices ['off', 'default_proxy', 'parameters_proxy']
-            - ignore_certificate_warning: a string with default 'off' and choices ['off', 'on']
-            - share_name: a string
-            - ip_address: a string
-        - resource_id: a string
+    The argument specification is a dictionary that contains the following keys:
+    - run: a boolean that defaults to True
+    - export: a boolean that defaults to True
+    - accept_eula: a boolean
+    - filter_data: a boolean that defaults to False
+    - data_collector: a list of strings with choices including hardware_data, storage_logs, os_app_data, debug_logs, telemetry_reports, gpu_logs
+    - job_wait: a boolean that defaults to True
+    - job_wait_timeout: an integer that defaults to 3600
+    - share_parameters: a dictionary with options including
+        - share_type: a string with default 'local' and choices ['local', 'nfs', 'cifs', 'http', 'https', 'ftp']
+        - proxy_type: a string with default 'http' and choices ['http', 'socks']
+        - username:
+            description: User name for accessing the share
+            required: true
+            type: str
+            aliases: ['share_username']
+        - password: a string, also accessible via alias 'share_password', required when share_type is 'cifs', will not be logged
+            description: Password for accessing the share.
+            required: true
+            type: str
+            no_log: true
+            aliases: ['share_password']
+        - proxy_port: an integer with default 80
+        - proxy_server: a string
+        - proxy_username: a string
+        - proxy_password: a string, will not be logged
+        - workgroup: a string
+        - proxy_support: a string with default 'off' and choices ['off', 'default_proxy', 'parameters_proxy']
+        - ignore_certificate_warning: a string with default 'off' and choices ['off', 'on']
+        - share_name: a string
+        - ip_address: a string
+    - resource_id: a string
 
-        The function does not take any parameters.
-        """
+    The function does not take any parameters.
+    """
     return {
         "run": {"type": 'bool', "default": True},
         "export": {"type": 'bool', "default": True},
