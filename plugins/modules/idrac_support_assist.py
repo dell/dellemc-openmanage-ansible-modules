@@ -914,9 +914,17 @@ def get_argument_spec():
                     "default": 'http',
                     "choices": ['http', 'socks']
                 },
-                "username": {"type": 'str', 'aliases': ['share_username']},
-                "password": {"type": 'str', "no_log": True, 'aliases': ['share_password'],
-                'required_if': ['share_type', 'cifs']},
+                "username": {
+                    "type": 'str',
+                    "aliases": ['share_username'],
+                    "required_if": [['share_type', 'cifs']]
+                },
+                "password": {
+                    "type": 'str',
+                    "no_log": True,
+                    "aliases": ['share_password'],
+                    "required_if": [['share_type', 'cifs']]
+                },
                 "proxy_port": {"type": 'int', "default": 80},
                 "proxy_server": {"type": 'str'},
                 "proxy_username": {"type": 'str'},

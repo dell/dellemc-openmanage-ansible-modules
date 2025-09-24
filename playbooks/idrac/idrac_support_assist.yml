@@ -73,6 +73,21 @@
           share_password: "cifs_password"
       delegate_to: localhost
 
+    - name: Export the last SupportAssist Collection to CIFS share
+      dellemc.openmanage.idrac_support_assist:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "idrac_user"
+        idrac_password: "idrac_password"
+        ca_path: "path/to/ca_file"
+        run: false
+        share_parameters:
+          share_type: "cifs"
+          share_name: "/cifsshare/support_assist_collections/"
+          ip_address: "192.168.0.4"
+          username: "cifs_user"
+          password: "cifs_password"
+      delegate_to: localhost
+
     - name: Export the last SupportAssist Collection to https share via proxy
       dellemc.openmanage.idrac_support_assist:
         idrac_ip: "192.168.0.1"
