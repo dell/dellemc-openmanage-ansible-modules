@@ -117,7 +117,6 @@ options:
           - I(password) is required when I(share_type) is C(cifs).
         type: str
         required: true
-        no_log: true
         aliases: ['share_password']
       ignore_certificate_warning:
         description:
@@ -899,6 +898,10 @@ def get_argument_spec():
     It returns a dictionary containing the argument specification for the module.
 
     The argument specification is a dictionary that contains the following keys:
+    - idrac_ip: a string that is required and has an alias 'hostname'
+    - idrac_port: a string that is required and has an alias 'port'
+    - idrac_user: a string that is required and has an alias 'username'
+    - idrac_password: a string that is required, has an alias 'password', and
     - run: a boolean that defaults to True
     - export: a boolean that defaults to True
     - accept_eula: a boolean
@@ -939,6 +942,10 @@ def get_argument_spec():
 
     """
     return {
+        "idrac_ip": {"type": 'str', "required": True, "aliases": ['hostname']},
+        "idrac_port": {"type": 'str', "required": True, "aliases": ['port']},
+        "idrac_user": {"type": 'str', "required": True, "aliases": ['username']},
+        "idrac_password": {"type": 'str', "required": True, "no_log": True, "aliases": ['password']},
         "run": {"type": 'bool', "default": True},
         "export": {"type": 'bool', "default": True},
         "accept_eula": {"type": 'bool'},
