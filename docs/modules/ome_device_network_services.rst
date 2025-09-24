@@ -30,17 +30,17 @@ Parameters
   device_id (optional, int, None)
     The ID of the chassis for which the settings need to be updated.
 
-    If the device ID is not specified, this module updates the network services settings for the \ :emphasis:`hostname`\ .
+    If the device ID is not specified, this module updates the network services settings for the :emphasis:`hostname`.
 
-    \ :emphasis:`device\_id`\  is mutually exclusive with \ :emphasis:`device\_service\_tag`\ .
+    :emphasis:`device\_id` is mutually exclusive with :emphasis:`device\_service\_tag`.
 
 
   device_service_tag (optional, str, None)
     The service tag of the chassis for which the setting needs to be updated.
 
-    If the device service tag is not specified, this module updates the network services settings for the \ :emphasis:`hostname`\ .
+    If the device service tag is not specified, this module updates the network services settings for the :emphasis:`hostname`.
 
-    \ :emphasis:`device\_service\_tag`\  is mutually exclusive with \ :emphasis:`device\_id`\ .
+    :emphasis:`device\_service\_tag` is mutually exclusive with :emphasis:`device\_id`.
 
 
   snmp_settings (optional, dict, None)
@@ -58,7 +58,7 @@ Parameters
     community_name (optional, str, None)
       The SNMP community string.
 
-      Required when \ :emphasis:`enabled`\  is \ :literal:`true`\ .
+      Required when :emphasis:`enabled` is :literal:`true`.
 
 
 
@@ -103,7 +103,7 @@ Parameters
   username (False, str, None)
     OpenManage Enterprise Modular username.
 
-    If the username is not provided, then the environment variable \ :envvar:`OME\_USERNAME`\  is used.
+    If the username is not provided, then the environment variable :envvar:`OME\_USERNAME` is used.
 
     Example: export OME\_USERNAME=username
 
@@ -111,7 +111,7 @@ Parameters
   password (False, str, None)
     OpenManage Enterprise Modular password.
 
-    If the password is not provided, then the environment variable \ :envvar:`OME\_PASSWORD`\  is used.
+    If the password is not provided, then the environment variable :envvar:`OME\_PASSWORD` is used.
 
     Example: export OME\_PASSWORD=password
 
@@ -119,7 +119,7 @@ Parameters
   x_auth_token (False, str, None)
     Authentication token.
 
-    If the x\_auth\_token is not provided, then the environment variable \ :envvar:`OME\_X\_AUTH\_TOKEN`\  is used.
+    If the x\_auth\_token is not provided, then the environment variable :envvar:`OME\_X\_AUTH\_TOKEN` is used.
 
     Example: export OME\_X\_AUTH\_TOKEN=x\_auth\_token
 
@@ -129,11 +129,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If \ :literal:`false`\ , the SSL certificates will not be validated.
+    If :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
+    Configure :literal:`false` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
+    Prior to collection version :literal:`5.0.0`\ , the :emphasis:`validate\_certs` is :literal:`false` by default.
 
 
   ca_path (optional, path, None)
@@ -152,7 +152,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell OpenManage Enterprise Modular.
-   - This module supports \ :literal:`check\_mode`\ .
+   - This module supports :literal:`check\_mode`.
 
 
 
@@ -242,4 +242,5 @@ Authors
 ~~~~~~~
 
 - Felix Stephen (@felixs88)
+- Kritika Bhateja (@Kritika-Bhateja-03)
 
