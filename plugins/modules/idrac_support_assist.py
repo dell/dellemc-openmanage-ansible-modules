@@ -888,14 +888,14 @@ def main():
             module.exit_json(msg=message_details.get('Message'), skipped=True)
         module.exit_json(msg=str(err), error_info=filter_err, failed=True)
     except URLError as err:
-    module.exit_json(msg=str(err), unreachable=True)
+        module.exit_json(msg=str(err), unreachable=True)
     except (OSError, ValueError, SSLValidationError, ConnectionError, TypeError) as e:
-    module.exit_json(msg=str(e), failed=True)
+        module.exit_json(msg=str(e), failed=True)
 
 
 def get_argument_spec():
     """
-    A function to generate the argument specification for the IdracAnsibleModule.
+    Function to generate the argument specification for the IdracAnsibleModule.
     It returns a dictionary containing the argument specification for the module.
 
     The argument specification is a dictionary that contains the following keys:
@@ -910,28 +910,36 @@ def get_argument_spec():
         - share_type: a string with default 'local' and choices ['local', 'nfs', 'cifs', 'http', 'https', 'ftp']
         - proxy_type: a string with default 'http' and choices ['http', 'socks']
         - username:
-            description: User name for accessing the share
+            description: User name for accessing the share, required when share_type is 'cifs'
             required: true
             type: str
             aliases: ['share_username']
-        - password: a string, also accessible via alias 'share_password', required when share_type is 'cifs', will not be logged
-            description: Password for accessing the share.
+        - password:
+            description: Password for accessing the share, required when share_type is 'cifs', will not be logged
             required: true
             type: str
             no_log: true
             aliases: ['share_password']
-        - proxy_port: an integer with default 80
-        - proxy_server: a string
-        - proxy_username: a string
-        - proxy_password: a string, will not be logged
-        - workgroup: a string
-        - proxy_support: a string with default 'off' and choices ['off', 'default_proxy', 'parameters_proxy']
-        - ignore_certificate_warning: a string with default 'off' and choices ['off', 'on']
-        - share_name: a string
-        - ip_address: a string
+        - proxy_support:
+            description: Proxy support, a string with default 'off' and choices ['off', 'default_proxy', 'parameters_proxy']
+        - proxy_port:
+            description: Proxy port, an integer with default 80
+        - proxy_server:
+            description: Proxy server address, a string
+        - proxy_username:
+            description: User name for the proxy server, a string
+        - proxy_password:
+            description: Password for the proxy server, a string, will not be logged
+        - workgroup:
+            description: Workgroup for accessing the share, a string
+        - ignore_certificate_warning:
+            description: Ignores the certificate warning when connecting to the share, a string with default 'off' and choices ['off', 'on']
+        - share_name:
+            description: Share path or name, a string
+        - ip_address:
+            description: IP address of the share, a string
     - resource_id: a string
 
-    The function does not take any parameters.
     """
     return {
         "run": {"type": 'bool', "default": True},
