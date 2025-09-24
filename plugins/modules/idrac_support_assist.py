@@ -109,14 +109,12 @@ options:
           - Username of the network share.
           - I(username) is required when I(share_type) is C(cifs).
         type: str
-        required: true
         aliases: ['share_username']
       password:
         description:
           - Password of the network share.
           - I(password) is required when I(share_type) is C(cifs).
         type: str
-        required: true
         aliases: ['share_password']
       ignore_certificate_warning:
         description:
