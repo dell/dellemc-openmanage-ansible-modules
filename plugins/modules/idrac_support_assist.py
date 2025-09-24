@@ -911,14 +911,11 @@ def get_argument_spec():
         - proxy_type: a string with default 'http' and choices ['http', 'socks']
         - username:
             description: User name for accessing the share, required when share_type is 'cifs'
-            required: true
             type: str
             aliases: ['share_username']
         - password:
             description: Password for accessing the share, required when share_type is 'cifs', will not be logged
-            required: true
             type: str
-            no_log: true
             aliases: ['share_password']
         - proxy_support:
             description: Proxy support, a string with default 'off' and choices ['off', 'default_proxy', 'parameters_proxy']
