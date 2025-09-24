@@ -600,7 +600,7 @@ class RunSupportAssist(SupportAssist):
             share_payload_obj = ExportSupportAssist(self.idrac, self.module)
             share_payload = share_payload_obj.execute()
             payload.update(share_payload)
-            payload = {k:v for k,v in payload.items() if v}
+            payload = {k: v for k, v in payload.items() if v is not None}
         run_support_assist_status = self.idrac.invoke_request(
             self.run_url, "POST", data=payload)
         return run_support_assist_status
@@ -963,4 +963,3 @@ def get_argument_spec():
 
 if __name__ == '__main__':
     main()
-
