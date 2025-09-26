@@ -4,6 +4,40 @@ Dell OpenManage Ansible Modules Release Notes
 
 .. contents:: Topics
 
+v10.0.1
+=======
+
+Release Summary
+---------------
+
+'The OpenManage Enterprise, OpenManage Enterprise Modular and OpenManage Enterprise Integration for VMware vCenter modules are now compatible with Ansible Core version 2.19.'
+
+Major Changes
+-------------
+
+- The OpenManage Enterprise, OpenManage Enterprise Modular and OpenManage Enterprise Integration for VMware vCenter modules are now compatible with Ansible Core version 2.19..
+
+Bugfixes
+--------
+
+- idrac_system_info - (Issue 1017) - System info not being returned on gen17s with v10.0.0 (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/1017)
+- redfish_storage_volume - (Issue 1027) Module fails on force reboot. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/1027)
+
+Known Issues
+------------
+
+- idrac_diagnostics - This module does not support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
+- idrac_license - The module will fail to export license to NFS Share.
+- idrac_license - The module will give different error messages for iDRAC9 and iDRAC10 when user imports license with invalid share name.
+- idrac_license - Due to API limitation, proxy parameters are ignored during the import operation.
+- idrac_os_deployment - The module continues to return a 200 response and marks the job as completed, even when an outdated date is supplied in the Expose duration.
+- idrac_redfish_storage_controller - PatrolReadRatePercent attribute cannot be set in iDRAC10.
+- idrac_server_config_profile - When attempting to revert iDRAC settings using a previously exported SCP file, the import operation will complete with errors if a new user was created after the export (Instead of restoring the system to its previous state, including the removal of newly added users).
+- idrac_system_info - The module will show empty video list despite having Embedded VIDEO controller.
+- Redfish_storage_volume - Encryption type and block_io_size bytes will be read only property in iDRAC 9 and iDRAC 10 and hence the module ignores these parameters.
+- ome_smart_fabric_uplink - The module supported by OpenManage Enterprise Modular, however it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, then the existing uplink is modified.
+- ome_smart_fabric_info - Formal qualification of module for Ansible Core version 2.19 is still pending.
+
 v10.0.0
 =======
 
