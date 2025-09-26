@@ -219,7 +219,7 @@ EXAMPLES = r"""
     ca_path: "path/to/ca_file"
     data_collector: ["hardware_data"]
     share_parameters:
-      share_type: "HTTPS"
+      share_type: "https"
       ignore_certificate_warning: "on"
       share_name: "/share_path/support_assist_collections"
       ip_address: "192.168.0.2"
@@ -232,7 +232,7 @@ EXAMPLES = r"""
     ca_path: "path/to/ca_file"
     data_collector: ["debug_logs"]
     share_parameters:
-      share_type: "NFS"
+      share_type: "nfs"
       share_name: "nfsshare/support_assist_collections/"
       ip_address: "192.168.0.3"
 
@@ -244,7 +244,7 @@ EXAMPLES = r"""
     ca_path: "path/to/ca_file"
     run: false
     share_parameters:
-      share_type: "NFS"
+      share_type: "nfs"
       share_name: "/cifsshare/support_assist_collections/"
       ip_address: "192.168.0.4"
 
@@ -256,7 +256,7 @@ EXAMPLES = r"""
     ca_path: "path/to/ca_file"
     run: false
     share_parameters:
-      share_type: "HTTPS"
+      share_type: "https"
       share_name: "/share_path/support_assist_collections"
       ignore_certificate_warning: "on"
       ip_address: "192.168.0.2"
@@ -940,10 +940,6 @@ def get_argument_spec():
 
     """
     return {
-        "idrac_ip": {"type": 'str', "required": True, "aliases": ['hostname']},
-        "idrac_port": {"type": 'str', "required": True, "aliases": ['port']},
-        "idrac_user": {"type": 'str', "required": True, "aliases": ['username']},
-        "idrac_password": {"type": 'str', "required": True, "no_log": True, "aliases": ['password']},
         "run": {"type": 'bool', "default": True},
         "export": {"type": 'bool', "default": True},
         "accept_eula": {"type": 'bool'},
