@@ -15,7 +15,7 @@
         vcenter_uuid: "{{ uuid }}"
         vcenter_username: "{{ vcenter_username }}"
         vcenter_password: "{{ vcenter_password }}"
-        name: "AnsibleTest"
+        name: "AnsibleTest_BaselineProfile"
         repository_profile: "OMAM_Repo"
         validate_certs: false
         description: "Firmware repository profile created by Module"
