@@ -71,8 +71,8 @@
 
     - name: Set the NFS IP and directory path
       ansible.builtin.set_fact:
-        nfs_share_ip: "{{ nfs_share_name.split(':/')[0] }}"
-        nfs_share_dir_path: "{{ nfs_share_name.split(':/')[1] }}"
+        nfs_share_ip: "{{ nfs_share_name.split(':')[0] }}"
+        nfs_share_dir_path: "{{ nfs_share_name.split(':')[1] }}"
 
     - name: Check Mode - Export to NFS share
       dellemc.openmanage.idrac_support_assist:
@@ -113,8 +113,8 @@
 
     - name: Search for files starting with TSR
       ansible.builtin.find:
-        paths: "{{ home_path }}/nfs"
-        patterns: "TSR*{{ ServiceTag }}.*"
+        paths: "{{ nfs_share_dir_path }}"
+        patterns: "TSR*"
         file_type: file
       register: found_files_mod
 
@@ -126,7 +126,7 @@
   always:
     - name: Search for files starting with TSR
       ansible.builtin.find:
-        paths: "{{ home_path }}/nfs"
+        paths: "{{ nfs_share_dir_path }}"
         patterns: "TSR*"
         file_type: file
       register: found_files
