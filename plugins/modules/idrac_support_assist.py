@@ -191,9 +191,9 @@ EXAMPLES = r"""
 ---
 - name: Accept the EULA and run and export the SupportAssist Collection to local path
   dellemc.openmanage.idrac_support_assist:
-    hostname: "192.168.0.1"
-    username: "username"
-    password: "password"
+    idrac_ip: "192.168.0.1"
+    idrac_user: "username"
+    idrac_password: "password"
     accept_eula: true
     ca_path: "path/to/ca_file"
     data_collector: ["debug_logs", "hardware_data", "os_app_data", "storage_logs"]
@@ -203,9 +203,9 @@ EXAMPLES = r"""
 
 - name: Run the SupportAssist Collection with with custom data_to_collect with filter_data
   dellemc.openmanage.idrac_support_assist:
-    hostname: "192.168.0.1"
-    username: "username"
-    password: "password"
+    idrac_ip: "192.168.0.1"
+    idrac_user: "username"
+    idrac_password: "password"
     ca_path: "path/to/ca_file"
     export: false
     filter_data: true
@@ -213,9 +213,9 @@ EXAMPLES = r"""
 
 - name: Run and export the SupportAssist Collection to HTTPS share
   dellemc.openmanage.idrac_support_assist:
-    hostname: "192.168.0.1"
-    username: "username"
-    password: "password"
+    idrac_ip: "192.168.0.1"
+    idrac_user: "username"
+    idrac_password: "password"
     ca_path: "path/to/ca_file"
     data_collector: ["hardware_data"]
     share_parameters:
@@ -226,9 +226,9 @@ EXAMPLES = r"""
 
 - name: Run and export the SupportAssist Collection to NFS share
   dellemc.openmanage.idrac_support_assist:
-    hostname: "192.168.0.1"
-    username: "username"
-    password: "password"
+    idrac_ip: "192.168.0.1"
+    idrac_user: "username"
+    idrac_password: "password"
     ca_path: "path/to/ca_file"
     data_collector: ["debug_logs"]
     share_parameters:
@@ -238,9 +238,9 @@ EXAMPLES = r"""
 
 - name: Export the last SupportAssist Collection to CIFS share
   dellemc.openmanage.idrac_support_assist:
-    hostname: "192.168.0.1"
-    username: "username"
-    password: "password"
+    idrac_ip: "192.168.0.1"
+    idrac_user: "username"
+    idrac_password: "password"
     ca_path: "path/to/ca_file"
     run: false
     share_parameters:
@@ -250,9 +250,9 @@ EXAMPLES = r"""
 
 - name: Export the last SupportAssist Collection to HTTPS share via proxy
   dellemc.openmanage.idrac_support_assist:
-    hostname: "192.168.0.1"
-    username: "username"
-    password: "password"
+    idrac_ip: "192.168.0.1"
+    idrac_user: "username"
+    idrac_password: "password"
     ca_path: "path/to/ca_file"
     run: false
     share_parameters:
@@ -896,10 +896,6 @@ def get_argument_spec():
     It returns a dictionary containing the argument specification for the module.
 
     The argument specification is a dictionary that contains the following keys:
-    - idrac_ip: a string that is required and has an alias 'hostname'
-    - idrac_port: a string that is required and has an alias 'port'
-    - idrac_user: a string that is required and has an alias 'username'
-    - idrac_password: a string that is required, has an alias 'password', and
     - run: a boolean that defaults to True
     - export: a boolean that defaults to True
     - accept_eula: a boolean
