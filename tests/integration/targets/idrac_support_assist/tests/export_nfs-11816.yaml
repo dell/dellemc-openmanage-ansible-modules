@@ -113,7 +113,7 @@
 
     - name: Search for files starting with TSR
       ansible.builtin.find:
-        paths: "{{ nfs_share_dir_path }}"
+        paths: "{{ home_path }}/nfs"
         patterns: "TSR*"
         file_type: file
       register: found_files_mod
@@ -126,7 +126,7 @@
   always:
     - name: Search for files starting with TSR
       ansible.builtin.find:
-        paths: "{{ nfs_share_dir_path }}"
+        paths: "{{ home_path }}/nfs"
         patterns: "TSR*"
         file_type: file
       register: found_files
