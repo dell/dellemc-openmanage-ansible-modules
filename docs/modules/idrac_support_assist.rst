@@ -259,13 +259,13 @@ Examples
 
 .. code-block:: yaml+jinja
 
-    
+
     ---
     - name: Accept the EULA and run and export the SupportAssist Collection to local path
       dellemc.openmanage.idrac_support_assist:
-        hostname: "192.168.0.1"
-        username: "username"
-        password: "password"
+        idrac_ip: "192.168.0.1"
+        idrac_user: "username"
+        idrac_password: "password"
         accept_eula: true
         ca_path: "path/to/ca_file"
         data_collector: ["debug_logs", "hardware_data", "os_app_data", "storage_logs"]
@@ -275,9 +275,9 @@ Examples
 
     - name: Run the SupportAssist Collection with with custom data_to_collect with filter_data
       dellemc.openmanage.idrac_support_assist:
-        hostname: "192.168.0.1"
-        username: "username"
-        password: "password"
+        idrac_ip: "192.168.0.1"
+        idrac_user: "username"
+        idrac_password: "password"
         ca_path: "path/to/ca_file"
         export: false
         filter_data: true
@@ -285,9 +285,9 @@ Examples
 
     - name: Run and export the SupportAssist Collection to HTTPS share
       dellemc.openmanage.idrac_support_assist:
-        hostname: "192.168.0.1"
-        username: "username"
-        password: "password"
+        idrac_ip: "192.168.0.1"
+        idrac_user: "username"
+        idrac_password: "password"
         ca_path: "path/to/ca_file"
         data_collector: ["hardware_data"]
         share_parameters:
@@ -298,9 +298,9 @@ Examples
 
     - name: Run and export the SupportAssist Collection to NFS share
       dellemc.openmanage.idrac_support_assist:
-        hostname: "192.168.0.1"
-        username: "username"
-        password: "password"
+        idrac_ip: "192.168.0.1"
+        idrac_user: "username"
+        idrac_password: "password"
         ca_path: "path/to/ca_file"
         data_collector: ["debug_logs"]
         share_parameters:
@@ -310,9 +310,9 @@ Examples
 
     - name: Export the last SupportAssist Collection to CIFS share
       dellemc.openmanage.idrac_support_assist:
-        hostname: "192.168.0.1"
-        username: "username"
-        password: "password"
+        idrac_ip: "192.168.0.1"
+        idrac_user: "username"
+        idrac_password: "password"
         ca_path: "path/to/ca_file"
         run: false
         share_parameters:
@@ -322,9 +322,9 @@ Examples
 
     - name: Export the last SupportAssist Collection to https share via proxy
       dellemc.openmanage.idrac_support_assist:
-        hostname: "192.168.0.1"
-        username: "username"
-        password: "password"
+        idrac_ip: "192.168.0.1"
+        idrac_user: "username"
+        idrac_password: "password"
         ca_path: "path/to/ca_file"
         run: false
         share_parameters:
