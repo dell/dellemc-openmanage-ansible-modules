@@ -109,11 +109,13 @@ options:
           - Username of the network share.
           - I(username) is required when I(share_type) is C(cifs).
         type: str
+        aliases: ['share_username']
       password:
         description:
           - Password of the network share.
           - I(password) is required when I(share_type) is C(cifs).
         type: str
+        aliases: ['share_password']
       ignore_certificate_warning:
         description:
           - Ignores the certificate warning when connecting to the network share and is only applicable when I(share_type) is C(https).
@@ -189,9 +191,9 @@ EXAMPLES = r"""
 ---
 - name: Accept the EULA and run and export the SupportAssist Collection to local path
   dellemc.openmanage.idrac_support_assist:
-    hostname: "192.168.0.1"
-    username: "username"
-    password: "password"
+    idrac_ip: "192.168.0.1"
+    idrac_user: "username"
+    idrac_password: "password"
     accept_eula: true
     ca_path: "path/to/ca_file"
     data_collector: ["debug_logs", "hardware_data", "os_app_data", "storage_logs"]
@@ -201,9 +203,9 @@ EXAMPLES = r"""
 
 - name: Run the SupportAssist Collection with with custom data_to_collect with filter_data
   dellemc.openmanage.idrac_support_assist:
-    hostname: "192.168.0.1"
-    username: "username"
-    password: "password"
+    idrac_ip: "192.168.0.1"
+    idrac_user: "username"
+    idrac_password: "password"
     ca_path: "path/to/ca_file"
     export: false
     filter_data: true
@@ -211,50 +213,50 @@ EXAMPLES = r"""
 
 - name: Run and export the SupportAssist Collection to HTTPS share
   dellemc.openmanage.idrac_support_assist:
-    hostname: "192.168.0.1"
-    username: "username"
-    password: "password"
+    idrac_ip: "192.168.0.1"
+    idrac_user: "username"
+    idrac_password: "password"
     ca_path: "path/to/ca_file"
     data_collector: ["hardware_data"]
     share_parameters:
-      share_type: "HTTPS"
+      share_type: "https"
       ignore_certificate_warning: "on"
       share_name: "/share_path/support_assist_collections"
       ip_address: "192.168.0.2"
 
 - name: Run and export the SupportAssist Collection to NFS share
   dellemc.openmanage.idrac_support_assist:
-    hostname: "192.168.0.1"
-    username: "username"
-    password: "password"
+    idrac_ip: "192.168.0.1"
+    idrac_user: "username"
+    idrac_password: "password"
     ca_path: "path/to/ca_file"
     data_collector: ["debug_logs"]
     share_parameters:
-      share_type: "NFS"
+      share_type: "nfs"
       share_name: "nfsshare/support_assist_collections/"
       ip_address: "192.168.0.3"
 
 - name: Export the last SupportAssist Collection to CIFS share
   dellemc.openmanage.idrac_support_assist:
-    hostname: "192.168.0.1"
-    username: "username"
-    password: "password"
+    idrac_ip: "192.168.0.1"
+    idrac_user: "username"
+    idrac_password: "password"
     ca_path: "path/to/ca_file"
     run: false
     share_parameters:
-      share_type: "NFS"
+      share_type: "nfs"
       share_name: "/cifsshare/support_assist_collections/"
       ip_address: "192.168.0.4"
 
 - name: Export the last SupportAssist Collection to HTTPS share via proxy
   dellemc.openmanage.idrac_support_assist:
-    hostname: "192.168.0.1"
-    username: "username"
-    password: "password"
+    idrac_ip: "192.168.0.1"
+    idrac_user: "username"
+    idrac_password: "password"
     ca_path: "path/to/ca_file"
     run: false
     share_parameters:
-      share_type: "HTTPS"
+      share_type: "https"
       share_name: "/share_path/support_assist_collections"
       ignore_certificate_warning: "on"
       ip_address: "192.168.0.2"
@@ -600,6 +602,7 @@ class RunSupportAssist(SupportAssist):
             share_payload_obj = ExportSupportAssist(self.idrac, self.module)
             share_payload = share_payload_obj.execute()
             payload.update(share_payload)
+            payload = {k: v for k, v in payload.items() if v is not None}
         run_support_assist_status = self.idrac.invoke_request(
             self.run_url, "POST", data=payload)
         return run_support_assist_status
@@ -888,6 +891,50 @@ def main():
 
 
 def get_argument_spec():
+    """
+    Function to generate the argument specification for the IdracAnsibleModule.
+    It returns a dictionary containing the argument specification for the module.
+
+    The argument specification is a dictionary that contains the following keys:
+    - run: a boolean that defaults to True
+    - export: a boolean that defaults to True
+    - accept_eula: a boolean
+    - filter_data: a boolean that defaults to False
+    - data_collector: a list of strings with choices including hardware_data, storage_logs, os_app_data, debug_logs, telemetry_reports, gpu_logs
+    - job_wait: a boolean that defaults to True
+    - job_wait_timeout: an integer that defaults to 3600
+    - share_parameters: a dictionary with options including
+        - share_type: a string with default 'local' and choices ['local', 'nfs', 'cifs', 'http', 'https', 'ftp']
+        - proxy_type: a string with default 'http' and choices ['http', 'socks']
+        - username:
+            description: User name for accessing the share, required when share_type is 'cifs'
+            type: str
+            aliases: ['share_username']
+        - password:
+            description: Password for accessing the share, required when share_type is 'cifs', will not be logged
+            type: str
+            aliases: ['share_password']
+        - proxy_support:
+            description: Proxy support, a string with default 'off' and choices ['off', 'default_proxy', 'parameters_proxy']
+        - proxy_port:
+            description: Proxy port, an integer with default 80
+        - proxy_server:
+            description: Proxy server address, a string
+        - proxy_username:
+            description: User name for the proxy server, a string
+        - proxy_password:
+            description: Password for the proxy server, a string, will not be logged
+        - workgroup:
+            description: Workgroup for accessing the share, a string
+        - ignore_certificate_warning:
+            description: Ignores the certificate warning when connecting to the share, a string with default 'off' and choices ['off', 'on']
+        - share_name:
+            description: Share path or name, a string
+        - ip_address:
+            description: IP address of the share, a string
+    - resource_id: a string
+
+    """
     return {
         "run": {"type": 'bool', "default": True},
         "export": {"type": 'bool', "default": True},
@@ -913,8 +960,17 @@ def get_argument_spec():
                     "default": 'http',
                     "choices": ['http', 'socks']
                 },
-                "username": {"type": 'str'},
-                "password": {"type": 'str', "no_log": True},
+                "username": {
+                    "type": 'str',
+                    "aliases": ['share_username'],
+                    'required_if': [('share_type', 'cifs', True)]
+                },
+                "password": {
+                    "type": 'str',
+                    "no_log": True,
+                    "aliases": ['share_password'],
+                    'required_if': [('share_type', 'cifs', True)]
+                },
                 "proxy_port": {"type": 'int', "default": 80},
                 "proxy_server": {"type": 'str'},
                 "proxy_username": {"type": 'str'},

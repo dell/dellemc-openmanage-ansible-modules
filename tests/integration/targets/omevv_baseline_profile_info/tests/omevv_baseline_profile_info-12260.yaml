@@ -38,13 +38,13 @@
           - cm_changes.msg == "Successfully retrieved the baseline profile
            information."
 
-    - name: Retrieve specific firmware repository profile information
+    - name: Retrieve specific baseline profile information
        using profile name. (Normal Mode)
       dellemc.openmanage.omevv_baseline_profile_info:
         <<: *retrieve_info
       register: info_result
 
-    - name: Verify task status - Retrieve specific firmware repository profile
+    - name: Verify task status - Retrieve specific baseline profile
        information using profile name. (Normal Mode)
       ansible.builtin.assert:
         that:
@@ -83,10 +83,20 @@
         vcenter_username: "{{ vcenter_username }}"
         vcenter_password: "{{ vcenter_password }}"
         validate_certs: false
-        name: "AnsibleTest"
+        name: "AnsibleTest_BaselineProfile"
         state: absent
       ignore_errors: true
       no_log: false
+
+    - name: Delete Repository profile
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        validate_certs: false
+        state: absent
+        name: OMAM_Repo
 
   module_defaults:
     dellemc.openmanage.omevv_baseline_profile_info:
@@ -95,3 +105,10 @@
       vcenter_username: "{{ vcenter_username }}"
       vcenter_password: "{{ vcenter_password }}"
       port: "{{ port }}"
+
+    dellemc.openmanage.omevv_firmware_repository_profile:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname | ansible.utils.ipwrap }}"
+      vcenter_username: "{{ vcenter_username }}"
+      vcenter_password: "{{ vcenter_password }}"
+      vcenter_uuid: "{{ uuid }}"
