@@ -75,7 +75,7 @@
         vcenter_username: "{{ vcenter_username }}"
         vcenter_password: "{{ vcenter_password }}"
         validate_certs: false
-        name: "AnsibleTest"
+        name: "AnsibleTest_BaselineProfile"
         state: absent
       ignore_errors: true
       no_log: false
