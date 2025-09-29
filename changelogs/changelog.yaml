@@ -2503,7 +2503,7 @@ releases:
         - redfish_storage_volume - (Issue 1027) Module fails on force reboot.
           (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/1027)
         - idrac_support_assist - Updated module playbook examples to use the
-          correct casing for protocol names, for CIFS and HTTPS. 
+          correct casing for protocol names, for CIFS and HTTPS.
       known_issues:
         - idrac_diagnostics - This module does not support
           export of diagnostics file to HTTP and HTTPS share via SOCKS
