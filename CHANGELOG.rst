@@ -27,7 +27,6 @@ Known Issues
 ------------
 
 - idrac_diagnostics - This module does not support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
-- idrac_license - The module will fail to export license to NFS Share.
 - idrac_license - The module will give different error messages for iDRAC9 and iDRAC10 when user imports license with invalid share name.
 - idrac_license - Due to API limitation, proxy parameters are ignored during the import operation.
 - idrac_os_deployment - The module continues to return a 200 response and marks the job as completed, even when an outdated date is supplied in the Expose duration.
