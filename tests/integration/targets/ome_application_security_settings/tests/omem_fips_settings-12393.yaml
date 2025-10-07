@@ -14,47 +14,47 @@
 - include_tasks: _helper.yml
 
 - block:
-  - name: Pre-requisite- Enabling FIPS
-    dellemc.openmanage.ome_application_security_settings:
-      fips_mode_enable: True
-    register: preresult
+    - name: Pre-requisite- Enabling FIPS
+      dellemc.openmanage.ome_application_security_settings:
+        fips_mode_enable: true
+      register: preresult
 
-  - name: Verifying FIPS if enabled
-    ansible.builtin.assert:
-      that:
-        - preresult.msg == "Successfully enabled the FIPS mode."
-    when: preresult.changed
+    - name: Verifying FIPS if enabled
+      ansible.builtin.assert:
+        that:
+          - preresult.msg == "Successfully enabled the FIPS mode."
+      when: preresult.changed
 
-  - name: Waiting for setup to be accessible
-    ansible.builtin.wait_for:
-      timeout: 900
-    when: preresult.changed
+    - name: Waiting for setup to be accessible
+      ansible.builtin.wait_for:
+        timeout: 900
+      when: preresult.changed
 
-  - name: Disabling FIPS
-    dellemc.openmanage.ome_application_security_settings:
-      fips_mode_enable: False
-    register: result
+    - name: Disabling FIPS
+      dellemc.openmanage.ome_application_security_settings:
+        fips_mode_enable: false
+      register: result
 
-  - name: Waiting for setup to be accessible
-    ansible.builtin.wait_for:
-      timeout: 900
-    when: result.changed
+    - name: Waiting for setup to be accessible
+      ansible.builtin.wait_for:
+        timeout: 900
+      when: result.changed
 
-  - name: Leaving the setup in the same state
-    dellemc.openmanage.ome_application_security_settings:
-      fips_mode_enable: True
-    when: not preresult.changed
+    - name: Leaving the setup in the same state
+      dellemc.openmanage.ome_application_security_settings:
+        fips_mode_enable: true
+      when: not preresult.changed
 
-  - name: Waiting for setup to be accessible
-    ansible.builtin.wait_for:
-      timeout: 900
-    when: not preresult.changed
+    - name: Waiting for setup to be accessible
+      ansible.builtin.wait_for:
+        timeout: 900
+      when: not preresult.changed
 
-  - name: Verifying FIPS if disabled
-    ansible.builtin.assert:
-      that:
-        - result.changed
-        - result.msg == "Successfully disabled the FIPS mode."
+    - name: Verifying FIPS if disabled
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Successfully disabled the FIPS mode."
   when: target_host == "OME-M"
 
   module_defaults:
