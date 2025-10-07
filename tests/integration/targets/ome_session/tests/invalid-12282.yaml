@@ -21,7 +21,7 @@
     - name: Verify status of task - invalid state (Negative)
       ansible.builtin.assert:
         that:
-          - invalid_1.failed
+          - invalid_1 is failed
           - "'value of state must be one of: present,
             absent, got: invalid' in invalid_1.msg"
 
