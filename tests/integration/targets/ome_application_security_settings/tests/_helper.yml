@@ -1,0 +1,16 @@
+---
+- name: Identify if target is OME or OME-M
+  ansible.builtin.uri:
+    url: "https://{{ hostname | ansible.utils.ipwrap }}:{{ port }}/api"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    validate_certs: false
+    status_code: 200
+  register: target_identification
+
+- ansible.builtin.set_fact:
+    target_host: "OME"
+
+- ansible.builtin.set_fact:
+    target_host: "OME-M"
+  when: "'DiscoveryConfigService' not in target_identification.json | string"
