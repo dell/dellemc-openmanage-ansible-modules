@@ -35,8 +35,7 @@
         that:
           - invalid_unreachable.unreachable
           - not invalid_unreachable.changed
-          - 'invalid_unreachable.msg == "<urlopen error [Errno -2] Name
-             or service not known>"'
+          - 'invalid_unreachable.msg == "<urlopen error [Errno -2] Name or service not known>"'
 
     - name: Negative - invalid username
       dellemc.openmanage.ome_session:
@@ -63,8 +62,7 @@
       ansible.builtin.assert:
         that:
           - not invalid_password.changed
-          - 'invalid_password.msg == "HTTP Error 401: 401" or
-             invalid_password.msg == "<urlopen error timed out>"'
+          - 'invalid_password.msg == "HTTP Error 401: 401" or invalid_password.msg == "<urlopen error timed out>"'
 
     - name: Negative - invalid port
       dellemc.openmanage.ome_session:
