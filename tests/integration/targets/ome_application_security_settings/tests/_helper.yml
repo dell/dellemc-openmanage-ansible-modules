@@ -8,9 +8,11 @@
     status_code: 200
   register: target_identification
 
-- ansible.builtin.set_fact:
+- name: Set target host to OME
+  ansible.builtin.set_fact:
     target_host: "OME"
 
-- ansible.builtin.set_fact:
+- name: Set target host to OME-M
+  ansible.builtin.set_fact:
     target_host: "OME-M"
   when: "'DiscoveryConfigService' not in target_identification.json | string"

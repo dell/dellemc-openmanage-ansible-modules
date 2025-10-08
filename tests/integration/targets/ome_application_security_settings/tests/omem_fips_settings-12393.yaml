@@ -11,9 +11,11 @@
   when: hostname is not defined or username is not defined or password
          is not defined
 
-- include_tasks: _helper.yml
+- name: Include helper for setting target host
+  ansible.builtin.include_tasks: _helper.yml
 
-- block:
+- name: Execute the FIPS tasks only for OME-M
+  block:
     - name: Pre-requisite- Enabling FIPS
       dellemc.openmanage.ome_application_security_settings:
         fips_mode_enable: true
