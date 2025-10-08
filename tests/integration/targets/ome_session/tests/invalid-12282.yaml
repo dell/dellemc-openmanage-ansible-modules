@@ -22,8 +22,8 @@
       ansible.builtin.assert:
         that:
           - invalid_1 is failed
-          - "'value of state must be one of: present,
-            absent, got: invalid' in invalid_1.msg"
+          - "(invalid_1.msg | default('')) == 'value of state must be one of: present,
+            absent, got: invalid'"
 
     - name: Negative - unreachable host
       dellemc.openmanage.ome_session:
