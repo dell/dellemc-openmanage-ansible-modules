@@ -6,9 +6,9 @@
 - name: Test that we have an OME host, OME username and OME password
   ansible.builtin.fail:
     msg: 'Please define the following variables: hostname, username
-         and password.'
+      and password.'
   when: hostname is not defined or username is not defined or password
-         is not defined
+    is not defined
 
 - name: Ensure directory exists
   ansible.builtin.file:
@@ -16,9 +16,10 @@
     state: directory
 
 - name: Download certificate to upload
-  ansible.builtin.include_tasks: _download_single_parms_certificate.yaml
+  ansible.builtin.include_tasks: _download_single_parms_certificate.yml
 
-- block:
+- name: Scenerio to upload the certificate
+  block:
     - name: Upload the certificate
       dellemc.openmanage.ome_application_certificate:
         hostname: "{{ hostname }}"

@@ -6,9 +6,9 @@
 - name: Test that we have an OME host, OME username and OME password
   ansible.builtin.fail:
     msg: 'Please define the following variables: hostname, username
-         and password.'
+      and password.'
   when: hostname is not defined or username is not defined or password
-         is not defined
+    is not defined
 
 - name: Generate and Verify CSR by providing two different combinations of all
     required options
@@ -32,6 +32,7 @@
       - hostname1.chassis.com
       - hostname2.chassis.com
       - hostname3.chassis.com
+
   block:
     - name: Generate a certificate signing request.
       dellemc.openmanage.ome_application_certificate:
@@ -54,35 +55,81 @@
           - ome_csr.csr_status.CertificateData.endswith
            ("\n-----END CERTIFICATE REQUEST-----")
 
-    - name: Get CSR info
-      community.crypto.openssl_csr_info:
+    - name: Copy CSR data into a file
+      ansible.builtin.copy:
         content: "{{ ome_csr.csr_status.CertificateData }}"
-      register: csr_content
+        dest: "csr_data.txt"
+        mode: "0600"
+
+    - name: Get CSR info by command
+      ansible.builtin.command:
+        openssl  req -in csr_data.txt -noout -subject
+      register: subject_content
+
+    - name: Get CSR info by command to get SAN
+      ansible.builtin.command:
+        openssl  req -in csr_data.txt -noout -text
+      register: san_content
+
+    - name: Extract all SAN entries (DNS and IP)
+      ansible.builtin.set_fact:
+        san_entries: "{{ san_content.stdout | regex_findall('DNS:[^,\\s]+') }}"
+
+    - name: Preprocess subject string
+      ansible.builtin.set_fact:
+        cleaned_subject: "{{ subject_content.stdout_lines[0] |
+          regex_replace('^subject=', '') }}"
+
+    - name: Split into key-value pairs
+      ansible.builtin.set_fact:
+        kv_pairs: "{{ cleaned_subject |
+          regex_findall('([A-Za-z]+)\\s*=\\s*(\"[^\"]+\"|[^,]+)') }}"
+
+    - name: Convert to dictionary
+      ansible.builtin.set_fact:
+        subject_dict: "{{ dict(kv_pairs) }}"
+        cleaned_subject_dict: {}
+
+    - name: Clean each entry in subject_dict
+      ansible.builtin.set_fact:
+        cleaned_subject_dict: >-
+          {{
+            cleaned_subject_dict | combine({
+              item.key: item.value
+                | regex_replace('\\\\', '')
+                | regex_replace('^\"|\"$', '')
+            })
+          }}
+      loop: "{{ subject_dict | dict2items }}"
 
     - name: Verify CSR info
       ansible.builtin.assert:
         that:
-          - csr_content.subject.commonName | length == commonName | length
-          - csr_content.subject.organizationalUnitName | split(",") | length ==
+          - cleaned_subject_dict.CN | length == commonName | length
+          - cleaned_subject_dict.OU | split(",") | length ==
            organizationalUnitName | length
-          - csr_content.subject.organizationName | split(",") | length ==
+          - cleaned_subject_dict.O | split(",") | length ==
             organizationName | length
-          - csr_content.subject.localityName | split(",") | length ==
+          - cleaned_subject_dict.L | split(",") | length ==
             localityName | length
-          - csr_content.subject.stateOrProvinceName | split(",") | length ==
+          - cleaned_subject_dict.ST | split(",") | length ==
             stateOrProvinceName | length
-          - csr_content.subject.countryName == countryName
-          - csr_content.subject.emailAddress == emailAddress
-          - (csr_content.subject_alt_name | length) ==
-           (sub_alt_name_list | length)
+          - cleaned_subject_dict.C == countryName
+          - cleaned_subject_dict.emailAddress == emailAddress
+          - san_entries | length == sub_alt_name_list | length
 
     - name: Verify CSR SAN
       ansible.builtin.assert:
         that:
           - item.1 in item.0
       with_together:
-        - "{{ csr_content.subject_alt_name }}"
+        - "{{ san_entries }}"
         - "{{ sub_alt_name_list }}"
+
+    - name: Remove the csr_data.txt
+      ansible.builtin.file:
+        path: csr_data.txt
+        state: absent
 
   module_defaults:
     dellemc.openmanage.ome_application_certificate:
