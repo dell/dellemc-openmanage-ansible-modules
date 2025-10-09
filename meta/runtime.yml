@@ -1,5 +1,36 @@
 ---
 requires_ansible: ">=2.15.0"
+action_groups:
+  idrac:
+    - idrac_attributes
+    - idrac_bios
+    - idrac_boot
+    - idrac_certificates
+    - idrac_diagnostics
+    - idrac_firmware_info
+    - idrac_firmware
+    - idrac_license
+    - idrac_lifecycle_controller_job_status_info
+    - idrac_lifecycle_controller_jobs
+    - idrac_lifecycle_controller_logs
+    - idrac_lifecycle_controller_status_info
+    - idrac_network_attributes
+    - idrac_network
+    - idrac_os_deployment
+    - idrac_redfish_storage_controller
+    - idrac_reset
+    - idrac_secure_boot
+    - idrac_server_config_profile
+    - idrac_session
+    - idrac_storage_volume
+    - idrac_support_assist
+    - idrac_syslog
+    - idrac_system_erase
+    - idrac_system_info
+    - idrac_timezone_ntp
+    - idrac_user_info
+    - idrac_user
+    - idrac_virtual_media
 plugin_routing:
   modules:
     dellemc_get_firmware_inventory:
