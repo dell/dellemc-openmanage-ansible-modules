@@ -58,7 +58,8 @@
 
 - name: Filter hosts belonging to the group
   ansible.builtin.set_fact:
-    filtered_hosts: "{{ host_details.json | selectattr('omevvpGroupId', 'equalto', group_id | int) | list }}"
+    filtered_hosts: "{{ host_details.json |
+      selectattr('omevvpGroupId', 'equalto', group_id | int) | list }}"
 
 - name: Set host and service tag lists
   ansible.builtin.set_fact:
@@ -79,7 +80,8 @@
     transfer_protocol: HTTP
   loop: "{{ idrac_ip_list }}"
   when:
-    - omevv_firmware_idrac_upgrade_http_path is defined and omevv_firmware_idrac_upgrade_http_path != ''
+    - omevv_firmware_idrac_upgrade_http_path is defined and
+      omevv_firmware_idrac_upgrade_http_path != ''
     - upgrade is defined and upgrade is true
 
 - name: Downgrade firmware local executable file
@@ -93,7 +95,8 @@
     transfer_protocol: HTTP
   loop: "{{ idrac_ip_list }}"
   when:
-    - omevv_firmware_idrac_downgrade_http_path is defined and omevv_firmware_idrac_downgrade_http_path != ''
+    - omevv_firmware_idrac_downgrade_http_path is defined and
+      omevv_firmware_idrac_downgrade_http_path != ''
     - downgrade is defined and downgrade is true
 
 - name: Gather_fact
