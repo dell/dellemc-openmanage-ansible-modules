@@ -13,13 +13,13 @@
     vcenter_username: "{{ vcenter_username }}"
     vcenter_password: "{{ vcenter_password }}"
     name: "AnsibleTest"
-    repository_profile: "Dell Default Catalog"
+    repository_profile: "Downgrade"
     validate_certs: false
     description: "Firmware repository profile created by Module"
     cluster:
-      - "{{ cluster_name }}"
+    - "{{ cluster_name }}"
     days:
-      - "all"
+    - "all"
     time: "{{ baseline_time }}"
   register: create_result
 
@@ -35,8 +35,7 @@
 - name: Extracting upgrade firmware drift
   ansible.builtin.command:
     cmd: >
-      python find_component.py '{{ cluster_name }}' upgrade '{{
-      drift_info.firmware_compliance_info | to_json }}'
+      python find_component.py '{{ cluster_name }}' upgrade '{{ drift_info.firmware_compliance_info | to_json }}'
     chdir: "{{ playbook_dir }}/targets/omevv_firmware/tests"
   register: upgrade_dict
   no_log: true
@@ -45,8 +44,7 @@
 - name: Extracting downgrade firmware drift
   ansible.builtin.command:
     cmd: >
-      python find_component.py '{{ cluster_name }}' downgrade '{{
-      drift_info.firmware_compliance_info | to_json }}'
+      python find_component.py '{{ cluster_name }}' downgrade '{{ drift_info.firmware_compliance_info | to_json }}'
     chdir: "{{ playbook_dir }}/targets/omevv_firmware/tests"
   register: downgrade_dict
   no_log: true
