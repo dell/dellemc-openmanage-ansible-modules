@@ -1,5 +1,5 @@
 # Dell OpenManage Ansible modules
-# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -11,7 +11,8 @@
   when: hostname is not defined or vcenter_username is not defined or
     vcenter_password is not defined
 
-- block:
+- name: Schedule upgrade for multiple component using svctag
+  block:
     - name: Fetch pre-requisite details
       ansible.builtin.include_tasks: ../_helper.yml
       vars:

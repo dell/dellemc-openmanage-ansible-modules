@@ -13,13 +13,13 @@
     vcenter_username: "{{ vcenter_username }}"
     vcenter_password: "{{ vcenter_password }}"
     name: "AnsibleTest"
-    repository_profile: "Downgrade"
+    repository_profile: "Dell Default Catalog"
     validate_certs: false
     description: "Firmware repository profile created by Module"
     cluster:
-    - "{{ cluster_name }}"
+      - "{{ cluster_name }}"
     days:
-    - "all"
+      - "all"
     time: "{{ baseline_time }}"
   register: create_result
 

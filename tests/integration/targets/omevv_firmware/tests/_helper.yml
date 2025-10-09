@@ -1,7 +1,8 @@
 ---
 - name: Get Vcenter details by uri.
   ansible.builtin.uri:
-    url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port }}/omevv/GatewayService/v1/Consoles
+    url: "https://{{ hostname | ansible.utils.ipwrap }}:{{ port }}/\
+      omevv/GatewayService/v1/Consoles"
     user: "{{ ome_username }}"
     password: "{{ ome_password }}"
     validate_certs: false
@@ -10,12 +11,13 @@
   register: uri_resp
 
 - name: Convert response json list to dict
-  set_fact:
+  ansible.builtin.set_fact:
     uuid: "{{ uri_resp.json[0].uuid }}"
 
 - name: Get group details
   ansible.builtin.uri:
-    url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port }}/omevv/GatewayService/v1/Consoles/{{ uuid }}/Groups
+    url: "https://{{ hostname | ansible.utils.ipwrap }}:{{ port }}/omevv/\
+      GatewayService/v1/Consoles/{{ uuid }}/Groups"
     user: "{{ vcenter_username }}"
     password: "{{ vcenter_password }}"
     validate_certs: false
@@ -38,7 +40,8 @@
 
 - name: Find hosts details
   ansible.builtin.uri:
-    url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port }}/omevv/GatewayService/v1/Consoles/{{ uuid }}/ManagedHosts
+    url: "https://{{ hostname | ansible.utils.ipwrap }}:{{ port }}/omevv/\
+      GatewayService/v1/Consoles/{{ uuid }}/ManagedHosts"
     user: "{{ vcenter_username }}"
     password: "{{ vcenter_password }}"
     validate_certs: false
@@ -76,8 +79,8 @@
     transfer_protocol: HTTP
   loop: "{{ idrac_ip_list }}"
   when:
-  - omevv_firmware_idrac_upgrade_http_path is defined and omevv_firmware_idrac_upgrade_http_path != ''
-  - upgrade is defined and upgrade is true
+    - omevv_firmware_idrac_upgrade_http_path is defined and omevv_firmware_idrac_upgrade_http_path != ''
+    - upgrade is defined and upgrade is true
 
 - name: Downgrade firmware local executable file
   dellemc.openmanage.redfish_firmware:
@@ -90,8 +93,8 @@
     transfer_protocol: HTTP
   loop: "{{ idrac_ip_list }}"
   when:
-  - omevv_firmware_idrac_downgrade_http_path is defined and omevv_firmware_idrac_downgrade_http_path != ''
-  - downgrade is defined and downgrade is true
+    - omevv_firmware_idrac_downgrade_http_path is defined and omevv_firmware_idrac_downgrade_http_path != ''
+    - downgrade is defined and downgrade is true
 
 - name: Gather_fact
   ansible.builtin.gather_facts:
@@ -99,7 +102,8 @@
 
 - name: Running Inventory with compliance
   ansible.builtin.uri:
-    url: https://{{ hostname | ansible.utils.ipwrap }}:{{ port }}/omevv/GatewayService/v1/Consoles/{{ uuid }}/Hosts/RunComplianceWithInventory
+    url: "https://{{ hostname | ansible.utils.ipwrap }}:{{ port }}/omevv/\
+      GatewayService/v1/Consoles/{{ uuid }}/Hosts/RunComplianceWithInventory"
     user: "{{ vcenter_username }}"
     password: "{{ vcenter_password }}"
     validate_certs: false
