@@ -48,8 +48,7 @@
       ansible.builtin.assert:
         that:
           - not invalid_username.changed
-          - 'invalid_username.msg == "HTTP Error 401: 401" or
-             invalid_username.msg == "<urlopen error timed out>"'
+          - "invalid_username.msg == 'HTTP Error 401: 401' or invalid_username.msg == '<urlopen error timed out>'"
 
     - name: Negative - invalid password
       dellemc.openmanage.ome_session:
