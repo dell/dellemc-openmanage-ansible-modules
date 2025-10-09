@@ -22,7 +22,8 @@
       ansible.builtin.assert:
         that:
           - "invalid_1.failed"
-          - "invalid_1.msg == 'value of state must be one of: present, absent, got: invalid'"
+          - 'invalid_1.msg == "value of state must be one of: present,
+            absent, got: invalid"'
 
     - name: Negative - unreachable host
       dellemc.openmanage.ome_session:
@@ -61,7 +62,8 @@
       ansible.builtin.assert:
         that:
           - not invalid_password.changed
-          - 'invalid_password.msg == "HTTP Error 401: 401" or invalid_password.msg == "<urlopen error timed out>"'
+          - "invalid_password.msg == 'HTTP Error 401: 401' or
+            invalid_password.msg == '<urlopen error timed out>'"
 
     - name: Negative - invalid port
       dellemc.openmanage.ome_session:
@@ -125,7 +127,8 @@
             we were unable to convert to
             int: " in invalid_timeout_type.msg or
             "argument ''timeout'' is of type
-            str and we were unable to convert to int: " in invalid_timeout_type.msg'
+            str and we were unable to convert to int: " in
+            invalid_timeout_type.msg'
 
     - name: Negative - invalid timeout value
       dellemc.openmanage.ome_session:
