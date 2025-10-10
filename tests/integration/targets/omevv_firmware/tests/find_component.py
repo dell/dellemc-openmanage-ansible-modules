@@ -11,7 +11,9 @@ for each_cluster in input_list:
         for eachReport in each_cluster.get('hostComplianceReports'):
             tmp_dict = {eachReport.get('serviceTag'): []}
             for eachCompliance in eachReport.get('componentCompliances'):
-                if ( eachCompliance.get('updateAction').lower() == update_operation.lower() and 'nic' not in eachCompliance.get('sourceName').lower() ):
+                if (
+                    eachCompliance.get('updateAction').lower() == update_operation.lower()
+                ):
                     tmp_dict[eachReport.get('serviceTag')].append(eachCompliance.get('sourceName'))
             result_dict.update(tmp_dict)
         all_value = [set(value) for key, value in result_dict.items()]
