@@ -13,6 +13,7 @@ for each_cluster in input_list:
             for eachCompliance in eachReport.get('componentCompliances'):
                 if (
                     eachCompliance.get('updateAction').lower() == update_operation.lower()
+                    and 'nic' in eachCompliance.get('sourceName').lower()
                 ):
                     tmp_dict[eachReport.get('serviceTag')].append(eachCompliance.get('sourceName'))
             result_dict.update(tmp_dict)
