@@ -120,6 +120,17 @@
       ignore_errors: true
       no_log: false
 
+    - name: Delete firmware repository profile
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        validate_certs: "{{ validate_certs }}"
+        hostname: "{{ hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_uuid: "{{ uuid }}"
+        name: "Ansible_FirmRepo_downgrade"
+        state: absent
+      ignore_errors: true
+
   module_defaults:
     dellemc.openmanage.omevv_firmware:
       hostname: "{{ hostname }}"

@@ -16,7 +16,7 @@
     - name: Fetch pre-requisite details
       ansible.builtin.include_tasks: ../_helper.yml
       vars:
-        downgrade: true
+        upgrade: true
 
     - name: Including helper file for creating firmware repo profile
       ansible.builtin.include_tasks: ../_pre_req_create.yml
@@ -125,6 +125,17 @@
         state: absent
       ignore_errors: true
       no_log: false
+
+    - name: Delete firmware repository profile
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        validate_certs: "{{ validate_certs }}"
+        hostname: "{{ hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_uuid: "{{ uuid }}"
+        name: "Ansible_FirmRepo_downgrade"
+        state: absent
+      ignore_errors: true
 
   module_defaults:
     dellemc.openmanage.omevv_firmware:
