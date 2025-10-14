@@ -1,8 +1,6 @@
 ---
-- ansible.builtin.set_fact:
-    target_repo_profile: "Dell Default Catalog"
-
-- ansible.builtin.set_fact:
+- name: Set repository name with customize catalog
+  ansible.builtin.set_fact:
     target_repo_profile: "Ansible_FirmRepo_downgrade"
   when: upgrade is defined and upgrade is true
 
@@ -13,12 +11,13 @@
     vcenter_username: "{{ vcenter_username }}"
     vcenter_password: "{{ vcenter_password }}"
     vcenter_uuid: "{{ uuid }}"
-    name: "{{ target_repo_profile }}"
+    name: "Ansible_FirmRepo_downgrade"
     state: present
     catalog_path: "http://{{ http_share }}{{ omevv_firmware_donwngrade_catalog }}"
     protocol_type: "HTTP"
     description: "Firmware repository profile created by Module"
   register: check_firm_repo
+  when: upgrade is defined and upgrade is true
 
 - name: Adding 2 min from current time
   ansible.builtin.set_fact:
@@ -34,7 +33,8 @@
     vcenter_username: "{{ vcenter_username }}"
     vcenter_password: "{{ vcenter_password }}"
     name: "AnsibleTest"
-    repository_profile: "{{ target_repo_profile }}"
+    repository_profile: "{{ target_repo_profile |
+      default('Dell Default Catalog') }}"
     validate_certs: false
     description: "Firmware repository profile created by Module"
     cluster:

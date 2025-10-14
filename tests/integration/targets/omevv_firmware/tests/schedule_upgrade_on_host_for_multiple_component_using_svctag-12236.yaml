@@ -20,6 +20,8 @@
 
     - name: Including helper file for creating firmware repo profile
       ansible.builtin.include_tasks: ../_pre_req_create.yml
+      vars:
+        downgrade: true
 
     - name: Setfact for up_firm_list
       ansible.builtin.set_fact:

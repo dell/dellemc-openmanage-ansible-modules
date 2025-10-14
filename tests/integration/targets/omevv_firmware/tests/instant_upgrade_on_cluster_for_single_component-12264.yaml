@@ -19,6 +19,8 @@
 
     - name: Including helper file for creating firmware repo profile
       ansible.builtin.include_tasks: ../_pre_req_create.yml
+      vars:
+        downgrade: true
 
     - name: Checking if firmware components is there for upgrade
       ansible.builtin.fail:
