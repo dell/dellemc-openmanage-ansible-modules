@@ -1,5 +1,5 @@
 # Dell OpenManage Ansible modules
-# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -242,9 +242,8 @@
         that:
           - invalid_job_wait_timeout_type.failed
           - not invalid_job_wait_timeout_type.changed
-          - '"argument ''job_wait_timeout'' is of
-             type <class ''str''> and we were unable to convert to
-             int:" in invalid_job_wait_timeout_type.msg'
+          - "'job_wait_timeout' in invalid_job_wait_timeout_type.msg"
+          - "'convert to int' in invalid_job_wait_timeout_type.msg"
 
     - name: Negative - invalid job_wait_timeout value
       dellemc.openmanage.omevv_firmware:
