@@ -80,20 +80,34 @@
         cleaned_subject: "{{ subject_content.stdout_lines[0] |
           regex_replace('^subject=', '') }}"
 
+    - name: Split into key-value pairs
+      ansible.builtin.set_fact:
+        subject_pairs: >-
+          {{
+            cleaned_subject
+            | regex_replace(', ', ',')
+            | split(',')
+            | map('regex_replace', '^([^=]+)=(.*)$', '{"\\1": "\\2"}')
+            | map('from_json') | list }}
+
+    - name: Convert to dictionary
+      debug:
+        var: subject_pairs
+
     - name: Verify CSR info
       ansible.builtin.assert:
         that:
-          - cleaned_subject.CN | length == commonName | length
-          - cleaned_subject.OU | split(",") | length ==
+          - subject_pairs.CN | length == commonName | length
+          - subject_pairs.OU | split(",") | length ==
            organizationalUnitName | length
-          - cleaned_subject.O | split(",") | length ==
+          - subject_pairs.O | split(",") | length ==
             organizationName | length
-          - cleaned_subject.L | split(",") | length ==
+          - subject_pairs.L | split(",") | length ==
             localityName | length
-          - cleaned_subject.ST | split(",") | length ==
+          - subject_pairs.ST | split(",") | length ==
             stateOrProvinceName | length
-          - cleaned_subject.C == countryName
-          - cleaned_subject.emailAddress == emailAddress
+          - subject_pairs.C == countryName
+          - subject_pairs.emailAddress == emailAddress
           - san_entries | length == sub_alt_name_list | length
 
     - name: Verify CSR SAN
