@@ -102,10 +102,6 @@
           {%- endfor -%}
           {{ result }}
 
-    - name: Show structured DN dictionary
-      ansible.builtin.debug:
-        var: dn_dict.OU| split(",") | length
-
     - name: Verify CSR info
       ansible.builtin.assert:
         that:
