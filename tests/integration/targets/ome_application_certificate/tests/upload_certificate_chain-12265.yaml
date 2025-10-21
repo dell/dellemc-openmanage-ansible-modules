@@ -26,7 +26,7 @@
         validate_certs: "{{ validate_certs }}"
         command: "upload_cert_chain"
         upload_file: "{{ ome_application_certificate_local_temp_path
-        }}/{{ ome_application_certificate_certificate_chain_filename }}"
+          }}/{{ ome_application_certificate_certificate_chain_filename }}"
       register: upload_result
 
     - name: Verify upload of the certificate chain
