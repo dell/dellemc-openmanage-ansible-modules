@@ -67,7 +67,7 @@
           {% endfor %}
 
     - name: Certificate signing
-      ansible.builtin.include_tasks: _get_certtificate_chain.yml
+      ansible.builtin.include_tasks: _get_certificate_chain.yml
 
     - name: Upload the certificate chain
       dellemc.openmanage.ome_application_certificate:
