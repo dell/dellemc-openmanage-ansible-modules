@@ -9,8 +9,6 @@
         -out {{ ca_cert_path }}
         -nodes
         -subj "{{ ca_subject }}"
-      args:
-        creates: "{{ ca_cert_path }}"
 
     - name: Create CA serial file with serial number
       ansible.builtin.copy:

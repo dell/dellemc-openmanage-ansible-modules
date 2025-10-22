@@ -84,6 +84,10 @@
           - "upload_result.msg == 'Successfully
             uploaded application certificate.'"
 
+    - name: wait for 1 minute for OME setup to up
+      ansible.builtin.pause:
+        seconds: 60
+
   always:
     - name: Cleanup of all generated files
       ansible.builtin.file:
