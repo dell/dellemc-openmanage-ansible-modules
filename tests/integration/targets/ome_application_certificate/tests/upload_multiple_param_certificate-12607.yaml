@@ -64,6 +64,21 @@
         dest: "{{ csr_path }}"
         mode: "0600"
 
+    - name: Create OpenSSL config file with EKU
+      ansible.builtin.copy:
+        dest: "{{ openssl_config_path }}"
+        mode: "0644"
+        content: |
+          [ v3_req ]
+          keyUsage = critical, digitalSignature, keyEncipherment
+          extendedKeyUsage = serverAuth, clientAuth
+          subjectAltName = @alt_names
+
+          [ alt_names ]
+          {% for name in sub_alt_name_list %}
+          DNS.{{ loop.index }} = {{ name }}
+          {% endfor %}
+
     - name: Certificate signing
       ansible.builtin.include_tasks: _sign_certificate.yml
 

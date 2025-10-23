@@ -10,6 +10,8 @@
         -CAkey {{ ca_key_path }}
         -CAcreateserial
         -out {{ signed_cert_path }}
+        -extfile {{ openssl_config_path }}
+        -extensions v3_req
 
     - name: Display signed certificate details
       ansible.builtin.command: >
