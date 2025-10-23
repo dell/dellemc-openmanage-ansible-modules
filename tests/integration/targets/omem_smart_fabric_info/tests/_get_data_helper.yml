@@ -41,4 +41,4 @@
 
 - ansible.builtin.set_fact:
     loop_data: "{{ loop_data | default({}) | combine({component : f_data})}}"
-  when: component is defined and f_data
+  when: component is defined and f_data | length > 0
