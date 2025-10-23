@@ -105,6 +105,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.inf
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.controller_enclosure import IDRACEnclosureInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.fan import IDRACFanInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.nic import IDRACNICInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.fc import IDRACFCInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.sensors_battery import IDRACSensorsBatteryInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.sensors_fan import IDRACSensorsFanInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.sensors_intrusion import IDRACSensorsIntrusionInfo
@@ -164,6 +165,7 @@ def main():
                 "License": "",
                 "Memory": "",
                 "iDRACNIC": "",
+                "iDRACFC": "",
                 "PCIDevice": "",
                 "PowerSupply": "",
                 "ControllerBattery": "",
@@ -174,6 +176,7 @@ def main():
                 "Sensors_Voltage": "",
                 "Sensors_Amperage": "",
                 "NIC": "",
+                "FC": "",
                 "Fan": "",
                 "System": "",
                 "SystemBoardMetrics": "",
@@ -198,6 +201,7 @@ def main():
                 system_info_dict["Sensors_Fan"] = IDRACSensorsFanInfo(idrac).get_sensors_fan_info()
                 system_info_dict["Fan"] = IDRACFanInfo(idrac).get_fan_info()
                 system_info_dict["NIC"] = IDRACNICInfo(idrac).get_nic_info()
+                system_info_dict["FC"] = IDRACFCInfo(idrac).get_fc_info()
                 system_info_dict["System"] = IDRACSystemInfo(idrac).get_system_info()
                 system_info_dict["SystemBoardMetrics"] = IDRACSystemBoardMetricsInfo(idrac, chassis_sensors).get_system_board_metrics_info()
                 system_info_dict["SystemMetrics"] = IDRACSystemMetricsInfo(idrac).get_system_metrics_info()
@@ -208,6 +212,7 @@ def main():
                 system_info_dict["iDRAC"] = IDRACInfo(idrac).get_idrac_info_details()
                 system_info_dict["PowerSupply"] = IDRACPowerSupplyInfo(idrac).get_power_supply_info()
                 system_info_dict["iDRACNIC"] = IDRACInfo(idrac).get_idrac_nic_info()
+                system_info_dict["iDRACFC"] = IDRACInfo(idrac).get_idrac_fc_info()
                 system_info_dict["PCIDevice"] = IDRACPCIDeviceInfo(idrac).get_pcidevice_info()
                 system_info_dict["Controller"] = IDRACControllerInfo(idrac).get_controller_system_info()
                 system_info_dict["PhysicalDisk"] = IDRACPhysicalDiskInfo(idrac).get_physical_disk_info()
