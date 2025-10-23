@@ -19,7 +19,7 @@
     - include_tasks: _create_fabric_helper.yml
       when: uri_fabric_fetched_data | length < 1
 
-    - include_tasks: get_data.yml
+    - include_tasks: _get_data_helper.yml
       vars:
         url: https://{{hostname}}:{{port}}/api/NetworkService/Fabrics
 
@@ -49,17 +49,25 @@
           - result.msg == "Successfully retrieved the smart fabric information."
           - uri_total_smart_fabrics == task_total_smart_fabrics
 
+    #- name: Remove Description key from API response
+    #  ansible.builtin.set_fact:
+    #    uri_fabric_res: "{{ uri_fabric_res | dict2items | rejectattr('key', 'equalto', 'Description') | items2dict }}"
+
+    #- name: Remove Description key from module result
+    #  ansible.builtin.set_fact:
+    #    result_smart_fabric_info_clean: "{{ result.smart_fabric_info[0] | dict2items | rejectattr('key', 'equalto', 'Description') | items2dict }}"
+
+    #- name: Remove DefaultUplinkId key from API response
+    #  ansible.builtin.set_fact:
+    #    uri_fabric_res: "{{ uri_fabric_res | dict2items | rejectattr('key', 'equalto', 'DefaultUplinkId') | items2dict }}"
+
     - name: debug uri_fabric_res
       ansible.builtin.debug:
         var: uri_fabric_res
-
+ 
     - name: debug after
       ansible.builtin.debug:
         var: result.smart_fabric_info[0]
-
-    - name: Remove Description key from API response
-      ansible.builtin.set_fact:
-        uri_fabric_res: "{{ uri_fabric_res | dict2items | rejectattr('key', 'equalto', 'Description') | items2dict }}"
 
     - name: Compare smart fabric info from task and uri
       ansible.utils.fact_diff:
