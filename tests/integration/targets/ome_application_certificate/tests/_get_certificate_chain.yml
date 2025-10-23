@@ -6,6 +6,7 @@
         openssl x509 -req
         -in {{ csr_path }}
         -days {{ ca_days_valid }}
+        -sha256
         -CA {{ ca_cert_path }}
         -CAkey {{ ca_key_path }}
         -CAcreateserial
@@ -22,11 +23,7 @@
       ansible.builtin.debug:
         var: signed_cert_info.stdout
 
-    - name: Create certificate chain in P7B format with Server and Client Auth
-      ansible.builtin.command: >
-        openssl crl2pkcs7
-        -nocrl
-        -certfile {{ signed_cert_path }}
-        -certfile {{ ca_cert_path }}
-        -outform DER
-        -out {{ p7b_path }}
+    - name: Create certificate chain in PEM format
+      ansible.builtin.shell: |
+        cat {{ signed_cert_path }} {{ intermediate_ca_path | default('') }}\
+        {{ ca_cert_path }} > {{ p7b_path}}

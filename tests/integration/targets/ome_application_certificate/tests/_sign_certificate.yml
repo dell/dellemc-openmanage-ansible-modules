@@ -6,6 +6,7 @@
         openssl x509 -req
         -in {{ csr_path }}
         -days {{ ca_days_valid }}
+        -sha256
         -CA {{ ca_cert_path }}
         -CAkey {{ ca_key_path }}
         -CAcreateserial

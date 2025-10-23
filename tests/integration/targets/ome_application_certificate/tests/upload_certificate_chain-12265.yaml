@@ -22,7 +22,7 @@
     org_name: "Dell Inc."
     ou_name: "Remote Access Group"
     state_name: "Texas"
-    sub_alt_name: "welcome.ome.com"
+    sub_alt_name: "ome.welcome.com"
   block:
     - name: Generate a certificate signing request
       dellemc.openmanage.ome_application_certificate:
@@ -69,6 +69,10 @@
     - name: Certificate signing
       ansible.builtin.include_tasks: _get_certificate_chain.yml
 
+    - name: wait for 20 seconds to process CSR and chain
+      ansible.builtin.pause:
+        seconds: 20
+
     - name: Upload the certificate chain
       dellemc.openmanage.ome_application_certificate:
         command: "upload_cert_chain"
@@ -87,6 +91,10 @@
         seconds: 60
 
   always:
+    - name: wait for 20 seconds for OME setup to up
+      ansible.builtin.pause:
+        seconds: 20
+
     - name: Cleanup of all generated files
       ansible.builtin.file:
         path: "{{ item }}"
