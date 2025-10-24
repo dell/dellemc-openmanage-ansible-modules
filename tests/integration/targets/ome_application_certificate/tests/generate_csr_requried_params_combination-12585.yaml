@@ -80,42 +80,42 @@
         cleaned_subject: "{{ subject_content.stdout_lines[0] |
           regex_replace('^subject=', '') }}"
 
-    - name: Split into key-value pairs
+    - name: Convert cleaned_subject string to dictionary
       ansible.builtin.set_fact:
-        kv_pairs: "{{ cleaned_subject |
-          regex_findall('([A-Za-z]+)\\s*=\\s*(\"[^\"]+\"|[^,]+)') }}"
-
-    - name: Convert to dictionary
-      ansible.builtin.set_fact:
-        subject_dict: "{{ dict(kv_pairs) }}"
-        cleaned_subject_dict: {}
-
-    - name: Clean each entry in subject_dict
-      ansible.builtin.set_fact:
-        cleaned_subject_dict: >-
-          {{
-            cleaned_subject_dict | combine({
-              item.key: item.value
-                | regex_replace('\\\\', '')
-                | regex_replace('^\"|\"$', '')
-            })
-          }}
-      loop: "{{ subject_dict | dict2items }}"
+        dn_dict: >-
+          {%- set result = {} -%}
+          {%- for item in cleaned_subject.split(', ') -%}
+            {%- set pair = item.strip().split('=') -%}
+            {%- if pair | length == 2 -%}
+              {%- set key = pair[0].strip() -%}
+              {%- set value = pair[1].strip() -%}
+              {%- if key in result -%}
+                {%- if result[key] is string -%}
+                  {%- set _ = result.update({key: [result[key], value]}) -%}
+                {%- else -%}
+                  {%- set _ = result[key].append(value) -%}
+                {%- endif -%}
+              {%- else -%}
+                {%- set _ = result.update({key: value}) -%}
+              {%- endif -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ result }}
 
     - name: Verify CSR info
       ansible.builtin.assert:
         that:
-          - cleaned_subject_dict.CN | length == commonName | length
-          - cleaned_subject_dict.OU | split(",") | length ==
+          - dn_dict.CN | length == commonName | length
+          - dn_dict.OU | split(",") | length ==
            organizationalUnitName | length
-          - cleaned_subject_dict.O | split(",") | length ==
+          - dn_dict.O | split(",") | length ==
             organizationName | length
-          - cleaned_subject_dict.L | split(",") | length ==
+          - dn_dict.L | split(",") | length ==
             localityName | length
-          - cleaned_subject_dict.ST | split(",") | length ==
+          - dn_dict.ST | split(",") | length ==
             stateOrProvinceName | length
-          - cleaned_subject_dict.C == countryName
-          - cleaned_subject_dict.emailAddress == emailAddress
+          - dn_dict.C == countryName
+          - dn_dict.emailAddress == emailAddress
           - san_entries | length == sub_alt_name_list | length
 
     - name: Verify CSR SAN
