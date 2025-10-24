@@ -38,7 +38,7 @@ class IDRACFCInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
 
-    def get_FC_capability_details(self, id):
+    def get_fc_capability_details(self, id):
         response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FC_CAPABILITY_DETAILS_URI)
         if response.status_code == 200:
             for member in response.json_data.get("Members", []):
@@ -59,7 +59,7 @@ class IDRACFCInfo(object):
 
         return "", "", "", "", "", "", "", "", "", ""
 
-    def get_FC_port_metrics_details(self, id):
+    def get_fc_port_metrics_details(self, id):
         response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FC_PORT_METRICS_DETAILS_URI)
         if response.status_code == 200:
             for member in response.json_data.get("Members", []):
@@ -68,7 +68,7 @@ class IDRACFCInfo(object):
                     return link_status
         return ""
 
-    def get_FC_statistics_details(self, id):
+    def get_fc_statistics_details(self, id):
         response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_STATISTICS_DETAILS_URI)
         if response.status_code == 200:
             for member in response.json_data.get("Members", []):
@@ -105,11 +105,11 @@ class IDRACFCInfo(object):
             return NA if value == "" else value
 
         dcb_protocol, fcoe_boot_support, fcoe_offload_support, flex_add_support, FC_part_support, \
-            pxe_boot_support, tcp_chimney_support, wol_support, iscsi_boot_support, iscsi_offload_support = self.get_FC_capability_details(id)
+            pxe_boot_support, tcp_chimney_support, wol_support, iscsi_boot_support, iscsi_offload_support = self.get_fc_capability_details(id)
 
-        link_status = self.get_FC_port_metrics_details(id)
+        link_status = self.get_fc_port_metrics_details(id)
         mac_address, link_speed, auto_neg, perm_mac_addr, health = self.get_ethernet_details()
-        rx_bytes, rx_multicast, rx_unicast, tx_bytes, tx_multicast, tx_unicast = self.get_FC_statistics_details(id)
+        rx_bytes, rx_multicast, rx_unicast, tx_bytes, tx_multicast, tx_unicast = self.get_fc_statistics_details(id)
 
         output = {
             "AutoNegotiation": sanitize(auto_neg),
@@ -168,7 +168,7 @@ class IDRACFCInfo(object):
         }
         return output
 
-    def get_FC_info(self):
+    def get_fc_info(self):
         """Fetches FC data from iDRAC and maps it."""
         output = []
         resp = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FC_DETAILS_URI)
