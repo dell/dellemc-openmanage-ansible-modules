@@ -165,7 +165,6 @@ def main():
                 "License": "",
                 "Memory": "",
                 "iDRACNIC": "",
-                "iDRACFC": "",
                 "PCIDevice": "",
                 "PowerSupply": "",
                 "ControllerBattery": "",
