@@ -212,7 +212,6 @@ def main():
                 system_info_dict["iDRAC"] = IDRACInfo(idrac).get_idrac_info_details()
                 system_info_dict["PowerSupply"] = IDRACPowerSupplyInfo(idrac).get_power_supply_info()
                 system_info_dict["iDRACNIC"] = IDRACInfo(idrac).get_idrac_nic_info()
-                system_info_dict["iDRACFC"] = IDRACInfo(idrac).get_idrac_fc_info()
                 system_info_dict["PCIDevice"] = IDRACPCIDeviceInfo(idrac).get_pcidevice_info()
                 system_info_dict["Controller"] = IDRACControllerInfo(idrac).get_controller_system_info()
                 system_info_dict["PhysicalDisk"] = IDRACPhysicalDiskInfo(idrac).get_physical_disk_info()
