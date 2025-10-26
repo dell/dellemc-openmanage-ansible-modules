@@ -66,7 +66,6 @@
           - result.system_info.SystemBoardMetrics is defined
           - result.system_info.SystemMetrics is defined
           - result.system_info.iDRACNIC is defined
-          - result.system_into.iDRACFC is defined
           - result.system_info.Sensors_Voltage is defined
           - result.system_info.BIOS is defined
           - result.system_info.CPU is defined
