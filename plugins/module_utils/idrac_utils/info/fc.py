@@ -28,9 +28,7 @@
 GET_IDRAC_FC_DETAILS_URI = "/redfish/v1/Chassis/System.Embedded.1/Oem/Dell/DellFC"
 GET_IDRAC_FC_CAPABILITY_DETAILS_URI = "/redfish/v1/Chassis/System.Embedded.1/Oem/Dell/DellFCCapabilities"
 GET_IDRAC_FC_PORT_METRICS_DETAILS_URI = "/redfish/v1/Chassis/System.Embedded.1//Oem/Dell/DellFCPortMetrics"
-GET_IDRAC_ETHERNET_DETAILS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/EthernetInterfaces/"
-GET_IDRAC_STATISTICS_DETAILS_URI = "/redfish/v1/Chassis/System.Embedded.1/Oem/Dell/DellFCStatistics"
-GET_IDRAC_MANAGER_ATTRIBUTES = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
+GET_IDRAC_FC_STATISTICS_DETAILS_URI = "/redfish/v1/Chassis/System.Embedded.1/Oem/Dell/DellFCStatistics"
 NA = "Not Available"
 
 
@@ -43,129 +41,126 @@ class IDRACFCInfo(object):
         if response.status_code == 200:
             for member in response.json_data.get("Members", []):
                 if member.get("Id", "") == id:
-                    dcb_protocol = member.get("DCBExchangeProtocol", "")
-                    fcoe_boot_support = member.get("FCoEBootSupport", "")
-                    fcoe_offload_support = member.get("FCoEOffloadSupport", "")
-                    flex_add_support = member.get("FlexAddressingSupport", "")
-                    FC_part_support = member.get("FCPartitioningSupport", "")
-                    pxe_boot_support = member.get("PXEBootSupport", "")
-                    tcp_chimney_support = member.get("TCPChimneySupport", "")
-                    wol_support = member.get("PartitionWOLSupport", "")
-                    iscsi_boot_support = member.get("iSCSIBootSupport", "")
-                    iscsi_offload_support = member.get("iSCSIOffloadSupport", "")
-                    return dcb_protocol, fcoe_boot_support, fcoe_offload_support, flex_add_support, \
-                        FC_part_support, pxe_boot_support, tcp_chimney_support, wol_support, \
-                        iscsi_boot_support, iscsi_offload_support
+                    feature_licensing_support = member.get("FeatureLicensingSupport", "")
+                    uefi_support = member.get("uEFISupport", "")
+                    flex_addressing_support = member.get("FlexAddressingSupport", "")
+                    on_chip_thermal_sensor = member.get("OnChipThermalSensor", "")
+                    fc_max_num_exchanges = member.get("FCMaxNumberExchanges", "")
+                    fc_max_num_outstanding_cmds = member.get("FCMaxNumberOutStandingCommands", "")
+                    persistence_policy_support = member.get("PersistencePolicySupport", "")
 
-        return "", "", "", "", "", "", "", "", "", ""
+                    return feature_licensing_support, uefi_support, flex_addressing_support, \
+                        on_chip_thermal_sensor, fc_max_num_exchanges, fc_max_num_outstanding_cmds, \
+                        persistence_policy_support
+
+        return "", "", "", "", "", "", ""
 
     def get_fc_port_metrics_details(self, id):
         response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FC_PORT_METRICS_DETAILS_URI)
         if response.status_code == 200:
             for member in response.json_data.get("Members", []):
                 if member.get("Id", "") == id:
-                    link_status = member.get("PartitionLinkStatus", "")
-                    return link_status
-        return ""
+                    os_driver_state = member.get("OSDriverState", "")
+                    fc_tx_total_frames = member.get("FCTxTotalFrames", "")
+                    fc_rx_total_frames = member.get("FCRxTotalFrames", "")
+                    fc_tx_sequences = member.get("FCTxSequences", "")
+                    fc_rx_sequences = member.get("FCRxSequences", "")
+                    fc_tx_kb_count = member.get("FCTxKBCount", "")
+                    fc_rx_kb_count = member.get("FCRxKBCount", "")
+                    fc_invalid_crcs = member.get("FCInvalidCRCs", "")
+                    fc_loss_of_signals = member.get("FCLossOfSignals", "")
+                    fc_link_failures = member.get("FCLinkFailures", "")
+
+                    oem_data = member.get("Oem", {})
+                    if not isinstance(oem_data, dict):
+                        oem_data = {}
+
+                    return os_driver_state, fc_tx_total_frames, fc_rx_total_frames, \
+                        fc_tx_sequences, fc_rx_sequences, fc_tx_kb_count, fc_rx_kb_count, \
+                        fc_invalid_crcs, fc_loss_of_signals, fc_link_failures, oem_data
+
+        return "", "", "", "", "", "", "", "", "", "", "", {}
 
     def get_fc_statistics_details(self, id):
-        response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_STATISTICS_DETAILS_URI)
+        response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FC_STATISTICS_DETAILS_URI)
         if response.status_code == 200:
             for member in response.json_data.get("Members", []):
                 if member.get("Id", "") == id:
-                    rx_bytes = member.get("RxBytes", "")
-                    rx_multicast = member.get("RxMutlicastPackets", "")
-                    rx_unicast = member.get("RxunicastPackets", "")
-                    tx_bytes = member.get("TxBytes", "")
-                    tx_multicast = member.get("TxMutlicastPackets", "")
-                    tx_unicast = member.get("TxunicastPackets", "")
-                    return rx_bytes, rx_multicast, rx_unicast, tx_bytes, tx_multicast, tx_unicast
-        return "", "", "", "", "", ""
+                    port_status = member.get("PortStatus", "")
+                    return port_status
+        return ""
 
-    def get_ethernet_details(self):
-        response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_ETHERNET_DETAILS_URI)
-        if response.status_code == 200:
-            members = response.json_data.get("Members", [])
-            if members:
-                first_member_uri = members[0].get("@odata.id")
-                if first_member_uri:
-                    eth_resp = self.idrac.invoke_request(method='GET', uri=first_member_uri)
-                    if eth_resp.status_code == 200:
-                        mac_address = eth_resp.json_data.get("MACAddress", "")
-                        link_speed = eth_resp.json_data.get("SpeedMbps", "")
-                        auto_neg = eth_resp.json_data.get("AutoNeg", "")
-                        perm_mac_addr = eth_resp.json_data.get("PermanentMACAddress", "")
-                        health = eth_resp.json_data.get("Status", {}).get("Health", NA)
-                        return mac_address, link_speed, auto_neg, perm_mac_addr, health
-        return "", "", "", "", ""
-
-    def map_FC_data(self, FC, id):
+    def map_fc_data(self, fc, id):
         """Maps FC fields from the API response to a structured format."""
         def sanitize(value):
             return NA if value == "" else value
 
-        dcb_protocol, fcoe_boot_support, fcoe_offload_support, flex_add_support, FC_part_support, \
-            pxe_boot_support, tcp_chimney_support, wol_support, iscsi_boot_support, iscsi_offload_support = self.get_fc_capability_details(id)
+        feature_licensing_support, uefi_support, flex_addressing_support, \
+            on_chip_thermal_sensor, fc_max_num_exchanges, fc_max_num_outstanding_cmds, \
+            persistence_policy_support = self.get_fc_capability_details(id)
 
-        link_status = self.get_fc_port_metrics_details(id)
-        mac_address, link_speed, auto_neg, perm_mac_addr, health = self.get_ethernet_details()
-        rx_bytes, rx_multicast, rx_unicast, tx_bytes, tx_multicast, tx_unicast = self.get_fc_statistics_details(id)
+        os_driver_state, fc_tx_total_frames, fc_rx_total_frames, \
+            fc_tx_sequences, fc_rx_sequences, fc_tx_kb_count, fc_rx_kb_count, \
+            fc_invalid_crcs, fc_loss_of_signals, fc_link_failures, oem_data = self.get_fc_port_metrics_details(id)
+
+        port_status = self.get_fc_statistics_details(id)
 
         output = {
-            "AutoNegotiation": sanitize(auto_neg),
-            "ControllerBIOSVersion": FC.get("ControllerBIOSVersion", NA),
-            "CurrentMACAddress": sanitize(mac_address),
-            "DCBExchangeProtocol": sanitize(dcb_protocol),
-            "DataBusWidth": FC.get("DataBusWidth", NA),
-            "DeviceDescription": FC.get("Description", NA),
-            "EFIVersion": FC.get("EFIVersion", NA),
-            "FCoEBootSupport": sanitize(fcoe_boot_support),
-            "FCoEOffloadMode": FC.get("FCoEOffloadMode", NA),
-            "FCoEOffloadSupport": sanitize(fcoe_offload_support),
-            "FCoEWWNN": FC.get("FCoEWWNN", NA),
-            "FQDD": FC.get("Id", NA),
-            "FamilyVersion": FC.get("FamilyVersion", NA),
-            "FlexAddressingSupport": sanitize(flex_add_support),
-            "IPv4Address": FC.get("IPv4Addresses", NA),
-            "IPv6Address": FC.get("IPv6Addresses", NA),
-            "Key": FC.get("Id", NA),
-            "LinkDuplex": FC.get("LinkDuplex", NA),
-            "LinkSpeed": sanitize(link_speed),
-            "LinkStatus": sanitize(link_status),
-            "MaxBandwidthPercent": FC.get("MaxBandwidthPercent", NA),
-            "MediaType": FC.get("MediaType", NA),
-            "FCCapabilities": FC.get("FCCapabilities", NA),
-            "FCMode": FC.get("FCMode", NA),
-            "FCPartitioningSupport": sanitize(FC_part_support),
-            "PXEBootSupport": sanitize(pxe_boot_support),
-            "PermanentFCOEMACAddress": FC.get("PermanentFCOEMACAddress", NA),
-            "PermanentMACAddress": sanitize(perm_mac_addr),
-            "PermanentiSCSIMACAddress": FC.get("PermanentiSCSIMACAddress", NA),
-            "PrimaryStatus": "Healthy" if health == "OK" else health,
-            "ProductName": FC.get("ProductName", NA),
-            "Protocol": FC.get("Protocol", NA),
-            "RxBytes": sanitize(rx_bytes),
-            "RxMutlicast": sanitize(rx_multicast),
-            "Rxunicast": sanitize(rx_unicast),
-            "SupportedBootProtocol": FC.get("SupportedBootProtocol", NA),
-            "SwitchConnectionID": FC.get("SwitchConnectionID", NA),
-            "SwitchPortConnectionID": FC.get("SwitchPortConnectionID", NA),
-            "TCPChimneySupport": sanitize(tcp_chimney_support),
-            "TxBytes": sanitize(tx_bytes),
-            "TxMutlicast": sanitize(tx_multicast),
-            "Txunicast": sanitize(tx_unicast),
-            "VFSRIOVSupport": FC.get("VFSRIOVSupport", NA),
-            "VendorName": FC.get("VendorName", NA),
-            "VirtMacAddr": sanitize(mac_address),
-            "VirtWWN": FC.get("VirtWWN", NA),
-            "VirtWWPN": FC.get("VirtWWPN", NA),
-            "WOLSupport": sanitize(wol_support),
-            "WWN": FC.get("WWN", NA),
-            "WWPN": FC.get("WWPN", NA),
-            "iSCSIBootSupport": sanitize(iscsi_boot_support),
-            "iSCSIOffloadSupport": sanitize(iscsi_offload_support),
-            "iScsiOffloadMode": FC.get("iScsiOffloadMode", NA)
+            "DeviceName": fc.get("DeviceName", NA),
+            "Id": fc.get("Id", NA),
+            "Bus": fc.get("Bus", NA),
+            "PortDownRetryCount": fc.get("PortDownRetryCount", NA),
+            "VendorName": fc.get("VendorName", NA),
+            "HardZoneAddress": fc.get("HardZoneAddress", NA),
+            "Description": fc.get("Description", NA),
+            "PortLoginTimeout": fc.get("PortLoginTimeout", NA),
+            "FramePayloadSize": fc.get("FramePayloadSize", NA),
+            "LinkDownTimeout": fc.get("LinkDownTimeout", NA),
+            "SerialNumber": fc.get("SerialNumber", NA),
+            "LoopResetDelay": fc.get("LoopResetDelay", NA),
+            "FCoEOSDriverVersion": fc.get("FCoEOSDriverVersion", NA),
+            "FCTapeEnable": fc.get("FCTapeEnable", NA),
+            "ProductName": fc.get("ProductName", NA),
+            "SecondFCTargetLUN": fc.get("SecondFCTargetLUN", NA),
+            "Name": fc.get("Name", NA),
+            "FabricLoginTimeout": fc.get("FabricLoginTimeout", NA),
+            "ChipType": fc.get("ChipType", NA),
+            "RDMAOSDriverVersion": fc.get("RDMAOSDriverVersion", NA),
+            "HardZoneEnable": fc.get("HardZoneEnable", NA),
+            "EFIVersion": fc.get("EFIVersion", NA),
+            "DeviceDescription": fc.get("DeviceDescription", NA),
+            "FabricLoginRetryCount": fc.get("FabricLoginRetryCount", NA),
+            "ISCSIOSDriverVersion": fc.get("ISCSIOSDriverVersion", NA),
+            "SecondFCTargetWWPN": fc.get("SecondFCTargetWWPN", NA),
+            "Device": fc.get("Device", NA),
+            "LANDriverVersion": fc.get("LANDriverVersion", NA),
+            "FCOSDriverVersion": fc.get("FCOSDriverVersion", NA),
+            "Function": fc.get("Function", NA),
+            "FamilyVersion": fc.get("FamilyVersion", NA),
+            "PortLoginRetryCount": fc.get("PortLoginRetryCount", NA),
+            "PartNumber": fc.get("PartNumber", NA),
+            "PortDownTimeout": fc.get("PortDownTimeout", NA),
+            "FeatureLicensingSupport": sanitize(feature_licensing_support),
+            "UEFISupport": sanitize(uefi_support),
+            "FlexAddressingSupport": sanitize(flex_addressing_support),
+            "OnChipThermalSensor": sanitize(on_chip_thermal_sensor),
+            "FCMaxNumberExchanges": sanitize(fc_max_num_exchanges),
+            "FCMaxNumberOutStandingCommands": sanitize(fc_max_num_outstanding_cmds),
+            "PersistencePolicySupport": sanitize(persistence_policy_support),
+            "FCInvalidCRCs": sanitize(fc_invalid_crcs),
+            "FCLinkFailures": sanitize(fc_link_failures),
+            "FCLossOfSignals": sanitize(fc_loss_of_signals),
+            "FCTxTotalFrames": sanitize(fc_tx_total_frames),
+            "FCRxTotalFrames": sanitize(fc_rx_total_frames),
+            "FCTxSequences": sanitize(fc_tx_sequences),
+            "FCRxSequences": sanitize(fc_rx_sequences),
+            "FCTxKBCount": sanitize(fc_tx_kb_count),
+            "FCRxKBCount": sanitize(fc_rx_kb_count),
+            "OSDriverState": sanitize(os_driver_state),
+            "Oem": oem_data if isinstance(oem_data, dict) else {},
+            "PortStatus": sanitize(port_status)
         }
+
         return output
 
     def get_fc_info(self):
@@ -174,7 +169,8 @@ class IDRACFCInfo(object):
         resp = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FC_DETAILS_URI)
 
         if resp.status_code == 200:
-            FC_members = resp.json_data.get("Members", [])
-            for FC in FC_members:
-                output.append(self.map_FC_data(FC, FC.get("Id")))
+            fc_members = resp.json_data.get("Members", [])
+            for fc in fc_members:
+                output.append(self.map_fc_data(fc, fc.get("Id")))
             return output
+        return output
