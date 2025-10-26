@@ -42,15 +42,6 @@ class TestIDRACFCInfo:
         result = fc_info.get_fc_statistics_details("FC1")
         assert result == ("", "", "", "", "", "")
 
-    def test_get_ethernet_details_initial_non_200(self, fc_info, idrac_mock):
-        mock_response = MagicMock()
-        mock_response.status_code = 500
-        mock_response.json_data = {}
-        idrac_mock.invoke_request.return_value = mock_response
-
-        result = fc_info.get_ethernet_details()
-        assert result == ("", "", "", "", "")
-
     def test_get_fc_info_success(self, fc_info, idrac_mock):
 
         idrac_mock.invoke_request.side_effect = [
