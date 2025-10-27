@@ -11,7 +11,8 @@
   when: hostname is not defined or username is not defined or password
          is not defined
 
-- block:
+- name: Retrieval of fabric information using invalid parameters (Negative)
+  block:
     - ansible.builtin.include_tasks: _fabric_info_uri_helper.yml
       vars:
         query_url: https://{{ hostname }}:{{ port }}/api/NetworkService/Fabrics

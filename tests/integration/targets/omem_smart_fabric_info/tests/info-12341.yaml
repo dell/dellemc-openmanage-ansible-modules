@@ -11,7 +11,8 @@
   when: hostname is not defined or username is not defined or password
          is not defined
 
-- block:
+- name: Get all fabric information
+  block:
     - ansible.builtin.include_tasks: _fabric_info_uri_helper.yml
       vars:
         query_url: https://{{hostname}}:{{port}}/api/NetworkService/Fabrics
@@ -24,22 +25,19 @@
 
     - name: Retrieval of all fabric information (Check mode)
       dellemc.openmanage.ome_smart_fabric_info:
+        hostname: "{{ hostname }}"
       register: result
       check_mode: true
 
     - ansible.builtin.set_fact:
         task_total_smart_fabrics: "{{ result.smart_fabric_info | length }}"
 
-    - name: Verify task status - Retrieval of all fabric information (Check mode)
+    - name: Verify task status - Retrieval of all fabric information(Check mode)
       ansible.builtin.assert:
         that:
           - not result.changed
           - result.msg == "Successfully retrieved the smart fabric information."
           - uri_total_smart_fabrics == task_total_smart_fabrics
-
-    - name: Remove Description key from API response
-      ansible.builtin.set_fact:
-        uri_fabric_res: "{{ uri_fabric_res | dict2items | rejectattr('key', 'equalto', 'Description') | items2dict }}"
 
     - name: Compare smart fabric info from task and uri
       ansible.utils.fact_diff:
@@ -60,7 +58,8 @@
     - ansible.builtin.set_fact:
         task_total_smart_fabrics: "{{ result.smart_fabric_info | length }}"
 
-    - name: Verify task status - Retrieval of all fabric information (Normal mode)
+    - name: "Verify task status - Retrieval of all \
+        fabric information(Normal mode)"
       ansible.builtin.assert:
         that:
           - not result.changed
