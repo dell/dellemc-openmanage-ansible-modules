@@ -141,4 +141,3 @@ fc_output = json.loads(fc_api_output)
 fc_members = fc_output.get("Members", [])
 for fc in fc_members:
     output.append(mapped_fc_data(fc, fc.get("Id")))
-print(output)

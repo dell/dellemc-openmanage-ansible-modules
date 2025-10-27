@@ -91,7 +91,7 @@
       "{{ res_fc | regex_replace('null', '\"None\"') | from_yaml }}"
 
 - name: Set frequently updating attributes
-  set_fact:
+  ansible.builtin.set_fact:
     attributes:
       - 'FCTxTotalFrames'
       - 'FCRxTotalFrames'
