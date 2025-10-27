@@ -1,0 +1,99 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2023-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: 'Please define the following
+    variables: hostname, username and password.'
+  when: >
+    hostname is not defined or
+    username is not defined or
+    password is not defined
+
+- block:
+
+    - name: >
+        Retrieve alert policies message ID information
+        via module (CheckMode).
+      dellemc.openmanage.ome_alert_policies_message_id_info: {}
+      check_mode: true
+      register: message_id_info_module_check
+
+    - name: Retrieve alert policies message ID information via module.
+      dellemc.openmanage.ome_alert_policies_message_id_info: {}
+      register: message_id_info_module
+
+    - name: Check whether hostname IP is IPv4 or IPv6.
+      ansible.builtin.set_fact:
+        ip_version: "{{ hostname | ansible.utils.ipaddr('version') }}"
+
+    - name: Set API URL to fetch alert policy message ID information.
+      ansible.builtin.set_fact:
+        url: >
+          https://{{hostname}}/api/AlertService/AlertMessageDefinitions?$top=9999
+      when: (ip_version | int) == 4
+
+    - name: Set API URL to fetch alert policy message ID information.
+      ansible.builtin.set_fact:
+        url: >
+          https://[{{hostname}}]/api/AlertService/AlertMessageDefinitions?$top=9999
+      when: (ip_version | int) == 6
+
+    - name: Retrieve alert policies message ID information via URI.
+      ansible.builtin.uri:
+        url: "{{url}}"
+        user: "{{username}}"
+        password: "{{password}}"
+        validate_certs: false
+        status_code: 200
+        force_basic_auth: true
+      register: message_id_info_all_uri_with_odata
+
+    - name: Remove remove odata from the uri output.
+      ansible.builtin.set_fact:
+        message_id_info_all_uri: >
+          {{
+            message_id_info_all_uri_with_odata.json
+            | ansible.utils.remove_keys(
+                target=[
+                  '@odata.type',
+                  '@odata.id',
+                  '@odata.context',
+                  '@odata.count'
+                ]
+              )
+          }}
+
+    - name: Compare the output of message id information from URI and module
+      ansible.utils.fact_diff:
+        before: "{{ message_id_info_all_uri['value'] }}"
+        after: "{{ message_id_info_module['message_ids'] }}"
+      register: diff_result
+
+    - name: Verify status of tasks.
+      ansible.builtin.assert:
+        that:
+          - >
+            message_id_info_module.msg ==
+            "Successfully retrieved alert policies message ids information."
+          - not message_id_info_module.changed
+          - >
+            (message_id_info_module['message_ids'] | length) ==
+            (message_id_info_all_uri['value'] | length)
+          - not diff_result.changed
+          - not diff_result.diff_lines
+          - not message_id_info_module_check.changed
+          - >
+            message_id_info_module_check.msg ==
+            "Successfully retrieved alert policies message ids information."
+
+  module_defaults:
+    dellemc.openmanage.ome_alert_policies_message_id_info:
+      validate_certs: "{{validate_certs}}"
+      hostname: "{{hostname}}"
+      username: "{{username}}"
+      password: "{{password}}"
+      port: "{{port}}"

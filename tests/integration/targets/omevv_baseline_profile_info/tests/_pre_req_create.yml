@@ -1,18 +1,43 @@
 ---
-- name: Pre-requisite - Create a baseline profile
-  dellemc.openmanage.omevv_baseline_profile:
-    hostname: "{{ hostname }}"
-    vcenter_uuid: "{{ uuid }}"
-    vcenter_username: "{{ vcenter_username }}"
-    vcenter_password: "{{ vcenter_password }}"
-    name: "AnsibleTest"
-    repository_profile: "Dell Default Catalog"
-    validate_certs: false
-    description: "Firmware repository profile created by Module"
-    cluster:
-      - "{{ cluster_name }}"
-    days:
-      - "sunday"
-    time: "03:59"
-  register: create_result
-  no_log: true
+- block:
+    - name: Pre-requisite - Create firmware repository profile
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        name: "OMAM_Repo"
+        description: "Firmware repository profile created by OMAM"
+        state: present
+        catalog_path: "http://{{ http_share }}{{
+          http_share_dir_path }}/{{ omevv_baseline_profile_catalog_file }}"
+        protocol_type: HTTP
+
+    - name: Pre-requisite - Create a baseline profile
+      dellemc.openmanage.omevv_baseline_profile:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        name: "AnsibleTest_BaselineProfile"
+        repository_profile: "OMAM_Repo"
+        validate_certs: false
+        description: "Firmware repository profile created by Module"
+        cluster:
+          - "{{ cluster_name }}"
+        days:
+          - "sunday"
+        time: "03:59"
+      register: create_result
+      no_log: true
+
+  module_defaults:
+    dellemc.openmanage.omevv_baseline_profile:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname | ansible.utils.ipwrap }}"
+      vcenter_username: "{{ vcenter_username }}"
+      vcenter_password: "{{ vcenter_password }}"
+      vcenter_uuid: "{{ uuid }}"
+
+    dellemc.openmanage.omevv_firmware_repository_profile:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname | ansible.utils.ipwrap }}"
+      vcenter_username: "{{ vcenter_username }}"
+      vcenter_password: "{{ vcenter_password }}"
+      vcenter_uuid: "{{ uuid }}"

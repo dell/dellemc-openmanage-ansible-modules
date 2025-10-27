@@ -1,0 +1,140 @@
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: hostname, username
+      and password.'
+  when: hostname is not defined or username is not defined or password
+    is not defined
+
+- name: Generate and Verify CSR by providing two different combinations of all
+    required options
+  vars:
+    commonName: "commonhostname.com"
+    countryName: "US"
+    emailAddress: "support@dell.com"
+    localityName:
+      - "Round Rock"
+      - "Mahadevpura"
+    organizationName:
+      - "Dell Inc."
+      - "ISG"
+    organizationalUnitName:
+      - "Remote Access Group"
+      - "EcoSystem"
+    stateOrProvinceName:
+      - "Texas"
+      - "Bangalore"
+    sub_alt_name_list:
+      - hostname1.chassis.com
+      - hostname2.chassis.com
+      - hostname3.chassis.com
+
+  block:
+    - name: Generate a certificate signing request.
+      dellemc.openmanage.ome_application_certificate:
+        distinguished_name: "{{ commonName }}"
+        department_name: "{{ organizationalUnitName | join(',') }}"
+        business_name: "{{ organizationName | join(',') }}"
+        locality: "{{ localityName | join(',') }}"
+        country_state: "{{ stateOrProvinceName | join(',') }}"
+        country: "{{ countryName }}"
+        email: "{{ emailAddress }}"
+        subject_alternative_names: "{{ sub_alt_name_list | join(',') }}"
+      register: ome_csr
+
+    - name: Verify the status of tasks
+      ansible.builtin.assert:
+        that:
+          - not ome_csr.changed
+          - ome_csr.csr_status.CertificateData.startswith
+           ("-----BEGIN CERTIFICATE REQUEST-----\n")
+          - ome_csr.csr_status.CertificateData.endswith
+           ("\n-----END CERTIFICATE REQUEST-----")
+
+    - name: Copy CSR data into a file
+      ansible.builtin.copy:
+        content: "{{ ome_csr.csr_status.CertificateData }}"
+        dest: "csr_data.txt"
+        mode: "0600"
+
+    - name: Get CSR info by command
+      ansible.builtin.command:
+        openssl  req -in csr_data.txt -noout -subject
+      register: subject_content
+
+    - name: Get CSR info by command to get SAN
+      ansible.builtin.command:
+        openssl  req -in csr_data.txt -noout -text
+      register: san_content
+
+    - name: Extract all SAN entries (DNS and IP)
+      ansible.builtin.set_fact:
+        san_entries: "{{ san_content.stdout | regex_findall('DNS:[^,\\s]+') }}"
+
+    - name: Preprocess subject string
+      ansible.builtin.set_fact:
+        cleaned_subject: "{{ subject_content.stdout_lines[0] |
+          regex_replace('^subject=', '') }}"
+
+    - name: Convert cleaned_subject string to dictionary
+      ansible.builtin.set_fact:
+        dn_dict: >-
+          {%- set result = {} -%}
+          {%- for item in cleaned_subject.split(', ') -%}
+            {%- set pair = item.strip().split('=') -%}
+            {%- if pair | length == 2 -%}
+              {%- set key = pair[0].strip() -%}
+              {%- set value = pair[1].strip() -%}
+              {%- if key in result -%}
+                {%- if result[key] is string -%}
+                  {%- set _ = result.update({key: [result[key], value]}) -%}
+                {%- else -%}
+                  {%- set _ = result[key].append(value) -%}
+                {%- endif -%}
+              {%- else -%}
+                {%- set _ = result.update({key: value}) -%}
+              {%- endif -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ result }}
+
+    - name: Verify CSR info
+      ansible.builtin.assert:
+        that:
+          - dn_dict.CN | length == commonName | length
+          - dn_dict.OU | split(",") | length ==
+           organizationalUnitName | length
+          - dn_dict.O | split(",") | length ==
+            organizationName | length
+          - dn_dict.L | split(",") | length ==
+            localityName | length
+          - dn_dict.ST | split(",") | length ==
+            stateOrProvinceName | length
+          - dn_dict.C == countryName
+          - dn_dict.emailAddress == emailAddress
+          - san_entries | length == sub_alt_name_list | length
+
+    - name: Verify CSR SAN
+      ansible.builtin.assert:
+        that:
+          - item.1 in item.0
+      with_together:
+        - "{{ san_entries }}"
+        - "{{ sub_alt_name_list }}"
+
+    - name: Remove the csr_data.txt
+      ansible.builtin.file:
+        path: csr_data.txt
+        state: absent
+
+  module_defaults:
+    dellemc.openmanage.ome_application_certificate:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"

@@ -6,34 +6,47 @@
 - name: Test that we have an OME host, OME username and OME password
   ansible.builtin.fail:
     msg: 'Please define the following variables: hostname, username
-         and password.'
+      and password.'
   when: hostname is not defined or username is not defined or password
-         is not defined
+    is not defined
 
 - name: Create CA Trust
   ansible.builtin.include_tasks: _ca_helper.yml
 
-- name: Scenerio to upload the certificate
+- name: Scenerio to upload the certificate with mulitple param combinations
+    values
   vars:
-    common_name: "ome.welcome.com"
-    country_name: "US"
-    email_address: "support@dell.com"
-    locality_name: "Round Rock"
-    org_name: "Dell Inc."
-    ou_name: "Remote Access Group"
-    state_name: "Texas"
-    sub_alt_name: "ome.welcome.com"
+    commonName: "ome.welcome.com"
+    countryName: "US"
+    emailAddress: "support@dell.com"
+    localityName:
+      - "Round Rock"
+      - "Mahadevpura"
+    organizationName:
+      - "Dell Inc."
+      - "ISG"
+    organizationalUnitName:
+      - "Remote Access Group"
+      - "EcoSystem"
+    stateOrProvinceName:
+      - "Texas"
+      - "Bangalore"
+    sub_alt_name_list:
+      - hostname1.chassis.com
+      - hostname2.chassis.com
+      - hostname3.chassis.com
+
   block:
-    - name: Generate a certificate signing request
+    - name: Generate a certificate signing request.
       dellemc.openmanage.ome_application_certificate:
-        distinguished_name: "{{ common_name }}"
-        department_name: "{{ ou_name }}"
-        business_name: "{{ org_name }}"
-        locality: "{{ locality_name }}"
-        country_state: "{{ state_name }}"
-        country: "{{ country_name }}"
-        email: "{{ email_address }}"
-        subject_alternative_names: "{{ sub_alt_name }}"
+        distinguished_name: "{{ commonName }}"
+        department_name: "{{ organizationalUnitName | join(',') }}"
+        business_name: "{{ organizationName | join(',') }}"
+        locality: "{{ localityName | join(',') }}"
+        country_state: "{{ stateOrProvinceName | join(',') }}"
+        country: "{{ countryName }}"
+        email: "{{ emailAddress }}"
+        subject_alternative_names: "{{ sub_alt_name_list | join(',') }}"
       register: ome_csr
 
     - name: Verify the status of tasks
@@ -62,24 +75,24 @@
           subjectAltName = @alt_names
 
           [ alt_names ]
-          {% for name in sub_alt_name %}
+          {% for name in sub_alt_name_list %}
           DNS.{{ loop.index }} = {{ name }}
           {% endfor %}
 
     - name: Certificate signing
-      ansible.builtin.include_tasks: _get_certificate_chain.yml
+      ansible.builtin.include_tasks: _sign_certificate.yml
 
-    - name: wait for 20 seconds to process CSR and chain
-      ansible.builtin.pause:
-        seconds: 20
-
-    - name: Upload the certificate chain
+    - name: Upload the certificate
       dellemc.openmanage.ome_application_certificate:
-        command: "upload_cert_chain"
-        upload_file: "{{ p7b_path }}"
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: "{{ validate_certs }}"
+        command: "upload"
+        upload_file: "{{ signed_cert_path }}"
       register: upload_result
 
-    - name: Verify upload of the certificate chain
+    - name: Verify upload of the certificate
       ansible.builtin.assert:
         that:
           - upload_result.changed
@@ -91,10 +104,6 @@
         seconds: 60
 
   always:
-    - name: wait for 20 seconds for OME setup to up
-      ansible.builtin.pause:
-        seconds: 20
-
     - name: Cleanup of all generated files
       ansible.builtin.file:
         path: "{{ item }}"
@@ -105,7 +114,6 @@
         - "{{ ca_srl_path }}"
         - "{{ csr_path }}"
         - "{{ signed_cert_path }}"
-        - "{{ p7b_path }}"
       when: cleanup | default(true)
 
   module_defaults:

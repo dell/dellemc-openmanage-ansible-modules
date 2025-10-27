@@ -1,0 +1,24 @@
+---
+- name: Sign the certificate with the local CA
+  block:
+    - name: Sign the certificate
+      ansible.builtin.command: >
+        openssl x509 -req
+        -in {{ csr_path }}
+        -days {{ ca_days_valid }}
+        -sha256
+        -CA {{ ca_cert_path }}
+        -CAkey {{ ca_key_path }}
+        -CAcreateserial
+        -out {{ signed_cert_path }}
+        -extfile {{ openssl_config_path }}
+        -extensions v3_req
+
+    - name: Display signed certificate details
+      ansible.builtin.command: >
+        openssl x509 -in {{ signed_cert_path }} -noout -text
+      register: signed_cert_info
+
+    - name: Show signed certificate info
+      ansible.builtin.debug:
+        var: signed_cert_info.stdout
