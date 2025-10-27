@@ -1,5 +1,5 @@
 # Dell OpenManage Ansible modules
-# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -26,10 +26,8 @@
 
     - name: Set fact for invalid ssh_timeout Message
       ansible.builtin.set_fact:
-        invalid_msg: "argument 'ssh_timeout' is of type
-         <class 'str'> found in 'session_inactivity_timeout'. and we were
-         unable to convert to float: <class 'str'> cannot be converted to
-         a float"
+        invalid_msg: "we were unable to convert to float: <class 'str'> cannot be
+          converted to a float"
 
     - name: Verify task status - Negative - Invalid ssh_timeout
       ansible.builtin.assert:
@@ -52,10 +50,8 @@
 
     - name: Set fact for invalid serial_timeout Message
       ansible.builtin.set_fact:
-        invalid_msg: "argument 'serial_timeout' is of type
-         <class 'str'> found in 'session_inactivity_timeout'. and we were
-         unable to convert to float: <class 'str'> cannot be converted to
-         a float"
+        invalid_msg: "we were unable to convert to float: <class 'str'>
+          cannot be converted to a float"
 
     - name: Verify task status - Negative - Invalid serial_timeout
       ansible.builtin.assert:
@@ -79,10 +75,7 @@
 
     - name: Set fact for invalid ssh_sessions Message
       ansible.builtin.set_fact:
-        invalid_msg: "argument 'ssh_sessions' is of type
-            <class 'str'> found in 'session_inactivity_timeout'. and we were
-            unable to convert to int: <class 'str'> cannot be converted to an
-            int"
+        invalid_msg: "we were unable to convert to"
 
     - name: Verify task status - Negative - Invalid ssh_sessions
       ansible.builtin.assert:
@@ -106,10 +99,7 @@
 
     - name: Set fact for invalid serial_sessions Message
       ansible.builtin.set_fact:
-        invalid_msg: "argument 'serial_sessions' is of type
-            <class 'str'> found in 'session_inactivity_timeout'. and we were
-            unable to convert to int: <class 'str'> cannot be converted to an
-            int"
+        invalid_msg: "we were unable to convert to int:"
 
     - name: Verify task status - Negative - Invalid serial_sessions
       ansible.builtin.assert:

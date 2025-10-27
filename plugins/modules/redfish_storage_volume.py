@@ -860,8 +860,8 @@ def perform_force_reboot(module, session_obj):
 
 
 def perform_reboot(module, session_obj):
-    payload = {"ResetType": "GracefulRestart"}
     force_reboot = module.params.get("force_reboot")
+    payload = {"ResetType": "ForceRestart" if force_reboot else "GracefulRestart"}
     job_resp_status, reset_status, reset_fail = wait_for_redfish_reboot_job(session_obj, SYSTEM_ID, payload=payload)
     if reset_status and job_resp_status:
         job_uri = MANAGER_JOB_ID_URI_10.format(job_resp_status["Id"])

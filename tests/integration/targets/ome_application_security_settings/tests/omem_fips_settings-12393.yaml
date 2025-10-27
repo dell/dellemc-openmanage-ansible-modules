@@ -1,0 +1,68 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING
+# or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: hostname, username
+         and password.'
+  when: hostname is not defined or username is not defined or password
+         is not defined
+
+- name: Include helper for setting target host
+  ansible.builtin.include_tasks: _helper.yml
+
+- name: Execute the FIPS tasks only for OME-M
+  block:
+    - name: Pre-requisite- Enabling FIPS
+      dellemc.openmanage.ome_application_security_settings:
+        fips_mode_enable: true
+      register: preresult
+
+    - name: Verifying FIPS if enabled
+      ansible.builtin.assert:
+        that:
+          - preresult.msg == "Successfully enabled the FIPS mode."
+      when: preresult.changed
+
+    - name: Waiting for setup to be accessible
+      ansible.builtin.wait_for:
+        timeout: 900
+      when: preresult.changed
+
+    - name: Disabling FIPS
+      dellemc.openmanage.ome_application_security_settings:
+        fips_mode_enable: false
+      register: result
+
+    - name: Waiting for setup to be accessible
+      ansible.builtin.wait_for:
+        timeout: 900
+      when: result.changed
+
+    - name: Leaving the setup in the same state
+      dellemc.openmanage.ome_application_security_settings:
+        fips_mode_enable: true
+      when: not preresult.changed
+
+    - name: Waiting for setup to be accessible
+      ansible.builtin.wait_for:
+        timeout: 900
+      when: not preresult.changed
+
+    - name: Verifying FIPS if disabled
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Successfully disabled the FIPS mode."
+  when: target_host == "OME-M"
+
+  module_defaults:
+    dellemc.openmanage.ome_application_security_settings:
+      validate_certs: "{{validate_certs}}"
+      hostname: "{{hostname}}"
+      username: "{{username}}"
+      password: "{{password}}"
+      port: "{{port}}"

@@ -19,7 +19,7 @@
     - name: Including helper file for creating firmware repo profile
       ansible.builtin.include_tasks: ../_pre_req_create.yml
 
-    - name: Retrieve all firmware repository profile information.
+    - name: Retrieve all baseline profile information.
        (Check mode)
       dellemc.openmanage.omevv_baseline_profile_info: &retrieve_info
         hostname: "{{ hostname }}"
@@ -29,7 +29,7 @@
       register: cm_changes
       check_mode: true
 
-    - name: Verify task status - Retrieve all firmware repository profile
+    - name: Verify task status - Retrieve all baseline profile
        information. (Check mode)
       ansible.builtin.assert:
         that:
@@ -37,12 +37,12 @@
           - cm_changes.msg == "Successfully retrieved the baseline profile
            information."
 
-    - name: Retrieve all firmware repository profile information. (Normal Mode)
+    - name: Retrieve all baseline profile information. (Normal Mode)
       dellemc.openmanage.omevv_baseline_profile_info:
         <<: *retrieve_info
       register: info_result
 
-    - name: Verify task status - Retrieve all firmware repository profile
+    - name: Verify task status - Retrieve all baseline profile
        information. (Normal Mode)
       ansible.builtin.assert:
         that:
@@ -75,10 +75,20 @@
         vcenter_username: "{{ vcenter_username }}"
         vcenter_password: "{{ vcenter_password }}"
         validate_certs: false
-        name: "AnsibleTest"
+        name: "AnsibleTest_BaselineProfile"
         state: absent
       ignore_errors: true
       no_log: false
+
+    - name: Delete Repository profile
+      dellemc.openmanage.omevv_firmware_repository_profile:
+        hostname: "{{ hostname }}"
+        vcenter_uuid: "{{ uuid }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        validate_certs: false
+        state: absent
+        name: OMAM_Repo
 
   module_defaults:
     dellemc.openmanage.omevv_baseline_profile_info:
@@ -87,3 +97,10 @@
       vcenter_username: "{{ vcenter_username }}"
       vcenter_password: "{{ vcenter_password }}"
       port: "{{ port }}"
+
+    dellemc.openmanage.omevv_firmware_repository_profile:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ hostname | ansible.utils.ipwrap }}"
+      vcenter_username: "{{ vcenter_username }}"
+      vcenter_password: "{{ vcenter_password }}"
+      vcenter_uuid: "{{ uuid }}"
