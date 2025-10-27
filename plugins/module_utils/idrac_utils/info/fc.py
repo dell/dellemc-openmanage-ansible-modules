@@ -79,7 +79,7 @@ class IDRACFCInfo(object):
                         fc_tx_sequences, fc_rx_sequences, fc_tx_kb_count, fc_rx_kb_count, \
                         fc_invalid_crcs, fc_loss_of_signals, fc_link_failures, oem_data
 
-        return "", "", "", "", "", "", "", "", "", "", "", {}
+        return "", "", "", "", "", "", "", "", "", "", {}
 
     def get_fc_statistics_details(self, id):
         response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FC_STATISTICS_DETAILS_URI)
@@ -173,4 +173,3 @@ class IDRACFCInfo(object):
             for fc in fc_members:
                 output.append(self.map_fc_data(fc, fc.get("Id")))
             return output
-        return output

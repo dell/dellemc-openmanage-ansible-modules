@@ -32,7 +32,7 @@ def get_fc_portmetrics_details(id):
     os_driver_state, fc_tx_total_frames, fc_rx_total_frames, \
         fc_tx_sequences, fc_rx_sequences, fc_tx_kb_count, fc_rx_kb_count, \
         fc_invalid_crcs, fc_loss_of_signals, fc_link_failures, oem_data = \
-        "", "", "", "", "", "", "", "", "", "", "", {}
+        "", "", "", "", "", "", "", "", "", "", {}
     for member in fc_portmetrics_output.get("Members", []):
         if member.get("Id", "") == id:
             os_driver_state = member.get("OSDriverState", "")
