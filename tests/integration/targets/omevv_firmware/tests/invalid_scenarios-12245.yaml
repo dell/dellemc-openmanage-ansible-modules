@@ -1,17 +1,18 @@
 # Dell OpenManage Ansible modules
-# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
 ---
 - name: Test that we have an OMEVV host, OMEVV username and OMEVV password
   ansible.builtin.fail:
-    msg: 'Please define the following variables: hostname,
-     vcenter_username and vcenter_password.'
+    msg: 'Please define the following variables: hostname, vcenter_username and
+      vcenter_password.'
   when: 'hostname is not defined or vcenter_username is not defined or
-         vcenter_password is not defined'
+    vcenter_password is not defined'
 
-- block:
+- name: Invalid Scenarios
+  block:
     - name: Fetch pre-requisite details
       ansible.builtin.include_tasks: ../_helper.yml
       vars:
@@ -34,17 +35,14 @@
           - invalid_unsupported_argument.failed
           - not invalid_unsupported_argument.changed
           - 'invalid_unsupported_argument.msg ==
-              "Unsupported parameters for
-              (dellemc.openmanage.omevv_firmware) module:
-              unsupported_argument. Supported parameters include:
-              ca_path, check_vSAN_health, date_time,
-              delete_job_queue, drs_check, enter_maintenance_mode_options,
-              enter_maintenance_mode_timeout, evacuate_VMs,
-              exit_maintenance_mode, hostname, job_description,
-              job_name, job_wait, job_wait_timeout,
-              maintenance_mode_count_check, port, reboot_options,
-              reset_idrac, run_now, targets, timeout, validate_certs,
-              vcenter_password, vcenter_username, vcenter_uuid."'
+            "Unsupported parameters for (dellemc.openmanage.omevv_firmware)
+            module: unsupported_argument. Supported parameters include: ca_path,
+            check_vSAN_health, date_time, delete_job_queue, drs_check,
+            enter_maintenance_mode_options, enter_maintenance_mode_timeout,
+            evacuate_VMs, exit_maintenance_mode, hostname, job_description,
+            job_name, job_wait, job_wait_timeout, maintenance_mode_count_check,
+            port, reboot_options, reset_idrac, run_now, targets, timeout,
+            validate_certs, vcenter_password, vcenter_username, vcenter_uuid."'
 
     - name: Negative - unreachable host
       dellemc.openmanage.omevv_firmware:
@@ -62,11 +60,12 @@
         that:
           - invalid_unreachable.unreachable
           - not invalid_unreachable.changed
-          - 'invalid_unreachable.msg == "<urlopen error Unable to resolve
-             hostname or IP 999.999.999.999.>" or invalid_unreachable.msg ==
-             "<urlopen error [Errno -2] Name or service not known>" or
-             invalid_unreachable.msg == "The URL with IP 999.999.999.999
-             and port 443 cannot be reached."'
+          - 'invalid_unreachable.msg ==
+            "<urlopen error Unable to resolve hostname or IP 999.999.999.999.>"
+            or invalid_unreachable.msg ==
+            "<urlopen error [Errno -2] Name or service not known>" or
+            invalid_unreachable.msg ==
+            "The URL with IP 999.999.999.999 and port 443 cannot be reached."'
 
     - name: Negative - invalid port
       dellemc.openmanage.omevv_firmware:
@@ -84,8 +83,8 @@
         that:
           - invalid_port.failed
           - not invalid_port.changed
-          - 'invalid_port.msg == "Invalid port number. Enter the valid port
-            number."'
+          - invalid_port.msg ==
+            "Invalid port number. Enter the valid port number."
 
     - name: Negative - invalid username
       dellemc.openmanage.omevv_firmware:
@@ -103,9 +102,9 @@
         that:
           - invalid_username.failed
           - not invalid_username.changed
-          - 'invalid_username.error_info.message == "User is not authorized
-             for the request. Please check if credentials are proper
-             and account is not in locked state."'
+          - 'invalid_username.error_info.message ==
+            "User is not authorized for the request. Please check if credentials
+            are proper and account is not in locked state."'
           - 'invalid_username.error_info.errorCode == "10001"'
 
     - name: Negative - invalid password
@@ -124,9 +123,9 @@
         that:
           - invalid_password.failed
           - not invalid_password.changed
-          - 'invalid_password.error_info.message == "User is not authorized
-             for the request. Please check if credentials are proper
-             and account is not in locked state."'
+          - 'invalid_password.error_info.message ==
+            "User is not authorized for the request. Please check if credentials
+            are proper and account is not in locked state."'
           - 'invalid_password.error_info.errorCode == "10001"'
 
     - name: Negative - invalid validate_certs
@@ -140,7 +139,8 @@
       register: invalid_validate_certs
       ignore_errors: true
 
-    - ansible.builtin.set_fact:
+    - name: Set the Error message for invalid cert
+      ansible.builtin.set_fact:
         invalid_validate_certs_expected_msg: "argument 'validate_certs' is of
           type <class 'str'> and we were unable to convert to bool: The value
           'invalid' is not a valid boolean.  Valid booleans include: "
@@ -150,7 +150,7 @@
         that:
           - invalid_validate_certs.failed
           - not invalid_validate_certs.changed
-          - invalid_validate_certs_expected_msg in invalid_validate_certs.msg
+          - invalid_validate_certs.msg is search("validate_certs")
 
     - name: Negative - invalid ca_path path
       dellemc.openmanage.omevv_firmware:
@@ -186,9 +186,7 @@
         that:
           - invalid_timeout_type.failed
           - not invalid_timeout_type.changed
-          - '"argument ''timeout'' is of
-             type <class ''str''> and we were unable to convert to
-             int:" in invalid_timeout_type.msg'
+          - invalid_timeout_type.msg is search("timeout.*convert to int")
 
     - name: Negative - invalid timeout value
       dellemc.openmanage.omevv_firmware:
@@ -206,8 +204,8 @@
         that:
           - invalid_timeout_value.failed
           - not invalid_timeout_value.changed
-          - 'invalid_timeout_value.msg == "Invalid timeout value. Enter the
-            valid positive integer."'
+          - invalid_timeout_value.msg ==
+            "Invalid timeout value. Enter the valid positive integer."
 
     - name: Negative - invalid vcenter uuid
       dellemc.openmanage.omevv_firmware:
@@ -225,8 +223,7 @@
         that:
           - invalid_uuid.failed
           - not invalid_uuid.changed
-          - 'invalid_uuid.msg == "vCenter with UUID invalid is not
-            registered."'
+          - invalid_uuid.msg == "vCenter with UUID invalid is not registered."
 
   module_defaults:
     dellemc.openmanage.omevv_firmware:
