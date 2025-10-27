@@ -31,7 +31,7 @@ class TestIDRACFCInfo:
         idrac_mock.invoke_request.return_value = mock_response
 
         result = fc_info.get_fc_port_metrics_details("FC1")
-        assert result == ("", "", "", "", "", "", "", "", "", "", "", {})
+        assert result == ("", "", "", "", "", "", "", "", "", "", {})
 
     def test_get_fc_statistics_details_non_200(self, fc_info, idrac_mock):
         mock_response = MagicMock()
@@ -112,7 +112,7 @@ class TestIDRACFCInfo:
         assert result[0]["OSDriverState"] == "Running"
 
 
-def test_get_fc_info_non_200(self):
+    def test_get_fc_info_non_200(self ):
         mock_idrac = MagicMock()
         mock_response = MagicMock()
         mock_response.status_code = 500
