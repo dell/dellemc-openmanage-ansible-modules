@@ -1,5 +1,6 @@
 ---
-- block:
+- name: Verify ansible-doc
+  block:
     - name: ansible-doc
       ansible.builtin.command: ansible-doc
         dellemc.openmanage.ome_smart_fabric_info

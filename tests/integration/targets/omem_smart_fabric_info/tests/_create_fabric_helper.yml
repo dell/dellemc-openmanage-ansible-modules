@@ -1,5 +1,6 @@
 ---
-- block:
+- name: Create fabric
+  block:
     - name: Fetch OMEM device information.
       dellemc.openmanage.ome_device_info:
       register: result
@@ -8,7 +9,8 @@
       ansible.builtin.set_fact:
         device_info: "{{ result.device_info.value | json_query(query) }}"
       vars:
-        query: "[?Model == '{{ switch_model_1 }}' || Model == '{{ switch_model_2 }}']"
+        query: "[?Model == '{{ switch_model_1 }}'
+          || Model == '{{ switch_model_2 }}']"
 
     - name: Prerequisite - Delete the existing smart fabric
       dellemc.openmanage.ome_smart_fabric:
@@ -25,9 +27,9 @@
       dellemc.openmanage.ome_smart_fabric:
         name: "omam_test_fabric"
         description: "omam_test_fabric description"
-        fabric_design: "{{fabric_design}}"
-        primary_switch_service_tag: "{{device_info[0].DeviceServiceTag}}"
-        secondary_switch_service_tag: "{{device_info[1].DeviceServiceTag}}"
+        fabric_design: "{{ fabric_design }}"
+        primary_switch_service_tag: "{{ device_info[0].DeviceServiceTag }}"
+        secondary_switch_service_tag: "{{ device_info[1].DeviceServiceTag }}"
         override_LLDP_configuration: "Enabled"
       register: result
 
@@ -48,8 +50,8 @@
     - name: Prerequisite - Verify the status of fabric creation task
       ansible.builtin.assert:
         that:
-          - result.changed and result.msg == "Fabric creation operation is initiated."
-
+          - result.changed and result.msg == "Fabric
+            creation operation is initiated."
 
   module_defaults:
     dellemc.openmanage.ome_smart_fabric:
