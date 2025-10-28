@@ -2,7 +2,7 @@
 - name: Create fabric
   block:
     - name: Fetch OMEM device information.
-      dellemc.openmanage.ome_device_info:
+      dellemc.openmanage.ome_device_info: {}
       register: result
 
     - name: Get switch details.
