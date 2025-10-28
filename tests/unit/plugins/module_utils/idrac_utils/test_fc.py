@@ -121,3 +121,82 @@ class TestIDRACFCInfo:
         fc_info = IDRACFCInfo(mock_idrac)
         result = fc_info.get_fc_info()
         assert result is None
+
+    def test_get_fc_capability_details_match(self, fc_info, idrac_mock):
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json_data = {
+            "Members": [
+                {
+                    "Id": "FC1",
+                    "FeatureLicensingSupport": "Supported",
+                    "uEFISupport": "Enabled",
+                    "FlexAddressingSupport": "Yes",
+                    "OnChipThermalSensor": "Present",
+                    "FCMaxNumberExchanges": 128,
+                    "FCMaxNumberOutStandingCommands": 64,
+                    "PersistencePolicySupport": "True"
+                }
+            ]
+        }
+        idrac_mock.invoke_request.return_value = mock_response
+
+        result = fc_info.get_fc_capability_details("FC1")
+
+        assert result == (
+            "Supported", "Enabled", "Yes", "Present", 128, 64, "True"
+        )
+
+    def test_get_fc_port_metrics_details_oem_not_dict(self, fc_info, idrac_mock):
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json_data = {
+            "Members": [
+                {
+                    "Id": "FC1",
+                    "OSDriverState": "Running",
+                    "FCTxTotalFrames": 100,
+                    "FCRxTotalFrames": 90,
+                    "FCTxSequences": 10,
+                    "FCRxSequences": 9,
+                    "FCTxKBCount": 2048,
+                    "FCRxKBCount": 1024,
+                    "FCInvalidCRCs": 0,
+                    "FCLossOfSignals": 0,
+                    "FCLinkFailures": 0,
+                    "Oem": "InvalidString"
+                }
+            ]
+        }
+        idrac_mock.invoke_request.return_value = mock_response
+
+        result = fc_info.get_fc_port_metrics_details("FC1")
+        # last element should be {}, not string
+        assert result[-1] == {}
+
+    def test_get_fc_statistics_details_match(self, fc_info, idrac_mock):
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json_data = {
+            "Members": [
+                {"Id": "FC1", "PortStatus": "Up"}
+            ]
+        }
+        idrac_mock.invoke_request.return_value = mock_response
+
+        result = fc_info.get_fc_statistics_details("FC1")
+        assert result == "Up"
+
+    def test_get_fc_statistics_details_no_match(self, fc_info, idrac_mock):
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json_data = {
+            "Members": [
+                {"Id": "FC2", "PortStatus": "Down"}
+            ]
+        }
+        idrac_mock.invoke_request.return_value = mock_response
+
+        result = fc_info.get_fc_statistics_details("FC1")
+        assert result == ""
+
