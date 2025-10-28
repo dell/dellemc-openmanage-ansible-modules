@@ -1,1 +1,4 @@
 ---
+nfsshare_catalog_path: omam/omevv_baseline_profile_catalog.xml
+catalog_name: omevv_baseline_profile_catalog.xml
+new_catalog_name: omevv_baseline_profile_catalog1.xml
