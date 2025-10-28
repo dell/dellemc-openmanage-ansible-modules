@@ -14,16 +14,18 @@
 
 - vars:
     payload:
-      - protocol: "NFS"
-        path: "{{ nfs_share_name }}"
+      # - protocol: "NFS"
+      #   path: "{{ nfs_share_name }}/{{ nfsshare_catalog_path }}"
       - protocol: "CIFS"
-        path: "{{ cifs_share_name }}"
+        path: "{{ cifs_share_name }}{{ cifs_share_dir_path }}"
         username: "{{ cifs_share_user }}"
         password: "{{ cifs_share_password }}"
       - protocol: "HTTP"
-        path: "{{ http_share }}{{ http_share_dir_path }}"
+        path: "http://{{ http_share }}{{ http_share_dir_path }}\
+          /{{ catalog_name }}"
       - protocol: "HTTPS"
-        path: "{{ https_share_ip }}"
+        path: "https://{{ https_share_ip }}{{ http_share_dir_path }}\
+          /{{ catalog_name }}"
         username: "{{ https_share_username }}"
         password: "{{ https_share_password }}"
   block:

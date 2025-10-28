@@ -13,11 +13,11 @@
       register: catalog_response
 
     - name: Set vsan_catalog_key
-      set_fact:
+      ansible.builtin.set_fact:
         vsan_catalog_key: "vSAN Catalog for Enterprise Servers"
 
     - name: Extract VSAN Catalog ID from nested values
-      set_fact:
+      ansible.builtin.set_fact:
         vsan_catalog_id: >-
           {{
             catalog_response.json.value[1].Value
@@ -51,7 +51,7 @@
 
     - name: Extract first device ID if available
       ansible.builtin.set_fact:
-        first_device_id: "{{ devices_response.json.Devices[0].Id }}"
+        first_device_id: "{{ devices_response.json.Devices[1].Id }}"
 
     - name: Create a repository
       ansible.builtin.uri:
@@ -67,7 +67,7 @@
         body_format: json
         body:
           BaseCatalogID: "{{ vsan_catalog_id }}"
-          BaseCatalogName: "Index Catalog-24.12.13"
+          BaseCatalogName: "Index Catalog-25.10.27"
           Name: "testrepo"
           DeviceSelectionType: "device"
           BaselineName: "testrepo"

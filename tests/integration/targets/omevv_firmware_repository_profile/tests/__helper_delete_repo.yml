@@ -5,7 +5,7 @@
         repo_name: "testrepo"
 
     - name: Call the API to get repository details
-      uri:
+      ansible.builtin.uri:
         url: "https://{{ hostname | ansible.utils.ipwrap }}:{{ port
          }}/api/UpdateManagementService/Repositories"
         method: GET
@@ -17,7 +17,7 @@
       register: api_response
 
     - name: Parse the JSON response and find the repo id
-      set_fact:
+      ansible.builtin.set_fact:
         repo_id: "{{ item.Id }}"
       loop: "{{ api_response.json.value }}"
       when: item.Name == repo_name
