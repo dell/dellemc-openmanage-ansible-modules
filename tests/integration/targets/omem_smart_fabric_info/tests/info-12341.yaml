@@ -52,7 +52,7 @@
           - not diff_result.diff_lines
 
     - name: Retrieval of all fabric information (Normal mode)
-      dellemc.openmanage.ome_smart_fabric_info:
+      dellemc.openmanage.ome_smart_fabric_info: {}
       register: result
 
     - ansible.builtin.set_fact:
