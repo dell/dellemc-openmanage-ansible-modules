@@ -27,6 +27,14 @@
           - 'invalid_unreachable.msg == "<urlopen error [Errno -2] Name or
            service not known>"'
 
+    - name: Set fact for invalid user name message
+      ansible.builtin.set_fact:
+        invalid_user_msg:
+          "Unable to communicate with iDRAC {{ idrac_ip }}. This
+           may be due to one of the following: Incorrect username or
+          password, unreachable iDRAC IP or a failure in TLS/SSL
+          handshake."
+
     - name: Negative - invalid user
       dellemc.openmanage.idrac_lifecycle_controller_job_status_info:
         idrac_user: "invalid_user"
@@ -39,7 +47,8 @@
       ansible.builtin.assert:
         that:
           - invalid_user.failed
-          - 'invalid_user.msg == "HTTP Error 401: Unauthorized"'
+          - 'invalid_user.msg == "HTTP Error 401: Unauthorized" or
+            invalid_user.msg == "{{ invalid_user_msg }}"'
 
     - name: Negative - invalid password
       dellemc.openmanage.idrac_lifecycle_controller_job_status_info:
@@ -52,7 +61,8 @@
       ansible.builtin.assert:
         that:
           - invalid_password.failed
-          - 'invalid_password.msg == "HTTP Error 401: Unauthorized"'
+          - 'invalid_password.msg == "HTTP Error 401: Unauthorized" or
+             invalid_password.msg == "{{ invalid_user_msg }}"'
 
     - name: Negative - invalid ca_path
       dellemc.openmanage.idrac_lifecycle_controller_job_status_info:
