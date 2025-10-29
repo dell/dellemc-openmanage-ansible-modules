@@ -1,0 +1,119 @@
+---
+- name: Fetch fc details
+  ansible.builtin.uri:
+    url: "{{ idrac_fc_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: uri_data
+
+- name: Fetch fc capability details
+  ansible.builtin.uri:
+    url: "{{ fc_capability_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: fc_capability_data
+
+- name: Fetch fc port metrics details
+  ansible.builtin.uri:
+    url: "{{ fc_portmetrics_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: fc_portmetrics_data
+
+- name: Fetch fc statistics details
+  ansible.builtin.uri:
+    url: "{{ fc_statistics_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: fc_statistics_data
+
+- name: Structuring fc details
+  ansible.builtin.command:
+    cmd: >
+      python _get_fc_details.py
+      {{ uri_json }}
+      {{ capability_json }}
+      {{ portmetrics_json }}
+      {{ statistics_json }}
+    chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
+  environment:
+    PYTHONPATH: "{{ lookup('env', 'ANSIBLE_COLLECTIONS_PATH') }}"
+  register: fc_updated_dict
+  vars:
+    uri_json: "{{ uri_data.json | to_json | quote }}"
+    capability_json: "{{ fc_capability_data.json | to_json | quote }}"
+    portmetrics_json: "{{ fc_portmetrics_data.json | to_json | quote }}"
+    statistics_json: "{{ fc_statistics_data.json | to_json | quote }}"
+  when:
+    - uri_data.status == 200
+    - fc_capability_data.status == 200
+    - fc_portmetrics_data.status == 200
+    - fc_statistics_data.status == 200
+
+- name: Output conversion to list
+  ansible.builtin.set_fact:
+    fc_updated_dict: "{{ fc_updated_dict.stdout | from_yaml }}"
+  when:
+    - uri_data.status == 200
+
+- name: Set the FC result
+  ansible.builtin.set_fact:
+    res_fc: "{{ result.system_info.FC }}"
+
+- name: Output conversion to list change none
+  ansible.builtin.set_fact:
+    result_fc_updated_dict:
+      "{{ res_fc | regex_replace('null', '\"None\"') | from_yaml }}"
+
+- name: Set frequently updating attributes
+  ansible.builtin.set_fact:
+    attributes:
+      - 'FCTxTotalFrames'
+      - 'FCRxTotalFrames'
+      - 'FCTxSequences'
+      - 'FCRxSequences'
+      - 'FCTxKBCount'
+      - 'FCRxKBCount'
+
+- name: Comparing values inside list for memory
+  ansible.builtin.include_tasks:
+    file: _compare_diff.yml
+  vars:
+    _before: "{{ item.0 | dict2items
+        | rejectattr('key', 'in', attributes)
+        | items2dict}}"
+    _after: "{{ item.1 | dict2items
+        | rejectattr('key', 'in', attributes)
+        | items2dict}}"
+  when: uri_data.status == 200
+  loop: >-
+    {{
+    result_fc_updated_dict
+    | sort(attribute='Id')
+    | zip(fc_updated_dict | sort(attribute='Id'))
+    | list
+    }}
