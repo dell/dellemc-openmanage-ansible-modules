@@ -53,7 +53,12 @@
 
 - name: Structuring fc details
   ansible.builtin.command:
-    cmd: "python _get_fc_details.py {{ uri_json }} {{ capability_json }} {{ portmetrics_json }} {{ statistics_json }}"
+    cmd: >
+      python _get_fc_details.py
+      {{ uri_json }}
+      {{ capability_json }}
+      {{ portmetrics_json }}
+      {{ statistics_json }}
     chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
   environment:
     PYTHONPATH: "{{ lookup('env', 'ANSIBLE_COLLECTIONS_PATH') }}"
