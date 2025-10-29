@@ -40,7 +40,7 @@ class TestIDRACFCInfo:
         idrac_mock.invoke_request.return_value = mock_response
 
         result = fc_info.get_fc_statistics_details("FC1")
-        assert result ==  ""
+        assert result == ""
 
     def test_get_fc_info_success(self, fc_info, idrac_mock):
         idrac_mock.invoke_request.side_effect = [
@@ -111,8 +111,7 @@ class TestIDRACFCInfo:
         assert result[0]["FCRxTotalFrames"] == 900
         assert result[0]["OSDriverState"] == "Running"
 
-
-    def test_get_fc_info_non_200(self ):
+    def test_get_fc_info_non_200(self):
         mock_idrac = MagicMock()
         mock_response = MagicMock()
         mock_response.status_code = 500
@@ -199,4 +198,3 @@ class TestIDRACFCInfo:
 
         result = fc_info.get_fc_statistics_details("FC1")
         assert result == ""
-
