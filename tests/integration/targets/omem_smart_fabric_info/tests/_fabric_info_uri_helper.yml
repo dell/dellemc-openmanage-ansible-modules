@@ -1,0 +1,76 @@
+---
+- name: Get data from uri
+  block:
+    - ansible.builtin.include_tasks: _get_data_helper.yml
+      vars:
+        url: "{{ query_url }}"
+
+    - name: Set fact for api_response
+      ansible.builtin.set_fact:
+        uri_fabric_fetched_data: "{{ json_data | default([]) }}"
+        uri_fabric_res: "{{ (json_data | length > 0) |
+          ternary(json_data[0], {}) }}"
+        fabric_id: "{{ (json_data | length > 0) |
+          ternary(json_data[0].Id, '') }}"
+        fabric_name: "{{ (json_data | length > 0) |
+          ternary(json_data[0].Name, '') }}"
+        null_var: null
+
+    - name: Initialze for expand_fabric_keys
+      ansible.builtin.set_fact:
+        expand_fabric_keys_1: []
+        expand_fabric_keys_2: []
+
+    - name: Set fact for expand_fabric_keys
+      ansible.builtin.set_fact:
+        expand_fabric_keys_1: "{{ expand_fabric_keys_1|default([])
+          + [item.value.split('/')[-1]] }}"
+      loop: "{{ lookup('dict', uri_fabric_res)}}"
+      when: "'@odata.navigationLink' in item.key"
+
+    - name: Set fact for matches
+      ansible.builtin.set_fact:
+        matches: "{{ lookup('ansible.utils.to_paths', uri_fabric_res)
+          | dict2items | selectattr('key', 'search', '@odata.id') }}"
+
+    - name: Set fact for expand_fabric_keys
+      ansible.builtin.set_fact:
+        expand_fabric_keys_2: "{{ expand_fabric_keys_2 |default([])
+          + [item.value.split('/')[-1]] | reject('search', fabric_id) | list }}"
+      loop: "{{matches}}"
+
+    - name: Filter out 'ValidationErrors' and merge fabric keys
+      ansible.builtin.set_fact:
+        expand_fabric_keys: "{{ expand_fabric_keys_1 |
+          reject('search', 'ValidationErrors') | list + expand_fabric_keys_2 }}"
+
+    - name: Remove unwanted metadata keys from fabric response
+      ansible.builtin.set_fact:
+        uri_fabric_res: "{{ uri_fabric_res |
+          ansible.utils.remove_keys(target=['@odata.type', '@odata.id',
+          '@odata.context', '@odata.count', '@odata.navigationLink'],
+          matching_parameter='ends_with') }}"
+
+    - name: Clean up empty or null values from fabric response
+      ansible.builtin.set_fact:
+        uri_fabric_res: '{{  uri_fabric_res | dict2items
+          | rejectattr("value", "in", [{}, null_var, ""])|list|items2dict }}'
+
+    - name: Fetch component data from fabric API
+      ansible.builtin.include_tasks: _get_data_helper.yml
+      vars:
+        url: "https://{{hostname}}:{{port}}/api/NetworkService/Fabrics\
+          ('{{fabric_id}}')/{{item}}"
+        component: "{{ item }}"
+      loop: "{{ expand_fabric_keys }}"
+
+    - name: Merge fetched component data into fabric response
+      ansible.builtin.set_fact:
+        uri_fabric_res: '{{  uri_fabric_res | combine(loop_data) }}'
+
+    - name: Remove empty lists from final fabric respone
+      ansible.builtin.set_fact:
+        uri_fabric_res: "{{ uri_fabric_res
+                            | dict2items
+                            | rejectattr('value', 'equalto', [])
+                            | items2dict }}"
