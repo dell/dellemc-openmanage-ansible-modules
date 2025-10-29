@@ -13,14 +13,17 @@
 
 - name: Get fabric info by name
   block:
-    - ansible.builtin.include_tasks: _fabric_info_uri_helper.yml
+    - name: Include task to fetch fabric info from URI
+      ansible.builtin.include_tasks: _fabric_info_uri_helper.yml
       vars:
         query_url: https://{{ hostname }}:{{ port }}/api/NetworkService/Fabrics
 
-    - ansible.builtin.set_fact:
+    - name: Set fact for total smart fabrics from URI
+      ansible.builtin.set_fact:
         uri_total_smart_fabrics: "{{ uri_fabric_fetched_data | length }}"
 
-    - ansible.builtin.include_tasks: _create_fabric_helper.yml
+    - name: Include task to create fabric if none found
+      ansible.builtin.include_tasks: _create_fabric_helper.yml
       when: uri_fabric_fetched_data | length < 1
 
     - name: Retrieval of all fabric information (Check mode)
@@ -29,7 +32,8 @@
       register: result
       check_mode: true
 
-    - ansible.builtin.set_fact:
+    - name: Set fact for total smart fabrics from task result (Check mode)
+      ansible.builtin.set_fact:
         task_total_smart_fabrics: "{{ result.smart_fabric_info | length }}"
 
     - name: Verify task status - Retrieval of all fabric information(Check mode)
@@ -56,7 +60,8 @@
         fabric_name: "{{ fabric_name }}"
       register: result
 
-    - ansible.builtin.set_fact:
+    - name: Set fact for total smart fabrics from task result (Normal mode)
+      ansible.builtin.set_fact:
         task_total_smart_fabrics: "{{ result.smart_fabric_info | length }}"
 
     - name: "Verify task status - Retrieval of all \
@@ -78,7 +83,6 @@
         that:
           - not diff_result.changed
           - not diff_result.diff_lines
-
 
   module_defaults:
     dellemc.openmanage.ome_smart_fabric_info:
