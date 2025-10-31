@@ -14,8 +14,8 @@
 
 - vars:
     payload:
-      # - protocol: "NFS"
-      #   path: "{{ nfs_share_name }}/{{ nfsshare_catalog_path }}"
+      - protocol: "NFS"
+        path: "{{ nfs_share_name }}/{{ nfsshare_catalog_path }}"
       - protocol: "CIFS"
         path: "{{ cifs_share_name }}{{ cifs_share_dir_path }}"
         username: "{{ cifs_share_user }}"
