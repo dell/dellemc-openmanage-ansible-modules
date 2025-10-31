@@ -1,7 +1,7 @@
 ---
 - block:
     - name: Define repository name variable
-      set_fact:
+      ansible.builtin.set_fact:
         repo_name: "testrepo"
 
     - name: Call the API to get repository details

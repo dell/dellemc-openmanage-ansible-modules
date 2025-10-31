@@ -49,9 +49,12 @@
               Value: "{{ vsan_catalog_id }}"
       register: devices_response
 
-    - name: Extract first device ID if available
+    - name: Extract device ID for device
       ansible.builtin.set_fact:
-        first_device_id: "{{ devices_response.json.Devices[1].Id }}"
+        target_device_id: "{{ devices_response.json.Devices
+                              | selectattr('Name', 'match', '^pie')
+                              | map(attribute='Id')
+                              | first }}"
 
     - name: Create a repository
       ansible.builtin.uri:
@@ -67,12 +70,12 @@
         body_format: json
         body:
           BaseCatalogID: "{{ vsan_catalog_id }}"
-          BaseCatalogName: "Index Catalog-25.10.27"
+          BaseCatalogName: "Index Catalog-25.10.29"
           Name: "testrepo"
           DeviceSelectionType: "device"
           BaselineName: "testrepo"
           IsBaseline: "true"
-          DeviceIDs: ["{{ first_device_id }}"]
+          DeviceIDs: ["{{ target_device_id }}"]
         status_code: [200, 201]
       register: repository_response
 
