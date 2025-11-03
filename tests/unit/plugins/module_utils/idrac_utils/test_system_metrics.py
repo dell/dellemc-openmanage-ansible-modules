@@ -12,6 +12,7 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.system_metrics import IDRACSystemMetricsInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.chassis_sensor_util import IDRACChassisSensors
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.module_utils.idrac_utils.test_idrac_utils import TestUtils
 
 NA = "Not Available"
@@ -20,6 +21,17 @@ NA = "Not Available"
 class TestIDRACSystemMetricsInfo(TestUtils):
 
     def test_get_system_metrics_info_success(self, idrac_mock):
+
+        response = {
+            "Members": [
+                {"@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/SystemBoardPwrConsumption"},
+                {"@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/SystemBoardInletTemp"},
+                {"@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/InletTemp"},
+                {"@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/PowerHeadroom"}
+            ]
+        }
+        idrac_mock.invoke_request.return_value.json_data = response
+        sensors = IDRACChassisSensors(idrac_mock)
         # Mock response for energy consumption
         energy_resp = {"LifetimeReading": 12345}
         # Mock response for temperature
@@ -41,7 +53,7 @@ class TestIDRACSystemMetricsInfo(TestUtils):
             type("Resp", (), {"status_code": 200, "json_data": power_resp}),
         ]
 
-        metrics_info = IDRACSystemMetricsInfo(idrac_mock)
+        metrics_info = IDRACSystemMetricsInfo(idrac_mock, sensors)
         result = metrics_info.get_system_metrics_info()
 
         expected = [{
