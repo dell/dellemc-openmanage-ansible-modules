@@ -77,3 +77,5 @@ system_board_power_consumption_uri: "{{ base_uri }}/{{ redfish_uri }}\
   Chassis/System.Embedded.1/Sensors/SystemBoardPwrConsumption"
 system_board_current_consumption_uri: "{{ base_uri }}/{{ redfish_uri }}\
   Chassis/System.Embedded.1/Sensors/SystemBoardCurrentConsumption"
+inlettemp_uri: "{{ base_uri }}/{{ redfish_uri }}\
+  Chassis/System.Embedded.1/Sensors/InletTemp"

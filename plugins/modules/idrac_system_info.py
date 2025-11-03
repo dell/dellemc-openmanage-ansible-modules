@@ -203,7 +203,7 @@ def main():
                 system_info_dict["FC"] = IDRACFCInfo(idrac).get_fc_info()
                 system_info_dict["System"] = IDRACSystemInfo(idrac).get_system_info()
                 system_info_dict["SystemBoardMetrics"] = IDRACSystemBoardMetricsInfo(idrac, chassis_sensors).get_system_board_metrics_info()
-                system_info_dict["SystemMetrics"] = IDRACSystemMetricsInfo(idrac).get_system_metrics_info()
+                system_info_dict["SystemMetrics"] = IDRACSystemMetricsInfo(idrac, chassis_sensors).get_system_metrics_info()
                 system_info_dict["Video"] = IDRACVideoInfo(idrac).get_idrac_video_details()
                 system_info_dict["Subsystem"] = IDRACSubsystemInfo(idrac).get_subsystem_info()
                 system_info_dict["License"] = IDRACLicenseInfo(idrac).get_license_info()
