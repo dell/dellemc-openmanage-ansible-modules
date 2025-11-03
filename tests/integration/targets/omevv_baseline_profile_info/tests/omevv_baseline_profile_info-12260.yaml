@@ -26,7 +26,7 @@
         vcenter_username: "{{ vcenter_username }}"
         vcenter_password: "{{ vcenter_password }}"
         vcenter_uuid: "{{ uuid }}"
-        name: "AnsibleTest"
+        name: "AnsibleTest_BaselineProfile"
       register: cm_changes
       check_mode: true
 
