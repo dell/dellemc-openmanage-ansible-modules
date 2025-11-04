@@ -81,5 +81,5 @@ class IDRACSystemMetricsInfo(object):
             "PowerConsumption": power_consumption,
             "SystemMetrics": "Not Available"
         }]
-
-        return output   
+        
+        return output
