@@ -1,7 +1,7 @@
 import sys
 import json
 
-GET_IDRAC_SENSORS_VOLTAGE_LIST = sys.argv[1]
+GET_IDRAC_SENSORS_VOLTAGE_LIST = json.load(sys.stdin)
 NA = "Not Available"
 
 
@@ -28,7 +28,7 @@ def sensors_voltage_mapped_data_api(resp):
 
 def get_sensors_voltage_info_api():
     output = []
-    for mem in json.loads(GET_IDRAC_SENSORS_VOLTAGE_LIST).get("Members", []):
+    for mem in GET_IDRAC_SENSORS_VOLTAGE_LIST.get("Members", []):
         if mem.get("SensorType", "") == "Voltage":
             output.append(sensors_voltage_mapped_data_api(mem))
     return output

@@ -14,13 +14,13 @@
 
 - name: Structuring sensors voltage details
   ansible.builtin.command:
-    cmd: >
-      python _get_sensors_voltage_details.py
-      '{{ uri_data.json | to_json }}'
+    cmd: python _get_sensors_voltage_details.py
+  register: sensors_voltage_updated_dict
+  args:
+    stdin: "{{ uri_data.json | to_json }}"
     chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
   environment:
     PYTHONPATH: "{{ lookup('env', 'ANSIBLE_COLLECTIONS_PATH') }}"
-  register: sensors_voltage_updated_dict
   when:
     - uri_data.status == 200
 

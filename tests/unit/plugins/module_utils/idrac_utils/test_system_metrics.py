@@ -95,6 +95,7 @@ class TestIDRACSystemMetricsInfo(TestUtils):
             side_effect=[
                 Resp(500, {}),
                 Resp(404, {}),
+                Resp(404, {}),
                 Resp(503, {}),
             ]
         )
