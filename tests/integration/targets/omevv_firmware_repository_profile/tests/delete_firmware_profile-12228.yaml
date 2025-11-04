@@ -19,7 +19,8 @@
         protocol: "HTTP"
         share__username: "{{ http_share_user  }}"
         share__password: "{{ http_share_password  }}"
-        path: "{{ http_share }}{{ http_share_dir_path }}"
+        path: "http://{{ http_share }}{{ http_share_dir_path }}\
+          /{{ catalog_name }}"
 
     - name: Delete the profile (Check mode - Changes expected)
       dellemc.openmanage.omevv_firmware_repository_profile: &delete_profile
