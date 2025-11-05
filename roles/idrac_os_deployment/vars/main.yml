@@ -5,6 +5,7 @@ idrac_os_deployment_delegate: "{{ lookup('ansible.builtin.env', 'RUNON', default
 idrac_os_deployment_supported_os:
   RHEL: ["8", "9"]
   ESXI: ["8"]
+  UBUNTU: ["jammy"]
 
 # Validation Error messages
 idrac_os_deployment_err_msg_os_required: "The parameters `os_name` and `os_version` is required."
@@ -56,6 +57,7 @@ idrac_os_deployment_custom_iso_file: ""
 idrac_os_deployment_hybrid_cmd: isohybrid --uefi %s
 idrac_os_deployment_checksum_cmd: implantisomd5 %s
 idrac_os_deployment_xorriso_cmd: "xorriso -osirrox on -indev %s -extract / %s"
+idrac_os_deployment_7z_cmd: "7z -y x %s -o%s"
 
 # Attributes required to compile esxi iso
 idrac_os_deployment_esxi_ks_filename: "KS.CFG"
@@ -74,6 +76,27 @@ idrac_os_deployment_rhel_mkiso_cmd:
   "mkisofs -o %s -b isolinux/isolinux.bin -J -R -l -c isolinux/boot.cat
   -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img
   -no-emul-boot -graft-points -joliet-long -V %s ."
+
+# Attributes required to compile ubuntu iso
+idrac_os_deployment_ubuntu_ks_filename: "user-data"
+idrac_os_deployment_ubuntu_ks_dest_prefix: "/cdrom/"
+idrac_os_deployment_ubuntu_ks_location: "{{ idrac_os_deployment_ubuntu_ks_dest_prefix }}"
+idrac_os_deployment_ubuntu_mkiso_cmd:
+  "xorriso -as mkisofs -r \
+  -o %s \
+  -V '%s' \
+  --grub2-mbr './[BOOT]/1-Boot-NoEmul.img' \
+  -partition_offset 16 \
+  --mbr-force-bootable \
+  -append_partition 2 28732ac11ff8d211ba4b00a0c93ec93b './[BOOT]/2-Boot-NoEmul.img' \
+  -appended_part_as_gpt \
+  -iso_mbr_part_type a2a0d0ebe5b9334487c068b6b72699c7 \
+  -c '/boot.catalog' \
+  -b '/boot/grub/i386-pc/eltorito.img' \
+  -no-emul-boot -boot-load-size 4 -boot-info-table --grub2-boot-info \
+  -eltorito-alt-boot \
+  -e '--interval:appended_partition_2:::' \
+  -no-emul-boot ."
 
 # Extra params
 idrac_os_deployment_set_no_log: false

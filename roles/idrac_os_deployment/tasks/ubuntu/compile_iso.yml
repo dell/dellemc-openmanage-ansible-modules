@@ -1,0 +1,52 @@
+---
+- name: Create 'server' folder inside the extract directory
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  ansible.builtin.file:
+    path: "{{ idrac_os_deployment_iso_extract_dir }}/server"
+    state: directory
+    mode: "{{ idrac_os_deployment_copy_mode }}"
+
+- name: Create an empty 'meta-data' file inside the server folder
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  ansible.builtin.copy:
+    content: ""
+    dest: "{{ idrac_os_deployment_iso_extract_dir }}/server/meta-data"
+    mode: "{{ idrac_os_deployment_copy_mode }}"
+
+- name: Copy KS user-data to extracted
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  ansible.builtin.copy:
+    src: "{{ idrac_os_deployment_kickstart_file }}"
+    dest: "{{ idrac_os_deployment_iso_extract_dir }}/server/{{ idrac_os_deployment_ubuntu_ks_filename }}"
+    mode: "{{ idrac_os_deployment_copy_mode }}"
+
+- name: Append autoinstall menu entry to grub.cfg
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  ansible.builtin.lineinfile:
+    path: "{{ idrac_os_deployment_iso_extract_dir }}/boot/grub/grub.cfg"
+    insertafter: "^set menu_color_highlight=black/light-gray"
+    line: |
+      menuentry 'Install Ubuntu with Kickstart' {
+      set gfxpayload=keep
+      linux /casper/vmlinuz quiet autoinstall ds=nocloud\;s={{ idrac_os_deployment_ubuntu_ks_location }}server/ ---
+      initrd /casper/initrd
+      }
+
+- name: Get iso LABEL
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  ansible.builtin.command: "blkid -s LABEL -o value {{ idrac_os_deployment_iso_file }}"
+  register: idrac_os_deployment_blkid_output
+  changed_when: idrac_os_deployment_blkid_output.rc != 0
+
+- name: Set iso LABEL
+  ansible.builtin.set_fact:
+    idrac_os_deployment_iso_label: "{{ idrac_os_deployment_blkid_output.stdout | trim }}"
+
+- name: Compile custom ISO
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  ansible.builtin.command:
+    chdir: "{{ idrac_os_deployment_iso_extract_dir }}"
+    cmd: "{{ idrac_os_deployment_ubuntu_mkiso_cmd | format(idrac_os_deployment_custom_iso_file, idrac_os_deployment_iso_label) }}"
+  register: idrac_os_deployment_mkisofs_output
+  changed_when: idrac_os_deployment_mkisofs_output.rc == 0
+  failed_when: idrac_os_deployment_mkisofs_output.rc != 0

@@ -37,14 +37,14 @@ argument_specs:
         type: str
         description:
           - The operating system name to match the jinja template of the kickstart file.
-          - Supported os name is versions for RHEL and ESXI.
+          - Supported os name is versions for RHEL, ESXI and UBUNTU.
           - Jinja template file should exists in the format <os_name_upper>_<os_version_major>.j2
           - This is required when I(is_custom_iso) is C(false).
       os_version:
         type: str
         description:
           - The operating system version to match the jinja template of the kickstart file.
-          - Supported versions for RHEL are 9.x and 8.x and for ESXi is 8.x.
+          - Supported versions for RHEL are 9.x and 8.x, for ESXi is 8.x and for UBUNTU is jammy.
           - Jinja template file should exists in the format <os_name_upper>_<os_version_major>.j2
           - This is required when I(is_custom_iso) is C(false)
       source:

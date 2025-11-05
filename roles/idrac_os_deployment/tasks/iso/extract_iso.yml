@@ -5,6 +5,15 @@
   changed_when: idrac_os_deployment_extract_cmd_out.rc == 0
   failed_when: idrac_os_deployment_extract_cmd_out.rc != 0
   ansible.builtin.command: "{{ idrac_os_deployment_xorriso_cmd | format(idrac_os_deployment_iso_file, idrac_os_deployment_iso_extract_dir) }}"
+  when: os_name.lower() in ['rhel', 'esxi']
+
+- name: Extract the ISO on to extract folder (Ubuntu)
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  register: idrac_os_deployment_extract_cmd_out
+  changed_when: idrac_os_deployment_extract_cmd_out.rc == 0
+  failed_when: idrac_os_deployment_extract_cmd_out.rc != 0
+  ansible.builtin.command: "{{ idrac_os_deployment_7z_cmd | format(idrac_os_deployment_iso_file, idrac_os_deployment_iso_extract_dir) }}"
+  when: os_name.lower() == "ubuntu"
 
 - name: Update file permissions
   delegate_to: "{{ idrac_os_deployment_delegate }}"

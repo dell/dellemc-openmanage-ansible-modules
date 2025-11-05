@@ -1,0 +1,43 @@
+#cloud-config
+# vim: ft=yaml:
+autoinstall:
+  version: 1
+  early-commands:
+    - ["cat", "/autoinstall.yaml"]
+  refresh-installer:
+    update: {{ ubuntu_update_installer }}
+  apt:
+    preserve_sources_list: {{ ubuntu_preserve_sources_list }}
+    mirror-selection:
+      primary:
+        - country-mirror
+        - uri: "{{ ubuntu_primary_mirror }}"
+          arches: {{ ubuntu_primary_arches }}
+        - uri: "{{ ubuntu_secondary_mirror }}"
+          arches: {{ ubuntu_secondary_arches }}
+    fallback: {{ ubuntu_fallback_strategy }}
+    geoip: {{ ubuntu_geoip }}
+    sources:
+      git-ppa:
+        source: {{ ubuntu_git_ppa }}
+  identity:
+    hostname: "{{ ubuntu_hostname }}"
+    password: "{{ ubuntu_user_password }}"
+    realname: "{{ ubuntu_realname }}"
+    username: "{{ ubuntu_username }}"
+  keyboard:
+    layout: "{{ ubuntu_keyboard }}"
+    toggle: "{{ ubuntu_keyboard_toggle }}"
+    variant: "{{ ubuntu_keyboard_variant }}"
+  locale: "{{ ubuntu_locale }}"
+  ssh:
+    allow-pw: {{ ubuntu_allow_pw }}
+    authorized-keys: {{ ubuntu_authorized_keys }}
+    install-server: {{ ubuntu_install_ssh }}
+  storage:
+    layout:
+      name: "{{ ubuntu_storage_layout }}"
+      match:
+        size: "{{ ubuntu_match_size }}"
+  late-commands:
+    - 'echo ''APT::Install-Recommends "false";'' >/target/etc/apt/apt.conf.d/02InstallRecommends'

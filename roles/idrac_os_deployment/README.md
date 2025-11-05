@@ -5,17 +5,17 @@ Role to deploy operating system and version on the servers.</br>
 
 The role perform the following operations:
 1. Downloads or copies the source ISO as a local copy in the ansible controller machine tmp folder.
-1. Create a kickstart file using jinja template based on the os name and version .
-1. Extract the ISO using the `xorriso` library.
-1. Enable the extracted ISO to use kickstart file by modifying the boot configurations for bios and uefi.
-1. Compile the iso to generate a custom iso by embedding the kickstart file in an iso using the `mkisofs`, `isohybrid` and `implantisomd5` commands.
-1. Copy the custom ISO generated to destination share location as specfied to the role input. Based on the input a following method is used to copy the destination to a shared repository.
+2. Create a kickstart file using jinja template based on the os name and version .
+3. Extract the ISO using the `xorriso` library, in case of ubuntu we use `7z`.
+4. Enable the extracted ISO to use kickstart file by modifying the boot configurations for bios and uefi.
+5. Compile the iso to generate a custom iso by embedding the kickstart file in an iso using the `mkisofs`, `isohybrid` and `implantisomd5` commands.
+6. Copy the custom ISO generated to destination share location as specfied to the role input. Based on the input a following method is used to copy the destination to a shared repository.
     - CIFS/NFS  uses the local file mount to copy the ISO to a location.
     - HTTP/HTTPS uses the SSH to copy/transfer the ISO to a location where the web server content is served.
-1. Using an iDRAC `idrac_virtual_media` module mount the custom ISO as virtual media (virtual CD) in an iDRAC.
-1. Using an iDRAC `idrac_boot` module set the boot target to CD and enable a reboot to CD once.
-1. Track for the OS deployment for the specified amount of user input time.
-1. Eject the virtual media after the specfied time is finished.
+7. Using an iDRAC `idrac_virtual_media` module mount the custom ISO as virtual media (virtual CD) in an iDRAC.
+8. Using an iDRAC `idrac_boot` module set the boot target to CD and enable a reboot to CD once.
+9. Track for the OS deployment for the specified amount of user input time.
+10. Eject the virtual media after the specfied time is finished.
 
 Requirements
 ------------
@@ -32,6 +32,7 @@ xorriso
 syslinux
 isomd5sum
 wget
+7z
 ```
 ### Production
 Requirements to use the role.
@@ -42,6 +43,7 @@ xorriso
 syslinux
 isomd5sum
 wget
+7z
 ```
 
 ### Ansible collections
@@ -423,7 +425,7 @@ Role Variables
     </tr>
     <tr>
       <td>idrac_os_deployment_supported_os</td>
-      <td>{ RHEL: ["8", "9"], ESXI: ["8"] }</td>
+      <td>{ RHEL: ["8", "9"], ESXI: ["8"], UBUNTU: ["jammy"] }</td>
       <td>Hold the map data of supported os name and version</td>
     </tr>
   </tbody>
@@ -456,7 +458,7 @@ Example Playbook
     destination:
       protocol: https
       hostname: 198.192.0.1
-      mountpath: /user/www/myrepo
+      mountpoint: /user/www/myrepo
       os_type: linux
       iso_path: /to/iso
 ```
@@ -480,7 +482,7 @@ Example Playbook
     destination:      
       protocol: https
       hostname: 198.192.0.1
-      mountpath: /user/www/myrepo
+      mountpoint: /user/www/myrepo
       os_type: linux
       iso_path: /to/iso
 ```
@@ -500,6 +502,30 @@ Example Playbook
       iso_path: /to/iso
       iso_name: custom-rhel.iso
       is_custom_iso: true
+```
+```
+- name: Generate custom iso using a kickstart file and install UBUNTU OS
+  ansible.builtin.import_role:
+    name: idrac_os_deployment
+  vars:
+    hostname: 192.168.0.1
+    username: root
+    password: password
+    ca_path: path/to/ca
+    os_name: UBUNTU
+    os_version: jammy
+    source:    
+      protocol: https
+      hostname: 198.192.0.1
+      ks_path: /to/iso/ks_ubuntu.cfg
+      path: /to/iso
+      iso_name: ubuntu.iso    
+    destination:      
+      protocol: https
+      hostname: 198.192.0.1
+      mountpoint: /user/www/myrepo
+      os_type: linux
+      iso_path: /to/iso
 ```
 Author Information
 ------------------

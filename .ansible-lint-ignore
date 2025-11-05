@@ -69,6 +69,7 @@ roles/idrac_reset/defaults/main.yml var-naming[no-role-prefix]
 roles/idrac_os_deployment/defaults/main/rhel.yml var-naming[no-role-prefix]
 roles/idrac_os_deployment/defaults/main/esxi.yml var-naming[no-role-prefix]
 roles/idrac_os_deployment/defaults/main/main.yml var-naming[no-role-prefix]
+roles/idrac_os_deployment/defaults/main/ubuntu.yml var-naming[no-role-prefix]
 
 roles/idrac_job_queue/defaults/main.yml var-naming[no-role-prefix]
 roles/idrac_job_queue/molecule/delete_job-10644/converge.yml var-naming[no-role-prefix]

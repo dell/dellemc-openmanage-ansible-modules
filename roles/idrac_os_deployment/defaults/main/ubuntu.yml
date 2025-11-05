@@ -1,0 +1,23 @@
+ubuntu_update_installer: true
+ubuntu_preserve_sources_list: false
+ubuntu_primary_mirror: "http://archive.ubuntu.com/ubuntu"
+ubuntu_primary_arches: [i386, amd64]
+ubuntu_secondary_mirror: "http://ports.ubuntu.com/ubuntu-ports"
+ubuntu_secondary_arches: [s390x, arm64, armhf, powerpc, ppc64el, riscv64]
+ubuntu_fallback_strategy: "abort"
+ubuntu_geoip: true
+ubuntu_git_ppa: "ppa:git-core/ppa"
+ubuntu_hostname: "ubuntu"
+# Initial user password "ubuntu" (hashed using SHA-512)
+ubuntu_user_password: "$6$xlpCfETR.9nMepDn$0GDk0yuTOOMXrxFQacjQdbTNwCys.wMlo.EDzfKJGvLhy61R8IxaSCNveo247McGthyg7vBUgDlmTS3wF.64k1"
+ubuntu_realname: "ubuntu"
+ubuntu_username: "ubuntu"
+ubuntu_keyboard: "us"
+ubuntu_keyboard_toggle: ""
+ubuntu_keyboard_variant: ""
+ubuntu_locale: "en_US"
+ubuntu_allow_pw: true
+ubuntu_authorized_keys: []  # Add public keys here as a YAML list
+ubuntu_install_ssh: true
+ubuntu_storage_layout: "lvm"
+ubuntu_match_size: "largest"
