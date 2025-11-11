@@ -80,3 +80,10 @@ system_board_current_consumption_uri: "{{ base_uri }}/{{ redfish_uri }}\
   Chassis/System.Embedded.1/Sensors/SystemBoardCurrentConsumption"
 inlettemp_uri: "{{ base_uri }}/{{ redfish_uri }}\
   Chassis/System.Embedded.1/Sensors/InletTemp"
+idrac_fc_uri: "{{ chassis_uri }}/System.Embedded.1/Oem/Dell/DellFC"
+fc_capability_uri: "{{ chassis_uri }}/System.Embedded.1/Oem/Dell\
+  /DellFCCapabilities"
+fc_portmetrics_uri: "{{ chassis_uri }}/System.Embedded.1/Oem/Dell\
+  /DellFCPortMetrics"
+fc_statistics_uri: "{{ chassis_uri }}/System.Embedded.1/Oem/Dell\
+  /DellFCStatistics"
