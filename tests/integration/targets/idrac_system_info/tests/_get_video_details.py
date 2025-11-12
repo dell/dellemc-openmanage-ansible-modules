@@ -6,8 +6,7 @@ video_api_output = sys.argv[1]
 NA = "Not Available"
 
 
-def map_video_data(video):
-    video_info = video.get("Oem", {}).get("Dell", {}).get("DellVideo", {})
+def map_video_data(video_info):
 
     return {
         "Description": video_info.get("Description", NA),

@@ -52,7 +52,8 @@ subsystem_license_uri: "{{ base_uri }}/\
   {{ redfish_uri }}LicenseService/Licenses?$expand=*($levels=1)"
 subsystem_sensor_voltage_uri: "{{ chassis_uri }}/\
   System.Embedded.1/Power#/Voltages"
-video_uri: "{{ base_uri }}/{{ redfish_uri }}Systems/System.Embedded.1/"
+video_uri: "{{ base_uri }}/{{ redfish_uri }}Systems/System.Embedded.1/\
+  Oem/Dell/DellVideo"
 thermal_uri: "{{ base_uri }}/{{ redfish_uri }}\
   Chassis/System.Embedded.1/Thermal"
 chassis_sensors_uri: "{{ base_uri }}/{{ redfish_uri }}\
@@ -77,3 +78,12 @@ system_board_power_consumption_uri: "{{ base_uri }}/{{ redfish_uri }}\
   Chassis/System.Embedded.1/Sensors/SystemBoardPwrConsumption"
 system_board_current_consumption_uri: "{{ base_uri }}/{{ redfish_uri }}\
   Chassis/System.Embedded.1/Sensors/SystemBoardCurrentConsumption"
+inlettemp_uri: "{{ base_uri }}/{{ redfish_uri }}\
+  Chassis/System.Embedded.1/Sensors/InletTemp"
+idrac_fc_uri: "{{ chassis_uri }}/System.Embedded.1/Oem/Dell/DellFC"
+fc_capability_uri: "{{ chassis_uri }}/System.Embedded.1/Oem/Dell\
+  /DellFCCapabilities"
+fc_portmetrics_uri: "{{ chassis_uri }}/System.Embedded.1/Oem/Dell\
+  /DellFCPortMetrics"
+fc_statistics_uri: "{{ chassis_uri }}/System.Embedded.1/Oem/Dell\
+  /DellFCStatistics"
