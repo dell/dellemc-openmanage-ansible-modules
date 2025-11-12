@@ -25,32 +25,44 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+from .chassis_sensor_util import IDRACChassisSensors
+
 GET_SYSTEMBOARD_POWERCONSUMPTION_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Sensors/SystemBoardPwrConsumption"
 GET_SYSTEMBOARDINLETTEMP_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Sensors/SystemBoardInletTemp"
+GET_INLETTEMP_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Sensors/InletTemp"
 GET_POWERHEADROOM_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Sensors/PowerHeadroom"
 NA = "Not Available"
 
 
 class IDRACSystemMetricsInfo(object):
-    def __init__(self, idrac):
-        self.idrac = idrac
+    def __init__(self, idrac, chassis_sensors: IDRACChassisSensors):
+        self.chassis_sensors = chassis_sensors
+
+    def _get_sensor_data(self, uri: str):
+        response = self.chassis_sensors.get_sensor(uri)
+        return response if response.status_code == 200 else None
 
     def get_energy_consumption_details(self):
-        response = self.idrac.invoke_request(method='GET', uri=GET_SYSTEMBOARD_POWERCONSUMPTION_DETAILS_URI_10)
+        response = self.chassis_sensors.get_sensor(GET_SYSTEMBOARD_POWERCONSUMPTION_DETAILS_URI_10)
         if response.status_code == 200:
             return response.json_data.get("LifetimeReading", NA)
         return {}
 
     def get_temperature_details(self):
-        response = self.idrac.invoke_request(method='GET', uri=GET_SYSTEMBOARDINLETTEMP_DETAILS_URI_10)
-        if response.status_code == 200:
-            inlettemp_critical = response.json_data.get("Oem", {}).get("Dell", {}).get("DurationInCriticalThresholdPercent", NA)
-            inlettemp_warn = response.json_data.get("Oem", {}).get("Dell", {}).get("DurationInWarningThresholdPercent", NA)
+
+        response = (
+            self._get_sensor_data(GET_SYSTEMBOARDINLETTEMP_DETAILS_URI_10)
+            or self._get_sensor_data(GET_INLETTEMP_DETAILS_URI_10)
+        )
+        if response:
+            oem_data = response.json_data.get("Oem", {}).get("Dell", {})
+            inlettemp_critical = oem_data.get("DurationInCriticalThresholdPercent", NA)
+            inlettemp_warn = oem_data.get("DurationInWarningThresholdPercent", NA)
             return inlettemp_critical, inlettemp_warn
         return {}, {}
 
     def get_power_consumption_details(self):
-        response = self.idrac.invoke_request(method='GET', uri=GET_POWERHEADROOM_DETAILS_URI_10)
+        response = self.chassis_sensors.get_sensor(GET_POWERHEADROOM_DETAILS_URI_10)
         if response.status_code == 200:
             return response.json_data.get("LowestReading", NA)
         return {}
