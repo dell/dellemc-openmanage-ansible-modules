@@ -15,7 +15,7 @@ def get_enclosure_data(resp):
     dellchasis = resp.get("Oem", {}).get("Dell", {}).get("DellChassisEnclosure", {})
     asset = resp.get("AssetTag")
     svctag = dellchasis.get("ServiceTag")
-    return {
+    enclosure_data = {
         "AssetTag": NA if asset == "" else asset,
         "Connector": str(dellchasis.get("Connector")),
         "DeviceDescription": resp.get("Description"),
@@ -32,6 +32,11 @@ def get_enclosure_data(resp):
         "Version": dellchasis.get("Version", NA),
         "WiredOrder": str(dellchasis.get("WiredOrder", NA))
     }
+
+    if enclosure_data["EMMCount"] in [None, "None", "null", ""]:
+        enclosure_data["EMMCount"] = "0"
+
+    return enclosure_data
 
 
 def get_controller_enclosure_sensor_info(resp):
