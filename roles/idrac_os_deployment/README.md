@@ -136,7 +136,7 @@ Role Variables
     <td></td>
     <td></td>
     <td>str</td>
-    <td>- The operating system version to match the jinja template of the kickstart file.</br>- Supported versions for RHEL are 9.x and 8.x and for ESXi is 8.x.</br> - Jinja template file should exists in the format `os_name_upper_os_version_major.j2`</td>
+    <td>- The operating system version to match the jinja template of the kickstart file.</br>- Supported versions for RHEL are 10.x, 9.x and 8.x and for ESXi is 8.x.</br> - Jinja template file should exists in the format `os_name_upper_os_version_major.j2`</td>
   </tr>  
   <tr>
     <td>source</td>
@@ -423,7 +423,7 @@ Role Variables
     </tr>
     <tr>
       <td>idrac_os_deployment_supported_os</td>
-      <td>{ RHEL: ["8", "9"], ESXI: ["8"] }</td>
+      <td>{ RHEL: ["10", "8", "9"], ESXI: ["8"] }</td>
       <td>Hold the map data of supported os name and version</td>
     </tr>
   </tbody>
