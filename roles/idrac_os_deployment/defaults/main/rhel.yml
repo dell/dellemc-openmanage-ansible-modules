@@ -5,7 +5,7 @@ rhel_rootpw: ""
 rhel_iscrypted: false
 rhel_reboot: true
 rhel_install_source: cdrom # nfs --server=nfs://10.1.2.3 --dir=/ins/tree
-rhel_bootloader: [] # RHEL 10, 8 and 9 have different defaults
+rhel_bootloader: [] # RHEL 8, 9 and 10 have different defaults
 rhel_zerombr: true
 rhel_clearpart: ["--all", "--initlabel"]
 rhel_autopart: []

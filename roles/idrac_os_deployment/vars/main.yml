@@ -3,7 +3,7 @@
 idrac_os_deployment_delegate: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
 # OS Supported values Validation
 idrac_os_deployment_supported_os:
-  RHEL: ["10", "8", "9"]
+  RHEL: ["8", "9", "10"]
   ESXI: ["8"]
 
 # Validation Error messages

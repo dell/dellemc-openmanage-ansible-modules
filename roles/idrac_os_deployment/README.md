@@ -423,7 +423,7 @@ Role Variables
     </tr>
     <tr>
       <td>idrac_os_deployment_supported_os</td>
-      <td>{ RHEL: ["10", "8", "9"], ESXI: ["8"] }</td>
+      <td>{ RHEL: ["8", "9", "10"], ESXI: ["8"] }</td>
       <td>Hold the map data of supported os name and version</td>
     </tr>
   </tbody>
