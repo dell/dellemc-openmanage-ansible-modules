@@ -1,0 +1,17 @@
+---
+- name: Delete custom iDRAC roles by name
+  ansible.builtin.uri:
+    url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1\
+      /AccountService/Roles/{{ item }}"
+    method: DELETE
+    headers:
+      Content-Type: application/json
+    url_username: "{{ idrac_user }}"
+    url_password: "{{ idrac_password }}"
+    force_basic_auth: true
+    validate_certs: false
+    status_code:
+      - 200
+      - 204
+      - 404
+  loop: "{{ custom_role_names }}"
