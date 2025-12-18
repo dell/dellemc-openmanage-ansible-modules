@@ -80,8 +80,8 @@
       ansible.builtin.assert:
         that:
           - missing_rolename.failed
-          - missing_rolename.msg == "custom_role_name is required for iDRAC10
-            when creating a user using custom role for iDRAC10."
+          - missing_rolename.msg == "custom_role_name is required parameter
+              when using custom_privilege on iDRAC 10."
       when: generation | int >= 17
 
   module_defaults:
