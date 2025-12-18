@@ -255,6 +255,20 @@ INVALID_USERNAME_FORMAT = "{username} is not a valid username."
 CUSTOM_ROLE_NAME_REQUIRED_MSG = "custom_role_name is required parameter when using custom_privilege on iDRAC 10."
 
 
+def _get_server_version(idrac: iDRACRedfishAPI) -> int:
+    """
+    Function wrapping idrac.get_server_generation. Helps with mocked testing and linting.
+
+    Args:
+        idrac (iDRACRedfishAPI): iDRACRedfishAPI object.
+
+    Returns:
+        int: The server generation.
+    """
+    t = idrac.get_server_generation
+    return t[0]
+
+
 def compare_payload(json_payload, idrac_attr):
     """
     :param json_payload: json payload created for update operation
@@ -370,7 +384,6 @@ def rolename_exists(idrac, role_name):
     members = response.json_data.get("Members", [])
 
     for role in members:
-        # Role Id can be either directly present or derived from @odata.id
         role_id = role.get("Id")
         if not role_id:
             odata_id = role.get("@odata.id", "")
@@ -657,8 +670,7 @@ def main():
         supports_check_mode=True)
     try:
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:
-            gen_details = idrac.get_server_generation
-            generation = gen_details[0]
+            generation = _get_server_version(idrac)
             validate_input(module, idrac, generation)
             set_attribute_uri(generation)
             user_attr, slot_uri, slot_id, empty_slot_id, empty_slot_uri = get_user_account(module, idrac)
