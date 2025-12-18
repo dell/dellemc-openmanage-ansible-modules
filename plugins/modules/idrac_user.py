@@ -70,7 +70,6 @@ options:
     type: str
     description:
       - custom_role_name is required for iDRAC10 when creating a user using custom role for iDRAC10.
-      - creating user using custom role other than predefined roles does not support idempotency.
   ipmi_lan_privilege:
     type: str
     description: The Intelligent Platform Management Interface LAN privilege level assigned to the user.
