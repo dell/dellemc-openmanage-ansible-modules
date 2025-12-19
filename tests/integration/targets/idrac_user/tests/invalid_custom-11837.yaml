@@ -46,6 +46,16 @@
       ansible.builtin.set_fact:
         set_msg: "we were unable to convert to int"
 
+    - name: Create a new iDRAC user with custom_role_name missing with
+       custom_privilege for iDRAC10 (Negative)
+      dellemc.openmanage.idrac_user:
+        state: "present"
+        user_name: "omam_test_user"
+        custom_privilege: 511
+      register: missing_rolename
+      ignore_errors: true
+      when: generation | int >= 17
+
     - name: Verify status of tasks based on generation
       ansible.builtin.assert:
         that:
@@ -65,6 +75,14 @@
                 'custom_privilege value must range from 1 to 511.'
               )
           - set_msg in invalid_cp_sv.msg
+
+    - name: Verify status of tasks based on generation
+      ansible.builtin.assert:
+        that:
+          - missing_rolename.failed
+          - missing_rolename.msg == "custom_role_name is required parameter
+              when using custom_privilege on iDRAC 10."
+      when: generation | int >= 17
 
   module_defaults:
     dellemc.openmanage.idrac_user:

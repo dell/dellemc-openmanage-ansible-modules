@@ -17,6 +17,7 @@ from ansible_collections.dellemc.openmanage.plugins.modules import idrac_user
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import AnsibleFailJSonException
 from unittest.mock import MagicMock
 from ansible.module_utils._text import to_text
 from io import StringIO
@@ -28,6 +29,7 @@ VERSION = "3.60.60.60"
 VERSION13G = "2.70.70.70"
 HARDWARE_13G = 13
 HARDWARE_14G = 14
+GET_SERVER_VERSION_KEY = "_get_server_version"
 SLOT_API = "/redfish/v1/Managers/iDRAC.Embedded.1/Accounts/{0}/"
 CHANGES_FOUND = "Changes found to commit!"
 SLEEP_PATH = 'idrac_user.time.sleep'
@@ -86,16 +88,26 @@ class TestIDRACUser(FakeAnsibleModule):
                                    "sol_enable": True, "protocol_enable": True,
                                    "authentication_protocol": "SHA", "privacy_protocol": "AES"})
         f_module = self.get_module_mock(params=idrac_default_args)
-        resp = self.module.get_payload(f_module, 1, HARDWARE_14G, action="update")
+        idrac = idrac_connection_user_mock
+
+        # Gen < 17
+        resp = self.module.get_payload(f_module, idrac, 1, HARDWARE_14G, action="update")
         assert resp["Users.1.UserName"] == idrac_default_args["new_user_name"]
-        resp = self.module.get_payload(f_module, 1, 17, action="update")
+
+        # Gen >= 17
+        resp = self.module.get_payload(f_module, idrac, 1, 17, action="update")
         assert resp["Users.1.UserName"] == idrac_default_args["new_user_name"]
+
+        # privilege None is allowed
         idrac_default_args['privilege'] = None
-        resp = self.module.get_payload(f_module, 1, 17, action="update")
+        resp = self.module.get_payload(f_module, idrac, 1, 17, action="update")
         assert resp["Users.1.UserName"] == idrac_default_args["new_user_name"]
+
+        # privilege "None" is NOT allowed
         idrac_default_args['privilege'] = "None"
-        with pytest.raises(Exception) as err:
-            self.module.get_payload(f_module, 1, 17, action="update")
+
+        with pytest.raises(AnsibleFailJSonException) as err:
+            self.module.get_payload(f_module, idrac, 1, 17, action="update")
         assert err.value.args[0] == \
             "None is not an applicable value for privilege in iDRAC 17G and later."
 
@@ -107,7 +119,8 @@ class TestIDRACUser(FakeAnsibleModule):
                                    "sol_enable": True, "protocol_enable": True,
                                    "authentication_protocol": "SHA", "privacy_protocol": "AES"})
         f_module = self.get_module_mock(params=idrac_default_args)
-        resp = self.module.get_payload(f_module, 1, 16)
+        idrac = idrac_connection_user_mock
+        resp = self.module.get_payload(f_module, idrac, 1, 16)
         assert resp["Users.1.Privilege"] == idrac_default_args["custom_privilege"]
 
     def test_convert_payload_xml(self, idrac_connection_user_mock, idrac_default_args, mocker):
@@ -410,6 +423,7 @@ class TestIDRACUser(FakeAnsibleModule):
 
     def test_main_invalid_authentication(self, idrac_connection_user_mock, idrac_default_args, mocker):
         idrac_default_args.update(CREATE_USER_DICT)
+        mocker.patch(MODULE_PATH + "idrac_user." + GET_SERVER_VERSION_KEY, return_value=16)
         mocker.patch(MODULE_PATH + "idrac_user.validate_choices_for_protocol",
                      return_value=(["AES"], ["SHA"]))
         result = self._run_module(idrac_default_args)
@@ -419,6 +433,7 @@ is not supported. The supported authentication protocols are ['SHA']."
 
     def test_main_invalid_privacy(self, idrac_connection_user_mock, idrac_default_args, mocker):
         idrac_default_args.update(CREATE_USER_DICT)
+        mocker.patch(MODULE_PATH + "idrac_user." + GET_SERVER_VERSION_KEY, return_value=16)
         mocker.patch(MODULE_PATH + "idrac_user.validate_choices_for_protocol",
                      return_value=(["AES-256"], ["MD5"]))
         result = self._run_module(idrac_default_args)
@@ -552,6 +567,49 @@ supported. The supported privacy protocols are ['AES-256']."
         payload = {}
         response = self.module.handle_update(module, idrac, generation, payload, "Users.1#UserName", "test_user")
         assert response == "response1"
+
+    def test_rolename_exists(self, idrac_connection_user_mock, mocker):
+        idrac_connection_user_mock.invoke_request.return_value.json_data = {
+            "Members": [
+                {"Id": "Administrator"},
+                {"@odata.id": "/redfish/v1/AccountService/Roles/CustomRole1"}
+            ]
+        }
+
+        assert idrac_user.rolename_exists(
+            idrac_connection_user_mock, "CustomRole1"
+        ) is True
+
+    def test_rolename_exists_not_found(self, idrac_connection_user_mock, mocker):
+        idrac_connection_user_mock.invoke_request.return_value.json_data = {
+            "Members": [
+                {"Id": "Administrator"}
+            ]
+        }
+
+        assert idrac_user.rolename_exists(
+            idrac_connection_user_mock, "MissingRole"
+        ) is False
+
+    def test_create_custom_role_success(self):
+        module = MagicMock()
+        idrac = MagicMock()
+        response = MagicMock()
+        response.status_code = 201
+        idrac.invoke_request.return_value = response
+
+        role_name = "CustomRole1"
+        custom_priv = 17
+
+        result = idrac_user.create_custom_role(
+            module,
+            idrac,
+            role_name,
+            custom_priv
+        )
+
+        assert result == role_name
+        idrac.invoke_request.assert_called_once()
 
     @pytest.mark.parametrize("username", [
         "testuserlengthmorethan16",
