@@ -33,7 +33,8 @@
         user_name: "omam_test_user"
         user_password: "#DKMS_1234%"
         custom_privilege: 511
-        custom_role_name: "{{ 'CustomRole1' if generation | int >= 17 else omit }}"
+        custom_role_name: "{{ 'CustomRole1'
+         if generation | int >= 17 else omit }}"
         ipmi_lan_privilege: No Access
         ipmi_serial_privilege: Operator
         enable: true
@@ -61,7 +62,8 @@
         new_user_name: "omam_modified"
         user_password: "#DKMS_1234%"
         custom_privilege: 2
-        custom_role_name: "{{ 'CustomRole1' if generation | int >= 17 else omit }}"
+        custom_role_name: "{{ 'CustomRole1'
+         if generation | int >= 17 else omit }}"
         ipmi_lan_privilege: No Access
         ipmi_serial_privilege: Operator
         enable: true
@@ -102,7 +104,8 @@
       dellemc.openmanage.idrac_user: &modified_cp
         user_name: "omam_modified"
         custom_privilege: 2
-        custom_role_name: "{{ 'CustomRole1' if generation | int >= 17 else omit }}"
+        custom_role_name: "{{ 'CustomRole1'
+         if generation | int >= 17 else omit }}"
         ipmi_lan_privilege: No Access
         ipmi_serial_privilege: Operator
         enable: true
@@ -152,7 +155,8 @@
         user_password: "#DKMS_1234%"
         privilege: 'Operator'
         custom_privilege: 55
-        custom_role_name: "{{ 'CustomRole2' if generation | int >= 17 else omit }}"
+        custom_role_name: "{{ 'CustomRole2'
+         if generation | int >= 17 else omit }}"
         ipmi_lan_privilege: No Access
         ipmi_serial_privilege: Operator
         enable: true
@@ -169,7 +173,8 @@
         new_user_name: "omam_test_m"
         user_password: "#DKMS_1234%"
         privilege: "ReadOnly"
-        custom_role_name: "{{ 'CustomRole2' if generation | int >= 17 else omit }}"
+        custom_role_name: "{{ 'CustomRole2'
+         if generation | int >= 17 else omit }}"
         custom_privilege: 120
         ipmi_lan_privilege: No Access
         ipmi_serial_privilege: Operator
@@ -213,7 +218,8 @@
         user_name: "omam_test_m"
         privilege: "ReadOnly"
         custom_privilege: 120
-        custom_role_name: "{{ 'CustomRole2' if generation | int >= 17 else omit }}"
+        custom_role_name: "{{ 'CustomRole2'
+         if generation | int >= 17 else omit }}"
         ipmi_lan_privilege: No Access
         ipmi_serial_privilege: Operator
         enable: true
@@ -244,7 +250,8 @@
       ansible.builtin.assert:
         that:
           - not cm_cp_no_changes.changed
-          - cm_cp_no_changes.msg == "Requested changes are already present in the user slot."
+          - cm_cp_no_changes.msg == "Requested changes are already present
+              in the user slot."
           - not idempotence_cp.changed
           - idempotence_cp.msg == "Requested changes are already present in
              the user slot."

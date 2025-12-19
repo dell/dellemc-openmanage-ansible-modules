@@ -35,7 +35,8 @@
         user_name: "omam_test_user"
         user_password: "#DKMS_1234%"
         custom_privilege: 511
-        custom_role_name: "{{ 'CustomRole1' if generation | int >= 17 else omit }}"
+        custom_role_name: "{{ 'CustomRole1'
+         if generation | int >= 17 else omit }}"
         ipmi_lan_privilege: No Access
         ipmi_serial_privilege: Operator
         enable: true
@@ -69,7 +70,8 @@
         state: "present"
         user_name: "omam_test_user"
         custom_privilege: 511
-        custom_role_name: "{{ 'CustomRole1' if generation | int >= 17 else omit }}"
+        custom_role_name: "{{ 'CustomRole1'
+         if generation | int >= 17 else omit }}"
         ipmi_lan_privilege: No Access
         ipmi_serial_privilege: Operator
         enable: true
@@ -86,7 +88,8 @@
         user_name: "omam_none"
         user_password: "#DKMS_1234%"
         custom_privilege: 0
-        custom_role_name: "{{ 'CustomRole1' if generation | int >= 17 else omit }}"
+        custom_role_name: "{{ 'CustomRole1'
+         if generation | int >= 17 else omit }}"
         ipmi_lan_privilege: No Access
         ipmi_serial_privilege: Operator
         enable: true
@@ -117,7 +120,8 @@
         state: "present"
         user_name: "omam_none"
         custom_privilege: 0
-        custom_role_name: "{{ 'CustomRole1' if generation | int >= 17 else omit }}"
+        custom_role_name: "{{ 'CustomRole1'
+         if generation | int >= 17 else omit }}"
         ipmi_lan_privilege: No Access
         ipmi_serial_privilege: Operator
         enable: true
@@ -135,7 +139,8 @@
         user_name: "omam_readonly"
         user_password: "#DKMS_1234%"
         custom_privilege: 1
-        custom_role_name: "{{ 'CustomRole1' if generation | int >= 17 else omit }}"
+        custom_role_name: "{{ 'CustomRole1'
+         if generation | int >= 17 else omit }}"
         ipmi_lan_privilege: No Access
         ipmi_serial_privilege: Operator
         enable: true
@@ -180,7 +185,8 @@
         user_name: "omam_operator"
         user_password: "#DKMS_1234%"
         custom_privilege: 2
-        custom_role_name: "{{ 'CustomRole1' if generation | int >= 17 else omit }}"
+        custom_role_name: "{{ 'CustomRole1'
+         if generation | int >= 17 else omit }}"
         ipmi_lan_privilege: No Access
         ipmi_serial_privilege: Operator
         enable: true
@@ -216,7 +222,8 @@
         state: "present"
         user_name: "omam_operator"
         custom_privilege: 2
-        custom_role_name: "{{ 'CustomRole1' if generation | int >= 17 else omit }}"
+        custom_role_name: "{{ 'CustomRole1'
+         if generation | int >= 17 else omit }}"
         ipmi_lan_privilege: No Access
         ipmi_serial_privilege: Operator
         enable: true
@@ -234,7 +241,8 @@
         user_password: "#DKMS_1234%"
         privilege: "Administrator"
         custom_privilege: 322
-        custom_role_name: "{{ 'CustomRole2' if generation | int >= 17 else omit }}"
+        custom_role_name: "{{ 'CustomRole2' if
+          generation | int >= 17 else omit }}"
         ipmi_lan_privilege: No Access
         ipmi_serial_privilege: Operator
         enable: true
