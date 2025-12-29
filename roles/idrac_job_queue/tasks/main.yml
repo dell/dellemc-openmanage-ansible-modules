@@ -26,8 +26,7 @@
         - clear_job_queue is false
 
     - name: Checking iDRAC version
-      ansible.builtin.include_tasks:
-        file: ../_get_server_generation.yml
+      ansible.builtin.include_tasks: get_server_generation.yml
 
     - name: Clear Job queue operation
       when: clear_job_queue is true
