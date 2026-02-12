@@ -1,4 +1,23 @@
 ---
+- name: Fetch chassis sensors
+  ansible.builtin.uri:
+    url: "{{ chassis_sensors_uri }}"
+    user: "{{ idrac_user }}"
+    password: "{{ idrac_password }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    return_content: true
+    status_code: 200
+  register: chassis_sensors_resp
+
+- name: Extract sensors
+  ansible.builtin.set_fact:
+    chassis_sensors: "{{ (chassis_sensors_resp.json.Members
+      | ansible.builtin.rekey_on_member(\"@odata.id\")).keys()
+      | map('regex_replace', '^(.*)$', base_uri + '\\1')
+      | list }}"
+
 - name: Fetch system metrics details
   ansible.builtin.uri:
     url: "{{ system_board_pwrconsumption_uri }}"
@@ -10,10 +29,14 @@
     return_content: true
     status_code: 200
   register: system_powerconsumption
+  when: system_board_pwrconsumption_uri in chassis_sensors
 
-- name: Fetch system inlet temperature details
+- name: Fetch system inlet temperature details (primary or fallback)
   ansible.builtin.uri:
-    url: "{{ system_board_inlettemp_uri }}"
+    url: >-
+      {{ system_board_inlettemp_uri
+         if system_board_inlettemp_uri in chassis_sensors
+         else inlettemp_uri }}
     user: "{{ idrac_user }}"
     password: "{{ idrac_password }}"
     method: GET
@@ -34,14 +57,15 @@
     return_content: true
     status_code: 200
   register: system_powerheadroom
+  when: power_headroom_uri in chassis_sensors
 
 - name: Structuring system metrics details
   ansible.builtin.command:
     cmd: >
       python _get_system_metrics_details.py
-      '{{ system_powerconsumption.json | to_json }}'
-      '{{ system_inlettemp.json | to_json }}'
-      '{{ system_powerheadroom.json | to_json }}'
+      '{{ system_powerconsumption.json | default({}) | to_json }}'
+      '{{ system_inlettemp.json | default({}) | to_json }}'
+      '{{ system_powerheadroom.json | default({}) | to_json }}'
     chdir: "{{ playbook_dir }}/targets/idrac_system_info/tests"
   register: system_metrics_updated_dict
 

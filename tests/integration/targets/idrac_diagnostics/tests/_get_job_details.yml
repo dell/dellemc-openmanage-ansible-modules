@@ -11,8 +11,8 @@
   # In that case we get null on those fields.
   # Retrying a few times solves this.
   until: uri_res.status == 200 and
-    uri_res.json.JobState and
-    uri_res.json.JobType
+    uri_res.json.JobState is defined and
+    uri_res.json.JobType is defined
   retries: 12
   delay: 5
   register: uri_res

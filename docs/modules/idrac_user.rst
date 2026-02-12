@@ -62,13 +62,19 @@ Parameters
 
     A user with :literal:`ReadOnly` privilege can only log in to iDRAC.
 
-    A user with :literal:`None`\ , no privileges assigned.
+    A user with :literal:`None`\ , no privileges assigned. It is not applicable for iDRAC10.
 
     Will be ignored, if custom\_privilege parameter is provided.
 
 
   custom_privilege (optional, int, None)
     The privilege level assigned to the user.
+
+    Minimum value is 1 for iDRAC10.
+
+
+  custom_role_name (optional, str, None)
+    custom\_role\_name is required for iDRAC10 when creating a user using custom role for iDRAC10.
 
 
   ipmi_lan_privilege (optional, str, None)

@@ -1,0 +1,107 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2023-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: hostname, username
+         and password.'
+  when: hostname is not defined or username is not defined or password
+         is not defined
+
+- name: Get fabric info by id
+  block:
+    - name: Fetch all fabrics from OME
+      ansible.builtin.include_tasks: _fabric_info_uri_helper.yml
+      vars:
+        query_url: https://{{hostname}}:{{port}}/api/NetworkService/Fabrics
+
+    - name: Create fabric if none exists
+      ansible.builtin.include_tasks: _create_fabric_helper.yml
+      when: uri_fabric_fetched_data | length < 1
+
+    - name: Get fabric data from OME
+      ansible.builtin.include_tasks: _get_data_helper.yml
+      vars:
+        url: https://{{hostname}}:{{port}}/api/NetworkService/Fabrics
+
+    - name: Set fabric ID from fetched data
+      ansible.builtin.set_fact:
+        fabric_id: "{{ json_data[0].Id }}"
+
+    - name: Fetch specific fabric details using fabric ID
+      ansible.builtin.include_tasks: _fabric_info_uri_helper.yml
+      vars:
+        query_url: "https://{{ hostname }}:{{ port }}/api/NetworkService\
+          /Fabrics('{{ fabric_id }}')"
+
+    - name: Set total number of smart fabrics from URI response
+      ansible.builtin.set_fact:
+        uri_total_smart_fabrics: "{{ uri_fabric_fetched_data | length }}"
+
+    - name: Retrieval of all fabric information (Check mode)
+      dellemc.openmanage.ome_smart_fabric_info:
+        fabric_id: "{{ fabric_id }}"
+      register: result
+      check_mode: true
+
+    - name: Set total number of smart fabrics from task result
+      ansible.builtin.set_fact:
+        task_total_smart_fabrics: "{{ result.smart_fabric_info | length }}"
+
+    - name: Assert smart fabric info retrieval consistency (Check mode)
+      ansible.builtin.assert:
+        that:
+          - not result.changed
+          - result.msg == "Successfully retrieved the smart fabric information."
+          - uri_total_smart_fabrics == task_total_smart_fabrics
+
+    - name: Compare smart fabric info from URI and task (Check mode)
+      ansible.utils.fact_diff:
+        before: "{{ uri_fabric_res }}"
+        after: "{{ result.smart_fabric_info[0] }}"
+      register: diff_result
+
+    - name: Assert no differences in smart fabric info (Check mod
+      ansible.builtin.assert:
+        that:
+          - not diff_result.changed
+          - not diff_result.diff_lines
+
+    - name: Retrieve smart fabric info using normal mode
+      ome_smart_fabric_info:
+        fabric_id: "{{fabric_id}}"
+      register: result
+
+    - name: Set total number of smart fabrics from task result (Normal mode)
+      ansible.builtin.set_fact:
+        task_total_smart_fabrics: "{{ result.smart_fabric_info | length }}"
+
+    - name: Assert smart fabric info retrieval consistency (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - not result.changed
+          - result.msg == "Successfully retrieved the smart fabric information."
+          - uri_total_smart_fabrics == task_total_smart_fabrics
+
+    - name: Compare smart fabric info from task and uri
+      ansible.utils.fact_diff:
+        before: "{{ uri_fabric_res }}"
+        after: "{{ result.smart_fabric_info[0] }}"
+      register: diff_result
+
+    - name: Assert no differences in smart fabric info (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - not diff_result.changed
+          - not diff_result.diff_lines
+
+  module_defaults:
+    dellemc.openmanage.ome_smart_fabric_info:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port }}"
+      validate_certs: "{{ validate_certs }}"

@@ -12,36 +12,42 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.system_metrics import IDRACSystemMetricsInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.chassis_sensor_util import IDRACChassisSensors
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.module_utils.idrac_utils.test_idrac_utils import TestUtils
+import pytest
 
 NA = "Not Available"
 
 
+class Resp:
+    def __init__(self, status_code, data):
+        self.status_code = status_code
+        self.json_data = data
+
+
 class TestIDRACSystemMetricsInfo(TestUtils):
 
-    def test_get_system_metrics_info_success(self, idrac_mock):
-        # Mock response for energy consumption
-        energy_resp = {"LifetimeReading": 12345}
-        # Mock response for temperature
-        temp_resp = {
-            "Oem": {
-                "Dell": {
+    @pytest.fixture
+    def sensors(self, idrac_mock, mocker):
+        sensors = IDRACChassisSensors(idrac_mock)
+        return sensors
+
+    def test_get_system_metrics_info_success(self, sensors, mocker, idrac_mock):
+
+        mocker.patch.object(
+            sensors,
+            "get_sensor",
+            side_effect=[
+                Resp(200, {"LifetimeReading": 12345}),
+                Resp(200, {"Oem": {"Dell": {
                     "DurationInCriticalThresholdPercent": 5,
                     "DurationInWarningThresholdPercent": 10
-                }
-            }
-        }
-        # Mock response for power consumption
-        power_resp = {"LowestReading": 200}
+                }}}),
+                Resp(200, {"LowestReading": 200}),
+            ]
+        )
 
-        # Patch invoke_request sequential responses
-        idrac_mock.invoke_request.side_effect = [
-            type("Resp", (), {"status_code": 200, "json_data": energy_resp}),
-            type("Resp", (), {"status_code": 200, "json_data": temp_resp}),
-            type("Resp", (), {"status_code": 200, "json_data": power_resp}),
-        ]
-
-        metrics_info = IDRACSystemMetricsInfo(idrac_mock)
+        metrics_info = IDRACSystemMetricsInfo(idrac_mock, sensors)
         result = metrics_info.get_system_metrics_info()
 
         expected = [{
@@ -55,19 +61,19 @@ class TestIDRACSystemMetricsInfo(TestUtils):
 
         assert result == expected
 
-    def test_get_system_metrics_info_missing_fields(self, idrac_mock):
-        # Missing LifetimeReading and Dell values
-        energy_resp = {}
-        temp_resp = {"Oem": {"Dell": {}}}
-        power_resp = {}
+    def test_get_system_metrics_info_missing_fields(self, sensors, mocker, idrac_mock):
 
-        idrac_mock.invoke_request.side_effect = [
-            type("Resp", (), {"status_code": 200, "json_data": energy_resp}),
-            type("Resp", (), {"status_code": 200, "json_data": temp_resp}),
-            type("Resp", (), {"status_code": 200, "json_data": power_resp}),
-        ]
+        mocker.patch.object(
+            sensors,
+            "get_sensor",
+            side_effect=[
+                Resp(200, {}),
+                Resp(200, {"Oem": {"Dell": {}}}),
+                Resp(200, {}),
+            ]
+        )
 
-        metrics_info = IDRACSystemMetricsInfo(idrac_mock)
+        metrics_info = IDRACSystemMetricsInfo(idrac_mock, sensors)
         result = metrics_info.get_system_metrics_info()
 
         expected = [{
@@ -81,15 +87,20 @@ class TestIDRACSystemMetricsInfo(TestUtils):
 
         assert result == expected
 
-    def test_get_system_metrics_info_non_200_responses(self, idrac_mock):
-        # Force non-200 to check fallbacks
-        idrac_mock.invoke_request.side_effect = [
-            type("Resp", (), {"status_code": 500, "json_data": {}}),
-            type("Resp", (), {"status_code": 404, "json_data": {}}),
-            type("Resp", (), {"status_code": 503, "json_data": {}}),
-        ]
+    def test_get_system_metrics_info_non_200_responses(self, sensors, mocker, idrac_mock):
 
-        metrics_info = IDRACSystemMetricsInfo(idrac_mock)
+        mocker.patch.object(
+            sensors,
+            "get_sensor",
+            side_effect=[
+                Resp(500, {}),
+                Resp(404, {}),
+                Resp(404, {}),
+                Resp(503, {}),
+            ]
+        )
+
+        metrics_info = IDRACSystemMetricsInfo(idrac_mock, sensors)
         result = metrics_info.get_system_metrics_info()
 
         expected = [{
