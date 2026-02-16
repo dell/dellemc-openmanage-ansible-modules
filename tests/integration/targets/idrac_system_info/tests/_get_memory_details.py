@@ -105,4 +105,4 @@ def get_memory_info_api():
     return memory_output
 
 
-print(get_memory_info_api())
+print(json.dumps(get_memory_info_api()))
