@@ -52,9 +52,14 @@ class IDRACPowerSupplyInfo(object):
             get("Dell", {}).get("DellPowerSupplyView", {}).\
             get("RedTypeOfSet")
         if red_type_list:
-            mapped_red_type_list = \
-                [RED_TYPE_MAPPING.get(x) for x in red_type_list]
-            output["RedTypeOfSet"] = ",".join(mapped_red_type_list)
+            mapped_red_type_list = []
+            for x in red_type_list:
+                if x is not None:
+                    mapped_red_type_list.append(RED_TYPE_MAPPING.get(x, NA))
+            if len(mapped_red_type_list) > 0:
+                output["RedTypeOfSet"] = ",".join(mapped_red_type_list)
+            else:
+                output["RedTypeOfSet"] = NA
         else:
             output["RedTypeOfSet"] = NA
 
