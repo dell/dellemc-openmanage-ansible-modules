@@ -54,8 +54,8 @@ class IDRACPowerSupplyInfo(object):
         if red_type_list:
             mapped_red_type_list = []
             for x in red_type_list:
-                if x is not None and x in RED_TYPE_MAPPING:
-                    mapped_red_type_list.append(RED_TYPE_MAPPING[x])
+                if x is not None:
+                    mapped_red_type_list.append(RED_TYPE_MAPPING.get(x, NA))
             if len(mapped_red_type_list) > 0:
                 output["RedTypeOfSet"] = ",".join(mapped_red_type_list)
             else:
