@@ -78,8 +78,10 @@ options:
     required: false
 requirements:
   - "python >= 3.9.6"
+  - "Ansible 2.8"
 author:
   - "Felix Stephen (@felixs88)"
+  - "Marcus Terliesner (@lehbot)"
 notes:
   - Run this plugin on a system that has direct access to Dell OpenManage Enterprise.
 """
