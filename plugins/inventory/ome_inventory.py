@@ -78,20 +78,22 @@ options:
     required: false
 requirements:
   - "python >= 3.9.6"
+  - "Ansible >=2.8"
 author:
   - "Felix Stephen (@felixs88)"
+  - "Marcus Terliesner (@lehbot)"
 notes:
   - Run this plugin on a system that has direct access to Dell OpenManage Enterprise.
 """
 
-from ansible.plugins.inventory import BaseInventoryPlugin
+from ansible.plugins.inventory import BaseInventoryPlugin, Constructable, Cacheable, to_safe_group_name
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_all_data_with_pagination
 
 GROUP_API = "GroupService/Groups"
 
 
-class InventoryModule(BaseInventoryPlugin):
+class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
     NAME = "dellemc.openmanage.ome_inventory"
 
@@ -102,22 +104,30 @@ class InventoryModule(BaseInventoryPlugin):
     def _get_connection_resp(self):
         port = self.get_option("port") if "port" in self.config else 443
         validate_certs = self.get_option("validate_certs") if "validate_certs" in self.config else False
-        module_params = {"hostname": self.get_option("hostname"), "username": self.get_option("username"),
-                         "password": self.get_option("password"), "port": port, "validate_certs": validate_certs}
+        username = self.get_option('username')
+        password = self.get_option('password')
+
+        if self.templar.is_template(username):
+            username = self.templar.template(variable=username, disable_lookups=False)
+        if self.templar.is_template(password):
+            password = self.templar.template(variable=password, disable_lookups=False)
+
+        module_params = {"hostname": self.get_option("hostname"), "username": username,
+                         "password": password, "port": port, "validate_certs": validate_certs}
+
         if "ca_path" in self.config:
             module_params.update({"ca_path": self.get_option("ca_path")})
-        with RestOME(module_params, req_session=False) as ome:
+        with RestOME(module_params, req_session=True) as ome:
             all_group_data = get_all_data_with_pagination(ome, GROUP_API)
         return all_group_data
 
     def _set_host_vars(self, host):
-        self.inventory.set_variable(host, "idrac_ip", host)
-        self.inventory.set_variable(host, "baseuri", host)
-        self.inventory.set_variable(host, "hostname", host)
+        for key, val in dict(host).items():
+            self.inventory.set_variable(host["iDracName"], key, val)  
         if "host_vars" in self.config:
             host_vars = self.get_option("host_vars")
             for key, val in dict(host_vars).items():
-                self.inventory.set_variable(host, key, val)
+                self.inventory.set_variable(host["iDracName"], key, val)
 
     def _set_group_vars(self, group):
         self.inventory.add_group(group)
@@ -128,12 +138,19 @@ class InventoryModule(BaseInventoryPlugin):
                     self.inventory.set_variable(group, key, val)
 
     def _get_device_host(self, mgmt):
+        dev_host = {
+            "Model" : mgmt["Model"],
+            "ServiceTag" : mgmt["DeviceServiceTag"],
+            "OSName" : mgmt["DeviceName"],
+            "iDracName": mgmt["DeviceManagement"][0]['DnsName'],
+            "iDracVersion": mgmt["DeviceManagement"][0]["ManagementProfile"][0]['Version']
+        }
         if len(mgmt["DeviceManagement"]) == 1 and mgmt["DeviceManagement"][0]["NetworkAddress"].startswith("["):
-            dev_host = mgmt["DeviceManagement"][0]["NetworkAddress"][1:-1]
+            dev_host["ip"] = mgmt["DeviceManagement"][0]["NetworkAddress"][1:-1]
         elif len(mgmt["DeviceManagement"]) == 2 and mgmt["DeviceManagement"][0]["NetworkAddress"].startswith("["):
-            dev_host = mgmt["DeviceManagement"][1]["NetworkAddress"]
+            dev_host["ip"] = mgmt["DeviceManagement"][1]["NetworkAddress"]
         else:
-            dev_host = mgmt["DeviceManagement"][0]["NetworkAddress"]
+            dev_host["ip"] = mgmt["DeviceManagement"][0]["NetworkAddress"]
         return dev_host
 
     def _get_all_devices(self, device_uri):
@@ -149,7 +166,7 @@ class InventoryModule(BaseInventoryPlugin):
             "validate_certs": validate_certs}
         if "ca_path" in self.config:
             module_params.update({"ca_path": self.get_option("ca_path")})
-        with RestOME(module_params, req_session=False) as ome:
+        with RestOME(module_params, req_session=True) as ome:
             device_resp = get_all_data_with_pagination(ome, device_host_uri)
             device_data = device_resp.get("report_list", [])
             if device_data is not None:
@@ -165,9 +182,9 @@ class InventoryModule(BaseInventoryPlugin):
                          "password": self.get_option("password"), "port": port, "validate_certs": validate_certs}
         if "ca_path" in self.config:
             module_params.update({"ca_path": self.get_option("ca_path")})
-        with RestOME(module_params, req_session=False) as ome:
+        with RestOME(module_params, req_session=True) as ome:
             for gdata in group_data:
-                group_name = gdata["Name"]
+                group_name = to_safe_group_name(gdata["Name"])
                 subgroup_uri = gdata["SubGroups@odata.navigationLink"].strip("/api/")
                 sub_group = get_all_data_with_pagination(ome, subgroup_uri)
                 gdata = sub_group.get("report_list", [])
@@ -177,7 +194,7 @@ class InventoryModule(BaseInventoryPlugin):
 
     def _add_child_group_data(self, group_name, gdata):
         for child_name in gdata:
-            self.inventory.add_child(group_name, child_name["Name"])
+            self.inventory.add_child(group_name, to_safe_group_name(child_name["Name"]))
 
     def _add_group_data(self, group_data):
         visible_gdata = list(filter(lambda d: d.get("Visible") in [False], group_data))
@@ -185,10 +202,10 @@ class InventoryModule(BaseInventoryPlugin):
             for gp in visible_gdata:
                 group_data.remove(gp)
         for gdata in group_data:
-            self._set_group_vars(gdata["Name"])
+            self._set_group_vars(to_safe_group_name(gdata["Name"])) 
             device_ip = self._get_all_devices(gdata["AllLeafDevices@odata.navigationLink"])
             for hst in device_ip:
-                self.inventory.add_host(host=hst, group=gdata["Name"])
+                self.inventory.add_host(host=hst["iDracName"], group=to_safe_group_name(gdata["Name"])) 
                 self._set_host_vars(hst)
         self._set_child_group(group_data)
 
