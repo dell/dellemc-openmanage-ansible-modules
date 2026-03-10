@@ -373,7 +373,7 @@ class TestCreateFirmwareRepositoryProfile(FakeAnsibleModule):
         mocker.patch(MODULE_UTILS_PATH +
                      SEARCH_PROFILE_NAME, return_value=obj)
         mocker.patch(
-            MODULE_PATH + 'FirmwareRepositoryProfile.trim_api_response', return_value=(obj, ""))
+            MODULE_PATH + 'FirmwareRepositoryProfile.trim_api_response', return_value=obj)
         mocker.patch(
             MODULE_PATH + 'FirmwareRepositoryProfile.test_connection', return_value=True)
         mocker.patch(

@@ -235,10 +235,11 @@ class FirmwareRepositoryProfile:
         trimmed_resp = {}
         if api_response["description"] is not None:
             trimmed_resp["description"] = api_response["description"]
+        file_name = api_response["fileName"].replace('\\', '/').rsplit('/', 1)[-1] if api_response.get("fileName") else api_response.get("fileName", "")
         if api_response["protocolType"] == "CIFS" and not (api_response["sharePath"].endswith(XML_EXT) or api_response["sharePath"].endswith(GZ_EXT)):
-            api_response["sharePath"] = api_response["sharePath"] + '\\' + api_response["fileName"]
-        if not (api_response["sharePath"].endswith(XML_EXT) or api_response["sharePath"].endswith(GZ_EXT)):
-            api_response["sharePath"] = api_response["sharePath"] + '/' + api_response["fileName"]
+            api_response["sharePath"] = api_response["sharePath"].rstrip('\\') + '\\' + file_name
+        elif not (api_response["sharePath"].endswith(XML_EXT) or api_response["sharePath"].endswith(GZ_EXT)):
+            api_response["sharePath"] = api_response["sharePath"].rstrip('/') + '/' + file_name
         trimmed_resp["profileName"] = api_response["profileName"]
         trimmed_resp["sharePath"] = api_response["sharePath"]
         return trimmed_resp
@@ -296,37 +297,67 @@ class CreateFirmwareRepositoryProfile(FirmwareRepositoryProfile):
         else:
             self.module.exit_json(msg=FAILED_CREATION_MSG, profile_info=profile_resp.json_data, failed=True)
 
+    def _prepare_modified_payload(self, payload):
+        modified_payload = payload.copy()
+        del modified_payload["protocolType"]
+        del modified_payload["profileType"]
+        del modified_payload["shareCredential"]
+        return modified_payload
+
+    def _normalize_cifs_paths(self, payload, profile_data):
+        if profile_data.get("protocolType") == "CIFS":
+            if payload.get("sharePath"):
+                payload["sharePath"] = payload["sharePath"].replace('/', '\\')
+            if profile_data.get("sharePath"):
+                profile_data["sharePath"] = profile_data["sharePath"].replace('/', '\\')
+
+    def _check_profile_changes(self, modified_payload, profile_exists):
+        if not profile_exists:
+            return False
+
+        trimmed_resp = FirmwareRepositoryProfile.trim_api_response(self, profile_exists)
+        self._normalize_cifs_paths(modified_payload, profile_exists)
+        self._normalize_cifs_paths(modified_payload, trimmed_resp)
+
+        diff = recursive_diff(modified_payload, trimmed_resp)
+        return diff and (diff[0] != diff[1])
+
+    def _handle_new_profile_creation(self, payload):
+        if self.module.check_mode and self.module._diff:
+            FirmwareRepositoryProfile.test_connection(self, None, None)
+            self.diff_mode_check(payload)
+            self.module.exit_json(msg=CHANGES_FOUND_MSG, diff=self.diff_dict, changed=True)
+        elif self.module.check_mode:
+            self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
+        else:
+            self.create_firmware_repository_profile()
+
+    def _handle_existing_profile_no_changes(self):
+        if self.module._diff:
+            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False, diff={"before": {}, "after": {}})
+        else:
+            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
+
+    def _handle_existing_profile_with_changes(self):
+        omevv_obj = ModifyFirmwareRepositoryProfile(self.module, self.obj)
+        omevv_obj.execute()
+
     def execute(self):
-        modified_payload = {}
         payload = self.get_payload_details()
         result = self.omevv_profile_obj.get_firmware_repository_profile()
         profile = self.module.params.get('name')
         profile_exists = self.omevv_profile_obj.search_profile_name(result, profile)
-        modified_payload.update(payload)
-        del modified_payload["protocolType"]
-        del modified_payload["profileType"]
-        del modified_payload["shareCredential"]
-        if profile_exists:
-            trimmed_resp = FirmwareRepositoryProfile.trim_api_response(self, profile_exists)
-            diff = recursive_diff(modified_payload, trimmed_resp)
-            new_profile = diff and (diff[0] != diff[1])
-        if not profile_exists and self.module.check_mode and self.module._diff:
-            FirmwareRepositoryProfile.test_connection(self, None, None)
-            self.diff_mode_check(payload)
-            self.module.exit_json(msg=CHANGES_FOUND_MSG, diff=self.diff_dict, changed=True)
-        if not profile_exists and self.module.check_mode:
-            self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
-        if not profile_exists and not self.module.check_mode:
-            self.create_firmware_repository_profile()
-        if profile_exists and self.module._diff and not new_profile:
-            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False, diff={"before": {}, "after": {}})
-        if profile_exists and self.module.check_mode and not new_profile:
-            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
-        if profile_exists and new_profile:
-            omevv_obj = ModifyFirmwareRepositoryProfile(self.module, self.obj)
-            omevv_obj.execute()
+
+        if not profile_exists:
+            self._handle_new_profile_creation(payload)
         else:
-            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
+            modified_payload = self._prepare_modified_payload(payload)
+            new_profile = self._check_profile_changes(modified_payload, profile_exists)
+
+            if new_profile:
+                self._handle_existing_profile_with_changes()
+            else:
+                self._handle_existing_profile_no_changes()
 
 
 class ModifyFirmwareRepositoryProfile(FirmwareRepositoryProfile):
@@ -336,21 +367,42 @@ class ModifyFirmwareRepositoryProfile(FirmwareRepositoryProfile):
         self.obj = rest_obj
         super().__init__(module, rest_obj)
 
-    def diff_check(self, api_response, module_response):
-        diff = {}
+    def _extract_file_name(self, api_response):
+        return api_response["fileName"].replace('\\', '/').rsplit('/', 1)[-1] if api_response.get("fileName") else api_response.get("fileName", "")
+
+    def _append_file_name_to_path(self, api_response, file_name):
         if api_response["protocolType"] == "CIFS" and not (api_response["sharePath"].endswith(XML_EXT) or api_response["sharePath"].endswith(GZ_EXT)):
-            api_response["sharePath"] = api_response["sharePath"] + '\\' + api_response["fileName"]
-        if not (api_response["sharePath"].endswith(XML_EXT) or api_response["sharePath"].endswith(GZ_EXT)):
-            api_response["sharePath"] = api_response["sharePath"] + '/' + api_response["fileName"]
-        if module_response["sharePath"] is None:
-            module_response["sharePath"] = api_response["sharePath"]
-        if api_response["protocolType"] in ("HTTP", "HTTPS"):
+            api_response["sharePath"] = api_response["sharePath"].rstrip('\\') + '\\' + file_name
+        elif not (api_response["sharePath"].endswith(XML_EXT) or api_response["sharePath"].endswith(GZ_EXT)):
+            api_response["sharePath"] = api_response["sharePath"].rstrip('/') + '/' + file_name
+
+    def _normalize_share_paths(self, api_response, module_response):
+        if api_response["protocolType"] == "CIFS":
+            if api_response.get("sharePath"):
+                api_response["sharePath"] = api_response["sharePath"].replace('/', '\\')
+            if module_response.get("sharePath"):
+                module_response["sharePath"] = module_response["sharePath"].replace('/', '\\')
+        elif api_response["protocolType"] in ("HTTP", "HTTPS"):
             api_response["sharePath"] = re.sub(r'(?<!:)//+', '/', api_response["sharePath"])
             module_response["sharePath"] = re.sub(r'(?<!:)//+', '/', module_response["sharePath"])
+
+    def _calculate_field_differences(self, api_response, module_response):
+        diff = {}
         for key in module_response.keys():
             if key not in api_response or api_response[key] != module_response[key]:
                 diff[key] = module_response[key]
         return diff
+
+    def diff_check(self, api_response, module_response):
+        file_name = self._extract_file_name(api_response)
+        self._append_file_name_to_path(api_response, file_name)
+
+        if module_response["sharePath"] is None:
+            module_response["sharePath"] = api_response["sharePath"]
+
+        self._normalize_share_paths(api_response, module_response)
+
+        return self._calculate_field_differences(api_response, module_response)
 
     def trim_api_response(self, api_response, payload=None):
         trimmed_resp = {}
@@ -512,10 +564,32 @@ class ResyncFirmwareRepositoryProfile(FirmwareRepositoryProfile):
     def sort_profiles(self, profiles):
         return sorted(profiles, key=lambda x: x["id"])
 
+    def get_not_avail_profiles(self):
+        omevv_profiles = self.omevv_profile_obj.get_firmware_repository_profile()
+        res = self.ome_obj.invoke_request("GET", UMP_URI)
+        ump_profiles = res.json_data["value"]
+        relevant_catalog_types = {"ESXi Catalog for Enterprise Servers", "vSAN Catalog for Enterprise Servers"}
+        filtered_ump_profiles = [p for p in ump_profiles if p["CatalogType"] in relevant_catalog_types]
+        not_avail = []
+        omevv_profile_names = {p["profileName"] for p in omevv_profiles}
+        for profile in filtered_ump_profiles:
+            if profile["Name"] not in omevv_profile_names:
+                not_avail.append(profile)
+        self.remove_keys(filtered_ump_profiles, not_avail)
+        return not_avail
+
     def execute(self):
         self.check_plugin_availability()
         if self.module.check_mode:
             self.check_mode_support()
+        not_avail = self.get_not_avail_profiles()
+        has_changes = len(not_avail) > 0
+        if not has_changes:
+            if self.module._diff:
+                self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG,
+                                      diff={"before": {"ump_profiles": []}, "after": {"ump_profiles": []}},
+                                      changed=False)
+            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
         presync_result = self.omevv_profile_obj.get_firmware_repository_profile()
         resp = self.omevv_profile_obj.resync_repository_profiles_from_ump()
         if resp.success:
@@ -526,19 +600,20 @@ class ResyncFirmwareRepositoryProfile(FirmwareRepositoryProfile):
             presync_ump_profiles = self.sort_profiles(presync_ump_profiles)
             postsync_ump_profiles = self.sort_profiles(postsync_ump_profiles)
             difference = [item for item in postsync_ump_profiles if item not in presync_ump_profiles]
-            diff = presync_ump_profiles != postsync_ump_profiles
-            self.diff_mode_behaviour(presync_ump_profiles, postsync_ump_profiles, difference, diff)
+            diff = has_changes or presync_ump_profiles != postsync_ump_profiles
+            self.diff_mode_behaviour(presync_ump_profiles, postsync_ump_profiles, difference, diff, not_avail)
         else:
             self.module.exit_json(msg=FAILED_RESYNC_MSG, failed=True)
 
-    def diff_mode_behaviour(self, presync_ump_profiles, postsync_ump_profiles, difference, diff):
+    def diff_mode_behaviour(self, presync_ump_profiles, postsync_ump_profiles, difference, diff, not_avail):
+        diff_profiles = difference if difference else not_avail
         if diff and self.module._diff and self.module.params.get('name') is None:
-            self.diff_dict['after'].update({"ump_profiles": difference})
-            self.module.exit_json(msg=SUCCESS_RESYNC_MSG, diff=self.diff_dict, firmware_repository_profile=difference, changed=True)
+            self.diff_dict['after'].update({"ump_profiles": diff_profiles})
+            self.module.exit_json(msg=SUCCESS_RESYNC_MSG, diff=self.diff_dict, firmware_repository_profile=diff_profiles, changed=True)
         if diff and self.module.params.get('name') is None:
             self.module.exit_json(msg=SUCCESS_RESYNC_MSG, firmware_repository_profile=postsync_ump_profiles, changed=True)
         if diff and self.module._diff:
-            self.diff_dict['after'].update({"ump_profiles": difference})
+            self.diff_dict['after'].update({"ump_profiles": diff_profiles})
         if not diff and self.module.params.get('name') is None and self.module._diff:
             self.diff_dict['before'].update({"ump_profiles": presync_ump_profiles})
             self.diff_dict['after'].update({"ump_profiles": postsync_ump_profiles})
@@ -591,9 +666,9 @@ class DeleteFirmwareRepositoryProfile(FirmwareRepositoryProfile):
         if not profile_exists and self.module.check_mode:
             self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
         if not profile_exists and not self.module.check_mode and self.module._diff:
-            self.module.exit_json(msg=PROFILE_NOT_FOUND_MSG.format(profile_name=profile), diff={"before": {}, "after": {}}, failed=True)
+            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, diff={"before": {}, "after": {}}, changed=False)
         if not profile_exists and not self.module.check_mode:
-            self.module.exit_json(msg=PROFILE_NOT_FOUND_MSG.format(profile_name=profile), failed=True)
+            self.module.exit_json(msg=CHANGES_NOT_FOUND_MSG, changed=False)
         if profile_exists and not self.module.check_mode:
             self.delete_firmware_repository_profile(api_response)
         if profile_exists and self.module.check_mode:
