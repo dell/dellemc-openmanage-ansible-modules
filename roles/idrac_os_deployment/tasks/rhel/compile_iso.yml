@@ -57,9 +57,9 @@
     line: '\1 inst.ks={{ idrac_os_deployment_rhel_ks_location }}'
   with_items:
     - {path: "{{idrac_os_deployment_iso_extract_dir}}/isolinux/isolinux.cfg",
-        exists: "{{idrac_os_deployment_isolinux_cfg_stat.stat.exists}}"}
+       exists: "{{idrac_os_deployment_isolinux_cfg_stat.stat.exists}}"}
     - {path: "{{idrac_os_deployment_iso_extract_dir}}/EFI/BOOT/grub.cfg",
-        exists: "{{idrac_os_deployment_grub_cfg_stat.stat.exists}}"}
+       exists: "{{idrac_os_deployment_grub_cfg_stat.stat.exists}}"}
   when: item.exists
 
 - name: Menu default remove all occurrences
