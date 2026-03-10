@@ -225,6 +225,10 @@
           - not invalid_uuid.changed
           - invalid_uuid.msg == "vCenter with UUID invalid is not registered."
 
+    - name: Wait after invalid tests to avoid client blockage
+      ansible.builtin.pause:
+        seconds: 300
+
   module_defaults:
     dellemc.openmanage.omevv_firmware:
       validate_certs: "{{ validate_certs }}"

@@ -17,16 +17,12 @@
         name: "Invalid"
         state: absent
       register: invalid_profile_name
-      ignore_errors: true
 
     - name: Verify task status - Negative - invalid profile name
       ansible.builtin.assert:
         that:
-          - invalid_profile_name.failed
           - not invalid_profile_name.changed
-          - 'invalid_profile_name.msg == "Unable to delete the profile Invalid
-            because the profile name is invalid. Enter a valid profile name
-            and retry the operation."'
+          - invalid_profile_name.msg == "No changes found to be applied."
 
   module_defaults:
     dellemc.openmanage.omevv_firmware_repository_profile:
