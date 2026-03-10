@@ -3,7 +3,9 @@
   delegate_to: "{{ idrac_os_deployment_delegate }}"
   ansible.builtin.copy:
     src: "{{ idrac_os_deployment_kickstart_file }}"
-    dest: "{{ idrac_os_deployment_iso_extract_dir }}/{{ idrac_os_deployment_rhel_ks_filename }}"
+    dest: >-
+      {{ idrac_os_deployment_iso_extract_dir }}/
+      {{ idrac_os_deployment_rhel_ks_filename }}
     mode: "{{ idrac_os_deployment_copy_mode }}"
 
 - name: List extracted ISO directory structure
@@ -17,7 +19,9 @@
 
 - name: Debug - Show ISO structure
   ansible.builtin.debug:
-    msg: "Found files: {{ idrac_os_deployment_iso_structure.files | map(attribute='path') | list }}"
+    msg: >-
+      Found files: {{ idrac_os_deployment_iso_structure.files
+      | map(attribute='path') | list }}
 
 - name: Check if isolinux.cfg exists
   delegate_to: "{{ idrac_os_deployment_delegate }}"
@@ -34,20 +38,28 @@
 - name: Debug - Boot configuration file status
   ansible.builtin.debug:
     msg:
-      - "isolinux.cfg exists: {{ idrac_os_deployment_isolinux_cfg_stat.stat.exists }}"
-      - "grub.cfg exists: {{ idrac_os_deployment_grub_cfg_stat.stat.exists }}"
+      - >-
+        isolinux.cfg exists: {{
+        idrac_os_deployment_isolinux_cfg_stat.stat.exists }}
+      - >-
+        grub.cfg exists: {{
+        idrac_os_deployment_grub_cfg_stat.stat.exists }}
 
 - name: Append ks path to the linux boot menu
   delegate_to: "{{ idrac_os_deployment_delegate }}"
   ansible.builtin.lineinfile:
     path: "{{ item.path }}"
-    regexp: "^(.*inst.stage2=hd:LABEL.*?)( inst.ks={{ idrac_os_deployment_rhel_ks_location }})?$"
+    regexp: >-
+      "^(.*inst.stage2=hd:LABEL.*?)( inst.ks={{
+      idrac_os_deployment_rhel_ks_location }})?$"
     backrefs: true
     firstmatch: true
     line: '\1 inst.ks={{ idrac_os_deployment_rhel_ks_location }}'
   with_items:
-    - { path: "{{ idrac_os_deployment_iso_extract_dir }}/isolinux/isolinux.cfg", exists: "{{ idrac_os_deployment_isolinux_cfg_stat.stat.exists }}" }
-    - { path: "{{ idrac_os_deployment_iso_extract_dir }}/EFI/BOOT/grub.cfg", exists: "{{ idrac_os_deployment_grub_cfg_stat.stat.exists }}" }
+    - { path: "{{ idrac_os_deployment_iso_extract_dir }}/isolinux/isolinux.cfg",
+        exists: "{{ idrac_os_deployment_isolinux_cfg_stat.stat.exists }}" }
+    - { path: "{{ idrac_os_deployment_iso_extract_dir }}/EFI/BOOT/grub.cfg",
+        exists: "{{ idrac_os_deployment_grub_cfg_stat.stat.exists }}" }
   when: item.exists
 
 - name: Menu default remove all occurrences
@@ -78,31 +90,44 @@
 
 - name: Get iso LABEL
   delegate_to: "{{ idrac_os_deployment_delegate }}"
-  ansible.builtin.command: "blkid -s LABEL -o value {{ idrac_os_deployment_iso_file }}"
+  ansible.builtin.command: >-
+    "blkid -s LABEL -o value {{
+    idrac_os_deployment_iso_file }}"
   register: idrac_os_deployment_blkid_output
   changed_when: idrac_os_deployment_blkid_output.rc != 0
 
 - name: Set iso LABEL
   ansible.builtin.set_fact:
-    idrac_os_deployment_iso_label: "{{ idrac_os_deployment_blkid_output.stdout | trim }}"
+    idrac_os_deployment_iso_label: >-
+      "{{ idrac_os_deployment_blkid_output.stdout | trim }}"
 
 - name: Set mkisofs command based on boot structure
   ansible.builtin.set_fact:
     idrac_os_deployment_mkiso_cmd_to_use: >-
       {% if idrac_os_deployment_isolinux_cfg_stat.stat.exists %}
-      mkisofs -o {{ idrac_os_deployment_custom_iso_file }} -b isolinux/isolinux.bin -J -R -l -c isolinux/boot.cat
-      -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img
-      -no-emul-boot -graft-points -joliet-long -V {{ idrac_os_deployment_iso_label }} .
+      mkisofs -o {{ idrac_os_deployment_custom_iso_file }}
+      -b isolinux/isolinux.bin -J -R -l
+      -c isolinux/boot.cat
+      -no-emul-boot -boot-load-size 4
+      -boot-info-table -eltorito-alt-boot
+      -e images/efiboot.img
+      -no-emul-boot -graft-points
+      -joliet-long -V {{ idrac_os_deployment_iso_label }} .
       {% else %}
-      mkisofs -o {{ idrac_os_deployment_custom_iso_file }} -J -R -l -e images/efiboot.img
-      -no-emul-boot -graft-points -joliet-long -V {{ idrac_os_deployment_iso_label }} .
+      mkisofs -o {{ idrac_os_deployment_custom_iso_file }}
+      -J -R -l -e images/efiboot.img
+      -no-emul-boot -graft-points
+      -joliet-long -V {{ idrac_os_deployment_iso_label }} .
       {% endif %}
 
 - name: Compile custom ISO (with isolinux)
   delegate_to: "{{ idrac_os_deployment_delegate }}"
   ansible.builtin.command:
     chdir: "{{ idrac_os_deployment_iso_extract_dir }}"
-    cmd: "{{ idrac_os_deployment_rhel_mkiso_cmd | format(idrac_os_deployment_custom_iso_file, idrac_os_deployment_iso_label) }}"
+    cmd: >-
+      "{{ idrac_os_deployment_rhel_mkiso_cmd | format(
+      idrac_os_deployment_custom_iso_file,
+      idrac_os_deployment_iso_label) }}"
   register: idrac_os_deployment_mkisofs_output
   changed_when: idrac_os_deployment_mkisofs_output.rc == 0
   failed_when: idrac_os_deployment_mkisofs_output.rc != 0
@@ -120,13 +145,17 @@
 
 - name: Post-process ISO image with isohybrid
   delegate_to: "{{ idrac_os_deployment_delegate }}"
-  ansible.builtin.command: "{{ idrac_os_deployment_hybrid_cmd | format(idrac_os_deployment_custom_iso_file) }}"
+  ansible.builtin.command: >-
+    "{{ idrac_os_deployment_hybrid_cmd | format(
+    idrac_os_deployment_custom_iso_file) }}"
   register: idrac_os_deployment_isohybrid_output
   changed_when: idrac_os_deployment_isohybrid_output.rc == 0
   when: idrac_os_deployment_isolinux_cfg_stat.stat.exists
 
 - name: Add correct checksum to iso
   delegate_to: "{{ idrac_os_deployment_delegate }}"
-  ansible.builtin.command: "{{ idrac_os_deployment_checksum_cmd | format(idrac_os_deployment_custom_iso_file) }}"
+  ansible.builtin.command: >-
+    "{{ idrac_os_deployment_checksum_cmd | format(
+    idrac_os_deployment_custom_iso_file) }}"
   register: idrac_os_deployment_checksum_output
   changed_when: idrac_os_deployment_checksum_output.rc == 0
