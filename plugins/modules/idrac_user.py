@@ -250,6 +250,7 @@ INVALID_PRIVACY_PROTOCOL_MSG = "Privacy protocol {protocol} is\
  {supported_privacy_protocol}."
 PRIVILEGE_KEY = "Users.{0}.Privilege"
 USERNAME_KEY = "Users.{0}.UserName"
+ROLE_KEY = "Users.{0}.Role"
 INVALID_USERNAME_FORMAT = "{username} is not a valid username."
 CUSTOM_ROLE_NAME_REQUIRED_MSG = "custom_role_name is required parameter when using custom_privilege on iDRAC 10."
 
@@ -394,6 +395,62 @@ def rolename_exists(idrac, role_name):
     return False
 
 
+def _get_user_privilege(module, generation):
+    """Get user privilege value based on module parameters."""
+    if generation >= 17 and module.params['privilege'] == 'None':
+        module.exit_json(msg=INVALID_PRIVILEGE_MSG_NONE, failed=True)
+
+    if "custom_privilege" in module.params and module.params["custom_privilege"] is not None:
+        return module.params["custom_privilege"]
+    return USER_ROLES.get(module.params["privilege"])
+
+
+def _build_base_payload(module, user_privilege):
+    """Build the base slot payload with common fields."""
+    return {
+        USERNAME_KEY: module.params["user_name"],
+        "Users.{0}.Password": module.params["user_password"],
+        "Users.{0}.Enable": ACCESS.get(module.params["enable"]),
+        PRIVILEGE_KEY: user_privilege,
+        "Users.{0}.IpmiLanPrivilege": module.params["ipmi_lan_privilege"],
+        "Users.{0}.IpmiSerialPrivilege": module.params["ipmi_serial_privilege"],
+        "Users.{0}.SolEnable": ACCESS.get(module.params["sol_enable"]),
+        "Users.{0}.ProtocolEnable": ACCESS.get(module.params["protocol_enable"]),
+        "Users.{0}.AuthenticationProtocol": module.params["authentication_protocol"],
+        "Users.{0}.PrivacyProtocol": module.params["privacy_protocol"],
+    }
+
+
+def _handle_absent_state_payload():
+    """Build payload for absent state (user deletion)."""
+    return {
+        USERNAME_KEY: "",
+        "Users.{0}.Enable": "Disabled",
+        PRIVILEGE_KEY: 0,
+        "Users.{0}.IpmiLanPrivilege": "No Access",
+        "Users.{0}.IpmiSerialPrivilege": "No Access",
+        "Users.{0}.SolEnable": "Disabled",
+        "Users.{0}.ProtocolEnable": "Disabled",
+        "Users.{0}.AuthenticationProtocol": "SHA",
+        "Users.{0}.PrivacyProtocol": "AES"
+    }
+
+
+def _handle_role_assignment(module, idrac, slot_payload, user_privilege):
+    """Handle role assignment for generation >= 17."""
+    if user_privilege is None:
+        return
+
+    if user_privilege in USER_ROLES.values():
+        slot_payload[ROLE_KEY] = get_role(slot_payload[PRIVILEGE_KEY])
+    else:
+        rolename = module.params.get("custom_role_name")
+        if not rolename_exists(idrac, rolename):
+            slot_payload[ROLE_KEY] = create_custom_role(module, idrac, rolename, slot_payload[PRIVILEGE_KEY])
+        else:
+            slot_payload[ROLE_KEY] = rolename
+
+
 def get_payload(module, idrac, slot_id, generation, action=None):
     """
     This function creates the payload with slot id.
@@ -402,40 +459,21 @@ def get_payload(module, idrac, slot_id, generation, action=None):
     :param slot_id: slot id for user slot
     :return: json data with slot id
     """
-    if generation >= 17 and module.params['privilege'] == 'None':
-        module.exit_json(msg=INVALID_PRIVILEGE_MSG_NONE, failed=True)
-    user_privilege = module.params["custom_privilege"] if "custom_privilege" in module.params and \
-        module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"])
+    user_privilege = _get_user_privilege(module, generation)
 
-    slot_payload = {USERNAME_KEY: module.params["user_name"],
-                    "Users.{0}.Password": module.params["user_password"],
-                    "Users.{0}.Enable": ACCESS.get(module.params["enable"]),
-                    PRIVILEGE_KEY: user_privilege,
-                    "Users.{0}.IpmiLanPrivilege": module.params["ipmi_lan_privilege"],
-                    "Users.{0}.IpmiSerialPrivilege": module.params["ipmi_serial_privilege"],
-                    "Users.{0}.SolEnable": ACCESS.get(module.params["sol_enable"]),
-                    "Users.{0}.ProtocolEnable": ACCESS.get(module.params["protocol_enable"]),
-                    "Users.{0}.AuthenticationProtocol": module.params["authentication_protocol"],
-                    "Users.{0}.PrivacyProtocol": module.params["privacy_protocol"], }
-    if module.params["new_user_name"] is not None and action == "update":
-        user_name = USERNAME_KEY.format(slot_id)
-        slot_payload[user_name] = module.params["new_user_name"]
-    elif module.params["state"] == "absent":
-        slot_payload = {USERNAME_KEY: "", "Users.{0}.Enable": "Disabled", PRIVILEGE_KEY: 0,
-                        "Users.{0}.IpmiLanPrivilege": "No Access", "Users.{0}.IpmiSerialPrivilege": "No Access",
-                        "Users.{0}.SolEnable": "Disabled", "Users.{0}.ProtocolEnable": "Disabled",
-                        "Users.{0}.AuthenticationProtocol": "SHA", "Users.{0}.PrivacyProtocol": "AES"}
+    if module.params["state"] == "absent":
+        slot_payload = _handle_absent_state_payload()
+    else:
+        slot_payload = _build_base_payload(module, user_privilege)
+
+        if module.params["new_user_name"] is not None and action == "update":
+            user_name = USERNAME_KEY.format(slot_id)
+            slot_payload[user_name] = module.params["new_user_name"]
+
     if generation >= 17:
-        if user_privilege is not None:
-            if user_privilege in USER_ROLES.values():
-                slot_payload["Users.{0}.Role"] = get_role(slot_payload[PRIVILEGE_KEY])
-            else:
-                rolename = module.params.get("custom_role_name")
-                if not rolename_exists(idrac, rolename):
-                    slot_payload["Users.{0}.Role"] = create_custom_role(module, idrac, rolename, slot_payload[PRIVILEGE_KEY])
-                else:
-                    slot_payload["Users.{0}.Role"] = rolename
+        _handle_role_assignment(module, idrac, slot_payload, user_privilege)
         del slot_payload[PRIVILEGE_KEY]
+
     payload = dict([(k.format(slot_id), v) for k, v in slot_payload.items() if v is not None])
     return payload
 
@@ -617,32 +655,42 @@ def validate_authentication_and_privacy_protocols(module,
                          failed=True)
 
 
+def _get_privilege_min_value(generation):
+    """Get minimum privilege value based on generation."""
+    if isinstance(generation, int) and generation >= 17:
+        return INVALID_PRIVILEGE_MIN_iDRAC10
+    return INVALID_PRIVILEGE_MIN_iDRAC9
+
+
+def _validate_privilege_range(module, user_privilege, min_value):
+    """Validate that user privilege is within allowed range."""
+    if min_value > user_privilege or user_privilege > INVALID_PRIVILEGE_MAX:
+        module.exit_json(msg=INVALID_PRIVILEGE_MSG.format(min_value), failed=True)
+
+
+def _validate_custom_role_requirements(module, generation, custom_privilege, custom_role_name):
+    """Validate custom role requirements for iDRAC 17+."""
+    if generation >= 17 and custom_privilege is not None and not custom_role_name:
+        module.exit_json(msg=CUSTOM_ROLE_NAME_REQUIRED_MSG, failed=True)
+
+
 def validate_input(module, idrac, generation):
-    if module.params["state"] == "present":
-        if isinstance(generation, int) and generation >= 17:
-            INVALID_PRIVILEGE_MIN = INVALID_PRIVILEGE_MIN_iDRAC10
-        else:
-            INVALID_PRIVILEGE_MIN = INVALID_PRIVILEGE_MIN_iDRAC9
-        user_privilege = module.params["custom_privilege"] if "custom_privilege" in module.params and \
-            module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"], INVALID_PRIVILEGE_MIN)
+    if module.params["state"] != "present":
+        return
 
-        if INVALID_PRIVILEGE_MIN > user_privilege or user_privilege > INVALID_PRIVILEGE_MAX:
-            module.exit_json(msg=INVALID_PRIVILEGE_MSG.format(INVALID_PRIVILEGE_MIN),
-                             failed=True)
-        custom_privilege = module.params.get("custom_privilege")
-        custom_role_name = module.params.get("custom_role_name")
-        if generation >= 17:
-            # Custom privilege requires role name
-            if custom_privilege is not None and not custom_role_name:
-                module.exit_json(
-                    msg=CUSTOM_ROLE_NAME_REQUIRED_MSG, failed=True)
+    min_value = _get_privilege_min_value(generation)
+    user_privilege = module.params["custom_privilege"] if "custom_privilege" in module.params and \
+        module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"], min_value)
 
-        authentication_protocol = module.params.get("authentication_protocol")
-        privacy_protocol = module.params.get("privacy_protocol")
-        validate_authentication_and_privacy_protocols(module,
-                                                      idrac,
-                                                      authentication_protocol,
-                                                      privacy_protocol)
+    _validate_privilege_range(module, user_privilege, min_value)
+
+    custom_privilege = module.params.get("custom_privilege")
+    custom_role_name = module.params.get("custom_role_name")
+    _validate_custom_role_requirements(module, generation, custom_privilege, custom_role_name)
+
+    authentication_protocol = module.params.get("authentication_protocol")
+    privacy_protocol = module.params.get("privacy_protocol")
+    validate_authentication_and_privacy_protocols(module, idrac, authentication_protocol, privacy_protocol)
 
 
 def main():
