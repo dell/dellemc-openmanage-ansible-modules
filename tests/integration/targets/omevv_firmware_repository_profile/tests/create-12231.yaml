@@ -34,8 +34,8 @@
       vars:
         protocol: "{{ item.protocol }}"
         path: "{{ item.path }}"
-        share__username: "{{ item.username }}"
-        share__password: "{{ item.password }}"
+        share__username: "{{ item.username | default(omit) }}"
+        share__password: "{{ item.password | default(omit) }}"
       loop: "{{ payload }}"
   always:
     - name: Cleanup

@@ -19,6 +19,7 @@
     share_username: "{{ second_share__username | default(omit) }}"
     share_password: "{{ second_share__password | default(omit) }}"
     share_domain: ""
+    description: "Modified FW repo description"
   check_mode: true
   register: check_firm_repo
 
