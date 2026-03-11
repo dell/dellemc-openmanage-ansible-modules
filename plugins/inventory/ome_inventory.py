@@ -114,7 +114,7 @@ class InventoryModule(BaseInventoryPlugin):
 
     @staticmethod
     def _to_safe_group_name(name):
-        safe = re.sub(r'[^A-Za-z0-9_]', '_', name)
+        safe = re.sub(r'\W', '_', name)
         safe = re.sub(r'^[^A-Za-z_]+', '', safe)
         return safe or '_'
 
