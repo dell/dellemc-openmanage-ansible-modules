@@ -1,29 +1,22 @@
-
-# For modules starting with dellemc, idrac, ome and omem as prefix
+# For modules starting with idrac as prefix
 [idrac]
-iDRAC-16G idrac_ip=100.71.89.73 idrac_user=root password=calvin idrac_password=calvin idrac_port=443 validate_certs=false
+iDRAC idrac_ip=xx.xx.xx.xx idrac_user=user idrac_password=password idrac_port=443 validate_certs=false
 
 [ome]
-OME_105 hostname=10.225.104.20 username=admin password=Password123! port=443 validate_certs=false device_ip=10.225.111.41 device_user=root device_password=Ca1vin123! device_port=443 device_ip_2=100.69.114.141 device_user_2=root device_password_2=calvin device_port_2=443
+OME hostname=xx.xx.xx.xx username=username password=password port=443 validate_certs=false
 
 [omevv]
-OMEVV hostname=10.225.104.20 vcenter_username=administrator@vsphere.local vcenter_password=Password123! port=443 validate_certs=false
-
-[omem]
-omem hostname=100.96.24.29 username=root password=calvin port=443 validate_certs=false device_ip=100.96.24.15 device_user=root device_password=calvin device_ip_2=100.96.24.15 device_user_2=root device_password_2=calvin
+OMEVV hostname=xx.xx.xx.xx username=username password=password vcenter_username=username vcenter_password=password port=443 validate_certs=false
 
 [omevv:vars]
 # Credentials
-vcenter_hostname=pie104026.pie.lab.emc.com
-ome_username=admin
-ome_password=Password123!
-username=admin
-password=Password123!
-omevv_idrac_username=root
-omevv_idrac_password=calvin
+vcenter_hostname=xx.xx.xx.xx
+ome_username=username
+ome_password=password
+omevv_idrac_username=username
+omevv_idrac_password=password
 omevv_firmware_idrac_downgrade_http_path=""
 omevv_firmware_idrac_upgrade_http_path=""
-omevv_firmware_downgrade_catalog="/httpshare/downgrade_catalog/Catalog.xml"
 
 [ome:vars]
 # Credentials
@@ -33,97 +26,54 @@ port=443
 validate_certs=false
 
 [all:vars]
-SKIP_DOC = true
-# Usually no changes are required other than pass
+SKIP_DOC=true
 ansible_host=localhost
 ansible_connection=local
-ansible_become_pass=
-# Share details
-nfs_share_name="100.64.26.122:/nfsshare"
-nfs_share_img_file_path= "100.100.28.47:/C:/Shares/NFSShare/efiboot.img"
-nfs_share_iso_file_path= "100.100.28.47:/C:/Shares/NFSShare/RHEL-9.0.0-20220420.0-x86_64-dvd1.iso"
-nfs_share_ome_firmware_catalog="100.100.28.38:/nfsfileshare/catalog/"
-modify_nfs_share_name="100.64.26.122:/nfsshare/omevv_baseline_profile_catalog1.xml"
-cifs_share_name="\\\\10.247.39.136\\cifsshare"
-cifs_share_dir_path="\\omam/omevv_baseline_profile_catalog.xml"
-cifs_share_domain_name=""
-cifs_share_domain_user=""
-cifs_share_domain_password=""
-cifs_share_user="Administrator"
-cifs_share_password="D@ngerous1!"
-modify_cifs_share_user="Administrator"
-modify_cifs_share_password="Password123!"
-modify_cifs_share_name="\\\\10.247.39.136\\cifsshare\\omam/omevv_baseline_profile_catalog1.xml"
-cifs_share_img_file_path="//100.100.28.47/cifsshare/efiboot.img"
-cifs_share_iso_file_path="//100.100.28.47/cifsshare/RHEL-9.0.0-20220420.0-x86_64-dvd1.iso"
-cifs_share_ome_firmware_catalog="\\100.100.28.47\\cifsshare\catalog"
+ansible_become_pass=password
+# NFS share deatils
+nfs_share_name=nfs_share_name
+modify_nfs_share_name=""
+# CIFS share deatils
+cifs_share_name=cifs_share_name
+cifs_share_user=cifs_share_user
+cifs_share_password=cifs_share_password
+modify_cifs_share_name=""
+modify_cifs_share_user=""
+modify_cifs_share_password=""
 # HTTP share details
-http_share="10.247.39.136"
-http_share_no_auth="/myrepo"
-http_share_dir_path="/httpshare"
-http_share_user="administrator"
-http_share_password="Dell123"
-http_share_iso_file_path="http://100.100.8.80/http/Images1/Team_Folders/Rajshekar/RHEL-9.0.0-20220420.0-x86_64-dvd1.iso"
+http_share=http_share_ip
+http_share_dir_path=http_share_path
+http_share_user=http_share_user
+http_share_password=http_share_password
+# Proxy server details
+http_proxy_server=http_proxy_server
+http_proxy_port=http_proxy_port
+http_proxy_username=http_proxy_username
+http_proxy_password=http_proxy_password
+socks4_proxy_server=socks4_proxy_server
+socks4_proxy_port=socks4_proxy_port
 # HTTPS share details
-https_share_ip="10.247.39.136"
-https_share_ip_no_auth="10.247.39.136"
-https_share_dir_path="/myshare"
-https_share_domain_name="sped"
-https_share_username="administrator"
-https_share_domain_username="sped\devtest"
-https_share_password="Dell123"
-https_certificate_path = "myshare/idrac_certificates/backup/"
-https_share_img_file_path="https://100.100.8.80/https_creden/Images1/Team_Folders/Rajshekar/efiboot.img"
+https_share_ip=https_share_ip
+https_share_username=https_share_username
+https_share_password=https_share_password
 # FTP share details
-ftp_share_ip="100.96.37.71"
-ftp_share_ip_no_auth="100.64.26.122"
-ftp_share_dir_path="/ftpshare/"
-ftp_share_domain_name=""
-ftp_share_username="administrator"
-ftp_share_domain_username=""
-ftp_share_password="Dell123"
-ftp_no_auth_username = "ftp"
-# Firmware details
-idrac_firmware_dup_file="/iDRAC-with-Lifecycle-Controller_Firmware_TNT7C_WN64_7.20.10.05_A00.EXE"
-bios_firmware_dup_file="/BIOS_K3R8K_WN64_1.16.2.EXE"
-ome_firmware_dup_file_url="https://dl.dell.com/FOLDER10032207M/1/iDRAC-with-Lifecycle-Controller_Firmware_Y0CWW_WN64_6.10.80.00_A00.EXE"
-ome_firmware_downgrade_url="https://dl.dell.com/FOLDER09724013M/1/iDRAC-with-Lifecycle-Controller_Firmware_T9J9H_WN64_6.10.30.20_A00.EXE"
-# AD details
-ad_fqdn = "pie.lab.emc.com"
-ad_username = "Administrator@pie.lab.emc.com"
-ad_password = "Password123!"
-ad_ip = "10.230.44.169"
-ad_group = "connection"
-# Proxy Details
-socks4_proxy_enabled=true
-socks4_proxy_server="100.96.37.29"
-socks4_proxy_port=1080
-http_proxy_enabled=true
-http_proxy_server="100.96.37.71"
-http_proxy_port=3128
-http_proxy_username="admin"
-http_proxy_password="Admin.1234"
-# iDRAC license file
-idrac_license_file=license.xml
-idrac_reset_default_username="root"
-idrac_reset_default_password="calvin"
-base_path_directory_to_export_certificate=/root/certs2/
-base_path_directory_for_import_certificate=/root/certs1/
-csc_passphrase_certificate_name=csc_certificate.pfx
-custom_certificate_name=idracserv.pfx
-custom_certificate_name_without_passphrase=custom_cert_without_pass.p12
-pass=Dell_123$
-path_for_secure_boot_certificate = /root/secure_boot_certificate
-#ome_application_certificate
-ca_key_path="./ca_private_key.pem"
-ca_cert_path="./ca_cert.pem"
-ca_srl_path="./ca_cert.srl"
-ca_subject="/C=US/ST=California/L=The Cloud/O=Dell/OU=ISG/CN=ca_trust_usr"
-ca_days_valid=365
-csr_path="./csr_data.pem"
-signed_cert_path="./signed_certificate.cer"
-p7b_path="./certnew20ome.p7b"
-openssl_config_path="./openssl_ext.cnf"
-omevv_baseline_profile_catalog_file="omevv_baseline_profile_catalog.xml"
-ome_firmware_downgrade_url="https://dl.dell.com/FOLDER12199985M/1/iDRAC-with-Lifecycle-Controller_Firmware_C2VDG_WN64_7.00.00.174_A00.EXE"
-ome_firmware_dup_file_url="https://dl.dell.com/FOLDER13740382M/1/iDRAC-with-Lifecycle-Controller_Firmware_VP556_WN64_7.00.00.183_A00.EXE"
+ftp_share_ip=ftp_share_ip
+ftp_share_dir_path=ftp_share_dir_path
+ftp_share_username=ftp_share_username
+ftp_share_password=ftp_share_password
+# Module specific parameter details
+idrac_reset_default_username=default_username
+idrac_reset_default_password=default_password
+idrac_firmware_dup_file=idrac_firmware_dup_file
+bios_firmware_dup_file=bios_firmware_dup_file
+ome_application_certificate_certificate_remote_share_path=remote_share_path
+ome_application_certificate_certificate_chain_filename=certificate_chain_filename
+ome_application_certificate_local_temp_path=local_temp_path
+omevv_baseline_profile_catalog_file=catlog_file_name
+# make sure these directories has write permissions
+path_for_secure_boot_certificate=secure_boot_certitifate_path_1
+# Active Directory vars
+ad_fqdn = ""
+ad_username = "Administrator@domain_name"
+ad_password = ""
+ad_ip = ""

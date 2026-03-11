@@ -13,8 +13,7 @@
     vcenter_uuid: "{{ uuid }}"
     name: "Ansible_FirmRepo_downgrade"
     state: present
-    catalog_path: >-
-      http://{{ http_share }}{{ omevv_firmware_downgrade_catalog }}
+    catalog_path: "http://{{ http_share }}{{ omevv_firmware_donwngrade_catalog }}"
     protocol_type: "HTTP"
     description: "Firmware repository profile created by Module"
   register: check_firm_repo
@@ -52,8 +51,6 @@
     vcenter_password: "{{ vcenter_password }}"
     vcenter_uuid: "{{ uuid }}"
     validate_certs: false
-    clusters:
-      - cluster_name: "{{ cluster_name }}"
   register: drift_info
 
 - name: Extracting upgrade firmware drift

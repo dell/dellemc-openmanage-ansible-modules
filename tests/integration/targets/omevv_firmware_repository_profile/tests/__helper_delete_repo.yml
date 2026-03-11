@@ -42,7 +42,7 @@
                 ],
                 "RepositoryName": "{{ repo_name }}",
                 "BundleList": [],
-                "IsRemoveAllComponents": true,
+                "IsRemoveAllComponents": false,
                 "IsRemoveAllVersions": true
               }
             ]

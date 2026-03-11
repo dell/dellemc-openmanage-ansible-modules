@@ -1000,36 +1000,6 @@ def get_job_id(rest_obj, template_id):
     return job_id
 
 
-def _resolve_job_id(rest_obj, resp, command, job_wait):
-    if not job_wait:
-        return None
-    if command == "create":
-        template_id = resp.json_data
-        sleep_time = 5
-        for _index in range(0, 30, sleep_time):
-            try:
-                job_id = get_job_id(rest_obj, template_id)
-            except HTTPError:
-                job_id = None
-            if job_id:
-                return job_id
-            time.sleep(sleep_time)
-        return None
-    if command == "deploy":
-        return resp.json_data
-    return None
-
-
-def _track_job(rest_obj, module, resp, job_uri):
-    try:
-        job_failed, _unused1, job_dict, _unused2 = job_tracking(
-            rest_obj, job_uri, max_job_wait_sec=module.params["job_wait_timeout"])
-    except (URLError, SSLError, SSLValidationError, ConnectionError):
-        # Handle job tracking timeouts gracefully
-        exit_module(rest_obj, module, resp, True)
-    return job_failed, job_dict
-
-
 def main():
     specs = {
         "command": {"required": False, "default": "create", "aliases": ['state'],
@@ -1067,25 +1037,44 @@ def main():
         with RestOME(module.params, req_session=True) as rest_obj:
             path, payload, rest_method = _get_resource_parameters(module, rest_obj)
             resp = rest_obj.invoke_request(rest_method, path, data=payload)
-            command = module.params["command"]
             job_wait = module.params["job_wait"]
-            job_id = _resolve_job_id(rest_obj, resp, command, job_wait)
-            if job_id:
-                job_uri = JOB_URI.format(job_id=job_id)
-                job_failed, job_dict = _track_job(rest_obj, module, resp, job_uri)
-                if job_failed and job_dict.get('LastRunStatus', {}).get('Name') == "Running":
-                    exit_module(rest_obj, module, resp, True)
-                elif job_failed:
-                    module.exit_json(msg=MSG_DICT.get('fail').format(command=command), failed=True)
+            job_id = None
+            if job_wait:
+                if module.params["command"] == "create":
+                    template_id = resp.json_data
+                    count = 30
+                    sleep_time = 5
+                    while count > 0:
+                        try:
+                            job_id = get_job_id(rest_obj, template_id)
+                            if job_id:
+                                break
+                            time.sleep(sleep_time)
+                            count = count - sleep_time
+                        except HTTPError:
+                            time.sleep(sleep_time)
+                            count = count - sleep_time
+                            continue
+                elif module.params["command"] == "deploy":
+                    job_id = resp.json_data
+                if job_id:
+                    job_uri = JOB_URI.format(job_id=job_id)
+                    job_failed, msg, job_dict, wait_time = job_tracking(rest_obj, job_uri, max_job_wait_sec=module.params["job_wait_timeout"])
+                    if job_failed:
+                        if job_dict.get('LastRunStatus').get('Name') == "Running":
+                            exit_module(rest_obj, module, resp, True)
+                        else:
+                            message = MSG_DICT.get('fail').format(command=module.params["command"])
+                            module.exit_json(msg=message, failed=True)
             if resp.success:
                 exit_module(rest_obj, module, resp)
     except HTTPError as err:
-        module.exit_json(msg=str(err), failed=True)
+        module.exit_json(module, msg=str(err), failed=True)
     except URLError as err:
         password_no_log(module.params.get("attributes"))
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, SSLError, SSLValidationError, ConnectionError, TypeError, ValueError, KeyError, OSError) as err:
-        module.exit_json(msg=str(err), failed=True)
+        module.exit_json(module, msg=str(err), failed=True)
 
 
 if __name__ == '__main__':

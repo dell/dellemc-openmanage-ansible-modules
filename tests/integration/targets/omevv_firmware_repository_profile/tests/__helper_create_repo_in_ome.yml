@@ -16,16 +16,11 @@
       ansible.builtin.set_fact:
         vsan_catalog_key: "vSAN Catalog for Enterprise Servers"
 
-    - name: Find the Index Catalog entry
-      ansible.builtin.set_fact:
-        index_catalog: "{{ catalog_response.json['value']
-          | selectattr('Type', 'equalto', 'INDEXCATALOG') | first }}"
-
     - name: Extract VSAN Catalog ID from nested values
       ansible.builtin.set_fact:
         vsan_catalog_id: >-
           {{
-            index_catalog.Value
+            catalog_response.json.value[1].Value
             | selectattr('Key', 'equalto', vsan_catalog_key)
             | map(attribute='Value')
             | first
@@ -75,7 +70,7 @@
         body_format: json
         body:
           BaseCatalogID: "{{ vsan_catalog_id }}"
-          BaseCatalogName: "Index Catalog-26.02.25"
+          BaseCatalogName: "Index Catalog-25.10.29"
           Name: "testrepo"
           DeviceSelectionType: "device"
           BaselineName: "testrepo"

@@ -117,10 +117,7 @@
         that:
           - invalid_username.failed
           - not invalid_username.changed
-          - 'invalid_username.msg == "User is not authorized for the
-            request. Please check if credentials are proper and account is not
-            in locked state." or invalid_username.msg
-            == "Invalid Credentials."'
+          - 'invalid_username.msg == "Invalid Credentials."'
 
     - name: Negative - invalid password
       dellemc.openmanage.omevv_baseline_profile:
@@ -135,10 +132,7 @@
         that:
           - invalid_password.failed
           - not invalid_password.changed
-          - 'invalid_password.msg == "User is not authorized for the
-            request. Please check if credentials are proper and account is not
-            in locked state." or invalid_password.msg
-            == "Invalid Credentials."'
+          - 'invalid_password.msg == "Invalid Credentials."'
 
     - name: Negative - invalid validate_certs
       dellemc.openmanage.omevv_baseline_profile:
@@ -172,8 +166,7 @@
         that:
           - invalid_ca_path.failed
           - not invalid_ca_path.changed
-          - '"[Errno 2] No such file or directory" in
-            invalid_ca_path.msg'
+          - 'invalid_ca_path.msg == "[Errno 2] No such file or directory"'
 
     - name: Negative - invalid timeout type
       dellemc.openmanage.omevv_baseline_profile:
