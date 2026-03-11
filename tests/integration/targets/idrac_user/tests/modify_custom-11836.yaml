@@ -43,6 +43,10 @@
         authentication_protocol: "{{ auth_protocol }}"
         privacy_protocol: "{{ priv_protocol }}"
 
+    - name: Wait for 10 seconds
+      ansible.builtin.pause:
+        seconds: 10
+
     - name: Retrieve user details using user_name
       dellemc.openmanage.idrac_user_info:
         username: "omam_test_user"
@@ -78,6 +82,10 @@
       dellemc.openmanage.idrac_user:
         <<: *modify_cp
       register: result_cp
+
+    - name: Wait for 10 seconds
+      ansible.builtin.pause:
+        seconds: 10
 
     - name: Retrieve user details using user_name
       dellemc.openmanage.idrac_user_info:
@@ -135,6 +143,10 @@
         privacy_protocol: "{{ priv_protocol }}"
       when: generation | int < 17
 
+    - name: Wait for 10 seconds
+      ansible.builtin.pause:
+        seconds: 10
+
     - name: Retrieve user details using user_name
       dellemc.openmanage.idrac_user_info:
         username: "omam_test"
@@ -191,6 +203,10 @@
       dellemc.openmanage.idrac_user:
         <<: *modify_cpp
       register: result_cp_p
+
+    - name: Wait for 10 seconds
+      ansible.builtin.pause:
+        seconds: 10
 
     - name: Retrieve user details using user_name
       dellemc.openmanage.idrac_user_info:

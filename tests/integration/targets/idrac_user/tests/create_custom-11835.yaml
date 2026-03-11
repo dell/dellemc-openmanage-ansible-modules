@@ -53,6 +53,10 @@
         <<: *create_cp
       register: result_cp
 
+    - name: Wait for 10 seconds
+      ansible.builtin.pause:
+        seconds: 10
+
     - name: Retrieve user details using user_name
       dellemc.openmanage.idrac_user_info:
         username: "omam_test_user"
@@ -70,8 +74,8 @@
         state: "present"
         user_name: "omam_test_user"
         custom_privilege: 511
-        custom_role_name: "{{ 'CustomRole1'
-         if generation | int >= 17 else omit }}"
+        custom_role_name: >-
+          {{ 'CustomRole1' if generation | int >= 17 else omit }}
         ipmi_lan_privilege: No Access
         ipmi_serial_privilege: Operator
         enable: true
@@ -99,6 +103,10 @@
         privacy_protocol: "{{ priv_protocol }}"
       register: result_cp_none
       when: generation | int < 17
+
+    - name: Wait for 10 seconds
+      ansible.builtin.pause:
+        seconds: 10
 
     - name: Retrieve user details using user_name
       dellemc.openmanage.idrac_user_info:
@@ -150,6 +158,10 @@
         privacy_protocol: "{{ priv_protocol }}"
       register: result_cp_readonly
 
+    - name: Wait for 10 seconds
+      ansible.builtin.pause:
+        seconds: 10
+
     - name: Retrieve user details using user_name
       dellemc.openmanage.idrac_user_info:
         username: "omam_readonly"
@@ -168,7 +180,8 @@
         state: "present"
         user_name: "omam_readonly"
         custom_privilege: 1
-        custom_role_name: "{{ 'CustomRole1' if generation | int >= 17 else omit }}"
+        custom_role_name: >-
+          {{ 'CustomRole1' if generation | int >= 17 else omit }}
         ipmi_lan_privilege: No Access
         ipmi_serial_privilege: Operator
         enable: true
@@ -195,6 +208,10 @@
         authentication_protocol: "{{ auth_protocol }}"
         privacy_protocol: "{{ priv_protocol }}"
       register: result_cp_operator
+
+    - name: Wait for 10 seconds
+      ansible.builtin.pause:
+        seconds: 10
 
     - name: Retrieve user details using user_name
       dellemc.openmanage.idrac_user_info:
@@ -252,6 +269,10 @@
         privacy_protocol: "{{ priv_protocol }}"
       register: result_cp_p
 
+    - name: Wait for 10 seconds
+      ansible.builtin.pause:
+        seconds: 10
+
     - name: Retrieve user details using user_name
       dellemc.openmanage.idrac_user_info:
         username: "omam_test"
@@ -279,7 +300,8 @@
         user_name: "omam_test"
         privilege: "Administrator"
         custom_privilege: 322
-        custom_role_name: "{{ 'CustomRole1' if generation | int >= 17 else omit }}"
+        custom_role_name: >-
+          {{ 'CustomRole1' if generation | int >= 17 else omit }}
         ipmi_lan_privilege: No Access
         ipmi_serial_privilege: Operator
         enable: true

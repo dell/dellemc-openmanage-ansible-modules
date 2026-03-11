@@ -14,7 +14,9 @@
       no_log: "{{ set_no_log }}"
 
     - name: Create virtual media mount url
-      when: idrac_os_deployment_vm_protocol is defined and idrac_os_deployment_vm_protocol | length > 0
+      when: >
+        idrac_os_deployment_vm_protocol is defined and
+        idrac_os_deployment_vm_protocol | length > 0
       ansible.builtin.set_fact:
         idrac_os_deployment_vm_url:
           "{{ idrac_os_deployment_vm_proto_map[idrac_os_deployment_vm_protocol]
