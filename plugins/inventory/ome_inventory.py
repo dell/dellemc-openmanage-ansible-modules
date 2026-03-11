@@ -84,6 +84,8 @@ notes:
   - Run this plugin on a system that has direct access to Dell OpenManage Enterprise.
 """
 
+import re
+
 from ansible.plugins.inventory import BaseInventoryPlugin
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_all_data_with_pagination
@@ -110,6 +112,12 @@ class InventoryModule(BaseInventoryPlugin):
             all_group_data = get_all_data_with_pagination(ome, GROUP_API)
         return all_group_data
 
+    @staticmethod
+    def _to_safe_group_name(name):
+        safe = re.sub(r'[^A-Za-z0-9_]', '_', name)
+        safe = re.sub(r'^[^A-Za-z_]+', '', safe)
+        return safe or '_'
+
     def _set_host_vars(self, host):
         self.inventory.set_variable(host, "idrac_ip", host)
         self.inventory.set_variable(host, "baseuri", host)
@@ -120,6 +128,7 @@ class InventoryModule(BaseInventoryPlugin):
                 self.inventory.set_variable(host, key, val)
 
     def _set_group_vars(self, group):
+        group = self._to_safe_group_name(group)
         self.inventory.add_group(group)
         if "group_vars" in self.config:
             group_vars = self.get_option("group_vars")
@@ -176,8 +185,9 @@ class InventoryModule(BaseInventoryPlugin):
                     self._add_child_group_data(group_name, gdata)
 
     def _add_child_group_data(self, group_name, gdata):
+        group_name = self._to_safe_group_name(group_name)
         for child_name in gdata:
-            self.inventory.add_child(group_name, child_name["Name"])
+            self.inventory.add_child(group_name, self._to_safe_group_name(child_name["Name"]))
 
     def _add_group_data(self, group_data):
         visible_gdata = list(filter(lambda d: d.get("Visible") in [False], group_data))
@@ -185,10 +195,11 @@ class InventoryModule(BaseInventoryPlugin):
             for gp in visible_gdata:
                 group_data.remove(gp)
         for gdata in group_data:
+            safe_name = self._to_safe_group_name(gdata["Name"])
             self._set_group_vars(gdata["Name"])
             device_ip = self._get_all_devices(gdata["AllLeafDevices@odata.navigationLink"])
             for hst in device_ip:
-                self.inventory.add_host(host=hst, group=gdata["Name"])
+                self.inventory.add_host(host=hst, group=safe_name)
                 self._set_host_vars(hst)
         self._set_child_group(group_data)
 
