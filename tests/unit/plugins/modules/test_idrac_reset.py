@@ -405,7 +405,7 @@ class TestFactoryReset(FakeAnsibleModule):
         assert exc.value.args[0] == LC_LOGIN_ERR_MSG
 
         # Scenario: When LC status service fails during _check_lcstatus_with_url
-        api_mock = MagicMock(**{'invoke_request.side_effect': URLError("urlopen error")})
+        api_mock = MagicMock(**{'invoke_request.side_effect': URLError("open_url error")})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         reset_obj = self.module.FactoryReset(api_mock, f_module, allowed_choices=allowed_values)
         mocker.patch(MODULE_PATH + SLEEP_KEY, side_effect=lambda *args, **kwargs: None)
