@@ -10,12 +10,13 @@ v10.0.2
 Release Summary
 ---------------
 
-'The OpenManage Enterprise, OpenManage Enterprise Modular and OpenManage Enterprise Integration for VMware vCenter modules are now compatible with Ansible Core version 2.20.'
+'The OpenManage Enterprise and OpenManage Enterprise Integration for VMware vCenter modules are now compatible with Ansible Core version 2.20. This release also adds support for OpenManage Enterprise version 4.5.'
 
 Major Changes
 -------------
 
 - The OpenManage Enterprise, OpenManage Enterprise Modular and OpenManage Enterprise Integration for VMware vCenter modules are now compatible with Ansible Core version 2.20.
+- Added support for OpenManage Enterprise version 4.5.
 
 Minor Changes
 -------------
@@ -39,7 +40,6 @@ Known Issues
 - idrac_os_deployment - The module continues to return a 200 response and marks the job as completed, even when an outdated date is supplied in the Expose duration.
 - idrac_redfish_storage_controller - PatrolReadRatePercent attribute cannot be set in iDRAC10.
 - idrac_server_config_profile - When attempting to revert iDRAC settings using a previously exported SCP file, the import operation will complete with errors if a new user was created after the export (Instead of restoring the system to its previous state, including the removal of newly added users).
-- idrac_system_info - The module will show empty video list despite having Embedded VIDEO controller.
 - Redfish_storage_volume - Encryption type and block_io_size bytes will be read only property in iDRAC 9 and iDRAC 10 and hence the module ignores these parameters.
 - ome_smart_fabric_uplink - The module supported by OpenManage Enterprise Modular, however it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, then the existing uplink is modified.
 - ome_smart_fabric_info - Formal qualification of module for Ansible Core version 2.19 is still pending.
