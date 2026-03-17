@@ -2542,23 +2542,28 @@ releases:
 
   10.0.2:
     changes:
-      release_summary: 'The OpenManage Enterprise, OpenManage Enterprise
-        Modular and OpenManage Enterprise Integration for VMware vCenter
-        modules are now compatible with Ansible Core version 2.20.'
+      release_summary: 'The OpenManage Enterprise and OpenManage Enterprise
+        Integration for VMware vCenter modules are now compatible with
+        Ansible Core version 2.20. This release also adds support for
+        OpenManage Enterprise version 4.5.'
       major_changes:
         - The OpenManage Enterprise, OpenManage Enterprise Modular and
           OpenManage Enterprise Integration for VMware vCenter modules are
           now compatible with Ansible Core version 2.20.
+        - Added support for OpenManage Enterprise version 4.5.
       minor_changes:
         - NA
       bugfixes:
         - idrac_system_info - (Issue 1044) - FC section is missing
           (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/1044)
-        - idrac_user - (Issue 1059) - Bad User Privileges when creating idrac user using "custom_privilege"
+        - idrac_user - (Issue 1059) - Bad User Privileges when creating idrac
+          user using "custom_privilege"
           (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/1059)
-        - idrac_job_queue - (Issue 1067) - Fails to find the file in role due to incorrect name
+        - idrac_job_queue - (Issue 1067) - Fails to find the file in role due to
+          incorrect name
           (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/1067)
-        - idrac_system_info - powersupply.get_red_type_set fails with TypeError due to unhandled None values when joining mapped redundancy types
+        - idrac_system_info - powersupply.get_red_type_set fails with TypeError
+          due to unhandled None values when joining mapped redundancy types
       known_issues:
         - idrac_diagnostics - This module does not support
           export of diagnostics file to HTTP and HTTPS share via SOCKS
@@ -2578,8 +2583,6 @@ releases:
           complete with errors if a new user was created after the export
           (Instead of restoring the system to its previous state, including
           the removal of newly added users).
-        - idrac_system_info - The module will show empty video list despite
-          having Embedded VIDEO controller.
         - redfish_storage_volume - Encryption type and block_io_size bytes
           will be read only property in iDRAC9 and iDRAC10 and hence the
           module ignores these parameters.
