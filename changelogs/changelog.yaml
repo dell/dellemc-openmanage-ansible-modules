@@ -2551,8 +2551,6 @@ releases:
           OpenManage Enterprise Integration for VMware vCenter modules are
           now compatible with Ansible Core version 2.20.
         - Added support for OpenManage Enterprise version 4.5.
-      minor_changes:
-        - NA
       bugfixes:
         - idrac_system_info - (Issue 1044) - FC section is missing
           (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/1044)
