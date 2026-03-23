@@ -18,11 +18,6 @@ Major Changes
 - The OpenManage Enterprise, OpenManage Enterprise Modular and OpenManage Enterprise Integration for VMware vCenter modules are now compatible with Ansible Core version 2.20.
 - Added support for OpenManage Enterprise version 4.5.
 
-Minor Changes
--------------
-
-- NA
-
 Bugfixes
 --------
 
