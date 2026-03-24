@@ -10,8 +10,7 @@ You may obtain a copy of the License at
 # Additional Information
 
 ## Release cadence
-* OpenManage Ansible Modules releases follows a monthly release cycle. On the last week of every month, 
-  the updated modules are posted to this repository.
+* Releases are delivered based on feature readiness, business priorities, and customer requirements rather than on a fixed cadence.
 
 ## Versioning
 * This product releases follow [semantic versioning](https://semver.org/).
