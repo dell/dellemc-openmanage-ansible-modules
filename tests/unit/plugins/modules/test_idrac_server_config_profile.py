@@ -417,7 +417,7 @@ class TestServerConfigProfile(FakeAnsibleModule):
         assert SUCCESS_MSG.format("import") in result['msg']
         job_tracking_mock.assert_called_once()
         call_kwargs = job_tracking_mock.call_args
-        assert call_kwargs[1].get('max_job_wait_sec') == 1800 or call_kwargs[0][2] if len(call_kwargs[0]) > 2 else call_kwargs[1].get('max_job_wait_sec') == 1800
+        assert call_kwargs[1].get('max_job_wait_sec') == 1800
 
     def test_job_wait_timeout_exceeded_message(self, idrac_scp_redfish_mock,
                                                idrac_redfish_job_tracking_mock,

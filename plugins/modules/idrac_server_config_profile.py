@@ -580,7 +580,7 @@ import xml.etree.ElementTree as ET
 from ansible.module_utils.compat.version import LooseVersion
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import idrac_redfish_job_tracking, \
-    strip_substr_dict, get_idrac_firmware_version, get_dynamic_uri
+    strip_substr_dict, get_idrac_firmware_version, get_dynamic_uri, validate_job_wait
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.parse import urlparse
@@ -956,34 +956,24 @@ def import_scp_redfish(module, idrac, http_share):
     return scp_response
 
 
+def _handle_job_tracking_failure(module, _msg, job_dict, job_id, job_wait_timeout):
+    if _msg == "Job tracking started.":
+        module.exit_json(failed=True, status_msg=job_dict, job_id=job_id,
+                         msg=TIMEOUT_MESSAGE.format(job_wait_timeout))
+    module.exit_json(failed=True, status_msg=job_dict, job_id=job_id,
+                     msg=FAIL_MSG.format(module.params["command"]))
+
+
 def wait_for_job_tracking_redfish(module, idrac, scp_response):
     job_id = scp_response.headers["Location"].split("/")[-1]
     job_wait_timeout = module.params.get("job_wait_timeout", 900)
     if module.params["job_wait"]:
-        if generation >= 17:
-            job_failed, _msg, job_dict, _wait_time = idrac_redfish_job_tracking(
-                idrac, JOB_URI.format(job_id=job_id),
-                max_job_wait_sec=job_wait_timeout)
-            if job_failed:
-                if _msg == "Job tracking started.":
-                    module.exit_json(failed=True, status_msg=job_dict, job_id=job_id,
-                                     msg=TIMEOUT_MESSAGE.format(job_wait_timeout))
-                if job_dict.get("MessageId", "") in ERROR_CODES:
-                    module.exit_json(failed=True, status_msg=job_dict, job_id=job_id, msg=FAIL_MSG.format(module.params["command"]))
-                module.exit_json(failed=True, status_msg=job_dict, job_id=job_id, msg=FAIL_MSG.format(module.params["command"]))
-            scp_response = job_dict
-        else:
-            job_failed, _msg, job_dict, _wait_time = idrac_redfish_job_tracking(
-                idrac, iDRAC_JOB_URI.format(job_id=job_id),
-                max_job_wait_sec=job_wait_timeout)
-            if job_failed:
-                if _msg == "Job tracking started.":
-                    module.exit_json(failed=True, status_msg=job_dict, job_id=job_id,
-                                     msg=TIMEOUT_MESSAGE.format(job_wait_timeout))
-                if job_dict.get("MessageId", "") in ERROR_CODES:
-                    module.exit_json(failed=True, status_msg=job_dict, job_id=job_id, msg=FAIL_MSG.format(module.params["command"]))
-                module.exit_json(failed=True, status_msg=job_dict, job_id=job_id, msg=FAIL_MSG.format(module.params["command"]))
-            scp_response = job_dict
+        job_uri = JOB_URI.format(job_id=job_id) if generation >= 17 else iDRAC_JOB_URI.format(job_id=job_id)
+        job_failed, _msg, job_dict, _wait_time = idrac_redfish_job_tracking(
+            idrac, job_uri, max_job_wait_sec=job_wait_timeout)
+        if job_failed:
+            _handle_job_tracking_failure(module, _msg, job_dict, job_id, job_wait_timeout)
+        scp_response = job_dict
     return scp_response
 
 
@@ -1195,6 +1185,24 @@ def _get_server_version(idrac: iDRACRedfishAPI) -> Tuple[int]:
     return t[0]
 
 
+def _exit_with_result(module, command, scp_status, changed):
+    if module.params.get('job_wait'):
+        scp_status = strip_substr_dict(scp_status)
+        if command in ["import", "export", "preview"]:
+            msg = "Successfully {0}ed the Server Configuration Profile."
+        else:
+            command = command.split("_")[0]
+            msg = "Successfully {0}ed the custom defaults Server Configuration Profile."
+        module.exit_json(changed=changed, msg=msg.format(command), scp_status=scp_status)
+    else:
+        if command in ["import", "export", "preview"]:
+            msg = "Successfully triggered the job to {0} the Server Configuration Profile."
+        else:
+            command = command.split("_")[0]
+            msg = "Successfully triggered the job to {0} the custom defaults Server Configuration Profile."
+        module.exit_json(msg=msg.format(command), scp_status=scp_status)
+
+
 def main():
     specs = get_argument_spec()
 
@@ -1209,7 +1217,7 @@ def main():
         supports_check_mode=True)
 
     validate_input(module, module.params.get("scp_components"))
-    if module.params.get("job_wait") and module.params.get("job_wait_timeout") is not None and module.params.get("job_wait_timeout") <= 0:
+    if validate_job_wait(module):
         module.fail_json(msg=NEGATIVE_TIMEOUT_MESSAGE)
     try:
         http_share = False
@@ -1237,21 +1245,7 @@ def main():
                 command_obj = command_obj_class(idrac, module, generation)
             scp_status, changed = command_obj.execute()
 
-        if module.params.get('job_wait'):
-            scp_status = strip_substr_dict(scp_status)
-            if command in ["import", "export", "preview"]:
-                msg = "Successfully {0}ed the Server Configuration Profile."
-            else:
-                command = command.split("_")[0]
-                msg = "Successfully {0}ed the custom defaults Server Configuration Profile."
-            module.exit_json(changed=changed, msg=msg.format(command), scp_status=scp_status)
-        else:
-            if command in ["import", "export", "preview"]:
-                msg = "Successfully triggered the job to {0} the Server Configuration Profile."
-            else:
-                command = command.split("_")[0]
-                msg = "Successfully triggered the job to {0} the custom defaults Server Configuration Profile."
-            module.exit_json(msg=msg.format(command), scp_status=scp_status)
+        _exit_with_result(module, command, scp_status, changed)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
