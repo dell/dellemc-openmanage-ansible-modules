@@ -39,6 +39,13 @@ options:
     description: Whether to wait for job completion or not.
     type: bool
     required: true
+  job_wait_timeout:
+    description:
+      - The maximum wait time of I(job_wait) in seconds.
+      - The job is tracked only for this duration.
+      - This option is applicable when I(job_wait) is C(true).
+    type: int
+    default: 900
   share_name:
     description:
       - Network share or local path.
@@ -604,6 +611,9 @@ MUTUALLY_EXCLUSIVE = "import_buffer is mutually exclusive with {0}."
 PROXY_ERR_MSG = "proxy_support is enabled but all of the following are missing: proxy_server"
 iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
 FAIL_MSG = "Failed to {0} scp."
+NEGATIVE_TIMEOUT_MESSAGE = "The parameter job_wait_timeout value cannot be negative or zero."
+TIMEOUT_MESSAGE = "The job wait timeout of {0} seconds has been exceeded. The SCP job may still be running on the server. " \
+    "Increase the job_wait_timeout value and retry."
 TARGET_INVALID_MSG = "Unable to {command} the {invalid_targets} from the SCP file\
  because the values {invalid_targets} are invalid.\
  The valid values are {valid_targets}. Enter the valid values and retry the operation."
@@ -948,17 +958,30 @@ def import_scp_redfish(module, idrac, http_share):
 
 def wait_for_job_tracking_redfish(module, idrac, scp_response):
     job_id = scp_response.headers["Location"].split("/")[-1]
+    job_wait_timeout = module.params.get("job_wait_timeout", 900)
     if module.params["job_wait"]:
         if generation >= 17:
             job_failed, _msg, job_dict, _wait_time = idrac_redfish_job_tracking(
-                idrac, JOB_URI.format(job_id=job_id))
-            if job_failed or job_dict.get("MessageId", "") in ERROR_CODES:
+                idrac, JOB_URI.format(job_id=job_id),
+                max_job_wait_sec=job_wait_timeout)
+            if job_failed:
+                if _msg == "Job tracking started.":
+                    module.exit_json(failed=True, status_msg=job_dict, job_id=job_id,
+                                     msg=TIMEOUT_MESSAGE.format(job_wait_timeout))
+                if job_dict.get("MessageId", "") in ERROR_CODES:
+                    module.exit_json(failed=True, status_msg=job_dict, job_id=job_id, msg=FAIL_MSG.format(module.params["command"]))
                 module.exit_json(failed=True, status_msg=job_dict, job_id=job_id, msg=FAIL_MSG.format(module.params["command"]))
             scp_response = job_dict
         else:
             job_failed, _msg, job_dict, _wait_time = idrac_redfish_job_tracking(
-                idrac, iDRAC_JOB_URI.format(job_id=job_id))
-            if job_failed or job_dict.get("MessageId", "") in ERROR_CODES:
+                idrac, iDRAC_JOB_URI.format(job_id=job_id),
+                max_job_wait_sec=job_wait_timeout)
+            if job_failed:
+                if _msg == "Job tracking started.":
+                    module.exit_json(failed=True, status_msg=job_dict, job_id=job_id,
+                                     msg=TIMEOUT_MESSAGE.format(job_wait_timeout))
+                if job_dict.get("MessageId", "") in ERROR_CODES:
+                    module.exit_json(failed=True, status_msg=job_dict, job_id=job_id, msg=FAIL_MSG.format(module.params["command"]))
                 module.exit_json(failed=True, status_msg=job_dict, job_id=job_id, msg=FAIL_MSG.format(module.params["command"]))
             scp_response = job_dict
     return scp_response
@@ -1186,6 +1209,8 @@ def main():
         supports_check_mode=True)
 
     validate_input(module, module.params.get("scp_components"))
+    if module.params.get("job_wait") and module.params.get("job_wait_timeout") is not None and module.params.get("job_wait_timeout") <= 0:
+        module.fail_json(msg=NEGATIVE_TIMEOUT_MESSAGE)
     try:
         http_share = False
         msg = None
@@ -1241,6 +1266,7 @@ def get_argument_spec():
         "command": {"required": False, "type": 'str',
                     "choices": ['export', 'import', 'preview', 'import_custom_defaults', 'export_custom_defaults'], "default": 'export'},
         "job_wait": {"required": True, "type": 'bool'},
+        "job_wait_timeout": {"type": 'int', "default": 900},
         "share_name": {"required": False, "type": 'str'},
         "share_user": {"required": False, "type": 'str'},
         "share_password": {"required": False, "type": 'str',
