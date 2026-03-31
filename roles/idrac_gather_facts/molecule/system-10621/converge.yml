@@ -41,14 +41,14 @@
         url2_1: "https://{{ hostname }}{{ api_manager }}"
         url2_2: "/Oem/Dell/DellAttributes/{{ computer_system_id }}"
       when:
-        - not is_omsdk_required | bool
+        - not is_legacy_idrac | bool
 
     - name: Set < 17G url
       ansible.builtin.set_fact:
         url2_1: "https://{{ hostname }}/redfish/v1/"
         url2_2: "Managers/{{ computer_system_id }}/Attributes"
       when:
-        - is_omsdk_required | bool
+        - is_legacy_idrac | bool
 
     - name: Set < 17G url.
       ansible.builtin.set_fact:

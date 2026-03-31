@@ -11,7 +11,7 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
-- name: Check if module is calling omsdk
+- name: Check if module is using legacy iDRAC
   ansible.builtin.include_tasks: _check_firmware_version_supported.yml
 
 - block:
@@ -148,7 +148,7 @@
       register: result
       check_mode: true
       when:
-        - is_omsdk_required | bool
+        - is_legacy_idrac | bool
 
     - name: Verify task status - Blink the Virtual Disk (Check mode -
        Changes expected)
@@ -157,14 +157,14 @@
           - result.changed
           - result.msg == "Changes found to be applied."
       when:
-        - is_omsdk_required | bool
+        - is_legacy_idrac | bool
 
     - name: Blink the Virtual Disk (Normal mode)
       idrac_redfish_storage_controller:
         <<: *idrac_redfish_storage_controller_3
       register: result
       when:
-        - is_omsdk_required | bool
+        - is_legacy_idrac | bool
 
     - name: Verify task status - Blink the Virtual Disk (Normal mode)
       ansible.builtin.assert:
@@ -172,7 +172,7 @@
           - result.changed
           - result.msg == "Successfully performed the 'BlinkTarget' operation."
       when:
-        - is_omsdk_required | bool
+        - is_legacy_idrac | bool
 
     - name: Unblink the Virtual Disk (Check mode - Changes expected)
       idrac_redfish_storage_controller: &idrac_redfish_storage_controller_4
@@ -181,7 +181,7 @@
       register: result
       check_mode: true
       when:
-        - is_omsdk_required | bool
+        - is_legacy_idrac | bool
 
     - name: Verify task status - Unblink the Virtual Disk (Check mode -
        Changes expected)
@@ -190,14 +190,14 @@
           - result.changed
           - result.msg == "Changes found to be applied."
       when:
-        - is_omsdk_required | bool
+        - is_legacy_idrac | bool
 
     - name: Unblink the Virtual Disk (Normal mode)
       idrac_redfish_storage_controller:
         <<: *idrac_redfish_storage_controller_4
       register: result
       when:
-        - is_omsdk_required | bool
+        - is_legacy_idrac | bool
 
     - name: Verify task status - Unblink the Virtual Disk (Normal mode)
       ansible.builtin.assert:
@@ -206,7 +206,7 @@
           - result.msg == "Successfully performed the 'UnBlinkTarget'
            operation."
       when:
-        - is_omsdk_required | bool
+        - is_legacy_idrac | bool
 
     - name: Delete created virtual disk after testcase completion
       dellemc.openmanage.idrac_storage_volume:

@@ -18,13 +18,14 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common im
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from unittest.mock import MagicMock, Mock
-from pytest import importorskip
 from ansible.module_utils._text import to_text
 import json
 from io import StringIO
-
-importorskip("omsdk.sdkfile")
-importorskip("omsdk.sdkcreds")
+try:
+    from omsdk.sdkfile import file_share_manager  # noqa: F401
+    HAS_OMSDK = True
+except ImportError:
+    HAS_OMSDK = False
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 
@@ -34,10 +35,10 @@ class TestLcAttributes(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_lc_attributes_mock(self, mocker):
-        omsdk_mock = MagicMock()
+        idrac_mock_obj = MagicMock()
         idrac_obj = MagicMock()
-        omsdk_mock.file_share_manager = idrac_obj
-        omsdk_mock.config_mgr = idrac_obj
+        idrac_mock_obj.file_share_manager = idrac_obj
+        idrac_mock_obj.config_mgr = idrac_obj
         type(idrac_obj).create_share_obj = Mock(return_value="Status")
         type(idrac_obj).set_liason_share = Mock(return_value="Status")
         return idrac_obj
@@ -84,6 +85,7 @@ class TestLcAttributes(FakeAnsibleModule):
         result = self._run_module(idrac_default_args)
         assert result["msg"] == "No changes were applied"
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_setup_idrac_csior_success_case01(self, idrac_connection_lc_attribute_mock, idrac_default_args,
                                                   idrac_file_manager_lc_attribute_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -107,6 +109,7 @@ class TestLcAttributes(FakeAnsibleModule):
                 idrac_connection_lc_attribute_mock, f_module)
         assert ex.value.args[0] == "No changes found to commit!"
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_setup_idrac_csior_success_case02(self, idrac_connection_lc_attribute_mock, idrac_default_args,
                                                   idrac_file_manager_lc_attribute_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -121,6 +124,7 @@ class TestLcAttributes(FakeAnsibleModule):
         assert msg == {'changes_applicable': True, 'message': 'changes found to commit!',
                        'changed': True, 'Status': 'Success'}
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_setup_idrac_csior_success_case03(self, idrac_connection_lc_attribute_mock, idrac_default_args,
                                                   idrac_file_manager_lc_attribute_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -135,6 +139,7 @@ class TestLcAttributes(FakeAnsibleModule):
         assert msg == {'changes_applicable': True, 'Message': 'No changes found to commit!',
                        'changed': False, 'Status': 'Success'}
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_setup_csior_disable_case(self, idrac_connection_lc_attribute_mock, idrac_default_args,
                                           idrac_file_manager_lc_attribute_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -151,6 +156,7 @@ class TestLcAttributes(FakeAnsibleModule):
                 idrac_connection_lc_attribute_mock, f_module)
         assert ex.value.args[0] == "Changes found to commit!"
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_setup_csior_enable_case(self, idrac_connection_lc_attribute_mock, idrac_default_args,
                                          idrac_file_manager_lc_attribute_mock):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
@@ -167,6 +173,7 @@ class TestLcAttributes(FakeAnsibleModule):
                 idrac_connection_lc_attribute_mock, f_module)
         assert ex.value.args[0] == "Changes found to commit!"
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_setup_csior_failed_case01(self, idrac_connection_lc_attribute_mock, idrac_default_args,
                                            idrac_file_manager_lc_attribute_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -181,6 +188,7 @@ class TestLcAttributes(FakeAnsibleModule):
                 idrac_connection_lc_attribute_mock, f_module)
         assert ex.value.args[0] == "status failed in checking Data"
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_setup_idrac_csior_failed_case03(self, idrac_connection_lc_attribute_mock, idrac_default_args,
                                                  idrac_file_manager_lc_attribute_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -219,6 +227,7 @@ class TestLcAttributes(FakeAnsibleModule):
             result = self._run_module(idrac_default_args)
         assert 'msg' in result
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_setup_idrac_csior_invalid_share(self, idrac_connection_lc_attribute_mock, idrac_default_args,
                                                  idrac_file_manager_lc_attribute_mock, mocker):
         idrac_default_args.update({"share_name": None, 'share_password': None,
@@ -234,6 +243,7 @@ class TestLcAttributes(FakeAnsibleModule):
         assert exc.value.args[0] == "Unable to access the share. Ensure that the share name, share mount, and share credentials provided are correct."
 
     @pytest.mark.parametrize("exc_type", [KeyError])
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_setup_idrac_csior_Error(self, exc_type, idrac_connection_lc_attribute_mock, idrac_default_args,
                                          idrac_file_manager_lc_attribute_mock, mocker):
         idrac_default_args.update({"share_name": None, 'share_password': None,

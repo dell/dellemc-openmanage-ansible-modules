@@ -42,7 +42,6 @@ options:
     default: true
 
 requirements:
-  - "omsdk >= 1.2.488"
   - "python >= 3.9.6"
 author:
   - "Rajeev Arakkal (@rajeevarakkal)"
@@ -146,11 +145,7 @@ from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
     idrac_lifecycle_controller_logs_utils import IDRACLifecycleControllerLogs
-try:
-    from omsdk.sdkfile import file_share_manager
-    from omsdk.sdkcreds import UserCredentials
-except ImportError:
-    pass
+
 EXPORT_LC_LOGS = '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions/DellLCService.ExportLCLog'
 SUCCESS_MSG = "Successfully exported the lifecycle controller logs."
 SCHEDULE_MSG = "The export lifecycle controller log job is submitted successfully."
@@ -159,21 +154,7 @@ CHANGES_FOUND_MSG = "Changes found to be applied."
 
 
 def get_user_credentials(module):
-    share_username = module.params['share_user']
-    share_password = module.params['share_password']
-    work_group = None
-    if share_username is not None and "@" in share_username:
-        username_domain = share_username.split("@")
-        share_username = username_domain[0]
-        work_group = username_domain[1]
-    elif share_username is not None and "\\" in share_username:
-        username_domain = share_username.split("\\")
-        work_group = username_domain[0]
-        share_username = username_domain[1]
-    share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
-                                                creds=UserCredentials(share_username, share_password,
-                                                                      work_group=work_group), isFolder=True)
-    return share
+    raise NotImplementedError("Legacy omsdk support has been removed.")
 
 
 def run_export_lc_logs(idrac, module):
@@ -184,23 +165,7 @@ def run_export_lc_logs(idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-
-    lclog_file_name_format = "%ip_%Y%m%d_%H%M%S_LC_Log.log"
-    share_username = module.params.get('share_user')
-    if (share_username is not None) and ("@" in share_username or "\\" in share_username):
-        myshare = get_user_credentials(module)
-    else:
-        myshare = file_share_manager.create_share_obj(share_path=module.params['share_name'],
-                                                      creds=UserCredentials(module.params['share_user'],
-                                                                            module.params['share_password']),
-                                                      isFolder=True)
-    data = socket.getaddrinfo(module.params["idrac_ip"], module.params["idrac_port"])
-    if "AF_INET6" == data[0][0]._name_:
-        lclog_file_name_format = get_file_name(module)
-    lc_log_file = myshare.new_file(lclog_file_name_format)
-    job_wait = module.params['job_wait']
-    msg = idrac.log_mgr.lclog_export(lc_log_file, job_wait)
-    return msg
+    raise NotImplementedError("Legacy omsdk support has been removed.")
 
 
 def get_file_name(module):

@@ -21,11 +21,6 @@ from ansible.module_utils.urls import SSLValidationError
 from unittest.mock import MagicMock, PropertyMock
 from io import StringIO
 from ansible.module_utils._text import to_text
-from pytest import importorskip
-
-importorskip("omsdk.sdkfile")
-importorskip("omsdk.sdkcreds")
-
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 server_generation_info = (13, "2.8", "iDRAC 8")
@@ -36,9 +31,9 @@ class TestDeleteLcJob(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_lc_job_mock(self, mocker):
-        omsdk_mock = MagicMock()
+        idrac_mock_obj = MagicMock()
         idrac_obj = MagicMock()
-        omsdk_mock.job_mgr = idrac_obj
+        idrac_mock_obj.job_mgr = idrac_obj
         type(idrac_obj).delete_job = PropertyMock(return_value="msg")
         type(idrac_obj).delete_all_jobs = PropertyMock(return_value="msg")
         return idrac_obj

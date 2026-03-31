@@ -4,14 +4,14 @@
     url1_1: "https://{{ hostname }}{{ api_chassis }}/Oem/Dell/"
     url1_2: "DellEnclosureEMM/{{ enclosureemm_data.Id }}"
   when:
-    - not is_omsdk_required | bool
+    - not is_legacy_idrac | bool
 
 - name: Set <17G url
   ansible.builtin.set_fact:
     url1_1: "https://{{ hostname }}/Oem/Dell/"
     url1_2: "DellEnclosureEMM/{{ enclosureemm_data.Id }}"
   when:
-    - is_omsdk_required | bool
+    - is_legacy_idrac | bool
 
 - name: Set url
   ansible.builtin.set_fact:

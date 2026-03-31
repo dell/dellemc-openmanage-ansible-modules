@@ -30,9 +30,9 @@ class TestFirmware(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_firmware_info_mock(self, mocker):
-        omsdk_mock = MagicMock()
+        idrac_mock_obj = MagicMock()
         idrac_obj = MagicMock()
-        omsdk_mock.update_mgr = idrac_obj
+        idrac_mock_obj.update_mgr = idrac_obj
         type(idrac_obj).InstalledFirmware = PropertyMock(return_value="msg")
         return idrac_obj
 

@@ -18,13 +18,14 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common im
 from unittest.mock import MagicMock, Mock, PropertyMock
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from pytest import importorskip
 from ansible.module_utils._text import to_text
 import json
 from io import StringIO
-
-importorskip("omsdk.sdkfile")
-importorskip("omsdk.sdkcreds")
+try:
+    from omsdk.sdkfile import file_share_manager  # noqa: F401
+    HAS_OMSDK = True
+except ImportError:
+    HAS_OMSDK = False
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 
@@ -34,10 +35,10 @@ class TestConfigureEventing(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_configure_eventing_mock(self, mocker):
-        omsdk_mock = MagicMock()
+        idrac_mock_obj = MagicMock()
         idrac_obj = MagicMock()
-        omsdk_mock.file_share_manager = idrac_obj
-        omsdk_mock.config_mgr = idrac_obj
+        idrac_mock_obj.file_share_manager = idrac_obj
+        idrac_mock_obj.config_mgr = idrac_obj
         type(idrac_obj).create_share_obj = Mock(return_value="Status")
         type(idrac_obj).set_liason_share = Mock(return_value="Status")
         return idrac_obj
@@ -89,6 +90,7 @@ class TestConfigureEventing(FakeAnsibleModule):
         result = self._run_module(idrac_default_args)
         assert result["msg"] == "No changes found to commit!"
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_eventing_config_success_case01(self, idrac_connection_configure_eventing_mock,
                                                       idrac_file_manager_config_eventing_mock, idrac_default_args,
                                                       is_changes_applicable_eventing_mock):
@@ -106,6 +108,7 @@ class TestConfigureEventing(FakeAnsibleModule):
             self.module.run_idrac_eventing_config(idrac_connection_configure_eventing_mock, f_module)
         assert "Changes found to commit!" == ex.value.args[0]
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_eventing_config_success_case02(self, idrac_connection_configure_eventing_mock,
                                                       idrac_file_manager_config_eventing_mock, idrac_default_args):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -123,6 +126,7 @@ class TestConfigureEventing(FakeAnsibleModule):
         result = self.module.run_idrac_eventing_config(idrac_connection_configure_eventing_mock, f_module)
         assert result['message'] == 'changes found to commit!'
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_eventing_config_success_case03(self, idrac_connection_configure_eventing_mock,
                                                       idrac_file_manager_config_eventing_mock, idrac_default_args):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -140,6 +144,7 @@ class TestConfigureEventing(FakeAnsibleModule):
         result = self.module.run_idrac_eventing_config(idrac_connection_configure_eventing_mock, f_module)
         assert result["Message"] == 'No changes found to commit!'
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_eventing_config_success_case04(self, idrac_connection_configure_eventing_mock,
                                                       idrac_default_args, idrac_file_manager_config_eventing_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -157,6 +162,7 @@ class TestConfigureEventing(FakeAnsibleModule):
         result = self.module.run_idrac_eventing_config(idrac_connection_configure_eventing_mock, f_module)
         assert result['Message'] == 'No changes were applied'
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_eventing_config_success_case05(self, idrac_connection_configure_eventing_mock,
                                                       idrac_file_manager_config_eventing_mock, idrac_default_args):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -180,6 +186,7 @@ class TestConfigureEventing(FakeAnsibleModule):
         result = self.module.run_idrac_eventing_config(idrac_connection_configure_eventing_mock, f_module)
         assert result['Message'] == 'No changes were applied'
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_eventing_config_failed_case01(self, idrac_connection_configure_eventing_mock,
                                                      idrac_file_manager_config_eventing_mock, idrac_default_args):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -197,6 +204,7 @@ class TestConfigureEventing(FakeAnsibleModule):
             self.module.run_idrac_eventing_config(idrac_connection_configure_eventing_mock, f_module)
         assert ex.value.args[0] == 'status failed in checking Data'
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_eventing_config_failed_case02(self, idrac_connection_configure_eventing_mock,
                                                      idrac_default_args, idrac_file_manager_config_eventing_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -214,6 +222,7 @@ class TestConfigureEventing(FakeAnsibleModule):
         result = self.module.run_idrac_eventing_config(idrac_connection_configure_eventing_mock, f_module)
         assert result['Message'] == 'No changes were applied'
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_eventing_config_failed_case03(self, idrac_connection_configure_eventing_mock,
                                                      idrac_default_args, idrac_file_manager_config_eventing_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -252,6 +261,7 @@ class TestConfigureEventing(FakeAnsibleModule):
             result = self._run_module(idrac_default_args)
         assert 'msg' in result
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_run_idrac_eventing_config_invalid_share(self, idrac_connection_configure_eventing_mock,
                                                          idrac_file_manager_config_eventing_mock, idrac_default_args,
                                                          is_changes_applicable_eventing_mock, mocker):
@@ -265,6 +275,7 @@ class TestConfigureEventing(FakeAnsibleModule):
                 idrac_connection_configure_eventing_mock, f_module)
         assert exc.value.args[0] == "Unable to access the share. Ensure that the share name, share mount, and share credentials provided are correct."
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_eventing_config_Error(self, idrac_connection_configure_eventing_mock,
                                              idrac_file_manager_config_eventing_mock, idrac_default_args,
                                              is_changes_applicable_eventing_mock, mocker):
@@ -300,6 +311,7 @@ class TestConfigureEventing(FakeAnsibleModule):
         assert result['failed'] is True
         assert result['msg'] == "Failed to configure the iDRAC eventing settings"
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_eventing_config_main_cases(self, idrac_connection_configure_eventing_mock,
                                                   idrac_file_manager_config_eventing_mock, idrac_default_args,
                                                   is_changes_applicable_eventing_mock, mocker):

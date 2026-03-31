@@ -21,11 +21,6 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from unittest.mock import PropertyMock
 from io import StringIO
 from ansible.module_utils._text import to_text
-from pytest import importorskip
-
-
-importorskip("omsdk.sdkfile")
-importorskip("omsdk.sdkcreds")
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 
@@ -35,9 +30,9 @@ class TestLcStatus(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_lc_status_mock(self, mocker):
-        omsdk_mock = MagicMock()
+        idrac_mock_obj = MagicMock()
         idrac_obj = MagicMock()
-        omsdk_mock.config_mgr = idrac_obj
+        idrac_mock_obj.config_mgr = idrac_obj
         type(idrac_obj).LCStatus = Mock(return_value="lcstatus")
         type(idrac_obj).LCReady = Mock(return_value="lcready")
         return idrac_obj

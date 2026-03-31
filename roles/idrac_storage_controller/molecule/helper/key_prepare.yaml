@@ -7,12 +7,12 @@
     idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
     idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
   tasks:
-    - name: Check if module is calling omsdk
+    - name: Check if module is using legacy iDRAC
       ansible.builtin.include_tasks: ../_check_firmware_version_supported.yml
 
     - name: Execute in iDRAC9
       when:
-        - is_omsdk_required | bool
+        - is_legacy_idrac | bool
       block:
         - name: Making sure Server is powered on and clear all job
           ansible.builtin.include_tasks:

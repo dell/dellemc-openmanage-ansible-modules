@@ -18,13 +18,14 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common im
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from unittest.mock import MagicMock
-from pytest import importorskip
 from ansible.module_utils._text import to_text
 import json
 from io import StringIO
-
-importorskip("omsdk.sdkfile")
-importorskip("omsdk.sdkcreds")
+try:
+    from omsdk.sdkfile import file_share_manager  # noqa: F401
+    HAS_OMSDK = True
+except ImportError:
+    HAS_OMSDK = False
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 
@@ -34,10 +35,10 @@ class TestSysytemLockdownMode(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_system_lockdown_mock(self, mocker):
-        omsdk_mock = MagicMock()
+        idrac_mock_obj = MagicMock()
         idrac_obj = MagicMock()
-        omsdk_mock.file_share_manager = idrac_obj
-        omsdk_mock.config_mgr = idrac_obj
+        idrac_mock_obj.file_share_manager = idrac_obj
+        idrac_mock_obj.config_mgr = idrac_obj
         return idrac_obj
 
     @pytest.fixture
@@ -106,6 +107,7 @@ class TestSysytemLockdownMode(FakeAnsibleModule):
             result = self._run_module(idrac_default_args)
         assert 'msg' in result
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_system_lockdown_mode_success_case01(self, idrac_connection_system_lockdown_mode_mock, mocker,
                                                      idrac_file_manager_system_lockdown_mock, idrac_default_args):
         idrac_default_args.update({"share_name": None, "share_password": None,
@@ -118,6 +120,7 @@ class TestSysytemLockdownMode(FakeAnsibleModule):
         msg = self.module.run_system_lockdown_mode(idrac_connection_system_lockdown_mode_mock, f_module)
         assert msg['msg'] == "Successfully completed the lockdown mode operations."
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_system_lockdown_mode_failed_case01(self, idrac_connection_system_lockdown_mode_mock, mocker,
                                                     idrac_file_manager_system_lockdown_mock, idrac_default_args):
         idrac_default_args.update({"share_name": None, "share_password": None,
@@ -130,6 +133,7 @@ class TestSysytemLockdownMode(FakeAnsibleModule):
             self.module.run_system_lockdown_mode(idrac_connection_system_lockdown_mode_mock, f_module)
         assert ex.value.args[0] == 'Failed to complete the lockdown mode operations.'
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_system_lockdown_mode_failed_case02(self, idrac_connection_system_lockdown_mode_mock, mocker,
                                                     idrac_file_manager_system_lockdown_mock, idrac_default_args):
         idrac_default_args.update({"share_name": None, "share_password": None,
@@ -142,6 +146,7 @@ class TestSysytemLockdownMode(FakeAnsibleModule):
             self.module.run_system_lockdown_mode(idrac_connection_system_lockdown_mode_mock, f_module)
         assert ex.value.args[0] == "message inside data"
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_system_lockdown_mode_invalid_share(self, idrac_connection_system_lockdown_mode_mock, mocker,
                                                     idrac_file_manager_system_lockdown_mock, idrac_default_args):
         idrac_default_args.update({"share_name": None, "share_password": None,

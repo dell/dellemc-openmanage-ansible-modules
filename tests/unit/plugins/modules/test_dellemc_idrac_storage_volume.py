@@ -17,10 +17,11 @@ import os
 from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_idrac_storage_volume
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from unittest.mock import MagicMock, Mock
-from pytest import importorskip
-
-importorskip("omsdk.sdkfile")
-importorskip("omsdk.sdkcreds")
+try:
+    from omsdk.sdkfile import file_share_manager  # noqa: F401
+    HAS_OMSDK = True
+except ImportError:
+    HAS_OMSDK = False
 
 
 class TestStorageVolume(FakeAnsibleModule):
@@ -28,10 +29,10 @@ class TestStorageVolume(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_storage_volume_mock(self, mocker):
-        omsdk_mock = MagicMock()
+        idrac_mock_obj = MagicMock()
         idrac_obj = MagicMock()
-        omsdk_mock.file_share_manager = idrac_obj
-        omsdk_mock.config_mgr = idrac_obj
+        idrac_mock_obj.file_share_manager = idrac_obj
+        idrac_mock_obj.config_mgr = idrac_obj
         type(idrac_obj).create_share_obj = Mock(return_value="servicesstatus")
         type(idrac_obj).set_liason_share = Mock(return_value="servicestatus")
         return idrac_obj
@@ -151,6 +152,7 @@ class TestStorageVolume(FakeAnsibleModule):
         #     self._run_module_with_fail_json(idrac_default_args)
         # assert exc.value.args[0] == "msg"
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_server_raid_config_create_success_case(self, idrac_connection_storage_volume_mock, idrac_default_args,
                                                         mocker):
         idrac_default_args.update({"share_name": "sharename", "state": "create"})
@@ -177,6 +179,7 @@ class TestStorageVolume(FakeAnsibleModule):
         result = self.module.run_server_raid_config(idrac_connection_storage_volume_mock, f_module)
         assert result == 'view'
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_server_raid_config_delete_success_case(self, idrac_connection_storage_volume_mock, idrac_default_args,
                                                         mocker):
         idrac_default_args.update({"share_name": "sharename", "state": "delete"})
@@ -287,6 +290,7 @@ class TestStorageVolume(FakeAnsibleModule):
         msg = self.module.error_handling_for_negative_num("capacity", -1.0)
         assert msg == "{0} cannot be a negative number or zero,got {1}".format("capacity", -1.0)
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_set_liason_share_success_case(self, idrac_connection_storage_volume_mock, idrac_default_args,
                                            idrac_file_manager_storage_volume_mock):
         idrac_default_args.update({"share_name": "sharename", "state": "delete", "share_path": "sharpath"})
@@ -301,6 +305,7 @@ class TestStorageVolume(FakeAnsibleModule):
             self.module.set_liason_share(idrac_connection_storage_volume_mock, f_module)
         assert "Failed to set Liason share" == str(ex.value)
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_view_storage_success_case(self, idrac_connection_storage_volume_mock, idrac_default_args):
         idrac_default_args.update({"controller_id": "controller", "volume_id": "virtual_disk"})
         msg = {"Status": "Success"}
@@ -311,6 +316,7 @@ class TestStorageVolume(FakeAnsibleModule):
         result = self.module.view_storage(idrac_connection_storage_volume_mock, f_module)
         assert result == {"Status": "Success"}
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_view_storage_failed_case(self, idrac_connection_storage_volume_mock, idrac_default_args):
         idrac_default_args.update({"controller_id": "controller", "volume_id": "virtual_disk"})
         msg = {"Status": "Failed", "msg": "Failed to fetch storage details"}
@@ -322,6 +328,7 @@ class TestStorageVolume(FakeAnsibleModule):
             self.module.view_storage(idrac_connection_storage_volume_mock, f_module)
         assert "Failed to fetch storage details" == str(ex.value)
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_delete_storage_case(self, idrac_connection_storage_volume_mock, idrac_default_args):
         idrac_default_args.update({"volumes": [{"name": "nameofvolume"}]})
         msg = {"Status": "Success"}
@@ -332,6 +339,7 @@ class TestStorageVolume(FakeAnsibleModule):
         result = self.module.delete_storage(idrac_connection_storage_volume_mock, f_module)
         assert result == {"Status": "Success"}
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_create_storage_success_case01(self, idrac_connection_storage_volume_mock, idrac_default_args, mocker):
         idrac_default_args.update({"volumes": {"name": "volume1"}, "controller_id": "x56y"})
         mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.dellemc_idrac_storage_volume."
@@ -343,6 +351,7 @@ class TestStorageVolume(FakeAnsibleModule):
         result = self.module.create_storage(idrac_connection_storage_volume_mock, f_module)
         assert result == [{'name': 'volume1', 'stripe_size': 1.3}]
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_create_storage_success_case02(self, idrac_connection_storage_volume_mock, idrac_default_args, mocker):
         idrac_default_args.update({"volumes": None, "controller_id": "x56y"})
         mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.dellemc_idrac_storage_volume."
@@ -354,6 +363,7 @@ class TestStorageVolume(FakeAnsibleModule):
         result = self.module.create_storage(idrac_connection_storage_volume_mock, f_module)
         assert result == [{'name': 'volume1', 'stripe_size': 1.3}]
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_multiple_vd_config_success_case(self, idrac_connection_storage_volume_mock, idrac_default_args, mocker):
         idrac_default_args.update({"name": "name1", "media_type": 'HDD', "protocol": "SAS", "drives": None,
                                    "capacity": 2, "raid_init_operation": 'Fast', 'raid_reset_config': True,
@@ -370,6 +380,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                                  "read_cache_policy": "NoReadAhead", "stripe_size": 64 * 1024})
         assert result["mediatype"] == 'HDD'
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_multiple_vd_config_capacity_none_case(self, idrac_connection_storage_volume_mock, idrac_default_args,
                                                    mocker):
         idrac_default_args.update({"name": "name1", "media_type": 'HDD', "protocol": "SAS", "drives": {"id": ["id1"],
@@ -387,6 +398,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                                  "read_cache_policy": "NoReadAhead"}, "", {"protocol": "SAS"})
         assert result["mediatype"] == "HDD"
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_multiple_vd_config_capacity_none_case02(self, idrac_connection_storage_volume_mock, idrac_default_args,
                                                      mocker):
         idrac_default_args.update({"name": "name1", "media_type": None, "protocol": "SAS", "drives": {"id": ["id1"]},
@@ -403,6 +415,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                                  "read_cache_policy": "NoReadAhead", "stripe_size": 64 * 1024})
         assert result['Name'] == 'volume1'
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_multiple_vd_config_capacity_none_case1(self, idrac_connection_storage_volume_mock, idrac_default_args,
                                                     mocker):
         idrac_default_args.update({"name": "name1", "media_type": 'HDD', "protocol": "SAS", "drives": {"id": ["id1"]},
@@ -419,6 +432,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                                  "read_cache_policy": "NoReadAhead"}, "", {"protocol": "NAS"})
         assert result["StripeSize"] == 65536
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_multiple_vd_config_success_case02(self, idrac_connection_storage_volume_mock, idrac_default_args, mocker):
         idrac_default_args.update({"name": "name1", "media_type": 'HDD', "protocol": "SAS", "drives": None,
                                    "capacity": 2, "raid_init_operation": 'Fast', 'raid_reset_config': True,

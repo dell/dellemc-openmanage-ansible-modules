@@ -69,7 +69,6 @@ options:
           - This option is deprecated and will be removed in the later version.
 
 requirements:
-    - "omsdk >= 1.2.488"
     - "python >= 3.9.6"
 author:
     - "Felix Stephen (@felixs88)"
@@ -156,12 +155,6 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 import json
-try:
-    from omdrivers.enums.iDRAC.iDRAC import NTPEnable_NTPConfigGroupTypes
-    from omsdk.sdkfile import file_share_manager
-except ImportError:
-    pass
-
 
 def run_idrac_timezone_config(idrac, module):
     """
@@ -171,39 +164,7 @@ def run_idrac_timezone_config(idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    idrac.use_redfish = True
-    share_path = tempfile.gettempdir() + os.sep
-    upd_share = file_share_manager.create_share_obj(share_path=share_path, isFolder=True)
-    if not upd_share.IsValid:
-        module.fail_json(msg="Unable to access the share. Ensure that the share name, "
-                             "share mount, and share credentials provided are correct.")
-    idrac.config_mgr.set_liason_share(upd_share)
-
-    if module.params['setup_idrac_timezone'] is not None:
-        idrac.config_mgr.configure_timezone(module.params['setup_idrac_timezone'])
-
-    if module.params['enable_ntp'] is not None:
-        idrac.config_mgr.configure_ntp(
-            enable_ntp=NTPEnable_NTPConfigGroupTypes[module.params['enable_ntp']]
-        )
-    if module.params['ntp_server_1'] is not None:
-        idrac.config_mgr.configure_ntp(
-            ntp_server_1=module.params['ntp_server_1']
-        )
-    if module.params['ntp_server_2'] is not None:
-        idrac.config_mgr.configure_ntp(
-            ntp_server_2=module.params['ntp_server_2']
-        )
-    if module.params['ntp_server_3'] is not None:
-        idrac.config_mgr.configure_ntp(
-            ntp_server_3=module.params['ntp_server_3']
-        )
-
-    if module.check_mode:
-        msg = idrac.config_mgr.is_change_applicable()
-    else:
-        msg = idrac.config_mgr.apply_changes(reboot=False)
-    return msg
+    raise NotImplementedError("Legacy omsdk support has been removed.")
 
 
 # Main

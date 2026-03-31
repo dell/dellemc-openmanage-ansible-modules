@@ -127,7 +127,6 @@ options:
           - This option is applicable when I(job_wait) is C(true).
         default: 1200
 requirements:
-    - "omsdk >= 1.2.490"
     - "python >= 3.9.6"
 author:
     - "Felix Stephen (@felixs88)"
@@ -135,7 +134,6 @@ author:
     - "Jagadeesh N V (@jagadeeshnv)"
     - "Shivam Sharma (@shivam-sharma)"
 notes:
-    - omsdk is required to be installed only for I(boot_sources) operation.
     - This module requires 'Administrator' privilege for I(idrac_user).
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).

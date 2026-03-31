@@ -27,7 +27,6 @@ options:
         type: str
         description: JOB ID in the format "JID_123456789012".
 requirements:
-    - "omsdk >= 1.2.488"
     - "python >= 3.9.6"
 author:
     - "Rajeev Arakkal (@rajeevarakkal)"
@@ -127,7 +126,7 @@ def main():
     try:
         with iDRACRedfishAPI(module.params) as idrac:
             firmware_obj = IDRACFirmwareInfo(idrac)
-            if not firmware_obj.is_omsdk_required():
+            if not firmware_obj.is_legacy_idrac():
                 response = \
                     IDRACLifecycleControllerJobStatusInfo(idrac). \
                     get_lifecycle_controller_job_status_info(job_id=module.params["job_id"])

@@ -20,10 +20,11 @@ from io import StringIO
 from ansible.module_utils._text import to_text
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from pytest import importorskip
-
-importorskip("omsdk.sdkfile")
-importorskip("omsdk.sdkcreds")
+try:
+    from omsdk.sdkfile import file_share_manager  # noqa: F401
+    HAS_OMSDK = True
+except ImportError:
+    HAS_OMSDK = False
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 
@@ -33,10 +34,10 @@ class TestConfigTimezone(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_configure_timezone_mock(self, mocker):
-        omsdk_mock = MagicMock()
+        idrac_mock_obj = MagicMock()
         idrac_obj = MagicMock()
-        omsdk_mock.file_share_manager = idrac_obj
-        omsdk_mock.config_mgr = idrac_obj
+        idrac_mock_obj.file_share_manager = idrac_obj
+        idrac_mock_obj.config_mgr = idrac_obj
         type(idrac_obj).create_share_obj = Mock(return_value="servicesstatus")
         type(idrac_obj).set_liason_share = Mock(return_value="servicestatus")
         return idrac_obj
@@ -102,6 +103,7 @@ class TestConfigTimezone(FakeAnsibleModule):
         assert result["msg"] == "Successfully configured the iDRAC time settings."
         assert result["changed"] is True
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_timezone_config_success_case01(self, idrac_connection_configure_timezone_mock,
                                                       idrac_default_args, idrac_file_manager_config_timesone_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -114,6 +116,7 @@ class TestConfigTimezone(FakeAnsibleModule):
         msg = self.module.run_idrac_timezone_config(idrac_connection_configure_timezone_mock, f_module)
         assert msg == {'changes_applicable': True, 'message': 'changes are applicable'}
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_timezone_config_success_case02(self, idrac_connection_configure_timezone_mock,
                                                       idrac_default_args, idrac_file_manager_config_timesone_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -131,6 +134,7 @@ class TestConfigTimezone(FakeAnsibleModule):
                        'changes_applicable': True,
                        'message': 'changes found to commit!'}
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_timezone_config_success_case03(self, idrac_connection_configure_timezone_mock,
                                                       idrac_default_args, idrac_file_manager_config_timesone_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -148,6 +152,7 @@ class TestConfigTimezone(FakeAnsibleModule):
                        'changed': False,
                        'changes_applicable': False}
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_timezone_config_success_case04(self, idrac_connection_configure_timezone_mock,
                                                       idrac_default_args, idrac_file_manager_config_timesone_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -165,6 +170,7 @@ class TestConfigTimezone(FakeAnsibleModule):
                        'changed': False,
                        'changes_applicable': False}
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_timezone_config_success_case05(self, idrac_connection_configure_timezone_mock,
                                                       idrac_default_args, idrac_file_manager_config_timesone_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -184,6 +190,7 @@ class TestConfigTimezone(FakeAnsibleModule):
                        'changed': False,
                        'changes_applicable': False}
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_timezone_config_failed_case01(self, idrac_connection_configure_timezone_mock,
                                                      idrac_default_args, idrac_file_manager_config_timesone_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -197,6 +204,7 @@ class TestConfigTimezone(FakeAnsibleModule):
         result = self.module.run_idrac_timezone_config(idrac_connection_configure_timezone_mock, f_module)
         assert result == idrac_connection_configure_timezone_mock.config_mgr.is_change_applicable()
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_timezone_config_failed_case02(self, idrac_connection_configure_timezone_mock,
                                                      idrac_default_args, idrac_file_manager_config_timesone_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -214,6 +222,7 @@ class TestConfigTimezone(FakeAnsibleModule):
                        'changed': False,
                        'changes_applicable': False}
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_timezone_config_failed_case03(self, idrac_connection_configure_timezone_mock,
                                                      idrac_default_args, idrac_file_manager_config_timesone_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -250,6 +259,7 @@ class TestConfigTimezone(FakeAnsibleModule):
             result = self._run_module(idrac_default_args)
         assert 'msg' in result
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_timezone_config(self, mocker, idrac_default_args,
                                        idrac_connection_configure_timezone_mock,
                                        idrac_file_manager_config_timesone_mock):

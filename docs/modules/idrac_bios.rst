@@ -22,7 +22,6 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- omsdk \>= 1.2.490
 - python \>= 3.9.6
 
 
@@ -190,7 +189,6 @@ Notes
 -----
 
 .. note::
-   - omsdk is required to be installed only for \ :emphasis:`boot\_sources`\  operation.
    - This module requires 'Administrator' privilege for \ :emphasis:`idrac\_user`\ .
    - Run this module from a system that has direct access to Dell iDRAC.
    - This module supports both IPv4 and IPv6 address for \ :emphasis:`idrac\_ip`\ .

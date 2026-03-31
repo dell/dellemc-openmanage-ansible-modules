@@ -5,7 +5,7 @@
     idrac_user: "{{ username }}"
     idrac_password: "{{ password}}"
 
-- name: Check if module is calling omsdk
+- name: Check if module is using legacy idrac
   ansible.builtin.include_tasks:
     ../../../../tests/integration/targets/idrac_system_info/tests/_check_firmware_version_supported.yml
 

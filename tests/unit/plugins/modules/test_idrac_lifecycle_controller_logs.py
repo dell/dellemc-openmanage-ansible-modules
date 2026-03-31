@@ -19,10 +19,11 @@ from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from io import StringIO
 from ansible.module_utils._text import to_text
-from pytest import importorskip
-
-importorskip("omsdk.sdkfile")
-importorskip("omsdk.sdkcreds")
+try:
+    from omsdk.sdkfile import file_share_manager  # noqa: F401
+    HAS_OMSDK = True
+except ImportError:
+    HAS_OMSDK = False
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 EXPORT_LOGS = 'idrac_lifecycle_controller_logs.run_export_lc_logs'
@@ -34,10 +35,10 @@ class TestExportLcLogs(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_export_lc_logs_mock(self, mocker):
-        omsdk_mock = MagicMock()
+        idrac_mock_obj = MagicMock()
         idrac_obj = MagicMock()
-        omsdk_mock.file_share_manager = idrac_obj
-        omsdk_mock.log_mgr = idrac_obj
+        idrac_mock_obj.file_share_manager = idrac_obj
+        idrac_mock_obj.log_mgr = idrac_obj
         return idrac_obj
 
     @pytest.fixture
@@ -124,6 +125,7 @@ class TestExportLcLogs(FakeAnsibleModule):
         assert 'msg' in result
 
     @pytest.mark.parametrize("args_update", [{"share_user": "share@user"}, {"share_user": "shareuser"}, {"share_user": "share\\user"}])
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_get_user_credentials(self, args_update, idrac_connection_export_lc_logs_mock, idrac_default_args, idrac_file_manager_export_lc_logs_mock, mocker):
         idrac_default_args.update({"share_name": "sharename",
                                    "share_password": "sharepassword", "job_wait": True})
@@ -137,6 +139,7 @@ class TestExportLcLogs(FakeAnsibleModule):
         share = self.module.get_user_credentials(f_module)
         assert share.IsValid is True
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_export_lc_logs(self, idrac_connection_export_lc_logs_mock, idrac_default_args, idrac_file_manager_export_lc_logs_mock, mocker):
         idrac_default_args.update({"idrac_port": 443, "share_name": "sharename", "share_user": "share@user",
                                    "share_password": "sharepassword", "job_wait": True})

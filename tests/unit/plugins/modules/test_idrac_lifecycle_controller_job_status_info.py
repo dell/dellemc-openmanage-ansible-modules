@@ -22,10 +22,6 @@ from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from io import StringIO
 from ansible.module_utils._text import to_text
-from pytest import importorskip
-
-importorskip("omsdk.sdkfile")
-importorskip("omsdk.sdkcreds")
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 JOB_MEMBERS = [
@@ -118,17 +114,17 @@ class TestLcJobStatus(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_mock(self, mocker):
-        omsdk_mock = MagicMock()
+        idrac_mock_obj = MagicMock()
         idrac_obj = MagicMock()
-        omsdk_mock.job_mgr = idrac_obj
+        idrac_mock_obj.job_mgr = idrac_obj
         type(idrac_obj).get_job_status = Mock(return_value="job_id")
         return idrac_obj
 
     @pytest.fixture
     def idrac_lc_job_status_info_mock(self):
-        omsdk_mock = MagicMock()
+        idrac_mock_obj = MagicMock()
         idrac_obj = MagicMock()
-        omsdk_mock.get_entityjson = idrac_obj
+        idrac_mock_obj.get_entityjson = idrac_obj
         type(idrac_obj).get_json_device = Mock(return_value="msg")
         return idrac_obj
 
@@ -201,7 +197,7 @@ class TestLcJobStatus(FakeAnsibleModule):
             idrac_mock,
             mocker):
         idrac_default_args.update({"job_id": "job_id"})
-        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_job_status_info.IDRACFirmwareInfo.is_omsdk_required",
+        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_job_status_info.IDRACFirmwareInfo.is_legacy_idrac",
                      return_value=False)
         idrac_mock.invoke_request.return_value.status_code = 200
         response1 = MagicMock()
@@ -222,7 +218,7 @@ class TestLcJobStatus(FakeAnsibleModule):
             idrac_mock,
             mocker):
         idrac_default_args.update({"job_id": "job_id"})
-        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_job_status_info.IDRACFirmwareInfo.is_omsdk_required",
+        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_job_status_info.IDRACFirmwareInfo.is_legacy_idrac",
                      return_value=False)
         idrac_mock.invoke_request.return_value.status_code = 200
         response1 = "Job ID is invalid"

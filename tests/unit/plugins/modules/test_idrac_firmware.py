@@ -22,10 +22,11 @@ from unittest.mock import MagicMock, Mock
 from io import StringIO
 from ansible.module_utils._text import to_text
 from ansible.module_utils.six.moves.urllib.parse import ParseResult
-from pytest import importorskip
-
-importorskip("omsdk.sdkfile")
-importorskip("omsdk.sdkcreds")
+try:
+    from omsdk.sdkfile import file_share_manager  # noqa: F401
+    HAS_OMSDK = True
+except ImportError:
+    HAS_OMSDK = False
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 CATALOG = "Catalog.xml"
@@ -47,9 +48,9 @@ class TestidracFirmware(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_firmware_update_mock(self):
-        omsdk_mock = MagicMock()
+        idrac_mock_obj = MagicMock()
         idrac_obj = MagicMock()
-        omsdk_mock.update_mgr = idrac_obj
+        idrac_mock_obj.update_mgr = idrac_obj
         idrac_obj.update_from_repo = Mock(return_value={
             "update_status": {
                 "job_details": {
@@ -73,9 +74,9 @@ class TestidracFirmware(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_firmware_job_mock(self, mocker):
-        omsdk_mock = MagicMock()
+        idrac_mock_obj = MagicMock()
         idrac_obj = MagicMock()
-        omsdk_mock.job_mgr = idrac_obj
+        idrac_mock_obj.job_mgr = idrac_obj
         idrac_obj.get_job_status_redfish = Mock(return_value={
             "update_status": {
                 "job_details": {
@@ -173,7 +174,8 @@ class TestidracFirmware(FakeAnsibleModule):
         assert result[1]
         assert result[2]
 
-    def test_update_firmware_url_omsdk(self, idrac_connection_firmware_mock, idrac_default_args, mocker):
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
+    def test_update_firmware_url_legacy(self, idrac_connection_firmware_mock, idrac_default_args, mocker):
         idrac_default_args.update({"share_name": DELL_SHARE, "catalog_file_name": CATALOG,
                                    "share_user": "shareuser", "share_password": SHARE_PWD,
                                    "share_mnt": "sharmnt", "reboot": True, "job_wait": False, "ignore_cert_warning": True,
@@ -187,11 +189,12 @@ class TestidracFirmware(FakeAnsibleModule):
         f_module = self.get_module_mock(params=idrac_default_args)
         payload = {"ApplyUpdate": "True", "CatalogFile": CATALOG, "IgnoreCertWarning": "On",
                    "RebootNeeded": True, "UserName": "username", "Password": USER_PWD}
-        result = self.module.update_firmware_url_omsdk(f_module, idrac_connection_firmware_mock,
+        result = self.module.update_firmware_url_legacy(f_module, idrac_connection_firmware_mock,
                                                        DELL_SHARE, CATALOG, True, True, True, True, payload)
         assert result[0] == {"InstanceID": "JID_12345678"}
 
-    def test_update_firmware_url_omsdk_success_case02(self, idrac_connection_firmware_mock, idrac_default_args,
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
+    def test_update_firmware_url_legacy_success_case02(self, idrac_connection_firmware_mock, idrac_default_args,
                                                       mocker, idrac_connection_firmware_redfish_mock):
         idrac_default_args.update({"share_name": DELL_SHARE, "catalog_file_name": CATALOG,
                                    "share_user": "shareuser", "share_password": SHARE_PWD,
@@ -218,11 +221,12 @@ class TestidracFirmware(FakeAnsibleModule):
         }
         payload = {"ApplyUpdate": "True", "CatalogFile": CATALOG, "IgnoreCertWarning": "On", "RebootNeeded": True,
                    "UserName": "username", "Password": USER_PWD}
-        result = self.module.update_firmware_url_omsdk(f_module, idrac_connection_firmware_mock,
+        result = self.module.update_firmware_url_legacy(f_module, idrac_connection_firmware_mock,
                                                        DELL_SHARE, CATALOG, True, True, True,
                                                        False, payload)
         assert result == ({'job_details': {'Data': {'GetRepoBasedUpdateList_OUTPUT': {'Message': [{}]}}}}, {})
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_message_verification(self, idrac_connection_firmware_mock, idrac_connection_firmware_redfish_mock,
                                   idrac_default_args, mocker):
         idrac_default_args.update({"share_name": DELL_SHARE, "catalog_file_name": CATALOG,
@@ -235,32 +239,32 @@ class TestidracFirmware(FakeAnsibleModule):
         idrac_connection_firmware_redfish_mock.success = True
         idrac_connection_firmware_redfish_mock.json_data = {"FirmwareVersion": "2.70"}
         f_module = self.get_module_mock(params=idrac_default_args)
-        result = self.module.update_firmware_omsdk(idrac_connection_firmware_mock, f_module)
+        result = self.module.update_firmware_legacy(idrac_connection_firmware_mock, f_module)
         assert result['update_msg'] == "Successfully fetched the applicable firmware update package list."
         idrac_default_args.update({"apply_update": True, "reboot": False, "job_wait": False})
         f_module = self.get_module_mock(params=idrac_default_args)
-        result = self.module.update_firmware_omsdk(idrac_connection_firmware_mock, f_module)
+        result = self.module.update_firmware_legacy(idrac_connection_firmware_mock, f_module)
         assert result['update_msg'] == "Successfully triggered the job to stage the firmware."
         idrac_default_args.update({"apply_update": True, "reboot": False, "job_wait": True})
         f_module = self.get_module_mock(params=idrac_default_args)
-        result = self.module.update_firmware_omsdk(idrac_connection_firmware_mock, f_module)
+        result = self.module.update_firmware_legacy(idrac_connection_firmware_mock, f_module)
         assert result['update_msg'] == "Successfully staged the applicable firmware update packages."
         idrac_default_args.update({"apply_update": True, "reboot": False, "job_wait": True})
-        mocker.patch(MODULE_PATH + "idrac_firmware.update_firmware_url_omsdk",
+        mocker.patch(MODULE_PATH + "idrac_firmware.update_firmware_url_legacy",
                      return_value=({"Status": "Success"}, {"PackageList": []}))
         mocker.patch(MODULE_PATH + CONVERT_XML_JSON, return_value=({}, True, True))
         f_module = self.get_module_mock(params=idrac_default_args)
-        result = self.module.update_firmware_omsdk(idrac_connection_firmware_mock, f_module)
+        result = self.module.update_firmware_legacy(idrac_connection_firmware_mock, f_module)
         assert result['update_msg'] == "Successfully staged the applicable firmware update packages with error(s)."
         idrac_default_args.update({"apply_update": True, "reboot": True, "job_wait": True})
         mocker.patch(MODULE_PATH + CONVERT_XML_JSON, return_value=({}, True, False))
         f_module = self.get_module_mock(params=idrac_default_args)
-        result = self.module.update_firmware_omsdk(idrac_connection_firmware_mock, f_module)
+        result = self.module.update_firmware_legacy(idrac_connection_firmware_mock, f_module)
         assert result['update_msg'] == SUCCESS_MSG
         idrac_default_args.update({"apply_update": True, "reboot": True, "job_wait": True})
         mocker.patch(MODULE_PATH + CONVERT_XML_JSON, return_value=({}, True, True))
         f_module = self.get_module_mock(params=idrac_default_args)
-        result = self.module.update_firmware_omsdk(idrac_connection_firmware_mock, f_module)
+        result = self.module.update_firmware_legacy(idrac_connection_firmware_mock, f_module)
         assert result['update_msg'] == "Firmware update failed."
 
     def test_update_firmware_redfish_success_case03(self, idrac_connection_firmware_mock,
@@ -368,7 +372,7 @@ class TestidracFirmware(FakeAnsibleModule):
         json_str = to_text(json.dumps({"data": "out"}))
         idrac_connection_firmware_redfish_mock.success = True
         idrac_connection_firmware_redfish_mock.json_data = {"FirmwareVersion": "2.70"}
-        mocker.patch(MODULE_PATH + 'idrac_firmware.update_firmware_omsdk',
+        mocker.patch(MODULE_PATH + 'idrac_firmware.update_firmware_legacy',
                      side_effect=HTTPError('https://testhost.com', 400, 'http error message',
                                            {"accept-type": "application/json"},
                                            StringIO(json_str)))
@@ -499,7 +503,8 @@ class TestidracFirmware(FakeAnsibleModule):
         result = self.module.get_error_syslog(idrac_connection_firm_mock, "", "/api/service")
         assert result[0]
 
-    def test_update_firmware_omsdk(self, idrac_default_args, idrac_connection_firmware_redfish_mock, mocker):
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
+    def test_update_firmware_legacy(self, idrac_default_args, idrac_connection_firmware_redfish_mock, mocker):
         idrac_default_args.update({"share_name": "sharename", "catalog_file_name": CATALOG,
                                    "share_user": "sharename", "share_password": SHARE_PWD, "ignore_cert_warning": False,
                                    "share_mnt": "sharmnt", "reboot": True, "job_wait": True, "apply_update": True})
@@ -509,26 +514,26 @@ class TestidracFirmware(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'idrac_firmware._convert_xmltojson', return_value=([], True, False))
         status = {"job_details": {"Data": {"GetRepoBasedUpdateList_OUTPUT": {"PackageList": []}}}, "JobStatus": "Completed"}
         idrac_connection_firmware_redfish_mock.update_mgr.update_from_repo.return_value = status
-        result = self.module.update_firmware_omsdk(idrac_connection_firmware_redfish_mock, f_module)
+        result = self.module.update_firmware_legacy(idrac_connection_firmware_redfish_mock, f_module)
         assert result['update_msg'] == 'Successfully triggered the job to update the firmware.'
         f_module.check_mode = True
         with pytest.raises(Exception) as ex:
-            self.module.update_firmware_omsdk(idrac_connection_firmware_redfish_mock, f_module)
+            self.module.update_firmware_legacy(idrac_connection_firmware_redfish_mock, f_module)
         assert ex.value.args[0] == "Changes found to commit!"
         status.update({"JobStatus": "InProgress"})
         with pytest.raises(Exception) as ex:
-            self.module.update_firmware_omsdk(idrac_connection_firmware_redfish_mock, f_module)
+            self.module.update_firmware_legacy(idrac_connection_firmware_redfish_mock, f_module)
         assert ex.value.args[0] == "Unable to complete the firmware repository download."
         status = {"job_details": {"Data": {}, "PackageList": []}, "JobStatus": "Completed", "Status": "Failed"}
         idrac_connection_firmware_redfish_mock.update_mgr.update_from_repo.return_value = status
         with pytest.raises(Exception) as ex:
-            self.module.update_firmware_omsdk(idrac_connection_firmware_redfish_mock, f_module)
+            self.module.update_firmware_legacy(idrac_connection_firmware_redfish_mock, f_module)
         assert ex.value.args[0] == "No changes found to commit!"
         idrac_default_args.update({"apply_update": False})
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
         with pytest.raises(Exception) as ex:
-            self.module.update_firmware_omsdk(idrac_connection_firmware_redfish_mock, f_module)
+            self.module.update_firmware_legacy(idrac_connection_firmware_redfish_mock, f_module)
         assert ex.value.args[0] == "Unable to complete the repository update."
 
     @pytest.mark.parametrize("exc_type", [RuntimeError, URLError, SSLValidationError, ConnectionError, KeyError,

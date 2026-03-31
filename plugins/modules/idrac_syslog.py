@@ -35,7 +35,6 @@ options:
     type: str
     default: Enabled
 requirements:
-  - "omsdk >= 1.2.488"
   - "python >= 3.9.6"
 author:
   - "Felix Stephen (@felixs88)"
@@ -136,37 +135,9 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
-try:
-    from omsdk.sdkfile import file_share_manager
-    from omsdk.sdkcreds import UserCredentials
-except ImportError:
-    pass
-
 
 def run_setup_idrac_syslog(idrac, module):
-    idrac.use_redfish = True
-    upd_share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
-                                                    mount_point=module.params['share_mnt'],
-                                                    isFolder=True,
-                                                    creds=UserCredentials(
-                                                        module.params['share_user'],
-                                                        module.params['share_password']))
-    if not upd_share.IsValid:
-        module.fail_json(msg="Unable to access the share. Ensure that the share name, "
-                             "share mount, and share credentials provided are correct.")
-    idrac.config_mgr.set_liason_share(upd_share)
-    if module.check_mode:
-        if module.params['syslog'] == 'Enabled':
-            idrac.config_mgr.enable_syslog(apply_changes=False)
-        elif module.params['syslog'] == 'Disabled':
-            idrac.config_mgr.disable_syslog(apply_changes=False)
-        msg = idrac.config_mgr.is_change_applicable()
-    else:
-        if module.params['syslog'] == 'Enabled':
-            msg = idrac.config_mgr.enable_syslog()
-        elif module.params['syslog'] == 'Disabled':
-            msg = idrac.config_mgr.disable_syslog()
-    return msg
+    raise NotImplementedError("Legacy omsdk support has been removed.")
 
 
 def main():

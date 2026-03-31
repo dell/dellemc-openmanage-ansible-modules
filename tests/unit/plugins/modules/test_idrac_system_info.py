@@ -17,14 +17,10 @@ import json
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_system_info
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from unittest.mock import MagicMock, Mock
-from pytest import importorskip
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from io import StringIO
 from ansible.module_utils._text import to_text
-
-importorskip("omsdk.sdkfile")
-importorskip("omsdk.sdkcreds")
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 
@@ -33,9 +29,9 @@ class TestSystemInventory(FakeAnsibleModule):
     module = idrac_system_info
 
     def create_idrac_mock(self):
-        omsdk_mock = MagicMock()
+        idrac_mock_obj = MagicMock()
         idrac_obj = MagicMock()
-        omsdk_mock.get_entityjson = idrac_obj
+        idrac_mock_obj.get_entityjson = idrac_obj
         type(idrac_obj).get_json_device = Mock(return_value="msg")
         return idrac_obj
 
@@ -68,7 +64,7 @@ class TestSystemInventory(FakeAnsibleModule):
                                                    idrac_redfish_system_info_connection_mock,
                                                    idrac_default_args,
                                                    mocker):
-        mocker.patch(MODULE_PATH + "idrac_system_info.IDRACFirmwareInfo.is_omsdk_required",
+        mocker.patch(MODULE_PATH + "idrac_system_info.IDRACFirmwareInfo.is_legacy_idrac",
                      return_value=True)
         idrac_redfish_system_info_mock.get_entityjson.return_value = None
         idrac_redfish_system_info_connection_mock.get_json_device.return_value = ""
@@ -107,7 +103,7 @@ class TestSystemInventory(FakeAnsibleModule):
     def test_idrac_system_info_main_exception_handling_case(self, exc_type, idrac_system_info_connection_mock,
                                                             idrac_default_args,
                                                             mocker):
-        mocker.patch(MODULE_PATH + "idrac_system_info.IDRACFirmwareInfo.is_omsdk_required",
+        mocker.patch(MODULE_PATH + "idrac_system_info.IDRACFirmwareInfo.is_legacy_idrac",
                      return_value=True)
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type not in [HTTPError, SSLValidationError]:

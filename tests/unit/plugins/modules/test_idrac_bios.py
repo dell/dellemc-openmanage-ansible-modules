@@ -58,9 +58,9 @@ class TestConfigBios(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_configure_bios_mock(self):
-        omsdk_mock = MagicMock()
+        idrac_mock_obj = MagicMock()
         idrac_obj = MagicMock()
-        omsdk_mock.config_mgr = idrac_obj
+        idrac_mock_obj.config_mgr = idrac_obj
         return idrac_obj
 
     @pytest.fixture

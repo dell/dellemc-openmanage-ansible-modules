@@ -17,7 +17,7 @@
     path_1: '../../../../../../integration/targets'
     path_2: '/idrac_system_info/tests/_check_firmware_version_supported.yml'
 
-- name: Check if module is calling omsdk
+- name: Check if module is using legacy iDRAC
   ansible.builtin.include_tasks: "{{ path_1 }}{{ path_2 }}"
 
 - block:
@@ -38,7 +38,7 @@
           - "firmware_version_from_api_response >= firmware_version_expected"
         fail_msg: "Firmware version is not supported"
       when:
-        - is_omsdk_required | bool
+        - is_legacy_idrac | bool
 
     - name: Prerequisite - Eject virtual media from RFS1
       dellemc.openmanage.idrac_virtual_media:
@@ -92,13 +92,13 @@
         url_1: "iDRAC.Embedded.1/VirtualMedia/CD"
         url: "{{ url_0 }}/{{ url_1 }}"
       when:
-        - is_omsdk_required | bool
+        - is_legacy_idrac | bool
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
         url: "{{ uri_data_1 }}"
       when:
-        - not is_omsdk_required | bool
+        - not is_legacy_idrac | bool
 
     - name: Verify task status - Insertion of virtual media to RFS1 from NFS
         share by providing media_type and index (Normal mode)

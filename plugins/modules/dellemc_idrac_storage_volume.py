@@ -127,7 +127,6 @@ options:
     choices: [None, Fast]
 
 requirements:
-  - "omsdk >= 1.2.488"
   - "python >= 3.9.6"
 author: "Felix Stephen (@felixs88)"
 notes:
@@ -259,67 +258,25 @@ import tempfile
 import copy
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
-try:
-    from omdrivers.types.iDRAC.RAID import RAIDactionTypes, RAIDdefaultReadPolicyTypes, RAIDinitOperationTypes, \
-        DiskCachePolicyTypes, RAIDresetConfigTypes
-    from omsdk.sdkfile import file_share_manager
-except ImportError:
-    pass
-
 
 def error_handling_for_negative_num(option, val):
     return "{0} cannot be a negative number or zero,got {1}".format(option, val)
 
 
 def set_liason_share(idrac, module):
-    idrac.use_redfish = True
-    share_name = tempfile.gettempdir() + os.sep
-    storage_share = file_share_manager.create_share_obj(share_path=share_name,
-                                                        isFolder=True)
-    set_liason = idrac.config_mgr.set_liason_share(storage_share)
-    if set_liason['Status'] == "Failed":
-        liason_data = set_liason.get('Data', set_liason)
-        module.fail_json(msg=liason_data.get('Message', "Failed to set Liason share"))
+    raise NotImplementedError("Legacy omsdk support has been removed.")
 
 
 def view_storage(idrac, module):
-    idrac.get_entityjson()
-    storage_status = idrac.config_mgr.RaidHelper.view_storage(controller=module.params["controller_id"],
-                                                              virtual_disk=module.params['volume_id'])
-    if storage_status['Status'] == 'Failed':
-        module.fail_json(msg="Failed to fetch storage details", storage_status=storage_status)
-    return storage_status
+    raise NotImplementedError("Legacy omsdk support has been removed.")
 
 
 def create_storage(idrac, module):
-    pd_filter = '((disk.parent.parent is Controller and ' \
-                'disk.parent.parent.FQDD._value == "{0}")' \
-        .format(module.params["controller_id"])
-    pd_filter += ' or (disk.parent is Controller and ' \
-                 'disk.parent.FQDD._value == "{0}"))' \
-        .format(module.params["controller_id"])
-
-    vd_values = []
-    if module.params['volumes'] is not None:
-        for each in module.params['volumes']:
-            mod_args = copy.deepcopy(module.params)
-            each_vd = multiple_vd_config(mod_args=mod_args,
-                                         each_vd=each, pd_filter=pd_filter)
-            vd_values.append(each_vd)
-    else:
-        each_vd = multiple_vd_config(mod_args=module.params,
-                                     pd_filter=pd_filter)
-        vd_values.append(each_vd)
-    storage_status = idrac.config_mgr.RaidHelper.new_virtual_disk(multiple_vd=vd_values,
-                                                                  apply_changes=not module.check_mode)
-    return storage_status
+    raise NotImplementedError("Legacy omsdk support has been removed.")
 
 
 def delete_storage(idrac, module):
-    names = [key.get("name") for key in module.params['volumes']]
-    storage_status = idrac.config_mgr.RaidHelper.delete_virtual_disk(vd_names=names,
-                                                                     apply_changes=not module.check_mode)
-    return storage_status
+    raise NotImplementedError("Legacy omsdk support has been removed.")
 
 
 def _validate_options(options):

@@ -34,9 +34,6 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
   * [Ansible Core >= 2.19.0 and 2.18.8](https://github.com/ansible/ansible) for iDRAC Modules
   * [Ansible Core = 2.19.0 and 2.18.8](https://github.com/ansible/ansible) for OME modules
   * Python >= 3.11.0
-  * To run the iDRAC modules, install OpenManage Python Software Development Kit (OMSDK) 
-  using either ```pip install omsdk --upgrade``` or ```pip install -r requirements.txt```. 
-  OMSDK can also be installed from [Dell OpenManage Python SDK](https://github.com/dell/omsdk)
   * Operating System
     * Red Hat Enterprise Linux (RHEL) 9.5 and 8.10
     * SUSE Linux Enterprise Server (SLES) 15 SP5 and 15 SP4

@@ -21,10 +21,11 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common im
 from unittest.mock import MagicMock
 from io import StringIO
 from ansible.module_utils._text import to_text
-from pytest import importorskip
-
-importorskip("omsdk.sdkfile")
-importorskip("omsdk.sdkcreds")
+try:
+    from omsdk.sdkfile import file_share_manager  # noqa: F401
+    HAS_OMSDK = True
+except ImportError:
+    HAS_OMSDK = False
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 
@@ -34,10 +35,10 @@ class TestSetupSyslog(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_setup_syslog_mock(self):
-        omsdk_mock = MagicMock()
+        idrac_mock_obj = MagicMock()
         idrac_obj = MagicMock()
-        omsdk_mock.file_share_manager = idrac_obj
-        omsdk_mock.config_mgr = idrac_obj
+        idrac_mock_obj.file_share_manager = idrac_obj
+        idrac_mock_obj.config_mgr = idrac_obj
         return idrac_obj
 
     @pytest.fixture
@@ -84,6 +85,7 @@ class TestSetupSyslog(FakeAnsibleModule):
         result = self._run_module(idrac_default_args)
         assert result['msg'] == "Successfully fetch the syslogs."
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_setup_idrac_syslog_success_case01(self, idrac_connection_setup_syslog_mock, idrac_default_args,
                                                    idrac_file_manager_mock):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
@@ -94,6 +96,7 @@ class TestSetupSyslog(FakeAnsibleModule):
         msg = self.module.run_setup_idrac_syslog(idrac_connection_setup_syslog_mock, f_module)
         assert msg == {'changes_applicable': True, 'message': 'changes are applicable'}
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_setup_idrac_syslog_success_case02(self, idrac_connection_setup_syslog_mock, idrac_default_args,
                                                    idrac_file_manager_mock):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
@@ -109,6 +112,7 @@ class TestSetupSyslog(FakeAnsibleModule):
                        'changes_applicable': True,
                        'message': 'changes found to commit!'}
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_setup_idrac_syslog_success_case03(self, idrac_connection_setup_syslog_mock, idrac_default_args,
                                                    idrac_file_manager_mock):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
@@ -124,6 +128,7 @@ class TestSetupSyslog(FakeAnsibleModule):
                        'changed': False,
                        'changes_applicable': True}
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_setup_idrac_syslog_success_case04(self, idrac_connection_setup_syslog_mock, idrac_default_args,
                                                    idrac_file_manager_mock):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
@@ -137,6 +142,7 @@ class TestSetupSyslog(FakeAnsibleModule):
         assert msg == {'Message': 'No Changes found to commit!', 'Status': 'Success',
                        'changed': False, 'changes_applicable': True}
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_setup_syslog_disable_case(self, idrac_connection_setup_syslog_mock, idrac_default_args,
                                            idrac_file_manager_mock):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
@@ -148,6 +154,7 @@ class TestSetupSyslog(FakeAnsibleModule):
         msg = self.module.run_setup_idrac_syslog(idrac_connection_setup_syslog_mock, f_module)
         assert msg == 'Disabled'
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_setup_syslog_enable_case(self, idrac_connection_setup_syslog_mock, idrac_default_args,
                                           idrac_file_manager_mock):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
@@ -159,6 +166,7 @@ class TestSetupSyslog(FakeAnsibleModule):
         msg = self.module.run_setup_idrac_syslog(idrac_connection_setup_syslog_mock, f_module)
         assert msg == "Enabled"
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_setup_idrac_syslog_failed_case01(self, idrac_connection_setup_syslog_mock, idrac_default_args,
                                                   idrac_file_manager_mock):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
@@ -170,6 +178,7 @@ class TestSetupSyslog(FakeAnsibleModule):
         result = self.module.run_setup_idrac_syslog(idrac_connection_setup_syslog_mock, f_module)
         assert result == idrac_connection_setup_syslog_mock.config_mgr.is_change_applicable()
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_setup_idrac_syslog_failed_case03(self, idrac_connection_setup_syslog_mock, idrac_default_args,
                                                   idrac_file_manager_mock):
         idrac_default_args.update(
@@ -207,6 +216,7 @@ class TestSetupSyslog(FakeAnsibleModule):
             result = self._run_module(idrac_default_args)
         assert 'msg' in result
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_setup_idrac_syslog_invalid_share(self, idrac_connection_setup_syslog_mock, idrac_default_args,
                                                   idrac_file_manager_mock, mocker):
         idrac_default_args.update(
@@ -235,6 +245,7 @@ class TestSetupSyslog(FakeAnsibleModule):
                 idrac_connection_setup_syslog_mock, f_module)
         assert exc.value.args[0] == "Unable to access the share. Ensure that the share name, share mount, and share credentials provided are correct."
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_setup_idrac_syslog_disabled(self, idrac_connection_setup_syslog_mock, idrac_default_args,
                                              idrac_file_manager_mock, mocker):
         idrac_default_args.update(

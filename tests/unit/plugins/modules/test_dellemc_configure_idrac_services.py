@@ -18,13 +18,14 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common im
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from unittest.mock import MagicMock, Mock
-from pytest import importorskip
 from ansible.module_utils._text import to_text
 import json
 from io import StringIO
-
-importorskip("omsdk.sdkfile")
-importorskip("omsdk.sdkcreds")
+try:
+    from omsdk.sdkfile import file_share_manager  # noqa: F401
+    HAS_OMSDK = True
+except ImportError:
+    HAS_OMSDK = False
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 
@@ -34,10 +35,10 @@ class TestConfigServices(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_configure_services_mock(self, mocker):
-        omsdk_mock = MagicMock()
+        idrac_mock_obj = MagicMock()
         idrac_obj = MagicMock()
-        omsdk_mock.file_share_manager = idrac_obj
-        omsdk_mock.config_mgr = idrac_obj
+        idrac_mock_obj.file_share_manager = idrac_obj
+        idrac_mock_obj.config_mgr = idrac_obj
         type(idrac_obj).create_share_obj = Mock(return_value="servicesstatus")
         type(idrac_obj).set_liason_share = Mock(return_value="servicestatus")
         return idrac_obj
@@ -100,6 +101,7 @@ class TestConfigServices(FakeAnsibleModule):
             self._run_module(idrac_default_args)
         assert ex.value.args[0]['msg'] == "Failed to configure the iDRAC services."
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_services_config_success_case01(self, idrac_connection_configure_services_mock,
                                                       idrac_default_args, idrac_file_manager_config_services_mock,
                                                       is_changes_applicable_mock_services):
@@ -117,6 +119,7 @@ class TestConfigServices(FakeAnsibleModule):
             self.module.run_idrac_services_config(idrac_connection_configure_services_mock, f_module)
         assert ex.value.args[0] == "Changes found to commit!"
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_services_config_success_case02(self, idrac_connection_configure_services_mock,
                                                       idrac_default_args, idrac_file_manager_config_services_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -134,6 +137,7 @@ class TestConfigServices(FakeAnsibleModule):
         msg = self.module.run_idrac_services_config(idrac_connection_configure_services_mock, f_module)
         assert msg == {'changes_applicable': True, 'message': 'changes found to commit!', 'Status': 'Success'}
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_services_config_success_case03(self, idrac_connection_configure_services_mock,
                                                       idrac_default_args, idrac_file_manager_config_services_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -152,6 +156,7 @@ class TestConfigServices(FakeAnsibleModule):
         assert msg == {'changes_applicable': False, 'Message': 'No changes found to commit!',
                        'changed': False, 'Status': 'Success'}
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_services_config_success_case04(self, idrac_connection_configure_services_mock,
                                                       idrac_default_args, idrac_file_manager_config_services_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -170,6 +175,7 @@ class TestConfigServices(FakeAnsibleModule):
         assert msg == {'changes_applicable': False, 'Message': 'No changes found to commit!',
                        'changed': False, 'Status': 'Success'}
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_services_config_success_case05(self, idrac_connection_configure_services_mock,
                                                       idrac_default_args, idrac_file_manager_config_services_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -190,6 +196,7 @@ class TestConfigServices(FakeAnsibleModule):
         assert msg == {'changes_applicable': False, 'Message': 'No changes found to commit!',
                        'changed': False, 'Status': 'Success'}
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_services_config_failed_case01(self, idrac_connection_configure_services_mock,
                                                      idrac_default_args, idrac_file_manager_config_services_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -206,6 +213,7 @@ class TestConfigServices(FakeAnsibleModule):
             self.module.run_idrac_services_config(idrac_connection_configure_services_mock, f_module)
         assert ex.value.args[0] == 'status failed in checking Data'
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_services_config_failed_case02(self, idrac_connection_configure_services_mock,
                                                      idrac_default_args, idrac_file_manager_config_services_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -224,6 +232,7 @@ class TestConfigServices(FakeAnsibleModule):
         assert msg == {'changes_applicable': False, 'Message': 'No changes were applied',
                        'changed': False, 'Status': 'failed'}
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_services_config_failed_case03(self, idrac_connection_configure_services_mock,
                                                      idrac_default_args, idrac_file_manager_config_services_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -275,6 +284,7 @@ class TestConfigServices(FakeAnsibleModule):
             result = self._run_module(idrac_default_args)
         assert 'msg' in result
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_services_config_invalid_share(self, mocker, idrac_default_args, idrac_connection_configure_services_mock,
                                                      idrac_file_manager_config_services_mock):
         f_module = self.get_module_mock(params=idrac_default_args)
@@ -286,6 +296,7 @@ class TestConfigServices(FakeAnsibleModule):
             self.module.run_idrac_services_config(idrac_connection_configure_services_mock, f_module)
         assert exc.value.args[0] == "Unable to access the share. Ensure that the share name, share mount, and share credentials provided are correct."
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_services_config_Error(self, mocker, idrac_default_args, idrac_connection_configure_services_mock,
                                              idrac_file_manager_config_services_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
@@ -307,6 +318,7 @@ class TestConfigServices(FakeAnsibleModule):
             self.module.run_idrac_services_config(idrac_connection_configure_services_mock, f_module)
         assert exc.value.args[0] == "Key Error Expected"
 
+    @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
     def test_run_idrac_services_config_extra_coverage(self, mocker, idrac_default_args, idrac_connection_configure_services_mock,
                                                       idrac_file_manager_config_services_mock):
         idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,

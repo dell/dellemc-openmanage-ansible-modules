@@ -14,11 +14,11 @@
   register: uri_data
   ignore_errors: true
 
-- name: Set OMSDK is required
+- name: Set legacy iDRAC flag
   ansible.builtin.set_fact:
-    is_omsdk_required: true
+    is_legacy_idrac: true
 
-- name: Set OMSDK is not required
+- name: Set legacy iDRAC flag
   ansible.builtin.set_fact:
-    is_omsdk_required: false
+    is_legacy_idrac: false
   when: uri_data.status == 200

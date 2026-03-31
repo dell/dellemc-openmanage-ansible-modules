@@ -24,7 +24,6 @@ extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options
 
 requirements:
-    - "omsdk >= 1.2.488"
     - "python >= 3.9.6"
 author:
   - "Rajeev Arakkal (@rajeevarakkal)"
@@ -187,7 +186,7 @@ def main():
                 "Video": "",
                 "iDRAC": ""
             }
-            if not firmware_obj.is_omsdk_required():
+            if not firmware_obj.is_legacy_idrac():
                 chassis_sensors = IDRACChassisSensors(idrac)
                 system_info_dict["BIOS"] = IDRACBiosInfo(idrac).get_bios_system_info()
                 system_info_dict["CPU"] = IDRACCpuInfo(idrac).get_cpu_system_info()

@@ -18,7 +18,7 @@
     path_1: '../../../../../../integration/targets'
     path_2: '/idrac_system_info/tests/_check_firmware_version_supported.yml'
 
-- name: Check if module is calling omsdk
+- name: Check if module is using legacy iDRAC
   ansible.builtin.include_tasks: "{{ path_1 }}{{ path_2 }}"
 
 - block:
@@ -38,7 +38,7 @@
           - "firmware_version_from_api_response >= firmware_version_expected"
         fail_msg: "Firmware version is not supported"
       when:
-        - is_omsdk_required | bool
+        - is_legacy_idrac | bool
 
     - name: Prerequisite - Eject virtual media from RFS1
       dellemc.openmanage.idrac_virtual_media: &idrac_virtual_media_1
