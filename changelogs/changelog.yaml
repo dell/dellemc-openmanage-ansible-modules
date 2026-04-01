@@ -2591,4 +2591,4 @@ releases:
           uplink is modified.
         - Formal qualification of module ome_smart_fabric_info for Ansible
           Core version 2.19 is still pending.
-      release_date: '2026-03-17'
+      release_date: '2026-04-01'
