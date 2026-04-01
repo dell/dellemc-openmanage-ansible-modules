@@ -98,6 +98,6 @@ As Red Hat Ansible Certified Content, this collection is entitled to support thr
 
 Alternatively, the support is available through [GitHub Issues](https://github.com/dell/dellemc-openmanage-ansible-modules/) or at [Dell Community forum](https://www.dell.com/community/Automation/bd-p/Automation).
 
-
 ## License Information
+
 Dell OpenManage Ansible Modules is 100% open source and community-driven. All components are available under [GPL-3.0-only](https://www.gnu.org/licenses/gpl-3.0.html) on GitHub.
