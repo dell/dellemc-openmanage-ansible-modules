@@ -73,26 +73,18 @@
       dellemc.openmanage.omevv_firmware_repository_profile:
         <<: *delete_profile
       register: idempotence_result_delete
-      ignore_errors: true
-
-    - name: Set expected message for assertion
-      ansible.builtin.set_fact:
-        expected_msg: "Unable to delete the profile temp_profile because the
-         profile name is invalid. Enter a valid profile name and
-         retry the operation."
 
     - name: Verify task status - Delete a profile (Idempotence)
       ansible.builtin.assert:
         that:
           - not idempotence_result_delete.changed
-          - idempotence_result_delete.msg == expected_msg
+          - idempotence_result_delete.msg == "No changes found to be applied."
 
   always:
     - name: Cleanup
       dellemc.openmanage.omevv_firmware_repository_profile:
         name: "temp_profile"
         state: absent
-      ignore_errors: true
       no_log: true
 
   module_defaults:
