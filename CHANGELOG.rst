@@ -10,13 +10,13 @@ v10.0.2
 Release Summary
 ---------------
 
-'The OpenManage Enterprise and OpenManage Enterprise Integration for VMware vCenter modules are now compatible with Ansible Core version 2.20. This release also adds support for OpenManage Enterprise version 4.5.'
+'The OpenManage Enterprise and OpenManage Enterprise Integration for VMware vCenter modules are now compatible with Ansible Core version 2.20. This release also adds support for OpenManage Enterprise version 4.4 and 4.5.'
 
-Major Changes
+Minor Changes
 -------------
 
 - The OpenManage Enterprise, OpenManage Enterprise Modular and OpenManage Enterprise Integration for VMware vCenter modules are now compatible with Ansible Core version 2.20.
-- Added support for OpenManage Enterprise version 4.5.
+- Added support for OpenManage Enterprise version 4.4 and 4.5.
 
 Bugfixes
 --------
