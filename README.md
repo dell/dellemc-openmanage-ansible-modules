@@ -17,7 +17,7 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
   * [Committer Guide](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/COMMITTER_GUIDE.md)
   * [Contributing Guide](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/CONTRIBUTING.md)
   * [Maintainers](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/MAINTAINERS.md)
-  * [Support](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/SUPPORT.md)
+  * [Support](#Support)
   * [Security](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/SECURITY.md)
   * [Documentation](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/DOCUMENTATION.md)
   * [Execution Environment](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/EXECUTION_ENVIRONMENT.md)
@@ -95,6 +95,12 @@ For release notes, see [CHANGELOG.rst](https://github.com/dell/dellemc-openmanag
 
 ## Related Information
 Refer the [Table of Contents](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/README.md#table-of-contents) for any other information on the Dell OpenManage Ansible Modules documentations.
+
+## Support
+
+As Red Hat Ansible Certified Content, this collection is entitled to support through the Ansible Automation Platform (AAP) using the **Create issue** button on the top right corner. If a support case cannot be opened with Red Hat and the collection has been obtained either from Galaxy or GitHub, there may be community help available on [GitHub Issues](https://github.com/dell/ansible-powerscale/issues) or the [Dell Community forum](https://www.dell.com/community/Automation/bd-p/Automation).
+
+For additional information, refer to the [Dell support policy](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/SUPPORT.md).
 
 ## License Information
 Dell OpenManage Ansible Modules is 100% open source and community-driven. All components are available under [GPL-3.0-only](https://www.gnu.org/licenses/gpl-3.0.html) on GitHub.
