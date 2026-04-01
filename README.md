@@ -85,10 +85,6 @@ For more information about Unit testing, see [Unit testing](https://github.com/d
 
 For more information about Integration testing, see [Integration testing](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/tests/integration/README.md).
 
-## Support
-
-For support, see [SUPPORT.md](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/SUPPORT.md).
-
 ## Release Notes
 
 For release notes, see [CHANGELOG.rst](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/CHANGELOG.rst).
@@ -98,7 +94,7 @@ Refer the [Table of Contents](https://github.com/dell/dellemc-openmanage-ansible
 
 ## Support
 
-As Red Hat Ansible Certified Content, this collection is entitled to support through the Ansible Automation Platform (AAP) using the **Create issue** button on the top right corner. If a support case cannot be opened with Red Hat and the collection has been obtained either from Galaxy or GitHub, there may be community help available on [GitHub Issues](https://github.com/dell/ansible-powerscale/issues) or the [Dell Community forum](https://www.dell.com/community/Automation/bd-p/Automation).
+As Red Hat Ansible Certified Content, this collection is entitled to support through the Ansible Automation Platform (AAP) using the **Create issue** button on the top right corner. If a support case cannot be opened with Red Hat and the collection has been obtained either from Galaxy or GitHub, there may be community help available on [GitHub Issues]([https://github.com/dell/ansible-powerscale/issues](https://github.com/dell/dellemc-openmanage-ansible-modules/issues)) or the [Dell Community forum](https://www.dell.com/community/Automation/bd-p/Automation).
 
 For additional information, refer to the [Dell support policy](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/SUPPORT.md).
 
