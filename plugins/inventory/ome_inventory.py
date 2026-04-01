@@ -108,7 +108,7 @@ class InventoryModule(BaseInventoryPlugin):
                          "password": self.get_option("password"), "port": port, "validate_certs": validate_certs}
         if "ca_path" in self.config:
             module_params.update({"ca_path": self.get_option("ca_path")})
-        with RestOME(module_params, req_session=False) as ome:
+        with RestOME(module_params, req_session=True) as ome:
             all_group_data = get_all_data_with_pagination(ome, GROUP_API)
         return all_group_data
 
@@ -169,7 +169,7 @@ class InventoryModule(BaseInventoryPlugin):
             "validate_certs": validate_certs}
         if "ca_path" in self.config:
             module_params.update({"ca_path": self.get_option("ca_path")})
-        with RestOME(module_params, req_session=False) as ome:
+        with RestOME(module_params, req_session=True) as ome:
             device_resp = get_all_data_with_pagination(ome, device_host_uri)
             device_data = device_resp.get("report_list", [])
             if device_data is not None:
@@ -185,7 +185,7 @@ class InventoryModule(BaseInventoryPlugin):
                          "password": self.get_option("password"), "port": port, "validate_certs": validate_certs}
         if "ca_path" in self.config:
             module_params.update({"ca_path": self.get_option("ca_path")})
-        with RestOME(module_params, req_session=False) as ome:
+        with RestOME(module_params, req_session=True) as ome:
             for gdata in group_data:
                 group_name = gdata["Name"]
                 subgroup_uri = gdata["SubGroups@odata.navigationLink"].strip("/api/")
