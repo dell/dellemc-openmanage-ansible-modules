@@ -94,7 +94,7 @@ Refer the [Table of Contents](https://github.com/dell/dellemc-openmanage-ansible
 
 ## Support
 
-The support is available through [GitHub Issues]([https://github.com/dell/dellemc-openmanage-ansible-modules/](https://github.com/dell/dellemc-openmanage-ansible-modules/issues)) or at [Dell Community forum](https://www.dell.com/community/Automation/bd-p/Automation).
+The support is available through [GitHub Issues](https://github.com/dell/dellemc-openmanage-ansible-modules/issues) or at [Dell Community forum](https://www.dell.com/community/Automation/bd-p/Automation).
 
 As Red Hat Ansible Certified Content, this collection is entitled to support through the Ansible Automation Platform (AAP) using the **Create issue** button on the top right corner. If a support case cannot be opened with Red Hat and the collection has been obtained either from Galaxy or GitHub, community help may be obtained on the [Ansible Forum](https://forum.ansible.com/).
 
