@@ -28,7 +28,6 @@
 
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
-import os
 from ansible.module_utils.common.parameters import env_fallback
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import compress_ipv6
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI

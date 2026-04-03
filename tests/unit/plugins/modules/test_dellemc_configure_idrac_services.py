@@ -364,3 +364,8 @@ class TestConfigServices(FakeAnsibleModule):
         assert resp['msg'] == "Successfully configured the iDRAC services settings."
         assert resp['service_status'].get('Status') == "Success"
         assert resp['service_status'].get('Message') == "No changes found"
+
+    def test_run_idrac_services_config_not_implemented(self):
+        """Test that the legacy function raises NotImplementedError."""
+        with pytest.raises(NotImplementedError, match="Legacy omsdk support has been removed."):
+            self.module.run_idrac_services_config(MagicMock(), MagicMock())

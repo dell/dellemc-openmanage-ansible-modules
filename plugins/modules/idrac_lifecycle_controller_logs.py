@@ -134,7 +134,6 @@ error_info:
 """
 
 
-import socket
 import json
 import copy
 import datetime
@@ -220,5 +219,5 @@ def main():
         module.exit_json(msg=str(e), failed=True)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     main()

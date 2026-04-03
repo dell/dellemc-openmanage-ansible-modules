@@ -182,13 +182,12 @@ error_info:
   }
 '''
 
-import os
-import tempfile
 import json
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
+
 
 def run_idrac_eventing_config(idrac, module):
     """
@@ -251,5 +250,5 @@ def main():
         module.fail_json(msg=str(e))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     main()

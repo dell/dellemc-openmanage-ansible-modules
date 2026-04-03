@@ -293,3 +293,18 @@ class TestConfigNetwork(FakeAnsibleModule):
         else:
             result = self._run_module(idrac_default_args)
         assert 'msg' in result
+
+    def test_run_idrac_network_config_not_implemented(self):
+        with pytest.raises(NotImplementedError, match="Legacy omsdk support has been removed."):
+            self.module.run_idrac_network_config(MagicMock(), MagicMock())
+
+    def test_main_idrac_configure_network_attribute_error(self, mocker, idrac_default_args,
+                                                          idrac_connection_configure_network_mock,
+                                                          idrac_file_manager_config_networking_mock):
+        idrac_default_args.update({"share_name": None})
+        mocker.patch(
+            MODULE_PATH + 'idrac_network.run_idrac_network_config',
+            side_effect=AttributeError("'NoneType' object has no attribute 'test'"))
+        result = self._run_module_with_fail_json(idrac_default_args)
+        assert result['failed'] is True
+        assert "Unable to access the share" in result['msg']

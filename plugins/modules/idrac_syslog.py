@@ -176,5 +176,5 @@ def main():
                      syslog_status=msg, changed=changed)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     main()

@@ -449,3 +449,68 @@ class TestStorageVolume(FakeAnsibleModule):
                                                  "write_cache_policy": "WriteThrough",
                                                  "read_cache_policy": "NoReadAhead"}, "", {})
         assert result["StripeSize"] == 65536
+
+    def test_set_liason_share_not_implemented(self):
+        with pytest.raises(NotImplementedError, match="Legacy omsdk support has been removed."):
+            self.module.set_liason_share(MagicMock(), MagicMock())
+
+    def test_view_storage_not_implemented(self):
+        with pytest.raises(NotImplementedError, match="Legacy omsdk support has been removed."):
+            self.module.view_storage(MagicMock(), MagicMock())
+
+    def test_create_storage_not_implemented(self):
+        with pytest.raises(NotImplementedError, match="Legacy omsdk support has been removed."):
+            self.module.create_storage(MagicMock(), MagicMock())
+
+    def test_delete_storage_not_implemented(self):
+        with pytest.raises(NotImplementedError, match="Legacy omsdk support has been removed."):
+            self.module.delete_storage(MagicMock(), MagicMock())
+
+    def test_run_server_raid_config_view(self):
+        module = MagicMock()
+        module.params = {'state': 'view'}
+        with pytest.raises(NotImplementedError):
+            self.module.run_server_raid_config(MagicMock(), module)
+
+    def test_run_server_raid_config_create(self):
+        module = MagicMock()
+        module.params = {'state': 'create'}
+        with pytest.raises(NotImplementedError):
+            self.module.run_server_raid_config(MagicMock(), module)
+
+    def test_run_server_raid_config_delete(self):
+        module = MagicMock()
+        module.params = {'state': 'delete'}
+        with pytest.raises(NotImplementedError):
+            self.module.run_server_raid_config(MagicMock(), module)
+
+    def test_main_idrac_storage_volume_failed_status(self, idrac_connection_storage_volume_mock, idrac_default_args,
+                                                     mocker):
+        idrac_default_args.update({"disk_cache_policy": "Default", "capacity": 12.4, "media_type": "HDD",
+                                   "number_dedicated_hot_spare": 1, "protocol": "SAS", "raid_init_operation": "None",
+                                   "raid_reset_config": True, "read_cache_policy": "ReadAhead", "span_depth": 4,
+                                   "span_length": 3, "state": "create", "stripe_size": 2, "volume_type": "RAID 0",
+                                   "write_cache_policy": "WriteThrough"})
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
+                     'dellemc_idrac_storage_volume._validate_options', return_value='state')
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
+                     'dellemc_idrac_storage_volume.run_server_raid_config',
+                     return_value={"Status": "Failed", "Message": "Storage operation failed"})
+        result = self._run_module_with_fail_json(idrac_default_args)
+        assert result['failed'] is True
+        assert result['msg'] == "Storage operation failed"
+
+    def test_main_idrac_storage_volume_check_mode(self, idrac_connection_storage_volume_mock, idrac_default_args,
+                                                  mocker):
+        idrac_default_args.update({"disk_cache_policy": "Default", "capacity": 12.4, "media_type": "HDD",
+                                   "number_dedicated_hot_spare": 1, "protocol": "SAS", "raid_init_operation": "None",
+                                   "raid_reset_config": True, "read_cache_policy": "ReadAhead", "span_depth": 4,
+                                   "span_length": 3, "state": "create", "stripe_size": 2, "volume_type": "RAID 0",
+                                   "write_cache_policy": "WriteThrough"})
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
+                     'dellemc_idrac_storage_volume._validate_options', return_value='state')
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
+                     'dellemc_idrac_storage_volume.run_server_raid_config',
+                     return_value={"Status": "Success", "Message": "Changes found to apply"})
+        result = self._run_module(idrac_default_args, check_mode=True)
+        assert result['msg'] == "Changes found to apply"

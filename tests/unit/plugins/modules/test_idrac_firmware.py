@@ -189,13 +189,15 @@ class TestidracFirmware(FakeAnsibleModule):
         f_module = self.get_module_mock(params=idrac_default_args)
         payload = {"ApplyUpdate": "True", "CatalogFile": CATALOG, "IgnoreCertWarning": "On",
                    "RebootNeeded": True, "UserName": "username", "Password": USER_PWD}
-        result = self.module.update_firmware_url_legacy(f_module, idrac_connection_firmware_mock,
-                                                       DELL_SHARE, CATALOG, True, True, True, True, payload)
+        result = self.module.update_firmware_url_legacy(
+            f_module, idrac_connection_firmware_mock,
+            DELL_SHARE, CATALOG, True, True, True, True, payload)
         assert result[0] == {"InstanceID": "JID_12345678"}
 
     @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
-    def test_update_firmware_url_legacy_success_case02(self, idrac_connection_firmware_mock, idrac_default_args,
-                                                      mocker, idrac_connection_firmware_redfish_mock):
+    def test_update_firmware_url_legacy_success_case02(
+            self, idrac_connection_firmware_mock, idrac_default_args,
+            mocker, idrac_connection_firmware_redfish_mock):
         idrac_default_args.update({"share_name": DELL_SHARE, "catalog_file_name": CATALOG,
                                    "share_user": "shareuser", "share_password": SHARE_PWD,
                                    "share_mnt": "sharmnt",
@@ -221,9 +223,10 @@ class TestidracFirmware(FakeAnsibleModule):
         }
         payload = {"ApplyUpdate": "True", "CatalogFile": CATALOG, "IgnoreCertWarning": "On", "RebootNeeded": True,
                    "UserName": "username", "Password": USER_PWD}
-        result = self.module.update_firmware_url_legacy(f_module, idrac_connection_firmware_mock,
-                                                       DELL_SHARE, CATALOG, True, True, True,
-                                                       False, payload)
+        result = self.module.update_firmware_url_legacy(
+            f_module, idrac_connection_firmware_mock,
+            DELL_SHARE, CATALOG, True, True, True,
+            False, payload)
         assert result == ({'job_details': {'Data': {'GetRepoBasedUpdateList_OUTPUT': {'Message': [{}]}}}}, {})
 
     @pytest.mark.skipif(not HAS_OMSDK, reason="Tests require omsdk SDK for legacy iDRAC code paths")
@@ -566,3 +569,356 @@ class TestidracFirmware(FakeAnsibleModule):
         if exc_type == HTTPError:
             assert 'error_info' in result
         assert 'msg' in result
+
+    def test_update_firmware_url_legacy_not_implemented(self):
+        with pytest.raises(NotImplementedError, match="Legacy omsdk support has been removed."):
+            self.module.update_firmware_url_legacy(MagicMock(), MagicMock(), "share", "cat", True, True, True, True, {})
+
+    def test_update_firmware_legacy_not_implemented(self):
+        with pytest.raises(NotImplementedError, match="Legacy omsdk support has been removed."):
+            self.module.update_firmware_legacy(MagicMock(), MagicMock())
+
+    def test_wait_for_job_completion_critical_status(self, idrac_default_args, idrac_connection_firm_mock,
+                                                     redfish_response_mock, mocker):
+        idrac_default_args.update({"share_name": "sharename", "catalog_file_name": "Catalog.xml",
+                                   "share_user": "sharename", "share_password": "share_pwd",
+                                   "share_mnt": "sharmnt", "reboot": True, "job_wait": True, "apply_update": True})
+        f_module = self.get_module_mock(params=idrac_default_args)
+        mocker.patch(MODULE_PATH + TIME_SLEEP, return_value=None)
+        redfish_response_mock.json_data = {"JobStatus": "Critical", "JobState": "Failed",
+                                           "PercentComplete": 0,
+                                           "Messages": [{"Message": "Critical job failure"}]}
+        with pytest.raises(Exception) as exc:
+            self.module.wait_for_job_completion(f_module, "JobService/Jobs/JID_123", job_wait=True)
+        assert exc.value.args[0] == "Critical job failure"
+
+    def test_wait_for_job_completion_running_with_reboot(self, idrac_default_args, mocker):
+        idrac_default_args.update({"share_name": "sharename", "catalog_file_name": "Catalog.xml",
+                                   "share_user": "sharename", "share_password": "share_pwd",
+                                   "share_mnt": "sharmnt", "reboot": True, "job_wait": True, "apply_update": True})
+        f_module = self.get_module_mock(params=idrac_default_args)
+        mocker.patch(MODULE_PATH + TIME_SLEEP, return_value=None)
+        # First response: Running (hits lines 307-308), second: Completed (breaks)
+        response_running = MagicMock()
+        response_running.json_data = {"JobStatus": "OK", "JobState": "Running", "PercentComplete": 50}
+        response_completed = MagicMock()
+        response_completed.json_data = {"JobStatus": "OK", "JobState": "Completed", "PercentComplete": 100}
+        mock_redfish = MagicMock()
+        mock_redfish.__enter__ = MagicMock()
+        mock_redfish.__exit__ = MagicMock(return_value=False)
+        # First call for initial check (track_counter < 5), then alternating for job_wait loop
+        call_count = [0]
+
+        def invoke_side_effect(*args, **kwargs):
+            call_count[0] += 1
+            if call_count[0] <= 1:
+                return response_running  # initial loop
+            elif call_count[0] == 2:
+                return response_running  # first job_wait iteration (hits 307-308)
+            else:
+                return response_completed  # second job_wait iteration (breaks)
+        enter_mock = MagicMock()
+        enter_mock.invoke_request = MagicMock(side_effect=invoke_side_effect)
+        mock_ctx = MagicMock()
+        mock_ctx.__enter__ = MagicMock(return_value=enter_mock)
+        mock_ctx.__exit__ = MagicMock(return_value=False)
+        mocker.patch(MODULE_PATH + 'idrac_firmware.iDRACRedfishAPI', return_value=mock_ctx)
+        result, msg = self.module.wait_for_job_completion(f_module, "JobService/Jobs/JID_123",
+                                                          job_wait=True, reboot=True, apply_update=True)
+        assert msg is None
+
+    def test_get_job_status_wait_error_message(self, idrac_default_args, mocker):
+        idrac_default_args.update({"share_name": "sharename", "catalog_file_name": "Catalog.xml",
+                                   "share_user": "sharename", "share_password": "share_pwd",
+                                   "share_mnt": "sharmnt", "reboot": True, "job_wait": True, "apply_update": True})
+        f_module = self.get_module_mock(params=idrac_default_args)
+        mock_response = MagicMock()
+        mocker.patch(MODULE_PATH + WAIT_FOR_JOB,
+                     return_value=(mock_response, "Job timed out"))
+        each_comp = {"JobID": "JID_123456789", "Message": None, "JobStatus": None}
+        comp, failed = self.module.get_job_status(f_module, each_comp, None)
+        assert failed is True
+
+    def test_convert_xmltojson_parse_error(self, idrac_default_args, mocker):
+        idrac_default_args.update({"share_name": "sharename", "catalog_file_name": "Catalog.xml",
+                                   "share_user": "sharename", "share_password": "share_pwd",
+                                   "share_mnt": "sharmnt", "reboot": True, "job_wait": True, "apply_update": True})
+        f_module = self.get_module_mock(params=idrac_default_args)
+        job_details = {"PackageList": "invalid xml <unclosed"}
+        result = self.module._convert_xmltojson(f_module, job_details, MagicMock())
+        assert result[0] == "invalid xml <unclosed"
+        assert result[1] is False
+        assert result[2] is False
+
+    def test_handle_HTTP_error_non_idem_message(self, idrac_default_args, mocker):
+        error_message = {"error": {"@Message.ExtendedInfo": [{"Message": "Some other error", "MessageId": "OTHER123"}]}}
+        idrac_default_args.update({"share_name": "sharename", "catalog_file_name": "Catalog.xml",
+                                   "share_user": "sharename", "share_password": "share_pwd",
+                                   "share_mnt": "sharmnt", "reboot": True, "job_wait": True})
+        f_module = self.get_module_mock(params=idrac_default_args)
+        mocker.patch(MODULE_PATH + 'idrac_firmware.json.load', return_value=error_message)
+        with pytest.raises(Exception) as exc:
+            self.module.handle_HTTP_error(f_module, error_message)
+        assert "error" in str(exc.value.args[0])
+
+    def test_get_error_syslog_no_matching_logs(self, idrac_default_args, idrac_connection_firm_mock,
+                                               redfish_response_mock, mocker):
+        idrac_default_args.update({"share_name": "sharename", "catalog_file_name": "Catalog.xml",
+                                   "share_user": "sharename", "share_password": "share_pwd",
+                                   "share_mnt": "sharmnt", "reboot": True, "job_wait": True, "apply_update": True})
+        mocker.patch(MODULE_PATH + TIME_SLEEP, return_value=None)
+        redfish_response_mock.json_data = {"Members": [{"MessageId": "OTHER123", "Message": "Other log"}]}
+        result = self.module.get_error_syslog(idrac_connection_firm_mock, "2023-10-05T00:00:00", "/api/log")
+        assert result[0] is False
+        assert result[1] == "No Error log found."
+
+    def test_get_error_syslog_exception(self, idrac_default_args, mocker):
+        idrac_default_args.update({"share_name": "sharename", "catalog_file_name": "Catalog.xml",
+                                   "share_user": "sharename", "share_password": "share_pwd",
+                                   "share_mnt": "sharmnt", "reboot": True, "job_wait": True, "apply_update": True})
+        mocker.patch(MODULE_PATH + TIME_SLEEP, return_value=None)
+        idrac_mock = MagicMock()
+        idrac_mock.invoke_request.side_effect = Exception("Connection error")
+        result = self.module.get_error_syslog(idrac_mock, "2023-10-05T00:00:00", "/api/log")
+        assert result[0] is False
+        assert result[1] == "No Error log found."
+
+    def test_update_firmware_url_redfish_log_service_exception(self, idrac_default_args, mocker):
+        idrac_default_args.update({"share_name": "sharename", "catalog_file_name": "Catalog.xml",
+                                   "share_user": "sharename", "share_password": "share_pwd",
+                                   "share_mnt": "sharmnt", "reboot": True, "job_wait": True, "apply_update": True})
+        f_module = self.get_module_mock(params=idrac_default_args)
+        mocker.patch(MODULE_PATH + TIME_SLEEP, return_value=None)
+        mocker.patch(MODULE_PATH + 'idrac_firmware.get_error_syslog', return_value=(False, ""))
+        mocker.patch(MODULE_PATH + WAIT_FOR_JOB, return_value=(MagicMock(), "msg"))
+        mocker.patch(MODULE_PATH + 'idrac_firmware.get_jobid', return_value="JID_123")
+        idrac_mock = MagicMock()
+        # First call (LOG_SERVICE_URI) raises exception, second call (install POST) succeeds,
+        # third call (GET_REPO) returns job_details
+        resp_mock = MagicMock()
+        resp_mock.status_code = 202
+        resp_mock.headers = {"Location": "/api/JID_123"}
+        resp_mock.json_data = {"job_details": {}}
+        call_count = [0]
+
+        def side_effect(*args, **kwargs):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                raise Exception("Log service unavailable")
+            return resp_mock
+        idrac_mock.invoke_request = MagicMock(side_effect=side_effect)
+        result, job_details = self.module.update_firmware_url_redfish(
+            f_module, idrac_mock, "https://127.0.0.1/share", True, True, True, {}, {})
+        assert "update_msg" in result
+
+    def test_update_firmware_url_redfish_successful_job(self, idrac_default_args,
+                                                        idrac_connection_firmware_redfish_mock, mocker):
+        idrac_default_args.update({"share_name": "sharename", "catalog_file_name": "Catalog.xml",
+                                   "share_user": "sharename", "share_password": "share_pwd",
+                                   "share_mnt": "sharmnt", "reboot": True, "job_wait": True, "apply_update": True})
+        f_module = self.get_module_mock(params=idrac_default_args)
+        mocker.patch(MODULE_PATH + TIME_SLEEP, return_value=None)
+        mocker.patch(MODULE_PATH + 'idrac_firmware.get_error_syslog', return_value=(False, ""))
+        resp_mock = MagicMock()
+        resp_mock.json_data = {"JobStatus": "OK", "PercentComplete": 100}
+        mocker.patch(MODULE_PATH + WAIT_FOR_JOB, return_value=(resp_mock, None))
+        mocker.patch(MODULE_PATH + 'idrac_firmware.get_jobid', return_value="JID_123")
+        idrac_connection_firmware_redfish_mock.json_data = {"Entries": {"@odata.id": "/api/log"}, "DateTime": "2023-10-05"}
+        result, job_details = self.module.update_firmware_url_redfish(
+            f_module, idrac_connection_firmware_redfish_mock,
+            "https://127.0.0.1/share", True, True, True, {}, {})
+        assert result == {"JobStatus": "OK", "PercentComplete": 100}
+
+    def test_update_firmware_url_redfish_http_error_on_repo(self, idrac_default_args, mocker):
+        idrac_default_args.update({"share_name": "sharename", "catalog_file_name": "Catalog.xml",
+                                   "share_user": "sharename", "share_password": "share_pwd",
+                                   "share_mnt": "sharmnt", "reboot": True, "job_wait": True, "apply_update": True})
+        f_module = self.get_module_mock(params=idrac_default_args)
+        mocker.patch(MODULE_PATH + TIME_SLEEP, return_value=None)
+        mocker.patch(MODULE_PATH + 'idrac_firmware.get_error_syslog', return_value=(False, ""))
+        resp_mock = MagicMock()
+        resp_mock.json_data = {"JobStatus": "OK"}
+        mocker.patch(MODULE_PATH + WAIT_FOR_JOB, return_value=(resp_mock, None))
+        mocker.patch(MODULE_PATH + 'idrac_firmware.get_jobid', return_value="JID_123")
+        json_str = to_text(json.dumps({"error": {"@Message.ExtendedInfo": [{"Message": "Error", "MessageId": "SUP029"}]}}))
+        http_error = HTTPError('https://testhost.com', 400, 'http error message',
+                               {"accept-type": "application/json"}, StringIO(json_str))
+        idrac_mock = MagicMock()
+        log_resp = MagicMock()
+        log_resp.json_data = {"Entries": {"@odata.id": "/api/log"}, "DateTime": "2023-10-05"}
+        post_resp = MagicMock()
+        post_resp.status_code = 202
+        post_resp.headers = {"Location": "/api/JID_123"}
+        call_count = [0]
+
+        def side_effect(*args, **kwargs):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                return log_resp
+            elif call_count[0] == 2:
+                return post_resp
+            else:
+                raise http_error
+        idrac_mock.invoke_request = MagicMock(side_effect=side_effect)
+        mocker.patch(MODULE_PATH + 'idrac_firmware.handle_HTTP_error', return_value=None)
+        with pytest.raises(HTTPError):
+            self.module.update_firmware_url_redfish(
+                f_module, idrac_mock, "https://127.0.0.1/share", True, True, True, {}, {})
+
+    def test_update_firmware_redfish_default_proxy(self, idrac_connection_firmware_mock,
+                                                   idrac_connection_firmware_redfish_mock,
+                                                   idrac_default_args, mocker):
+        idrac_default_args.update({"share_name": "https://downloads.dell.com", "catalog_file_name": "Catalog.xml",
+                                   "share_user": "UserName", "share_password": "share_pwd", "share_mnt": "shrmnt",
+                                   "reboot": False, "job_wait": True, "ignore_cert_warning": True, "apply_update": False,
+                                   "proxy_support": "DefaultProxy"})
+        mocker.patch(MODULE_PATH + UPDATE_URL,
+                     return_value=({"job_details": {"Data": {"StatusCode": 200, "body": {"PackageList": [{}]}}}},
+                                   {"Data": {"StatusCode": 200, "body": {"PackageList": [{}]}}}))
+        mocker.patch(MODULE_PATH + CONVERT_XML_JSON, return_value=("INSTANCENAME", False, False))
+        f_module = self.get_module_mock(params=idrac_default_args)
+        result = self.module.update_firmware_redfish(idrac_connection_firmware_mock, f_module, {})
+        assert result["update_msg"] == "Successfully fetched the applicable firmware update package list."
+
+    def test_update_firmware_redfish_cifs_success(self, idrac_connection_firmware_mock,
+                                                  idrac_connection_firmware_redfish_mock,
+                                                  idrac_default_args, mocker):
+        idrac_default_args.update({"share_name": "\\\\192.168.1.1\\cifsshare", "catalog_file_name": "Catalog.xml",
+                                   "share_user": "UserName", "share_password": "share_pwd", "share_mnt": "shrmnt",
+                                   "reboot": False, "job_wait": True, "ignore_cert_warning": True, "apply_update": False,
+                                   "proxy_support": "Off"})
+        resp_mock = MagicMock()
+        resp_mock.status_code = 202
+        resp_mock.headers = {"Location": "/api/JID_123"}
+        resp_mock.json_data = {"JobStatus": "OK", "PercentComplete": 100}
+        idrac_connection_firmware_mock.invoke_request = MagicMock(return_value=resp_mock)
+        mocker.patch(MODULE_PATH + 'idrac_firmware.get_jobid', return_value="JID_123")
+        wait_resp = MagicMock()
+        wait_resp.json_data = {"JobStatus": "OK", "PercentComplete": 100, "job_details": {}}
+        mocker.patch(MODULE_PATH + WAIT_FOR_JOB, return_value=(wait_resp, None))
+        repo_resp = MagicMock()
+        repo_resp.json_data = {"Data": {"StatusCode": 200, "body": {"PackageList": [{}]}}}
+        # Override third call for repo list
+        call_count = [0]
+
+        def side_effect(*args, **kwargs):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                return resp_mock
+            return repo_resp
+        idrac_connection_firmware_mock.invoke_request = MagicMock(side_effect=side_effect)
+        mocker.patch(MODULE_PATH + CONVERT_XML_JSON, return_value=("INSTANCENAME", False, False))
+        f_module = self.get_module_mock(params=idrac_default_args)
+        result = self.module.update_firmware_redfish(idrac_connection_firmware_mock, f_module, {})
+        assert result["update_msg"] == "Successfully fetched the applicable firmware update package list."
+
+    def test_update_firmware_redfish_cifs_http_error(self, idrac_connection_firmware_mock,
+                                                     idrac_connection_firmware_redfish_mock,
+                                                     idrac_default_args, mocker):
+        idrac_default_args.update({"share_name": "\\\\192.168.1.1\\cifsshare", "catalog_file_name": "Catalog.xml",
+                                   "share_user": "UserName", "share_password": "share_pwd", "share_mnt": "shrmnt",
+                                   "reboot": False, "job_wait": True, "ignore_cert_warning": True, "apply_update": True,
+                                   "proxy_support": "Off"})
+        resp_mock = MagicMock()
+        resp_mock.status_code = 202
+        resp_mock.headers = {"Location": "/api/JID_123"}
+        mocker.patch(MODULE_PATH + 'idrac_firmware.get_jobid', return_value="JID_123")
+        wait_resp = MagicMock()
+        wait_resp.json_data = {"JobStatus": "OK"}
+        mocker.patch(MODULE_PATH + WAIT_FOR_JOB, return_value=(wait_resp, None))
+        json_str = to_text(json.dumps({"error": {"@Message.ExtendedInfo": [{"Message": "Error", "MessageId": "SUP029"}]}}))
+        http_error = HTTPError('https://testhost.com', 400, 'http error message',
+                               {"accept-type": "application/json"}, StringIO(json_str))
+        call_count = [0]
+
+        def side_effect(*args, **kwargs):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                return resp_mock
+            raise http_error
+        idrac_connection_firmware_mock.invoke_request = MagicMock(side_effect=side_effect)
+        mocker.patch(MODULE_PATH + 'idrac_firmware.handle_HTTP_error', return_value=None)
+        f_module = self.get_module_mock(params=idrac_default_args)
+        with pytest.raises(HTTPError):
+            self.module.update_firmware_redfish(idrac_connection_firmware_mock, f_module, {})
+
+    def test_update_firmware_redfish_runtime_error(self, idrac_connection_firmware_mock,
+                                                   idrac_default_args, mocker):
+        idrac_default_args.update({"share_name": "https://downloads.dell.com", "catalog_file_name": "Catalog.xml",
+                                   "share_user": "UserName", "share_password": "share_pwd", "share_mnt": "shrmnt",
+                                   "reboot": False, "job_wait": True, "ignore_cert_warning": True, "apply_update": True,
+                                   "proxy_support": "Off"})
+        mocker.patch(MODULE_PATH + UPDATE_URL, side_effect=RuntimeError("Test runtime error"))
+        f_module = self.get_module_mock(params=idrac_default_args)
+        with pytest.raises(Exception) as exc:
+            self.module.update_firmware_redfish(idrac_connection_firmware_mock, f_module, {})
+        assert exc.value.args[0] == "Test runtime error"
+
+    def test_update_firmware_redfish_check_mode_no_changes(self, idrac_connection_firmware_mock,
+                                                           idrac_default_args, mocker):
+        idrac_default_args.update({"share_name": "https://downloads.dell.com", "catalog_file_name": "Catalog.xml",
+                                   "share_user": "UserName", "share_password": "share_pwd", "share_mnt": "shrmnt",
+                                   "reboot": False, "job_wait": True, "ignore_cert_warning": True, "apply_update": True,
+                                   "proxy_support": "Off"})
+        mocker.patch(MODULE_PATH + UPDATE_URL,
+                     return_value=({"JobStatus": "OK", "job_details": {"PackageList": []}}, {"PackageList": []}))
+        mocker.patch(MODULE_PATH + CONVERT_XML_JSON, return_value=([], False, False))
+        f_module = self.get_module_mock(params=idrac_default_args)
+        f_module.check_mode = True
+        with pytest.raises(Exception) as exc:
+            self.module.update_firmware_redfish(idrac_connection_firmware_mock, f_module, {})
+        assert exc.value.args[0] == "No changes found to commit!"
+
+    def test_main_redfish_check_exception(self, idrac_default_args, mocker):
+        idrac_default_args.update({"share_name": "sharename", "catalog_file_name": "Catalog.xml",
+                                   "share_user": "sharename", "share_password": "share_pwd",
+                                   "share_mnt": "sharmnt", "reboot": True, "job_wait": True, "apply_update": True})
+        # Make iDRACRedfishAPI raise on first context manager use, then work on second
+        call_count = [0]
+
+        def redfish_side_effect(*args, **kwargs):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                raise Exception("Redfish unavailable")
+            mock_ctx = MagicMock()
+            mock_ctx.__enter__ = MagicMock(return_value=MagicMock())
+            mock_ctx.__exit__ = MagicMock(return_value=False)
+            return mock_ctx
+        mocker.patch(MODULE_PATH + 'idrac_firmware.iDRACRedfishAPI', side_effect=redfish_side_effect)
+        mocker.patch(MODULE_PATH + 'idrac_firmware.iDRACConnection')
+        mocker.patch(MODULE_PATH + 'idrac_firmware.update_firmware_legacy',
+                     side_effect=NotImplementedError("Legacy omsdk support has been removed."))
+        result = self._run_module_with_fail_json(idrac_default_args)
+        assert result['failed'] is True
+
+    def test_main_check_mode_override(self, idrac_default_args, idrac_connection_firmware_redfish_mock, mocker):
+        idrac_default_args.update({"share_name": "sharename", "catalog_file_name": "Catalog.xml",
+                                   "share_user": "sharename", "share_password": "share_pwd",
+                                   "share_mnt": "sharmnt", "reboot": True, "job_wait": False, "apply_update": True})
+        message = {"Status": "Success", "update_msg": "No changes found to commit!",
+                   "update_status": "Success", 'changed': False, 'failed': False}
+        mocker.patch(MODULE_PATH + 'idrac_firmware.update_firmware_redfish', return_value=message)
+        result = self._run_module(idrac_default_args, check_mode=True)
+        assert result['msg'] == "No changes found to commit!"
+
+    def test_main_legacy_fallback_httperror(self, idrac_default_args, mocker):
+        idrac_default_args.update({"share_name": "sharename", "catalog_file_name": "Catalog.xml",
+                                   "share_user": "sharename", "share_password": "share_pwd",
+                                   "share_mnt": "sharmnt", "reboot": True, "job_wait": True, "apply_update": True})
+        # Make first iDRACRedfishAPI (Redfish check) raise exception
+        redfish_mock = MagicMock()
+        redfish_mock.__enter__ = MagicMock(side_effect=Exception("Redfish unavailable"))
+        redfish_mock.__exit__ = MagicMock(return_value=False)
+        mocker.patch(MODULE_PATH + 'idrac_firmware.iDRACRedfishAPI', return_value=redfish_mock)
+        # Legacy path: iDRACConnection succeeds, update_firmware_legacy raises HTTPError
+        json_str = to_text(json.dumps({"data": "out"}))
+        legacy_mock = MagicMock()
+        legacy_mock.__enter__ = MagicMock(return_value=MagicMock())
+        legacy_mock.__exit__ = MagicMock(return_value=False)
+        mocker.patch(MODULE_PATH + 'idrac_firmware.iDRACConnection', return_value=legacy_mock)
+        mocker.patch(MODULE_PATH + 'idrac_firmware.update_firmware_legacy',
+                     side_effect=HTTPError('https://testhost.com', 400, 'http error message',
+                                           {"accept-type": "application/json"}, StringIO(json_str)))
+        result = self._run_module_with_fail_json(idrac_default_args)
+        assert result['failed'] is True
+        assert 'update_status' in result

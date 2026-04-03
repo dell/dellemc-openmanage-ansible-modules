@@ -261,3 +261,8 @@ class TestLcAttributes(FakeAnsibleModule):
             self.module.run_setup_idrac_csior(
                 idrac_connection_lc_attribute_mock, f_module)
         assert exc.value.args[0] == "Key Error Expected"
+
+    def test_run_setup_idrac_csior_not_implemented(self):
+        """Test that the legacy function raises NotImplementedError."""
+        with pytest.raises(NotImplementedError, match="Legacy omsdk support has been removed."):
+            self.module.run_setup_idrac_csior(MagicMock(), MagicMock())

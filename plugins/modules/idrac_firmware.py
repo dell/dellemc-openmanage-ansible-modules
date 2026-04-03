@@ -231,7 +231,6 @@ update_status:
 """
 
 
-import os
 import json
 import time
 from ssl import SSLError
@@ -282,8 +281,6 @@ def wait_for_job_completion(module, job_uri, job_wait=False, reboot=False, apply
             msg = str(error_message)
             track_counter += 1
             time.sleep(10)
-    if track_counter < 5:
-        msg = None
     #  reset track counter
     track_counter = 0
     while job_wait and track_counter <= WAIT_COUNT:
@@ -688,5 +685,5 @@ def main():
                      changed=status['changed'], failed=status['failed'])
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     main()

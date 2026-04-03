@@ -148,13 +148,12 @@ error_info:
   }
 '''
 
-import os
-import tempfile
+import json
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-import json
+
 
 def run_idrac_timezone_config(idrac, module):
     """
@@ -216,5 +215,5 @@ def main():
                      timezone_ntp_status=msg, changed=changed)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     main()

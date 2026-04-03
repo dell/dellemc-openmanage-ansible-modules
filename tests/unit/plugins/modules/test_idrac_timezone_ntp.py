@@ -283,3 +283,7 @@ class TestConfigTimezone(FakeAnsibleModule):
             side_effect=AttributeError('NoneType'))
         result = self._run_module_with_fail_json(idrac_default_args)
         assert result['msg'] == "Unable to access the share. Ensure that the share name, share mount, and share credentials provided are correct."
+
+    def test_run_idrac_timezone_config_not_implemented(self):
+        with pytest.raises(NotImplementedError, match="Legacy omsdk support has been removed."):
+            self.module.run_idrac_timezone_config(MagicMock(), MagicMock())

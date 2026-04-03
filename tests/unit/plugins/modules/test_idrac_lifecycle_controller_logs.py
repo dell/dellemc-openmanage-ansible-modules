@@ -173,3 +173,40 @@ class TestExportLcLogs(FakeAnsibleModule):
         msg = self.module.run_export_lc_logs(
             idrac_connection_export_lc_logs_mock, f_module)
         assert msg['Status'] == "Success"
+
+    def test_get_user_credentials_not_implemented(self):
+        with pytest.raises(NotImplementedError, match="Legacy omsdk support has been removed."):
+            self.module.get_user_credentials(MagicMock())
+
+    def test_run_export_lc_logs_not_implemented(self):
+        with pytest.raises(NotImplementedError, match="Legacy omsdk support has been removed."):
+            self.module.run_export_lc_logs(MagicMock(), MagicMock())
+
+    def test_get_file_name(self):
+        module = MagicMock()
+        module.params = {"idrac_ip": "192.168.1.100"}
+        result = self.module.get_file_name(module)
+        assert result is not None
+        assert "192.168.1.100" in result
+        assert "LC_Log.log" in result
+
+    def test_get_file_name_ipv6(self):
+        module = MagicMock()
+        module.params = {"idrac_ip": "fe80::1"}
+        result = self.module.get_file_name(module)
+        assert result is not None
+        assert "LC_Log.log" in result
+        assert ":" not in result.split("_LC_Log")[0]
+
+    def test_main_non_idrac8_path(self, mocker, idrac_default_args,
+                                  idrac_redfish_connection_export_lc_logs_mock):
+        idrac_default_args.update({"share_name": "sharename", "share_user": "shareuser",
+                                   "share_password": "sharepassword", "job_wait": True})
+        idrac_redfish_connection_export_lc_logs_mock.get_server_generation = (14, "3.0", "iDRAC 9")
+        mocker.patch(MODULE_PATH + 'idrac_lifecycle_controller_logs.IDRACLifecycleControllerLogs')
+        lc_mock = mocker.patch(MODULE_PATH + 'idrac_lifecycle_controller_logs.IDRACLifecycleControllerLogs')
+        lc_instance = MagicMock()
+        lc_instance.lifecycle_controller_logs_operation.return_value = ("Success", {"Status": "Success"}, True)
+        lc_mock.return_value = lc_instance
+        result = self._run_module(idrac_default_args)
+        assert result["msg"] == "Success"

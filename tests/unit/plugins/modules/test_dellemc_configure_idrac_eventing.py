@@ -338,3 +338,8 @@ class TestConfigureEventing(FakeAnsibleModule):
             self.module.run_idrac_eventing_config(
                 idrac_connection_configure_eventing_mock, f_module)
         assert exc.value.args[0] == "No changes found to commit!"
+
+    def test_run_idrac_eventing_config_not_implemented(self):
+        """Test that the legacy function raises NotImplementedError."""
+        with pytest.raises(NotImplementedError, match="Legacy omsdk support has been removed."):
+            self.module.run_idrac_eventing_config(MagicMock(), MagicMock())

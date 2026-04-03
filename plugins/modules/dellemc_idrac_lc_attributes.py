@@ -131,8 +131,6 @@ error_info:
   }
 '''
 
-import os
-import tempfile
 import json
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
@@ -187,5 +185,5 @@ def main():
         module.fail_json(msg=str(e))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     main()

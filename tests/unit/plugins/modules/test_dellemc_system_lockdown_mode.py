@@ -174,3 +174,8 @@ class TestSysytemLockdownMode(FakeAnsibleModule):
             self.module.run_system_lockdown_mode(
                 idrac_connection_system_lockdown_mode_mock, f_module)
         assert exc.value.args[0] == "Unable to access the share. Ensure that the share name, share mount, and share credentials provided are correct."
+
+    def test_run_system_lockdown_mode_not_implemented(self):
+        """Test that the legacy function raises NotImplementedError."""
+        with pytest.raises(NotImplementedError, match="Legacy omsdk support has been removed."):
+            self.module.run_system_lockdown_mode(MagicMock(), MagicMock())
