@@ -2539,3 +2539,56 @@ releases:
         - Formal qualification of module ome_smart_fabric_info for Ansible
           Core version 2.19 is still pending.
       release_date: '2025-09-30'
+
+  10.0.2:
+    changes:
+      release_summary: 'The OpenManage Enterprise and OpenManage Enterprise
+        Integration for VMware vCenter modules are now compatible with
+        Ansible Core version 2.20. This release also adds support for
+        OpenManage Enterprise version 4.4 and 4.5.'
+      minor_changes:
+        - The OpenManage Enterprise, OpenManage Enterprise Modular and
+          OpenManage Enterprise Integration for VMware vCenter modules are
+          now compatible with Ansible Core version 2.20.
+        - Added support for OpenManage Enterprise version 4.4 and 4.5.
+      bugfixes:
+        - idrac_system_info - (Issue 1044) - FC section is missing
+          (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/1044)
+        - idrac_user - (Issue 1059) - Bad User Privileges when creating idrac
+          user using "custom_privilege"
+          (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/1059)
+        - idrac_job_queue - (Issue 1067) - Fails to find the file in role due to
+          incorrect name
+          (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/1067)
+        - idrac_system_info - powersupply.get_red_type_set fails with TypeError
+          due to unhandled None values when joining mapped redundancy types
+      known_issues:
+        - idrac_diagnostics - This module does not support
+          export of diagnostics file to HTTP and HTTPS share via SOCKS
+          proxy.
+        - idrac_license - The module will give different error messages for
+          iDRAC9 and iDRAC10 when user imports license with invalid share
+          name.
+        - idrac_license - Due to API limitation, proxy parameters are ignored
+          during the import operation.
+        - idrac_os_deployment - The module continues to return a 200 response
+          and marks the job as completed, even when an outdated date is supplied
+          in the Expose duration.
+        - idrac_redfish_storage_controller - PatrolReadRatePercent attribute
+          cannot be set in iDRAC10.
+        - idrac_server_config_profile - When attempting to revert iDRAC settings
+          using a previously exported SCP file, the import operation will
+          complete with errors if a new user was created after the export
+          (Instead of restoring the system to its previous state, including
+          the removal of newly added users).
+        - redfish_storage_volume - Encryption type and block_io_size bytes
+          will be read only property in iDRAC9 and iDRAC10 and hence the
+          module ignores these parameters.
+        - ome_smart_fabric_uplink - The module supported by
+          OpenManage Enterprise Modular, however it does not allow the
+          creation of multiple uplinks of the same name. If an uplink is
+          created using the same name as an existing uplink, then the existing
+          uplink is modified.
+        - Formal qualification of module ome_smart_fabric_info for Ansible
+          Core version 2.19 is still pending.
+      release_date: '2026-04-01'

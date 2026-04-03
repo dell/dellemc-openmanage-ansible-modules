@@ -17,7 +17,7 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
   * [Committer Guide](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/COMMITTER_GUIDE.md)
   * [Contributing Guide](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/CONTRIBUTING.md)
   * [Maintainers](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/MAINTAINERS.md)
-  * [Support](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/SUPPORT.md)
+  * [Support](#Support)
   * [Security](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/SECURITY.md)
   * [Documentation](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/DOCUMENTATION.md)
   * [Execution Environment](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/EXECUTION_ENVIRONMENT.md)
@@ -27,12 +27,12 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
 ## Supported Platforms
   * iDRAC9 based Dell PowerEdge Servers with firmware versions 7.10.90.00 and above.
   * iDRAC10 based Dell PowerEdge Servers with firmware versions 1.20.50.50 and above (for supported modules refer [here](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/README.md)).
-  * Dell OpenManage Enterprise versions 3.10 and 4.2.
+  * Dell OpenManage Enterprise versions 4.2, 4.4 and 4.5.
   * Dell OpenManage Enterprise Modular versions 2.10.10 and above.
 
 ## Requirements
   * [Ansible Core >= 2.19.0 and 2.18.8](https://github.com/ansible/ansible) for iDRAC Modules
-  * [Ansible Core = 2.19.0 and 2.18.8](https://github.com/ansible/ansible) for OME modules
+  * [Ansible Core = 2.20.0 and 2.19.0](https://github.com/ansible/ansible) for OME modules
   * Python >= 3.11.0
   * Operating System
     * Red Hat Enterprise Linux (RHEL) 9.5 and 8.10
@@ -82,10 +82,6 @@ For more information about Unit testing, see [Unit testing](https://github.com/d
 
 For more information about Integration testing, see [Integration testing](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/tests/integration/README.md).
 
-## Support
-
-For support, see [SUPPORT.md](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/SUPPORT.md).
-
 ## Release Notes
 
 For release notes, see [CHANGELOG.rst](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/CHANGELOG.rst).
@@ -93,5 +89,13 @@ For release notes, see [CHANGELOG.rst](https://github.com/dell/dellemc-openmanag
 ## Related Information
 Refer the [Table of Contents](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/README.md#table-of-contents) for any other information on the Dell OpenManage Ansible Modules documentations.
 
+## Support
+
+The support is available through [GitHub Issues](https://github.com/dell/dellemc-openmanage-ansible-modules/issues) or at [Dell Community forum](https://www.dell.com/community/Automation/bd-p/Automation).
+
+As Red Hat Ansible Certified Content, this collection is entitled to support through the Ansible Automation Platform (AAP) using the **Create issue** button on the top right corner. If a support case cannot be opened with Red Hat and the collection has been obtained either from Galaxy or GitHub, community help may be obtained on the [Ansible Forum](https://forum.ansible.com/).
+
+
 ## License Information
+
 Dell OpenManage Ansible Modules is 100% open source and community-driven. All components are available under [GPL-3.0-only](https://www.gnu.org/licenses/gpl-3.0.html) on GitHub.

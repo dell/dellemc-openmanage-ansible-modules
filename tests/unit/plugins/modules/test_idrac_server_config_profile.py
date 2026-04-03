@@ -383,6 +383,74 @@ class TestServerConfigProfile(FakeAnsibleModule):
     def test_is_check_idrac_latest(self, firmware_version, expected_result, generation):
         assert idrac_server_config_profile.is_check_idrac_latest(firmware_version, generation) == expected_result
 
+    def test_negative_job_wait_timeout(self, idrac_scp_redfish_mock, idrac_default_args, mocker):
+        idrac_default_args.update({"share_name": "/share", "command": "import", "job_wait": True,
+                                   "scp_components": "IDRAC", "scp_file": FILE_NAME,
+                                   "job_wait_timeout": -1})
+        mocker.patch(MODULE_PATH_COMP + "_get_server_version", return_value=16)
+        with pytest.raises(Exception) as ex:
+            self._run_module(idrac_default_args)
+        assert "The parameter job_wait_timeout value cannot be negative or zero." in ex.value.args[0]['msg']
+
+    def test_zero_job_wait_timeout(self, idrac_scp_redfish_mock, idrac_default_args, mocker):
+        idrac_default_args.update({"share_name": "/share", "command": "import", "job_wait": True,
+                                   "scp_components": "IDRAC", "scp_file": FILE_NAME,
+                                   "job_wait_timeout": 0})
+        mocker.patch(MODULE_PATH_COMP + "_get_server_version", return_value=16)
+        with pytest.raises(Exception) as ex:
+            self._run_module(idrac_default_args)
+        assert "The parameter job_wait_timeout value cannot be negative or zero." in ex.value.args[0]['msg']
+
+    def test_custom_job_wait_timeout_passed_to_tracking(self, idrac_scp_redfish_mock,
+                                                        idrac_redfish_job_tracking_mock,
+                                                        idrac_default_args, mocker):
+        idrac_default_args.update({"share_name": "/share", "command": "import", "job_wait": True,
+                                   "scp_components": "IDRAC", "scp_file": FILE_NAME,
+                                   "job_wait_timeout": 1800, "end_host_power_state": "On",
+                                   "shutdown_type": "Graceful"})
+        mocker.patch(MODULE_PATH_COMP + "_get_server_version", return_value=16)
+        mocker.patch(MODULE_PATH_COMP + "exists", return_value=True)
+        mocker.patch(OPEN_KEY, mocker.mock_open())
+        job_tracking_mock = mocker.patch(MODULE_PATH + REDFISH_JOB_TRACKING,
+                                         return_value=(False, False, {"Status": "Completed"}, {}))
+        result = self._run_module(idrac_default_args)
+        assert SUCCESS_MSG.format("import") in result['msg']
+        job_tracking_mock.assert_called_once()
+        call_kwargs = job_tracking_mock.call_args
+        assert call_kwargs[1].get('max_job_wait_sec') == 1800
+
+    def test_job_wait_timeout_exceeded_message(self, idrac_scp_redfish_mock,
+                                               idrac_redfish_job_tracking_mock,
+                                               idrac_default_args, mocker):
+        idrac_default_args.update({"share_name": "/share", "command": "import", "job_wait": True,
+                                   "scp_components": "IDRAC", "scp_file": FILE_NAME,
+                                   "job_wait_timeout": 60, "end_host_power_state": "On",
+                                   "shutdown_type": "Graceful"})
+        mocker.patch(MODULE_PATH_COMP + "_get_server_version", return_value=16)
+        mocker.patch(MODULE_PATH_COMP + "exists", return_value=True)
+        mocker.patch(OPEN_KEY, mocker.mock_open())
+        mocker.patch(MODULE_PATH + REDFISH_JOB_TRACKING,
+                     return_value=(True, "Job tracking started.", {"JobState": "Running"}, 60))
+        result = self._run_module(idrac_default_args)
+        assert result['failed']
+        assert "The job wait timeout of 60 seconds has been exceeded" in result['msg']
+
+    def test_job_wait_timeout_exceeded_message_gen17(self, idrac_scp_redfish_mock,
+                                                     idrac_redfish_job_tracking_mock,
+                                                     idrac_default_args, mocker):
+        idrac_default_args.update({"share_name": "/share", "command": "import", "job_wait": True,
+                                   "scp_components": "IDRAC", "scp_file": FILE_NAME,
+                                   "job_wait_timeout": 120, "end_host_power_state": "On",
+                                   "shutdown_type": "Graceful"})
+        mocker.patch(MODULE_PATH_COMP + "_get_server_version", return_value=17)
+        mocker.patch(MODULE_PATH_COMP + "exists", return_value=True)
+        mocker.patch(OPEN_KEY, mocker.mock_open())
+        mocker.patch(MODULE_PATH + REDFISH_JOB_TRACKING,
+                     return_value=(True, "Job tracking started.", {"JobState": "Running"}, 120))
+        result = self._run_module(idrac_default_args)
+        assert result['failed']
+        assert "The job wait timeout of 120 seconds has been exceeded" in result['msg']
+
     @pytest.mark.parametrize("exc_type",
                              [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
     def test_idrac_reset_main_exception_handling_case(self, exc_type, idrac_default_args,
