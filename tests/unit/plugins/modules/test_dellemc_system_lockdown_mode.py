@@ -22,7 +22,7 @@ from ansible.module_utils._text import to_text
 import json
 from io import StringIO
 try:
-    from omsdk.sdkfile import file_share_manager  # noqa: F401
+    __import__('omsdk.sdkfile')
     HAS_OMSDK = True
 except ImportError:
     HAS_OMSDK = False

@@ -18,7 +18,7 @@ from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_idrac
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from unittest.mock import MagicMock, Mock
 try:
-    from omsdk.sdkfile import file_share_manager  # noqa: F401
+    __import__('omsdk.sdkfile')
     HAS_OMSDK = True
 except ImportError:
     HAS_OMSDK = False

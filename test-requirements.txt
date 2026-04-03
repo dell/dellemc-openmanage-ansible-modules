@@ -5,6 +5,7 @@ pytest-mock
 pytest-cov
 coverage
 netaddr>=0.7.19
+urllib3
 xmltodict
 molecule
 molecule-plugins[podman]
