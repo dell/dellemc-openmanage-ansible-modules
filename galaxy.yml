@@ -24,6 +24,7 @@ authors:
   - Krunal Thakkar <krunal.thakkar@dell.com>
   - Meenakshi Dembi <meenakshi.dembi@dell.com>
   - Sapana Gupta <Sapana.Gupta@dell.com>
+  - Shrinidhi Rao K Katte <ansible.team@dell.com>
 
 description: Dell OpenManage Ansible Modules allows data center and IT
   administrators to use RedHat Ansible to automate and orchestrate the
@@ -70,3 +71,9 @@ build_ignore:
   - BuildNumber.txt
   - codecov.yml
   - tests/integration
+  - .venv*
+  - .ansible-lint
+  - .github
+  - .gitignore
+  - catalog-info.yaml
+  - .pytest_cache
