@@ -2,7 +2,7 @@
 
 <!-- yaml-metadata-start -->
 scope_paths: ["./"]
-capture_git_sha: "b3b50fb947ab41286f235020b65caf5e1179c8d0"
+capture_git_sha: "ee9af199b7731b8a1dda4970d606e145f287fb29"
 status: "current"
 auto_update: false
 preview_before_apply: true
@@ -30,7 +30,7 @@ Ansible Galaxy collection `dellemc.openmanage` (v10.0.2). Provides 105 modules a
 Create module file in `plugins/modules/`, add example playbook in `playbooks/modules/`, add unit test in `tests/unit/plugins/modules/`, append module FQCN to `meta/runtime.yml` action group.
 
 ### What breaks?
-SDK version mismatch is a blocking defect. Missing action group entry causes `module_defaults` to silently skip the module. `validate_certs: false` in production violates security constitution.
+SDK version mismatch is a blocking defect. Missing tombstone/redirect entry leaves deprecated module names unresolved. `validate_certs: false` in production violates security constitution.
 
 ### What depends on it?
 `omsdk, netaddr` netaddr>=0.7.19, Ansible >= 2.15.0. Ordering: dependent resources must exist before referencing them.
@@ -51,6 +51,19 @@ Ansible Galaxy collection `dellemc.openmanage` (v10.0.2) for Dell PowerEdge serv
 Standard Ansible Galaxy collection layout. Each module is a self-contained Python file under `plugins/modules/` that communicates with the OpenManage Enterprise / iDRAC / OMEVV REST API through the `omsdk, netaddr` SDK.
 
 **SDK strategy:** Static import. Version pinned at `netaddr>=0.7.19` in `requirements.txt`.
+
+
+### Evolution
+
+Early collections used a flat module structure with duplicated auth
+and API logic in each module. The shared base class was introduced
+after initial module growth to centralize authentication, argument
+parsing, and API client initialization. Major refactors include:
+
+- Base class introduction (centralized SDK initialization)
+- Module naming standardization
+- SDK / REST client improvements
+- Improved error handling consistency
 
 ---
 
@@ -92,15 +105,81 @@ Modules target three distinct APIs:
 - **iDRAC** — Direct iDRAC Redfish API (server management)
 - **OMEVV** — OpenManage Enterprise VMware integration
 
+
+### 5. Idempotency drift
+
+Occasional idempotency failures where a module reports `changed=false`
+but state actually changed on the array. Caused by incomplete state
+comparison logic — some parameters accepted by the module are ignored
+by the underlying API. Always verify with a second run.
+
+### 6. SDK import failures
+
+Dependency or version mismatches between the collection and its SDK
+cause import failures at module load time. Manifests as
+`ModuleNotFoundError` or `ImportError` with no actionable message
+unless `-vvv` is used.
+
+### 7. Check mode inaccuracies
+
+Not all modules fully simulate changes correctly in check mode.
+Some modules report `changed=true` in check mode but would actually
+make no change, or vice versa. Treat check mode as advisory, not
+authoritative.
+
 ### Never Again
 
-No incident-derived constraints recorded.
+#### NA-001: SDK version mismatch causing silent failures
+- **Impact:** Modules loaded but returned incorrect data due to
+  SDK API changes between versions.
+- **Constraint:** SDK version must be pinned exactly in
+  `requirements.txt`. Never update without full test pass.
+- **Applies to:** All Dell Ansible collections.
+
+#### NA-002: Idempotency regression on update operations
+- **Impact:** Repeated playbook runs made unintended changes to
+  array resources due to incomplete state comparison.
+- **Constraint:** Every module must compare full current state
+  before applying changes.
+- **Applies to:** All Dell Ansible collections.
+
+#### NA-003: Orphaned resources from test failures
+- **Impact:** Test resources left on array after test failure,
+  consuming capacity.
+- **Constraint:** Manual cleanup required after failed test runs.
+- **Applies to:** All Dell Ansible collections.
+### Evolution
+
+Failure modes evolved with the base class introduction. Error
+handling was standardized across modules during the naming
+convention refactor. SDK import failures became less common after
+the `HAS_*` flag pattern was adopted consistently.
 
 ---
 
 ## Performance Characteristics
 
-TBD — requires SME input.
+**Sequential execution:** Ansible executes modules sequentially per
+host within a play. Large inventories with many tasks experience
+linear performance degradation. No built-in batching or pipelining
+at the module level.
+
+**API rate limiting:** OpenManage/iDRAC arrays enforce implicit
+throttling under heavy parallel execution (high Ansible fork count).
+Reduce `forks` or add `throttle` to tasks hitting the same array.
+
+**Bulk operations:** Module execution is slower for bulk operations
+due to per-task API calls with no batching support. Async operations
+(where supported) can mitigate but add complexity.
+
+**No connection reuse:** Each module invocation creates a new SDK
+client and HTTP session. No connection pooling across tasks.
+
+### Evolution
+
+Performance improved after the base class centralized SDK
+initialization, reducing per-module overhead. Connection reuse
+remains an open area for improvement.
 
 ---
 
@@ -110,13 +189,40 @@ TBD — requires SME input.
 
 **Resource ordering:** Dependent resources must exist before being referenced (e.g., filesystem before snapshot, volume group before volumes, policies before assignment).
 
-**Action group registration:** Every new module must be appended to the `dellemc.openmanage.all` action group in `meta/runtime.yml`.
+**Runtime registration:** Deprecated module names must have tombstone or redirect entries in `meta/runtime.yml`.
+
+### Evolution
+
+Connection parameter patterns were established early and carried
+forward. Resource ordering constraints are implicit — the API
+returns errors but the collection does not enforce ordering.
 
 ---
 
 ## Threading & Synchronization
 
-Ansible handles concurrency via forks at the play level. Individual module executions are single-threaded.
+Ansible handles concurrency via forks at the play level. Individual
+module executions are single-threaded. However, multiple forks
+hitting the same OpenManage/iDRAC array simultaneously causes:
+
+**API contention:** High fork counts cause throttling or transient
+errors from the array API. Mitigate with `throttle: N` on tasks
+targeting the same array.
+
+**Connection pool exhaustion:** Possible when many forks execute
+without HTTP session reuse. Each fork creates independent SDK
+client connections.
+
+**Race conditions on shared resources:** Concurrent modifications
+to interdependent resources (e.g., volume + host mapping,
+replication configurations) can produce inconsistent state.
+Serialize dependent operations with `serial: 1` or task ordering.
+
+### Evolution
+
+Concurrency issues became more visible as collections grew and
+users ran larger playbooks with higher fork counts against single
+arrays.
 
 ---
 
@@ -133,13 +239,38 @@ Ansible handles concurrency via forks at the play level. Individual module execu
 
 ## Operational Knowledge
 
-Standard Ansible logging — no custom file handler.
+**Logging:** Enable `-vvv` for detailed output including API
+request/response payloads. Correlate Ansible output with array
+logs for full troubleshooting.
+
+**Common support scenarios:**
+- Authentication failures — verify `hostname`, credentials,
+  and `validate_certs` settings
+- Idempotency issues — run playbook twice, compare `changed`
+  status
+- Timeout / async completion problems — increase timeout
+  parameters, check array load
+
+**Test environment requirements:**
+- Dedicated OpenManage/iDRAC array or simulator
+- Stable API version matching SDK pin
+- Isolated test datasets (avoid shared resources)
+
+### Evolution
+
+Debugging patterns improved with `-vvv` adoption as standard
+practice. Common failure patterns documented after recurring
+support cases.
 
 ---
 
 ## General Context
 
 No additional context beyond what has been captured.
+
+### Open Issues
+
+No TODO/FIXME/HACK markers found in non-test source files.
 
 ---
 

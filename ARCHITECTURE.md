@@ -4,7 +4,7 @@
 
 <!-- yaml-metadata-start -->
 scope_paths: ["./"]
-capture_git_sha: "b3b50fb947ab41286f235020b65caf5e1179c8d0"
+capture_git_sha: "ee9af199b7731b8a1dda4970d606e145f287fb29"
 status: "current"
 auto_update: false
 preview_before_apply: true
@@ -29,7 +29,7 @@ Published to Ansible Galaxy under the `dellemc` namespace. Uses the `omsdk, neta
 | Modules | `plugins/modules/*.py` | One file per resource (105 modules) |
 | Module utilities | `plugins/module_utils/storage/dell/` | SDK init, connection factory, logger, error helpers |
 | Doc fragments | `plugins/doc_fragments/openmanage.py` | Shared DOCUMENTATION fragment for connection params |
-| Runtime metadata | `meta/runtime.yml` | `requires_ansible`, action groups, tombstones |
+| Runtime metadata | `meta/runtime.yml` | `meta/runtime.yml` contains 2 tombstone entries and 2 redirect entries for deprecated module names. |
 | Execution env | `meta/execution-environment.yml` | EE definition |
 | Example playbooks | `playbooks/modules/` | One example playbook per module |
 | Unit tests | `tests/unit/plugins/modules/` | One test file per module |
@@ -99,7 +99,7 @@ Published to Ansible Galaxy under the `dellemc` namespace. Uses the `omsdk, neta
 ## Known Constraints
 
 1. **SDK version coupling is strict** — each collection release is tested against exactly one SDK version (or tight range). Mismatch is a blocking defect.
-2. **`meta/runtime.yml` is source of truth for action groups** — every new module must be appended to the `dellemc.openmanage.all` list.
+2. **`meta/runtime.yml` is source of truth** — tombstone/redirect entries for deprecated module names must not be removed.
 3. **Tombstone entries are permanent** — deprecated `dellemc_openmanage_*` prefixed module names must not be removed.
 4. **`validate_certs: false` is lab-only** — production requires `true`.
 5. **Example playbooks are mandatory** — every module must ship a working example in `playbooks/modules/`.
