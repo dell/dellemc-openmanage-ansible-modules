@@ -2592,3 +2592,12 @@ releases:
         - Formal qualification of module ome_smart_fabric_info for Ansible
           Core version 2.19 is still pending.
       release_date: '2026-04-01'
+
+  10.0.3:
+    changes:
+      minor_changes:
+        - Update galaxy.yml to exclude unnecessary files from collection build.
+        - Bump pytest from 8.3.5 to 9.0.3.
+        - Update README.md.
+      release_summary: This release includes dependency updates and build configuration improvements.
+    release_date: '2026-06-23'

@@ -4,6 +4,21 @@ Dell OpenManage Ansible Modules Release Notes
 
 .. contents:: Topics
 
+v10.0.3
+=======
+
+Release Summary
+---------------
+
+This release includes dependency updates and build configuration improvements.
+
+Minor Changes
+-------------
+
+- Update galaxy.yml to exclude unnecessary files from collection build.
+- Bump pytest from 8.3.5 to 9.0.3.
+- Update README.md.
+
 v10.0.2
 =======
 
