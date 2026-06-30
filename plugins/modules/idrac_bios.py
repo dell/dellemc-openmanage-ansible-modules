@@ -25,21 +25,6 @@ description:
 extends_documentation_fragment:
     - dellemc.openmanage.idrac_auth_options
 options:
-    share_name:
-        type: str
-        description: (deprecated)Network share or a local path.
-    share_user:
-        type: str
-        description: "(deprecated)Network share user name. Use the format 'user@domain' or domain//user if user
-        is part of a domain. This option is mandatory for CIFS share."
-    share_password:
-        type: str
-        description: (deprecated)Network share user password. This option is mandatory for CIFS share.
-        aliases: ['share_pwd']
-    share_mnt:
-        type: str
-        description: "(deprecated)Local mount path of the network share with read-write permission for ansible user.
-        This option is mandatory for network shares."
     apply_time:
         type: str
         description:
