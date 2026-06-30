@@ -3,3 +3,5 @@ exclude_paths:
   - .ansible/
 skip_list:
   - var-naming[no-role-prefix]
+  - jinja[spacing]
+
