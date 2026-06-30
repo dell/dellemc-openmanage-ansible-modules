@@ -17,11 +17,11 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: idrac_bios
-short_description: Modify and clear BIOS attributes, reset BIOS settings and configure boot sources
+short_description: Modify and clear BIOS attributes, reset BIOS settings
 version_added: "2.1.0"
 description:
     - This module allows to modify the BIOS attributes. Also clears pending BIOS attributes and resets BIOS to default settings.
-    - Boot sources can be enabled or disabled. Boot sequence can be configured.
+    - To configure boot sources and boot order, use the M(dellemc.openmanage.idrac_boot) module.
 extends_documentation_fragment:
     - dellemc.openmanage.idrac_auth_options
 options:
@@ -114,6 +114,7 @@ notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
     - This module supports C(check_mode).
+    - Boot source configuration is handled by M(dellemc.openmanage.idrac_boot).
 """
 
 EXAMPLES = """
