@@ -33,6 +33,14 @@ HTTPS_ADDRESS_DELL = "https://dell.com"
 LOCAL_IMAGE_URI = "/home/firmware_repo/component.exe"
 
 
+@pytest.fixture(autouse=True)
+def mock_has_lib(mocker):
+    mocker.patch(
+        MODULE_PATH + 'redfish_firmware.HAS_LIB',
+        True
+    )
+
+
 @pytest.fixture
 def redfish_firmware_connection_mock(mocker, redfish_response_mock):
     connection_class_mock = mocker.patch(MODULE_PATH + 'redfish_firmware.Redfish')
@@ -290,7 +298,13 @@ class TestRedfishFirmware(FakeAnsibleModule):
     def test_encode_form_data(self, mocker):
         payload_file = {'UpdateFile': ('image.exe', BytesIO(b'example data'), 'application/octet-stream')}
         payload_file_header = 'UpdateFile'
-        mocker.patch('urllib3.filepost.encode_multipart_formdata', return_value=(b'example data', 'multipart/form-data'))
+        mock_encode = mocker.patch(
+            MODULE_PATH + 'redfish_firmware.encode_multipart_formdata',
+            return_value=(b'example data', 'multipart/form-data')
+        )
+        mock_request_field = mocker.patch(
+            MODULE_PATH + 'redfish_firmware.RequestField'
+        )
         result = redfish_firmware._encode_form_data(payload_file, payload_file_header)
         assert b'example data' in result[0]
         assert 'multipart/form-data' in result[1]
