@@ -710,16 +710,16 @@ def configure_boot_sources(redfish_obj, boot_sources):
         seq_key = "UefiBootSeq"
     else:
         return None, "Unable to determine boot sequence type from system."
-    
+
     current_seq = boot_seq_data.get(seq_key, [])
     updated_seq = []
     changes_found = False
-    
+
     # Build a lookup map from user input
     source_map = {}
     for source in boot_sources:
         source_map[source['Name']] = {'Enabled': source.get('Enabled'), 'Index': source.get('Index')}
-    
+
     # Update boot sequence with user values
     for device in current_seq:
         device_name = device.get('Name')
@@ -732,10 +732,10 @@ def configure_boot_sources(redfish_obj, boot_sources):
                 device['Index'] = user_source['Index']
                 changes_found = True
         updated_seq.append(device)
-    
+
     if not changes_found:
         return None, NO_CHANGES_MSG
-    
+
     payload = {"Attributes": {seq_key: updated_seq}, "@Redfish.SettingsApplyTime": {"ApplyTime": "OnReset"}}
     resp = redfish_obj.invoke_request(PATCH_BOOT_SEQ_URI, "PATCH", data=payload)
     if resp.status_code in [200, 202]:
