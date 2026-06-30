@@ -156,6 +156,8 @@ try:
     HAS_LIB = True
 except ImportError:
     HAS_LIB = False
+    RequestField = None
+    encode_multipart_formdata = None
 
 UPDATE_SERVICE = "UpdateService"
 JOB_URI = "JobService/Jobs/{job_id}"

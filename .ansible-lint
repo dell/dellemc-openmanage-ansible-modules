@@ -4,4 +4,3 @@ exclude_paths:
 skip_list:
   - var-naming[no-role-prefix]
   - jinja[spacing]
-
