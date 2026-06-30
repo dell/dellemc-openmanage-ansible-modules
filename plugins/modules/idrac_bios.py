@@ -173,7 +173,6 @@ EXAMPLES = """
     idrac_password: "user_password"
     validate_certs: false
     reset_bios: true
-
 """
 
 RETURN = """
