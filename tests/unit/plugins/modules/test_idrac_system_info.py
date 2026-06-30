@@ -78,10 +78,10 @@ class TestSystemInventory(FakeAnsibleModule):
             idrac_redfish_system_info_connection_mock.invoke_request.side_effect = exc_type('test')
         else:
             idrac_redfish_system_info_connection_mock.invoke_request.side_effect = exc_type('https://testhost.com', 400,
-                                                                                     'http error message',
-                                                                                     {
-                                                                                         "accept-type": "application/json"},
-                                                                                     StringIO(json_str))
+                                                                                            'http error message',
+                                                                                            {
+                                                                                                "accept-type": "application/json"},
+                                                                                            StringIO(json_str))
         if exc_type != URLError:
             result = self._run_module(idrac_default_args)
             assert result['failed'] is True
