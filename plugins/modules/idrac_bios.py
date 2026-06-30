@@ -326,7 +326,6 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import id
     strip_substr_dict
 
 
-
 def check_scheduled_bios_job(redfish_obj):
     job_resp = redfish_obj.invoke_request(iDRAC_JOBS_EXP, "GET")
     job_list = job_resp.json_data.get('Members', [])
