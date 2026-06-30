@@ -13,14 +13,8 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 import pytest
-import json
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_bios
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
-from unittest.mock import MagicMock
-from io import StringIO
-from ansible.module_utils._text import to_text
-from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
-from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.idrac_bios.'
 

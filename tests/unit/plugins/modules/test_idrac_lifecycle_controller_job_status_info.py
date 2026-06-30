@@ -15,7 +15,7 @@ import pytest
 import json
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_lifecycle_controller_job_status_info
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock
 from ansible_collections.dellemc.openmanage.plugins.\
     module_utils.idrac_utils.info.lifecycle_controller_job_status import IDRACLifecycleControllerJobStatusInfo
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError

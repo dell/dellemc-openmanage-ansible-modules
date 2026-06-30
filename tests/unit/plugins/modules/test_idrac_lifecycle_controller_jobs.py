@@ -18,7 +18,7 @@ from ansible_collections.dellemc.openmanage.plugins.modules import idrac_lifecyc
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import SSLValidationError
-from unittest.mock import MagicMock, PropertyMock
+from unittest.mock import MagicMock
 from io import StringIO
 from ansible.module_utils._text import to_text
 

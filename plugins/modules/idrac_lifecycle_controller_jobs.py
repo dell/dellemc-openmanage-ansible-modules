@@ -117,9 +117,10 @@ def main():
     module = AnsibleModule(
         argument_spec=specs,
         supports_check_mode=False)
+    job_id = module.params.get('job_id')
     try:
         with iDRACRedfishAPI(module.params) as idrac:
-            job_id, resp = module.params.get('job_id'), {}
+            resp = {}
             lifecycle_controller_jobs_obj = IDRACLifecycleControllerJobs(idrac)
             resp, jobstr = lifecycle_controller_jobs_obj.lifecycle_controller_jobs_operation(module)
     except HTTPError as err:
