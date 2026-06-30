@@ -17,11 +17,11 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: idrac_bios
-short_description: Modify and clear BIOS attributes, reset BIOS settings
+short_description: Modify and clear BIOS attributes, reset BIOS settings, and configure boot sources
 version_added: "2.1.0"
 description:
     - This module allows to modify the BIOS attributes. Also clears pending BIOS attributes and resets BIOS to default settings.
-    - To configure boot sources and boot order, use the M(dellemc.openmanage.idrac_boot) module.
+    - Boot sources can be enabled or disabled. Boot sequence can be configured.
 extends_documentation_fragment:
     - dellemc.openmanage.idrac_auth_options
 options:
@@ -80,8 +80,25 @@ options:
           - This is applied to the host after the restart.
           - This operation will not create any job.
           - C(false) will not perform any operation.
-          - This is mutually exclusive with I(attributes) and I(clear_pending).
+          - This is mutually exclusive with I(attributes), I(clear_pending), and I(boot_sources).
           - When C(true), this action will always report as changes found to be applicable.
+    boot_sources:
+        type: list
+        elements: dict
+        description:
+          - Options to enable or disable the boot sources.
+          - This is mutually exclusive with I(attributes), I(clear_pending), and I(reset_bios).
+        suboptions:
+          Name:
+            type: str
+            required: true
+            description: FQDD of the boot device.
+          Enabled:
+            type: bool
+            description: Enable or disable the boot device.
+          Index:
+            type: int
+            description: Boot index of the device.
     reset_type:
         type: str
         description:
@@ -114,7 +131,6 @@ notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
     - This module supports C(check_mode).
-    - Boot source configuration is handled by M(dellemc.openmanage.idrac_boot).
 """
 
 EXAMPLES = """
@@ -174,6 +190,20 @@ EXAMPLES = """
     idrac_password: "user_password"
     validate_certs: false
     reset_bios: true
+
+- name: Configure Boot Sources
+  dellemc.openmanage.idrac_bios:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    boot_sources:
+      - Name: "NIC.Integrated.1-1-1"
+        Enabled: true
+        Index: 1
+      - Name: "NIC.Integrated.1-1-2"
+        Enabled: true
+        Index: 0
 """
 
 RETURN = """
@@ -248,6 +278,8 @@ POWER_HOST_URI = "/redfish/v1/Systems/System.Embedded.1/Actions/ComputerSystem.R
 IDRAC_JOBS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs"
 iDRAC_JOBS_EXP = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs?$expand=*($levels=1)"
 iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{job_id}"
+BOOT_SEQ_URI = "/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellBootSources"
+PATCH_BOOT_SEQ_URI = "/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellBootSources/Settings"
 LOG_SERVICE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog"
 iDRAC9_LC_LOG = "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries"
 iDRAC8_LC_LOG = "/redfish/v1/Managers/iDRAC.Embedded.1/Logs/Lclog"
@@ -258,6 +290,7 @@ NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
 SUCCESS_CLEAR = "Successfully cleared the pending BIOS attributes."
 SUCCESS_COMPLETE = "Successfully applied the BIOS attributes update."
+SUCCESS_BOOT_SOURCES = "Successfully configured the boot sources."
 SCHEDULED_SUCCESS = "Successfully scheduled the job for the BIOS attributes update."
 COMMITTED_SUCCESS = "Successfully committed changes. The job is in pending state. The changes will be applied {0}"
 RESET_TRIGGERRED = "Reset BIOS action triggered successfully."
@@ -278,6 +311,7 @@ POWER_CHECK_INTERVAL = 10
 ODATA_REGEX = "(.*?)@odata"
 AUTH_ERROR_MSG = "Unable to communicate with iDRAC {0}. This may be due to one of the following: " \
                  "Incorrect username or password, unreachable iDRAC IP or a failure in TLS/SSL handshake."
+BOOT_SOURCES_INVALID = "Invalid boot_sources parameter. Each item must be a dict with 'Name' (required), 'Enabled' (bool), and 'Index' (int)."
 
 
 import json
@@ -645,6 +679,74 @@ def validate_negative_job_time_out(module):
         module.fail_json(msg=NEGATIVE_TIMEOUT_MESSAGE)
 
 
+def validate_boot_sources_params(boot_sources):
+    """Validate boot_sources parameter format."""
+    if not boot_sources:
+        return None
+    valid_keys = ['Name', 'Index', 'Enabled']
+    for source in boot_sources:
+        if not isinstance(source, dict):
+            return BOOT_SOURCES_INVALID
+        if 'Name' not in source:
+            return BOOT_SOURCES_INVALID
+        for key in source.keys():
+            if key not in valid_keys:
+                return BOOT_SOURCES_INVALID
+        if 'Index' in source and not isinstance(source['Index'], int):
+            return BOOT_SOURCES_INVALID
+        if 'Enabled' in source and not isinstance(source['Enabled'], bool):
+            return BOOT_SOURCES_INVALID
+    return None
+
+
+def configure_boot_sources(redfish_obj, boot_sources):
+    """Configure boot sources using Redfish API."""
+    resp = redfish_obj.invoke_request(BOOT_SEQ_URI, "GET")
+    boot_seq_data = resp.json_data.get("Attributes", {})
+    seq_key = None
+    if "BootSeq" in boot_seq_data:
+        seq_key = "BootSeq"
+    elif "UefiBootSeq" in boot_seq_data:
+        seq_key = "UefiBootSeq"
+    else:
+        return None, "Unable to determine boot sequence type from system."
+    
+    current_seq = boot_seq_data.get(seq_key, [])
+    updated_seq = []
+    changes_found = False
+    
+    # Build a lookup map from user input
+    source_map = {}
+    for source in boot_sources:
+        source_map[source['Name']] = {'Enabled': source.get('Enabled'), 'Index': source.get('Index')}
+    
+    # Update boot sequence with user values
+    for device in current_seq:
+        device_name = device.get('Name')
+        if device_name in source_map:
+            user_source = source_map[device_name]
+            if 'Enabled' in user_source and device.get('Enabled') != user_source['Enabled']:
+                device['Enabled'] = user_source['Enabled']
+                changes_found = True
+            if 'Index' in user_source and device.get('Index') != user_source['Index']:
+                device['Index'] = user_source['Index']
+                changes_found = True
+        updated_seq.append(device)
+    
+    if not changes_found:
+        return None, NO_CHANGES_MSG
+    
+    payload = {"Attributes": {seq_key: updated_seq}, "@Redfish.SettingsApplyTime": {"ApplyTime": "OnReset"}}
+    resp = redfish_obj.invoke_request(PATCH_BOOT_SEQ_URI, "PATCH", data=payload)
+    if resp.status_code in [200, 202]:
+        location = resp.headers.get("Location", "")
+        if location:
+            job_id = location.split("/")[-1]
+            return job_id, SUCCESS_BOOT_SOURCES
+        return None, SUCCESS_BOOT_SOURCES
+    return None, "Failed to configure boot sources. HTTP status: {0}".format(resp.status_code)
+
+
 def main():
     specs = {
         "attributes": {"type": 'dict'},
@@ -655,6 +757,7 @@ def main():
                                            "duration": {"type": 'int', "required": True}}},
         "clear_pending": {"type": 'bool'},
         "reset_bios": {"type": 'bool'},
+        "boot_sources": {"type": 'list', 'elements': 'dict'},
         "reset_type": {"type": 'str', "choices": ['graceful_restart', 'force_restart'], "default": 'graceful_restart'},
         "job_wait": {"type": 'bool', "default": True},
         "job_wait_timeout": {"type": 'int', "default": 1200}
@@ -662,12 +765,17 @@ def main():
     specs.update(idrac_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
-        mutually_exclusive=[('attributes', 'clear_pending', 'reset_bios')],
-        required_one_of=[('attributes', 'clear_pending', 'reset_bios')],
+        mutually_exclusive=[('attributes', 'clear_pending', 'reset_bios', 'boot_sources')],
+        required_one_of=[('attributes', 'clear_pending', 'reset_bios', 'boot_sources')],
         required_if=[["apply_time", "AtMaintenanceWindowStart", ("maintenance_window",)],
                      ["apply_time", "InMaintenanceWindowOnReset", ("maintenance_window",)]],
         supports_check_mode=True)
     validate_negative_job_time_out(module)
+    boot_sources = module.params.get("boot_sources")
+    if boot_sources:
+        validation_error = validate_boot_sources_params(boot_sources)
+        if validation_error:
+            module.fail_json(msg=validation_error, failed=True)
     try:
         with iDRACRedfishAPI(module.params, req_session=True) as redfish_obj:
             _handle_redfish_api(module, redfish_obj)
@@ -689,6 +797,22 @@ def _handle_redfish_api(module, redfish_obj):
         reset_bios(module, redfish_obj)
     if module.params.get('attributes'):
         attributes_config(module, redfish_obj)
+    if module.params.get('boot_sources'):
+        boot_sources_config(module, redfish_obj)
+
+
+def boot_sources_config(module, redfish_obj):
+    """Handle boot sources configuration using Redfish API."""
+    boot_sources = module.params.get('boot_sources')
+    if module.check_mode:
+        module.exit_json(status_msg=CHANGES_MSG, changed=True)
+    job_id, status_msg = configure_boot_sources(redfish_obj, boot_sources)
+    if status_msg == NO_CHANGES_MSG:
+        module.exit_json(status_msg=status_msg)
+    elif job_id:
+        module.exit_json(status_msg=status_msg, job_id=job_id, changed=True)
+    else:
+        module.exit_json(status_msg=status_msg, failed=True)
 
 
 if __name__ == '__main__':
