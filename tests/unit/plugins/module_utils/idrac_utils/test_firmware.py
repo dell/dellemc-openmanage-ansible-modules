@@ -4,19 +4,19 @@ from ansible.module_utils.six.moves.urllib.error import HTTPError
 
 
 class TestIDRACFirmwareInfo(TestUtils):
-    def test_is_omsdk_required(self, idrac_mock):
+    def test_is_redfish_supported(self, idrac_mock):
         idrac_mock.invoke_request.return_value.status_code = 200
         idrac_firmware_info = IDRACFirmwareInfo(idrac_mock)
-        result = idrac_firmware_info.is_omsdk_required()
-        assert result is False
+        result = idrac_firmware_info.is_redfish_supported()
+        assert result is True
 
-    def test_is_omsdk_required_other_statuscode(self, idrac_mock):
+    def test_is_redfish_supported_other_statuscode(self, idrac_mock):
         idrac_mock.invoke_request.return_value.status_code = 204
         idrac_firmware_info = IDRACFirmwareInfo(idrac_mock)
-        result = idrac_firmware_info.is_omsdk_required()
+        result = idrac_firmware_info.is_redfish_supported()
         assert not result
 
-    def test_is_omsdk_required_error_handling(self, idrac_mock):
+    def test_is_redfish_supported_error_handling(self, idrac_mock):
         idrac_mock.invoke_request.return_value.status_code = 400
         idrac_mock.invoke_request.side_effect = HTTPError(
             'https://testhost.com/',
@@ -25,5 +25,5 @@ class TestIDRACFirmwareInfo(TestUtils):
             {},
             None)
         idrac_firmware_info = IDRACFirmwareInfo(idrac_mock)
-        result = idrac_firmware_info.is_omsdk_required()
-        assert result is True
+        result = idrac_firmware_info.is_redfish_supported()
+        assert result is False

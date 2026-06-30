@@ -99,9 +99,9 @@ class TestIDRACBiosInfo(object):
         resp = IDRACBiosInfo(idrac_obj).get_bios_system_info()
         assert resp == [{
             "BIOSReleaseDate": "02/06/2019",
-            "FQDD": "BIOS.Setup-1.1",
-            "InstanceID": "DCIM:Installed__BIOS.Setup-1.1",
-            "Key": "BIOS.Setup-1.1",
+            "FQDD": "BIOS.Embedded.1",
+            "InstanceID": "BIOS.Embedded.1",
+            "Key": "BIOS.Embedded.1",
             "SMBIOSPresent": "True",
             "VersionString": "1.11"
         }]
