@@ -113,7 +113,6 @@ options:
         type: str
 
 requirements:
-    - "omsdk >= 1.2.503"
     - "python >= 3.9.6"
 author:
     - "Rajeev Arakkal (@rajeevarakkal)"
@@ -232,23 +231,16 @@ update_status:
 """
 
 
-import os
 import json
 import time
 from ssl import SSLError
 from xml.etree import ElementTree as ET
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.parse import urlparse
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
-try:
-    from omsdk.sdkcreds import UserCredentials
-    from omsdk.sdkfile import FileOnShare
-    HAS_OMSDK = True
-except ImportError:
-    HAS_OMSDK = False
 
 SHARE_TYPE = {'nfs': 'NFS', 'cifs': 'CIFS', 'ftp': 'FTP',
               'http': 'HTTP', 'https': 'HTTPS', 'tftp': 'TFTP'}
@@ -499,124 +491,6 @@ def update_firmware_url_redfish(module, idrac, share_path, apply_update, reboot,
     return status, job_details
 
 
-def update_firmware_url_omsdk(module, idrac, share_name, catalog_file_name, apply_update, reboot,
-                              ignore_cert_warning, job_wait, payload):
-    """Update firmware through HTTP/HTTPS/FTP and return the job details."""
-    repo_url = urlparse(share_name)
-    job_details, status = {}, {}
-    ipaddr = repo_url.netloc
-    share_type = repo_url.scheme
-    sharename = repo_url.path.strip('/')
-    proxy_support = PROXY_SUPPORT[module.params["proxy_support"]]
-    proxy_type = module.params.get("proxy_type") if module.params.get("proxy_type") is not None else "HTTP"
-    proxy_server = module.params.get("proxy_server") if module.params.get("proxy_server") is not None else ""
-    proxy_port = module.params.get("proxy_port") if module.params.get("proxy_port") is not None else 80
-    proxy_uname = module.params.get("proxy_uname")
-    proxy_passwd = module.params.get("proxy_passwd")
-    if ipaddr == "downloads.dell.com":
-        status = idrac.update_mgr.update_from_dell_repo_url(
-            ipaddress=ipaddr, share_type=share_type, share_name=sharename, catalog_file=catalog_file_name,
-            apply_update=apply_update, reboot_needed=reboot, ignore_cert_warning=ignore_cert_warning, job_wait=job_wait,
-            proxy_support=proxy_support, proxy_type=proxy_type, proxy_server=proxy_server, proxy_port=proxy_port,
-            proxy_uname=proxy_uname, proxy_passwd=proxy_passwd)
-        get_check_mode_status(status, module)
-    else:
-        status = idrac.update_mgr.update_from_repo_url(
-            ipaddress=ipaddr, share_type=share_type, share_name=sharename, catalog_file=catalog_file_name,
-            apply_update=apply_update, reboot_needed=reboot, ignore_cert_warning=ignore_cert_warning, job_wait=job_wait,
-            proxy_support=proxy_support, proxy_type=proxy_type, proxy_server=proxy_server,
-            proxy_port=proxy_port, proxy_uname=proxy_uname, proxy_passwd=proxy_passwd)
-        get_check_mode_status(status, module)
-    return status, job_details
-
-
-def update_firmware_omsdk(idrac, module):
-    """Update firmware from a network share and return the job details."""
-    msg = {}
-    msg['changed'], msg['failed'], msg['update_status'] = False, False, {}
-    msg['update_msg'] = "Successfully triggered the job to update the firmware."
-    try:
-        share_name = module.params['share_name']
-        catalog_file_name = module.params['catalog_file_name']
-        share_user = module.params['share_user']
-        share_pwd = module.params['share_password']
-        reboot = module.params['reboot']
-        job_wait = module.params['job_wait']
-        ignore_cert_warning = module.params['ignore_cert_warning']
-        apply_update = module.params['apply_update']
-        payload = {"RebootNeeded": reboot, "CatalogFile": catalog_file_name, "ApplyUpdate": str(apply_update),
-                   "IgnoreCertWarning": CERT_WARN[ignore_cert_warning]}
-        if share_user is not None:
-            payload['UserName'] = share_user
-        if share_pwd is not None:
-            payload['Password'] = share_pwd
-
-        if share_name.lower().startswith(('http://', 'https://', 'ftp://')):
-            msg['update_status'], job_details = update_firmware_url_omsdk(module, idrac, share_name, catalog_file_name,
-                                                                          apply_update, reboot, ignore_cert_warning,
-                                                                          job_wait, payload)
-            if job_details:
-                msg['update_status']['job_details'] = job_details
-        else:
-            upd_share = FileOnShare(remote="{0}{1}{2}".format(share_name, os.sep, catalog_file_name),
-                                    mount_point=module.params['share_mnt'], isFolder=False,
-                                    creds=UserCredentials(share_user, share_pwd))
-            msg['update_status'] = idrac.update_mgr.update_from_repo(
-                upd_share, apply_update=apply_update, reboot_needed=reboot, job_wait=job_wait,)
-            get_check_mode_status(msg['update_status'], module)
-
-        json_data, repo_status, failed = msg['update_status']['job_details'], False, False
-        if "PackageList" not in json_data:
-            job_data = json_data.get('Data')
-            pkglst = job_data['body'] if 'body' in job_data else job_data.get('GetRepoBasedUpdateList_OUTPUT')
-            if 'PackageList' in pkglst:  # Returns from OMSDK
-                pkglst['PackageList'], repo_status, failed = _convert_xmltojson(module, pkglst, idrac)
-        else:  # Redfish
-            json_data['PackageList'], repo_status, failed = _convert_xmltojson(module, json_data, None)
-
-        if not apply_update and not failed:
-            msg['update_msg'] = "Successfully fetched the applicable firmware update package list."
-        elif apply_update and not reboot and not job_wait and not failed:
-            msg['update_msg'] = "Successfully triggered the job to stage the firmware."
-        elif apply_update and job_wait and not reboot and not failed:
-            msg['update_msg'] = "Successfully staged the applicable firmware update packages."
-            msg['changed'] = True
-        elif apply_update and job_wait and not reboot and failed:
-            msg['update_msg'] = "Successfully staged the applicable firmware update packages with error(s)."
-            msg['failed'] = True
-
-    except RuntimeError as e:
-        module.fail_json(msg=str(e))
-
-    if module.check_mode and not (json_data.get('PackageList') or json_data.get('Data')) and \
-            msg['update_status']['JobStatus'] == 'Completed':
-        module.exit_json(msg="No changes found to commit!")
-    elif module.check_mode and (json_data.get('PackageList') or json_data.get('Data')) and \
-            msg['update_status']['JobStatus'] == 'Completed':
-        module.exit_json(msg="Changes found to commit!", changed=True,
-                         update_status=msg['update_status'])
-    elif module.check_mode and not msg['update_status']['JobStatus'] == 'Completed':
-        msg['update_status'].pop('job_details')
-        module.fail_json(msg="Unable to complete the firmware repository download.",
-                         update_status=msg['update_status'])
-    elif not module.check_mode and "Status" in msg['update_status']:
-        if msg['update_status']['Status'] in ["Success", "InProgress"]:
-            if module.params['job_wait'] and module.params['apply_update'] and module.params['reboot'] and (
-                    'job_details' in msg['update_status'] and repo_status) and not failed:
-                msg['changed'] = True
-                msg['update_msg'] = "Successfully updated the firmware."
-            elif module.params['job_wait'] and module.params['apply_update'] and module.params['reboot'] and (
-                    'job_details' in msg['update_status'] and repo_status) and failed:
-                msg['failed'], msg['changed'] = True, False
-                msg['update_msg'] = "Firmware update failed."
-        else:
-            failed_msg = "Firmware update failed."
-            if not apply_update:
-                failed_msg = "Unable to complete the repository update."
-            module.fail_json(msg=failed_msg, update_status=msg['update_status'])
-    return msg
-
-
 def update_firmware_redfish(idrac, module, repo_urls):
     """Update firmware from a network share and return the job details."""
     msg = {}
@@ -763,15 +637,12 @@ def main():
         ],
         supports_check_mode=True)
 
-    redfish_check = False
     try:
         with iDRACRedfishAPI(module.params) as obj:
             resp = obj.invoke_request(IDRAC_PATH, method="GET")
             software_service_data = resp.json_data
-            redfish_check = True
     except Exception:
         software_service_data = {}
-        redfish_check = False
 
     try:
         # Validate the catalog file
@@ -781,12 +652,8 @@ def main():
             module.params['reboot'] = False
             module.params['job_wait'] = True
         # Connect to iDRAC and update firmware
-        if redfish_check:
-            with iDRACRedfishAPI(module.params) as redfish_obj:
-                status = update_firmware_redfish(redfish_obj, module, software_service_data)
-        else:
-            with iDRACConnection(module.params) as idrac:
-                status = update_firmware_omsdk(idrac, module)
+        with iDRACRedfishAPI(module.params) as redfish_obj:
+            status = update_firmware_redfish(redfish_obj, module, software_service_data)
     except HTTPError as err:
         module.fail_json(msg=str(err), update_status=json.load(err))
     except URLError as err:

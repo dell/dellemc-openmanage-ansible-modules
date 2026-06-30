@@ -106,7 +106,7 @@ error_info:
 '''
 
 import json
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import GET_IDRAC_FIRMWARE_DETAILS_URI_10, GET_IDRAC_FIRMWARE_URI_10, remove_key
 from ansible.module_utils.basic import AnsibleModule
@@ -114,12 +114,6 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from urllib.error import URLError, HTTPError
 
 ERR_STATUS = 404
-
-
-def get_from_wsman(module):
-    with iDRACConnection(module.params) as idrac:
-        firmware_details = idrac.update_mgr.InstalledFirmware
-        return firmware_details
 
 
 def transform_firmware_data(filtered_data):
@@ -184,10 +178,7 @@ def get_idrac_firmware_info(idrac, module):
         resp.update(tmp)
         return resp
 
-    except HTTPError as err:
-        if err.status == ERR_STATUS:
-            return get_from_wsman(module)
-
+    except HTTPError:
         raise
 
 

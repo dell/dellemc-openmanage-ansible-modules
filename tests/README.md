@@ -12,8 +12,6 @@ Any contribution must have an associated unit test. This section covers the
 ### Prerequisites
 * Dell OpenManage collections - to install run `ansible-galaxy collection
  install dellemc.openmanage`
-* To run the unittest for iDRAC modules, install OpenManage Python Software Development Kit (OMSDK) using
-`pip install omsdk --upgrade` or from [Dell OpenManage Python SDK](https://github.com/dell/omsdk)
 
 ### Executing unit tests
 You can execute them manually by using any tool of your choice, like `pytest` or `ansible-test`.

@@ -99,7 +99,7 @@ error_info:
 
 import json
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
-    dellemc_idrac import iDRACConnection, idrac_auth_params
+    dellemc_idrac import idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish \
     import iDRACRedfishAPI
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
@@ -119,25 +119,9 @@ def main():
         supports_check_mode=False)
     try:
         with iDRACRedfishAPI(module.params) as idrac:
-            server_det = idrac.get_server_generation
-            server_hw_model = server_det[2]
-            if server_hw_model != "iDRAC 8":
-                job_id, resp = module.params.get('job_id'), {}
-                lifecycle_controller_jobs_obj = IDRACLifecycleControllerJobs(idrac)
-                resp, jobstr = lifecycle_controller_jobs_obj.lifecycle_controller_jobs_operation(module)
-
-            else:
-                with iDRACConnection(module.params) as idrac:
-                    job_id, resp = module.params.get('job_id'), {}
-                    if job_id is not None:
-                        resp = idrac.job_mgr.delete_job(job_id)
-                        jobstr = "job"
-                    else:
-                        resp = idrac.job_mgr.delete_all_jobs()
-                        jobstr = "job queue"
-                    if resp["Status"] == "Error":
-                        msg = "Failed to delete the Job: {0}.".format(job_id)
-                        module.exit_json(msg=msg, status=resp, failed=True)
+            job_id, resp = module.params.get('job_id'), {}
+            lifecycle_controller_jobs_obj = IDRACLifecycleControllerJobs(idrac)
+            resp, jobstr = lifecycle_controller_jobs_obj.lifecycle_controller_jobs_operation(module)
     except HTTPError as err:
         if err.code == 400:
             error_info = json.load(err)

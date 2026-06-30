@@ -27,7 +27,7 @@
 
 
 GET_IDRAC_SYSTEM_URI = "/redfish/v1/Systems/System.Embedded.1"
-GET_IDRAC_FIRMWARE_URI = "/redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory"
+GET_IDRAC_BIOS_URI = "/redfish/v1/Systems/System.Embedded.1/Bios"
 
 
 class IDRACBiosInfo(object):
@@ -44,15 +44,13 @@ class IDRACBiosInfo(object):
         return "", "", ""
 
     def get_bios_fqdd_and_instance_id_and_key(self):
-        response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_URI)
+        response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_BIOS_URI)
         if response.status_code == 200:
-            members = response.json_data.get("Members")
-            for each in members:
-                if each.get('ElementName', '') == 'BIOS' and each.get('Status', '') == 'Installed':
-                    instance_id = each.get('Id')
-                    fqdd = instance_id.split('__')[-1]
-                    key = fqdd
-                    return fqdd, instance_id, key
+            bios_data = response.json_data
+            instance_id = "BIOS.Embedded.1"
+            fqdd = "BIOS.Embedded.1"
+            key = "BIOS.Embedded.1"
+            return fqdd, instance_id, key
         return "", "", ""
 
     def get_bios_system_info(self):
