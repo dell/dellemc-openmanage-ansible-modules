@@ -73,7 +73,7 @@
       ansible.builtin.assert:
         that:
           - invalid_ca_path.failed
-          - '"HTTP Error 401" in invalid_ca_path.msg  or
+          - '"No such file or directory" in invalid_ca_path.module_stderr or
             "No such file or directory" in invalid_ca_path.msg'
 
   module_defaults:

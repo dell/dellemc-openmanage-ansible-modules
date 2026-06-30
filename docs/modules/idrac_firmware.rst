@@ -26,7 +26,6 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- omsdk \>= 1.2.503
 - python \>= 3.9.6
 
 

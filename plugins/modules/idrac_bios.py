@@ -79,15 +79,7 @@ options:
           - "Dictionary of BIOS attributes and value pair. Attributes should be
           part of the Redfish Dell BIOS Attribute Registry. Use
           U(https://I(idrac_ip)/redfish/v1/Systems/System.Embedded.1/Bios) to view the Redfish URI."
-          - This is mutually exclusive with I(boot_sources), I(clear_pending), and I(reset_bios).
-    boot_sources:
-        type: list
-        elements: raw
-        description:
-          - (deprecated)List of boot devices to set the boot sources settings.
-          - I(boot_sources) is mutually exclusive with I(attributes), I(clear_pending), and I(reset_bios).
-          - I(job_wait) is not applicable. The module waits till the completion of this task.
-          - This feature is deprecated, please use M(dellemc.openmanage.idrac_boot) for configuring boot sources.
+          - This is mutually exclusive with I(clear_pending) and I(reset_bios).
     clear_pending:
         type: bool
         description:
@@ -95,8 +87,7 @@ options:
           - C(true) will discard any pending changes to bios attributes or remove job if in scheduled state.
           - This operation will not create any job.
           - C(false) will not perform any operation.
-          - This is mutually exclusive with I(boot_sources), I(attributes), and I(reset_bios).
-          - C(Note) Any BIOS job scheduled due to boot sources configuration will not be cleared.
+          - This is mutually exclusive with I(attributes) and I(reset_bios).
     reset_bios:
         type: bool
         description:
@@ -104,7 +95,7 @@ options:
           - This is applied to the host after the restart.
           - This operation will not create any job.
           - C(false) will not perform any operation.
-          - This is mutually exclusive with I(boot_sources), I(attributes), and I(clear_pending).
+          - This is mutually exclusive with I(attributes) and I(clear_pending).
           - When C(true), this action will always report as changes found to be applicable.
     reset_type:
         type: str
@@ -127,7 +118,6 @@ options:
           - This option is applicable when I(job_wait) is C(true).
         default: 1200
 requirements:
-    - "omsdk >= 1.2.490"
     - "python >= 3.9.6"
 author:
     - "Felix Stephen (@felixs88)"
@@ -135,7 +125,6 @@ author:
     - "Jagadeesh N V (@jagadeeshnv)"
     - "Shivam Sharma (@shivam-sharma)"
 notes:
-    - omsdk is required to be installed only for I(boot_sources) operation.
     - This module requires 'Administrator' privilege for I(idrac_user).
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
@@ -200,53 +189,6 @@ EXAMPLES = """
     validate_certs: false
     reset_bios: true
 
-- name: Configure boot sources
-  dellemc.openmanage.idrac_bios:
-    idrac_ip: "192.168.0.1"
-    idrac_user: "user_name"
-    idrac_password: "user_password"
-    ca_path: "/path/to/ca_cert.pem"
-    boot_sources:
-      - Name: "NIC.Integrated.1-2-3"
-        Enabled: true
-        Index: 0
-
-- name: Configure multiple boot sources
-  dellemc.openmanage.idrac_bios:
-    idrac_ip: "192.168.0.1"
-    idrac_user: "user_name"
-    idrac_password: "user_password"
-    ca_path: "/path/to/ca_cert.pem"
-    boot_sources:
-      - Name: "NIC.Integrated.1-1-1"
-        Enabled: true
-        Index: 0
-      - Name: "NIC.Integrated.2-2-2"
-        Enabled: true
-        Index: 1
-      - Name: "NIC.Integrated.3-3-3"
-        Enabled: true
-        Index: 2
-
-- name: Configure boot sources - Enabling
-  dellemc.openmanage.idrac_bios:
-    idrac_ip: "192.168.0.1"
-    idrac_user: "user_name"
-    idrac_password: "user_password"
-    ca_path: "/path/to/ca_cert.pem"
-    boot_sources:
-      - Name: "NIC.Integrated.1-1-1"
-        Enabled: true
-
-- name: Configure boot sources - Index
-  dellemc.openmanage.idrac_bios:
-    idrac_ip: "192.168.0.1"
-    idrac_user: "user_name"
-    idrac_password: "user_password"
-    ca_path: "/path/to/ca_cert.pem"
-    boot_sources:
-      - Name: "NIC.Integrated.1-1-1"
-        Index: 0
 """
 
 RETURN = """
@@ -257,7 +199,7 @@ status_msg:
     type: str
     sample: Successfully cleared pending BIOS attributes.
 msg:
-    description: Status of the job for I(boot_sources) or status of the action performed on bios.
+    description: Status of the action performed on bios.
     returned: success
     type: dict
     sample: {
@@ -358,84 +300,12 @@ import time
 from ansible.module_utils.common.dict_transformations import recursive_diff
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import idrac_redfish_job_tracking, remove_key, \
     strip_substr_dict
 
-
-def run_server_bios_config(idrac, module):
-    msg = {}
-    idrac.use_redfish = True
-    _validate_params(module.params['boot_sources'])
-    if module.check_mode:
-        idrac.config_mgr.is_change_applicable()
-    msg = idrac.config_mgr.configure_boot_sources(input_boot_devices=module.params['boot_sources'])
-    return msg
-
-
-def _validate_params(params):
-    """
-    Validate list of dict params.
-    :param params: Ansible list of dict
-    :return: bool or error.
-    """
-    fields = [
-        {"name": "Name", "type": str, "required": True},
-        {"name": "Index", "type": int, "required": False, "min": 0},
-        {"name": "Enabled", "type": bool, "required": False}
-    ]
-    default = ['Name', 'Index', 'Enabled']
-    for attr in params:
-        if not isinstance(attr, dict):
-            msg = "attribute values must be of type: dict. {0} ({1}) provided.".format(attr, type(attr))
-            return msg
-        elif all(k in default for k in attr.keys()):
-            msg = check_params(attr, fields)
-            return msg
-        else:
-            msg = "attribute keys must be one of the {0}.".format(default)
-            return msg
-    msg = _validate_name_index_duplication(params)
-    return msg
-
-
-def _validate_name_index_duplication(params):
-    """
-    Validate for duplicate names and indices.
-    :param params: Ansible list of dict
-    :return: bool or error.
-    """
-    msg = ""
-    for i in range(len(params) - 1):
-        for j in range(i + 1, len(params)):
-            if params[i]['Name'] == params[j]['Name']:
-                msg = "duplicate name  {0}".format(params[i]['Name'])
-                return msg
-    return msg
-
-
-def check_params(each, fields):
-    """
-    Each dictionary parameters validation as per the rule defined in fields.
-    :param each: validating each dictionary
-    :param fields: list of dictionary which has the set of rules.
-    :return: tuple which has err and message
-    """
-    msg = ""
-    for f in fields:
-        if f['name'] not in each and f["required"] is False:
-            continue
-        if not f["name"] in each and f["required"] is True:
-            msg = "{0} is required and must be of type: {1}".format(f['name'], f['type'])
-        elif not isinstance(each[f["name"]], f["type"]):
-            msg = "{0} must be of type: {1}. {2} ({3}) provided.".format(
-                f['name'], f['type'], each[f['name']], type(each[f['name']]))
-        elif f['name'] in each and isinstance(each[f['name']], int) and 'min' in f:
-            if each[f['name']] < f['min']:
-                msg = "{0} must be greater than or equal to: {1}".format(f['name'], f['min'])
-    return msg
 
 
 def check_scheduled_bios_job(redfish_obj):
@@ -792,12 +662,7 @@ def validate_negative_job_time_out(module):
 
 def main():
     specs = {
-        "share_name": {"type": 'str'},
-        "share_user": {"type": 'str'},
-        "share_password": {"type": 'str', "aliases": ['share_pwd'], "no_log": True},
-        "share_mnt": {"type": 'str'},
         "attributes": {"type": 'dict'},
-        "boot_sources": {"type": 'list', 'elements': 'raw'},
         "apply_time": {"type": 'str', "default": 'Immediate',
                        "choices": ['Immediate', 'OnReset', 'AtMaintenanceWindowStart', 'InMaintenanceWindowOnReset']},
         "maintenance_window": {"type": 'dict',
@@ -812,29 +677,16 @@ def main():
     specs.update(idrac_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
-        mutually_exclusive=[('boot_sources', 'attributes', 'clear_pending', 'reset_bios')],
-        required_one_of=[('boot_sources', 'attributes', 'clear_pending', 'reset_bios')],
+        mutually_exclusive=[('attributes', 'clear_pending', 'reset_bios')],
+        required_one_of=[('attributes', 'clear_pending', 'reset_bios')],
         required_if=[["apply_time", "AtMaintenanceWindowStart", ("maintenance_window",)],
                      ["apply_time", "InMaintenanceWindowOnReset", ("maintenance_window",)]],
         supports_check_mode=True)
     validate_negative_job_time_out(module)
     try:
-        msg = {}
-        if module.params.get("boot_sources") is not None:
-            with iDRACConnection(module.params) as idrac:
-                msg = run_server_bios_config(idrac, module)
-                changed, failed = False, False
-                if msg.get('Status') == "Success":
-                    changed = True
-                    if msg.get('Message') == "No changes found to commit!":
-                        changed = False
-                elif msg.get('Status') == "Failed":
-                    failed = True
-            module.exit_json(msg=msg, changed=changed, failed=failed)
-        else:
-            with iDRACRedfishAPI(module.params, req_session=True) as redfish_obj:
-                _handle_redfish_api(module, redfish_obj)
-            module.exit_json(status_msg=NO_CHANGES_MSG)
+        with iDRACRedfishAPI(module.params, req_session=True) as redfish_obj:
+            _handle_redfish_api(module, redfish_obj)
+        module.exit_json(status_msg=NO_CHANGES_MSG)
     except HTTPError as err:
         filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
         module.exit_json(msg=str(err), error_info=filter_err, failed=True)

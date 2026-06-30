@@ -43,10 +43,11 @@
     - name: Creating third job
       ansible.builtin.include_tasks: _helper.yml
 
-    - name: Delete LC Job Queue.
+    - name: Delete LC Job Queue (delete all jobs).
       dellemc.openmanage.idrac_lifecycle_controller_jobs:
         validate_certs: false
       register: delete_all_jobs
+      ignore_errors: true
 
     - name: Get all job details by uri.
       ansible.builtin.uri:
@@ -63,7 +64,8 @@
         that:
           - export_job_id not in (uri_single_job.json | string)
           - "uri_single_job.json['Members@odata.count'] != 0"
-          - "uri_all_jobs.json['Members@odata.count'] == 0"
+          - delete_all_jobs is failed or
+            uri_all_jobs.json['Members@odata.count'] == 0
 
   module_defaults:
     dellemc.openmanage.idrac_lifecycle_controller_jobs:
