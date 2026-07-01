@@ -13,9 +13,11 @@
       register: result_job_wait
       until:
         - result_job_wait.job_info is defined
+        - result_job_wait.job_info | length > 0
         - result_job_wait.job_info.JobStatus in ["Completed", "Failed"]
       failed_when:
         - result_job_wait.job_info is defined
+        - result_job_wait.job_info | length > 0
         - result_job_wait.job_info.JobStatus == "Failed"
       retries: 150
       delay: 30
