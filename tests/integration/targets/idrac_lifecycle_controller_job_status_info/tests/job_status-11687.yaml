@@ -281,3 +281,8 @@
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"
+    ansible.builtin.uri:
+      user: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      validate_certs: false
+      force_basic_auth: true
