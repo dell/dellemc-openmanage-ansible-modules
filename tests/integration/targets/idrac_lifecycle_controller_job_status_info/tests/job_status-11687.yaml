@@ -18,6 +18,7 @@
         user: "{{ idrac_user }}"
         password: "{{ idrac_password }}"
         validate_certs: false
+        force_basic_auth: true
       register: system_api_result
 
     - name: Get first System Id from the system response
@@ -33,6 +34,7 @@
         user: "{{ idrac_user }}"
         password: "{{ idrac_password }}"
         validate_certs: false
+        force_basic_auth: true
       register: sys_detail
 
     - name: Extracting iDRAC generation
@@ -281,8 +283,3 @@
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"
-    ansible.builtin.uri:
-      user: "{{ idrac_user }}"
-      password: "{{ idrac_password }}"
-      validate_certs: false
-      force_basic_auth: true
