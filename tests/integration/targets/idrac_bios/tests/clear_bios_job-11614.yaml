@@ -115,6 +115,9 @@
           - not clear_jobs_results.changed
           - clear_jobs_results.status_msg == "No changes found to be applied."
 
+    - name: Clear job_id fact to prevent leaking into subsequent tests
+      ansible.builtin.set_fact:
+        job_id: null
 
   module_defaults:
     dellemc.openmanage.idrac_bios:
