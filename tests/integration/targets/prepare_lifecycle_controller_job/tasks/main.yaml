@@ -9,7 +9,7 @@
         idrac_password: "{{ idrac_password }}"
         validate_certs: "{{ validate_certs }}"
         job_id: "{{ job_id }}"
-      when: job_id is defined
+      when: job_id is defined and job_id
       register: result_job_wait
       until:
         - result_job_wait.job_info is defined

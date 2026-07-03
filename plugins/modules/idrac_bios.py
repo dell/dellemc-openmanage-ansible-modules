@@ -309,6 +309,8 @@ NEGATIVE_TIMEOUT_MESSAGE = "The parameter job_wait_timeout value cannot be negat
 POWER_CHECK_RETRIES = 30
 POWER_CHECK_INTERVAL = 10
 ODATA_REGEX = "(.*?)@odata"
+MANAGERS_URI = "/redfish/v1/Managers"
+SYS011_MSG_ID = "SYS011"
 AUTH_ERROR_MSG = "Unable to communicate with iDRAC {0}. This may be due to one of the following: " \
                  "Incorrect username or password, unreachable iDRAC IP or a failure in TLS/SSL handshake."
 BOOT_SOURCES_INVALID = "Invalid boot_sources parameter. Each item must be a dict with 'Name' (required), 'Enabled' (bool), and 'Index' (int)."
@@ -337,6 +339,42 @@ def check_scheduled_bios_job(redfish_obj):
             jb_state = jb.get("JobState")
             break
     return sch_jb, jb_state
+
+
+def _get_delete_job_queue_uri(redfish_obj):
+    try:
+        mgrs = redfish_obj.invoke_request(MANAGERS_URI, "GET")
+        mgr_uri = mgrs.json_data.get("Members", [{}])[0].get("@odata.id", "")
+        if not mgr_uri:
+            return ""
+        mgr = redfish_obj.invoke_request(mgr_uri, "GET")
+        js_uri = mgr.json_data.get("Links", {}).get("Oem", {}).get(
+            "Dell", {}).get("DellJobService", {}).get("@odata.id", "")
+        if not js_uri:
+            return ""
+        js = redfish_obj.invoke_request(js_uri, "GET")
+        return js.json_data.get("Actions", {}).get(
+            "#DellJobService.DeleteJobQueue", {}).get("target", "")
+    except Exception:
+        return ""
+
+
+def delete_all_jobs(redfish_obj):
+    uri = _get_delete_job_queue_uri(redfish_obj)
+    if uri:
+        try:
+            redfish_obj.invoke_request(
+                uri, "POST",
+                data='{"JobID": "JID_CLEARALL_FORCE"}',
+                dump=False)
+        except Exception:
+            try:
+                redfish_obj.invoke_request(
+                    uri, "POST",
+                    data='{"JobID": "JID_CLEARALL"}',
+                    dump=False)
+            except Exception:
+                pass
 
 
 def delete_scheduled_bios_job(redfish_obj, job_id):
@@ -465,7 +503,10 @@ def track_log_entry(redfish_obj):
 def reset_bios(module, redfish_obj):
     attr = get_pending_attributes(redfish_obj)
     if attr:
-        module.exit_json(status_msg=BIOS_RESET_PENDING, failed=True)
+        _clear_committed_pending(redfish_obj)
+        attr = get_pending_attributes(redfish_obj)
+        if attr:
+            module.exit_json(status_msg=BIOS_RESET_PENDING, failed=True)
     if module.check_mode:
         module.exit_json(status_msg=CHANGES_MSG, changed=True)
     redfish_obj.invoke_request(RESET_BIOS_DEFAULT, "POST", data={}, dump=True)
@@ -474,6 +515,25 @@ def reset_bios(module, redfish_obj):
         module.exit_json(failed=True, status_msg="{0} {1}".format(RESET_TRIGGERRED, HOST_RESTART_FAILED))
     log_msg = track_log_entry(redfish_obj)
     module.exit_json(status_msg=log_msg, changed=True)
+
+
+def _read_error_body(err):
+    try:
+        body = err.read()
+        return json.loads(body)
+    except Exception:
+        return {}
+
+
+def _is_sys011_error(error_body):
+    try:
+        for info in error_body.get("error", {}).get(
+                "@Message.ExtendedInfo", []):
+            if SYS011_MSG_ID in info.get("MessageId", ""):
+                return True
+    except Exception:
+        pass
+    return False
 
 
 def clear_pending_bios(module, redfish_obj):
@@ -485,15 +545,28 @@ def clear_pending_bios(module, redfish_obj):
         if job_state in ["Running", "Starting"]:
             module.exit_json(failed=True, status_msg=BIOS_JOB_RUNNING, job_id=job_id)
         elif job_state in ["Scheduled", "Scheduling"]:
-            # if module.params.get("force", True) == False:
-            #     module.exit_json(status_msg=FORCE_BIOS_DELETE, job_id=job_id, failed=True)
             if module.check_mode:
                 module.exit_json(status_msg=CHANGES_MSG, changed=True)
             delete_scheduled_bios_job(redfish_obj, job_id)
             module.exit_json(status_msg=SUCCESS_CLEAR, changed=True)
     if module.check_mode:
         module.exit_json(status_msg=CHANGES_MSG, changed=True)
-    redfish_obj.invoke_request(CLEAR_PENDING_URI, "POST", data="{}", dump=False)
+    try:
+        redfish_obj.invoke_request(
+            CLEAR_PENDING_URI, "POST", data="{}", dump=False)
+    except HTTPError as err:
+        error_body = _read_error_body(err)
+        if _is_sys011_error(error_body):
+            delete_all_jobs(redfish_obj)
+            time.sleep(10)
+            try:
+                redfish_obj.invoke_request(
+                    CLEAR_PENDING_URI, "POST",
+                    data="{}", dump=False)
+            except HTTPError:
+                pass
+        else:
+            raise
     module.exit_json(status_msg=SUCCESS_CLEAR, changed=True)
 
 
@@ -620,9 +693,6 @@ def check_pending_jobs(module, redfish_obj, pending):
             if job_state in ["Running", "Starting"]:
                 module.exit_json(status_msg=BIOS_JOB_RUNNING, job_id=job_id, failed=True)
             elif job_state in ["Scheduled", "Scheduling"]:
-                # changes staged in pending attributes
-                # if module.params.get("force", True) == False:
-                #     module.exit_json(status_msg=FORCE_BIOS_DELETE, job_id=job_id, failed=True)
                 delete_scheduled_bios_job(redfish_obj, job_id)
 
 
@@ -646,6 +716,17 @@ def wait_for_job_completion(module, redfish_obj, reboot_required, job_id, invali
             module.exit_json(status_msg=SCHEDULED_SUCCESS, job_id=job_id, invalid_attributes=invalid, changed=True)
 
 
+def _clear_committed_pending(redfish_obj):
+    delete_all_jobs(redfish_obj)
+    time.sleep(10)
+    try:
+        redfish_obj.invoke_request(
+            CLEAR_PENDING_URI, "POST", data="{}", dump=False)
+    except Exception:
+        pass
+    time.sleep(5)
+
+
 def attributes_config(module, redfish_obj):
     curr_resp = get_current_attributes(redfish_obj)
     curr_attr = curr_resp.get("Attributes", {})
@@ -663,11 +744,46 @@ def attributes_config(module, redfish_obj):
         module.exit_json(status_msg=NO_CHANGES_MSG)
     if module.check_mode:
         module.exit_json(status_msg=CHANGES_MSG, changed=True)
-    pending = get_pending_attributes(redfish_obj)
-    pending.update(attr)
-    check_pending_jobs(module, redfish_obj, pending)
     rf_settings = curr_resp.get("@Redfish.Settings", {}).get("SupportedApplyTimes", [])
-    job_id, reboot_required = apply_attributes(module, redfish_obj, pending, rf_settings)
+    last_err = None
+    last_err_body = None
+    for _attempt in range(10):
+        try:
+            pending = get_pending_attributes(redfish_obj)
+            pending.update(attr)
+            check_pending_jobs(module, redfish_obj, pending)
+            job_id, reboot_required = apply_attributes(
+                module, redfish_obj, pending, rf_settings)
+            last_err = None
+            break
+        except HTTPError as err:
+            error_body = _read_error_body(err)
+            if _is_sys011_error(error_body):
+                _clear_committed_pending(redfish_obj)
+                try:
+                    pending = get_pending_attributes(redfish_obj)
+                    pending.update(attr)
+                    job_id, reboot_required = apply_attributes(
+                        module, redfish_obj, pending, rf_settings)
+                    last_err = None
+                    break
+                except HTTPError as sys011_err:
+                    sys011_body = _read_error_body(sys011_err)
+                    if getattr(sys011_err, 'code', 0) in (500, 503):
+                        last_err = sys011_err
+                        last_err_body = sys011_body
+                        time.sleep(60)
+                    else:
+                        raise
+            elif err.code in (500, 503):
+                last_err = err
+                last_err_body = error_body
+                time.sleep(60)
+            else:
+                raise
+    if last_err is not None:
+        filter_err = remove_key(last_err_body, regex_pattern=ODATA_REGEX) if last_err_body else {}
+        module.exit_json(msg=str(last_err), error_info=filter_err, failed=True)
     wait_for_job_completion(module, redfish_obj, reboot_required, job_id, invalid)
     module.exit_json(status_msg=COMMITTED_SUCCESS.format(module.params.get('apply_time')),
                      job_id=job_id, invalid_attributes=invalid, changed=True)
