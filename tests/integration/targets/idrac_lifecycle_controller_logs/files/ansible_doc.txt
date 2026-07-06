@@ -92,7 +92,7 @@
 - '      * This module does not support `check_mode''.'
 - ''
 - ''
-- 'REQUIREMENTS:  omsdk >= 1.2.488, python >= 3.9.6'
+- 'REQUIREMENTS:  python >= 3.9.6'
 - ''
 - 'AUTHOR: Rajeev Arakkal (@rajeevarakkal), Anooja Vardhineni (@anooja-vardhineni)'
 - ''
