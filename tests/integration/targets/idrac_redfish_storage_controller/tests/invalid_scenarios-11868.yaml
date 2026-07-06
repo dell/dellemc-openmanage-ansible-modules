@@ -251,33 +251,6 @@
           - 'invalid_encryption.msg == "value of mode must be one of:
             LKM, SEKM, got: ********"'
 
-    - name: Negative - Invalid key
-      when: is_omsdk_required | bool
-      dellemc.openmanage.idrac_redfish_storage_controller:
-        command: SetControllerKey
-        mode: LKM
-        controller_id: RAID.SL.5-1
-        key: invalid
-        key_id: check
-      register: invalid_key
-      ignore_errors: true
-
-    - name: Set the invalid key message
-      when: is_omsdk_required | bool
-      ansible.builtin.set_fact:
-        invalid_key_expected_msg:
-          "The key should be of maximum length 32 and must contain at
-          least one character from each of the character classes: uppercase,
-          lowercase, number, and special character."
-
-    - name: Verify task status - Negative - invalid key
-      when: is_omsdk_required | bool
-      ansible.builtin.assert:
-        that:
-          - invalid_key.failed
-          - not invalid_key.changed
-          - invalid_key.msg == invalid_key_expected_msg
-
     - name: Negative - Invalid size
       dellemc.openmanage.idrac_redfish_storage_controller:
         command: OnlineCapacityExpansion

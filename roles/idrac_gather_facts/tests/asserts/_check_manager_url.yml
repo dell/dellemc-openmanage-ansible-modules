@@ -5,10 +5,6 @@
     idrac_user: "{{ username }}"
     idrac_password: "{{ password}}"
 
-- name: Check if module is calling omsdk
-  ansible.builtin.include_tasks:
-    ../../../../tests/integration/targets/idrac_system_info/tests/_check_firmware_version_supported.yml
-
 - name: Get manager resource api id
   ansible.builtin.uri:
     url: https://{{ hostname }}:{{ idrac_port }}/redfish/v1/Managers

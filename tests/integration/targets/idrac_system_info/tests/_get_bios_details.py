@@ -30,7 +30,6 @@ def get_bios_release_date_and_version_and_symbios():
 
 
 def get_bios_fqdd_and_instance_id_and_key():
-    # OMSDK removed - use standard Redfish BIOS endpoint
     bios_uri = GET_IDRAC_SYSTEM_URI + "/Bios"
     response = idrac_obj.invoke_request(method='GET', uri=bios_uri)
     if response.status_code == 200:
