@@ -2,6 +2,4 @@
 - name: Converge
   hosts: all
   gather_facts: false
-  tasks:
-    - name: Check if module is calling omsdk
-      ansible.builtin.include_tasks: ../_check_firmware_version_supported.yml
+  tasks: []

@@ -1,5 +1,0 @@
----
-- name: Set OMSDK is not required
-  ansible.builtin.set_fact:
-    cacheable: true
-    is_omsdk_required: false
