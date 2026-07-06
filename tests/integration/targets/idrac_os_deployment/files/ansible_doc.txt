@@ -83,7 +83,7 @@
 - "        \e[4midrac_ip\e[0m."
 - "      * This module does not support \e[1;30m`check_mode'\e[0m."
 - ''
-- "\e[1mREQUIREMENTS:\e[0m  omsdk >= 1.2.488, python >= 3.9.6"
+- "\e[1mREQUIREMENTS:\e[0m  python >= 3.9.6"
 - ''
 - ''
 - "\e[1mAUTHOR\e[0m: Felix Stephen (@felixs88), Jagadeesh N V (@jagadeeshnv), Abhishek

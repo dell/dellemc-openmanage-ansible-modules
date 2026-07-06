@@ -187,8 +187,6 @@
 - '        type: bool'
 - ''
 - "\e[1mNOTES:\e[0m"
-- '      * omsdk is required to be installed only for'
-- "        \e[4mboot_sources\e[0m operation."
 - '      * This module requires ''Administrator'' privilege for'
 - "        \e[4midrac_user\e[0m."
 - '      * Run this module from a system that has direct access to'
@@ -197,7 +195,7 @@
 - "        \e[4midrac_ip\e[0m."
 - "      * This module supports \e[1;30m`check_mode'\e[0m."
 - ''
-- "\e[1mREQUIREMENTS:\e[0m  omsdk >= 1.2.490, python >= 3.9.6"
+- "\e[1mREQUIREMENTS:\e[0m  python >= 3.9.6"
 - ''
 - ''
 - "\e[1mAUTHOR\e[0m: Felix Stephen (@felixs88), Anooja Vardhineni (@anooja-vardhineni),
