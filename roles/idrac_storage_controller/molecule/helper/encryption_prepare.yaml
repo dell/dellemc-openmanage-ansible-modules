@@ -6,6 +6,4 @@
     idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
     idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
     idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
-  tasks:
-    - name: Check if module is calling omsdk
-      ansible.builtin.include_tasks: ../_check_firmware_version_supported.yml
+  tasks: []
