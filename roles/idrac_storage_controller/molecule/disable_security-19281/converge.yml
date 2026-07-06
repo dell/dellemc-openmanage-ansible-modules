@@ -7,8 +7,6 @@
       ansible.builtin.include_tasks: ../_check_firmware_version_supported.yml
 
     - name: Execute in iDRAC10
-      when:
-        - not is_omsdk_required | bool
       block:
         - name: Disable security on controller
           ansible.builtin.import_role:

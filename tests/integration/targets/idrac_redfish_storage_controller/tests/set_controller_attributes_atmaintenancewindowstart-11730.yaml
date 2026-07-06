@@ -274,6 +274,3 @@
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
       validate_certs: "{{ validate_certs }}"
-
-  when:
-    - is_omsdk_required | bool
