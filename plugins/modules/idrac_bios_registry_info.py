@@ -428,7 +428,7 @@ def store_in_cache(cache_key, data):
 
 def main():
     """Main entry point for the idrac_bios_registry_info module.
-    
+
     This function initializes the Ansible module, sets up logging,
     connects to iDRAC, queries the BIOS attribute registry,
     applies filters and validation, and returns the results.
@@ -624,12 +624,12 @@ def main():
             module.fail_json(msg=f"Authentication failed: {e.msg}")
         else:
             module.fail_json(msg=f"HTTP error {e.code}: {e.msg}")
+    except SSLValidationError as e:
+        module.fail_json(msg=f"SSL validation error: {str(e)}")
     except ConnectionError as e:
         module.fail_json(msg=f"Connection error: {str(e)}")
     except URLError as e:
         module.fail_json(msg=f"Network error: {str(e)}")
-    except SSLValidationError as e:
-        module.fail_json(msg=f"SSL validation error: {str(e)}")
     except Exception as e:
         module.fail_json(msg=f"Unexpected error: {str(e)}")
 
