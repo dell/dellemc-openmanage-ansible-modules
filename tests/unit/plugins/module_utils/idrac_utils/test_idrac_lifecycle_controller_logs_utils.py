@@ -1,6 +1,7 @@
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
     idrac_utils.idrac_lifecycle_controller_logs_utils \
-    import IDRACLifecycleControllerLogs
+    import (IDRACLifecycleControllerLogs, paginate_lc_logs,
+            date_filter, severity_filter, category_filter, message_filter)
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.module_utils.idrac_utils.test_idrac_utils import TestUtils
 from unittest.mock import MagicMock
 
@@ -349,3 +350,79 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
         idrac_mock.invoke_request.return_value = self.mock_get_dynamic_idrac_invoke_request_lc_log()
         result = logs_info.get_export_lc_logs_uri(idrac=idrac_mock)
         assert result == EXPORT_LC_LOGS
+
+
+class TestPaginateLcLogs(TestUtils):
+
+    def _page_response(self, entries, next_link=None):
+        obj = MagicMock()
+        obj.status_code = 200
+        obj.json_data = {
+            "Members": entries,
+            "Members@odata.count": len(entries),
+        }
+        if next_link:
+            obj.json_data["Members@odata.nextLink"] = next_link
+        return obj
+
+    def test_paginate_lc_logs_single_page(self, idrac_mock):
+        entries = [{"Created": "2026-01-01T00:00:00", "Id": "1"}]
+        idrac_mock.invoke_request.return_value = self._page_response(entries)
+        pages = list(paginate_lc_logs(idrac_mock, "/redfish/v1/Entries"))
+        assert pages == [entries]
+
+    def test_paginate_lc_logs_multiple_pages(self, idrac_mock):
+        page1 = [{"Created": "2026-01-02T00:00:00", "Id": "2"}]
+        page2 = [{"Created": "2026-01-01T00:00:00", "Id": "1"}]
+        responses = [
+            self._page_response(page1, next_link="/redfish/v1/Entries?$skip=100"),
+            self._page_response(page2),
+        ]
+        idrac_mock.invoke_request.side_effect = responses
+        pages = list(paginate_lc_logs(idrac_mock, "/redfish/v1/Entries"))
+        assert pages == [page1, page2]
+
+    def test_paginate_lc_logs_max_entries_circuit_breaker(self, idrac_mock):
+        page1 = [{"Created": "2026-01-02T00:00:00", "Id": str(i)} for i in range(100)]
+        page2 = [{"Created": "2026-01-01T00:00:00", "Id": "100"}]
+        responses = [
+            self._page_response(page1, next_link="/redfish/v1/Entries?$skip=100"),
+            self._page_response(page2),
+        ]
+        idrac_mock.invoke_request.side_effect = responses
+        pages = list(paginate_lc_logs(idrac_mock, "/redfish/v1/Entries", max_entries=100))
+        assert sum(len(p) for p in pages) == 100
+
+    def test_paginate_lc_logs_date_start_early_termination(self, idrac_mock):
+        page1 = [{"Created": "2026-01-05T00:00:00", "Id": "1"}]
+        page2 = [{"Created": "2025-12-01T00:00:00", "Id": "2"}]
+        responses = [
+            self._page_response(page1, next_link="/redfish/v1/Entries?$skip=100"),
+            self._page_response(page2),
+        ]
+        idrac_mock.invoke_request.side_effect = responses
+        pages = list(paginate_lc_logs(idrac_mock, "/redfish/v1/Entries", date_start="2026-01-01T00:00:00"))
+        assert pages == [page1]
+
+
+class TestFilterPipeline(TestUtils):
+
+    def test_date_filter(self):
+        entry = {"Created": "2026-01-05T00:00:00"}
+        assert date_filter(entry, "2026-01-01T00:00:00", "2026-01-10T00:00:00") is True
+        assert date_filter(entry, "2026-02-01T00:00:00", None) is False
+
+    def test_severity_filter(self):
+        entry = {"Severity": "Warning"}
+        assert severity_filter(entry, ["Warning", "Critical"]) is True
+        assert severity_filter(entry, ["OK"]) is False
+
+    def test_category_filter(self):
+        entry = {"Oem": {"Dell": {"DellLCLogEntry": {"Category": "Storage"}}}}
+        assert category_filter(entry, ["Storage"]) is True
+        assert category_filter(entry, ["Audit"]) is False
+
+    def test_message_filter(self):
+        entry = {"Message": "Disk failure detected"}
+        assert message_filter(entry, "disk failure") is True
+        assert message_filter(entry, "network") is False

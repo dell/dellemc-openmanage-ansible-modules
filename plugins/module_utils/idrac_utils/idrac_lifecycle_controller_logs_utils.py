@@ -37,6 +37,91 @@ import datetime
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     remove_key, idrac_redfish_job_tracking, get_dynamic_uri)
 ODATA_PATTERN = '(.*?)@odata'
+LC_LOG_PAGE_SIZE = 100
+
+
+def paginate_lc_logs(idrac, entries_uri, max_entries=None, date_start=None):
+    """
+    Stream LC log entries page-by-page using $skip-based pagination.
+
+    Yields a list of entries for each page. Stops early if max_entries is
+    reached, or if date_start is provided and entries fall below it
+    (entries are assumed newest-first).
+
+    Keyword arguments:
+    idrac -- iDRAC handle
+    entries_uri -- base URI for the LC log entries collection
+    max_entries -- optional circuit breaker on total entries yielded
+    date_start -- optional ISO 8601 string; pagination stops once
+                  entry 'Created' timestamps fall below this value
+    """
+    skip = 0
+    total_yielded = 0
+    while True:
+        query_uri = entries_uri if skip == 0 else "{0}?$skip={1}".format(entries_uri, skip)
+        response = idrac.invoke_request(method='GET', uri=query_uri)
+        page = response.json_data.get("Members", [])
+        if not page:
+            break
+
+        stop_index = None
+        if date_start:
+            for idx, entry in enumerate(page):
+                if entry.get("Created", "") < date_start:
+                    stop_index = idx
+                    break
+            if stop_index is not None:
+                page = page[:stop_index]
+
+        if max_entries is not None and total_yielded + len(page) > max_entries:
+            page = page[:max_entries - total_yielded]
+
+        if page:
+            yield page
+            total_yielded += len(page)
+
+        if max_entries is not None and total_yielded >= max_entries:
+            break
+        if stop_index is not None:
+            break
+
+        next_link = response.json_data.get("Members@odata.nextLink")
+        if not next_link:
+            break
+        skip += LC_LOG_PAGE_SIZE
+
+
+def date_filter(entry, date_start=None, date_end=None):
+    """Return True if entry's 'Created' timestamp falls within [date_start, date_end]."""
+    created = entry.get("Created", "")
+    if date_start and created < date_start:
+        return False
+    if date_end and created > date_end:
+        return False
+    return True
+
+
+def severity_filter(entry, severity_list=None):
+    """Return True if entry's 'Severity' is within severity_list."""
+    if not severity_list:
+        return True
+    return entry.get("Severity") in severity_list
+
+
+def category_filter(entry, category_list=None):
+    """Return True if entry's Dell OEM category is within category_list."""
+    if not category_list:
+        return True
+    category = entry.get("Oem", {}).get("Dell", {}).get("DellLCLogEntry", {}).get("Category")
+    return category in category_list
+
+
+def message_filter(entry, message_contains=None):
+    """Return True if message_contains is a case-insensitive substring of entry's Message."""
+    if not message_contains:
+        return True
+    message = entry.get("Message", "")
+    return message_contains.lower() in message.lower()
 
 
 class IDRACLifecycleControllerLogs(object):
