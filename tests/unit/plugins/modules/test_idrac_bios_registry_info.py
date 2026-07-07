@@ -13,10 +13,9 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 import pytest
-import json
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_bios_registry_info
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 
@@ -25,26 +24,26 @@ MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.idrac_bios
 
 class TestFirmwareVersionComparison:
     """Test firmware version comparison logic."""
-    
+
     def test_compare_firmware_version_equal(self):
         """Test firmware version comparison with equal versions."""
-        assert idrac_bios_registry_info.compare_firmware_version("7.10.90.00", "7.10.90.00") == True
-    
+        assert idrac_bios_registry_info.compare_firmware_version("7.10.90.00", "7.10.90.00") is True
+
     def test_compare_firmware_version_greater(self):
         """Test firmware version comparison with greater version."""
-        assert idrac_bios_registry_info.compare_firmware_version("7.10.91.00", "7.10.90.00") == True
-    
+        assert idrac_bios_registry_info.compare_firmware_version("7.10.91.00", "7.10.90.00") is True
+
     def test_compare_firmware_version_lesser(self):
         """Test firmware version comparison with lesser version."""
-        assert idrac_bios_registry_info.compare_firmware_version("7.10.89.00", "7.10.90.00") == False
-    
+        assert idrac_bios_registry_info.compare_firmware_version("7.10.89.00", "7.10.90.00") is False
+
     def test_compare_firmware_version_iDRAC10_valid(self):
         """Test iDRAC10 firmware version comparison with valid version."""
-        assert idrac_bios_registry_info.compare_firmware_version("1.20.50.50", "1.20.50.50") == True
-    
+        assert idrac_bios_registry_info.compare_firmware_version("1.20.50.50", "1.20.50.50") is True
+
     def test_compare_firmware_version_iDRAC10_below_minimum(self):
         """Test iDRAC10 firmware version comparison below minimum."""
-        assert idrac_bios_registry_info.compare_firmware_version("1.20.49.99", "1.20.50.50") == False
+        assert idrac_bios_registry_info.compare_firmware_version("1.20.49.99", "1.20.50.50") is False
 
 
 class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
@@ -75,7 +74,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         }
         idrac_mock.invoke_request.return_value = mock_response
         result = self._run_module(idrac_default_args)
-        assert result['changed'] == False
+        assert result['changed'] is False
         assert 'Successfully queried BIOS attribute registry' in result['msg']
         assert 'bios_attributes' in result
         assert 'registry_version' in result
@@ -93,7 +92,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
             mock_class.return_value.__enter__.side_effect = http_error
             mock_class.return_value.__enter__.return_value.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
             result = self._run_module_with_fail_json(idrac_default_args)
-            assert result['failed'] == True
+            assert result['failed'] is True
             assert 'Authentication failed' in result['msg']
 
     def test_authentication_failure_403(self, idrac_default_args, mocker):
@@ -109,7 +108,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
             mock_class.return_value.__enter__.side_effect = http_error
             mock_class.return_value.__enter__.return_value.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
             result = self._run_module_with_fail_json(idrac_default_args)
-            assert result['failed'] == True
+            assert result['failed'] is True
             assert 'Authentication failed' in result['msg']
 
     def test_network_timeout_handling(self, idrac_default_args, mocker):
@@ -119,7 +118,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
             mock_class.return_value.__enter__.side_effect = url_error
             mock_class.return_value.__enter__.return_value.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
             result = self._run_module_with_fail_json(idrac_default_args)
-            assert result['failed'] == True
+            assert result['failed'] is True
             assert 'Network error' in result['msg']
 
     def test_connection_error_handling(self, idrac_default_args, mocker):
@@ -129,7 +128,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
             mock_class.return_value.__enter__.side_effect = conn_error
             mock_class.return_value.__enter__.return_value.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
             result = self._run_module_with_fail_json(idrac_default_args)
-            assert result['failed'] == True
+            assert result['failed'] is True
             assert 'Connection error' in result['msg']
 
     def test_ssl_validation_error_handling(self, idrac_default_args, mocker):
@@ -139,7 +138,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
             mock_class.return_value.__enter__.side_effect = ssl_error
             mock_class.return_value.__enter__.return_value.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
             result = self._run_module_with_fail_json(idrac_default_args)
-            assert result['failed'] == True
+            assert result['failed'] is True
             assert 'SSL validation error' in result['msg']
 
     def test_idrac_generation_detection_14g(self, idrac_default_args, idrac_connection_mock, idrac_mock):
@@ -162,7 +161,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.return_value = idrac_mock
             result = self._run_module_with_fail_json(idrac_default_args)
-            assert result['failed'] == True
+            assert result['failed'] is True
             assert 'BIOS attribute registry not supported on this firmware version' in result['msg']
             assert '7.10.90.00' in result['msg']
 
@@ -193,7 +192,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         idrac_mock.invoke_request.return_value = mock_response
         idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
         result = self._run_module(idrac_default_args)
-        assert result['changed'] == False
+        assert result['changed'] is False
         assert len(result['bios_attributes']) == 1
         assert result['bios_attributes'][0]['name'] == 'ProcVirtualization'
         assert result['attribute_count'] == 1
@@ -213,7 +212,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.return_value = idrac_mock
             result = self._run_module_with_fail_json(idrac_default_args)
-            assert result['failed'] == True
+            assert result['failed'] is True
             assert 'BIOS attribute registry endpoint not supported' in result['msg']
 
     def test_attribute_metadata_mapping(self):
@@ -242,7 +241,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         assert mapped['valid_values'] == ['Enabled', 'Disabled']
         assert mapped['group'] == 'Processor'
         assert mapped['menu_path'] == './Processor'
-        assert mapped['read_only'] == False
+        assert mapped['read_only'] is False
 
     def test_pattern_based_filtering_glob(self):
         """Test pattern-based filtering with glob patterns."""
@@ -273,11 +272,11 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         ]
         oem_filtered = idrac_bios_registry_info.filter_attributes_by_source(attributes, 'oem')
         assert len(oem_filtered) == 1
-        assert oem_filtered[0]['is_oem'] == True
-        
+        assert oem_filtered[0]['is_oem'] is True
+
         standard_filtered = idrac_bios_registry_info.filter_attributes_by_source(attributes, 'standard')
         assert len(standard_filtered) == 1
-        assert standard_filtered[0]['is_oem'] == False
+        assert standard_filtered[0]['is_oem'] is False
 
     def test_category_based_filtering(self):
         """Test category-based filtering."""
@@ -346,7 +345,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         ]
         result = idrac_bios_registry_info.validate_attribute('ProcCores', 32, bios_attributes)
         assert result['status'] == 'valid'
-        
+
         result = idrac_bios_registry_info.validate_attribute('ProcCores', 100, bios_attributes)
         assert result['status'] == 'invalid'
         assert 'exceeds maximum' in result['reason']
@@ -372,7 +371,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
             'MemTest': 'InvalidValue'
         }
         result = idrac_bios_registry_info.validate_attributes(attributes_to_validate, bios_attributes)
-        assert result['valid'] == False
+        assert result['valid'] is False
         assert result['valid_count'] == 1
         assert result['invalid_count'] == 1
         assert len(result['validation_results']) == 2
@@ -448,7 +447,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         assert 'idrac_generation' in result
         assert 'idrac_firmware_version' in result
         assert 'idrac_model' in result
-        assert result['changed'] == False
+        assert result['changed'] is False
 
     def test_all_24_attribute_properties_present(self):
         """Test all 24 attribute properties are present in mapping."""
@@ -522,7 +521,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.return_value = idrac_mock
             result = self._run_module_with_fail_json(idrac_default_args)
-            assert result['failed'] == True
+            assert result['failed'] is True
             assert 'endpoint not supported' in result['msg']
 
     def test_500_error_handling(self, idrac_default_args, mocker):
@@ -540,7 +539,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.return_value = idrac_mock
             result = self._run_module_with_fail_json(idrac_default_args)
-            assert result['failed'] == True
+            assert result['failed'] is True
             assert 'HTTP error 500' in result['msg']
 
 
