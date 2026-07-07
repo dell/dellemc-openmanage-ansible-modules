@@ -1,6 +1,10 @@
+import pytest
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
     idrac_utils.idrac_lifecycle_controller_logs_utils \
-    import IDRACLifecycleControllerLogs
+    import (
+        IDRACLifecycleControllerLogs, paginate_lc_logs, date_filter,
+        severity_filter, category_filter, message_filter, apply_filters,
+        validate_filter_params)
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.module_utils.idrac_utils.test_idrac_utils import TestUtils
 from unittest.mock import MagicMock
 
@@ -349,3 +353,111 @@ class TestIDRACLifecycleControllerLogs(TestUtils):
         idrac_mock.invoke_request.return_value = self.mock_get_dynamic_idrac_invoke_request_lc_log()
         result = logs_info.get_export_lc_logs_uri(idrac=idrac_mock)
         assert result == EXPORT_LC_LOGS
+
+
+class TestPaginateLcLogs:
+
+    def _page_response(self, members):
+        obj = MagicMock()
+        obj.json_data = {"Members": members}
+        return obj
+
+    def test_paginate_lc_logs_single_page(self):
+        idrac_mock = MagicMock()
+        entries = [{"Id": str(i), "Created": "2026-01-01T00:00:00Z"} for i in range(5)]
+        idrac_mock.invoke_request.return_value = self._page_response(entries)
+        result = list(paginate_lc_logs(idrac_mock, page_size=100))
+        assert result == entries
+        assert idrac_mock.invoke_request.call_count == 1
+
+    def test_paginate_lc_logs_multiple_pages(self):
+        idrac_mock = MagicMock()
+        page1 = [{"Id": str(i), "Created": "2026-01-01T00:00:00Z"} for i in range(100)]
+        page2 = [{"Id": "100", "Created": "2026-01-01T00:00:00Z"}]
+        idrac_mock.invoke_request.side_effect = [
+            self._page_response(page1), self._page_response(page2)]
+        result = list(paginate_lc_logs(idrac_mock, page_size=100))
+        assert len(result) == 101
+        assert idrac_mock.invoke_request.call_count == 2
+
+    def test_paginate_lc_logs_max_entries_circuit_breaker(self):
+        idrac_mock = MagicMock()
+        entries = [{"Id": str(i), "Created": "2026-01-01T00:00:00Z"} for i in range(10)]
+        idrac_mock.invoke_request.return_value = self._page_response(entries)
+        result = list(paginate_lc_logs(idrac_mock, page_size=100, max_entries=3))
+        assert len(result) == 3
+
+    def test_paginate_lc_logs_early_termination_on_date_start(self):
+        idrac_mock = MagicMock()
+        entries = [
+            {"Id": "1", "Created": "2026-06-01T00:00:00Z"},
+            {"Id": "2", "Created": "2026-01-01T00:00:00Z"},
+        ]
+        idrac_mock.invoke_request.return_value = self._page_response(entries)
+        result = list(paginate_lc_logs(idrac_mock, page_size=100, date_start="2026-03-01T00:00:00Z"))
+        assert result == [entries[0]]
+
+    def test_paginate_lc_logs_empty_result(self):
+        idrac_mock = MagicMock()
+        idrac_mock.invoke_request.return_value = self._page_response([])
+        result = list(paginate_lc_logs(idrac_mock, page_size=100))
+        assert result == []
+
+
+class TestFilterPipeline:
+
+    def test_date_filter_within_range(self):
+        entry = {"Created": "2026-05-15T00:00:00Z"}
+        assert date_filter(entry, date_start="2026-01-01T00:00:00Z", date_end="2026-12-31T00:00:00Z") is True
+
+    def test_date_filter_outside_range(self):
+        entry = {"Created": "2025-05-15T00:00:00Z"}
+        assert date_filter(entry, date_start="2026-01-01T00:00:00Z") is False
+
+    def test_severity_filter_match(self):
+        entry = {"Severity": "Critical"}
+        assert severity_filter(entry, severity_list=["Critical", "Warning"]) is True
+
+    def test_severity_filter_no_match(self):
+        entry = {"Severity": "OK"}
+        assert severity_filter(entry, severity_list=["Critical"]) is False
+
+    def test_severity_filter_no_filter_applied(self):
+        entry = {"Severity": "OK"}
+        assert severity_filter(entry, severity_list=None) is True
+
+    def test_category_filter_match(self):
+        entry = {"Oem": {"Dell": {"DellLCLogEntry": {"Category": "Storage"}}}}
+        assert category_filter(entry, category_list=["Storage"]) is True
+
+    def test_category_filter_no_match(self):
+        entry = {"Oem": {"Dell": {"DellLCLogEntry": {"Category": "Audit"}}}}
+        assert category_filter(entry, category_list=["Storage"]) is False
+
+    def test_message_filter_case_insensitive_match(self):
+        entry = {"Message": "Disk Failure Detected"}
+        assert message_filter(entry, message_contains="disk failure") is True
+
+    def test_message_filter_no_match(self):
+        entry = {"Message": "Normal operation"}
+        assert message_filter(entry, message_contains="failure") is False
+
+    def test_validate_filter_params_valid_range(self):
+        validate_filter_params(date_start="2026-01-01T00:00:00Z", date_end="2026-02-01T00:00:00Z")
+
+    def test_validate_filter_params_invalid_range_raises(self):
+        with pytest.raises(ValueError):
+            validate_filter_params(date_start="2026-02-01T00:00:00Z", date_end="2026-01-01T00:00:00Z")
+
+    def test_apply_filters_combined_scenarios(self):
+        entry = {
+            "Created": "2026-05-15T00:00:00Z",
+            "Severity": "Critical",
+            "Message": "Disk failure",
+            "Oem": {"Dell": {"DellLCLogEntry": {"Category": "Storage"}}},
+        }
+        assert apply_filters(
+            entry, date_start="2026-01-01T00:00:00Z", date_end="2026-12-31T00:00:00Z",
+            severity_list=["Critical"], category_list=["Storage"],
+            message_contains="disk") is True
+        assert apply_filters(entry, severity_list=["OK"]) is False

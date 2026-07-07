@@ -30,13 +30,151 @@ SCHEDULE_MSG = "The export lifecycle controller log job is submitted successfull
 NO_CHANGES_FOUND_MSG = "No changes found to be applied."
 CHANGES_FOUND_MSG = "Changes found to be applied."
 MANAGER_URI = '/redfish/v1/Managers'
+LC_LOG_ENTRIES_URI = '/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries'
+LC_LOG_ENTRIES_PAGE_SIZE = 100
+LC_LOG_MAX_RETRIES = 3
+LC_LOG_RETRY_BACKOFF_SECONDS = (1, 2, 4)
 
 import copy
 import datetime
+import time
 
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     remove_key, idrac_redfish_job_tracking, get_dynamic_uri)
 ODATA_PATTERN = '(.*?)@odata'
+
+
+def _parse_iso8601(timestamp):
+    """Parse an ISO 8601 timestamp string into a datetime object.
+
+    Keyword arguments:
+    timestamp -- ISO 8601 formatted timestamp string, optionally suffixed with 'Z'.
+    """
+    normalized = timestamp.replace("Z", "+00:00") if timestamp.endswith("Z") else timestamp
+    return datetime.datetime.fromisoformat(normalized)
+
+
+def _invoke_with_retry(invoke_fn, max_retries=LC_LOG_MAX_RETRIES,
+                       backoff_seconds=LC_LOG_RETRY_BACKOFF_SECONDS):
+    """Invoke a callable with exponential backoff retry on transient failures.
+
+    Keyword arguments:
+    invoke_fn -- zero-argument callable performing the API request.
+    max_retries -- maximum number of retry attempts.
+    backoff_seconds -- sequence of sleep durations between retries.
+    """
+    attempt = 0
+    last_error = None
+    while attempt <= max_retries:
+        try:
+            return invoke_fn()
+        except (ConnectionError, TimeoutError, OSError) as err:
+            last_error = err
+            if attempt >= max_retries:
+                break
+            time.sleep(backoff_seconds[min(attempt, len(backoff_seconds) - 1)])
+            attempt += 1
+    raise last_error
+
+
+def paginate_lc_logs(idrac, base_uri=LC_LOG_ENTRIES_URI, page_size=LC_LOG_ENTRIES_PAGE_SIZE,
+                     max_entries=None, date_start=None):
+    """Stream LC log entries page-by-page using $skip-based pagination.
+
+    Keyword arguments:
+    idrac -- iDRAC Redfish connection handle.
+    base_uri -- Redfish collection URI for LC log entries.
+    page_size -- number of entries fetched per page.
+    max_entries -- optional circuit breaker limiting total entries yielded.
+    date_start -- optional ISO 8601 string; pagination stops once entries fall below it
+        (entries are returned newest-first by the LC log service).
+
+    Yields:
+    Individual LC log entry dictionaries.
+    """
+    skip = 0
+    yielded = 0
+    date_start_dt = _parse_iso8601(date_start) if date_start else None
+    while True:
+        uri = "{0}?$skip={1}&$top={2}".format(base_uri, skip, page_size)
+        response = _invoke_with_retry(lambda uri=uri: idrac.invoke_request(method='GET', uri=uri))
+        members = response.json_data.get("Members", [])
+        if not members:
+            break
+        for entry in members:
+            if date_start_dt is not None:
+                created = entry.get("Created")
+                if created and _parse_iso8601(created) < date_start_dt:
+                    return
+            yield entry
+            yielded += 1
+            if max_entries is not None and yielded >= max_entries:
+                return
+        if len(members) < page_size:
+            break
+        skip += page_size
+
+
+def date_filter(entry, date_start=None, date_end=None):
+    """Filter an LC log entry by its Created timestamp against a date range."""
+    created = entry.get("Created")
+    if created is None:
+        return False
+    created_dt = _parse_iso8601(created)
+    if date_start is not None and created_dt < _parse_iso8601(date_start):
+        return False
+    if date_end is not None and created_dt > _parse_iso8601(date_end):
+        return False
+    return True
+
+
+def severity_filter(entry, severity_list=None):
+    """Filter an LC log entry by its Severity field."""
+    if not severity_list:
+        return True
+    return entry.get("Severity") in severity_list
+
+
+def category_filter(entry, category_list=None):
+    """Filter an LC log entry by its Dell OEM category."""
+    if not category_list:
+        return True
+    category = entry.get("Oem", {}).get("Dell", {}).get("DellLCLogEntry", {}).get("Category")
+    return category in category_list
+
+
+def message_filter(entry, message_contains=None):
+    """Filter an LC log entry by a case-insensitive substring match on Message."""
+    if not message_contains:
+        return True
+    message = entry.get("Message") or ""
+    return message_contains.lower() in message.lower()
+
+
+def validate_filter_params(date_start=None, date_end=None):
+    """Validate that date_end is not earlier than date_start.
+
+    Raises:
+    ValueError -- when date_end precedes date_start.
+    """
+    if date_start is not None and date_end is not None:
+        if _parse_iso8601(date_end) < _parse_iso8601(date_start):
+            raise ValueError("date_end must not be earlier than date_start.")
+
+
+def apply_filters(entry, date_start=None, date_end=None, severity_list=None,
+                  category_list=None, message_contains=None):
+    """Apply the chainable filter pipeline to a single LC log entry.
+
+    Returns:
+    True if the entry passes all configured filters, False otherwise.
+    """
+    return (
+        date_filter(entry, date_start=date_start, date_end=date_end)
+        and severity_filter(entry, severity_list=severity_list)
+        and category_filter(entry, category_list=category_list)
+        and message_filter(entry, message_contains=message_contains)
+    )
 
 
 class IDRACLifecycleControllerLogs(object):
