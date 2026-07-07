@@ -31,14 +31,43 @@ description:
 extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options
 
+options:
+    attribute_name:
+        description: Pattern to filter BIOS attributes by name (supports glob patterns).
+        type: str
+        required: false
+    attribute_source:
+        description: Filter attributes by source type.
+        type: str
+        required: false
+        default: 'all'
+        choices: ['all', 'oem', 'standard']
+    category:
+        description: Filter attributes by category (e.g., 'Processor', 'Memory', 'Security').
+        type: str
+        required: false
+    validate:
+        description: Validate proposed BIOS configuration against the registry.
+        type: bool
+        required: false
+        default: false
+    attributes:
+        description: Dictionary of attribute names and proposed values to validate.
+        type: dict
+        required: false
+    force_refresh:
+        description: Force refresh of BIOS attribute registry from iDRAC, bypassing cache.
+        type: bool
+        required: false
+        default: false
+
 requirements:
     - "python >= 3.9.6"
-author:
-  - "Dell OpenManage Ansible Team"
+author: "Dell OpenManage Ansible Team"
 notes:
-    - Run this module from a system that has direct access to Dell iDRAC.
-    - This module supports both IPv4 and IPv6 address for I(idrac_ip).
-    - Minimum firmware requirement: iDRAC9 >= 7.10.90.00 or iDRAC10 >= 1.20.50.50.
+    - "Run this module from a system that has direct access to Dell iDRAC."
+    - "This module supports both IPv4 and IPv6 address for I(idrac_ip)."
+    - "Minimum firmware requirement: iDRAC9 >= 7.10.90.00 or iDRAC10 >= 1.20.50.50."
 """
 
 EXAMPLES = """
