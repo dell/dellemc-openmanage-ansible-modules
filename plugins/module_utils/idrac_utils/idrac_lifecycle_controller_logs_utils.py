@@ -63,7 +63,7 @@ def _version_tuple(version_str):
 def validate_lc_log_firmware_version(idrac):
     """Validate the connected iDRAC firmware version supports LC log enhancements.
 
-    Keyword arguments:
+    Args:
     idrac -- iDRAC Redfish connection handle.
 
     Raises:
@@ -82,7 +82,7 @@ def validate_lc_log_firmware_version(idrac):
 def check_lc_log_service_available(idrac):
     """Verify the LC Log Service is available and enabled on the connected iDRAC.
 
-    Keyword arguments:
+    Args:
     idrac -- iDRAC Redfish connection handle.
 
     Raises:
@@ -104,7 +104,7 @@ def fetch_lc_logs(idrac, date_start=None, date_end=None, severity=None,
                   category=None, message_contains=None, max_entries=None):
     """Fetch and filter LC log entries via streaming pagination.
 
-    Keyword arguments:
+    Args:
     idrac -- iDRAC Redfish connection handle.
     date_start, date_end -- optional ISO 8601 date range bounds.
     severity -- optional list of severity values to include.
@@ -128,7 +128,7 @@ def fetch_lc_logs(idrac, date_start=None, date_end=None, severity=None,
 def discover_message_registry(idrac):
     """Discover and fetch the iDRAC MessageRegistry, returning a lookup dict.
 
-    Keyword arguments:
+    Args:
     idrac -- iDRAC Redfish connection handle.
 
     Returns:
@@ -165,7 +165,7 @@ def discover_message_registry(idrac):
 def enrich_with_message_registry(entries, message_registry):
     """Add message_description and message_resolution fields to log entries.
 
-    Keyword arguments:
+    Args:
     entries -- list of LC log entry dictionaries.
     message_registry -- dict from discover_message_registry(), or None when unavailable.
 
@@ -182,7 +182,7 @@ def enrich_with_message_registry(entries, message_registry):
 def check_storage_threshold(storage_utilization_pct, storage_threshold_pct=DEFAULT_STORAGE_THRESHOLD_PCT):
     """Return a storage capacity warning message when the threshold is exceeded.
 
-    Keyword arguments:
+    Args:
     storage_utilization_pct -- current LC log storage utilization percentage.
     storage_threshold_pct -- configured warning threshold percentage.
 
@@ -200,7 +200,7 @@ def check_storage_threshold(storage_utilization_pct, storage_threshold_pct=DEFAU
 def fetch_lc_log_metadata(idrac, storage_threshold_pct=DEFAULT_STORAGE_THRESHOLD_PCT):
     """Return LC log service metadata without returning individual log entries.
 
-    Keyword arguments:
+    Args:
     idrac -- iDRAC Redfish connection handle.
     storage_threshold_pct -- warning threshold percentage for storage utilization.
 
@@ -210,11 +210,13 @@ def fetch_lc_log_metadata(idrac, storage_threshold_pct=DEFAULT_STORAGE_THRESHOLD
     """
     service_response = idrac.invoke_request(method='GET', uri=LC_LOG_SERVICE_URI)
     max_records = service_response.json_data.get("MaxNumberOfRecords") or 0
+    # Per FR-2.3, total_entries is sourced from the collection's Members@odata.count
+    # rather than a manual loop counter, avoiding reliance on full pagination for this value.
+    entries_response = idrac.invoke_request(method='GET', uri=LC_LOG_ENTRIES_URI)
+    total_entries = entries_response.json_data.get("Members@odata.count", 0)
     severity_breakdown = {level: 0 for level in LC_LOG_SEVERITY_LEVELS}
     timestamps = []
-    total_entries = 0
     for entry in paginate_lc_logs(idrac):
-        total_entries += 1
         severity_value = entry.get("Severity")
         if severity_value in severity_breakdown:
             severity_breakdown[severity_value] += 1
@@ -239,7 +241,7 @@ def clear_lc_logs(idrac, clear_logs=False, job_wait_timeout=LC_LOG_JOB_WAIT_TIME
                   storage_threshold_pct=DEFAULT_STORAGE_THRESHOLD_PCT):
     """Clear the LC log after explicit confirmation, tracking pre/post entry counts.
 
-    Keyword arguments:
+    Args:
     idrac -- iDRAC Redfish connection handle.
     clear_logs -- must be explicitly True to proceed.
     job_wait_timeout -- maximum seconds to wait for the async clear task.
@@ -275,7 +277,7 @@ def clear_lc_logs(idrac, clear_logs=False, job_wait_timeout=LC_LOG_JOB_WAIT_TIME
 def validate_comment(comment):
     """Validate an insert_comment value for length and control characters.
 
-    Keyword arguments:
+    Args:
     comment -- the comment text to validate.
 
     Raises:
@@ -286,14 +288,14 @@ def validate_comment(comment):
         raise ValueError(
             "insert_comment must not exceed {0} characters (got {1}).".format(
                 MAX_COMMENT_LENGTH, len(comment)))
-    if any(ord(char) < 0x20 for char in comment):
+    if any(ord(char) < 0x20 or ord(char) == 0x7F for char in comment):
         raise ValueError("insert_comment must not contain control characters.")
 
 
 def insert_lc_log_comment(idrac, comment):
     """Insert a custom Oem/Dell comment entry into the LC log.
 
-    Keyword arguments:
+    Args:
     idrac -- iDRAC Redfish connection handle.
     comment -- the comment text to insert (validated before submission).
 
@@ -320,7 +322,7 @@ def insert_lc_log_comment(idrac, comment):
 def _parse_iso8601(timestamp):
     """Parse an ISO 8601 timestamp string into a datetime object.
 
-    Keyword arguments:
+    Args:
     timestamp -- ISO 8601 formatted timestamp string, optionally suffixed with 'Z'.
     """
     normalized = timestamp.replace("Z", "+00:00") if timestamp.endswith("Z") else timestamp
@@ -331,7 +333,7 @@ def _invoke_with_retry(invoke_fn, max_retries=LC_LOG_MAX_RETRIES,
                        backoff_seconds=LC_LOG_RETRY_BACKOFF_SECONDS):
     """Invoke a callable with exponential backoff retry on transient failures.
 
-    Keyword arguments:
+    Args:
     invoke_fn -- zero-argument callable performing the API request.
     max_retries -- maximum number of retry attempts.
     backoff_seconds -- sequence of sleep durations between retries.
@@ -354,7 +356,7 @@ def paginate_lc_logs(idrac, base_uri=LC_LOG_ENTRIES_URI, page_size=LC_LOG_ENTRIE
                      max_entries=None, date_start=None):
     """Stream LC log entries page-by-page using $skip-based pagination.
 
-    Keyword arguments:
+    Args:
     idrac -- iDRAC Redfish connection handle.
     base_uri -- Redfish collection URI for LC log entries.
     page_size -- number of entries fetched per page.

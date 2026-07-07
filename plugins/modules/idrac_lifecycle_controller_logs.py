@@ -132,7 +132,8 @@ notes:
   - "  - I(severity): one or more of C(OK), C(Warning), C(Critical)."
   - "  - I(category): one or more of C(Storage), C(Updates), C(Audit), C(Configuration), C(WorkNotes), C(SystemHealth)."
   - "Troubleshooting:"
-  - "  - No logs returned: verify I(date_start)/I(date_end) bound an actual log window and I(severity)/I(category)/I(message_contains) are not overly restrictive."
+  - "  - No logs returned: verify I(date_start)/I(date_end) bound an actual log window."
+  - "  - No logs returned: verify I(severity)/I(category)/I(message_contains) are not overly restrictive."
   - "  - Filter syntax errors: confirm I(date_start)/I(date_end) are valid ISO 8601 strings and I(date_end) is not earlier than I(date_start)."
   - "  - Export failures: verify the destination directory in I(export_path) exists and is writable; use I(force) to overwrite an existing file."
   - "  - Permission errors: log clear and comment insertion require 'Administrator' privilege; the iDRAC returns HTTP 403 if the account lacks permission."
@@ -384,7 +385,7 @@ def run_export_lc_logs(idrac, module):
     """
     Export Lifecycle Controller Log to the given file share
 
-    Keyword arguments:
+    Args:
     idrac  -- iDRAC handle
     module -- Ansible module
     """
@@ -430,7 +431,7 @@ def is_filtered_query_requested(module):
 def build_export_metadata(idrac, module):
     """Build the metadata envelope attached to JSON exports.
 
-    Keyword arguments:
+    Args:
     idrac -- iDRAC Redfish connection handle.
     module -- Ansible module instance.
     """
@@ -452,7 +453,7 @@ def build_export_metadata(idrac, module):
 def run_clear_logs(idrac, module):
     """Execute the log clear operation, applying the export-before-clear safety gate.
 
-    Keyword arguments:
+    Args:
     idrac -- iDRAC Redfish connection handle.
     module -- Ansible module instance.
     """
@@ -501,7 +502,7 @@ def run_filtered_log_query(idrac, module):
     """Validate prerequisites and execute a filtered LC log query, metadata
     query, or filtered-log export.
 
-    Keyword arguments:
+    Args:
     idrac -- iDRAC Redfish connection handle.
     module -- Ansible module instance.
     """
@@ -559,9 +560,9 @@ def main():
         "date_start": {"required": False, "type": 'str'},
         "date_end": {"required": False, "type": 'str'},
         "severity": {"required": False, "type": 'list', "elements": 'str',
-                    "choices": ['OK', 'Warning', 'Critical']},
+                     "choices": ['OK', 'Warning', 'Critical']},
         "category": {"required": False, "type": 'list', "elements": 'str',
-                    "choices": ['Storage', 'Updates', 'Audit', 'Configuration', 'WorkNotes', 'SystemHealth']},
+                     "choices": ['Storage', 'Updates', 'Audit', 'Configuration', 'WorkNotes', 'SystemHealth']},
         "message_contains": {"required": False, "type": 'str'},
         "fetch_metadata_only": {"required": False, "type": 'bool'},
         "max_entries": {"required": False, "type": 'int'},
@@ -594,7 +595,12 @@ def main():
             'fetch_metadata_only', 'clear_logs'], [
             'fetch_metadata_only', 'insert_comment'], [
             'insert_comment', 'clear_logs'], [
-            'insert_comment', 'export_path']],
+            'insert_comment', 'export_path'], [
+            'insert_comment', 'date_start'], [
+            'insert_comment', 'date_end'], [
+            'insert_comment', 'severity'], [
+            'insert_comment', 'category'], [
+            'insert_comment', 'message_contains']],
         required_by={
             'export_format': 'export_path',
             'clear_only_if_export_succeeded': 'clear_logs'},

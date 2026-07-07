@@ -586,8 +586,10 @@ class TestFetchLcLogsAndMetadata:
             {"Id": "1", "Created": "2026-01-01T00:00:00Z", "Severity": "Critical"},
             {"Id": "2", "Created": "2026-01-02T00:00:00Z", "Severity": "OK"},
         ]
+        count_response = self._page_response(entries)
+        count_response.json_data["Members@odata.count"] = 2
         idrac_mock.invoke_request.side_effect = [
-            service_response, self._page_response(entries)]
+            service_response, count_response, self._page_response(entries)]
         result = fetch_lc_log_metadata(idrac_mock)
         assert result["total_entries"] == 2
         assert result["oldest_entry_timestamp"] == "2026-01-01T00:00:00Z"
@@ -600,8 +602,10 @@ class TestFetchLcLogsAndMetadata:
         idrac_mock = MagicMock()
         service_response = MagicMock()
         service_response.json_data = {"MaxNumberOfRecords": 0}
+        count_response = self._page_response([])
+        count_response.json_data["Members@odata.count"] = 0
         idrac_mock.invoke_request.side_effect = [
-            service_response, self._page_response([])]
+            service_response, count_response, self._page_response([])]
         result = fetch_lc_log_metadata(idrac_mock)
         assert result["storage_utilization_pct"] == 0.0
         assert result["total_entries"] == 0
@@ -699,6 +703,11 @@ class TestClearLcLogs:
         obj.json_data = {"Members": members}
         return obj
 
+    def _count_response(self, total_entries):
+        obj = MagicMock()
+        obj.json_data = {"Members@odata.count": total_entries}
+        return obj
+
     def test_clear_logs_requires_explicit_confirmation(self):
         idrac_mock = MagicMock()
         with pytest.raises(ValueError):
@@ -711,9 +720,11 @@ class TestClearLcLogs:
         clear_response.headers = {}
         idrac_mock.invoke_request.side_effect = [
             self._metadata_response(5, 10),
+            self._count_response(5),
             self._entries_response(pre_entries),
             clear_response,
             self._metadata_response(0, 10),
+            self._count_response(0),
             self._entries_response([]),
         ]
         result = clear_lc_logs(idrac_mock, clear_logs=True)
@@ -728,6 +739,7 @@ class TestClearLcLogs:
         clear_response.headers = {"Location": "/redfish/v1/TaskService/Tasks/1"}
         idrac_mock.invoke_request.side_effect = [
             self._metadata_response(1, 10),
+            self._count_response(1),
             self._entries_response(pre_entries),
             clear_response,
         ]
@@ -751,6 +763,10 @@ class TestCommentInsertion:
     def test_validate_comment_control_characters_raise(self):
         with pytest.raises(ValueError):
             validate_comment("bad\x00comment")
+
+    def test_validate_comment_del_character_raises(self):
+        with pytest.raises(ValueError):
+            validate_comment("bad\x7fcomment")
 
     def test_insert_lc_log_comment_success(self):
         idrac_mock = MagicMock()

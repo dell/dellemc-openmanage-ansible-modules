@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 10.1.0
+# Version 10.0.1
 # Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -53,7 +53,7 @@ class ExportPathError(ValueError):
 def validate_export_path(export_path, force=False):
     """Resolve and validate the export destination path before writing.
 
-    Keyword arguments:
+    Args:
     export_path -- user-supplied destination file path.
     force -- when False, raises if a file already exists at export_path.
 
@@ -80,7 +80,7 @@ def validate_export_path(export_path, force=False):
 def _atomic_write(resolved_path, write_fn):
     """Write content atomically via a temporary file and rename-on-success.
 
-    Keyword arguments:
+    Args:
     resolved_path -- final destination path for the export file.
     write_fn -- callable accepting an open file handle to write content.
     """
@@ -99,7 +99,7 @@ def _atomic_write(resolved_path, write_fn):
 def export_to_json(entries, export_path, metadata=None, force=False):
     """Export log entries to a JSON file with a metadata envelope.
 
-    Keyword arguments:
+    Args:
     entries -- list of log entry dictionaries to export.
     export_path -- destination file path.
     metadata -- optional dict merged into the envelope (server_model, service_tag,
@@ -120,7 +120,7 @@ def export_to_json(entries, export_path, metadata=None, force=False):
 def export_to_csv(entries, export_path, force=False, field_names=None):
     """Export log entries to a CSV file with a header row and all fields.
 
-    Keyword arguments:
+    Args:
     entries -- list of log entry dictionaries to export.
     export_path -- destination file path.
     force -- overwrite export_path if it already exists.
@@ -142,7 +142,7 @@ def export_to_csv(entries, export_path, force=False, field_names=None):
 def export_to_text(entries, export_path, force=False, line_template=None):
     """Export log entries to a plain text file, one entry per line.
 
-    Keyword arguments:
+    Args:
     entries -- list of log entry dictionaries to export.
     export_path -- destination file path.
     force -- overwrite export_path if it already exists.
@@ -154,7 +154,7 @@ def export_to_text(entries, export_path, force=False, line_template=None):
     def _write(handle):
         for entry in entries:
             safe_entry = {key: entry.get(key, "") for key in
-                         ("Created", "Severity", "Message", "Id", "Category")}
+                          ("Created", "Severity", "Message", "Id", "Category")}
             handle.write(template.format(**safe_entry))
             handle.write("\n")
 
@@ -166,7 +166,7 @@ def export_entries(entries, export_path, export_format=EXPORT_FORMAT_JSON,
                    metadata=None, force=False):
     """Dispatch to the appropriate export function based on export_format.
 
-    Keyword arguments:
+    Args:
     entries -- list of log entry dictionaries to export.
     export_path -- destination file path.
     export_format -- one of 'json', 'csv', 'text'.
