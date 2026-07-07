@@ -1,0 +1,73 @@
+---
+- name: Query BIOS Attribute Registry
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Query all BIOS attributes from registry
+      dellemc.openmanage.idrac_bios_registry_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+      tags:
+        - query_all
+      delegate_to: localhost
+
+    - name: Query BIOS attributes with pattern filtering
+      dellemc.openmanage.idrac_bios_registry_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        attribute_name: "Proc*"
+      tags:
+        - filter_name
+      delegate_to: localhost
+
+    - name: Query BIOS attributes by category
+      dellemc.openmanage.idrac_bios_registry_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        category: "Processor"
+      tags:
+        - filter_category
+      delegate_to: localhost
+
+    - name: Query OEM attributes only
+      dellemc.openmanage.idrac_bios_registry_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        attribute_source: "oem"
+      tags:
+        - filter_oem
+      delegate_to: localhost
+
+    - name: Validate BIOS configuration against registry
+      dellemc.openmanage.idrac_bios_registry_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        validate: true
+        attributes:
+          ProcVirtualization: "Enabled"
+          MemTest: "Disabled"
+      tags:
+        - validate
+      delegate_to: localhost
+
+    - name: Force refresh registry data (bypass cache)
+      dellemc.openmanage.idrac_bios_registry_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        force_refresh: true
+      tags:
+        - force_refresh
+      delegate_to: localhost

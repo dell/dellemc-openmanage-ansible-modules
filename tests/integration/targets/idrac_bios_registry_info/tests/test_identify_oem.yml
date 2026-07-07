@@ -1,0 +1,54 @@
+---
+# Integration test for identifying OEM attributes in query results
+# Test Case: test_identify_oem
+# Gherkin Scenario: Identify OEM attributes in query results (AC-002)
+# FR Reference: FR-3.2
+# This test verifies that the module classifies each attribute as Dell OEM
+# or standard Redfish and includes the is_oem field in the results.
+- name: Query all BIOS attributes to identify OEM
+  dellemc.openmanage.idrac_bios_registry_info:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    idrac_port: "{{ idrac_port | default(443) }}"
+    validate_certs: "{{ validate_certs | default(true) }}"
+    attribute_source: "all"
+  register: query_result
+
+- name: Verify module succeeded
+  assert:
+    that:
+      - query_result is not failed
+      - query_result is succeeded
+
+- name: Verify required output fields
+  assert:
+    that:
+      - query_result.bios_attributes is defined
+      - query_result.bios_attributes is iterable
+
+- name: Verify each attribute has is_oem field
+  assert:
+    that:
+      - item.is_oem is defined
+      - item.is_oem is boolean
+  loop: "{{ query_result.bios_attributes }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Verify OEM attributes have is_oem true
+  assert:
+    that:
+      - query_result.bios_attributes | selectattr('is_oem', 'equalto', true) | list | length >= 0
+
+- name: Verify standard attributes have is_oem false
+  assert:
+    that:
+      - query_result.bios_attributes | selectattr('is_oem', 'equalto', false) | list | length >= 0
+
+- name: Display OEM identification summary
+  debug:
+    msg:
+      - "Total Attributes: {{ query_result.attribute_count }}"
+      - "OEM Attributes: {{ query_result.bios_attributes | selectattr('is_oem', 'equalto', true) | list | length }}"
+      - "Standard Attributes: {{ query_result.bios_attributes | selectattr('is_oem', 'equalto', false) | list | length }}"

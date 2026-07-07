@@ -1,0 +1,56 @@
+---
+# Integration test for filtering by Security category
+# Test Case: test_filter_security
+# Gherkin Scenario: Filter by Security category (AC-007)
+# FR Reference: FR-3.3
+# This test verifies that the module can filter BIOS attributes
+# by category derived from MenuPath (Security category).
+- name: Query BIOS attributes filtered by Security category
+  dellemc.openmanage.idrac_bios_registry_info:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    idrac_port: "{{ idrac_port | default(443) }}"
+    validate_certs: "{{ validate_certs | default(true) }}"
+    category: "Security"
+  register: filter_result
+
+- name: Verify module succeeded
+  assert:
+    that:
+      - filter_result is not failed
+      - filter_result is succeeded
+
+- name: Verify required output fields
+  assert:
+    that:
+      - filter_result.bios_attributes is defined
+      - filter_result.bios_attributes is iterable
+      - filter_result.attribute_count is defined
+      - filter_result.attribute_count is number
+
+- name: Verify non-empty results
+  assert:
+    that:
+      - filter_result.attribute_count | int > 0
+      - filter_result.bios_attributes | length == filter_result.attribute_count | int
+
+- name: Verify all attributes have Security menu path
+  assert:
+    that:
+      - item.menu_path is search("^./Security")
+  loop: "{{ filter_result.bios_attributes }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Verify changed flag is false (read-only operation)
+  assert:
+    that:
+      - filter_result.changed is defined
+      - filter_result.changed is false
+
+- name: Display filter summary
+  debug:
+    msg:
+      - "Attribute Count: {{ filter_result.attribute_count }}"
+      - "Security Attributes: {{ filter_result.bios_attributes | map(attribute='name') | list }}"
