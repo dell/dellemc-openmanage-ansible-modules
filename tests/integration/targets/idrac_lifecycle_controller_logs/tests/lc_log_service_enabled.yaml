@@ -1,0 +1,21 @@
+---
+- name: Test LC log service enabled
+  tags:
+    - lc_log_service_enabled
+  block:
+    - name: Retrieve LC logs to verify service is enabled
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+      register: result
+
+    - name: Verify LC log service is enabled
+      assert:
+        that:
+          - result.failed is false
+          - result.changed is false
+          - result.results[0].lc_logs is defined
+        fail_msg: "LC log service is not enabled or retrieval failed"
+        success_msg: "LC log service is enabled and logs retrieved successfully"

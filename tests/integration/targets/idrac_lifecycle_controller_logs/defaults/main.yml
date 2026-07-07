@@ -1,0 +1,28 @@
+---
+# Default variables for idrac_lifecycle_controller_logs integration tests
+
+# iDRAC connection parameters (override in inventory or via -e flag)
+idrac_host: "{{ lookup('env', 'IDRAC_HOST') | default('192.168.1.100') }}"
+idrac_username: "{{ lookup('env', 'IDRAC_USERNAME') | default('admin') }}"
+idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') | default('password') }}"
+idrac_validate_certs: false
+
+# Test data defaults
+test_export_path: "/tmp/lc_logs_export"
+test_comment: "Test comment for LC log entry"
+test_long_comment: "This is a very long comment that exceeds the maximum allowed length of 256 characters for iDRAC Lifecycle Controller log entries. This comment is intentionally long to test the validation logic that should reject comments exceeding the 256 character limit enforced by the module and the underlying iDRAC API. This ensures that users cannot accidentally or maliciously insert comments that would cause API errors or data integrity issues."
+
+# Filter defaults
+test_severity_filter:
+  - "Warning"
+  - "Error"
+test_category_filter:
+  - "System"
+test_date_start: "2024-01-01T00:00:00Z"
+test_date_end: "2024-12-31T23:59:59Z"
+test_future_date_start: "2026-12-01T00:00:00Z"
+test_future_date_end: "2026-12-31T23:59:59Z"
+
+# Storage thresholds
+storage_warning_threshold: 80
+storage_below_threshold_value: 50
