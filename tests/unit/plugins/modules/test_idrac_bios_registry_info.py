@@ -54,6 +54,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
     def idrac_mock(self):
         """Create a mock iDRACRedfishAPI instance."""
         idrac_obj = MagicMock()
+        idrac_obj.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
         return idrac_obj
 
     @pytest.fixture
@@ -64,8 +65,15 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
             mock_class.return_value.__exit__.return_value = False
             yield mock_class
 
-    def test_successful_connection_initialization(self, idrac_default_args, idrac_connection_mock):
+    def test_successful_connection_initialization(self, idrac_default_args, idrac_connection_mock, idrac_mock):
         """Test successful iDRAC connection initialization."""
+        idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        mock_response = MagicMock()
+        mock_response.json_data = {
+            '@odata.type': '#DellAttributeRegistry.v1_2_0.AttributeRegistry',
+            'Attributes': []
+        }
+        idrac_mock.invoke_request.return_value = mock_response
         result = self._run_module(idrac_default_args)
         assert result['changed'] == False
         assert 'Successfully queried BIOS attribute registry' in result['msg']
@@ -83,7 +91,8 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         )
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.side_effect = http_error
-            result = self._run_module_with_fail(idrac_default_args)
+            mock_class.return_value.__enter__.return_value.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+            result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] == True
             assert 'Authentication failed' in result['msg']
 
@@ -98,7 +107,8 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         )
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.side_effect = http_error
-            result = self._run_module_with_fail(idrac_default_args)
+            mock_class.return_value.__enter__.return_value.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+            result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] == True
             assert 'Authentication failed' in result['msg']
 
@@ -107,7 +117,8 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         url_error = URLError("timeout")
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.side_effect = url_error
-            result = self._run_module_with_fail(idrac_default_args)
+            mock_class.return_value.__enter__.return_value.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+            result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] == True
             assert 'Network error' in result['msg']
 
@@ -116,7 +127,8 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         conn_error = ConnectionError("Connection refused")
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.side_effect = conn_error
-            result = self._run_module_with_fail(idrac_default_args)
+            mock_class.return_value.__enter__.return_value.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+            result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] == True
             assert 'Connection error' in result['msg']
 
@@ -125,20 +137,21 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         ssl_error = SSLValidationError("Certificate verify failed")
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.side_effect = ssl_error
-            result = self._run_module_with_fail(idrac_default_args)
+            mock_class.return_value.__enter__.return_value.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+            result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] == True
             assert 'SSL validation error' in result['msg']
 
-    def test_idrac_generation_detection_14g(self, idrac_default_args, idrac_connection_mock):
+    def test_idrac_generation_detection_14g(self, idrac_default_args, idrac_connection_mock, idrac_mock):
         """Test iDRAC generation detection for 14G servers."""
-        idrac_connection_mock.return_value.get_server_generation = (14, "7.10.90.00", "iDRAC 9")
+        idrac_mock.get_server_generation = (14, "7.10.90.00", "iDRAC 9")
         result = self._run_module(idrac_default_args)
         assert result['idrac_generation'] == 14
         assert result['idrac_firmware_version'] == "7.10.90.00"
 
-    def test_idrac_generation_detection_15g(self, idrac_default_args, idrac_connection_mock):
+    def test_idrac_generation_detection_15g(self, idrac_default_args, idrac_connection_mock, idrac_mock):
         """Test iDRAC generation detection for 15G servers."""
-        idrac_connection_mock.return_value.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
         result = self._run_module(idrac_default_args)
         assert result['idrac_generation'] == 15
 
@@ -148,12 +161,12 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         idrac_mock.get_server_generation = (15, "7.10.89.99", "iDRAC 9")
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.return_value = idrac_mock
-            result = self._run_module_with_fail(idrac_default_args)
+            result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] == True
             assert 'BIOS attribute registry not supported on this firmware version' in result['msg']
             assert '7.10.90.00' in result['msg']
 
-    def test_successful_registry_query(self, idrac_default_args, idrac_connection_mock):
+    def test_successful_registry_query(self, idrac_default_args, idrac_connection_mock, idrac_mock):
         """Test successful BIOS attribute registry query."""
         mock_response = MagicMock()
         mock_response.json_data = {
@@ -177,8 +190,8 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
                 }
             ]
         }
-        idrac_connection_mock.return_value.invoke_request.return_value = mock_response
-        idrac_connection_mock.return_value.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        idrac_mock.invoke_request.return_value = mock_response
+        idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
         result = self._run_module(idrac_default_args)
         assert result['changed'] == False
         assert len(result['bios_attributes']) == 1
@@ -199,7 +212,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         idrac_mock.invoke_request.side_effect = http_error
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.return_value = idrac_mock
-            result = self._run_module_with_fail(idrac_default_args)
+            result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] == True
             assert 'BIOS attribute registry endpoint not supported' in result['msg']
 
@@ -400,7 +413,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         result = idrac_bios_registry_info.get_from_cache(cache_key)
         assert result is None
 
-    def test_return_value_schema_validation(self, idrac_default_args, idrac_connection_mock):
+    def test_return_value_schema_validation(self, idrac_default_args, idrac_connection_mock, idrac_mock):
         """Test return value schema validation."""
         mock_response = MagicMock()
         mock_response.json_data = {
@@ -424,8 +437,8 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
                 }
             ]
         }
-        idrac_connection_mock.return_value.invoke_request.return_value = mock_response
-        idrac_connection_mock.return_value.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        idrac_mock.invoke_request.return_value = mock_response
+        idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
         result = self._run_module(idrac_default_args)
         assert 'bios_attributes' in result
         assert 'registry_version' in result
@@ -476,15 +489,15 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         for key in expected_keys:
             assert key in mapped
 
-    def test_metadata_fields_present(self, idrac_default_args, idrac_connection_mock):
+    def test_metadata_fields_present(self, idrac_default_args, idrac_connection_mock, idrac_mock):
         """Test metadata fields are present in return value."""
         mock_response = MagicMock()
         mock_response.json_data = {
             '@odata.type': '#DellAttributeRegistry.v1_2_0.AttributeRegistry',
             'Attributes': []
         }
-        idrac_connection_mock.return_value.invoke_request.return_value = mock_response
-        idrac_connection_mock.return_value.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        idrac_mock.invoke_request.return_value = mock_response
+        idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
         result = self._run_module(idrac_default_args)
         assert result['registry_version'] == 'v1_2_0_AttributeRegistry'
         assert result['attribute_count'] == 0
@@ -508,7 +521,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         idrac_mock.invoke_request.side_effect = http_error
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.return_value = idrac_mock
-            result = self._run_module_with_fail(idrac_default_args)
+            result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] == True
             assert 'endpoint not supported' in result['msg']
 
@@ -526,7 +539,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         idrac_mock.invoke_request.side_effect = http_error
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.return_value = idrac_mock
-            result = self._run_module_with_fail(idrac_default_args)
+            result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] == True
             assert 'HTTP error 500' in result['msg']
 
