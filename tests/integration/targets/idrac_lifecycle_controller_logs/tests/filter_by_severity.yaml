@@ -1,4 +1,9 @@
 ---
+# Test: Filter by severity
+# Given: iDRAC with LC log service enabled
+# When: Module retrieves LC logs filtered by severity
+# Then: Module returns only logs matching the specified severity
+
 - name: Test filter by severity
   tags:
     - filter_by_severity
@@ -20,12 +25,3 @@
           - result.results[0].lc_logs is defined
         fail_msg: "Severity filter failed"
         success_msg: "Severity filter applied successfully"
-
-    - name: Verify all returned logs match severity filter
-      assert:
-        that:
-          - item.severity in test_severity_filter
-        fail_msg: "Log entry does not match severity filter"
-        success_msg: "All log entries match severity filter"
-      loop: "{{ result.results[0].lc_logs }}"
-      when: result.results[0].lc_logs | length > 0

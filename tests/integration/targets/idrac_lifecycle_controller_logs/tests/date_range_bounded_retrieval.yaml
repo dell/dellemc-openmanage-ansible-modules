@@ -1,0 +1,28 @@
+---
+# Test: Date-range-bounded retrieval stops early
+# Given: iDRAC with LC log service enabled
+# When: Module retrieves LC logs with date range filter
+# Then: Module returns only logs within the specified date range
+
+- name: Test date-range-bounded retrieval
+  tags:
+    - date_range_bounded_retrieval
+  block:
+    - name: Retrieve LC logs with date range filter
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+        date_start: "{{ test_date_start }}"
+        date_end: "{{ test_date_end }}"
+      register: result
+
+    - name: Verify date-range-bounded retrieval succeeded
+      assert:
+        that:
+          - result.failed is false
+          - result.changed is false
+          - result.results[0].lc_logs is defined
+        fail_msg: "Date-range-bounded retrieval failed"
+        success_msg: "Date-range-bounded retrieval completed successfully"

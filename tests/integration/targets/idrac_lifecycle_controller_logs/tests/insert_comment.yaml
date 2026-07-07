@@ -1,4 +1,9 @@
 ---
+# Test: Successful comment insertion
+# Given: iDRAC with LC log service enabled and log entries exist
+# When: Module inserts comment into log entry
+# Then: Module returns success with comment inserted
+
 - name: Test successful comment insertion
   tags:
     - insert_comment

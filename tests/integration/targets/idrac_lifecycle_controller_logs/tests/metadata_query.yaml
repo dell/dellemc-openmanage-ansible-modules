@@ -1,4 +1,9 @@
 ---
+# Test: Metadata query returns service statistics
+# Given: iDRAC with LC log service enabled
+# When: Module queries LC log metadata
+# Then: Module returns service statistics including total entries and storage utilization
+
 - name: Test metadata query
   tags:
     - metadata_query

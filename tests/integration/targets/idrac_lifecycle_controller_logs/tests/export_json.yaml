@@ -1,4 +1,9 @@
 ---
+# Test: Successful JSON export
+# Given: iDRAC with LC log service enabled and log entries exist
+# When: Module exports LC logs in JSON format
+# Then: Module creates valid JSON file with log data
+
 - name: Test JSON export
   tags:
     - export_json

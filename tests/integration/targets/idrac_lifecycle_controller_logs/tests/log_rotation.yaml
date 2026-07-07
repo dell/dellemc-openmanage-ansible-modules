@@ -1,0 +1,27 @@
+---
+# Test: Automated log rotation with pre/post utilization
+# Given: iDRAC with LC log service enabled and storage utilization exceeds threshold
+# When: Module performs log clear operation
+# Then: Module reports pre and post rotation utilization
+
+- name: Test automated log rotation
+  tags:
+    - log_rotation
+  block:
+    - name: Clear LC logs to trigger rotation
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+        clear_logs: true
+        clear_logs_confirm: true
+      register: result
+
+    - name: Verify log rotation succeeded
+      assert:
+        that:
+          - result.failed is false
+          - result.changed is true
+        fail_msg: "Log rotation failed"
+        success_msg: "Log rotation completed successfully"

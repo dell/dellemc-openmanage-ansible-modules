@@ -1,0 +1,31 @@
+---
+# Test: Clear aborted due to export failure
+# Given: iDRAC with LC log service enabled and export-before-clear is enabled
+# When: Module attempts to clear logs but export fails
+# Then: Module aborts clear operation and returns export error
+
+- name: Test clear aborted due to export failure
+  tags:
+    - clear_export_abort
+  block:
+    - name: Attempt to clear logs with export to invalid path
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+        clear_logs: true
+        clear_logs_confirm: true
+        export_before_clear: true
+        export_format: "json"
+        export_path: "/root/lc_logs_export.json"
+      register: result
+      ignore_errors: true
+
+    - name: Verify export abort error is raised
+      assert:
+        that:
+          - result.failed is true
+          - "'export' in result.msg | lower or 'permission' in result.msg | lower"
+        fail_msg: "Export abort error not raised as expected"
+        success_msg: "Export abort error correctly raised"

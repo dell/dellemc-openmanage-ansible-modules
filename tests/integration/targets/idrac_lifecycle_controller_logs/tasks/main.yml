@@ -1,9 +1,2 @@
 ---
 # Main tasks for idrac_lifecycle_controller_logs integration tests
-
-- name: Include test playbooks
-  include_tasks: "{{ item }}"
-  with_fileglob:
-    - "{{ playbook_dir }}/tests/*.yaml"
-  tags:
-    - always

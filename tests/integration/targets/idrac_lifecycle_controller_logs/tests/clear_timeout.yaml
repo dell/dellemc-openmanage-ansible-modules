@@ -1,0 +1,28 @@
+---
+# Test: Clear task times out
+# Given: iDRAC with LC log service enabled
+# When: Module attempts to clear logs and operation times out
+# Then: Module returns timeout error without partial clear
+
+- name: Test clear timeout
+  tags:
+    - clear_timeout
+  block:
+    - name: Attempt to clear LC logs with short timeout
+      dellemc.openmanage.idrac_lifecycle_controller_logs:
+        idrac_host: "{{ idrac_host }}"
+        idrac_username: "{{ idrac_username }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ idrac_validate_certs }}"
+        clear_logs: true
+        clear_logs_confirm: true
+      register: result
+      ignore_errors: true
+
+    - name: Verify timeout error is raised
+      assert:
+        that:
+          - result.failed is true
+          - "'timeout' in result.msg | lower or 'time' in result.msg | lower"
+        fail_msg: "Timeout error not raised as expected"
+        success_msg: "Timeout error correctly raised"

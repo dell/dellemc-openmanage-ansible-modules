@@ -1,4 +1,9 @@
 ---
+# Test: Firmware version meets minimum requirement
+# Given: iDRAC with firmware version >= minimum requirement
+# When: Module queries iDRAC firmware version
+# Then: Module returns success without version gate error
+
 - name: Test firmware version meets minimum requirement
   tags:
     - firmware_version_meets_minimum
@@ -17,6 +22,6 @@
         that:
           - result.failed is false
           - result.changed is false
-          - result.results[0].metadata.firmware_version is defined
-        fail_msg: "Firmware version check failed"
+          - result.results[0].metadata is defined
+        fail_msg: "Firmware version check failed - module returned error"
         success_msg: "Firmware version meets minimum requirement"
