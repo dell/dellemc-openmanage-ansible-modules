@@ -76,6 +76,21 @@ options:
   max_entries:
     type: int
     description: Maximum number of LC log entries to retrieve during a filtered query.
+  export_format:
+    type: str
+    choices: [json, csv, text]
+    description:
+      - Format used to export filtered LC log entries when I(export_path) is specified.
+      - Defaults to C(json) when I(export_path) is set without an explicit I(export_format).
+  export_path:
+    type: str
+    description:
+      - Local file path to export the filtered LC log entries to.
+      - Mutually exclusive with I(share_name) and I(fetch_metadata_only).
+  force:
+    type: bool
+    default: false
+    description: Overwrite I(export_path) if a file already exists at that location.
 
 requirements:
   - "omsdk >= 1.2.488"
@@ -151,6 +166,28 @@ EXAMPLES = r'''
     idrac_password: "user_password"
     ca_path: "/path/to/ca_cert.pem"
     fetch_metadata_only: true
+
+- name: Export filtered LC logs to a local JSON file for SIEM ingestion.
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "190.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    date_start: "2026-01-01T00:00:00Z"
+    export_format: "json"
+    export_path: "/tmp/lc_logs_export.json"
+
+- name: Export filtered LC logs to CSV, overwriting any existing file.
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "190.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    severity:
+      - Critical
+    export_format: "csv"
+    export_path: "/tmp/lc_logs_export.csv"
+    force: true
 '''
 
 RETURN = """
@@ -223,6 +260,11 @@ lc_log_metadata:
     "storage_utilization_pct": 62.5,
     "severity_breakdown": {"OK": 900, "Warning": 300, "Critical": 50}
   }
+export_path:
+  description: Resolved file path the filtered LC log entries were exported to. Returned only when I(export_path) is set.
+  returned: success, when I(export_path) is set
+  type: str
+  sample: "/tmp/lc_logs_export.json"
 """
 
 
@@ -238,7 +280,9 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
     idrac_lifecycle_controller_logs_utils import (
         IDRACLifecycleControllerLogs, validate_lc_log_firmware_version,
-        check_lc_log_service_available, fetch_lc_logs, fetch_lc_log_metadata)
+        check_lc_log_service_available, fetch_lc_logs, fetch_lc_log_metadata,
+        discover_message_registry, enrich_with_message_registry)
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_log_exporter import export_entries
 try:
     from omsdk.sdkfile import file_share_manager
     from omsdk.sdkcreds import UserCredentials
@@ -311,11 +355,35 @@ def is_filtered_query_requested(module):
     return any([
         module.params.get('date_start'), module.params.get('date_end'),
         module.params.get('severity'), module.params.get('category'),
-        module.params.get('message_contains'), module.params.get('fetch_metadata_only')])
+        module.params.get('message_contains'), module.params.get('fetch_metadata_only'),
+        module.params.get('export_path')])
+
+
+def build_export_metadata(idrac, module):
+    """Build the metadata envelope attached to JSON exports.
+
+    Keyword arguments:
+    idrac -- iDRAC Redfish connection handle.
+    module -- Ansible module instance.
+    """
+    generation, firmware_version, hw_model = idrac.get_server_generation
+    return {
+        "server_model": hw_model,
+        "idrac_version": firmware_version,
+        "export_timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+        "filters_applied": {
+            "date_start": module.params.get('date_start'),
+            "date_end": module.params.get('date_end'),
+            "severity": module.params.get('severity'),
+            "category": module.params.get('category'),
+            "message_contains": module.params.get('message_contains'),
+        },
+    }
 
 
 def run_filtered_log_query(idrac, module):
-    """Validate prerequisites and execute a filtered LC log query or metadata query.
+    """Validate prerequisites and execute a filtered LC log query, metadata
+    query, or filtered-log export.
 
     Keyword arguments:
     idrac -- iDRAC Redfish connection handle.
@@ -337,6 +405,19 @@ def run_filtered_log_query(idrac, module):
         category=module.params.get('category'),
         message_contains=module.params.get('message_contains'),
         max_entries=module.params.get('max_entries'))
+    message_registry = discover_message_registry(idrac)
+    entries = enrich_with_message_registry(entries, message_registry)
+    export_path = module.params.get('export_path')
+    if export_path:
+        export_format = module.params.get('export_format') or 'json'
+        metadata_envelope = build_export_metadata(idrac, module)
+        exported_path = export_entries(
+            entries, export_path, export_format=export_format,
+            metadata=metadata_envelope, force=module.params.get('force'))
+        module.exit_json(
+            msg="Successfully exported the lifecycle controller logs.",
+            lc_logs=entries, export_path=exported_path, changed=True)
+        return
     module.exit_json(
         msg="Successfully fetched the lifecycle controller logs.",
         lc_logs=entries, changed=False)
@@ -358,20 +439,26 @@ def main():
         "message_contains": {"required": False, "type": 'str'},
         "fetch_metadata_only": {"required": False, "type": 'bool'},
         "max_entries": {"required": False, "type": 'int'},
+        "export_format": {"required": False, "type": 'str', "choices": ['json', 'csv', 'text']},
+        "export_path": {"required": False, "type": 'str'},
+        "force": {"required": False, "type": 'bool', "default": False},
     }
     specs.update(idrac_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
         required_one_of=[[
             'share_name', 'date_start', 'date_end', 'severity', 'category',
-            'message_contains', 'fetch_metadata_only']],
+            'message_contains', 'fetch_metadata_only', 'export_path']],
         mutually_exclusive=[[
             'share_name', 'date_start'], [
             'share_name', 'date_end'], [
             'share_name', 'severity'], [
             'share_name', 'category'], [
             'share_name', 'message_contains'], [
-            'share_name', 'fetch_metadata_only']],
+            'share_name', 'fetch_metadata_only'], [
+            'share_name', 'export_path'], [
+            'fetch_metadata_only', 'export_path']],
+        required_by={'export_format': 'export_path'},
         supports_check_mode=False)
 
     try:

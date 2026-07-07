@@ -210,13 +210,70 @@ class TestFilteredLogQuery:
         module_mock.params = {
             "fetch_metadata_only": None, "date_start": None, "date_end": None,
             "severity": ["Critical"], "category": None, "message_contains": None,
-            "max_entries": None}
+            "max_entries": None, "export_path": None}
         mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_logs.validate_lc_log_firmware_version")
         mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_logs.check_lc_log_service_available")
         mocker.patch(
             MODULE_PATH + "idrac_lifecycle_controller_logs.fetch_lc_logs",
             return_value=[{"Id": "1"}])
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.discover_message_registry",
+            return_value=None)
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.enrich_with_message_registry",
+            return_value=[{"Id": "1", "message_description": None, "message_resolution": None}])
         idrac_lifecycle_controller_logs.run_filtered_log_query(idrac_mock, module_mock)
         module_mock.exit_json.assert_called_once_with(
             msg="Successfully fetched the lifecycle controller logs.",
-            lc_logs=[{"Id": "1"}], changed=False)
+            lc_logs=[{"Id": "1", "message_description": None, "message_resolution": None}], changed=False)
+
+    def test_run_filtered_log_query_with_export(self, mocker):
+        idrac_mock = MagicMock()
+        idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        module_mock = MagicMock()
+        module_mock.params = {
+            "fetch_metadata_only": None, "date_start": None, "date_end": None,
+            "severity": None, "category": None, "message_contains": None,
+            "max_entries": None, "export_path": "/tmp/export.json",
+            "export_format": None, "force": False}
+        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_logs.validate_lc_log_firmware_version")
+        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_logs.check_lc_log_service_available")
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.fetch_lc_logs",
+            return_value=[{"Id": "1"}])
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.discover_message_registry",
+            return_value=None)
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.enrich_with_message_registry",
+            return_value=[{"Id": "1", "message_description": None, "message_resolution": None}])
+        export_mock = mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.export_entries",
+            return_value="/tmp/export.json")
+        idrac_lifecycle_controller_logs.run_filtered_log_query(idrac_mock, module_mock)
+        assert export_mock.call_args.kwargs["export_format"] == "json"
+        module_mock.exit_json.assert_called_once_with(
+            msg="Successfully exported the lifecycle controller logs.",
+            lc_logs=[{"Id": "1", "message_description": None, "message_resolution": None}],
+            export_path="/tmp/export.json", changed=True)
+
+    def test_is_filtered_query_requested_true_for_export_path(self):
+        module_mock = MagicMock()
+        module_mock.params = {
+            "date_start": None, "date_end": None, "severity": None,
+            "category": None, "message_contains": None,
+            "fetch_metadata_only": None, "export_path": "/tmp/out.json"}
+        assert idrac_lifecycle_controller_logs.is_filtered_query_requested(module_mock) is True
+
+    def test_build_export_metadata_contains_expected_fields(self):
+        idrac_mock = MagicMock()
+        idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        module_mock = MagicMock()
+        module_mock.params = {
+            "date_start": "2026-01-01T00:00:00Z", "date_end": None,
+            "severity": ["Critical"], "category": None, "message_contains": None}
+        metadata = idrac_lifecycle_controller_logs.build_export_metadata(idrac_mock, module_mock)
+        assert metadata["server_model"] == "iDRAC 9"
+        assert metadata["idrac_version"] == "7.10.90.00"
+        assert metadata["filters_applied"]["date_start"] == "2026-01-01T00:00:00Z"
+        assert metadata["filters_applied"]["severity"] == ["Critical"]

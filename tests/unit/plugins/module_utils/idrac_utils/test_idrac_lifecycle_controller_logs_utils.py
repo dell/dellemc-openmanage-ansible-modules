@@ -5,7 +5,8 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.\
         IDRACLifecycleControllerLogs, paginate_lc_logs, date_filter,
         severity_filter, category_filter, message_filter, apply_filters,
         validate_filter_params, validate_lc_log_firmware_version,
-        check_lc_log_service_available, fetch_lc_logs, fetch_lc_log_metadata)
+        check_lc_log_service_available, fetch_lc_logs, fetch_lc_log_metadata,
+        discover_message_registry, enrich_with_message_registry)
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.module_utils.idrac_utils.test_idrac_utils import TestUtils
 from ansible.module_utils.six.moves.urllib.error import HTTPError
 from unittest.mock import MagicMock
@@ -575,3 +576,67 @@ class TestFetchLcLogsAndMetadata:
         assert result["storage_utilization_pct"] == 0.0
         assert result["total_entries"] == 0
         assert result["oldest_entry_timestamp"] is None
+
+
+class TestMessageRegistry:
+
+    def _response(self, json_data):
+        obj = MagicMock()
+        obj.json_data = json_data
+        return obj
+
+    def test_discover_message_registry_success(self):
+        idrac_mock = MagicMock()
+        registries_response = self._response(
+            {"Members": [{"@odata.id": "/redfish/v1/Registries/IDRAC.1.0.0"}]})
+        location_response = self._response(
+            {"Location": [{"Uri": "/redfish/v1/Registries/IDRAC.1.0.0/IDRAC.json"}]})
+        data_response = self._response(
+            {"Messages": {"STOR001": {"Description": "Disk failure", "Resolution": "Replace disk"}}})
+        idrac_mock.invoke_request.side_effect = [
+            registries_response, location_response, data_response]
+        result = discover_message_registry(idrac_mock)
+        assert result == {"STOR001": {"Description": "Disk failure", "Resolution": "Replace disk"}}
+
+    def test_discover_message_registry_no_matching_member(self):
+        idrac_mock = MagicMock()
+        idrac_mock.invoke_request.return_value = self._response(
+            {"Members": [{"@odata.id": "/redfish/v1/Registries/Base.1.0.0"}]})
+        result = discover_message_registry(idrac_mock)
+        assert result is None
+
+    def test_discover_message_registry_graceful_fallback_on_error(self):
+        idrac_mock = MagicMock()
+        idrac_mock.invoke_request.side_effect = HTTPError(
+            "url", 404, "Not Found", {}, None)
+        result = discover_message_registry(idrac_mock)
+        assert result is None
+
+    def test_discover_message_registry_no_location_uri(self):
+        idrac_mock = MagicMock()
+        registries_response = self._response(
+            {"Members": [{"@odata.id": "/redfish/v1/Registries/IDRAC.1.0.0"}]})
+        location_response = self._response({"Location": []})
+        idrac_mock.invoke_request.side_effect = [registries_response, location_response]
+        result = discover_message_registry(idrac_mock)
+        assert result is None
+
+    def test_enrich_with_message_registry_adds_fields(self):
+        entries = [{"Id": "1", "MessageId": "STOR001"}]
+        registry = {"STOR001": {"Description": "Disk failure", "Resolution": "Replace disk"}}
+        result = enrich_with_message_registry(entries, registry)
+        assert result[0]["message_description"] == "Disk failure"
+        assert result[0]["message_resolution"] == "Replace disk"
+
+    def test_enrich_with_message_registry_none_registry_sets_none_fields(self):
+        entries = [{"Id": "1", "MessageId": "STOR001"}]
+        result = enrich_with_message_registry(entries, None)
+        assert result[0]["message_description"] is None
+        assert result[0]["message_resolution"] is None
+
+    def test_enrich_with_message_registry_unknown_message_id(self):
+        entries = [{"Id": "1", "MessageId": "UNKNOWN"}]
+        registry = {"STOR001": {"Description": "Disk failure", "Resolution": "Replace disk"}}
+        result = enrich_with_message_registry(entries, registry)
+        assert result[0]["message_description"] is None
+        assert result[0]["message_resolution"] is None

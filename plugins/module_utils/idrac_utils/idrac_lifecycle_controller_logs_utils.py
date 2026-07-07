@@ -38,6 +38,8 @@ LC_LOG_RETRY_BACKOFF_SECONDS = (1, 2, 4)
 IDRAC9_MIN_FIRMWARE = "7.10.90.00"
 IDRAC10_MIN_FIRMWARE = "1.20.50.50"
 LC_LOG_SEVERITY_LEVELS = ("OK", "Warning", "Critical")
+REGISTRIES_URI = '/redfish/v1/Registries'
+IDRAC_MESSAGE_REGISTRY_PREFIX = 'IDRAC'
 
 import copy
 import datetime
@@ -116,6 +118,60 @@ def fetch_lc_logs(idrac, date_start=None, date_end=None, severity=None,
                          severity_list=severity, category_list=category,
                          message_contains=message_contains):
             entries.append(entry)
+    return entries
+
+
+def discover_message_registry(idrac):
+    """Discover and fetch the iDRAC MessageRegistry, returning a lookup dict.
+
+    Keyword arguments:
+    idrac -- iDRAC Redfish connection handle.
+
+    Returns:
+    Dict mapping MessageId to a dict with Description and Resolution, or
+    None when the registry cannot be resolved (graceful fallback).
+    """
+    try:
+        registries_response = idrac.invoke_request(method='GET', uri=REGISTRIES_URI)
+        members = registries_response.json_data.get("Members", [])
+        registry_uri = next(
+            (member.get("@odata.id") for member in members
+             if IDRAC_MESSAGE_REGISTRY_PREFIX in member.get("@odata.id", "")), None)
+        if registry_uri is None:
+            return None
+        registry_location_response = idrac.invoke_request(method='GET', uri=registry_uri)
+        locations = registry_location_response.json_data.get("Location", [])
+        registry_file_uri = next(
+            (location.get("Uri") for location in locations if location.get("Uri")), None)
+        if registry_file_uri is None:
+            return None
+        registry_data_response = idrac.invoke_request(method='GET', uri=registry_file_uri)
+        messages = registry_data_response.json_data.get("Messages", {})
+        return {
+            message_id: {
+                "Description": details.get("Description"),
+                "Resolution": details.get("Resolution"),
+            }
+            for message_id, details in messages.items()
+        }
+    except (HTTPError, KeyError, ValueError, TypeError):
+        return None
+
+
+def enrich_with_message_registry(entries, message_registry):
+    """Add message_description and message_resolution fields to log entries.
+
+    Keyword arguments:
+    entries -- list of LC log entry dictionaries.
+    message_registry -- dict from discover_message_registry(), or None when unavailable.
+
+    Returns:
+    The same list of entries, with enrichment fields added to each entry.
+    """
+    for entry in entries:
+        registry_entry = (message_registry or {}).get(entry.get("MessageId"), {})
+        entry["message_description"] = registry_entry.get("Description")
+        entry["message_resolution"] = registry_entry.get("Resolution")
     return entries
 
 

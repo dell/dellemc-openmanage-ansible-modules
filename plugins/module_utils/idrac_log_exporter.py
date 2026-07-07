@@ -46,7 +46,7 @@ CSV_FIELD_NAMES = [
 ]
 
 
-class ExportPathError(Exception):
+class ExportPathError(ValueError):
     """Raised when the export path fails validation (permissions or traversal)."""
 
 
