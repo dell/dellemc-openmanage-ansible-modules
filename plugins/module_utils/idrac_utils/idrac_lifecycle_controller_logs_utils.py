@@ -33,11 +33,15 @@ MANAGER_URI = '/redfish/v1/Managers'
 
 import copy
 import datetime
+import time
 
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     remove_key, idrac_redfish_job_tracking, get_dynamic_uri)
 ODATA_PATTERN = '(.*?)@odata'
 LC_LOG_PAGE_SIZE = 100
+RETRYABLE_EXCEPTIONS = (ConnectionError, SSLValidationError, URLError, HTTPError)
 
 
 def paginate_lc_logs(idrac, entries_uri, max_entries=None, date_start=None):
@@ -59,7 +63,7 @@ def paginate_lc_logs(idrac, entries_uri, max_entries=None, date_start=None):
     total_yielded = 0
     while True:
         query_uri = entries_uri if skip == 0 else "{0}?$skip={1}".format(entries_uri, skip)
-        response = idrac.invoke_request(method='GET', uri=query_uri)
+        response = retry_with_backoff(idrac.invoke_request, method='GET', uri=query_uri)
         page = response.json_data.get("Members", [])
         if not page:
             break
@@ -122,6 +126,48 @@ def message_filter(entry, message_contains=None):
         return True
     message = entry.get("Message", "")
     return message_contains.lower() in message.lower()
+
+
+def apply_filters(entries, filters):
+    """
+    Apply a chainable pipeline of filter callables to a list of entries.
+
+    Keyword arguments:
+    entries -- list of LC log entry dicts
+    filters -- list of callables, each taking an entry and returning bool
+    """
+    if not filters:
+        return entries
+    return [entry for entry in entries if all(f(entry) for f in filters)]
+
+
+def validate_date_range(date_start=None, date_end=None):
+    """Raise ValueError if date_end is earlier than date_start."""
+    if date_start and date_end and date_end < date_start:
+        raise ValueError(
+            "date_end ({0}) cannot be earlier than date_start ({1})".format(date_end, date_start))
+
+
+def retry_with_backoff(func, *args, max_retries=3, backoff_seconds=(1, 2, 4), **kwargs):
+    """
+    Invoke func(*args, **kwargs), retrying on transient API failures with
+    exponential backoff.
+
+    Keyword arguments:
+    func -- callable to invoke
+    max_retries -- maximum number of attempts (default 3)
+    backoff_seconds -- sleep durations between attempts (default 1s, 2s, 4s)
+    """
+    last_exc = None
+    for attempt in range(max_retries):
+        try:
+            return func(*args, **kwargs)
+        except RETRYABLE_EXCEPTIONS as exc:
+            last_exc = exc
+            if attempt < max_retries - 1:
+                sleep_time = backoff_seconds[attempt] if attempt < len(backoff_seconds) else backoff_seconds[-1]
+                time.sleep(sleep_time)
+    raise last_exc
 
 
 class IDRACLifecycleControllerLogs(object):

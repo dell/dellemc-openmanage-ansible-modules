@@ -1,9 +1,12 @@
 from ansible_collections.dellemc.openmanage.plugins.module_utils.\
     idrac_utils.idrac_lifecycle_controller_logs_utils \
     import (IDRACLifecycleControllerLogs, paginate_lc_logs,
-            date_filter, severity_filter, category_filter, message_filter)
+            date_filter, severity_filter, category_filter, message_filter,
+            apply_filters, validate_date_range, retry_with_backoff)
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.module_utils.idrac_utils.test_idrac_utils import TestUtils
 from unittest.mock import MagicMock
+from ansible.module_utils.urls import ConnectionError
+import pytest
 
 
 MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
@@ -426,3 +429,54 @@ class TestFilterPipeline(TestUtils):
         entry = {"Message": "Disk failure detected"}
         assert message_filter(entry, "disk failure") is True
         assert message_filter(entry, "network") is False
+
+    def test_apply_filters_composition(self):
+        entries = [
+            {"Created": "2026-01-05T00:00:00", "Severity": "Warning", "Message": "Disk failure"},
+            {"Created": "2026-01-06T00:00:00", "Severity": "OK", "Message": "All good"},
+        ]
+        filters = [
+            lambda e: date_filter(e, "2026-01-01T00:00:00", "2026-01-10T00:00:00"),
+            lambda e: severity_filter(e, ["Warning"]),
+        ]
+        result = apply_filters(entries, filters)
+        assert result == [entries[0]]
+
+    def test_apply_filters_no_filters_returns_all(self):
+        entries = [{"Created": "2026-01-05T00:00:00"}]
+        assert apply_filters(entries, []) == entries
+
+    def test_validate_date_range_valid(self):
+        validate_date_range("2026-01-01T00:00:00", "2026-01-10T00:00:00")
+
+    def test_validate_date_range_invalid_raises(self):
+        with pytest.raises(ValueError):
+            validate_date_range("2026-01-10T00:00:00", "2026-01-01T00:00:00")
+
+    def test_validate_date_range_none_values_ok(self):
+        validate_date_range(None, None)
+        validate_date_range("2026-01-01T00:00:00", None)
+        validate_date_range(None, "2026-01-10T00:00:00")
+
+
+class TestRetryWithBackoff(TestUtils):
+
+    def test_retry_with_backoff_succeeds_first_try(self):
+        func = MagicMock(return_value="ok")
+        result = retry_with_backoff(func, max_retries=3, backoff_seconds=(0, 0, 0))
+        assert result == "ok"
+        assert func.call_count == 1
+
+    def test_retry_with_backoff_succeeds_after_transient_failures(self, mocker):
+        mocker.patch("time.sleep", return_value=None)
+        func = MagicMock(side_effect=[ConnectionError("boom"), ConnectionError("boom"), "ok"])
+        result = retry_with_backoff(func, max_retries=3, backoff_seconds=(1, 2, 4))
+        assert result == "ok"
+        assert func.call_count == 3
+
+    def test_retry_with_backoff_raises_after_max_retries(self, mocker):
+        mocker.patch("time.sleep", return_value=None)
+        func = MagicMock(side_effect=ConnectionError("boom"))
+        with pytest.raises(ConnectionError):
+            retry_with_backoff(func, max_retries=3, backoff_seconds=(1, 2, 4))
+        assert func.call_count == 3
