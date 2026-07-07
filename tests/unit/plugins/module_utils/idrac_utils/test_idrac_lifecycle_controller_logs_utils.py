@@ -4,8 +4,10 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.\
     import (
         IDRACLifecycleControllerLogs, paginate_lc_logs, date_filter,
         severity_filter, category_filter, message_filter, apply_filters,
-        validate_filter_params)
+        validate_filter_params, validate_lc_log_firmware_version,
+        check_lc_log_service_available, fetch_lc_logs, fetch_lc_log_metadata)
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.module_utils.idrac_utils.test_idrac_utils import TestUtils
+from ansible.module_utils.six.moves.urllib.error import HTTPError
 from unittest.mock import MagicMock
 
 
@@ -461,3 +463,115 @@ class TestFilterPipeline:
             severity_list=["Critical"], category_list=["Storage"],
             message_contains="disk") is True
         assert apply_filters(entry, severity_list=["OK"]) is False
+
+
+class TestFirmwareVersionGate:
+
+    def test_idrac9_firmware_meets_minimum(self):
+        idrac_mock = MagicMock()
+        idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        validate_lc_log_firmware_version(idrac_mock)
+
+    def test_idrac9_firmware_below_minimum_raises(self):
+        idrac_mock = MagicMock()
+        idrac_mock.get_server_generation = (15, "7.00.00.00", "iDRAC 9")
+        with pytest.raises(ValueError):
+            validate_lc_log_firmware_version(idrac_mock)
+
+    def test_idrac10_firmware_meets_minimum(self):
+        idrac_mock = MagicMock()
+        idrac_mock.get_server_generation = (16, "1.20.50.50", "iDRAC 10")
+        validate_lc_log_firmware_version(idrac_mock)
+
+    def test_idrac10_firmware_below_minimum_raises(self):
+        idrac_mock = MagicMock()
+        idrac_mock.get_server_generation = (16, "1.10.00.00", "iDRAC 10")
+        with pytest.raises(ValueError):
+            validate_lc_log_firmware_version(idrac_mock)
+
+    def test_none_firmware_version_raises(self):
+        idrac_mock = MagicMock()
+        idrac_mock.get_server_generation = (0, None, "iDRAC 9")
+        with pytest.raises(ValueError):
+            validate_lc_log_firmware_version(idrac_mock)
+
+
+class TestLcLogServiceAvailability:
+
+    def test_service_enabled(self):
+        idrac_mock = MagicMock()
+        response = MagicMock()
+        response.status_code = 200
+        response.json_data = {"ServiceEnabled": True}
+        idrac_mock.invoke_request.return_value = response
+        check_lc_log_service_available(idrac_mock)
+
+    def test_service_disabled_raises(self):
+        idrac_mock = MagicMock()
+        response = MagicMock()
+        response.status_code = 200
+        response.json_data = {"ServiceEnabled": False}
+        idrac_mock.invoke_request.return_value = response
+        with pytest.raises(ValueError):
+            check_lc_log_service_available(idrac_mock)
+
+    def test_service_unreachable_raises(self):
+        idrac_mock = MagicMock()
+        idrac_mock.invoke_request.side_effect = HTTPError(
+            "url", 404, "Not Found", {}, None)
+        with pytest.raises(ValueError):
+            check_lc_log_service_available(idrac_mock)
+
+
+class TestFetchLcLogsAndMetadata:
+
+    def _page_response(self, members, max_records=None):
+        obj = MagicMock()
+        obj.json_data = {"Members": members}
+        if max_records is not None:
+            obj.json_data["MaxNumberOfRecords"] = max_records
+        return obj
+
+    def test_fetch_lc_logs_applies_filters(self):
+        idrac_mock = MagicMock()
+        entries = [
+            {"Id": "1", "Created": "2026-01-01T00:00:00Z", "Severity": "Critical", "Message": "Disk failure"},
+            {"Id": "2", "Created": "2026-01-02T00:00:00Z", "Severity": "OK", "Message": "Boot complete"},
+        ]
+        idrac_mock.invoke_request.return_value = self._page_response(entries)
+        result = fetch_lc_logs(idrac_mock, severity=["Critical"])
+        assert result == [entries[0]]
+
+    def test_fetch_lc_logs_invalid_date_range_raises(self):
+        idrac_mock = MagicMock()
+        with pytest.raises(ValueError):
+            fetch_lc_logs(idrac_mock, date_start="2026-02-01T00:00:00Z", date_end="2026-01-01T00:00:00Z")
+
+    def test_fetch_lc_log_metadata_returns_statistics(self):
+        idrac_mock = MagicMock()
+        service_response = MagicMock()
+        service_response.json_data = {"MaxNumberOfRecords": 4}
+        entries = [
+            {"Id": "1", "Created": "2026-01-01T00:00:00Z", "Severity": "Critical"},
+            {"Id": "2", "Created": "2026-01-02T00:00:00Z", "Severity": "OK"},
+        ]
+        idrac_mock.invoke_request.side_effect = [
+            service_response, self._page_response(entries)]
+        result = fetch_lc_log_metadata(idrac_mock)
+        assert result["total_entries"] == 2
+        assert result["oldest_entry_timestamp"] == "2026-01-01T00:00:00Z"
+        assert result["newest_entry_timestamp"] == "2026-01-02T00:00:00Z"
+        assert result["storage_utilization_pct"] == 50.0
+        assert result["severity_breakdown"]["Critical"] == 1
+        assert result["severity_breakdown"]["OK"] == 1
+
+    def test_fetch_lc_log_metadata_zero_max_records(self):
+        idrac_mock = MagicMock()
+        service_response = MagicMock()
+        service_response.json_data = {"MaxNumberOfRecords": 0}
+        idrac_mock.invoke_request.side_effect = [
+            service_response, self._page_response([])]
+        result = fetch_lc_log_metadata(idrac_mock)
+        assert result["storage_utilization_pct"] == 0.0
+        assert result["total_entries"] == 0
+        assert result["oldest_entry_timestamp"] is None

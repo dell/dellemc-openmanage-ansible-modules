@@ -30,18 +30,126 @@ SCHEDULE_MSG = "The export lifecycle controller log job is submitted successfull
 NO_CHANGES_FOUND_MSG = "No changes found to be applied."
 CHANGES_FOUND_MSG = "Changes found to be applied."
 MANAGER_URI = '/redfish/v1/Managers'
+LC_LOG_SERVICE_URI = '/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog'
 LC_LOG_ENTRIES_URI = '/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries'
 LC_LOG_ENTRIES_PAGE_SIZE = 100
 LC_LOG_MAX_RETRIES = 3
 LC_LOG_RETRY_BACKOFF_SECONDS = (1, 2, 4)
+IDRAC9_MIN_FIRMWARE = "7.10.90.00"
+IDRAC10_MIN_FIRMWARE = "1.20.50.50"
+LC_LOG_SEVERITY_LEVELS = ("OK", "Warning", "Critical")
 
 import copy
 import datetime
 import time
 
+from ansible.module_utils.six.moves.urllib.error import HTTPError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     remove_key, idrac_redfish_job_tracking, get_dynamic_uri)
 ODATA_PATTERN = '(.*?)@odata'
+
+
+def _version_tuple(version_str):
+    """Convert a dotted version string into a tuple of integers for comparison."""
+    return tuple(int(part) for part in version_str.split("."))
+
+
+def validate_lc_log_firmware_version(idrac):
+    """Validate the connected iDRAC firmware version supports LC log enhancements.
+
+    Keyword arguments:
+    idrac -- iDRAC Redfish connection handle.
+
+    Raises:
+    ValueError -- when the detected firmware version is below the minimum
+        required version for the detected iDRAC generation (iDRAC9 or iDRAC10).
+    """
+    generation, firmware_version, hw_model = idrac.get_server_generation
+    min_version = IDRAC10_MIN_FIRMWARE if hw_model == "iDRAC 10" else IDRAC9_MIN_FIRMWARE
+    if firmware_version is None or _version_tuple(firmware_version) < _version_tuple(min_version):
+        raise ValueError(
+            "Detected iDRAC firmware version '{0}' does not meet the minimum required "
+            "version '{1}' for LC log filtering and management operations.".format(
+                firmware_version, min_version))
+
+
+def check_lc_log_service_available(idrac):
+    """Verify the LC Log Service is available and enabled on the connected iDRAC.
+
+    Keyword arguments:
+    idrac -- iDRAC Redfish connection handle.
+
+    Raises:
+    ValueError -- when the LC Log Service endpoint is unreachable or disabled.
+    """
+    try:
+        response = idrac.invoke_request(method='GET', uri=LC_LOG_SERVICE_URI)
+    except HTTPError as err:
+        raise ValueError(
+            "LC Log Service is unavailable: {0}. Verify the iDRAC firmware supports "
+            "the Lclog service and that the endpoint is reachable.".format(err))
+    if response.status_code != 200 or not response.json_data.get("ServiceEnabled", False):
+        raise ValueError(
+            "LC Log Service is not enabled on this iDRAC. Enable the Lclog service "
+            "before running filtered queries or management operations.")
+
+
+def fetch_lc_logs(idrac, date_start=None, date_end=None, severity=None,
+                  category=None, message_contains=None, max_entries=None):
+    """Fetch and filter LC log entries via streaming pagination.
+
+    Keyword arguments:
+    idrac -- iDRAC Redfish connection handle.
+    date_start, date_end -- optional ISO 8601 date range bounds.
+    severity -- optional list of severity values to include.
+    category -- optional list of Dell OEM category values to include.
+    message_contains -- optional case-insensitive substring to match on Message.
+    max_entries -- optional circuit breaker limiting total entries scanned.
+
+    Returns:
+    List of LC log entry dictionaries that pass the configured filter pipeline.
+    """
+    validate_filter_params(date_start=date_start, date_end=date_end)
+    entries = []
+    for entry in paginate_lc_logs(idrac, max_entries=max_entries, date_start=date_start):
+        if apply_filters(entry, date_start=date_start, date_end=date_end,
+                         severity_list=severity, category_list=category,
+                         message_contains=message_contains):
+            entries.append(entry)
+    return entries
+
+
+def fetch_lc_log_metadata(idrac):
+    """Return LC log service metadata without returning individual log entries.
+
+    Keyword arguments:
+    idrac -- iDRAC Redfish connection handle.
+
+    Returns:
+    Dict containing total_entries, oldest_entry_timestamp, newest_entry_timestamp,
+    storage_utilization_pct, and severity_breakdown.
+    """
+    service_response = idrac.invoke_request(method='GET', uri=LC_LOG_SERVICE_URI)
+    max_records = service_response.json_data.get("MaxNumberOfRecords") or 0
+    severity_breakdown = {level: 0 for level in LC_LOG_SEVERITY_LEVELS}
+    timestamps = []
+    total_entries = 0
+    for entry in paginate_lc_logs(idrac):
+        total_entries += 1
+        severity_value = entry.get("Severity")
+        if severity_value in severity_breakdown:
+            severity_breakdown[severity_value] += 1
+        created = entry.get("Created")
+        if created:
+            timestamps.append(created)
+    storage_utilization_pct = round((total_entries / max_records) * 100, 2) if max_records else 0.0
+    return {
+        "total_entries": total_entries,
+        "oldest_entry_timestamp": min(timestamps) if timestamps else None,
+        "newest_entry_timestamp": max(timestamps) if timestamps else None,
+        "storage_utilization_pct": storage_utilization_pct,
+        "severity_breakdown": severity_breakdown,
+    }
 
 
 def _parse_iso8601(timestamp):
