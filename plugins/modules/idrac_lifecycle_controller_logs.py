@@ -127,6 +127,16 @@ notes:
   - This module supports both IPv4 and IPv6 address for I(idrac_ip).
   - This module does not support C(check_mode).
   - No job will be created when exporting data to a local share in iDRAC9 and iDRAC 10.
+  - "Filter syntax reference:"
+  - "  - I(date_start) / I(date_end): ISO 8601 format, e.g. C(2026-01-15T00:00:00Z)."
+  - "  - I(severity): one or more of C(OK), C(Warning), C(Critical)."
+  - "  - I(category): one or more of C(Storage), C(Updates), C(Audit), C(Configuration), C(WorkNotes), C(SystemHealth)."
+  - "Troubleshooting:"
+  - "  - No logs returned: verify I(date_start)/I(date_end) bound an actual log window and I(severity)/I(category)/I(message_contains) are not overly restrictive."
+  - "  - Filter syntax errors: confirm I(date_start)/I(date_end) are valid ISO 8601 strings and I(date_end) is not earlier than I(date_start)."
+  - "  - Export failures: verify the destination directory in I(export_path) exists and is writable; use I(force) to overwrite an existing file."
+  - "  - Permission errors: log clear and comment insertion require 'Administrator' privilege; the iDRAC returns HTTP 403 if the account lacks permission."
+  - "  - Firmware version incompatibility: filtered queries and management operations require iDRAC9 >= 7.10.90.00 or iDRAC10 >= 1.20.50.50."
 """
 
 EXAMPLES = r'''
@@ -157,7 +167,7 @@ EXAMPLES = r'''
     ca_path: "/path/to/ca_cert.pem"
     share_name: "/example/export_lc"
 
-- name: Query LC logs filtered by date range and severity.
+- name: (UC-1) Incident log collection - query LC logs filtered by date range and severity.
   dellemc.openmanage.idrac_lifecycle_controller_logs:
     idrac_ip: "190.168.0.1"
     idrac_user: "user_name"
@@ -169,7 +179,7 @@ EXAMPLES = r'''
       - Critical
       - Warning
 
-- name: Query LC logs filtered by category and message text.
+- name: (UC-2) Fleet firmware audit - query LC logs filtered by category and message text.
   dellemc.openmanage.idrac_lifecycle_controller_logs:
     idrac_ip: "190.168.0.1"
     idrac_user: "user_name"
@@ -188,7 +198,7 @@ EXAMPLES = r'''
     ca_path: "/path/to/ca_cert.pem"
     fetch_metadata_only: true
 
-- name: Export filtered LC logs to a local JSON file for SIEM ingestion.
+- name: (UC-3) SIEM export - export filtered LC logs to a local JSON file for SIEM ingestion.
   dellemc.openmanage.idrac_lifecycle_controller_logs:
     idrac_ip: "190.168.0.1"
     idrac_user: "user_name"
@@ -210,7 +220,7 @@ EXAMPLES = r'''
     export_path: "/tmp/lc_logs_export.csv"
     force: true
 
-- name: Export LC logs before clearing them (safety gate enabled).
+- name: (UC-4) Compliance log rotation - export LC logs before clearing them (safety gate enabled).
   dellemc.openmanage.idrac_lifecycle_controller_logs:
     idrac_ip: "190.168.0.1"
     idrac_user: "user_name"

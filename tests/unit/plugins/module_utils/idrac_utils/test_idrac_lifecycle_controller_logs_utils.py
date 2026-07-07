@@ -408,6 +408,34 @@ class TestPaginateLcLogs:
         result = list(paginate_lc_logs(idrac_mock, page_size=100))
         assert result == []
 
+    def test_paginate_lc_logs_retries_transient_error_then_succeeds(self, mocker):
+        idrac_mock = MagicMock()
+        entries = [{"Id": "1", "Created": "2026-01-01T00:00:00Z"}]
+        idrac_mock.invoke_request.side_effect = [
+            ConnectionError("transient failure"),
+            ConnectionError("transient failure"),
+            self._page_response(entries),
+        ]
+        sleep_mock = mocker.patch(
+            "ansible_collections.dellemc.openmanage.plugins.module_utils."
+            "idrac_utils.idrac_lifecycle_controller_logs_utils.time.sleep")
+        result = list(paginate_lc_logs(idrac_mock, page_size=100))
+        assert result == entries
+        assert idrac_mock.invoke_request.call_count == 3
+        assert sleep_mock.call_count == 2
+        sleep_mock.assert_any_call(1)
+        sleep_mock.assert_any_call(2)
+
+    def test_paginate_lc_logs_retry_exhausted_raises(self, mocker):
+        idrac_mock = MagicMock()
+        idrac_mock.invoke_request.side_effect = ConnectionError("persistent failure")
+        mocker.patch(
+            "ansible_collections.dellemc.openmanage.plugins.module_utils."
+            "idrac_utils.idrac_lifecycle_controller_logs_utils.time.sleep")
+        with pytest.raises(ConnectionError):
+            list(paginate_lc_logs(idrac_mock, page_size=100))
+        assert idrac_mock.invoke_request.call_count == 4
+
 
 class TestFilterPipeline:
 
