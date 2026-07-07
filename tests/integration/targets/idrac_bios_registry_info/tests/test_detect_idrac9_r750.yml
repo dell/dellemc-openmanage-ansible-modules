@@ -1,0 +1,46 @@
+---
+# Integration test for detecting iDRAC9 on R750
+# Test Case: test_detect_idrac9_r750
+# Gherkin Scenario: Detect iDRAC9 on R750 (AC-005)
+# FR Reference: FR-1.2
+# This test verifies that the module correctly detects iDRAC9 on R750 (15G)
+# and returns the correct generation, firmware version, and model information.
+- name: Query BIOS attributes on R750
+  dellemc.openmanage.idrac_bios_registry_info:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    idrac_port: "{{ idrac_port | default(443) }}"
+    validate_certs: "{{ validate_certs | default(true) }}"
+  register: query_result
+
+- name: Verify module succeeded
+  assert:
+    that:
+      - query_result is not failed
+      - query_result is succeeded
+
+- name: Verify iDRAC generation detection
+  assert:
+    that:
+      - query_result.idrac_generation is defined
+      - query_result.idrac_generation == 15
+
+- name: Verify firmware version returned
+  assert:
+    that:
+      - query_result.idrac_firmware_version is defined
+      - query_result.idrac_firmware_version is string
+
+- name: Verify iDRAC model
+  assert:
+    that:
+      - query_result.idrac_model is defined
+      - query_result.idrac_model == "iDRAC 9"
+
+- name: Display detection summary
+  debug:
+    msg:
+      - "iDRAC Generation: {{ query_result.idrac_generation }}"
+      - "iDRAC Firmware: {{ query_result.idrac_firmware_version }}"
+      - "iDRAC Model: {{ query_result.idrac_model }}"

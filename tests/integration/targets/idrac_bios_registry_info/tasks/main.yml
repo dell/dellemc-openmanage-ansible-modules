@@ -1,0 +1,18 @@
+---
+# Integration test tasks for idrac_bios_registry_info module
+- name: Test successful BIOS attribute registry query
+  dellemc.openmanage.idrac_bios_registry_info:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    idrac_port: "{{ idrac_port }}"
+    validate_certs: "{{ validate_certs }}"
+  register: query_result
+
+- name: Verify successful query
+  assert:
+    that:
+      - query_result is success
+      - query_result.changed == false
+      - query_result.bios_attributes is defined
+      - query_result.registry_version is defined

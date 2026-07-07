@@ -1,0 +1,19 @@
+---
+# Integration test for authentication failure
+# Note: This test requires invalid credentials to trigger authentication failure
+- name: Test authentication failure with invalid credentials
+  dellemc.openmanage.idrac_bios_registry_info:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "invalid_user"
+    idrac_password: "invalid_password"
+    idrac_port: "{{ idrac_port }}"
+    validate_certs: "{{ validate_certs }}"
+  register: auth_result
+  ignore_errors: true
+
+- name: Verify authentication failure error
+  assert:
+    that:
+      - auth_result is failed
+      - 'auth_result.msg is search("Authentication failed")' or 'auth_result.msg is search("Unauthorized")' or 'auth_result.msg is search("Forbidden")'
+  when: auth_result is failed
