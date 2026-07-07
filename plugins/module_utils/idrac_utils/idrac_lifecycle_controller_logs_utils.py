@@ -40,6 +40,10 @@ IDRAC10_MIN_FIRMWARE = "1.20.50.50"
 LC_LOG_SEVERITY_LEVELS = ("OK", "Warning", "Critical")
 REGISTRIES_URI = '/redfish/v1/Registries'
 IDRAC_MESSAGE_REGISTRY_PREFIX = 'IDRAC'
+LC_LOG_CLEAR_ACTION_URI = '/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Actions/LogService.ClearLog'
+LC_LOG_JOB_WAIT_TIMEOUT_SECONDS = 300
+MAX_COMMENT_LENGTH = 256
+DEFAULT_STORAGE_THRESHOLD_PCT = 80
 
 import copy
 import datetime
@@ -175,15 +179,34 @@ def enrich_with_message_registry(entries, message_registry):
     return entries
 
 
-def fetch_lc_log_metadata(idrac):
+def check_storage_threshold(storage_utilization_pct, storage_threshold_pct=DEFAULT_STORAGE_THRESHOLD_PCT):
+    """Return a storage capacity warning message when the threshold is exceeded.
+
+    Keyword arguments:
+    storage_utilization_pct -- current LC log storage utilization percentage.
+    storage_threshold_pct -- configured warning threshold percentage.
+
+    Returns:
+    A descriptive warning string, or None when utilization is within the threshold.
+    """
+    if storage_utilization_pct > storage_threshold_pct:
+        return (
+            "LC log storage at {0}% capacity (threshold: {1}%). "
+            "Consider exporting and clearing old logs.".format(
+                storage_utilization_pct, storage_threshold_pct))
+    return None
+
+
+def fetch_lc_log_metadata(idrac, storage_threshold_pct=DEFAULT_STORAGE_THRESHOLD_PCT):
     """Return LC log service metadata without returning individual log entries.
 
     Keyword arguments:
     idrac -- iDRAC Redfish connection handle.
+    storage_threshold_pct -- warning threshold percentage for storage utilization.
 
     Returns:
     Dict containing total_entries, oldest_entry_timestamp, newest_entry_timestamp,
-    storage_utilization_pct, and severity_breakdown.
+    storage_utilization_pct, severity_breakdown, and an optional storage_warning.
     """
     service_response = idrac.invoke_request(method='GET', uri=LC_LOG_SERVICE_URI)
     max_records = service_response.json_data.get("MaxNumberOfRecords") or 0
@@ -199,12 +222,98 @@ def fetch_lc_log_metadata(idrac):
         if created:
             timestamps.append(created)
     storage_utilization_pct = round((total_entries / max_records) * 100, 2) if max_records else 0.0
-    return {
+    metadata = {
         "total_entries": total_entries,
         "oldest_entry_timestamp": min(timestamps) if timestamps else None,
         "newest_entry_timestamp": max(timestamps) if timestamps else None,
         "storage_utilization_pct": storage_utilization_pct,
         "severity_breakdown": severity_breakdown,
+    }
+    storage_warning = check_storage_threshold(storage_utilization_pct, storage_threshold_pct)
+    if storage_warning:
+        metadata["storage_warning"] = storage_warning
+    return metadata
+
+
+def clear_lc_logs(idrac, clear_logs=False, job_wait_timeout=LC_LOG_JOB_WAIT_TIMEOUT_SECONDS,
+                  storage_threshold_pct=DEFAULT_STORAGE_THRESHOLD_PCT):
+    """Clear the LC log after explicit confirmation, tracking pre/post entry counts.
+
+    Keyword arguments:
+    idrac -- iDRAC Redfish connection handle.
+    clear_logs -- must be explicitly True to proceed.
+    job_wait_timeout -- maximum seconds to wait for the async clear task.
+    storage_threshold_pct -- warning threshold percentage for storage utilization.
+
+    Raises:
+    ValueError -- when clear_logs is not True, or the clear job fails/times out.
+
+    Returns:
+    Dict with pre_clear_count, post_clear_count, entries_cleared,
+    pre_clear_utilization_pct, and post_clear_utilization_pct.
+    """
+    if not clear_logs:
+        raise ValueError("Log clear requires explicit confirmation: set clear_logs: true")
+    pre_clear_metadata = fetch_lc_log_metadata(idrac, storage_threshold_pct=storage_threshold_pct)
+    response = idrac.invoke_request(method='POST', uri=LC_LOG_CLEAR_ACTION_URI, data={})
+    task_uri = response.headers.get("Location") if hasattr(response, "headers") else None
+    if task_uri:
+        job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(
+            idrac, task_uri, max_job_wait_sec=job_wait_timeout)
+        if job_failed:
+            raise ValueError("Log clear job failed: {0}".format(msg))
+    post_clear_metadata = fetch_lc_log_metadata(idrac, storage_threshold_pct=storage_threshold_pct)
+    return {
+        "pre_clear_count": pre_clear_metadata["total_entries"],
+        "post_clear_count": post_clear_metadata["total_entries"],
+        "entries_cleared": pre_clear_metadata["total_entries"] - post_clear_metadata["total_entries"],
+        "pre_clear_utilization_pct": pre_clear_metadata["storage_utilization_pct"],
+        "post_clear_utilization_pct": post_clear_metadata["storage_utilization_pct"],
+    }
+
+
+def validate_comment(comment):
+    """Validate an insert_comment value for length and control characters.
+
+    Keyword arguments:
+    comment -- the comment text to validate.
+
+    Raises:
+    ValueError -- when the comment exceeds the maximum length or contains
+        control characters that would break Redfish JSON serialization.
+    """
+    if len(comment) > MAX_COMMENT_LENGTH:
+        raise ValueError(
+            "insert_comment must not exceed {0} characters (got {1}).".format(
+                MAX_COMMENT_LENGTH, len(comment)))
+    if any(ord(char) < 0x20 for char in comment):
+        raise ValueError("insert_comment must not contain control characters.")
+
+
+def insert_lc_log_comment(idrac, comment):
+    """Insert a custom Oem/Dell comment entry into the LC log.
+
+    Keyword arguments:
+    idrac -- iDRAC Redfish connection handle.
+    comment -- the comment text to insert (validated before submission).
+
+    Raises:
+    ValueError -- when the comment fails validation.
+
+    Returns:
+    Dict with the created entry's Id and Created timestamp.
+    """
+    validate_comment(comment)
+    payload = {
+        "EntryType": "Oem",
+        "OemRecordFormat": "Dell",
+        "Message": comment,
+    }
+    response = idrac.invoke_request(method='POST', uri=LC_LOG_ENTRIES_URI, data=payload)
+    entry_data = response.json_data if hasattr(response, "json_data") else {}
+    return {
+        "Id": entry_data.get("Id"),
+        "Created": entry_data.get("Created"),
     }
 
 

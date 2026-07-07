@@ -277,3 +277,134 @@ class TestFilteredLogQuery:
         assert metadata["idrac_version"] == "7.10.90.00"
         assert metadata["filters_applied"]["date_start"] == "2026-01-01T00:00:00Z"
         assert metadata["filters_applied"]["severity"] == ["Critical"]
+
+
+class TestClearLogsAndCommentDispatch:
+
+    def test_run_clear_logs_without_export(self, mocker):
+        idrac_mock = MagicMock()
+        module_mock = MagicMock()
+        module_mock.params = {
+            "export_path": None, "clear_only_if_export_succeeded": None,
+            "storage_threshold_pct": 80}
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.clear_lc_logs",
+            return_value={"pre_clear_count": 5, "post_clear_count": 0, "entries_cleared": 5})
+        idrac_lifecycle_controller_logs.run_clear_logs(idrac_mock, module_mock)
+        module_mock.exit_json.assert_called_once_with(
+            msg="Successfully cleared the lifecycle controller logs.",
+            lc_log_clear_status={"pre_clear_count": 5, "post_clear_count": 0, "entries_cleared": 5},
+            changed=True)
+
+    def test_run_clear_logs_safety_gate_aborts_without_export_path(self, mocker):
+        idrac_mock = MagicMock()
+        module_mock = MagicMock()
+        module_mock.params = {
+            "export_path": None, "clear_only_if_export_succeeded": True,
+            "storage_threshold_pct": 80}
+        idrac_lifecycle_controller_logs.run_clear_logs(idrac_mock, module_mock)
+        module_mock.exit_json.assert_called_once_with(
+            msg="Clear aborted: export validation failed. Logs preserved to prevent data loss.",
+            failed=True)
+
+    def test_run_clear_logs_safety_gate_aborts_on_export_failure(self, mocker):
+        idrac_mock = MagicMock()
+        idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        module_mock = MagicMock()
+        module_mock.params = {
+            "export_path": "/tmp/export.json", "clear_only_if_export_succeeded": True,
+            "date_start": None, "date_end": None, "severity": None, "category": None,
+            "message_contains": None, "max_entries": None, "export_format": None,
+            "force": False, "storage_threshold_pct": 80}
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.fetch_lc_logs", return_value=[])
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.discover_message_registry",
+            return_value=None)
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.enrich_with_message_registry",
+            return_value=[])
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.export_entries",
+            side_effect=idrac_lifecycle_controller_logs.ExportPathError("no permission"))
+        idrac_lifecycle_controller_logs.run_clear_logs(idrac_mock, module_mock)
+        module_mock.exit_json.assert_called_once_with(
+            msg="Clear aborted: export validation failed. Logs preserved to prevent data loss.",
+            failed=True)
+
+    def test_run_clear_logs_with_export_success(self, mocker):
+        idrac_mock = MagicMock()
+        idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        module_mock = MagicMock()
+        module_mock.params = {
+            "export_path": "/tmp/export.json", "clear_only_if_export_succeeded": False,
+            "date_start": None, "date_end": None, "severity": None, "category": None,
+            "message_contains": None, "max_entries": None, "export_format": None,
+            "force": False, "storage_threshold_pct": 80}
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.fetch_lc_logs", return_value=[{"Id": "1"}])
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.discover_message_registry",
+            return_value=None)
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.enrich_with_message_registry",
+            return_value=[{"Id": "1"}])
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.export_entries",
+            return_value="/tmp/export.json")
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.clear_lc_logs",
+            return_value={"pre_clear_count": 1, "post_clear_count": 0, "entries_cleared": 1})
+        idrac_lifecycle_controller_logs.run_clear_logs(idrac_mock, module_mock)
+        module_mock.exit_json.assert_called_once_with(
+            msg="Successfully cleared the lifecycle controller logs.",
+            lc_log_clear_status={
+                "pre_clear_count": 1, "post_clear_count": 0, "entries_cleared": 1,
+                "export_path": "/tmp/export.json"},
+            changed=True)
+
+    def test_run_filtered_log_query_dispatches_to_clear_logs(self, mocker):
+        idrac_mock = MagicMock()
+        module_mock = MagicMock()
+        module_mock.params = {
+            "fetch_metadata_only": None, "clear_logs": True, "storage_threshold_pct": 80}
+        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_logs.validate_lc_log_firmware_version")
+        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_logs.check_lc_log_service_available")
+        run_clear_mock = mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.run_clear_logs")
+        idrac_lifecycle_controller_logs.run_filtered_log_query(idrac_mock, module_mock)
+        run_clear_mock.assert_called_once_with(idrac_mock, module_mock)
+
+    def test_run_filtered_log_query_dispatches_to_insert_comment(self, mocker):
+        idrac_mock = MagicMock()
+        module_mock = MagicMock()
+        module_mock.params = {
+            "fetch_metadata_only": None, "clear_logs": None,
+            "insert_comment": "Maintenance window", "storage_threshold_pct": 80}
+        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_logs.validate_lc_log_firmware_version")
+        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_logs.check_lc_log_service_available")
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.insert_lc_log_comment",
+            return_value={"Id": "1", "Created": "2026-01-15T10:00:00Z"})
+        idrac_lifecycle_controller_logs.run_filtered_log_query(idrac_mock, module_mock)
+        module_mock.exit_json.assert_called_once_with(
+            msg="Successfully inserted the comment into the lifecycle controller logs.",
+            lc_log_comment={"Id": "1", "Created": "2026-01-15T10:00:00Z"}, changed=True)
+
+    def test_is_filtered_query_requested_true_for_clear_logs(self):
+        module_mock = MagicMock()
+        module_mock.params = {
+            "date_start": None, "date_end": None, "severity": None,
+            "category": None, "message_contains": None,
+            "fetch_metadata_only": None, "export_path": None,
+            "clear_logs": True, "insert_comment": None}
+        assert idrac_lifecycle_controller_logs.is_filtered_query_requested(module_mock) is True
+
+    def test_is_filtered_query_requested_true_for_insert_comment(self):
+        module_mock = MagicMock()
+        module_mock.params = {
+            "date_start": None, "date_end": None, "severity": None,
+            "category": None, "message_contains": None,
+            "fetch_metadata_only": None, "export_path": None,
+            "clear_logs": None, "insert_comment": "note"}
+        assert idrac_lifecycle_controller_logs.is_filtered_query_requested(module_mock) is True

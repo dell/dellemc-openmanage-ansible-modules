@@ -91,6 +91,27 @@ options:
     type: bool
     default: false
     description: Overwrite I(export_path) if a file already exists at that location.
+  clear_logs:
+    type: bool
+    description:
+      - Explicit confirmation required to clear the LC log. Must be set to C(true) to execute the clear operation.
+      - Mutually exclusive with I(share_name), I(fetch_metadata_only), and I(insert_comment).
+  clear_only_if_export_succeeded:
+    type: bool
+    description:
+      - When C(true), aborts the clear operation unless the export step (I(export_path)) completes successfully.
+      - Requires I(clear_logs) to be set.
+  insert_comment:
+    type: str
+    description:
+      - Custom comment text (maximum 256 characters) to insert as a new LC log entry.
+      - Mutually exclusive with I(share_name), I(fetch_metadata_only), I(clear_logs), and I(export_path).
+  storage_threshold_pct:
+    type: int
+    default: 80
+    description:
+      - Storage utilization percentage threshold used to generate a capacity warning.
+      - Applies to I(fetch_metadata_only) and I(clear_logs) operations.
 
 requirements:
   - "omsdk >= 1.2.488"
@@ -188,6 +209,24 @@ EXAMPLES = r'''
     export_format: "csv"
     export_path: "/tmp/lc_logs_export.csv"
     force: true
+
+- name: Export LC logs before clearing them (safety gate enabled).
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "190.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    export_path: "/tmp/lc_logs_archive.json"
+    clear_logs: true
+    clear_only_if_export_succeeded: true
+
+- name: Insert a custom comment into the LC log.
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "190.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    insert_comment: "Maintenance window started at 02:00 UTC"
 '''
 
 RETURN = """
@@ -265,6 +304,22 @@ export_path:
   returned: success, when I(export_path) is set
   type: str
   sample: "/tmp/lc_logs_export.json"
+lc_log_clear_status:
+  description: Status of the log clear operation. Returned only when I(clear_logs) is C(true).
+  returned: success, when I(clear_logs) is set
+  type: dict
+  sample: {
+    "pre_clear_count": 1250,
+    "post_clear_count": 0,
+    "entries_cleared": 1250,
+    "pre_clear_utilization_pct": 62.5,
+    "post_clear_utilization_pct": 0.0
+  }
+lc_log_comment:
+  description: Details of the inserted LC log comment entry. Returned only when I(insert_comment) is set.
+  returned: success, when I(insert_comment) is set
+  type: dict
+  sample: {"Id": "12345", "Created": "2026-01-15T10:00:00Z"}
 """
 
 
@@ -281,8 +336,10 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.\
     idrac_lifecycle_controller_logs_utils import (
         IDRACLifecycleControllerLogs, validate_lc_log_firmware_version,
         check_lc_log_service_available, fetch_lc_logs, fetch_lc_log_metadata,
-        discover_message_registry, enrich_with_message_registry)
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_log_exporter import export_entries
+        discover_message_registry, enrich_with_message_registry,
+        clear_lc_logs, insert_lc_log_comment, DEFAULT_STORAGE_THRESHOLD_PCT)
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_log_exporter import (
+    export_entries, ExportPathError)
 try:
     from omsdk.sdkfile import file_share_manager
     from omsdk.sdkcreds import UserCredentials
@@ -356,7 +413,8 @@ def is_filtered_query_requested(module):
         module.params.get('date_start'), module.params.get('date_end'),
         module.params.get('severity'), module.params.get('category'),
         module.params.get('message_contains'), module.params.get('fetch_metadata_only'),
-        module.params.get('export_path')])
+        module.params.get('export_path'), module.params.get('clear_logs'),
+        module.params.get('insert_comment')])
 
 
 def build_export_metadata(idrac, module):
@@ -381,6 +439,54 @@ def build_export_metadata(idrac, module):
     }
 
 
+def run_clear_logs(idrac, module):
+    """Execute the log clear operation, applying the export-before-clear safety gate.
+
+    Keyword arguments:
+    idrac -- iDRAC Redfish connection handle.
+    module -- Ansible module instance.
+    """
+    exported_path = None
+    export_path = module.params.get('export_path')
+    if export_path:
+        entries = fetch_lc_logs(
+            idrac,
+            date_start=module.params.get('date_start'),
+            date_end=module.params.get('date_end'),
+            severity=module.params.get('severity'),
+            category=module.params.get('category'),
+            message_contains=module.params.get('message_contains'),
+            max_entries=module.params.get('max_entries'))
+        message_registry = discover_message_registry(idrac)
+        entries = enrich_with_message_registry(entries, message_registry)
+        export_format = module.params.get('export_format') or 'json'
+        metadata_envelope = build_export_metadata(idrac, module)
+        try:
+            exported_path = export_entries(
+                entries, export_path, export_format=export_format,
+                metadata=metadata_envelope, force=module.params.get('force'))
+        except ExportPathError:
+            if module.params.get('clear_only_if_export_succeeded'):
+                module.exit_json(
+                    msg="Clear aborted: export validation failed. Logs preserved to prevent data loss.",
+                    failed=True)
+                return
+            raise
+    elif module.params.get('clear_only_if_export_succeeded'):
+        module.exit_json(
+            msg="Clear aborted: export validation failed. Logs preserved to prevent data loss.",
+            failed=True)
+        return
+    clear_result = clear_lc_logs(
+        idrac, clear_logs=True,
+        storage_threshold_pct=module.params.get('storage_threshold_pct') or DEFAULT_STORAGE_THRESHOLD_PCT)
+    if exported_path:
+        clear_result["export_path"] = exported_path
+    module.exit_json(
+        msg="Successfully cleared the lifecycle controller logs.",
+        lc_log_clear_status=clear_result, changed=True)
+
+
 def run_filtered_log_query(idrac, module):
     """Validate prerequisites and execute a filtered LC log query, metadata
     query, or filtered-log export.
@@ -391,11 +497,21 @@ def run_filtered_log_query(idrac, module):
     """
     validate_lc_log_firmware_version(idrac)
     check_lc_log_service_available(idrac)
+    storage_threshold_pct = module.params.get('storage_threshold_pct') or DEFAULT_STORAGE_THRESHOLD_PCT
     if module.params.get('fetch_metadata_only'):
-        metadata = fetch_lc_log_metadata(idrac)
+        metadata = fetch_lc_log_metadata(idrac, storage_threshold_pct=storage_threshold_pct)
         module.exit_json(
             msg="Successfully fetched the lifecycle controller log metadata.",
             lc_log_metadata=metadata, changed=False)
+        return
+    if module.params.get('clear_logs'):
+        run_clear_logs(idrac, module)
+        return
+    if module.params.get('insert_comment'):
+        comment_result = insert_lc_log_comment(idrac, module.params.get('insert_comment'))
+        module.exit_json(
+            msg="Successfully inserted the comment into the lifecycle controller logs.",
+            lc_log_comment=comment_result, changed=True)
         return
     entries = fetch_lc_logs(
         idrac,
@@ -442,13 +558,18 @@ def main():
         "export_format": {"required": False, "type": 'str', "choices": ['json', 'csv', 'text']},
         "export_path": {"required": False, "type": 'str'},
         "force": {"required": False, "type": 'bool', "default": False},
+        "clear_logs": {"required": False, "type": 'bool'},
+        "clear_only_if_export_succeeded": {"required": False, "type": 'bool'},
+        "insert_comment": {"required": False, "type": 'str'},
+        "storage_threshold_pct": {"required": False, "type": 'int', "default": DEFAULT_STORAGE_THRESHOLD_PCT},
     }
     specs.update(idrac_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
         required_one_of=[[
             'share_name', 'date_start', 'date_end', 'severity', 'category',
-            'message_contains', 'fetch_metadata_only', 'export_path']],
+            'message_contains', 'fetch_metadata_only', 'export_path',
+            'clear_logs', 'insert_comment']],
         mutually_exclusive=[[
             'share_name', 'date_start'], [
             'share_name', 'date_end'], [
@@ -457,8 +578,16 @@ def main():
             'share_name', 'message_contains'], [
             'share_name', 'fetch_metadata_only'], [
             'share_name', 'export_path'], [
-            'fetch_metadata_only', 'export_path']],
-        required_by={'export_format': 'export_path'},
+            'share_name', 'clear_logs'], [
+            'share_name', 'insert_comment'], [
+            'fetch_metadata_only', 'export_path'], [
+            'fetch_metadata_only', 'clear_logs'], [
+            'fetch_metadata_only', 'insert_comment'], [
+            'insert_comment', 'clear_logs'], [
+            'insert_comment', 'export_path']],
+        required_by={
+            'export_format': 'export_path',
+            'clear_only_if_export_succeeded': 'clear_logs'},
         supports_check_mode=False)
 
     try:

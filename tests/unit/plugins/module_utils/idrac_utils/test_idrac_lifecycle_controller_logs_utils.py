@@ -6,7 +6,9 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.\
         severity_filter, category_filter, message_filter, apply_filters,
         validate_filter_params, validate_lc_log_firmware_version,
         check_lc_log_service_available, fetch_lc_logs, fetch_lc_log_metadata,
-        discover_message_registry, enrich_with_message_registry)
+        discover_message_registry, enrich_with_message_registry,
+        check_storage_threshold, clear_lc_logs, validate_comment,
+        insert_lc_log_comment)
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.module_utils.idrac_utils.test_idrac_utils import TestUtils
 from ansible.module_utils.six.moves.urllib.error import HTTPError
 from unittest.mock import MagicMock
@@ -640,3 +642,97 @@ class TestMessageRegistry:
         result = enrich_with_message_registry(entries, registry)
         assert result[0]["message_description"] is None
         assert result[0]["message_resolution"] is None
+
+
+class TestStorageThresholdWarning:
+
+    def test_no_warning_below_threshold(self):
+        assert check_storage_threshold(50.0, storage_threshold_pct=80) is None
+
+    def test_warning_above_threshold(self):
+        warning = check_storage_threshold(85.0, storage_threshold_pct=80)
+        assert warning is not None
+        assert "85.0%" in warning
+        assert "threshold: 80%" in warning
+
+    def test_no_warning_at_exact_threshold(self):
+        assert check_storage_threshold(80.0, storage_threshold_pct=80) is None
+
+
+class TestClearLcLogs:
+
+    def _metadata_response(self, total_entries, max_records):
+        obj = MagicMock()
+        obj.json_data = {"MaxNumberOfRecords": max_records}
+        return obj
+
+    def _entries_response(self, members):
+        obj = MagicMock()
+        obj.json_data = {"Members": members}
+        return obj
+
+    def test_clear_logs_requires_explicit_confirmation(self):
+        idrac_mock = MagicMock()
+        with pytest.raises(ValueError):
+            clear_lc_logs(idrac_mock, clear_logs=False)
+
+    def test_clear_logs_success_returns_counts(self):
+        idrac_mock = MagicMock()
+        pre_entries = [{"Id": str(i), "Severity": "OK"} for i in range(5)]
+        clear_response = MagicMock()
+        clear_response.headers = {}
+        idrac_mock.invoke_request.side_effect = [
+            self._metadata_response(5, 10),
+            self._entries_response(pre_entries),
+            clear_response,
+            self._metadata_response(0, 10),
+            self._entries_response([]),
+        ]
+        result = clear_lc_logs(idrac_mock, clear_logs=True)
+        assert result["pre_clear_count"] == 5
+        assert result["post_clear_count"] == 0
+        assert result["entries_cleared"] == 5
+
+    def test_clear_logs_with_job_tracking_failure_raises(self, mocker):
+        idrac_mock = MagicMock()
+        pre_entries = [{"Id": "1", "Severity": "OK"}]
+        clear_response = MagicMock()
+        clear_response.headers = {"Location": "/redfish/v1/TaskService/Tasks/1"}
+        idrac_mock.invoke_request.side_effect = [
+            self._metadata_response(1, 10),
+            self._entries_response(pre_entries),
+            clear_response,
+        ]
+        mocker.patch(
+            "ansible_collections.dellemc.openmanage.plugins.module_utils."
+            "idrac_utils.idrac_lifecycle_controller_logs_utils.idrac_redfish_job_tracking",
+            return_value=(True, "Task failed", {}, 5))
+        with pytest.raises(ValueError):
+            clear_lc_logs(idrac_mock, clear_logs=True)
+
+
+class TestCommentInsertion:
+
+    def test_validate_comment_within_limit(self):
+        validate_comment("Maintenance window started")
+
+    def test_validate_comment_exceeds_max_length_raises(self):
+        with pytest.raises(ValueError):
+            validate_comment("x" * 257)
+
+    def test_validate_comment_control_characters_raise(self):
+        with pytest.raises(ValueError):
+            validate_comment("bad\x00comment")
+
+    def test_insert_lc_log_comment_success(self):
+        idrac_mock = MagicMock()
+        response = MagicMock()
+        response.json_data = {"Id": "999", "Created": "2026-01-15T10:00:00Z"}
+        idrac_mock.invoke_request.return_value = response
+        result = insert_lc_log_comment(idrac_mock, "Maintenance window")
+        assert result == {"Id": "999", "Created": "2026-01-15T10:00:00Z"}
+
+    def test_insert_lc_log_comment_invalid_raises(self):
+        idrac_mock = MagicMock()
+        with pytest.raises(ValueError):
+            insert_lc_log_comment(idrac_mock, "x" * 300)
