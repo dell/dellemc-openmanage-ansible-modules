@@ -1230,6 +1230,81 @@ class TestStorageModify(TestStorageBase):
         idrac_connection_storage_volume_mock.invoke_request.assert_called_once_with(
             self.VOLUME_URI, 'PATCH', data={"Oem": {"Dell": {"DellVirtualDisk": {"DiskCachePolicy": "Enabled"}}}})
 
+    CONTROLLER_URI = "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.SL.5-1"
+
+    def _controller_data(self, **oem_overrides):
+        oem = {"EncryptionCapability": "LocalKeyManagement", "EncryptionMode": "LocalKeyManagement"}
+        oem.update(oem_overrides)
+        return {
+            ODATA_ID: self.CONTROLLER_URI,
+            "Volumes": {VIRTUAL_DISK_FIRST: self._volume_data()},
+            "Oem": {"Dell": {"DellController": oem}},
+        }
+
+    def test_execute_encryption_mode_required(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
+        idrac_resp = {"Controllers": {CONTROLLER_ID_FOURTH: self._controller_data()}}
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_resp)
+        idrac_default_args.update({"controller_id": CONTROLLER_ID_FOURTH, "volume_id": VIRTUAL_DISK_FIRST,
+                                   "enable_encryption": True})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageModify(idrac_connection_storage_volume_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.execute()
+        assert exc.value.args[0] == "encryption_mode is required when enable_encryption is true."
+
+    def test_execute_encryption_not_supported(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
+        idrac_resp = {"Controllers": {CONTROLLER_ID_FOURTH: self._controller_data(EncryptionCapability="None")}}
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_resp)
+        idrac_default_args.update({"controller_id": CONTROLLER_ID_FOURTH, "volume_id": VIRTUAL_DISK_FIRST,
+                                   "enable_encryption": True, "encryption_mode": "LKM"})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageModify(idrac_connection_storage_volume_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.execute()
+        assert exc.value.args[0] == "Encryption is not supported on the specified controller '{0}'.".format(
+            CONTROLLER_ID_FOURTH)
+
+    def test_execute_encryption_keys_not_configured(self, idrac_default_args, idrac_connection_storage_volume_mock,
+                                                    mocker):
+        idrac_resp = {"Controllers": {CONTROLLER_ID_FOURTH: self._controller_data(EncryptionMode="None")}}
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_resp)
+        idrac_default_args.update({"controller_id": CONTROLLER_ID_FOURTH, "volume_id": VIRTUAL_DISK_FIRST,
+                                   "enable_encryption": True, "encryption_mode": "LKM"})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageModify(idrac_connection_storage_volume_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.execute()
+        assert "Configure the encryption keys" in exc.value.args[0]
+
+    def test_execute_encryption_check_mode(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
+        idrac_resp = {"Controllers": {CONTROLLER_ID_FOURTH: self._controller_data()}}
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_resp)
+        idrac_default_args.update({"controller_id": CONTROLLER_ID_FOURTH, "volume_id": VIRTUAL_DISK_FIRST,
+                                   "enable_encryption": True, "encryption_mode": "LKM"})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
+        idr_obj = self.module.StorageModify(idrac_connection_storage_volume_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.execute()
+        assert exc.value.args[0] == CHANGES_FOUND
+        assert exc.value.fail_kwargs['changed'] is True
+        idrac_connection_storage_volume_mock.invoke_request.assert_not_called()
+
+    def test_execute_encryption_enabled_sekm(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
+        idrac_resp = {"Controllers": {CONTROLLER_ID_FOURTH: self._controller_data()}}
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_resp)
+        mocker.patch(MODULE_PATH + 'StorageBase.wait_for_job_completion', return_value={"JobState": "Completed"})
+        idrac_default_args.update({"controller_id": CONTROLLER_ID_FOURTH, "volume_id": VIRTUAL_DISK_FIRST,
+                                   "enable_encryption": True, "encryption_mode": "SEKM"})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageModify(idrac_connection_storage_volume_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.execute()
+        assert exc.value.args[0] == "Successfully enabled encryption on the virtual disk."
+        assert exc.value.fail_kwargs['changed'] is True
+        assert exc.value.fail_kwargs['job_status'] == {"JobState": "Completed"}
+        idrac_connection_storage_volume_mock.invoke_request.assert_called_once_with(
+            self.CONTROLLER_URI + "/Oem/Dell/DellRaidService.EnableControllerEncryption", 'POST', data={"Mode": 3})
+
 
 class TestStorageDelete(TestStorageBase):
     module = idrac_storage_volume

@@ -937,8 +937,41 @@ class StorageModify(StorageValidation):
         self.idrac.invoke_request(volume_uri, 'PATCH', data=full_payload)
         return {"changed": True, "msg": ATTRIBUTE_MODIFY_SUCCESS_MSG, "diff": {"before": before, "after": after}}
 
+    def validate_encryption_prerequisites(self, controller_data):
+        encryption_mode = self.module.params.get('encryption_mode')
+        if not encryption_mode:
+            self.module.exit_json(msg=ENCRYPTION_MODE_REQUIRED_MSG, failed=True)
+        oem_dell = controller_data.get('Oem', {}).get('Dell', {}).get('DellController', {})
+        encryption_capability = oem_dell.get('EncryptionCapability')
+        if not encryption_capability or encryption_capability == 'None':
+            self.module.exit_json(
+                msg=ENCRYPTION_NOT_SUPPORTED_MSG.format(controller_id=self.controller_id), failed=True)
+        controller_encryption_mode = oem_dell.get('EncryptionMode')
+        if not controller_encryption_mode or controller_encryption_mode == 'None':
+            self.module.exit_json(
+                msg=ENCRYPTION_KEYS_NOT_CONFIGURED_MSG.format(controller_id=self.controller_id), failed=True)
+
+    def enable_encryption(self, controller_data):
+        self.validate_encryption_prerequisites(controller_data)
+        if self.module.check_mode:
+            return {"changed": True, "msg": CHANGES_FOUND, "job_status": {}}
+        encryption_mode = self.module.params.get('encryption_mode')
+        mode_value = 1 if encryption_mode == 'LKM' else 3
+        controller_uri = controller_data.get(ODATA_ID)
+        actions = controller_data.get('Actions', {})
+        actions_uri = actions.get('#DellRaidService.EnableControllerEncryption', {}).get('target')
+        if not actions_uri:
+            actions_uri = "{0}/Oem/Dell/DellRaidService.EnableControllerEncryption".format(controller_uri)
+        resp = self.idrac.invoke_request(actions_uri, 'POST', data={"Mode": mode_value})
+        job_dict = self.wait_for_job_completion(resp)
+        return {"changed": True, "msg": ENCRYPTION_SUCCESS_MSG, "job_status": job_dict}
+
     def execute(self):
         volume_data = self.validate_volume_identifier()
+        if self.module.params.get('enable_encryption'):
+            controller_data = self.idrac_data['Controllers'][self.controller_id]
+            result = self.enable_encryption(controller_data)
+            self.module.exit_json(msg=result["msg"], changed=result["changed"], job_status=result["job_status"])
         result = self.modify_attributes(volume_data)
         if result is None:
             self.module.exit_json(msg=NO_CHANGES_FOUND_MSG, changed=False)
