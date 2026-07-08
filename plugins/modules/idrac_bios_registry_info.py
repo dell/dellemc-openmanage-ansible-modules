@@ -63,8 +63,7 @@ options:
 
 requirements:
     - "python >= 3.9.6"
-author:
-  - "Dell OpenManage Ansible Team"
+author: "Sapana Gupta(@sapana05)"
 notes:
     - "Run this module from a system that has direct access to Dell iDRAC."
     - "This module supports both IPv4 and IPv6 address for I(idrac_ip)."
