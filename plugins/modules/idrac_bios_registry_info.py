@@ -410,7 +410,7 @@ def main():
             generation, firmware_version, hw_model = idrac.get_server_generation
 
             # Check firmware version requirements using centralized utility
-            is_compliant, _, error_msg = iDRACRedfishAPI.check_minimum_firmware_requirement(
+            is_compliant, min_fw_version, error_msg = iDRACRedfishAPI.check_minimum_firmware_requirement(  # pylint: disable=unused-variable
                 hw_model, firmware_version
             )
             if not is_compliant:
