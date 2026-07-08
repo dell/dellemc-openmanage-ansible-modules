@@ -243,12 +243,108 @@ class TestStorageInfoControllerQuery(FakeAnsibleModule):
     def test_fetch_resources_non_controller_type_returns_empty(self, mocker):
         idrac_obj = mocker.MagicMock()
         module = mocker.MagicMock()
-        module.params = {"resource_type": "physical_disk"}
+        module.params = {"resource_type": "virtual_disk", "controller_id": "RAID.Slot.1-1"}
         storage_info_obj = idrac_storage_info.StorageInfo(idrac_obj, module)
 
         result = storage_info_obj.fetch_resources()
 
         assert result == {"resource_count": 0, "resources": []}
+
+
+class TestStorageInfoPhysicalDiskQuery(FakeAnsibleModule):
+    module = idrac_storage_info
+    SYSTEMS_URI = "/redfish/v1/Systems"
+    SYSTEM_URI = "/redfish/v1/Systems/System.Embedded.1"
+    STORAGE_URI = "/redfish/v1/Systems/System.Embedded.1/Storage"
+    DRIVE_URI = "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Slot.1-1/Drives/Disk.Bay.0"
+
+    def _idrac_mock(self, mocker, controller_members, drive_data_by_uri):
+        idrac_obj = mocker.MagicMock()
+
+        def invoke_request_side_effect(*args, **kwargs):
+            uri = kwargs.get("uri") or kwargs.get("path") or (args[0] if args else None)
+            resp = mocker.MagicMock()
+            if uri == self.SYSTEMS_URI:
+                resp.json_data = {"Members": [{"@odata.id": self.SYSTEM_URI}]}
+            elif uri == self.SYSTEM_URI:
+                resp.json_data = {"Storage": {"@odata.id": self.STORAGE_URI}}
+            elif uri == self.STORAGE_URI + "?$expand=*($levels=1)":
+                resp.json_data = {"Members": controller_members}
+            elif uri in drive_data_by_uri:
+                resp.json_data = drive_data_by_uri[uri]
+            else:
+                resp.json_data = {}
+            return resp
+
+        idrac_obj.invoke_request.side_effect = invoke_request_side_effect
+        return idrac_obj
+
+    def test_get_physical_disks_maps_redfish_and_oem_fields(self, mocker):
+        controller_members = [
+            {"Id": "RAID.Slot.1-1", "Drives": [{"@odata.id": self.DRIVE_URI}]},
+        ]
+        drive_data_by_uri = {
+            self.DRIVE_URI: {
+                "Id": "Disk.Bay.0",
+                "Name": "Solid State Disk 0",
+                "CapacityBytes": 400088457216,
+                "MediaType": "SSD",
+                "Protocol": "SAS",
+                "Status": {"Health": "OK"},
+                "PhysicalLocation": {"PartLocation": {"LocationOrdinalValue": 0}},
+                "Oem": {"Dell": {"DellPhysicalDisk": {
+                    "RaidStatus": "Ready",
+                    "HotSpareStatus": "No",
+                    "UsedSizeBytes": 0,
+                    "FreeSizeInBytes": 400088457216,
+                    "EncryptionCapable": "Yes",
+                    "PredictiveFailureState": "Smart Alert Absent",
+                }}},
+            }
+        }
+        idrac_obj = self._idrac_mock(mocker, controller_members, drive_data_by_uri)
+        module = mocker.MagicMock()
+        storage_info_obj = idrac_storage_info.StorageInfo(idrac_obj, module)
+
+        disks = storage_info_obj.get_physical_disks("RAID.Slot.1-1")
+
+        assert len(disks) == 1
+        assert disks[0]["Id"] == "Disk.Bay.0"
+        assert disks[0]["MediaType"] == "SSD"
+        assert disks[0]["Protocol"] == "SAS"
+        assert disks[0]["RaidStatus"] == "Ready"
+        assert disks[0]["HotSpareStatus"] == "No"
+        assert disks[0]["UsedSizeBytes"] == 0
+        assert disks[0]["FreeSizeInBytes"] == 400088457216
+        assert disks[0]["EncryptionCapable"] == "Yes"
+        assert disks[0]["PredictiveFailureState"] == "Smart Alert Absent"
+
+    def test_get_physical_disks_controller_not_found(self, mocker):
+        idrac_obj = self._idrac_mock(mocker, [{"Id": "RAID.Slot.1-2", "Drives": []}], {})
+        idrac_obj.get_server_generation = (17, "7.10.90.00", "iDRAC 9")
+        conn_mock = mocker.patch(MODULE_PATH + 'iDRACRedfishAPI', return_value=idrac_obj)
+        conn_mock.return_value.__enter__.return_value = idrac_obj
+
+        result = self._run_module({
+            "idrac_ip": "192.168.0.1", "idrac_user": "username", "idrac_password": "password",
+            "idrac_port": 443, "resource_type": "physical_disk", "controller_id": "RAID.Slot.1-1",
+        })
+
+        assert result["failed"] is True
+        assert result["msg"] == "Specified controller 'RAID.Slot.1-1' does not exist."
+
+    def test_fetch_resources_physical_disk_type(self, mocker):
+        controller_members = [{"Id": "RAID.Slot.1-1", "Drives": [{"@odata.id": self.DRIVE_URI}]}]
+        drive_data_by_uri = {self.DRIVE_URI: {"Id": "Disk.Bay.0", "Oem": {}}}
+        idrac_obj = self._idrac_mock(mocker, controller_members, drive_data_by_uri)
+        module = mocker.MagicMock()
+        module.params = {"resource_type": "physical_disk", "controller_id": "RAID.Slot.1-1"}
+        storage_info_obj = idrac_storage_info.StorageInfo(idrac_obj, module)
+
+        result = storage_info_obj.fetch_resources()
+
+        assert result["resource_count"] == 1
+        assert result["resources"][0]["Id"] == "Disk.Bay.0"
 
 
 @pytest.fixture

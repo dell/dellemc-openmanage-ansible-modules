@@ -143,6 +143,9 @@ ODATA_ID = "@odata.id"
 STORAGE_EXPAND_QUERY = "?$expand=*($levels=1)"
 CONTROLLER_OEM_FIELDS = ["PatrolReadRatePercent", "RebuildRatePercent", "CopybackMode",
                          "EncryptionCapability", "EncryptionMode"]
+PHYSICAL_DISK_OEM_FIELDS = ["RaidStatus", "HotSpareStatus", "UsedSizeBytes", "FreeSizeInBytes",
+                            "EncryptionCapable", "PredictiveFailureState"]
+CONTROLLER_NOT_FOUND_MSG = "Specified controller '{controller_id}' does not exist."
 
 
 class StorageInfo:
@@ -213,10 +216,45 @@ class StorageInfo:
             mapped[field] = oem_dell.get(field)
         return mapped
 
+    def get_controller_by_id(self, controller_id):
+        storage_uri = self.fetch_storage_uri()
+        controllers_data = get_dynamic_uri(self.idrac, storage_uri + STORAGE_EXPAND_QUERY)
+        for member in controllers_data.get("Members", []):
+            if member.get("Id") == controller_id:
+                return member
+        self.module.exit_json(msg=CONTROLLER_NOT_FOUND_MSG.format(controller_id=controller_id), failed=True)
+
+    def get_physical_disks(self, controller_id):
+        controller = self.get_controller_by_id(controller_id)
+        physical_disks = []
+        for drive_ref in controller.get("Drives", []):
+            drive_data = get_dynamic_uri(self.idrac, drive_ref.get(ODATA_ID))
+            physical_disks.append(self._map_physical_disk(drive_data))
+        return physical_disks
+
+    @staticmethod
+    def _map_physical_disk(drive):
+        oem_dell = drive.get("Oem", {}).get("Dell", {}).get("DellPhysicalDisk", {})
+        mapped = {
+            "Id": drive.get("Id"),
+            "Name": drive.get("Name"),
+            "CapacityBytes": drive.get("CapacityBytes"),
+            "MediaType": drive.get("MediaType"),
+            "Protocol": drive.get("Protocol"),
+            "Status": drive.get("Status"),
+            "PhysicalLocation": drive.get("PhysicalLocation"),
+        }
+        for field in PHYSICAL_DISK_OEM_FIELDS:
+            mapped[field] = oem_dell.get(field)
+        return mapped
+
     def fetch_resources(self):
         resource_type = self.module.params.get("resource_type")
+        controller_id = self.module.params.get("controller_id")
         if resource_type == "controller":
             resources = self.get_controllers()
+        elif resource_type == "physical_disk":
+            resources = self.get_physical_disks(controller_id)
         else:
             resources = []
         return {"resource_count": len(resources), "resources": resources}
