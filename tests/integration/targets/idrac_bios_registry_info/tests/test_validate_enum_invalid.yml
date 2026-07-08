@@ -43,12 +43,14 @@
 - name: Verify error reason
   ansible.builtin.assert:
     that:
-      - validation_result.validation_results | selectattr('attribute', 'equalto', 'ProcVirtualization') | map(attribute='reason') | list | first is search("not a valid enumeration value")
+      - validation_result.validation_results | selectattr('attribute', 'equalto', 'ProcVirtualization')
+        | map(attribute='reason') | list | first is search("not a valid enumeration value")
 
 - name: Verify suggestions provided
   ansible.builtin.assert:
     that:
-      - validation_result.validation_results | selectattr('attribute', 'equalto', 'ProcVirtualization') | map(attribute='suggestions') | list | first is defined
+      - validation_result.validation_results | selectattr('attribute', 'equalto', 'ProcVirtualization')
+        | map(attribute='suggestions') | list | first is defined
 
 - name: Verify validation counts
   ansible.builtin.assert:
@@ -59,7 +61,7 @@
       - validation_result.invalid_count == 1
 
 - name: Display validation summary
-  debug:
+  ansible.builtin.debug:
     msg:
       - "Valid: {{ validation_result.valid }}"
       - "Valid Count: {{ validation_result.valid_count }}"

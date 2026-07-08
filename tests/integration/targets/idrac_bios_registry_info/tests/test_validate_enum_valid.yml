@@ -38,7 +38,8 @@
 - name: Verify ProcVirtualization validation status
   ansible.builtin.assert:
     that:
-      - validation_result.validation_results | selectattr('attribute', 'equalto', 'ProcVirtualization') | map(attribute='status') | list | first == "valid"
+      - validation_result.validation_results | selectattr('attribute', 'equalto', 'ProcVirtualization')
+        | map(attribute='status') | list | first == "valid"
 
 - name: Verify validation counts
   ansible.builtin.assert:
@@ -49,7 +50,7 @@
       - validation_result.invalid_count == 0
 
 - name: Display validation summary
-  debug:
+  ansible.builtin.debug:
     msg:
       - "Valid: {{ validation_result.valid }}"
       - "Valid Count: {{ validation_result.valid_count }}"

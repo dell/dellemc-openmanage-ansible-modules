@@ -39,7 +39,7 @@
       - query_result.idrac_model == "iDRAC 9"
 
 - name: Display detection summary
-  debug:
+  ansible.builtin.debug:
     msg:
       - "iDRAC Generation: {{ query_result.idrac_generation }}"
       - "iDRAC Firmware: {{ query_result.idrac_firmware_version }}"

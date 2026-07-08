@@ -72,7 +72,7 @@
       - schema_result.changed is false
 
 - name: Display schema summary
-  debug:
+  ansible.builtin.debug:
     msg:
       - "Attribute Count: {{ schema_result.attribute_count }}"
       - "Registry Version: {{ schema_result.registry_version }}"

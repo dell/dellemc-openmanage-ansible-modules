@@ -73,7 +73,7 @@
       - query_result.changed is false
 
 - name: Display query summary
-  debug:
+  ansible.builtin.debug:
     msg:
       - "Attribute Count: {{ query_result.attribute_count }}"
       - "Registry Version: {{ query_result.registry_version }}"

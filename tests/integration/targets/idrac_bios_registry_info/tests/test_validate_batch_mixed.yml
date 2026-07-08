@@ -49,12 +49,15 @@
 - name: Verify per-attribute status
   ansible.builtin.assert:
     that:
-      - validation_result.validation_results | selectattr('attribute', 'equalto', 'SecureBoot') | map(attribute='status') | list | first == "invalid"
-      - validation_result.validation_results | selectattr('attribute', 'equalto', 'ProcVirtualization') | map(attribute='status') | list | first == "valid"
-      - validation_result.validation_results | selectattr('attribute', 'equalto', 'FakeAttribute') | map(attribute='status') | list | first == "invalid"
+      - validation_result.validation_results | selectattr('attribute', 'equalto', 'SecureBoot')
+        | map(attribute='status') | list | first == "invalid"
+      - validation_result.validation_results | selectattr('attribute', 'equalto', 'ProcVirtualization')
+        | map(attribute='status') | list | first == "valid"
+      - validation_result.validation_results | selectattr('attribute', 'equalto', 'FakeAttribute')
+        | map(attribute='status') | list | first == "invalid"
 
 - name: Display validation summary
-  debug:
+  ansible.builtin.debug:
     msg:
       - "Valid: {{ validation_result.valid }}"
       - "Valid Count: {{ validation_result.valid_count }}"

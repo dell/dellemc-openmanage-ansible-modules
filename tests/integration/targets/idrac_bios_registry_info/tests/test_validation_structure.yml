@@ -59,7 +59,7 @@
   when: validation_result.invalid_count > 0
 
 - name: Display validation structure summary
-  debug:
+  ansible.builtin.debug:
     msg:
       - "Valid: {{ validation_result.valid }}"
       - "Valid Count: {{ validation_result.valid_count }}"

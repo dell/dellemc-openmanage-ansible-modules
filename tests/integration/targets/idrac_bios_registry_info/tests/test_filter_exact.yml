@@ -47,7 +47,7 @@
       - filter_result.changed is false
 
 - name: Display filter summary
-  debug:
+  ansible.builtin.debug:
     msg:
       - "Attribute Count: {{ filter_result.attribute_count }}"
       - "Attribute Name: {{ filter_result.bios_attributes[0].name }}"
