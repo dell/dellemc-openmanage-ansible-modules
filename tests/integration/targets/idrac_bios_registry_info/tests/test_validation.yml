@@ -14,7 +14,7 @@
   register: validation_result
 
 - name: Verify validation results
-  assert:
+  ansible.builtin.assert:
     that:
       - validation_result is success
       - validation_result.changed == false

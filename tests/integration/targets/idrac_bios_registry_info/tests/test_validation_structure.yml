@@ -20,19 +20,19 @@
   register: validation_result
 
 - name: Verify module succeeded
-  assert:
+  ansible.builtin.assert:
     that:
       - validation_result is not failed
       - validation_result is succeeded
 
 - name: Verify validation results structure
-  assert:
+  ansible.builtin.assert:
     that:
       - validation_result.validation_results is defined
       - validation_result.validation_results is iterable
 
 - name: Verify each validation result has required fields
-  assert:
+  ansible.builtin.assert:
     that:
       - item.attribute is defined
       - item.status is defined
@@ -43,7 +43,7 @@
     label: "{{ item.attribute }}"
 
 - name: Verify validation summary fields
-  assert:
+  ansible.builtin.assert:
     that:
       - validation_result.valid is defined
       - validation_result.valid is boolean
@@ -53,7 +53,7 @@
       - validation_result.invalid_count is number
 
 - name: Verify suggestions field exists for invalid entries
-  assert:
+  ansible.builtin.assert:
     that:
       - validation_result.validation_results | selectattr('status', 'equalto', 'invalid') | map(attribute='suggestions') | list | first is defined
   when: validation_result.invalid_count > 0

@@ -18,40 +18,40 @@
   register: validation_result
 
 - name: Verify module succeeded
-  assert:
+  ansible.builtin.assert:
     that:
       - validation_result is not failed
       - validation_result is succeeded
 
 - name: Verify validation result is false
-  assert:
+  ansible.builtin.assert:
     that:
       - validation_result.valid is defined
       - validation_result.valid is false
 
 - name: Verify validation results structure
-  assert:
+  ansible.builtin.assert:
     that:
       - validation_result.validation_results is defined
       - validation_result.validation_results is iterable
 
 - name: Verify ProcVirtualization validation status
-  assert:
+  ansible.builtin.assert:
     that:
       - validation_result.validation_results | selectattr('attribute', 'equalto', 'ProcVirtualization') | map(attribute='status') | list | first == "invalid"
 
 - name: Verify error reason
-  assert:
+  ansible.builtin.assert:
     that:
       - validation_result.validation_results | selectattr('attribute', 'equalto', 'ProcVirtualization') | map(attribute='reason') | list | first is search("not a valid enumeration value")
 
 - name: Verify suggestions provided
-  assert:
+  ansible.builtin.assert:
     that:
       - validation_result.validation_results | selectattr('attribute', 'equalto', 'ProcVirtualization') | map(attribute='suggestions') | list | first is defined
 
 - name: Verify validation counts
-  assert:
+  ansible.builtin.assert:
     that:
       - validation_result.valid_count is defined
       - validation_result.valid_count == 0

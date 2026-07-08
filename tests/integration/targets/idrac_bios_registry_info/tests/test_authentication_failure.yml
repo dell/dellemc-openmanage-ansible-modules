@@ -12,7 +12,7 @@
   ignore_errors: true
 
 - name: Verify authentication failure error
-  assert:
+  ansible.builtin.assert:
     that:
       - auth_result is failed
       - 'auth_result.msg is search("Authentication failed")' or 'auth_result.msg is search("Unauthorized")' or 'auth_result.msg is search("Forbidden")'

@@ -13,7 +13,7 @@
   ignore_errors: true
 
 - name: Verify unsupported firmware error
-  assert:
+  ansible.builtin.assert:
     that:
       - firmware_result is failed
       - 'firmware_result.msg is search("BIOS attribute registry not supported on this firmware version")'

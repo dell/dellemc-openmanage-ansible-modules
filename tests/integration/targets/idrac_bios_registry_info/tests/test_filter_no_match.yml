@@ -16,13 +16,13 @@
   register: filter_result
 
 - name: Verify module succeeded
-  assert:
+  ansible.builtin.assert:
     that:
       - filter_result is not failed
       - filter_result is succeeded
 
 - name: Verify required output fields
-  assert:
+  ansible.builtin.assert:
     that:
       - filter_result.bios_attributes is defined
       - filter_result.bios_attributes is iterable
@@ -30,13 +30,13 @@
       - filter_result.attribute_count is number
 
 - name: Verify empty results
-  assert:
+  ansible.builtin.assert:
     that:
       - filter_result.attribute_count | int == 0
       - filter_result.bios_attributes | length == 0
 
 - name: Verify changed flag is false (read-only operation)
-  assert:
+  ansible.builtin.assert:
     that:
       - filter_result.changed is defined
       - filter_result.changed is false

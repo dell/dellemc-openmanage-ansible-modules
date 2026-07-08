@@ -11,7 +11,7 @@
   register: filter_result
 
 - name: Verify filtering by name pattern
-  assert:
+  ansible.builtin.assert:
     that:
       - filter_result is success
       - filter_result.changed == false
@@ -29,7 +29,7 @@
   register: category_filter_result
 
 - name: Verify filtering by category
-  assert:
+  ansible.builtin.assert:
     that:
       - category_filter_result is success
       - category_filter_result.changed == false
