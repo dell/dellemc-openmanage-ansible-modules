@@ -1330,6 +1330,7 @@ class TestStorageModify(TestStorageBase):
         idrac_default_args.update({"controller_id": CONTROLLER_ID_FOURTH, "volume_id": VIRTUAL_DISK_FIRST,
                                    "display_name": "New Volume Name", "modify_write_cache_policy": "WriteBack"})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
+        f_module._diff = True
         idr_obj = self.module.StorageModify(idrac_connection_storage_volume_mock, f_module)
         with pytest.raises(Exception) as exc:
             idr_obj.execute()
@@ -1337,6 +1338,20 @@ class TestStorageModify(TestStorageBase):
         assert exc.value.fail_kwargs['changed'] is True
         assert exc.value.fail_kwargs['diff']['before'] == {"Name": "Volume Name 1", "WriteCachePolicy": "WriteThrough"}
         assert exc.value.fail_kwargs['diff']['after'] == {"Name": "New Volume Name", "WriteCachePolicy": "WriteBack"}
+
+    def test_execute_check_mode_diff_omitted_when_diff_mode_disabled(self, idrac_default_args,
+                                                                      idrac_connection_storage_volume_mock, mocker):
+        idrac_resp = {"Controllers": {CONTROLLER_ID_FOURTH: {"Volumes": {VIRTUAL_DISK_FIRST: self._volume_data()}}}}
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_resp)
+        idrac_default_args.update({"controller_id": CONTROLLER_ID_FOURTH, "volume_id": VIRTUAL_DISK_FIRST,
+                                   "display_name": "New Volume Name"})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
+        f_module._diff = False
+        idr_obj = self.module.StorageModify(idrac_connection_storage_volume_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.execute()
+        assert exc.value.args[0] == CHANGES_FOUND
+        assert 'diff' not in exc.value.fail_kwargs
 
     def test_execute_applies_patch(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
         idrac_resp = {"Controllers": {CONTROLLER_ID_FOURTH: {"Volumes": {VIRTUAL_DISK_FIRST: self._volume_data()}}}}
@@ -1418,6 +1433,7 @@ class TestStorageModify(TestStorageBase):
         idrac_default_args.update({"controller_id": CONTROLLER_ID_FOURTH, "volume_id": VIRTUAL_DISK_FIRST,
                                    "enable_encryption": True, "encryption_mode": "LKM"})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
+        f_module._diff = True
         idr_obj = self.module.StorageModify(idrac_connection_storage_volume_mock, f_module)
         with pytest.raises(Exception) as exc:
             idr_obj.execute()
@@ -1463,6 +1479,7 @@ class TestStorageModify(TestStorageBase):
         idrac_default_args.update({"controller_id": CONTROLLER_ID_FOURTH, "volume_id": VIRTUAL_DISK_FIRST,
                                    "initialize_method": "Background"})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
+        f_module._diff = True
         idr_obj = self.module.StorageModify(idrac_connection_storage_volume_mock, f_module)
         with pytest.raises(Exception) as exc:
             idr_obj.execute()

@@ -383,8 +383,8 @@ diff:
   type: dict
   description:
     - Before and after values for attribute modification, encryption enablement, or initialization.
-    - This is returned when I(state) is C(modify).
-  returned: when state is modify
+    - This is returned when I(state) is C(modify) and the playbook/task is run with C(--diff) (or C(diff=true)).
+  returned: when state is modify and diff mode is enabled
   sample: {
     "before": {"Name": "volume_1", "WriteCachePolicy": "WriteThrough"},
     "after": {"Name": "prod-data-volume", "WriteCachePolicy": "ProtectedWriteBack"}
@@ -1191,21 +1191,26 @@ class StorageModify(StorageValidation):
         job_dict = self.wait_for_job_completion(resp)
         return {"changed": True, "msg": INITIALIZATION_SUCCESS_MSG, "job_status": job_dict}
 
+    def _diff_kwargs(self, result):
+        if self.module._diff and "diff" in result:
+            return {"diff": result["diff"]}
+        return {}
+
     def execute(self):
         volume_data = self.validate_volume_identifier()
         if self.module.params.get('enable_encryption'):
             controller_data = self.idrac_data['Controllers'][self.controller_id]
             result = self.enable_encryption(controller_data)
             self.module.exit_json(msg=result["msg"], changed=result["changed"], job_status=result["job_status"],
-                                  diff=result.get("diff", {}), warnings=result.get("warnings", []))
+                                  warnings=result.get("warnings", []), **self._diff_kwargs(result))
         if self.module.params.get('initialize_method') or self.module.params.get('initialization_type'):
             result = self.initialize_volume(volume_data)
             self.module.exit_json(msg=result["msg"], changed=result["changed"], job_status=result["job_status"],
-                                  diff=result.get("diff", {}), warnings=result.get("warnings", []))
+                                  warnings=result.get("warnings", []), **self._diff_kwargs(result))
         result = self.modify_attributes(volume_data)
         if result is None:
             self.module.exit_json(msg=NO_CHANGES_FOUND_MSG, changed=False)
-        self.module.exit_json(msg=result["msg"], changed=result["changed"], diff=result["diff"])
+        self.module.exit_json(msg=result["msg"], changed=result["changed"], **self._diff_kwargs(result))
 
 
 class StorageView(StorageData):
