@@ -15,5 +15,5 @@
   ansible.builtin.assert:
     that:
       - auth_result is failed
-      - 'auth_result.msg is search("Authentication failed")' or 'auth_result.msg is search("Unauthorized")' or 'auth_result.msg is search("Forbidden")'
+      - "'Authentication failed' in auth_result.msg or 'Unauthorized' in auth_result.msg or 'Forbidden' in auth_result.msg"
   when: auth_result is failed
