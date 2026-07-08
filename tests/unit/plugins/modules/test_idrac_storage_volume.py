@@ -1110,6 +1110,66 @@ class TestStorageCreate(TestStorageBase):
         data = idr_obj.execute()
         assert data == {}
 
+    def test_execute_idempotent_existing_volume_matches(self, idrac_default_args,
+                                                         idrac_connection_storage_volume_mock, mocker):
+        idrac_resp = {'Controllers': {CONTROLLER_ID_FOURTH: {'Volumes': {
+            'Disk.Virtual.0:RAID.SL.5-1': {
+                'Name': 'Volume Name 1', 'RAIDType': 'RAID 1',
+                'Oem': {'Dell': {'DellVirtualDisk': {
+                    'DiskCachePolicy': 'Default', 'WriteCachePolicy': 'WriteThrough', 'ReadCachePolicy': 'NoReadAhead'
+                }}},
+            }}}}}
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_resp)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageCreate(idrac_connection_storage_volume_mock, f_module)
+        idr_obj.controller_id = CONTROLLER_ID_FOURTH
+        idr_obj.module_ext_params['volumes'] = [{'name': 'Volume Name 1', 'volume_type': 'RAID 1',
+                                                 'disk_cache_policy': 'Default', 'write_cache_policy': 'WriteThrough',
+                                                 'read_cache_policy': 'NoReadAhead', 'drives': {'id': [1]}}]
+        with pytest.raises(Exception) as exc:
+            idr_obj.execute()
+        assert exc.value.args[0] == "All the specified virtual disk(s) already exist. No creation performed."
+        assert exc.value.fail_kwargs['changed'] is False
+        assert exc.value.fail_kwargs['existing_volumes']['Volume Name 1']['matches'] is True
+
+    def test_execute_idempotent_existing_volume_mismatch(self, idrac_default_args,
+                                                          idrac_connection_storage_volume_mock, mocker):
+        idrac_resp = {'Controllers': {CONTROLLER_ID_FOURTH: {'Volumes': {
+            'Disk.Virtual.0:RAID.SL.5-1': {
+                'Name': 'Volume Name 1', 'RAIDType': 'RAID 1',
+                'Oem': {'Dell': {'DellVirtualDisk': {
+                    'DiskCachePolicy': 'Disabled', 'WriteCachePolicy': 'WriteThrough', 'ReadCachePolicy': 'NoReadAhead'
+                }}},
+            }}}}}
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_resp)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageCreate(idrac_connection_storage_volume_mock, f_module)
+        idr_obj.controller_id = CONTROLLER_ID_FOURTH
+        idr_obj.module_ext_params['volumes'] = [{'name': 'Volume Name 1', 'volume_type': 'RAID 1',
+                                                 'disk_cache_policy': 'Enabled', 'write_cache_policy': 'WriteThrough',
+                                                 'read_cache_policy': 'NoReadAhead', 'drives': {'id': [1]}}]
+        with pytest.raises(Exception) as exc:
+            idr_obj.execute()
+        assert exc.value.fail_kwargs['changed'] is True
+        diff = exc.value.fail_kwargs['existing_volumes']['Volume Name 1']['diff']
+        assert diff['DiskCachePolicy'] == {"current": "Disabled", "desired": "Enabled"}
+
+    def test_execute_new_volume_proceeds_to_create(self, idrac_default_args, idrac_connection_storage_volume_mock,
+                                                    mocker):
+        idrac_resp = {'Controllers': {CONTROLLER_ID_FOURTH: {'Volumes': {}}}}
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_resp)
+        mocker.patch(MODULE_PATH + 'StorageCreate.validate', return_value=None)
+        mocker.patch(MODULE_PATH + 'StorageBase.constuct_payload', return_value=None)
+        mocker.patch(MODULE_PATH + 'iDRACRedfishAPI.import_scp', return_value=None)
+        mocker.patch(MODULE_PATH + 'StorageBase.wait_for_job_completion', return_value={})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageCreate(idrac_connection_storage_volume_mock, f_module)
+        idr_obj.controller_id = CONTROLLER_ID_FOURTH
+        idr_obj.module_ext_params['volumes'] = [{'name': 'New Volume', 'drives': {'id': [1]}}]
+        data = idr_obj.execute()
+        assert data == {}
+        assert idr_obj.module_ext_params['volumes'] == [{'name': 'New Volume', 'drives': {'id': [1]}}]
+
 
 class TestStorageModify(TestStorageBase):
     module = idrac_storage_volume

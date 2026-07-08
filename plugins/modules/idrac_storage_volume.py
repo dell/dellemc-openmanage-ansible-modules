@@ -378,6 +378,7 @@ ENCRYPTION_KEYS_NOT_CONFIGURED_MSG = ("Encryption keys are not properly configur
                                       "'{controller_id}'. Configure the encryption keys before enabling encryption.")
 ENCRYPTION_SUCCESS_MSG = "Successfully enabled encryption on the virtual disk."
 INITIALIZATION_SUCCESS_MSG = "Successfully triggered the initialization operation on the virtual disk."
+IDEMPOTENT_EXISTING_VOLUMES_MSG = "All the specified virtual disk(s) already exist. No creation performed."
 
 
 class StorageBase:
@@ -798,7 +799,54 @@ class StorageCreate(StorageValidation):
         #  Extendeding volume module input in module_ext_params for drives id and hotspare
         self.updating_volume_module_input(drives_exists_in_id)
 
+    def find_existing_volume_by_name(self, volume_name):
+        if not volume_name:
+            return None
+        controller_volumes = self.idrac_data['Controllers'].get(self.controller_id, {}).get('Volumes', {})
+        for vol_data in controller_volumes.values():
+            if vol_data.get('Name') == volume_name:
+                return vol_data
+        return None
+
+    @staticmethod
+    def verify_configuration_state(volume, existing_vol_data):
+        oem_dell = existing_vol_data.get('Oem', {}).get('Dell', {}).get('DellVirtualDisk', {})
+        desired = {
+            'RAIDType': volume.get('volume_type'),
+            'DiskCachePolicy': volume.get('disk_cache_policy'),
+            'WriteCachePolicy': volume.get('write_cache_policy'),
+            'ReadCachePolicy': volume.get('read_cache_policy'),
+        }
+        current = {
+            'RAIDType': existing_vol_data.get('RAIDType'),
+            'DiskCachePolicy': oem_dell.get('DiskCachePolicy'),
+            'WriteCachePolicy': oem_dell.get('WriteCachePolicy'),
+            'ReadCachePolicy': oem_dell.get('ReadCachePolicy'),
+        }
+        diff = {key: {"current": current.get(key), "desired": desired.get(key)}
+                for key in desired if desired.get(key) and desired.get(key) != current.get(key)}
+        return (len(diff) == 0), diff
+
+    def partition_existing_volumes(self):
+        volumes = self.module_ext_params.get('volumes', [])
+        remaining, existing_report = [], {}
+        for volume in volumes:
+            volume_name = volume.get('name')
+            existing_vol_data = self.find_existing_volume_by_name(volume_name)
+            if existing_vol_data:
+                matches, diff = self.verify_configuration_state(volume, existing_vol_data)
+                existing_report[volume_name] = {"exists": True, "matches": matches, "diff": diff}
+            else:
+                remaining.append(volume)
+        return remaining, existing_report
+
     def execute(self):
+        remaining_volumes, existing_report = self.partition_existing_volumes()
+        if existing_report and not remaining_volumes:
+            any_mismatch = any(not info["matches"] for info in existing_report.values())
+            self.module.exit_json(msg=IDEMPOTENT_EXISTING_VOLUMES_MSG, changed=any_mismatch,
+                                  existing_volumes=existing_report)
+        self.module_ext_params['volumes'] = remaining_volumes
         self.validate()
         job_dict = {}
         name_id_mapping = {value.get('Name'): key for key, value in self.idrac_data["Controllers"][self.controller_id]["Volumes"].items()}
