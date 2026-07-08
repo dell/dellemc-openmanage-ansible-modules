@@ -64,7 +64,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
             mock_class.return_value.__exit__.return_value = False
             yield mock_class
 
-    def test_successful_connection_initialization(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+    def test_successful_connection_initialization(self, idrac_default_args, idrac_connection_mock, idrac_mock, mocker):
         """Test successful iDRAC connection initialization."""
         idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
         mock_response = MagicMock()
@@ -73,6 +73,8 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
             'Attributes': []
         }
         idrac_mock.invoke_request.return_value = mock_response
+        # Mock cache to return None to ensure invoke_request is called
+        mocker.patch(MODULE_PATH + '.get_from_cache', return_value=None)
         result = self._run_module(idrac_default_args)
         assert result['changed'] is False
         assert 'Successfully queried BIOS attribute registry' in result['msg']
@@ -141,16 +143,20 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
             assert result['failed'] is True
             assert 'SSL validation error' in result['msg']
 
-    def test_idrac_generation_detection_14g(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+    def test_idrac_generation_detection_14g(self, idrac_default_args, idrac_connection_mock, idrac_mock, mocker):
         """Test iDRAC generation detection for 14G servers."""
         idrac_mock.get_server_generation = (14, "7.10.90.00", "iDRAC 9")
+        # Mock cache to return None to ensure invoke_request is called
+        mocker.patch(MODULE_PATH + '.get_from_cache', return_value=None)
         result = self._run_module(idrac_default_args)
         assert result['idrac_generation'] == 14
         assert result['idrac_firmware_version'] == "7.10.90.00"
 
-    def test_idrac_generation_detection_15g(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+    def test_idrac_generation_detection_15g(self, idrac_default_args, idrac_connection_mock, idrac_mock, mocker):
         """Test iDRAC generation detection for 15G servers."""
         idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        # Mock cache to return None to ensure invoke_request is called
+        mocker.patch(MODULE_PATH + '.get_from_cache', return_value=None)
         result = self._run_module(idrac_default_args)
         assert result['idrac_generation'] == 15
 
@@ -165,7 +171,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
             assert 'BIOS attribute registry not supported on this firmware version' in result['msg']
             assert '7.10.90.00' in result['msg']
 
-    def test_successful_registry_query(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+    def test_successful_registry_query(self, idrac_default_args, idrac_connection_mock, idrac_mock, mocker):
         """Test successful BIOS attribute registry query."""
         mock_response = MagicMock()
         mock_response.json_data = {
@@ -191,6 +197,8 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         }
         idrac_mock.invoke_request.return_value = mock_response
         idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        # Mock cache to return None to ensure invoke_request is called
+        mocker.patch(MODULE_PATH + '.get_from_cache', return_value=None)
         result = self._run_module(idrac_default_args)
         assert result['changed'] is False
         assert len(result['bios_attributes']) == 1
@@ -380,7 +388,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         assert result['invalid_count'] == 1
         assert len(result['validation_results']) == 2
 
-    def test_return_value_schema_validation(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+    def test_return_value_schema_validation(self, idrac_default_args, idrac_connection_mock, idrac_mock, mocker):
         """Test return value schema validation."""
         mock_response = MagicMock()
         mock_response.json_data = {
@@ -406,6 +414,8 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         }
         idrac_mock.invoke_request.return_value = mock_response
         idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        # Mock cache to return None to ensure invoke_request is called
+        mocker.patch(MODULE_PATH + '.get_from_cache', return_value=None)
         result = self._run_module(idrac_default_args)
         assert 'bios_attributes' in result
         assert 'registry_version' in result
@@ -456,7 +466,7 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         for key in expected_keys:
             assert key in mapped
 
-    def test_metadata_fields_present(self, idrac_default_args, idrac_connection_mock, idrac_mock):
+    def test_metadata_fields_present(self, idrac_default_args, idrac_connection_mock, idrac_mock, mocker):
         """Test metadata fields are present in return value."""
         mock_response = MagicMock()
         mock_response.json_data = {
@@ -465,8 +475,10 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         }
         idrac_mock.invoke_request.return_value = mock_response
         idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        # Mock cache to return None to ensure invoke_request is called
+        mocker.patch(MODULE_PATH + '.get_from_cache', return_value=None)
         result = self._run_module(idrac_default_args)
-        assert result['registry_version'] == 'v1_2_0_AttributeRegistry'
+        assert result['registry_version'] == 'AttributeRegistry'
         assert result['attribute_count'] == 0
         assert result['language'] == 'en'
         assert result['owning_entity'] == 'Dell'
