@@ -966,11 +966,37 @@ class StorageModify(StorageValidation):
         job_dict = self.wait_for_job_completion(resp)
         return {"changed": True, "msg": ENCRYPTION_SUCCESS_MSG, "job_status": job_dict}
 
+    def initialize_volume(self, volume_data):
+        initialize_method = self.module.params.get('initialize_method')
+        initialization_type = self.module.params.get('initialization_type')
+        if initialize_method == 'Skip':
+            return {"changed": False, "msg": NO_CHANGES_FOUND_MSG, "job_status": {}}
+        if self.module.check_mode:
+            return {"changed": True, "msg": CHANGES_FOUND, "job_status": {}}
+        volume_uri = volume_data.get(ODATA_ID)
+        actions = volume_data.get('Actions', {})
+        if initialize_method:
+            actions_uri = actions.get('#Volume.Initialize', {}).get('target')
+            if not actions_uri:
+                actions_uri = "{0}/Actions/Volume.Initialize".format(volume_uri)
+            payload = {"InitializeMethod": initialize_method}
+        else:
+            actions_uri = actions.get('#DellVirtualDisk.Initialize', {}).get('target')
+            if not actions_uri:
+                actions_uri = "{0}/Actions/Oem/DellVirtualDisk.Initialize".format(volume_uri)
+            payload = {"InitializeType": initialization_type}
+        resp = self.idrac.invoke_request(actions_uri, 'POST', data=payload)
+        job_dict = self.wait_for_job_completion(resp)
+        return {"changed": True, "msg": INITIALIZATION_SUCCESS_MSG, "job_status": job_dict}
+
     def execute(self):
         volume_data = self.validate_volume_identifier()
         if self.module.params.get('enable_encryption'):
             controller_data = self.idrac_data['Controllers'][self.controller_id]
             result = self.enable_encryption(controller_data)
+            self.module.exit_json(msg=result["msg"], changed=result["changed"], job_status=result["job_status"])
+        if self.module.params.get('initialize_method') or self.module.params.get('initialization_type'):
+            result = self.initialize_volume(volume_data)
             self.module.exit_json(msg=result["msg"], changed=result["changed"], job_status=result["job_status"])
         result = self.modify_attributes(volume_data)
         if result is None:

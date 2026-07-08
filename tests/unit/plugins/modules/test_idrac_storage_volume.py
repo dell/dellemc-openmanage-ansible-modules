@@ -1305,6 +1305,63 @@ class TestStorageModify(TestStorageBase):
         idrac_connection_storage_volume_mock.invoke_request.assert_called_once_with(
             self.CONTROLLER_URI + "/Oem/Dell/DellRaidService.EnableControllerEncryption", 'POST', data={"Mode": 3})
 
+    def test_execute_initialize_skip_no_op(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
+        idrac_resp = {"Controllers": {CONTROLLER_ID_FOURTH: self._controller_data()}}
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_resp)
+        idrac_default_args.update({"controller_id": CONTROLLER_ID_FOURTH, "volume_id": VIRTUAL_DISK_FIRST,
+                                   "initialize_method": "Skip"})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageModify(idrac_connection_storage_volume_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.execute()
+        assert exc.value.args[0] == NO_CHANGES_FOUND_MSG
+        idrac_connection_storage_volume_mock.invoke_request.assert_not_called()
+
+    def test_execute_initialize_check_mode(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
+        idrac_resp = {"Controllers": {CONTROLLER_ID_FOURTH: self._controller_data()}}
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_resp)
+        idrac_default_args.update({"controller_id": CONTROLLER_ID_FOURTH, "volume_id": VIRTUAL_DISK_FIRST,
+                                   "initialize_method": "Background"})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
+        idr_obj = self.module.StorageModify(idrac_connection_storage_volume_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.execute()
+        assert exc.value.args[0] == CHANGES_FOUND
+        assert exc.value.fail_kwargs['changed'] is True
+        idrac_connection_storage_volume_mock.invoke_request.assert_not_called()
+
+    def test_execute_initialize_standard_redfish_method(self, idrac_default_args, idrac_connection_storage_volume_mock,
+                                                         mocker):
+        idrac_resp = {"Controllers": {CONTROLLER_ID_FOURTH: self._controller_data()}}
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_resp)
+        mocker.patch(MODULE_PATH + 'StorageBase.wait_for_job_completion', return_value={"JobState": "Running"})
+        idrac_default_args.update({"controller_id": CONTROLLER_ID_FOURTH, "volume_id": VIRTUAL_DISK_FIRST,
+                                   "initialize_method": "Foreground"})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageModify(idrac_connection_storage_volume_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.execute()
+        assert exc.value.args[0] == "Successfully triggered the initialization operation on the virtual disk."
+        assert exc.value.fail_kwargs['changed'] is True
+        assert exc.value.fail_kwargs['job_status'] == {"JobState": "Running"}
+        idrac_connection_storage_volume_mock.invoke_request.assert_called_once_with(
+            self.VOLUME_URI + "/Actions/Volume.Initialize", 'POST', data={"InitializeMethod": "Foreground"})
+
+    def test_execute_initialize_dell_oem_type_backward_compat(self, idrac_default_args,
+                                                               idrac_connection_storage_volume_mock, mocker):
+        idrac_resp = {"Controllers": {CONTROLLER_ID_FOURTH: self._controller_data()}}
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_resp)
+        mocker.patch(MODULE_PATH + 'StorageBase.wait_for_job_completion', return_value={"JobState": "Completed"})
+        idrac_default_args.update({"controller_id": CONTROLLER_ID_FOURTH, "volume_id": VIRTUAL_DISK_FIRST,
+                                   "initialization_type": "Fast"})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageModify(idrac_connection_storage_volume_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.execute()
+        assert exc.value.args[0] == "Successfully triggered the initialization operation on the virtual disk."
+        idrac_connection_storage_volume_mock.invoke_request.assert_called_once_with(
+            self.VOLUME_URI + "/Actions/Oem/DellVirtualDisk.Initialize", 'POST', data={"InitializeType": "Fast"})
+
 
 class TestStorageDelete(TestStorageBase):
     module = idrac_storage_volume
