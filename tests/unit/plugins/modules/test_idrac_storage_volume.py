@@ -1393,6 +1393,10 @@ class TestStorageModify(TestStorageBase):
             idr_obj.execute()
         assert exc.value.args[0] == CHANGES_FOUND
         assert exc.value.fail_kwargs['changed'] is True
+        assert exc.value.fail_kwargs['diff']['after'] == {"EncryptionMode": "LKM"}
+        assert exc.value.fail_kwargs['warnings'] == [
+            "Encryption enablement cannot be safely verified without making changes; "
+            "no encryption job is submitted in check_mode."]
         idrac_connection_storage_volume_mock.invoke_request.assert_not_called()
 
     def test_execute_encryption_enabled_sekm(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
@@ -1434,6 +1438,10 @@ class TestStorageModify(TestStorageBase):
             idr_obj.execute()
         assert exc.value.args[0] == CHANGES_FOUND
         assert exc.value.fail_kwargs['changed'] is True
+        assert exc.value.fail_kwargs['diff']['after'] == {"Initialized": True, "Method": "Background"}
+        assert exc.value.fail_kwargs['warnings'] == [
+            "Initialization cannot be safely verified without making changes; "
+            "no initialization job is submitted in check_mode."]
         idrac_connection_storage_volume_mock.invoke_request.assert_not_called()
 
     def test_execute_initialize_standard_redfish_method(self, idrac_default_args, idrac_connection_storage_volume_mock,

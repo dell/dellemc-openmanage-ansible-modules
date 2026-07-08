@@ -380,6 +380,10 @@ ENCRYPTION_SUCCESS_MSG = "Successfully enabled encryption on the virtual disk."
 INITIALIZATION_SUCCESS_MSG = "Successfully triggered the initialization operation on the virtual disk."
 IDEMPOTENT_EXISTING_VOLUMES_MSG = "All the specified virtual disk(s) already exist. No creation performed."
 DISK_STATE_BLOCKED_MSG = "Physical disk '{disk_id}' is in '{state}' state. {remediation}"
+ENCRYPTION_CHECK_MODE_WARNING = ("Encryption enablement cannot be safely verified without making changes; "
+                                 "no encryption job is submitted in check_mode.")
+INITIALIZATION_CHECK_MODE_WARNING = ("Initialization cannot be safely verified without making changes; "
+                                     "no initialization job is submitted in check_mode.")
 DISK_STATE_REMEDIATION = {
     "Foreign": "Import or clear the foreign configuration on the physical disk before creating the virtual disk.",
     "Failed": "Replace the failed physical disk before creating the virtual disk.",
@@ -1026,9 +1030,11 @@ class StorageModify(StorageValidation):
 
     def enable_encryption(self, controller_data):
         self.validate_encryption_prerequisites(controller_data)
-        if self.module.check_mode:
-            return {"changed": True, "msg": CHANGES_FOUND, "job_status": {}}
         encryption_mode = self.module.params.get('encryption_mode')
+        if self.module.check_mode:
+            return {"changed": True, "msg": CHANGES_FOUND, "job_status": {},
+                    "diff": {"before": {"EncryptionMode": None}, "after": {"EncryptionMode": encryption_mode}},
+                    "warnings": [ENCRYPTION_CHECK_MODE_WARNING]}
         mode_value = 1 if encryption_mode == 'LKM' else 3
         controller_uri = controller_data.get(ODATA_ID)
         actions = controller_data.get('Actions', {})
@@ -1045,7 +1051,10 @@ class StorageModify(StorageValidation):
         if initialize_method == 'Skip':
             return {"changed": False, "msg": NO_CHANGES_FOUND_MSG, "job_status": {}}
         if self.module.check_mode:
-            return {"changed": True, "msg": CHANGES_FOUND, "job_status": {}}
+            desired = initialize_method or initialization_type
+            return {"changed": True, "msg": CHANGES_FOUND, "job_status": {},
+                    "diff": {"before": {"Initialized": False}, "after": {"Initialized": True, "Method": desired}},
+                    "warnings": [INITIALIZATION_CHECK_MODE_WARNING]}
         volume_uri = volume_data.get(ODATA_ID)
         actions = volume_data.get('Actions', {})
         if initialize_method:
@@ -1067,10 +1076,12 @@ class StorageModify(StorageValidation):
         if self.module.params.get('enable_encryption'):
             controller_data = self.idrac_data['Controllers'][self.controller_id]
             result = self.enable_encryption(controller_data)
-            self.module.exit_json(msg=result["msg"], changed=result["changed"], job_status=result["job_status"])
+            self.module.exit_json(msg=result["msg"], changed=result["changed"], job_status=result["job_status"],
+                                  diff=result.get("diff", {}), warnings=result.get("warnings", []))
         if self.module.params.get('initialize_method') or self.module.params.get('initialization_type'):
             result = self.initialize_volume(volume_data)
-            self.module.exit_json(msg=result["msg"], changed=result["changed"], job_status=result["job_status"])
+            self.module.exit_json(msg=result["msg"], changed=result["changed"], job_status=result["job_status"],
+                                  diff=result.get("diff", {}), warnings=result.get("warnings", []))
         result = self.modify_attributes(volume_data)
         if result is None:
             self.module.exit_json(msg=NO_CHANGES_FOUND_MSG, changed=False)
