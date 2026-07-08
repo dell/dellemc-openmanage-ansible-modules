@@ -1170,6 +1170,52 @@ class TestStorageCreate(TestStorageBase):
         assert data == {}
         assert idr_obj.module_ext_params['volumes'] == [{'name': 'New Volume', 'drives': {'id': [1]}}]
 
+    @pytest.mark.parametrize("raid_status,expected_remediation_fragment", [
+        ("Foreign", "Import or clear the foreign configuration"),
+        ("Failed", "Replace the failed physical disk"),
+        ("Blocked", "Check the iDRAC event logs"),
+        ("Degraded", "Resolve the underlying health issue"),
+        ("NonRAID", "Convert the physical disk to RAID mode"),
+        ("Unknown", "Check the physical connectivity"),
+        (None, "Check the physical connectivity"),
+    ])
+    def test_validate_physical_disk_states_blocks(self, idrac_default_args, idrac_connection_storage_volume_mock,
+                                                   mocker, raid_status, expected_remediation_fragment):
+        idrac_resp = {'Controllers': {CONTROLLER_ID_FOURTH: {'Drives': {
+            PHYSICAL_DISK_FIRST: {'Oem': {'Dell': {'DellPhysicalDisk': {'RaidStatus': raid_status}}}}
+        }}}}
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_resp)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageCreate(idrac_connection_storage_volume_mock, f_module)
+        idr_obj.module_ext_params['controller_id'] = CONTROLLER_ID_FOURTH
+        with pytest.raises(Exception) as exc:
+            idr_obj.validate_physical_disk_states({'drives': {'id': [PHYSICAL_DISK_FIRST]}})
+        assert PHYSICAL_DISK_FIRST in exc.value.args[0]
+        assert expected_remediation_fragment in exc.value.args[0]
+
+    def test_validate_physical_disk_states_allows_ready_and_online(self, idrac_default_args,
+                                                                    idrac_connection_storage_volume_mock, mocker):
+        idrac_resp = {'Controllers': {CONTROLLER_ID_FOURTH: {'Drives': {
+            PHYSICAL_DISK_FIRST: {'Oem': {'Dell': {'DellPhysicalDisk': {'RaidStatus': 'Ready'}}}},
+            PHYSICAL_DISK_SECOND: {'Oem': {'Dell': {'DellPhysicalDisk': {'RaidStatus': 'Online'}}}},
+        }}}}
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_resp)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageCreate(idrac_connection_storage_volume_mock, f_module)
+        idr_obj.module_ext_params['controller_id'] = CONTROLLER_ID_FOURTH
+        idr_obj.validate_physical_disk_states({'drives': {'id': [PHYSICAL_DISK_FIRST, PHYSICAL_DISK_SECOND]}})
+        f_module.exit_json.assert_not_called()
+
+    def test_validate_physical_disk_states_ignores_unresolved_placeholder_ids(
+            self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
+        idrac_resp = {'Controllers': {CONTROLLER_ID_FOURTH: {'Drives': {}}}}
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_resp)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageCreate(idrac_connection_storage_volume_mock, f_module)
+        idr_obj.module_ext_params['controller_id'] = CONTROLLER_ID_FOURTH
+        idr_obj.validate_physical_disk_states({'drives': {'id': [-1, -2]}})
+        f_module.exit_json.assert_not_called()
+
 
 class TestStorageModify(TestStorageBase):
     module = idrac_storage_volume

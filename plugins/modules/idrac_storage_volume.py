@@ -379,6 +379,15 @@ ENCRYPTION_KEYS_NOT_CONFIGURED_MSG = ("Encryption keys are not properly configur
 ENCRYPTION_SUCCESS_MSG = "Successfully enabled encryption on the virtual disk."
 INITIALIZATION_SUCCESS_MSG = "Successfully triggered the initialization operation on the virtual disk."
 IDEMPOTENT_EXISTING_VOLUMES_MSG = "All the specified virtual disk(s) already exist. No creation performed."
+DISK_STATE_BLOCKED_MSG = "Physical disk '{disk_id}' is in '{state}' state. {remediation}"
+DISK_STATE_REMEDIATION = {
+    "Foreign": "Import or clear the foreign configuration on the physical disk before creating the virtual disk.",
+    "Failed": "Replace the failed physical disk before creating the virtual disk.",
+    "Blocked": "Check the iDRAC event logs and unblock the physical disk before creating the virtual disk.",
+    "Degraded": "Resolve the underlying health issue or wait for the rebuild to complete before creating the virtual disk.",
+    "NonRAID": "Convert the physical disk to RAID mode before creating the virtual disk.",
+    "Unknown": "Check the physical connectivity of the disk and retry the operation.",
+}
 
 
 class StorageBase:
@@ -782,6 +791,21 @@ class StorageCreate(StorageValidation):
                 msg, changed = CHANGES_NOT_FOUND, False
             self.module.exit_json(msg=msg, changed=changed, failed=failed)
 
+    def validate_physical_disk_states(self, each_volume):
+        controller_id = self.module_ext_params.get('controller_id')
+        disk_dict = self.idrac_data["Controllers"].get(controller_id, {}).get("Drives", {})
+        for disk_id in each_volume.get('drives', {}).get('id', []):
+            if disk_id not in disk_dict:
+                continue
+            raid_status = disk_dict[disk_id].get('Oem', {}).get('Dell', {}).get('DellPhysicalDisk', {}).get('RaidStatus')
+            if raid_status in ("Ready", "Online"):
+                continue
+            remediation = DISK_STATE_REMEDIATION.get(raid_status, DISK_STATE_REMEDIATION["Unknown"])
+            self.module.exit_json(
+                msg=DISK_STATE_BLOCKED_MSG.format(disk_id=disk_id, state=raid_status or "Unknown",
+                                                  remediation=remediation),
+                failed=True)
+
     def validate(self):
         #  Validate upper layer input
         self.validate_time_to_wait()
@@ -795,6 +819,7 @@ class StorageCreate(StorageValidation):
             self.validate_volume_drives(each_volume)
             if 'location' in each_volume['drives'] and each_volume['drives']['location']:
                 each_volume['drives'] = self.disk_slot_location_to_id_conversion(each_volume)
+            self.validate_physical_disk_states(each_volume)
             drives_exists_in_id += each_volume['drives']['id']
         #  Extendeding volume module input in module_ext_params for drives id and hotspare
         self.updating_volume_module_input(drives_exists_in_id)
