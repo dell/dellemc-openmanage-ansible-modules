@@ -29,7 +29,8 @@ options:
       - C(create), performs create volume operation.
       - C(delete), performs remove volume operation.
       - C(view), returns storage view.
-    choices: ['create', 'delete', 'view']
+      - C(modify), performs attribute modification, encryption enablement, and initialization on an existing virtual disk.
+    choices: ['create', 'delete', 'view', 'modify']
     default: 'view'
   span_depth:
     type: int
@@ -134,6 +135,47 @@ options:
       - This option is applicable when I(state) is C(create) or C(delete).
     type: int
     default: 300
+  display_name:
+    type: str
+    description:
+      - New display name for the virtual disk. This option is applicable when I(state) is C(modify).
+  modify_read_cache_policy:
+    type: str
+    description:
+      - Read cache policy to apply to the virtual disk. This option is applicable when I(state) is C(modify).
+    choices: ['ReadAhead', 'AdaptiveReadAhead', 'Off']
+  modify_write_cache_policy:
+    type: str
+    description:
+      - Write cache policy to apply to the virtual disk. This option is applicable when I(state) is C(modify).
+    choices: ['WriteThrough', 'ProtectedWriteBack', 'UnprotectedWriteBack', 'Off']
+  modify_disk_cache_policy:
+    type: str
+    description:
+      - Disk cache policy to apply to the virtual disk. This option is applicable when I(state) is C(modify).
+    choices: ['Default', 'Enabled', 'Disabled']
+  enable_encryption:
+    type: bool
+    description:
+      - Enables encryption on an existing unencrypted virtual disk. This option is applicable when I(state) is C(modify).
+      - Requires I(encryption_mode) and pre-configured encryption keys on the controller.
+  encryption_mode:
+    type: str
+    description:
+      - Encryption mode to apply when I(enable_encryption) is C(true).
+      - C(LKM), Local Key Management.
+      - C(SEKM), Secure Enterprise Key Manager.
+    choices: ['LKM', 'SEKM']
+  initialize_method:
+    type: str
+    description:
+      - Standard Redfish initialization method to perform on the virtual disk. This option is applicable when I(state) is C(modify).
+    choices: ['Background', 'Foreground', 'Skip']
+  initialization_type:
+    type: str
+    description:
+      - Dell OEM initialization type, provided for backward compatibility. This option is applicable when I(state) is C(modify).
+    choices: ['Fast', 'Slow']
 
 requirements:
   - "python >= 3.9.6"
@@ -327,6 +369,15 @@ FAILED_STATUS = "Failed"
 ERROR_CODES = ["SYS041", "SYS044", "SYS045", "SYS046", "SYS047", "SYS048", "SYS050", "SYS051", "SYS062",
                "SYS063", "SYS064", "SYS065", "SYS067", "SYS068", "SYS070", "SYS071", "SYS072",
                "SYS073", "SYS075", "SYS076", "SYS077", "SYS078", "SYS079", "SYS080"]
+VOLUME_ID_REQUIRED_FOR_MODIFY = "volume_id is a required parameter for modify virtual disk operations."
+NO_CHANGES_FOUND_MSG = "No changes found to be applied."
+ATTRIBUTE_MODIFY_SUCCESS_MSG = "Successfully modified the virtual disk attributes."
+ENCRYPTION_MODE_REQUIRED_MSG = "encryption_mode is required when enable_encryption is true."
+ENCRYPTION_NOT_SUPPORTED_MSG = "Encryption is not supported on the specified controller '{controller_id}'."
+ENCRYPTION_KEYS_NOT_CONFIGURED_MSG = ("Encryption keys are not properly configured on controller "
+                                      "'{controller_id}'. Configure the encryption keys before enabling encryption.")
+ENCRYPTION_SUCCESS_MSG = "Successfully enabled encryption on the virtual disk."
+INITIALIZATION_SUCCESS_MSG = "Successfully triggered the initialization operation on the virtual disk."
 
 
 class StorageBase:
@@ -822,6 +873,78 @@ class StorageDelete(StorageValidation):
         return job_dict
 
 
+class StorageModify(StorageValidation):
+    def validate_volume_identifier(self):
+        self.validate_controller_exists()
+        volume_id = self.module.params.get('volume_id')
+        if not volume_id:
+            self.module.exit_json(msg=VOLUME_ID_REQUIRED_FOR_MODIFY, failed=True)
+        volumes = self.idrac_data['Controllers'][self.controller_id]['Volumes']
+        if volume_id not in volumes:
+            self.module.exit_json(msg=VOLUME_NOT_FOUND, failed=True)
+        return volumes[volume_id]
+
+    def build_attribute_payload(self):
+        payload = {}
+        display_name = self.module.params.get('display_name')
+        if display_name:
+            payload['Name'] = display_name
+        return payload
+
+    def build_oem_cache_payload(self):
+        oem_payload = {}
+        read_cache_policy = self.module.params.get('modify_read_cache_policy')
+        write_cache_policy = self.module.params.get('modify_write_cache_policy')
+        disk_cache_policy = self.module.params.get('modify_disk_cache_policy')
+        if read_cache_policy:
+            oem_payload['ReadCachePolicy'] = read_cache_policy
+        if write_cache_policy:
+            oem_payload['WriteCachePolicy'] = write_cache_policy
+        if disk_cache_policy:
+            oem_payload['DiskCachePolicy'] = disk_cache_policy
+        return oem_payload
+
+    @staticmethod
+    def compute_attribute_diff(volume_data, payload, oem_payload):
+        before, after = {}, {}
+        for key, value in payload.items():
+            current = volume_data.get(key)
+            if current != value:
+                before[key] = current
+                after[key] = value
+        oem_dell = volume_data.get('Oem', {}).get('Dell', {}).get('DellVirtualDisk', {})
+        for key, value in oem_payload.items():
+            current = oem_dell.get(key)
+            if current != value:
+                before[key] = current
+                after[key] = value
+        return before, after
+
+    def modify_attributes(self, volume_data):
+        payload = self.build_attribute_payload()
+        oem_payload = self.build_oem_cache_payload()
+        if not payload and not oem_payload:
+            return None
+        before, after = self.compute_attribute_diff(volume_data, payload, oem_payload)
+        if not before:
+            return {"changed": False, "msg": NO_CHANGES_FOUND_MSG, "diff": {"before": {}, "after": {}}}
+        if self.module.check_mode:
+            return {"changed": True, "msg": CHANGES_FOUND, "diff": {"before": before, "after": after}}
+        full_payload = dict(payload)
+        if oem_payload:
+            full_payload['Oem'] = {'Dell': {'DellVirtualDisk': oem_payload}}
+        volume_uri = volume_data.get(ODATA_ID)
+        self.idrac.invoke_request(volume_uri, 'PATCH', data=full_payload)
+        return {"changed": True, "msg": ATTRIBUTE_MODIFY_SUCCESS_MSG, "diff": {"before": before, "after": after}}
+
+    def execute(self):
+        volume_data = self.validate_volume_identifier()
+        result = self.modify_attributes(volume_data)
+        if result is None:
+            self.module.exit_json(msg=NO_CHANGES_FOUND_MSG, changed=False)
+        self.module.exit_json(msg=result["msg"], changed=result["changed"], diff=result["diff"])
+
+
 class StorageView(StorageData):
     def __init__(self, idrac, module):
         super().__init__(idrac, module)
@@ -883,7 +1006,7 @@ class StorageView(StorageData):
 
 def main():
     specs = {
-        "state": {"choices": ['create', 'delete', 'view'], "default": 'view'},
+        "state": {"choices": ['create', 'delete', 'view', 'modify'], "default": 'view'},
         "volume_id": {"type": 'str'},
         "volumes": {"type": 'list', "elements": 'dict'},
         "span_depth": {"type": 'int', "default": 1},
@@ -906,7 +1029,15 @@ def main():
         "raid_init_operation": {"choices": ['None', 'Fast']},
         "job_wait": {"type": "bool", "default": True},
         "job_wait_timeout": {"type": "int", "default": 900},
-        "time_to_wait": {"type": "int", "default": 300}
+        "time_to_wait": {"type": "int", "default": 300},
+        "display_name": {"type": 'str'},
+        "modify_read_cache_policy": {"choices": ['ReadAhead', 'AdaptiveReadAhead', 'Off']},
+        "modify_write_cache_policy": {"choices": ['WriteThrough', 'ProtectedWriteBack', 'UnprotectedWriteBack', 'Off']},
+        "modify_disk_cache_policy": {"choices": ['Default', 'Enabled', 'Disabled']},
+        "enable_encryption": {"type": 'bool'},
+        "encryption_mode": {"choices": ['LKM', 'SEKM']},
+        "initialize_method": {"choices": ['Background', 'Foreground', 'Skip']},
+        "initialization_type": {"choices": ['Fast', 'Slow']},
     }
 
     module = IdracAnsibleModule(
@@ -919,6 +1050,7 @@ def main():
                 'create': StorageCreate,
                 'view': StorageView,
                 'delete': StorageDelete,
+                'modify': StorageModify,
             }
             state_type = state_class_mapping.get(module.params['state'])
             obj = state_type(idrac, module)
