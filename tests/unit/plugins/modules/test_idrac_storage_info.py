@@ -186,6 +186,44 @@ class TestStorageInfo(FakeAnsibleModule):
         assert available is None
 
 
+class TestRetryOnTransientError:
+    def test_succeeds_first_try(self, mocker):
+        mocker.patch('time.sleep')
+        func = mocker.MagicMock(return_value="ok")
+        wrapped = idrac_storage_info.retry_on_transient_error(func)
+        assert wrapped() == "ok"
+        assert func.call_count == 1
+
+    def test_retries_on_transient_http_503_then_succeeds(self, mocker):
+        mocker.patch('time.sleep')
+        json_str = to_text(json.dumps({"data": "out"}))
+        err = HTTPError('https://testhost.com', 503, 'Service Unavailable',
+                        {"accept-type": "application/json"}, StringIO(json_str))
+        func = mocker.MagicMock(side_effect=[err, "ok"])
+        wrapped = idrac_storage_info.retry_on_transient_error(func)
+        assert wrapped() == "ok"
+        assert func.call_count == 2
+
+    def test_raises_immediately_on_non_transient_http_error(self, mocker):
+        mocker.patch('time.sleep')
+        json_str = to_text(json.dumps({"data": "out"}))
+        err = HTTPError('https://testhost.com', 400, 'Bad Request',
+                        {"accept-type": "application/json"}, StringIO(json_str))
+        func = mocker.MagicMock(side_effect=err)
+        wrapped = idrac_storage_info.retry_on_transient_error(func)
+        with pytest.raises(HTTPError):
+            wrapped()
+        assert func.call_count == 1
+
+    def test_exhausts_retries_and_raises(self, mocker):
+        mocker.patch('time.sleep')
+        func = mocker.MagicMock(side_effect=URLError('timed out'))
+        wrapped = idrac_storage_info.retry_on_transient_error(func)
+        with pytest.raises(URLError):
+            wrapped()
+        assert func.call_count == idrac_storage_info.MAX_RETRIES
+
+
 class TestStorageInfoControllerQuery(FakeAnsibleModule):
     module = idrac_storage_info
     SYSTEMS_URI = "/redfish/v1/Systems"

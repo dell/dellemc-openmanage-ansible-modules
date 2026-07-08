@@ -128,11 +128,37 @@ error_info:
 '''
 
 import json
+import time
+import functools
 from urllib.error import HTTPError, URLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     get_dynamic_uri, validate_and_get_first_resource_id_uri)
+
+MAX_RETRIES = 3
+TRANSIENT_HTTP_STATUS_CODES = (503,)
+
+
+def retry_on_transient_error(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        last_err = None
+        for attempt in range(MAX_RETRIES):
+            try:
+                return func(*args, **kwargs)
+            except HTTPError as err:
+                if err.code not in TRANSIENT_HTTP_STATUS_CODES or attempt == MAX_RETRIES - 1:
+                    raise
+                last_err = err
+            except URLError as err:
+                if attempt == MAX_RETRIES - 1:
+                    raise
+                last_err = err
+            time.sleep(2 ** attempt)
+        raise last_err
+    return wrapper
+
 
 CONTROLLER_ID_REQUIRED_MSG = "controller_id is required when resource_type is '{resource_type}'."
 SUCCESS_MSG = "Successfully fetched the storage information."
@@ -197,6 +223,7 @@ class StorageInfo:
         storage = get_dynamic_uri(self.idrac, uri, 'Storage')
         return storage[ODATA_ID]
 
+    @retry_on_transient_error
     def get_controllers(self):
         storage_uri = self.fetch_storage_uri()
         controllers_data = get_dynamic_uri(self.idrac, storage_uri + STORAGE_EXPAND_QUERY)
@@ -232,6 +259,7 @@ class StorageInfo:
                 return member
         self.module.exit_json(msg=CONTROLLER_NOT_FOUND_MSG.format(controller_id=controller_id), failed=True)
 
+    @retry_on_transient_error
     def get_physical_disks(self, controller_id):
         controller = self.get_controller_by_id(controller_id)
         physical_disks = []
@@ -256,6 +284,7 @@ class StorageInfo:
             mapped[field] = oem_dell.get(field)
         return mapped
 
+    @retry_on_transient_error
     def get_virtual_disks(self, controller_id):
         controller = self.get_controller_by_id(controller_id)
         volumes_uri = controller.get("Volumes", {}).get(ODATA_ID)
@@ -323,18 +352,27 @@ def main():
     module = IdracAnsibleModule(
         argument_spec=specs,
         supports_check_mode=True)
+    module.log(msg="idrac_storage_info: operation started. resource_type={0}, controller_id={1}".format(
+        module.params.get("resource_type"), module.params.get("controller_id")))
+    start_time = time.time()
     try:
         with iDRACRedfishAPI(module.params) as idrac:
             storage_info_obj = StorageInfo(idrac, module)
             storage_info_obj.validate_params()
             storage_info_obj.validate_firmware_version()
             storage_info = storage_info_obj.fetch_resources()
+        duration = time.time() - start_time
+        module.log(msg="idrac_storage_info: operation completed. resource_count={0}, duration_secs={1:.2f}".format(
+            storage_info.get("resource_count"), duration))
         module.exit_json(msg=SUCCESS_MSG, storage_info=storage_info)
     except HTTPError as err:
+        module.log(msg="idrac_storage_info: HTTP error occurred. status_code={0}".format(err.code))
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
+        module.log(msg="idrac_storage_info: network error occurred. {0}".format(str(err)))
         module.exit_json(msg=str(err), unreachable=True)
     except (SSLValidationError, ConnectionError, TypeError, ValueError, OSError) as err:
+        module.log(msg="idrac_storage_info: error occurred. {0}".format(str(err)))
         module.exit_json(msg=str(err), failed=True)
 
 
