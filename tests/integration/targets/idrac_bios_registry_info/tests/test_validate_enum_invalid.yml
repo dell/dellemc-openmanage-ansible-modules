@@ -14,7 +14,7 @@
     validate_certs: "{{ validate_certs | default(true) }}"
     validate: true
     attributes:
-      BootMode: "UEFI"
+      ProcVirtualization: "INVALID"
   register: validation_result
 
 - name: Verify module succeeded
@@ -35,20 +35,20 @@
       - validation_result.validation_results is defined
       - validation_result.validation_results is iterable
 
-- name: Verify BootMode validation status
+- name: Verify ProcVirtualization validation status
   assert:
     that:
-      - validation_result.validation_results | selectattr('attribute', 'equalto', 'BootMode') | map(attribute='status') | list | first == "invalid"
+      - validation_result.validation_results | selectattr('attribute', 'equalto', 'ProcVirtualization') | map(attribute='status') | list | first == "invalid"
 
 - name: Verify error reason
   assert:
     that:
-      - validation_result.validation_results | selectattr('attribute', 'equalto', 'BootMode') | map(attribute='reason') | list | first is search("Invalid value")
+      - validation_result.validation_results | selectattr('attribute', 'equalto', 'ProcVirtualization') | map(attribute='reason') | list | first is search("not a valid enumeration value")
 
 - name: Verify suggestions provided
   assert:
     that:
-      - validation_result.validation_results | selectattr('attribute', 'equalto', 'BootMode') | map(attribute='suggestions') | list | first is defined
+      - validation_result.validation_results | selectattr('attribute', 'equalto', 'ProcVirtualization') | map(attribute='suggestions') | list | first is defined
 
 - name: Verify validation counts
   assert:

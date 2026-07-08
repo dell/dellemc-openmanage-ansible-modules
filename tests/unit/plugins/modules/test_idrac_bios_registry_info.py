@@ -12,38 +12,40 @@ from __future__ import (absolute_import, division, print_function)
 
 __metaclass__ = type
 
-import pytest
-from ansible_collections.dellemc.openmanage.plugins.modules import idrac_bios_registry_info
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from unittest.mock import MagicMock, patch
+
+import pytest
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
+from ansible_collections.dellemc.openmanage.plugins.modules import idrac_bios_registry_info
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.idrac_bios_registry_info'
 
 
 class TestFirmwareVersionComparison:
-    """Test firmware version comparison logic."""
+    """Test firmware version comparison logic via centralized utility."""
 
     def test_compare_firmware_version_equal(self):
         """Test firmware version comparison with equal versions."""
-        assert idrac_bios_registry_info.compare_firmware_version("7.10.90.00", "7.10.90.00") is True
+        assert iDRACRedfishAPI.compare_firmware_version("7.10.90.00", "7.10.90.00") is True
 
     def test_compare_firmware_version_greater(self):
         """Test firmware version comparison with greater version."""
-        assert idrac_bios_registry_info.compare_firmware_version("7.10.91.00", "7.10.90.00") is True
+        assert iDRACRedfishAPI.compare_firmware_version("7.10.91.00", "7.10.90.00") is True
 
     def test_compare_firmware_version_lesser(self):
         """Test firmware version comparison with lesser version."""
-        assert idrac_bios_registry_info.compare_firmware_version("7.10.89.00", "7.10.90.00") is False
+        assert iDRACRedfishAPI.compare_firmware_version("7.10.89.00", "7.10.90.00") is False
 
     def test_compare_firmware_version_iDRAC10_valid(self):
         """Test iDRAC10 firmware version comparison with valid version."""
-        assert idrac_bios_registry_info.compare_firmware_version("1.20.50.50", "1.20.50.50") is True
+        assert iDRACRedfishAPI.compare_firmware_version("1.20.50.50", "1.20.50.50") is True
 
     def test_compare_firmware_version_iDRAC10_below_minimum(self):
         """Test iDRAC10 firmware version comparison below minimum."""
-        assert idrac_bios_registry_info.compare_firmware_version("1.20.49.99", "1.20.50.50") is False
+        assert iDRACRedfishAPI.compare_firmware_version("1.20.49.99", "1.20.50.50") is False
 
 
 class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
@@ -62,6 +64,8 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.return_value = idrac_mock
             mock_class.return_value.__exit__.return_value = False
+            mock_class.check_minimum_firmware_requirement = iDRACRedfishAPI.check_minimum_firmware_requirement
+            mock_class.compare_firmware_version = iDRACRedfishAPI.compare_firmware_version
             yield mock_class
 
     def test_successful_connection_initialization(self, idrac_default_args, idrac_connection_mock, idrac_mock, mocker):
@@ -69,8 +73,13 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
         mock_response = MagicMock()
         mock_response.json_data = {
-            '@odata.type': '#DellAttributeRegistry.v1_2_0.AttributeRegistry',
-            'Attributes': []
+            '@odata.type': '#AttributeRegistry.v1_3_9.AttributeRegistry',
+            'RegistryVersion': '1.0.0',
+            'Language': 'en',
+            'OwningEntity': 'Dell',
+            'RegistryEntries': {
+                'Attributes': []
+            }
         }
         idrac_mock.invoke_request.return_value = mock_response
         # Mock cache to return None to ensure invoke_request is called
@@ -166,34 +175,44 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         idrac_mock.get_server_generation = (15, "7.10.89.99", "iDRAC 9")
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.return_value = idrac_mock
+            mock_class.check_minimum_firmware_requirement = iDRACRedfishAPI.check_minimum_firmware_requirement
+            mock_class.compare_firmware_version = iDRACRedfishAPI.compare_firmware_version
             result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] is True
-            assert 'BIOS attribute registry not supported on this firmware version' in result['msg']
+            assert 'Minimum firmware requirement not met' in result['msg']
             assert '7.10.90.00' in result['msg']
 
     def test_successful_registry_query(self, idrac_default_args, idrac_connection_mock, idrac_mock, mocker):
         """Test successful BIOS attribute registry query."""
         mock_response = MagicMock()
         mock_response.json_data = {
-            '@odata.type': '#DellAttributeRegistry.v1_2_0.AttributeRegistry',
-            'Attributes': [
-                {
-                    'AttributeName': 'ProcVirtualization',
-                    'DisplayName': 'Virtualization Technology',
-                    'Type': 'Enumeration',
-                    'CurrentValue': 'Enabled',
-                    'DefaultValue': 'Enabled',
-                    'Value': ['Enabled', 'Disabled'],
-                    'HelpText': 'Enable or disable virtualization.',
-                    'MenuPath': './Processor',
-                    'ReadOnly': False,
-                    'Immutable': False,
-                    'WriteOnly': False,
-                    'GrayOut': False,
-                    'Hidden': False,
-                    'DisplayOrder': 1
-                }
-            ]
+            '@odata.type': '#AttributeRegistry.v1_3_9.AttributeRegistry',
+            'RegistryVersion': '1.0.0',
+            'Language': 'en',
+            'OwningEntity': 'Dell',
+            'RegistryEntries': {
+                'Attributes': [
+                    {
+                        'AttributeName': 'ProcVirtualization',
+                        'DisplayName': 'Virtualization Technology',
+                        'Type': 'Enumeration',
+                        'CurrentValue': 'Enabled',
+                        'DefaultValue': 'Enabled',
+                        'Value': [{'ValueName': 'Enabled', 'ValueDisplayName': 'Enabled'},
+                                  {'ValueName': 'Disabled', 'ValueDisplayName': 'Disabled'}],
+                        'HelpText': 'Enable or disable virtualization.',
+                        'MenuPath': './ProcSettingsRef',
+                        'ReadOnly': False,
+                        'Immutable': False,
+                        'WriteOnly': False,
+                        'GrayOut': False,
+                        'Hidden': False,
+                        'DisplayOrder': 1,
+                        'Oem': {'Dell': {'@odata.type': '#DellOemAttributeRegistry.v1_0_0.Attributes',
+                                         'GroupDisplayName': 'Processor Settings', 'GroupName': 'ProcSettings'}}
+                    }
+                ]
+            }
         }
         idrac_mock.invoke_request.return_value = mock_response
         idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
@@ -223,6 +242,8 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         idrac_default_args['force_refresh'] = True
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.return_value = idrac_mock
+            mock_class.check_minimum_firmware_requirement = iDRACRedfishAPI.check_minimum_firmware_requirement
+            mock_class.compare_firmware_version = iDRACRedfishAPI.compare_firmware_version
             result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] is True
             assert 'BIOS attribute registry endpoint not supported' in result['msg']
@@ -293,13 +314,13 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
     def test_category_based_filtering(self):
         """Test category-based filtering."""
         attributes = [
-            {'name': 'ProcVirtualization', 'menu_path': './Processor'},
-            {'name': 'MemTest', 'menu_path': './Memory'},
-            {'name': 'ProcTurboMode', 'menu_path': './Processor'}
+            {'name': 'ProcVirtualization', 'group': 'Processor Settings', 'menu_path': './ProcSettingsRef'},
+            {'name': 'MemTest', 'group': 'Memory Settings', 'menu_path': './MemSettingsRef'},
+            {'name': 'ProcTurboMode', 'group': 'Processor Settings', 'menu_path': './ProcSettingsRef'}
         ]
         filtered = idrac_bios_registry_info.filter_attributes_by_category(attributes, 'Processor')
         assert len(filtered) == 2
-        assert all(attr['menu_path'].startswith('./Processor') for attr in filtered)
+        assert all('Processor' in attr['group'] for attr in filtered)
 
     def test_valid_enumeration_validation(self):
         """Test valid enumeration value validation."""
@@ -392,25 +413,33 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         """Test return value schema validation."""
         mock_response = MagicMock()
         mock_response.json_data = {
-            '@odata.type': '#DellAttributeRegistry.v1_2_0.AttributeRegistry',
-            'Attributes': [
-                {
-                    'AttributeName': 'ProcVirtualization',
-                    'DisplayName': 'Virtualization Technology',
-                    'Type': 'Enumeration',
-                    'CurrentValue': 'Enabled',
-                    'DefaultValue': 'Enabled',
-                    'Value': ['Enabled', 'Disabled'],
-                    'HelpText': 'Enable or disable virtualization.',
-                    'MenuPath': './Processor',
-                    'ReadOnly': False,
-                    'Immutable': False,
-                    'WriteOnly': False,
-                    'GrayOut': False,
-                    'Hidden': False,
-                    'DisplayOrder': 1
-                }
-            ]
+            '@odata.type': '#AttributeRegistry.v1_3_9.AttributeRegistry',
+            'RegistryVersion': '1.0.0',
+            'Language': 'en',
+            'OwningEntity': 'Dell',
+            'RegistryEntries': {
+                'Attributes': [
+                    {
+                        'AttributeName': 'ProcVirtualization',
+                        'DisplayName': 'Virtualization Technology',
+                        'Type': 'Enumeration',
+                        'CurrentValue': 'Enabled',
+                        'DefaultValue': 'Enabled',
+                        'Value': [{'ValueName': 'Enabled', 'ValueDisplayName': 'Enabled'},
+                                  {'ValueName': 'Disabled', 'ValueDisplayName': 'Disabled'}],
+                        'HelpText': 'Enable or disable virtualization.',
+                        'MenuPath': './ProcSettingsRef',
+                        'ReadOnly': False,
+                        'Immutable': False,
+                        'WriteOnly': False,
+                        'GrayOut': False,
+                        'Hidden': False,
+                        'DisplayOrder': 1,
+                        'Oem': {'Dell': {'@odata.type': '#DellOemAttributeRegistry.v1_0_0.Attributes',
+                                         'GroupDisplayName': 'Processor Settings', 'GroupName': 'ProcSettings'}}
+                    }
+                ]
+            }
         }
         idrac_mock.invoke_request.return_value = mock_response
         idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
@@ -470,15 +499,20 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         """Test metadata fields are present in return value."""
         mock_response = MagicMock()
         mock_response.json_data = {
-            '@odata.type': '#DellAttributeRegistry.v1_2_0.AttributeRegistry',
-            'Attributes': []
+            '@odata.type': '#AttributeRegistry.v1_3_9.AttributeRegistry',
+            'RegistryVersion': '1.0.0',
+            'Language': 'en',
+            'OwningEntity': 'Dell',
+            'RegistryEntries': {
+                'Attributes': []
+            }
         }
         idrac_mock.invoke_request.return_value = mock_response
         idrac_mock.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
         # Mock cache to return None to ensure invoke_request is called
         mocker.patch(MODULE_PATH + '.get_from_cache', return_value=None)
         result = self._run_module(idrac_default_args)
-        assert result['registry_version'] == 'AttributeRegistry'
+        assert result['registry_version'] == '1.0.0'
         assert result['attribute_count'] == 0
         assert result['language'] == 'en'
         assert result['owning_entity'] == 'Dell'
@@ -504,6 +538,8 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         idrac_default_args['force_refresh'] = True
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.return_value = idrac_mock
+            mock_class.check_minimum_firmware_requirement = iDRACRedfishAPI.check_minimum_firmware_requirement
+            mock_class.compare_firmware_version = iDRACRedfishAPI.compare_firmware_version
             result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] is True
             assert 'endpoint not supported' in result['msg']
@@ -526,6 +562,8 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         idrac_default_args['force_refresh'] = True
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.return_value = idrac_mock
+            mock_class.check_minimum_firmware_requirement = iDRACRedfishAPI.check_minimum_firmware_requirement
+            mock_class.compare_firmware_version = iDRACRedfishAPI.compare_firmware_version
             result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] is True
             assert 'HTTP error 500' in result['msg']

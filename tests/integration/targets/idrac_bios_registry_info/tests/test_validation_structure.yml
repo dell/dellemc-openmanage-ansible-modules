@@ -15,7 +15,7 @@
     validate_certs: "{{ validate_certs | default(true) }}"
     validate: true
     attributes:
-      BootMode: "Uefi"
+      ProcVirtualization: "Enabled"
       ProcXYZ: "value"
   register: validation_result
 

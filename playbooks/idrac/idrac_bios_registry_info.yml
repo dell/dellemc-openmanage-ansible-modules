@@ -9,7 +9,7 @@
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
-        ca_path: "/path/to/ca_cert.pem"
+        validate_certs: false
       tags:
         - query_all
       delegate_to: localhost
@@ -19,7 +19,7 @@
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
-        ca_path: "/path/to/ca_cert.pem"
+        validate_certs: false
         attribute_name: "Proc*"
       tags:
         - filter_name
@@ -30,7 +30,7 @@
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
-        ca_path: "/path/to/ca_cert.pem"
+        validate_certs: false
         category: "Processor"
       tags:
         - filter_category
@@ -41,7 +41,7 @@
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
-        ca_path: "/path/to/ca_cert.pem"
+        validate_certs: false
         attribute_source: "oem"
       tags:
         - filter_oem
@@ -52,7 +52,7 @@
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
-        ca_path: "/path/to/ca_cert.pem"
+        validate_certs: false
         validate: true
         attributes:
           ProcVirtualization: "Enabled"
@@ -66,7 +66,7 @@
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
-        ca_path: "/path/to/ca_cert.pem"
+        validate_certs: false
         force_refresh: true
       tags:
         - force_refresh

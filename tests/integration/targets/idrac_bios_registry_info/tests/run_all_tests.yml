@@ -1,0 +1,59 @@
+---
+# Master playbook to run all individual test scenarios
+- name: Run all idrac_bios_registry_info integration tests
+  hosts: idrac
+  gather_facts: no
+  tasks:
+    - name: Include test_query_all_attributes
+      include_tasks: ./test_query_all_attributes.yml
+
+    - name: Include test_full_schema
+      include_tasks: ./test_full_schema.yml
+
+    - name: Include test_filter_exact
+      include_tasks: ./test_filter_exact.yml
+
+    - name: Include test_filter_pattern
+      include_tasks: ./test_filter_pattern.yml
+
+    - name: Include test_filter_oem
+      include_tasks: ./test_filter_oem.yml
+
+    - name: Include test_filter_standard
+      include_tasks: ./test_filter_standard.yml
+
+    - name: Include test_filter_processor
+      include_tasks: ./test_filter_processor.yml
+
+    - name: Include test_filter_security
+      include_tasks: ./test_filter_security.yml
+
+    - name: Include test_filter_no_match
+      include_tasks: ./test_filter_no_match.yml
+
+    - name: Include test_identify_oem
+      include_tasks: ./test_identify_oem.yml
+
+    - name: Include test_validate_enum_valid
+      include_tasks: ./test_validate_enum_valid.yml
+
+    - name: Include test_validate_enum_invalid
+      include_tasks: ./test_validate_enum_invalid.yml
+
+    - name: Include test_validate_integer_valid
+      include_tasks: ./test_validate_integer_valid.yml
+
+    - name: Include test_validate_integer_invalid
+      include_tasks: ./test_validate_integer_invalid.yml
+
+    - name: Include test_validate_nonexistent
+      include_tasks: ./test_validate_nonexistent.yml
+
+    - name: Include test_validate_batch_valid
+      include_tasks: ./test_validate_batch_valid.yml
+
+    - name: Include test_validate_batch_mixed
+      include_tasks: ./test_validate_batch_mixed.yml
+
+    - name: Include test_validation_structure
+      include_tasks: ./test_validation_structure.yml

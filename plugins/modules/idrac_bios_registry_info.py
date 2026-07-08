@@ -119,14 +119,14 @@ bios_attributes:
       "default_value": "Enabled",
       "valid_values": ["Enabled", "Disabled"],
       "description": "Enable or disable virtualization technology.",
-      "is_oem": false,
+      "is_oem": true,
       "read_only": false,
       "immutable": false,
       "write_only": false,
       "gray_out": false,
       "hidden": false,
-      "group": "Processor",
-      "menu_path": "./Processor",
+      "group": "Processor Settings",
+      "menu_path": "./ProcSettingsRef",
       "lower_bound": null,
       "upper_bound": null,
       "min_length": null,
@@ -143,7 +143,7 @@ registry_version:
   type: str
   description: Version of the BIOS attribute registry.
   returned: success
-  sample: "1.2.0"
+  sample: "1.0.0"
 attribute_count:
   type: int
   description: Total number of attributes in the registry.
@@ -161,7 +161,7 @@ owning_entity:
   sample: "Dell"
 idrac_generation:
   type: int
-  description: PowerEdge server generation (14G, 15G, 16G, 17G).
+  description: PowerEdge server generation (14G-16G for iDRAC9, 17G+ for iDRAC10).
   returned: success
   sample: 15
 idrac_firmware_version:
@@ -215,7 +215,6 @@ error_info:
 
 import fnmatch
 import re
-import logging
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -224,24 +223,8 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish i
 )
 
 
-# Configure logging
-logger = logging.getLogger(__name__)
-
-
 # In-memory cache for BIOS registry data
 _REGISTRY_CACHE = {}
-
-
-def compare_firmware_version(firmware_version, minimum_version):
-    """Compare firmware version strings (e.g., '7.10.90.00' >= '7.10.90.00')."""
-    fw_parts = [int(x) for x in firmware_version.split('.')]
-    min_parts = [int(x) for x in minimum_version.split('.')]
-    for fw, min_v in zip(fw_parts, min_parts):
-        if fw > min_v:
-            return True
-        if fw < min_v:
-            return False
-    return len(fw_parts) >= len(min_parts)
 
 
 def map_attribute_to_dict(attr_data):
@@ -252,16 +235,17 @@ def map_attribute_to_dict(attr_data):
         'type': attr_data.get('Type'),
         'current_value': attr_data.get('CurrentValue'),
         'default_value': attr_data.get('DefaultValue'),
-        'valid_values': attr_data.get('Value', []),
+        'valid_values': [v.get('ValueName', v) if isinstance(v, dict) else v
+                         for v in attr_data.get('Value', [])],
         'description': attr_data.get('HelpText'),
-        'is_oem': (attr_data.get('AttributeName', '').startswith('Oem')
-                   if attr_data.get('AttributeName') else False),
+        'is_oem': bool(attr_data.get('Oem', {}).get('Dell')),
         'read_only': attr_data.get('ReadOnly', False),
         'immutable': attr_data.get('Immutable', False),
         'write_only': attr_data.get('WriteOnly', False),
         'gray_out': attr_data.get('GrayOut', False),
         'hidden': attr_data.get('Hidden', False),
-        'group': attr_data.get('MenuPath', '').split('/')[-1] if attr_data.get('MenuPath') else '',
+        'group': (attr_data.get('Oem', {}).get('Dell', {}).get('GroupDisplayName', '')
+                  or (attr_data.get('MenuPath', '').split('/')[-1] if attr_data.get('MenuPath') else '')),
         'menu_path': attr_data.get('MenuPath'),
         'lower_bound': attr_data.get('LowerBound'),
         'upper_bound': attr_data.get('UpperBound'),
@@ -291,102 +275,68 @@ def filter_attributes_by_source(attributes, source):
 
 
 def filter_attributes_by_category(attributes, category):
-    """Filter attributes by category derived from MenuPath."""
+    """Filter attributes by category matching group display name or MenuPath."""
     if not category:
         return attributes
-    return [attr for attr in attributes if attr['menu_path'].startswith(f'./{category}')]
+    cat_lower = category.lower()
+    return [attr for attr in attributes
+            if cat_lower in attr.get('group', '').lower()
+            or attr.get('menu_path', '').startswith(f'./{category}')]
+
+
+def _validation_result(attr, status, reason, suggestions=None):
+    """Build a validation result dict."""
+    return {
+        'attribute': attr,
+        'status': status,
+        'reason': reason,
+        'suggestions': suggestions or []
+    }
 
 
 def validate_attribute(attr, value, bios_attributes):
     """Validate a single attribute value against the registry."""
-    # Find attribute in registry
     attr_def = next((a for a in bios_attributes if a['name'] == attr), None)
     if not attr_def:
-        return {
-            'attribute': attr,
-            'status': 'invalid',
-            'reason': f"Attribute '{attr}' not found in BIOS registry",
-            'suggestions': []
-        }
+        return _validation_result(attr, 'invalid',
+                                  f"Attribute '{attr}' not found in BIOS registry")
 
-    # Check if attribute is read-only
     if attr_def['read_only']:
-        return {
-            'attribute': attr,
-            'status': 'invalid',
-            'reason': f"Attribute '{attr}' is read-only and cannot be modified",
-            'suggestions': []
-        }
+        return _validation_result(attr, 'invalid',
+                                  f"Attribute '{attr}' is read-only and cannot be modified")
 
-    # Validate based on type
     if attr_def['type'] == 'Enumeration':
         if value not in attr_def['valid_values']:
-            # Generate suggestions
-            suggestions = []
-            for valid_val in attr_def['valid_values']:
-                if value.lower() in valid_val.lower() or valid_val.lower() in value.lower():
-                    suggestions.append(valid_val)
-            return {
-                'attribute': attr,
-                'status': 'invalid',
-                'reason': f"Value '{value}' is not a valid enumeration value",
-                'suggestions': suggestions[:3]  # Limit to top 3 suggestions
-            }
+            suggestions = [v for v in attr_def['valid_values']
+                           if value.lower() in v.lower() or v.lower() in value.lower()]
+            return _validation_result(attr, 'invalid',
+                                      f"Value '{value}' is not a valid enumeration value",
+                                      suggestions[:3])
     elif attr_def['type'] == 'Integer':
         try:
             int_value = int(value)
             if attr_def['lower_bound'] is not None and int_value < attr_def['lower_bound']:
-                return {
-                    'attribute': attr,
-                    'status': 'invalid',
-                    'reason': f"Value {int_value} is below minimum {attr_def['lower_bound']}",
-                    'suggestions': []
-                }
+                return _validation_result(attr, 'invalid',
+                                          f"Value {int_value} is below minimum {attr_def['lower_bound']}")
             if attr_def['upper_bound'] is not None and int_value > attr_def['upper_bound']:
-                return {
-                    'attribute': attr,
-                    'status': 'invalid',
-                    'reason': f"Value {int_value} exceeds maximum {attr_def['upper_bound']}",
-                    'suggestions': []
-                }
+                return _validation_result(attr, 'invalid',
+                                          f"Value {int_value} exceeds maximum {attr_def['upper_bound']}")
         except (ValueError, TypeError):
-            return {
-                'attribute': attr,
-                'status': 'invalid',
-                'reason': f"Value '{value}' is not a valid integer",
-                'suggestions': []
-            }
+            return _validation_result(attr, 'invalid',
+                                      f"Value '{value}' is not a valid integer")
     elif attr_def['type'] == 'String':
         str_value = str(value)
         if attr_def['min_length'] is not None and len(str_value) < attr_def['min_length']:
-            return {
-                'attribute': attr,
-                'status': 'invalid',
-                'reason': (f"Value length {len(str_value)} is below minimum "
-                           f"{attr_def['min_length']}"),
-                'suggestions': []
-            }
+            return _validation_result(attr, 'invalid',
+                                      f"Value length {len(str_value)} is below minimum {attr_def['min_length']}")
         if attr_def['max_length'] is not None and len(str_value) > attr_def['max_length']:
-            return {
-                'attribute': attr,
-                'status': 'invalid',
-                'reason': f"Value length {len(str_value)} exceeds maximum {attr_def['max_length']}",
-                'suggestions': []
-            }
+            return _validation_result(attr, 'invalid',
+                                      f"Value length {len(str_value)} exceeds maximum {attr_def['max_length']}")
         if attr_def['regex'] and not re.match(attr_def['regex'], str_value):
-            return {
-                'attribute': attr,
-                'status': 'invalid',
-                'reason': f"Value '{value}' does not match required pattern",
-                'suggestions': []
-            }
+            return _validation_result(attr, 'invalid',
+                                      f"Value '{value}' does not match required pattern")
 
-    return {
-        'attribute': attr,
-        'status': 'valid',
-        'reason': 'Value is valid',
-        'suggestions': []
-    }
+    return _validation_result(attr, 'valid', 'Value is valid')
 
 
 def validate_attributes(attributes_to_validate, bios_attributes):
@@ -429,9 +379,9 @@ def store_in_cache(cache_key, data):
 def main():
     """Main entry point for the idrac_bios_registry_info module.
 
-    This function initializes the Ansible module, sets up logging,
-    connects to iDRAC, queries the BIOS attribute registry,
-    applies filters and validation, and returns the results.
+    This function initializes the Ansible module, connects to iDRAC,
+    queries the BIOS attribute registry, applies filters and validation,
+    and returns the results.
     """
     argument_spec = idrac_auth_params.copy()
     argument_spec.update({
@@ -453,60 +403,18 @@ def main():
         supports_check_mode=True
     )
 
-    # Set up logging based on verbosity
-    verbosity = module.params.get('_verbosity', 0)
-    log_level = logging.WARNING
-    if verbosity >= 1:
-        log_level = logging.INFO
-    if verbosity >= 2:
-        log_level = logging.DEBUG
-    logging.basicConfig(level=log_level)
-
-    # Log operation parameters (excluding credentials)
-    logger.info("Starting BIOS attribute registry query")
-    logger.debug("Target iDRAC: %s", module.params['idrac_ip'])
-    logger.debug("Filter parameters: attribute_name=%s, attribute_source=%s, category=%s",
-                 module.params.get('attribute_name'),
-                 module.params.get('attribute_source'),
-                 module.params.get('category'))
-    logger.debug("Validation enabled: %s", module.params.get('validate'))
-    logger.debug("Force refresh: %s", module.params.get('force_refresh'))
-
     # Initialize iDRAC connection
     try:
         with iDRACRedfishAPI(module.params) as idrac:
-            logger.info("Successfully connected to iDRAC")
-
             # Fetch firmware version and generation
             generation, firmware_version, hw_model = idrac.get_server_generation
-            logger.info("Detected iDRAC generation: %s, firmware: %s, model: %s",
-                        generation, firmware_version, hw_model)
 
-            # Check firmware version requirements
-            idrac_model = "iDRAC 9" if generation >= 14 else "iDRAC 8"
-
-            if idrac_model == "iDRAC 9":
-                minimum_version = "7.10.90.00"
-                if not compare_firmware_version(firmware_version, minimum_version):
-                    logger.error("Firmware version %s below minimum %s",
-                                 firmware_version, minimum_version)
-                    module.fail_json(
-                        msg="BIOS attribute registry not supported on this firmware version. "
-                            "Minimum required: iDRAC9 {}. Please upgrade firmware.".format(
-                                minimum_version
-                            )
-                    )
-            elif idrac_model == "iDRAC 10":
-                minimum_version = "1.20.50.50"
-                if not compare_firmware_version(firmware_version, minimum_version):
-                    logger.error("Firmware version %s below minimum %s",
-                                 firmware_version, minimum_version)
-                    module.fail_json(
-                        msg="BIOS attribute registry not supported on this firmware version. "
-                            "Minimum required: iDRAC10 {}. Please upgrade firmware.".format(
-                                minimum_version
-                            )
-                    )
+            # Check firmware version requirements using centralized utility
+            is_compliant, _, error_msg = iDRACRedfishAPI.check_minimum_firmware_requirement(
+                hw_model, firmware_version
+            )
+            if not is_compliant:
+                module.fail_json(msg=error_msg)
 
             # Query BIOS attribute registry
             registry_uri = "/redfish/v1/Systems/System.Embedded.1/Bios/BiosRegistry"
@@ -518,39 +426,36 @@ def main():
 
             if not force_refresh:
                 cached_data = get_from_cache(cache_key)
-                if cached_data:
-                    logger.info("Retrieved registry data from cache")
 
             if cached_data:
                 bios_attributes = cached_data['bios_attributes']
                 registry_version = cached_data['registry_version']
                 attribute_count = cached_data['attribute_count']
+                language = cached_data.get('language', 'en')
+                owning_entity = cached_data.get('owning_entity', 'Dell')
             else:
-                logger.info("Querying BIOS attribute registry from iDRAC")
                 try:
                     response = idrac.invoke_request(registry_uri, 'GET')
-                    logger.info("Registry query completed with status: %s",
-                                response.status_code)
                 except HTTPError as e:
-                    logger.error("HTTP error %s when querying registry: %s", e.code, e.msg)
                     if e.code == 404:
                         module.fail_json(
                             msg="BIOS attribute registry endpoint not supported on this system."
                         )
                     else:
                         module.fail_json(
-                            msg="HTTP error {} when querying registry: {}".format(e.code, e.msg)
+                            msg=f"HTTP error {e.code} when querying registry: {e.msg}"
                         )
 
                 # Parse registry response
                 registry_data = response.json_data
 
                 # Extract registry metadata
-                odata_type = registry_data.get('@odata.type', '')
-                registry_version = odata_type.split('.')[-1] if odata_type else "1.2.0"
-                attributes_list = registry_data.get('Attributes', [])
+                registry_version = registry_data.get('RegistryVersion', '')
+                language = registry_data.get('Language', 'en')
+                owning_entity = registry_data.get('OwningEntity', 'Dell')
+                registry_entries = registry_data.get('RegistryEntries', {})
+                attributes_list = registry_entries.get('Attributes', [])
                 attribute_count = len(attributes_list)
-                logger.info("Retrieved %s BIOS attributes from registry", attribute_count)
 
                 # Map attributes to flat list
                 bios_attributes = [map_attribute_to_dict(attr) for attr in attributes_list]
@@ -559,9 +464,10 @@ def main():
                 store_in_cache(cache_key, {
                     'bios_attributes': bios_attributes,
                     'registry_version': registry_version,
-                    'attribute_count': attribute_count
+                    'attribute_count': attribute_count,
+                    'language': language,
+                    'owning_entity': owning_entity
                 })
-                logger.debug("Registry data stored in cache")
 
             # Apply filters
             attribute_name = module.params.get('attribute_name')
@@ -569,20 +475,16 @@ def main():
             category = module.params.get('category')
 
             if attribute_name:
-                logger.debug("Filtering by attribute name pattern: %s", attribute_name)
                 bios_attributes = filter_attributes_by_name(bios_attributes, attribute_name)
 
             if attribute_source:
-                logger.debug("Filtering by attribute source: %s", attribute_source)
                 bios_attributes = filter_attributes_by_source(bios_attributes, attribute_source)
 
             if category:
-                logger.debug("Filtering by category: %s", category)
                 bios_attributes = filter_attributes_by_category(bios_attributes, category)
 
             # Update attribute count after filtering
             attribute_count = len(bios_attributes)
-            logger.info("Attribute count after filtering: %s", attribute_count)
 
             # Handle validation if requested
             validate = module.params.get('validate')
@@ -593,24 +495,19 @@ def main():
             invalid_count = None
 
             if validate and attributes_to_validate:
-                logger.info("Validating %s attributes", len(attributes_to_validate))
                 validation_data = validate_attributes(attributes_to_validate, bios_attributes)
                 validation_results = validation_data['validation_results']
                 valid = validation_data['valid']
                 valid_count = validation_data['valid_count']
                 invalid_count = validation_data['invalid_count']
-                logger.info("Validation complete: %s valid, %s invalid",
-                            valid_count, invalid_count)
-
-            logger.info("BIOS attribute registry query completed successfully")
             module.exit_json(
                 msg="Successfully queried BIOS attribute registry.",
                 changed=False,
                 bios_attributes=bios_attributes,
                 registry_version=registry_version,
                 attribute_count=attribute_count,
-                language="en",
-                owning_entity="Dell",
+                language=language,
+                owning_entity=owning_entity,
                 idrac_generation=generation,
                 idrac_firmware_version=firmware_version,
                 idrac_model=hw_model,

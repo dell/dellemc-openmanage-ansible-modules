@@ -14,7 +14,7 @@
     validate_certs: "{{ validate_certs | default(true) }}"
     validate: true
     attributes:
-      AcPwrRcvryDelay: "120"
+      NvmeofSubsys2Timeout: "5000"
   register: validation_result
 
 - name: Verify module succeeded
@@ -35,10 +35,10 @@
       - validation_result.validation_results is defined
       - validation_result.validation_results is iterable
 
-- name: Verify AcPwrRcvryDelay validation status
+- name: Verify NvmeofSubsys2Timeout validation status
   assert:
     that:
-      - validation_result.validation_results | selectattr('attribute', 'equalto', 'AcPwrRcvryDelay') | map(attribute='status') | list | first == "valid"
+      - validation_result.validation_results | selectattr('attribute', 'equalto', 'NvmeofSubsys2Timeout') | map(attribute='status') | list | first == "valid"
 
 - name: Verify validation counts
   assert:

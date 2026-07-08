@@ -14,7 +14,7 @@
     validate_certs: "{{ validate_certs | default(true) }}"
     validate: true
     attributes:
-      BootMode: "Uefi"
+      MemTest: "Enabled"
       ProcVirtualization: "Enabled"
       SriovGlobalEnable: "Enabled"
   register: validation_result

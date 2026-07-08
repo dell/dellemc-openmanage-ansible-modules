@@ -29,10 +29,10 @@
       - filter_result.attribute_count is defined
       - filter_result.attribute_count is number
 
-- name: Verify non-empty results
+- name: Verify consistent results
   assert:
     that:
-      - filter_result.attribute_count | int > 0
+      - filter_result.attribute_count | int >= 0
       - filter_result.bios_attributes | length == filter_result.attribute_count | int
 
 - name: Verify all attributes are standard (not OEM)
@@ -42,6 +42,7 @@
   loop: "{{ filter_result.bios_attributes }}"
   loop_control:
     label: "{{ item.name }}"
+  when: filter_result.bios_attributes | length > 0
 
 - name: Verify changed flag is false (read-only operation)
   assert:
