@@ -71,7 +71,7 @@
       dellemc.openmanage.idrac_storage_info:
         resource_type: "physical_disk"
       register: physical_disk_missing_controller_id
-      failed_when: false
+      ignore_errors: true
 
     - name: Verify clear remediation error when controller_id is missing (AC-007)
       ansible.builtin.assert:
@@ -114,7 +114,7 @@
         resource_type: "physical_disk"
         controller_id: "NonExistent.Controller.99-9"
       register: invalid_controller_result
-      failed_when: false
+      ignore_errors: true
 
     - name: Verify error indicates the controller was not found
       ansible.builtin.assert:
