@@ -52,7 +52,7 @@
       - validation_result.invalid_count == 0
 
 - name: Display validation summary
-  debug:
+  ansible.builtin.debug:
     msg:
       - "Valid: {{ validation_result.valid }}"
       - "Valid Count: {{ validation_result.valid_count }}"

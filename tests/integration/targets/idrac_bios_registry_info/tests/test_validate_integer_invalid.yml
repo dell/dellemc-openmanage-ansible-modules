@@ -38,12 +38,14 @@
 - name: Verify NvmeofSubsys2Timeout validation status
   ansible.builtin.assert:
     that:
-      - validation_result.validation_results | selectattr('attribute', 'equalto', 'NvmeofSubsys2Timeout') | map(attribute='status') | list | first == "invalid"
+      - validation_result.validation_results | selectattr('attribute', 'equalto', 'NvmeofSubsys2Timeout')
+        | map(attribute='status') | list | first == "invalid"
 
 - name: Verify error reason
   ansible.builtin.assert:
     that:
-      - validation_result.validation_results | selectattr('attribute', 'equalto', 'NvmeofSubsys2Timeout') | map(attribute='reason') | list | first is search("exceeds maximum")
+      - validation_result.validation_results | selectattr('attribute', 'equalto', 'NvmeofSubsys2Timeout')
+        | map(attribute='reason') | list | first is search("exceeds maximum")
 
 - name: Verify validation counts
   ansible.builtin.assert:
@@ -54,7 +56,7 @@
       - validation_result.invalid_count == 1
 
 - name: Display validation summary
-  debug:
+  ansible.builtin.debug:
     msg:
       - "Valid: {{ validation_result.valid }}"
       - "Valid Count: {{ validation_result.valid_count }}"

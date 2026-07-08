@@ -47,7 +47,7 @@
       - query_result.bios_attributes | selectattr('is_oem', 'equalto', false) | list | length >= 0
 
 - name: Display OEM identification summary
-  debug:
+  ansible.builtin.debug:
     msg:
       - "Total Attributes: {{ query_result.attribute_count }}"
       - "OEM Attributes: {{ query_result.bios_attributes | selectattr('is_oem', 'equalto', true) | list | length }}"
