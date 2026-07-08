@@ -14,7 +14,7 @@
     - name: Performing operation on the iDRAC device using default
             reset_type with invalid hostname
       ansible.builtin.import_role:
-        name: idrac_storage_controller
+        name: dellemc.openmanage.idrac_storage_controller
       vars:
         hostname: "randomHostname"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -38,7 +38,7 @@
     - name: Performing operation on the iDRAC device using default
             reset_type with invalid username
       ansible.builtin.import_role:
-        name: idrac_storage_controller
+        name: dellemc.openmanage.idrac_storage_controller
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "WrongUsername123"
@@ -59,7 +59,7 @@
     - name: Performing operation on the iDRAC device using default
             reset_type with invalid password
       ansible.builtin.import_role:
-        name: idrac_storage_controller
+        name: dellemc.openmanage.idrac_storage_controller
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -80,7 +80,7 @@
     - name: Performing operation on the iDRAC device using default
             reset_type without controller ID
       ansible.builtin.import_role:
-        name: idrac_storage_controller
+        name: dellemc.openmanage.idrac_storage_controller
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -102,7 +102,7 @@
     - name: Playbook to set controller attributes with Job wait by providing
             a invalid value for attribute
       ansible.builtin.import_role:
-        name: idrac_storage_controller
+        name: dellemc.openmanage.idrac_storage_controller
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -128,7 +128,7 @@
     - name: Playbook to set controller attributes with Job wait by providing
             a invalid apply_time
       ansible.builtin.import_role:
-        name: idrac_storage_controller
+        name: dellemc.openmanage.idrac_storage_controller
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -158,7 +158,7 @@
             "apply_time=AtMaintenanceWindowStart"  by providing a invalid
             maintenance_window
       ansible.builtin.import_role:
-        name: idrac_storage_controller
+        name: dellemc.openmanage.idrac_storage_controller
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -192,7 +192,7 @@
     - name: Playbook to expand size of disk by target with Job wait
             with "volume_id " as Invalid value
       ansible.builtin.import_role:
-        name: idrac_storage_controller
+        name: dellemc.openmanage.idrac_storage_controller
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -221,7 +221,7 @@
     - name: Playbook to expand size of disk by target with Job wait with
             "volume_id" and Invalid expand_capacity_disk
       ansible.builtin.import_role:
-        name: idrac_storage_controller
+        name: dellemc.openmanage.idrac_storage_controller
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -247,7 +247,7 @@
 
     - name: Playbook to change disk status when target is missing
       ansible.builtin.import_role:
-        name: idrac_storage_controller
+        name: dellemc.openmanage.idrac_storage_controller
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -264,7 +264,7 @@
 
     - name: Playbook to change disk status when target Id is invalid
       ansible.builtin.import_role:
-        name: idrac_storage_controller
+        name: dellemc.openmanage.idrac_storage_controller
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -290,7 +290,7 @@
 
     - name: Playbook with invalid assign dedicated hot spare
       ansible.builtin.import_role:
-        name: idrac_storage_controller
+        name: dellemc.openmanage.idrac_storage_controller
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"

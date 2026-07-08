@@ -13,7 +13,7 @@
         - name: Set rekeying of controller encryption key
               (Check mode - Changes expected)
           ansible.builtin.import_role:
-            name: idrac_storage_controller
+            name: dellemc.openmanage.idrac_storage_controller
           vars:
             hostname: "{{ lookup('env', 'IDRAC_IP') }}"
             username: "{{ lookup('env', 'IDRAC_USER') }}"
