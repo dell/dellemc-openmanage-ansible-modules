@@ -30,6 +30,7 @@ class TestStorageInfo(FakeAnsibleModule):
     @pytest.fixture
     def idrac_storage_info_mock(self, mocker):
         idrac_obj = mocker.MagicMock()
+        idrac_obj.get_server_generation = (17, "7.10.90.00", "iDRAC 9")
         return idrac_obj
 
     @pytest.fixture
@@ -112,6 +113,55 @@ class TestStorageInfo(FakeAnsibleModule):
                      side_effect=URLError('timed out'))
         result = self._run_module(idrac_default_args)
         assert result.get('unreachable') is True
+
+    def test_firmware_validation_idrac9_supported(self, idrac_connection_storage_info_mock, idrac_storage_info_mock,
+                                                   idrac_default_args):
+        idrac_storage_info_mock.get_server_generation = (16, "7.10.90.00", "iDRAC 9")
+        idrac_default_args.update({"resource_type": "controller"})
+        result = self._run_module(idrac_default_args)
+        assert result["msg"] == SUCCESS_MSG
+
+    def test_firmware_validation_idrac9_unsupported(self, idrac_connection_storage_info_mock, idrac_storage_info_mock,
+                                                     idrac_default_args):
+        idrac_storage_info_mock.get_server_generation = (16, "7.10.80.00", "iDRAC 9")
+        idrac_default_args.update({"resource_type": "controller"})
+        result = self._run_module(idrac_default_args)
+        assert result["failed"] is True
+        assert "does not meet the minimum required version" in result["msg"]
+
+    def test_firmware_validation_idrac10_supported(self, idrac_connection_storage_info_mock, idrac_storage_info_mock,
+                                                    idrac_default_args):
+        idrac_storage_info_mock.get_server_generation = (17, "1.20.50.50", "iDRAC 10")
+        idrac_default_args.update({"resource_type": "controller"})
+        result = self._run_module(idrac_default_args)
+        assert result["msg"] == SUCCESS_MSG
+
+    def test_firmware_validation_idrac10_unsupported(self, idrac_connection_storage_info_mock, idrac_storage_info_mock,
+                                                      idrac_default_args):
+        idrac_storage_info_mock.get_server_generation = (17, "1.20.40.00", "iDRAC 10")
+        idrac_default_args.update({"resource_type": "controller"})
+        result = self._run_module(idrac_default_args)
+        assert result["failed"] is True
+        assert "does not meet the minimum required version" in result["msg"]
+
+    def test_firmware_validation_unsupported_generation(self, idrac_connection_storage_info_mock,
+                                                          idrac_storage_info_mock, idrac_default_args):
+        idrac_storage_info_mock.get_server_generation = (14, "2.75.75.75", "iDRAC 8")
+        idrac_default_args.update({"resource_type": "controller"})
+        result = self._run_module(idrac_default_args)
+        assert result["failed"] is True
+        assert result["msg"] == "This module is not supported on iDRAC 8."
+
+    @pytest.mark.parametrize("current,minimum,expected", [
+        ("7.10.90.00", "7.10.90.00", True),
+        ("7.10.90.01", "7.10.90.00", True),
+        ("7.10.89.99", "7.10.90.00", False),
+        ("1.20.50.50", "1.20.50.50", True),
+        ("1.20.50.49", "1.20.50.50", False),
+        ("8.0.0.0", "7.10.90.00", True),
+    ])
+    def test_version_meets_minimum(self, current, minimum, expected):
+        assert idrac_storage_info.StorageInfo._version_meets_minimum(current, minimum) is expected
 
 
 @pytest.fixture

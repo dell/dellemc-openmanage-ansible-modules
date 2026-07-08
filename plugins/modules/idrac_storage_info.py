@@ -129,6 +129,13 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
 CONTROLLER_ID_REQUIRED_MSG = "controller_id is required when resource_type is '{resource_type}'."
 SUCCESS_MSG = "Successfully fetched the storage information."
+MIN_FIRMWARE_VERSION = {
+    "iDRAC 9": "7.10.90.00",
+    "iDRAC 10": "1.20.50.50",
+}
+UNSUPPORTED_FIRMWARE_MSG = ("Installed {hw_model} firmware version {firmware_version} does not meet the minimum "
+                            "required version {min_version} for this module.")
+UNSUPPORTED_GENERATION_MSG = "This module is not supported on {hw_model}."
 
 
 class StorageInfo:
@@ -142,6 +149,28 @@ class StorageInfo:
         if resource_type in ("physical_disk", "virtual_disk") and not controller_id:
             self.module.exit_json(
                 msg=CONTROLLER_ID_REQUIRED_MSG.format(resource_type=resource_type), failed=True)
+
+    @staticmethod
+    def _version_meets_minimum(current_version, min_version):
+        def to_tuple(version):
+            return tuple(int(part) for part in version.split('.'))
+        current = to_tuple(current_version)
+        minimum = to_tuple(min_version)
+        max_len = max(len(current), len(minimum))
+        current = current + (0,) * (max_len - len(current))
+        minimum = minimum + (0,) * (max_len - len(minimum))
+        return current >= minimum
+
+    def validate_firmware_version(self):
+        generation, firmware_version, hw_model = self.idrac.get_server_generation
+        min_version = MIN_FIRMWARE_VERSION.get(hw_model)
+        if min_version is None:
+            self.module.exit_json(msg=UNSUPPORTED_GENERATION_MSG.format(hw_model=hw_model), failed=True)
+        if not self._version_meets_minimum(firmware_version, min_version):
+            self.module.exit_json(
+                msg=UNSUPPORTED_FIRMWARE_MSG.format(hw_model=hw_model, firmware_version=firmware_version,
+                                                     min_version=min_version),
+                failed=True)
 
 
 def main():
@@ -157,6 +186,7 @@ def main():
         with iDRACRedfishAPI(module.params) as idrac:
             storage_info_obj = StorageInfo(idrac, module)
             storage_info_obj.validate_params()
+            storage_info_obj.validate_firmware_version()
             storage_info = {"resource_count": 0, "resources": []}
         module.exit_json(msg=SUCCESS_MSG, storage_info=storage_info)
     except HTTPError as err:
