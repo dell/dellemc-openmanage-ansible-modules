@@ -196,6 +196,10 @@ notes:
       along with a warning, since these operations cannot be safely verified without making changes.
     - For C(create), if a specified virtual disk already exists (matched by I(name)), it is not recreated; the module
       reports its existing configuration and any mismatches against the desired configuration instead.
+    - For C(modify), if I(enable_encryption) and I(initialize_method)/I(initialization_type) and attribute modification
+      parameters (I(display_name), I(modify_read_cache_policy), and so on) are all specified in the same task, only one
+      operation is performed, in this priority order - encryption, then initialization, then attribute modification.
+      Use separate tasks to perform more than one of these operations on the same virtual disk.
 '''
 
 EXAMPLES = r'''
@@ -990,6 +994,7 @@ class StorageCreate(StorageValidation):
             any_mismatch = any(not info["matches"] for info in existing_report.values())
             self.module.exit_json(msg=IDEMPOTENT_EXISTING_VOLUMES_MSG, changed=any_mismatch,
                                   existing_volumes=existing_report)
+        self.existing_volumes_report = existing_report
         self.module_ext_params['volumes'] = remaining_volumes
         self.validate()
         job_dict = {}
@@ -1315,7 +1320,11 @@ def main():
             output = obj.execute()
             msg = SUCCESSFUL_OPERATION_MSG.format(operation=module.params['state'])
             changed = True if module.params['state'] in ['create', 'delete'] else False
-            module.exit_json(msg=msg, changed=changed, storage_status=output)
+            extra_kwargs = {}
+            existing_volumes_report = getattr(obj, 'existing_volumes_report', None)
+            if existing_volumes_report:
+                extra_kwargs['existing_volumes'] = existing_volumes_report
+            module.exit_json(msg=msg, changed=changed, storage_status=output, **extra_kwargs)
     except HTTPError as err:
         import json
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)

@@ -146,20 +146,16 @@ TRANSIENT_HTTP_STATUS_CODES = (503,)
 def retry_on_transient_error(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        last_err = None
         for attempt in range(MAX_RETRIES):
             try:
                 return func(*args, **kwargs)
             except HTTPError as err:
                 if err.code not in TRANSIENT_HTTP_STATUS_CODES or attempt == MAX_RETRIES - 1:
                     raise
-                last_err = err
-            except URLError as err:
+            except URLError:
                 if attempt == MAX_RETRIES - 1:
                     raise
-                last_err = err
             time.sleep(2 ** attempt)
-        raise last_err
     return wrapper
 
 
