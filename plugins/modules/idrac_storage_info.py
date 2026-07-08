@@ -98,7 +98,12 @@ storage_info:
           "FirmwareVersion": "25.5.9.0001",
           "Status": {"Health": "OK"}
         }
-      ]
+      ],
+      "total_capacity": null,
+      "available_capacity": null,
+      "idrac_generation": 17,
+      "idrac_firmware_version": "7.10.90.00",
+      "idrac_model": "iDRAC 9"
     }
 error_info:
   description: Details of the HTTP Error.
@@ -153,6 +158,7 @@ class StorageInfo:
     def __init__(self, idrac, module):
         self.idrac = idrac
         self.module = module
+        self._generation_info = None
 
     def validate_params(self):
         resource_type = self.module.params.get("resource_type")
@@ -173,7 +179,8 @@ class StorageInfo:
         return current >= minimum
 
     def validate_firmware_version(self):
-        generation, firmware_version, hw_model = self.idrac.get_server_generation
+        self._generation_info = self.idrac.get_server_generation
+        generation, firmware_version, hw_model = self._generation_info
         min_version = MIN_FIRMWARE_VERSION.get(hw_model)
         if min_version is None:
             self.module.exit_json(msg=UNSUPPORTED_GENERATION_MSG.format(hw_model=hw_model), failed=True)
@@ -274,6 +281,17 @@ class StorageInfo:
             mapped[field] = oem_dell.get(field)
         return mapped
 
+    @staticmethod
+    def _compute_capacity(resource_type, resources):
+        if resource_type == "physical_disk":
+            total_capacity = sum(resource.get("CapacityBytes") or 0 for resource in resources)
+            available_capacity = sum(resource.get("FreeSizeInBytes") or 0 for resource in resources)
+            return total_capacity, available_capacity
+        if resource_type == "virtual_disk":
+            total_capacity = sum(resource.get("CapacityBytes") or 0 for resource in resources)
+            return total_capacity, None
+        return None, None
+
     def fetch_resources(self):
         resource_type = self.module.params.get("resource_type")
         controller_id = self.module.params.get("controller_id")
@@ -283,7 +301,17 @@ class StorageInfo:
             resources = self.get_physical_disks(controller_id)
         else:
             resources = self.get_virtual_disks(controller_id)
-        return {"resource_count": len(resources), "resources": resources}
+        total_capacity, available_capacity = self._compute_capacity(resource_type, resources)
+        generation, firmware_version, hw_model = self._generation_info or self.idrac.get_server_generation
+        return {
+            "resource_count": len(resources),
+            "resources": resources,
+            "total_capacity": total_capacity,
+            "available_capacity": available_capacity,
+            "idrac_generation": generation,
+            "idrac_firmware_version": firmware_version,
+            "idrac_model": hw_model,
+        }
 
 
 def main():

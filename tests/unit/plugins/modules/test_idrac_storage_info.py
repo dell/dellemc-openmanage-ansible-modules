@@ -165,6 +165,26 @@ class TestStorageInfo(FakeAnsibleModule):
     def test_version_meets_minimum(self, current, minimum, expected):
         assert idrac_storage_info.StorageInfo._version_meets_minimum(current, minimum) is expected
 
+    def test_compute_capacity_controller_type(self):
+        total, available = idrac_storage_info.StorageInfo._compute_capacity("controller", [{"Id": "RAID.Slot.1-1"}])
+        assert total is None
+        assert available is None
+
+    def test_compute_capacity_physical_disk_type(self):
+        resources = [
+            {"CapacityBytes": 1000, "FreeSizeInBytes": 400},
+            {"CapacityBytes": 2000, "FreeSizeInBytes": None},
+        ]
+        total, available = idrac_storage_info.StorageInfo._compute_capacity("physical_disk", resources)
+        assert total == 3000
+        assert available == 400
+
+    def test_compute_capacity_virtual_disk_type(self):
+        resources = [{"CapacityBytes": 1500}, {"CapacityBytes": 2500}]
+        total, available = idrac_storage_info.StorageInfo._compute_capacity("virtual_disk", resources)
+        assert total == 4000
+        assert available is None
+
 
 class TestStorageInfoControllerQuery(FakeAnsibleModule):
     module = idrac_storage_info
@@ -231,6 +251,7 @@ class TestStorageInfoControllerQuery(FakeAnsibleModule):
              "StorageControllers": [{"Model": "PERC H755", "FirmwareVersion": "25.5.9.0001"}], "Oem": {}},
         ]
         idrac_obj = self._idrac_mock(mocker, controller_members)
+        idrac_obj.get_server_generation = (17, "7.10.90.00", "iDRAC 9")
         module = mocker.MagicMock()
         module.params = {"resource_type": "controller"}
         storage_info_obj = idrac_storage_info.StorageInfo(idrac_obj, module)
@@ -239,6 +260,11 @@ class TestStorageInfoControllerQuery(FakeAnsibleModule):
 
         assert result["resource_count"] == 1
         assert result["resources"][0]["Id"] == "RAID.Slot.1-1"
+        assert result["idrac_generation"] == 17
+        assert result["idrac_firmware_version"] == "7.10.90.00"
+        assert result["idrac_model"] == "iDRAC 9"
+        assert result["total_capacity"] is None
+        assert result["available_capacity"] is None
 
 
 
@@ -326,8 +352,10 @@ class TestStorageInfoPhysicalDiskQuery(FakeAnsibleModule):
 
     def test_fetch_resources_physical_disk_type(self, mocker):
         controller_members = [{"Id": "RAID.Slot.1-1", "Drives": [{"@odata.id": self.DRIVE_URI}]}]
-        drive_data_by_uri = {self.DRIVE_URI: {"Id": "Disk.Bay.0", "Oem": {}}}
+        drive_data_by_uri = {self.DRIVE_URI: {"Id": "Disk.Bay.0", "CapacityBytes": 1000, "Oem": {
+            "Dell": {"DellPhysicalDisk": {"FreeSizeInBytes": 500}}}}}
         idrac_obj = self._idrac_mock(mocker, controller_members, drive_data_by_uri)
+        idrac_obj.get_server_generation = (17, "7.10.90.00", "iDRAC 9")
         module = mocker.MagicMock()
         module.params = {"resource_type": "physical_disk", "controller_id": "RAID.Slot.1-1"}
         storage_info_obj = idrac_storage_info.StorageInfo(idrac_obj, module)
@@ -336,6 +364,8 @@ class TestStorageInfoPhysicalDiskQuery(FakeAnsibleModule):
 
         assert result["resource_count"] == 1
         assert result["resources"][0]["Id"] == "Disk.Bay.0"
+        assert result["total_capacity"] == 1000
+        assert result["available_capacity"] == 500
 
 
 class TestStorageInfoVirtualDiskQuery(FakeAnsibleModule):
@@ -430,8 +460,10 @@ class TestStorageInfoVirtualDiskQuery(FakeAnsibleModule):
     def test_fetch_resources_virtual_disk_type(self, mocker):
         controller_members = [{"Id": "RAID.Slot.1-1", "Volumes": {"@odata.id": self.VOLUMES_URI}}]
         volumes_members = [{"@odata.id": self.VOLUME_URI}]
-        volume_data_by_uri = {self.VOLUME_URI: {"Id": "Disk.Virtual.0:RAID.Slot.1-1", "Oem": {}}}
+        volume_data_by_uri = {self.VOLUME_URI: {"Id": "Disk.Virtual.0:RAID.Slot.1-1",
+                                                 "CapacityBytes": 2000, "Oem": {}}}
         idrac_obj = self._idrac_mock(mocker, controller_members, volumes_members, volume_data_by_uri)
+        idrac_obj.get_server_generation = (17, "7.10.90.00", "iDRAC 9")
         module = mocker.MagicMock()
         module.params = {"resource_type": "virtual_disk", "controller_id": "RAID.Slot.1-1"}
         storage_info_obj = idrac_storage_info.StorageInfo(idrac_obj, module)
@@ -440,6 +472,8 @@ class TestStorageInfoVirtualDiskQuery(FakeAnsibleModule):
 
         assert result["resource_count"] == 1
         assert result["resources"][0]["Id"] == "Disk.Virtual.0:RAID.Slot.1-1"
+        assert result["total_capacity"] == 2000
+        assert result["available_capacity"] is None
 
 
 @pytest.fixture
