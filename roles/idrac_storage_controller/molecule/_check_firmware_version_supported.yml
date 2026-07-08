@@ -1,0 +1,29 @@
+---
+- name: Fetch firmware version
+  ansible.builtin.uri:
+    url: "https://{{ lookup('env', 'IDRAC_IP') | ansible.utils.ipwrap }}:443\
+      /redfish/v1/UpdateService/Oem/Dell/DellSoftwareInventory"
+    user: "{{ lookup('env', 'IDRAC_USER') }}"
+    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    method: GET
+    force_basic_auth: true
+    validate_certs: false
+    body_format: json
+    return_content: true
+    status_code: 200
+  register: uri_data
+  ignore_errors: true
+  check_mode: false
+
+- name: Set default to iDRAC 9
+  ansible.builtin.set_fact:
+    cacheable: true
+    is_idrac9: true
+    is_idrac10: false
+
+- name: Set iDRAC 10 (firmware 5.00.00+)
+  ansible.builtin.set_fact:
+    cacheable: true
+    is_idrac9: false
+    is_idrac10: true
+  when: uri_data.status == 200
