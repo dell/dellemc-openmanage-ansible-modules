@@ -46,6 +46,9 @@ notes:
     - Run this module from a system that has direct access to Integrated Dell Remote Access Controller.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
     - This module supports C(check_mode).
+    - This module requires a minimum iDRAC firmware version of 7.10.90.00 for iDRAC9, or 1.20.50.50 for iDRAC10.
+      A descriptive error is returned if the installed firmware version does not meet this requirement.
+    - Transient errors (HTTP 503) are automatically retried up to 3 times with exponential backoff.
 '''
 
 EXAMPLES = r'''

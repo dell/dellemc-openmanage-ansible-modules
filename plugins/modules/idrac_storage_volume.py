@@ -189,6 +189,13 @@ notes:
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
     - This module supports C(check_mode).
     - This module does not display the controller battery details for the C(view) operation of the storage in iDRAC8.
+    - For C(modify), I(enable_encryption) requires encryption keys to be pre-configured on the controller; the module
+      validates this and returns a descriptive error if the keys are not configured.
+    - For C(modify), C(check_mode) is fully supported for attribute modification (returns a diff of proposed changes).
+      For I(enable_encryption) and I(initialize_method)/I(initialization_type), C(check_mode) reports C(changed=true)
+      along with a warning, since these operations cannot be safely verified without making changes.
+    - For C(create), if a specified virtual disk already exists (matched by I(name)), it is not recreated; the module
+      reports its existing configuration and any mismatches against the desired configuration instead.
 '''
 
 EXAMPLES = r'''
@@ -279,6 +286,70 @@ EXAMPLES = r'''
     volumes:
       - name: "volume_1"
       - name: "volume_2"
+
+- name: Modify virtual disk attributes (display name and cache policies)
+  dellemc.openmanage.idrac_storage_volume:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "username"
+    idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    state: "modify"
+    controller_id: "RAID.Slot.1-1"
+    volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
+    display_name: "prod-data-volume"
+    modify_read_cache_policy: "AdaptiveReadAhead"
+    modify_write_cache_policy: "ProtectedWriteBack"
+    modify_disk_cache_policy: "Enabled"
+
+- name: Check proposed attribute changes without applying them
+  dellemc.openmanage.idrac_storage_volume:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "username"
+    idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    state: "modify"
+    controller_id: "RAID.Slot.1-1"
+    volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
+    modify_write_cache_policy: "WriteThrough"
+  check_mode: true
+
+- name: Enable encryption on an existing virtual disk using local key management
+  dellemc.openmanage.idrac_storage_volume:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "username"
+    idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    state: "modify"
+    controller_id: "RAID.Slot.1-1"
+    volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
+    enable_encryption: true
+    encryption_mode: "LKM"
+    job_wait: true
+    job_wait_timeout: 3600
+
+- name: Perform fast initialization on a virtual disk
+  dellemc.openmanage.idrac_storage_volume:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "username"
+    idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    state: "modify"
+    controller_id: "RAID.Slot.1-1"
+    volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
+    initialization_type: "Fast"
+    job_wait: true
+    job_wait_timeout: 3600
+
+- name: Perform standard Redfish background initialization on a virtual disk
+  dellemc.openmanage.idrac_storage_volume:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "username"
+    idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    state: "modify"
+    controller_id: "RAID.Slot.1-1"
+    volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
+    initialize_method: "Background"
 '''
 
 RETURN = r'''
@@ -304,6 +375,50 @@ storage_status:
       "StartTime": "TIME_NOW",
       "TargetSettingsURI": null,
     }
+diff:
+  type: dict
+  description:
+    - Before and after values for attribute modification, encryption enablement, or initialization.
+    - This is returned when I(state) is C(modify).
+  returned: when state is modify
+  sample: {
+    "before": {"Name": "volume_1", "WriteCachePolicy": "WriteThrough"},
+    "after": {"Name": "prod-data-volume", "WriteCachePolicy": "ProtectedWriteBack"}
+  }
+job_status:
+  type: dict
+  description:
+    - Job tracking details for encryption enablement or initialization operations.
+    - This is returned when I(state) is C(modify) and I(enable_encryption) or I(initialize_method)/I(initialization_type) is specified.
+  returned: when state is modify and a job-based operation is performed
+  sample:
+    {
+      "Id": "JID_XXXXXXXXX",
+      "JobState": "Completed",
+      "JobType": "RAIDConfiguration",
+      "Message": "Job completed successfully.",
+      "PercentComplete": 100
+    }
+warnings:
+  type: list
+  description:
+    - Warnings raised during the operation, for example when encryption or initialization cannot be safely verified in check_mode.
+  returned: when applicable
+  sample: ["Encryption enablement cannot be safely verified without making changes; no encryption job is submitted in check_mode."]
+existing_volumes:
+  type: dict
+  description:
+    - Idempotency report for C(create), keyed by virtual disk name, indicating whether each specified virtual disk already exists,
+      whether its current configuration matches the desired configuration, and a diff of any mismatched attributes.
+    - This is returned when I(state) is C(create) and all specified virtual disks already exist.
+  returned: when state is create and all specified volumes already exist
+  sample: {
+    "volume_1": {
+      "exists": true,
+      "matches": false,
+      "diff": {"DiskCachePolicy": {"current": "Disabled", "desired": "Enabled"}}
+    }
+  }
 error_info:
   description: Details of the HTTP Error.
   returned: on HTTP error
