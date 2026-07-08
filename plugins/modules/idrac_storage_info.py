@@ -145,6 +145,7 @@ CONTROLLER_OEM_FIELDS = ["PatrolReadRatePercent", "RebuildRatePercent", "Copybac
                          "EncryptionCapability", "EncryptionMode"]
 PHYSICAL_DISK_OEM_FIELDS = ["RaidStatus", "HotSpareStatus", "UsedSizeBytes", "FreeSizeInBytes",
                             "EncryptionCapable", "PredictiveFailureState"]
+VIRTUAL_DISK_OEM_FIELDS = ["RaidStatus", "ReadCachePolicy", "WriteCachePolicy", "DiskCachePolicy"]
 CONTROLLER_NOT_FOUND_MSG = "Specified controller '{controller_id}' does not exist."
 
 
@@ -248,6 +249,31 @@ class StorageInfo:
             mapped[field] = oem_dell.get(field)
         return mapped
 
+    def get_virtual_disks(self, controller_id):
+        controller = self.get_controller_by_id(controller_id)
+        volumes_uri = controller.get("Volumes", {}).get(ODATA_ID)
+        virtual_disks = []
+        if volumes_uri:
+            volume_refs = get_dynamic_uri(self.idrac, volumes_uri, "Members") or []
+            for volume_ref in volume_refs:
+                volume_data = get_dynamic_uri(self.idrac, volume_ref.get(ODATA_ID))
+                virtual_disks.append(self._map_virtual_disk(volume_data))
+        return virtual_disks
+
+    @staticmethod
+    def _map_virtual_disk(volume):
+        oem_dell = volume.get("Oem", {}).get("Dell", {}).get("DellVirtualDisk", {})
+        mapped = {
+            "Id": volume.get("Id"),
+            "Name": volume.get("Name"),
+            "RAIDType": volume.get("RAIDType"),
+            "CapacityBytes": volume.get("CapacityBytes"),
+            "Status": volume.get("Status"),
+        }
+        for field in VIRTUAL_DISK_OEM_FIELDS:
+            mapped[field] = oem_dell.get(field)
+        return mapped
+
     def fetch_resources(self):
         resource_type = self.module.params.get("resource_type")
         controller_id = self.module.params.get("controller_id")
@@ -256,7 +282,7 @@ class StorageInfo:
         elif resource_type == "physical_disk":
             resources = self.get_physical_disks(controller_id)
         else:
-            resources = []
+            resources = self.get_virtual_disks(controller_id)
         return {"resource_count": len(resources), "resources": resources}
 
 

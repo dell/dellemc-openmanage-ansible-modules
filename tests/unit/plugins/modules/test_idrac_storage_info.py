@@ -240,15 +240,6 @@ class TestStorageInfoControllerQuery(FakeAnsibleModule):
         assert result["resource_count"] == 1
         assert result["resources"][0]["Id"] == "RAID.Slot.1-1"
 
-    def test_fetch_resources_non_controller_type_returns_empty(self, mocker):
-        idrac_obj = mocker.MagicMock()
-        module = mocker.MagicMock()
-        module.params = {"resource_type": "virtual_disk", "controller_id": "RAID.Slot.1-1"}
-        storage_info_obj = idrac_storage_info.StorageInfo(idrac_obj, module)
-
-        result = storage_info_obj.fetch_resources()
-
-        assert result == {"resource_count": 0, "resources": []}
 
 
 class TestStorageInfoPhysicalDiskQuery(FakeAnsibleModule):
@@ -345,6 +336,110 @@ class TestStorageInfoPhysicalDiskQuery(FakeAnsibleModule):
 
         assert result["resource_count"] == 1
         assert result["resources"][0]["Id"] == "Disk.Bay.0"
+
+
+class TestStorageInfoVirtualDiskQuery(FakeAnsibleModule):
+    module = idrac_storage_info
+    SYSTEMS_URI = "/redfish/v1/Systems"
+    SYSTEM_URI = "/redfish/v1/Systems/System.Embedded.1"
+    STORAGE_URI = "/redfish/v1/Systems/System.Embedded.1/Storage"
+    VOLUMES_URI = "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Slot.1-1/Volumes"
+    VOLUME_URI = VOLUMES_URI + "/Disk.Virtual.0:RAID.Slot.1-1"
+
+    def _idrac_mock(self, mocker, controller_members, volumes_members, volume_data_by_uri):
+        idrac_obj = mocker.MagicMock()
+
+        def invoke_request_side_effect(*args, **kwargs):
+            uri = kwargs.get("uri") or kwargs.get("path") or (args[0] if args else None)
+            resp = mocker.MagicMock()
+            if uri == self.SYSTEMS_URI:
+                resp.json_data = {"Members": [{"@odata.id": self.SYSTEM_URI}]}
+            elif uri == self.SYSTEM_URI:
+                resp.json_data = {"Storage": {"@odata.id": self.STORAGE_URI}}
+            elif uri == self.STORAGE_URI + "?$expand=*($levels=1)":
+                resp.json_data = {"Members": controller_members}
+            elif uri == self.VOLUMES_URI:
+                resp.json_data = {"Members": volumes_members}
+            elif uri in volume_data_by_uri:
+                resp.json_data = volume_data_by_uri[uri]
+            else:
+                resp.json_data = {}
+            return resp
+
+        idrac_obj.invoke_request.side_effect = invoke_request_side_effect
+        return idrac_obj
+
+    def test_get_virtual_disks_maps_redfish_and_oem_fields(self, mocker):
+        controller_members = [
+            {"Id": "RAID.Slot.1-1", "Volumes": {"@odata.id": self.VOLUMES_URI}},
+        ]
+        volumes_members = [{"@odata.id": self.VOLUME_URI}]
+        volume_data_by_uri = {
+            self.VOLUME_URI: {
+                "Id": "Disk.Virtual.0:RAID.Slot.1-1",
+                "Name": "Virtual Disk 0",
+                "RAIDType": "RAID1",
+                "CapacityBytes": 400088457216,
+                "Status": {"Health": "OK"},
+                "Oem": {"Dell": {"DellVirtualDisk": {
+                    "RaidStatus": "Online",
+                    "ReadCachePolicy": "ReadAhead",
+                    "WriteCachePolicy": "WriteBack",
+                    "DiskCachePolicy": "Enabled",
+                }}},
+            }
+        }
+        idrac_obj = self._idrac_mock(mocker, controller_members, volumes_members, volume_data_by_uri)
+        module = mocker.MagicMock()
+        storage_info_obj = idrac_storage_info.StorageInfo(idrac_obj, module)
+
+        virtual_disks = storage_info_obj.get_virtual_disks("RAID.Slot.1-1")
+
+        assert len(virtual_disks) == 1
+        assert virtual_disks[0]["Id"] == "Disk.Virtual.0:RAID.Slot.1-1"
+        assert virtual_disks[0]["RAIDType"] == "RAID1"
+        assert virtual_disks[0]["RaidStatus"] == "Online"
+        assert virtual_disks[0]["ReadCachePolicy"] == "ReadAhead"
+        assert virtual_disks[0]["WriteCachePolicy"] == "WriteBack"
+        assert virtual_disks[0]["DiskCachePolicy"] == "Enabled"
+
+    def test_get_virtual_disks_no_volumes(self, mocker):
+        controller_members = [{"Id": "RAID.Slot.1-1", "Volumes": {"@odata.id": self.VOLUMES_URI}}]
+        idrac_obj = self._idrac_mock(mocker, controller_members, [], {})
+        module = mocker.MagicMock()
+        storage_info_obj = idrac_storage_info.StorageInfo(idrac_obj, module)
+
+        virtual_disks = storage_info_obj.get_virtual_disks("RAID.Slot.1-1")
+
+        assert virtual_disks == []
+
+    def test_get_virtual_disks_controller_not_found(self, mocker):
+        idrac_obj = self._idrac_mock(mocker, [{"Id": "RAID.Slot.1-2", "Volumes": {}}], [], {})
+        idrac_obj.get_server_generation = (17, "7.10.90.00", "iDRAC 9")
+        conn_mock = mocker.patch(MODULE_PATH + 'iDRACRedfishAPI', return_value=idrac_obj)
+        conn_mock.return_value.__enter__.return_value = idrac_obj
+
+        result = self._run_module({
+            "idrac_ip": "192.168.0.1", "idrac_user": "username", "idrac_password": "password",
+            "idrac_port": 443, "resource_type": "virtual_disk", "controller_id": "RAID.Slot.1-1",
+        })
+
+        assert result["failed"] is True
+        assert result["msg"] == "Specified controller 'RAID.Slot.1-1' does not exist."
+
+    def test_fetch_resources_virtual_disk_type(self, mocker):
+        controller_members = [{"Id": "RAID.Slot.1-1", "Volumes": {"@odata.id": self.VOLUMES_URI}}]
+        volumes_members = [{"@odata.id": self.VOLUME_URI}]
+        volume_data_by_uri = {self.VOLUME_URI: {"Id": "Disk.Virtual.0:RAID.Slot.1-1", "Oem": {}}}
+        idrac_obj = self._idrac_mock(mocker, controller_members, volumes_members, volume_data_by_uri)
+        module = mocker.MagicMock()
+        module.params = {"resource_type": "virtual_disk", "controller_id": "RAID.Slot.1-1"}
+        storage_info_obj = idrac_storage_info.StorageInfo(idrac_obj, module)
+
+        result = storage_info_obj.fetch_resources()
+
+        assert result["resource_count"] == 1
+        assert result["resources"][0]["Id"] == "Disk.Virtual.0:RAID.Slot.1-1"
 
 
 @pytest.fixture
