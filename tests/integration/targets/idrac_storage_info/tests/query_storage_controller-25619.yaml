@@ -1,0 +1,124 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+#
+# Business Function: UC-1 Automated Server Storage Discovery (JA-25619)
+# Traceability: AC-001, ER-25619 FR-1.1, Test Plan tc_fvt_001_controller_discovery
+---
+- name: Query all storage controllers and validate merged Redfish + Dell OEM inventory
+  block:
+    - name: Query all storage controllers
+      dellemc.openmanage.idrac_storage_info:
+        resource_type: "controller"
+      register: controller_result
+
+    - name: Verify the query completed successfully
+      ansible.builtin.assert:
+        that:
+          - controller_result is not failed
+          - controller_result.msg == "Successfully fetched the storage information."
+        fail_msg: "Storage controller discovery did not complete successfully."
+
+    - name: Verify at least one controller was returned
+      ansible.builtin.assert:
+        that:
+          - controller_result.storage_info.resources | length > 0
+          - controller_result.storage_info.resource_count ==
+            (controller_result.storage_info.resources | length)
+        fail_msg: "Expected at least one RAID controller in the inventory."
+
+    - name: Verify each controller includes standard Redfish and Dell OEM attributes
+      ansible.builtin.assert:
+        that:
+          - item.Id is defined and item.Id | length > 0
+          - item.Model is defined
+          - item.FirmwareVersion is defined
+          - item.Status is defined
+          - "'PatrolReadRatePercent' in item"
+          - "'RebuildRatePercent' in item"
+          - "'CopybackMode' in item"
+          - "'EncryptionCapability' in item"
+          - "'EncryptionMode' in item"
+        fail_msg: "Controller entry is missing a required Redfish or Dell OEM field: {{ item }}"
+      loop: "{{ controller_result.storage_info.resources }}"
+      loop_control:
+        label: "{{ item.Id | default('unknown') }}"
+
+    - name: Verify iDRAC diagnostic information is present in the response
+      ansible.builtin.assert:
+        that:
+          - controller_result.storage_info.idrac_generation is defined
+          - controller_result.storage_info.idrac_firmware_version is defined
+          - controller_result.storage_info.idrac_model is defined
+        fail_msg: "Response is missing iDRAC diagnostic information (generation/firmware/model)."
+
+    - name: Verify controller query check_mode makes no changes
+      dellemc.openmanage.idrac_storage_info:
+        resource_type: "controller"
+      check_mode: true
+      register: controller_result_check_mode
+
+    - name: Verify check_mode result matches real-run result (read-only, no side effects)
+      ansible.builtin.assert:
+        that:
+          - controller_result_check_mode is not failed
+          - not controller_result_check_mode.changed
+        fail_msg: "Read-only query must never report changed=true, even implicitly."
+
+    - name: Attempt to query physical disks without required controller_id
+      dellemc.openmanage.idrac_storage_info:
+        resource_type: "physical_disk"
+      register: physical_disk_missing_controller_id
+      failed_when: false
+
+    - name: Verify clear remediation error when controller_id is missing (AC-007)
+      ansible.builtin.assert:
+        that:
+          - physical_disk_missing_controller_id is failed
+          - "'controller_id' in physical_disk_missing_controller_id.msg"
+        fail_msg: "Expected a clear error requiring controller_id for resource_type=physical_disk."
+
+    - name: Query physical disks for the first discovered controller
+      dellemc.openmanage.idrac_storage_info:
+        resource_type: "physical_disk"
+        controller_id: "{{ controller_result.storage_info.resources[0].Id }}"
+      register: physical_disk_result
+
+    - name: Verify physical disk inventory includes required Redfish and Dell OEM fields
+      ansible.builtin.assert:
+        that:
+          - physical_disk_result is not failed
+          - physical_disk_result.storage_info.resource_count ==
+            (physical_disk_result.storage_info.resources | length)
+        fail_msg: "Physical disk discovery for the first controller did not complete successfully."
+
+    - name: Verify each physical disk entry includes Dell OEM capacity/state fields
+      ansible.builtin.assert:
+        that:
+          - "'RaidStatus' in item"
+          - "'HotSpareStatus' in item"
+          - "'UsedSizeBytes' in item"
+          - "'FreeSizeInBytes' in item"
+          - "'EncryptionCapable' in item"
+          - "'PredictiveFailureState' in item"
+        fail_msg: "Physical disk entry is missing a required Dell OEM field: {{ item }}"
+      loop: "{{ physical_disk_result.storage_info.resources }}"
+      loop_control:
+        label: "{{ item.Id | default('unknown') }}"
+      when: physical_disk_result.storage_info.resources | length > 0
+
+    - name: Query a non-existent controller and verify clear remediation guidance (AC-007)
+      dellemc.openmanage.idrac_storage_info:
+        resource_type: "physical_disk"
+        controller_id: "NonExistent.Controller.99-9"
+      register: invalid_controller_result
+      failed_when: false
+
+    - name: Verify error indicates the controller was not found
+      ansible.builtin.assert:
+        that:
+          - invalid_controller_result is failed
+          - "'does not exist' in invalid_controller_result.msg"
+        fail_msg: "Expected a clear 'controller does not exist' error for an invalid controller_id."
