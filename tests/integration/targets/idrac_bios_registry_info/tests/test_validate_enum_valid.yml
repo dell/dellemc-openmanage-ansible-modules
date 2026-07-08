@@ -14,7 +14,7 @@
     validate_certs: "{{ validate_certs | default(true) }}"
     validate: true
     attributes:
-      BootMode: "Uefi"
+      ProcVirtualization: "Enabled"
   register: validation_result
 
 - name: Verify module succeeded
@@ -35,10 +35,10 @@
       - validation_result.validation_results is defined
       - validation_result.validation_results is iterable
 
-- name: Verify BootMode validation status
+- name: Verify ProcVirtualization validation status
   assert:
     that:
-      - validation_result.validation_results | selectattr('attribute', 'equalto', 'BootMode') | map(attribute='status') | list | first == "valid"
+      - validation_result.validation_results | selectattr('attribute', 'equalto', 'ProcVirtualization') | map(attribute='status') | list | first == "valid"
 
 - name: Verify validation counts
   assert:

@@ -43,7 +43,7 @@
 - name: Verify error reason
   assert:
     that:
-      - validation_result.validation_results | selectattr('attribute', 'equalto', 'NonExistentAttr') | map(attribute='reason') | list | first is search("does not exist")
+      - validation_result.validation_results | selectattr('attribute', 'equalto', 'NonExistentAttr') | map(attribute='reason') | list | first is search("not found in BIOS registry")
 
 - name: Verify validation counts
   assert:

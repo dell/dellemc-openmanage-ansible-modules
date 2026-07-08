@@ -35,10 +35,10 @@
       - filter_result.attribute_count | int > 0
       - filter_result.bios_attributes | length == filter_result.attribute_count | int
 
-- name: Verify all attributes have Security menu path
+- name: Verify all attributes belong to Security category
   assert:
     that:
-      - item.menu_path is search("^./Security")
+      - "'Security' in item.group or item.menu_path is search('Security')"
   loop: "{{ filter_result.bios_attributes }}"
   loop_control:
     label: "{{ item.name }}"

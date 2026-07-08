@@ -14,7 +14,7 @@
     validate_certs: "{{ validate_certs | default(true) }}"
     validate: true
     attributes:
-      BootMode: "UEFI"
+      SecureBoot: "INVALID"
       ProcVirtualization: "Enabled"
       FakeAttribute: "value"
   register: validation_result
@@ -49,7 +49,7 @@
 - name: Verify per-attribute status
   assert:
     that:
-      - validation_result.validation_results | selectattr('attribute', 'equalto', 'BootMode') | map(attribute='status') | list | first == "invalid"
+      - validation_result.validation_results | selectattr('attribute', 'equalto', 'SecureBoot') | map(attribute='status') | list | first == "invalid"
       - validation_result.validation_results | selectattr('attribute', 'equalto', 'ProcVirtualization') | map(attribute='status') | list | first == "valid"
       - validation_result.validation_results | selectattr('attribute', 'equalto', 'FakeAttribute') | map(attribute='status') | list | first == "invalid"
 
