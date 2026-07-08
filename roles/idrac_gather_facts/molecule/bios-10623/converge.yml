@@ -52,6 +52,7 @@
         body_format: "{{ idrac_gather_facts_uri_body_format }}"
         status_code: "{{ idrac_gather_facts_uri_status_code }}"
         return_content: "{{ idrac_gather_facts_uri_return_content }}"
+        force_basic_auth: true
       register: bios_result
       no_log: false
 
@@ -59,7 +60,9 @@
       ansible.builtin.set_fact:
         api_response:
           "{{ bios_result.json | ansible.utils.remove_keys(target=['@odata.context',
-          '@odata.type', '@odata.id', 'SettingsObject', 'Actions', 'AttributeRegistry', 'Description',
+          '@odata.type', '@odata.id', '@odata.etag',
+          'SettingsObject', 'Actions',
+          'AttributeRegistry', 'Description',
           'Id', 'Links', 'Name']) }}"
       vars:
         jquery: "Oem.Dell.DellSystem"

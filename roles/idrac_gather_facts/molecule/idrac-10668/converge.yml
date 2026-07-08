@@ -43,6 +43,7 @@
         body_format: "{{ idrac_gather_facts_uri_body_format }}"
         status_code: "{{ idrac_gather_facts_uri_status_code }}"
         return_content: "{{ idrac_gather_facts_uri_return_content }}"
+        force_basic_auth: true
       register: response_sys_attr
       ignore_errors: true
       no_log: false
@@ -59,6 +60,7 @@
         body_format: "{{ idrac_gather_facts_uri_body_format }}"
         status_code: "{{ idrac_gather_facts_uri_status_code }}"
         return_content: "{{ idrac_gather_facts_uri_return_content }}"
+        force_basic_auth: true
       register: response_mgr_attr
       ignore_errors: true
       no_log: true
@@ -75,6 +77,7 @@
         body_format: "{{ idrac_gather_facts_uri_body_format }}"
         status_code: "{{ idrac_gather_facts_uri_status_code }}"
         return_content: "{{ idrac_gather_facts_uri_return_content }}"
+        force_basic_auth: true
       register: response_lc_attr
       ignore_errors: true
       no_log: true

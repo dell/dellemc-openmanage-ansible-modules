@@ -44,6 +44,7 @@
         body_format: "{{ idrac_gather_facts_uri_body_format }}"
         status_code: "{{ idrac_gather_facts_uri_status_code }}"
         return_content: "{{ idrac_gather_facts_uri_return_content }}"
+        force_basic_auth: true
       register: idrac_gather_facts_controllers_result
 
     - name: Get all storage controller ids.
@@ -78,9 +79,13 @@
           "{{ idrac_gather_facts_disk_result.results |
             selectattr('json', 'defined') | map(attribute='json') |
             selectattr('Drives', 'defined') | map(attribute='Drives') |
-            flatten | ansible.utils.remove_keys(target=['@odata.context',
-            '@odata.id', '@odata.type', 'Actions', 'Assembly', 'Links',
-            'DellDriveSMARTAttributes', 'DellNVMeSMARTAttributes',
+            flatten |
+            ansible.utils.remove_keys(target=[
+            '@odata.context', '@odata.id',
+            '@odata.type', '@odata.etag',
+            'Actions', 'Assembly', 'Links',
+            'DellDriveSMARTAttributes',
+            'DellNVMeSMARTAttributes',
             'Operations@odata.count']) }}"
       when: idrac_gather_facts_disk_result.results is defined
 
