@@ -209,6 +209,10 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
             fp=None
         )
         idrac_mock.invoke_request.side_effect = http_error
+        # Mock cache functions to return None to ensure invoke_request is called
+        mocker.patch(MODULE_PATH + '.get_from_cache', return_value=None)
+        # Set force_refresh to True to bypass cache and ensure invoke_request is called
+        idrac_default_args['force_refresh'] = True
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.return_value = idrac_mock
             result = self._run_module_with_fail_json(idrac_default_args)
@@ -518,6 +522,10 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
             fp=None
         )
         idrac_mock.invoke_request.side_effect = http_error
+        # Mock cache functions to return None to ensure invoke_request is called
+        mocker.patch(MODULE_PATH + '.get_from_cache', return_value=None)
+        # Set force_refresh to True to bypass cache and ensure invoke_request is called
+        idrac_default_args['force_refresh'] = True
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.return_value = idrac_mock
             result = self._run_module_with_fail_json(idrac_default_args)
@@ -536,6 +544,10 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
             fp=None
         )
         idrac_mock.invoke_request.side_effect = http_error
+        # Mock cache functions to return None to ensure invoke_request is called
+        mocker.patch(MODULE_PATH + '.get_from_cache', return_value=None)
+        # Set force_refresh to True to bypass cache and ensure invoke_request is called
+        idrac_default_args['force_refresh'] = True
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
             mock_class.return_value.__enter__.return_value = idrac_mock
             result = self._run_module_with_fail_json(idrac_default_args)
