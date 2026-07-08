@@ -45,6 +45,7 @@
         body_format: "{{ idrac_gather_facts_uri_body_format }}"
         status_code: "{{ idrac_gather_facts_uri_status_code }}"
         return_content: "{{ idrac_gather_facts_uri_return_content }}"
+        force_basic_auth: true
       register: powersupply_result
       ignore_errors: true
       no_log: true
@@ -73,10 +74,13 @@
 
     - name: Removing dynamic values
       ansible.builtin.set_fact:
-        power_supply: "{{ power_supply | ansible.utils.remove_keys(target=
+        power_supply: "{{ power_supply |
+          ansible.utils.remove_keys(target=
           exclude_keys) }}"
-        api_response: "{{ api_response | ansible.utils.remove_keys(target=
+        api_response: "{{ api_response |
+          ansible.utils.remove_keys(target=
           exclude_keys) }}"
+      when: api_response is defined
 
     - name: Check whether output differs
       ansible.builtin.set_fact:
