@@ -86,6 +86,33 @@ class TestStorageInfo(FakeAnsibleModule):
         result = self._run_module(idrac_default_args)
         assert result['failed'] is True
 
+    def test_main_authentication_failure_401(self, idrac_connection_storage_info_mock, idrac_default_args, mocker):
+        json_str = to_text(json.dumps({"data": "out"}))
+        idrac_default_args.update({"resource_type": "controller"})
+        mocker.patch(MODULE_PATH + 'StorageInfo.validate_params',
+                     side_effect=HTTPError('https://testhost.com', 401, 'Unauthorized',
+                                           {"accept-type": "application/json"}, StringIO(json_str)))
+        result = self._run_module(idrac_default_args)
+        assert result['failed'] is True
+        assert 'error_info' in result
+
+    def test_main_authentication_failure_403(self, idrac_connection_storage_info_mock, idrac_default_args, mocker):
+        json_str = to_text(json.dumps({"data": "out"}))
+        idrac_default_args.update({"resource_type": "controller"})
+        mocker.patch(MODULE_PATH + 'StorageInfo.validate_params',
+                     side_effect=HTTPError('https://testhost.com', 403, 'Forbidden',
+                                           {"accept-type": "application/json"}, StringIO(json_str)))
+        result = self._run_module(idrac_default_args)
+        assert result['failed'] is True
+        assert 'error_info' in result
+
+    def test_main_network_timeout_case(self, idrac_connection_storage_info_mock, idrac_default_args, mocker):
+        idrac_default_args.update({"resource_type": "controller"})
+        mocker.patch(MODULE_PATH + 'StorageInfo.validate_params',
+                     side_effect=URLError('timed out'))
+        result = self._run_module(idrac_default_args)
+        assert result.get('unreachable') is True
+
 
 @pytest.fixture
 def idrac_default_args():
