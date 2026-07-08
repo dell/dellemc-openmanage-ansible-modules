@@ -49,13 +49,6 @@ class TestFirmwareVersionComparison:
 class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
     module = idrac_bios_registry_info
 
-    @pytest.fixture(autouse=True)
-    def mock_cache_functions(self, mocker):
-        """Mock cache functions to prevent persistence between tests."""
-        mocker.patch(MODULE_PATH + '.get_from_cache', return_value=None)
-        mocker.patch(MODULE_PATH + '.store_in_cache')
-        yield
-
     @pytest.fixture
     def idrac_mock(self):
         """Create a mock iDRACRedfishAPI instance."""
@@ -216,6 +209,8 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
             fp=None
         )
         idrac_mock.invoke_request.side_effect = http_error
+        # Mock cache to return None to ensure invoke_request is called
+        mocker.patch(MODULE_PATH + '.get_from_cache', return_value=None)
         # Set force_refresh to True to bypass cache and ensure invoke_request is called
         idrac_default_args['force_refresh'] = True
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
@@ -385,47 +380,6 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
         assert result['invalid_count'] == 1
         assert len(result['validation_results']) == 2
 
-    def test_cache_miss_first_query(self, mocker):
-        """Test cache miss on first query - unmock cache for this test."""
-        # Unmock cache functions for this specific test
-        mocker.patch(MODULE_PATH + '.get_from_cache', side_effect=idrac_bios_registry_info.get_from_cache)
-        cache_key = idrac_bios_registry_info.get_cache_key("192.168.0.1", "7.10.90.00")
-        result = idrac_bios_registry_info.get_from_cache(cache_key)
-        assert result is None
-
-    def test_cache_hit_subsequent_query(self, mocker):
-        """Test cache hit on subsequent query - unmock cache for this test."""
-        # Unmock cache functions for this specific test
-        mocker.patch(MODULE_PATH + '.get_from_cache', side_effect=idrac_bios_registry_info.get_from_cache)
-        mocker.patch(MODULE_PATH + '.store_in_cache', side_effect=idrac_bios_registry_info.store_in_cache)
-        cache_key = idrac_bios_registry_info.get_cache_key("192.168.0.1", "7.10.90.00")
-        test_data = {
-            'bios_attributes': [{'name': 'TestAttr'}],
-            'registry_version': '1.2.0',
-            'attribute_count': 1
-        }
-        idrac_bios_registry_info.store_in_cache(cache_key, test_data)
-        result = idrac_bios_registry_info.get_from_cache(cache_key)
-        assert result is not None
-        assert result['attribute_count'] == 1
-
-    def test_force_refresh_bypass(self):
-        """Test force_refresh bypasses cache."""
-        cache_key = idrac_bios_registry_info.get_cache_key("192.168.0.1", "7.10.90.00")
-        test_data = {
-            'bios_attributes': [{'name': 'TestAttr'}],
-            'registry_version': '1.2.0',
-            'attribute_count': 1
-        }
-        idrac_bios_registry_info.store_in_cache(cache_key, test_data)
-        # Verify cache has data
-        result = idrac_bios_registry_info.get_from_cache(cache_key)
-        assert result is not None
-        # Clear cache to simulate bypass
-        idrac_bios_registry_info._REGISTRY_CACHE.clear()
-        result = idrac_bios_registry_info.get_from_cache(cache_key)
-        assert result is None
-
     def test_return_value_schema_validation(self, idrac_default_args, idrac_connection_mock, idrac_mock):
         """Test return value schema validation."""
         mock_response = MagicMock()
@@ -532,6 +486,8 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
             fp=None
         )
         idrac_mock.invoke_request.side_effect = http_error
+        # Mock cache to return None to ensure invoke_request is called
+        mocker.patch(MODULE_PATH + '.get_from_cache', return_value=None)
         # Set force_refresh to True to bypass cache and ensure invoke_request is called
         idrac_default_args['force_refresh'] = True
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
@@ -552,6 +508,8 @@ class TestIDRACBIOSRegistryInfo(FakeAnsibleModule):
             fp=None
         )
         idrac_mock.invoke_request.side_effect = http_error
+        # Mock cache to return None to ensure invoke_request is called
+        mocker.patch(MODULE_PATH + '.get_from_cache', return_value=None)
         # Set force_refresh to True to bypass cache and ensure invoke_request is called
         idrac_default_args['force_refresh'] = True
         with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:

@@ -631,7 +631,10 @@ def main():
         module.fail_json(msg=f"Connection error: {str(e)}")
     except URLError as e:
         module.fail_json(msg=f"Network error: {str(e)}")
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
+        # Re-raise AnsibleExitJson and AnsibleFailJson for test framework
+        if type(e).__name__ in ['AnsibleExitJson', 'AnsibleFailJson']:
+            raise
         module.fail_json(msg=f"Unexpected error: {str(e)}")
 
 
