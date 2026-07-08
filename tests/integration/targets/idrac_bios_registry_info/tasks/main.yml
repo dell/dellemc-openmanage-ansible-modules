@@ -10,7 +10,7 @@
   register: query_result
 
 - name: Verify successful query
-  assert:
+  ansible.builtin.assert:
     that:
       - query_result is success
       - query_result.changed == false
