@@ -20,26 +20,26 @@
   register: validation_result
 
 - name: Verify module succeeded
-  assert:
+  ansible.builtin.assert:
     that:
       - validation_result is not failed
       - validation_result is succeeded
 
 - name: Verify validation result is false
-  assert:
+  ansible.builtin.assert:
     that:
       - validation_result.valid is defined
       - validation_result.valid is false
 
 - name: Verify validation results structure
-  assert:
+  ansible.builtin.assert:
     that:
       - validation_result.validation_results is defined
       - validation_result.validation_results is iterable
       - validation_result.validation_results | length == 3
 
 - name: Verify validation counts
-  assert:
+  ansible.builtin.assert:
     that:
       - validation_result.valid_count is defined
       - validation_result.valid_count == 1
@@ -47,7 +47,7 @@
       - validation_result.invalid_count == 2
 
 - name: Verify per-attribute status
-  assert:
+  ansible.builtin.assert:
     that:
       - validation_result.validation_results | selectattr('attribute', 'equalto', 'SecureBoot') | map(attribute='status') | list | first == "invalid"
       - validation_result.validation_results | selectattr('attribute', 'equalto', 'ProcVirtualization') | map(attribute='status') | list | first == "valid"

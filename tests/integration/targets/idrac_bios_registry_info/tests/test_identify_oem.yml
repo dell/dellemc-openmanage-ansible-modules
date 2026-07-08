@@ -16,19 +16,19 @@
   register: query_result
 
 - name: Verify module succeeded
-  assert:
+  ansible.builtin.assert:
     that:
       - query_result is not failed
       - query_result is succeeded
 
 - name: Verify required output fields
-  assert:
+  ansible.builtin.assert:
     that:
       - query_result.bios_attributes is defined
       - query_result.bios_attributes is iterable
 
 - name: Verify each attribute has is_oem field
-  assert:
+  ansible.builtin.assert:
     that:
       - item.is_oem is defined
       - item.is_oem is boolean
@@ -37,12 +37,12 @@
     label: "{{ item.name }}"
 
 - name: Verify OEM attributes have is_oem true
-  assert:
+  ansible.builtin.assert:
     that:
       - query_result.bios_attributes | selectattr('is_oem', 'equalto', true) | list | length >= 0
 
 - name: Verify standard attributes have is_oem false
-  assert:
+  ansible.builtin.assert:
     that:
       - query_result.bios_attributes | selectattr('is_oem', 'equalto', false) | list | length >= 0
 

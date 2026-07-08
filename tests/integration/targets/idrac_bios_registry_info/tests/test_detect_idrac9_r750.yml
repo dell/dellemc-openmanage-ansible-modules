@@ -15,25 +15,25 @@
   register: query_result
 
 - name: Verify module succeeded
-  assert:
+  ansible.builtin.assert:
     that:
       - query_result is not failed
       - query_result is succeeded
 
 - name: Verify iDRAC generation detection
-  assert:
+  ansible.builtin.assert:
     that:
       - query_result.idrac_generation is defined
       - query_result.idrac_generation == 15
 
 - name: Verify firmware version returned
-  assert:
+  ansible.builtin.assert:
     that:
       - query_result.idrac_firmware_version is defined
       - query_result.idrac_firmware_version is string
 
 - name: Verify iDRAC model
-  assert:
+  ansible.builtin.assert:
     that:
       - query_result.idrac_model is defined
       - query_result.idrac_model == "iDRAC 9"

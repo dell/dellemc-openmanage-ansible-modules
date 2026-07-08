@@ -16,26 +16,26 @@
   register: schema_result
 
 - name: Verify module succeeded
-  assert:
+  ansible.builtin.assert:
     that:
       - schema_result is not failed
       - schema_result is succeeded
 
 - name: Verify required output fields
-  assert:
+  ansible.builtin.assert:
     that:
       - schema_result.bios_attributes is defined
       - schema_result.bios_attributes is iterable
       - schema_result.attribute_count is defined
 
 - name: Verify non-empty results
-  assert:
+  ansible.builtin.assert:
     that:
       - schema_result.attribute_count | int > 0
       - schema_result.bios_attributes | length == schema_result.attribute_count | int
 
 - name: Verify attribute has all required schema fields
-  assert:
+  ansible.builtin.assert:
     that:
       - item.name is defined
       - item.display_name is defined
@@ -66,7 +66,7 @@
     label: "{{ item.name }}"
 
 - name: Verify changed flag is false (read-only operation)
-  assert:
+  ansible.builtin.assert:
     that:
       - schema_result.changed is defined
       - schema_result.changed is false

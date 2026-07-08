@@ -16,13 +16,13 @@
   register: filter_result
 
 - name: Verify module succeeded
-  assert:
+  ansible.builtin.assert:
     that:
       - filter_result is not failed
       - filter_result is succeeded
 
 - name: Verify required output fields
-  assert:
+  ansible.builtin.assert:
     that:
       - filter_result.bios_attributes is defined
       - filter_result.bios_attributes is iterable
@@ -30,18 +30,18 @@
       - filter_result.attribute_count is number
 
 - name: Verify exactly one attribute
-  assert:
+  ansible.builtin.assert:
     that:
       - filter_result.attribute_count | int == 1
       - filter_result.bios_attributes | length == 1
 
 - name: Verify attribute name is ProcVirtualization
-  assert:
+  ansible.builtin.assert:
     that:
       - filter_result.bios_attributes[0].name == "ProcVirtualization"
 
 - name: Verify changed flag is false (read-only operation)
-  assert:
+  ansible.builtin.assert:
     that:
       - filter_result.changed is defined
       - filter_result.changed is false
