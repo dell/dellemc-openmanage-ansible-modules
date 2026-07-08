@@ -126,6 +126,8 @@ import json
 from urllib.error import HTTPError, URLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, IdracAnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
+    get_dynamic_uri, validate_and_get_first_resource_id_uri)
 
 CONTROLLER_ID_REQUIRED_MSG = "controller_id is required when resource_type is '{resource_type}'."
 SUCCESS_MSG = "Successfully fetched the storage information."
@@ -136,6 +138,11 @@ MIN_FIRMWARE_VERSION = {
 UNSUPPORTED_FIRMWARE_MSG = ("Installed {hw_model} firmware version {firmware_version} does not meet the minimum "
                             "required version {min_version} for this module.")
 UNSUPPORTED_GENERATION_MSG = "This module is not supported on {hw_model}."
+SYSTEMS_URI = "/redfish/v1/Systems"
+ODATA_ID = "@odata.id"
+STORAGE_EXPAND_QUERY = "?$expand=*($levels=1)"
+CONTROLLER_OEM_FIELDS = ["PatrolReadRatePercent", "RebuildRatePercent", "CopybackMode",
+                         "EncryptionCapability", "EncryptionMode"]
 
 
 class StorageInfo:
@@ -172,6 +179,48 @@ class StorageInfo:
                                                      min_version=min_version),
                 failed=True)
 
+    def fetch_storage_uri(self):
+        uri, err_msg = validate_and_get_first_resource_id_uri(None, self.idrac, SYSTEMS_URI)
+        if err_msg:
+            self.module.exit_json(msg=err_msg, failed=True)
+        storage = get_dynamic_uri(self.idrac, uri, 'Storage')
+        return storage[ODATA_ID]
+
+    def get_controllers(self):
+        storage_uri = self.fetch_storage_uri()
+        controllers_data = get_dynamic_uri(self.idrac, storage_uri + STORAGE_EXPAND_QUERY)
+        controllers = []
+        for member in controllers_data.get("Members", []):
+            controller_id = member.get("Id", "")
+            if controller_id.startswith("CPU"):
+                continue
+            controllers.append(self._map_controller(member))
+        return controllers
+
+    @staticmethod
+    def _map_controller(member):
+        storage_controllers = member.get("StorageControllers") or [{}]
+        controller_detail = storage_controllers[0] if storage_controllers else {}
+        oem_dell = member.get("Oem", {}).get("Dell", {}).get("DellController", {})
+        mapped = {
+            "Id": member.get("Id"),
+            "Name": member.get("Name"),
+            "Model": controller_detail.get("Model"),
+            "FirmwareVersion": controller_detail.get("FirmwareVersion"),
+            "Status": member.get("Status"),
+        }
+        for field in CONTROLLER_OEM_FIELDS:
+            mapped[field] = oem_dell.get(field)
+        return mapped
+
+    def fetch_resources(self):
+        resource_type = self.module.params.get("resource_type")
+        if resource_type == "controller":
+            resources = self.get_controllers()
+        else:
+            resources = []
+        return {"resource_count": len(resources), "resources": resources}
+
 
 def main():
     specs = {
@@ -187,7 +236,7 @@ def main():
             storage_info_obj = StorageInfo(idrac, module)
             storage_info_obj.validate_params()
             storage_info_obj.validate_firmware_version()
-            storage_info = {"resource_count": 0, "resources": []}
+            storage_info = storage_info_obj.fetch_resources()
         module.exit_json(msg=SUCCESS_MSG, storage_info=storage_info)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)

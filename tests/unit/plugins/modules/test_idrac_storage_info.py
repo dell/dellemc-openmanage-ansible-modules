@@ -38,6 +38,8 @@ class TestStorageInfo(FakeAnsibleModule):
         idrac_conn_mock = mocker.patch(MODULE_PATH + 'iDRACRedfishAPI',
                                         return_value=idrac_storage_info_mock)
         idrac_conn_mock.return_value.__enter__.return_value = idrac_storage_info_mock
+        mocker.patch(MODULE_PATH + 'StorageInfo.fetch_resources',
+                     return_value={"resource_count": 0, "resources": []})
         return idrac_conn_mock
 
     def test_main_controller_resource_type_success(self, idrac_connection_storage_info_mock, idrac_default_args):
@@ -162,6 +164,91 @@ class TestStorageInfo(FakeAnsibleModule):
     ])
     def test_version_meets_minimum(self, current, minimum, expected):
         assert idrac_storage_info.StorageInfo._version_meets_minimum(current, minimum) is expected
+
+
+class TestStorageInfoControllerQuery(FakeAnsibleModule):
+    module = idrac_storage_info
+    SYSTEMS_URI = "/redfish/v1/Systems"
+    SYSTEM_URI = "/redfish/v1/Systems/System.Embedded.1"
+    STORAGE_URI = "/redfish/v1/Systems/System.Embedded.1/Storage"
+
+    def _idrac_mock(self, mocker, controller_members):
+        idrac_obj = mocker.MagicMock()
+
+        def invoke_request_side_effect(*args, **kwargs):
+            uri = kwargs.get("uri") or kwargs.get("path") or (args[0] if args else None)
+            resp = mocker.MagicMock()
+            if uri == self.SYSTEMS_URI:
+                resp.json_data = {"Members": [{"@odata.id": self.SYSTEM_URI}]}
+            elif uri == self.SYSTEM_URI:
+                resp.json_data = {"Storage": {"@odata.id": self.STORAGE_URI}}
+            elif uri == self.STORAGE_URI + "?$expand=*($levels=1)":
+                resp.json_data = {"Members": controller_members}
+            else:
+                resp.json_data = {}
+            return resp
+
+        idrac_obj.invoke_request.side_effect = invoke_request_side_effect
+        return idrac_obj
+
+    def test_get_controllers_maps_redfish_and_oem_fields(self, mocker):
+        controller_members = [
+            {
+                "Id": "RAID.Slot.1-1",
+                "Name": "PERC H755",
+                "Status": {"Health": "OK", "State": "Enabled"},
+                "StorageControllers": [{"Model": "PERC H755", "FirmwareVersion": "25.5.9.0001"}],
+                "Oem": {"Dell": {"DellController": {
+                    "PatrolReadRatePercent": 30,
+                    "RebuildRatePercent": 30,
+                    "CopybackMode": "On",
+                    "EncryptionCapability": "LocalKeyManagement",
+                    "EncryptionMode": "None",
+                }}},
+            },
+            {"Id": "CPU.1", "Name": "CPU Storage", "StorageControllers": []},
+        ]
+        idrac_obj = self._idrac_mock(mocker, controller_members)
+        module = mocker.MagicMock()
+        storage_info_obj = idrac_storage_info.StorageInfo(idrac_obj, module)
+
+        controllers = storage_info_obj.get_controllers()
+
+        assert len(controllers) == 1
+        assert controllers[0]["Id"] == "RAID.Slot.1-1"
+        assert controllers[0]["Model"] == "PERC H755"
+        assert controllers[0]["FirmwareVersion"] == "25.5.9.0001"
+        assert controllers[0]["Status"] == {"Health": "OK", "State": "Enabled"}
+        assert controllers[0]["PatrolReadRatePercent"] == 30
+        assert controllers[0]["RebuildRatePercent"] == 30
+        assert controllers[0]["CopybackMode"] == "On"
+        assert controllers[0]["EncryptionCapability"] == "LocalKeyManagement"
+        assert controllers[0]["EncryptionMode"] == "None"
+
+    def test_fetch_resources_controller_type(self, mocker):
+        controller_members = [
+            {"Id": "RAID.Slot.1-1", "Name": "PERC H755", "Status": {"Health": "OK"},
+             "StorageControllers": [{"Model": "PERC H755", "FirmwareVersion": "25.5.9.0001"}], "Oem": {}},
+        ]
+        idrac_obj = self._idrac_mock(mocker, controller_members)
+        module = mocker.MagicMock()
+        module.params = {"resource_type": "controller"}
+        storage_info_obj = idrac_storage_info.StorageInfo(idrac_obj, module)
+
+        result = storage_info_obj.fetch_resources()
+
+        assert result["resource_count"] == 1
+        assert result["resources"][0]["Id"] == "RAID.Slot.1-1"
+
+    def test_fetch_resources_non_controller_type_returns_empty(self, mocker):
+        idrac_obj = mocker.MagicMock()
+        module = mocker.MagicMock()
+        module.params = {"resource_type": "physical_disk"}
+        storage_info_obj = idrac_storage_info.StorageInfo(idrac_obj, module)
+
+        result = storage_info_obj.fetch_resources()
+
+        assert result == {"resource_count": 0, "resources": []}
 
 
 @pytest.fixture
