@@ -3,7 +3,12 @@
   hosts: all
   gather_facts: false
   tasks:
+    - name: Check firmware version
+      ansible.builtin.include_tasks: ../_check_firmware_version_supported.yml
+
     - name: Execute in iDRAC10
+      when:
+        - is_idrac10 | bool
       block:
         - name: Disable security on controller
           ansible.builtin.import_role:

@@ -3,6 +3,9 @@
   hosts: all
   gather_facts: false
   tasks:
+    - name: Check firmware version
+      ansible.builtin.include_tasks: ../_check_firmware_version_supported.yml
+
     - name: Pre-req - Fetch volumes
       ansible.builtin.include_tasks: ../__fetch_volumes.yml
       vars:
