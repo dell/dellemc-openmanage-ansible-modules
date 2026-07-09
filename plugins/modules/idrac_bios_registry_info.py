@@ -275,13 +275,36 @@ def filter_attributes_by_source(attributes, source):
 
 
 def filter_attributes_by_category(attributes, category):
-    """Filter attributes by category matching group display name or MenuPath."""
+    """Filter attributes by category matching group display name or MenuPath.
+
+    Supports both exact category names (e.g., 'Processor') and iDRAC-specific
+    MenuPath naming conventions (e.g., './ProcSettingsRef' for 'Processor',
+    './SysSecurityRef' for 'Security', './MemSettingsRef' for 'Memory').
+    """
     if not category:
         return attributes
     cat_lower = category.lower()
+    # Map common category names to MenuPath prefixes used by iDRAC
+    _CATEGORY_MENU_PATH_MAP = {
+        'processor': ['Proc', 'Processor'],
+        'security': ['SysSecurity', 'Security'],
+        'memory': ['MemSettings', 'Memory'],
+        'boot': ['BootSettings', 'Boot'],
+        'network': ['NetworkSettings', 'Network'],
+        'integrated devices': ['IntegratedDevices'],
+        'serial communication': ['SerialCommSettings', 'SerialComm'],
+        'system profile': ['SysProfileSettings', 'SysProfile'],
+        'miscellaneous': ['MiscSettings', 'Misc'],
+        'system information': ['SysInformation', 'SysInfo'],
+        'sata': ['SataSettings', 'Sata'],
+        'nvme': ['NvmeSettings', 'Nvme'],
+        'redundant os': ['RedundantOsControl', 'RedundantOs'],
+    }
+    menu_prefixes = _CATEGORY_MENU_PATH_MAP.get(cat_lower, [category])
     return [attr for attr in attributes
             if cat_lower in attr.get('group', '').lower()
-            or attr.get('menu_path', '').startswith(f'./{category}')]
+            or any(attr.get('menu_path', '').startswith(f'./{prefix}')
+                   for prefix in menu_prefixes)]
 
 
 def _validation_result(attr, status, reason, suggestions=None):
