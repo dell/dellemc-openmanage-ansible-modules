@@ -1,6 +1,8 @@
 # For modules starting with idrac as prefix
 [idrac]
-iDRAC idrac_ip=100.68.135.128 idrac_user=root idrac_password=calvin idrac_port=443 validate_certs=false
+iDRAC1 idrac_ip=100.98.68.225 idrac_user=root idrac_password=calvin idrac_port=443 validate_certs=false
+iDRAC2 idrac_ip=100.71.90.181 idrac_user=root idrac_password=calvin idrac_port=443 validate_certs=false
+iDRAC3 idrac_ip=100.68.135.24 idrac_user=root idrac_password=calvin idrac_port=443 validate_certs=false
 
 [ome]
 OME hostname=xx.xx.xx.xx username=username password=password port=443 validate_certs=false

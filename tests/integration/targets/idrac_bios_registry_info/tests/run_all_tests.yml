@@ -1,9 +1,33 @@
 ---
-# Master playbook to run all individual test scenarios
-- name: Run all idrac_bios_registry_info integration tests
+# Master playbook that auto-detects OEM attribute availability.
+# If OEM attributes exist  -> Full Test Suite (all tests)
+# If no OEM attributes     -> Core Test Suite (OEM-specific tests skipped)
+- name: Run idrac_bios_registry_info integration tests (auto-detect OEM)
   hosts: idrac
   gather_facts: false
   tasks:
+    # --- OEM detection phase ---
+    - name: Detect OEM attributes on this host
+      dellemc.openmanage.idrac_bios_registry_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        idrac_port: "{{ idrac_port | default(443) }}"
+        validate_certs: "{{ validate_certs | default(false) }}"
+        attribute_source: "oem"
+      register: oem_detect
+
+    - name: Set has_oem_attributes fact
+      ansible.builtin.set_fact:
+        has_oem_attributes: "{{ (oem_detect.bios_attributes | default([]) | length) > 0 }}"
+
+    - name: Display test suite selection
+      ansible.builtin.debug:
+        msg: >-
+          OEM attributes found: {{ oem_detect.bios_attributes | default([]) | length }}.
+          Running {{ 'Full Test Suite' if has_oem_attributes else 'Core Test Suite' }}.
+
+    # --- Core tests (always run) ---
     - name: Include test_query_all_attributes
       ansible.builtin.include_tasks: ./test_query_all_attributes.yml
 
@@ -15,18 +39,6 @@
 
     - name: Include test_filter_pattern
       ansible.builtin.include_tasks: ./test_filter_pattern.yml
-
-    - name: Include test_filter_oem
-      ansible.builtin.include_tasks: ./test_filter_oem.yml
-
-    - name: Include test_filter_standard
-      ansible.builtin.include_tasks: ./test_filter_standard.yml
-
-    - name: Include test_filter_processor
-      ansible.builtin.include_tasks: ./test_filter_processor.yml
-
-    - name: Include test_filter_security
-      ansible.builtin.include_tasks: ./test_filter_security.yml
 
     - name: Include test_filter_no_match
       ansible.builtin.include_tasks: ./test_filter_no_match.yml
@@ -57,3 +69,25 @@
 
     - name: Include test_validation_structure
       ansible.builtin.include_tasks: ./test_validation_structure.yml
+
+    # --- OEM-dependent tests (only when OEM attributes exist) ---
+    - name: Include test_filter_oem (Full Test Suite only)
+      ansible.builtin.include_tasks: ./test_filter_oem.yml
+      when: has_oem_attributes | bool
+
+    - name: Include test_filter_standard (Full Test Suite only)
+      ansible.builtin.include_tasks: ./test_filter_standard.yml
+      when: has_oem_attributes | bool
+
+    - name: Include test_filter_processor (Full Test Suite only)
+      ansible.builtin.include_tasks: ./test_filter_processor.yml
+      when: has_oem_attributes | bool
+
+    - name: Include test_filter_security (Full Test Suite only)
+      ansible.builtin.include_tasks: ./test_filter_security.yml
+      when: has_oem_attributes | bool
+
+    - name: Skipped OEM tests notification
+      ansible.builtin.debug:
+        msg: "OEM-specific tests were skipped (no OEM attributes on this host)"
+      when: not (has_oem_attributes | bool)
