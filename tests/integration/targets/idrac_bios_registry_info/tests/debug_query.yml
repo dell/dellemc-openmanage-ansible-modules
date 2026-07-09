@@ -1,0 +1,39 @@
+---
+# Debug playbook to understand the iDRAC response structure
+- name: Query all BIOS attributes
+  dellemc.openmanage.idrac_bios_registry_info:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    idrac_port: "{{ idrac_port | default(443) }}"
+    validate_certs: "{{ validate_certs | default(true) }}"
+  register: query_result
+
+- name: Display basic query results
+  ansible.builtin.debug:
+    msg:
+      - "Attribute Count: {{ query_result.attribute_count }}"
+      - "Registry Version: {{ query_result.registry_version }}"
+      - "iDRAC Generation: {{ query_result.idrac_generation }}"
+      - "iDRAC Firmware: {{ query_result.idrac_firmware_version }}"
+      - "iDRAC Model: {{ query_result.idrac_model }}"
+
+- name: Sample first 5 attributes
+  ansible.builtin.debug:
+    msg: "{{ query_result.bios_attributes[:5] }}"
+
+- name: Check for OEM attributes
+  ansible.builtin.debug:
+    msg: "OEM Attributes Count: {{ query_result.bios_attributes | selectattr('is_oem', 'equalto', true) | list | length }}"
+
+- name: Sample OEM attributes
+  ansible.builtin.debug:
+    msg: "{{ query_result.bios_attributes | selectattr('is_oem', 'equalto', true) | list | default([]) }}"
+
+- name: Get unique menu paths (categories)
+  ansible.builtin.debug:
+    msg: "{{ query_result.bios_attributes | map(attribute='menu_path') | unique | list }}"
+
+- name: Check for Processor category
+  ansible.builtin.debug:
+    msg: "Processor Attributes Count: {{ query_result.bios_attributes | selectattr('menu_path', 'search', 'Processor') | list | length }}"

@@ -1,0 +1,8 @@
+---
+# Master playbook to run debug query
+- name: Run debug query for idrac_bios_registry_info
+  hosts: idrac
+  gather_facts: false
+  tasks:
+    - name: Include debug_query
+      ansible.builtin.include_tasks: ./debug_query.yml
