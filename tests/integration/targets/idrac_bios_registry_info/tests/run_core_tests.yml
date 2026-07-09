@@ -1,0 +1,47 @@
+---
+# Core integration tests that work regardless of iDRAC configuration
+- name: Run core idrac_bios_registry_info integration tests
+  hosts: idrac
+  gather_facts: false
+  tasks:
+    - name: Include test_query_all_attributes
+      ansible.builtin.include_tasks: ./test_query_all_attributes.yml
+
+    - name: Include test_full_schema
+      ansible.builtin.include_tasks: ./test_full_schema.yml
+
+    - name: Include test_filter_exact
+      ansible.builtin.include_tasks: ./test_filter_exact.yml
+
+    - name: Include test_filter_pattern
+      ansible.builtin.include_tasks: ./test_filter_pattern.yml
+
+    - name: Include test_filter_no_match
+      ansible.builtin.include_tasks: ./test_filter_no_match.yml
+
+    - name: Include test_identify_oem
+      ansible.builtin.include_tasks: ./test_identify_oem.yml
+
+    - name: Include test_validate_enum_valid
+      ansible.builtin.include_tasks: ./test_validate_enum_valid.yml
+
+    - name: Include test_validate_enum_invalid
+      ansible.builtin.include_tasks: ./test_validate_enum_invalid.yml
+
+    - name: Include test_validate_integer_valid
+      ansible.builtin.include_tasks: ./test_validate_integer_valid.yml
+
+    - name: Include test_validate_integer_invalid
+      ansible.builtin.include_tasks: ./test_validate_integer_invalid.yml
+
+    - name: Include test_validate_nonexistent
+      ansible.builtin.include_tasks: ./test_validate_nonexistent.yml
+
+    - name: Include test_validate_batch_valid
+      ansible.builtin.include_tasks: ./test_validate_batch_valid.yml
+
+    - name: Include test_validate_batch_mixed
+      ansible.builtin.include_tasks: ./test_validate_batch_mixed.yml
+
+    - name: Include test_validation_structure
+      ansible.builtin.include_tasks: ./test_validation_structure.yml
