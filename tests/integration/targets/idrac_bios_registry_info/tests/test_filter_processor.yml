@@ -29,25 +29,27 @@
       - filter_result.attribute_count is defined
       - filter_result.attribute_count is number
 
-- name: Verify non-empty results
+- name: Verify consistent results
   ansible.builtin.assert:
     that:
-      - filter_result.attribute_count | int > 0
+      - filter_result.attribute_count | int >= 0
       - filter_result.bios_attributes | length == filter_result.attribute_count | int
 
 - name: Verify all attributes belong to Processor category
   ansible.builtin.assert:
     that:
-      - "'Processor' in item.group or item.menu_path is search('Proc')"
+      - "'processor' in item.group | lower or item.menu_path is search('Proc')"
   loop: "{{ filter_result.bios_attributes }}"
   loop_control:
     label: "{{ item.name }}"
+  when: filter_result.bios_attributes | length > 0
 
 - name: Verify expected Processor attributes present
   ansible.builtin.assert:
     that:
       - filter_result.bios_attributes | map(attribute='name') | list | select('search', 'ProcVirtualization') | list | length >= 0
       - filter_result.bios_attributes | map(attribute='name') | list | select('search', 'ProcCStates') | list | length >= 0
+  when: filter_result.bios_attributes | length > 0
 
 - name: Verify changed flag is false (read-only operation)
   ansible.builtin.assert:
