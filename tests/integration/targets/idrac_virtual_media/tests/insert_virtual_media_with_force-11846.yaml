@@ -98,9 +98,7 @@
 
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers"
-        url_1: "iDRAC.Embedded.1/VirtualMedia/CD"
-        url: "{{ url_0 }}/{{ url_1 }}"
+        url: "{{ uri_data_1 }}"
 
     - name: Verify virtual media insertion to RFS1 using uri
       ansible.builtin.assert:
