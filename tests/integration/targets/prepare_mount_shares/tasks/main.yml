@@ -33,22 +33,24 @@
 
     - name: Create NFS mount directory
       become: true
-      ansible.bmiluin.filent:
+      ansible.builtin.file:
         path: "{{ home_path }}/nfs"
         state: directory
         mode: '0755'
 
     - name: Mount NFS share
       become: true
-      ansible.builtin.command:
-        cmd: "mount -t nfs {{ nfs_share_name }} {{ home_path }}/nfs"
+      ansible.posix.mount:
+        src: "{{ nfs_share_name }}"
+        path: "{{ home_path }}/nfs"
+        fstype: nfs
+        state: mounted
       register: nfs_mount_result
-      changed_when: nfs_mount_result.rc == 0
       failed_when: false
 
     - name: Set NFS mount fact
-      ansible.builtlniset_fact:
-        nfs_n.mount:
+      ansible.builtin.set_fact:
+        nfs_mount:
           name: "{{ home_path }}/nfs"
 
     - name: Create CIFS mount directory
@@ -60,10 +62,15 @@
 
     - name: Mount CIFS share
       become: true
-      ansible.builtin.command:
-        cmd: "mount -t cifs {{ cifs_share_name }} {{ home_path }}/cifs -o username={{ cifs_share_user }},password={{ cifs_share_password }},file_mode=0777,dir_mode=0777"
+      ansible.posix.mount:
+        src: "{{ cifs_share_name }}"
+        path: "{{ home_path }}/cifs"
+        fstype: cifs
+        opts: >-
+          username={{ cifs_share_user }},password={{ cifs_share_password }},
+          file_mode=0777,dir_mode=0777
+        state: mounted
       register: cifs_mount_result
-      changed_when: cifs_mount_result.rc == 0
       failed_when: false
 
     - name: Set CIFS mount fact
