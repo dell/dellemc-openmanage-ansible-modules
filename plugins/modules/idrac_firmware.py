@@ -235,7 +235,7 @@ import json
 import time
 from ssl import SSLError
 from xml.etree import ElementTree as ET
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_common import idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.parse import urlparse
@@ -264,6 +264,8 @@ REDFISH_VERSION = "3.30"
 INTERVAL = 30  # polling interval
 WAIT_COUNT = 240
 JOB_WAIT_MSG = 'Job wait timed out after {0} minutes'
+AUTH_ERROR_MSG = "Unable to communicate with iDRAC {0}. This may be due to one of the following: " \
+                 "Incorrect username or password, unreachable iDRAC IP or a failure in TLS/SSL handshake."
 
 
 def wait_for_job_completion(module, job_uri, job_wait=False, reboot=False, apply_update=False):
@@ -655,10 +657,11 @@ def main():
         with iDRACRedfishAPI(module.params) as redfish_obj:
             status = update_firmware_redfish(redfish_obj, module, software_service_data)
     except HTTPError as err:
+        if err.code == 401:
+            module.fail_json(msg=AUTH_ERROR_MSG.format(module.params["idrac_ip"]))
         module.fail_json(msg=str(err), update_status=json.load(err))
-    except URLError as err:
-        message = err.reason if err.reason else err(str)
-        module.exit_json(msg=message, unreachable=True)
+    except URLError:
+        module.fail_json(msg=AUTH_ERROR_MSG.format(module.params["idrac_ip"]))
     except (RuntimeError, SSLValidationError, ConnectionError, KeyError,
             ImportError, ValueError, TypeError, SSLError) as e:
         module.fail_json(msg=str(e))
