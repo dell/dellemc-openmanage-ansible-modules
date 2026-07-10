@@ -2,7 +2,7 @@
 - name: Prepare Lifecycle Controller Job Queue
   vars:
     expand: "?$expand=*($levels=1)"
-    job_uri: "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs"
+    job_uri: "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs"
   block:
     - name: Wait for a min before clearing job queue
       ansible.builtin.pause:
