@@ -11,6 +11,9 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
+- name: Check iDRAC firmware version
+  ansible.builtin.include_tasks: _check_firmware_version_supported.yml
+
 - block:
     - name: Prerequisite - Fetch Storage details
       dellemc.openmanage.idrac_storage_volume:
@@ -137,6 +140,73 @@
           - result.changed
           - result.msg == "Successfully performed the 'UnBlinkTarget'
            operation."
+
+    - name: Blink the Virtual Disk (Check mode - Changes expected)
+      idrac_redfish_storage_controller: &idrac_redfish_storage_controller_3
+        command: BlinkTarget
+        volume_id: "{{ virtual_disks[0] }}"
+      register: result
+      check_mode: true
+      when:
+        - is_idrac_9 | bool
+
+    - name: Verify task status - Blink the Virtual Disk (Check mode -
+       Changes expected)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Changes found to be applied."
+      when:
+        - is_idrac_9 | bool
+
+    - name: Blink the Virtual Disk (Normal mode)
+      idrac_redfish_storage_controller:
+        <<: *idrac_redfish_storage_controller_3
+      register: result
+      when:
+        - is_idrac_9 | bool
+
+    - name: Verify task status - Blink the Virtual Disk (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Successfully performed the 'BlinkTarget' operation."
+      when:
+        - is_idrac_9 | bool
+
+    - name: Unblink the Virtual Disk (Check mode - Changes expected)
+      idrac_redfish_storage_controller: &idrac_redfish_storage_controller_4
+        command: UnBlinkTarget
+        volume_id: "{{ virtual_disks[0] }}"
+      register: result
+      check_mode: true
+      when:
+        - is_idrac_9 | bool
+
+    - name: Verify task status - Unblink the Virtual Disk (Check mode -
+       Changes expected)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Changes found to be applied."
+      when:
+        - is_idrac_9 | bool
+
+    - name: Unblink the Virtual Disk (Normal mode)
+      idrac_redfish_storage_controller:
+        <<: *idrac_redfish_storage_controller_4
+      register: result
+      when:
+        - is_idrac_9 | bool
+
+    - name: Verify task status - Unblink the Virtual Disk (Normal mode)
+      ansible.builtin.assert:
+        that:
+          - result.changed
+          - result.msg == "Successfully performed the 'UnBlinkTarget'
+           operation."
+      when:
+        - is_idrac_9 | bool
 
     - name: Delete created virtual disk after testcase completion
       dellemc.openmanage.idrac_storage_volume:
