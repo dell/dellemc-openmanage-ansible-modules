@@ -136,7 +136,7 @@ error_info:
 
 
 import json
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_common import idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
