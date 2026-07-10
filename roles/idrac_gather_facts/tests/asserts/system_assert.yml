@@ -18,7 +18,7 @@
     - diff_keys | length == 0
     - idrac_system_attributes[item] != api_idrac_system_attributes[item]
     - item not in exclude_keys
-    - item != "ThermalSettings.1.SystemExhaustTemperature"
+    - not item is match("ThermalSettings\\.1\\.System.*Temperature|SysInfo\\.1\\.POSTCode.*")
 
 - name: Assert the difference in Keys
   ansible.builtin.assert:

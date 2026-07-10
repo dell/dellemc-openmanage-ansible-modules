@@ -3,6 +3,13 @@
   ansible.builtin.set_fact:
     url1_1: "https://{{ hostname }}{{ api_chassis }}/Oem/Dell/"
     url1_2: "DellEnclosureEMM/{{ enclosureemm_data.Id }}"
+  when: "'17G' in idrac_gen"
+
+- name: Set pre-17G url
+  ansible.builtin.set_fact:
+    url1_1: "https://{{ hostname }}/redfish/v1/Chassis/Oem/Dell/"
+    url1_2: "DellEnclosureEMM/{{ enclosureemm_data.Id }}"
+  when: "'17G' not in idrac_gen"
 
 - name: Set url
   ansible.builtin.set_fact:
