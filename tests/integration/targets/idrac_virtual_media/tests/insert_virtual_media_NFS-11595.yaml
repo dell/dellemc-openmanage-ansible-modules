@@ -60,11 +60,15 @@
         <<: *idrac_virtual_media_2
       register: result
 
+    - ansible.builtin.include_tasks: get_system_uris.yml
+      vars:
+        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Systems"
+        url_1: "System.Embedded.1/VirtualMedia"
+        url: "{{ url_0 }}/{{ url_1 }}"
+
     - ansible.builtin.include_tasks: get_data_uri.yml
       vars:
-        url_0: "https://{{idrac_ip}}:{{idrac_port}}/redfish/v1/Managers"
-        url_1: "iDRAC.Embedded.1/VirtualMedia/CD"
-        url: "{{ url_0 }}/{{ url_1 }}"
+        url: "{{ uri_data_1 }}"
 
     - name: Verify task status - Insertion of virtual media to RFS1 from NFS
         share by providing media_type and index (Normal mode)

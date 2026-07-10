@@ -31,29 +31,45 @@
         update_cache: true
       when: ansible_os_family == "Debian"
 
+    - name: Create NFS mount directory
+      become: true
+      ansible.bmiluin.filent:
+        path: "{{ home_path }}/nfs"
+        state: directory
+        mode: '0755'
+
     - name: Mount NFS share
       become: true
-      ansible.posix.mount:
-        fstype: nfs
-        state: mounted
-        src: "{{ nfs_share_name }}"
-        path: "{{ home_path }}/nfs"
-      register: nfs_mount
+      ansible.builtin.command:
+        cmd: "mount -t nfs {{ nfs_share_name }} {{ home_path }}/nfs"
+      register: nfs_mount_result
+      changed_when: nfs_mount_result.rc == 0
+      failed_when: false
+
+    - name: Set NFS mount fact
+      ansible.builtlniset_fact:
+        nfs_n.mount:
+          name: "{{ home_path }}/nfs"
+
+    - name: Create CIFS mount directory
+      become: true
+      ansible.builtin.file:
+        path: "{{ home_path }}/cifs"
+        state: directory
+        mode: '0755'
 
     - name: Mount CIFS share
       become: true
-      ansible.posix.mount:
-        fstype: cifs
-        state: mounted
-        src: "{{ cifs_share_name }}"
-        path: "{{ home_path }}/cifs"
-        opts: "{{ xx }},{{ yy }},{{ zz }},{{ kk }}"
-      register: cifs_mount
-      vars:
-        "xx": "username={{ cifs_share_user }}"
-        "yy": "password={{ cifs_share_password }}"
-        "zz": "file_mode=0777,dir_mode=0777,uid={{ current_user }}"
-        "kk": "gid={{ current_user }},forcegid,forceuid"
+      ansible.builtin.command:
+        cmd: "mount -t cifs {{ cifs_share_name }} {{ home_path }}/cifs -o username={{ cifs_share_user }},password={{ cifs_share_password }},file_mode=0777,dir_mode=0777"
+      register: cifs_mount_result
+      changed_when: cifs_mount_result.rc == 0
+      failed_when: false
+
+    - name: Set CIFS mount fact
+      ansible.builtin.set_fact:
+        cifs_mount:
+          name: "{{ home_path }}/cifs"
 
     - name: Setting share mount
       ansible.builtin.set_fact:
