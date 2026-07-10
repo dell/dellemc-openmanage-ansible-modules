@@ -27,7 +27,6 @@ options:
         type: str
         description: JOB ID in the format "JID_123456789012".
 requirements:
-    - "omsdk >= 1.2.488"
     - "python >= 3.9.6"
 author:
     - "Rajeev Arakkal (@rajeevarakkal)"

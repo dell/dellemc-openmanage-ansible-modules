@@ -42,7 +42,6 @@ options:
     default: true
 
 requirements:
-  - "omsdk >= 1.2.488"
   - "python >= 3.9.6"
 author:
   - "Rajeev Arakkal (@rajeevarakkal)"

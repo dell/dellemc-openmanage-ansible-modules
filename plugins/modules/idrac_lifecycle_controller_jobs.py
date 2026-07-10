@@ -30,7 +30,6 @@ options:
            - All the jobs in the job queue are deleted if this option is not specified.
 
 requirements:
-    - "omsdk >= 1.2.488"
     - "python >= 3.9.6"
 author:
     - "Felix Stephen (@felixs88)"
