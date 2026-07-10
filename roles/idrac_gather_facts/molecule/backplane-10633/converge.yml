@@ -31,12 +31,23 @@
       ansible.builtin.include_tasks:
         ../../tests/asserts/_check_chassis_url.yml
 
+    - name: Gather Facts for the PCIeSSDBackPlane component
+      ansible.builtin.include_role:
+        name: "idrac_gather_facts"
+
     - name: Set 17G url
       ansible.builtin.set_fact:
         url1_1: "https://{{ hostname }}{{ api_chassis }}"
         url1_2: "/Oem/Dell/DellPCIeSSDBackPlanes"
+      when: "'17G' in idrac_gen"
 
-    - name: Set < 17G url
+    - name: Set pre-17G url
+      ansible.builtin.set_fact:
+        url1_1: "https://{{ hostname }}/redfish/v1/Chassis"
+        url1_2: "/Oem/Dell/DellPCIeSSDBackPlanes"
+      when: "'17G' not in idrac_gen"
+
+    - name: Set url
       ansible.builtin.set_fact:
         url1: "{{ url1_1 }}{{ url1_2 }}"
 
@@ -60,10 +71,6 @@
       ansible.builtin.set_fact:
         api_response: "{{ backplane_result_url.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type']) }}"
       when: backplane_result_url.status == 200
-
-    - name: Gather Facts for the PCIeSSDBackPlane component
-      ansible.builtin.include_role:
-        name: "idrac_gather_facts"
 
     - name: Assert backplane data
       ansible.builtin.assert:

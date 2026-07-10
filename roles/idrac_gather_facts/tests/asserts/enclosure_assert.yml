@@ -19,12 +19,16 @@
   ansible.builtin.set_fact:
     url2_1: "https://{{ hostname }}"
     url2_2: "{{ enclosure_result.json['Members'][0]['@odata.id'] }}"
-  when: enclosure_result.json['Members'] != []
+  when:
+    - enclosure_result.status == 200
+    - enclosure_result.json['Members'] | default([]) | length > 0
 
 - name: Construct enclosure id
   ansible.builtin.set_fact:
     url2: "{{ url2_1}}{{ url2_2 }}"
-  when: enclosure_result.json['Members'] != []
+  when:
+    - enclosure_result.status == 200
+    - enclosure_result.json['Members'] | default([]) | length > 0
 
 - name: Fetching Enclosure info
   ansible.builtin.uri:
@@ -41,6 +45,7 @@
     force_basic_auth: true
   register: enclosure_result
   no_log: false
+  when: url2 is defined
 
 - name: Set enclosure facts
   ansible.builtin.set_fact:
@@ -48,16 +53,19 @@
       "{{ enclosure_result.json | ansible.utils.remove_keys(target=
       ['@odata.context', '@odata.id', '@odata.type', 'Links',
       'Description']) }}"
+  when: url2 is defined
 
 - name: Set the keys diff
   ansible.builtin.set_fact:
     diff_keys: "{{ enclosure_data.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
+  when: api_response is defined
 
 - name: Set a diff of dict
   ansible.builtin.set_fact:
     diff_data: "{{ diff_data | combine({item: enclosure_data[item]}) }}"
   loop: "{{ enclosure_data.keys() }}"
   when:
+    - api_response is defined
     - diff_keys | length == 0
     - enclosure_data[item] != api_response[item]
     - item not in exclude_keys
@@ -69,3 +77,4 @@
       - "{{ (diff_data | length) == 0 }}"
     fail_msg: "The response from the role does not match | Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
     success_msg: "The response from the role matches |  Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
+  when: api_response is defined
