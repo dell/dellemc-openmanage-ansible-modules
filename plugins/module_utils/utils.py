@@ -67,8 +67,6 @@ import re
 from ansible.module_utils.six.moves.urllib.error import HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.\
-    idrac_utils.info.firmware import IDRACFirmwareInfo
 import logging
 from ansible_collections.dellemc.openmanage.plugins.module_utils.logging_handler \
     import CustomRotatingFileHandler
@@ -800,19 +798,11 @@ def validate_time(time, module):
 
 
 def get_job_uri_id(rest_obj):
-    firmware_obj = IDRACFirmwareInfo(rest_obj)
-    job_uri_id = MANAGER_JOB_ID_URI
-    if not firmware_obj.is_omsdk_required():
-        job_uri_id = MANAGER_JOB_ID_URI_10
-    return job_uri_id
+    return MANAGER_JOB_ID_URI_10
 
 
 def get_job_uri(rest_obj):
-    firmware_obj = IDRACFirmwareInfo(rest_obj)
-    job_uri = MANAGER_JOB_URI
-    if not firmware_obj.is_omsdk_required():
-        job_uri = MANAGER_JOB_URI_10
-    return job_uri
+    return MANAGER_JOB_URI_10
 
 
 def get_logger(module_name, log_file_name='ansible_openmanage.log',

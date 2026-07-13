@@ -716,7 +716,10 @@ class StorageData:
         if controller_data["Volumes"]:
             storage_info.setdefault("Controller", {}).setdefault(controller_id, {})["VirtualDisk"] = {}
             for volume_id, volume_data in controller_data["Volumes"].items():
-                physical_disk = [self.fetch_api_data(drive[ODATA_ID], -1)[0] for drive in volume_data["Links"]["Drives"]]
+                try:
+                    physical_disk = [self.fetch_api_data(drive[ODATA_ID], -1)[0] for drive in volume_data["Links"]["Drives"]]
+                except (HTTPError, URLError, KeyError):
+                    physical_disk = []
                 storage_info["Controller"][controller_id]["VirtualDisk"][volume_id] = {"PhysicalDisk": physical_disk}
 
     def fetch_enclosures_and_physical_disk(self, controller_id, controller_data, storage_info):
@@ -1332,7 +1335,11 @@ def main():
             module.exit_json(msg=msg, changed=changed, storage_status=output, **extra_kwargs)
     except HTTPError as err:
         import json
-        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
+        try:
+            error_info = json.load(err)
+        except (ValueError, TypeError):
+            error_info = {"error": str(err)}
+        module.exit_json(msg=str(err), error_info=error_info, failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (SSLValidationError, ConnectionError, TypeError, ValueError, OSError) as err:

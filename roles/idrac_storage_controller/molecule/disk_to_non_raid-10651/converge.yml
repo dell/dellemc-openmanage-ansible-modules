@@ -13,7 +13,7 @@
 
         - name: Validate the disk conversion to NON-RAID
           ansible.builtin.import_role:
-            name: idrac_storage_controller
+            name: dellemc.openmanage.idrac_storage_controller
           vars:
             hostname: "{{ lookup('env', 'IDRAC_IP') }}"
             username: "{{ lookup('env', 'IDRAC_USER') }}"

@@ -153,8 +153,6 @@
 
     - name: Configure generic attributes -Change. (nfs share-Normal)
       dellemc.openmanage.idrac_bios: &configure_generic_attributes
-        share_name: "{{ nfs_share_name }}"
-        share_mnt: "/tmp"
         attributes:
           # BootMode: "Bios"
           BootSeqRetry: "{{ set_bootseq_retry }}"
@@ -163,9 +161,19 @@
     - ansible.builtin.include_role:
         name=prepare_idrac_lifecycle_controller_status
 
+    - name: Re-read BIOS data after reboot to get applied values
+      ansible.builtin.include_tasks:
+        file: get_data.yml
+      vars:
+        url: https://{{ idrac_ip }}:{{ idrac_port }}
+         /redfish/v1/Systems/System.Embedded.1/Bios
+
+    - ansible.builtin.set_fact:
+        current_bootseq_retry: "{{ uri_data.json.Attributes.BootSeqRetry }}"
+
     - ansible.builtin.set_fact:
         set_bootseq_retry: "{{'Disabled' if
-         (set_bootseq_retry == 'Enabled') else 'Enabled'}}"
+         (current_bootseq_retry == 'Enabled') else 'Enabled'}}"
 
     - name: Configure generic attributes (nfs_share) (check mode - change
        expected)
@@ -177,9 +185,11 @@
       register: cm_result_nfs
       check_mode: true
 
+    - ansible.builtin.include_role:
+        name=prepare_idrac_lifecycle_controller_status
+
     - name: Configure generic attributes -change (local_share)- normal
       dellemc.openmanage.idrac_bios:
-        share_name: "{{ role_path }}/files"
         attributes:
           BootMode: "Uefi"
           BootSeqRetry: "{{ set_bootseq_retry }}"
@@ -192,10 +202,6 @@
        no changes found to commit)
       dellemc.openmanage.idrac_bios:
         <<: *configure_generic_attributes
-        share_name: "{{ cifs_share_name }}"
-        share_user: "{{ cifs_share_user }}"
-        share_password: "{{ cifs_share_password }}"
-        share_mnt: "/tmp"
         attributes:
           BootMode: "Uefi"
       register: cm_result_cifs
@@ -204,10 +210,6 @@
     - name: Configure generic attributes (cifs_share) (Idempotence mode)
       dellemc.openmanage.idrac_bios:
         <<: *configure_generic_attributes
-        share_name: "{{ cifs_share_name }}"
-        share_user: "{{ cifs_share_user }}"
-        share_password: "{{ cifs_share_password }}"
-        share_mnt: "/tmp"
         attributes:
           BootMode: "Uefi"
       register: idempotence

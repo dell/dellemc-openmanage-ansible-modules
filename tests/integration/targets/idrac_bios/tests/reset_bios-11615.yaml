@@ -12,6 +12,18 @@
    idrac_password is not defined
 
 - block:
+    - name: Clear pending BIOS attributes from previous tests
+      dellemc.openmanage.idrac_bios:
+        clear_pending: true
+      register: clear_pending_result
+      ignore_errors: true
+
+    - ansible.builtin.include_role:
+        name: prepare_lifecycle_contoller_job_queue
+
+    - ansible.builtin.include_role:
+        name: prepare_idrac_lifecycle_controller_status
+
     - ansible.builtin.include_tasks:
         file: _get_server_generation.yml
 

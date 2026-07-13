@@ -1,4 +1,3 @@
 collections:
-  - dellemc.openmanage
   - ansible.utils
   - ansible.windows

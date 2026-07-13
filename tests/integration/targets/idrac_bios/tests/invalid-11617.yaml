@@ -22,8 +22,11 @@
       ansible.builtin.assert:
         that:
           - no_required_param.failed
-          - 'no_required_param.msg == "one of the following is required:
-              boot_sources, attributes, clear_pending, reset_bios"'
+          - "'one of the following is required' in no_required_param.msg"
+          - "'attributes' in no_required_param.msg"
+          - "'clear_pending' in no_required_param.msg"
+          - "'reset_bios' in no_required_param.msg"
+          - "'boot_sources' in no_required_param.msg"
 
     - name: Perform reset bios with invalid username
       dellemc.openmanage.idrac_bios:
