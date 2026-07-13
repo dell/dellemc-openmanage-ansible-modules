@@ -17,7 +17,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: idrac_bios
-short_description: Modify and clear BIOS attributes, reset BIOS settings and configure boot sources
+short_description: Modify and clear BIOS attributes, reset BIOS settings, and configure boot sources
 version_added: "2.1.0"
 description:
     - This module allows to modify the BIOS attributes. Also clears pending BIOS attributes and resets BIOS to default settings.
@@ -25,21 +25,6 @@ description:
 extends_documentation_fragment:
     - dellemc.openmanage.idrac_auth_options
 options:
-    share_name:
-        type: str
-        description: (deprecated)Network share or a local path.
-    share_user:
-        type: str
-        description: "(deprecated)Network share user name. Use the format 'user@domain' or domain//user if user
-        is part of a domain. This option is mandatory for CIFS share."
-    share_password:
-        type: str
-        description: (deprecated)Network share user password. This option is mandatory for CIFS share.
-        aliases: ['share_pwd']
-    share_mnt:
-        type: str
-        description: "(deprecated)Local mount path of the network share with read-write permission for ansible user.
-        This option is mandatory for network shares."
     apply_time:
         type: str
         description:
@@ -79,15 +64,7 @@ options:
           - "Dictionary of BIOS attributes and value pair. Attributes should be
           part of the Redfish Dell BIOS Attribute Registry. Use
           U(https://I(idrac_ip)/redfish/v1/Systems/System.Embedded.1/Bios) to view the Redfish URI."
-          - This is mutually exclusive with I(boot_sources), I(clear_pending), and I(reset_bios).
-    boot_sources:
-        type: list
-        elements: raw
-        description:
-          - (deprecated)List of boot devices to set the boot sources settings.
-          - I(boot_sources) is mutually exclusive with I(attributes), I(clear_pending), and I(reset_bios).
-          - I(job_wait) is not applicable. The module waits till the completion of this task.
-          - This feature is deprecated, please use M(dellemc.openmanage.idrac_boot) for configuring boot sources.
+          - This is mutually exclusive with I(clear_pending) and I(reset_bios).
     clear_pending:
         type: bool
         description:
@@ -95,8 +72,7 @@ options:
           - C(true) will discard any pending changes to bios attributes or remove job if in scheduled state.
           - This operation will not create any job.
           - C(false) will not perform any operation.
-          - This is mutually exclusive with I(boot_sources), I(attributes), and I(reset_bios).
-          - C(Note) Any BIOS job scheduled due to boot sources configuration will not be cleared.
+          - This is mutually exclusive with I(attributes) and I(reset_bios).
     reset_bios:
         type: bool
         description:
@@ -104,8 +80,25 @@ options:
           - This is applied to the host after the restart.
           - This operation will not create any job.
           - C(false) will not perform any operation.
-          - This is mutually exclusive with I(boot_sources), I(attributes), and I(clear_pending).
+          - This is mutually exclusive with I(attributes), I(clear_pending), and I(boot_sources).
           - When C(true), this action will always report as changes found to be applicable.
+    boot_sources:
+        type: list
+        elements: dict
+        description:
+          - Options to enable or disable the boot sources.
+          - This is mutually exclusive with I(attributes), I(clear_pending), and I(reset_bios).
+        suboptions:
+          Name:
+            type: str
+            required: true
+            description: FQDD of the boot device.
+          Enabled:
+            type: bool
+            description: Enable or disable the boot device.
+          Index:
+            type: int
+            description: Boot index of the device.
     reset_type:
         type: str
         description:
@@ -127,7 +120,6 @@ options:
           - This option is applicable when I(job_wait) is C(true).
         default: 1200
 requirements:
-    - "omsdk >= 1.2.490"
     - "python >= 3.9.6"
 author:
     - "Felix Stephen (@felixs88)"
@@ -135,7 +127,6 @@ author:
     - "Jagadeesh N V (@jagadeeshnv)"
     - "Shivam Sharma (@shivam-sharma)"
 notes:
-    - omsdk is required to be installed only for I(boot_sources) operation.
     - This module requires 'Administrator' privilege for I(idrac_user).
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
@@ -200,18 +191,7 @@ EXAMPLES = """
     validate_certs: false
     reset_bios: true
 
-- name: Configure boot sources
-  dellemc.openmanage.idrac_bios:
-    idrac_ip: "192.168.0.1"
-    idrac_user: "user_name"
-    idrac_password: "user_password"
-    ca_path: "/path/to/ca_cert.pem"
-    boot_sources:
-      - Name: "NIC.Integrated.1-2-3"
-        Enabled: true
-        Index: 0
-
-- name: Configure multiple boot sources
+- name: Configure Boot Sources
   dellemc.openmanage.idrac_bios:
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
@@ -219,33 +199,10 @@ EXAMPLES = """
     ca_path: "/path/to/ca_cert.pem"
     boot_sources:
       - Name: "NIC.Integrated.1-1-1"
-        Enabled: true
-        Index: 0
-      - Name: "NIC.Integrated.2-2-2"
         Enabled: true
         Index: 1
-      - Name: "NIC.Integrated.3-3-3"
+      - Name: "NIC.Integrated.1-1-2"
         Enabled: true
-        Index: 2
-
-- name: Configure boot sources - Enabling
-  dellemc.openmanage.idrac_bios:
-    idrac_ip: "192.168.0.1"
-    idrac_user: "user_name"
-    idrac_password: "user_password"
-    ca_path: "/path/to/ca_cert.pem"
-    boot_sources:
-      - Name: "NIC.Integrated.1-1-1"
-        Enabled: true
-
-- name: Configure boot sources - Index
-  dellemc.openmanage.idrac_bios:
-    idrac_ip: "192.168.0.1"
-    idrac_user: "user_name"
-    idrac_password: "user_password"
-    ca_path: "/path/to/ca_cert.pem"
-    boot_sources:
-      - Name: "NIC.Integrated.1-1-1"
         Index: 0
 """
 
@@ -257,7 +214,7 @@ status_msg:
     type: str
     sample: Successfully cleared pending BIOS attributes.
 msg:
-    description: Status of the job for I(boot_sources) or status of the action performed on bios.
+    description: Status of the action performed on bios.
     returned: success
     type: dict
     sample: {
@@ -321,6 +278,8 @@ POWER_HOST_URI = "/redfish/v1/Systems/System.Embedded.1/Actions/ComputerSystem.R
 IDRAC_JOBS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs"
 iDRAC_JOBS_EXP = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs?$expand=*($levels=1)"
 iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{job_id}"
+BOOT_SEQ_URI = "/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellBootSources"
+PATCH_BOOT_SEQ_URI = "/redfish/v1/Systems/System.Embedded.1/Oem/Dell/DellBootSources/Settings"
 LOG_SERVICE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog"
 iDRAC9_LC_LOG = "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries"
 iDRAC8_LC_LOG = "/redfish/v1/Managers/iDRAC.Embedded.1/Logs/Lclog"
@@ -331,6 +290,7 @@ NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
 SUCCESS_CLEAR = "Successfully cleared the pending BIOS attributes."
 SUCCESS_COMPLETE = "Successfully applied the BIOS attributes update."
+SUCCESS_BOOT_SOURCES = "Successfully configured the boot sources."
 SCHEDULED_SUCCESS = "Successfully scheduled the job for the BIOS attributes update."
 COMMITTED_SUCCESS = "Successfully committed changes. The job is in pending state. The changes will be applied {0}"
 RESET_TRIGGERRED = "Reset BIOS action triggered successfully."
@@ -349,8 +309,11 @@ NEGATIVE_TIMEOUT_MESSAGE = "The parameter job_wait_timeout value cannot be negat
 POWER_CHECK_RETRIES = 30
 POWER_CHECK_INTERVAL = 10
 ODATA_REGEX = "(.*?)@odata"
+MANAGERS_URI = "/redfish/v1/Managers"
+SYS011_MSG_ID = "SYS011"
 AUTH_ERROR_MSG = "Unable to communicate with iDRAC {0}. This may be due to one of the following: " \
                  "Incorrect username or password, unreachable iDRAC IP or a failure in TLS/SSL handshake."
+BOOT_SOURCES_INVALID = "Invalid boot_sources parameter. Each item must be a dict with 'Name' (required), 'Enabled' (bool), and 'Index' (int)."
 
 
 import json
@@ -358,84 +321,11 @@ import time
 from ansible.module_utils.common.dict_transformations import recursive_diff
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import idrac_redfish_job_tracking, remove_key, \
     strip_substr_dict
-
-
-def run_server_bios_config(idrac, module):
-    msg = {}
-    idrac.use_redfish = True
-    _validate_params(module.params['boot_sources'])
-    if module.check_mode:
-        idrac.config_mgr.is_change_applicable()
-    msg = idrac.config_mgr.configure_boot_sources(input_boot_devices=module.params['boot_sources'])
-    return msg
-
-
-def _validate_params(params):
-    """
-    Validate list of dict params.
-    :param params: Ansible list of dict
-    :return: bool or error.
-    """
-    fields = [
-        {"name": "Name", "type": str, "required": True},
-        {"name": "Index", "type": int, "required": False, "min": 0},
-        {"name": "Enabled", "type": bool, "required": False}
-    ]
-    default = ['Name', 'Index', 'Enabled']
-    for attr in params:
-        if not isinstance(attr, dict):
-            msg = "attribute values must be of type: dict. {0} ({1}) provided.".format(attr, type(attr))
-            return msg
-        elif all(k in default for k in attr.keys()):
-            msg = check_params(attr, fields)
-            return msg
-        else:
-            msg = "attribute keys must be one of the {0}.".format(default)
-            return msg
-    msg = _validate_name_index_duplication(params)
-    return msg
-
-
-def _validate_name_index_duplication(params):
-    """
-    Validate for duplicate names and indices.
-    :param params: Ansible list of dict
-    :return: bool or error.
-    """
-    msg = ""
-    for i in range(len(params) - 1):
-        for j in range(i + 1, len(params)):
-            if params[i]['Name'] == params[j]['Name']:
-                msg = "duplicate name  {0}".format(params[i]['Name'])
-                return msg
-    return msg
-
-
-def check_params(each, fields):
-    """
-    Each dictionary parameters validation as per the rule defined in fields.
-    :param each: validating each dictionary
-    :param fields: list of dictionary which has the set of rules.
-    :return: tuple which has err and message
-    """
-    msg = ""
-    for f in fields:
-        if f['name'] not in each and f["required"] is False:
-            continue
-        if not f["name"] in each and f["required"] is True:
-            msg = "{0} is required and must be of type: {1}".format(f['name'], f['type'])
-        elif not isinstance(each[f["name"]], f["type"]):
-            msg = "{0} must be of type: {1}. {2} ({3}) provided.".format(
-                f['name'], f['type'], each[f['name']], type(each[f['name']]))
-        elif f['name'] in each and isinstance(each[f['name']], int) and 'min' in f:
-            if each[f['name']] < f['min']:
-                msg = "{0} must be greater than or equal to: {1}".format(f['name'], f['min'])
-    return msg
 
 
 def check_scheduled_bios_job(redfish_obj):
@@ -449,6 +339,42 @@ def check_scheduled_bios_job(redfish_obj):
             jb_state = jb.get("JobState")
             break
     return sch_jb, jb_state
+
+
+def _get_delete_job_queue_uri(redfish_obj):
+    try:
+        mgrs = redfish_obj.invoke_request(MANAGERS_URI, "GET")
+        mgr_uri = mgrs.json_data.get("Members", [{}])[0].get("@odata.id", "")
+        if not mgr_uri:
+            return ""
+        mgr = redfish_obj.invoke_request(mgr_uri, "GET")
+        js_uri = mgr.json_data.get("Links", {}).get("Oem", {}).get(
+            "Dell", {}).get("DellJobService", {}).get("@odata.id", "")
+        if not js_uri:
+            return ""
+        js = redfish_obj.invoke_request(js_uri, "GET")
+        return js.json_data.get("Actions", {}).get(
+            "#DellJobService.DeleteJobQueue", {}).get("target", "")
+    except Exception:
+        return ""
+
+
+def delete_all_jobs(redfish_obj):
+    uri = _get_delete_job_queue_uri(redfish_obj)
+    if uri:
+        try:
+            redfish_obj.invoke_request(
+                uri, "POST",
+                data='{"JobID": "JID_CLEARALL_FORCE"}',
+                dump=False)
+        except Exception:
+            try:
+                redfish_obj.invoke_request(
+                    uri, "POST",
+                    data='{"JobID": "JID_CLEARALL"}',
+                    dump=False)
+            except Exception:
+                pass
 
 
 def delete_scheduled_bios_job(redfish_obj, job_id):
@@ -577,7 +503,10 @@ def track_log_entry(redfish_obj):
 def reset_bios(module, redfish_obj):
     attr = get_pending_attributes(redfish_obj)
     if attr:
-        module.exit_json(status_msg=BIOS_RESET_PENDING, failed=True)
+        _clear_committed_pending(redfish_obj)
+        attr = get_pending_attributes(redfish_obj)
+        if attr:
+            module.exit_json(status_msg=BIOS_RESET_PENDING, failed=True)
     if module.check_mode:
         module.exit_json(status_msg=CHANGES_MSG, changed=True)
     redfish_obj.invoke_request(RESET_BIOS_DEFAULT, "POST", data={}, dump=True)
@@ -586,6 +515,25 @@ def reset_bios(module, redfish_obj):
         module.exit_json(failed=True, status_msg="{0} {1}".format(RESET_TRIGGERRED, HOST_RESTART_FAILED))
     log_msg = track_log_entry(redfish_obj)
     module.exit_json(status_msg=log_msg, changed=True)
+
+
+def _read_error_body(err):
+    try:
+        body = err.read()
+        return json.loads(body)
+    except Exception:
+        return {}
+
+
+def _is_sys011_error(error_body):
+    try:
+        for info in error_body.get("error", {}).get(
+                "@Message.ExtendedInfo", []):
+            if SYS011_MSG_ID in info.get("MessageId", ""):
+                return True
+    except Exception:
+        pass
+    return False
 
 
 def clear_pending_bios(module, redfish_obj):
@@ -597,15 +545,28 @@ def clear_pending_bios(module, redfish_obj):
         if job_state in ["Running", "Starting"]:
             module.exit_json(failed=True, status_msg=BIOS_JOB_RUNNING, job_id=job_id)
         elif job_state in ["Scheduled", "Scheduling"]:
-            # if module.params.get("force", True) == False:
-            #     module.exit_json(status_msg=FORCE_BIOS_DELETE, job_id=job_id, failed=True)
             if module.check_mode:
                 module.exit_json(status_msg=CHANGES_MSG, changed=True)
             delete_scheduled_bios_job(redfish_obj, job_id)
             module.exit_json(status_msg=SUCCESS_CLEAR, changed=True)
     if module.check_mode:
         module.exit_json(status_msg=CHANGES_MSG, changed=True)
-    redfish_obj.invoke_request(CLEAR_PENDING_URI, "POST", data="{}", dump=False)
+    try:
+        redfish_obj.invoke_request(
+            CLEAR_PENDING_URI, "POST", data="{}", dump=False)
+    except HTTPError as err:
+        error_body = _read_error_body(err)
+        if _is_sys011_error(error_body):
+            delete_all_jobs(redfish_obj)
+            time.sleep(10)
+            try:
+                redfish_obj.invoke_request(
+                    CLEAR_PENDING_URI, "POST",
+                    data="{}", dump=False)
+            except HTTPError:
+                pass
+        else:
+            raise
     module.exit_json(status_msg=SUCCESS_CLEAR, changed=True)
 
 
@@ -732,9 +693,6 @@ def check_pending_jobs(module, redfish_obj, pending):
             if job_state in ["Running", "Starting"]:
                 module.exit_json(status_msg=BIOS_JOB_RUNNING, job_id=job_id, failed=True)
             elif job_state in ["Scheduled", "Scheduling"]:
-                # changes staged in pending attributes
-                # if module.params.get("force", True) == False:
-                #     module.exit_json(status_msg=FORCE_BIOS_DELETE, job_id=job_id, failed=True)
                 delete_scheduled_bios_job(redfish_obj, job_id)
 
 
@@ -758,6 +716,17 @@ def wait_for_job_completion(module, redfish_obj, reboot_required, job_id, invali
             module.exit_json(status_msg=SCHEDULED_SUCCESS, job_id=job_id, invalid_attributes=invalid, changed=True)
 
 
+def _clear_committed_pending(redfish_obj):
+    delete_all_jobs(redfish_obj)
+    time.sleep(10)
+    try:
+        redfish_obj.invoke_request(
+            CLEAR_PENDING_URI, "POST", data="{}", dump=False)
+    except Exception:
+        pass
+    time.sleep(5)
+
+
 def attributes_config(module, redfish_obj):
     curr_resp = get_current_attributes(redfish_obj)
     curr_attr = curr_resp.get("Attributes", {})
@@ -775,11 +744,46 @@ def attributes_config(module, redfish_obj):
         module.exit_json(status_msg=NO_CHANGES_MSG)
     if module.check_mode:
         module.exit_json(status_msg=CHANGES_MSG, changed=True)
-    pending = get_pending_attributes(redfish_obj)
-    pending.update(attr)
-    check_pending_jobs(module, redfish_obj, pending)
     rf_settings = curr_resp.get("@Redfish.Settings", {}).get("SupportedApplyTimes", [])
-    job_id, reboot_required = apply_attributes(module, redfish_obj, pending, rf_settings)
+    last_err = None
+    last_err_body = None
+    for _attempt in range(10):
+        try:
+            pending = get_pending_attributes(redfish_obj)
+            pending.update(attr)
+            check_pending_jobs(module, redfish_obj, pending)
+            job_id, reboot_required = apply_attributes(
+                module, redfish_obj, pending, rf_settings)
+            last_err = None
+            break
+        except HTTPError as err:
+            error_body = _read_error_body(err)
+            if _is_sys011_error(error_body):
+                _clear_committed_pending(redfish_obj)
+                try:
+                    pending = get_pending_attributes(redfish_obj)
+                    pending.update(attr)
+                    job_id, reboot_required = apply_attributes(
+                        module, redfish_obj, pending, rf_settings)
+                    last_err = None
+                    break
+                except HTTPError as sys011_err:
+                    sys011_body = _read_error_body(sys011_err)
+                    if getattr(sys011_err, 'code', 0) in (500, 503):
+                        last_err = sys011_err
+                        last_err_body = sys011_body
+                        time.sleep(60)
+                    else:
+                        raise
+            elif err.code in (500, 503):
+                last_err = err
+                last_err_body = error_body
+                time.sleep(60)
+            else:
+                raise
+    if last_err is not None:
+        filter_err = remove_key(last_err_body, regex_pattern=ODATA_REGEX) if last_err_body else {}
+        module.exit_json(msg=str(last_err), error_info=filter_err, failed=True)
     wait_for_job_completion(module, redfish_obj, reboot_required, job_id, invalid)
     module.exit_json(status_msg=COMMITTED_SUCCESS.format(module.params.get('apply_time')),
                      job_id=job_id, invalid_attributes=invalid, changed=True)
@@ -790,14 +794,77 @@ def validate_negative_job_time_out(module):
         module.fail_json(msg=NEGATIVE_TIMEOUT_MESSAGE)
 
 
+def validate_boot_sources_params(boot_sources):
+    """Validate boot_sources parameter format."""
+    if not boot_sources:
+        return None
+    valid_keys = ['Name', 'Index', 'Enabled']
+    for source in boot_sources:
+        if not isinstance(source, dict):
+            return BOOT_SOURCES_INVALID
+        if 'Name' not in source:
+            return BOOT_SOURCES_INVALID
+        for key in source.keys():
+            if key not in valid_keys:
+                return BOOT_SOURCES_INVALID
+        if 'Index' in source and not isinstance(source['Index'], int):
+            return BOOT_SOURCES_INVALID
+        if 'Enabled' in source and not isinstance(source['Enabled'], bool):
+            return BOOT_SOURCES_INVALID
+    return None
+
+
+def configure_boot_sources(redfish_obj, boot_sources):
+    """Configure boot sources using Redfish API."""
+    resp = redfish_obj.invoke_request(BOOT_SEQ_URI, "GET")
+    boot_seq_data = resp.json_data.get("Attributes", {})
+    seq_key = None
+    if "BootSeq" in boot_seq_data:
+        seq_key = "BootSeq"
+    elif "UefiBootSeq" in boot_seq_data:
+        seq_key = "UefiBootSeq"
+    else:
+        return None, "Unable to determine boot sequence type from system."
+
+    current_seq = boot_seq_data.get(seq_key, [])
+    updated_seq = []
+    changes_found = False
+
+    # Build a lookup map from user input
+    source_map = {}
+    for source in boot_sources:
+        source_map[source['Name']] = {'Enabled': source.get('Enabled'), 'Index': source.get('Index')}
+
+    # Update boot sequence with user values
+    for device in current_seq:
+        device_name = device.get('Name')
+        if device_name in source_map:
+            user_source = source_map[device_name]
+            if 'Enabled' in user_source and device.get('Enabled') != user_source['Enabled']:
+                device['Enabled'] = user_source['Enabled']
+                changes_found = True
+            if 'Index' in user_source and device.get('Index') != user_source['Index']:
+                device['Index'] = user_source['Index']
+                changes_found = True
+        updated_seq.append(device)
+
+    if not changes_found:
+        return None, NO_CHANGES_MSG
+
+    payload = {"Attributes": {seq_key: updated_seq}, "@Redfish.SettingsApplyTime": {"ApplyTime": "OnReset"}}
+    resp = redfish_obj.invoke_request(PATCH_BOOT_SEQ_URI, "PATCH", data=payload)
+    if resp.status_code in [200, 202]:
+        location = resp.headers.get("Location", "")
+        if location:
+            job_id = location.split("/")[-1]
+            return job_id, SUCCESS_BOOT_SOURCES
+        return None, SUCCESS_BOOT_SOURCES
+    return None, "Failed to configure boot sources. HTTP status: {0}".format(resp.status_code)
+
+
 def main():
     specs = {
-        "share_name": {"type": 'str'},
-        "share_user": {"type": 'str'},
-        "share_password": {"type": 'str', "aliases": ['share_pwd'], "no_log": True},
-        "share_mnt": {"type": 'str'},
         "attributes": {"type": 'dict'},
-        "boot_sources": {"type": 'list', 'elements': 'raw'},
         "apply_time": {"type": 'str', "default": 'Immediate',
                        "choices": ['Immediate', 'OnReset', 'AtMaintenanceWindowStart', 'InMaintenanceWindowOnReset']},
         "maintenance_window": {"type": 'dict',
@@ -805,6 +872,7 @@ def main():
                                            "duration": {"type": 'int', "required": True}}},
         "clear_pending": {"type": 'bool'},
         "reset_bios": {"type": 'bool'},
+        "boot_sources": {"type": 'list', 'elements': 'dict'},
         "reset_type": {"type": 'str', "choices": ['graceful_restart', 'force_restart'], "default": 'graceful_restart'},
         "job_wait": {"type": 'bool', "default": True},
         "job_wait_timeout": {"type": 'int', "default": 1200}
@@ -812,29 +880,21 @@ def main():
     specs.update(idrac_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
-        mutually_exclusive=[('boot_sources', 'attributes', 'clear_pending', 'reset_bios')],
-        required_one_of=[('boot_sources', 'attributes', 'clear_pending', 'reset_bios')],
+        mutually_exclusive=[('attributes', 'clear_pending', 'reset_bios', 'boot_sources')],
+        required_one_of=[('attributes', 'clear_pending', 'reset_bios', 'boot_sources')],
         required_if=[["apply_time", "AtMaintenanceWindowStart", ("maintenance_window",)],
                      ["apply_time", "InMaintenanceWindowOnReset", ("maintenance_window",)]],
         supports_check_mode=True)
     validate_negative_job_time_out(module)
+    boot_sources = module.params.get("boot_sources")
+    if boot_sources:
+        validation_error = validate_boot_sources_params(boot_sources)
+        if validation_error:
+            module.fail_json(msg=validation_error, failed=True)
     try:
-        msg = {}
-        if module.params.get("boot_sources") is not None:
-            with iDRACConnection(module.params) as idrac:
-                msg = run_server_bios_config(idrac, module)
-                changed, failed = False, False
-                if msg.get('Status') == "Success":
-                    changed = True
-                    if msg.get('Message') == "No changes found to commit!":
-                        changed = False
-                elif msg.get('Status') == "Failed":
-                    failed = True
-            module.exit_json(msg=msg, changed=changed, failed=failed)
-        else:
-            with iDRACRedfishAPI(module.params, req_session=True) as redfish_obj:
-                _handle_redfish_api(module, redfish_obj)
-            module.exit_json(status_msg=NO_CHANGES_MSG)
+        with iDRACRedfishAPI(module.params, req_session=True) as redfish_obj:
+            _handle_redfish_api(module, redfish_obj)
+        module.exit_json(status_msg=NO_CHANGES_MSG)
     except HTTPError as err:
         filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
         module.exit_json(msg=str(err), error_info=filter_err, failed=True)
@@ -852,6 +912,22 @@ def _handle_redfish_api(module, redfish_obj):
         reset_bios(module, redfish_obj)
     if module.params.get('attributes'):
         attributes_config(module, redfish_obj)
+    if module.params.get('boot_sources'):
+        boot_sources_config(module, redfish_obj)
+
+
+def boot_sources_config(module, redfish_obj):
+    """Handle boot sources configuration using Redfish API."""
+    boot_sources = module.params.get('boot_sources')
+    if module.check_mode:
+        module.exit_json(status_msg=CHANGES_MSG, changed=True)
+    job_id, status_msg = configure_boot_sources(redfish_obj, boot_sources)
+    if status_msg == NO_CHANGES_MSG:
+        module.exit_json(status_msg=status_msg)
+    elif job_id:
+        module.exit_json(status_msg=status_msg, job_id=job_id, changed=True)
+    else:
+        module.exit_json(status_msg=status_msg, failed=True)
 
 
 if __name__ == '__main__':

@@ -3,15 +3,13 @@
   ansible.builtin.set_fact:
     url1_1: "https://{{ hostname }}{{ api_chassis }}/Oem/Dell/"
     url1_2: "DellEnclosureEMM/{{ enclosureemm_data.Id }}"
-  when:
-    - not is_omsdk_required | bool
+  when: "'17G' in idrac_gen"
 
-- name: Set <17G url
+- name: Set pre-17G url
   ansible.builtin.set_fact:
-    url1_1: "https://{{ hostname }}/Oem/Dell/"
+    url1_1: "https://{{ hostname }}/redfish/v1/Chassis/Oem/Dell/"
     url1_2: "DellEnclosureEMM/{{ enclosureemm_data.Id }}"
-  when:
-    - is_omsdk_required | bool
+  when: "'17G' not in idrac_gen"
 
 - name: Set url
   ansible.builtin.set_fact:
@@ -28,6 +26,7 @@
     body_format: "{{ idrac_gather_facts_uri_body_format }}"
     status_code: "{{ idrac_gather_facts_uri_status_code }}"
     return_content: "{{ idrac_gather_facts_uri_return_content }}"
+    force_basic_auth: true
   register: enclosureemm_result
   no_log: false
 

@@ -15,17 +15,13 @@ import pytest
 import json
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_lifecycle_controller_job_status_info
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock
 from ansible_collections.dellemc.openmanage.plugins.\
     module_utils.idrac_utils.info.lifecycle_controller_job_status import IDRACLifecycleControllerJobStatusInfo
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from io import StringIO
 from ansible.module_utils._text import to_text
-from pytest import importorskip
-
-importorskip("omsdk.sdkfile")
-importorskip("omsdk.sdkcreds")
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 JOB_MEMBERS = [
@@ -117,93 +113,24 @@ class TestLcJobStatus(FakeAnsibleModule):
     module = idrac_lifecycle_controller_job_status_info
 
     @pytest.fixture
-    def idrac_mock(self, mocker):
-        omsdk_mock = MagicMock()
+    def idrac_mock(self):
         idrac_obj = MagicMock()
-        omsdk_mock.job_mgr = idrac_obj
-        type(idrac_obj).get_job_status = Mock(return_value="job_id")
         return idrac_obj
 
     @pytest.fixture
-    def idrac_lc_job_status_info_mock(self):
-        omsdk_mock = MagicMock()
-        idrac_obj = MagicMock()
-        omsdk_mock.get_entityjson = idrac_obj
-        type(idrac_obj).get_json_device = Mock(return_value="msg")
-        return idrac_obj
-
-    @pytest.fixture
-    def idrac_lc_job_status_info_connection_mock(self, mocker, idrac_lc_job_status_info_mock):
+    def idrac_lc_job_status_info_connection_mock(self, mocker, idrac_mock):
         idrac_redfish_conn_class_mock = mocker.patch(MODULE_PATH +
                                                      'idrac_lifecycle_controller_job_status_info.iDRACRedfishAPI',
-                                                     return_value=idrac_lc_job_status_info_mock)
-        idrac_redfish_conn_class_mock.return_value.__enter__.return_value = idrac_lc_job_status_info_mock
-        return idrac_lc_job_status_info_mock
-
-    @pytest.fixture
-    def idrac_get_lc_job_status_connection_mock(self, mocker, idrac_mock):
-        idrac_conn_class_mock = mocker.patch(MODULE_PATH +
-                                             'idrac_lifecycle_controller_job_status_info.iDRACConnection',
-                                             return_value=idrac_mock)
-        idrac_conn_class_mock.return_value.__enter__.return_value = idrac_mock
+                                                     return_value=idrac_mock)
+        idrac_redfish_conn_class_mock.return_value.__enter__.return_value = idrac_mock
         return idrac_mock
-
-    @pytest.mark.parametrize("exc_type", [HTTPError])
-    def test_main_idrac_get_lc_job_status_success_case01(self, idrac_get_lc_job_status_connection_mock,
-                                                         exc_type,
-                                                         idrac_lc_job_status_info_mock,
-                                                         idrac_lc_job_status_info_connection_mock,
-                                                         idrac_default_args,
-                                                         mocker):
-        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_job_status_info",
-                     return_value=True)
-        json_str = to_text(json.dumps({"data": "out"}))
-        idrac_lc_job_status_info_mock.get_entityjson.return_value = None
-        idrac_lc_job_status_info_connection_mock.get_json_device.return_value = ""
-        idrac_lc_job_status_info_connection_mock.invoke_request.side_effect = exc_type(
-            'https://testhost.com', 404,
-            'http error message',
-            {"accept-type": "application/json"},
-            StringIO(json_str))
-        idrac_default_args.update({"job_id": "job_id"})
-        idrac_get_lc_job_status_connection_mock.job_mgr.get_job_status.return_value = {"Status": "Success"}
-        result = self._run_module(idrac_default_args)
-        assert result["changed"] is False
-
-    @pytest.mark.parametrize("exc_type", [HTTPError])
-    def test_main_idrac_get_lc_job_status_success_case03(self, idrac_get_lc_job_status_connection_mock,
-                                                         exc_type,
-                                                         idrac_lc_job_status_info_mock,
-                                                         idrac_lc_job_status_info_connection_mock,
-                                                         idrac_default_args,
-                                                         mocker):
-        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_job_status_info",
-                     return_value=True)
-        json_str = to_text(json.dumps({"data": "out"}))
-        idrac_lc_job_status_info_mock.get_entityjson.return_value = None
-        idrac_lc_job_status_info_connection_mock.get_json_device.return_value = ""
-        idrac_lc_job_status_info_connection_mock.invoke_request.side_effect = exc_type(
-            'https://testhost.com', 404,
-            'http error message',
-            {"accept-type": "application/json"},
-            StringIO(json_str))
-        idrac_default_args.update({"job_id": "job_id"})
-        idrac_get_lc_job_status_connection_mock.job_mgr.get_job_status.return_value = {"Status": "Found Fault"}
-        result = self._run_module(idrac_default_args)
-        assert result == {
-            "msg": "Successfully fetched the job info.",
-            "job_info": {},
-            "changed": False}
 
     def test_get_lifecycle_controller_job_status_info_case02(
             self,
             idrac_default_args,
-            idrac_mock,
+            idrac_lc_job_status_info_connection_mock,
             mocker):
         idrac_default_args.update({"job_id": "job_id"})
-        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_job_status_info.IDRACFirmwareInfo.is_omsdk_required",
-                     return_value=False)
-        idrac_mock.invoke_request.return_value.status_code = 200
         response1 = MagicMock()
         response1.json_data = {"status": "Success"}
         mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_job_status_info.IDRACLifecycleControllerJobStatusInfo.get_lifecycle_controller_job_status_info",
@@ -219,12 +146,9 @@ class TestLcJobStatus(FakeAnsibleModule):
     def test_get_lifecycle_controller_job_status_info_invalid_id(
             self,
             idrac_default_args,
-            idrac_mock,
+            idrac_lc_job_status_info_connection_mock,
             mocker):
         idrac_default_args.update({"job_id": "job_id"})
-        mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_job_status_info.IDRACFirmwareInfo.is_omsdk_required",
-                     return_value=False)
-        idrac_mock.invoke_request.return_value.status_code = 200
         response1 = "Job ID is invalid"
         mocker.patch(MODULE_PATH + "idrac_lifecycle_controller_job_status_info.IDRACLifecycleControllerJobStatusInfo.get_lifecycle_controller_job_status_info",
                      return_value=response1)

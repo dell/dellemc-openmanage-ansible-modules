@@ -26,6 +26,9 @@
 #
 
 
+from urllib.error import HTTPError
+from urllib.parse import quote
+
 GET_IDRAC_THERMAL_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Thermal"
 GET_IDRAC_FAN_SENSOR_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Sensors/{fan_name}"
 NA = "Not Available"
@@ -49,9 +52,12 @@ class IDRACSensorsFanInfo(object):
 
     def fetch_fan_sensor_details(self, fan_name):
         """Fetches raw fan sensor details for a given fan name."""
-        sensor_uri = GET_IDRAC_FAN_SENSOR_DETAILS_URI_10.format(fan_name=fan_name)
-        resp = self.idrac.invoke_request(method='GET', uri=sensor_uri)
-        return resp.json_data if resp.status_code == 200 else None
+        try:
+            sensor_uri = GET_IDRAC_FAN_SENSOR_DETAILS_URI_10.format(fan_name=quote(fan_name, safe=''))
+            resp = self.idrac.invoke_request(method='GET', uri=sensor_uri)
+            return resp.json_data if resp.status_code == 200 else None
+        except (HTTPError, Exception):
+            return None
 
     def map_fan_sensor_data(self, resp):
         """Maps the fan sensor response into the expected output format."""

@@ -30,15 +30,14 @@ def get_bios_release_date_and_version_and_symbios():
 
 
 def get_bios_fqdd_and_instance_id_and_key():
-    response = idrac_obj.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_URI)
+    bios_uri = GET_IDRAC_SYSTEM_URI + "/Bios"
+    response = idrac_obj.invoke_request(method='GET', uri=bios_uri)
     if response.status_code == 200:
-        members = response.json_data.get("Members")
-        for each in members:
-            if each.get('ElementName', '') == 'BIOS' and each.get('Status', '') == 'Installed':
-                instance_id = each.get('Id')
-                fqdd = instance_id.split('__')[-1]
-                key = fqdd
-                return fqdd, instance_id, key
+        # Use standard Redfish Id as FQDD/InstanceID/Key
+        instance_id = "BIOS.Embedded.1"
+        fqdd = "BIOS.Embedded.1"
+        key = "BIOS.Embedded.1"
+        return fqdd, instance_id, key
     return "", "", ""
 
 

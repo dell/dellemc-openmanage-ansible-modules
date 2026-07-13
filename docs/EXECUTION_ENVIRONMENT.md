@@ -56,7 +56,6 @@ Build a image with the required Ansible collections and libraries, and then uplo
 
     **requirements.txt**
     ```yaml
-    omsdk
     netaddr>=0.7.19
     ```
 

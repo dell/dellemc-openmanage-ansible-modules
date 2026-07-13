@@ -42,7 +42,7 @@
   loop: >-
     {{
     result.system_info.Memory
-    | sort(attribute='BankLabel')
-    | zip(memory_updated_dict | sort(attribute='BankLabel'))
+    | sort(attribute='FQDD')
+    | zip(memory_updated_dict | sort(attribute='FQDD'))
     | list
     }}

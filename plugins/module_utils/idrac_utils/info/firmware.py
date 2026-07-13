@@ -35,10 +35,10 @@ class IDRACFirmwareInfo(object):
     def __init__(self, idrac):
         self.idrac = idrac
 
-    def is_omsdk_required(self):
+    def is_redfish_supported(self):
         try:
             response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_URI)
             if response.status_code == 200:
-                return False
+                return True
         except (HTTPError, TypeError):
-            return True
+            return False

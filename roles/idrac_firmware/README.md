@@ -11,14 +11,12 @@ ansible
 docker
 molecule
 python
-omsdk
 ```
 ### Production
 Requirements to use the role.
 ```
 ansible
 python
-omsdk
 ```
 
 ### Ansible collections

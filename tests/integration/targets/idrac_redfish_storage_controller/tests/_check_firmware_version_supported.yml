@@ -14,11 +14,14 @@
   register: uri_data
   ignore_errors: true
 
-- name: Set OMSDK is required
+- name: Set iDRAC 9 (DellSoftwareInventory endpoint not available)
   ansible.builtin.set_fact:
-    is_omsdk_required: true
+    is_idrac_9: true
+    is_idrac_10: false
+  when: uri_data.status != 200
 
-- name: Set OMSDK is not required
+- name: Set iDRAC 10 (DellSoftwareInventory endpoint available)
   ansible.builtin.set_fact:
-    is_omsdk_required: false
+    is_idrac_9: false
+    is_idrac_10: true
   when: uri_data.status == 200
