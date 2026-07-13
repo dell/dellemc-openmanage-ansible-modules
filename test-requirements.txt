@@ -1,4 +1,3 @@
-omsdk
 pytest==9.0.3
 pytest-xdist
 mock

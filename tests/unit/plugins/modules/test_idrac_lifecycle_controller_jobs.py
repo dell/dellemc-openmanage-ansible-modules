@@ -18,38 +18,21 @@ from ansible_collections.dellemc.openmanage.plugins.modules import idrac_lifecyc
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import SSLValidationError
-from unittest.mock import MagicMock, PropertyMock
+from unittest.mock import MagicMock
 from io import StringIO
 from ansible.module_utils._text import to_text
-from pytest import importorskip
-
-importorskip("omsdk.sdkfile")
-importorskip("omsdk.sdkcreds")
 
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
-server_generation_info = (13, "2.8", "iDRAC 8")
 
 
 class TestDeleteLcJob(FakeAnsibleModule):
     module = idrac_lifecycle_controller_jobs
 
     @pytest.fixture
-    def idrac_lc_job_mock(self, mocker):
-        omsdk_mock = MagicMock()
+    def idrac_redfish_lc_jobs_mock(self):
         idrac_obj = MagicMock()
-        omsdk_mock.job_mgr = idrac_obj
-        type(idrac_obj).delete_job = PropertyMock(return_value="msg")
-        type(idrac_obj).delete_all_jobs = PropertyMock(return_value="msg")
         return idrac_obj
-
-    @pytest.fixture
-    def idrac_lc_jobs_mock(self, idrac_lc_job_mock):
-        return idrac_lc_job_mock()
-
-    @pytest.fixture
-    def idrac_redfish_lc_jobs_mock(self, idrac_lc_job_mock):
-        return idrac_lc_job_mock()
 
     @pytest.fixture
     def idrac_redfish_lc_jobs_connection_mock(self, mocker, idrac_redfish_lc_jobs_mock):
@@ -58,22 +41,12 @@ class TestDeleteLcJob(FakeAnsibleModule):
             return_value=idrac_redfish_lc_jobs_mock
         )
         idrac_redfish_conn_class_mock.return_value.__enter__.return_value = idrac_redfish_lc_jobs_mock
-        idrac_redfish_lc_jobs_mock.get_server_generation.return_value = "iDRAC9"
         return idrac_redfish_lc_jobs_mock
-
-    @pytest.fixture
-    def idrac_lc_jobs_connection_mock(self, mocker, idrac_lc_jobs_mock):
-        idrac_conn_class_mock = mocker.patch(
-            MODULE_PATH + 'idrac_lifecycle_controller_jobs.iDRACConnection',
-            return_value=idrac_lc_jobs_mock)
-        idrac_conn_class_mock.return_value.__enter__.return_value = idrac_lc_jobs_mock
-        return idrac_lc_jobs_mock
 
     def test_main_get_lc_job_success_case00(self,
                                             idrac_default_args,
                                             mocker):
         mock_idrac = MagicMock()
-        mock_idrac.get_server_generation.return_value = server_generation_info
 
         mocker.patch(
             MODULE_PATH + "idrac_lifecycle_controller_jobs.iDRACRedfishAPI",
@@ -92,7 +65,6 @@ class TestDeleteLcJob(FakeAnsibleModule):
                                             idrac_default_args,
                                             mocker):
         mock_idrac = MagicMock()
-        mock_idrac.get_server_generation.return_value = server_generation_info
 
         mocker.patch(
             MODULE_PATH + "idrac_lifecycle_controller_jobs.iDRACRedfishAPI",
@@ -108,7 +80,6 @@ class TestDeleteLcJob(FakeAnsibleModule):
                                           idrac_default_args,
                                           mocker):
         mock_idrac = MagicMock()
-        mock_idrac.get_server_generation.return_value = server_generation_info
 
         mocker.patch(
             MODULE_PATH + "idrac_lifecycle_controller_jobs.iDRACRedfishAPI",
@@ -170,54 +141,24 @@ class TestDeleteLcJob(FakeAnsibleModule):
 
         assert result == expected
 
-    def test_main_idrac_lc_job_success_case01(self, idrac_lc_jobs_connection_mock, idrac_redfish_lc_jobs_connection_mock, idrac_default_args, mocker):
-        idrac_redfish_lc_jobs_connection_mock.get_server_generation = server_generation_info
-        idrac_default_args.update({"job_id": "job_id"})
-        idrac_lc_jobs_connection_mock.job_mgr.delete_job.return_value = {"Status": "Success"}
-        result = self._run_module(idrac_default_args)
-        assert result == {'changed': True, 'msg': 'Successfully deleted the job.', 'status': {'Status': 'Success'}}
-
-    def test_main_idrac_lc_job_success_case02(self, idrac_lc_jobs_connection_mock, idrac_redfish_lc_jobs_connection_mock, idrac_default_args):
-        idrac_redfish_lc_jobs_connection_mock.get_server_generation = server_generation_info
-        idrac_lc_jobs_connection_mock.job_mgr.delete_all_jobs.return_value = {"Status": "Success"}
-        result = self._run_module(idrac_default_args)
-        assert result == {'changed': True, 'msg': 'Successfully deleted the job queue.', 'status': {'Status': 'Success'}}
-
-    def test_main_idrac_delete_lc_job_failure_case(self, idrac_lc_jobs_connection_mock, idrac_redfish_lc_jobs_connection_mock, idrac_default_args):
-        idrac_redfish_lc_jobs_connection_mock.get_server_generation = server_generation_info
-        idrac_default_args.update({"job_id": "job_id"})
-        idrac_lc_jobs_connection_mock.job_mgr.delete_job.return_value = {"Status": "Error"}
-        result = self._run_module(idrac_default_args)
-        assert result == {'failed': True, 'msg': "Failed to delete the Job: {0}.".format("job_id"),
-                          'status': {'Status': 'Error'},
-                          'changed': False}
-
     @pytest.mark.parametrize("exc_type", [URLError, HTTPError, ImportError, ValueError, RuntimeError, TypeError])
-    def test_main_exception_handling_idrac_lc_job_case(self, exc_type, idrac_lc_jobs_connection_mock,
+    def test_main_exception_handling_idrac_lc_job_case(self, exc_type,
+                                                       idrac_redfish_lc_jobs_connection_mock,
                                                        idrac_default_args, mocker):
-        mock_idrac = MagicMock()
-        mock_idrac.get_server_generation.return_value = server_generation_info
-
-        mocker.patch(
-            MODULE_PATH + "idrac_lifecycle_controller_jobs.iDRACRedfishAPI",
-            return_value=mock_idrac
-        )
-        json_str = to_text(json.dumps({"data": "out"}))
+        error_body = {"error": {"@Message.ExtendedInfo": [{"Message": "http error message", "MessageId": "ERR001"}]}}
+        json_str = to_text(json.dumps(error_body))
         if exc_type not in [HTTPError, SSLValidationError]:
-            idrac_lc_jobs_connection_mock.job_mgr.delete_all_jobs.side_effect = exc_type('test')
-            idrac_lc_jobs_connection_mock.job_mgr.delete_job.side_effect = exc_type('test')
+            mocker.patch(
+                MODULE_PATH + "idrac_lifecycle_controller_jobs.IDRACLifecycleControllerJobs.lifecycle_controller_jobs_operation",
+                side_effect=exc_type('test'))
         else:
-            idrac_lc_jobs_connection_mock.job_mgr.delete_all_jobs.side_effect = \
-                exc_type('https://testhost.com', 400, 'http error message', {"accept-type": "application/json"},
-                         StringIO(json_str))
-            idrac_lc_jobs_connection_mock.job_mgr.delete_job.side_effect = \
-                exc_type('https://testhost.com', 400, 'http error message', {"accept-type": "application/json"},
-                         StringIO(json_str))
+            mocker.patch(
+                MODULE_PATH + "idrac_lifecycle_controller_jobs.IDRACLifecycleControllerJobs.lifecycle_controller_jobs_operation",
+                side_effect=exc_type('https://testhost.com', 400, 'http error message',
+                                     {"accept-type": "application/json"}, StringIO(json_str)))
         if exc_type != URLError:
             result = self._run_module(idrac_default_args)
             assert result['failed'] is True
         else:
-            idrac_lc_jobs_connection_mock.job_mgr.delete_all_jobs
-            idrac_lc_jobs_connection_mock.job_mgr.delete_job
             result = self._run_module(idrac_default_args)
         assert 'msg' in result

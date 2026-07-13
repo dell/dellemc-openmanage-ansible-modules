@@ -26,6 +26,9 @@
 #
 
 
+from urllib.error import HTTPError
+from urllib.parse import quote
+
 GET_IDRAC_THERMAL_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Thermal"
 GET_IDRAC_SENSOR_TEMPERATURE_DETAILS_URI_10 = "/redfish/v1/Chassis/System.Embedded.1/Sensors/{temp_sensor_name}"
 NA = "Not Available"
@@ -49,9 +52,12 @@ class IDRACSensorsTemperatureInfo(object):
 
     def fetch_temp_sensor_details(self, temp_sensor_name):
         """Fetches raw temperature sensor details for a given sensor name."""
-        sensor_uri = GET_IDRAC_SENSOR_TEMPERATURE_DETAILS_URI_10.format(temp_sensor_name=temp_sensor_name)
-        resp = self.idrac.invoke_request(method='GET', uri=sensor_uri)
-        return resp.json_data if resp.status_code == 200 else None
+        try:
+            sensor_uri = GET_IDRAC_SENSOR_TEMPERATURE_DETAILS_URI_10.format(temp_sensor_name=quote(temp_sensor_name, safe=''))
+            resp = self.idrac.invoke_request(method='GET', uri=sensor_uri)
+            return resp.json_data if resp.status_code == 200 else None
+        except (HTTPError, Exception):
+            return None
 
     def sensors_temperature_mapped_data(self, resp):
         health = resp.get("Status", {}).get("Health", {})

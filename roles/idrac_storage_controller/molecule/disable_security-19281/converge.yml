@@ -3,16 +3,16 @@
   hosts: all
   gather_facts: false
   tasks:
-    - name: Check if module is calling omsdk
+    - name: Check firmware version
       ansible.builtin.include_tasks: ../_check_firmware_version_supported.yml
 
     - name: Execute in iDRAC10
       when:
-        - not is_omsdk_required | bool
+        - is_idrac10 | bool
       block:
         - name: Disable security on controller
           ansible.builtin.import_role:
-            name: idrac_storage_controller
+            name: dellemc.openmanage.idrac_storage_controller
           vars:
             hostname: "{{ lookup('env', 'IDRAC_IP') }}"
             username: "{{ lookup('env', 'IDRAC_USER') }}"

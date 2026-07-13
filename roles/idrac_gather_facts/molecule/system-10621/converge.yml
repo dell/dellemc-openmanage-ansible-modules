@@ -40,15 +40,6 @@
       ansible.builtin.set_fact:
         url2_1: "https://{{ hostname }}{{ api_manager }}"
         url2_2: "/Oem/Dell/DellAttributes/{{ computer_system_id }}"
-      when:
-        - not is_omsdk_required | bool
-
-    - name: Set < 17G url
-      ansible.builtin.set_fact:
-        url2_1: "https://{{ hostname }}/redfish/v1/"
-        url2_2: "Managers/{{ computer_system_id }}/Attributes"
-      when:
-        - is_omsdk_required | bool
 
     - name: Set < 17G url.
       ansible.builtin.set_fact:
@@ -75,6 +66,7 @@
         body_format: "{{ idrac_gather_facts_uri_body_format }}"
         status_code: "{{ idrac_gather_facts_uri_status_code }}"
         return_content: "{{ idrac_gather_facts_uri_return_content }}"
+        force_basic_auth: true
       register: system_result
       no_log: false
 
@@ -90,6 +82,7 @@
         body_format: "{{ idrac_gather_facts_uri_body_format }}"
         status_code: "{{ idrac_gather_facts_uri_status_code }}"
         return_content: "{{ idrac_gather_facts_uri_return_content }}"
+        force_basic_auth: true
       register: os_result
       no_log: false
 

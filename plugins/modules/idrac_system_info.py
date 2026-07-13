@@ -24,7 +24,6 @@ extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options
 
 requirements:
-    - "omsdk >= 1.2.488"
     - "python >= 3.9.6"
 author:
   - "Rajeev Arakkal (@rajeevarakkal)"
@@ -98,8 +97,7 @@ error_info:
 '''
 
 import json
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.firmware import IDRACFirmwareInfo
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.bios import IDRACBiosInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.cpu import IDRACCpuInfo
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_utils.info.controller_enclosure import IDRACEnclosureInfo
@@ -156,7 +154,6 @@ def main():
     )
     try:
         with iDRACRedfishAPI(idrac_redfish_module.params) as idrac:
-            firmware_obj = IDRACFirmwareInfo(idrac)
             system_info_dict = {
                 "BIOS": "",
                 "CPU": "",
@@ -187,41 +184,52 @@ def main():
                 "Video": "",
                 "iDRAC": ""
             }
-            if not firmware_obj.is_omsdk_required():
-                chassis_sensors = IDRACChassisSensors(idrac)
-                system_info_dict["BIOS"] = IDRACBiosInfo(idrac).get_bios_system_info()
-                system_info_dict["CPU"] = IDRACCpuInfo(idrac).get_cpu_system_info()
-                system_info_dict["Enclosure"] = IDRACEnclosureInfo(idrac).get_enclosure_system_info()
-                system_info_dict["EnclosureSensor"] = IDRACEnclosureInfo(idrac).get_controller_enclosure_sensor_info(system_info_dict["Enclosure"])
-                system_info_dict["Sensors_Battery"] = IDRACSensorsBatteryInfo(idrac).get_sensors_battery_info()
-                system_info_dict["Sensors_Intrusion"] = IDRACSensorsIntrusionInfo(idrac).get_sensors_intrusion_info()
-                system_info_dict["Sensors_Voltage"] = IDRACSensorsVoltageInfo(idrac).get_sensors_voltage_info()
-                system_info_dict["Sensors_Amperage"] = IDRACSensorAmperageInfo(idrac, chassis_sensors).get_sensor_amperage_info()
-                system_info_dict["Sensors_Fan"] = IDRACSensorsFanInfo(idrac).get_sensors_fan_info()
-                system_info_dict["Fan"] = IDRACFanInfo(idrac).get_fan_info()
-                system_info_dict["NIC"] = IDRACNICInfo(idrac).get_nic_info()
-                system_info_dict["FC"] = IDRACFCInfo(idrac).get_fc_info()
-                system_info_dict["System"] = IDRACSystemInfo(idrac).get_system_info()
-                system_info_dict["SystemBoardMetrics"] = IDRACSystemBoardMetricsInfo(idrac, chassis_sensors).get_system_board_metrics_info()
-                system_info_dict["SystemMetrics"] = IDRACSystemMetricsInfo(idrac, chassis_sensors).get_system_metrics_info()
-                system_info_dict["Video"] = IDRACVideoInfo(idrac).get_idrac_video_details()
-                system_info_dict["Subsystem"] = IDRACSubsystemInfo(idrac).get_subsystem_info()
-                system_info_dict["License"] = IDRACLicenseInfo(idrac).get_license_info()
-                system_info_dict["Memory"] = IDRACMemoryInfo(idrac).get_memory_info()
-                system_info_dict["iDRAC"] = IDRACInfo(idrac).get_idrac_info_details()
-                system_info_dict["PowerSupply"] = IDRACPowerSupplyInfo(idrac).get_power_supply_info()
-                system_info_dict["iDRACNIC"] = IDRACInfo(idrac).get_idrac_nic_info()
-                system_info_dict["PCIDevice"] = IDRACPCIDeviceInfo(idrac).get_pcidevice_info()
-                system_info_dict["Controller"] = IDRACControllerInfo(idrac).get_controller_system_info()
-                system_info_dict["PhysicalDisk"] = IDRACPhysicalDiskInfo(idrac).get_physical_disk_info()
-                system_info_dict["Sensors_Temperature"] = IDRACSensorsTemperatureInfo(idrac).get_sensors_temperature_info()
-                system_info_dict["ControllerSensor"] = IDRACControllerSensorInfo(idrac).get_controller_sensor_info()
-                system_info_dict["ControllerBattery"] = IDRACControllerBatteryInfo(idrac).get_controller_battery_info()
-
-            else:
-                with iDRACConnection(module.params) as idrac:
-                    idrac.get_entityjson()
-                    system_info_dict = idrac.get_json_device()
+            chassis_sensors = IDRACChassisSensors(idrac)
+            info_collectors = {
+                "BIOS": lambda: IDRACBiosInfo(idrac).get_bios_system_info(),
+                "CPU": lambda: IDRACCpuInfo(idrac).get_cpu_system_info(),
+                "Enclosure": lambda: IDRACEnclosureInfo(idrac).get_enclosure_system_info(),
+                "Sensors_Battery": lambda: IDRACSensorsBatteryInfo(idrac).get_sensors_battery_info(),
+                "Sensors_Intrusion": lambda: IDRACSensorsIntrusionInfo(idrac).get_sensors_intrusion_info(),
+                "Sensors_Voltage": lambda: IDRACSensorsVoltageInfo(idrac).get_sensors_voltage_info(),
+                "Sensors_Amperage": lambda: IDRACSensorAmperageInfo(idrac, chassis_sensors).get_sensor_amperage_info(),
+                "Sensors_Fan": lambda: IDRACSensorsFanInfo(idrac).get_sensors_fan_info(),
+                "Fan": lambda: IDRACFanInfo(idrac).get_fan_info(),
+                "NIC": lambda: IDRACNICInfo(idrac).get_nic_info(),
+                "FC": lambda: IDRACFCInfo(idrac).get_fc_info(),
+                "System": lambda: IDRACSystemInfo(idrac).get_system_info(),
+                "SystemBoardMetrics": lambda: IDRACSystemBoardMetricsInfo(idrac, chassis_sensors).get_system_board_metrics_info(),
+                "SystemMetrics": lambda: IDRACSystemMetricsInfo(idrac, chassis_sensors).get_system_metrics_info(),
+                "Video": lambda: IDRACVideoInfo(idrac).get_idrac_video_details(),
+                "Subsystem": lambda: IDRACSubsystemInfo(idrac).get_subsystem_info(),
+                "License": lambda: IDRACLicenseInfo(idrac).get_license_info(),
+                "Memory": lambda: IDRACMemoryInfo(idrac).get_memory_info(),
+                "iDRAC": lambda: IDRACInfo(idrac).get_idrac_info_details(),
+                "PowerSupply": lambda: IDRACPowerSupplyInfo(idrac).get_power_supply_info(),
+                "iDRACNIC": lambda: IDRACInfo(idrac).get_idrac_nic_info(),
+                "PCIDevice": lambda: IDRACPCIDeviceInfo(idrac).get_pcidevice_info(),
+                "Controller": lambda: IDRACControllerInfo(idrac).get_controller_system_info(),
+                "PhysicalDisk": lambda: IDRACPhysicalDiskInfo(idrac).get_physical_disk_info(),
+                "Sensors_Temperature": lambda: IDRACSensorsTemperatureInfo(idrac).get_sensors_temperature_info(),
+                "ControllerSensor": lambda: IDRACControllerSensorInfo(idrac).get_controller_sensor_info(),
+                "ControllerBattery": lambda: IDRACControllerBatteryInfo(idrac).get_controller_battery_info(),
+            }
+            for key, collector in info_collectors.items():
+                try:
+                    system_info_dict[key] = collector()
+                except HTTPError as err:
+                    if err.code == 404:
+                        system_info_dict[key] = []
+                    else:
+                        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
+            if system_info_dict.get("Enclosure"):
+                try:
+                    system_info_dict["EnclosureSensor"] = IDRACEnclosureInfo(idrac).get_controller_enclosure_sensor_info(system_info_dict["Enclosure"])
+                except HTTPError as err:
+                    if err.code == 404:
+                        system_info_dict["EnclosureSensor"] = []
+                    else:
+                        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:

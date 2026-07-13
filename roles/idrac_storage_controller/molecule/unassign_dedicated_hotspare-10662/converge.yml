@@ -11,7 +11,7 @@
 
     - name: UnAssign dedicated hot spare
       ansible.builtin.import_role:
-        name: idrac_storage_controller
+        name: dellemc.openmanage.idrac_storage_controller
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "{{ lookup('env', 'IDRAC_USER') }}"

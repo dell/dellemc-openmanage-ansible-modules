@@ -93,6 +93,9 @@ class IDRACLifecycleControllerJobStatusInfo(object):
 
     def get_lifecycle_controller_job_status_info(self, job_id):
         manager_response = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_LIFECYCLE_CONTROLLER_JOB_STATUS_INFO_10)
-        jobs = manager_response.json_data.get("Oem", {}).get("Dell", {}).get("Jobs", {}).get(odata, "")
+        manager_data = manager_response.json_data
+        jobs = manager_data.get("Links", {}).get("Oem", {}).get("Dell", {}).get("Jobs", {}).get(odata, "")
+        if not jobs:
+            jobs = manager_data.get("Oem", {}).get("Dell", {}).get("Jobs", {}).get(odata, "")
         response = self.get_lifecycle_controller_job_list(job_id=job_id, jobs=jobs)
         return response
