@@ -1,0 +1,68 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- name: Check iDRAC firmware version
+  ansible.builtin.include_tasks: _check_idrac_version.yml
+
+- block:
+    - name: Query BIOS attributes with glob pattern filter
+      dellemc.openmanage.idrac_bios_registry_info:
+        attribute_name: "Proc*"
+      register: filter_result
+
+    - name: Verify module succeeded
+      ansible.builtin.assert:
+        that:
+          - filter_result is not failed
+          - filter_result is succeeded
+
+    - name: Verify required output fields
+      ansible.builtin.assert:
+        that:
+          - filter_result.bios_attributes is defined
+          - filter_result.bios_attributes is iterable
+          - filter_result.attribute_count is defined
+          - filter_result.attribute_count is number
+
+    - name: Verify non-empty results
+      ansible.builtin.assert:
+        that:
+          - filter_result.attribute_count | int > 0
+          - filter_result.bios_attributes | length == filter_result.attribute_count | int
+
+    - name: Verify all attributes match pattern
+      ansible.builtin.assert:
+        that:
+          - item.name is search("^Proc")
+      loop: "{{ filter_result.bios_attributes }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Verify changed flag is false (read-only operation)
+      ansible.builtin.assert:
+        that:
+          - filter_result.changed is defined
+          - filter_result.changed is false
+
+    - name: Display filter summary
+      ansible.builtin.debug:
+        msg:
+          - "Attribute Count: {{ filter_result.attribute_count }}"
+          - "Matching Attributes: {{ filter_result.bios_attributes | map(attribute='name') | list }}"
+
+  module_defaults:
+    dellemc.openmanage.idrac_bios_registry_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"

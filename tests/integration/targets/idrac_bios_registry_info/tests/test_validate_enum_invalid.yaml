@@ -1,0 +1,82 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- name: Check iDRAC firmware version
+  ansible.builtin.include_tasks: _check_idrac_version.yml
+
+- block:
+    - name: Validate invalid enumeration value
+      dellemc.openmanage.idrac_bios_registry_info:
+        validate: true
+        attributes:
+          ProcVirtualization: "INVALID"
+      register: validation_result
+
+    - name: Verify module succeeded
+      ansible.builtin.assert:
+        that:
+          - validation_result is not failed
+          - validation_result is succeeded
+
+    - name: Verify validation result is false
+      ansible.builtin.assert:
+        that:
+          - validation_result.valid is defined
+          - validation_result.valid is false
+
+    - name: Verify validation results structure
+      ansible.builtin.assert:
+        that:
+          - validation_result.validation_results is defined
+          - validation_result.validation_results is iterable
+
+    - name: Verify ProcVirtualization validation status
+      ansible.builtin.assert:
+        that:
+          - validation_result.validation_results | selectattr('attribute', 'equalto', 'ProcVirtualization')
+            | map(attribute='status') | list | first == "invalid"
+
+    - name: Verify error reason
+      ansible.builtin.assert:
+        that:
+          - validation_result.validation_results | selectattr('attribute', 'equalto', 'ProcVirtualization')
+            | map(attribute='reason') | list | first is search("not a valid enumeration value")
+
+    - name: Verify suggestions provided
+      ansible.builtin.assert:
+        that:
+          - validation_result.validation_results | selectattr('attribute', 'equalto', 'ProcVirtualization')
+            | map(attribute='suggestions') | list | first is defined
+
+    - name: Verify validation counts
+      ansible.builtin.assert:
+        that:
+          - validation_result.valid_count is defined
+          - validation_result.valid_count == 0
+          - validation_result.invalid_count is defined
+          - validation_result.invalid_count == 1
+
+    - name: Display validation summary
+      ansible.builtin.debug:
+        msg:
+          - "Valid: {{ validation_result.valid }}"
+          - "Valid Count: {{ validation_result.valid_count }}"
+          - "Invalid Count: {{ validation_result.invalid_count }}"
+          - "Validation Results: {{ validation_result.validation_results }}"
+
+  module_defaults:
+    dellemc.openmanage.idrac_bios_registry_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
