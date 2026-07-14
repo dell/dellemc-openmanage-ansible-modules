@@ -1111,7 +1111,7 @@ class TestStorageCreate(TestStorageBase):
         assert data == {}
 
     def test_execute_idempotent_existing_volume_matches(self, idrac_default_args,
-                                                         idrac_connection_storage_volume_mock, mocker):
+                                                        idrac_connection_storage_volume_mock, mocker):
         idrac_resp = {'Controllers': {CONTROLLER_ID_FOURTH: {'Volumes': {
             'Disk.Virtual.0:RAID.SL.5-1': {
                 'Name': 'Volume Name 1', 'RAIDType': 'RAID 1',
@@ -1133,7 +1133,7 @@ class TestStorageCreate(TestStorageBase):
         assert exc.value.fail_kwargs['existing_volumes']['Volume Name 1']['matches'] is True
 
     def test_execute_idempotent_existing_volume_mismatch(self, idrac_default_args,
-                                                          idrac_connection_storage_volume_mock, mocker):
+                                                         idrac_connection_storage_volume_mock, mocker):
         idrac_resp = {'Controllers': {CONTROLLER_ID_FOURTH: {'Volumes': {
             'Disk.Virtual.0:RAID.SL.5-1': {
                 'Name': 'Volume Name 1', 'RAIDType': 'RAID 1',
@@ -1155,7 +1155,7 @@ class TestStorageCreate(TestStorageBase):
         assert diff['DiskCachePolicy'] == {"current": "Disabled", "desired": "Enabled"}
 
     def test_execute_new_volume_proceeds_to_create(self, idrac_default_args, idrac_connection_storage_volume_mock,
-                                                    mocker):
+                                                   mocker):
         idrac_resp = {'Controllers': {CONTROLLER_ID_FOURTH: {'Volumes': {}}}}
         mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_resp)
         mocker.patch(MODULE_PATH + 'StorageCreate.validate', return_value=None)
@@ -1210,7 +1210,7 @@ class TestStorageCreate(TestStorageBase):
         (None, "Check the physical connectivity"),
     ])
     def test_validate_physical_disk_states_blocks(self, idrac_default_args, idrac_connection_storage_volume_mock,
-                                                   mocker, raid_status, expected_remediation_fragment):
+                                                  mocker, raid_status, expected_remediation_fragment):
         idrac_resp = {'Controllers': {CONTROLLER_ID_FOURTH: {'Drives': {
             PHYSICAL_DISK_FIRST: {'Oem': {'Dell': {'DellPhysicalDisk': {'RaidStatus': raid_status}}}}
         }}}}
@@ -1224,7 +1224,7 @@ class TestStorageCreate(TestStorageBase):
         assert expected_remediation_fragment in exc.value.args[0]
 
     def test_validate_physical_disk_states_allows_ready_and_online(self, idrac_default_args,
-                                                                    idrac_connection_storage_volume_mock, mocker):
+                                                                   idrac_connection_storage_volume_mock, mocker):
         idrac_resp = {'Controllers': {CONTROLLER_ID_FOURTH: {'Drives': {
             PHYSICAL_DISK_FIRST: {'Oem': {'Dell': {'DellPhysicalDisk': {'RaidStatus': 'Ready'}}}},
             PHYSICAL_DISK_SECOND: {'Oem': {'Dell': {'DellPhysicalDisk': {'RaidStatus': 'Online'}}}},
@@ -1340,7 +1340,7 @@ class TestStorageModify(TestStorageBase):
         assert exc.value.fail_kwargs['diff']['after'] == {"Name": "New Volume Name", "WriteCachePolicy": "WriteBack"}
 
     def test_execute_check_mode_diff_omitted_when_diff_mode_disabled(self, idrac_default_args,
-                                                                      idrac_connection_storage_volume_mock, mocker):
+                                                                     idrac_connection_storage_volume_mock, mocker):
         idrac_resp = {"Controllers": {CONTROLLER_ID_FOURTH: {"Volumes": {VIRTUAL_DISK_FIRST: self._volume_data()}}}}
         mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_resp)
         idrac_default_args.update({"controller_id": CONTROLLER_ID_FOURTH, "volume_id": VIRTUAL_DISK_FIRST,
@@ -1368,7 +1368,7 @@ class TestStorageModify(TestStorageBase):
             self.VOLUME_URI, 'PATCH', data={"Name": "New Volume Name"})
 
     def test_execute_applies_patch_with_oem_cache_policies(self, idrac_default_args,
-                                                            idrac_connection_storage_volume_mock, mocker):
+                                                           idrac_connection_storage_volume_mock, mocker):
         idrac_resp = {"Controllers": {CONTROLLER_ID_FOURTH: {"Volumes": {VIRTUAL_DISK_FIRST: self._volume_data()}}}}
         mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_resp)
         idrac_default_args.update({"controller_id": CONTROLLER_ID_FOURTH, "volume_id": VIRTUAL_DISK_FIRST,
@@ -1492,7 +1492,7 @@ class TestStorageModify(TestStorageBase):
         idrac_connection_storage_volume_mock.invoke_request.assert_not_called()
 
     def test_execute_initialize_standard_redfish_method(self, idrac_default_args, idrac_connection_storage_volume_mock,
-                                                         mocker):
+                                                        mocker):
         idrac_resp = {"Controllers": {CONTROLLER_ID_FOURTH: self._controller_data()}}
         mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_resp)
         mocker.patch(MODULE_PATH + 'StorageBase.wait_for_job_completion', return_value={"JobState": "Running"})
@@ -1509,7 +1509,7 @@ class TestStorageModify(TestStorageBase):
             self.VOLUME_URI + "/Actions/Volume.Initialize", 'POST', data={"InitializeMethod": "Foreground"})
 
     def test_execute_initialize_dell_oem_type_backward_compat(self, idrac_default_args,
-                                                               idrac_connection_storage_volume_mock, mocker):
+                                                              idrac_connection_storage_volume_mock, mocker):
         idrac_resp = {"Controllers": {CONTROLLER_ID_FOURTH: self._controller_data()}}
         mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_resp)
         mocker.patch(MODULE_PATH + 'StorageBase.wait_for_job_completion', return_value={"JobState": "Completed"})

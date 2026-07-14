@@ -15,7 +15,7 @@ import pytest
 from io import StringIO
 from ansible.module_utils._text import to_text
 from urllib.error import HTTPError, URLError
-from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_storage_info
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 
@@ -36,7 +36,7 @@ class TestStorageInfo(FakeAnsibleModule):
     @pytest.fixture
     def idrac_connection_storage_info_mock(self, mocker, idrac_storage_info_mock):
         idrac_conn_mock = mocker.patch(MODULE_PATH + 'iDRACRedfishAPI',
-                                        return_value=idrac_storage_info_mock)
+                                       return_value=idrac_storage_info_mock)
         idrac_conn_mock.return_value.__enter__.return_value = idrac_storage_info_mock
         mocker.patch(MODULE_PATH + 'StorageInfo.fetch_resources',
                      return_value={"resource_count": 0, "resources": []})
@@ -117,14 +117,14 @@ class TestStorageInfo(FakeAnsibleModule):
         assert result.get('unreachable') is True
 
     def test_firmware_validation_idrac9_supported(self, idrac_connection_storage_info_mock, idrac_storage_info_mock,
-                                                   idrac_default_args):
+                                                  idrac_default_args):
         idrac_storage_info_mock.get_server_generation = (16, "7.10.90.00", "iDRAC 9")
         idrac_default_args.update({"resource_type": "controller"})
         result = self._run_module(idrac_default_args)
         assert result["msg"] == SUCCESS_MSG
 
     def test_firmware_validation_idrac9_unsupported(self, idrac_connection_storage_info_mock, idrac_storage_info_mock,
-                                                     idrac_default_args):
+                                                    idrac_default_args):
         idrac_storage_info_mock.get_server_generation = (16, "7.10.80.00", "iDRAC 9")
         idrac_default_args.update({"resource_type": "controller"})
         result = self._run_module(idrac_default_args)
@@ -132,14 +132,14 @@ class TestStorageInfo(FakeAnsibleModule):
         assert "does not meet the minimum required version" in result["msg"]
 
     def test_firmware_validation_idrac10_supported(self, idrac_connection_storage_info_mock, idrac_storage_info_mock,
-                                                    idrac_default_args):
+                                                   idrac_default_args):
         idrac_storage_info_mock.get_server_generation = (17, "1.20.50.50", "iDRAC 10")
         idrac_default_args.update({"resource_type": "controller"})
         result = self._run_module(idrac_default_args)
         assert result["msg"] == SUCCESS_MSG
 
     def test_firmware_validation_idrac10_unsupported(self, idrac_connection_storage_info_mock, idrac_storage_info_mock,
-                                                      idrac_default_args):
+                                                     idrac_default_args):
         idrac_storage_info_mock.get_server_generation = (17, "1.20.40.00", "iDRAC 10")
         idrac_default_args.update({"resource_type": "controller"})
         result = self._run_module(idrac_default_args)
@@ -147,7 +147,7 @@ class TestStorageInfo(FakeAnsibleModule):
         assert "does not meet the minimum required version" in result["msg"]
 
     def test_firmware_validation_unsupported_generation(self, idrac_connection_storage_info_mock,
-                                                          idrac_storage_info_mock, idrac_default_args):
+                                                        idrac_storage_info_mock, idrac_default_args):
         idrac_storage_info_mock.get_server_generation = (14, "2.75.75.75", "iDRAC 8")
         idrac_default_args.update({"resource_type": "controller"})
         result = self._run_module(idrac_default_args)
@@ -303,7 +303,6 @@ class TestStorageInfoControllerQuery(FakeAnsibleModule):
         assert result["idrac_model"] == "iDRAC 9"
         assert result["total_capacity"] is None
         assert result["available_capacity"] is None
-
 
 
 class TestStorageInfoPhysicalDiskQuery(FakeAnsibleModule):
@@ -499,7 +498,7 @@ class TestStorageInfoVirtualDiskQuery(FakeAnsibleModule):
         controller_members = [{"Id": "RAID.Slot.1-1", "Volumes": {"@odata.id": self.VOLUMES_URI}}]
         volumes_members = [{"@odata.id": self.VOLUME_URI}]
         volume_data_by_uri = {self.VOLUME_URI: {"Id": "Disk.Virtual.0:RAID.Slot.1-1",
-                                                 "CapacityBytes": 2000, "Oem": {}}}
+                                                "CapacityBytes": 2000, "Oem": {}}}
         idrac_obj = self._idrac_mock(mocker, controller_members, volumes_members, volume_data_by_uri)
         idrac_obj.get_server_generation = (17, "7.10.90.00", "iDRAC 9")
         module = mocker.MagicMock()

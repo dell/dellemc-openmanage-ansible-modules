@@ -212,7 +212,7 @@ class StorageInfo:
         if not self._version_meets_minimum(firmware_version, min_version):
             self.module.exit_json(
                 msg=UNSUPPORTED_FIRMWARE_MSG.format(hw_model=hw_model, firmware_version=firmware_version,
-                                                     min_version=min_version),
+                                                    min_version=min_version),
                 failed=True)
 
     def fetch_storage_uri(self):
@@ -345,7 +345,7 @@ class StorageInfo:
 def main():
     specs = {
         "resource_type": {"type": "str", "required": True,
-                           "choices": ["controller", "physical_disk", "virtual_disk"]},
+                          "choices": ["controller", "physical_disk", "virtual_disk"]},
         "controller_id": {"type": "str"},
     }
     module = IdracAnsibleModule(
