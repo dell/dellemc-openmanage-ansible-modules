@@ -49,8 +49,8 @@
     - name: Verify error reason
       ansible.builtin.assert:
         that:
-          - validation_result.validation_results | selectattr('attribute', 'equalto', 'NonExistentAttr')
-            | map(attribute='reason') | list | first is search("not found in BIOS registry")
+          - '"not found in BIOS registry" in (validation_result.validation_results | selectattr("attribute", "equalto", "NonExistentAttr")
+            | map(attribute="reason") | list | first)'
 
     - name: Verify validation counts
       ansible.builtin.assert:

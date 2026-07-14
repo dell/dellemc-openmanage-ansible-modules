@@ -43,7 +43,7 @@
     - name: Verify all attributes belong to Processor category
       ansible.builtin.assert:
         that:
-          - "'processor' in item.group | lower or item.menu_path is search('Processor')"
+          - "'processor' in item.group | lower or 'Processor' in item.menu_path"
       loop: "{{ filter_result.bios_attributes }}"
       loop_control:
         label: "{{ item.name }}"
@@ -52,7 +52,7 @@
     - name: Verify expected Processor attributes exist
       ansible.builtin.assert:
         that:
-          - filter_result.bios_attributes | map(attribute='name') | list | select('search', 'Proc') | list | length > 0
+          - filter_result.bios_attributes | selectattr('name', 'match', '.*Proc.*') | list | length > 0
       when: filter_result.bios_attributes | length > 0
 
     - name: Verify changed flag is false (read-only operation)

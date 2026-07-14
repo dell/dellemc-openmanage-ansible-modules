@@ -21,8 +21,8 @@
       ansible.builtin.assert:
         that:
           - firmware_result is failed
-          - 'firmware_result.msg is search("BIOS attribute registry not supported on this firmware version")'
-          - 'firmware_result.msg is search("Minimum required")'
+          - '"BIOS attribute registry not supported on this firmware version" in firmware_result.msg'
+          - '"Minimum required" in firmware_result.msg'
       when: firmware_result is failed
 
   module_defaults:

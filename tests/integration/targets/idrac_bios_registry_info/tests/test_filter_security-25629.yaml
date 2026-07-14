@@ -43,7 +43,7 @@
     - name: Verify all attributes belong to Security category
       ansible.builtin.assert:
         that:
-          - "'security' in item.group | lower or item.menu_path is search('Security') or item.menu_path is search('SysSecurity')"
+          - "'security' in item.group | lower or 'Security' in item.menu_path or 'SysSecurity' in item.menu_path"
       loop: "{{ filter_result.bios_attributes }}"
       loop_control:
         label: "{{ item.name }}"
