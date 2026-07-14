@@ -49,8 +49,8 @@
     - name: Verify error reason
       ansible.builtin.assert:
         that:
-          - validation_result.validation_results | selectattr('attribute', 'equalto', 'NvmeofSubsys2Timeout')
-            | map(attribute='reason') | list | first is search("exceeds maximum")
+          - '"exceeds maximum" in (validation_result.validation_results | selectattr("attribute", "equalto", "NvmeofSubsys2Timeout")
+            | map(attribute="reason") | list | first)'
 
     - name: Verify validation counts
       ansible.builtin.assert:

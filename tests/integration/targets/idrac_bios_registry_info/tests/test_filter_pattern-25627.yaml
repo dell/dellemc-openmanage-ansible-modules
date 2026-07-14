@@ -43,7 +43,7 @@
     - name: Verify all attributes match pattern
       ansible.builtin.assert:
         that:
-          - item.name is search("^Proc")
+          - item.name is match("Proc.*")
       loop: "{{ filter_result.bios_attributes }}"
       loop_control:
         label: "{{ item.name }}"
