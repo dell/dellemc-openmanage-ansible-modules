@@ -1,6 +1,0 @@
----
-minor_changes:
-  - Added new module ``idrac_bios_registry_info`` to query iDRAC BIOS Attribute Registry endpoint.
-    The module enables administrators to retrieve complete BIOS attribute metadata, validate
-    proposed configurations against the registry, and filter attributes by name pattern,
-    OEM/standard classification, and category.
