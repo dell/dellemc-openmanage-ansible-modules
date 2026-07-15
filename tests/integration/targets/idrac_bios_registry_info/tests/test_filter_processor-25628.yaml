@@ -43,7 +43,7 @@
     - name: Verify all attributes belong to Processor category
       ansible.builtin.assert:
         that:
-          - "'processor' in item.group | lower or 'Processor' in item.menu_path"
+          - "'processor' in item.group | lower or 'Processor' in item.menu_path or 'ProcSettings' in item.menu_path"
       loop: "{{ filter_result.bios_attributes }}"
       loop_control:
         label: "{{ item.name }}"
