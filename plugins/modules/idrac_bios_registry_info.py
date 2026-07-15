@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 10.0.0
-# Copyright (C) 2021-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 10.0.4
+# Copyright (C) 2021-2026 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -23,7 +23,7 @@ DOCUMENTATION = """
 ---
 module: idrac_bios_registry_info
 short_description: Query iDRAC BIOS Attribute Registry and validate configurations
-version_added: "10.0.0"
+version_added: "10.0.4"
 description:
     - Query the iDRAC Redfish BIOS Attribute Registry endpoint to retrieve complete BIOS attribute metadata.
     - Validate proposed BIOS configurations against the registry with actionable error messages.
