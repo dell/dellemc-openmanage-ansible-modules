@@ -1,0 +1,73 @@
+---
+- name: Query BIOS Attribute Registry
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Query all BIOS attributes from registry
+      dellemc.openmanage.idrac_bios_registry_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+      tags:
+        - query_all
+      delegate_to: localhost
+
+    - name: Query BIOS attributes with pattern filtering
+      dellemc.openmanage.idrac_bios_registry_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        attribute_name: "Proc*"
+      tags:
+        - filter_name
+      delegate_to: localhost
+
+    - name: Query BIOS attributes by category
+      dellemc.openmanage.idrac_bios_registry_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        category: "Processor"
+      tags:
+        - filter_category
+      delegate_to: localhost
+
+    - name: Query OEM attributes only
+      dellemc.openmanage.idrac_bios_registry_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        attribute_source: "oem"
+      tags:
+        - filter_oem
+      delegate_to: localhost
+
+    - name: Validate BIOS configuration against registry
+      dellemc.openmanage.idrac_bios_registry_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        validate: true
+        attributes:
+          ProcVirtualization: "Enabled"
+          MemTest: "Disabled"
+      tags:
+        - validate
+      delegate_to: localhost
+
+    - name: Force refresh registry data (bypass cache)
+      dellemc.openmanage.idrac_bios_registry_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: false
+        force_refresh: true
+      tags:
+        - force_refresh
+      delegate_to: localhost

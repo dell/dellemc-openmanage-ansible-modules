@@ -1,0 +1,202 @@
+
+  Query the iDRAC Redfish BIOS Attribute Registry endpoint to retrieve
+  complete BIOS attribute metadata.
+  Validate proposed BIOS configurations against the registry with
+  actionable error messages.
+  Filter attributes by name pattern, OEM/standard classification, and
+  category.
+
+[1mOPTIONS[0m (red indicates it is required):
+
+   attribute_name  Pattern to filter BIOS attributes by name (supports
+                   glob patterns).
+        default: null
+        type: str
+
+   attribute_source  Filter attributes by source type.
+        choices: [all, oem, standard]
+        default: all
+        type: str
+
+   attributes  Dictionary of attribute names and proposed values to
+               validate.
+        default: null
+        type: dict
+
+   ca_path  The Privacy Enhanced Mail (PEM) file that contains a CA
+            certificate to be used for the validation.
+        default: null
+        type: path
+
+   category  Filter attributes by category (e.g., 'Processor',
+             'Memory', 'Security').
+        default: null
+        type: str
+
+   force_refresh  Force refresh of BIOS attribute registry from iDRAC,
+                  bypassing cache.
+        default: false
+        type: bool
+
+   [1midrac_ip[0m  iDRAC IP Address.
+        type: str
+
+   [1midrac_password[0m  iDRAC user password.
+                   If the password is not provided, then the
+                   environment variable `IDRAC_PASSWORD' is used.
+                   Example: export IDRAC_PASSWORD=password
+        aliases: [idrac_pwd]
+        type: str
+
+   idrac_port  iDRAC port.
+        default: 443
+        type: int
+
+   [1midrac_user[0m  iDRAC username.
+               If the username is not provided, then the environment
+               variable `IDRAC_USERNAME' is used.
+               Example: export IDRAC_USERNAME=username
+        type: str
+
+   timeout  The socket level timeout in seconds.
+        default: 30
+        type: int
+
+   validate  Validate proposed BIOS configuration against the
+             registry.
+        default: false
+        type: bool
+
+   validate_certs  If `false', the SSL certificates will not be
+                   validated.
+                   Configure `false' only on personally controlled
+                   sites where self-signed certificates are used.
+                   Prior to collection version `5.0.0', the
+                   [4mvalidate_certs[0m is `false' by default.
+        default: true
+        type: bool
+
+[1mNOTES:[0m
+      * Run this module from a system that has direct access to
+        Dell iDRAC.
+      * This module supports both IPv4 and IPv6 address for
+        [4midrac_ip[0m.
+      * Minimum firmware requirement: iDRAC9 >= 7.10.90.00 or
+        iDRAC10 >= 1.20.50.50.
+
+[1mREQUIREMENTS:[0m  python >= 3.9.6
+
+
+[1mAUTHOR[0m: Sapana Gupta(@sapana05)
+
+[1mEXAMPLES:[0m
+---
+- name: Query all BIOS attributes
+  dellemc.openmanage.idrac_bios_registry_info:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+
+- name: Query BIOS attributes with filtering
+  dellemc.openmanage.idrac_bios_registry_info:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    attribute_name: "Proc*"
+    attribute_source: "oem"
+    category: "Processor"
+
+- name: Validate BIOS configuration
+  dellemc.openmanage.idrac_bios_registry_info:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    validate: true
+    attributes:
+      ProcVirtualization: "Enabled"
+      MemTest: "Disabled"
+
+[1mRETURN VALUES:[0m
+
+   attribute_count  Total number of attributes in the registry.
+        returned: success
+        sample: 150
+        type: int
+
+   bios_attributes  List of BIOS attributes with complete metadata.
+        returned: success
+        sample: [{current_value: Enabled, default_value: Enabled, description: Enable or disable virtualization
+              technology., display_name: Virtualization Technology, display_order: 1, gray_out: false,
+            group: Processor Settings, hidden: false, immutable: false, is_oem: true, is_system_unique_property: false,
+            lower_bound: null, max_length: null, menu_path: ./ProcSettingsRef, min_length: null,
+            name: ProcVirtualization, read_only: false, regex: null, scalar_increment: null,
+            type: Enumeration, upper_bound: null, valid_values: [Enabled, Disabled], value_expression: null,
+            warning_text: null, write_only: false}]
+        type: list
+
+   error_info  Details of the HTTP Error.
+        returned: on HTTP error
+        sample:
+          error:
+            code: Base.1.0.GeneralError
+            message: A general error has occurred.
+        type: dict
+
+   idrac_firmware_version  iDRAC firmware version.
+        returned: success
+        sample: 7.10.90.00
+        type: str
+
+   idrac_generation  PowerEdge server generation (14G-16G for iDRAC9,
+                     17G+ for iDRAC10).
+        returned: success
+        sample: 15
+        type: int
+
+   idrac_model  iDRAC model.
+        returned: success
+        sample: iDRAC 9
+        type: str
+
+   invalid_count  Count of invalid attributes when validate=true.
+        returned: when validate=true
+        sample: 0
+        type: int
+
+   language  Language of the registry.
+        returned: success
+        sample: en
+        type: str
+
+   msg     Overall status message.
+        returned: always
+        sample: Successfully queried BIOS attribute registry.
+        type: str
+
+   owning_entity  Entity that owns the registry.
+        returned: success
+        sample: Dell
+        type: str
+
+   registry_version  Version of the BIOS attribute registry.
+        returned: success
+        sample: 1.0.0
+        type: str
+
+   valid   Overall validation status when validate=true.
+        returned: when validate=true
+        sample: true
+        type: bool
+
+   valid_count  Count of valid attributes when validate=true.
+        returned: when validate=true
+        sample: 2
+        type: int
+
+   validation_results  Validation results for each attribute when
+                       validate=true.
+        returned: when validate=true
+        sample: [{attribute: ProcVirtualization, reason: Value is valid, status: valid, suggestions: []}]
+        type: list
+

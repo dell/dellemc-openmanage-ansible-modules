@@ -1,0 +1,94 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- name: Check iDRAC firmware version
+  ansible.builtin.include_tasks: _check_idrac_version.yml
+
+- block:
+    - name: Query all BIOS attributes
+      dellemc.openmanage.idrac_bios_registry_info: {}
+      register: query_result
+
+    - name: Verify module succeeded
+      ansible.builtin.assert:
+        that:
+          - query_result is not failed
+          - query_result is succeeded
+
+    - name: Verify required output fields
+      ansible.builtin.assert:
+        that:
+          - query_result.bios_attributes is defined
+          - query_result.bios_attributes is iterable
+          - query_result.registry_version is defined
+          - query_result.attribute_count is defined
+          - query_result.attribute_count is number
+
+    - name: Verify non-empty results
+      ansible.builtin.assert:
+        that:
+          - query_result.attribute_count | int > 0
+          - query_result.bios_attributes | length == query_result.attribute_count | int
+
+    - name: Verify attribute schema fields
+      ansible.builtin.assert:
+        that:
+          - item.name is defined
+          - item.type is defined
+          - item.current_value is defined
+          - item.default_value is defined
+          - item.description is defined
+          - item.read_only is defined
+          - item.immutable is defined
+          - item.menu_path is defined
+          - item.display_name is defined
+      loop: "{{ query_result.bios_attributes }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Verify registry metadata
+      ansible.builtin.assert:
+        that:
+          - query_result.registry_version is defined
+          - query_result.registry_version is string
+          - query_result.attribute_count is defined
+          - query_result.attribute_count is number
+
+    - name: Verify iDRAC diagnostic information
+      ansible.builtin.assert:
+        that:
+          - query_result.idrac_generation is defined
+          - query_result.idrac_firmware_version is defined
+          - query_result.idrac_model is defined
+
+    - name: Verify changed flag is false (read-only operation)
+      ansible.builtin.assert:
+        that:
+          - query_result.changed is defined
+          - query_result.changed is false
+
+    - name: Display query summary
+      ansible.builtin.debug:
+        msg:
+          - "Attribute Count: {{ query_result.attribute_count }}"
+          - "Registry Version: {{ query_result.registry_version }}"
+          - "iDRAC Generation: {{ query_result.idrac_generation }}"
+          - "iDRAC Firmware: {{ query_result.idrac_firmware_version }}"
+          - "iDRAC Model: {{ query_result.idrac_model }}"
+
+  module_defaults:
+    dellemc.openmanage.idrac_bios_registry_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
