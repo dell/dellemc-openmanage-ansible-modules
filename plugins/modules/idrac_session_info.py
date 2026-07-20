@@ -435,12 +435,9 @@ def main():
             sessions = []
             for raw in raw_sessions:
                 session = extract_session_fields(raw, stale_threshold)
-                missing_fields = [f for f in ["session_type", "created_time"]
-                                  if session.get(f) is None and raw.get(f.replace("_", "").title().replace(" ", "")) is None]
-                if "session_type" not in [f for f in ALLOWED_SESSION_FIELDS if raw.get(f) is not None]:
-                    if session.get("session_type") is None:
-                        warnings.append("SessionType not available on this firmware version.")
-                if session.get("created_time") is None:
+                if raw.get("SessionType") is None:
+                    warnings.append("SessionType not available on this firmware version.")
+                if raw.get("CreatedTime") is None:
                     warnings.append("CreatedTime not available; session age cannot be computed.")
                 sessions.append(session)
 
