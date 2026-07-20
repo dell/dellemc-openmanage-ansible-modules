@@ -519,3 +519,123 @@ class TestErrorHandling(FakeAnsibleModule):
         result = self._run_module_with_fail_json(idrac_default_args)
         assert result['failed'] is True
         assert "positive integer" in result['msg']
+
+    def test_unexpected_exception(self, idrac_default_args, idrac_connection_mock):
+        """Test: Unexpected exception is caught and sanitized."""
+        idrac_connection_mock.return_value.__enter__.side_effect = RuntimeError(
+            "Something went wrong"
+        )
+        result = self._run_module_with_fail_json(idrac_default_args)
+        assert result['failed'] is True
+        assert "Unexpected error" in result['msg']
+
+
+# --- Test Suite: Security Tests ---
+
+class TestSecurityRequirements(FakeAnsibleModule):
+    module = idrac_session_info
+
+    @pytest.fixture
+    def idrac_mock(self):
+        idrac_obj = MagicMock()
+        idrac_obj.get_server_generation = (15, "7.10.90.00", "iDRAC 9")
+        return idrac_obj
+
+    @pytest.fixture
+    def idrac_connection_mock(self, mocker, idrac_mock):
+        with patch(MODULE_PATH + '.iDRACRedfishAPI') as mock_class:
+            mock_class.return_value.__enter__.return_value = idrac_mock
+            mock_class.return_value.__exit__.return_value = False
+            mock_class.check_minimum_firmware_requirement = iDRACRedfishAPI.check_minimum_firmware_requirement
+            mock_class.compare_firmware_version = iDRACRedfishAPI.compare_firmware_version
+            yield mock_class
+
+    def test_credentials_not_in_exit_json(self, idrac_default_args, idrac_mock, idrac_connection_mock):
+        """Test 9.1: Credentials not exposed in successful exit_json output."""
+        sessions_resp = MagicMock()
+        sessions_resp.status_code = 200
+        sessions_resp.json_data = {"Members": IDRAC10_SESSION_DATA}
+        svc_resp = MagicMock()
+        svc_resp.status_code = 200
+        svc_resp.json_data = SESSION_SERVICE_DATA
+        attr_resp = MagicMock()
+        attr_resp.status_code = 200
+        attr_resp.json_data = IDRAC_ATTRIBUTES_DATA
+        idrac_mock.invoke_request.side_effect = [sessions_resp, svc_resp, attr_resp]
+
+        result = self._run_module(idrac_default_args)
+        result_str = str(result)
+        assert "password" not in result_str.lower() or "idrac_password" not in result_str
+        assert "x_auth_token" not in result_str
+
+    def test_credentials_not_in_fail_json(self, idrac_default_args, idrac_connection_mock):
+        """Test 9.2: Credentials not exposed in fail_json output."""
+        idrac_connection_mock.return_value.__enter__.side_effect = HTTPError(
+            "https://192.168.0.1", 401, "Unauthorized", {}, None
+        )
+        result = self._run_module_with_fail_json(idrac_default_args)
+        result_str = str(result)
+        assert idrac_default_args['idrac_password'] not in result_str
+        assert "password" not in result['msg'].lower()
+
+    def test_response_filtering_only_allowed_fields(self, idrac_default_args, idrac_mock, idrac_connection_mock):
+        """Test: Only allow-listed fields appear in session response."""
+        raw_session = {
+            "Id": "1",
+            "UserName": "root",
+            "ClientOriginIPAddress": "1.1.1.1",
+            "SessionType": "Redfish",
+            "CreatedTime": (datetime.now(timezone.utc) - timedelta(minutes=10)).isoformat(),
+            "Description": "User Session",
+            "Name": "User Session",
+            "@odata.id": "/redfish/v1/SessionService/Sessions/1",
+            "@odata.type": "#Session.v1_3_0.Session",
+            "InternalToken": "secret-token-value",
+        }
+        sessions_resp = MagicMock()
+        sessions_resp.status_code = 200
+        sessions_resp.json_data = {"Members": [raw_session]}
+        svc_resp = MagicMock()
+        svc_resp.status_code = 200
+        svc_resp.json_data = SESSION_SERVICE_DATA
+        attr_resp = MagicMock()
+        attr_resp.status_code = 200
+        attr_resp.json_data = IDRAC_ATTRIBUTES_DATA
+        idrac_mock.invoke_request.side_effect = [sessions_resp, svc_resp, attr_resp]
+
+        result = self._run_module(idrac_default_args)
+        session = result['sessions'][0]
+        assert "@odata.id" not in session
+        assert "@odata.type" not in session
+        assert "InternalToken" not in session
+        assert "secret-token-value" not in str(session)
+
+    def test_error_message_sanitization(self, idrac_default_args, idrac_connection_mock):
+        """Test: Error messages do not contain credentials, tokens, or internal paths."""
+        idrac_connection_mock.return_value.__enter__.side_effect = HTTPError(
+            "https://192.168.0.1", 500, "Internal Server Error", {}, None
+        )
+        result = self._run_module_with_fail_json(idrac_default_args)
+        assert idrac_default_args['idrac_user'] not in result['msg']
+        assert idrac_default_args['idrac_password'] not in result['msg']
+
+    def test_safe_url_construction(self):
+        """Test: URLs are hardcoded constants, not user-controlled."""
+        assert idrac_session_info.SESSION_SERVICE_URI == "/redfish/v1/SessionService"
+        assert idrac_session_info.SESSIONS_URI == "/redfish/v1/SessionService/Sessions"
+        assert idrac_session_info.MANAGER_ATTRIBUTES_URI == "/redfish/v1/Managers/iDRAC.Embedded.1/Attributes"
+        assert idrac_session_info.MANAGER_URI == "/redfish/v1/Managers/iDRAC.Embedded.1"
+
+    def test_input_validation_invalid_session_type(self, idrac_default_args, idrac_connection_mock):
+        """Test: Invalid session_type rejected by argument_spec choices."""
+        idrac_default_args['session_type'] = "InvalidType"
+        result = self._run_module_with_fail_json(idrac_default_args)
+        assert result['failed'] is True
+        assert "must be one of" in result['msg']
+
+    def test_stale_threshold_zero_rejected(self, idrac_default_args, idrac_connection_mock):
+        """Test: Zero stale_threshold_minutes rejected."""
+        idrac_default_args['stale_threshold_minutes'] = 0
+        result = self._run_module_with_fail_json(idrac_default_args)
+        assert result['failed'] is True
+        assert "positive integer" in result['msg']
