@@ -1,0 +1,32 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024-2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+#
+# Standalone playbook to run idrac_session_info integration tests.
+# Usage:
+#   ansible-playbook run_integration.yaml -e "idrac_ip=<IP> idrac_user=root idrac_password=calvin"
+---
+- name: Integration tests for idrac_session_info
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    validate_certs: false
+    idrac_port: 443
+  tasks:
+    - name: Include query_all_sessions tests
+      ansible.builtin.include_tasks: query_all_sessions-25634.yaml
+
+    - name: Include filter_sessions tests
+      ansible.builtin.include_tasks: filter_sessions-25634.yaml
+
+    - name: Include stale_detection tests
+      ansible.builtin.include_tasks: stale_detection-25634.yaml
+
+    - name: Include invalid input tests
+      ansible.builtin.include_tasks: invalid-25634.yaml
+
+    - name: Include self_session_protection tests
+      ansible.builtin.include_tasks: self_session_protection-25634.yaml
