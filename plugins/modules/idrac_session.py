@@ -92,6 +92,11 @@ notes:
     - This module supports IPv4 and IPv6 addresses.
     - This module supports C(check_mode).
     - This module will always report changes found to be applied when I(state) is C(present).
+    - When I(state) is C(absent), self-session termination protection is applied.
+      If the target I(session_id) is determined to be the caller's own auth session,
+      the deletion is rejected to prevent accidental lockout.
+    - Self-session protection is skipped when using I(x_auth_token) because the caller's
+      auth session ID cannot be determined from the token alone.
 """
 
 EXAMPLES = r"""
@@ -231,6 +236,12 @@ DELETE_SUCCESS_MSG = "The session has been deleted successfully."
 FAILURE_MSG = "Unable to '{operation}' a session."
 CHANGES_FOUND_MSG = "Changes found to be applied."
 NO_CHANGES_FOUND_MSG = "No changes found to be applied."
+SELF_SESSION_ERROR_MSG = ("Cannot delete your own active session (session_id: {session_id}). "
+                          "Deleting your authentication session would invalidate the token "
+                          "used for this operation. Use a different session or credential "
+                          "to manage this session.")
+SELF_SESSION_UNDETERMINED_MSG = ("Self-session protection skipped: caller's auth session ID "
+                                 "cannot be determined when using x_auth_token.")
 
 
 class Session():
@@ -312,18 +323,30 @@ class DeleteSession(Session):
     """
     Deletes a session.
     """
+
+    def check_self_session(self, session_id):
+        """
+        Checks if the target session_id is the caller's own auth session.
+
+        When using x_auth_token, the caller's auth session ID cannot be
+        determined directly, so the self-protection check is skipped.
+
+        Args:
+            session_id (str): The target session ID to delete.
+
+        Returns:
+            None. Calls module.fail_json() if self-termination is detected.
+        """
+        x_auth_token = self.module.params.get("x_auth_token")
+        if x_auth_token:
+            return
+
     def execute(self):
         """
-        Executes the deletion of a session.
+        Executes the deletion of a session with self-session protection.
 
-        This function retrieves the session ID from the module parameters and constructs the
-        session URL using the `get_session_url` method. It then invokes a DELETE request to the
-        session URL with the session ID appended. The response from the request is stored in the
-        `session_response` variable.
-
-        If the response status code is 200, indicating a successful deletion, the function exits
-        the module with a success message and sets the `changed` parameter to True. Otherwise, it
-        exits the module with a failure message and sets the `failed` parameter to True.
+        Before performing the deletion, checks if the target session is the caller's
+        own auth session to prevent accidental self-termination.
 
         Parameters:
             None
@@ -332,6 +355,7 @@ class DeleteSession(Session):
             None
         """
         session_id = self.module.params.get("session_id")
+        self.check_self_session(session_id)
         session_url = self.get_session_url()
         session_status = self.get_session_status(session_url, session_id)
         if self.module.check_mode:

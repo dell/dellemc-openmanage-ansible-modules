@@ -588,3 +588,60 @@ class TestMain(FakeAnsibleModule):
         else:
             assert result['failed'] is True
         assert 'msg' in result
+
+
+class TestSelfSessionProtection(FakeAnsibleModule):
+    """Tests for FR-7: Self-session termination protection."""
+    module = idrac_session
+
+    @pytest.fixture
+    def idrac_session_mock(self):
+        idrac_obj = MagicMock()
+        return idrac_obj
+
+    @pytest.fixture
+    def idrac_connection_session_mock(self, mocker, idrac_session_mock):
+        idrac_conn_mock = mocker.patch(MODULE_PATH + 'SessionAPI',
+                                       return_value=idrac_session_mock)
+        idrac_conn_mock.return_value.__enter__.return_value = idrac_session_mock
+        return idrac_conn_mock
+
+    def test_self_protection_skipped_with_x_auth_token(self, idrac_default_args,
+                                                        idrac_session_mock,
+                                                        idrac_connection_session_mock,
+                                                        mocker):
+        """Test 7.3: Self-protection skipped when using x_auth_token."""
+        idrac_default_args.update({
+            "state": "absent",
+            "session_id": "74",
+            "x_auth_token": "test_token_123"
+        })
+        mocker.patch(MODULE_PATH + GET_SESSION_URL,
+                     return_value=SESSION_URL)
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        idrac_session_mock.invoke_request.return_value = mock_response
+        f_module = self.get_module_mock(params=idrac_default_args)
+        delete_obj = idrac_session.DeleteSession(idrac_session_mock, f_module)
+        delete_obj.check_self_session("74")
+
+    def test_delete_different_session_succeeds(self, idrac_default_args,
+                                                idrac_session_mock,
+                                                idrac_connection_session_mock,
+                                                mocker):
+        """Test 7.1: Deletion of a different session succeeds."""
+        idrac_default_args.update({
+            "state": "absent",
+            "session_id": "99",
+            "x_auth_token": "test_token_123"
+        })
+        mocker.patch(MODULE_PATH + GET_SESSION_URL,
+                     return_value=SESSION_URL)
+        get_response = MagicMock()
+        get_response.status_code = 200
+        delete_response = MagicMock()
+        delete_response.status_code = 200
+        idrac_session_mock.invoke_request.side_effect = [get_response, delete_response]
+        result = self._run_module(idrac_default_args)
+        assert result['changed'] is True
+        assert result['msg'] == DELETE_SUCCESS_MSG
