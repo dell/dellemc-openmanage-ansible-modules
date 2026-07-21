@@ -11,7 +11,18 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
-- block:
+- name: Block - Self session protection test
+  module_defaults:
+    dellemc.openmanage.idrac_session:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ idrac_ip }}"
+      port: "{{ idrac_port }}"
+    dellemc.openmanage.idrac_session_info:
+      validate_certs: "{{ validate_certs }}"
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+  block:
     - name: Prerequisite - Create session A for cross-session tests
       dellemc.openmanage.idrac_session:
         validate_certs: "{{ validate_certs }}"
@@ -41,6 +52,7 @@
         token_b: "{{ session_b.x_auth_token }}"
         id_b: "{{ session_b.session_data.Id }}"
       when: session_b.changed
+      failed_when: false
 
     - name: Verify both sessions are visible
       dellemc.openmanage.idrac_session_info:
@@ -87,20 +99,16 @@
   always:
     - name: Cleanup - Delete session A
       dellemc.openmanage.idrac_session:
-        validate_certs: "{{ validate_certs }}"
-        hostname: "{{ idrac_ip }}"
         state: absent
         x_auth_token: "{{ token_a }}"
         session_id: "{{ id_a }}"
-      ignore_errors: true
+      failed_when: false
       when: token_a is defined and id_a is defined
 
     - name: Cleanup - Delete session B (if still exists)
       dellemc.openmanage.idrac_session:
-        validate_certs: "{{ validate_certs }}"
-        hostname: "{{ idrac_ip }}"
         state: absent
         x_auth_token: "{{ token_b }}"
         session_id: "{{ id_b }}"
-      ignore_errors: true
+      failed_when: false
       when: token_b is defined and id_b is defined

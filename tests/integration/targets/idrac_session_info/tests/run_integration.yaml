@@ -6,7 +6,8 @@
 #
 # Standalone playbook to run idrac_session_info integration tests.
 # Usage:
-#   ansible-playbook run_integration.yaml -e "idrac_ip=<IP> idrac_user=root idrac_password=calvin"
+#   ansible-playbook run_integration.yaml \
+#     -e "idrac_ip=<IP> idrac_user=root idrac_password=calvin"
 ---
 - name: Integration tests for idrac_session_info
   hosts: localhost
