@@ -1,0 +1,17 @@
+---
+# OME and iDRAC connection variables — set via environment or group_vars.
+# hostname: "{{ lookup('env', 'OME_HOSTNAME') }}"
+# username: "{{ lookup('env', 'OME_USERNAME') }}"
+# password: "{{ lookup('env', 'OME_PASSWORD') }}"
+# validate_certs: false
+
+# iDRAC credentials for discovery targets
+# idrac_username: "{{ lookup('env', 'IDRAC_USERNAME') | default('root', true) }}"
+# idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+
+# Discovery target IPs — must be set for SNMP workflow tests
+# idrac10_ip: "{{ lookup('env', 'IDRAC10_IP') }}"
+# idrac9_ip: "{{ lookup('env', 'IDRAC9_IP') }}"
+
+# SNMP test parameters
+snmp_community_string: "integTestCommunity"

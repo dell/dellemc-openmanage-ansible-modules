@@ -41,7 +41,7 @@
         that:
           - results_update.changed
           - results_update.msg == "Successfully updated the SNMP settings."
-          - results_update.snmp_details.PortNumber == snmp_port_default
+          - results_update.snmp_details.Port == snmp_port_default
           - results_update.snmp_details.CommunityString == "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER"
 
     # ----------------------------------------------------------------
@@ -63,7 +63,7 @@
     - name: Verify SNMP port via API
       ansible.builtin.assert:
         that:
-          - snmp_uri.json.PortNumber == snmp_port_default
+          - snmp_uri.json.Port == snmp_port_default
 
     # ----------------------------------------------------------------
     # Test 4: Update with custom port
@@ -78,7 +78,7 @@
       ansible.builtin.assert:
         that:
           - results_custom_port.changed
-          - results_custom_port.snmp_details.PortNumber == snmp_port_custom
+          - results_custom_port.snmp_details.Port == snmp_port_custom
 
     # ----------------------------------------------------------------
     # Test 5: Verify port via API after custom port change
@@ -99,7 +99,7 @@
     - name: Verify custom port via API
       ansible.builtin.assert:
         that:
-          - snmp_uri_custom.json.PortNumber == snmp_port_custom
+          - snmp_uri_custom.json.Port == snmp_port_custom
 
     # ----------------------------------------------------------------
     # Test 6: Check mode after update — should still report changes

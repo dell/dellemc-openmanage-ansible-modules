@@ -36,7 +36,7 @@ def ome_connection_mock_for_snmp(mocker, ome_response_mock):
 
 
 SAMPLE_SNMP_GET_RESPONSE = {
-    "PortNumber": 162,
+    "Port": 162,
     "CommunityString": "currentSecret",
 }
 
@@ -52,7 +52,7 @@ class TestOmeApplicationSnmpSettings(FakeAnsibleModule):
         """Test successful GET of SNMP settings."""
         ome_response_mock.json_data = SAMPLE_SNMP_GET_RESPONSE
         result = self.module.fetch_snmp_settings(ome_connection_mock_for_snmp)
-        assert result.get("PortNumber") == 162
+        assert result.get("Port") == 162
         assert result.get("CommunityString") == "currentSecret"
         ome_connection_mock_for_snmp.invoke_request.assert_called_once_with(
             "GET", "ApplicationService/IncomingAlertConfiguration")
@@ -71,34 +71,34 @@ class TestOmeApplicationSnmpSettings(FakeAnsibleModule):
         """Test update_payload builds desired state from module params."""
         f_module = self.get_module_mock(
             params={"community_string": "newSecret", "snmp_port": 1162})
-        curr = {"PortNumber": 162, "CommunityString": "oldSecret"}
+        curr = {"Port": 162, "CommunityString": "oldSecret"}
         result = self.module.update_payload(f_module, curr)
-        assert result == {"PortNumber": 1162, "CommunityString": "newSecret"}
+        assert result == {"Port": 1162, "CommunityString": "newSecret"}
 
     def test_update_payload_uses_current_port_when_not_specified(self):
         """Test update_payload uses current port when snmp_port is None."""
         f_module = self.get_module_mock(
             params={"community_string": "newSecret", "snmp_port": None})
-        curr = {"PortNumber": 162, "CommunityString": "oldSecret"}
+        curr = {"Port": 162, "CommunityString": "oldSecret"}
         result = self.module.update_payload(f_module, curr)
-        assert result["PortNumber"] == 162
+        assert result["Port"] == 162
 
     def test_diff_payload_detects_port_change(self):
         """Test _diff_payload returns True when port changes."""
-        curr = {"PortNumber": 162}
-        desired = {"PortNumber": 1162, "CommunityString": "x"}
+        curr = {"Port": 162}
+        desired = {"Port": 1162, "CommunityString": "x"}
         assert self.module._diff_payload(curr, desired) is True
 
     def test_diff_payload_same_port_still_true(self):
         """Test _diff_payload returns True even when port is same
         (community string cannot be compared since GET masks it)."""
-        curr = {"PortNumber": 162}
-        desired = {"PortNumber": 162, "CommunityString": "x"}
+        curr = {"Port": 162}
+        desired = {"Port": 162, "CommunityString": "x"}
         assert self.module._diff_payload(curr, desired) is True
 
     def test_update_snmp_settings_calls_post(self, ome_connection_mock_for_snmp, ome_response_mock):
         """Test update_snmp_settings calls POST with correct URL."""
-        payload = {"PortNumber": 162, "CommunityString": "newSecret"}
+        payload = {"Port": 162, "CommunityString": "newSecret"}
         ome_response_mock.json_data = payload
         self.module.update_snmp_settings(ome_connection_mock_for_snmp, payload)
         ome_connection_mock_for_snmp.invoke_request.assert_called_once_with(
@@ -295,7 +295,7 @@ class TestOmeApplicationSnmpSettings(FakeAnsibleModule):
                                          ome_response_mock, ome_default_args):
         """Test end-to-end successful update flow."""
         ome_default_args.update({"community_string": "newSecret", "snmp_port": 162})
-        ome_response_mock.json_data = {"PortNumber": 162, "CommunityString": "newSecret"}
+        ome_response_mock.json_data = {"Port": 162, "CommunityString": "newSecret"}
         mocker.patch(MODULE_PATH + 'fetch_snmp_settings',
                      return_value=SAMPLE_SNMP_GET_RESPONSE)
         mocker.patch(MODULE_PATH + '_diff_payload', return_value=True)
@@ -311,7 +311,7 @@ class TestOmeApplicationSnmpSettings(FakeAnsibleModule):
                                                           ome_response_mock, ome_default_args):
         """Test community string is always masked in return data."""
         ome_default_args.update({"community_string": "sensitiveValue", "snmp_port": 162})
-        ome_response_mock.json_data = {"PortNumber": 162, "CommunityString": "sensitiveValue"}
+        ome_response_mock.json_data = {"Port": 162, "CommunityString": "sensitiveValue"}
         mocker.patch(MODULE_PATH + 'fetch_snmp_settings',
                      return_value=SAMPLE_SNMP_GET_RESPONSE)
         mocker.patch(MODULE_PATH + '_diff_payload', return_value=True)
@@ -323,20 +323,20 @@ class TestOmeApplicationSnmpSettings(FakeAnsibleModule):
 
     def test_mask_snmp_details(self):
         """Test mask_snmp_details replaces CommunityString."""
-        details = {"PortNumber": 162, "CommunityString": "secret123"}
+        details = {"Port": 162, "CommunityString": "secret123"}
         result = self.module.mask_snmp_details(details)
         assert result["CommunityString"] == "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER"
-        assert result["PortNumber"] == 162
+        assert result["Port"] == 162
 
     def test_build_diff_masks_community_string(self):
         """Test build_diff masks community string in both before and after."""
-        curr = {"PortNumber": 162, "CommunityString": "oldSecret"}
-        desired = {"PortNumber": 1162, "CommunityString": "newSecret"}
+        curr = {"Port": 162, "CommunityString": "oldSecret"}
+        desired = {"Port": 1162, "CommunityString": "newSecret"}
         result = self.module.build_diff(curr, desired)
         assert result["before"]["CommunityString"] == "***"
         assert result["after"]["CommunityString"] == "***"
-        assert result["before"]["PortNumber"] == 162
-        assert result["after"]["PortNumber"] == 1162
+        assert result["before"]["Port"] == 162
+        assert result["after"]["Port"] == 1162
 
     def test_community_string_no_log(self):
         """Test community_string_no_log masks params."""

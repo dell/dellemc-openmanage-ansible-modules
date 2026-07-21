@@ -1,0 +1,136 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2025-2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+#
+# SNMP two-step workflow integration test for ome_discovery.
+# Requires: hostname, username, password, idrac_username, idrac_password,
+#           idrac10_ip, idrac9_ip variables.
+---
+- name: Test that we have all required variables
+  ansible.builtin.fail:
+    msg: "Please define: hostname, username, password, idrac_username,
+      idrac_password, idrac10_ip, idrac9_ip."
+  when: >
+    hostname is not defined or username is not defined or
+    password is not defined or idrac_username is not defined or
+    idrac_password is not defined or idrac10_ip is not defined or
+    idrac9_ip is not defined
+
+- block:
+    # ----------------------------------------------------------------
+    # Step 1: Set SNMP community string on OME
+    # ----------------------------------------------------------------
+    - name: Set SNMP community string on OME before discovery
+      dellemc.openmanage.ome_application_snmp_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: "{{ validate_certs | default(false) }}"
+        community_string: "{{ snmp_community_string }}"
+        snmp_port: 162
+      register: snmp_setup
+
+    - name: Verify SNMP settings applied
+      ansible.builtin.assert:
+        that:
+          - snmp_setup.changed
+          - snmp_setup.snmp_details.Port == 162
+
+    # ----------------------------------------------------------------
+    # Step 2: Discover iDRAC10 with SNMP trap enabled
+    # ----------------------------------------------------------------
+    - name: Discover iDRAC10 with SNMP trap configuration
+      dellemc.openmanage.ome_discovery: &snmp_discovery
+        discovery_config_targets:
+          - network_address_detail:
+              - "{{ idrac10_ip }}"
+            device_types:
+              - SERVER
+            wsman:
+              username: "{{ idrac_username }}"
+              password: "{{ idrac_password }}"
+        trap_destination: true
+        community_string: true
+        job_wait: true
+        job_wait_timeout: 600
+        ignore_partial_failure: true
+      register: discovery_idrac10
+
+    - name: Verify snmp_configuration present in iDRAC10 result
+      ansible.builtin.assert:
+        that:
+          - discovery_idrac10.snmp_configuration is defined
+          - discovery_idrac10.snmp_configuration.trap_destination_enabled == true
+          - discovery_idrac10.snmp_configuration.community_string_enabled == true
+
+    # ----------------------------------------------------------------
+    # Step 3: Discover iDRAC9 with SNMP trap enabled
+    # ----------------------------------------------------------------
+    - name: Discover iDRAC9 with SNMP trap configuration
+      dellemc.openmanage.ome_discovery:
+        <<: *snmp_discovery
+        discovery_job_name: "IntegTest-SNMP-iDRAC9-25581"
+        discovery_config_targets:
+          - network_address_detail:
+              - "{{ idrac9_ip }}"
+            device_types:
+              - SERVER
+            wsman:
+              username: "{{ idrac_username }}"
+              password: "{{ idrac_password }}"
+      register: discovery_idrac9
+
+    - name: Verify snmp_configuration present in iDRAC9 result
+      ansible.builtin.assert:
+        that:
+          - discovery_idrac9.snmp_configuration is defined
+          - discovery_idrac9.snmp_configuration.trap_destination_enabled == true
+          - discovery_idrac9.snmp_configuration.community_string_enabled == true
+
+    # ----------------------------------------------------------------
+    # Step 4: Discover WITHOUT SNMP — snmp_configuration should be absent
+    # ----------------------------------------------------------------
+    - name: Discover iDRAC10 WITHOUT SNMP parameters
+      dellemc.openmanage.ome_discovery:
+        discovery_job_name: "IntegTest-NoSNMP-25581"
+        discovery_config_targets:
+          - network_address_detail:
+              - "{{ idrac10_ip }}"
+            device_types:
+              - SERVER
+            wsman:
+              username: "{{ idrac_username }}"
+              password: "{{ idrac_password }}"
+        trap_destination: false
+        community_string: false
+        job_wait: true
+        job_wait_timeout: 600
+        ignore_partial_failure: true
+      register: discovery_no_snmp
+
+    - name: Verify snmp_configuration absent when SNMP disabled
+      ansible.builtin.assert:
+        that:
+          - discovery_no_snmp.snmp_configuration is not defined
+
+  always:
+    - name: Restore default SNMP community string
+      dellemc.openmanage.ome_application_snmp_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: "{{ validate_certs | default(false) }}"
+        community_string: "public"
+        snmp_port: 162
+      ignore_errors: true
+
+  module_defaults:
+    dellemc.openmanage.ome_discovery:
+      validate_certs: "{{ validate_certs | default(false) }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port | default(443) }}"
+      discovery_job_name: "IntegTest-SNMP-iDRAC10-25581"

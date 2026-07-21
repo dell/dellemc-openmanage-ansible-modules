@@ -124,7 +124,7 @@ snmp_details:
   description: The SNMP listener configuration after the operation.
   returned: success
   sample: {
-    "PortNumber": 162,
+    "Port": 162,
     "CommunityString": "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER"
   }
 error_info:
@@ -179,7 +179,7 @@ def update_snmp_settings(rest_obj, payload):
 
 def update_payload(module, curr_payload):
     payload = {
-        "PortNumber": module.params.get("snmp_port") if module.params.get("snmp_port") is not None else curr_payload.get("PortNumber"),
+        "Port": module.params.get("snmp_port") if module.params.get("snmp_port") is not None else curr_payload.get("Port"),
         "CommunityString": module.params.get("community_string"),
     }
     return payload
@@ -187,10 +187,10 @@ def update_payload(module, curr_payload):
 
 def _diff_payload(curr_resp, desired_payload):
     compare_curr = {
-        "PortNumber": curr_resp.get("PortNumber"),
+        "Port": curr_resp.get("Port"),
     }
     compare_desired = {
-        "PortNumber": desired_payload.get("PortNumber"),
+        "Port": desired_payload.get("Port"),
     }
     is_change = compare_curr != compare_desired
     if not is_change:
@@ -241,11 +241,11 @@ def sanitize_error_response(err_data):
 def build_diff(curr_resp, desired_payload):
     return {
         "before": {
-            "PortNumber": curr_resp.get("PortNumber"),
+            "Port": curr_resp.get("Port"),
             "CommunityString": "***",
         },
         "after": {
-            "PortNumber": desired_payload.get("PortNumber"),
+            "Port": desired_payload.get("Port"),
             "CommunityString": "***",
         },
     }
@@ -288,9 +288,10 @@ def main():
             desired_payload = update_payload(module, curr_resp)
             diff = _diff_payload(curr_resp, desired_payload)
             process_check_mode(module, diff, curr_resp, desired_payload)
-            resp = update_snmp_settings(rest_obj, desired_payload)
+            update_snmp_settings(rest_obj, desired_payload)
+            updated_resp = fetch_snmp_settings(rest_obj)
             result = {"msg": SUCCESS_MSG, "changed": True,
-                      "snmp_details": mask_snmp_details(resp.json_data if resp.json_data else dict(curr_resp))}
+                      "snmp_details": mask_snmp_details(dict(updated_resp))}
             if module._diff:
                 result["diff"] = build_diff(curr_resp, desired_payload)
             exit_module(module, **result)
