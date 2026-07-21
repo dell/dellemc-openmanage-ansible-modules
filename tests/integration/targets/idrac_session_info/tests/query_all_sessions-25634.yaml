@@ -36,10 +36,13 @@
       ansible.builtin.set_fact:
         prereq_x_auth_token: "{{ prereq_session.x_auth_token }}"
         prereq_session_id: "{{ prereq_session.session_data.Id }}"
-      when: prereq_session.changed
+      when: prereq_session is not failed
 
     - name: Query all active sessions - Check mode
       dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
         check_mode: true
       register: session_info_check
 
@@ -52,6 +55,9 @@
 
     - name: Query all active sessions - Normal mode
       dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
       register: session_info
 
     - name: Verify - Query all active sessions - Normal mode
@@ -102,6 +108,9 @@
 
     - name: Query all sessions - Idempotence check
       dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
       register: session_info_idem
       failed_when: false
 

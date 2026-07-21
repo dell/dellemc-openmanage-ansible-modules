@@ -36,7 +36,7 @@
       ansible.builtin.set_fact:
         token_a: "{{ session_a.x_auth_token }}"
         id_a: "{{ session_a.session_data.Id }}"
-      when: session_a.changed
+      when: session_a is not failed
 
     - name: Prerequisite - Create session B (to delete via session A)
       dellemc.openmanage.idrac_session:
@@ -51,8 +51,7 @@
       ansible.builtin.set_fact:
         token_b: "{{ session_b.x_auth_token }}"
         id_b: "{{ session_b.session_data.Id }}"
-      when: session_b.changed
-      failed_when: false
+      when: session_b is not failed
 
     - name: Verify both sessions are visible
       dellemc.openmanage.idrac_session_info:

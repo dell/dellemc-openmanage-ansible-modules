@@ -36,10 +36,13 @@
       ansible.builtin.set_fact:
         filter_prereq_token: "{{ filter_prereq_session.x_auth_token }}"
         filter_prereq_id: "{{ filter_prereq_session.session_data.Id }}"
-      when: filter_prereq_session.changed
+      when: filter_prereq_session is not failed
 
     - name: Filter by session type - Redfish
       dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
         session_type: Redfish
       register: redfish_sessions
 
@@ -63,6 +66,9 @@
 
     - name: Filter by username - root
       dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
         username_filter: root
       register: root_sessions
 
@@ -83,6 +89,9 @@
 
     - name: Filter by nonexistent session type - OEM
       dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
         session_type: OEM
       register: oem_sessions
 
@@ -95,6 +104,9 @@
 
     - name: Filter by nonexistent username
       dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
         username_filter: nonexistent_user_xyz
       register: nonexistent_user_sessions
 
@@ -106,6 +118,9 @@
 
     - name: Combined filter - session type and username
       dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
         session_type: Redfish
         username_filter: root
       register: combined_filter
