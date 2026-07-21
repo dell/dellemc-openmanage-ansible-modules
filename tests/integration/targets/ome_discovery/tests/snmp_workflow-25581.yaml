@@ -122,7 +122,7 @@
         username: "{{ username }}"
         password: "{{ password }}"
         validate_certs: "{{ validate_certs | default(false) }}"
-        community_string: "public"
+        community_string: "{{ snmp_community_string }}"
         snmp_port: 162
       ignore_errors: true
 

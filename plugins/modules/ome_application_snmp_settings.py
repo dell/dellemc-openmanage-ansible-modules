@@ -50,6 +50,9 @@ notes:
     or debug messages.
   - A warning is emitted when the community string matches a known-weak default value
     such as C(public) or C(private).
+  - This module always reports C(changed=True) because OME masks the community
+    string in API responses, making server-side comparison impossible. The OME
+    API is itself idempotent — resending the same value is a no-op.
 seealso:
   - module: dellemc.openmanage.ome_discovery
     description: Use C(ome_discovery) with C(community_string=true) and C(trap_destination=true) after
@@ -141,9 +144,10 @@ error_info:
 
 import json
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
-from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, OmeAnsibleModule
-from ansible.module_utils.common.dict_transformations import recursive_diff
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import (
+    RestOME, OmeAnsibleModule
+)
 
 SUCCESS_MSG = "Successfully updated the SNMP settings."
 NO_CHANGES = "No changes found to be applied."
@@ -179,7 +183,7 @@ def update_snmp_settings(rest_obj, payload):
 
 def update_payload(module, curr_payload):
     payload = {
-        "Port": module.params.get("snmp_port") if module.params.get("snmp_port") is not None else curr_payload.get("Port"),
+        "Port": module.params.get("snmp_port"),
         "CommunityString": module.params.get("community_string"),
     }
     return payload
@@ -205,24 +209,30 @@ def validate_params(module):
     community_string = module.params.get("community_string")
     snmp_port = module.params.get("snmp_port")
     if not community_string:
-        module.fail_json(msg="The community_string parameter must not be empty.")
+        exit_module(module,
+                    msg="The community_string parameter must not be empty.",
+                    failed=True)
     if len(community_string) > COMMUNITY_STRING_MAX_LENGTH:
-        module.fail_json(
-            msg="The community_string parameter must not exceed {0} characters. "
-                "Current length: {1}.".format(COMMUNITY_STRING_MAX_LENGTH, len(community_string)))
+        exit_module(module,
+                    msg="The community_string parameter must not exceed "
+                        "{0} characters. Current length: {1}.".format(
+                            COMMUNITY_STRING_MAX_LENGTH,
+                            len(community_string)),
+                    failed=True)
     if snmp_port is not None and (snmp_port < 1 or snmp_port > 65535):
-        module.fail_json(
-            msg="The snmp_port parameter must be between 1 and 65535. "
-                "Provided value: {0}.".format(snmp_port))
+        exit_module(module,
+                    msg="The snmp_port parameter must be between 1 and "
+                        "65535. Provided value: {0}.".format(snmp_port),
+                    failed=True)
 
 
 def warn_weak_community_string(module):
     community_string = module.params.get("community_string", "")
     if community_string.lower() in WEAK_COMMUNITY_STRINGS:
         module.warn(
-            "The community_string '{0}' is a known-weak default. "
+            "The provided community_string is a known-weak default. "
             "Consider using a stronger community string for production "
-            "environments.".format(community_string))
+            "environments.")
 
 
 def sanitize_error_response(err_data):
@@ -306,7 +316,7 @@ def main():
     except URLError as err:
         exit_module(module, msg=str(err), unreachable=True, failed=True)
     except (IOError, ValueError, TypeError, ConnectionError, AttributeError,
-            IndexError, KeyError, OSError) as err:
+            IndexError, KeyError, OSError, SSLValidationError) as err:
         exit_module(module, msg=str(err), failed=True)
 
 

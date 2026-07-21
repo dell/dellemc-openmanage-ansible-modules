@@ -632,8 +632,8 @@ job_detailed_status:
 snmp_configuration:
   description:
     - SNMP configuration status for this discovery job.
-    - Returned when I(job_wait) is C(true) and I(trap_destination) or I(community_string) is C(true).
-  returned: when I(state) is C(present) and SNMP parameters are enabled
+    - Returned when I(trap_destination) or I(community_string) is C(true).
+  returned: when I(state) is C(present) and I(trap_destination) or I(community_string) is C(true)
   type: dict
   sample: {
     "trap_destination_enabled": true,

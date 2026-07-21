@@ -75,11 +75,11 @@ class TestOmeApplicationSnmpSettings(FakeAnsibleModule):
         result = self.module.update_payload(f_module, curr)
         assert result == {"Port": 1162, "CommunityString": "newSecret"}
 
-    def test_update_payload_uses_current_port_when_not_specified(self):
-        """Test update_payload uses current port when snmp_port is None."""
+    def test_update_payload_uses_default_port(self):
+        """Test update_payload uses the default port (162) from argspec."""
         f_module = self.get_module_mock(
-            params={"community_string": "newSecret", "snmp_port": None})
-        curr = {"Port": 162, "CommunityString": "oldSecret"}
+            params={"community_string": "newSecret", "snmp_port": 162})
+        curr = {"Port": 9999, "CommunityString": "oldSecret"}
         result = self.module.update_payload(f_module, curr)
         assert result["Port"] == 162
 
