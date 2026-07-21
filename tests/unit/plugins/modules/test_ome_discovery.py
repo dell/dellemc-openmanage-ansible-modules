@@ -459,3 +459,100 @@ class TestOmeDiscovery(FakeAnsibleModule):
         assert discovery_modify_payload["CommunityString"] is True
         assert discovery_modify_payload["Schedule"]["Cron"] == "startlater"
         assert discovery_modify_payload["Schedule"]["RunNow"] is False
+
+    # ========================================================================
+    # Phase 2: SNMP configuration status reporting tests
+    # ========================================================================
+
+    def test_get_snmp_configuration_both_enabled(self):
+        """Test snmp_configuration returned when both trap_destination and community_string are True."""
+        f_module = self.get_module_mock(params={"trap_destination": True, "community_string": True})
+        result = self.module.get_snmp_configuration(f_module)
+        assert result == {"trap_destination_enabled": True, "community_string_enabled": True}
+
+    def test_get_snmp_configuration_trap_only(self):
+        """Test snmp_configuration returned when only trap_destination is True."""
+        f_module = self.get_module_mock(params={"trap_destination": True, "community_string": False})
+        result = self.module.get_snmp_configuration(f_module)
+        assert result == {"trap_destination_enabled": True, "community_string_enabled": False}
+
+    def test_get_snmp_configuration_community_only(self):
+        """Test snmp_configuration returned when only community_string is True."""
+        f_module = self.get_module_mock(params={"trap_destination": False, "community_string": True})
+        result = self.module.get_snmp_configuration(f_module)
+        assert result == {"trap_destination_enabled": False, "community_string_enabled": True}
+
+    def test_get_snmp_configuration_none_when_disabled(self):
+        """Test snmp_configuration returns None when both are False."""
+        f_module = self.get_module_mock(params={"trap_destination": False, "community_string": False})
+        result = self.module.get_snmp_configuration(f_module)
+        assert result is None
+
+    def test_exit_discovery_includes_snmp_config(self, mocker, ome_connection_mock_for_discovery):
+        """Test exit_discovery includes snmp_configuration when trap_destination=True and job_wait=True."""
+        from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import AnsibleFailJSonException
+        f_module = self.get_module_mock(params={
+            "job_wait": True, "schedule": "RunNow", "job_wait_timeout": 600,
+            "trap_destination": True, "community_string": True,
+            "ignore_partial_failure": False
+        })
+        mocker.patch(MODULE_PATH + 'time.sleep')
+        mocker.patch(MODULE_PATH + 'get_discovery_job', return_value={"JobStatusId": 2060})
+        mocker.patch(MODULE_PATH + 'discovery_job_tracking', return_value="Discovery job has completed successfully.")
+        mocker.patch(MODULE_PATH + 'get_execution_details', return_value=({"Completed": ["10.0.0.1"]}, []))
+        with pytest.raises(AnsibleFailJSonException) as exc_info:
+            self.module.exit_discovery(f_module, ome_connection_mock_for_discovery, 12345)
+        assert exc_info.value.fail_kwargs["snmp_configuration"] == {
+            "trap_destination_enabled": True, "community_string_enabled": True
+        }
+
+    def test_exit_discovery_excludes_snmp_config_when_disabled(self, mocker, ome_connection_mock_for_discovery):
+        """Test exit_discovery omits snmp_configuration when both params are False."""
+        from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import AnsibleFailJSonException
+        f_module = self.get_module_mock(params={
+            "job_wait": False, "schedule": "RunNow",
+            "trap_destination": False, "community_string": False
+        })
+        mocker.patch(MODULE_PATH + 'time.sleep')
+        mocker.patch(MODULE_PATH + 'get_discovery_job', return_value={"JobStatusId": 2060})
+        with pytest.raises(AnsibleFailJSonException) as exc_info:
+            self.module.exit_discovery(f_module, ome_connection_mock_for_discovery, 12345)
+        assert "snmp_configuration" not in exc_info.value.fail_kwargs
+
+    def test_exit_discovery_partial_failure_includes_snmp_config(self, mocker, ome_connection_mock_for_discovery):
+        """Test exit_discovery includes snmp_configuration on partial failure with ignore_partial_failure=True."""
+        from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import AnsibleFailJSonException
+        f_module = self.get_module_mock(params={
+            "job_wait": True, "schedule": "RunNow", "job_wait_timeout": 600,
+            "trap_destination": True, "community_string": False,
+            "ignore_partial_failure": True
+        })
+        mocker.patch(MODULE_PATH + 'time.sleep')
+        mocker.patch(MODULE_PATH + 'get_discovery_job', return_value={"JobStatusId": 2090})
+        mocker.patch(MODULE_PATH + 'discovery_job_tracking', return_value="Discovery job has completed with errors.")
+        mocker.patch(MODULE_PATH + 'get_execution_details',
+                     return_value=({"Completed": ["10.0.0.1"], "Failed": ["10.0.0.2"]}, []))
+        with pytest.raises(AnsibleFailJSonException) as exc_info:
+            self.module.exit_discovery(f_module, ome_connection_mock_for_discovery, 12345)
+        assert exc_info.value.fail_kwargs["snmp_configuration"] == {
+            "trap_destination_enabled": True, "community_string_enabled": False
+        }
+
+    def test_exit_discovery_partial_failure_fail_includes_snmp_config(self, mocker, ome_connection_mock_for_discovery):
+        """Test exit_discovery includes snmp_configuration on partial failure with ignore_partial_failure=False."""
+        from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import AnsibleFailJSonException
+        f_module = self.get_module_mock(params={
+            "job_wait": True, "schedule": "RunNow", "job_wait_timeout": 600,
+            "trap_destination": True, "community_string": True,
+            "ignore_partial_failure": False
+        })
+        mocker.patch(MODULE_PATH + 'time.sleep')
+        mocker.patch(MODULE_PATH + 'get_discovery_job', return_value={"JobStatusId": 2090})
+        mocker.patch(MODULE_PATH + 'discovery_job_tracking', return_value="Discovery job has completed with errors.")
+        mocker.patch(MODULE_PATH + 'get_execution_details',
+                     return_value=({"Completed": [], "Failed": ["10.0.0.1"]}, []))
+        with pytest.raises(AnsibleFailJSonException) as exc_info:
+            self.module.exit_discovery(f_module, ome_connection_mock_for_discovery, 12345)
+        assert exc_info.value.fail_kwargs["snmp_configuration"] == {
+            "trap_destination_enabled": True, "community_string_enabled": True
+        }

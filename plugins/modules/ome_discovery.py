@@ -59,12 +59,21 @@ options:
   trap_destination:
     description:
       - Enable OpenManage Enterprise to receive the incoming SNMP traps from the discovered devices.
+      - When enabled, OME pushes its own IP address as the SNMP alert destination on each discovered iDRAC.
+        The trap destination port is fixed at 162 and is not configurable through this parameter.
       - This is effective only for servers discovered by using their iDRAC interface.
+      - To configure the SNMP community string and listener port used by OME, use the
+        M(dellemc.openmanage.ome_application_snmp_settings) module before running discovery.
     type: bool
     default: false
   community_string:
-    description: "Enable the use of SNMP community strings to receive SNMP traps using Application Settings in
-    OpenManage Enterprise. This option is available only for the discovered iDRAC servers and MX7000 chassis."
+    description:
+      - Enable the use of SNMP community strings to receive SNMP traps using Application Settings in
+        OpenManage Enterprise. This option is available only for the discovered iDRAC servers and MX7000 chassis.
+      - This is a boolean parameter that enables or disables the use of the community string already
+        configured in OME Application Settings. It does not set the community string value itself.
+      - To set the actual community string value, use the
+        M(dellemc.openmanage.ome_application_snmp_settings) module before running discovery.
     type: bool
     default: false
   email_recipient:
@@ -620,6 +629,16 @@ job_detailed_status:
             "Value": "Running\nDiscovery of target 192.96.24.1 started.\nDiscovery target resolved to IP  192.96.24.1 ."
         }
     ]
+snmp_configuration:
+  description:
+    - SNMP configuration status for this discovery job.
+    - Returned when I(job_wait) is C(true) and I(trap_destination) or I(community_string) is C(true).
+  returned: when I(state) is C(present) and SNMP parameters are enabled
+  type: dict
+  sample: {
+    "trap_destination_enabled": true,
+    "community_string_enabled": true
+  }
 error_info:
   description: Details of the HTTP Error.
   returned: on HTTP error
@@ -718,6 +737,16 @@ def get_protocol_device_map(rest_obj):
             prot_dev_map['STORAGE'] = dlist
             dev_id_map['STORAGE'] = item["DeviceTypeId"]
     return prot_dev_map, dev_id_map
+
+
+def get_snmp_configuration(module):
+    """Build snmp_configuration return dict from module params.
+    Returns dict if any SNMP param is enabled, otherwise None."""
+    trap = module.params.get("trap_destination", False)
+    cs = module.params.get("community_string", False)
+    if trap or cs:
+        return {"trap_destination_enabled": trap, "community_string_enabled": cs}
+    return None
 
 
 def get_other_discovery_payload(module):
@@ -902,6 +931,8 @@ def exit_discovery(module, rest_obj, job_id):
     time.sleep(SETTLING_TIME)
     djob = get_discovery_job(rest_obj, job_id)
     detailed_job = []
+    snmp_cfg = get_snmp_configuration(module)
+    snmp_kwarg = {"snmp_configuration": snmp_cfg} if snmp_cfg else {}
     if module.params.get("job_wait") and module.params.get('schedule') == 'RunNow':
         job_message = discovery_job_tracking(rest_obj, job_id, job_wait_sec=module.params["job_wait_timeout"])
         msg = job_message
@@ -909,14 +940,15 @@ def exit_discovery(module, rest_obj, job_id):
         djob = get_discovery_job(rest_obj, job_id)
         djob.update(ip_details)
         if djob["JobStatusId"] == 2090 and not module.params.get("ignore_partial_failure"):
-            module.fail_json(msg=DISCOVERY_PARTIAL, discovery_status=djob, job_detailed_status=detailed_job)
+            module.fail_json(msg=DISCOVERY_PARTIAL, discovery_status=djob,
+                             job_detailed_status=detailed_job, **snmp_kwarg)
         if djob["JobStatusId"] == 2090 and module.params.get("ignore_partial_failure"):
             module.exit_json(msg=JOB_TRACK_SUCCESS.format(JOB_STATUS_MAP[djob["JobStatusId"]]), discovery_status=djob,
-                             job_detailed_status=detailed_job, changed=True)
+                             job_detailed_status=detailed_job, changed=True, **snmp_kwarg)
         if ip_details.get("Failed"):
             module.fail_json(msg=JOB_TRACK_FAIL.format(JOB_STATUS_MAP[djob["JobStatusId"]]), discovery_status=djob,
-                             job_detailed_status=detailed_job)
-    module.exit_json(msg=msg, discovery_status=djob, job_detailed_status=detailed_job, changed=True)
+                             job_detailed_status=detailed_job, **snmp_kwarg)
+    module.exit_json(msg=msg, discovery_status=djob, job_detailed_status=detailed_job, changed=True, **snmp_kwarg)
 
 
 def create_discovery(module, rest_obj):
