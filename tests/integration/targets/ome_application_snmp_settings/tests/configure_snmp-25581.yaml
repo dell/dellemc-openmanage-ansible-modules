@@ -1,0 +1,135 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2025-2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: hostname, username
+      and password."
+  when: hostname is not defined or username is not defined or
+    password is not defined
+
+- block:
+    # ----------------------------------------------------------------
+    # Test 1: Check mode — should report changes
+    # ----------------------------------------------------------------
+    - name: Update SNMP community string (Check mode - changes expected)
+      dellemc.openmanage.ome_application_snmp_settings: &snmp_update
+        community_string: "{{ snmp_community_string }}"
+        snmp_port: "{{ snmp_port_default }}"
+      register: cm_changes
+      check_mode: true
+
+    - name: Verify check mode reports changed
+      ansible.builtin.assert:
+        that:
+          - cm_changes.changed
+          - cm_changes.msg == "Changes found to be applied."
+
+    # ----------------------------------------------------------------
+    # Test 2: Normal mode — apply the update
+    # ----------------------------------------------------------------
+    - name: Update SNMP community string (Normal mode)
+      dellemc.openmanage.ome_application_snmp_settings:
+        <<: *snmp_update
+      register: results_update
+
+    - name: Verify normal mode reports success
+      ansible.builtin.assert:
+        that:
+          - results_update.changed
+          - results_update.msg == "Successfully updated the SNMP settings."
+          - results_update.snmp_details.PortNumber == snmp_port_default
+          - results_update.snmp_details.CommunityString == "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER"
+
+    # ----------------------------------------------------------------
+    # Test 3: Direct API verification — confirm port was applied
+    # ----------------------------------------------------------------
+    - name: Get SNMP configuration from OME API
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}/{{ snmp_config_uri }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        method: GET
+        validate_certs: false
+        return_content: true
+        status_code: 200
+        headers:
+          Accept: application/json
+      register: snmp_uri
+
+    - name: Verify SNMP port via API
+      ansible.builtin.assert:
+        that:
+          - snmp_uri.json.PortNumber == snmp_port_default
+
+    # ----------------------------------------------------------------
+    # Test 4: Update with custom port
+    # ----------------------------------------------------------------
+    - name: Update SNMP community string and port (Normal mode)
+      dellemc.openmanage.ome_application_snmp_settings:
+        community_string: "{{ snmp_community_string }}"
+        snmp_port: "{{ snmp_port_custom }}"
+      register: results_custom_port
+
+    - name: Verify custom port update
+      ansible.builtin.assert:
+        that:
+          - results_custom_port.changed
+          - results_custom_port.snmp_details.PortNumber == snmp_port_custom
+
+    # ----------------------------------------------------------------
+    # Test 5: Verify port via API after custom port change
+    # ----------------------------------------------------------------
+    - name: Get SNMP configuration from OME API after port change
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}/{{ snmp_config_uri }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        method: GET
+        validate_certs: false
+        return_content: true
+        status_code: 200
+        headers:
+          Accept: application/json
+      register: snmp_uri_custom
+
+    - name: Verify custom port via API
+      ansible.builtin.assert:
+        that:
+          - snmp_uri_custom.json.PortNumber == snmp_port_custom
+
+    # ----------------------------------------------------------------
+    # Test 6: Check mode after update — should still report changes
+    # (community string always treated as changed since GET masks it)
+    # ----------------------------------------------------------------
+    - name: Update SNMP community string (Check mode after update)
+      dellemc.openmanage.ome_application_snmp_settings:
+        community_string: "{{ snmp_community_string }}"
+        snmp_port: "{{ snmp_port_custom }}"
+      register: cm_after_update
+      check_mode: true
+
+    - name: Verify check mode still reports changed (community string always changed)
+      ansible.builtin.assert:
+        that:
+          - cm_after_update.changed
+          - cm_after_update.msg == "Changes found to be applied."
+
+  always:
+    # Restore default port
+    - name: Restore SNMP port to default
+      dellemc.openmanage.ome_application_snmp_settings:
+        community_string: "{{ snmp_community_string }}"
+        snmp_port: "{{ snmp_port_default }}"
+      ignore_errors: true
+
+  module_defaults:
+    dellemc.openmanage.ome_application_snmp_settings:
+      validate_certs: "{{ validate_certs | default(false) }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port | default(443) }}"

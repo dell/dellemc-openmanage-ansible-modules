@@ -1,0 +1,15 @@
+---
+# OME appliance connection variables — set via environment or group_vars.
+# hostname: "{{ lookup('env', 'OME_HOSTNAME') }}"
+# username: "{{ lookup('env', 'OME_USERNAME') }}"
+# password: "{{ lookup('env', 'OME_PASSWORD') }}"
+# validate_certs: false
+# port: 443
+
+# SNMP test variables
+snmp_community_string: "integTestCommunity"
+snmp_port_default: 162
+snmp_port_custom: 1162
+
+# API endpoint for direct verification
+snmp_config_uri: api/ApplicationService/IncomingAlertConfiguration

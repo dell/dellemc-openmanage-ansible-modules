@@ -1,0 +1,69 @@
+# Test code for the Dell OpenManage modules
+# Copyright (C) 2025-2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an OME host, OME username and OME password
+  ansible.builtin.fail:
+    msg: "Please define the following variables: hostname, username
+      and password."
+  when: hostname is not defined or username is not defined or
+    password is not defined
+
+- block:
+    # ----------------------------------------------------------------
+    # Test 1: community_string exceeds max length
+    # ----------------------------------------------------------------
+    - name: Update SNMP with community_string > 32 chars (should fail)
+      dellemc.openmanage.ome_application_snmp_settings:
+        community_string: "this_community_string_is_way_too_long_for_validation"
+        snmp_port: 162
+      register: result_too_long
+      ignore_errors: true
+
+    - name: Verify failure for too-long community_string
+      ansible.builtin.assert:
+        that:
+          - result_too_long.failed
+          - "'must not exceed 32 characters' in result_too_long.msg"
+
+    # ----------------------------------------------------------------
+    # Test 2: snmp_port out of range (0)
+    # ----------------------------------------------------------------
+    - name: Update SNMP with snmp_port=0 (should fail)
+      dellemc.openmanage.ome_application_snmp_settings:
+        community_string: "validString"
+        snmp_port: 0
+      register: result_port_zero
+      ignore_errors: true
+
+    - name: Verify failure for port 0
+      ansible.builtin.assert:
+        that:
+          - result_port_zero.failed
+          - "'between 1 and 65535' in result_port_zero.msg"
+
+    # ----------------------------------------------------------------
+    # Test 3: snmp_port out of range (65536)
+    # ----------------------------------------------------------------
+    - name: Update SNMP with snmp_port=65536 (should fail)
+      dellemc.openmanage.ome_application_snmp_settings:
+        community_string: "validString"
+        snmp_port: 65536
+      register: result_port_high
+      ignore_errors: true
+
+    - name: Verify failure for port 65536
+      ansible.builtin.assert:
+        that:
+          - result_port_high.failed
+          - "'between 1 and 65535' in result_port_high.msg"
+
+  module_defaults:
+    dellemc.openmanage.ome_application_snmp_settings:
+      validate_certs: "{{ validate_certs | default(false) }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      port: "{{ port | default(443) }}"
