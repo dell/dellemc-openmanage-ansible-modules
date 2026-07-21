@@ -607,9 +607,9 @@ class TestSelfSessionProtection(FakeAnsibleModule):
         return idrac_conn_mock
 
     def test_self_protection_skipped_with_x_auth_token(self, idrac_default_args,
-                                                        idrac_session_mock,
-                                                        idrac_connection_session_mock,
-                                                        mocker):
+                                                       idrac_session_mock,
+                                                       idrac_connection_session_mock,
+                                                       mocker):
         """Test 7.3: Self-protection skipped when using x_auth_token."""
         idrac_default_args.update({
             "state": "absent",
@@ -626,9 +626,9 @@ class TestSelfSessionProtection(FakeAnsibleModule):
         delete_obj.check_self_session("74")
 
     def test_delete_different_session_succeeds(self, idrac_default_args,
-                                                idrac_session_mock,
-                                                idrac_connection_session_mock,
-                                                mocker):
+                                               idrac_session_mock,
+                                               idrac_connection_session_mock,
+                                               mocker):
         """Test 7.1: Deletion of a different session succeeds."""
         idrac_default_args.update({
             "state": "absent",
