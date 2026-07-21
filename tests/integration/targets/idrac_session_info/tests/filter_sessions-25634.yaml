@@ -11,7 +11,18 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
-- block:
+- name: Block - Filter sessions test
+  module_defaults:
+    dellemc.openmanage.idrac_session:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ idrac_ip }}"
+      port: "{{ idrac_port }}"
+    dellemc.openmanage.idrac_session_info:
+      validate_certs: "{{ validate_certs }}"
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+  block:
     - name: Prerequisite - Create a Redfish session for filter testing
       dellemc.openmanage.idrac_session:
         validate_certs: "{{ validate_certs }}"
@@ -36,7 +47,8 @@
       ansible.builtin.assert:
         that:
           - not redfish_sessions.changed
-          - redfish_sessions.msg == "Successfully retrieved session information."
+          - redfish_sessions.msg ==
+            "Successfully retrieved session information."
           - redfish_sessions.sessions is defined
           - redfish_sessions.session_count >= 1
 
@@ -117,17 +129,8 @@
   always:
     - name: Cleanup - Delete filter prereq session
       dellemc.openmanage.idrac_session:
-        validate_certs: "{{ validate_certs }}"
-        hostname: "{{ idrac_ip }}"
         state: absent
         x_auth_token: "{{ filter_prereq_token }}"
         session_id: "{{ filter_prereq_id }}"
-      ignore_errors: true
+      failed_when: false
       when: filter_prereq_token is defined and filter_prereq_id is defined
-
-  module_defaults:
-    dellemc.openmanage.idrac_session_info:
-      validate_certs: "{{ validate_certs }}"
-      idrac_ip: "{{ idrac_ip }}"
-      idrac_user: "{{ idrac_user }}"
-      idrac_password: "{{ idrac_password }}"

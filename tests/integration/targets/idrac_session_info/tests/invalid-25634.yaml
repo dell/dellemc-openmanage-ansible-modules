@@ -11,12 +11,19 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
-- block:
+- name: Block - Negative test cases
+  module_defaults:
+    dellemc.openmanage.idrac_session_info:
+      validate_certs: "{{ validate_certs }}"
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+  block:
     - name: Negative - Invalid username
       dellemc.openmanage.idrac_session_info:
         idrac_user: invalid_user
       register: invalid_username
-      ignore_errors: true
+      failed_when: false
 
     - name: Verify - Invalid username fails with auth error
       ansible.builtin.assert:
@@ -28,7 +35,7 @@
       dellemc.openmanage.idrac_session_info:
         idrac_password: invalid_password
       register: invalid_password
-      ignore_errors: true
+      failed_when: false
 
     - name: Verify - Invalid password fails
       ansible.builtin.assert:
@@ -40,7 +47,7 @@
       dellemc.openmanage.idrac_session_info:
         session_type: InvalidType
       register: invalid_type
-      ignore_errors: true
+      failed_when: false
 
     - name: Verify - Invalid session_type fails
       ansible.builtin.assert:
@@ -52,57 +59,55 @@
       dellemc.openmanage.idrac_session_info:
         stale_threshold_minutes: 0
       register: zero_threshold
-      ignore_errors: true
+      failed_when: false
 
     - name: Verify - Zero stale_threshold_minutes fails
       ansible.builtin.assert:
         that:
           - zero_threshold.failed
           - not zero_threshold.changed
-          - zero_threshold.msg == "stale_threshold_minutes must be a positive integer."
+          - zero_threshold.msg ==
+            "stale_threshold_minutes must be a positive integer."
 
     - name: Negative - Negative stale_threshold_minutes
       dellemc.openmanage.idrac_session_info:
         stale_threshold_minutes: -5
       register: negative_threshold
-      ignore_errors: true
+      failed_when: false
 
     - name: Verify - Negative stale_threshold_minutes fails
       ansible.builtin.assert:
         that:
           - negative_threshold.failed
           - not negative_threshold.changed
-          - negative_threshold.msg == "stale_threshold_minutes must be a positive integer."
+          - negative_threshold.msg ==
+            "stale_threshold_minutes must be a positive integer."
 
     - name: Negative - Unreachable host
       dellemc.openmanage.idrac_session_info:
         idrac_ip: 999.999.999.999
       register: unreachable_host
       ignore_unreachable: true
-      ignore_errors: true
+      failed_when: false
 
     - name: Verify - Unreachable host
       ansible.builtin.assert:
         that:
-          - unreachable_host.unreachable is defined and unreachable_host.unreachable
-             or unreachable_host.failed is defined and unreachable_host.failed
+          - >-
+            unreachable_host.unreachable is defined
+            and unreachable_host.unreachable
+            or unreachable_host.failed is defined
+            and unreachable_host.failed
           - not unreachable_host.changed
 
     - name: Negative - Unsupported argument
       dellemc.openmanage.idrac_session_info:
         unsupported_argument: unsupported
       register: unsupported_arg
-      ignore_errors: true
+      failed_when: false
 
     - name: Verify - Unsupported argument fails
       ansible.builtin.assert:
         that:
           - unsupported_arg.failed
           - not unsupported_arg.changed
-
-  module_defaults:
-    dellemc.openmanage.idrac_session_info:
-      validate_certs: "{{ validate_certs }}"
-      idrac_ip: "{{ idrac_ip }}"
-      idrac_user: "{{ idrac_user }}"
-      idrac_password: "{{ idrac_password }}"
