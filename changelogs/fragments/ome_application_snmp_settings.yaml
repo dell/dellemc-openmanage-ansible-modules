@@ -1,0 +1,11 @@
+---
+minor_changes:
+  - ome_application_snmp_settings - New module to read and update the SNMP listener
+    configuration (community string, port) on OpenManage Enterprise. Supports check_mode,
+    diff_mode, input validation, and weak-default community string warnings
+    (https://github.com/dell/dellemc-openmanage-ansible-modules).
+  - ome_discovery - Added ``snmp_configuration`` key to discovery return data when
+    ``trap_destination`` or ``community_string`` is enabled. Enhanced parameter documentation
+    for ``trap_destination`` and ``community_string`` with cross-references to the new
+    ``ome_application_snmp_settings`` module
+    (https://github.com/dell/dellemc-openmanage-ansible-modules).

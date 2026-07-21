@@ -1,0 +1,87 @@
+---
+# UC-1: New Server Deployment — Two-step SNMP trap configuration workflow
+#
+# Step 1: Configure the SNMP community string on the OME appliance.
+# Step 2: Discover servers with SNMP trap destination enabled.
+#
+# Prerequisites:
+#   - Store community string in Ansible Vault: ansible-vault encrypt_string 'yourSecret'
+#   - Ensure OME is reachable from the control node.
+
+- name: Configure OME SNMP and discover servers with SNMP traps enabled.
+  hosts: ome
+  gather_facts: false
+
+  tasks:
+    # Step 1: Set the SNMP community string on the OME appliance.
+    # The snmp_port defaults to 162 if not specified.
+    - name: Set SNMP community string on OME
+      dellemc.openmanage.ome_application_snmp_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        community_string: "{{ vault_community_string }}"
+      delegate_to: localhost
+      tags:
+        - snmp_settings
+
+    # Step 1 variant: Set community string and change the listener port.
+    - name: Set SNMP community string and listener port on OME
+      dellemc.openmanage.ome_application_snmp_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        community_string: "{{ vault_community_string }}"
+        snmp_port: 1162
+      delegate_to: localhost
+      tags:
+        - snmp_settings_custom_port
+
+    # Step 1 dry-run: Preview changes without modifying the appliance.
+    - name: Preview SNMP configuration changes (check_mode)
+      dellemc.openmanage.ome_application_snmp_settings:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        community_string: "{{ vault_community_string }}"
+      check_mode: true
+      diff: true
+      delegate_to: localhost
+      tags:
+        - snmp_check
+
+    # Step 2: Discover servers with SNMP trap configuration enabled.
+    # trap_destination=true pushes the OME IP as the SNMP alert destination on each iDRAC.
+    # community_string=true tells OME to use the community string set in Step 1.
+    - name: Discover servers with SNMP trap configuration enabled
+      dellemc.openmanage.ome_discovery:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        discovery_job_name: "Server Discovery with SNMP"
+        discovery_config_targets:
+          - network_address_detail:
+              - "192.168.1.0/24"
+            device_types:
+              - SERVER
+            wsman:
+              username: "idrac_user"
+              password: "{{ vault_idrac_password }}"
+        trap_destination: true
+        community_string: true
+        job_wait: true
+        job_wait_timeout: 10800
+      register: discovery_result
+      delegate_to: localhost
+      tags:
+        - discovery
+
+    - name: Display discovery result with SNMP configuration status
+      ansible.builtin.debug:
+        var: discovery_result
+      tags:
+        - discovery
