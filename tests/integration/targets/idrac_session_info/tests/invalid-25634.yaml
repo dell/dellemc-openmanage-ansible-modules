@@ -21,7 +21,9 @@
   block:
     - name: Negative - Invalid username
       dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
         idrac_user: invalid_user
+        idrac_password: "{{ idrac_password }}"
       register: invalid_username
       failed_when: false
 
@@ -33,6 +35,8 @@
 
     - name: Negative - Invalid password
       dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
         idrac_password: invalid_password
       register: invalid_password
       failed_when: false
@@ -45,6 +49,9 @@
 
     - name: Negative - Invalid session_type choice
       dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
         session_type: InvalidType
       register: invalid_type
       failed_when: false
@@ -57,6 +64,9 @@
 
     - name: Negative - Zero stale_threshold_minutes
       dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
         stale_threshold_minutes: 0
       register: zero_threshold
       failed_when: false
@@ -71,6 +81,9 @@
 
     - name: Negative - Negative stale_threshold_minutes
       dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
         stale_threshold_minutes: -5
       register: negative_threshold
       failed_when: false
@@ -86,6 +99,8 @@
     - name: Negative - Unreachable host
       dellemc.openmanage.idrac_session_info:
         idrac_ip: 999.999.999.999
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
       register: unreachable_host
       ignore_unreachable: true
       failed_when: false
@@ -102,6 +117,9 @@
 
     - name: Negative - Unsupported argument
       dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
         unsupported_argument: unsupported
       register: unsupported_arg
       failed_when: false
