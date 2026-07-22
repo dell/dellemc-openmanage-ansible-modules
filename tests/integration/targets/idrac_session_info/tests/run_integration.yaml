@@ -28,6 +28,7 @@
 
     - name: Include invalid input tests
       ansible.builtin.include_tasks: invalid-25634.yaml
+      tags: ['invalid']
 
     - name: Include self_session_protection tests
       ansible.builtin.include_tasks: self_session_protection-25634.yaml
