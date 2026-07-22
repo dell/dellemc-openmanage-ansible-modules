@@ -44,7 +44,7 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
       register: session_info_check
-      check_mode: yes
+      check_mode: true
 
     - name: Verify - Query all active sessions - Check mode
       ansible.builtin.assert:
