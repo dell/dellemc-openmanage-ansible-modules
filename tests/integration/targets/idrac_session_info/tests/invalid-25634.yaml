@@ -12,12 +12,6 @@
    is not defined'
 
 - name: Block - Negative test cases
-  module_defaults:
-    dellemc.openmanage.idrac_session_info:
-      validate_certs: "{{ validate_certs }}"
-      idrac_ip: "{{ idrac_ip }}"
-      idrac_user: "{{ idrac_user }}"
-      idrac_password: "{{ idrac_password }}"
   block:
     - name: Negative - Invalid username
       dellemc.openmanage.idrac_session_info:
