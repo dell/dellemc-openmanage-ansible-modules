@@ -1,68 +1,26 @@
-.. Document meta
+.. _idrac_session_info_module:
 
-:orphan:
 
-.. |antsibull-internal-nbsp| unicode:: 0xA0
-    :trim:
-
-.. meta::
-  :antsibull-docs: 2.24.0
-
-.. Anchors
-
-.. _ansible_collections.dellemc.openmanage.idrac_session_info_module:
-
-.. Anchors: short name for ansible.builtin
-
-.. Title
-
-dellemc.openmanage.idrac_session_info module -- Query iDRAC session information
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-.. Collection note
-
-.. note::
-    This module is part of the `dellemc.openmanage collection <https://galaxy.ansible.com/ui/repo/published/dellemc/openmanage/>`_ (version 7.6.1).
-
-    It is not included in ``ansible-core``.
-    To check whether it is installed, run :code:`ansible-galaxy collection list`.
-
-    To install it, use: :code:`ansible\-galaxy collection install dellemc.openmanage`.
-    You need further requirements to be able to use this module,
-    see :ref:`Requirements <ansible_collections.dellemc.openmanage.idrac_session_info_module_requirements>` for details.
-
-    To use it in a playbook, specify: :code:`dellemc.openmanage.idrac_session_info`.
-
-.. version_added
-
-.. rst-class:: ansible-version-added
-
-New in dellemc.openmanage 10.0.0
+idrac_session_info -- Query iDRAC session information
+=====================================================
 
 .. contents::
    :local:
    :depth: 1
 
-.. Deprecated
-
 
 Synopsis
 --------
 
-.. Description
+This module retrieves information about active sessions on a Dell iDRAC.
 
-- This module retrieves information about active sessions on a Dell iDRAC.
-- It can query active sessions, session service configuration, and session limits.
-- Supports client\-side filtering by session type, username, and stale session detection.
-- This module is read\-only and does not modify any sessions.
+It can query active sessions, session service configuration, and session limits.
 
+Supports client\-side filtering by session type, username, and stale session detection.
 
-.. Aliases
+This module is read\-only and does not modify any sessions.
 
 
-.. Requirements
-
-.. _ansible_collections.dellemc.openmanage.idrac_session_info_module_requirements:
 
 Requirements
 ------------
@@ -72,431 +30,71 @@ The below requirements are needed on the host that executes this module.
 
 
 
-
-
-
-.. Options
-
 Parameters
 ----------
 
-.. tabularcolumns:: \X{1}{3}\X{2}{3}
+  session_type (False, str, None)
+    Filter sessions by DMTF session type.
 
-.. list-table::
-  :width: 100%
-  :widths: auto
-  :header-rows: 1
-  :class: longtable ansible-option-table
+    Case\-insensitive exact match against the :literal:`SessionType` field.
 
-  * - Parameter
-    - Comments
 
-  * - .. raw:: html
+  username_filter (False, str, None)
+    Filter sessions by username.
 
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-ca_path"></div>
+    Case\-insensitive substring match against the :literal:`UserName` field.
 
-      .. _ansible_collections.dellemc.openmanage.idrac_session_info_module__parameter-ca_path:
 
-      .. rst-class:: ansible-option-title
+  stale_threshold_minutes (False, int, None)
+    Flag sessions as stale if their age exceeds this threshold in minutes.
 
-      **ca_path**
+    Sessions older than this value will have :literal:`is\_stale` set to :literal:`true`.
 
-      .. raw:: html
+    Must be a positive integer.
 
-        <a class="ansibleOptionLink" href="#parameter-ca_path" title="Permalink to this option"></a>
 
-      .. ansible-option-type-line::
+  idrac_ip (True, str, None)
+    iDRAC IP Address.
 
-        :ansible-option-type:`path`
 
-      :ansible-option-versionadded:`added in dellemc.openmanage 5.0.0`
+  idrac_user (True, str, None)
+    iDRAC username.
 
+    If the username is not provided, then the environment variable :envvar:`IDRAC\_USERNAME` is used.
 
-      .. raw:: html
+    Example: export IDRAC\_USERNAME=username
 
-        </div>
 
-    - .. raw:: html
+  idrac_password (True, str, None)
+    iDRAC user password.
 
-        <div class="ansible-option-cell">
+    If the password is not provided, then the environment variable :envvar:`IDRAC\_PASSWORD` is used.
 
-      The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+    Example: export IDRAC\_PASSWORD=password
 
 
-      .. raw:: html
+  idrac_port (optional, int, 443)
+    iDRAC port.
 
-        </div>
 
-  * - .. raw:: html
+  validate_certs (optional, bool, True)
+    If :literal:`false`\ , the SSL certificates will not be validated.
 
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-idrac_ip"></div>
+    Configure :literal:`false` only on personally controlled sites where self\-signed certificates are used.
 
-      .. _ansible_collections.dellemc.openmanage.idrac_session_info_module__parameter-idrac_ip:
+    Prior to collection version :literal:`5.0.0`\ , the :emphasis:`validate\_certs` is :literal:`false` by default.
 
-      .. rst-class:: ansible-option-title
 
-      **idrac_ip**
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
 
-      .. raw:: html
 
-        <a class="ansibleOptionLink" href="#parameter-idrac_ip" title="Permalink to this option"></a>
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
 
-      .. ansible-option-type-line::
 
-        :ansible-option-type:`string` / :ansible-option-required:`required`
 
-      .. raw:: html
 
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      iDRAC IP Address.
-
-
-      .. raw:: html
-
-        </div>
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-idrac_password"></div>
-        <div class="ansibleOptionAnchor" id="parameter-idrac_pwd"></div>
-
-      .. _ansible_collections.dellemc.openmanage.idrac_session_info_module__parameter-idrac_password:
-      .. _ansible_collections.dellemc.openmanage.idrac_session_info_module__parameter-idrac_pwd:
-
-      .. rst-class:: ansible-option-title
-
-      **idrac_password**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#parameter-idrac_password" title="Permalink to this option"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-aliases:`aliases: idrac_pwd`
-
-        :ansible-option-type:`string` / :ansible-option-required:`required`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      iDRAC user password.
-
-      If the password is not provided, then the environment variable :ansenvvar:`IDRAC\_PASSWORD` is used.
-
-      Example: export IDRAC\_PASSWORD=password
-
-
-      .. raw:: html
-
-        </div>
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-idrac_port"></div>
-
-      .. _ansible_collections.dellemc.openmanage.idrac_session_info_module__parameter-idrac_port:
-
-      .. rst-class:: ansible-option-title
-
-      **idrac_port**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#parameter-idrac_port" title="Permalink to this option"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`integer`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      iDRAC port.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`443`
-
-      .. raw:: html
-
-        </div>
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-idrac_user"></div>
-
-      .. _ansible_collections.dellemc.openmanage.idrac_session_info_module__parameter-idrac_user:
-
-      .. rst-class:: ansible-option-title
-
-      **idrac_user**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#parameter-idrac_user" title="Permalink to this option"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`string` / :ansible-option-required:`required`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      iDRAC username.
-
-      If the username is not provided, then the environment variable :ansenvvar:`IDRAC\_USERNAME` is used.
-
-      Example: export IDRAC\_USERNAME=username
-
-
-      .. raw:: html
-
-        </div>
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-session_type"></div>
-
-      .. _ansible_collections.dellemc.openmanage.idrac_session_info_module__parameter-session_type:
-
-      .. rst-class:: ansible-option-title
-
-      **session_type**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#parameter-session_type" title="Permalink to this option"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`string`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      Filter sessions by DMTF session type.
-
-      Case\-insensitive exact match against the :literal:`SessionType` field.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-choices:`Choices:`
-
-      - :ansible-option-choices-entry:`"Redfish"`
-      - :ansible-option-choices-entry:`"WebUI"`
-      - :ansible-option-choices-entry:`"IPMI"`
-      - :ansible-option-choices-entry:`"KVMS"`
-      - :ansible-option-choices-entry:`"VirtualMedia"`
-      - :ansible-option-choices-entry:`"OEM"`
-
-
-      .. raw:: html
-
-        </div>
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-stale_threshold_minutes"></div>
-
-      .. _ansible_collections.dellemc.openmanage.idrac_session_info_module__parameter-stale_threshold_minutes:
-
-      .. rst-class:: ansible-option-title
-
-      **stale_threshold_minutes**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#parameter-stale_threshold_minutes" title="Permalink to this option"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`integer`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      Flag sessions as stale if their age exceeds this threshold in minutes.
-
-      Sessions older than this value will have :literal:`is\_stale` set to :literal:`true`.
-
-      Must be a positive integer.
-
-
-      .. raw:: html
-
-        </div>
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-timeout"></div>
-
-      .. _ansible_collections.dellemc.openmanage.idrac_session_info_module__parameter-timeout:
-
-      .. rst-class:: ansible-option-title
-
-      **timeout**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#parameter-timeout" title="Permalink to this option"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`integer`
-
-      :ansible-option-versionadded:`added in dellemc.openmanage 5.0.0`
-
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      The socket level timeout in seconds.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-default-bold:`Default:` :ansible-option-default:`30`
-
-      .. raw:: html
-
-        </div>
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-username_filter"></div>
-
-      .. _ansible_collections.dellemc.openmanage.idrac_session_info_module__parameter-username_filter:
-
-      .. rst-class:: ansible-option-title
-
-      **username_filter**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#parameter-username_filter" title="Permalink to this option"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`string`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      Filter sessions by username.
-
-      Case\-insensitive substring match against the :literal:`UserName` field.
-
-
-      .. raw:: html
-
-        </div>
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="parameter-validate_certs"></div>
-
-      .. _ansible_collections.dellemc.openmanage.idrac_session_info_module__parameter-validate_certs:
-
-      .. rst-class:: ansible-option-title
-
-      **validate_certs**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#parameter-validate_certs" title="Permalink to this option"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`boolean`
-
-      :ansible-option-versionadded:`added in dellemc.openmanage 5.0.0`
-
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      If :literal:`false`\ , the SSL certificates will not be validated.
-
-      Configure :literal:`false` only on personally controlled sites where self\-signed certificates are used.
-
-      Prior to collection version :literal:`5.0.0`\ , the :emphasis:`validate\_certs` is :literal:`false` by default.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-choices:`Choices:`
-
-      - :ansible-option-choices-entry:`false`
-      - :ansible-option-choices-entry-default:`true` :ansible-option-choices-default-mark:`← (default)`
-
-
-      .. raw:: html
-
-        </div>
-
-
-.. Attributes
-
-
-.. Notes
 
 Notes
 -----
@@ -510,16 +108,15 @@ Notes
    - For fleet operations, use Ansible :literal:`forks` to parallelize queries across multiple iDRAC instances.
    - Administrator privileges are required to query all sessions. Non\-admin users may only see their own sessions.
 
-.. Seealso
 
 
-.. Examples
 
 Examples
 --------
 
 .. code-block:: yaml+jinja
 
+    
     ---
     - name: Query all active sessions
       dellemc.openmanage.idrac_session_info:
@@ -632,414 +229,53 @@ Examples
 
 
 
-.. Facts
-
-
-.. Return values
-
 Return Values
 -------------
-Common return values are documented :ref:`here <common_return_values>`, the following are the fields unique to this module:
 
-.. tabularcolumns:: \X{1}{3}\X{2}{3}
+msg (always, str, Successfully retrieved session information.)
+  Status of the session query operation.
 
-.. list-table::
-  :width: 100%
-  :widths: auto
-  :header-rows: 1
-  :class: longtable ansible-option-table
 
-  * - Key
-    - Description
+sessions (success, list, [{'id': '74', 'user_name': 'root', 'client_origin_ip': '100.96.37.58', 'session_type': 'Redfish', 'created_time': '2024-04-05T01:14:01-05:00', 'description': 'User Session', 'name': 'User Session', 'session_age_minutes': 120, 'is_stale': False}])
+  List of active sessions with details.
 
-  * - .. raw:: html
 
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-error_info"></div>
+session_count (success, int, 3)
+  Number of sessions returned (after filtering).
 
-      .. _ansible_collections.dellemc.openmanage.idrac_session_info_module__return-error_info:
 
-      .. rst-class:: ansible-option-title
+session_service (success, dict, {'session_timeout': 1800, 'service_enabled': True})
+  Session service configuration.
 
-      **error_info**
 
-      .. raw:: html
+session_limits (success, dict, {'max_sessions': 64, 'active_count': 5, 'utilization_percent': 7.81, 'source': 'idrac_attributes'})
+  Session limits and utilization.
 
-        <a class="ansibleOptionLink" href="#return-error_info" title="Permalink to this return value"></a>
 
-      .. ansible-option-type-line::
+idrac_firmware_version (success, str, 7.10.90.00)
+  Detected iDRAC firmware version.
 
-        :ansible-option-type:`dictionary`
 
-      .. raw:: html
+idrac_model (success, str, iDRAC 9)
+  Detected iDRAC model.
 
-        </div>
 
-    - .. raw:: html
+error_info (on HTTP error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to complete the operation.', 'MessageId': 'IDRAC.2.9.SYS415', 'Resolution': 'Enter valid credentials.', 'Severity': 'Warning'}], 'code': 'Base.1.12.GeneralError', 'message': 'A general error has occurred.'}})
+  Details of the HTTP Error.
 
-        <div class="ansible-option-cell">
 
-      Details of the HTTP Error.
 
 
-      .. rst-class:: ansible-option-line
 
-      :ansible-option-returned-bold:`Returned:` on HTTP error
+Status
+------
 
-      .. rst-class:: ansible-option-line
-      .. rst-class:: ansible-option-sample
 
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"error": {"@Message.ExtendedInfo": [{"Message": "Unable to complete the operation.", "MessageId": "IDRAC.2.9.SYS415", "Resolution": "Enter valid credentials.", "Severity": "Warning"}], "code": "Base.1.12.GeneralError", "message": "A general error has occurred."}}`
 
 
-      .. raw:: html
-
-        </div>
-
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-idrac_firmware_version"></div>
-
-      .. _ansible_collections.dellemc.openmanage.idrac_session_info_module__return-idrac_firmware_version:
-
-      .. rst-class:: ansible-option-title
-
-      **idrac_firmware_version**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#return-idrac_firmware_version" title="Permalink to this return value"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`string`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      Detected iDRAC firmware version.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-returned-bold:`Returned:` success
-
-      .. rst-class:: ansible-option-line
-      .. rst-class:: ansible-option-sample
-
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`"7.10.90.00"`
-
-
-      .. raw:: html
-
-        </div>
-
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-idrac_model"></div>
-
-      .. _ansible_collections.dellemc.openmanage.idrac_session_info_module__return-idrac_model:
-
-      .. rst-class:: ansible-option-title
-
-      **idrac_model**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#return-idrac_model" title="Permalink to this return value"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`string`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      Detected iDRAC model.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-returned-bold:`Returned:` success
-
-      .. rst-class:: ansible-option-line
-      .. rst-class:: ansible-option-sample
-
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`"iDRAC 9"`
-
-
-      .. raw:: html
-
-        </div>
-
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-msg"></div>
-
-      .. _ansible_collections.dellemc.openmanage.idrac_session_info_module__return-msg:
-
-      .. rst-class:: ansible-option-title
-
-      **msg**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#return-msg" title="Permalink to this return value"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`string`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      Status of the session query operation.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-returned-bold:`Returned:` always
-
-      .. rst-class:: ansible-option-line
-      .. rst-class:: ansible-option-sample
-
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`"Successfully retrieved session information."`
-
-
-      .. raw:: html
-
-        </div>
-
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-session_count"></div>
-
-      .. _ansible_collections.dellemc.openmanage.idrac_session_info_module__return-session_count:
-
-      .. rst-class:: ansible-option-title
-
-      **session_count**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#return-session_count" title="Permalink to this return value"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`integer`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      Number of sessions returned (after filtering).
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-returned-bold:`Returned:` success
-
-      .. rst-class:: ansible-option-line
-      .. rst-class:: ansible-option-sample
-
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`3`
-
-
-      .. raw:: html
-
-        </div>
-
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-session_limits"></div>
-
-      .. _ansible_collections.dellemc.openmanage.idrac_session_info_module__return-session_limits:
-
-      .. rst-class:: ansible-option-title
-
-      **session_limits**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#return-session_limits" title="Permalink to this return value"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`dictionary`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      Session limits and utilization.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-returned-bold:`Returned:` success
-
-      .. rst-class:: ansible-option-line
-      .. rst-class:: ansible-option-sample
-
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"active\_count": 5, "max\_sessions": 64, "source": "idrac\_attributes", "utilization\_percent": 7.81}`
-
-
-      .. raw:: html
-
-        </div>
-
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-session_service"></div>
-
-      .. _ansible_collections.dellemc.openmanage.idrac_session_info_module__return-session_service:
-
-      .. rst-class:: ansible-option-title
-
-      **session_service**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#return-session_service" title="Permalink to this return value"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`dictionary`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      Session service configuration.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-returned-bold:`Returned:` success
-
-      .. rst-class:: ansible-option-line
-      .. rst-class:: ansible-option-sample
-
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`{"service\_enabled": true, "session\_timeout": 1800}`
-
-
-      .. raw:: html
-
-        </div>
-
-
-  * - .. raw:: html
-
-        <div class="ansible-option-cell">
-        <div class="ansibleOptionAnchor" id="return-sessions"></div>
-
-      .. _ansible_collections.dellemc.openmanage.idrac_session_info_module__return-sessions:
-
-      .. rst-class:: ansible-option-title
-
-      **sessions**
-
-      .. raw:: html
-
-        <a class="ansibleOptionLink" href="#return-sessions" title="Permalink to this return value"></a>
-
-      .. ansible-option-type-line::
-
-        :ansible-option-type:`list` / :ansible-option-elements:`elements=dictionary`
-
-      .. raw:: html
-
-        </div>
-
-    - .. raw:: html
-
-        <div class="ansible-option-cell">
-
-      List of active sessions with details.
-
-
-      .. rst-class:: ansible-option-line
-
-      :ansible-option-returned-bold:`Returned:` success
-
-      .. rst-class:: ansible-option-line
-      .. rst-class:: ansible-option-sample
-
-      :ansible-option-sample-bold:`Sample:` :ansible-rv-sample-value:`[{"client\_origin\_ip": "100.96.37.58", "created\_time": "2024\-04\-05T01:14:01\-05:00", "description": "User Session", "id": "74", "is\_stale": false, "name": "User Session", "session\_age\_minutes": 120, "session\_type": "Redfish", "user\_name": "root"}]`
-
-
-      .. raw:: html
-
-        </div>
-
-
-
-..  Status (Presently only deprecated)
-
-
-.. Authors
 
 Authors
 ~~~~~~~
 
 - Saksham Nautiyal (@Saksham-Nautiyal)
 
-
-.. Extra links
-
-Collection links
-~~~~~~~~~~~~~~~~
-
-.. ansible-links::
-
-  - title: "Issue Tracker"
-    url: "https://github.com/dell/dellemc-openmanage-ansible-modules/issues"
-    external: true
-  - title: "Homepage"
-    url: "https://github.com/dell/dellemc-openmanage-ansible-modules"
-    external: true
-  - title: "Repository (Sources)"
-    url: "https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections"
-    external: true
-
-
-.. Parsing errors
