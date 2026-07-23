@@ -273,7 +273,7 @@ Only applicable when I(state) is C(present).</td>
     <td></td>
     <td>bool</td>
     <td>- Reboot the server to apply the changes.</br>
-- I(reboot_server) is applicable only when I(apply_timeout) is C(OnReset) or when the default value for the apply time of the controller is C(OnReset).</td>
+- I(reboot_server) is applicable only when I(apply_time) is C(OnReset) or when the default value for the apply time of the controller is C(OnReset).</td>
   </tr>
   <tr>
     <td>force_reboot</td>
