@@ -89,6 +89,7 @@
         x_auth_token: "{{ auth_data.x_auth_token }}"
       register: token_session_info
       delegate_to: localhost
+      # noqa: args[module]  # idrac_user/idrac_password not required when using x_auth_token
 
     - name: Cleanup - Destroy the session
       dellemc.openmanage.idrac_session:
