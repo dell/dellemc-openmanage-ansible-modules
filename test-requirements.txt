@@ -1,5 +1,5 @@
 pytest==9.0.3
-pytest-xdist
+pytest-xdist>=3.4.0
 mock
 pytest-mock
 pytest-cov
