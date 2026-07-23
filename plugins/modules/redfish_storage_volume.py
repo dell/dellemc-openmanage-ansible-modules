@@ -149,7 +149,7 @@ options:
   reboot_server:
     description:
       - Reboot the server to apply the changes.
-      - I(reboot_server) is applicable only when I(apply_timeout) is C(OnReset) or when the default value for the apply time of the controller is C(OnReset).
+      - I(reboot_server) is applicable only when I(apply_time) is C(OnReset) or when the default value for the apply time of the controller is C(OnReset).
     type: bool
     default: false
     version_added: 8.5.0
