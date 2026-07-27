@@ -1,0 +1,101 @@
+---
+# Dell OpenManage Ansible iDRAC Session Info
+# Sample playbook demonstrating idrac_session_info module usage
+#
+# Prerequisites:
+#   - iDRAC9 firmware >= 7.10.90.00 or iDRAC10 firmware >= 1.20.50.50
+#   - Administrator privileges for full session visibility
+
+- name: Dell OpenManage Ansible iDRAC Session Information.
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    # UC-1: Query all active sessions
+    - name: Query all active iDRAC sessions
+      dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ vault_idrac_ip }}"
+        idrac_user: "{{ vault_idrac_user }}"
+        idrac_password: "{{ vault_idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+      register: session_info
+      delegate_to: localhost
+
+    - name: Display session count and utilization
+      ansible.builtin.debug:
+        msg: >-
+          Active sessions: {{ session_info.session_count }},
+          Max sessions: {{ session_info.session_limits.max_sessions | default('unknown') }},
+          Utilization: {{ session_info.session_limits.utilization_percent | default('unknown') }}%
+
+    # Filter sessions by type
+    - name: Query only Redfish sessions
+      dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ vault_idrac_ip }}"
+        idrac_user: "{{ vault_idrac_user }}"
+        idrac_password: "{{ vault_idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        session_type: Redfish
+      register: redfish_sessions
+      delegate_to: localhost
+
+    - name: Display Redfish sessions
+      ansible.builtin.debug:
+        msg: "Found {{ redfish_sessions.session_count }} Redfish sessions"
+
+    # Filter sessions by username
+    - name: Query sessions for admin users
+      dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ vault_idrac_ip }}"
+        idrac_user: "{{ vault_idrac_user }}"
+        idrac_password: "{{ vault_idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        username_filter: admin
+      register: admin_sessions
+      delegate_to: localhost
+
+    # UC-3: Find stale sessions older than 24 hours
+    - name: Find stale sessions
+      dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ vault_idrac_ip }}"
+        idrac_user: "{{ vault_idrac_user }}"
+        idrac_password: "{{ vault_idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        stale_threshold_minutes: 1440
+      register: stale_info
+      delegate_to: localhost
+
+    - name: Display stale sessions
+      ansible.builtin.debug:
+        msg: "Stale session: {{ item.id }} ({{ item.user_name }}, age: {{ item.session_age_minutes }} min)"
+      loop: "{{ stale_info.sessions | selectattr('is_stale', 'equalto', true) | list }}"
+      when: stale_info.sessions | selectattr('is_stale', 'equalto', true) | list | length > 0
+
+    # Using token-based authentication
+    - name: Create a session for token-based auth
+      dellemc.openmanage.idrac_session:
+        hostname: "{{ vault_idrac_ip }}"
+        username: "{{ vault_idrac_user }}"
+        password: "{{ vault_idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: present
+      register: auth_data
+      delegate_to: localhost
+
+    - name: Query sessions using token authentication
+      dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ vault_idrac_ip }}"
+        ca_path: "/path/to/ca_cert.pem"
+        x_auth_token: "{{ auth_data.x_auth_token }}"
+      register: token_session_info
+      delegate_to: localhost
+      # noqa: args[module]  # idrac_user/idrac_password not required when using x_auth_token
+
+    - name: Cleanup - Destroy the session
+      dellemc.openmanage.idrac_session:
+        hostname: "{{ vault_idrac_ip }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: absent
+        x_auth_token: "{{ auth_data.x_auth_token }}"
+        session_id: "{{ auth_data.session_data.Id }}"
+      delegate_to: localhost

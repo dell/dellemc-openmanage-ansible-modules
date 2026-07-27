@@ -1,0 +1,103 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024-2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Block - Self-session protection tests for idrac_session
+  block:
+    - name: Prerequisite - Create session A
+      dellemc.openmanage.idrac_session:
+        validate_certs: "{{ validate_certs }}"
+        hostname: "{{ idrac_ip }}"
+        port: "{{ idrac_port }}"
+        username: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+      register: session_a
+
+    - name: Set session A details
+      ansible.builtin.set_fact:
+        token_a: "{{ session_a.x_auth_token }}"
+        id_a: "{{ session_a.session_data.Id }}"
+      when: session_a is not failed
+
+    - name: Prerequisite - Create session B
+      dellemc.openmanage.idrac_session:
+        validate_certs: "{{ validate_certs }}"
+        hostname: "{{ idrac_ip }}"
+        port: "{{ idrac_port }}"
+        username: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+      register: session_b
+
+    - name: Set session B details
+      ansible.builtin.set_fact:
+        token_b: "{{ session_b.x_auth_token }}"
+        id_b: "{{ session_b.session_data.Id }}"
+      when: session_b is not failed
+
+    - name: >-
+        Self-protection with x_auth_token - Delete session B using
+        session A token (cross-session delete should succeed)
+      dellemc.openmanage.idrac_session:
+        validate_certs: "{{ validate_certs }}"
+        hostname: "{{ idrac_ip }}"
+        state: absent
+        x_auth_token: "{{ token_a }}"
+        session_id: "{{ id_b }}"
+      register: cross_session_delete
+
+    - name: Verify - Cross-session delete succeeds
+      ansible.builtin.assert:
+        that:
+          - cross_session_delete.changed
+          - cross_session_delete.msg ==
+            "The session has been deleted successfully."
+
+    - name: >-
+        Self-protection skipped - Attempt to delete own session A
+        using its own x_auth_token (protection skipped for x_auth_token)
+      dellemc.openmanage.idrac_session:
+        validate_certs: "{{ validate_certs }}"
+        hostname: "{{ idrac_ip }}"
+        state: absent
+        x_auth_token: "{{ token_a }}"
+        session_id: "{{ id_a }}"
+      register: self_delete_with_token
+
+    - name: >-
+        Verify - Self-delete with x_auth_token proceeds
+        (protection skipped since auth session ID cannot be determined)
+      ansible.builtin.assert:
+        that:
+          - self_delete_with_token.changed
+          - self_delete_with_token.msg ==
+            "The session has been deleted successfully."
+
+  always:
+    - name: Cleanup - Delete session A (if still exists)
+      dellemc.openmanage.idrac_session:
+        validate_certs: "{{ validate_certs }}"
+        hostname: "{{ idrac_ip }}"
+        state: absent
+        x_auth_token: "{{ token_a }}"
+        session_id: "{{ id_a }}"
+      failed_when: false
+      when: token_a is defined and id_a is defined
+
+    - name: Cleanup - Delete session B (if still exists)
+      dellemc.openmanage.idrac_session:
+        validate_certs: "{{ validate_certs }}"
+        hostname: "{{ idrac_ip }}"
+        state: absent
+        x_auth_token: "{{ token_b }}"
+        session_id: "{{ id_b }}"
+      failed_when: false
+      when: token_b is defined and id_b is defined

@@ -51,6 +51,10 @@ idrac_auth_params = {
 
 }
 
+# Minimum firmware version constants for iDRAC models
+MINIMUM_FIRMWARE_VERSION_IDRAC9 = "7.10.90.00"
+MINIMUM_FIRMWARE_VERSION_IDRAC10 = "1.20.50.50"
+
 SESSION_RESOURCE_COLLECTION = {
     "SESSION": "/redfish/v1/SessionService/Sessions",
     "SESSION_ID": "/redfish/v1/SessionService/Sessions/{Id}",
@@ -265,6 +269,47 @@ class iDRACRedfishAPI(object):
             hw_model = "iDRAC 8"
 
         return generation, firmware_version, hw_model
+
+    @staticmethod
+    def compare_firmware_version(firmware_version, minimum_version):
+        """
+        Compare firmware version strings (e.g., '7.10.90.00' >= '7.10.90.00').
+        :param firmware_version: Current firmware version string
+        :param minimum_version: Minimum required firmware version string
+        :return: True if firmware_version >= minimum_version, False otherwise
+        """
+        fw_parts = [int(x) for x in firmware_version.split('.')]
+        min_parts = [int(x) for x in minimum_version.split('.')]
+        for fw, min_v in zip(fw_parts, min_parts):
+            if fw > min_v:
+                return True
+            if fw < min_v:
+                return False
+        return len(fw_parts) >= len(min_parts)
+
+    @staticmethod
+    def check_minimum_firmware_requirement(idrac_model, firmware_version):
+        """
+        Check if firmware version meets minimum requirement for the iDRAC model.
+        Uses module-level constants MINIMUM_FIRMWARE_VERSION_IDRAC9 and MINIMUM_FIRMWARE_VERSION_IDRAC10.
+        :param idrac_model: iDRAC model string ('iDRAC 9' or 'iDRAC 10')
+        :param firmware_version: Current firmware version string
+        :return: tuple (is_compliant: bool, minimum_required: str, error_message: str)
+        """
+        if idrac_model == "iDRAC 10":
+            minimum_version = MINIMUM_FIRMWARE_VERSION_IDRAC10
+        else:
+            minimum_version = MINIMUM_FIRMWARE_VERSION_IDRAC9
+
+        is_compliant = iDRACRedfishAPI.compare_firmware_version(firmware_version, minimum_version)
+
+        if not is_compliant:
+            error_msg = ("Minimum firmware requirement not met. "
+                         "Minimum required: {0} {1}. Please upgrade firmware.".format(
+                             idrac_model, minimum_version))
+            return False, minimum_version, error_msg
+
+        return True, minimum_version, ""
 
     def wait_for_job_complete(self, task_uri, job_wait=False):
         """

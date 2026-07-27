@@ -1,0 +1,121 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024-2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: Block - Stale detection test
+  module_defaults:
+    dellemc.openmanage.idrac_session:
+      validate_certs: "{{ validate_certs }}"
+      hostname: "{{ idrac_ip }}"
+      port: "{{ idrac_port }}"
+    dellemc.openmanage.idrac_session_info:
+      validate_certs: "{{ validate_certs }}"
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+  block:
+    - name: Prerequisite - Create a session for stale detection testing
+      dellemc.openmanage.idrac_session:
+        validate_certs: "{{ validate_certs }}"
+        hostname: "{{ idrac_ip }}"
+        port: "{{ idrac_port }}"
+        username: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+      register: stale_prereq_session
+
+    - name: Set stale prereq session details for cleanup
+      ansible.builtin.set_fact:
+        stale_prereq_token: "{{ stale_prereq_session.x_auth_token }}"
+        stale_prereq_id: "{{ stale_prereq_session.session_data.Id }}"
+      when: stale_prereq_session is not failed
+
+    - name: Stale detection with very high threshold (no sessions stale)
+      dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        stale_threshold_minutes: 99999
+      register: no_stale
+
+    - name: Verify - No sessions flagged as stale with high threshold
+      ansible.builtin.assert:
+        that:
+          - not no_stale.changed
+          - no_stale.sessions is defined
+
+    - name: Verify no sessions are stale
+      ansible.builtin.assert:
+        that:
+          - not item.is_stale
+      loop: "{{ no_stale.sessions }}"
+      loop_control:
+        label: "Session {{ item.id }}"
+
+    - name: Stale detection with threshold of 1 minute
+      dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        stale_threshold_minutes: 1
+      register: stale_1min
+
+    - name: Verify - Stale detection returns valid structure
+      ansible.builtin.assert:
+        that:
+          - not stale_1min.changed
+          - stale_1min.sessions is defined
+
+    - name: Verify is_stale field is set on each session
+      ansible.builtin.assert:
+        that:
+          - item.is_stale is defined
+          - item.is_stale | type_debug == "bool"
+      loop: "{{ stale_1min.sessions }}"
+      loop_control:
+        label: "Session {{ item.id }}"
+
+    - name: Stale detection combined with filter
+      dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        stale_threshold_minutes: 1440
+        session_type: Redfish
+      register: stale_filtered
+      failed_when: false
+
+    - name: Verify - Stale detection with filter
+      ansible.builtin.assert:
+        that:
+          - not stale_filtered.changed
+          - stale_filtered.sessions is defined
+
+    - name: Verify stale filtered sessions are all Redfish
+      ansible.builtin.assert:
+        that:
+          - item.session_type == "Redfish"
+          - item.is_stale is defined
+      loop: "{{ stale_filtered.sessions }}"
+      loop_control:
+        label: "Session {{ item.id }}"
+      when: stale_filtered.session_count > 0
+
+  always:
+    - name: Cleanup - Delete stale prereq session
+      dellemc.openmanage.idrac_session:
+        validate_certs: "{{ validate_certs }}"
+        hostname: "{{ idrac_ip }}"
+        state: absent
+        x_auth_token: "{{ stale_prereq_token }}"
+        session_id: "{{ stale_prereq_id }}"
+      failed_when: false
+      when: stale_prereq_token is defined and stale_prereq_id is defined
