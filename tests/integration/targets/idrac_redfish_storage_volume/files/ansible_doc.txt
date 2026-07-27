@@ -173,7 +173,7 @@
 - ''
 - '- reboot_server'
 - '        Reboot the server to apply the changes.'
-- '        `reboot_server'' is applicable only when `apply_timeout'' is'
+- '        `reboot_server'' is applicable only when `apply_time'' is'
 - '        `OnReset'' or when the default value for the apply time of the'
 - '        controller is `OnReset''.'
 - '        default: false'
