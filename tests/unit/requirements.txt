@@ -1,5 +1,4 @@
 pytest
-pytest-xdist>=3.4.0
 mock
 pytest-mock
 pytest-cov
