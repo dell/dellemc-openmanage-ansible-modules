@@ -27,30 +27,38 @@ description:
   - This module is read-only and does not modify any state on the iDRAC.
 options:
   idrac_ip:
-    description: IP address or hostname of the iDRAC.
+    description: iDRAC IP Address.
     type: str
     required: true
   idrac_user:
-    description: Username of the iDRAC.
+    description:
+      - iDRAC username.
+      - If the username is not provided, then the environment variable E(IDRAC_USERNAME) is used.
     type: str
     required: true
   idrac_password:
-    description: Password of the iDRAC.
+    description:
+      - iDRAC user password.
+      - If the password is not provided, then the environment variable E(IDRAC_PASSWORD) is used.
     type: str
     required: true
-  port:
-    description: Port of the iDRAC.
+    aliases: ['idrac_pwd']
+  idrac_port:
+    description: iDRAC port.
     type: int
     default: 443
   validate_certs:
-    description: If C(false), the SSL certificates will not be validated.
+    description:
+      - If C(false), the SSL certificates will not be validated.
+      - Configure C(false) only on personally controlled sites where self-signed certificates are used.
     type: bool
     default: true
   ca_path:
-    description: The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+    description:
+      - The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
     type: path
   timeout:
-    description: The https socket level timeout in seconds.
+    description: The socket level timeout in seconds.
     type: int
     default: 30
   session_type:
