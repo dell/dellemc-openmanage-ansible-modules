@@ -73,7 +73,8 @@ options:
   x_auth_token:
     description:
      - Authentication token.
-     - I(x_auth_token) is required when I(state) is C(absent).
+     - When I(state) is C(absent), either I(x_auth_token) or I(username)/I(password) must be provided.
+     - When using I(x_auth_token), self-session protection is not available.
     type: str
     aliases: ['auth_token']
   session_id:
@@ -97,6 +98,10 @@ notes:
       the deletion is rejected to prevent accidental lockout.
     - Self-session protection is skipped when using I(x_auth_token) because the caller's
       auth session ID cannot be determined from the token alone.
+    - When I(state) is C(absent) with I(username)/I(password), the module creates a temporary
+      auth session to detect self-termination. This temporary session is cleaned up automatically.
+    - B(Troubleshooting) - If you receive "Max Sessions Reached", use
+      C(idrac_session_info) to identify and clean up stale sessions.
 """
 
 EXAMPLES = r"""
@@ -147,6 +152,33 @@ EXAMPLES = r"""
         state: absent
         x_auth_token: "{{ authData.x_auth_token }}"
         session_id: "{{ authData.session_data.Id }}"
+
+- name: Delete a session using username/password (with self-session protection)
+  dellemc.openmanage.idrac_session:
+    hostname: 198.162.0.1
+    username: username
+    password: password
+    ca_path: "/path/to/ca_cert.pem"
+    state: absent
+    session_id: 74
+
+- name: Troubleshoot - Query sessions when "Max Sessions Reached" error occurs
+  block:
+    - name: Check current session utilization
+      dellemc.openmanage.idrac_session_info:
+        idrac_ip: 198.162.0.1
+        idrac_user: username
+        idrac_password: password
+        validate_certs: false
+        stale_threshold_minutes: 480
+      register: session_info
+
+    - name: Display session utilization
+      ansible.builtin.debug:
+        msg: >-
+          Sessions: {{ session_info.session_limits.active_sessions }}/{{ session_info.session_limits.max_sessions }}
+          ({{ session_info.session_limits.utilization_percent }}%).
+          Stale sessions: {{ session_info.sessions | selectattr('is_stale', 'equalto', true) | list | length }}
 """
 
 RETURN = r'''
