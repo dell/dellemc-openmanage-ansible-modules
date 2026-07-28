@@ -1,0 +1,108 @@
+---
+# Dell OpenManage Ansible Modules
+# Version 9.13.0
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+# Sample playbook: idrac_session_info
+# Demonstrates querying iDRAC session information, filtering, and stale detection.
+
+- name: Query iDRAC session information
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    # Query all active sessions
+    - name: Get all active sessions
+      dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs | default(false) }}"
+      register: all_sessions
+
+    - name: Display all sessions
+      ansible.builtin.debug:
+        var: all_sessions
+
+    # Filter sessions by Redfish type
+    - name: Get Redfish sessions only
+      dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs | default(false) }}"
+        session_type: Redfish
+      register: redfish_sessions
+
+    - name: Display Redfish session count
+      ansible.builtin.debug:
+        msg: "Found {{ redfish_sessions.session_count }} Redfish sessions"
+
+    # Filter sessions by username
+    - name: Get sessions for a specific user
+      dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs | default(false) }}"
+        username_filter: root
+      register: root_sessions
+
+    - name: Display root user sessions
+      ansible.builtin.debug:
+        var: root_sessions.sessions
+
+    # Detect stale sessions (older than 24 hours)
+    - name: Find stale sessions older than 24 hours
+      dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs | default(false) }}"
+        stale_threshold_minutes: 1440
+      register: stale_check
+
+    - name: Display stale sessions
+      ansible.builtin.debug:
+        msg: "Stale sessions: {{ stale_check.sessions | selectattr('is_stale', 'equalto', true) | list }}"
+
+    # Display session limits and utilization
+    - name: Show session utilization
+      ansible.builtin.debug:
+        msg: >-
+          Session utilization: {{ all_sessions.session_limits.active_sessions }}/{{ all_sessions.session_limits.max_sessions }}
+          ({{ all_sessions.session_limits.utilization_percent }}%)
+
+    # Combined filtering example
+    - name: Combined filter - Redfish sessions for admin user with stale detection
+      dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs | default(false) }}"
+        session_type: Redfish
+        username_filter: admin
+        stale_threshold_minutes: 60
+      register: combined_result
+
+    - name: Display combined filter results
+      ansible.builtin.debug:
+        var: combined_result
+
+    # Check mode example
+    - name: Query sessions in check mode (no changes, read-only)
+      dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs | default(false) }}"
+      check_mode: true
+      register: check_result
+
+    - name: Verify check mode produces same output
+      ansible.builtin.assert:
+        that:
+          - not check_result.changed
+        success_msg: "Check mode works correctly for read-only module"

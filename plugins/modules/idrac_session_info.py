@@ -148,7 +148,6 @@ session_limits:
 '''
 
 
-import json
 from datetime import datetime, timezone
 from urllib.error import HTTPError, URLError
 
@@ -169,11 +168,6 @@ SUCCESS_MSG = "Successfully retrieved session information."
 NO_SESSIONS_MSG = "No active sessions found."
 FIRMWARE_ERROR_MSG = ("Minimum firmware requirement not met. Detected: {model} {version}. "
                       "Minimum required: {min_version}. Please upgrade firmware.")
-
-ALLOWED_SESSION_FIELDS = frozenset({
-    "Id", "UserName", "ClientOriginIPAddress", "SessionType",
-    "CreatedTime", "Description", "Name",
-})
 
 
 def _parse_created_time(created_time_str):
