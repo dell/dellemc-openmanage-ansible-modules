@@ -138,6 +138,41 @@
       ansible.builtin.debug:
         msg: "Found {{ stale_sessions.sessions | selectattr('is_stale', 'equalto', true) | list | length }} stale sessions to clean up"
 
+- name: Fleet-wide session monitoring (UC-2)
+  hosts: idrac
+  gather_facts: false
+  strategy: free
+  serial: 20
+
+  tasks:
+    - name: Query session utilization across fleet
+      dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs | default(false) }}"
+      register: fleet_sessions
+
+    - name: Report servers with high session utilization
+      ansible.builtin.debug:
+        msg: >-
+          {{ inventory_hostname }}: {{ fleet_sessions.session_limits.active_sessions }}/{{ fleet_sessions.session_limits.max_sessions }}
+          ({{ fleet_sessions.session_limits.utilization_percent }}%)
+      when: fleet_sessions.session_limits.utilization_percent | int >= 50
+
+- name: Export session data to CSV report
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Query all sessions for report
+      dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs | default(false) }}"
+      register: all_sessions
+
     # Convert JSON output to CSV using Jinja2 template
     - name: Export session data as CSV
       ansible.builtin.copy:
