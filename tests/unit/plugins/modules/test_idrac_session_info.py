@@ -10,14 +10,12 @@
 
 from __future__ import absolute_import, division, print_function
 
-import json
 from datetime import datetime, timedelta, timezone
 from io import StringIO
 from unittest.mock import MagicMock, patch
 from urllib.error import HTTPError, URLError
 
 import pytest
-from ansible.module_utils._text import to_text
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (
     iDRACRedfishAPI,

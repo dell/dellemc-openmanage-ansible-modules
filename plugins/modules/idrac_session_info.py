@@ -25,9 +25,34 @@ description:
   - Supports client-side filtering by session type, username, and stale
     threshold.
   - This module is read-only and does not modify any state on the iDRAC.
-extends_documentation_fragment:
-  - dellemc.openmanage.idrac_x_auth_options
 options:
+  idrac_ip:
+    description: IP address or hostname of the iDRAC.
+    type: str
+    required: true
+  idrac_user:
+    description: Username of the iDRAC.
+    type: str
+    required: true
+  idrac_password:
+    description: Password of the iDRAC.
+    type: str
+    required: true
+  port:
+    description: Port of the iDRAC.
+    type: int
+    default: 443
+  validate_certs:
+    description: If C(false), the SSL certificates will not be validated.
+    type: bool
+    default: true
+  ca_path:
+    description: The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+    type: path
+  timeout:
+    description: The https socket level timeout in seconds.
+    type: int
+    default: 30
   session_type:
     description:
       - Filter sessions by DMTF SessionType enum value.
@@ -187,10 +212,8 @@ from urllib.error import HTTPError, URLError
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible.module_utils.common.parameters import env_fallback
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (
     iDRACRedfishAPI, idrac_auth_params,
-    MINIMUM_FIRMWARE_VERSION_IDRAC9, MINIMUM_FIRMWARE_VERSION_IDRAC10,
 )
 
 SESSION_SERVICE_URI = "/redfish/v1/SessionService"
