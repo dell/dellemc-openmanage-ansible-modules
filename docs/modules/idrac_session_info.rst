@@ -30,20 +30,22 @@ The below requirements are needed on the host that executes this module.
 Parameters
 ----------
 
-  idrac_ip (optional, str, None)
-    IP address or hostname of the iDRAC.
+  idrac_ip (True, str, None)
+    iDRAC IP Address.
 
 
-  idrac_user (optional, str, None)
-    Username of the iDRAC. If the username is not provided, then the environment variable :envvar:`IDRAC\_USERNAME` is used.
+  idrac_user (True, str, None)
+    iDRAC username. If the username is not provided, then the environment variable :envvar:`IDRAC\_USERNAME` is used.
 
 
-  idrac_password (optional, str, None)
-    Password of the iDRAC. If the password is not provided, then the environment variable :envvar:`IDRAC\_PASSWORD` is used.
+  idrac_password (True, str, None)
+    iDRAC user password. If the password is not provided, then the environment variable :envvar:`IDRAC\_PASSWORD` is used.
+
+    Aliases: idrac\_pwd
 
 
-  port (optional, int, 443)
-    Port of the iDRAC.
+  idrac_port (optional, int, 443)
+    iDRAC port.
 
 
   validate_certs (optional, bool, True)
@@ -57,7 +59,7 @@ Parameters
 
 
   timeout (optional, int, 30)
-    The https socket level timeout in seconds.
+    The socket level timeout in seconds.
 
 
   session_type (optional, str, None)
