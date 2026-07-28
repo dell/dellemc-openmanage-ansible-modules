@@ -1,0 +1,59 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: TC-25646 Invalid parameter handling
+  block:
+    - name: Query with invalid session_type
+      dellemc.openmanage.idrac_session_info:
+        session_type: "InvalidType"
+      register: invalid_type_result
+      ignore_errors: true
+
+    - name: Verify - Invalid session_type is rejected
+      ansible.builtin.assert:
+        that:
+          - invalid_type_result.failed
+
+    - name: Query with negative stale_threshold_minutes
+      dellemc.openmanage.idrac_session_info:
+        stale_threshold_minutes: -1
+      register: invalid_threshold_result
+      ignore_errors: true
+
+    - name: Verify - Negative threshold is rejected
+      ansible.builtin.assert:
+        that:
+          - invalid_threshold_result.failed
+
+    - name: Query with zero stale_threshold_minutes
+      dellemc.openmanage.idrac_session_info:
+        stale_threshold_minutes: 0
+      register: zero_threshold_result
+      ignore_errors: true
+
+    - name: Verify - Zero threshold is rejected
+      ansible.builtin.assert:
+        that:
+          - zero_threshold_result.failed
+
+    - name: Query with wrong credentials
+      dellemc.openmanage.idrac_session_info:
+        idrac_user: "wrong_user"
+        idrac_password: "wrong_password"
+      register: auth_fail_result
+      ignore_errors: true
+
+    - name: Verify - Authentication failure
+      ansible.builtin.assert:
+        that:
+          - auth_fail_result.failed
