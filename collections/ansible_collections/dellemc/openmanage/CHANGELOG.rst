@@ -1,0 +1,1 @@
+/root/SolutionsPlatform/ecosystems-iac/src/ansible/dellemc-openmanage-ansible-modules/CHANGELOG.rst
