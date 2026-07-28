@@ -1,0 +1,61 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: TC-25643 Query all active sessions
+  block:
+    - name: Query all sessions - Normal mode
+      dellemc.openmanage.idrac_session_info:
+      register: query_result
+
+    - name: Verify - Query returns session list
+      ansible.builtin.assert:
+        that:
+          - not query_result.changed
+          - query_result.sessions is defined
+          - query_result.session_count is defined
+          - query_result.session_count >= 1
+          - query_result.session_service is defined
+          - query_result.session_limits is defined
+
+    - name: Verify - Each session has required fields
+      ansible.builtin.assert:
+        that:
+          - item.id is defined
+          - item.username is defined
+          - item.session_type is defined
+          - item.session_age_minutes is defined
+      loop: "{{ query_result.sessions }}"
+
+    - name: Verify - Session service has expected keys
+      ansible.builtin.assert:
+        that:
+          - query_result.session_service.session_timeout is defined
+          - query_result.session_service.service_enabled is defined
+
+    - name: Verify - Session limits has expected keys
+      ansible.builtin.assert:
+        that:
+          - query_result.session_limits.max_sessions is defined
+          - query_result.session_limits.active_sessions is defined
+          - query_result.session_limits.utilization_percent is defined
+
+    - name: Query all sessions - Check mode
+      dellemc.openmanage.idrac_session_info:
+      check_mode: true
+      register: query_check
+
+    - name: Verify - Check mode returns same structure
+      ansible.builtin.assert:
+        that:
+          - not query_check.changed
+          - query_check.sessions is defined

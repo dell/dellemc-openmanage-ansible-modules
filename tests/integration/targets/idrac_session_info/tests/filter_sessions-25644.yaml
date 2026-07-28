@@ -1,0 +1,47 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: TC-25644 Filter sessions by type and username
+  block:
+    - name: Filter sessions by Redfish type
+      dellemc.openmanage.idrac_session_info:
+        session_type: Redfish
+      register: filter_type_result
+
+    - name: Verify - All returned sessions are Redfish type
+      ansible.builtin.assert:
+        that:
+          - not filter_type_result.changed
+          - filter_type_result.sessions | selectattr('session_type', 'equalto', 'Redfish') | list | length == filter_type_result.session_count
+
+    - name: Filter sessions by username
+      dellemc.openmanage.idrac_session_info:
+        username_filter: "{{ idrac_user }}"
+      register: filter_user_result
+
+    - name: Verify - All returned sessions match username
+      ansible.builtin.assert:
+        that:
+          - not filter_user_result.changed
+          - filter_user_result.session_count >= 1
+
+    - name: Filter sessions by nonexistent username
+      dellemc.openmanage.idrac_session_info:
+        username_filter: "nonexistent_user_xyz_12345"
+      register: filter_none_result
+
+    - name: Verify - No sessions returned for nonexistent user
+      ansible.builtin.assert:
+        that:
+          - filter_none_result.session_count == 0
+          - filter_none_result.sessions | length == 0

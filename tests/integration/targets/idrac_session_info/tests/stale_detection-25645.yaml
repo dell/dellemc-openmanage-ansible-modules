@@ -1,0 +1,36 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
+   is not defined'
+
+- name: TC-25645 Stale session detection
+  block:
+    - name: Query sessions with stale threshold of 1 minute
+      dellemc.openmanage.idrac_session_info:
+        stale_threshold_minutes: 1
+      register: stale_result
+
+    - name: Verify - Sessions have is_stale field
+      ansible.builtin.assert:
+        that:
+          - not stale_result.changed
+          - item.is_stale is defined
+      loop: "{{ stale_result.sessions }}"
+
+    - name: Query sessions with very high threshold (no stale sessions)
+      dellemc.openmanage.idrac_session_info:
+        stale_threshold_minutes: 999999
+      register: no_stale_result
+
+    - name: Verify - No sessions are flagged as stale
+      ansible.builtin.assert:
+        that:
+          - no_stale_result.sessions | selectattr('is_stale', 'equalto', true) | list | length == 0
