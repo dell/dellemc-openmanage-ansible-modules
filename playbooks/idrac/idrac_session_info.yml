@@ -106,3 +106,45 @@
         that:
           - not check_result.changed
         success_msg: "Check mode works correctly for read-only module"
+
+    # Troubleshooting: Max Sessions Reached
+    - name: Check if max sessions reached
+      dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs | default(false) }}"
+      register: session_status
+
+    - name: Warn if session utilization is high
+      ansible.builtin.debug:
+        msg: >-
+          WARNING: iDRAC session utilization is at {{ session_status.session_limits.utilization_percent }}%.
+          Active: {{ session_status.session_limits.active_sessions }}/{{ session_status.session_limits.max_sessions }}.
+          Consider cleaning up stale sessions.
+      when: session_status.session_limits.utilization_percent | int >= 80
+
+    # Nightly stale session cleanup
+    - name: Find stale sessions older than 8 hours for cleanup
+      dellemc.openmanage.idrac_session_info:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        validate_certs: "{{ validate_certs | default(false) }}"
+        stale_threshold_minutes: 480
+      register: stale_sessions
+
+    - name: Display stale sessions eligible for cleanup
+      ansible.builtin.debug:
+        msg: "Found {{ stale_sessions.sessions | selectattr('is_stale', 'equalto', true) | list | length }} stale sessions to clean up"
+
+    # Convert JSON output to CSV using Jinja2 template
+    - name: Export session data as CSV
+      ansible.builtin.copy:
+        content: |
+          Id,UserName,SessionType,ClientOriginIPAddress,CreatedTime,SessionAge
+          {% for s in all_sessions.sessions %}
+          {{ s.Id }},{{ s.UserName }},{{ s.SessionType }},{{ s.ClientOriginIPAddress }},{{ s.CreatedTime }},{{ s.session_age_minutes }}min
+          {% endfor %}
+        dest: "/tmp/idrac_sessions_report.csv"
+      delegate_to: localhost
