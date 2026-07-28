@@ -610,7 +610,7 @@ class TestSelfSessionProtection(FakeAnsibleModule):
                                                        idrac_session_mock,
                                                        idrac_connection_session_mock,
                                                        mocker):
-        """Test 7.3: Self-protection skipped when using x_auth_token."""
+        """Test FR-5.2: Self-protection skipped when using x_auth_token."""
         idrac_default_args.update({
             "state": "absent",
             "session_id": "74",
@@ -622,14 +622,16 @@ class TestSelfSessionProtection(FakeAnsibleModule):
         mock_response.status_code = 200
         idrac_session_mock.invoke_request.return_value = mock_response
         f_module = self.get_module_mock(params=idrac_default_args)
+        f_module.warn = MagicMock()
         delete_obj = idrac_session.DeleteSession(idrac_session_mock, f_module)
         delete_obj.check_self_session("74")
+        f_module.warn.assert_called_once()
 
     def test_delete_different_session_succeeds(self, idrac_default_args,
                                                idrac_session_mock,
                                                idrac_connection_session_mock,
                                                mocker):
-        """Test 7.1: Deletion of a different session succeeds."""
+        """Test FR-5.1: Deletion of a different session succeeds."""
         idrac_default_args.update({
             "state": "absent",
             "session_id": "99",
@@ -645,3 +647,135 @@ class TestSelfSessionProtection(FakeAnsibleModule):
         result = self._run_module(idrac_default_args)
         assert result['changed'] is True
         assert result['msg'] == DELETE_SUCCESS_MSG
+
+    def test_self_termination_rejected_with_username_password(self,
+                                                              idrac_session_mock,
+                                                              idrac_connection_session_mock,
+                                                              mocker):
+        """Test FR-5.1: Self-termination attempt rejected when auth session matches target."""
+        mocker.patch(MODULE_PATH + GET_SESSION_URL,
+                     return_value=SESSION_URL)
+        f_module = self.get_module_mock(params={
+            "state": "absent",
+            "session_id": "74",
+            "x_auth_token": None,
+            "username": "admin",
+            "password": "password",
+            "hostname": "X.X.X.X"
+        })
+        idrac_session_mock._headers = {'Content-Type': 'application/json',
+                                        'Accept': 'application/json',
+                                        'X-Auth-Token': None}
+        create_resp = MagicMock()
+        create_resp.status_code = 201
+        create_resp.json_data = {"Id": "74"}
+        create_resp.headers = MagicMock()
+        create_resp.headers.get = MagicMock(return_value="temp_token_abc")
+        cleanup_resp = MagicMock()
+        cleanup_resp.status_code = 200
+        idrac_session_mock.invoke_request.side_effect = [create_resp, cleanup_resp]
+        delete_obj = idrac_session.DeleteSession(idrac_session_mock, f_module)
+        try:
+            delete_obj.check_self_session("74")
+        except AnsibleFailJSonException as ex:
+            assert "Cannot delete your own active session" in ex.fail_msg
+            assert "session_id: 74" in ex.fail_msg
+
+    def test_different_session_allowed_with_username_password(self,
+                                                              idrac_session_mock,
+                                                              idrac_connection_session_mock,
+                                                              mocker):
+        """Test FR-5.1: Deletion of a different session succeeds with username/password."""
+        mocker.patch(MODULE_PATH + GET_SESSION_URL,
+                     return_value=SESSION_URL)
+        f_module = self.get_module_mock(params={
+            "state": "absent",
+            "session_id": "99",
+            "x_auth_token": None,
+            "username": "admin",
+            "password": "password",
+            "hostname": "X.X.X.X"
+        })
+        idrac_session_mock._headers = {'Content-Type': 'application/json',
+                                        'Accept': 'application/json',
+                                        'X-Auth-Token': None}
+        create_resp = MagicMock()
+        create_resp.status_code = 201
+        create_resp.json_data = {"Id": "74"}
+        create_resp.headers = MagicMock()
+        create_resp.headers.get = MagicMock(return_value="temp_token_abc")
+        idrac_session_mock.invoke_request.return_value = create_resp
+        delete_obj = idrac_session.DeleteSession(idrac_session_mock, f_module)
+        delete_obj.check_self_session("99")
+        assert delete_obj.auth_session_id == "74"
+
+    def test_cleanup_auth_session_on_success(self,
+                                              idrac_session_mock,
+                                              idrac_connection_session_mock,
+                                              mocker):
+        """Test: Temp auth session is cleaned up after successful deletion."""
+        mocker.patch(MODULE_PATH + GET_SESSION_URL,
+                     return_value=SESSION_URL)
+        f_module = self.get_module_mock(params={
+            "state": "absent",
+            "session_id": "99",
+            "x_auth_token": None,
+            "username": "admin",
+            "password": "password",
+            "hostname": "X.X.X.X"
+        })
+        idrac_session_mock._headers = {'Content-Type': 'application/json',
+                                        'Accept': 'application/json',
+                                        'X-Auth-Token': None}
+        create_resp = MagicMock()
+        create_resp.status_code = 201
+        create_resp.json_data = {"Id": "74"}
+        create_resp.headers = MagicMock()
+        create_resp.headers.get = MagicMock(return_value="temp_token_abc")
+        get_resp = MagicMock()
+        get_resp.status_code = 200
+        delete_resp = MagicMock()
+        delete_resp.status_code = 200
+        cleanup_resp = MagicMock()
+        cleanup_resp.status_code = 200
+        idrac_session_mock.invoke_request.side_effect = [create_resp, get_resp, delete_resp, cleanup_resp]
+        delete_obj = idrac_session.DeleteSession(idrac_session_mock, f_module)
+        try:
+            delete_obj.execute()
+        except AnsibleFailJSonException:
+            pass
+        assert idrac_session_mock.invoke_request.call_count == 4
+
+    def test_self_protection_error_message_is_descriptive(self,
+                                                           idrac_session_mock,
+                                                           idrac_connection_session_mock,
+                                                           mocker):
+        """Test AC-007: Error message includes session_id and actionable guidance."""
+        mocker.patch(MODULE_PATH + GET_SESSION_URL,
+                     return_value=SESSION_URL)
+        f_module = self.get_module_mock(params={
+            "state": "absent",
+            "session_id": "42",
+            "x_auth_token": None,
+            "username": "admin",
+            "password": "password",
+            "hostname": "X.X.X.X"
+        })
+        idrac_session_mock._headers = {'Content-Type': 'application/json',
+                                        'Accept': 'application/json',
+                                        'X-Auth-Token': None}
+        create_resp = MagicMock()
+        create_resp.status_code = 201
+        create_resp.json_data = {"Id": "42"}
+        create_resp.headers = MagicMock()
+        create_resp.headers.get = MagicMock(return_value="temp_token_abc")
+        cleanup_resp = MagicMock()
+        cleanup_resp.status_code = 200
+        idrac_session_mock.invoke_request.side_effect = [create_resp, cleanup_resp]
+        delete_obj = idrac_session.DeleteSession(idrac_session_mock, f_module)
+        try:
+            delete_obj.check_self_session("42")
+        except AnsibleFailJSonException as ex:
+            assert "session_id: 42" in ex.fail_msg
+            assert "Use a different session or credential" in ex.fail_msg
+            assert "invalidate the token" in ex.fail_msg
