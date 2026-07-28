@@ -418,6 +418,7 @@ class DeleteSession(Session):
         username = self.module.params.get("username")
         password = self.module.params.get("password")
         if username and password:
+            self.idrac._headers.pop('X-Auth-Token', None)
             auth_session_id, token = self._create_auth_session()
             self.auth_session_id = auth_session_id
             if auth_session_id is not None and str(session_id) == str(auth_session_id):
