@@ -57,6 +57,8 @@ notes:
   - This module supports C(check_mode).
   - Minimum firmware requirements - iDRAC9 >= 7.10.90.00, iDRAC10 >= 1.20.50.50.
   - Session age is computed from C(CreatedTime) and is a proxy for idle time.
+  - Output is structured JSON via C(exit_json()). To export as CSV or text,
+    use Ansible native filters (C(to_json), C(to_nice_yaml)) or Jinja2 templates.
 """
 
 EXAMPLES = r"""
@@ -97,6 +99,38 @@ EXAMPLES = r"""
     session_type: Redfish
     username_filter: admin
     stale_threshold_minutes: 60
+
+- name: Export session data to CSV file using Jinja2 template
+  block:
+    - name: Query sessions
+      dellemc.openmanage.idrac_session_info:
+        idrac_ip: 198.162.0.1
+        idrac_user: admin
+        idrac_password: password
+      register: result
+
+    - name: Write CSV report
+      ansible.builtin.copy:
+        content: |
+          Id,UserName,SessionType,ClientOriginIPAddress,CreatedTime,AgeMinutes
+          {% for s in result.sessions %}
+          {{ s.Id }},{{ s.UserName }},{{ s.SessionType }},{{ s.ClientOriginIPAddress }},{{ s.CreatedTime }},{{ s.session_age_minutes }}
+          {% endfor %}
+        dest: /tmp/session_report.csv
+      delegate_to: localhost
+
+- name: Display session data as YAML
+  block:
+    - name: Query sessions
+      dellemc.openmanage.idrac_session_info:
+        idrac_ip: 198.162.0.1
+        idrac_user: admin
+        idrac_password: password
+      register: result
+
+    - name: Show sessions in YAML format
+      ansible.builtin.debug:
+        msg: "{{ result.sessions | to_nice_yaml }}"
 """
 
 RETURN = r'''
