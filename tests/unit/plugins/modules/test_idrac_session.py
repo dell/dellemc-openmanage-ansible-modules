@@ -664,8 +664,8 @@ class TestSelfSessionProtection(FakeAnsibleModule):
             "hostname": "X.X.X.X"
         })
         idrac_session_mock._headers = {'Content-Type': 'application/json',
-                                        'Accept': 'application/json',
-                                        'X-Auth-Token': None}
+                                       'Accept': 'application/json',
+                                       'X-Auth-Token': None}
         create_resp = MagicMock()
         create_resp.status_code = 201
         create_resp.json_data = {"Id": "74"}
@@ -681,10 +681,8 @@ class TestSelfSessionProtection(FakeAnsibleModule):
             assert "Cannot delete your own active session" in ex.fail_msg
             assert "session_id: 74" in ex.fail_msg
 
-    def test_different_session_allowed_with_username_password(self,
-                                                              idrac_session_mock,
-                                                              idrac_connection_session_mock,
-                                                              mocker):
+    def test_different_session_allowed_with_username_password(
+            self, idrac_session_mock, idrac_connection_session_mock, mocker):
         """Test FR-5.1: Deletion of a different session succeeds with username/password."""
         mocker.patch(MODULE_PATH + GET_SESSION_URL,
                      return_value=SESSION_URL)
@@ -697,8 +695,8 @@ class TestSelfSessionProtection(FakeAnsibleModule):
             "hostname": "X.X.X.X"
         })
         idrac_session_mock._headers = {'Content-Type': 'application/json',
-                                        'Accept': 'application/json',
-                                        'X-Auth-Token': None}
+                                       'Accept': 'application/json',
+                                       'X-Auth-Token': None}
         create_resp = MagicMock()
         create_resp.status_code = 201
         create_resp.json_data = {"Id": "74"}
@@ -709,10 +707,8 @@ class TestSelfSessionProtection(FakeAnsibleModule):
         delete_obj.check_self_session("99")
         assert delete_obj.auth_session_id == "74"
 
-    def test_cleanup_auth_session_on_success(self,
-                                              idrac_session_mock,
-                                              idrac_connection_session_mock,
-                                              mocker):
+    def test_cleanup_auth_session_on_success(
+            self, idrac_session_mock, idrac_connection_session_mock, mocker):
         """Test: Temp auth session is cleaned up after successful deletion."""
         mocker.patch(MODULE_PATH + GET_SESSION_URL,
                      return_value=SESSION_URL)
@@ -725,8 +721,8 @@ class TestSelfSessionProtection(FakeAnsibleModule):
             "hostname": "X.X.X.X"
         })
         idrac_session_mock._headers = {'Content-Type': 'application/json',
-                                        'Accept': 'application/json',
-                                        'X-Auth-Token': None}
+                                       'Accept': 'application/json',
+                                       'X-Auth-Token': None}
         create_resp = MagicMock()
         create_resp.status_code = 201
         create_resp.json_data = {"Id": "74"}
@@ -746,10 +742,8 @@ class TestSelfSessionProtection(FakeAnsibleModule):
             pass
         assert idrac_session_mock.invoke_request.call_count == 4
 
-    def test_self_protection_error_message_is_descriptive(self,
-                                                           idrac_session_mock,
-                                                           idrac_connection_session_mock,
-                                                           mocker):
+    def test_self_protection_error_message_is_descriptive(
+            self, idrac_session_mock, idrac_connection_session_mock, mocker):
         """Test AC-007: Error message includes session_id and actionable guidance."""
         mocker.patch(MODULE_PATH + GET_SESSION_URL,
                      return_value=SESSION_URL)
@@ -762,8 +756,8 @@ class TestSelfSessionProtection(FakeAnsibleModule):
             "hostname": "X.X.X.X"
         })
         idrac_session_mock._headers = {'Content-Type': 'application/json',
-                                        'Accept': 'application/json',
-                                        'X-Auth-Token': None}
+                                       'Accept': 'application/json',
+                                       'X-Auth-Token': None}
         create_resp = MagicMock()
         create_resp.status_code = 201
         create_resp.json_data = {"Id": "42"}
