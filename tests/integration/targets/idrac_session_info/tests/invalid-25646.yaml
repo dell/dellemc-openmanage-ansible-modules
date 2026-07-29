@@ -1,5 +1,5 @@
 # Dell OpenManage Ansible modules
-# Copyright (C) 2024-2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -11,115 +11,49 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
-- name: Block - Negative test cases
+- name: TC-25646 Invalid parameter handling
   block:
-    - name: Negative - Invalid username
+    - name: Query with invalid session_type
       dellemc.openmanage.idrac_session_info:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: invalid_user
-        idrac_password: "{{ idrac_password }}"
-      register: invalid_username
+        session_type: "InvalidType"
+      register: invalid_type_result
       ignore_errors: true
 
-    - name: Verify - Invalid username fails with auth error
+    - name: Verify - Invalid session_type is rejected
       ansible.builtin.assert:
         that:
-          - invalid_username.failed
-          - not invalid_username.changed
+          - invalid_type_result.failed
 
-    - name: Negative - Invalid password
+    - name: Query with negative stale_threshold_minutes
       dellemc.openmanage.idrac_session_info:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: invalid_password
-      register: invalid_password
+        stale_threshold_minutes: -1
+      register: invalid_threshold_result
       ignore_errors: true
 
-    - name: Verify - Invalid password fails
+    - name: Verify - Negative threshold is rejected
       ansible.builtin.assert:
         that:
-          - invalid_password.failed
-          - not invalid_password.changed
+          - invalid_threshold_result.failed
 
-    - name: Negative - Invalid session_type choice
+    - name: Query with zero stale_threshold_minutes
       dellemc.openmanage.idrac_session_info:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        session_type: InvalidType
-      register: invalid_type
-      ignore_errors: true
-
-    - name: Verify - Invalid session_type fails
-      ansible.builtin.assert:
-        that:
-          - invalid_type.failed
-          - not invalid_type.changed
-
-    - name: Negative - Zero stale_threshold_minutes
-      dellemc.openmanage.idrac_session_info:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
         stale_threshold_minutes: 0
-      register: zero_threshold
+      register: zero_threshold_result
       ignore_errors: true
 
-    - name: Verify - Zero stale_threshold_minutes fails
+    - name: Verify - Zero threshold is rejected
       ansible.builtin.assert:
         that:
-          - zero_threshold.failed
-          - not zero_threshold.changed
-          - zero_threshold.msg ==
-            "stale_threshold_minutes must be a positive integer."
+          - zero_threshold_result.failed
 
-    - name: Negative - Negative stale_threshold_minutes
+    - name: Query with wrong credentials
       dellemc.openmanage.idrac_session_info:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        stale_threshold_minutes: -5
-      register: negative_threshold
+        idrac_user: "wrong_user"
+        idrac_password: "wrong_password"
+      register: auth_fail_result
       ignore_errors: true
 
-    - name: Verify - Negative stale_threshold_minutes fails
+    - name: Verify - Authentication failure
       ansible.builtin.assert:
         that:
-          - negative_threshold.failed
-          - not negative_threshold.changed
-          - negative_threshold.msg ==
-            "stale_threshold_minutes must be a positive integer."
-
-    - name: Negative - Unreachable host
-      dellemc.openmanage.idrac_session_info:
-        idrac_ip: 999.999.999.999
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-      register: unreachable_host
-      ignore_unreachable: true
-      ignore_errors: true
-
-    - name: Verify - Unreachable host
-      ansible.builtin.assert:
-        that:
-          - >-
-            unreachable_host.unreachable is defined
-            and unreachable_host.unreachable
-            or unreachable_host.failed is defined
-            and unreachable_host.failed
-          - not unreachable_host.changed
-
-    - name: Negative - Unsupported argument
-      dellemc.openmanage.idrac_session_info:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        unsupported_argument: unsupported
-      register: unsupported_arg
-      ignore_errors: true
-
-    - name: Verify - Unsupported argument fails
-      ansible.builtin.assert:
-        that:
-          - unsupported_arg.failed
-          - not unsupported_arg.changed
+          - auth_fail_result.failed

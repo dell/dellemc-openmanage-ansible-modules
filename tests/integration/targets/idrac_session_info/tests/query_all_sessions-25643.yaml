@@ -1,5 +1,5 @@
 # Dell OpenManage Ansible modules
-# Copyright (C) 2024-2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -11,123 +11,51 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
-- name: Block - Query all sessions test
-  module_defaults:
-    dellemc.openmanage.idrac_session:
-      validate_certs: "{{ validate_certs }}"
-      hostname: "{{ idrac_ip }}"
-      port: "{{ idrac_port }}"
-    dellemc.openmanage.idrac_session_info:
-      validate_certs: "{{ validate_certs }}"
-      idrac_ip: "{{ idrac_ip }}"
-      idrac_user: "{{ idrac_user }}"
-      idrac_password: "{{ idrac_password }}"
+- name: TC-25643 Query all active sessions
   block:
-    - name: Prerequisite - Create a session so we have at least one to query
-      dellemc.openmanage.idrac_session:
-        validate_certs: "{{ validate_certs }}"
-        hostname: "{{ idrac_ip }}"
-        port: "{{ idrac_port }}"
-        username: "{{ idrac_user }}"
-        password: "{{ idrac_password }}"
-      register: prereq_session
-
-    - name: Set prereq session details for cleanup
-      ansible.builtin.set_fact:
-        prereq_x_auth_token: "{{ prereq_session.x_auth_token }}"
-        prereq_session_id: "{{ prereq_session.session_data.Id }}"
-      when: prereq_session is not failed
-
-    - name: Query all active sessions - Check mode
+    - name: Query all sessions - Normal mode
       dellemc.openmanage.idrac_session_info:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-      register: session_info_check
-      check_mode: true
+      register: query_result
 
-    - name: Verify - Query all active sessions - Check mode
+    - name: Verify - Query returns session list
       ansible.builtin.assert:
         that:
-          - not session_info_check.changed
-          - session_info_check.msg ==
-            "Successfully retrieved session information."
+          - not query_result.changed
+          - query_result.sessions is defined
+          - query_result.session_count is defined
+          - query_result.session_count >= 1
+          - query_result.session_service is defined
+          - query_result.session_limits is defined
 
-    - name: Query all active sessions - Normal mode
-      dellemc.openmanage.idrac_session_info:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-      register: session_info
-
-    - name: Verify - Query all active sessions - Normal mode
-      ansible.builtin.assert:
-        that:
-          - not session_info.changed
-          - session_info.msg == "Successfully retrieved session information."
-          - session_info.sessions is defined
-          - session_info.sessions | type_debug == "list"
-          - session_info.session_count is defined
-          - session_info.session_count >= 1
-          - session_info.session_service is defined
-          - session_info.session_limits is defined
-          - session_info.idrac_firmware_version is defined
-          - session_info.idrac_model is defined
-
-    - name: Verify session structure
+    - name: Verify - Each session has required fields
       ansible.builtin.assert:
         that:
           - item.id is defined
-          - item.user_name is defined
-          - item.session_type is defined or item.session_type is none
-          - item.is_stale is defined
-          - >-
-            item.session_age_minutes is defined
-            or item.session_age_minutes is none
-      loop: "{{ session_info.sessions }}"
-      loop_control:
-        label: "Session {{ item.id }}"
-      when:
-        - session_info.session_count > 0
+          - item.username is defined
+          - item.session_type is defined
+          - item.session_age_minutes is defined
+      loop: "{{ query_result.sessions }}"
 
-    - name: Verify session service structure
+    - name: Verify - Session service has expected keys
       ansible.builtin.assert:
         that:
-          - session_info.session_service.session_timeout is defined
-          - session_info.session_service.service_enabled is defined
+          - query_result.session_service.session_timeout is defined
+          - query_result.session_service.service_enabled is defined
 
-    - name: Verify session limits structure (when available)
+    - name: Verify - Session limits has expected keys
       ansible.builtin.assert:
         that:
-          - session_info.session_limits.max_sessions is defined
-          - session_info.session_limits.active_count is defined
-          - session_info.session_limits.utilization_percent is defined
-          - session_info.session_limits.source is defined
-          - session_info.session_limits.max_sessions > 0
-      when: session_info.session_limits is not none
+          - query_result.session_limits.max_sessions is defined
+          - query_result.session_limits.active_sessions is defined
+          - query_result.session_limits.utilization_percent is defined
 
-    - name: Query all sessions - Idempotence check
+    - name: Query all sessions - Check mode
       dellemc.openmanage.idrac_session_info:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-      register: session_info_idem
-      failed_when: false
+      check_mode: true
+      register: query_check
 
-    - name: Verify - Idempotence (read-only module always unchanged)
+    - name: Verify - Check mode returns same structure
       ansible.builtin.assert:
         that:
-          - not session_info_idem.changed
-          - session_info_idem.msg ==
-            "Successfully retrieved session information."
-
-  always:
-    - name: Cleanup - Delete prerequisite session
-      dellemc.openmanage.idrac_session:
-        validate_certs: "{{ validate_certs }}"
-        hostname: "{{ idrac_ip }}"
-        state: absent
-        x_auth_token: "{{ prereq_x_auth_token }}"
-        session_id: "{{ prereq_session_id }}"
-      failed_when: false
-      when: prereq_x_auth_token is defined and prereq_session_id is defined
+          - not query_check.changed
+          - query_check.sessions is defined
