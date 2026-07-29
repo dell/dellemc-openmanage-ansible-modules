@@ -141,7 +141,6 @@
 - name: Fleet-wide session monitoring (UC-2)
   hosts: idrac
   gather_facts: false
-  strategy: free
   serial: 20
 
   tasks:
@@ -182,4 +181,5 @@
           {{ s.Id }},{{ s.UserName }},{{ s.SessionType }},{{ s.ClientOriginIPAddress }},{{ s.CreatedTime }},{{ s.session_age_minutes }}min
           {% endfor %}
         dest: "/tmp/idrac_sessions_report.csv"
+        mode: "0644"
       delegate_to: localhost
