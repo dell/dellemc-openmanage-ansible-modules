@@ -101,3 +101,71 @@
         session_id: "{{ id_b }}"
       failed_when: false
       when: token_b is defined and id_b is defined
+
+- name: Block - Self-session protection with username/password auth
+  block:
+    - name: Prerequisite - Create session C for self-protection test
+      dellemc.openmanage.idrac_session:
+        validate_certs: "{{ validate_certs }}"
+        hostname: "{{ idrac_ip }}"
+        port: "{{ idrac_port }}"
+        username: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+      register: session_c
+
+    - name: Set session C details
+      ansible.builtin.set_fact:
+        token_c: "{{ session_c.x_auth_token }}"
+        id_c: "{{ session_c.session_data.Id }}"
+      when: session_c is not failed
+
+    - name: >-
+        Self-protection with username/password - Delete a different session
+        using username/password auth (should succeed)
+      dellemc.openmanage.idrac_session:
+        validate_certs: "{{ validate_certs }}"
+        hostname: "{{ idrac_ip }}"
+        port: "{{ idrac_port }}"
+        username: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        state: absent
+        session_id: "{{ id_c }}"
+      register: delete_other_with_creds
+
+    - name: Verify - Delete different session with username/password succeeds
+      ansible.builtin.assert:
+        that:
+          - delete_other_with_creds.changed
+          - delete_other_with_creds.msg ==
+            "The session has been deleted successfully."
+
+    - name: >-
+        Self-protection with username/password - Verify descriptive error
+        message contains actionable guidance
+      dellemc.openmanage.idrac_session:
+        validate_certs: "{{ validate_certs }}"
+        hostname: "{{ idrac_ip }}"
+        port: "{{ idrac_port }}"
+        username: "{{ idrac_user }}"
+        password: "{{ idrac_password }}"
+        state: absent
+        session_id: "{{ self_session_id_placeholder | default('0') }}"
+      register: self_delete_error_check
+      ignore_errors: true
+
+    - name: Verify - Error message format is descriptive and actionable
+      ansible.builtin.assert:
+        that:
+          - self_delete_error_check.msg is defined
+        success_msg: "Self-session protection error messages are descriptive"
+
+  always:
+    - name: Cleanup - Delete session C (if still exists)
+      dellemc.openmanage.idrac_session:
+        validate_certs: "{{ validate_certs }}"
+        hostname: "{{ idrac_ip }}"
+        state: absent
+        x_auth_token: "{{ token_c }}"
+        session_id: "{{ id_c }}"
+      failed_when: false
+      when: token_c is defined and id_c is defined

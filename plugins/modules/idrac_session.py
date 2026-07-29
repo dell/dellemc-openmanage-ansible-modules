@@ -4,7 +4,7 @@
 #
 # Dell OpenManage Ansible Modules
 # Version 9.12.1
-# Copyright (C) 2024-2025 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2024-2026 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -73,7 +73,8 @@ options:
   x_auth_token:
     description:
      - Authentication token.
-     - I(x_auth_token) is required when I(state) is C(absent).
+     - When I(state) is C(absent), either I(x_auth_token) or I(username)/I(password) must be provided.
+     - When using I(x_auth_token), self-session protection is not available.
     type: str
     aliases: ['auth_token']
   session_id:
@@ -97,6 +98,10 @@ notes:
       the deletion is rejected to prevent accidental lockout.
     - Self-session protection is skipped when using I(x_auth_token) because the caller's
       auth session ID cannot be determined from the token alone.
+    - When I(state) is C(absent) with I(username)/I(password), the module creates a temporary
+      auth session to detect self-termination. This temporary session is cleaned up automatically.
+    - B(Troubleshooting) - If you receive "Max Sessions Reached", use
+      C(idrac_session_info) to identify and clean up stale sessions.
 """
 
 EXAMPLES = r"""
@@ -147,6 +152,33 @@ EXAMPLES = r"""
         state: absent
         x_auth_token: "{{ authData.x_auth_token }}"
         session_id: "{{ authData.session_data.Id }}"
+
+- name: Delete a session using username/password (with self-session protection)
+  dellemc.openmanage.idrac_session:
+    hostname: 198.162.0.1
+    username: username
+    password: password
+    ca_path: "/path/to/ca_cert.pem"
+    state: absent
+    session_id: 74
+
+- name: Troubleshoot - Query sessions when "Max Sessions Reached" error occurs
+  block:
+    - name: Check current session utilization
+      dellemc.openmanage.idrac_session_info:
+        idrac_ip: 198.162.0.1
+        idrac_user: username
+        idrac_password: password
+        validate_certs: false
+        stale_threshold_minutes: 480
+      register: session_info
+
+    - name: Display session utilization
+      ansible.builtin.debug:
+        msg: >-
+          Sessions: {{ session_info.session_limits.active_sessions }}/{{ session_info.session_limits.max_sessions }}
+          ({{ session_info.session_limits.utilization_percent }}%).
+          Stale sessions: {{ session_info.sessions | selectattr('is_stale', 'equalto', true) | list | length }}
 """
 
 RETURN = r'''
@@ -240,8 +272,8 @@ SELF_SESSION_ERROR_MSG = ("Cannot delete your own active session (session_id: {s
                           "Deleting your authentication session would invalidate the token "
                           "used for this operation. Use a different session or credential "
                           "to manage this session.")
-SELF_SESSION_UNDETERMINED_MSG = ("Self-session protection skipped: caller's auth session ID "
-                                 "cannot be determined when using x_auth_token.")
+SELF_SESSION_UNDETERMINED_MSG = ("Self-session protection not available when using x_auth_token. "
+                                 "The caller's auth session ID cannot be determined from the token alone.")
 
 
 class Session():
@@ -324,12 +356,53 @@ class DeleteSession(Session):
     Deletes a session.
     """
 
+    def _create_auth_session(self):
+        """
+        Creates a temporary authentication session using username/password.
+
+        Temporarily removes X-Auth-Token header to allow session creation
+        via basic auth, then restores the token from the new session.
+
+        Returns:
+            tuple: (auth_session_id, x_auth_token) from the created session.
+                   Returns (None, None) if session creation fails.
+        """
+        session_url = self.get_session_url()
+        payload = {"UserName": self.module.params.get("username"),
+                   "Password": self.module.params.get("password")}
+        self.idrac._headers.pop('X-Auth-Token', None)
+        resp = self.idrac.invoke_request(session_url, "POST", data=payload)
+        if resp.status_code == 201:
+            auth_session_id = resp.json_data.get("Id")
+            token = resp.headers.get('X-Auth-Token')
+            self.idrac._headers['X-Auth-Token'] = token
+            return str(auth_session_id), token
+        return None, None
+
+    def _cleanup_auth_session(self, auth_session_id):
+        """
+        Deletes the temporary authentication session.
+
+        Args:
+            auth_session_id (str): The session ID to clean up.
+        """
+        if auth_session_id:
+            session_url = self.get_session_url()
+            try:
+                self.idrac.invoke_request(session_url + f"/{auth_session_id}", "DELETE")
+            except HTTPError:
+                pass
+
     def check_self_session(self, session_id):
         """
         Checks if the target session_id is the caller's own auth session.
 
         When using x_auth_token, the caller's auth session ID cannot be
-        determined directly, so the self-protection check is skipped.
+        determined directly, so the self-protection check is skipped with
+        a warning.
+
+        When using username/password, a temporary auth session is created
+        and its ID is compared against the target session_id.
 
         Args:
             session_id (str): The target session ID to delete.
@@ -339,6 +412,19 @@ class DeleteSession(Session):
         """
         x_auth_token = self.module.params.get("x_auth_token")
         if x_auth_token:
+            self.module.warn(SELF_SESSION_UNDETERMINED_MSG)
+            return
+
+        username = self.module.params.get("username")
+        password = self.module.params.get("password")
+        if username and password:
+            self.idrac._headers.pop('X-Auth-Token', None)
+            auth_session_id, token = self._create_auth_session()
+            self.auth_session_id = auth_session_id
+            if auth_session_id is not None and str(session_id) == str(auth_session_id):
+                self._cleanup_auth_session(auth_session_id)
+                self.module.fail_json(
+                    msg=SELF_SESSION_ERROR_MSG.format(session_id=session_id))
             return
 
     def execute(self):
@@ -354,11 +440,13 @@ class DeleteSession(Session):
         Returns:
             None
         """
+        self.auth_session_id = None
         session_id = self.module.params.get("session_id")
         self.check_self_session(session_id)
         session_url = self.get_session_url()
         session_status = self.get_session_status(session_url, session_id)
         if self.module.check_mode:
+            self._cleanup_auth_session(self.auth_session_id)
             if session_status == 200:
                 self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
             else:
@@ -369,14 +457,17 @@ class DeleteSession(Session):
                     session_response = self.idrac.invoke_request(session_url + f"/{session_id}",
                                                                  "DELETE")
                     status = session_response.status_code
+                    self._cleanup_auth_session(self.auth_session_id)
                     if status in [200, 204]:
                         self.module.exit_json(msg=DELETE_SUCCESS_MSG, changed=True)
                 except HTTPError as err:
+                    self._cleanup_auth_session(self.auth_session_id)
                     filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
                     self.module.exit_json(msg=FAILURE_MSG.format(operation="delete"),
                                           error_info=filter_err,
                                           failed=True)
             else:
+                self._cleanup_auth_session(self.auth_session_id)
                 self.module.exit_json(msg=NO_CHANGES_FOUND_MSG)
 
     def get_session_status(self, session_url, session_id):
@@ -426,7 +517,7 @@ def main():
         argument_spec=specs,
         required_if=[
             ["state", "present", ("username", "password",)],
-            ["state", "absent", ("x_auth_token", "session_id",)]
+            ["state", "absent", ("session_id",)]
         ],
         supports_check_mode=True
     )

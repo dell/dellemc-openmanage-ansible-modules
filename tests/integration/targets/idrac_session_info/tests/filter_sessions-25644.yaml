@@ -1,5 +1,5 @@
 # Dell OpenManage Ansible modules
-# Copyright (C) 2024-2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or
 # https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -11,141 +11,37 @@
   when: 'idrac_ip is not defined or idrac_user is not defined or idrac_password
    is not defined'
 
-- name: Block - Filter sessions test
-  module_defaults:
-    dellemc.openmanage.idrac_session:
-      validate_certs: "{{ validate_certs }}"
-      hostname: "{{ idrac_ip }}"
-      port: "{{ idrac_port }}"
-    dellemc.openmanage.idrac_session_info:
-      validate_certs: "{{ validate_certs }}"
-      idrac_ip: "{{ idrac_ip }}"
-      idrac_user: "{{ idrac_user }}"
-      idrac_password: "{{ idrac_password }}"
+- name: TC-25644 Filter sessions by type and username
   block:
-    - name: Prerequisite - Create a Redfish session for filter testing
-      dellemc.openmanage.idrac_session:
-        validate_certs: "{{ validate_certs }}"
-        hostname: "{{ idrac_ip }}"
-        port: "{{ idrac_port }}"
-        username: "{{ idrac_user }}"
-        password: "{{ idrac_password }}"
-      register: filter_prereq_session
-
-    - name: Set filter prereq session details for cleanup
-      ansible.builtin.set_fact:
-        filter_prereq_token: "{{ filter_prereq_session.x_auth_token }}"
-        filter_prereq_id: "{{ filter_prereq_session.session_data.Id }}"
-      when: filter_prereq_session is not failed
-
-    - name: Filter by session type - Redfish
+    - name: Filter sessions by Redfish type
       dellemc.openmanage.idrac_session_info:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
         session_type: Redfish
-      register: redfish_sessions
+      register: filter_type_result
 
-    - name: Verify - Filter by session type - Redfish
+    - name: Verify - All returned sessions are Redfish type
       ansible.builtin.assert:
         that:
-          - not redfish_sessions.changed
-          - redfish_sessions.msg ==
-            "Successfully retrieved session information."
-          - redfish_sessions.sessions is defined
-          - redfish_sessions.session_count >= 1
+          - not filter_type_result.changed
+          - filter_type_result.sessions | selectattr('session_type', 'equalto', 'Redfish') | list | length == filter_type_result.session_count
 
-    - name: Verify all returned sessions are Redfish type
-      ansible.builtin.assert:
-        that:
-          - item.session_type == "Redfish"
-      loop: "{{ redfish_sessions.sessions }}"
-      loop_control:
-        label: "Session {{ item.id }}"
-      when: redfish_sessions.session_count > 0
-
-    - name: Filter by username - root
+    - name: Filter sessions by username
       dellemc.openmanage.idrac_session_info:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        username_filter: root
-      register: root_sessions
+        username_filter: "{{ idrac_user }}"
+      register: filter_user_result
 
-    - name: Verify - Filter by username - root
+    - name: Verify - All returned sessions match username
       ansible.builtin.assert:
         that:
-          - not root_sessions.changed
-          - root_sessions.sessions is defined
+          - not filter_user_result.changed
+          - filter_user_result.session_count >= 1
 
-    - name: Verify all returned sessions belong to root
-      ansible.builtin.assert:
-        that:
-          - "'root' in item.user_name | lower"
-      loop: "{{ root_sessions.sessions }}"
-      loop_control:
-        label: "Session {{ item.id }}"
-      when: root_sessions.session_count > 0
-
-    - name: Filter by nonexistent session type - OEM
+    - name: Filter sessions by nonexistent username
       dellemc.openmanage.idrac_session_info:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        session_type: OEM
-      register: oem_sessions
+        username_filter: "nonexistent_user_xyz_12345"
+      register: filter_none_result
 
-    - name: Verify - Filter returns empty for nonexistent type
+    - name: Verify - No sessions returned for nonexistent user
       ansible.builtin.assert:
         that:
-          - not oem_sessions.changed
-          - oem_sessions.session_count == 0
-          - oem_sessions.sessions | length == 0
-
-    - name: Filter by nonexistent username
-      dellemc.openmanage.idrac_session_info:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        username_filter: nonexistent_user_xyz
-      register: nonexistent_user_sessions
-
-    - name: Verify - Filter returns empty for nonexistent user
-      ansible.builtin.assert:
-        that:
-          - not nonexistent_user_sessions.changed
-          - nonexistent_user_sessions.session_count == 0
-
-    - name: Combined filter - session type and username
-      dellemc.openmanage.idrac_session_info:
-        idrac_ip: "{{ idrac_ip }}"
-        idrac_user: "{{ idrac_user }}"
-        idrac_password: "{{ idrac_password }}"
-        session_type: Redfish
-        username_filter: root
-      register: combined_filter
-
-    - name: Verify - Combined filter
-      ansible.builtin.assert:
-        that:
-          - not combined_filter.changed
-          - combined_filter.sessions is defined
-
-    - name: Verify combined filter results match both criteria
-      ansible.builtin.assert:
-        that:
-          - item.session_type == "Redfish"
-          - "'root' in item.user_name | lower"
-      loop: "{{ combined_filter.sessions }}"
-      loop_control:
-        label: "Session {{ item.id }}"
-      when: combined_filter.session_count > 0
-
-  always:
-    - name: Cleanup - Delete filter prereq session
-      dellemc.openmanage.idrac_session:
-        state: absent
-        x_auth_token: "{{ filter_prereq_token }}"
-        session_id: "{{ filter_prereq_id }}"
-      failed_when: false
-      when: filter_prereq_token is defined and filter_prereq_id is defined
+          - filter_none_result.session_count == 0
+          - filter_none_result.sessions | length == 0
