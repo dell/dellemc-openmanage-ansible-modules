@@ -1,0 +1,67 @@
+# Dell OpenManage Ansible modules
+# Copyright (C) 2026 Dell Inc. or its subsidiaries. All Rights Reserved.
+
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
+---
+- name: Test that we have an iDRAC host, iDRAC username and iDRAC password
+  ansible.builtin.fail:
+    msg: 'Please define the following variables: idrac_ip, idrac_user and
+     idrac_password.'
+  when: idrac_ip is not defined or idrac_user is not defined or
+   idrac_password is not defined
+
+- name: Check iDRAC firmware version
+  ansible.builtin.include_tasks: _check_idrac_version.yml
+
+- block:
+    - name: Query BIOS attributes for cross-model detection
+      dellemc.openmanage.idrac_bios_registry_info: {}
+      register: model_result
+
+    - name: Verify module succeeded
+      ansible.builtin.assert:
+        that:
+          - model_result is not failed
+          - model_result is succeeded
+
+    - name: Verify required diagnostic fields are present
+      ansible.builtin.assert:
+        that:
+          - model_result.idrac_generation is defined
+          - model_result.idrac_firmware_version is defined
+          - model_result.idrac_model is defined
+
+    - name: Verify idrac_model matches expected generation
+      ansible.builtin.assert:
+        that:
+          - (model_result.idrac_generation | int in [14, 15, 16] and model_result.idrac_model == 'iDRAC 9') or
+            (model_result.idrac_generation | int >= 17 and model_result.idrac_model == 'iDRAC 10')
+
+    - name: Verify generation-specific attribute list is returned
+      ansible.builtin.assert:
+        that:
+          - model_result.bios_attributes is defined
+          - model_result.bios_attributes is iterable
+          - model_result.attribute_count | int > 0
+
+    - name: Verify changed flag is false (read-only operation)
+      ansible.builtin.assert:
+        that:
+          - model_result.changed is defined
+          - model_result.changed is false
+
+    - name: Display cross-model detection summary
+      ansible.builtin.debug:
+        msg:
+          - "iDRAC Generation: {{ model_result.idrac_generation }}"
+          - "iDRAC Model: {{ model_result.idrac_model }}"
+          - "Firmware Version: {{ model_result.idrac_firmware_version }}"
+          - "Attribute Count: {{ model_result.attribute_count }}"
+
+  module_defaults:
+    dellemc.openmanage.idrac_bios_registry_info:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      validate_certs: "{{ validate_certs }}"
